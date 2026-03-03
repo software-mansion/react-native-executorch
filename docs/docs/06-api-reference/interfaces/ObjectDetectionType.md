@@ -1,6 +1,6 @@
 # Interface: ObjectDetectionType\<L\>
 
-Defined in: [types/objectDetection.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L84)
+Defined in: [types/objectDetection.ts:85](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L85)
 
 Return type for the `useObjectDetection` hook.
 Manages the state and operations for Computer Vision object detection tasks.
@@ -19,7 +19,7 @@ The [LabelEnum](../type-aliases/LabelEnum.md) representing the model's class lab
 
 > **downloadProgress**: `number`
 
-Defined in: [types/objectDetection.ts:103](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L103)
+Defined in: [types/objectDetection.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L104)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -29,7 +29,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [types/objectDetection.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L88)
+Defined in: [types/objectDetection.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L89)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during detection.
 
@@ -37,31 +37,31 @@ Contains the error object if the model failed to load, download, or encountered 
 
 ### forward()
 
-> **forward**: (`imageSource`, `detectionThreshold?`) => `Promise`\<[`Detection`](Detection.md)\<`L`\>[]\>
+> **forward**: (`input`, `detectionThreshold?`) => `Promise`\<[`Detection`](Detection.md)\<`L`\>[]\>
 
-Defined in: [types/objectDetection.ts:112](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L112)
+Defined in: [types/objectDetection.ts:114](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L114)
 
-Executes the model's forward pass to detect objects within the provided image.
+Executes the model's forward pass with automatic input type detection.
 
 #### Parameters
 
-##### imageSource
+##### input
 
-`string`
+Image source (string path/URI or PixelData object)
 
-A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
+`string` | [`PixelData`](PixelData.md)
 
 ##### detectionThreshold?
 
 `number`
 
-An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Default is 0.7.
+An optional number between 0 and 1 representing the minimum confidence score. Default is 0.7.
 
 #### Returns
 
 `Promise`\<[`Detection`](Detection.md)\<`L`\>[]\>
 
-A Promise that resolves to an array of `Detection` objects, where each object typically contains bounding box coordinates, a class label, and a confidence score.
+A Promise that resolves to an array of `Detection` objects.
 
 #### Throws
 
@@ -73,7 +73,7 @@ If the model is not loaded or is currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [types/objectDetection.ts:98](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L98)
+Defined in: [types/objectDetection.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L99)
 
 Indicates whether the model is currently processing an image.
 
@@ -83,6 +83,34 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [types/objectDetection.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L93)
+Defined in: [types/objectDetection.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L94)
 
 Indicates whether the object detection model is loaded and ready to process images.
+
+---
+
+### runOnFrame
+
+> **runOnFrame**: (`frame`, `detectionThreshold`) => [`Detection`](Detection.md)\<`L`\>[] \| `null`
+
+Defined in: [types/objectDetection.ts:132](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L132)
+
+Synchronous worklet function for real-time VisionCamera frame processing.
+Automatically handles native buffer extraction and cleanup.
+
+**Use this for VisionCamera frame processing in worklets.**
+For async processing, use `forward()` instead.
+
+Available after model is loaded (`isReady: true`).
+
+#### Param
+
+VisionCamera Frame object
+
+#### Param
+
+The threshold for detection sensitivity.
+
+#### Returns
+
+Array of Detection objects representing detected items in the frame.

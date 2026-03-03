@@ -1,6 +1,6 @@
 # Interface: ObjectDetectionProps\<C\>
 
-Defined in: [types/objectDetection.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L71)
+Defined in: [types/objectDetection.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L72)
 
 Props for the `useObjectDetection` hook.
 
@@ -18,7 +18,7 @@ A [ObjectDetectionModelSources](../type-aliases/ObjectDetectionModelSources.md) 
 
 > **model**: `C`
 
-Defined in: [types/objectDetection.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L72)
+Defined in: [types/objectDetection.ts:73](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L73)
 
 The model config containing `modelName` and `modelSource`.
 
@@ -28,6 +28,6 @@ The model config containing `modelName` and `modelSource`.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/objectDetection.ts:73](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L73)
+Defined in: [types/objectDetection.ts:74](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L74)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

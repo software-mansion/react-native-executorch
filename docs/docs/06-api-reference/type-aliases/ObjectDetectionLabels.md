@@ -2,7 +2,7 @@
 
 > **ObjectDetectionLabels**\<`M`\> = `ResolveLabelsFor`\<`M`, `ModelConfigsType`\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:44](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L44)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L42)
 
 Resolves the [LabelEnum](LabelEnum.md) for a given built-in object detection model name.
 

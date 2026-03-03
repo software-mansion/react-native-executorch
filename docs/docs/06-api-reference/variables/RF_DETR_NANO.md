@@ -12,4 +12,4 @@ Defined in: [constants/modelUrls.ts:402](https://github.com/software-mansion/rea
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano-detector/resolve/v0.8.0/rf-detr-nano.pte"` = `RF_DETR_NANO_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-rfdetr-nano-detector/resolve/v0.8.0/rfdetr_detector.pte"` = `RF_DETR_NANO_MODEL`

@@ -2,7 +2,7 @@
 
 > `const` **DEEPLAB_V3_RESNET101_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:614](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L614)
+Defined in: [constants/modelUrls.ts:624](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L624)
 
 ## Type Declaration
 

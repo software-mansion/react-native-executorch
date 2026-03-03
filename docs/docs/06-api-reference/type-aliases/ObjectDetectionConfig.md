@@ -2,7 +2,7 @@
 
 > **ObjectDetectionConfig**\<`T`\> = `object`
 
-Defined in: [types/objectDetection.ts:58](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L58)
+Defined in: [types/objectDetection.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L59)
 
 Configuration for a custom object detection model.
 
@@ -18,7 +18,7 @@ Configuration for a custom object detection model.
 
 > **labelMap**: `T`
 
-Defined in: [types/objectDetection.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L59)
+Defined in: [types/objectDetection.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L60)
 
 ---
 
@@ -26,7 +26,7 @@ Defined in: [types/objectDetection.ts:59](https://github.com/software-mansion/re
 
 > `optional` **preprocessorConfig**: `object`
 
-Defined in: [types/objectDetection.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L60)
+Defined in: [types/objectDetection.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L61)
 
 #### normMean?
 
