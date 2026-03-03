@@ -1,4 +1,4 @@
-import { LabelEnum, ResourceSource } from '../../types/common';
+import { LabelEnum, PixelData, ResourceSource } from '../../types/common';
 import {
   Detection,
   ObjectDetectionConfig,
@@ -108,6 +108,20 @@ export class ObjectDetectionModule<
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the provided label map.
    */
+  /**
+   * Executes the model's forward pass to detect objects within the provided image.
+   *
+   * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
+   * @param detectionThreshold - Minimum confidence score for a detection to be included. Default is 0.7.
+   * @returns A Promise resolving to an array of {@link Detection} objects.
+   */
+  override async forward(
+    input: string | PixelData,
+    detectionThreshold = 0.7
+  ): Promise<Detection<ResolveLabels<T>>[]> {
+    return super.forward(input, detectionThreshold);
+  }
+
   static async fromCustomConfig<L extends LabelEnum>(
     modelSource: ResourceSource,
     config: ObjectDetectionConfig<L>,
