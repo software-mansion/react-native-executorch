@@ -2,6 +2,20 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from './common';
 
 /**
+ * Capabilities a multimodal LLM can have.
+ * @category Types
+ */
+export type LLMCapability = 'vision' | 'audio';
+
+/**
+ * Derives the media argument shape for `sendMessage` from a capabilities tuple.
+ * @category Types
+ */
+export type MediaArg<C extends readonly LLMCapability[]> =
+  ('vision' extends C[number] ? { imagePath?: string } : object) &
+    ('audio' extends C[number] ? { audioPath?: string } : object);
+
+/**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
  *
  * @category Types
@@ -21,9 +35,11 @@ export interface LLMProps {
      */
     tokenizerConfigSource: ResourceSource;
     /**
-     * Set to `true` for vision-language models that accept image inputs via `sendMessage`.
+     * Optional list of modality capabilities the model supports.
+     * Determines the type of the `media` argument in `sendMessage`.
+     * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
      */
-    isMultimodal?: boolean;
+    capabilities?: readonly LLMCapability[];
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -121,22 +137,23 @@ export interface LLMTypeBase {
 }
 
 /**
- * Return type for `useLLM` when `model.isMultimodal` is `true`.
- * `sendMessage` accepts an optional `mediaPath` argument for image inputs.
- *
+ * Return type for `useLLM` when `model.capabilities` is provided.
+ * `sendMessage` accepts a typed `media` object based on declared capabilities.
  * @category Types
  */
-export interface LLMTypeMultimodal extends LLMTypeBase {
+export interface LLMTypeMultimodal<
+  C extends readonly LLMCapability[] = readonly LLMCapability[],
+> extends LLMTypeBase {
   /**
    * Function to add user message to conversation.
-   * Pass `mediaPath` with a local image path to send a multimodal message.
+   * Pass a `media` object whose shape is determined by the declared capabilities.
    * After model responds, `messageHistory` will be updated.
    *
    * @param message - The message string to send.
-   * @param mediaPath - Optional local file path to an image.
+   * @param media - Optional media object (e.g. `{ imagePath }` for vision, `{ audioPath }` for audio).
    * @returns The model's response as a `string`.
    */
-  sendMessage: (message: string, mediaPath?: string) => Promise<string>;
+  sendMessage: (message: string, media?: MediaArg<C>) => Promise<string>;
 }
 
 /**
