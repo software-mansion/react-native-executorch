@@ -312,8 +312,9 @@ export class LLMController {
 
   public async sendMessage(
     message: string,
-    mediaPath?: string
+    media?: { imagePath?: string; audioPath?: string }
   ): Promise<string> {
+    const mediaPath = media?.imagePath ?? media?.audioPath;
     const newMessage: Message = {
       content: message,
       role: 'user',
