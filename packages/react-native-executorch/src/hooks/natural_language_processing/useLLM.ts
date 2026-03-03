@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  LLMCapability,
   LLMConfig,
   LLMProps,
   LLMTool,
@@ -15,11 +16,11 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  *
  * @category Hooks
  * @param model - Object containing model, tokenizer, and tokenizer config sources.
- * @returns An object implementing the `LLMTypeMultimodal` interface when `model.isMultimodal` is `true`, otherwise `LLMType`.
+ * @returns An object implementing the `LLMTypeMultimodal` interface when `model.capabilities` is provided, otherwise `LLMType`.
  */
-export function useLLM(
-  props: LLMProps & { model: { isMultimodal: true } }
-): LLMTypeMultimodal;
+export function useLLM<C extends readonly LLMCapability[]>(
+  props: LLMProps & { model: { capabilities: C } }
+): LLMTypeMultimodal<C>;
 export function useLLM(props: LLMProps): LLMType;
 export function useLLM({
   model,

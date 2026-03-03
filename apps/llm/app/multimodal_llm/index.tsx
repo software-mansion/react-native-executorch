@@ -35,7 +35,7 @@ function MultimodalLLMScreen() {
 
   const vlm = useLLM({
     model: {
-      isMultimodal: true,
+      capabilities: ['vision'] as const,
       modelSource:
         'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte',
       tokenizerSource:
@@ -70,7 +70,10 @@ function MultimodalLLMScreen() {
     const currentImageUri = imageUri;
     setImageUri(null);
     try {
-      await vlm.sendMessage(text, currentImageUri ?? undefined);
+      await vlm.sendMessage(
+        text,
+        currentImageUri ? { imagePath: currentImageUri } : undefined
+      );
     } catch (e) {
       console.error('Generation error:', e);
     }
