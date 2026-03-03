@@ -122,3 +122,8 @@ worklet
 worklets
 BGRA
 RGBA
+DETR
+detr
+metaprogramming
+ktlint
+lefthook

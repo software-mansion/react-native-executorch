@@ -74,6 +74,7 @@
 
 ## Models - Object Detection
 
+- [RF_DETR_NANO](variables/RF_DETR_NANO.md)
 - [SSDLITE_320_MOBILENET_V3_LARGE](variables/SSDLITE_320_MOBILENET_V3_LARGE.md)
 
 ## Models - Semantic Segmentation
@@ -198,6 +199,8 @@
 - [Logger](classes/Logger.md)
 - [RnExecutorchError](classes/RnExecutorchError.md)
 - [Frame](interfaces/Frame.md)
+- [IMAGENET1K_MEAN](variables/IMAGENET1K_MEAN.md)
+- [IMAGENET1K_STD](variables/IMAGENET1K_STD.md)
 
 ## TTS Supported Voices
 
@@ -277,6 +280,10 @@
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
 - [ModelNameOf](type-aliases/ModelNameOf.md)
+- [ObjectDetectionConfig](type-aliases/ObjectDetectionConfig.md)
+- [ObjectDetectionLabels](type-aliases/ObjectDetectionLabels.md)
+- [ObjectDetectionModelName](type-aliases/ObjectDetectionModelName.md)
+- [ObjectDetectionModelSources](type-aliases/ObjectDetectionModelSources.md)
 - [OCRLanguage](type-aliases/OCRLanguage.md)
 - [ResourceSource](type-aliases/ResourceSource.md)
 - [SegmentationLabels](type-aliases/SegmentationLabels.md)

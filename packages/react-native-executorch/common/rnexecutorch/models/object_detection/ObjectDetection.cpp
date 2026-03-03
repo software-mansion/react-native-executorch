@@ -10,11 +10,13 @@
 namespace rnexecutorch::models::object_detection {
 
 ObjectDetection::ObjectDetection(
-    const std::string &modelSource,
+    const std::string &modelSource, std::vector<float> normMean,
+    std::vector<float> normStd, std::vector<std::string> labelNames,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : VisionModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker),
+      labelNames_(std::move(labelNames)) {
   auto inputTensors = getAllInputShapes();
-  if (inputTensors.size() == 0) {
+  if (inputTensors.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
@@ -30,6 +32,18 @@ ObjectDetection::ObjectDetection(
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
+  if (normMean.size() == 3) {
+    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  } else if (!normMean.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normMean must have 3 elements — ignoring provided value.");
+  }
+  if (normStd.size() == 3) {
+    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  } else if (!normStd.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normStd must have 3 elements — ignoring provided value.");
+  }
 }
 
 cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
@@ -97,8 +111,15 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
     float y1 = bboxes[i * 4 + 1] * heightRatio;
     float x2 = bboxes[i * 4 + 2] * widthRatio;
     float y2 = bboxes[i * 4 + 3] * heightRatio;
-    detections.emplace_back(x1, y1, x2, y2, static_cast<int>(labels[i]),
-                            scores[i]);
+    auto labelIdx = static_cast<std::size_t>(labels[i]);
+    if (labelIdx >= labelNames_.size()) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::InvalidConfig,
+          "Model output class index " + std::to_string(labelIdx) +
+              " exceeds labelNames size " + std::to_string(labelNames_.size()) +
+              ". Ensure the labelMap covers all model output classes.");
+    }
+    detections.emplace_back(x1, y1, x2, y2, labelNames_[labelIdx], scores[i]);
   }
 
   return utils::nonMaxSuppression(detections);
@@ -117,7 +138,10 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
 
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+      (normMean_ && normStd_)
+          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
+                                                  *normMean_, *normStd_)
+          : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

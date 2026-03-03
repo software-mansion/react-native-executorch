@@ -1,4 +1,3 @@
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, LabelEnum } from '../../types/common';
 import {
   DeeplabLabel,
@@ -10,8 +9,12 @@ import {
 } from '../../types/semanticSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
 import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
+import {
+  BaseLabeledModule,
+  fetchModelPath,
+  ResolveLabels as ResolveLabelsFor,
+} from '../BaseLabeledModule';
 
 const PascalVocSegmentationConfig = {
   labelMap: DeeplabLabel,
@@ -55,13 +58,9 @@ type ModelConfigsType = typeof ModelConfigs;
 export type SegmentationLabels<M extends SemanticSegmentationModelName> =
   ModelConfigsType[M]['labelMap'];
 
-/**
- * @internal
- * Resolves the label type: if `T` is a {@link SemanticSegmentationModelName}, looks up its labels
- * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
- */
+/** @internal */
 type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
-  T extends SemanticSegmentationModelName ? SegmentationLabels<T> : T;
+  ResolveLabelsFor<T, ModelConfigsType>;
 
 /**
  * Generic semantic segmentation module with type-safe label maps.
@@ -80,21 +79,10 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
  */
 export class SemanticSegmentationModule<
   T extends SemanticSegmentationModelName | LabelEnum,
-> extends BaseModule {
-  private labelMap: ResolveLabels<T>;
-  private allClassNames: string[];
-
+> extends BaseLabeledModule<ResolveLabels<T>> {
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
-    super();
-    this.labelMap = labelMap;
-    this.allClassNames = Object.keys(this.labelMap).filter((k) =>
-      isNaN(Number(k))
-    );
-    this.nativeModule = nativeModule;
+    super(labelMap, nativeModule);
   }
-
-  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() {}
 
   /**
    * Creates a segmentation instance for a built-in model.
@@ -124,17 +112,13 @@ export class SemanticSegmentationModule<
     ] as SemanticSegmentationConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-      );
-    }
+    const allClassNames = Object.keys(labelMap).filter((k) => isNaN(Number(k)));
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadSemanticSegmentation(
-      paths[0],
+      modelPath,
       normMean,
-      normStd
+      normStd,
+      allClassNames
     );
     return new SemanticSegmentationModule<ModelNameOf<C>>(
       labelMap as ResolveLabels<ModelNameOf<C>>,
@@ -165,19 +149,17 @@ export class SemanticSegmentationModule<
     config: SemanticSegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<SemanticSegmentationModule<L>> {
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
+    const allClassNames = Object.keys(config.labelMap).filter((k) =>
+      isNaN(Number(k))
+    );
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadSemanticSegmentation(
-      paths[0],
+      modelPath,
       normMean,
-      normStd
+      normStd,
+      allClassNames
     );
     return new SemanticSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
@@ -212,7 +194,6 @@ export class SemanticSegmentationModule<
 
     const nativeResult = await this.nativeModule.generate(
       imageSource,
-      this.allClassNames,
       classesOfInterestNames,
       resizeToInput
     );

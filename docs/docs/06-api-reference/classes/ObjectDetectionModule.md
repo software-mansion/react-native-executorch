@@ -1,26 +1,21 @@
-# Class: ObjectDetectionModule
+# Class: ObjectDetectionModule\<T\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L14)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L59)
 
-Module for object detection tasks.
+Generic object detection module with type-safe label maps.
 
 ## Extends
 
-- `VisionModule`\<[`Detection`](../interfaces/Detection.md)[]\>
+- `VisionLabeledModule`\<[`Detection`](../interfaces/Detection.md)\<`ResolveLabels`\<`T`\>\>[], `ResolveLabels`\<`T`\>\>
 
-## Constructors
+## Type Parameters
 
-### Constructor
+### T
 
-> **new ObjectDetectionModule**(): `ObjectDetectionModule`
+`T` _extends_ [`ObjectDetectionModelName`](../type-aliases/ObjectDetectionModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
 
-#### Returns
-
-`ObjectDetectionModule`
-
-#### Inherited from
-
-`VisionModule<Detection[]>.constructor`
+Either a built-in model name (e.g. `'ssdlite-320-mobilenet-v3-large'`)
+or a custom [LabelEnum](../type-aliases/LabelEnum.md) label map.
 
 ## Properties
 
@@ -92,7 +87,19 @@ Model-specific output (e.g., detections, classifications, embeddings)
 
 #### Inherited from
 
-`VisionModule.generateFromFrame`
+`VisionLabeledModule.generateFromFrame`
+
+---
+
+### labelMap
+
+> `protected` `readonly` **labelMap**: `ResolveLabels`
+
+Defined in: [modules/computer_vision/VisionLabeledModule.ts:16](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VisionLabeledModule.ts#L16)
+
+#### Inherited from
+
+`VisionLabeledModule.labelMap`
 
 ---
 
@@ -108,7 +115,7 @@ Native module instance (JSI Host Object)
 
 #### Inherited from
 
-`VisionModule.nativeModule`
+`VisionLabeledModule.nativeModule`
 
 ## Accessors
 
@@ -154,7 +161,7 @@ const frameOutput = useFrameOutput({
 
 #### Inherited from
 
-`VisionModule.runOnFrame`
+`VisionLabeledModule.runOnFrame`
 
 ## Methods
 
@@ -174,70 +181,41 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 #### Inherited from
 
-`VisionModule.delete`
+`VisionLabeledModule.delete`
 
 ---
 
 ### forward()
 
-> **forward**(`input`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
+> **forward**(`input`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)\<`ResolveLabels`\<`T`, \{ `rf-detr-nano`: \{ `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `ssdlite-320-mobilenet-v3-large`: \{ `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L46)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:118](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L118)
 
-Executes the model's forward pass with automatic input type detection.
-
-Supports two input types:
-
-1. **String path/URI**: File path, URL, or Base64-encoded string
-2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
-
-**Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-This method is async and cannot be called in worklet context.
+Executes the model's forward pass to detect objects within the provided image.
 
 #### Parameters
 
 ##### input
 
-Image source (string path or PixelData object)
+A string image source (file path, URI, or Base64) or a [PixelData](../interfaces/PixelData.md) object.
 
 `string` | [`PixelData`](../interfaces/PixelData.md)
 
 ##### detectionThreshold?
 
-`number` = `0.5`
+`number` = `0.7`
+
+Minimum confidence score for a detection to be included. Default is 0.7.
 
 #### Returns
 
-`Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
+`Promise`\<[`Detection`](../interfaces/Detection.md)\<`ResolveLabels`\<`T`, \{ `rf-detr-nano`: \{ `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `ssdlite-320-mobilenet-v3-large`: \{ `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
 
-A Promise that resolves to the model output.
-
-#### Example
-
-```typescript
-// String path (async)
-const result1 = await model.forward('file:///path/to/image.jpg');
-
-// Pixel data (async)
-const result2 = await model.forward({
-  dataPtr: new Uint8Array(pixelBuffer),
-  sizes: [480, 640, 3],
-  scalarType: ScalarType.BYTE,
-});
-
-// For VisionCamera frames, use runOnFrame in worklet:
-const frameOutput = useFrameOutput({
-  onFrame(frame) {
-    'worklet';
-    if (!model.runOnFrame) return;
-    const result = model.runOnFrame(frame);
-  },
-});
-```
+A Promise resolving to an array of [Detection](../interfaces/Detection.md) objects.
 
 #### Overrides
 
-`VisionModule.forward`
+`VisionLabeledModule.forward`
 
 ---
 
@@ -268,7 +246,7 @@ Array of output tensors.
 
 #### Inherited from
 
-`VisionModule.forwardET`
+`VisionLabeledModule.forwardET`
 
 ---
 
@@ -302,39 +280,90 @@ The input shape as an array of numbers.
 
 #### Inherited from
 
-`VisionModule.getInputShape`
+`VisionLabeledModule.getInputShape`
 
 ---
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(): `Promise`\<`void`\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L22)
+Defined in: [modules/computer_vision/VisionLabeledModule.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VisionLabeledModule.ts#L25)
 
-Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-To track the download progress, supply a callback function `onDownloadProgressCallback`.
-
-#### Parameters
-
-##### model
-
-Object containing `modelSource`.
-
-###### modelSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-##### onDownloadProgressCallback?
-
-(`progress`) => `void`
-
-Optional callback to monitor download progress.
+Load the model and prepare it for inference.
 
 #### Returns
 
 `Promise`\<`void`\>
 
-#### Overrides
+#### Inherited from
 
-`VisionModule.load`
+`VisionLabeledModule.load`
+
+---
+
+### fromCustomConfig()
+
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`ObjectDetectionModule`\<`L`\>\>
+
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:125](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L125)
+
+#### Type Parameters
+
+##### L
+
+`L` _extends_ `Readonly`\<`Record`\<`string`, `string` \| `number`\>\>
+
+#### Parameters
+
+##### modelSource
+
+[`ResourceSource`](../type-aliases/ResourceSource.md)
+
+##### config
+
+[`ObjectDetectionConfig`](../type-aliases/ObjectDetectionConfig.md)\<`L`\>
+
+##### onDownloadProgress?
+
+(`progress`) => `void`
+
+#### Returns
+
+`Promise`\<`ObjectDetectionModule`\<`L`\>\>
+
+---
+
+### fromModelName()
+
+> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`ObjectDetectionModule`\<`ModelNameOf`\<`C`\>\>\>
+
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:73](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L73)
+
+Creates an object detection instance for a built-in model.
+
+#### Type Parameters
+
+##### C
+
+`C` _extends_ [`ObjectDetectionModelSources`](../type-aliases/ObjectDetectionModelSources.md)
+
+#### Parameters
+
+##### config
+
+`C`
+
+A [ObjectDetectionModelSources](../type-aliases/ObjectDetectionModelSources.md) object specifying which model to load and where to fetch it from.
+
+##### onDownloadProgress?
+
+(`progress`) => `void`
+
+Optional callback to monitor download progress, receiving a value between 0 and 1.
+
+#### Returns
+
+`Promise`\<`ObjectDetectionModule`\<`ModelNameOf`\<`C`\>\>\>
+
+A Promise resolving to an `ObjectDetectionModule` instance typed to the chosen model's label map.

@@ -386,13 +386,23 @@ export const EFFICIENTNET_V2_S = {
 
 // Object detection
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
+const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/rfdetr_detector.pte`;
 
 /**
  * @category Models - Object Detection
  */
 export const SSDLITE_320_MOBILENET_V3_LARGE = {
+  modelName: 'ssdlite-320-mobilenet-v3-large',
   modelSource: SSDLITE_320_MOBILENET_V3_LARGE_MODEL,
-};
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const RF_DETR_NANO = {
+  modelName: 'rf-detr-nano',
+  modelSource: RF_DETR_NANO_MODEL,
+} as const;
 
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =

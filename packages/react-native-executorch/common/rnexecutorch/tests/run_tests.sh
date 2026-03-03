@@ -29,7 +29,6 @@ TEST_EXECUTABLES=(
   "TokenizerModuleTests"
   "SpeechToTextTests"
   "LLMTests"
-  "ImageSegmentationTests"
   "TextToImageTests"
   "OCRTests"
   "VerticalOCRTests"
@@ -47,7 +46,7 @@ TEST_ASSETS=(
 # Models to download (format: "filename|url")
 # ============================================================================
 MODELS=(
-  "style_transfer_candy_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/main/xnnpack/style_transfer_candy_xnnpack.pte"
+  "style_transfer_candy_xnnpack_fp32.pte|https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/main/xnnpack/style_transfer_candy_xnnpack_fp32.pte"
   "efficientnet_v2_s_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.6.0/xnnpack/efficientnet_v2_s_xnnpack.pte"
   "ssdlite320-mobilenetv3-large.pte|https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.6.0/ssdlite320-mobilenetv3-large.pte"
   "test_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/1200px-Cat_November_2010-1a.jpg"
@@ -55,8 +54,8 @@ MODELS=(
   "all-MiniLM-L6-v2_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte"
   "tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json"
   "fsmn-vad_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn-vad_xnnpack.pte"
-  "whisper_tiny_en_encoder_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_encoder_xnnpack.pte"
-  "whisper_tiny_en_decoder_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_decoder_xnnpack.pte"
+  "whisper_tiny_en_encoder_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.7.0/xnnpack/whisper_tiny_en_encoder_xnnpack.pte"
+  "whisper_tiny_en_decoder_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.7.0/xnnpack/whisper_tiny_en_decoder_xnnpack.pte"
   "whisper_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.6.0/tokenizer.json"
   "smolLm2_135M_8da4w.pte|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte"
   "smollm_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json"

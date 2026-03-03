@@ -2,7 +2,7 @@
 
 > `const` **FCN_RESNET50**: `object`
 
-Defined in: [constants/modelUrls.ts:590](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L590)
+Defined in: [constants/modelUrls.ts:600](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L600)
 
 ## Type Declaration
 
