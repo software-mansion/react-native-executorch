@@ -2,10 +2,14 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <map>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
+#include <runner/encoders/vision_encoder.h>
 #include <runner/image.h>
+#include <runner/multimodal_runner.h>
+#include <runner/text_runner.h>
 
 namespace rnexecutorch::models::llm {
 namespace llm = ::executorch::extension::llm;
@@ -43,24 +47,23 @@ const llm::Image &LLM::getOrLoadImage(const std::string &path) {
 }
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
+         std::vector<std::string> capabilities,
          std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
 
-  // Peek at method names to decide text vs multimodal before constructing
-  // runner
-  auto method_names_result = module_->method_names();
-  multimodal_ = method_names_result.ok() &&
-                method_names_result->count(llm::kTokenEmbeddingMethod) > 0 &&
-                method_names_result->count(llm::kTextModelMethod) > 0;
-
-  if (multimodal_) {
-    // Transfer module_ ownership to the runner (same as old MultimodalLLM)
-    runner_ = std::make_unique<example::UnifiedRunner>(
-        nullptr, std::move(module_), tokenizerSource);
+  if (capabilities.empty()) {
+    runner_ = std::make_unique<example::TextRunner>(module_.get(), nullptr,
+                                                    tokenizerSource);
   } else {
-    // Lend module_ as a raw pointer (same as old LLM)
-    runner_ = std::make_unique<example::UnifiedRunner>(module_.get(), nullptr,
-                                                       tokenizerSource);
+    std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
+    for (const auto &cap : capabilities) {
+      if (cap == "vision") {
+        encoders[llm::MultimodalType::Image] =
+            std::make_unique<llm::VisionEncoder>(module_.get());
+      }
+    }
+    runner_ = std::make_unique<example::MultimodalRunner>(
+        std::move(module_), tokenizerSource, std::move(encoders));
   }
 
   auto loadResult = runner_->load();
@@ -104,7 +107,7 @@ std::string LLM::generate(std::string prompt,
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
-  if (!multimodal_) {
+  if (!dynamic_cast<example::MultimodalRunner *>(runner_.get())) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "This is a text-only model. Call generate(prompt, cb).");
@@ -158,8 +161,7 @@ std::string LLM::generate(std::string prompt,
     }
   };
 
-  auto error =
-      runner_->generate(inputs, temperature_, topp_, -1, nativeCallback);
+  auto error = runner_->generate_internal(inputs, nativeCallback);
   if (error != Error::Ok) {
     throw RnExecutorchError(error, "Failed to generate multimodal response");
   }
@@ -242,7 +244,6 @@ void LLM::setTemperature(float temperature) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "Temperature must be non-negative");
   }
-  temperature_ = temperature;
   runner_->set_temperature(temperature);
 }
 
@@ -255,7 +256,6 @@ void LLM::setTopp(float topp) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "Top-p must be between 0.0 and 1.0");
   }
-  topp_ = topp;
   runner_->set_topp(topp);
 }
 

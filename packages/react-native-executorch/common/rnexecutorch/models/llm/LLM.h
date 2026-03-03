@@ -2,12 +2,13 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <runner/base_llm_runner.h>
 #include <runner/image.h>
-#include <runner/unified_runner.h>
 
 namespace rnexecutorch {
 namespace models::llm {
@@ -17,6 +18,7 @@ class LLM : public BaseModel {
 public:
   explicit LLM(const std::string &modelSource,
                const std::string &tokenizerSource,
+               std::vector<std::string> capabilities,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
   // Text-only: pre-rendered prompt string
@@ -42,10 +44,7 @@ public:
   int32_t getMaxContextLength() const;
 
 private:
-  std::unique_ptr<example::UnifiedRunner> runner_;
-  bool multimodal_;
-  float temperature_ = 0.8f;
-  float topp_ = 0.9f;
+  std::unique_ptr<example::BaseLLMRunner> runner_;
   std::unordered_map<std::string, executorch::extension::llm::Image>
       imageCache_;
   const executorch::extension::llm::Image &
@@ -54,5 +53,6 @@ private:
 } // namespace models::llm
 
 REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string,
+                     std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
