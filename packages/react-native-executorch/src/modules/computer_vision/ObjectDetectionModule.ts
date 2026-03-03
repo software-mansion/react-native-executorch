@@ -1,4 +1,4 @@
-import { LabelEnum, ResourceSource, PixelData, Frame } from '../../types/common';
+import { LabelEnum, ResourceSource } from '../../types/common';
 import {
   Detection,
   ObjectDetectionConfig,
@@ -10,13 +10,11 @@ import {
   IMAGENET1K_MEAN,
   IMAGENET1K_STD,
 } from '../../constants/commonVision';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
 import {
-  BaseLabeledModule,
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
 } from '../BaseLabeledModule';
+import { VisionLabeledModule } from './VisionLabeledModule';
 
 const ModelConfigs = {
   'ssdlite-320-mobilenet-v3-large': {
@@ -60,7 +58,7 @@ type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> =
  */
 export class ObjectDetectionModule<
   T extends ObjectDetectionModelName | LabelEnum,
-> extends BaseLabeledModule<ResolveLabels<T>> {
+> extends VisionLabeledModule<Detection<ResolveLabels<T>>[], ResolveLabels<T>> {
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
   }
@@ -135,70 +133,5 @@ export class ObjectDetectionModule<
       config.labelMap as ResolveLabels<L>,
       nativeModule
     );
-  }
-
-  /**
-   * Executes the model's forward pass to detect objects within the provided image.
-   *
-   * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
-   * @param detectionThreshold - Minimum confidence score for a detection to be included. Default is 0.7.
-   * @returns A Promise resolving to an array of {@link Detection} objects.
-   * @throws {RnExecutorchError} If the model is not loaded.
-   */
-  async forward(
-    input: string | PixelData,
-    detectionThreshold: number = 0.7
-  ): Promise<Detection<ResolveLabels<T>>[]> {
-    if (this.nativeModule == null) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded.'
-      );
-    }
-    if (typeof input === 'string') {
-      return await this.nativeModule.generateFromString(
-        input,
-        detectionThreshold
-      );
-    }
-    return await this.nativeModule.generateFromPixels(
-      input,
-      detectionThreshold
-    );
-  }
-
-  /**
-   * Synchronous worklet function for real-time VisionCamera frame processing.
-   * The label names are captured from the module instance — no need to pass them per frame.
-   *
-   * **Use this for VisionCamera frame processing in worklets.**
-   * For async processing, use `forward()` instead.
-   */
-  get runOnFrame():
-    | ((frame: Frame, detectionThreshold: number) => Detection<ResolveLabels<T>>[])
-    | null {
-    if (!this.nativeModule?.generateFromFrame) {
-      return null;
-    }
-
-    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
-
-    return (
-      frame: Frame,
-      detectionThreshold: number
-    ): Detection<ResolveLabels<T>>[] => {
-      'worklet';
-
-      let nativeBuffer: ReturnType<Frame['getNativeBuffer']> | null = null;
-      try {
-        nativeBuffer = frame.getNativeBuffer();
-        const frameData = { nativeBuffer: nativeBuffer.pointer };
-        return nativeGenerateFromFrame(frameData, detectionThreshold);
-      } finally {
-        if (nativeBuffer?.release) {
-          nativeBuffer.release();
-        }
-      }
-    };
   }
 }
