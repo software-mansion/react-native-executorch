@@ -6,6 +6,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <runner/encoders/vision_encoder.h>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::llm;
@@ -152,4 +153,18 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
 TEST_F(LLMTest, EmptyPromptThrows) {
   LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
+}
+
+TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
+  // smolLm2_135M_8da4w.pte has no vision_encoder method
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  auto encoder =
+      std::make_unique<executorch::extension::llm::VisionEncoder>(module.get());
+
+  EXPECT_THROW(
+      { ET_CHECK_OK_OR_RETURN_ERROR(encoder->load()); },
+      rnexecutorch::RnExecutorchError);
 }
