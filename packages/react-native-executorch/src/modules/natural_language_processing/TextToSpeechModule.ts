@@ -15,10 +15,9 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class TextToSpeechModule {
-  /**
-   * Native module instance
-   */
   nativeModule: any = null;
+
+  streamFinished: boolean = false;
 
   /**
    * Loads the model and voice assets specified by the config object.
@@ -132,8 +131,9 @@ export class TextToSpeechModule {
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
-    let finished = false;
     let error: unknown;
+
+    this.streamFinished = false;
 
     const wake = () => {
       waiter?.();
@@ -150,25 +150,25 @@ export class TextToSpeechModule {
             wake();
           }
         );
-        finished = true;
+        this.streamFinished = true;
         wake();
       } catch (e) {
         error = e;
-        finished = true;
+        this.streamFinished = true;
         wake();
       }
     })();
 
-    while (true) {
+    while (!this.streamFinished) {
       if (queue.length > 0) {
         yield queue.shift()!;
-        if (finished && queue.length === 0) {
+        if (this.streamFinished && queue.length === 0) {
           return;
         }
         continue;
       }
       if (error) throw error;
-      if (finished) return;
+      if (this.streamFinished) return;
       await new Promise<void>((r) => (waiter = r));
     }
   }
@@ -188,6 +188,7 @@ export class TextToSpeechModule {
    */
   public streamStop(instant: boolean = true): void {
     this.nativeModule.streamStop(instant);
+    this.streamFinished = true;
   }
 
   /**

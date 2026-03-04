@@ -164,6 +164,13 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
   const handleStop = () => {
     llm.interrupt();
     tts.streamStop(true);
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.stop();
+      } catch (e) {
+        // Source might have already stopped or disconnected
+      }
+    }
   };
 
   const isProcessing = llm.isGenerating || isTtsStreaming;
