@@ -1,6 +1,6 @@
 # Enumeration: CocoLabel
 
-Defined in: [types/objectDetection.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L39)
+Defined in: [constants/commonVision.ts:11](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L11)
 
 COCO dataset class labels used for object detection.
 
@@ -10,7 +10,7 @@ COCO dataset class labels used for object detection.
 
 > **AIRPLANE**: `5`
 
-Defined in: [types/objectDetection.ts:44](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L44)
+Defined in: [constants/commonVision.ts:16](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L16)
 
 ---
 
@@ -18,7 +18,7 @@ Defined in: [types/objectDetection.ts:44](https://github.com/software-mansion/re
 
 > **APPLE**: `53`
 
-Defined in: [types/objectDetection.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L91)
+Defined in: [constants/commonVision.ts:63](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L63)
 
 ---
 
@@ -26,7 +26,7 @@ Defined in: [types/objectDetection.ts:91](https://github.com/software-mansion/re
 
 > **BACKPACK**: `27`
 
-Defined in: [types/objectDetection.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L66)
+Defined in: [constants/commonVision.ts:38](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L38)
 
 ---
 
@@ -34,7 +34,7 @@ Defined in: [types/objectDetection.ts:66](https://github.com/software-mansion/re
 
 > **BANANA**: `52`
 
-Defined in: [types/objectDetection.ts:90](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L90)
+Defined in: [constants/commonVision.ts:62](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L62)
 
 ---
 
@@ -42,7 +42,7 @@ Defined in: [types/objectDetection.ts:90](https://github.com/software-mansion/re
 
 > **BASEBALL**: `39`
 
-Defined in: [types/objectDetection.ts:78](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L78)
+Defined in: [constants/commonVision.ts:50](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L50)
 
 ---
 
@@ -50,7 +50,7 @@ Defined in: [types/objectDetection.ts:78](https://github.com/software-mansion/re
 
 > **BEAR**: `23`
 
-Defined in: [types/objectDetection.ts:62](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L62)
+Defined in: [constants/commonVision.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L34)
 
 ---
 
@@ -58,7 +58,7 @@ Defined in: [types/objectDetection.ts:62](https://github.com/software-mansion/re
 
 > **BED**: `65`
 
-Defined in: [types/objectDetection.ts:103](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L103)
+Defined in: [constants/commonVision.ts:75](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L75)
 
 ---
 
@@ -66,7 +66,7 @@ Defined in: [types/objectDetection.ts:103](https://github.com/software-mansion/r
 
 > **BENCH**: `15`
 
-Defined in: [types/objectDetection.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L54)
+Defined in: [constants/commonVision.ts:26](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L26)
 
 ---
 
@@ -74,7 +74,7 @@ Defined in: [types/objectDetection.ts:54](https://github.com/software-mansion/re
 
 > **BICYCLE**: `2`
 
-Defined in: [types/objectDetection.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L41)
+Defined in: [constants/commonVision.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L13)
 
 ---
 
@@ -82,7 +82,7 @@ Defined in: [types/objectDetection.ts:41](https://github.com/software-mansion/re
 
 > **BIRD**: `16`
 
-Defined in: [types/objectDetection.ts:55](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L55)
+Defined in: [constants/commonVision.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L27)
 
 ---
 
@@ -90,7 +90,7 @@ Defined in: [types/objectDetection.ts:55](https://github.com/software-mansion/re
 
 > **BLENDER**: `83`
 
-Defined in: [types/objectDetection.ts:121](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L121)
+Defined in: [constants/commonVision.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L93)
 
 ---
 
@@ -98,7 +98,7 @@ Defined in: [types/objectDetection.ts:121](https://github.com/software-mansion/r
 
 > **BOAT**: `9`
 
-Defined in: [types/objectDetection.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L48)
+Defined in: [constants/commonVision.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L20)
 
 ---
 
@@ -106,7 +106,7 @@ Defined in: [types/objectDetection.ts:48](https://github.com/software-mansion/re
 
 > **BOOK**: `84`
 
-Defined in: [types/objectDetection.ts:122](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L122)
+Defined in: [constants/commonVision.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L94)
 
 ---
 
@@ -114,7 +114,7 @@ Defined in: [types/objectDetection.ts:122](https://github.com/software-mansion/r
 
 > **BOTTLE**: `44`
 
-Defined in: [types/objectDetection.ts:82](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L82)
+Defined in: [constants/commonVision.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L54)
 
 ---
 
@@ -122,7 +122,7 @@ Defined in: [types/objectDetection.ts:82](https://github.com/software-mansion/re
 
 > **BOWL**: `51`
 
-Defined in: [types/objectDetection.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L89)
+Defined in: [constants/commonVision.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L61)
 
 ---
 
@@ -130,7 +130,7 @@ Defined in: [types/objectDetection.ts:89](https://github.com/software-mansion/re
 
 > **BROCCOLI**: `56`
 
-Defined in: [types/objectDetection.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L94)
+Defined in: [constants/commonVision.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L66)
 
 ---
 
@@ -138,7 +138,7 @@ Defined in: [types/objectDetection.ts:94](https://github.com/software-mansion/re
 
 > **BUS**: `6`
 
-Defined in: [types/objectDetection.ts:45](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L45)
+Defined in: [constants/commonVision.ts:17](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L17)
 
 ---
 
@@ -146,7 +146,7 @@ Defined in: [types/objectDetection.ts:45](https://github.com/software-mansion/re
 
 > **CAKE**: `61`
 
-Defined in: [types/objectDetection.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L99)
+Defined in: [constants/commonVision.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L71)
 
 ---
 
@@ -154,7 +154,7 @@ Defined in: [types/objectDetection.ts:99](https://github.com/software-mansion/re
 
 > **CAR**: `3`
 
-Defined in: [types/objectDetection.ts:42](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L42)
+Defined in: [constants/commonVision.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L14)
 
 ---
 
@@ -162,7 +162,7 @@ Defined in: [types/objectDetection.ts:42](https://github.com/software-mansion/re
 
 > **CARROT**: `57`
 
-Defined in: [types/objectDetection.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L95)
+Defined in: [constants/commonVision.ts:67](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L67)
 
 ---
 
@@ -170,7 +170,7 @@ Defined in: [types/objectDetection.ts:95](https://github.com/software-mansion/re
 
 > **CAT**: `17`
 
-Defined in: [types/objectDetection.ts:56](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L56)
+Defined in: [constants/commonVision.ts:28](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L28)
 
 ---
 
@@ -178,7 +178,7 @@ Defined in: [types/objectDetection.ts:56](https://github.com/software-mansion/re
 
 > **CELL_PHONE**: `77`
 
-Defined in: [types/objectDetection.ts:115](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L115)
+Defined in: [constants/commonVision.ts:87](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L87)
 
 ---
 
@@ -186,7 +186,7 @@ Defined in: [types/objectDetection.ts:115](https://github.com/software-mansion/r
 
 > **CHAIR**: `62`
 
-Defined in: [types/objectDetection.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L100)
+Defined in: [constants/commonVision.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L72)
 
 ---
 
@@ -194,7 +194,7 @@ Defined in: [types/objectDetection.ts:100](https://github.com/software-mansion/r
 
 > **CLOCK**: `85`
 
-Defined in: [types/objectDetection.ts:123](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L123)
+Defined in: [constants/commonVision.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L95)
 
 ---
 
@@ -202,7 +202,7 @@ Defined in: [types/objectDetection.ts:123](https://github.com/software-mansion/r
 
 > **COUCH**: `63`
 
-Defined in: [types/objectDetection.ts:101](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L101)
+Defined in: [constants/commonVision.ts:73](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L73)
 
 ---
 
@@ -210,7 +210,7 @@ Defined in: [types/objectDetection.ts:101](https://github.com/software-mansion/r
 
 > **COW**: `21`
 
-Defined in: [types/objectDetection.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L60)
+Defined in: [constants/commonVision.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L32)
 
 ---
 
@@ -218,7 +218,7 @@ Defined in: [types/objectDetection.ts:60](https://github.com/software-mansion/re
 
 > **CUP**: `47`
 
-Defined in: [types/objectDetection.ts:85](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L85)
+Defined in: [constants/commonVision.ts:57](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L57)
 
 ---
 
@@ -226,7 +226,7 @@ Defined in: [types/objectDetection.ts:85](https://github.com/software-mansion/re
 
 > **DESK**: `69`
 
-Defined in: [types/objectDetection.ts:107](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L107)
+Defined in: [constants/commonVision.ts:79](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L79)
 
 ---
 
@@ -234,7 +234,7 @@ Defined in: [types/objectDetection.ts:107](https://github.com/software-mansion/r
 
 > **DINING_TABLE**: `67`
 
-Defined in: [types/objectDetection.ts:105](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L105)
+Defined in: [constants/commonVision.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L77)
 
 ---
 
@@ -242,7 +242,7 @@ Defined in: [types/objectDetection.ts:105](https://github.com/software-mansion/r
 
 > **DOG**: `18`
 
-Defined in: [types/objectDetection.ts:57](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L57)
+Defined in: [constants/commonVision.ts:29](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L29)
 
 ---
 
@@ -250,7 +250,7 @@ Defined in: [types/objectDetection.ts:57](https://github.com/software-mansion/re
 
 > **DONUT**: `60`
 
-Defined in: [types/objectDetection.ts:98](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L98)
+Defined in: [constants/commonVision.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L70)
 
 ---
 
@@ -258,7 +258,7 @@ Defined in: [types/objectDetection.ts:98](https://github.com/software-mansion/re
 
 > **DOOR**: `71`
 
-Defined in: [types/objectDetection.ts:109](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L109)
+Defined in: [constants/commonVision.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L81)
 
 ---
 
@@ -266,7 +266,7 @@ Defined in: [types/objectDetection.ts:109](https://github.com/software-mansion/r
 
 > **ELEPHANT**: `22`
 
-Defined in: [types/objectDetection.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L61)
+Defined in: [constants/commonVision.ts:33](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L33)
 
 ---
 
@@ -274,7 +274,7 @@ Defined in: [types/objectDetection.ts:61](https://github.com/software-mansion/re
 
 > **EYE**: `30`
 
-Defined in: [types/objectDetection.ts:69](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L69)
+Defined in: [constants/commonVision.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L41)
 
 ---
 
@@ -282,7 +282,7 @@ Defined in: [types/objectDetection.ts:69](https://github.com/software-mansion/re
 
 > **FIRE_HYDRANT**: `11`
 
-Defined in: [types/objectDetection.ts:50](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L50)
+Defined in: [constants/commonVision.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L22)
 
 ---
 
@@ -290,7 +290,7 @@ Defined in: [types/objectDetection.ts:50](https://github.com/software-mansion/re
 
 > **FORK**: `48`
 
-Defined in: [types/objectDetection.ts:86](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L86)
+Defined in: [constants/commonVision.ts:58](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L58)
 
 ---
 
@@ -298,7 +298,7 @@ Defined in: [types/objectDetection.ts:86](https://github.com/software-mansion/re
 
 > **FRISBEE**: `34`
 
-Defined in: [types/objectDetection.ts:73](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L73)
+Defined in: [constants/commonVision.ts:45](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L45)
 
 ---
 
@@ -306,7 +306,7 @@ Defined in: [types/objectDetection.ts:73](https://github.com/software-mansion/re
 
 > **GIRAFFE**: `25`
 
-Defined in: [types/objectDetection.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L64)
+Defined in: [constants/commonVision.ts:36](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L36)
 
 ---
 
@@ -314,7 +314,7 @@ Defined in: [types/objectDetection.ts:64](https://github.com/software-mansion/re
 
 > **HAIR_BRUSH**: `91`
 
-Defined in: [types/objectDetection.ts:129](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L129)
+Defined in: [constants/commonVision.ts:101](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L101)
 
 ---
 
@@ -322,7 +322,7 @@ Defined in: [types/objectDetection.ts:129](https://github.com/software-mansion/r
 
 > **HAIR_DRIER**: `89`
 
-Defined in: [types/objectDetection.ts:127](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L127)
+Defined in: [constants/commonVision.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L99)
 
 ---
 
@@ -330,7 +330,7 @@ Defined in: [types/objectDetection.ts:127](https://github.com/software-mansion/r
 
 > **HANDBAG**: `31`
 
-Defined in: [types/objectDetection.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L70)
+Defined in: [constants/commonVision.ts:42](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L42)
 
 ---
 
@@ -338,7 +338,7 @@ Defined in: [types/objectDetection.ts:70](https://github.com/software-mansion/re
 
 > **HAT**: `26`
 
-Defined in: [types/objectDetection.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L65)
+Defined in: [constants/commonVision.ts:37](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L37)
 
 ---
 
@@ -346,7 +346,7 @@ Defined in: [types/objectDetection.ts:65](https://github.com/software-mansion/re
 
 > **HORSE**: `19`
 
-Defined in: [types/objectDetection.ts:58](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L58)
+Defined in: [constants/commonVision.ts:30](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L30)
 
 ---
 
@@ -354,7 +354,7 @@ Defined in: [types/objectDetection.ts:58](https://github.com/software-mansion/re
 
 > **HOT_DOG**: `58`
 
-Defined in: [types/objectDetection.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L96)
+Defined in: [constants/commonVision.ts:68](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L68)
 
 ---
 
@@ -362,7 +362,7 @@ Defined in: [types/objectDetection.ts:96](https://github.com/software-mansion/re
 
 > **KEYBOARD**: `76`
 
-Defined in: [types/objectDetection.ts:114](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L114)
+Defined in: [constants/commonVision.ts:86](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L86)
 
 ---
 
@@ -370,7 +370,7 @@ Defined in: [types/objectDetection.ts:114](https://github.com/software-mansion/r
 
 > **KITE**: `38`
 
-Defined in: [types/objectDetection.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L77)
+Defined in: [constants/commonVision.ts:49](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L49)
 
 ---
 
@@ -378,7 +378,7 @@ Defined in: [types/objectDetection.ts:77](https://github.com/software-mansion/re
 
 > **KNIFE**: `49`
 
-Defined in: [types/objectDetection.ts:87](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L87)
+Defined in: [constants/commonVision.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L59)
 
 ---
 
@@ -386,7 +386,7 @@ Defined in: [types/objectDetection.ts:87](https://github.com/software-mansion/re
 
 > **LAPTOP**: `73`
 
-Defined in: [types/objectDetection.ts:111](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L111)
+Defined in: [constants/commonVision.ts:83](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L83)
 
 ---
 
@@ -394,7 +394,7 @@ Defined in: [types/objectDetection.ts:111](https://github.com/software-mansion/r
 
 > **MICROWAVE**: `78`
 
-Defined in: [types/objectDetection.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L116)
+Defined in: [constants/commonVision.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L88)
 
 ---
 
@@ -402,7 +402,7 @@ Defined in: [types/objectDetection.ts:116](https://github.com/software-mansion/r
 
 > **MIRROR**: `66`
 
-Defined in: [types/objectDetection.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L104)
+Defined in: [constants/commonVision.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L76)
 
 ---
 
@@ -410,7 +410,7 @@ Defined in: [types/objectDetection.ts:104](https://github.com/software-mansion/r
 
 > **MOTORCYCLE**: `4`
 
-Defined in: [types/objectDetection.ts:43](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L43)
+Defined in: [constants/commonVision.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L15)
 
 ---
 
@@ -418,7 +418,7 @@ Defined in: [types/objectDetection.ts:43](https://github.com/software-mansion/re
 
 > **MOUSE**: `74`
 
-Defined in: [types/objectDetection.ts:112](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L112)
+Defined in: [constants/commonVision.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L84)
 
 ---
 
@@ -426,7 +426,7 @@ Defined in: [types/objectDetection.ts:112](https://github.com/software-mansion/r
 
 > **ORANGE**: `55`
 
-Defined in: [types/objectDetection.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L93)
+Defined in: [constants/commonVision.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L65)
 
 ---
 
@@ -434,7 +434,7 @@ Defined in: [types/objectDetection.ts:93](https://github.com/software-mansion/re
 
 > **OVEN**: `79`
 
-Defined in: [types/objectDetection.ts:117](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L117)
+Defined in: [constants/commonVision.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L89)
 
 ---
 
@@ -442,7 +442,7 @@ Defined in: [types/objectDetection.ts:117](https://github.com/software-mansion/r
 
 > **PARKING**: `14`
 
-Defined in: [types/objectDetection.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L53)
+Defined in: [constants/commonVision.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L25)
 
 ---
 
@@ -450,7 +450,7 @@ Defined in: [types/objectDetection.ts:53](https://github.com/software-mansion/re
 
 > **PERSON**: `1`
 
-Defined in: [types/objectDetection.ts:40](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L40)
+Defined in: [constants/commonVision.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L12)
 
 ---
 
@@ -458,7 +458,7 @@ Defined in: [types/objectDetection.ts:40](https://github.com/software-mansion/re
 
 > **PIZZA**: `59`
 
-Defined in: [types/objectDetection.ts:97](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L97)
+Defined in: [constants/commonVision.ts:69](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L69)
 
 ---
 
@@ -466,7 +466,7 @@ Defined in: [types/objectDetection.ts:97](https://github.com/software-mansion/re
 
 > **PLATE**: `45`
 
-Defined in: [types/objectDetection.ts:83](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L83)
+Defined in: [constants/commonVision.ts:55](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L55)
 
 ---
 
@@ -474,7 +474,7 @@ Defined in: [types/objectDetection.ts:83](https://github.com/software-mansion/re
 
 > **POTTED_PLANT**: `64`
 
-Defined in: [types/objectDetection.ts:102](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L102)
+Defined in: [constants/commonVision.ts:74](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L74)
 
 ---
 
@@ -482,7 +482,7 @@ Defined in: [types/objectDetection.ts:102](https://github.com/software-mansion/r
 
 > **REFRIGERATOR**: `82`
 
-Defined in: [types/objectDetection.ts:120](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L120)
+Defined in: [constants/commonVision.ts:92](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L92)
 
 ---
 
@@ -490,7 +490,7 @@ Defined in: [types/objectDetection.ts:120](https://github.com/software-mansion/r
 
 > **REMOTE**: `75`
 
-Defined in: [types/objectDetection.ts:113](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L113)
+Defined in: [constants/commonVision.ts:85](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L85)
 
 ---
 
@@ -498,7 +498,7 @@ Defined in: [types/objectDetection.ts:113](https://github.com/software-mansion/r
 
 > **SANDWICH**: `54`
 
-Defined in: [types/objectDetection.ts:92](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L92)
+Defined in: [constants/commonVision.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L64)
 
 ---
 
@@ -506,7 +506,7 @@ Defined in: [types/objectDetection.ts:92](https://github.com/software-mansion/re
 
 > **SCISSORS**: `87`
 
-Defined in: [types/objectDetection.ts:125](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L125)
+Defined in: [constants/commonVision.ts:97](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L97)
 
 ---
 
@@ -514,7 +514,7 @@ Defined in: [types/objectDetection.ts:125](https://github.com/software-mansion/r
 
 > **SHEEP**: `20`
 
-Defined in: [types/objectDetection.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L59)
+Defined in: [constants/commonVision.ts:31](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L31)
 
 ---
 
@@ -522,7 +522,7 @@ Defined in: [types/objectDetection.ts:59](https://github.com/software-mansion/re
 
 > **SHOE**: `29`
 
-Defined in: [types/objectDetection.ts:68](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L68)
+Defined in: [constants/commonVision.ts:40](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L40)
 
 ---
 
@@ -530,7 +530,7 @@ Defined in: [types/objectDetection.ts:68](https://github.com/software-mansion/re
 
 > **SINK**: `81`
 
-Defined in: [types/objectDetection.ts:119](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L119)
+Defined in: [constants/commonVision.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L91)
 
 ---
 
@@ -538,7 +538,7 @@ Defined in: [types/objectDetection.ts:119](https://github.com/software-mansion/r
 
 > **SKATEBOARD**: `41`
 
-Defined in: [types/objectDetection.ts:79](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L79)
+Defined in: [constants/commonVision.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L51)
 
 ---
 
@@ -546,7 +546,7 @@ Defined in: [types/objectDetection.ts:79](https://github.com/software-mansion/re
 
 > **SKIS**: `35`
 
-Defined in: [types/objectDetection.ts:74](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L74)
+Defined in: [constants/commonVision.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L46)
 
 ---
 
@@ -554,7 +554,7 @@ Defined in: [types/objectDetection.ts:74](https://github.com/software-mansion/re
 
 > **SNOWBOARD**: `36`
 
-Defined in: [types/objectDetection.ts:75](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L75)
+Defined in: [constants/commonVision.ts:47](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L47)
 
 ---
 
@@ -562,7 +562,7 @@ Defined in: [types/objectDetection.ts:75](https://github.com/software-mansion/re
 
 > **SPOON**: `50`
 
-Defined in: [types/objectDetection.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L88)
+Defined in: [constants/commonVision.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L60)
 
 ---
 
@@ -570,7 +570,7 @@ Defined in: [types/objectDetection.ts:88](https://github.com/software-mansion/re
 
 > **SPORTS**: `37`
 
-Defined in: [types/objectDetection.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L76)
+Defined in: [constants/commonVision.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L48)
 
 ---
 
@@ -578,7 +578,7 @@ Defined in: [types/objectDetection.ts:76](https://github.com/software-mansion/re
 
 > **STOP_SIGN**: `13`
 
-Defined in: [types/objectDetection.ts:52](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L52)
+Defined in: [constants/commonVision.ts:24](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L24)
 
 ---
 
@@ -586,7 +586,7 @@ Defined in: [types/objectDetection.ts:52](https://github.com/software-mansion/re
 
 > **STREET_SIGN**: `12`
 
-Defined in: [types/objectDetection.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L51)
+Defined in: [constants/commonVision.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L23)
 
 ---
 
@@ -594,7 +594,7 @@ Defined in: [types/objectDetection.ts:51](https://github.com/software-mansion/re
 
 > **SUITCASE**: `33`
 
-Defined in: [types/objectDetection.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L72)
+Defined in: [constants/commonVision.ts:44](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L44)
 
 ---
 
@@ -602,7 +602,7 @@ Defined in: [types/objectDetection.ts:72](https://github.com/software-mansion/re
 
 > **SURFBOARD**: `42`
 
-Defined in: [types/objectDetection.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L80)
+Defined in: [constants/commonVision.ts:52](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L52)
 
 ---
 
@@ -610,7 +610,7 @@ Defined in: [types/objectDetection.ts:80](https://github.com/software-mansion/re
 
 > **TEDDY_BEAR**: `88`
 
-Defined in: [types/objectDetection.ts:126](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L126)
+Defined in: [constants/commonVision.ts:98](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L98)
 
 ---
 
@@ -618,7 +618,7 @@ Defined in: [types/objectDetection.ts:126](https://github.com/software-mansion/r
 
 > **TENNIS_RACKET**: `43`
 
-Defined in: [types/objectDetection.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L81)
+Defined in: [constants/commonVision.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L53)
 
 ---
 
@@ -626,7 +626,7 @@ Defined in: [types/objectDetection.ts:81](https://github.com/software-mansion/re
 
 > **TIE**: `32`
 
-Defined in: [types/objectDetection.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L71)
+Defined in: [constants/commonVision.ts:43](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L43)
 
 ---
 
@@ -634,7 +634,7 @@ Defined in: [types/objectDetection.ts:71](https://github.com/software-mansion/re
 
 > **TOASTER**: `80`
 
-Defined in: [types/objectDetection.ts:118](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L118)
+Defined in: [constants/commonVision.ts:90](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L90)
 
 ---
 
@@ -642,7 +642,7 @@ Defined in: [types/objectDetection.ts:118](https://github.com/software-mansion/r
 
 > **TOILET**: `70`
 
-Defined in: [types/objectDetection.ts:108](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L108)
+Defined in: [constants/commonVision.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L80)
 
 ---
 
@@ -650,7 +650,7 @@ Defined in: [types/objectDetection.ts:108](https://github.com/software-mansion/r
 
 > **TOOTHBRUSH**: `90`
 
-Defined in: [types/objectDetection.ts:128](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L128)
+Defined in: [constants/commonVision.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L100)
 
 ---
 
@@ -658,7 +658,7 @@ Defined in: [types/objectDetection.ts:128](https://github.com/software-mansion/r
 
 > **TRAFFIC_LIGHT**: `10`
 
-Defined in: [types/objectDetection.ts:49](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L49)
+Defined in: [constants/commonVision.ts:21](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L21)
 
 ---
 
@@ -666,7 +666,7 @@ Defined in: [types/objectDetection.ts:49](https://github.com/software-mansion/re
 
 > **TRAIN**: `7`
 
-Defined in: [types/objectDetection.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L46)
+Defined in: [constants/commonVision.ts:18](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L18)
 
 ---
 
@@ -674,7 +674,7 @@ Defined in: [types/objectDetection.ts:46](https://github.com/software-mansion/re
 
 > **TRUCK**: `8`
 
-Defined in: [types/objectDetection.ts:47](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L47)
+Defined in: [constants/commonVision.ts:19](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L19)
 
 ---
 
@@ -682,7 +682,7 @@ Defined in: [types/objectDetection.ts:47](https://github.com/software-mansion/re
 
 > **TV**: `72`
 
-Defined in: [types/objectDetection.ts:110](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L110)
+Defined in: [constants/commonVision.ts:82](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L82)
 
 ---
 
@@ -690,7 +690,7 @@ Defined in: [types/objectDetection.ts:110](https://github.com/software-mansion/r
 
 > **UMBRELLA**: `28`
 
-Defined in: [types/objectDetection.ts:67](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L67)
+Defined in: [constants/commonVision.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L39)
 
 ---
 
@@ -698,7 +698,7 @@ Defined in: [types/objectDetection.ts:67](https://github.com/software-mansion/re
 
 > **VASE**: `86`
 
-Defined in: [types/objectDetection.ts:124](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L124)
+Defined in: [constants/commonVision.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L96)
 
 ---
 
@@ -706,7 +706,7 @@ Defined in: [types/objectDetection.ts:124](https://github.com/software-mansion/r
 
 > **WINDOW**: `68`
 
-Defined in: [types/objectDetection.ts:106](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L106)
+Defined in: [constants/commonVision.ts:78](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L78)
 
 ---
 
@@ -714,7 +714,7 @@ Defined in: [types/objectDetection.ts:106](https://github.com/software-mansion/r
 
 > **WINE_GLASS**: `46`
 
-Defined in: [types/objectDetection.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L84)
+Defined in: [constants/commonVision.ts:56](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L56)
 
 ---
 
@@ -722,4 +722,4 @@ Defined in: [types/objectDetection.ts:84](https://github.com/software-mansion/re
 
 > **ZEBRA**: `24`
 
-Defined in: [types/objectDetection.ts:63](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L63)
+Defined in: [constants/commonVision.ts:35](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/commonVision.ts#L35)

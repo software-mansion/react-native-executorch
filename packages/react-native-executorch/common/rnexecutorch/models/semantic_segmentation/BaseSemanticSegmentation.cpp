@@ -12,26 +12,20 @@
 namespace rnexecutorch::models::semantic_segmentation {
 
 BaseSemanticSegmentation::BaseSemanticSegmentation(
-    const std::string &modelSource,
-    std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-  initModelImageSize();
-}
-
-BaseSemanticSegmentation::BaseSemanticSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
-    std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    std::vector<float> normStd, std::vector<std::string> allClasses,
+    std::shared_ptr<react::CallInvoker> callInvoker)
+    : BaseModel(modelSource, callInvoker), allClasses_(std::move(allClasses)) {
   initModelImageSize();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else {
+  } else if (!normMean.empty()) {
     log(LOG_LEVEL::Warn,
         "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else {
+  } else if (!normStd.empty()) {
     log(LOG_LEVEL::Warn,
         "normStd must have 3 elements — ignoring provided value.");
   }
@@ -64,7 +58,7 @@ TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
 }
 
 std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
-    std::string imageSource, std::vector<std::string> allClasses,
+    std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
 
   cv::Size originalSize;
@@ -78,7 +72,7 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
                             "Ensure the model input is correct.");
   }
 
-  return postprocess(forwardResult->at(0).toTensor(), originalSize, allClasses,
+  return postprocess(forwardResult->at(0).toTensor(), originalSize, allClasses_,
                      classesOfInterest, resize);
 }
 

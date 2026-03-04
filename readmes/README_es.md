@@ -77,11 +77,11 @@ React Native ExecuTorch impulsa [Private Mind](https://privatemind.swmansion.com
 yarn add react-native-executorch
 
 # Si usa expo, agregue estos paquetes para la obtención de recursos:
-yarn add @react-native-executorch/expo-adapter
+yarn add @react-native-executorch/expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
 # Si usa un proyecto básico de React Native, use estos paquetes:
-yarn add @react-native-executorch/bare-adapter
+yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Dependiendo de la plataforma, elige iOS o Android

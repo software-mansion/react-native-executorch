@@ -2,8 +2,7 @@
 title: useObjectDetection
 ---
 
-Object detection is a computer vision technique that identifies and locates objects within images or video. It’s commonly used in applications like image recognition, video surveillance or autonomous driving.
-`useObjectDetection` is a hook that allows you to seamlessly integrate object detection into your React Native applications.
+Object detection is a computer vision technique that identifies and locates objects within images. Unlike image classification, which assigns a single label to the whole image, object detection returns a list of detected objects — each with a bounding box, a class label, and a confidence score. React Native ExecuTorch offers a dedicated hook `useObjectDetection` for this task.
 
 :::warning
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/object-detection-68d0ea936cd0906843cbba7d). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
@@ -16,22 +15,23 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## High Level Overview
 
-```tsx
+```typescript
 import {
   useObjectDetection,
   SSDLITE_320_MOBILENET_V3_LARGE,
 } from 'react-native-executorch';
 
-function App() {
-  const ssdlite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+const model = useObjectDetection({
+  model: SSDLITE_320_MOBILENET_V3_LARGE,
+});
 
-  // ...
-  for (const detection of await ssdlite.forward('https://url-to-image.jpg')) {
-    console.log('Bounding box: ', detection.bbox);
-    console.log('Bounding label: ', detection.label);
-    console.log('Bounding score: ', detection.score);
-  }
-  // ...
+const imageUri = 'file:///Users/.../photo.jpg';
+
+try {
+  const detections = await model.forward(imageUri);
+  // detections is an array of Detection objects
+} catch (error) {
+  console.error(error);
 }
 ```
 
@@ -39,8 +39,12 @@ function App() {
 
 `useObjectDetection` takes [`ObjectDetectionProps`](../../06-api-reference/interfaces/ObjectDetectionProps.md) that consists of:
 
-- `model` containing [`modelSource`](../../06-api-reference/interfaces/ObjectDetectionProps.md#modelsource).
+- `model` - An object containing:
+  - `modelName` - The name of a built-in model. See [`ObjectDetectionModelSources`](../../06-api-reference/interfaces/ObjectDetectionProps.md) for the list of supported models.
+  - `modelSource` - The location of the model binary (a URL or a bundled resource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/ObjectDetectionProps.md#preventload) which prevents auto-loading of the model.
+
+The hook is generic over the model config — TypeScript automatically infers the correct label type based on the `modelName` you provide. No explicit generic parameter is needed.
 
 You need more details? Check the following resources:
 
@@ -50,54 +54,56 @@ You need more details? Check the following resources:
 
 ### Returns
 
-`useObjectDetection` returns an object called `ObjectDetectionType` containing bunch of functions to interact with object detection models. To get more details please read: [`ObjectDetectionType` API Reference](../../06-api-reference/interfaces/ObjectDetectionType.md).
+`useObjectDetection` returns an [`ObjectDetectionType`](../../06-api-reference/interfaces/ObjectDetectionType.md) object containing:
+
+- `isReady` - Whether the model is loaded and ready to process images.
+- `isGenerating` - Whether the model is currently processing an image.
+- `error` - An error object if the model failed to load or encountered a runtime error.
+- `downloadProgress` - A value between 0 and 1 representing the download progress of the model binary.
+- `forward` - A function to run inference on an image.
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
+To run the model, use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts two arguments:
 
-## Detection object
+- `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- `detectionThreshold` (optional) - A number between 0 and 1 representing the minimum confidence score for a detection to be included in the results. Defaults to `0.7`.
 
-The detection object is specified as follows:
+`forward` returns a promise resolving to an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects, each containing:
 
-```typescript
-interface Bbox {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
-interface Detection {
-  bbox: Bbox;
-  label: keyof typeof CocoLabels;
-  score: number;
-}
-```
-
-The `bbox` property contains information about the bounding box of detected objects. It is represented as two points: one at the bottom-left corner of the bounding box (`x1`, `y1`) and the other at the top-right corner (`x2`, `y2`).
-The `label` property contains the name of the detected object, which corresponds to one of the [`CocoLabels`](../../06-api-reference/enumerations/CocoLabel.md). The `score` represents the confidence score of the detected object.
+- `bbox` - A [`Bbox`](../../06-api-reference/interfaces/Bbox.md) object with `x1`, `y1` (top-left corner) and `x2`, `y2` (bottom-right corner) coordinates in the original image's pixel space.
+- `label` - The class name of the detected object, typed to the label map of the chosen model.
+- `score` - The confidence score of the detection, between 0 and 1.
 
 ## Example
 
-```tsx
-import {
-  useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-} from 'react-native-executorch';
+```typescript
+import { useObjectDetection, RF_DETR_NANO } from 'react-native-executorch';
 
 function App() {
-  const ssdlite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const model = useObjectDetection({
+    model: RF_DETR_NANO,
+  });
 
-  const runModel = async () => {
-    const detections = await ssdlite.forward('https://url-to-image.jpg');
+  const handleDetect = async () => {
+    if (!model.isReady) return;
 
-    for (const detection of detections) {
-      console.log('Bounding box: ', detection.bbox);
-      console.log('Bounding label: ', detection.label);
-      console.log('Bounding score: ', detection.score);
+    const imageUri = 'file:///Users/.../photo.jpg';
+
+    try {
+      const detections = await model.forward(imageUri, 0.5);
+
+      for (const detection of detections) {
+        console.log('Label:', detection.label);
+        console.log('Score:', detection.score);
+        console.log('Bounding box:', detection.bbox);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
+
+  // ...
 }
 ```
 
@@ -106,3 +112,4 @@ function App() {
 | Model                                                                                                                         | Number of classes | Class list                                               |
 | ----------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------- |
 | [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |
+| [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano)                                  | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |

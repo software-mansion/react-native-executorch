@@ -39,10 +39,16 @@ declare global {
   var loadSemanticSegmentation: (
     source: string,
     normMean: Triple<number> | [],
-    normStd: Triple<number> | []
+    normStd: Triple<number> | [],
+    allClasses: string[]
   ) => any;
   var loadClassification: (source: string) => any;
-  var loadObjectDetection: (source: string) => any;
+  var loadObjectDetection: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | [],
+    labelNames: string[]
+  ) => any;
   var loadExecutorchModule: (source: string) => any;
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
@@ -173,6 +179,7 @@ export * from './types/styleTransfer';
 export * from './types/tti';
 
 // constants
+export * from './constants/commonVision';
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
 export * from './constants/tts/models';

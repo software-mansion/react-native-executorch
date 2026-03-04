@@ -8,7 +8,7 @@ Defined in: [errors/ErrorCodes.ts:4](https://github.com/software-mansion/react-n
 
 > **AccessFailed**: `34`
 
-Defined in: [errors/ErrorCodes.ts:156](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L156)
+Defined in: [errors/ErrorCodes.ts:160](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L160)
 
 Could not access a resource.
 
@@ -18,7 +18,7 @@ Could not access a resource.
 
 > **DelegateInvalidCompatibility**: `48`
 
-Defined in: [errors/ErrorCodes.ts:172](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L172)
+Defined in: [errors/ErrorCodes.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L176)
 
 Init stage: Backend receives an incompatible delegate version.
 
@@ -28,7 +28,7 @@ Init stage: Backend receives an incompatible delegate version.
 
 > **DelegateInvalidHandle**: `50`
 
-Defined in: [errors/ErrorCodes.ts:180](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L180)
+Defined in: [errors/ErrorCodes.ts:184](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L184)
 
 Execute stage: The handle is invalid.
 
@@ -38,7 +38,7 @@ Execute stage: The handle is invalid.
 
 > **DelegateMemoryAllocationFailed**: `49`
 
-Defined in: [errors/ErrorCodes.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L176)
+Defined in: [errors/ErrorCodes.ts:180](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L180)
 
 Init stage: Backend fails to allocate memory.
 
@@ -58,7 +58,7 @@ Thrown when the number of downloaded files is unexpected, due to download interr
 
 > **EndOfMethod**: `3`
 
-Defined in: [errors/ErrorCodes.ts:124](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L124)
+Defined in: [errors/ErrorCodes.ts:128](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L128)
 
 Status indicating there are no more steps of execution to run
 
@@ -88,7 +88,7 @@ An error ocurred when saving a file. This could be, for instance a result image 
 
 > **Internal**: `1`
 
-Defined in: [errors/ErrorCodes.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L116)
+Defined in: [errors/ErrorCodes.ts:120](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L120)
 
 An internal error occurred.
 
@@ -98,7 +98,7 @@ An internal error occurred.
 
 > **InvalidArgument**: `18`
 
-Defined in: [errors/ErrorCodes.ts:136](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L136)
+Defined in: [errors/ErrorCodes.ts:140](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L140)
 
 User provided an invalid argument.
 
@@ -118,7 +118,7 @@ Thrown when config parameters passed to a model are invalid. For example, when L
 
 > **InvalidExternalData**: `36`
 
-Defined in: [errors/ErrorCodes.ts:164](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L164)
+Defined in: [errors/ErrorCodes.ts:168](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L168)
 
 Error caused by the contents of external data.
 
@@ -148,7 +148,7 @@ Thrown when the type of model source passed by the user is invalid.
 
 > **InvalidProgram**: `35`
 
-Defined in: [errors/ErrorCodes.ts:160](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L160)
+Defined in: [errors/ErrorCodes.ts:164](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L164)
 
 Error caused by the contents of a program.
 
@@ -158,7 +158,7 @@ Error caused by the contents of a program.
 
 > **InvalidState**: `2`
 
-Defined in: [errors/ErrorCodes.ts:120](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L120)
+Defined in: [errors/ErrorCodes.ts:124](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L124)
 
 Status indicating the executor is in an invalid state for a targeted operation.
 
@@ -168,7 +168,7 @@ Status indicating the executor is in an invalid state for a targeted operation.
 
 > **InvalidType**: `19`
 
-Defined in: [errors/ErrorCodes.ts:140](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L140)
+Defined in: [errors/ErrorCodes.ts:144](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L144)
 
 Object is an invalid type for the operation.
 
@@ -198,7 +198,7 @@ Thrown when a language is passed to a multi-language model that is not supported
 
 > **MemoryAllocationFailed**: `33`
 
-Defined in: [errors/ErrorCodes.ts:152](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L152)
+Defined in: [errors/ErrorCodes.ts:156](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L156)
 
 Could not allocate the requested memory.
 
@@ -208,7 +208,7 @@ Could not allocate the requested memory.
 
 > **MissingDataChunk**: `161`
 
-Defined in: [errors/ErrorCodes.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L72)
+Defined in: [errors/ErrorCodes.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L76)
 
 Thrown when streaming transcription is attempted but audio data chunk is missing.
 
@@ -238,7 +238,7 @@ Thrown when a user tries to run a model that is not yet downloaded or loaded int
 
 > **MultilingualConfiguration**: `160`
 
-Defined in: [errors/ErrorCodes.ts:68](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L68)
+Defined in: [errors/ErrorCodes.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L72)
 
 Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
 
@@ -248,7 +248,7 @@ Thrown when there's a configuration mismatch between multilingual and language s
 
 > **NotFound**: `32`
 
-Defined in: [errors/ErrorCodes.ts:148](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L148)
+Defined in: [errors/ErrorCodes.ts:152](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L152)
 
 Requested resource could not be found.
 
@@ -258,7 +258,7 @@ Requested resource could not be found.
 
 > **NotImplemented**: `17`
 
-Defined in: [errors/ErrorCodes.ts:132](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L132)
+Defined in: [errors/ErrorCodes.ts:136](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L136)
 
 Operation is not yet implemented.
 
@@ -268,7 +268,7 @@ Operation is not yet implemented.
 
 > **NotSupported**: `16`
 
-Defined in: [errors/ErrorCodes.ts:128](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L128)
+Defined in: [errors/ErrorCodes.ts:132](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L132)
 
 Operation is not supported in the current context.
 
@@ -278,7 +278,7 @@ Operation is not supported in the current context.
 
 > **Ok**: `0`
 
-Defined in: [errors/ErrorCodes.ts:112](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L112)
+Defined in: [errors/ErrorCodes.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L116)
 
 Status indicating a successful operation.
 
@@ -288,7 +288,7 @@ Status indicating a successful operation.
 
 > **OperatorMissing**: `20`
 
-Defined in: [errors/ErrorCodes.ts:144](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L144)
+Defined in: [errors/ErrorCodes.ts:148](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L148)
 
 Operator(s) missing in the operator registry.
 
@@ -298,9 +298,19 @@ Operator(s) missing in the operator registry.
 
 > **OutOfResources**: `37`
 
-Defined in: [errors/ErrorCodes.ts:168](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L168)
+Defined in: [errors/ErrorCodes.ts:172](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L172)
 
 Does not have enough resources to perform the requested operation.
+
+---
+
+### PlatformNotSupported
+
+> **PlatformNotSupported**: `119`
+
+Defined in: [errors/ErrorCodes.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L64)
+
+Thrown when a feature or platform is not supported in the current environment.
 
 ---
 
@@ -308,7 +318,7 @@ Does not have enough resources to perform the requested operation.
 
 > **ResourceFetcherAdapterNotInitialized**: `186`
 
-Defined in: [errors/ErrorCodes.ts:108](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L108)
+Defined in: [errors/ErrorCodes.ts:112](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L112)
 
 Thrown when trying to load resources without fetcher initialization.
 
@@ -318,7 +328,7 @@ Thrown when trying to load resources without fetcher initialization.
 
 > **ResourceFetcherAlreadyOngoing**: `183`
 
-Defined in: [errors/ErrorCodes.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L96)
+Defined in: [errors/ErrorCodes.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L100)
 
 Thrown when trying to resume a download that is already ongoing.
 
@@ -328,7 +338,7 @@ Thrown when trying to resume a download that is already ongoing.
 
 > **ResourceFetcherAlreadyPaused**: `182`
 
-Defined in: [errors/ErrorCodes.ts:92](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L92)
+Defined in: [errors/ErrorCodes.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L96)
 
 Thrown when trying to pause a download that is already paused.
 
@@ -338,7 +348,7 @@ Thrown when trying to pause a download that is already paused.
 
 > **ResourceFetcherDownloadFailed**: `180`
 
-Defined in: [errors/ErrorCodes.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L84)
+Defined in: [errors/ErrorCodes.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L88)
 
 Thrown when a resource fails to download. This could be due to invalid URL, or for example a network problem.
 
@@ -348,7 +358,7 @@ Thrown when a resource fails to download. This could be due to invalid URL, or f
 
 > **ResourceFetcherDownloadInProgress**: `181`
 
-Defined in: [errors/ErrorCodes.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L88)
+Defined in: [errors/ErrorCodes.ts:92](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L92)
 
 Thrown when a user tries to trigger a download that's already in progress.
 
@@ -358,7 +368,7 @@ Thrown when a user tries to trigger a download that's already in progress.
 
 > **ResourceFetcherMissingUri**: `185`
 
-Defined in: [errors/ErrorCodes.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L104)
+Defined in: [errors/ErrorCodes.ts:108](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L108)
 
 Thrown when required URI information is missing for a download operation.
 
@@ -368,7 +378,7 @@ Thrown when required URI information is missing for a download operation.
 
 > **ResourceFetcherNotActive**: `184`
 
-Defined in: [errors/ErrorCodes.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L100)
+Defined in: [errors/ErrorCodes.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L104)
 
 Thrown when trying to pause, resume, or cancel a download that is not active.
 
@@ -378,7 +388,7 @@ Thrown when trying to pause, resume, or cancel a download that is not active.
 
 > **StreamingInProgress**: `163`
 
-Defined in: [errors/ErrorCodes.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L80)
+Defined in: [errors/ErrorCodes.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L84)
 
 Thrown when trying to start a new streaming session while another is already in progress.
 
@@ -388,7 +398,7 @@ Thrown when trying to start a new streaming session while another is already in 
 
 > **StreamingNotStarted**: `162`
 
-Defined in: [errors/ErrorCodes.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L76)
+Defined in: [errors/ErrorCodes.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L80)
 
 Thrown when trying to stop or insert data into a stream that hasn't been started.
 
@@ -408,7 +418,7 @@ Thrown when React Native ExecuTorch threadpool problem occurs.
 
 > **TokenizerError**: `167`
 
-Defined in: [errors/ErrorCodes.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L64)
+Defined in: [errors/ErrorCodes.ts:68](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L68)
 
 Thrown when an error occurs with the tokenizer or tokenization process.
 

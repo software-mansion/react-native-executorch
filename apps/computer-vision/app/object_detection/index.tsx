@@ -4,7 +4,7 @@ import { getImage } from '../../utils';
 import {
   Detection,
   useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
+  RF_DETR_NANO,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
@@ -20,11 +20,11 @@ export default function ObjectDetectionScreen() {
     height: number;
   }>();
 
-  const ssdLite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const rfDetr = useObjectDetection({ model: RF_DETR_NANO });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
-    setGlobalGenerating(ssdLite.isGenerating);
-  }, [ssdLite.isGenerating, setGlobalGenerating]);
+    setGlobalGenerating(rfDetr.isGenerating);
+  }, [rfDetr.isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -42,7 +42,7 @@ export default function ObjectDetectionScreen() {
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await ssdLite.forward(imageUri);
+        const output = await rfDetr.forward(imageUri);
         setResults(output);
       } catch (e) {
         console.error(e);
@@ -50,11 +50,11 @@ export default function ObjectDetectionScreen() {
     }
   };
 
-  if (!ssdLite.isReady) {
+  if (!rfDetr.isReady) {
     return (
       <Spinner
-        visible={!ssdLite.isReady}
-        textContent={`Loading the model ${(ssdLite.downloadProgress * 100).toFixed(0)} %`}
+        visible={!rfDetr.isReady}
+        textContent={`Loading the model ${(rfDetr.downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }

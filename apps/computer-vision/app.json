@@ -25,11 +25,23 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.computervision"
+      "package": "com.anonymous.computervision",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
     },
-    "plugins": ["expo-font", "expo-router"]
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
+    ]
   }
 }
