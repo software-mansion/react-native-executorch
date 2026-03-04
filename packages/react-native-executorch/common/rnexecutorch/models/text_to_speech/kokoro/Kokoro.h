@@ -24,25 +24,50 @@ public:
          const std::string &synthesizerSource, const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Processes the entire text at once, before sending back to the JS side.
+  /**
+   * Processes the entire text at once, before sending back to the JS side.
+   *
+   * @param text An input text to be processed.
+   * @param speed Determines the speed of generated speech. Passed directly to
+   * the Kokoro model.
+   */
   std::vector<float> generate(std::string text, float speed = 1.F);
 
-  // Processes text in chunks, sending each chunk individualy to the JS side
-  // with asynchronous callbacks.
-  void stream(std::string text, float speed,
+  /**
+   * Processes text from inputTextBuffer_ in chunks, sending each chunk
+   * individualy to the JS side with asynchronous callbacks.
+   *
+   * @param speed Determines the speed of generated speech. Passed directly to
+   * the Kokoro model.
+   * @param stopOnEmptyBuffer If true, the streaming ends automatically when the
+   * input buffer is empty.
+   * @param callback A callback to the JS side.
+   */
+  void stream(float speed, bool stopOnEmptyBuffer,
               std::shared_ptr<jsi::Function> callback);
 
-  // Stops the streaming process
-  void streamStop() noexcept;
+  /**
+   * Updates the input streaming buffer by adding more text to be processed.
+   *
+   * @param text A new chunk of text, appended to the end of the input buffer.
+   */
+  void streamInsert(std::string textChunk) noexcept;
+
+  /**
+   * Stops the streaming process.
+   *
+   * @param instant If true, stops the streaming as soon as possible by
+   * switching the isStreaming_ flag. Otherwise allows to process the rest of
+   * the buffer first, by switching the stopOnEmptyBuffer_ flag.
+   */
+  void streamStop(bool instant) noexcept;
 
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
-  // Helper function - loading voice array
   void loadVoice(const std::string &voiceSource);
 
-  // Helper function - generate specialization for given input size
   std::vector<float> synthesize(const std::u32string &phonemes, float speed,
                                 size_t paddingMs = 50);
 
@@ -65,8 +90,11 @@ private:
              constants::kMaxInputTokens>
       voice_;
 
-  // Extra control variables
+  // Streaming state control variables
+  std::string inputTextBuffer_ = "";
   bool isStreaming_ = false;
+  bool stopOnEmptyBuffer_ = true;
+  int32_t streamSkippedIterations = 0;
 };
 } // namespace models::text_to_speech::kokoro
 

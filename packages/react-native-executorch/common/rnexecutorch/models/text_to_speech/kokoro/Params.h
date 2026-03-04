@@ -21,6 +21,17 @@ namespace rnexecutorch::models::text_to_speech::kokoro::params {
 inline constexpr size_t kMaxTextSize = 2048;
 
 /**
+ * A number of skipped streaming iterations after which we process the remaining
+ * input no matter how it looks like.
+ */
+inline constexpr int32_t kStreamMaxSkippedIterations = 3;
+
+/**
+ * A size of pause (in miliseconds) applied after each streaming iteration.
+ */
+inline constexpr int32_t kStreamPause = 200;
+
+/**
  * A set of punctation - pause values. Determines how much pause (silence) is
  * being added at the end of each calculated audio vector. This is primarly used
  * when the input text is partitioned for subsentences, to make the pause

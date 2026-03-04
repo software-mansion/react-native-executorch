@@ -125,8 +125,8 @@ export class TextToSpeechModule {
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *stream({
-    text,
     speed,
+    stopAutomatically,
   }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
     // Stores computed audio segments
     const queue: Float32Array[] = [];
@@ -142,10 +142,14 @@ export class TextToSpeechModule {
 
     (async () => {
       try {
-        await this.nativeModule.stream(text, speed, (audio: number[]) => {
-          queue.push(new Float32Array(audio));
-          wake();
-        });
+        await this.nativeModule.stream(
+          speed,
+          stopAutomatically,
+          (audio: number[]) => {
+            queue.push(new Float32Array(audio));
+            wake();
+          }
+        );
         finished = true;
         wake();
       } catch (e) {
@@ -170,10 +174,20 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Stops the streaming process if there is any ongoing.
+   * Inserts new text chunk into the buffer to be processed in streaming mode.
    */
-  public streamStop(): void {
-    this.nativeModule.streamStop();
+  public streamInsert(textChunk: string): void {
+    this.nativeModule.streamInsert(textChunk);
+  }
+
+  /**
+   * Stops the streaming process if there is any ongoing.
+   *
+   * * @param instant If true, stops the streaming as soon as possible. Otherwise
+   *                  allows the module to complete processing for the remains of the buffer.
+   */
+  public streamStop(instant: boolean = true): void {
+    this.nativeModule.streamStop(instant);
   }
 
   /**
