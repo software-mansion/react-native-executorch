@@ -63,7 +63,6 @@ elseif(ANDROID_ABI STREQUAL "x86_64")
   set(OPENCV_THIRD_PARTY_LIBS "")
 endif()
 
-
 add_library(opencv_deps INTERFACE)
 target_link_libraries(opencv_deps INTERFACE
     ${OPENCV_LIBS_DIR}/libopencv_core.a
@@ -83,6 +82,12 @@ target_link_options(opencv_deps INTERFACE -fopenmp -static-openmp)
 
 add_library(tokenizers_deps INTERFACE)
 target_include_directories(tokenizers_deps INTERFACE "${TOKENIZERS_DIR}")
+
+# Phonemis
+set(LIBS_DIR "${PACKAGE_ROOT}/third-party/android/libs")
+set(PHONEMIS_LIBS
+  "${LIBS_DIR}/phonemis/${ANDROID_ABI}/libphonemis.a"
+)
 
 # Source Definitions
 set(CORE_SOURCES
@@ -260,4 +265,14 @@ add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps
+)
+
+add_rn_test(TextToSpeechTests integration/TextToSpeechTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Kokoro.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/DurationPredictor.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Synthesizer.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Partitioner.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Utils.cpp
+    LIBS ${PHONEMIS_LIBS}
 )
