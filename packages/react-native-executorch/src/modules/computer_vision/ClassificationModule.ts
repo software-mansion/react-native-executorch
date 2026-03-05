@@ -24,7 +24,7 @@ export class ClassificationModule extends BaseModule {
    * @returns A Promise resolving to a ready-to-use `ClassificationModule` instance.
    */
   static async fromModelName(
-    model: { modelSource: ResourceSource },
+    model: { modelName: string; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ClassificationModule> {
     try {

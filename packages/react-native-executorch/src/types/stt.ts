@@ -2,6 +2,22 @@ import { ResourceSource } from './common';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
+ * Named Speech to Text model variants.
+ *
+ * @category Types
+ */
+export type SpeechToTextModelName =
+  | 'whisper-tiny-en'
+  | 'whisper-tiny-en-quantized'
+  | 'whisper-base-en'
+  | 'whisper-base-en-quantized'
+  | 'whisper-small-en'
+  | 'whisper-small-en-quantized'
+  | 'whisper-tiny'
+  | 'whisper-base'
+  | 'whisper-small';
+
+/**
  * Configuration for Speech to Text model.
  *
  * @category Types
@@ -261,7 +277,7 @@ export interface TranscriptionResult {
  * @category Types
  */
 export interface SpeechToTextModelConfig {
-  type: 'whisper'; // | ... (add more in the future)
+  modelName: SpeechToTextModelName;
 
   /**
    * A boolean flag indicating whether the model supports multiple languages.

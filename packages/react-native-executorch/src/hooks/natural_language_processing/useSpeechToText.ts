@@ -38,7 +38,7 @@ export const useSpeechToText = ({
         setIsReady(false);
         await moduleInstance.load(
           {
-            type: model.type,
+            modelName: model.modelName,
             isMultilingual: model.isMultilingual,
             modelSource: model.modelSource,
             tokenizerSource: model.tokenizerSource,
@@ -59,7 +59,7 @@ export const useSpeechToText = ({
     };
   }, [
     moduleInstance,
-    model.type,
+    model.modelName,
     model.isMultilingual,
     model.modelSource,
     model.tokenizerSource,

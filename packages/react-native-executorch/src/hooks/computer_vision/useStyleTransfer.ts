@@ -21,7 +21,7 @@ export const useStyleTransfer = ({
       factory: (config, onProgress) =>
         StyleTransferModule.fromModelName(config, onProgress),
       config: model,
-      deps: [model.modelSource],
+      deps: [model.modelName, model.modelSource],
       preventLoad,
     });
 

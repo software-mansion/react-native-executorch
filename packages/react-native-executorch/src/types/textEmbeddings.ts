@@ -11,6 +11,10 @@ import { ResourceSource } from '../types/common';
 export interface TextEmbeddingsProps {
   model: {
     /**
+     * The unique name of the text embeddings model.
+     */
+    modelName: string;
+    /**
      * The source of the text embeddings model binary.
      */
     modelSource: ResourceSource;

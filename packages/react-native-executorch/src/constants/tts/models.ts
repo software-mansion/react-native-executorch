@@ -13,6 +13,7 @@ const KOKORO_EN_MEDIUM_MODELS_ROOT = `${KOKORO_EN_MODELS_ROOT}/medium`;
  * @category Models - Text to Speech
  */
 export const KOKORO_SMALL = {
+  modelName: 'kokoro-small' as const,
   type: 'kokoro' as const,
   durationPredictorSource: `${KOKORO_EN_SMALL_MODELS_ROOT}/duration_predictor.pte`,
   synthesizerSource: `${KOKORO_EN_SMALL_MODELS_ROOT}/synthesizer.pte`,
@@ -24,6 +25,7 @@ export const KOKORO_SMALL = {
  * @category Models - Text to Speech
  */
 export const KOKORO_MEDIUM = {
+  modelName: 'kokoro-medium' as const,
   type: 'kokoro' as const,
   durationPredictorSource: `${KOKORO_EN_MEDIUM_MODELS_ROOT}/duration_predictor.pte`,
   synthesizerSource: `${KOKORO_EN_MEDIUM_MODELS_ROOT}/synthesizer.pte`,

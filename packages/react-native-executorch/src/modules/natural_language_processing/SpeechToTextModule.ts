@@ -47,8 +47,9 @@ export class SpeechToTextModule {
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
+    // Currently only Whisper architecture is supported
     this.nativeModule = await global.loadSpeechToText(
-      model.type,
+      'whisper',
       modelSources[0],
       tokenizerSources[0]
     );

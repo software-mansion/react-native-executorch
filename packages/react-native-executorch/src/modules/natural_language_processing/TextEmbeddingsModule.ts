@@ -11,30 +11,30 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model and tokenizer specified by the config object.
+   * Creates a `TextEmbeddingsModule` instance and loads the model and tokenizer.
    *
-   * @param model - Object containing model and tokenizer sources.
-   * @param model.modelSource - `ResourceSource` that specifies the location of the text embeddings model binary.
-   * @param model.tokenizerSource - `ResourceSource` that specifies the location of the tokenizer JSON file.
-   * @param onDownloadProgressCallback - Optional callback to track download progress (value between 0 and 1).
+   * @param model - Object containing `modelSource` and `tokenizerSource`.
+   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
+   * @returns A Promise resolving to a ready-to-use `TextEmbeddingsModule` instance.
    */
-  async load(
-    model: { modelSource: ResourceSource; tokenizerSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+  static async fromModelName(
+    model: {
+      modelName: string;
+      modelSource: ResourceSource;
+      tokenizerSource: ResourceSource;
+    },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<TextEmbeddingsModule> {
     try {
-      const modelPromise = ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.modelSource
-      );
-      const tokenizerPromise = ResourceFetcher.fetch(
-        undefined,
-        model.tokenizerSource
-      );
       const [modelResult, tokenizerResult] = await Promise.all([
-        modelPromise,
-        tokenizerPromise,
+        ResourceFetcher.fetch(onDownloadProgress, model.modelSource),
+        ResourceFetcher.fetch(undefined, model.tokenizerSource),
       ]);
       const modelPath = modelResult?.[0];
       const tokenizerPath = tokenizerResult?.[0];
@@ -44,9 +44,8 @@ export class TextEmbeddingsModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = await global.loadTextEmbeddings(
-        modelPath,
-        tokenizerPath
+      return new TextEmbeddingsModule(
+        await global.loadTextEmbeddings(modelPath, tokenizerPath)
       );
     } catch (error) {
       Logger.error('Load failed:', error);
@@ -61,6 +60,11 @@ export class TextEmbeddingsModule extends BaseModule {
    * @returns A Float32Array containing the vector embeddings.
    */
   async forward(input: string): Promise<Float32Array> {
+    if (this.nativeModule == null)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     return new Float32Array(await this.nativeModule.generate(input));
   }
 }

@@ -24,7 +24,7 @@ export class ImageEmbeddingsModule extends BaseModule {
    * @returns A Promise resolving to a ready-to-use `ImageEmbeddingsModule` instance.
    */
   static async fromModelName(
-    model: { modelSource: ResourceSource },
+    model: { modelName: string; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageEmbeddingsModule> {
     try {

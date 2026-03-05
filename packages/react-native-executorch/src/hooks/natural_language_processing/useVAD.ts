@@ -15,7 +15,7 @@ export const useVAD = ({ model, preventLoad = false }: VADProps): VADType => {
       factory: (config, onProgress) =>
         VADModule.fromModelName(config, onProgress),
       config: model,
-      deps: [model.modelSource],
+      deps: [model.modelName, model.modelSource],
       preventLoad,
     });
 
