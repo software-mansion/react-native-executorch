@@ -95,10 +95,14 @@ export const useTextToSpeech = ({
         );
       setIsGenerating(true);
       try {
+        if (input.text) {
+          moduleInstance.streamInsert(input.text);
+        }
+
         await input.onBegin?.();
         for await (const audio of moduleInstance.stream({
-          text: input.text,
           speed: input.speed ?? 1.0,
+          stopAutomatically: input.stopAutomatically ?? true,
         })) {
           if (input.onNext) {
             await input.onNext(audio);
@@ -118,7 +122,8 @@ export const useTextToSpeech = ({
     isGenerating,
     forward,
     stream,
-    streamStop: moduleInstance.streamStop,
+    streamInsert: (text: string) => moduleInstance.streamInsert(text),
+    streamStop: (instant: boolean = true) => moduleInstance.streamStop(instant),
     downloadProgress,
   };
 };

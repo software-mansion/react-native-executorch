@@ -90,8 +90,8 @@ The module provides two ways to generate speech:
 Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
 :::
 
-2.  [**`stream({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed.
-    This is ideal for reducing the "time to first audio" for long sentences.
+2. [**`stream(input)`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator-like functionality (managed via callbacks like `onNext`) that yields chunks of audio as they are computed.
+   This is ideal for reducing the "time to first audio" for long sentences. You can also dynamically insert text during the generation process using `streamInsert(text)` and stop it with `streamStop(instant)`.
 
 ## Example
 
@@ -160,8 +160,11 @@ export default function App() {
   const generateStream = async () => {
     const ctx = contextRef.current;
 
+    // Instead of using streamInsert() directly, we can pass initial text to the stream() method
     await tts.stream({
-      text: "This is a longer text, which is being streamed chunk by chunk. Let's see how it works!",
+      text: "This is an initial text, which is being streamed chunk by chunk. Let's see how it works!",
+      onBegin: async () => console.log('Started streaming'),
+      onEnd: async () => console.log('Finished streaming'),
       onNext: async (chunk) => {
         return new Promise((resolve) => {
           const buffer = ctx.createBuffer(1, chunk.length, 24000);

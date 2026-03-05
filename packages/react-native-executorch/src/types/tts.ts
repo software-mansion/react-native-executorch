@@ -135,9 +135,17 @@ export interface TextToSpeechType {
   stream: (input: TextToSpeechStreamingInput) => Promise<void>;
 
   /**
-   * Interrupts and stops the currently active audio generation stream.
+   * Inserts new text chunk into the buffer to be processed in streaming mode.
    */
-  streamStop: () => void;
+  streamInsert: (textChunk: string) => void;
+
+  /**
+   * Interrupts and stops the currently active audio generation stream.
+   *
+   * @param instant If true, stops the streaming as soon as possible. Otherwise
+   *                allows the module to complete processing for the remains of the buffer.
+   */
+  streamStop: (instant?: boolean) => void;
 }
 
 /**
@@ -149,11 +157,17 @@ export interface TextToSpeechType {
  * Callbacks can be both synchronous or asynchronous.
  *
  * @category Types
- * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
+ * @property {string} [text] - Initial text to be spoken. The streaming input buffer is initially filled with this value.
+ * @property {number} [speed] - Optional speed argument; higher values increase the speech rate.
+ * @property {boolean} [stopAutomatically] - If true, streaming will stop automatically when the buffer is empty.
+ * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins.
  * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
- * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
+ * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends.
  */
-export interface TextToSpeechStreamingInput extends TextToSpeechInput {
+export interface TextToSpeechStreamingInput {
+  text?: string;
+  speed?: number;
+  stopAutomatically?: boolean;
   onBegin?: () => void | Promise<void>;
   onNext?: (audio: Float32Array) => void | Promise<void>;
   onEnd?: () => void | Promise<void>;

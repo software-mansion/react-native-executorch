@@ -32,6 +32,7 @@ TEST_EXECUTABLES=(
   "TextToImageTests"
   "OCRTests"
   "VerticalOCRTests"
+  "TextToSpeechTests"
 )
 
 # ============================================================================
@@ -39,6 +40,7 @@ TEST_EXECUTABLES=(
 # ============================================================================
 TEST_ASSETS=(
   "integration/assets/test_audio_float.raw"
+  "integration/assets/test_speech.raw"
   "integration/assets/we_are_software_mansion.jpg"
 )
 
@@ -66,6 +68,11 @@ MODELS=(
   "t2i_encoder.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/text_encoder/model.pte"
   "t2i_unet.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/unet/model.256.pte"
   "t2i_decoder.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/vae/model.256.pte"
+  "kokoro_duration_predictor.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/xnnpack/medium/duration_predictor.pte"
+  "kokoro_synthesizer.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/xnnpack/medium/synthesizer.pte"
+  "kokoro_af_heart.bin|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/voices/af_heart.bin"
+  "kokoro_us_lexicon.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/phonemizer/us_merged.json"
+  "kokoro_en_tagger.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/phonemizer/tags.json"
 )
 
 # ============================================================================

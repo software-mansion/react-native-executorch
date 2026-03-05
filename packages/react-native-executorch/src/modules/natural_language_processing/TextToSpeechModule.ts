@@ -15,10 +15,9 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class TextToSpeechModule {
-  /**
-   * Native module instance
-   */
   nativeModule: any = null;
+
+  streamFinished: boolean = false;
 
   /**
    * Loads the model and voice assets specified by the config object.
@@ -125,15 +124,16 @@ export class TextToSpeechModule {
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *stream({
-    text,
     speed,
+    stopAutomatically,
   }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
     // Stores computed audio segments
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
-    let finished = false;
     let error: unknown;
+
+    this.streamFinished = false;
 
     const wake = () => {
       waiter?.();
@@ -142,38 +142,53 @@ export class TextToSpeechModule {
 
     (async () => {
       try {
-        await this.nativeModule.stream(text, speed, (audio: number[]) => {
-          queue.push(new Float32Array(audio));
-          wake();
-        });
-        finished = true;
+        await this.nativeModule.stream(
+          speed,
+          stopAutomatically,
+          (audio: number[]) => {
+            queue.push(new Float32Array(audio));
+            wake();
+          }
+        );
+        this.streamFinished = true;
         wake();
       } catch (e) {
         error = e;
-        finished = true;
+        this.streamFinished = true;
         wake();
       }
     })();
 
-    while (true) {
+    while (!this.streamFinished) {
       if (queue.length > 0) {
         yield queue.shift()!;
-        if (finished && queue.length === 0) {
+        if (this.streamFinished && queue.length === 0) {
           return;
         }
         continue;
       }
       if (error) throw error;
-      if (finished) return;
+      if (this.streamFinished) return;
       await new Promise<void>((r) => (waiter = r));
     }
   }
 
   /**
-   * Stops the streaming process if there is any ongoing.
+   * Inserts new text chunk into the buffer to be processed in streaming mode.
    */
-  public streamStop(): void {
-    this.nativeModule.streamStop();
+  public streamInsert(textChunk: string): void {
+    this.nativeModule.streamInsert(textChunk);
+  }
+
+  /**
+   * Stops the streaming process if there is any ongoing.
+   *
+   * * @param instant If true, stops the streaming as soon as possible. Otherwise
+   *                  allows the module to complete processing for the remains of the buffer.
+   */
+  public streamStop(instant: boolean = true): void {
+    this.nativeModule.streamStop(instant);
+    this.streamFinished = true;
   }
 
   /**
