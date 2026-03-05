@@ -24,7 +24,7 @@ export class StyleTransferModule extends BaseModule {
    * @returns A Promise resolving to a ready-to-use `StyleTransferModule` instance.
    */
   static async fromModelName(
-    model: { modelSource: ResourceSource },
+    model: { modelName: string; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<StyleTransferModule> {
     try {

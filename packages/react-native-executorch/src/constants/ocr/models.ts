@@ -21,6 +21,7 @@ const createOCRObject = (
   language: keyof typeof symbols
 ) => {
   return {
+    modelName: `ocr-${language}` as const,
     detectorSource: DETECTOR_CRAFT_MODEL,
     recognizerSource,
     language,

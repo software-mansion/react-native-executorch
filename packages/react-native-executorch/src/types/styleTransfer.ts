@@ -10,7 +10,7 @@ import { ResourceSource } from './common';
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
  */
 export interface StyleTransferProps {
-  model: { modelSource: ResourceSource };
+  model: { modelName: string; modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 

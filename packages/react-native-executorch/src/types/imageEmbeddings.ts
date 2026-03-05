@@ -10,7 +10,7 @@ import { ResourceSource } from './common';
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface ImageEmbeddingsProps {
-  model: { modelSource: ResourceSource };
+  model: { modelName: string; modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 

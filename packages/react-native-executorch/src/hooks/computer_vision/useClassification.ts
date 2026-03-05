@@ -21,7 +21,7 @@ export const useClassification = ({
       factory: (config, onProgress) =>
         ClassificationModule.fromModelName(config, onProgress),
       config: model,
-      deps: [model.modelSource],
+      deps: [model.modelName, model.modelSource],
       preventLoad,
     });
 
