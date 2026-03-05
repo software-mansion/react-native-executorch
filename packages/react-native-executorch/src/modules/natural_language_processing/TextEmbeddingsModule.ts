@@ -19,7 +19,7 @@ export class TextEmbeddingsModule extends BaseModule {
   /**
    * Creates a `TextEmbeddingsModule` instance and loads the model and tokenizer.
    *
-   * @param model - Object containing `modelSource` and `tokenizerSource`.
+   * @param model - Object containing `modelName`, `modelSource`, and `tokenizerSource`.
    * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
    * @returns A Promise resolving to a ready-to-use `TextEmbeddingsModule` instance.
    */

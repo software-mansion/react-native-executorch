@@ -19,7 +19,7 @@ export class ImageEmbeddingsModule extends BaseModule {
   /**
    * Creates an `ImageEmbeddingsModule` instance and loads the model.
    *
-   * @param model - Object containing `modelSource`.
+   * @param model - Object containing `modelName` and `modelSource`.
    * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
    * @returns A Promise resolving to a ready-to-use `ImageEmbeddingsModule` instance.
    */

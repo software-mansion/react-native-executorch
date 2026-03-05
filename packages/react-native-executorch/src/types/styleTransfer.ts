@@ -5,7 +5,8 @@ import { ResourceSource } from './common';
  * Configuration properties for the `useStyleTransfer` hook.
  *
  * @category Types
- * @property {Object} model - Object containing the `modelSource` for the style transfer model.
+ * @property {Object} model - Object containing the model configuration.
+ * @property {string} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - `ResourceSource` that specifies the location of the style transfer model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
  */

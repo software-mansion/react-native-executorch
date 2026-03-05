@@ -5,7 +5,10 @@ import { ResourceSource } from '../types/common';
  * Props for the useTextEmbeddings hook.
  *
  * @category Types
- * @property {Object} model - An object containing the model and tokenizer sources.
+ * @property {Object} model - An object containing the model configuration.
+ * @property {string} model.modelName - Unique name identifying the model.
+ * @property {ResourceSource} model.modelSource - The source of the text embeddings model binary.
+ * @property {ResourceSource} model.tokenizerSource - The source of the tokenizer JSON file.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextEmbeddingsProps {
