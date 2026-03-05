@@ -36,6 +36,7 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
     factory: (config, onProgress) =>
       ObjectDetectionModule.fromModelName(config, onProgress),
     config: model,
+    deps: [model.modelName, model.modelSource],
     preventLoad,
   });
 
