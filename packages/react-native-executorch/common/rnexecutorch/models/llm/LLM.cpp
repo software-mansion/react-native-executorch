@@ -77,7 +77,7 @@ std::string LLM::generate(std::string prompt,
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
-  if (!dynamic_cast<runner::MultimodalRunner *>(runner_.get())) {
+  if (!runner_->is_multimodal()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "This is a text-only model. Call generate(prompt, cb).");
@@ -130,7 +130,7 @@ std::string LLM::generate(std::string prompt,
     }
   };
 
-  auto error = runner_->generate_internal(inputs, nativeCallback);
+  auto error = runner_->generate(inputs, nativeCallback);
   if (error != Error::Ok) {
     throw RnExecutorchError(error, "Failed to generate multimodal response");
   }

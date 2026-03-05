@@ -22,8 +22,7 @@ namespace llm = ::executorch::extension::llm;
 class BaseLLMRunner {
 public:
   explicit BaseLLMRunner(
-      ::executorch::extension::Module *module,
-      std::unique_ptr<::executorch::extension::Module> owned_module,
+      std::unique_ptr<::executorch::extension::Module> module,
       const std::string &tokenizer_path,
       const llm::GenerationConfig &config = {.temperature = 0.8F,
                                              .topp = 0.9F});
@@ -32,17 +31,19 @@ public:
 
   virtual bool is_loaded() const = 0;
 
-  // Loads tokenizer + metadata + eos, then calls load_subcomponents()
   virtual ::executorch::runtime::Error load();
 
-  // Text convenience — wraps string in make_text_input, calls generate_internal
   ::executorch::runtime::Error
   generate(const std::string &prompt,
            const llm::GenerationConfig &generation_config = {},
            std::function<void(const std::string &)> token_callback = {},
            std::function<void(const llm::Stats &)> stats_callback = {});
 
-  // Multimodal entry point — subclasses implement this
+  ::executorch::runtime::Error
+  generate(const std::vector<llm::MultimodalInput> &inputs,
+           std::function<void(const std::string &)> token_callback = {},
+           std::function<void(const llm::Stats &)> stats_callback = {});
+
   virtual ::executorch::runtime::Error generate_internal(
       const std::vector<llm::MultimodalInput> &inputs,
       std::function<void(const std::string &)> token_callback) = 0;
@@ -51,9 +52,9 @@ public:
   void reset();
   int32_t count_text_tokens(const std::string &text) const;
   int32_t get_max_context_length() const;
+  virtual bool is_multimodal() const { return false; }
   virtual int32_t get_visual_token_count() const { return 0; }
 
-  // Writes config_ then propagates to subclass impl
   void set_temperature(float temperature) noexcept;
   void set_topp(float topp) noexcept;
   void set_count_interval(size_t count_interval);
@@ -77,12 +78,12 @@ protected:
                                  int32_t max_context_len,
                                  int32_t max_new_tokens = -1) const;
 
-  ::executorch::extension::Module *module_;
-  std::unique_ptr<::executorch::extension::Module> owned_module_;
+  std::unique_ptr<::executorch::extension::Module> module_;
   std::string tokenizer_path_;
   std::unique_ptr<tokenizers::HFTokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
   std::unique_ptr<llm::IOManager> io_manager_;
+  std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
   bool shouldStop_{false};
 };
 

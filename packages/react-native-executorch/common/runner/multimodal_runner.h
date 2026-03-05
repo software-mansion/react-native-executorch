@@ -11,13 +11,12 @@
 
 namespace rnexecutorch::llm::runner {
 
-// Tag enum for keying encoder map
 enum class MultimodalType { Image };
 
 class MultimodalRunner : public BaseLLMRunner {
 public:
   explicit MultimodalRunner(
-      std::unique_ptr<::executorch::extension::Module> owned_module,
+      std::unique_ptr<::executorch::extension::Module> module,
       const std::string &tokenizer_path,
       std::map<MultimodalType,
                std::unique_ptr<::executorch::extension::llm::IEncoder>>
@@ -26,6 +25,7 @@ public:
           .temperature = 0.8F, .topp = 0.9F});
 
   bool is_loaded() const override;
+  bool is_multimodal() const override { return true; }
   int32_t get_visual_token_count() const override;
 
   ::executorch::runtime::Error generate_internal(
@@ -35,9 +35,8 @@ public:
 protected:
   ::executorch::runtime::Error load_subcomponents() override;
   void stop_impl() override;
-  void set_temperature_impl(float) override {
-  } // config_ already updated by base
-  void set_topp_impl(float) override {} // config_ already updated by base
+  void set_temperature_impl(float) override {}
+  void set_topp_impl(float) override {}
   void set_count_interval_impl(size_t count_interval) override;
   void set_time_interval_impl(size_t time_interval) override;
 

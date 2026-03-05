@@ -21,6 +21,15 @@ public:
   int32_t encoderTokenCount() const override;
 
 private:
+  struct ImageShape {
+    int32_t channels, height, width;
+    bool with_batch;
+  };
+
+  ::executorch::runtime::Result<ImageShape> getInputShape() const;
+  std::vector<float> preprocessImage(const std::string &path,
+                                     const ImageShape &shape) const;
+
   ::executorch::extension::Module *module_;
   std::unordered_map<std::string, ::executorch::runtime::EValue>
       embedding_cache_;
