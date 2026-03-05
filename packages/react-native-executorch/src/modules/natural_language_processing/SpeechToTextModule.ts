@@ -41,16 +41,21 @@ export class SpeechToTextModule {
       tokenizerLoadPromise,
       modelPromise,
     ]);
-    if (!modelSources || !tokenizerSources) {
+    if (
+      !modelSources ||
+      !tokenizerSources ||
+      !modelSources[0] ||
+      !tokenizerSources[0]
+    ) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
     this.nativeModule = await global.loadSpeechToText(
-      model.type,
-      modelSources[0]!,
-      tokenizerSources[0]!
+      model.modelName,
+      modelSources[0],
+      tokenizerSources[0]
     );
   }
 
