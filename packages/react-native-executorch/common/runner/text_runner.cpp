@@ -69,7 +69,6 @@ Error TextRunner::generate_internal(
       };
 
   stats_.inference_start_ms = llm::time_in_ms();
-  shouldStop_ = false;
 
   int64_t context_len_left =
       static_cast<int64_t>(config_.max_context_length) - pos_;

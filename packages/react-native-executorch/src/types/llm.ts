@@ -5,7 +5,7 @@ import { ResourceSource } from './common';
  * Capabilities a multimodal LLM can have.
  * @category Types
  */
-export type LLMCapability = 'vision' | 'audio';
+export type LLMCapability = 'vision';
 
 /**
  * Derives the media argument shape for `sendMessage` from a capabilities tuple.

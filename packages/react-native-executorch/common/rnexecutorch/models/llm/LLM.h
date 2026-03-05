@@ -24,9 +24,10 @@ public:
   std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
 
-  // Multimodal: pre-rendered prompt string with <image> placeholders +
+  // Multimodal: pre-rendered prompt string with imageToken placeholders +
   // ordered list of image paths (one per placeholder)
   std::string generate(std::string prompt, std::vector<std::string> imagePaths,
+                       std::string imageToken,
                        std::shared_ptr<jsi::Function> callback);
 
   void interrupt();

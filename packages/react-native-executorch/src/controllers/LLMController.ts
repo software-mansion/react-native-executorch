@@ -237,6 +237,7 @@ export class LLMController {
           ? await this.nativeModule.generateMultimodal(
               input,
               imagePaths,
+              this.tokenizerConfig?.image_token ?? '<image>',
               this.onToken
             )
           : await this.nativeModule.generate(input, this.onToken);

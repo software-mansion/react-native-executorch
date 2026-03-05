@@ -42,7 +42,7 @@ Error MultimodalRunner::load_subcomponents() {
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[MultimodalRunner] Loading",
                     encoders_.size(), "encoder(s)");
   for (auto &[type, encoder] : encoders_) {
-    encoder->load();
+    ET_CHECK_OK_OR_RETURN_ERROR(encoder->load());
   }
 
   llm::Stats *stats_ptr = &stats_;
@@ -90,9 +90,9 @@ Error MultimodalRunner::generate_internal(
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
-  int32_t resolved_max_new =
-      static_cast<int32_t>(config_.max_context_length - pos_);
-  resolved_max_new = std::max(0, resolved_max_new);
+  int32_t resolved_max_new = resolve_max_new_tokens(
+      static_cast<int32_t>(pos_), config_.max_seq_len,
+      config_.max_context_length, config_.max_new_tokens);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
   auto wrapped_callback = [&](const std::string &piece) {

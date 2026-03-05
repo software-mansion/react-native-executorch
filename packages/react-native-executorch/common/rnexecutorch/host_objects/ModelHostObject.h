@@ -156,7 +156,7 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
           promiseHostFunction<static_cast<std::string (Model::*)(
-              std::string, std::vector<std::string>,
+              std::string, std::vector<std::string>, std::string,
               std::shared_ptr<jsi::Function>)>(&Model::generate)>,
           "generateMultimodal"));
 
