@@ -18,6 +18,14 @@ MultimodalRunner::MultimodalRunner(
     : BaseLLMRunner(nullptr, std::move(owned_module), tokenizer_path, config),
       encoders_(std::move(encoders)) {}
 
+int32_t MultimodalRunner::get_visual_token_count() const {
+  auto it = encoders_.find(llm::MultimodalType::Image);
+  if (it == encoders_.end()) {
+    return 0;
+  }
+  return it->second->encoderTokenCount();
+}
+
 bool MultimodalRunner::is_loaded() const {
   if (!mm_prefiller_ || !mm_token_generator_)
     return false;

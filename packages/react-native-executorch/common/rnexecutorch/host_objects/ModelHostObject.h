@@ -159,6 +159,11 @@ public:
               std::string, std::vector<std::string>,
               std::shared_ptr<jsi::Function>)>(&Model::generate)>,
           "generateMultimodal"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::getVisualTokenCount>,
+          "getVisualTokenCount"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {

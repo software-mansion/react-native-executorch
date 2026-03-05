@@ -16,6 +16,10 @@ public:
   // Encodes one input segment, returns embeddings EValue
   virtual ::executorch::runtime::Result<::executorch::runtime::EValue>
   encode(const MultimodalInput &input) = 0;
+
+  // Returns the number of tokens produced per encoded input (e.g. visual
+  // tokens per image). Returns 0 if not loaded or unknown.
+  virtual int32_t encoderTokenCount() const { return 0; }
 };
 
 } // namespace executorch::extension::llm

@@ -18,6 +18,7 @@ public:
   bool is_loaded() const override;
   ::executorch::runtime::Result<::executorch::runtime::EValue>
   encode(const MultimodalInput &input) override;
+  int32_t encoderTokenCount() const override;
 
 private:
   ::executorch::extension::Module *module_;
