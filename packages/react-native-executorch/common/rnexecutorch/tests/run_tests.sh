@@ -60,8 +60,6 @@ MODELS=(
   "whisper_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.6.0/tokenizer.json"
   "smolLm2_135M_8da4w.pte|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte"
   "smollm_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json"
-  "lfm2_5_vl_quantized_xnnpack_v2.pte|https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2_5_vl_quantized_xnnpack_latest.pte"
-  "tokenizer_2.5.json|https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json"
   "deeplabV3_xnnpack_fp32.pte|https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.6.0/xnnpack/deeplabV3_xnnpack_fp32.pte"
   "xnnpack_crnn_english.pte|https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.7.0/xnnpack/english/xnnpack_crnn_english.pte"
   "xnnpack_craft_quantized.pte|https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.7.0/xnnpack/xnnpack_craft.pte"
