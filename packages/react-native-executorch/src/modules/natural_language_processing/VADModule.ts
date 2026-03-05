@@ -12,20 +12,25 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class VADModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
+   * Creates a `VADModule` instance and loads the model.
    *
    * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
+   * @returns A Promise resolving to a ready-to-use `VADModule` instance.
    */
-  async load(
+  static async fromModelName(
     model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<VADModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
+        onDownloadProgress,
         model.modelSource
       );
       if (!paths?.[0]) {
@@ -34,7 +39,7 @@ export class VADModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = await global.loadVAD(paths[0]);
+      return new VADModule(await global.loadVAD(paths[0]));
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
