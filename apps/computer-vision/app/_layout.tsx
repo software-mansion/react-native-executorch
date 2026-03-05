@@ -1,4 +1,7 @@
 import { Drawer } from 'expo-router/drawer';
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+
 import ColorPalette from '../colors';
 import React, { useState } from 'react';
 import { Text, StyleSheet, View } from 'react-native';
@@ -9,6 +12,10 @@ import {
   DrawerItemList,
 } from '@react-navigation/drawer';
 import { GeneratingContext } from '../context';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 interface CustomDrawerProps extends DrawerContentComponentProps {
   isGenerating: boolean;
@@ -61,10 +68,10 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
-          name="image_segmentation/index"
+          name="semantic_segmentation/index"
           options={{
-            drawerLabel: 'Image Segmentation',
-            title: 'Image Segmentation',
+            drawerLabel: 'Semantic Segmentation',
+            title: 'Semantic Segmentation',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
@@ -73,6 +80,14 @@ export default function _layout() {
           options={{
             drawerLabel: 'Object Detection',
             title: 'Object Detection',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="object_detection_live/index"
+          options={{
+            drawerLabel: 'Object Detection (Live)',
+            title: 'Object Detection (Live)',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

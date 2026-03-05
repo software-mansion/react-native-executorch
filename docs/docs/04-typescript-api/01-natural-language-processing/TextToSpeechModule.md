@@ -61,7 +61,7 @@ The module provides two ways to generate speech:
 Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
 :::
 
-2.  [**`stream({ text, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+2. [**`stream({ speed, stopAutomatically })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert) and allows stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
 
 ## Example
 
@@ -115,9 +115,12 @@ const audioContext = new AudioContext({ sampleRate: 24000 });
 await tts.load({ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART });
 
 try {
+  // Pre-load the first chunk of text to the buffer
+  tts.streamInsert('This is a streaming test, with a sample input.');
+
   for await (const chunk of tts.stream({
-    text: 'This is a streaming test, with a sample input.',
     speed: 1.0,
+    stopAutomatically: true, // Will stop the stream automatically after clearing the input buffer
   })) {
     // Play each chunk sequentially
     await new Promise<void>((resolve) => {

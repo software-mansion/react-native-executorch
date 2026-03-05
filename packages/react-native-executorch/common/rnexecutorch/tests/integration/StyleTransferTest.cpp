@@ -10,7 +10,7 @@ using namespace rnexecutorch::models::style_transfer;
 using namespace model_tests;
 
 constexpr auto kValidStyleTransferModelPath =
-    "style_transfer_candy_xnnpack.pte";
+    "style_transfer_candy_xnnpack_fp32.pte";
 constexpr auto kValidTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 

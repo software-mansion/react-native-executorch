@@ -13,7 +13,7 @@ using namespace model_tests;
 using executorch::runtime::EValue;
 
 constexpr auto kValidStyleTransferModelPath =
-    "style_transfer_candy_xnnpack.pte";
+    "style_transfer_candy_xnnpack_fp32.pte";
 
 // ============================================================================
 // Common tests via typed test suite

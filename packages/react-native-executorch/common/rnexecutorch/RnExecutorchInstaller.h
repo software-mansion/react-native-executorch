@@ -54,8 +54,13 @@ private:
                 meta::createConstructorArgsWithCallInvoker<ModelT>(
                     args, runtime, jsCallInvoker);
 
-            auto modelImplementationPtr = std::make_shared<ModelT>(
-                std::make_from_tuple<ModelT>(constructorArgs));
+            auto modelImplementationPtr = std::apply(
+                [](auto &&...unpackedArgs) {
+                  return std::make_shared<ModelT>(
+                      std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+                },
+                std::move(constructorArgs));
+
             auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                 modelImplementationPtr, jsCallInvoker);
 

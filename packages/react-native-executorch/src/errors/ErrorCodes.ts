@@ -59,6 +59,10 @@ export enum RnExecutorchErrorCode {
    */
   DownloadInterrupted = 118,
   /**
+   * Thrown when a feature or platform is not supported in the current environment.
+   */
+  PlatformNotSupported = 119,
+  /**
    * Thrown when an error occurs with the tokenizer or tokenization process.
    */
   TokenizerError = 167,
@@ -102,6 +106,10 @@ export enum RnExecutorchErrorCode {
    * Thrown when required URI information is missing for a download operation.
    */
   ResourceFetcherMissingUri = 185,
+  /**
+   * Thrown when trying to load resources without fetcher initialization.
+   */
+  ResourceFetcherAdapterNotInitialized = 186,
   /**
    * Status indicating a successful operation.
    */

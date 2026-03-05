@@ -1,6 +1,8 @@
 import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { Logger } from '../../common/Logger';
+import { parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
@@ -30,12 +32,17 @@ export class OCRModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    await this.controller.load(
-      model.detectorSource,
-      model.recognizerSource,
-      model.language,
-      onDownloadProgressCallback
-    );
+    try {
+      await this.controller.load(
+        model.detectorSource,
+        model.recognizerSource,
+        model.language,
+        onDownloadProgressCallback
+      );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
+    }
   }
 
   /**

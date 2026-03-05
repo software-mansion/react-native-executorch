@@ -1,21 +1,29 @@
 # Function: useObjectDetection()
 
-> **useObjectDetection**(`ObjectDetectionProps`): [`ObjectDetectionType`](../interfaces/ObjectDetectionType.md)
+> **useObjectDetection**\<`C`\>(`props`): [`ObjectDetectionType`](../interfaces/ObjectDetectionType.md)\<[`ObjectDetectionLabels`](../type-aliases/ObjectDetectionLabels.md)\<`C`\[`"modelName"`\]\>\>
 
-Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useObjectDetection.ts:15](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/hooks/computer_vision/useObjectDetection.ts#L15)
+Defined in: [hooks/computer_vision/useObjectDetection.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useObjectDetection.ts#L22)
 
 React hook for managing an Object Detection model instance.
 
+## Type Parameters
+
+### C
+
+`C` _extends_ [`ObjectDetectionModelSources`](../type-aliases/ObjectDetectionModelSources.md)
+
+A [ObjectDetectionModelSources](../type-aliases/ObjectDetectionModelSources.md) config specifying which built-in model to load.
+
 ## Parameters
 
-### ObjectDetectionProps
+### props
 
-[`ObjectDetectionProps`](../interfaces/ObjectDetectionProps.md)
+[`ObjectDetectionProps`](../interfaces/ObjectDetectionProps.md)\<`C`\>
 
-Configuration object containing `model` source and optional `preventLoad` flag.
+Configuration object containing `model` config and optional `preventLoad` flag.
 
 ## Returns
 
-[`ObjectDetectionType`](../interfaces/ObjectDetectionType.md)
+[`ObjectDetectionType`](../interfaces/ObjectDetectionType.md)\<[`ObjectDetectionLabels`](../type-aliases/ObjectDetectionLabels.md)\<`C`\[`"modelName"`\]\>\>
 
-Ready to use Object Detection model.
+An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and typed `forward` and `runOnFrame` functions.

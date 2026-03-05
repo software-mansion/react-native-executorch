@@ -50,7 +50,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.llm",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
+        "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio.",
+        "NSCalendarsUsageDescription": "This app needs access to your calendar to manage events."
       },
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
@@ -64,7 +65,11 @@
       "package": "com.anonymous.llm",
       "permissions": [
         "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR"
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {

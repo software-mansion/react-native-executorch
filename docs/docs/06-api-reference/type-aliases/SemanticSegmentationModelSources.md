@@ -1,0 +1,9 @@
+# Type Alias: SemanticSegmentationModelSources
+
+> **SemanticSegmentationModelSources** = \{ `modelName`: `"deeplab-v3-resnet50"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"deeplab-v3-resnet101"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"deeplab-v3-mobilenet-v3-large"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"lraspp-mobilenet-v3-large"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"fcn-resnet50"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"fcn-resnet101"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"deeplab-v3-resnet50-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"deeplab-v3-resnet101-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"deeplab-v3-mobilenet-v3-large-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"lraspp-mobilenet-v3-large-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"fcn-resnet50-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"fcn-resnet101-quantized"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"selfie-segmentation"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \}
+
+Defined in: [types/semanticSegmentation.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L27)
+
+Per-model config for [SemanticSegmentationModule.fromModelName](../classes/SemanticSegmentationModule.md#frommodelname).
+Each model name maps to its required fields.
+Add new union members here when a model needs extra sources or options.

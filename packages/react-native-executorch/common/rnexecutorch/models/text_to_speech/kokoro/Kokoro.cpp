@@ -6,6 +6,9 @@
 #include <fstream>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
+#include <thread>
+
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -110,13 +113,8 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   return audio;
 }
 
-void Kokoro::stream(std::string text, float speed,
+void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
                     std::shared_ptr<jsi::Function> callback) {
-  if (text.size() > params::kMaxTextSize) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: maximum input text size exceeded");
-  }
-
   // Build a full callback function
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
@@ -127,60 +125,111 @@ void Kokoro::stream(std::string text, float speed,
     }
   };
 
-  // Mark the beginning of the streaming process
   isStreaming_ = true;
+  stopOnEmptyBuffer_ = stopOnEmptyBuffer;
 
-  // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_.process(text);
-
-  // Divide the phonemes string intro substrings.
-  // Use specialized implementation to minimize the latency between the
-  // sentences.
-  auto subsentences =
-      partitioner_.divide<Partitioner::Strategy::LATENCY>(phonemes);
-
-  // We follow the implementation of generate() method, but
-  // instead of accumulating results in a vector, we push them
-  // back to the JS side with the callback.
-  for (size_t i = 0; i < subsentences.size(); i++) {
-    if (!isStreaming_) {
+  // The outer streaming loop is responsible for handling the input buffer.
+  // The extracted text is then passed to the inner loop, which performs a
+  // standard streaming on a fixed amount of input text.
+  while (isStreaming_) {
+    if (inputTextBuffer_.empty() && stopOnEmptyBuffer_) {
       break;
     }
 
-    const auto &subsentence = subsentences[i];
+    // Try to find the most recent available end of sentence character.
+    size_t searchLimit =
+        std::min(inputTextBuffer_.size(), params::kMaxTextSize);
+    auto eosIt = std::find_first_of(
+        inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
+        inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
+        constants::kEndOfSentenceCharacters.end());
+    size_t chunkSize = (eosIt != inputTextBuffer_.rend())
+                           ? std::distance(eosIt, inputTextBuffer_.rend())
+                           : 0;
 
-    // Determine the silent padding duration to be stripped from the edges of
-    // the generated audio. If a chunk ends with a space or follows one that
-    // did, it indicates a word boundary split – we use a shorter padding (20ms)
-    // to ensure natural speech flow. Otherwise, we use 50ms for standard
-    // pauses.
-    bool endsWithSpace = (subsentence.back() == U' ');
-    bool prevEndsWithSpace = (i > 0 && subsentences[i - 1].back() == U' ');
-    size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
+    // To maximize the quality of the speech, we try to avoid processing
+    // chunks which end in the middle of a sentence.
+    if (chunkSize > 0 ||
+        streamSkippedIterations >= params::kStreamMaxSkippedIterations) {
+      std::string text = inputTextBuffer_.substr(0, chunkSize);
+      inputTextBuffer_.erase(0, chunkSize);
 
-    // Generate an audio vector with the Kokoro model
-    auto audioPart = synthesize(subsentence, speed, paddingMs);
+      // Now we proceed with a standard streaming logic for fixed-size input.
+      auto phonemes = phonemizer_.process(text);
 
-    // Calculate a pause between the sentences
-    char32_t lastPhoneme = subsentence.back();
-    size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
-                         ? params::kPauseValues.at(lastPhoneme)
-                         : params::kDefaultPause;
-    std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
+      // Divide the phonemes string intro substrings.
+      // Use specialized implementation to minimize the latency between the
+      // sentences.
+      auto subsentences =
+          partitioner_.divide<Partitioner::Strategy::LATENCY>(phonemes);
 
-    // Add pause to the audio vector
-    audioPart.insert(audioPart.end(), std::make_move_iterator(pause.begin()),
-                     std::make_move_iterator(pause.end()));
+      // We follow the implementation of generate() method, but
+      // instead of accumulating results in a vector, we push them
+      // back to the JS side with the callback.
+      for (size_t i = 0; i < subsentences.size(); i++) {
+        if (!isStreaming_) {
+          break;
+        }
 
-    // Push the audio right away to the JS side
-    nativeCallback(audioPart);
+        const auto &subsentence = subsentences[i];
+
+        // Determine the silent padding duration to be stripped from the edges
+        // of the generated audio. If a chunk ends with a space or follows one
+        // that did, it indicates a word boundary split – we use a shorter
+        // padding (20ms) to ensure natural speech flow. Otherwise, we use 50ms
+        // for standard pauses.
+        bool endsWithSpace = (subsentence.back() == U' ');
+        bool prevEndsWithSpace = (i > 0 && subsentences[i - 1].back() == U' ');
+        size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
+
+        // Generate an audio vector with the Kokoro model
+        auto audioPart = synthesize(subsentence, speed, paddingMs);
+
+        // Calculate a pause between the sentences
+        char32_t lastPhoneme = subsentence.back();
+        size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
+                             ? params::kPauseValues.at(lastPhoneme)
+                             : params::kDefaultPause;
+        std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond,
+                                 0.F);
+
+        // Add pause to the audio vector
+        audioPart.insert(audioPart.end(),
+                         std::make_move_iterator(pause.begin()),
+                         std::make_move_iterator(pause.end()));
+
+        // Push the audio right away to the JS side
+        nativeCallback(audioPart);
+      }
+
+      streamSkippedIterations = 0;
+    } else {
+      streamSkippedIterations++;
+    }
+
+    // A little bit of pause to not overload the thread.
+    if (isStreaming_) {
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(params::kStreamPause));
+    }
   }
 
-  // Mark the end of the streaming process
+  inputTextBuffer_.clear();
   isStreaming_ = false;
+  streamSkippedIterations = 0;
 }
 
-void Kokoro::streamStop() noexcept { isStreaming_ = false; }
+void Kokoro::streamInsert(std::string textChunk) noexcept {
+  inputTextBuffer_.append(textChunk);
+}
+
+void Kokoro::streamStop(bool instant) noexcept {
+  if (instant) {
+    isStreaming_ = false;
+  } else {
+    stopOnEmptyBuffer_ = true;
+  }
+}
 
 std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
                                       float speed, size_t paddingMs) {

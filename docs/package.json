@@ -5,8 +5,10 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build && npm run postbuild",
+    "build": "docusaurus build && yarn prettier-api-reference && npm run postbuild",
+    "docs:version": "./scripts/build-version-docs.sh",
     "postbuild": "node scripts/postbuild.mjs",
+    "prettier-api-reference": "npx prettier --write 'docs/06-api-reference/**/*.{md,mdx}'",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -17,9 +19,10 @@
   },
   "dependencies": {
     "@docsearch/core": "^4.4.0",
-    "@docsearch/css": "^4.4.0",
-    "@docsearch/sidepanel": "^4.4.0",
+    "@docsearch/css": "^4.6.0",
+    "@docsearch/sidepanel": "^4.6.0",
     "@docusaurus/core": "^3.9.2",
+    "@docusaurus/plugin-google-tag-manager": "^3.9.2",
     "@docusaurus/plugin-sitemap": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@emotion/react": "^11.14.0",
@@ -34,14 +37,14 @@
     "prism-react-renderer": "^2.1.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "swiper": "^11.2.10"
+    "swiper": "^12.1.2"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
     "@docusaurus/tsconfig": "^3.9.2",
     "docusaurus-plugin-typedoc": "^1.4.2",
-    "typedoc": "^0.28.16",
-    "typedoc-plugin-markdown": "^4.9.0",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.9.3"
   },
   "browserslist": {

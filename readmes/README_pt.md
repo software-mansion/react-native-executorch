@@ -2,7 +2,6 @@
   <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
 </div>
 
-
 <div align="center">
   <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
@@ -57,7 +56,7 @@ As versões mínimas suportadas são:
 
 - iOS 17.0
 - Android 13
-- React Native 0.76
+- React Native 0.81
 
 > [!IMPORTANT]
 > React Native ExecuTorch suporta apenas a [Nova Arquitetura do React Native](https://reactnative.dev/architecture/landing-page).
@@ -77,6 +76,15 @@ React Native ExecuTorch está impulsionando o [Private Mind](https://privatemind
 ```bash
 # Instale o pacote
 yarn add react-native-executorch
+
+# Se você usa expo, adicione estes pacotes para busca de recursos:
+yarn add @react-native-executorch/expo-resource-fetcher
+yarn add expo-file-system expo-asset
+
+# Se você usa projeto React Native básico, use estes pacotes:
+yarn add @react-native-executorch/bare-resource-fetcher
+yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
 # Dependendo da plataforma, escolha iOS ou Android
 yarn expo run:< ios | android >
 ```
@@ -86,7 +94,17 @@ yarn expo run:< ios | android >
 Adicione isso ao seu arquivo de componente:
 
 ```tsx
-import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B,
+  Message,
+  initExecutorch,
+} from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 function MyComponent() {
   // Inicialize o modelo 🚀

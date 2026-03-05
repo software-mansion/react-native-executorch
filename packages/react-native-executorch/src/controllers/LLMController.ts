@@ -12,7 +12,6 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
-import { readAsStringAsync } from 'expo-file-system/legacy';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
@@ -117,7 +116,7 @@ export class LLMController {
       }
 
       this.tokenizerConfig = JSON.parse(
-        await readAsStringAsync('file://' + tokenizerConfigPath!)
+        await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
       this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
@@ -134,6 +133,7 @@ export class LLMController {
         this.tokenCallback(filtered);
       };
     } catch (e) {
+      Logger.error('Load failed:', e);
       this.isReadyCallback(false);
       throw parseUnknownError(e);
     }
@@ -227,6 +227,7 @@ export class LLMController {
     }
     try {
       this.isGeneratingCallback(true);
+      this.nativeModule.reset();
       const response = await this.nativeModule.generate(input, this.onToken);
       return this.filterSpecialTokens(response);
     } catch (e) {
@@ -304,15 +305,30 @@ export class LLMController {
   }
 
   public async sendMessage(message: string): Promise<string> {
-    this.messageHistoryCallback([
+    const updatedHistory = [
       ...this._messageHistory,
-      { content: message, role: 'user' },
-    ]);
-
-    const messageHistoryWithPrompt: Message[] = [
-      { content: this.chatConfig.systemPrompt, role: 'system' },
-      ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
+      { content: message, role: 'user' as const },
     ];
+    this.messageHistoryCallback(updatedHistory);
+
+    const countTokensCallback = (messages: Message[]) => {
+      const rendered = this.applyChatTemplate(
+        messages,
+        this.tokenizerConfig,
+        this.toolsConfig?.tools,
+        // eslint-disable-next-line camelcase
+        { tools_in_user_message: false, add_generation_prompt: true }
+      );
+      return this.nativeModule.countTextTokens(rendered);
+    };
+    const maxContextLength = this.nativeModule.getMaxContextLength();
+    const messageHistoryWithPrompt =
+      this.chatConfig.contextStrategy.buildContext(
+        this.chatConfig.systemPrompt,
+        updatedHistory,
+        maxContextLength,
+        countTokensCallback
+      );
 
     const response = await this.generate(
       messageHistoryWithPrompt,

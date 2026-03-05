@@ -6,6 +6,7 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.

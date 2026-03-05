@@ -15,7 +15,6 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
-#include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
@@ -346,6 +345,15 @@ inline jsi::Value getJsiValue(const std::vector<char> &vec,
   return {runtime, array};
 }
 
+inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+  }
+  return {runtime, array};
+}
+
 // Conditional as on android, size_t and uint64_t reduce to the same type,
 // introducing ambiguity
 template <typename T,
@@ -434,9 +442,7 @@ inline jsi::Value getJsiValue(
     detection.setProperty(runtime, "bbox", bbox);
     detection.setProperty(
         runtime, "label",
-        jsi::String::createFromAscii(
-            runtime, models::object_detection::constants::kCocoLablesMap.at(
-                         detections[i].label)));
+        jsi::String::createFromUtf8(runtime, detections[i].label));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
   }

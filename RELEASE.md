@@ -4,15 +4,15 @@
 
 The release process of new minor version consists of the following steps:
 
-1. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.0`.
-2. Update version tags in `packages/react-native-executorch/src/constants/modelUrls.ts` to point to the proper `MINOR` version and update tags on [🤗 huggingface](https://huggingface.co/software-mansion).
-3. Commit with a message 'Release v{MAJOR}.{MINOR}.0'. (We want to keep the latest `MINOR` version on the `main` branch.)
-4. Create a new release branch `release/{MAJOR}.{MINOR}`and push it to the remote.
-5. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
-6. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run `npm publish`.
-7. Create versioned docs by running from repo root `(cd docs && yarn docusaurus docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
-8. Create a PR with the updated docs.
-9. Create the release notes on GitHub.
+1. Update version tags in `packages/react-native-executorch/src/constants/modelUrls.ts` to point to the proper `MINOR` version and update tags on [🤗 huggingface](https://huggingface.co/software-mansion).
+2. Commit with a message 'Release v{MAJOR}.{MINOR}.0'.
+3. Create a new release branch `release/{MAJOR}.{MINOR}` and push it to the remote.
+4. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
+5. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the [npm publish workflow](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml).
+6. Create the release notes on GitHub.
+7. Bump version in `package.json` on the `main` branch to `v{MAJOR}.{NEXT_MINOR}.0` and commit with a message 'Bump version to v{MAJOR}.{NEXT_MINOR}.0'.
+8. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
+9. Create a PR with the updated docs.
 10. Update README.md with release video, if available.
 11. Update README.md links to release branch.
 
@@ -23,11 +23,11 @@ After the release branch is created and the version is published to npm we only 
 > [!CAUTION]
 > Those changes should NOT include documentation changes, as they would be released automatically on the PR's merge and before the code changes are live. Instead create a separate PR with doc changes according to the [Docs update](#docs-update) section.
 
-1. Create a PR to the main branch.
-2. Once the PR is merged, `cherry-pick` the commit to the release branch.
-3. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.{REVISION}`.
-   Commit with a message 'Release v{MAJOR}.{MINOR}.0'.
-4. Tag release branch with proper version tag `v{MAJOR}.{MINOR}.{REVISION}` and run `npm publish`.
+1. Create a PR with the fix to the `main` branch.
+2. Once the PR is merged, create a new branch off `release/{MAJOR}.{MINOR}`, cherry-pick the relevant commits from `main`, and open a PR targeting `release/{MAJOR}.{MINOR}`.
+3. Once the PR is merged, bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.{REVISION}`.
+   Commit with a message 'Release v{MAJOR}.{MINOR}.{REVISION}'.
+4. Tag release branch with proper version tag `v{MAJOR}.{MINOR}.{REVISION}` and run the [npm publish workflow](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml).
 5. Create release notes on GitHub.
 
 ## Docs update

@@ -342,6 +342,26 @@ void Runner::set_topp(float topp) noexcept {
   }
 }
 
+int32_t Runner::get_max_context_length() const {
+  if (!is_loaded()) {
+    return metadata_.at(kMaxContextLen);
+  }
+  return config_.max_context_length;
+}
+
+int32_t Runner::count_text_tokens(const std::string &text) const {
+  auto encodeResult =
+      tokenizer_->encode(text, numOfAddedBoSTokens, numOfAddedEoSTokens);
+
+  if (!encodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Encoding failed during token count check.");
+  }
+
+  return encodeResult.get().size();
+}
+
 int32_t Runner::resolve_max_new_tokens(int32_t num_prompt_tokens,
                                        int32_t max_seq_len,
                                        int32_t max_context_len,

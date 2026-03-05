@@ -1,7 +1,13 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const {
-  wrapWithAudioAPIMetroConfig,
-} = require('react-native-audio-api/metro-config');
+
+let wrapWithAudioAPIMetroConfig = (cfg) => cfg;
+try {
+  ({
+    wrapWithAudioAPIMetroConfig,
+  } = require('react-native-audio-api/metro-config'));
+} catch {
+  // Some react-native-audio-api releases don't ship metro-config.
+}
 
 const config = getDefaultConfig(__dirname);
 

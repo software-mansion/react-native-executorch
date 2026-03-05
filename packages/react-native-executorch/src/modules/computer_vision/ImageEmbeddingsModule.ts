@@ -1,8 +1,9 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for generating image embeddings from input images.
@@ -20,17 +21,24 @@ export class ImageEmbeddingsModule extends BaseModule {
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.modelSource
-    );
-    if (paths === null || paths.length < 1) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+    try {
+      const paths = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.modelSource
       );
+
+      if (!paths?.[0]) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+
+      this.nativeModule = global.loadImageEmbeddings(paths[0]);
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-    this.nativeModule = global.loadImageEmbeddings(paths[0] || '');
   }
 
   /**

@@ -2,7 +2,7 @@
 
 > `const` **BK_SDM_TINY_VPRED_512**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:594](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/constants/modelUrls.ts#L594)
+Defined in: [constants/modelUrls.ts:737](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L737)
 
 ## Type Declaration
 
