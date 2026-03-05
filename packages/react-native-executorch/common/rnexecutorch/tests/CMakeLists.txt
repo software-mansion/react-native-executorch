@@ -222,6 +222,7 @@ add_rn_test(LLMTests integration/LLMTest.cpp
         ${COMMON_DIR}/runner/sampler.cpp
         ${COMMON_DIR}/runner/arange_util.cpp
         ${COMMON_DIR}/runner/encoders/vision_encoder.cpp
+        ${IMAGE_UTILS_SOURCES}
     LIBS tokenizers_deps opencv_deps
 )
 

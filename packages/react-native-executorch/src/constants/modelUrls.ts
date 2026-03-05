@@ -372,20 +372,9 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 };
 
 // LFM2.5-VL-1.6B (Vision-Language)
-const LFM2_VL_1_6B_MODEL = `https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_xnnpack.pte`;
-const LFM2_VL_1_6B_QUANTIZED_MODEL = `https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte`;
+const LFM2_VL_1_6B_QUANTIZED_MODEL = `https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2_5_vl_quantized_xnnpack_v2.pte`;
 const LFM2_VL_TOKENIZER = `https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json`;
 const LFM2_VL_TOKENIZER_CONFIG = `https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_config_2_5.json`;
-
-/**
- * @category Models - VLM
- */
-export const LFM2_VL_1_6B = {
-  capabilities: ['vision'] as const,
-  modelSource: LFM2_VL_1_6B_MODEL,
-  tokenizerSource: LFM2_VL_TOKENIZER,
-  tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
-};
 
 /**
  * @category Models - VLM

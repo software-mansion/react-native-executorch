@@ -11,7 +11,6 @@ namespace example {
 class TextRunner : public BaseLLMRunner {
 public:
   explicit TextRunner(
-      ::executorch::extension::Module *module,
       std::unique_ptr<::executorch::extension::Module> owned_module,
       const std::string &tokenizer_path,
       const ::executorch::extension::llm::GenerationConfig &config = {

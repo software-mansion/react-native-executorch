@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
-import { useLLM } from 'react-native-executorch';
+import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
@@ -34,15 +34,7 @@ function MultimodalLLMScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const vlm = useLLM({
-    model: {
-      capabilities: ['vision'] as const,
-      modelSource:
-        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte',
-      tokenizerSource:
-        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json',
-      tokenizerConfigSource:
-        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_config_2_5.json',
-    },
+    model: LFM2_VL_1_6B_QUANTIZED,
   });
 
   useEffect(() => {

@@ -4,6 +4,7 @@
 #include "util.h"
 #include <cstdint>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 
 namespace example {
 
@@ -23,7 +24,6 @@ BaseLLMRunner::BaseLLMRunner(Module *module,
           {kMaxSeqLen, 128},
           {kMaxContextLen, 128},
           {kUseKVCache, true},
-          {kUseSDPAWithKVCache, false},
       }) {}
 
 Error BaseLLMRunner::load() {
@@ -49,7 +49,8 @@ Error BaseLLMRunner::load() {
                   .toScalar()
                   .to<decltype(metadata_)::mapped_type>();
     }
-    ET_LOG(Info, "Metadata: %s = %" PRId64, method_name.c_str(), value);
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                      "[BaseLLMRunner] Metadata:", method_name, "=", value);
   }
 
   if (config_.max_seq_len < 0)
@@ -63,11 +64,9 @@ Error BaseLLMRunner::load() {
   if (config_.max_new_tokens < 0)
     config_.max_new_tokens =
         std::min(config_.max_seq_len, config_.max_context_length);
-  if (config_.enable_dynamic_shape)
-    config_.enable_dynamic_shape =
-        static_cast<bool>(metadata_.at(kEnableDynamicShape));
-  if (config_.enable_kv_cache)
-    config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
+  config_.enable_dynamic_shape =
+      static_cast<bool>(metadata_.at(kEnableDynamicShape));
+  config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
 
   auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
   if (method_names.count(kEosIds)) {

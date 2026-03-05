@@ -4,6 +4,7 @@
 #include "util.h"
 #include <cstdint>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 
 namespace example {
 
@@ -11,10 +12,10 @@ using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
-TextRunner::TextRunner(Module *module, std::unique_ptr<Module> owned_module,
+TextRunner::TextRunner(std::unique_ptr<Module> owned_module,
                        const std::string &tokenizer_path,
                        const llm::GenerationConfig &config)
-    : BaseLLMRunner(module, std::move(owned_module), tokenizer_path, config) {}
+    : BaseLLMRunner(nullptr, std::move(owned_module), tokenizer_path, config) {}
 
 bool TextRunner::is_loaded() const {
   return module_ && module_->is_loaded() && tokenizer_ &&
@@ -43,6 +44,9 @@ Error TextRunner::load_subcomponents() {
 
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
       module_, io_manager_.get(), config_.temperature, config_.topp);
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "[TextRunner] Parallel prefill (enable_dynamic_shape):",
+                    config_.enable_dynamic_shape);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);
@@ -116,6 +120,9 @@ Error TextRunner::generate_internal(
   auto prefill_res = text_prefiller_->prefill(prompt_tokens, pos_);
   stats_.first_token_ms = llm::time_in_ms();
   stats_.prompt_eval_end_ms = llm::time_in_ms();
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[TextRunner] Prefill took",
+                    stats_.prompt_eval_end_ms - stats_.inference_start_ms,
+                    "ms for", num_prompt_tokens, "tokens");
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
 
   uint64_t cur_token = prefill_res.get();
