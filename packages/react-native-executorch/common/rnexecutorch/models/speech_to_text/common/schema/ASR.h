@@ -21,8 +21,9 @@ class ASR {
 public:
   virtual ~ASR() = default;
 
-  std::vector<Segment> virtual transcribe(
-      std::span<float> waveform, const DecodingOptions &options) const = 0;
+  virtual std::vector<Segment>
+  transcribe(std::span<float> waveform,
+             const DecodingOptions &options) const = 0;
 
   virtual std::vector<float> encode(std::span<float> waveform) const = 0;
 

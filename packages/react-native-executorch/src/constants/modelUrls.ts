@@ -476,7 +476,7 @@ const WHISPER_SMALL_EN_MODEL = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TA
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY_EN = {
-  type: 'whisper' as const,
+  modelName: 'whisper' as const,
   isMultilingual: false,
   modelSource: WHISPER_TINY_EN_MODEL,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
@@ -486,6 +486,7 @@ export const WHISPER_TINY_EN = {
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE_EN = {
+  modelName: 'whisper' as const,
   isMultilingual: false,
   modelSource: WHISPER_BASE_EN_MODEL,
   tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
@@ -495,6 +496,7 @@ export const WHISPER_BASE_EN = {
  * @category Models - Speech To Text
  */
 export const WHISPER_SMALL_EN = {
+  modelName: 'whisper' as const,
   isMultilingual: false,
   modelSource: WHISPER_SMALL_EN_MODEL,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
