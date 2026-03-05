@@ -3,7 +3,10 @@
 
 #include "iencoder.h"
 #include <executorch/extension/module/module.h>
+#include <executorch/runtime/core/evalue.h>
 #include <runner/multimodal_input.h>
+#include <string>
+#include <unordered_map>
 
 namespace executorch::extension::llm {
 
@@ -18,6 +21,8 @@ public:
 
 private:
   ::executorch::extension::Module *module_;
+  std::unordered_map<std::string, ::executorch::runtime::EValue>
+      embedding_cache_;
 };
 
 } // namespace executorch::extension::llm

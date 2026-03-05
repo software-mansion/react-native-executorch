@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <runner/image.h>
 #include <string>
 #include <variant>
 #include <vector>
@@ -19,6 +18,11 @@
 namespace executorch {
 namespace extension {
 namespace llm {
+
+// Tagged struct to distinguish image paths from text strings in the variant.
+struct ImagePath {
+  std::string path;
+};
 
 class MultimodalInput {
 public:
@@ -28,8 +32,8 @@ public:
       : data_(tokens) {}
   explicit MultimodalInput(std::vector<uint64_t> &&tokens)
       : data_(std::move(tokens)) {}
-  explicit MultimodalInput(const Image &image) : data_(image) {}
-  explicit MultimodalInput(Image &&image) : data_(std::move(image)) {}
+  explicit MultimodalInput(ImagePath image_path)
+      : data_(std::move(image_path)) {}
 
   MultimodalInput(const MultimodalInput &) = default;
   MultimodalInput &operator=(const MultimodalInput &) = default;
@@ -43,17 +47,19 @@ public:
     return std::holds_alternative<std::vector<uint64_t>>(data_);
   }
   bool is_image() const noexcept {
-    return std::holds_alternative<Image>(data_);
+    return std::holds_alternative<ImagePath>(data_);
   }
 
   const std::string &get_text() const & { return std::get<std::string>(data_); }
   const std::vector<uint64_t> &get_tokens() const & {
     return std::get<std::vector<uint64_t>>(data_);
   }
-  const Image &get_image() const & { return std::get<Image>(data_); }
+  const std::string &get_image_path() const & {
+    return std::get<ImagePath>(data_).path;
+  }
 
 private:
-  std::variant<std::string, std::vector<uint64_t>, Image> data_;
+  std::variant<std::string, std::vector<uint64_t>, ImagePath> data_;
 };
 
 inline MultimodalInput make_text_input(const std::string &text) noexcept {
@@ -62,11 +68,8 @@ inline MultimodalInput make_text_input(const std::string &text) noexcept {
 inline MultimodalInput make_text_input(std::string &&text) noexcept {
   return MultimodalInput(std::move(text));
 }
-inline MultimodalInput make_image_input(const Image &image) noexcept {
-  return MultimodalInput(image);
-}
-inline MultimodalInput make_image_input(Image &&image) noexcept {
-  return MultimodalInput(std::move(image));
+inline MultimodalInput make_image_input(std::string path) noexcept {
+  return MultimodalInput(ImagePath{std::move(path)});
 }
 
 } // namespace llm

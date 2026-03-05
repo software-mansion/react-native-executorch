@@ -4,10 +4,8 @@
 #include <filesystem>
 #include <map>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 #include <runner/encoders/vision_encoder.h>
-#include <runner/image.h>
 #include <runner/multimodal_runner.h>
 #include <runner/text_runner.h>
 
@@ -17,34 +15,6 @@ namespace fs = std::filesystem;
 using namespace facebook;
 using executorch::extension::module::Module;
 using executorch::runtime::Error;
-
-// LFM2-VL vision encoder expects [1, 3, 512, 512] NCHW float32, values [0,255]
-static constexpr int kImageSize = 512;
-static constexpr int kImageChannels = 3;
-
-static llm::Image loadImageForVLM(const std::string &imagePath) {
-  cv::Mat mat = image_processing::readImage(imagePath);
-  cv::resize(mat, mat, cv::Size(kImageSize, kImageSize));
-  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
-
-  std::vector<float> chw(kImageChannels * kImageSize * kImageSize);
-  const int pixelCount = kImageSize * kImageSize;
-  for (int i = 0; i < pixelCount; ++i) {
-    cv::Vec3b px = mat.at<cv::Vec3b>(i / kImageSize, i % kImageSize);
-    for (int c = 0; c < kImageChannels; ++c) {
-      chw[c * pixelCount + i] = static_cast<float>(px[c]);
-    }
-  }
-  return llm::Image(std::move(chw), kImageSize, kImageSize, kImageChannels);
-}
-
-const llm::Image &LLM::getOrLoadImage(const std::string &path) {
-  auto it = imageCache_.find(path);
-  if (it != imageCache_.end()) {
-    return it->second;
-  }
-  return imageCache_.emplace(path, loadImageForVLM(path)).first->second;
-}
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::vector<std::string> capabilities,
@@ -141,8 +111,7 @@ std::string LLM::generate(std::string prompt,
           RnExecutorchErrorCode::InvalidUserInput,
           "More <image> placeholders in prompt than image paths provided");
     }
-    const llm::Image &img = getOrLoadImage(imagePaths[imageIdx++]);
-    inputs.push_back(llm::make_image_input(img));
+    inputs.push_back(llm::make_image_input(imagePaths[imageIdx++]));
     searchPos = found + kImageTokenLen;
   }
 
@@ -183,7 +152,6 @@ void LLM::reset() {
                             "Can't reset a model that's not loaded");
   }
   runner_->reset();
-  imageCache_.clear();
 }
 
 size_t LLM::getGeneratedTokenCount() const noexcept {

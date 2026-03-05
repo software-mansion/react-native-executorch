@@ -14,6 +14,7 @@
 #include "multimodal_input.h"
 #include <executorch/extension/module/module.h>
 #include <pytorch/tokenizers/hf_tokenizer.h>
+#include <runner/encoders/iencoder.h>
 
 namespace executorch {
 namespace extension {
@@ -26,7 +27,8 @@ public:
   explicit MultimodalPrefiller(Module *module,
                                MultimodalDecoderRunner *decoder_runner,
                                tokenizers::HFTokenizer *tokenizer,
-                               IOManager *io_manager);
+                               IOManager *io_manager,
+                               IEncoder *image_encoder = nullptr);
 
   // Prefill one input segment. Updates start_pos in-place.
   // Returns the first predicted token after this segment.
@@ -41,6 +43,7 @@ private:
   MultimodalDecoderRunner *decoder_runner_;
   tokenizers::HFTokenizer *tokenizer_;
   IOManager *io_manager_;
+  IEncoder *image_encoder_;
 };
 
 } // namespace llm

@@ -24,9 +24,10 @@ using ::executorch::runtime::Result;
 
 MultimodalPrefiller::MultimodalPrefiller(
     Module *module, MultimodalDecoderRunner *decoder_runner,
-    tokenizers::HFTokenizer *tokenizer, IOManager *io_manager)
+    tokenizers::HFTokenizer *tokenizer, IOManager *io_manager,
+    IEncoder *image_encoder)
     : module_(module), decoder_runner_(decoder_runner), tokenizer_(tokenizer),
-      io_manager_(io_manager) {}
+      io_manager_(io_manager), image_encoder_(image_encoder) {}
 
 Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
                                               int64_t &start_pos) {
@@ -36,37 +37,11 @@ Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
   TensorPtr sliced_embed_storage;
 
   if (input.is_image()) {
-    const Image &image = input.get_image();
-
-    // Query input dtype expected by vision_encoder.
-    auto method_meta_result = module_->method_meta(kVisionEncoderMethod);
-    ET_CHECK_OK_OR_RETURN_ERROR(method_meta_result.error(),
-                                "Failed to get method_meta for %s",
-                                kVisionEncoderMethod);
-    auto &method_meta = *method_meta_result;
-
-    ET_CHECK_OR_RETURN_ERROR(method_meta.num_inputs() > 0, InvalidArgument,
-                             "vision_encoder has no inputs");
-    auto input_meta_result = method_meta.input_tensor_meta(0);
-    ET_CHECK_OK_OR_RETURN_ERROR(input_meta_result.error(),
-                                "Cannot get vision_encoder input meta at 0");
-    auto expected_dtype = input_meta_result->scalar_type();
-
-    ET_CHECK_OR_RETURN_ERROR(
-        expected_dtype == ::executorch::aten::ScalarType::Float &&
-            image.is_float(),
-        InvalidArgument, "vision_encoder expects float32 image data");
-
-    auto expected_dims = input_meta_result->sizes();
-    auto image_tensor_result =
-        image.toTensor(/*with_batch=*/expected_dims.size() == 4);
-    ET_CHECK_OK_OR_RETURN_ERROR(image_tensor_result.error(),
-                                "Failed to convert image to tensor");
-
-    auto image_encoder_result =
-        module_->execute(kVisionEncoderMethod, *image_tensor_result);
-    ET_CHECK_OK_OR_RETURN_ERROR(image_encoder_result.error());
-    encoder_output = (*image_encoder_result)[0];
+    ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
+                             "No image encoder registered");
+    auto encode_result = image_encoder_->encode(input);
+    ET_CHECK_OK_OR_RETURN_ERROR(encode_result.error(), "Image encoding failed");
+    encoder_output = *encode_result;
 
   } else if (input.is_text() || input.is_tokens()) {
     std::vector<uint64_t> tokens;

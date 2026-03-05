@@ -8,7 +8,6 @@
 #include <jsi/jsi.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <runner/base_llm_runner.h>
-#include <runner/image.h>
 
 namespace rnexecutorch {
 namespace models::llm {
@@ -45,10 +44,6 @@ public:
 
 private:
   std::unique_ptr<example::BaseLLMRunner> runner_;
-  std::unordered_map<std::string, executorch::extension::llm::Image>
-      imageCache_;
-  const executorch::extension::llm::Image &
-  getOrLoadImage(const std::string &path);
 };
 } // namespace models::llm
 
