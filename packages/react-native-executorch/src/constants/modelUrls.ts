@@ -460,17 +460,14 @@ const WHISPER_BASE_EN_MODEL = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}
 const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_SMALL_EN_MODEL = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack.pte`;
 
-// const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
-// const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_encoder_xnnpack.pte`;
-// const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_decoder_xnnpack.pte`;
+const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_MODEL = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack.pte`;
 
-// const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
-// const WHISPER_BASE_ENCODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_encoder_xnnpack.pte`;
-// const WHISPER_BASE_DECODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_decoder_xnnpack.pte`;
+const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_MODEL = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_xnnpack.pte`;
 
-// const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
-// const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
-// const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
+const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_xnnpack.pte`;
 
 /**
  * @category Models - Speech To Text
@@ -502,35 +499,35 @@ export const WHISPER_SMALL_EN = {
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 };
 
-// /**
-//  * @category Models - Speech To Text
-//  */
-// export const WHISPER_TINY = {
-//   isMultilingual: true,
-//   encoderSource: WHISPER_TINY_ENCODER_MODEL,
-//   decoderSource: WHISPER_TINY_DECODER_MODEL,
-//   tokenizerSource: WHISPER_TINY_TOKENIZER,
-// };
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_TINY = {
+  modelName: 'whisper' as const,
+  isMultilingual: true,
+  modelSource: WHISPER_TINY_MODEL,
+  tokenizerSource: WHISPER_TINY_TOKENIZER,
+};
 
-// /**
-//  * @category Models - Speech To Text
-//  */
-// export const WHISPER_BASE = {
-//   isMultilingual: true,
-//   encoderSource: WHISPER_BASE_ENCODER_MODEL,
-//   decoderSource: WHISPER_BASE_DECODER_MODEL,
-//   tokenizerSource: WHISPER_BASE_TOKENIZER,
-// };
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_BASE = {
+  modelName: 'whisper' as const,
+  isMultilingual: true,
+  modelSource: WHISPER_BASE_MODEL,
+  tokenizerSource: WHISPER_BASE_TOKENIZER,
+};
 
-// /**
-//  * @category Models - Speech To Text
-//  */
-// export const WHISPER_SMALL = {
-//   isMultilingual: true,
-//   encoderSource: WHISPER_SMALL_ENCODER_MODEL,
-//   decoderSource: WHISPER_SMALL_DECODER_MODEL,
-//   tokenizerSource: WHISPER_SMALL_TOKENIZER,
-// };
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_SMALL = {
+  modelName: 'whisper' as const,
+  isMultilingual: true,
+  modelSource: WHISPER_SMALL_MODEL,
+  tokenizerSource: WHISPER_SMALL_TOKENIZER,
+};
 
 // Semantic Segmentation
 const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet50/xnnpack/deeplabv3_resnet50_xnnpack_fp32.pte`;
