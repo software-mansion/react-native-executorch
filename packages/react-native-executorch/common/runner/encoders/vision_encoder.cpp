@@ -57,6 +57,26 @@ bool VisionEncoder::is_loaded() const {
   return module_->is_method_loaded(kVisionEncoderMethod);
 }
 
+int32_t VisionEncoder::encoderTokenCount() const {
+  if (!is_loaded()) {
+    return 0;
+  }
+  auto meta_result = module_->method_meta(kVisionEncoderMethod);
+  if (!meta_result.ok()) {
+    return 0;
+  }
+  auto output_meta = meta_result->output_tensor_meta(0);
+  if (!output_meta.ok()) {
+    return 0;
+  }
+  // Output shape is [1, num_visual_tokens, embed_dim]
+  auto sizes = output_meta->sizes();
+  if (sizes.size() < 2) {
+    return 0;
+  }
+  return static_cast<int32_t>(sizes[1]);
+}
+
 Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
   if (!is_loaded()) {
     return Error::InvalidState;

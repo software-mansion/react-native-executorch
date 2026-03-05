@@ -51,6 +51,7 @@ public:
   void reset();
   int32_t count_text_tokens(const std::string &text) const;
   int32_t get_max_context_length() const;
+  virtual int32_t get_visual_token_count() const { return 0; }
 
   // Writes config_ then propagates to subclass impl
   void set_temperature(float temperature) noexcept;

@@ -285,7 +285,8 @@ export class LLMController {
 
   public async generate(
     messages: Message[],
-    tools?: LLMTool[]
+    tools?: LLMTool[],
+    imagePaths?: string[]
   ): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(
@@ -313,7 +314,7 @@ export class LLMController {
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
-    return await this.forward(renderedChat);
+    return await this.forward(renderedChat, imagePaths);
   }
 
   public async sendMessage(
@@ -329,27 +330,21 @@ export class LLMController {
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
-    let response: string;
-
-    const isMultimodal = updatedHistory.some((m) => m.mediaPath);
-
-    // For multimodal messages, convert mediaPath into structured content so
+    // For messages with images, convert mediaPath into structured content so
     // the chat template emits <image> placeholders in the right position.
-    const historyForTemplate = isMultimodal
-      ? updatedHistory.map((m) =>
-          m.mediaPath
-            ? {
-                ...m,
-                content: [
-                  { type: 'image' },
-                  { type: 'text', text: m.content },
-                ] as any,
-              }
-            : m
-        )
-      : updatedHistory;
+    const historyForTemplate = updatedHistory.map((m) =>
+      m.mediaPath
+        ? {
+            ...m,
+            content: [
+              { type: 'image' },
+              { type: 'text', text: m.content },
+            ] as any,
+          }
+        : m
+    );
 
-    const IMAGE_VISUAL_TOKENS = 256;
+    const visualTokenCount = this.nativeModule.getVisualTokenCount();
     const countTokensCallback = (messages: Message[]) => {
       const rendered = this.applyChatTemplate(
         messages,
@@ -360,7 +355,7 @@ export class LLMController {
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);
       const imageCount = messages.filter((m) => m.mediaPath).length;
-      return textTokens + imageCount * (IMAGE_VISUAL_TOKENS - 1);
+      return textTokens + imageCount * (visualTokenCount - 1);
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
@@ -371,24 +366,15 @@ export class LLMController {
         countTokensCallback
       );
 
-    if (isMultimodal) {
-      const renderedPrompt = this.applyChatTemplate(
-        messageHistoryWithPrompt,
-        this.tokenizerConfig,
-        this.toolsConfig?.tools,
-        // eslint-disable-next-line camelcase
-        { tools_in_user_message: false, add_generation_prompt: true }
-      );
-      const imagePaths = messageHistoryWithPrompt
-        .filter((m) => m.mediaPath)
-        .map((m) => m.mediaPath!);
-      response = await this.forward(renderedPrompt, imagePaths);
-    } else {
-      response = await this.generate(
-        messageHistoryWithPrompt,
-        this.toolsConfig?.tools
-      );
-    }
+    const imagePaths = messageHistoryWithPrompt
+      .filter((m) => m.mediaPath)
+      .map((m) => m.mediaPath!);
+
+    const response = await this.generate(
+      messageHistoryWithPrompt,
+      this.toolsConfig?.tools,
+      imagePaths.length > 0 ? imagePaths : undefined
+    );
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.messageHistoryCallback([

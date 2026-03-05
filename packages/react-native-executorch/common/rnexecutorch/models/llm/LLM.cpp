@@ -166,6 +166,13 @@ size_t LLM::getPromptTokenCount() const noexcept {
   return runner_->stats_.num_prompt_tokens;
 }
 
+int32_t LLM::getVisualTokenCount() const {
+  if (!runner_ || !runner_->is_loaded()) {
+    return 0;
+  }
+  return runner_->get_visual_token_count();
+}
+
 int32_t LLM::countTextTokens(std::string text) const {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(

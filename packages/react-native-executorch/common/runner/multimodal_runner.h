@@ -28,6 +28,7 @@ public:
           .temperature = 0.8F, .topp = 0.9F});
 
   bool is_loaded() const override;
+  int32_t get_visual_token_count() const override;
 
   ::executorch::runtime::Error generate_internal(
       const std::vector<::executorch::extension::llm::MultimodalInput> &inputs,
@@ -37,7 +38,7 @@ protected:
   ::executorch::runtime::Error load_subcomponents() override;
   void stop_impl() override;
   void set_temperature_impl(float) override {
-  }                                     // config_ already updated by base
+  } // config_ already updated by base
   void set_topp_impl(float) override {} // config_ already updated by base
   void set_count_interval_impl(size_t count_interval) override;
   void set_time_interval_impl(size_t time_interval) override;
