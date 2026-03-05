@@ -84,7 +84,6 @@ protected:
   std::unordered_map<std::string, int64_t> metadata_;
   std::unique_ptr<llm::IOManager> io_manager_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
-  bool shouldStop_{false};
 };
 
 } // namespace rnexecutorch::llm::runner

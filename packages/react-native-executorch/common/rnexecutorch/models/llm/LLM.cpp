@@ -72,6 +72,7 @@ std::string LLM::generate(std::string input,
 
 std::string LLM::generate(std::string prompt,
                           std::vector<std::string> imagePaths,
+                          std::string imageToken,
                           std::shared_ptr<jsi::Function> callback) {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
@@ -82,17 +83,20 @@ std::string LLM::generate(std::string prompt,
         RnExecutorchErrorCode::InvalidUserInput,
         "This is a text-only model. Call generate(prompt, cb).");
   }
+  if (imageToken.empty()) {
+    imageToken = "<image>";
+  }
 
-  // Split rendered prompt on "<image>" placeholders and interleave with images.
-  static constexpr const char *kImageToken = "<image>";
-  static constexpr size_t kImageTokenLen = 7; // strlen("<image>")
+  // Split rendered prompt on imageToken placeholders and interleave with
+  // images.
+  const size_t kImageTokenLen = imageToken.size();
 
   std::vector<llm::MultimodalInput> inputs;
   size_t imageIdx = 0;
   size_t searchPos = 0;
 
   while (true) {
-    size_t found = prompt.find(kImageToken, searchPos);
+    size_t found = prompt.find(imageToken, searchPos);
     if (found == std::string::npos) {
       // Remaining text after last image (or entire prompt if no images)
       if (searchPos < prompt.size()) {
