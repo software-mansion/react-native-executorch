@@ -9,9 +9,9 @@
 #include <runner/multimodal_runner.h>
 
 using ::executorch::extension::Module;
-using ::executorch::extension::llm::MultimodalType;
 using ::executorch::extension::llm::VisionEncoder;
 using ::executorch::runtime::Error;
+using ::rnexecutorch::llm::runner::MultimodalType;
 
 constexpr auto kTextModel = "smolLm2_135M_8da4w.pte";
 constexpr auto kTextTokenizer = "smollm_tokenizer.json";
@@ -36,16 +36,16 @@ makeVisionEncoders(Module *module) {
 TEST(MultimodalRunnerTest, LoadFailsWhenVisionEncoderMissing) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
   auto encoders = makeVisionEncoders(module.get());
-  example::MultimodalRunner runner(std::move(module), kTextTokenizer,
-                                   std::move(encoders));
+  rnexecutorch::llm::runner::MultimodalRunner runner(
+      std::move(module), kTextTokenizer, std::move(encoders));
   EXPECT_THROW(runner.load(), rnexecutorch::RnExecutorchError);
 }
 
 TEST(MultimodalRunnerTest, IsLoadedReturnsFalseBeforeLoad) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
   auto encoders = makeVisionEncoders(module.get());
-  example::MultimodalRunner runner(std::move(module), kTextTokenizer,
-                                   std::move(encoders));
+  rnexecutorch::llm::runner::MultimodalRunner runner(
+      std::move(module), kTextTokenizer, std::move(encoders));
   EXPECT_FALSE(runner.is_loaded());
 }
 
@@ -55,12 +55,12 @@ TEST(MultimodalRunnerTest, IsLoadedReturnsFalseBeforeLoad) {
 
 class VLMTest : public ::testing::Test {
 protected:
-  std::unique_ptr<example::MultimodalRunner> runner_;
+  std::unique_ptr<rnexecutorch::llm::runner::MultimodalRunner> runner_;
 
   void SetUp() override {
     auto module = std::make_unique<Module>(kVLMModel, Module::LoadMode::File);
     auto encoders = makeVisionEncoders(module.get());
-    runner_ = std::make_unique<example::MultimodalRunner>(
+    runner_ = std::make_unique<rnexecutorch::llm::runner::MultimodalRunner>(
         std::move(module), kVLMTokenizer, std::move(encoders));
     auto err = runner_->load();
     ASSERT_EQ(err, Error::Ok) << "VLM model load failed";

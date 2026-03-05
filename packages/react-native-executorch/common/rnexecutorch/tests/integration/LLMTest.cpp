@@ -176,7 +176,7 @@ TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
 #include <runner/base_llm_runner.h>
 
 // Minimal concrete subclass — only used in tests to verify base class behavior
-class StubRunner : public example::BaseLLMRunner {
+class StubRunner : public rnexecutorch::llm::runner::BaseLLMRunner {
 public:
   using BaseLLMRunner::BaseLLMRunner;
   bool is_loaded() const override { return loaded_; }

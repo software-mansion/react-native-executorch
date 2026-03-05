@@ -6,7 +6,7 @@
 #include "text_prefiller.h"
 #include "text_token_generator.h"
 
-namespace example {
+namespace rnexecutorch::llm::runner {
 
 class TextRunner : public BaseLLMRunner {
 public:
@@ -38,4 +38,4 @@ private:
       text_token_generator_;
 };
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner

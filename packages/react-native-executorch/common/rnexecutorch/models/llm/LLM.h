@@ -44,7 +44,7 @@ public:
   int32_t getMaxContextLength() const;
 
 private:
-  std::unique_ptr<example::BaseLLMRunner> runner_;
+  std::unique_ptr<::rnexecutorch::llm::runner::BaseLLMRunner> runner_;
 };
 } // namespace models::llm
 

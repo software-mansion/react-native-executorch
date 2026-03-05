@@ -5,7 +5,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace example {
+namespace rnexecutorch::llm::runner {
 
 using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
@@ -19,7 +19,7 @@ MultimodalRunner::MultimodalRunner(
       encoders_(std::move(encoders)) {}
 
 int32_t MultimodalRunner::get_visual_token_count() const {
-  auto it = encoders_.find(llm::MultimodalType::Image);
+  auto it = encoders_.find(MultimodalType::Image);
   if (it == encoders_.end()) {
     return 0;
   }
@@ -74,7 +74,7 @@ Error MultimodalRunner::load_subcomponents() {
   mm_decoder_runner_ = std::make_unique<llm::MultimodalDecoderRunner>(
       module_, io_manager_.get());
   llm::IEncoder *image_encoder = nullptr;
-  auto enc_it = encoders_.find(llm::MultimodalType::Image);
+  auto enc_it = encoders_.find(MultimodalType::Image);
   if (enc_it != encoders_.end()) {
     image_encoder = enc_it->second.get();
   }
@@ -162,4 +162,4 @@ void MultimodalRunner::set_time_interval_impl(size_t time_interval) {
     mm_token_generator_->set_time_interval(time_interval);
 }
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner

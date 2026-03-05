@@ -6,7 +6,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace example {
+namespace rnexecutorch::llm::runner {
 
 using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
@@ -172,4 +172,4 @@ void TextRunner::set_time_interval_impl(size_t time_interval) {
     text_token_generator_->set_time_interval(time_interval);
 }
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner
