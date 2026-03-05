@@ -200,14 +200,14 @@ public:
 };
 
 TEST(BaseLLMRunnerTest, SetTemperatureWritesConfigAndCallsImpl) {
-  StubRunner runner(nullptr, nullptr, "dummy_tokenizer.json");
+  StubRunner runner(nullptr, "dummy_tokenizer.json");
   runner.set_temperature(0.5f);
   EXPECT_FLOAT_EQ(runner.config_.temperature, 0.5f);
   EXPECT_FLOAT_EQ(runner.last_temp_, 0.5f);
 }
 
 TEST(BaseLLMRunnerTest, ResetZerosPos) {
-  StubRunner runner(nullptr, nullptr, "dummy_tokenizer.json");
+  StubRunner runner(nullptr, "dummy_tokenizer.json");
   runner.pos_ = 42;
   runner.reset();
   EXPECT_EQ(runner.pos_, 0);

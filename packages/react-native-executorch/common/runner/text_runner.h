@@ -10,11 +10,10 @@ namespace rnexecutorch::llm::runner {
 
 class TextRunner : public BaseLLMRunner {
 public:
-  explicit TextRunner(
-      std::unique_ptr<::executorch::extension::Module> owned_module,
-      const std::string &tokenizer_path,
-      const ::executorch::extension::llm::GenerationConfig &config = {
-          .temperature = 0.8F, .topp = 0.9F});
+  explicit TextRunner(std::unique_ptr<::executorch::extension::Module> module,
+                      const std::string &tokenizer_path,
+                      const ::executorch::extension::llm::GenerationConfig
+                          &config = {.temperature = 0.8F, .topp = 0.9F});
 
   bool is_loaded() const override;
 

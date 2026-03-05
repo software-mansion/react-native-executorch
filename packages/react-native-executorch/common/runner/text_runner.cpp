@@ -12,10 +12,10 @@ using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
-TextRunner::TextRunner(std::unique_ptr<Module> owned_module,
+TextRunner::TextRunner(std::unique_ptr<Module> module,
                        const std::string &tokenizer_path,
                        const llm::GenerationConfig &config)
-    : BaseLLMRunner(nullptr, std::move(owned_module), tokenizer_path, config) {}
+    : BaseLLMRunner(std::move(module), tokenizer_path, config) {}
 
 bool TextRunner::is_loaded() const {
   return module_ && module_->is_loaded() && tokenizer_ &&
@@ -26,24 +26,10 @@ bool TextRunner::is_loaded() const {
 Error TextRunner::load_subcomponents() {
   ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
 
-  // Re-detect eos_ids from the module (base class built them but doesn't pass
-  // them down yet — reconstruct with the same fallback logic).
-  auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
-  const auto method_names =
-      ET_UNWRAP(module_->method_names(), "Failed reading method names");
-  if (method_names.count(kEosIds)) {
-    for (const auto &eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
-      eos_ids->emplace(static_cast<uint64_t>(eos_id.toScalar().to<int64_t>()));
-    }
-  }
-  if (eos_ids->empty()) {
-    eos_ids->emplace(7); // fallback <|im_end|>
-  }
-
   llm::Stats *stats_ptr = &stats_;
 
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
-      module_, io_manager_.get(), config_.temperature, config_.topp);
+      module_.get(), io_manager_.get(), config_.temperature, config_.topp);
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
                     "[TextRunner] Parallel prefill (enable_dynamic_shape):",
                     config_.enable_dynamic_shape);
@@ -52,7 +38,7 @@ Error TextRunner::load_subcomponents() {
       config_.enable_dynamic_shape, config_.max_seq_len);
   text_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
-      std::move(eos_ids), stats_ptr);
+      std::move(eos_ids_), stats_ptr);
 
   return Error::Ok;
 }
@@ -62,7 +48,6 @@ Error TextRunner::generate_internal(
     std::function<void(const std::string &)> token_callback) {
 
   if (inputs.empty()) {
-    ET_LOG(Error, "MultimodalInput vector cannot be empty");
     return Error::InvalidArgument;
   }
 

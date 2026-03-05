@@ -1,7 +1,6 @@
 // common/runner/base_llm_runner.cpp
 #include "base_llm_runner.h"
 #include "constants.h"
-#include "util.h"
 #include <cstdint>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
@@ -12,12 +11,11 @@ using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
-BaseLLMRunner::BaseLLMRunner(Module *module,
-                             std::unique_ptr<Module> owned_module,
+BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
                              const std::string &tokenizer_path,
                              const llm::GenerationConfig &config)
-    : config_(config), module_(owned_module ? owned_module.get() : module),
-      owned_module_(std::move(owned_module)), tokenizer_path_(tokenizer_path),
+    : config_(config), module_(std::move(module)),
+      tokenizer_path_(tokenizer_path),
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
       metadata_({
           {kEnableDynamicShape, false},
@@ -68,14 +66,14 @@ Error BaseLLMRunner::load() {
       static_cast<bool>(metadata_.at(kEnableDynamicShape));
   config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
 
-  auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
+  eos_ids_ = std::make_unique<std::unordered_set<uint64_t>>();
   if (method_names.count(kEosIds)) {
     for (const auto &eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
-      eos_ids->emplace(static_cast<uint64_t>(eos_id.toScalar().to<int64_t>()));
+      eos_ids_->emplace(static_cast<uint64_t>(eos_id.toScalar().to<int64_t>()));
     }
   }
-  if (eos_ids->empty()) {
-    eos_ids->emplace(7); // fallback <|im_end|>
+  if (eos_ids_->empty()) {
+    eos_ids_->emplace(7); // fallback <|im_end|>
   }
 
   io_manager_ = std::make_unique<llm::IOManager>(*module_);
@@ -91,6 +89,19 @@ Error BaseLLMRunner::generate(
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
 
   std::vector<llm::MultimodalInput> inputs = {llm::make_text_input(prompt)};
+  auto err = generate_internal(inputs, token_callback);
+
+  if (stats_callback)
+    stats_callback(stats_);
+
+  return err;
+}
+
+Error BaseLLMRunner::generate(
+    const std::vector<llm::MultimodalInput> &inputs,
+    std::function<void(const std::string &)> token_callback,
+    std::function<void(const llm::Stats &)> stats_callback) {
+
   auto err = generate_internal(inputs, token_callback);
 
   if (stats_callback)
