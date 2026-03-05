@@ -17,11 +17,10 @@ import {
   CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
-// Creating an instance
-const imageEmbeddingsModule = new ImageEmbeddingsModule();
-
-// Loading the model
-await imageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH32_IMAGE);
+// Creating and loading the module
+const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName({
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE,
+});
 
 // Running the model
 const embedding = await imageEmbeddingsModule.forward(
@@ -35,14 +34,14 @@ All methods of `ImageEmbeddingsModule` are explained in details here: [`ImageEmb
 
 ## Loading the model
 
-To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ImageEmbeddingsModule.md#load) method with the following parameters:
+To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/ImageEmbeddingsModule.md#frommodelname) factory with the following parameters:
 
-- [`model`](../../06-api-reference/classes/ImageEmbeddingsModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/ImageEmbeddingsModule.md#modelsource) - Location of the used model.
+- `model` - Object containing:
+  - `modelSource` - Location of the model binary.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `ImageEmbeddingsModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

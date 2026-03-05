@@ -11,19 +11,25 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class ImageEmbeddingsModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
+   * Creates an `ImageEmbeddingsModule` instance and loads the model.
    *
    * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
+   * @returns A Promise resolving to a ready-to-use `ImageEmbeddingsModule` instance.
    */
-  async load(
+  static async fromModelName(
     model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ImageEmbeddingsModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
+        onDownloadProgress,
         model.modelSource
       );
 
@@ -34,7 +40,7 @@ export class ImageEmbeddingsModule extends BaseModule {
         );
       }
 
-      this.nativeModule = await global.loadImageEmbeddings(paths[0]);
+      return new ImageEmbeddingsModule(await global.loadImageEmbeddings(paths[0]));
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
