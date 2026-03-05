@@ -16,12 +16,8 @@
 #include <pytorch/tokenizers/hf_tokenizer.h>
 #include <runner/encoders/iencoder.h>
 
-namespace executorch {
-namespace extension {
-namespace llm {
+namespace executorch::extension::llm {
 
-// Prefills all multimodal inputs (image + text segments) into the KV cache.
-// Implements the same padding logic as the ET repo's multimodal_prefiller.cpp.
 class MultimodalPrefiller {
 public:
   explicit MultimodalPrefiller(Module *module,
@@ -46,6 +42,4 @@ private:
   IEncoder *image_encoder_;
 };
 
-} // namespace llm
-} // namespace extension
-} // namespace executorch
+} // namespace executorch::extension::llm

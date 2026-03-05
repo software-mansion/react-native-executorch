@@ -19,7 +19,6 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-// Tagged struct to distinguish image paths from text strings in the variant.
 struct ImagePath {
   std::string path;
 };

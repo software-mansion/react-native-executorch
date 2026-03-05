@@ -31,7 +31,6 @@ MultimodalPrefiller::MultimodalPrefiller(
 
 Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
                                               int64_t &start_pos) {
-  // Keep backing storage alive for the duration of the prefill call.
   EValue encoder_output;
   std::vector<int64_t> padded_tokens_storage;
   TensorPtr sliced_embed_storage;
