@@ -33,6 +33,7 @@ export function useLLM({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<null | RnExecutorchError>(null);
+  const capabilitiesKey = model.capabilities?.join(',') ?? '';
 
   const tokenCallback = useCallback((newToken: string) => {
     setToken(newToken);
@@ -74,12 +75,13 @@ export function useLLM({
         controllerInstance.delete();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     controllerInstance,
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
-    model.capabilities,
+    capabilitiesKey, // intentional: serialized string to avoid array reference re-runs
     preventLoad,
   ]);
 

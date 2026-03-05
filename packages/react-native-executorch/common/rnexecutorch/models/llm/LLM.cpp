@@ -52,7 +52,7 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
 
   if (capabilities.empty()) {
-    runner_ = std::make_unique<example::TextRunner>(module_.get(), nullptr,
+    runner_ = std::make_unique<example::TextRunner>(std::move(module_),
                                                     tokenizerSource);
   } else {
     std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
