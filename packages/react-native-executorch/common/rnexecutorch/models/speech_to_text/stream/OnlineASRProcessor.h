@@ -5,6 +5,8 @@
 #include "rnexecutorch/models/speech_to_text/types/ProcessResult.h"
 #include "rnexecutorch/models/speech_to_text/types/Word.h"
 
+#include <mutex>
+
 namespace rnexecutorch::models::speech_to_text::stream {
 
 class OnlineASRProcessor {
@@ -16,6 +18,7 @@ public:
   std::vector<types::Word> finish();
 
   std::vector<float> audioBuffer;
+  mutable std::mutex audioMutex;
 
 private:
   const asr::ASR *asr;

@@ -10,11 +10,19 @@ using namespace types;
 OnlineASRProcessor::OnlineASRProcessor(const ASR *asr) : asr(asr) {}
 
 void OnlineASRProcessor::insertAudioChunk(std::span<const float> audio) {
+  std::scoped_lock<std::mutex> lock(audioMutex);
   audioBuffer.insert(audioBuffer.end(), audio.begin(), audio.end());
 }
 
 ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
-  std::vector<Segment> res = asr->transcribe(audioBuffer, options);
+  std::vector<float> snapshot;
+
+  {
+    std::scoped_lock<std::mutex> lock(audioMutex);
+    snapshot = audioBuffer;
+  }
+
+  std::vector<Segment> res = asr->transcribe(snapshot, options);
 
   std::vector<Word> tsw;
   for (const auto &segment : res) {
@@ -28,20 +36,19 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
   this->committed.insert(this->committed.end(), flushed.begin(), flushed.end());
 
   constexpr int32_t chunkThresholdSec = 15;
-  if (static_cast<float>(audioBuffer.size()) /
-          OnlineASRProcessor::kSamplingRate >
+  if (static_cast<float>(snapshot.size()) / OnlineASRProcessor::kSamplingRate >
       chunkThresholdSec) {
     chunkCompletedSegment(res);
   }
 
-  auto move_to_vector = [](auto& container) {
-      return std::vector<Word>(std::make_move_iterator(container.begin()),
-                              std::make_move_iterator(container.end()));
+  auto move_to_vector = [](auto &container) {
+    return std::vector<Word>(std::make_move_iterator(container.begin()),
+                             std::make_move_iterator(container.end()));
   };
 
   std::deque<Word> nonCommittedWords = this->hypothesisBuffer.complete();
 
-  return { move_to_vector(flushed), move_to_vector(nonCommittedWords) };
+  return {move_to_vector(flushed), move_to_vector(nonCommittedWords)};
 }
 
 void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
@@ -74,6 +81,7 @@ void OnlineASRProcessor::chunkAt(float time) {
   auto startIndex =
       static_cast<size_t>(cutSeconds * OnlineASRProcessor::kSamplingRate);
 
+  std::scoped_lock<std::mutex> lock(audioMutex);
   if (startIndex < audioBuffer.size()) {
     audioBuffer.erase(audioBuffer.begin(), audioBuffer.begin() + startIndex);
   } else {
@@ -88,8 +96,11 @@ std::vector<Word> OnlineASRProcessor::finish() {
   std::vector<Word> buffer(std::make_move_iterator(bufferDeq.begin()),
                            std::make_move_iterator(bufferDeq.end()));
 
-  this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
-                            OnlineASRProcessor::kSamplingRate;
+  {
+    std::scoped_lock<std::mutex> lock(audioMutex);
+    this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
+                              OnlineASRProcessor::kSamplingRate;
+  }
   return buffer;
 }
 
