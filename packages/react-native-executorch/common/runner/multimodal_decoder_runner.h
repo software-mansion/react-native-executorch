@@ -13,19 +13,12 @@
 #include "constants.h"
 #include "text_decoder_runner.h"
 
-namespace executorch {
-namespace extension {
-namespace llm {
-
-// Extends TextDecoderRunner to use the multi-method PTE layout:
-//   token_embedding method  → embeddings
-//   text_decoder method     → logits
+namespace executorch::extension::llm {
 class MultimodalDecoderRunner : public TextDecoderRunner {
 public:
   explicit MultimodalDecoderRunner(Module *module, IOManager *io_manager)
       : TextDecoderRunner(module, io_manager) {}
 
-  // Step: embed single token, then decode.
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   step(TensorPtr &tokens, int64_t start_pos) override {
     auto embed_result = module_->execute(kTokenEmbeddingMethod, tokens);
@@ -35,7 +28,6 @@ public:
     return decode((*embed_result)[0], start_pos);
   }
 
-  // Decode an embedding EValue to logits.
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   decode(const ::executorch::runtime::EValue &embeddings, int64_t start_pos) {
     auto start_pos_tensor = ::executorch::extension::from_blob(
@@ -68,6 +60,4 @@ public:
   }
 };
 
-} // namespace llm
-} // namespace extension
-} // namespace executorch
+} // namespace executorch::extension::llm

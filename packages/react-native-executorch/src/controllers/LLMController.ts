@@ -329,8 +329,6 @@ export class LLMController {
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
-    // For messages with images, convert mediaPath into structured content so
-    // the chat template emits <image> placeholders in the right position.
     const historyForTemplate = updatedHistory.map((m) =>
       m.mediaPath
         ? {

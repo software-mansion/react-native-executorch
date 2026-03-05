@@ -12,8 +12,7 @@ export type LLMCapability = 'vision' | 'audio';
  * @category Types
  */
 export type MediaArg<C extends readonly LLMCapability[]> =
-  ('vision' extends C[number] ? { imagePath?: string } : object) &
-    ('audio' extends C[number] ? { audioPath?: string } : object);
+  'vision' extends C[number] ? { imagePath?: string } : object;
 
 /**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
@@ -154,7 +153,7 @@ export interface LLMTypeMultimodal<
    * After model responds, `messageHistory` will be updated.
    *
    * @param message - The message string to send.
-   * @param media - Optional media object (e.g. `{ imagePath }` for vision, `{ audioPath }` for audio).
+   * @param media - Optional media object (e.g. `{ imagePath }` for vision.
    * @returns The model's response as a `string`.
    */
   sendMessage: (message: string, media?: MediaArg<C>) => Promise<string>;
