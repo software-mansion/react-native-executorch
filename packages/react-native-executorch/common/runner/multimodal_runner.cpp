@@ -65,8 +65,14 @@ Error MultimodalRunner::load_subcomponents() {
 
   mm_decoder_runner_ = std::make_unique<llm::MultimodalDecoderRunner>(
       module_, io_manager_.get());
+  llm::IEncoder *image_encoder = nullptr;
+  auto enc_it = encoders_.find(llm::MultimodalType::Image);
+  if (enc_it != encoders_.end()) {
+    image_encoder = enc_it->second.get();
+  }
   mm_prefiller_ = std::make_unique<llm::MultimodalPrefiller>(
-      module_, mm_decoder_runner_.get(), tokenizer_.get(), io_manager_.get());
+      module_, mm_decoder_runner_.get(), tokenizer_.get(), io_manager_.get(),
+      image_encoder);
   mm_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids), stats_ptr);

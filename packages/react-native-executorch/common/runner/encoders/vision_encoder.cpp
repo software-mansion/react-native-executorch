@@ -3,14 +3,21 @@
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <runner/constants.h>
-#include <runner/image.h>
+
+#include <executorch/extension/tensor/tensor.h>
+#include <opencv2/opencv.hpp>
 
 namespace executorch::extension::llm {
 
 using ::executorch::runtime::Error;
 using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
+
+// LFM2-VL vision encoder expects [1, 3, H, W] NCHW float32, values [0, 255]
+static constexpr int kImageSize = 512;
+static constexpr int kImageChannels = 3;
 
 VisionEncoder::VisionEncoder(::executorch::extension::Module *module)
     : module_(module) {}
@@ -57,32 +64,62 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
   if (!input.is_image()) {
     return Error::InvalidArgument;
   }
-  const Image &image = input.get_image();
+
+  const std::string &path = input.get_image_path();
+
+  // Return cached embedding if available
+  auto it = embedding_cache_.find(path);
+  if (it != embedding_cache_.end()) {
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Debug,
+                      "[VisionEncoder] Cache hit for:", path);
+    return it->second;
+  }
+
+  // Load and preprocess image: resize → BGR→RGB → HWC uint8 → CHW float32
+  cv::Mat mat = rnexecutorch::image_processing::readImage(path);
+  cv::resize(mat, mat, cv::Size(kImageSize, kImageSize));
+  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
+
+  std::vector<float> chw(kImageChannels * kImageSize * kImageSize);
+  const int pixelCount = kImageSize * kImageSize;
+  for (int i = 0; i < pixelCount; ++i) {
+    cv::Vec3b px = mat.at<cv::Vec3b>(i / kImageSize, i % kImageSize);
+    for (int c = 0; c < kImageChannels; ++c) {
+      chw[c * pixelCount + i] = static_cast<float>(px[c]);
+    }
+  }
+
+  // Determine expected input shape (with or without batch dim)
   auto method_meta_result = module_->method_meta(kVisionEncoderMethod);
   if (!method_meta_result.ok()) {
     return method_meta_result.error();
   }
-  auto &method_meta = *method_meta_result;
-  auto input_meta_result = method_meta.input_tensor_meta(0);
+  auto input_meta_result = method_meta_result->input_tensor_meta(0);
   if (!input_meta_result.ok()) {
     return input_meta_result.error();
   }
   auto expected_dims = input_meta_result->sizes();
-  rnexecutorch::log(
-      rnexecutorch::LOG_LEVEL::Debug, "[VisionEncoder] Expected input dims:",
-      std::vector<int32_t>(expected_dims.begin(), expected_dims.end()));
-  auto image_tensor_result =
-      image.toTensor(/*with_batch=*/expected_dims.size() == 4);
-  if (!image_tensor_result.ok()) {
-    return image_tensor_result.error();
+  const bool with_batch = expected_dims.size() == 4;
+
+  std::vector<::executorch::aten::SizesType> sizes = {kImageChannels,
+                                                      kImageSize, kImageSize};
+  if (with_batch) {
+    sizes.insert(sizes.begin(), 1);
   }
+
+  auto image_tensor = ::executorch::extension::from_blob(
+      chw.data(), sizes, ::executorch::aten::ScalarType::Float);
+
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[VisionEncoder] Running encode");
-  auto result = module_->execute(kVisionEncoderMethod, *image_tensor_result);
+                    "[VisionEncoder] Running encode for:", path);
+  auto result = module_->execute(kVisionEncoderMethod, image_tensor);
   if (!result.ok()) {
     return result.error();
   }
-  return (*result)[0];
+
+  EValue embedding = (*result)[0];
+  embedding_cache_.emplace(path, embedding);
+  return embedding;
 }
 
 } // namespace executorch::extension::llm
