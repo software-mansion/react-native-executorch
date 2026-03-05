@@ -11,6 +11,7 @@
 
 namespace rnexecutorch::models::llm {
 namespace llm = ::executorch::extension::llm;
+namespace runner = ::rnexecutorch::llm::runner;
 namespace fs = std::filesystem;
 using namespace facebook;
 using executorch::extension::module::Module;
@@ -22,17 +23,17 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
 
   if (capabilities.empty()) {
-    runner_ = std::make_unique<example::TextRunner>(std::move(module_),
-                                                    tokenizerSource);
+    runner_ = std::make_unique<runner::TextRunner>(std::move(module_),
+                                                   tokenizerSource);
   } else {
-    std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
+    std::map<runner::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
-        encoders[llm::MultimodalType::Image] =
+        encoders[runner::MultimodalType::Image] =
             std::make_unique<llm::VisionEncoder>(module_.get());
       }
     }
-    runner_ = std::make_unique<example::MultimodalRunner>(
+    runner_ = std::make_unique<runner::MultimodalRunner>(
         std::move(module_), tokenizerSource, std::move(encoders));
   }
 
@@ -51,7 +52,6 @@ std::string LLM::generate(std::string input,
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
-
   std::string output;
   auto nativeCallback = [this, callback, &output](const std::string &token) {
     output += token;
@@ -77,7 +77,7 @@ std::string LLM::generate(std::string prompt,
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
-  if (!dynamic_cast<example::MultimodalRunner *>(runner_.get())) {
+  if (!dynamic_cast<runner::MultimodalRunner *>(runner_.get())) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "This is a text-only model. Call generate(prompt, cb).");

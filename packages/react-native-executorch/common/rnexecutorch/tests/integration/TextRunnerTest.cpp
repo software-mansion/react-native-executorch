@@ -22,7 +22,8 @@ static std::string formatChatML(const std::string &systemPrompt,
 
 TEST(TextRunnerTest, ConstructorAndLoadSucceeds) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   auto err = runner.load();
   EXPECT_EQ(err, Error::Ok);
   EXPECT_TRUE(runner.is_loaded());
@@ -32,7 +33,8 @@ TEST(TextRunnerTest, MetadataApplied_EnableDynamicShape) {
   // SmolLM2-135M exports enable_dynamic_shape = 1
   // After load(), config_.enable_dynamic_shape must be true (our fix)
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   EXPECT_TRUE(runner.config_.enable_dynamic_shape);
 }
@@ -40,14 +42,16 @@ TEST(TextRunnerTest, MetadataApplied_EnableDynamicShape) {
 TEST(TextRunnerTest, MetadataApplied_KVCache) {
   // SmolLM2-135M exports use_kv_cache = 1
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   EXPECT_TRUE(runner.config_.enable_kv_cache);
 }
 
 TEST(TextRunnerTest, SetTemperaturePropagatesAfterLoad) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   runner.set_temperature(0.3f);
   EXPECT_FLOAT_EQ(runner.config_.temperature, 0.3f);
@@ -55,7 +59,8 @@ TEST(TextRunnerTest, SetTemperaturePropagatesAfterLoad) {
 
 TEST(TextRunnerTest, ResetZerosPos) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.pos_ = 42;
   runner.reset();
   EXPECT_EQ(runner.pos_, 0);
@@ -63,7 +68,8 @@ TEST(TextRunnerTest, ResetZerosPos) {
 
 TEST(TextRunnerTest, GenerateProducesTokens) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   runner.set_temperature(0.0f);
 
@@ -77,14 +83,16 @@ TEST(TextRunnerTest, ParallelPrefillEnabled) {
   // Confirms the fix: enable_dynamic_shape from metadata now unconditionally
   // applied
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   EXPECT_TRUE(runner.config_.enable_dynamic_shape);
 }
 
 TEST(TextRunnerTest, StopHaltsGeneration) {
   auto module = std::make_unique<Module>(kTextModel, Module::LoadMode::File);
-  example::TextRunner runner(std::move(module), kTextTokenizer);
+  rnexecutorch::llm::runner::TextRunner runner(std::move(module),
+                                               kTextTokenizer);
   runner.load();
   runner.set_temperature(0.0f);
 

@@ -9,19 +9,17 @@
 #include "text_token_generator.h"
 #include <map>
 
-namespace executorch::extension::llm {
-// Tag enum for keying encoder map
-enum class MultimodalType { Image, Audio };
-} // namespace executorch::extension::llm
+namespace rnexecutorch::llm::runner {
 
-namespace example {
+// Tag enum for keying encoder map
+enum class MultimodalType { Image };
 
 class MultimodalRunner : public BaseLLMRunner {
 public:
   explicit MultimodalRunner(
       std::unique_ptr<::executorch::extension::Module> owned_module,
       const std::string &tokenizer_path,
-      std::map<::executorch::extension::llm::MultimodalType,
+      std::map<MultimodalType,
                std::unique_ptr<::executorch::extension::llm::IEncoder>>
           encoders,
       const ::executorch::extension::llm::GenerationConfig &config = {
@@ -44,7 +42,7 @@ protected:
   void set_time_interval_impl(size_t time_interval) override;
 
 private:
-  std::map<::executorch::extension::llm::MultimodalType,
+  std::map<MultimodalType,
            std::unique_ptr<::executorch::extension::llm::IEncoder>>
       encoders_;
   std::unique_ptr<::executorch::extension::llm::MultimodalDecoderRunner>
@@ -55,4 +53,4 @@ private:
       mm_token_generator_;
 };
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner

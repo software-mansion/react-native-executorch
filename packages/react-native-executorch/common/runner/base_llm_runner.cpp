@@ -6,7 +6,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace example {
+namespace rnexecutorch::llm::runner {
 
 using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
@@ -159,4 +159,4 @@ int32_t BaseLLMRunner::resolve_max_new_tokens(int32_t num_prompt_tokens,
   return std::max(0, result);
 }
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner

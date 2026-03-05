@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace example {
+namespace rnexecutorch::llm::runner {
 
 namespace llm = ::executorch::extension::llm;
 
@@ -86,4 +86,4 @@ protected:
   bool shouldStop_{false};
 };
 
-} // namespace example
+} // namespace rnexecutorch::llm::runner
