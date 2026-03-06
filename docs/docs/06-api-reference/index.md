@@ -276,6 +276,8 @@
 - [VerticalOCRProps](interfaces/VerticalOCRProps.md)
 - [VoiceConfig](interfaces/VoiceConfig.md)
 - [Word](interfaces/Word.md)
+- [ClassificationModelName](type-aliases/ClassificationModelName.md)
+- [ImageEmbeddingsModelName](type-aliases/ImageEmbeddingsModelName.md)
 - [LabelEnum](type-aliases/LabelEnum.md)
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
@@ -291,9 +293,12 @@
 - [SemanticSegmentationModelName](type-aliases/SemanticSegmentationModelName.md)
 - [SemanticSegmentationModelSources](type-aliases/SemanticSegmentationModelSources.md)
 - [SpeechToTextLanguage](type-aliases/SpeechToTextLanguage.md)
+- [StyleTransferModelName](type-aliases/StyleTransferModelName.md)
 - [TensorBuffer](type-aliases/TensorBuffer.md)
+- [TextEmbeddingsModelName](type-aliases/TextEmbeddingsModelName.md)
 - [TextToSpeechLanguage](type-aliases/TextToSpeechLanguage.md)
 - [Triple](type-aliases/Triple.md)
+- [VADModelName](type-aliases/VADModelName.md)
 - [SPECIAL_TOKENS](variables/SPECIAL_TOKENS.md)
 
 ## Typescript API

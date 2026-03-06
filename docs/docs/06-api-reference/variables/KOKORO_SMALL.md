@@ -14,6 +14,10 @@ a lower quality speech due to forced, aggressive text splitting.
 
 > **durationPredictorSource**: `string`
 
+### modelName
+
+> **modelName**: `"kokoro-small"`
+
 ### synthesizerSource
 
 > **synthesizerSource**: `string`

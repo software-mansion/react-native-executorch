@@ -1,4 +1,4 @@
-import { Frame, ResourceSource } from '../types/common';
+import { Frame } from '../types/common';
 import { TensorPtr } from '../types/common';
 
 /**
@@ -54,20 +54,6 @@ export abstract class BaseModule {
    * @see {@link Frame} for frame data format details
    */
   public generateFromFrame!: (frameData: Frame, ...args: any[]) => any;
-
-  /**
-   * Load the model and prepare it for inference.
-   *
-   * @param modelSource - Resource location of the model binary
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress (0-1)
-   * @param args - Additional model-specific loading arguments
-   */
-
-  abstract load(
-    modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void,
-    ...args: any[]
-  ): Promise<void>;
 
   /**
    * Runs the model's forward method with the given input tensors.

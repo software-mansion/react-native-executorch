@@ -2,22 +2,26 @@
 
 > `const` **WHISPER_TINY**: `object`
 
-Defined in: [constants/modelUrls.ts:524](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L524)
+Defined in: [constants/modelUrls.ts:567](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L567)
 
 ## Type Declaration
 
 ### decoderSource
 
-> **decoderSource**: `string` = `WHISPER_TINY_DECODER_MODEL`
+> `readonly` **decoderSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.7.0/xnnpack/whisper_tiny_decoder_xnnpack.pte"` = `WHISPER_TINY_DECODER_MODEL`
 
 ### encoderSource
 
-> **encoderSource**: `string` = `WHISPER_TINY_ENCODER_MODEL`
+> `readonly` **encoderSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.7.0/xnnpack/whisper_tiny_encoder_xnnpack.pte"` = `WHISPER_TINY_ENCODER_MODEL`
 
 ### isMultilingual
 
-> **isMultilingual**: `boolean` = `true`
+> `readonly` **isMultilingual**: `true` = `true`
+
+### modelName
+
+> `readonly` **modelName**: `"whisper-tiny"` = `'whisper-tiny'`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `WHISPER_TINY_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.7.0/tokenizer.json"` = `WHISPER_TINY_TOKENIZER`

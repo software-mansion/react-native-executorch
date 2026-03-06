@@ -1,26 +1,12 @@
 # Class: TextEmbeddingsModule
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L13)
+Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L14)
 
 Module for generating text embeddings from input text.
 
 ## Extends
 
 - `BaseModule`
-
-## Constructors
-
-### Constructor
-
-> **new TextEmbeddingsModule**(): `TextEmbeddingsModule`
-
-#### Returns
-
-`TextEmbeddingsModule`
-
-#### Inherited from
-
-`BaseModule.constructor`
 
 ## Properties
 
@@ -116,7 +102,7 @@ Native module instance (JSI Host Object)
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L100)
+Defined in: [modules/BaseModule.ts:86](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L86)
 
 Unloads the model from memory and releases native resources.
 
@@ -136,9 +122,9 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 > **forward**(`input`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L60)
+Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:63](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L63)
 
-Executes the model's forward pass, where `input` is a text that will be embedded.
+Executes the model's forward pass to generate an embedding for the provided text.
 
 #### Parameters
 
@@ -152,7 +138,7 @@ The text string to embed.
 
 `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-A Float32Array containing the vector embeddings.
+A Promise resolving to a `Float32Array` containing the embedding vector.
 
 ---
 
@@ -160,7 +146,7 @@ A Float32Array containing the vector embeddings.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L80)
+Defined in: [modules/BaseModule.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L66)
 
 **`Internal`**
 
@@ -191,7 +177,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L91)
+Defined in: [modules/BaseModule.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L77)
 
 Gets the input shape for a given method and index.
 
@@ -221,42 +207,40 @@ The input shape as an array of numbers.
 
 ---
 
-### load()
+### fromModelName()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> `static` **fromModelName**(`model`, `onDownloadProgress?`): `Promise`\<`TextEmbeddingsModule`\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L22)
+Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L27)
 
-Loads the model and tokenizer specified by the config object.
+Creates a text embeddings instance for a built-in model.
 
 #### Parameters
 
 ##### model
 
-Object containing model and tokenizer sources.
+An object specifying which built-in model to load and where to fetch it from.
+
+###### modelName
+
+[`TextEmbeddingsModelName`](../type-aliases/TextEmbeddingsModelName.md)
 
 ###### modelSource
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-`ResourceSource` that specifies the location of the text embeddings model binary.
-
 ###### tokenizerSource
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-`ResourceSource` that specifies the location of the tokenizer JSON file.
-
-##### onDownloadProgressCallback?
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
-Optional callback to track download progress (value between 0 and 1).
+Optional callback to monitor download progress, receiving a value between 0 and 1.
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`TextEmbeddingsModule`\>
 
-#### Overrides
-
-`BaseModule.load`
+A Promise resolving to a `TextEmbeddingsModule` instance.

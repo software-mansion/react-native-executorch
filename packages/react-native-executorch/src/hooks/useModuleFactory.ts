@@ -14,12 +14,10 @@ type Deletable = { delete: () => void };
  *
  * @internal
  */
-export function useModuleFactory<
-  M extends Deletable,
-  Config extends { modelName: string; modelSource: unknown },
->({
+export function useModuleFactory<M extends Deletable, Config>({
   factory,
   config,
+  deps,
   preventLoad = false,
 }: {
   factory: (
@@ -27,6 +25,7 @@ export function useModuleFactory<
     onProgress: (progress: number) => void
   ) => Promise<M>;
   config: Config;
+  deps: ReadonlyArray<unknown>;
   preventLoad?: boolean;
 }) {
   const [error, setError] = useState<RnExecutorchError | null>(null);
@@ -58,7 +57,7 @@ export function useModuleFactory<
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.modelName, config.modelSource, preventLoad]);
+  }, [...deps, preventLoad]);
 
   const runForward = async <R>(fn: (instance: M) => Promise<R>): Promise<R> => {
     if (!isReady || !instance) {

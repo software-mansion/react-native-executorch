@@ -1,6 +1,6 @@
 # Interface: StyleTransferProps
 
-Defined in: [types/styleTransfer.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L12)
+Defined in: [types/styleTransfer.ts:24](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L24)
 
 Configuration properties for the `useStyleTransfer` hook.
 
@@ -10,9 +10,13 @@ Configuration properties for the `useStyleTransfer` hook.
 
 > **model**: `object`
 
-Defined in: [types/styleTransfer.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L13)
+Defined in: [types/styleTransfer.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L25)
 
-Object containing the `modelSource` for the style transfer model.
+Object containing the model configuration.
+
+#### modelName
+
+> **modelName**: [`StyleTransferModelName`](../type-aliases/StyleTransferModelName.md)
 
 #### modelSource
 
@@ -24,6 +28,6 @@ Object containing the `modelSource` for the style transfer model.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/styleTransfer.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L14)
+Defined in: [types/styleTransfer.ts:26](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L26)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.

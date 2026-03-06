@@ -2,14 +2,18 @@
 
 > `const` **ALL_MPNET_BASE_V2**: `object`
 
-Defined in: [constants/modelUrls.ts:703](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L703)
+Defined in: [constants/modelUrls.ts:752](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L752)
 
 ## Type Declaration
 
+### modelName
+
+> `readonly` **modelName**: `"all-mpnet-base-v2"` = `'all-mpnet-base-v2'`
+
 ### modelSource
 
-> **modelSource**: `string` = `ALL_MPNET_BASE_V2_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.7.0/all-mpnet-base-v2_xnnpack.pte"` = `ALL_MPNET_BASE_V2_MODEL`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `ALL_MPNET_BASE_V2_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.7.0/tokenizer.json"` = `ALL_MPNET_BASE_V2_TOKENIZER`

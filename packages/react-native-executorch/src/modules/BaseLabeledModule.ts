@@ -56,7 +56,4 @@ export abstract class BaseLabeledModule<
     this.labelMap = labelMap;
     this.nativeModule = nativeModule;
   }
-
-  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() {}
 }

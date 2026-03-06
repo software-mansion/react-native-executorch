@@ -19,11 +19,10 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const classificationModule = new ClassificationModule();
-
-// Loading the model
-await classificationModule.load(EFFICIENTNET_V2_S);
+// Creating and loading the module
+const classificationModule = await ClassificationModule.fromModelName({
+  modelSource: EFFICIENTNET_V2_S,
+});
 
 // Running the model
 const classesWithProbabilities = await classificationModule.forward(imageUri);
@@ -35,14 +34,14 @@ All methods of `ClassificationModule` are explained in details here: [`Classific
 
 ## Loading the model
 
-To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ClassificationModule.md#load) method with the following parameters:
+To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/ClassificationModule.md#frommodelname) factory with the following parameters:
 
-- [`model`](../../06-api-reference/classes/ClassificationModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/ClassificationModule.md#modelsource) - Location of the used model.
+- `model` - Object containing:
+  - `modelSource` - Location of the model binary.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/ClassificationModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `ClassificationModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

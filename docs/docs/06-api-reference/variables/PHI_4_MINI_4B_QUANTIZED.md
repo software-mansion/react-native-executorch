@@ -2,18 +2,22 @@
 
 > `const` **PHI_4_MINI_4B_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:344](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L344)
+Defined in: [constants/modelUrls.ts:375](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L375)
 
 ## Type Declaration
 
+### modelName
+
+> `readonly` **modelName**: `"phi-4-mini-4b-quantized"` = `'phi-4-mini-4b-quantized'`
+
 ### modelSource
 
-> **modelSource**: `string` = `PHI_4_MINI_4B_QUANTIZED_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.7.0/quantized/phi-4-mini_8da4w.pte"` = `PHI_4_MINI_4B_QUANTIZED_MODEL`
 
 ### tokenizerConfigSource
 
-> **tokenizerConfigSource**: `string` = `PHI_4_MINI_TOKENIZER_CONFIG`
+> `readonly` **tokenizerConfigSource**: `"https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.7.0/tokenizer_config.json"` = `PHI_4_MINI_TOKENIZER_CONFIG`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `PHI_4_MINI_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.7.0/tokenizer.json"` = `PHI_4_MINI_TOKENIZER`

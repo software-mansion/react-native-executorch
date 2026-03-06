@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { StyleTransferModelName } from '../../types/styleTransfer';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
@@ -11,20 +12,25 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class StyleTransferModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
+   * Creates a style transfer instance for a built-in model.
    *
-   * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `StyleTransferModule` instance.
    */
-  async load(
-    model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+  static async fromModelName(
+    model: { modelName: StyleTransferModelName; modelSource: ResourceSource },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<StyleTransferModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
+        onDownloadProgress,
         model.modelSource
       );
 
@@ -35,7 +41,7 @@ export class StyleTransferModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadStyleTransfer(paths[0]);
+      return new StyleTransferModule(global.loadStyleTransfer(paths[0]));
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -43,10 +49,10 @@ export class StyleTransferModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+   * Executes the model's forward pass to apply the selected style to the provided image.
    *
-   * @param imageSource - The image source to be processed.
-   * @returns The stylized image as a Base64-encoded string.
+   * @param imageSource - A string image source (file path, URI, or Base64).
+   * @returns A Promise resolving to the stylized image as a Base64-encoded string.
    */
   async forward(imageSource: string): Promise<string> {
     if (this.nativeModule == null)

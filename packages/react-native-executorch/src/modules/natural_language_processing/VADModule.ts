@@ -1,6 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { Segment } from '../../types/vad';
+import { Segment, VADModelName } from '../../types/vad';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
@@ -12,20 +12,25 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class VADModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
+   * Creates a VAD instance for a built-in model.
    *
-   * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `VADModule` instance.
    */
-  async load(
-    model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+  static async fromModelName(
+    model: { modelName: VADModelName; modelSource: ResourceSource },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<VADModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
+        onDownloadProgress,
         model.modelSource
       );
       if (!paths?.[0]) {
@@ -34,7 +39,7 @@ export class VADModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = global.loadVAD(paths[0]);
+      return new VADModule(global.loadVAD(paths[0]));
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -42,10 +47,10 @@ export class VADModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `waveform` is a Float32Array representing the audio signal (16kHz).
+   * Executes the model's forward pass to detect speech segments within the provided audio.
    *
-   * @param waveform - The input audio waveform as a Float32Array. It must represent a mono audio signal sampled at 16kHz.
-   * @returns A promise resolving to an array of detected speech segments.
+   * @param waveform - A `Float32Array` representing a mono audio signal sampled at 16kHz.
+   * @returns A Promise resolving to an array of {@link Segment} objects.
    */
   async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)

@@ -1,5 +1,5 @@
 import { TextEmbeddingsModule } from '../../modules/natural_language_processing/TextEmbeddingsModule';
-import { useModule } from '../useModule';
+import { useModuleFactory } from '../useModuleFactory';
 import {
   TextEmbeddingsType,
   TextEmbeddingsProps,
@@ -15,9 +15,17 @@ import {
 export const useTextEmbeddings = ({
   model,
   preventLoad = false,
-}: TextEmbeddingsProps): TextEmbeddingsType =>
-  useModule({
-    module: TextEmbeddingsModule,
-    model,
-    preventLoad,
-  });
+}: TextEmbeddingsProps): TextEmbeddingsType => {
+  const { error, isReady, isGenerating, downloadProgress, runForward } =
+    useModuleFactory({
+      factory: (config, onProgress) =>
+        TextEmbeddingsModule.fromModelName(config, onProgress),
+      config: model,
+      deps: [model.modelName, model.modelSource, model.tokenizerSource],
+      preventLoad,
+    });
+
+  const forward = (input: string) => runForward((inst) => inst.forward(input));
+
+  return { error, isReady, isGenerating, downloadProgress, forward };
+};
