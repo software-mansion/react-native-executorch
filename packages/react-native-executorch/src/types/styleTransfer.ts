@@ -2,16 +2,27 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from './common';
 
 /**
+ * Union of all built-in style transfer model names.
+ *
+ * @category Types
+ */
+export type StyleTransferModelName =
+  | 'style-transfer-candy'
+  | 'style-transfer-mosaic'
+  | 'style-transfer-rain-princess'
+  | 'style-transfer-udnie';
+
+/**
  * Configuration properties for the `useStyleTransfer` hook.
  *
  * @category Types
  * @property {Object} model - Object containing the model configuration.
- * @property {string} model.modelName - Unique name identifying the model.
+ * @property {StyleTransferModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - `ResourceSource` that specifies the location of the style transfer model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
  */
 export interface StyleTransferProps {
-  model: { modelName: string; modelSource: ResourceSource };
+  model: { modelName: StyleTransferModelName; modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 

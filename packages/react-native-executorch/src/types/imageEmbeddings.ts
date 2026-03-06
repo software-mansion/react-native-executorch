@@ -2,16 +2,23 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from './common';
 
 /**
+ * Union of all built-in image embeddings model names.
+ *
+ * @category Types
+ */
+export type ImageEmbeddingsModelName = 'clip-vit-base-patch32-image';
+
+/**
  * Props for the `useImageEmbeddings` hook.
  *
  * @category Types
  * @property {Object} model - An object containing the model configuration.
- * @property {string} model.modelName - Unique name identifying the model.
+ * @property {ImageEmbeddingsModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - The source of the image embeddings model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface ImageEmbeddingsProps {
-  model: { modelName: string; modelSource: ResourceSource };
+  model: { modelName: ImageEmbeddingsModelName; modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 

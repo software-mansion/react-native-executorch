@@ -1,6 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { Segment } from '../../types/vad';
+import { Segment, VADModelName } from '../../types/vad';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
@@ -18,14 +18,14 @@ export class VADModule extends BaseModule {
   }
 
   /**
-   * Creates a `VADModule` instance and loads the model.
+   * Creates a VAD instance for a built-in model.
    *
-   * @param model - Object containing `modelName` and `modelSource`.
-   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
-   * @returns A Promise resolving to a ready-to-use `VADModule` instance.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `VADModule` instance.
    */
   static async fromModelName(
-    model: { modelName: string; modelSource: ResourceSource },
+    model: { modelName: VADModelName; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<VADModule> {
     try {
@@ -47,10 +47,10 @@ export class VADModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `waveform` is a Float32Array representing the audio signal (16kHz).
+   * Executes the model's forward pass to detect speech segments within the provided audio.
    *
-   * @param waveform - The input audio waveform as a Float32Array. It must represent a mono audio signal sampled at 16kHz.
-   * @returns A promise resolving to an array of detected speech segments.
+   * @param waveform - A `Float32Array` representing a mono audio signal sampled at 16kHz.
+   * @returns A Promise resolving to an array of {@link Segment} objects.
    */
   async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)

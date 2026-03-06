@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { ImageEmbeddingsModelName } from '../../types/imageEmbeddings';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
@@ -17,14 +18,14 @@ export class ImageEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Creates an `ImageEmbeddingsModule` instance and loads the model.
+   * Creates an image embeddings instance for a built-in model.
    *
-   * @param model - Object containing `modelName` and `modelSource`.
-   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
-   * @returns A Promise resolving to a ready-to-use `ImageEmbeddingsModule` instance.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ImageEmbeddingsModule` instance.
    */
   static async fromModelName(
-    model: { modelName: string; modelSource: ResourceSource },
+    model: { modelName: ImageEmbeddingsModelName; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageEmbeddingsModule> {
     try {
@@ -48,10 +49,10 @@ export class ImageEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass. Returns an embedding array for a given sentence.
+   * Executes the model's forward pass to generate an embedding for the provided image.
    *
-   * @param imageSource - The image source (URI/URL) to image that will be embedded.
-   * @returns A Float32Array containing the image embeddings.
+   * @param imageSource - A string image source (file path, URI, or Base64).
+   * @returns A Promise resolving to a `Float32Array` containing the image embedding vector.
    */
   async forward(imageSource: string): Promise<Float32Array> {
     if (this.nativeModule == null)

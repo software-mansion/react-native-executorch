@@ -1,4 +1,5 @@
 import { ResourceSource } from '../../types/common';
+import { TextEmbeddingsModelName } from '../../types/textEmbeddings';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
@@ -17,15 +18,15 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Creates a `TextEmbeddingsModule` instance and loads the model and tokenizer.
+   * Creates a text embeddings instance for a built-in model.
    *
-   * @param model - Object containing `modelName`, `modelSource`, and `tokenizerSource`.
-   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
-   * @returns A Promise resolving to a ready-to-use `TextEmbeddingsModule` instance.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
    */
   static async fromModelName(
     model: {
-      modelName: string;
+      modelName: TextEmbeddingsModelName;
       modelSource: ResourceSource;
       tokenizerSource: ResourceSource;
     },
@@ -54,10 +55,10 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `input` is a text that will be embedded.
+   * Executes the model's forward pass to generate an embedding for the provided text.
    *
    * @param input - The text string to embed.
-   * @returns A Float32Array containing the vector embeddings.
+   * @returns A Promise resolving to a `Float32Array` containing the embedding vector.
    */
   async forward(input: string): Promise<Float32Array> {
     if (this.nativeModule == null)
