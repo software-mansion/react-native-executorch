@@ -198,7 +198,7 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
   const auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // Select the appropriate voice vector
-  size_t voiceID = std::min(phonemes.size() - 1, noTokens);
+  size_t voiceID = std::min(phonemes.size() - 1, noTokens - 1);
   auto &voice = voice_[voiceID];
 
   // Initialize text mask
