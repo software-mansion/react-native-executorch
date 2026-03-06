@@ -55,7 +55,7 @@ export class SpeechToTextModule {
       );
     }
     this.nativeModule = await global.loadSpeechToText(
-      model.modelName,
+      model.type,
       modelSources[0],
       tokenizerSources[0]
     );
