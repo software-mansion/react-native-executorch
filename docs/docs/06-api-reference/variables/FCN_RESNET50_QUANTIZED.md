@@ -2,7 +2,7 @@
 
 > `const` **FCN_RESNET50_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:648](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L648)
+Defined in: [constants/modelUrls.ts:694](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L694)
 
 ## Type Declaration
 

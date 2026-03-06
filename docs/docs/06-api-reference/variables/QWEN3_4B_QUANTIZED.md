@@ -2,18 +2,22 @@
 
 > `const` **QWEN3_4B_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:128](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L128)
+Defined in: [constants/modelUrls.ts:139](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L139)
 
 ## Type Declaration
 
+### modelName
+
+> `readonly` **modelName**: `"qwen3-4b-quantized"` = `'qwen3-4b-quantized'`
+
 ### modelSource
 
-> **modelSource**: `string` = `QWEN3_4B_QUANTIZED_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.7.0/qwen-3-4B/quantized/qwen3_4b_8da4w.pte"` = `QWEN3_4B_QUANTIZED_MODEL`
 
 ### tokenizerConfigSource
 
-> **tokenizerConfigSource**: `string` = `QWEN3_TOKENIZER_CONFIG`
+> `readonly` **tokenizerConfigSource**: `"https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.7.0/tokenizer_config.json"` = `QWEN3_TOKENIZER_CONFIG`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `QWEN3_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.7.0/tokenizer.json"` = `QWEN3_TOKENIZER`

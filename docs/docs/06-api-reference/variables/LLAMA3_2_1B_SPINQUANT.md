@@ -2,18 +2,22 @@
 
 > `const` **LLAMA3_2_1B_SPINQUANT**: `object`
 
-Defined in: [constants/modelUrls.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L64)
+Defined in: [constants/modelUrls.ts:69](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L69)
 
 ## Type Declaration
 
+### modelName
+
+> `readonly` **modelName**: `"llama-3.2-1b-spinquant"` = `'llama-3.2-1b-spinquant'`
+
 ### modelSource
 
-> **modelSource**: `string` = `LLAMA3_2_1B_SPINQUANT_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.7.0/llama-3.2-1B/spinquant/llama3_2_spinquant.pte"` = `LLAMA3_2_1B_SPINQUANT_MODEL`
 
 ### tokenizerConfigSource
 
-> **tokenizerConfigSource**: `string` = `LLAMA3_2_TOKENIZER_CONFIG`
+> `readonly` **tokenizerConfigSource**: `"https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.7.0/tokenizer_config.json"` = `LLAMA3_2_TOKENIZER_CONFIG`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `LLAMA3_2_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.7.0/tokenizer.json"` = `LLAMA3_2_TOKENIZER`

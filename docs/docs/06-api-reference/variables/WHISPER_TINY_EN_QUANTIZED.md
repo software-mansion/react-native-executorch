@@ -2,22 +2,26 @@
 
 > `const` **WHISPER_TINY_EN_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:494](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L494)
+Defined in: [constants/modelUrls.ts:534](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L534)
 
 ## Type Declaration
 
 ### decoderSource
 
-> **decoderSource**: `string` = `WHISPER_TINY_EN_DECODER_QUANTIZED`
+> `readonly` **decoderSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny-quantized.en/resolve/v0.7.0/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte"` = `WHISPER_TINY_EN_DECODER_QUANTIZED`
 
 ### encoderSource
 
-> **encoderSource**: `string` = `WHISPER_TINY_EN_ENCODER_QUANTIZED`
+> `readonly` **encoderSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny-quantized.en/resolve/v0.7.0/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte"` = `WHISPER_TINY_EN_ENCODER_QUANTIZED`
 
 ### isMultilingual
 
-> **isMultilingual**: `boolean` = `false`
+> `readonly` **isMultilingual**: `false` = `false`
+
+### modelName
+
+> `readonly` **modelName**: `"whisper-tiny-en-quantized"` = `'whisper-tiny-en-quantized'`
 
 ### tokenizerSource
 
-> **tokenizerSource**: `string` = `WHISPER_TINY_EN_TOKENIZER`
+> `readonly` **tokenizerSource**: `"https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.7.0/tokenizer.json"` = `WHISPER_TINY_EN_TOKENIZER`

@@ -2,7 +2,7 @@
 
 > `const` **RF_DETR_NANO**: `object`
 
-Defined in: [constants/modelUrls.ts:402](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L402)
+Defined in: [constants/modelUrls.ts:437](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L437)
 
 ## Type Declaration
 

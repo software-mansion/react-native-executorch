@@ -2,7 +2,7 @@
 
 > `const` **LRASPP_MOBILENET_V3_LARGE_QUANTIZED**: `object`
 
-Defined in: [constants/modelUrls.ts:640](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L640)
+Defined in: [constants/modelUrls.ts:686](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L686)
 
 ## Type Declaration
 

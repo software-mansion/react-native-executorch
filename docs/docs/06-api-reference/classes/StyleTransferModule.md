@@ -1,26 +1,12 @@
 # Class: StyleTransferModule
 
-Defined in: [modules/computer_vision/StyleTransferModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L13)
+Defined in: [modules/computer_vision/StyleTransferModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L14)
 
 Module for style transfer tasks.
 
 ## Extends
 
 - `BaseModule`
-
-## Constructors
-
-### Constructor
-
-> **new StyleTransferModule**(): `StyleTransferModule`
-
-#### Returns
-
-`StyleTransferModule`
-
-#### Inherited from
-
-`BaseModule.constructor`
 
 ## Properties
 
@@ -116,7 +102,7 @@ Native module instance (JSI Host Object)
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L100)
+Defined in: [modules/BaseModule.ts:86](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L86)
 
 Unloads the model from memory and releases native resources.
 
@@ -136,9 +122,9 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 > **forward**(`imageSource`): `Promise`\<`string`\>
 
-Defined in: [modules/computer_vision/StyleTransferModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L51)
+Defined in: [modules/computer_vision/StyleTransferModule.ts:57](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L57)
 
-Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+Executes the model's forward pass to apply the selected style to the provided image.
 
 #### Parameters
 
@@ -146,13 +132,13 @@ Executes the model's forward pass, where `imageSource` can be a fetchable resour
 
 `string`
 
-The image source to be processed.
+A string image source (file path, URI, or Base64).
 
 #### Returns
 
 `Promise`\<`string`\>
 
-The stylized image as a Base64-encoded string.
+A Promise resolving to the stylized image as a Base64-encoded string.
 
 ---
 
@@ -160,7 +146,7 @@ The stylized image as a Base64-encoded string.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L80)
+Defined in: [modules/BaseModule.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L66)
 
 **`Internal`**
 
@@ -191,7 +177,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L91)
+Defined in: [modules/BaseModule.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L77)
 
 Gets the input shape for a given method and index.
 
@@ -221,35 +207,36 @@ The input shape as an array of numbers.
 
 ---
 
-### load()
+### fromModelName()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> `static` **fromModelName**(`model`, `onDownloadProgress?`): `Promise`\<`StyleTransferModule`\>
 
-Defined in: [modules/computer_vision/StyleTransferModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L21)
+Defined in: [modules/computer_vision/StyleTransferModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L27)
 
-Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-To track the download progress, supply a callback function `onDownloadProgressCallback`.
+Creates a style transfer instance for a built-in model.
 
 #### Parameters
 
 ##### model
 
-Object containing `modelSource`.
+An object specifying which built-in model to load and where to fetch it from.
+
+###### modelName
+
+[`StyleTransferModelName`](../type-aliases/StyleTransferModelName.md)
 
 ###### modelSource
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback?
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
-Optional callback to monitor download progress.
+Optional callback to monitor download progress, receiving a value between 0 and 1.
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise`\<`StyleTransferModule`\>
 
-#### Overrides
-
-`BaseModule.load`
+A Promise resolving to a `StyleTransferModule` instance.
