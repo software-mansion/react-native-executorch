@@ -24,6 +24,7 @@ OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
 }
 
 void OnlineASR::insertAudioChunk(std::span<const float> audio) {
+  std::lock_guard<std::mutex> lock(audioBufferMutex_);
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
 }
 
@@ -32,7 +33,10 @@ bool OnlineASR::isReady() const {
 }
 
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
+  std::unique_lock<std::mutex> lock(audioBufferMutex_);
+
   std::vector<Segment> transcriptions = asr_->transcribe(audioBuffer_, options);
+  lock.unlock();
 
   if (transcriptions.empty()) {
     return {.committed = {}, .nonCommitted = {}};
@@ -57,9 +61,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
     const float newEnd = hypothesisBuffer_.fresh_.back().end;
     float shift = 0.F;
     for (size_t i = 0; i < hypothesisBuffer_.fresh_.size(); i++) {
-      const float originalStart = hypothesisBuffer_.fresh_[i].start;
       const float originalEnd = hypothesisBuffer_.fresh_[i].end;
-      const std::string &wordContent = hypothesisBuffer_.fresh_[i].content;
 
       if (i < hypothesisBuffer_.hypothesis_.size() &&
           utils::equalsIgnoreCase(hypothesisBuffer_.fresh_[i].content,
@@ -104,6 +106,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
 
   // Since Whisper does not accept waveforms longer than 30 seconds, we need
   // to cut the audio at some safe point.
+  lock.lock();
   const float audioDuration =
       static_cast<float>(audioBuffer_.size()) / constants::kSamplingRate;
   if (audioDuration > params::kStreamChunkThreshold) {
@@ -126,6 +129,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
                        audioBuffer_.begin() + nSamplesToErase);
     bufferTimeOffset_ += eraseDuration;
   }
+  lock.unlock();
 
   return {.committed = move_to_vector(committed),
           .nonCommitted = move_to_vector(nonCommitted)};
@@ -140,6 +144,8 @@ std::vector<Word> OnlineASR::finish() {
 }
 
 void OnlineASR::reset() {
+  std::lock_guard<std::mutex> lock(audioBufferMutex_);
+
   hypothesisBuffer_.reset();
   bufferTimeOffset_ = 0.f;
 
