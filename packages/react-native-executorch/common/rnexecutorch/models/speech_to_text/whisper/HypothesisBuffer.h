@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <optional>
 #include <span>
 
 #include "../common/types/Word.h"
@@ -56,6 +57,14 @@ public:
   friend class OnlineASR;
 
 private:
+  // Finds the most recent occurance of given committed string of words
+  // in a custom span of words.
+  // Returns the index of the last matching word (or nullopt if not present).
+  std::optional<size_t> findCommittedSuffix(std::span<const Word> words,
+                                            size_t nCommitted,
+                                            float timestampDiffTolerance = 1.F,
+                                            size_t wordsPerMistake = 4);
+
   // Stored buffers
   // The lifecycle of a correct result word looks as following:
   // fresh buffer -> hypothesis buffer -> commited
