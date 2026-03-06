@@ -84,8 +84,6 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
                                            params::kStreamWordsPerSecond)));
       float scale =
           (freshDuration - epsilon) / std::max(newEnd - newBegin, 0.2F);
-      const float beforeScaleStart = hypothesisBuffer_.fresh_[i].start;
-      const float beforeScaleEnd = hypothesisBuffer_.fresh_[i].end;
       hypothesisBuffer_.fresh_[i].start =
           shift + (hypothesisBuffer_.fresh_[i].start - newEnd) * scale + newEnd;
       hypothesisBuffer_.fresh_[i].end =
