@@ -2,7 +2,7 @@
 
 > `const` **SSDLITE_320_MOBILENET_V3_LARGE**: `object`
 
-Defined in: [constants/modelUrls.ts:394](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L394)
+Defined in: [constants/modelUrls.ts:408](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L408)
 
 ## Type Declaration
 
@@ -12,4 +12,4 @@ Defined in: [constants/modelUrls.ts:394](https://github.com/software-mansion/rea
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.7.0/ssdlite320-mobilenetv3-large.pte"` = `SSDLITE_320_MOBILENET_V3_LARGE_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.8.0/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte"` \| `"https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.8.0/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte"` = `SSDLITE_320_MOBILENET_V3_LARGE_MODEL`
