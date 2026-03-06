@@ -374,8 +374,12 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_all.pte`
-    : `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack.pte`;
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp32.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
+const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
 
 /**
  * @category Models - Classification
@@ -384,8 +388,18 @@ export const EFFICIENTNET_V2_S = {
   modelSource: EFFICIENTNET_V2_S_MODEL,
 };
 
+/**
+ * @category Models - Classification
+ */
+export const EFFICIENTNET_V2_S_QUANTIZED = {
+  modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
+};
+
 // Object detection
-const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
+const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
+  Platform.OS === 'ios'
+    ? `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`
+    : `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
 const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/rfdetr_detector.pte`;
 
 /**
