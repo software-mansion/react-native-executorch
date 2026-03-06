@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { ClassificationModelName } from '../../types/classification';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
@@ -17,14 +18,14 @@ export class ClassificationModule extends BaseModule {
   }
 
   /**
-   * Creates a `ClassificationModule` instance and loads the model.
+   * Creates a classification instance for a built-in model.
    *
-   * @param model - Object containing `modelName` and `modelSource`.
-   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
-   * @returns A Promise resolving to a ready-to-use `ClassificationModule` instance.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `ClassificationModule` instance.
    */
   static async fromModelName(
-    model: { modelName: string; modelSource: ResourceSource },
+    model: { modelName: ClassificationModelName; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ClassificationModule> {
     try {
@@ -48,10 +49,10 @@ export class ClassificationModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+   * Executes the model's forward pass to classify the provided image.
    *
-   * @param imageSource - The image source to be classified.
-   * @returns The classification result.
+   * @param imageSource - A string image source (file path, URI, or Base64).
+   * @returns A Promise resolving to an object mapping category labels to confidence scores.
    */
   async forward(imageSource: string): Promise<{ [category: string]: number }> {
     if (this.nativeModule == null)

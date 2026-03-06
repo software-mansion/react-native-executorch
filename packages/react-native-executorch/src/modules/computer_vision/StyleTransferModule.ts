@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { StyleTransferModelName } from '../../types/styleTransfer';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
@@ -17,14 +18,14 @@ export class StyleTransferModule extends BaseModule {
   }
 
   /**
-   * Creates a `StyleTransferModule` instance and loads the model.
+   * Creates a style transfer instance for a built-in model.
    *
-   * @param model - Object containing `modelName` and `modelSource`.
-   * @param onDownloadProgress - Optional callback to monitor download progress (value between 0 and 1).
-   * @returns A Promise resolving to a ready-to-use `StyleTransferModule` instance.
+   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `StyleTransferModule` instance.
    */
   static async fromModelName(
-    model: { modelName: string; modelSource: ResourceSource },
+    model: { modelName: StyleTransferModelName; modelSource: ResourceSource },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<StyleTransferModule> {
     try {
@@ -48,10 +49,10 @@ export class StyleTransferModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+   * Executes the model's forward pass to apply the selected style to the provided image.
    *
-   * @param imageSource - The image source to be processed.
-   * @returns The stylized image as a Base64-encoded string.
+   * @param imageSource - A string image source (file path, URI, or Base64).
+   * @returns A Promise resolving to the stylized image as a Base64-encoded string.
    */
   async forward(imageSource: string): Promise<string> {
     if (this.nativeModule == null)
