@@ -374,8 +374,12 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_all.pte`
-    : `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack.pte`;
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp32.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
+const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
 
 /**
  * @category Models - Classification
@@ -384,8 +388,18 @@ export const EFFICIENTNET_V2_S = {
   modelSource: EFFICIENTNET_V2_S_MODEL,
 };
 
+/**
+ * @category Models - Classification
+ */
+export const EFFICIENTNET_V2_S_QUANTIZED = {
+  modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
+};
+
 // Object detection
-const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
+const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
+  Platform.OS === 'ios'
+    ? `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`
+    : `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
 const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/rfdetr_detector.pte`;
 
 /**
@@ -407,26 +421,49 @@ export const RF_DETR_NANO = {
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-candy/${VERSION_TAG}/coreml/style_transfer_candy_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-candy/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_CANDY_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_int8.pte`;
 const STYLE_TRANSFER_MOSAIC_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-mosaic/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-mosaic/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_int8.pte`;
 const STYLE_TRANSFER_RAIN_PRINCESS_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-rain-princess/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-rain-princess/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_int8.pte`;
 const STYLE_TRANSFER_UDNIE_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-udnie/${VERSION_TAG}/coreml/style_transfer_udnie_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-udnie/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_int8.pte`;
 
 /**
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_CANDY = {
   modelSource: STYLE_TRANSFER_CANDY_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
+export const STYLE_TRANSFER_CANDY_QUANTIZED = {
+  modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
 };
 
 /**
@@ -439,6 +476,13 @@ export const STYLE_TRANSFER_MOSAIC = {
 /**
  * @category Models - Style Transfer
  */
+export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
+  modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
 export const STYLE_TRANSFER_RAIN_PRINCESS = {
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_MODEL,
 };
@@ -446,8 +490,22 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
 /**
  * @category Models - Style Transfer
  */
+export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
+  modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
 export const STYLE_TRANSFER_UDNIE = {
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
+export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
+  modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
 };
 
 // S2T
@@ -668,13 +726,21 @@ export const SELFIE_SEGMENTATION = {
 } as const;
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_int8.pte`;
 
 /**
  * @category Models - Image Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
+};
+
+/**
+ * @category Models - Image Embeddings
+ */
+export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
 };
 
 // Text Embeddings
@@ -686,8 +752,8 @@ const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1
 const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
 const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
 const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`;
 
 /**
  * @category Models - Text Embeddings
