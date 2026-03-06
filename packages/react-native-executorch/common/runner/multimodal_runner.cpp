@@ -5,16 +5,15 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace rnexecutorch::llm::runner {
+namespace executorch::extension::llm {
 
-using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
 MultimodalRunner::MultimodalRunner(
     std::unique_ptr<Module> module, const std::string &tokenizer_path,
     std::map<MultimodalType, std::unique_ptr<IEncoder>> encoders,
-    const llm::GenerationConfig &config)
+    const GenerationConfig &config)
     : BaseLLMRunner(std::move(module), tokenizer_path, config),
       encoders_(std::move(encoders)) {}
 
@@ -45,19 +44,19 @@ Error MultimodalRunner::load_subcomponents() {
     ET_CHECK_OK_OR_RETURN_ERROR(encoder->load());
   }
 
-  llm::Stats *stats_ptr = &stats_;
+  Stats *stats_ptr = &stats_;
 
-  mm_decoder_runner_ = std::make_unique<llm::MultimodalDecoderRunner>(
+  mm_decoder_runner_ = std::make_unique<MultimodalDecoderRunner>(
       module_.get(), io_manager_.get());
-  llm::IEncoder *image_encoder = nullptr;
+  IEncoder *image_encoder = nullptr;
   auto enc_it = encoders_.find(MultimodalType::Image);
   if (enc_it != encoders_.end()) {
     image_encoder = enc_it->second.get();
   }
-  mm_prefiller_ = std::make_unique<llm::MultimodalPrefiller>(
+  mm_prefiller_ = std::make_unique<MultimodalPrefiller>(
       module_.get(), mm_decoder_runner_.get(), tokenizer_.get(),
       io_manager_.get(), image_encoder);
-  mm_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
+  mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids_), stats_ptr);
 
@@ -68,7 +67,7 @@ Error MultimodalRunner::load_subcomponents() {
 }
 
 Error MultimodalRunner::generate_internal(
-    const std::vector<llm::MultimodalInput> &inputs,
+    const std::vector<MultimodalInput> &inputs,
     std::function<void(const std::string &)> token_callback) {
 
   if (inputs.empty())
@@ -76,7 +75,7 @@ Error MultimodalRunner::generate_internal(
   if (!is_loaded())
     ET_CHECK_OK_OR_RETURN_ERROR(load());
 
-  stats_.inference_start_ms = llm::time_in_ms();
+  stats_.inference_start_ms = time_in_ms();
 
   uint64_t prefill_next_token = 0;
   for (const auto &input : inputs) {
@@ -86,8 +85,8 @@ Error MultimodalRunner::generate_internal(
     prefill_next_token = prefill_result.get();
   }
 
-  stats_.first_token_ms = llm::time_in_ms();
-  stats_.prompt_eval_end_ms = llm::time_in_ms();
+  stats_.first_token_ms = time_in_ms();
+  stats_.prompt_eval_end_ms = time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
   int32_t resolved_max_new = resolve_max_new_tokens(
@@ -96,7 +95,7 @@ Error MultimodalRunner::generate_internal(
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
   auto wrapped_callback = [&](const std::string &piece) {
-    llm::safe_printf(piece.c_str());
+    safe_printf(piece.c_str());
     fflush(stdout);
     if (token_callback)
       token_callback(piece);
@@ -112,7 +111,7 @@ Error MultimodalRunner::generate_internal(
 
   int64_t num_generated = generate_result.get();
   pos_ += num_generated;
-  stats_.inference_end_ms = llm::time_in_ms();
+  stats_.inference_end_ms = time_in_ms();
   stats_.num_generated_tokens = num_generated;
 
   return Error::Ok;
@@ -133,4 +132,4 @@ void MultimodalRunner::set_time_interval_impl(size_t time_interval) {
     mm_token_generator_->set_time_interval(time_interval);
 }
 
-} // namespace rnexecutorch::llm::runner
+} // namespace executorch::extension::llm

@@ -11,7 +11,6 @@
 
 namespace rnexecutorch::models::llm {
 namespace llm = ::executorch::extension::llm;
-namespace runner = ::rnexecutorch::llm::runner;
 namespace fs = std::filesystem;
 using namespace facebook;
 using executorch::extension::module::Module;
@@ -23,17 +22,17 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
 
   if (capabilities.empty()) {
-    runner_ = std::make_unique<runner::TextRunner>(std::move(module_),
-                                                   tokenizerSource);
+    runner_ =
+        std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
   } else {
-    std::map<runner::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
+    std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
-        encoders[runner::MultimodalType::Image] =
+        encoders[llm::MultimodalType::Image] =
             std::make_unique<llm::VisionEncoder>(module_.get());
       }
     }
-    runner_ = std::make_unique<runner::MultimodalRunner>(
+    runner_ = std::make_unique<llm::MultimodalRunner>(
         std::move(module_), tokenizerSource, std::move(encoders));
   }
 
@@ -87,8 +86,6 @@ std::string LLM::generate(std::string prompt,
     imageToken = "<image>";
   }
 
-  // Split rendered prompt on imageToken placeholders and interleave with
-  // images.
   const size_t kImageTokenLen = imageToken.size();
 
   std::vector<llm::MultimodalInput> inputs;
@@ -98,7 +95,6 @@ std::string LLM::generate(std::string prompt,
   while (true) {
     size_t found = prompt.find(imageToken, searchPos);
     if (found == std::string::npos) {
-      // Remaining text after last image (or entire prompt if no images)
       if (searchPos < prompt.size()) {
         inputs.push_back(llm::make_text_input(prompt.substr(searchPos)));
       }

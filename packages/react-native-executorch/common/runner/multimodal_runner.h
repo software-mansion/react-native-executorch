@@ -1,4 +1,3 @@
-// common/runner/multimodal_runner.h
 #pragma once
 
 #include "base_llm_runner.h"
@@ -9,27 +8,23 @@
 #include "text_token_generator.h"
 #include <map>
 
-namespace rnexecutorch::llm::runner {
+namespace executorch::extension::llm {
 
 enum class MultimodalType { Image };
 
 class MultimodalRunner : public BaseLLMRunner {
 public:
   explicit MultimodalRunner(
-      std::unique_ptr<::executorch::extension::Module> module,
-      const std::string &tokenizer_path,
-      std::map<MultimodalType,
-               std::unique_ptr<::executorch::extension::llm::IEncoder>>
-          encoders,
-      const ::executorch::extension::llm::GenerationConfig &config = {
-          .temperature = 0.8F, .topp = 0.9F});
+      std::unique_ptr<Module> module, const std::string &tokenizer_path,
+      std::map<MultimodalType, std::unique_ptr<IEncoder>> encoders,
+      const GenerationConfig &config = {.temperature = 0.8F, .topp = 0.9F});
 
   bool is_loaded() const override;
   bool is_multimodal() const override { return true; }
   int32_t get_visual_token_count() const override;
 
   ::executorch::runtime::Error generate_internal(
-      const std::vector<::executorch::extension::llm::MultimodalInput> &inputs,
+      const std::vector<MultimodalInput> &inputs,
       std::function<void(const std::string &)> token_callback) override;
 
 protected:
@@ -41,15 +36,10 @@ protected:
   void set_time_interval_impl(size_t time_interval) override;
 
 private:
-  std::map<MultimodalType,
-           std::unique_ptr<::executorch::extension::llm::IEncoder>>
-      encoders_;
-  std::unique_ptr<::executorch::extension::llm::MultimodalDecoderRunner>
-      mm_decoder_runner_;
-  std::unique_ptr<::executorch::extension::llm::MultimodalPrefiller>
-      mm_prefiller_;
-  std::unique_ptr<::executorch::extension::llm::TextTokenGenerator>
-      mm_token_generator_;
+  std::map<MultimodalType, std::unique_ptr<IEncoder>> encoders_;
+  std::unique_ptr<MultimodalDecoderRunner> mm_decoder_runner_;
+  std::unique_ptr<MultimodalPrefiller> mm_prefiller_;
+  std::unique_ptr<TextTokenGenerator> mm_token_generator_;
 };
 
-} // namespace rnexecutorch::llm::runner
+} // namespace executorch::extension::llm

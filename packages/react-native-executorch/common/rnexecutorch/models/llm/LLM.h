@@ -20,12 +20,8 @@ public:
                std::vector<std::string> capabilities,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Text-only: pre-rendered prompt string
   std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
-
-  // Multimodal: pre-rendered prompt string with imageToken placeholders +
-  // ordered list of image paths (one per placeholder)
   std::string generate(std::string prompt, std::vector<std::string> imagePaths,
                        std::string imageToken,
                        std::shared_ptr<jsi::Function> callback);
@@ -45,7 +41,7 @@ public:
   int32_t getMaxContextLength() const;
 
 private:
-  std::unique_ptr<::rnexecutorch::llm::runner::BaseLLMRunner> runner_;
+  std::unique_ptr<::executorch::extension::llm::BaseLLMRunner> runner_;
 };
 } // namespace models::llm
 
