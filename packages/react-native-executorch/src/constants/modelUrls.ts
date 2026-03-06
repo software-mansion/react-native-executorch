@@ -423,7 +423,7 @@ const STYLE_TRANSFER_CANDY_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp32.pte`
     : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_fp32.pte`;
-const STYLE_TRANSFER_CANDY_MODEL_QUANTIZED =
+const STYLE_TRANSFER_CANDY_QUANTIZED_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp16.pte`
     : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_int8.pte`;
@@ -431,7 +431,7 @@ const STYLE_TRANSFER_MOSAIC_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp32.pte`
     : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_fp32.pte`;
-const STYLE_TRANSFER_MOSAIC_MODEL_QUANTIZED =
+const STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp16.pte`
     : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_int8.pte`;
@@ -439,7 +439,7 @@ const STYLE_TRANSFER_RAIN_PRINCESS_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp32.pte`
     : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_fp32.pte`;
-const STYLE_TRANSFER_RAIN_PRINCESS_MODEL_QUANTIZED =
+const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp16.pte`
     : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_int8.pte`;
@@ -447,7 +447,7 @@ const STYLE_TRANSFER_UDNIE_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp32.pte`
     : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_fp32.pte`;
-const STYLE_TRANSFER_UDNIE_MODEL_QUANTIZED =
+const STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp16.pte`
     : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_int8.pte`;
@@ -463,7 +463,7 @@ export const STYLE_TRANSFER_CANDY = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_CANDY_QUANTIZED = {
-  modelSource: STYLE_TRANSFER_CANDY_MODEL_QUANTIZED,
+  modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
 };
 
 /**
@@ -477,7 +477,7 @@ export const STYLE_TRANSFER_MOSAIC = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
-  modelSource: STYLE_TRANSFER_MOSAIC_MODEL_QUANTIZED,
+  modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
 };
 
 /**
@@ -491,7 +491,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
-  modelSource: STYLE_TRANSFER_RAIN_PRINCESS_MODEL_QUANTIZED,
+  modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
 };
 
 /**
@@ -505,7 +505,7 @@ export const STYLE_TRANSFER_UDNIE = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
-  modelSource: STYLE_TRANSFER_UDNIE_MODEL_QUANTIZED,
+  modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
 };
 
 // S2T
