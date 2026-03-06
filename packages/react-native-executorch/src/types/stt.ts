@@ -261,7 +261,7 @@ export interface TranscriptionResult {
  * @category Types
  */
 export interface SpeechToTextModelConfig {
-  modelName: 'whisper'; // | ... (add more in the future)
+  type: 'whisper'; // | ... (add more in the future)
 
   /**
    * A boolean flag indicating whether the model supports multiple languages.
