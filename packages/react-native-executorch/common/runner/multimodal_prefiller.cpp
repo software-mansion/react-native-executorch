@@ -13,9 +13,7 @@
 #include "constants.h"
 #include "util.h"
 
-namespace executorch {
-namespace extension {
-namespace llm {
+namespace executorch::extension::llm {
 
 using ::executorch::aten::SizesType;
 using ::executorch::runtime::Error;
@@ -148,6 +146,4 @@ bool MultimodalPrefiller::is_method_loaded() {
   return true;
 }
 
-} // namespace llm
-} // namespace extension
-} // namespace executorch
+} // namespace executorch::extension::llm

@@ -15,17 +15,13 @@
 #include <unordered_set>
 #include <vector>
 
-namespace rnexecutorch::llm::runner {
-
-namespace llm = ::executorch::extension::llm;
-
+namespace executorch::extension::llm {
 class BaseLLMRunner {
 public:
   explicit BaseLLMRunner(
       std::unique_ptr<::executorch::extension::Module> module,
       const std::string &tokenizer_path,
-      const llm::GenerationConfig &config = {.temperature = 0.8F,
-                                             .topp = 0.9F});
+      const GenerationConfig &config = {.temperature = 0.8F, .topp = 0.9F});
 
   virtual ~BaseLLMRunner() = default;
 
@@ -35,17 +31,17 @@ public:
 
   ::executorch::runtime::Error
   generate(const std::string &prompt,
-           const llm::GenerationConfig &generation_config = {},
+           const GenerationConfig &generation_config = {},
            std::function<void(const std::string &)> token_callback = {},
-           std::function<void(const llm::Stats &)> stats_callback = {});
+           std::function<void(const Stats &)> stats_callback = {});
 
   ::executorch::runtime::Error
-  generate(const std::vector<llm::MultimodalInput> &inputs,
+  generate(const std::vector<MultimodalInput> &inputs,
            std::function<void(const std::string &)> token_callback = {},
-           std::function<void(const llm::Stats &)> stats_callback = {});
+           std::function<void(const Stats &)> stats_callback = {});
 
   virtual ::executorch::runtime::Error generate_internal(
-      const std::vector<llm::MultimodalInput> &inputs,
+      const std::vector<MultimodalInput> &inputs,
       std::function<void(const std::string &)> token_callback) = 0;
 
   void stop();
@@ -60,10 +56,10 @@ public:
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
 
-  llm::Stats stats_;
+  Stats stats_;
 
   // Public for test access
-  llm::GenerationConfig config_;
+  GenerationConfig config_;
   int64_t pos_{0};
 
 protected:
@@ -82,8 +78,8 @@ protected:
   std::string tokenizer_path_;
   std::unique_ptr<tokenizers::HFTokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
-  std::unique_ptr<llm::IOManager> io_manager_;
+  std::unique_ptr<IOManager> io_manager_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
 };
 
-} // namespace rnexecutorch::llm::runner
+} // namespace executorch::extension::llm

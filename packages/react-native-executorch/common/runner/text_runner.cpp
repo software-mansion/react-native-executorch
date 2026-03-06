@@ -6,15 +6,14 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace rnexecutorch::llm::runner {
+namespace executorch::extension::llm {
 
-using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
 TextRunner::TextRunner(std::unique_ptr<Module> module,
                        const std::string &tokenizer_path,
-                       const llm::GenerationConfig &config)
+                       const GenerationConfig &config)
     : BaseLLMRunner(std::move(module), tokenizer_path, config) {}
 
 bool TextRunner::is_loaded() const {
@@ -26,17 +25,17 @@ bool TextRunner::is_loaded() const {
 Error TextRunner::load_subcomponents() {
   ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
 
-  llm::Stats *stats_ptr = &stats_;
+  Stats *stats_ptr = &stats_;
 
-  text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
+  text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
       module_.get(), io_manager_.get(), config_.temperature, config_.topp);
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
                     "[TextRunner] Parallel prefill (enable_dynamic_shape):",
                     config_.enable_dynamic_shape);
-  text_prefiller_ = std::make_unique<llm::TextPrefiller>(
+  text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);
-  text_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
+  text_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
       std::move(eos_ids_), stats_ptr);
 
@@ -44,7 +43,7 @@ Error TextRunner::load_subcomponents() {
 }
 
 Error TextRunner::generate_internal(
-    const std::vector<llm::MultimodalInput> &inputs,
+    const std::vector<MultimodalInput> &inputs,
     std::function<void(const std::string &)> token_callback) {
 
   if (inputs.empty()) {
@@ -55,20 +54,20 @@ Error TextRunner::generate_internal(
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
 
   if (!is_loaded()) {
-    stats_.model_load_start_ms = llm::time_in_ms();
+    stats_.model_load_start_ms = time_in_ms();
     ET_CHECK_OK_OR_RETURN_ERROR(load());
-    stats_.model_load_end_ms = llm::time_in_ms();
+    stats_.model_load_end_ms = time_in_ms();
   }
 
   std::function<void(const std::string &)> wrapped_callback =
       [token_callback](const std::string &piece) {
-        llm::safe_printf(piece.c_str());
+        safe_printf(piece.c_str());
         fflush(stdout);
         if (token_callback)
           token_callback(piece);
       };
 
-  stats_.inference_start_ms = llm::time_in_ms();
+  stats_.inference_start_ms = time_in_ms();
 
   int64_t context_len_left =
       static_cast<int64_t>(config_.max_context_length) - pos_;
@@ -102,8 +101,8 @@ Error TextRunner::generate_internal(
     wrapped_callback(prompt);
 
   auto prefill_res = text_prefiller_->prefill(prompt_tokens, pos_);
-  stats_.first_token_ms = llm::time_in_ms();
-  stats_.prompt_eval_end_ms = llm::time_in_ms();
+  stats_.first_token_ms = time_in_ms();
+  stats_.prompt_eval_end_ms = time_in_ms();
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[TextRunner] Prefill took",
                     stats_.prompt_eval_end_ms - stats_.inference_start_ms,
                     "ms for", num_prompt_tokens, "tokens");
@@ -124,7 +123,7 @@ Error TextRunner::generate_internal(
       config_.topp, wrapped_callback));
 
   pos_ += num_generated;
-  stats_.inference_end_ms = llm::time_in_ms();
+  stats_.inference_end_ms = time_in_ms();
   stats_.num_prompt_tokens = num_prompt_tokens;
   stats_.num_generated_tokens = num_generated;
 
@@ -156,4 +155,4 @@ void TextRunner::set_time_interval_impl(size_t time_interval) {
     text_token_generator_->set_time_interval(time_interval);
 }
 
-} // namespace rnexecutorch::llm::runner
+} // namespace executorch::extension::llm

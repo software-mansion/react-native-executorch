@@ -5,15 +5,14 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
-namespace rnexecutorch::llm::runner {
+namespace executorch::extension::llm {
 
-using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
 BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
                              const std::string &tokenizer_path,
-                             const llm::GenerationConfig &config)
+                             const GenerationConfig &config)
     : config_(config), module_(std::move(module)),
       tokenizer_path_(tokenizer_path),
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
@@ -76,19 +75,19 @@ Error BaseLLMRunner::load() {
     eos_ids_->emplace(7); // fallback <|im_end|>
   }
 
-  io_manager_ = std::make_unique<llm::IOManager>(*module_);
+  io_manager_ = std::make_unique<IOManager>(*module_);
 
   return load_subcomponents();
 }
 
 Error BaseLLMRunner::generate(
-    const std::string &prompt, const llm::GenerationConfig &generation_config,
+    const std::string &prompt, const GenerationConfig &generation_config,
     std::function<void(const std::string &)> token_callback,
-    std::function<void(const llm::Stats &)> stats_callback) {
+    std::function<void(const Stats &)> stats_callback) {
 
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
 
-  std::vector<llm::MultimodalInput> inputs = {llm::make_text_input(prompt)};
+  std::vector<MultimodalInput> inputs = {make_text_input(prompt)};
   auto err = generate_internal(inputs, token_callback);
 
   if (stats_callback)
@@ -98,9 +97,9 @@ Error BaseLLMRunner::generate(
 }
 
 Error BaseLLMRunner::generate(
-    const std::vector<llm::MultimodalInput> &inputs,
+    const std::vector<MultimodalInput> &inputs,
     std::function<void(const std::string &)> token_callback,
-    std::function<void(const llm::Stats &)> stats_callback) {
+    std::function<void(const Stats &)> stats_callback) {
 
   auto err = generate_internal(inputs, token_callback);
 
@@ -170,4 +169,4 @@ int32_t BaseLLMRunner::resolve_max_new_tokens(int32_t num_prompt_tokens,
   return std::max(0, result);
 }
 
-} // namespace rnexecutorch::llm::runner
+} // namespace executorch::extension::llm

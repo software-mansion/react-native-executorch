@@ -15,10 +15,7 @@
 #include <variant>
 #include <vector>
 
-namespace executorch {
-namespace extension {
-namespace llm {
-
+namespace executorch::extension::llm {
 struct ImagePath {
   std::string path;
 };
@@ -71,6 +68,4 @@ inline MultimodalInput make_image_input(std::string path) noexcept {
   return MultimodalInput(ImagePath{std::move(path)});
 }
 
-} // namespace llm
-} // namespace extension
-} // namespace executorch
+} // namespace executorch::extension::llm
