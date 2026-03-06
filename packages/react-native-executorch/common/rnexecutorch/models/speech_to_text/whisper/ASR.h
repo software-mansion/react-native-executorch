@@ -37,17 +37,19 @@ public:
    * @param options Control variables for decoding process.
    */
   std::vector<Segment> virtual transcribe(
-      std::span<float> waveform, const DecodingOptions &options) const override;
+      std::span<const float> waveform,
+      const DecodingOptions &options) const override;
 
   /**
    * Encodes the input audio waveform into mel spectrogram embeddings.
    *
    * @param waveform  Input audio waveform sampled at 16kHz.
-   * @return          Flat vector containing the encoder's output features.
+   * @return          Float tensor containing encoder's output features.
    *                  The output tensor shape: [1, 1500, 384] for Whisper
    * models.
    */
-  std::vector<float> encode(std::span<float> waveform) const override;
+  executorch::aten::Tensor
+  encode(std::span<const float> waveform) const override;
 
   /**
    * Decodes a sequence of tokens into logits given the encoded audio features.
@@ -58,12 +60,12 @@ public:
    * embeddings.
    * @param startPos      The starting position in the sequence (used for KV
    * caching).
-   * @return              A vector of floats representing the output logits for
-   * the next token.
+   * @return              A tensor representing the output logits for the next
+   * token.
    */
-  std::vector<float> decode(std::span<Token> tokens,
-                            std::span<float> encoderOutput,
-                            uint64_t startPos = 0) const override;
+  executorch::aten::Tensor decode(std::span<Token> tokens,
+                                  std::span<const float> encoderOutput,
+                                  uint64_t startPos = 0) const override;
 
   // Standard ExecuTorch model methods for compatibility with the rest of the
   // API.
@@ -95,7 +97,7 @@ private:
    * encode's input.
    * @param options Control variables for decoding process.
    */
-  std::vector<Segment> generate(std::span<float> waveform,
+  std::vector<Segment> generate(std::span<const float> waveform,
                                 const DecodingOptions &options) const;
 
   /**
@@ -112,10 +114,10 @@ private:
    * @param encoderOutput An optional parameter. If provided, the encoding phase
    * is skipped and the provided value is used instead.
    */
-  GenerationResult
-  generate(std::span<float> waveform, const DecodingOptions &options,
-           float temperature,
-           std::optional<std::span<float>> encoderOutput = std::nullopt) const;
+  GenerationResult generate(
+      std::span<const float> waveform, const DecodingOptions &options,
+      float temperature,
+      std::optional<std::span<const float>> encoderOutput = std::nullopt) const;
 
   /**
    * Calculates word-level timestamps for a sequence of generated tokens.
@@ -134,7 +136,7 @@ private:
    */
   std::vector<Segment>
   calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                               const std::span<float> waveform,
+                               const std::span<const float> waveform,
                                float avgLogProb, float temperature,
                                float compressionRatio) const;
 
