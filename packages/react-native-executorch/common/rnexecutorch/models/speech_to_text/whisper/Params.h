@@ -25,7 +25,7 @@ constexpr static int32_t kChunkBreakBuffer = 2; // [s]
  * Determines the maximum timestamp difference available for a word to be
  * considered as fresh in streaming algorithm.
  */
-constexpr static float kStreamFreshThreshold = 1.F; // [s], originally 0.5
+constexpr static float kStreamFreshThreshold = 2.F; // [s], originally 0.5
 
 /**
  * Determines the maximum expected size of overlapping fragments between

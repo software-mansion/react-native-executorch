@@ -21,6 +21,7 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
     firstFreshWordIdx = lastMatchingWordIdx.value_or(0);
   }
 
+  bool isCompletelyFresh = firstFreshWordIdx == 0;
   for (size_t i = firstFreshWordIdx; i < words.size(); i++) {
     const auto &word = words[i];
 
@@ -29,7 +30,8 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
     const float startGlobal = word.start + offset;
     const float endGlobal = word.end + offset;
 
-    if (startGlobal > lastCommittedTime_ - 3.F) {
+    if (!isCompletelyFresh ||
+        startGlobal > lastCommittedTime_ - params::kStreamFreshThreshold) {
       fresh_.emplace_back(word.content, startGlobal, endGlobal,
                           word.punctations);
     }

@@ -7,6 +7,8 @@
 #include "ASR.h"
 #include "HypothesisBuffer.h"
 
+#include <mutex>
+
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
 /**
@@ -64,6 +66,7 @@ private:
   // Stores the increasing amounts of streamed audio.
   // Cleared from time to time after reaching a threshold size.
   std::vector<float> audioBuffer_ = {};
+  std::mutex audioBufferMutex_;
   float bufferTimeOffset_ = 0.F; // Audio buffer offset
 
   // Helper buffers - hypothesis buffer
