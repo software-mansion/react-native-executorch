@@ -30,7 +30,7 @@ ASR::ASR(const std::string &modelSource, const std::string &tokenizerSource,
 /**
  * Whisper inference - full transcription
  */
-std::vector<Segment> ASR::transcribe(std::span<float> waveform,
+std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
                                      const DecodingOptions &options) const {
   // Use floats to prevent downcasting and timestamp mismatches
   float seek = 0.f;
@@ -99,11 +99,12 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
  * The input is a standard audio waveform, altough it is implicitly converted
  * to a log mel format inside the encoder call.
  */
-std::vector<float> ASR::encode(std::span<float> waveform) const {
+executorch::aten::Tensor ASR::encode(std::span<const float> waveform) const {
   auto inputShape = {static_cast<int32_t>(waveform.size())};
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
-      std::move(inputShape), waveform.data(), ScalarType::Float);
+      std::move(inputShape), const_cast<float *>(waveform.data()),
+      ScalarType::Float);
 
   const auto encoderResult = this->execute("encode", {modelInputTensor});
 
@@ -113,11 +114,7 @@ std::vector<float> ASR::encode(std::span<float> waveform) const {
                             "Ensure the model input is correct.");
   }
 
-  const auto encoderOutputTensor = encoderResult.get().at(0).toTensor();
-  const auto outputNumel = encoderOutputTensor.numel();
-
-  const float *const dataPtr = encoderOutputTensor.const_data_ptr<float>();
-  return {dataPtr, dataPtr + outputNumel};
+  return encoderResult.get().at(0).toTensor();
 }
 
 /**
@@ -125,9 +122,9 @@ std::vector<float> ASR::encode(std::span<float> waveform) const {
  *
  * An autoregressive decoder, called with increasing amount of input tokens.
  */
-std::vector<float> ASR::decode(std::span<uint64_t> tokens,
-                               std::span<float> encoderOutput,
-                               uint64_t startPos) const {
+executorch::aten::Tensor ASR::decode(std::span<uint64_t> tokens,
+                                     std::span<const float> encoderOutput,
+                                     uint64_t startPos) const {
   std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
   std::vector<int32_t> positionShape = {static_cast<int32_t>(tokens.size())};
 
@@ -144,7 +141,8 @@ std::vector<float> ASR::decode(std::span<uint64_t> tokens,
   std::vector<int32_t> encShape = {1, constants::kNumFrames,
                                    encoderOutputSize / constants::kNumFrames};
   auto encoderTensor = executorch::extension::make_tensor_ptr(
-      std::move(encShape), encoderOutput.data(), ScalarType::Float);
+      std::move(encShape), const_cast<float *>(encoderOutput.data()),
+      ScalarType::Float);
 
   const auto decoderResult =
       this->execute("decode", {tokenTensor, positionTensor, encoderTensor});
@@ -155,16 +153,7 @@ std::vector<float> ASR::decode(std::span<uint64_t> tokens,
                             "Ensure the model inputs are correct.");
   }
 
-  const auto logitsTensor = decoderResult.get().at(0).toTensor();
-  const int32_t outputNumel = static_cast<int32_t>(logitsTensor.numel());
-
-  const size_t innerDim = logitsTensor.size(1);
-  const size_t dictSize = logitsTensor.size(2);
-
-  const float *const dataPtr =
-      logitsTensor.const_data_ptr<float>() + (innerDim - 1) * dictSize;
-
-  return {dataPtr, dataPtr + outputNumel / innerDim};
+  return decoderResult.get().at(0).toTensor();
 }
 
 void ASR::unload() noexcept { BaseModel::unload(); }
@@ -197,14 +186,18 @@ ASR::createInitialSequence(const DecodingOptions &options) const {
 /**
  * Helper functions - generation wrapper, with fallback
  */
-std::vector<Segment> ASR::generate(std::span<float> waveform,
+std::vector<Segment> ASR::generate(std::span<const float> waveform,
                                    const DecodingOptions &options) const {
   // A fixed pool of available temperatures
   constexpr std::array<float, 6> temperatures = {0.0f, 0.2f, 0.4f,
                                                  0.6f, 0.8f, 1.0f};
 
   // Calculate audio features just once to save time.
-  std::vector<float> encoderOutput = this->encode(waveform);
+  executorch::aten::Tensor encoderFeaturesTensor = this->encode(waveform);
+  const float *encoderFeaturesData =
+      encoderFeaturesTensor.const_data_ptr<float>();
+  std::span<const float> encoderFeatures(
+      encoderFeaturesData, encoderFeaturesData + encoderFeaturesTensor.numel());
 
   std::vector<uint64_t> bestTokens;
   float bestAvgLogProb = -std::numeric_limits<float>::infinity();
@@ -213,7 +206,7 @@ std::vector<Segment> ASR::generate(std::span<float> waveform,
 
   for (auto t : temperatures) {
     auto [tokens, scores] =
-        this->generate(waveform, options, t, {encoderOutput});
+        this->generate(waveform, options, t, {encoderFeatures});
 
     const float cumLogProb = std::transform_reduce(
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
@@ -248,15 +241,20 @@ std::vector<Segment> ASR::generate(std::span<float> waveform,
  * Helper functions - generation wrapper, single-temperature inference
  */
 GenerationResult
-ASR::generate(std::span<float> waveform, const DecodingOptions &options,
+ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
               float temperature,
-              std::optional<std::span<float>> encoderOutput) const {
-  std::vector<float> encoderOutputData = !encoderOutput.has_value()
-                                             ? this->encode(waveform)
-                                             : std::vector<float>();
-  std::span<float> encodings = encoderOutput.has_value()
-                                   ? encoderOutput.value()
-                                   : std::span<float>(encoderOutputData);
+              std::optional<std::span<const float>> encoderOutput) const {
+  std::span<const float> encoderFeatures;
+  if (encoderOutput.has_value()) {
+    encoderFeatures = encoderOutput.value();
+  } else {
+    executorch::aten::Tensor encoderFeaturesTensor = this->encode(waveform);
+    const float *encoderFeaturesData =
+        encoderFeaturesTensor.const_data_ptr<float>();
+    encoderFeatures =
+        std::span(encoderFeaturesData,
+                  encoderFeaturesData + encoderFeaturesTensor.numel());
+  }
 
   std::vector<uint64_t> sequenceIds = this->createInitialSequence(options);
   std::vector<uint64_t> cachedTokens = sequenceIds;
@@ -266,7 +264,17 @@ ASR::generate(std::span<float> waveform, const DecodingOptions &options,
   uint64_t startPos = 0;
   while (std::cmp_less_equal(startPos + sequenceIds.size(),
                              constants::kMaxDecodeLength)) {
-    std::vector<float> logits = this->decode(sequenceIds, encodings, startPos);
+    executorch::aten::Tensor logitsTensor =
+        this->decode(sequenceIds, encoderFeatures, startPos);
+
+    const size_t logitsInnerDim = logitsTensor.size(1);
+    const size_t logitsDictSize = logitsTensor.size(2);
+    const float *logitsData = logitsTensor.const_data_ptr<float>() +
+                              (logitsInnerDim - 1) * logitsDictSize;
+    // Needs to be float* without const for compatibility with utility functions
+    std::span<float> logits(const_cast<float *>(logitsData),
+                            const_cast<float *>(logitsData) +
+                                logitsTensor.numel() / logitsInnerDim);
 
     // intentionally comparing float to float
     // temperatures are predefined, so this is safe
@@ -276,7 +284,7 @@ ASR::generate(std::span<float> waveform, const DecodingOptions &options,
       numerical::softmaxWithTemperature(logits, temperature);
     }
 
-    const std::vector<float> &probs = logits;
+    auto probs = logits;
 
     uint64_t nextId;
     float nextProb;
@@ -311,9 +319,11 @@ ASR::generate(std::span<float> waveform, const DecodingOptions &options,
           .scores = scores};
 }
 
-std::vector<Segment> ASR::calculateWordLevelTimestamps(
-    std::span<const uint64_t> generatedTokens, const std::span<float> waveform,
-    float avgLogProb, float temperature, float compressionRatio) const {
+std::vector<Segment>
+ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
+                                  const std::span<const float> waveform,
+                                  float avgLogProb, float temperature,
+                                  float compressionRatio) const {
   const size_t generatedTokensSize = generatedTokens.size();
   if (generatedTokensSize < 2 ||
       generatedTokens[generatedTokensSize - 1] != endOfTranscriptionToken_ ||

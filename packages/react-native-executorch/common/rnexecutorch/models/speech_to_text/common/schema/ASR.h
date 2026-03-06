@@ -22,14 +22,15 @@ public:
   virtual ~ASR() = default;
 
   virtual std::vector<Segment>
-  transcribe(std::span<float> waveform,
+  transcribe(std::span<const float> waveform,
              const DecodingOptions &options) const = 0;
 
-  virtual std::vector<float> encode(std::span<float> waveform) const = 0;
+  virtual executorch::aten::Tensor
+  encode(std::span<const float> waveform) const = 0;
 
-  virtual std::vector<float> decode(std::span<uint64_t> tokens,
-                                    std::span<float> encoderOutput,
-                                    uint64_t startPos = 0) const = 0;
+  virtual executorch::aten::Tensor decode(std::span<uint64_t> tokens,
+                                          std::span<const float> encoderOutput,
+                                          uint64_t startPos = 0) const = 0;
 
   // Standard ExecuTorch model methods for compatibility with the rest of the
   // API.

@@ -31,16 +31,22 @@ void SpeechToText::unload() noexcept { transcriber_->unload(); }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
-  std::vector<float> encoderOutput = transcriber_->encode(waveform);
-  return std::make_shared<OwningArrayBuffer>(encoderOutput);
+  executorch::aten::Tensor encoderOutputTensor = transcriber_->encode(waveform);
+
+  return std::make_shared<OwningArrayBuffer>(
+      encoderOutputTensor.const_data_ptr(),
+      sizeof(float) * encoderOutputTensor.numel());
 }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::span<uint64_t> tokens,
                      std::span<float> encoderOutput) const {
-  std::vector<float> decoderOutput =
+  executorch::aten::Tensor decoderOutputTensor =
       transcriber_->decode(tokens, encoderOutput);
-  return std::make_shared<OwningArrayBuffer>(decoderOutput);
+
+  return std::make_shared<OwningArrayBuffer>(
+      decoderOutputTensor.const_data_ptr(),
+      sizeof(float) * decoderOutputTensor.numel());
 }
 
 TranscriptionResult SpeechToText::transcribe(std::span<float> waveform,
