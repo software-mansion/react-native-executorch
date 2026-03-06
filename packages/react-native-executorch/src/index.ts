@@ -4,6 +4,7 @@ import {
   ResourceFetcherAdapter,
 } from './utils/ResourceFetcher';
 import { Triple } from './types/common';
+import { LLMCapability } from './types/llm';
 /**
  * Configuration that goes to the `initExecutorch`.
  * You can pass either bare React Native or Expo configuration.
@@ -54,7 +55,11 @@ declare global {
   var loadImageEmbeddings: (source: string) => any;
   var loadVAD: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadLLM: (
+    modelSource: string,
+    tokenizerSource: string,
+    capabilities: readonly LLMCapability[]
+  ) => any;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,

@@ -2,6 +2,19 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from './common';
 
 /**
+ * Capabilities a multimodal LLM can have.
+ * @category Types
+ */
+export type LLMCapability = 'vision';
+
+/**
+ * Derives the media argument shape for `sendMessage` from a capabilities tuple.
+ * @category Types
+ */
+export type MediaArg<C extends readonly LLMCapability[]> =
+  'vision' extends C[number] ? { imagePath?: string } : object;
+
+/**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
  *
  * @category Types
@@ -19,7 +32,13 @@ export interface LLMProps {
     /**
      * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
      */
-    tokenizerConfigSource?: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
+    /**
+     * Optional list of modality capabilities the model supports.
+     * Determines the type of the `media` argument in `sendMessage`.
+     * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
+     */
+    capabilities?: readonly LLMCapability[];
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -28,11 +47,11 @@ export interface LLMProps {
 }
 
 /**
- * React hook for managing a Large Language Model (LLM) instance.
+ * Base return type for `useLLM`. Contains all fields except `sendMessage`.
  *
  * @category Types
  */
-export interface LLMType {
+export interface LLMTypeBase {
   /**
    * History containing all messages in conversation. This field is updated after model responds to sendMessage.
    */
@@ -89,9 +108,13 @@ export interface LLMType {
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated tokens as `string`.
    */
-  generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
+  generate: (
+    messages: Message[],
+    tools?: LLMTool[],
+    imagePaths?: string[]
+  ) => Promise<string>;
   /**
-   * Returns the number of total tokens from the previous generation.This is a sum of prompt tokens and generated tokens.
+   * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
    *
    * @returns The count of prompt and generated tokens.
    */
@@ -104,15 +127,6 @@ export interface LLMType {
   getPromptTokenCount: () => number;
 
   /**
-   * Function to add user message to conversation.
-   * After model responds, `messageHistory` will be updated with both user message and model response.
-   *
-   * @param message - The message string to send.
-   * @returns The model's response as a `string`.
-   */
-  sendMessage: (message: string) => Promise<string>;
-
-  /**
    * Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
    *
    * @param index - The index of the message to delete from history.
@@ -123,6 +137,43 @@ export interface LLMType {
    * Function to interrupt the current inference.
    */
   interrupt: () => void;
+}
+
+/**
+ * Return type for `useLLM` when `model.capabilities` is provided.
+ * `sendMessage` accepts a typed `media` object based on declared capabilities.
+ * @category Types
+ */
+export interface LLMTypeMultimodal<
+  C extends readonly LLMCapability[] = readonly LLMCapability[],
+> extends LLMTypeBase {
+  /**
+   * Function to add user message to conversation.
+   * Pass a `media` object whose shape is determined by the declared capabilities.
+   * After model responds, `messageHistory` will be updated.
+   *
+   * @param message - The message string to send.
+   * @param media - Optional media object (e.g. `{ imagePath }` for vision.
+   * @returns The model's response as a `string`.
+   */
+  sendMessage: (message: string, media?: MediaArg<C>) => Promise<string>;
+}
+
+/**
+ * Return type for `useLLM` when `model.isMultimodal` is absent or `false`.
+ * `sendMessage` accepts only text.
+ *
+ * @category Types
+ */
+export interface LLMType extends LLMTypeBase {
+  /**
+   * Function to add user message to conversation.
+   * After model responds, `messageHistory` will be updated.
+   *
+   * @param message - The message string to send.
+   * @returns The model's response as a `string`.
+   */
+  sendMessage: (message: string) => Promise<string>;
 }
 
 /**
@@ -184,6 +235,11 @@ export type MessageRole = 'user' | 'assistant' | 'system';
 export interface Message {
   role: MessageRole;
   content: string;
+  /**
+   * Optional local file path to media (image, audio, etc.).
+   * Only valid on `user` messages.
+   */
+  mediaPath?: string;
 }
 
 /**

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  LLMCapability,
   LLMConfig,
   LLMProps,
   LLMTool,
   LLMType,
+  LLMTypeMultimodal,
   Message,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
@@ -14,9 +16,16 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  *
  * @category Hooks
  * @param model - Object containing model, tokenizer, and tokenizer config sources.
- * @returns An object implementing the `LLMType` interface for interacting with the LLM.
+ * @returns An object implementing the `LLMTypeMultimodal` interface when `model.capabilities` is provided, otherwise `LLMType`.
  */
-export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
+export function useLLM<C extends readonly LLMCapability[]>(
+  props: LLMProps & { model: { capabilities: C } }
+): LLMTypeMultimodal<C>;
+export function useLLM(props: LLMProps): LLMType;
+export function useLLM({
+  model,
+  preventLoad = false,
+}: LLMProps): LLMType | LLMTypeMultimodal {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
@@ -24,6 +33,7 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<null | RnExecutorchError>(null);
+  const capabilitiesKey = model.capabilities?.join(',') ?? '';
 
   const tokenCallback = useCallback((newToken: string) => {
     setToken(newToken);
@@ -52,6 +62,7 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
           tokenizerConfigSource: model.tokenizerConfigSource!,
+          capabilities: model.capabilities,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -64,11 +75,13 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
         controllerInstance.delete();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     controllerInstance,
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
+    capabilitiesKey, // intentional: serialized string to avoid array reference re-runs
     preventLoad,
   ]);
 
@@ -84,17 +97,17 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   );
 
   const generate = useCallback(
-    (messages: Message[], tools?: LLMTool[]) => {
+    (messages: Message[], tools?: LLMTool[], imagePaths?: string[]) => {
       setResponse('');
-      return controllerInstance.generate(messages, tools);
+      return controllerInstance.generate(messages, tools, imagePaths);
     },
     [controllerInstance]
   );
 
   const sendMessage = useCallback(
-    (message: string) => {
+    (message: string, media?: { imagePath?: string; audioPath?: string }) => {
       setResponse('');
-      return controllerInstance.sendMessage(message);
+      return controllerInstance.sendMessage(message, media);
     },
     [controllerInstance]
   );
@@ -141,4 +154,4 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     deleteMessage: deleteMessage,
     interrupt: interrupt,
   };
-};
+}

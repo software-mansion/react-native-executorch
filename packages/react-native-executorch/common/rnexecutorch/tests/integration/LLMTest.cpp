@@ -6,6 +6,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <runner/encoders/vision_encoder.h>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::llm;
@@ -37,12 +38,12 @@ template <> struct ModelTraits<LLM> {
   using ModelType = LLM;
 
   static ModelType createValid() {
-    return ModelType(kValidModelPath, kValidTokenizerPath,
+    return ModelType(kValidModelPath, kValidTokenizerPath, {},
                      rnexecutorch::createMockCallInvoker());
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", kValidTokenizerPath,
+    return ModelType("nonexistent.pte", kValidTokenizerPath, {},
                      rnexecutorch::createMockCallInvoker());
   }
 
@@ -67,18 +68,24 @@ protected:
 };
 
 TEST(LLMCtorTests, InvalidTokenizerPathThrows) {
-  EXPECT_THROW(LLM(kValidModelPath, "nonexistent_tokenizer.json",
+  EXPECT_THROW(LLM(kValidModelPath, "nonexistent_tokenizer.json", {},
                    createMockCallInvoker()),
                RnExecutorchError);
 }
 
+TEST(LLMCtorTests, WrongCapabilitiesThrowsClearError) {
+  EXPECT_THROW(LLM(kValidModelPath, kValidTokenizerPath, {"vision"},
+                   createMockCallInvoker()),
+               rnexecutorch::RnExecutorchError);
+}
+
 TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_EQ(model.getGeneratedTokenCount(), 0);
 }
 
 TEST_F(LLMTest, SetTemperature) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   // Should not throw for valid values
   EXPECT_NO_THROW(model.setTemperature(0.5f));
   EXPECT_NO_THROW(model.setTemperature(1.0f));
@@ -86,43 +93,43 @@ TEST_F(LLMTest, SetTemperature) {
 }
 
 TEST_F(LLMTest, SetTemperatureNegativeThrows) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_THROW(model.setTemperature(-0.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetTopp) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_NO_THROW(model.setTopp(0.9f));
   EXPECT_NO_THROW(model.setTopp(0.5f));
   EXPECT_NO_THROW(model.setTopp(1.0f));
 }
 
 TEST_F(LLMTest, SetToppInvalidThrows) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_THROW(model.setTopp(-0.1f), RnExecutorchError);
   EXPECT_THROW(model.setTopp(1.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetCountInterval) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_NO_THROW(model.setCountInterval(5));
   EXPECT_NO_THROW(model.setCountInterval(10));
 }
 
 TEST_F(LLMTest, SetTimeInterval) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_NO_THROW(model.setTimeInterval(100));
   EXPECT_NO_THROW(model.setTimeInterval(500));
 }
 
 TEST_F(LLMTest, InterruptThrowsWhenUnloaded) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   model.unload();
   EXPECT_THROW(model.interrupt(), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SettersThrowWhenUnloaded) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   model.unload();
   // All setters should throw when model is unloaded
   EXPECT_THROW(model.setTemperature(0.5f), RnExecutorchError);
@@ -132,7 +139,7 @@ TEST_F(LLMTest, SettersThrowWhenUnloaded) {
 }
 
 TEST_F(LLMTest, GenerateProducesValidOutput) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   model.setTemperature(0.0f);
   std::string prompt =
       formatChatML(kSystemPrompt, "Repeat exactly this: `naszponcilem testy`");
@@ -141,7 +148,7 @@ TEST_F(LLMTest, GenerateProducesValidOutput) {
 }
 
 TEST_F(LLMTest, GenerateUpdatesTokenCount) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_EQ(model.getGeneratedTokenCount(), 0);
   std::string prompt =
       formatChatML(kSystemPrompt, "Repeat exactly this: 'naszponcilem testy'");
@@ -150,6 +157,58 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
 }
 
 TEST_F(LLMTest, EmptyPromptThrows) {
-  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
+}
+
+TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
+  // smolLm2_135M_8da4w.pte has no vision_encoder method
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  auto encoder =
+      std::make_unique<executorch::extension::llm::VisionEncoder>(module.get());
+
+  EXPECT_THROW(encoder->load(), rnexecutorch::RnExecutorchError);
+}
+
+#include <runner/base_llm_runner.h>
+
+// Minimal concrete subclass — only used in tests to verify base class behavior
+class StubRunner : public rnexecutorch::llm::runner::BaseLLMRunner {
+public:
+  using BaseLLMRunner::BaseLLMRunner;
+  bool is_loaded() const override { return loaded_; }
+  ::executorch::runtime::Error load_subcomponents() override {
+    loaded_ = true;
+    return ::executorch::runtime::Error::Ok;
+  }
+  ::executorch::runtime::Error generate_internal(
+      const std::vector<::executorch::extension::llm::MultimodalInput> &,
+      std::function<void(const std::string &)>) override {
+    return ::executorch::runtime::Error::Ok;
+  }
+  void stop_impl() override {}
+  void set_temperature_impl(float t) override { last_temp_ = t; }
+  void set_topp_impl(float) override {}
+  void set_count_interval_impl(size_t) override {}
+  void set_time_interval_impl(size_t) override {}
+
+  bool loaded_ = false;
+  float last_temp_ = -1.f;
+};
+
+TEST(BaseLLMRunnerTest, SetTemperatureWritesConfigAndCallsImpl) {
+  StubRunner runner(nullptr, "dummy_tokenizer.json");
+  runner.set_temperature(0.5f);
+  EXPECT_FLOAT_EQ(runner.config_.temperature, 0.5f);
+  EXPECT_FLOAT_EQ(runner.last_temp_, 0.5f);
+}
+
+TEST(BaseLLMRunnerTest, ResetZerosPos) {
+  StubRunner runner(nullptr, "dummy_tokenizer.json");
+  runner.pos_ = 42;
+  runner.reset();
+  EXPECT_EQ(runner.pos_, 0);
 }

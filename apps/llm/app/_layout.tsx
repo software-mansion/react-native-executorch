@@ -90,6 +90,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="multimodal_llm/index"
+          options={{
+            drawerLabel: 'Multimodal LLM (VLM)',
+            title: 'Multimodal LLM',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="index"
           options={{
             drawerLabel: () => null,

@@ -46,7 +46,9 @@ public:
           "getInputShape"));
     }
 
-    if constexpr (meta::HasGenerate<Model>) {
+    // LLM::generate and LLM::generateMultimodal registered explicitly below
+    if constexpr (meta::HasGenerate<Model> &&
+                  !meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
@@ -99,6 +101,10 @@ public:
     }
 
     if constexpr (meta::SameAs<Model, models::llm::LLM>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
+
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
@@ -145,6 +151,16 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        synchronousHostFunction<&Model::reset>,
                                        "reset"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateMultimodal>,
+                              "generateMultimodal"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::getVisualTokenCount>,
+          "getVisualTokenCount"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {
