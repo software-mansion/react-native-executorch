@@ -38,8 +38,6 @@ bool MultimodalRunner::is_loaded() const {
 }
 
 Error MultimodalRunner::load_subcomponents() {
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[MultimodalRunner] Loading",
-                    encoders_.size(), "encoder(s)");
   for (auto &[type, encoder] : encoders_) {
     ET_CHECK_OK_OR_RETURN_ERROR(encoder->load());
   }

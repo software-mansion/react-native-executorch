@@ -45,7 +45,7 @@ public:
           "getInputShape"));
     }
 
-    // LLM has overloaded generate — handled explicitly in the LLM block below
+    // LLM::generate and LLM::generateMultimodal registered explicitly below
     if constexpr (meta::HasGenerate<Model> &&
                   !meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
@@ -100,11 +100,9 @@ public:
     }
 
     if constexpr (meta::SameAs<Model, models::llm::LLM>) {
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<static_cast<std::string (Model::*)(
-              std::string, std::shared_ptr<jsi::Function>)>(&Model::generate)>,
-          "generate"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
 
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
@@ -153,12 +151,10 @@ public:
                                        synchronousHostFunction<&Model::reset>,
                                        "reset"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<static_cast<std::string (Model::*)(
-              std::string, std::vector<std::string>, std::string,
-              std::shared_ptr<jsi::Function>)>(&Model::generate)>,
-          "generateMultimodal"));
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateMultimodal>,
+                              "generateMultimodal"));
 
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,

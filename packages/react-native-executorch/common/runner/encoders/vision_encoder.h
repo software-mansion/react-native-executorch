@@ -12,13 +12,13 @@ namespace executorch::extension::llm {
 
 class VisionEncoder : public IEncoder {
 public:
-  explicit VisionEncoder(::executorch::extension::Module *module);
+  explicit VisionEncoder(::executorch::extension::Module &module);
 
   ::executorch::runtime::Error load() override;
-  bool is_loaded() const override;
+  bool is_loaded() const noexcept override;
   ::executorch::runtime::Result<::executorch::runtime::EValue>
   encode(const MultimodalInput &input) override;
-  int32_t encoderTokenCount() const override;
+  int32_t encoderTokenCount() const noexcept override;
 
 private:
   struct ImageShape {
@@ -28,7 +28,7 @@ private:
 
   ::executorch::runtime::Result<ImageShape> getInputShape() const;
   std::vector<float> preprocessImage(const std::string &path,
-                                     const ImageShape &shape) const;
+                                     const ImageShape &targetShape) const;
 
   ::executorch::extension::Module *module_;
   std::unordered_map<std::string, ::executorch::runtime::EValue>

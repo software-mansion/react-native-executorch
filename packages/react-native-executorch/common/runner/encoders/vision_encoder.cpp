@@ -15,8 +15,8 @@ using ::executorch::runtime::Error;
 using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
-VisionEncoder::VisionEncoder(::executorch::extension::Module *module)
-    : module_(module) {}
+VisionEncoder::VisionEncoder(::executorch::extension::Module &module)
+    : module_(&module) {}
 
 Error VisionEncoder::load() {
   if (is_loaded()) {
@@ -33,16 +33,14 @@ Error VisionEncoder::load() {
         "Model does not support vision: 'vision_encoder' method not found. "
         "Check that the .pte file matches the declared capabilities.");
   }
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[VisionEncoder] Loading method:", kVisionEncoderMethod);
   return module_->load_method(kVisionEncoderMethod);
 }
 
-bool VisionEncoder::is_loaded() const {
+bool VisionEncoder::is_loaded() const noexcept {
   return module_->is_method_loaded(kVisionEncoderMethod);
 }
 
-int32_t VisionEncoder::encoderTokenCount() const {
+int32_t VisionEncoder::encoderTokenCount() const noexcept {
   if (!is_loaded()) {
     return 0;
   }
@@ -78,16 +76,17 @@ Result<VisionEncoder::ImageShape> VisionEncoder::getInputShape() const {
 
 std::vector<float>
 VisionEncoder::preprocessImage(const std::string &path,
-                               const ImageShape &shape) const {
+                               const ImageShape &targetShape) const {
   cv::Mat mat = rnexecutorch::image_processing::readImage(path);
-  cv::resize(mat, mat, cv::Size(shape.width, shape.height));
+  cv::resize(mat, mat, cv::Size(targetShape.width, targetShape.height));
   cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
 
-  const int32_t pixelCount = shape.height * shape.width;
-  std::vector<float> chw(shape.channels * pixelCount);
+  const int32_t pixelCount = targetShape.height * targetShape.width;
+  std::vector<float> chw(targetShape.channels * pixelCount);
   for (int32_t i = 0; i < pixelCount; ++i) {
-    cv::Vec3b px = mat.at<cv::Vec3b>(i / shape.width, i % shape.width);
-    for (int32_t c = 0; c < shape.channels; ++c) {
+    cv::Vec3b px =
+        mat.at<cv::Vec3b>(i / targetShape.width, i % targetShape.width);
+    for (int32_t c = 0; c < targetShape.channels; ++c) {
       chw[c * pixelCount + i] = static_cast<float>(px[c]);
     }
   }
@@ -122,7 +121,7 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
       chw.data(), sizes, ::executorch::aten::ScalarType::Float);
 
   auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
-  EValue embedding = result[0];
+  auto embedding = result[0];
   embedding_cache_.emplace(path, embedding);
   return embedding;
 }

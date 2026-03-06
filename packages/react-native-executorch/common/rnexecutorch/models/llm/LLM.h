@@ -22,9 +22,10 @@ public:
 
   std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
-  std::string generate(std::string prompt, std::vector<std::string> imagePaths,
-                       std::string imageToken,
-                       std::shared_ptr<jsi::Function> callback);
+  std::string generateMultimodal(std::string prompt,
+                                 std::vector<std::string> imagePaths,
+                                 std::string imageToken,
+                                 std::shared_ptr<jsi::Function> callback);
 
   void interrupt();
   void reset();
