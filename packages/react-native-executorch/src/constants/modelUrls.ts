@@ -726,13 +726,21 @@ export const SELFIE_SEGMENTATION = {
 } as const;
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_int8.pte`;
 
 /**
  * @category Models - Image Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
+};
+
+/**
+ * @category Models - Image Embeddings
+ */
+export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
 };
 
 // Text Embeddings
@@ -744,8 +752,8 @@ const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1
 const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
 const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
 const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`;
 
 /**
  * @category Models - Text Embeddings
