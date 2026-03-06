@@ -29,9 +29,6 @@ Error TextRunner::load_subcomponents() {
 
   text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
       module_.get(), io_manager_.get(), config_.temperature, config_.topp);
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[TextRunner] Parallel prefill (enable_dynamic_shape):",
-                    config_.enable_dynamic_shape);
   text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);
@@ -103,9 +100,6 @@ Error TextRunner::generate_internal(
   auto prefill_res = text_prefiller_->prefill(prompt_tokens, pos_);
   stats_.first_token_ms = time_in_ms();
   stats_.prompt_eval_end_ms = time_in_ms();
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[TextRunner] Prefill took",
-                    stats_.prompt_eval_end_ms - stats_.inference_start_ms,
-                    "ms for", num_prompt_tokens, "tokens");
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
 
   uint64_t cur_token = prefill_res.get();

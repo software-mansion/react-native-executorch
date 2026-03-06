@@ -12,7 +12,7 @@ class IEncoder {
 public:
   virtual ~IEncoder() = default;
   virtual ::executorch::runtime::Error load() = 0;
-  virtual bool is_loaded() const = 0;
+  virtual bool is_loaded() const noexcept = 0;
 
   virtual ::executorch::runtime::Result<::executorch::runtime::EValue>
   encode(const MultimodalInput &input) = 0;

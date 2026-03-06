@@ -31,7 +31,8 @@ Error BaseLLMRunner::load() {
   if (status != tokenizers::Error::Ok) {
     throw rnexecutorch::RnExecutorchError(
         rnexecutorch::RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while loading tokenizer");
+        "Unexpected issue occurred while loading tokenizer (error code: " +
+            std::to_string(static_cast<int>(status)) + ")");
   }
 
   const auto method_names =
@@ -46,8 +47,6 @@ Error BaseLLMRunner::load() {
                   .toScalar()
                   .to<decltype(metadata_)::mapped_type>();
     }
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "[BaseLLMRunner] Metadata:", method_name, "=", value);
   }
 
   if (config_.max_seq_len < 0)

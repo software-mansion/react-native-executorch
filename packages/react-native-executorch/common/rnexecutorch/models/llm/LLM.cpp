@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <map>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 #include <runner/encoders/vision_encoder.h>
 #include <runner/multimodal_runner.h>
@@ -29,7 +30,7 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
         encoders[llm::MultimodalType::Image] =
-            std::make_unique<llm::VisionEncoder>(module_.get());
+            std::make_unique<llm::VisionEncoder>(*module_);
       }
     }
     runner_ = std::make_unique<llm::MultimodalRunner>(
@@ -69,10 +70,10 @@ std::string LLM::generate(std::string input,
   return output;
 }
 
-std::string LLM::generate(std::string prompt,
-                          std::vector<std::string> imagePaths,
-                          std::string imageToken,
-                          std::shared_ptr<jsi::Function> callback) {
+std::string LLM::generateMultimodal(std::string prompt,
+                                    std::vector<std::string> imagePaths,
+                                    std::string imageToken,
+                                    std::shared_ptr<jsi::Function> callback) {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
@@ -80,10 +81,14 @@ std::string LLM::generate(std::string prompt,
   if (!runner_->is_multimodal()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
-        "This is a text-only model. Call generate(prompt, cb).");
+        "This model does not support multimodal input. Use generate(prompt, "
+        "callback) for text-only generation.");
   }
   if (imageToken.empty()) {
-    imageToken = "<image>";
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "imageToken must not be empty. Pass the model's image token (e.g. "
+        "from tokenizer_config.json).");
   }
 
   const size_t kImageTokenLen = imageToken.size();
@@ -109,10 +114,17 @@ std::string LLM::generate(std::string prompt,
     if (imageIdx >= imagePaths.size()) {
       throw RnExecutorchError(
           RnExecutorchErrorCode::InvalidUserInput,
-          "More <image> placeholders in prompt than image paths provided");
+          "More '" + imageToken +
+              "' placeholders in prompt than image paths provided");
     }
     inputs.push_back(llm::make_image_input(imagePaths[imageIdx++]));
     searchPos = found + kImageTokenLen;
+  }
+
+  if (imageIdx < imagePaths.size()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "More image paths provided than '" + imageToken +
+                                "' placeholders in prompt");
   }
 
   if (inputs.empty()) {

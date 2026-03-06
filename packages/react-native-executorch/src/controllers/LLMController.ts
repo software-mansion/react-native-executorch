@@ -121,9 +121,11 @@ export class LLMController {
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
 
-      this.nativeModule = await global.loadLLM(modelPath, tokenizerPath, [
-        ...(capabilities ?? []),
-      ]);
+      this.nativeModule = await global.loadLLM(
+        modelPath,
+        tokenizerPath,
+        capabilities ?? []
+      );
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -320,9 +322,9 @@ export class LLMController {
 
   public async sendMessage(
     message: string,
-    media?: { imagePath?: string; audioPath?: string }
+    media?: { imagePath?: string }
   ): Promise<string> {
-    const mediaPath = media?.imagePath ?? media?.audioPath;
+    const mediaPath = media?.imagePath;
     const newMessage: Message = {
       content: message,
       role: 'user',

@@ -35,8 +35,6 @@ public:
       }
 
       numThreads = std::max(numThreads.value(), 2u);
-      log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with",
-          numThreads, "threads");
       instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
                                                              config);
       // Disable OpenCV's internal threading to prevent it from overriding our
