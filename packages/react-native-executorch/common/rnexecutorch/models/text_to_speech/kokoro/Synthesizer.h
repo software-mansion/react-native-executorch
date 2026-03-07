@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <span>
 #include <string>
@@ -49,7 +50,17 @@ public:
   size_t getTokensLimit() const;
   size_t getDurationLimit() const;
 
+  // Returns the token count of the forward method that would be selected
+  // for a given input size. E.g., input 37 -> returns 64 (forward_64).
+  size_t getMethodTokenCount(size_t inputSize) const {
+    auto it = std::ranges::find_if(forwardMethods_,
+        [inputSize](const auto &e) { return e.second >= inputSize; });
+    return (it != forwardMethods_.end()) ? it->second : forwardMethods_.back().second;
+  }
+
 private:
+  // Forward methods discovered at construction (e.g. forward_8, forward_64, forward_128)
+  std::vector<std::pair<std::string, size_t>> forwardMethods_;
   // Shared model context
   // A const reference to singleton in Kokoro.
   const Context &context_;

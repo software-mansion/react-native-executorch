@@ -39,38 +39,39 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
 }
 
 void Kokoro::loadVoice(const std::string &voiceSource) {
-  constexpr size_t rows = static_cast<size_t>(constants::kMaxInputTokens);
-  constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize); // 256
-  const size_t expectedCount = rows * cols;
-  const std::streamsize expectedBytes =
-      static_cast<std::streamsize>(expectedCount * sizeof(float));
+  constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize);
+  constexpr size_t bytesPerRow = cols * sizeof(float);
 
   std::ifstream in(voiceSource, std::ios::binary);
   if (!in) {
     throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "[Kokoro::loadSingleVoice]: cannot open file: " +
+                            "[Kokoro::loadVoice]: cannot open file: " +
                                 voiceSource);
   }
 
-  // Check the file size
+  // Determine number of rows from file size
   in.seekg(0, std::ios::end);
-  const std::streamsize fileSize = in.tellg();
+  const auto fileSize = static_cast<size_t>(in.tellg());
   in.seekg(0, std::ios::beg);
-  if (fileSize < expectedBytes) {
+
+  if (fileSize < bytesPerRow) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadSingleVoice]: file too small: expected at least " +
-            std::to_string(expectedBytes) + " bytes, got " +
+        "[Kokoro::loadVoice]: file too small: need at least " +
+            std::to_string(bytesPerRow) + " bytes for one row, got " +
             std::to_string(fileSize));
   }
 
-  // Read [rows, 1, cols] as contiguous floats directly into voice_
-  // ([rows][cols])
-  if (!in.read(reinterpret_cast<char *>(voice_.data()->data()),
-               expectedBytes)) {
+  const size_t rows = fileSize / bytesPerRow;
+  const auto readBytes = static_cast<std::streamsize>(rows * bytesPerRow);
+
+  // Resize voice vector to hold all rows from the file
+  voice_.resize(rows);
+
+  if (!in.read(reinterpret_cast<char *>(voice_.data()->data()), readBytes)) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadSingleVoice]: failed to read voice weights");
+        "[Kokoro::loadVoice]: failed to read voice weights");
   }
 }
 
@@ -108,10 +109,11 @@ void Kokoro::streamFromPhonemesImpl(
     std::shared_ptr<jsi::Function> callback) {
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
-      this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
-        callback->call(rt,
-                       rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
-      });
+      this->callInvoker_->invokeAsync(
+          [callback, audioVec = std::move(audioVec)](jsi::Runtime &rt) {
+            callback->call(
+                rt, rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
+          });
     }
   };
 
@@ -149,7 +151,7 @@ void Kokoro::streamFromPhonemesImpl(
         audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
     // Push the audio right away to the JS side
-    nativeCallback(audioPart);
+    nativeCallback(std::move(audioPart));
   }
 
   isStreaming_ = false;
@@ -209,41 +211,62 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
     return {};
   }
 
-  // Clamp the input to not go beyond number of input token limits
-  // Note that 2 tokens are always reserved for pre- and post-fix padding,
-  // so we effectively take at most (maxNoInputTokens_ - 2) tokens.
-  size_t noTokens = std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
+  // Clamp token count: phonemes + 2 padding tokens (leading + trailing zero)
+  size_t dpTokens = std::clamp(phonemes.size() + 2,
+                               constants::kMinInputTokens,
                                context_.inputTokensLimit);
 
-  // Map phonemes to tokens
-  const auto tokens = utils::tokenize(phonemes, {noTokens});
+  // Map phonemes to tokens, padded to dpTokens
+  auto tokens = utils::tokenize(phonemes, {dpTokens});
 
   // Select the appropriate voice vector
-  size_t voiceID = std::min(phonemes.size() - 1, noTokens);
+  size_t voiceID = std::min({phonemes.size() - 1, dpTokens - 1,
+                             voice_.size() - 1});
   auto &voice = voice_[voiceID];
 
-  // Initialize text mask
-  // Exclude all the paddings apart from first and last one.
-  size_t realInputLength = std::min(phonemes.size() + 2, noTokens);
-  std::vector<uint8_t> textMask(noTokens, false);
+  // Initialize text mask for DP
+  size_t realInputLength = std::min(phonemes.size() + 2, dpTokens);
+  std::vector<uint8_t> textMask(dpTokens, false);
   std::fill(textMask.begin(), textMask.begin() + realInputLength, true);
 
   // Inference 1 - DurationPredictor
-  // The resulting duration vector is already scalled at this point
   auto [d, indices, effectiveDuration] = durationPredictor_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(voice).last(constants::kVoiceRefHalfSize), speed);
+
+  // --- Synthesizer phase ---
+  // The Synthesizer may have different method sizes than the DP.
+  // Pad all inputs to the Synthesizer's selected method size.
+  size_t synthTokens = synthesizer_.getMethodTokenCount(dpTokens);
+  size_t dCols = d.sizes().back(); // 640
+
+  // Pad tokens and textMask to synthTokens (no-op when synthTokens == dpTokens)
+  tokens.resize(synthTokens, 0);
+  textMask.resize(synthTokens, false);
+
+  // Pad indices to the maximum duration limit
+  indices.resize(context_.inputDurationLimit, 0);
+
+  // Prepare duration data for Synthesizer.
+  // When sizes match, pass the DP tensor directly to avoid a 320KB copy.
+  size_t durSize = synthTokens * dCols;
+  std::vector<float> durPadded;
+  float *durPtr;
+  if (synthTokens == dpTokens) {
+    durPtr = d.mutable_data_ptr<float>();
+  } else {
+    durPadded.resize(durSize, 0.0f);
+    std::copy_n(d.const_data_ptr<float>(), dpTokens * dCols, durPadded.data());
+    durPtr = durPadded.data();
+  }
 
   // Inference 2 - Synthesizer
   auto decoding = synthesizer_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(indices),
-      // Note that we reduce the size of d tensor to match the initial number of
-      // input tokens
-      std::span<float>(d.mutable_data_ptr<float>(),
-                       noTokens * d.sizes().back()),
+      std::span<float>(durPtr, durSize),
       std::span(voice));
   auto audioTensor = decoding->at(0).toTensor();
 
@@ -254,9 +277,7 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
   auto croppedAudio =
       utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
-  std::vector<float> result(croppedAudio.begin(), croppedAudio.end());
-
-  return result;
+  return {croppedAudio.begin(), croppedAudio.end()};
 }
 
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
