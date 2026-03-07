@@ -85,7 +85,7 @@ std::vector<Token> tokenize(const std::u32string &phonemes,
                               ? constants::kVocab.at(p)
                               : constants::kInvalidToken;
                  });
-  auto validSeqEnd = std::partition(
+  auto validSeqEnd = std::stable_partition(
       tokens.begin() + 1, tokens.begin() + effNoTokens + 1,
       [](Token t) -> bool { return t != constants::kInvalidToken; });
   std::fill(validSeqEnd, tokens.begin() + effNoTokens + 1,
