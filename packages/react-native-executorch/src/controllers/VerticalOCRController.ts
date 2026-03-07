@@ -10,7 +10,7 @@ export class VerticalOCRController extends BaseOCRController {
     language: OCRLanguage,
     independentCharacters?: boolean
   ): any {
-    return global.loadVerticalOCR(
+    return await global.loadVerticalOCR(
       detectorPath,
       recognizerPath,
       symbols[language],

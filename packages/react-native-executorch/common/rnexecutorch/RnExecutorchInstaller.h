@@ -7,9 +7,11 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
+#include <rnexecutorch/jsi/Promise.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch {
 
@@ -49,50 +51,78 @@ private:
                 expectedCount, count);
             throw jsi::JSError(runtime, errorMessage);
           }
-          try {
-            auto constructorArgs =
-                meta::createConstructorArgsWithCallInvoker<ModelT>(
-                    args, runtime, jsCallInvoker);
 
-            auto modelImplementationPtr = std::apply(
-                [](auto &&...unpackedArgs) {
-                  return std::make_shared<ModelT>(
-                      std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
-                },
-                std::move(constructorArgs));
+          // Parse JSI arguments on the JS thread (required for jsi::Value
+          // access), then dispatch the heavy model construction to a background
+          // thread and return a Promise.
+          auto constructorArgs =
+              meta::createConstructorArgsWithCallInvoker<ModelT>(
+                  args, runtime, jsCallInvoker);
 
-            auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
-                modelImplementationPtr, jsCallInvoker);
+          return Promise::createPromise(
+              runtime, jsCallInvoker,
+              [jsCallInvoker,
+               constructorArgs =
+                   std::move(constructorArgs)](std::shared_ptr<Promise> promise) {
+                threads::GlobalThreadPool::detach(
+                    [jsCallInvoker, promise,
+                     constructorArgs = std::move(constructorArgs)]() {
+                      try {
+                        auto modelImplementationPtr = std::apply(
+                            [](auto &&...unpackedArgs) {
+                              return std::make_shared<ModelT>(
+                                  std::forward<decltype(unpackedArgs)>(
+                                      unpackedArgs)...);
+                            },
+                            std::move(constructorArgs));
 
-            auto jsiObject =
-                jsi::Object::createFromHostObject(runtime, modelHostObject);
-            jsiObject.setExternalMemoryPressure(
-                runtime, modelImplementationPtr->getMemoryLowerBound());
-            return jsiObject;
-          } catch (const rnexecutorch::RnExecutorchError &e) {
-            jsi::Object errorData(runtime);
-            errorData.setProperty(runtime, "code", e.getNumericCode());
-            errorData.setProperty(
-                runtime, "message",
-                jsi::String::createFromUtf8(runtime, e.what()));
-            throw jsi::JSError(runtime,
-                               jsi::Value(runtime, std::move(errorData)));
-          } catch (const std::runtime_error &e) {
-            // This catch should be merged with the next one
-            // (std::runtime_error inherits from std::exception) HOWEVER react
-            // native has broken RTTI which breaks proper exception type
-            // checking. Remove when the following change is present in our
-            // version:
-            // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-            throw jsi::JSError(runtime, e.what());
-            return jsi::Value();
-          } catch (const std::exception &e) {
-            throw jsi::JSError(runtime, e.what());
-            return jsi::Value();
-          } catch (...) {
-            throw jsi::JSError(runtime, "Unknown error");
-            return jsi::Value();
-          }
+                        auto modelHostObject =
+                            std::make_shared<ModelHostObject<ModelT>>(
+                                modelImplementationPtr, jsCallInvoker);
+
+                        auto memoryLowerBound =
+                            modelImplementationPtr->getMemoryLowerBound();
+
+                        jsCallInvoker->invokeAsync(
+                            [promise, modelHostObject,
+                             memoryLowerBound](jsi::Runtime &rt) {
+                              auto jsiObject =
+                                  jsi::Object::createFromHostObject(
+                                      rt, modelHostObject);
+                              jsiObject.setExternalMemoryPressure(
+                                  rt, memoryLowerBound);
+                              promise->resolve(std::move(jsiObject));
+                            });
+                      } catch (const rnexecutorch::RnExecutorchError &e) {
+                        auto code = e.getNumericCode();
+                        auto msg = std::string(e.what());
+                        jsCallInvoker->invokeAsync(
+                            [promise, code, msg](jsi::Runtime &rt) {
+                              jsi::Object errorData(rt);
+                              errorData.setProperty(rt, "code", code);
+                              errorData.setProperty(
+                                  rt, "message",
+                                  jsi::String::createFromUtf8(rt, msg));
+                              promise->reject(
+                                  jsi::Value(rt, std::move(errorData)));
+                            });
+                      } catch (const std::runtime_error &e) {
+                        jsCallInvoker->invokeAsync(
+                            [promise, msg = std::string(e.what())]() {
+                              promise->reject(msg);
+                            });
+                      } catch (const std::exception &e) {
+                        jsCallInvoker->invokeAsync(
+                            [promise, msg = std::string(e.what())]() {
+                              promise->reject(msg);
+                            });
+                      } catch (...) {
+                        jsCallInvoker->invokeAsync([promise]() {
+                          promise->reject(std::string("Unknown error"));
+                        });
+                      }
+                    });
+              });
         });
   }
 };

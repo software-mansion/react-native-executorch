@@ -84,7 +84,7 @@ export class TextToSpeechModule {
       const voiceDataPath = paths[2] as string;
       const phonemizerPaths = paths.slice(3, 5) as [string, string];
 
-      this.nativeModule = global.loadTextToSpeechKokoro(
+      this.nativeModule = await global.loadTextToSpeechKokoro(
         voice.lang,
         phonemizerPaths[0],
         phonemizerPaths[1],

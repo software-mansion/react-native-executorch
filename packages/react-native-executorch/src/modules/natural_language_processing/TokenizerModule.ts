@@ -38,7 +38,7 @@ export class TokenizerModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = global.loadTokenizerModule(path);
+      this.nativeModule = await global.loadTokenizerModule(path);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

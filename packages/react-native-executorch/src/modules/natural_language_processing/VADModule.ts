@@ -34,7 +34,7 @@ export class VADModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = global.loadVAD(paths[0]);
+      this.nativeModule = await global.loadVAD(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

@@ -35,26 +35,26 @@ export function cleanupExecutorch() {
 
 // eslint-disable no-var
 declare global {
-  var loadStyleTransfer: (source: string) => any;
+  var loadStyleTransfer: (source: string) => Promise<any>;
   var loadSemanticSegmentation: (
     source: string,
     normMean: Triple<number> | [],
     normStd: Triple<number> | [],
     allClasses: string[]
-  ) => any;
-  var loadClassification: (source: string) => any;
+  ) => Promise<any>;
+  var loadClassification: (source: string) => Promise<any>;
   var loadObjectDetection: (
     source: string,
     normMean: Triple<number> | [],
     normStd: Triple<number> | [],
     labelNames: string[]
-  ) => any;
-  var loadExecutorchModule: (source: string) => any;
-  var loadTokenizerModule: (source: string) => any;
-  var loadImageEmbeddings: (source: string) => any;
-  var loadVAD: (source: string) => any;
-  var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  ) => Promise<any>;
+  var loadExecutorchModule: (source: string) => Promise<any>;
+  var loadTokenizerModule: (source: string) => Promise<any>;
+  var loadImageEmbeddings: (source: string) => Promise<any>;
+  var loadVAD: (source: string) => Promise<any>;
+  var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => Promise<any>;
+  var loadLLM: (modelSource: string, tokenizerSource: string) => Promise<any>;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,
@@ -64,12 +64,12 @@ declare global {
     schedulerBetaEnd: number,
     schedulerNumTrainTimesteps: number,
     schedulerStepsOffset: number
-  ) => any;
+  ) => Promise<any>;
   var loadSpeechToText: (
     encoderSource: string,
     decoderSource: string,
     modelName: string
-  ) => any;
+  ) => Promise<any>;
   var loadTextToSpeechKokoro: (
     lang: string,
     taggerData: string,
@@ -77,18 +77,18 @@ declare global {
     durationPredictorSource: string,
     synthesizerSource: string,
     voice: string
-  ) => any;
+  ) => Promise<any>;
   var loadOCR: (
     detectorSource: string,
     recognizer: string,
     symbols: string
-  ) => any;
+  ) => Promise<any>;
   var loadVerticalOCR: (
     detectorSource: string,
     recognizer: string,
     symbols: string,
     independentCharacters?: boolean
-  ) => any;
+  ) => Promise<any>;
 }
 // eslint-disable no-var
 if (

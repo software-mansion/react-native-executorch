@@ -34,7 +34,7 @@ export class ExecutorchModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = global.loadExecutorchModule(paths[0]);
+      this.nativeModule = await global.loadExecutorchModule(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
