@@ -35,6 +35,14 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
 
   context_.inputTokensLimit = durationPredictor_.getTokensLimit();
   context_.inputDurationLimit = synthesizer_.getDurationLimit();
+
+  // Cap effective token limit to prevent the Synthesizer's attention from
+  // drifting on longer sequences, which manifests as progressive speed-up
+  // in the generated audio.  Shorter chunks keep timing faithful to the
+  // Duration Predictor's output.
+  static constexpr size_t kSafeTokensLimit = 60;
+  context_.inputTokensLimit =
+      std::min(context_.inputTokensLimit, kSafeTokensLimit);
 }
 
 void Kokoro::loadVoice(const std::string &voiceSource) {
