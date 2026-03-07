@@ -118,7 +118,7 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
-      this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
+      this.nativeModule = await global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {

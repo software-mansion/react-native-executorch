@@ -44,7 +44,7 @@ export class TextEmbeddingsModule extends BaseModule {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = global.loadTextEmbeddings(modelPath, tokenizerPath);
+      this.nativeModule = await global.loadTextEmbeddings(modelPath, tokenizerPath);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
