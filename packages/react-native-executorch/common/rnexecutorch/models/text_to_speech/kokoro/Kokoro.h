@@ -58,12 +58,9 @@ private:
   DurationPredictor durationPredictor_;
   Synthesizer synthesizer_;
 
-  // Voice array
-  // There is a separate voice vector for each of the possible numbers of input
-  // tokens.
-  std::array<std::array<float, constants::kVoiceRefSize>,
-             constants::kMaxInputTokens>
-      voice_;
+  // Voice array — dynamically sized to match the voice file.
+  // Each row is a style vector for a given input token count.
+  std::vector<std::array<float, constants::kVoiceRefSize>> voice_;
 
   // Extra control variables
   bool isStreaming_ = false;

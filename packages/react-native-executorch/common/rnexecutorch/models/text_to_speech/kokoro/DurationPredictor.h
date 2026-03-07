@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <span>
 #include <string>
@@ -43,6 +44,14 @@ public:
 
   // Returns maximum supported amount of input tokens.
   size_t getTokensLimit() const;
+
+  // Returns the token count of the forward method that would be selected
+  // for a given input size. E.g., input 37 -> returns 64 (forward_64).
+  size_t getMethodTokenCount(size_t inputSize) const {
+    auto it = std::ranges::find_if(forwardMethods_,
+        [inputSize](const auto &e) { return e.second >= inputSize; });
+    return (it != forwardMethods_.end()) ? it->second : forwardMethods_.back().second;
+  }
 
 private:
   // Helper function - duration scalling
