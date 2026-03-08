@@ -50,6 +50,8 @@ public:
   size_t getDurationLimit() const;
 
 private:
+  // Forward methods discovered at construction (e.g. forward_8, forward_64, forward_128)
+  std::vector<std::pair<std::string, size_t>> forwardMethods_;
   // Shared model context
   // A const reference to singleton in Kokoro.
   const Context &context_;

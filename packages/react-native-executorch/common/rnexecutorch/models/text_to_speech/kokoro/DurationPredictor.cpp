@@ -174,8 +174,9 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
     float remainder =
         shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
 
-    durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled)
-                                                     : std::floor(scaled));
+    durationsPtr[i] = std::max(1LL,
+        static_cast<int64_t>(shrinking ? std::ceil(scaled)
+                                       : std::floor(scaled)));
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders
@@ -188,8 +189,13 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
   int32_t diff = std::abs(targetDuration - scaledSum);
   for (uint32_t i = 0; i < diff; i++) {
     auto [remainder, idx] = remainders.top();
-    durationsPtr[idx] += shrinking ? -1 : 1;
     remainders.pop();
+    // Never drive a duration below 1 — the min-1 clamp above prevents
+    // phoneme deletion, so the correction loop must respect it too.
+    if (shrinking && durationsPtr[idx] <= 1) {
+      continue;
+    }
+    durationsPtr[idx] += shrinking ? -1 : 1;
   }
 }
 
