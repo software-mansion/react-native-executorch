@@ -53,9 +53,6 @@ private:
   // Helper function - loading voice array
   void loadVoice(const std::string &voiceSource);
 
-  // Helper function - convert UTF-8 string to UTF-32 for phoneme processing
-  static std::u32string utf8ToUtf32(const std::string &utf8);
-
   // Helper function - shared synthesis pipeline (partition + synthesize)
   std::vector<float> generateFromPhonemesImpl(const std::u32string &phonemes,
                                               float speed);

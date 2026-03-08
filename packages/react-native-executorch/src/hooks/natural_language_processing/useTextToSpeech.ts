@@ -5,6 +5,7 @@ import {
   TextToSpeechInput,
   TextToSpeechPhonemeInput,
   TextToSpeechType,
+  TextToSpeechStreamingCallbacks,
   TextToSpeechStreamingInput,
   TextToSpeechStreamingPhonemeInput,
 } from '../../types/tts';
@@ -64,17 +65,47 @@ export const useTextToSpeech = ({
     preventLoad,
   ]);
 
-  const forward = async (input: TextToSpeechInput) => {
+  // Shared guard for all generation methods
+  const guardReady = (methodName: string) => {
     if (!isReady)
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
+        `The model is currently not loaded. Please load the model before calling ${methodName}().`
       );
     if (isGenerating)
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
+  };
+
+  // Shared streaming orchestration (guards + onBegin/onNext/onEnd lifecycle)
+  const runStream = useCallback(
+    async (
+      methodName: string,
+      generator: AsyncGenerator<Float32Array>,
+      callbacks: TextToSpeechStreamingCallbacks
+    ) => {
+      guardReady(methodName);
+      setIsGenerating(true);
+      try {
+        await callbacks.onBegin?.();
+        for await (const audio of generator) {
+          if (callbacks.onNext) {
+            await callbacks.onNext(audio);
+          }
+        }
+      } finally {
+        await callbacks.onEnd?.();
+        setIsGenerating(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isReady, isGenerating, moduleInstance]
+  );
+
+  const forward = async (input: TextToSpeechInput) => {
+    guardReady('forward');
     try {
       setIsGenerating(true);
       return await moduleInstance.forward(input.text, input.speed ?? 1.0);
@@ -84,16 +115,7 @@ export const useTextToSpeech = ({
   };
 
   const forwardFromPhonemes = async (input: TextToSpeechPhonemeInput) => {
-    if (!isReady)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forwardFromPhonemes().'
-      );
-    if (isGenerating)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+    guardReady('forwardFromPhonemes');
     try {
       setIsGenerating(true);
       return await moduleInstance.forwardFromPhonemes(
@@ -107,64 +129,27 @@ export const useTextToSpeech = ({
 
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
-      if (!isReady)
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModuleNotLoaded,
-          'The model is currently not loaded. Please load the model before calling stream().'
-        );
-      if (isGenerating)
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
-        );
-      setIsGenerating(true);
-      try {
-        await input.onBegin?.();
-        for await (const audio of moduleInstance.stream({
-          text: input.text,
-          speed: input.speed ?? 1.0,
-        })) {
-          if (input.onNext) {
-            await input.onNext(audio);
-          }
-        }
-      } finally {
-        await input.onEnd?.();
-        setIsGenerating(false);
-      }
+      await runStream(
+        'stream',
+        moduleInstance.stream({ text: input.text, speed: input.speed ?? 1.0 }),
+        input
+      );
     },
-    [isReady, isGenerating, moduleInstance]
+    [runStream, moduleInstance]
   );
 
   const streamFromPhonemes = useCallback(
     async (input: TextToSpeechStreamingPhonemeInput) => {
-      if (!isReady)
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModuleNotLoaded,
-          'The model is currently not loaded. Please load the model before calling streamFromPhonemes().'
-        );
-      if (isGenerating)
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
-        );
-      setIsGenerating(true);
-      try {
-        await input.onBegin?.();
-        for await (const audio of moduleInstance.streamFromPhonemes({
+      await runStream(
+        'streamFromPhonemes',
+        moduleInstance.streamFromPhonemes({
           phonemes: input.phonemes,
           speed: input.speed ?? 1.0,
-        })) {
-          if (input.onNext) {
-            await input.onNext(audio);
-          }
-        }
-      } finally {
-        await input.onEnd?.();
-        setIsGenerating(false);
-      }
+        }),
+        input
+      );
     },
-    [isReady, isGenerating, moduleInstance]
+    [runStream, moduleInstance]
   );
 
   return {

@@ -99,6 +99,14 @@ export class TextToSpeechModule {
     }
   }
 
+  private ensureLoaded(methodName: string): void {
+    if (this.nativeModule == null)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        `The model is currently not loaded. Please load the model before calling ${methodName}().`
+      );
+  }
+
   /**
    * Synthesizes the provided text into speech.
    * Returns a promise that resolves to the full audio waveform as a `Float32Array`.
@@ -111,11 +119,7 @@ export class TextToSpeechModule {
     text: string,
     speed: number = 1.0
   ): Promise<Float32Array> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+    this.ensureLoaded('forward');
     return await this.nativeModule.generate(text, speed);
   }
 
@@ -132,25 +136,17 @@ export class TextToSpeechModule {
     phonemes: string,
     speed: number = 1.0
   ): Promise<Float32Array> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forwardFromPhonemes().'
-      );
+    this.ensureLoaded('forwardFromPhonemes');
     return await this.nativeModule.generateFromPhonemes(phonemes, speed);
   }
 
   /**
-   * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   *
-   * @param input - Input object containing text and optional speed.
-   * @returns An async generator yielding Float32Array audio chunks.
+   * Shared streaming implementation. Wraps a native streaming call in an
+   * async generator that yields Float32Array audio chunks as they arrive.
    */
-  public async *stream({
-    text,
-    speed,
-  }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
-    // Stores computed audio segments
+  private async *streamImpl(
+    nativeCall: (cb: (audio: number[]) => void) => Promise<void>
+  ): AsyncGenerator<Float32Array> {
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
@@ -164,7 +160,7 @@ export class TextToSpeechModule {
 
     (async () => {
       try {
-        await this.nativeModule.stream(text, speed, (audio: number[]) => {
+        await nativeCall((audio: number[]) => {
           queue.push(new Float32Array(audio));
           wake();
         });
@@ -192,6 +188,19 @@ export class TextToSpeechModule {
   }
 
   /**
+   * Starts a streaming synthesis session. Yields audio chunks as they are generated.
+   *
+   * @param input - Input object containing text and optional speed.
+   * @returns An async generator yielding Float32Array audio chunks.
+   */
+  public async *stream({
+    text,
+    speed,
+  }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
+    yield* this.streamImpl((cb) => this.nativeModule.stream(text, speed, cb));
+  }
+
+  /**
    * Starts a streaming synthesis session from pre-computed phonemes.
    * Bypasses the built-in phonemizer, allowing use of external G2P systems.
    *
@@ -202,48 +211,9 @@ export class TextToSpeechModule {
     phonemes,
     speed,
   }: TextToSpeechStreamingPhonemeInput): AsyncGenerator<Float32Array> {
-    const queue: Float32Array[] = [];
-
-    let waiter: (() => void) | null = null;
-    let finished = false;
-    let error: unknown;
-
-    const wake = () => {
-      waiter?.();
-      waiter = null;
-    };
-
-    (async () => {
-      try {
-        await this.nativeModule.streamFromPhonemes(
-          phonemes,
-          speed,
-          (audio: number[]) => {
-            queue.push(new Float32Array(audio));
-            wake();
-          }
-        );
-        finished = true;
-        wake();
-      } catch (e) {
-        error = e;
-        finished = true;
-        wake();
-      }
-    })();
-
-    while (true) {
-      if (queue.length > 0) {
-        yield queue.shift()!;
-        if (finished && queue.length === 0) {
-          return;
-        }
-        continue;
-      }
-      if (error) throw error;
-      if (finished) return;
-      await new Promise<void>((r) => (waiter = r));
-    }
+    yield* this.streamImpl((cb) =>
+      this.nativeModule.streamFromPhonemes(phonemes, speed, cb)
+    );
   }
 
   /**

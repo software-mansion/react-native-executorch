@@ -94,7 +94,7 @@ export interface TextToSpeechInput {
  * Text to Speech module input for pre-computed phonemes.
  * Use this when you have your own phonemizer (e.g. the Python `phonemizer`
  * library, espeak-ng, or any custom G2P system) and want to bypass the
- * built-in phonemis pipeline.
+ * built-in phonemizer pipeline.
  *
  * @category Types
  * @property {string} phonemes - pre-computed IPA phoneme string
@@ -179,6 +179,20 @@ export interface TextToSpeechType {
 }
 
 /**
+ * Shared streaming lifecycle callbacks for TTS streaming modes.
+ *
+ * @category Types
+ * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
+ * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
+ * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
+ */
+export interface TextToSpeechStreamingCallbacks {
+  onBegin?: () => void | Promise<void>;
+  onNext?: (audio: Float32Array) => void | Promise<void>;
+  onEnd?: () => void | Promise<void>;
+}
+
+/**
  * Text to Speech streaming input definition
  *
  * Streaming mode in T2S is synchronized by passing specific callbacks
@@ -187,15 +201,10 @@ export interface TextToSpeechType {
  * Callbacks can be both synchronous or asynchronous.
  *
  * @category Types
- * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
- * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
- * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
  */
-export interface TextToSpeechStreamingInput extends TextToSpeechInput {
-  onBegin?: () => void | Promise<void>;
-  onNext?: (audio: Float32Array) => void | Promise<void>;
-  onEnd?: () => void | Promise<void>;
-}
+export interface TextToSpeechStreamingInput
+  extends TextToSpeechInput,
+    TextToSpeechStreamingCallbacks {}
 
 /**
  * Streaming input definition for pre-computed phonemes.
@@ -204,8 +213,5 @@ export interface TextToSpeechStreamingInput extends TextToSpeechInput {
  * @category Types
  */
 export interface TextToSpeechStreamingPhonemeInput
-  extends TextToSpeechPhonemeInput {
-  onBegin?: () => void | Promise<void>;
-  onNext?: (audio: Float32Array) => void | Promise<void>;
-  onEnd?: () => void | Promise<void>;
-}
+  extends TextToSpeechPhonemeInput,
+    TextToSpeechStreamingCallbacks {}
