@@ -91,6 +91,21 @@ export interface TextToSpeechInput {
 }
 
 /**
+ * Text to Speech module input for pre-computed phonemes.
+ * Use this when you have your own phonemizer (e.g. the Python `phonemizer`
+ * library, espeak-ng, or any custom G2P system) and want to bypass the
+ * built-in phonemizer pipeline.
+ *
+ * @category Types
+ * @property {string} phonemes - pre-computed IPA phoneme string
+ * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
+ */
+export interface TextToSpeechPhonemeInput {
+  phonemes: string;
+  speed?: number;
+}
+
+/**
  * Return type for the `useTextToSpeech` hook.
  * Manages the state and operations for Text-to-Speech generation.
  *
@@ -126,6 +141,18 @@ export interface TextToSpeechType {
   forward: (input: TextToSpeechInput) => Promise<Float32Array>;
 
   /**
+   * Synthesizes pre-computed phonemes into speech audio in a single pass.
+   * Bypasses the built-in phonemizer, allowing use of external G2P systems.
+   *
+   * @param input - The `TextToSpeechPhonemeInput` object containing pre-computed `phonemes` and optional `speed`.
+   * @returns A Promise that resolves with the generated audio data.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
+   */
+  forwardFromPhonemes: (
+    input: TextToSpeechPhonemeInput
+  ) => Promise<Float32Array>;
+
+  /**
    * Streams the generated audio data incrementally.
    * This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
    * * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
@@ -135,9 +162,34 @@ export interface TextToSpeechType {
   stream: (input: TextToSpeechStreamingInput) => Promise<void>;
 
   /**
+   * Streams pre-computed phonemes incrementally, bypassing the built-in phonemizer.
+   *
+   * @param input - The streaming input with pre-computed `phonemes` instead of `text`.
+   * @returns A Promise that resolves when the streaming process is complete.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
+   */
+  streamFromPhonemes: (
+    input: TextToSpeechStreamingPhonemeInput
+  ) => Promise<void>;
+
+  /**
    * Interrupts and stops the currently active audio generation stream.
    */
   streamStop: () => void;
+}
+
+/**
+ * Shared streaming lifecycle callbacks for TTS streaming modes.
+ *
+ * @category Types
+ * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
+ * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
+ * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
+ */
+export interface TextToSpeechStreamingCallbacks {
+  onBegin?: () => void | Promise<void>;
+  onNext?: (audio: Float32Array) => void | Promise<void>;
+  onEnd?: () => void | Promise<void>;
 }
 
 /**
@@ -149,12 +201,17 @@ export interface TextToSpeechType {
  * Callbacks can be both synchronous or asynchronous.
  *
  * @category Types
- * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
- * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
- * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
  */
-export interface TextToSpeechStreamingInput extends TextToSpeechInput {
-  onBegin?: () => void | Promise<void>;
-  onNext?: (audio: Float32Array) => void | Promise<void>;
-  onEnd?: () => void | Promise<void>;
-}
+export interface TextToSpeechStreamingInput
+  extends TextToSpeechInput,
+    TextToSpeechStreamingCallbacks {}
+
+/**
+ * Streaming input definition for pre-computed phonemes.
+ * Same as `TextToSpeechStreamingInput` but accepts `phonemes` instead of `text`.
+ *
+ * @category Types
+ */
+export interface TextToSpeechStreamingPhonemeInput
+  extends TextToSpeechPhonemeInput,
+    TextToSpeechStreamingCallbacks {}
