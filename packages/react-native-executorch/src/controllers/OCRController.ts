@@ -4,11 +4,11 @@ import { OCRLanguage } from '../types/ocr';
 import { BaseOCRController } from './BaseOCRController';
 
 export class OCRController extends BaseOCRController {
-  protected loadNativeModule(
+  protected async loadNativeModule(
     detectorPath: string,
     recognizerPath: string,
     language: OCRLanguage
-  ): any {
+  ): Promise<any> {
     return await global.loadOCR(detectorPath, recognizerPath, symbols[language]);
   }
 
