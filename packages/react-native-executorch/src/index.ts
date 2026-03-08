@@ -53,7 +53,10 @@ declare global {
   var loadTokenizerModule: (source: string) => Promise<any>;
   var loadImageEmbeddings: (source: string) => Promise<any>;
   var loadVAD: (source: string) => Promise<any>;
-  var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => Promise<any>;
+  var loadTextEmbeddings: (
+    modelSource: string,
+    tokenizerSource: string
+  ) => Promise<any>;
   var loadLLM: (modelSource: string, tokenizerSource: string) => Promise<any>;
   var loadTextToImage: (
     tokenizerSource: string,

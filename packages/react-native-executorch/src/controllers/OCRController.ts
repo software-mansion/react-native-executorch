@@ -9,7 +9,11 @@ export class OCRController extends BaseOCRController {
     recognizerPath: string,
     language: OCRLanguage
   ): Promise<any> {
-    return await global.loadOCR(detectorPath, recognizerPath, symbols[language]);
+    return await global.loadOCR(
+      detectorPath,
+      recognizerPath,
+      symbols[language]
+    );
   }
 
   public load = async (
