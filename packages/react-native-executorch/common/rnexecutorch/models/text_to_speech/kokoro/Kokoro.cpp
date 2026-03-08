@@ -107,7 +107,6 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), audioPart.begin(), audioPart.end());
     audio.resize(audio.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
@@ -173,7 +172,6 @@ void Kokoro::stream(std::string text, float speed,
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-
     // Append silence pause directly
     audioPart.resize(audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
@@ -193,62 +191,42 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
     return {};
   }
 
-  // Clamp token count: phonemes + 2 padding tokens (leading + trailing zero)
-  size_t dpTokens = std::clamp(phonemes.size() + 2,
-                               constants::kMinInputTokens,
+  // Clamp the input to not go beyond number of input token limits
+  // Note that 2 tokens are always reserved for pre- and post-fix padding,
+  // so we effectively take at most (maxNoInputTokens_ - 2) tokens.
+  size_t noTokens = std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
                                context_.inputTokensLimit);
 
-  // Map phonemes to tokens, padded to dpTokens
-  auto tokens = utils::tokenize(phonemes, {dpTokens});
+  // Map phonemes to tokens
+  const auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // Select the appropriate voice vector
-  size_t voiceID = std::min({phonemes.size() - 1, dpTokens - 1,
+  size_t voiceID = std::min({phonemes.size() - 1, noTokens - 1,
                              voice_.size() - 1});
   auto &voice = voice_[voiceID];
 
-  // Initialize text mask for DP
-  size_t realInputLength = std::min(phonemes.size() + 2, dpTokens);
-  std::vector<uint8_t> textMask(dpTokens, false);
+  // Initialize text mask
+  // Exclude all the paddings apart from first and last one.
+  size_t realInputLength = std::min(phonemes.size() + 2, noTokens);
+  std::vector<uint8_t> textMask(noTokens, false);
   std::fill(textMask.begin(), textMask.begin() + realInputLength, true);
 
   // Inference 1 - DurationPredictor
+  // The resulting duration vector is already scalled at this point
   auto [d, indices, effectiveDuration] = durationPredictor_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(voice).last(constants::kVoiceRefHalfSize), speed);
-
-  // --- Synthesizer phase ---
-  // The Synthesizer may have different method sizes than the DP.
-  // Pad all inputs to the Synthesizer's selected method size.
-  size_t synthTokens = synthesizer_.getMethodTokenCount(dpTokens);
-  size_t dCols = d.sizes().back(); // 640
-
-  // Pad tokens and textMask to synthTokens (no-op when synthTokens == dpTokens)
-  tokens.resize(synthTokens, 0);
-  textMask.resize(synthTokens, false);
-
-  // Pad indices to the maximum duration limit
-  indices.resize(context_.inputDurationLimit, 0);
-
-  // Prepare duration data for Synthesizer.
-  // When sizes match, pass the DP tensor directly to avoid a 320KB copy.
-  size_t durSize = synthTokens * dCols;
-  std::vector<float> durPadded;
-  float *durPtr;
-  if (synthTokens == dpTokens) {
-    durPtr = d.mutable_data_ptr<float>();
-  } else {
-    durPadded.resize(durSize, 0.0f);
-    std::copy_n(d.const_data_ptr<float>(), dpTokens * dCols, durPadded.data());
-    durPtr = durPadded.data();
-  }
 
   // Inference 2 - Synthesizer
   auto decoding = synthesizer_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(indices),
-      std::span<float>(durPtr, durSize),
+      // Note that we reduce the size of d tensor to match the initial number of
+      // input tokens
+      std::span<float>(d.mutable_data_ptr<float>(),
+                       noTokens * d.sizes().back()),
       std::span(voice));
   auto audioTensor = decoding->at(0).toTensor();
 
