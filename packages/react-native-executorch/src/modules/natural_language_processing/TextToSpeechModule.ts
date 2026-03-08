@@ -5,6 +5,7 @@ import {
   KokoroConfig,
   TextToSpeechConfig,
   TextToSpeechStreamingInput,
+  TextToSpeechStreamingPhonemeInput,
   VoiceConfig,
 } from '../../types/tts';
 import { Logger } from '../../common/Logger';
@@ -119,6 +120,27 @@ export class TextToSpeechModule {
   }
 
   /**
+   * Synthesizes pre-computed phonemes into speech, bypassing the built-in phonemizer.
+   * This allows using an external G2P system (e.g. the Python `phonemizer` library,
+   * espeak-ng, or any custom phonemizer).
+   *
+   * @param phonemes The pre-computed IPA phoneme string.
+   * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
+   * @returns A promise resolving to the synthesized audio waveform.
+   */
+  public async forwardFromPhonemes(
+    phonemes: string,
+    speed: number = 1.0
+  ): Promise<Float32Array> {
+    if (this.nativeModule == null)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forwardFromPhonemes().'
+      );
+    return await this.nativeModule.generateFromPhonemes(phonemes, speed);
+  }
+
+  /**
    * Starts a streaming synthesis session. Yields audio chunks as they are generated.
    *
    * @param input - Input object containing text and optional speed.
@@ -146,6 +168,61 @@ export class TextToSpeechModule {
           queue.push(new Float32Array(audio));
           wake();
         });
+        finished = true;
+        wake();
+      } catch (e) {
+        error = e;
+        finished = true;
+        wake();
+      }
+    })();
+
+    while (true) {
+      if (queue.length > 0) {
+        yield queue.shift()!;
+        if (finished && queue.length === 0) {
+          return;
+        }
+        continue;
+      }
+      if (error) throw error;
+      if (finished) return;
+      await new Promise<void>((r) => (waiter = r));
+    }
+  }
+
+  /**
+   * Starts a streaming synthesis session from pre-computed phonemes.
+   * Bypasses the built-in phonemizer, allowing use of external G2P systems.
+   *
+   * @param input - Input object containing phonemes and optional speed.
+   * @returns An async generator yielding Float32Array audio chunks.
+   */
+  public async *streamFromPhonemes({
+    phonemes,
+    speed,
+  }: TextToSpeechStreamingPhonemeInput): AsyncGenerator<Float32Array> {
+    const queue: Float32Array[] = [];
+
+    let waiter: (() => void) | null = null;
+    let finished = false;
+    let error: unknown;
+
+    const wake = () => {
+      waiter?.();
+      waiter = null;
+    };
+
+    (async () => {
+      try {
+        await this.nativeModule.streamFromPhonemes(
+          phonemes,
+          speed,
+          (audio: number[]) => {
+            queue.push(new Float32Array(audio));
+            wake();
+          }
+        );
         finished = true;
         wake();
       } catch (e) {

@@ -27,10 +27,21 @@ public:
   // Processes the entire text at once, before sending back to the JS side.
   std::vector<float> generate(std::string text, float speed = 1.F);
 
+  // Accepts pre-computed phonemes (as a UTF-8 IPA string) and synthesizes
+  // audio, bypassing the built-in phonemizer. This allows callers to use
+  // an external G2P system (e.g. the Python `phonemizer` library, espeak-ng,
+  // or any custom phonemizer).
+  std::vector<float> generateFromPhonemes(std::string phonemes,
+                                          float speed = 1.F);
+
   // Processes text in chunks, sending each chunk individualy to the JS side
   // with asynchronous callbacks.
   void stream(std::string text, float speed,
               std::shared_ptr<jsi::Function> callback);
+
+  // Streaming variant that accepts pre-computed phonemes instead of text.
+  void streamFromPhonemes(std::string phonemes, float speed,
+                          std::shared_ptr<jsi::Function> callback);
 
   // Stops the streaming process
   void streamStop() noexcept;
@@ -41,6 +52,15 @@ public:
 private:
   // Helper function - loading voice array
   void loadVoice(const std::string &voiceSource);
+
+  // Helper function - convert UTF-8 string to UTF-32 for phoneme processing
+  static std::u32string utf8ToUtf32(const std::string &utf8);
+
+  // Helper function - shared synthesis pipeline (partition + synthesize)
+  std::vector<float> generateFromPhonemesImpl(const std::u32string &phonemes,
+                                              float speed);
+  void streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
+                              std::shared_ptr<jsi::Function> callback);
 
   // Helper function - generate specialization for given input size
   std::vector<float> synthesize(const std::u32string &phonemes, float speed,

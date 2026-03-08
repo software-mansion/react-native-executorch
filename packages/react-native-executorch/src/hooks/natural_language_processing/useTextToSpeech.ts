@@ -3,8 +3,10 @@ import { TextToSpeechModule } from '../../modules/natural_language_processing/Te
 import {
   TextToSpeechProps,
   TextToSpeechInput,
+  TextToSpeechPhonemeInput,
   TextToSpeechType,
   TextToSpeechStreamingInput,
+  TextToSpeechStreamingPhonemeInput,
 } from '../../types/tts';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -81,6 +83,28 @@ export const useTextToSpeech = ({
     }
   };
 
+  const forwardFromPhonemes = async (input: TextToSpeechPhonemeInput) => {
+    if (!isReady)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forwardFromPhonemes().'
+      );
+    if (isGenerating)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
+    try {
+      setIsGenerating(true);
+      return await moduleInstance.forwardFromPhonemes(
+        input.phonemes,
+        input.speed ?? 1.0
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
       if (!isReady)
@@ -112,12 +136,45 @@ export const useTextToSpeech = ({
     [isReady, isGenerating, moduleInstance]
   );
 
+  const streamFromPhonemes = useCallback(
+    async (input: TextToSpeechStreamingPhonemeInput) => {
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling streamFromPhonemes().'
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
+      setIsGenerating(true);
+      try {
+        await input.onBegin?.();
+        for await (const audio of moduleInstance.streamFromPhonemes({
+          phonemes: input.phonemes,
+          speed: input.speed ?? 1.0,
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
+    },
+    [isReady, isGenerating, moduleInstance]
+  );
+
   return {
     error,
     isReady,
     isGenerating,
     forward,
+    forwardFromPhonemes,
     stream,
+    streamFromPhonemes,
     streamStop: moduleInstance.streamStop,
     downloadProgress,
   };
