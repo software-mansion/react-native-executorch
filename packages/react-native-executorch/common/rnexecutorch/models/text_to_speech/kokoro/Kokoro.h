@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <optional>
 #include <string>
@@ -80,7 +81,7 @@ private:
   std::vector<std::array<float, constants::kVoiceRefSize>> voice_;
 
   // Extra control variables
-  bool isStreaming_ = false;
+  std::atomic<bool> isStreaming_{false};
 };
 } // namespace models::text_to_speech::kokoro
 
