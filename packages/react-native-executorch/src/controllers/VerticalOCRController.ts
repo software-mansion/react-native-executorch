@@ -4,13 +4,13 @@ import { OCRLanguage } from '../types/ocr';
 import { BaseOCRController } from './BaseOCRController';
 
 export class VerticalOCRController extends BaseOCRController {
-  protected loadNativeModule(
+  protected async loadNativeModule(
     detectorPath: string,
     recognizerPath: string,
     language: OCRLanguage,
     independentCharacters?: boolean
-  ): any {
-    return global.loadVerticalOCR(
+  ): Promise<any> {
+    return await global.loadVerticalOCR(
       detectorPath,
       recognizerPath,
       symbols[language],

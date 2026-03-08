@@ -30,7 +30,7 @@ export abstract class BaseOCRController {
     recognizerPath: string,
     language: OCRLanguage,
     extraParams?: any
-  ): any;
+  ): Promise<any>;
 
   protected internalLoad = async (
     detectorSource: ResourceSource,
@@ -63,7 +63,7 @@ export abstract class BaseOCRController {
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
-      this.nativeModule = this.loadNativeModule(
+      this.nativeModule = await this.loadNativeModule(
         paths[0]!,
         paths[1]!,
         language,
