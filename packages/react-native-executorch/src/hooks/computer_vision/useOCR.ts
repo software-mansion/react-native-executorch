@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { OCRModule } from '../../modules/computer_vision/OCRModule';
 import { OCRProps, OCRType } from '../../types/ocr';
-import { OCRController } from '../../controllers/OCRController';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing an OCR instance.
@@ -11,48 +10,22 @@ import { RnExecutorchError } from '../../errors/errorUtils';
  * @returns Ready to use OCR model.
  */
 export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
-  const [error, setError] = useState<RnExecutorchError | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-
-  const [controllerInstance] = useState(
-    () =>
-      new OCRController({
-        isReadyCallback: setIsReady,
-        isGeneratingCallback: setIsGenerating,
-        errorCallback: setError,
-      })
-  );
-
-  useEffect(() => {
-    if (preventLoad) return;
-
-    (async () => {
-      await controllerInstance.load(
+  const { error, isReady, isGenerating, downloadProgress, runForward } =
+    useModuleFactory({
+      factory: (config, onProgress) =>
+        OCRModule.fromModelName(config, onProgress),
+      config: model,
+      deps: [
+        model.modelName,
         model.detectorSource,
         model.recognizerSource,
         model.language,
-        setDownloadProgress
-      );
-    })();
+      ],
+      preventLoad,
+    });
 
-    return () => {
-      controllerInstance.delete();
-    };
-  }, [
-    controllerInstance,
-    model.detectorSource,
-    model.recognizerSource,
-    model.language,
-    preventLoad,
-  ]);
+  const forward = (imageSource: string) =>
+    runForward((inst) => inst.forward(imageSource));
 
-  return {
-    error,
-    isReady,
-    isGenerating,
-    forward: controllerInstance.forward,
-    downloadProgress,
-  };
+  return { error, isReady, isGenerating, downloadProgress, forward };
 };

@@ -40,6 +40,12 @@ export interface OCRProps {
    */
   model: {
     /**
+     * The built-in model name, e.g. `'ocr-en'`. Used for telemetry and hook reload triggers.
+     * Pass one of the pre-built OCR constants (e.g. `OCR_ENGLISH`) to populate all required fields.
+     */
+    modelName: OCRModelName;
+
+    /**
      * `ResourceSource` that specifies the location of the text detector model binary.
      */
     detectorSource: ResourceSource;
@@ -117,3 +123,11 @@ export interface OCRType {
  * @category Types
  */
 export type OCRLanguage = keyof typeof symbols;
+
+/**
+ * Union of all built-in OCR model names.
+ * Each name is derived from the language code, e.g. `'ocr-en'`, `'ocr-ja'`.
+ *
+ * @category Types
+ */
+export type OCRModelName = `ocr-${OCRLanguage}`;
