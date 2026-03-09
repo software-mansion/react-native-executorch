@@ -96,7 +96,7 @@ Data presented in the following sections is based on inference with non-resized 
 ## Instance Segmentation
 
 :::warning
-Data presented in the following sections is based on inference with forward_1024 method.
+Data presented in the following sections is based on inference with forward_640 method.
 :::
 
 | Model       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |

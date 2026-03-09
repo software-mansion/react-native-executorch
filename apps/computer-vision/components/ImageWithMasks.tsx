@@ -108,17 +108,24 @@ export default function ImageWithMasks({
       {instances.length > 0 && (
         <View style={styles.overlay}>
           <Canvas style={styles.canvas}>
-            {maskImages.map((maskImg, idx) => (
-              <SkiaImage
-                key={`mask-${idx}`}
-                image={maskImg}
-                fit="contain"
-                x={0}
-                y={0}
-                width={layout.width}
-                height={layout.height}
-              />
-            ))}
+            {maskImages.map((maskImg, idx) => {
+              const inst = instances[idx];
+              const mx = inst.bbox.x1 * scale + offsetX;
+              const my = inst.bbox.y1 * scale + offsetY;
+              const mw = (inst.bbox.x2 - inst.bbox.x1) * scale;
+              const mh = (inst.bbox.y2 - inst.bbox.y1) * scale;
+              return (
+                <SkiaImage
+                  key={`mask-${idx}`}
+                  image={maskImg}
+                  fit="fill"
+                  x={mx}
+                  y={my}
+                  width={mw}
+                  height={mh}
+                />
+              );
+            })}
 
             {instances.map((instance, idx) => {
               const color = INSTANCE_COLORS[idx % INSTANCE_COLORS.length];
