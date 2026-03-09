@@ -27,6 +27,13 @@ SpeechToText::SpeechToText(const std::string &modelName,
   }
 }
 
+SpeechToText::SpeechToText(SpeechToText &&other) noexcept
+    : callInvoker_(std::move(other.callInvoker_)),
+      transcriber_(std::move(other.transcriber_)),
+      streamer_(std::move(other.streamer_)),
+      isStreaming_(other.isStreaming_.load()),
+      readyToProcess_(other.readyToProcess_.load()) {}
+
 void SpeechToText::unload() noexcept { transcriber_->unload(); }
 
 std::shared_ptr<OwningArrayBuffer>
@@ -34,7 +41,7 @@ SpeechToText::encode(std::span<float> waveform) const {
   executorch::aten::Tensor encoderOutputTensor = transcriber_->encode(waveform);
 
   return std::make_shared<OwningArrayBuffer>(
-      encoderOutputTensor.const_data_ptr(),
+      encoderOutputTensor.const_data_ptr<float>(),
       sizeof(float) * encoderOutputTensor.numel());
 }
 
@@ -45,7 +52,7 @@ SpeechToText::decode(std::span<uint64_t> tokens,
       transcriber_->decode(tokens, encoderOutput);
 
   return std::make_shared<OwningArrayBuffer>(
-      decoderOutputTensor.const_data_ptr(),
+      decoderOutputTensor.const_data_ptr<float>(),
       sizeof(float) * decoderOutputTensor.numel());
 }
 
@@ -137,12 +144,12 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     if (readyToProcess_ && streamer_->isReady()) {
       ProcessResult res = streamer_->process(options);
 
-      TranscriptionResult cRes =
+      TranscriptionResult committedRes =
           wordsToResult(res.committed, languageOption, verbose);
-      TranscriptionResult ncRes =
+      TranscriptionResult nonCommittedRes =
           wordsToResult(res.nonCommitted, languageOption, verbose);
 
-      nativeCallback(cRes, ncRes, false);
+      nativeCallback(committedRes, nonCommittedRes, false);
       readyToProcess_ = false;
     }
 
@@ -151,7 +158,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     // running transcriptions too rapidly (before the audio buffer is filled
     // with significant amount of new data) can cause streamer to commit wrong
     // phrases.
-    std::this_thread::sleep_for(std::chrono::milliseconds(75));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   std::vector<Word> finalWords = streamer_->finish();

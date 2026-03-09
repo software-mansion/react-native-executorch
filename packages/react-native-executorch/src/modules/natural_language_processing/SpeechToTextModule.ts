@@ -6,7 +6,6 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
-import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
@@ -28,8 +27,7 @@ export class SpeechToTextModule {
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    try {
-      this.modelConfig = model;
+    this.modelConfig = model;
 
     const tokenizerLoadPromise = ResourceFetcher.fetch(
       undefined,
@@ -43,12 +41,7 @@ export class SpeechToTextModule {
       tokenizerLoadPromise,
       modelPromise,
     ]);
-    if (
-      !modelSources ||
-      !tokenizerSources ||
-      !modelSources[0] ||
-      !tokenizerSources[0]
-    ) {
+    if (!modelSources?.[0] || !tokenizerSources?.[0]) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
@@ -76,7 +69,8 @@ export class SpeechToTextModule {
    * @returns The encoded output.
    */
   public async encode(waveform: Float32Array): Promise<Float32Array> {
-    return new Float32Array(await this.nativeModule.encode(waveform));
+    const buffer = await this.nativeModule.encode(waveform);
+    return new Float32Array(buffer);
   }
 
   /**
@@ -90,9 +84,8 @@ export class SpeechToTextModule {
     tokens: Int32Array,
     encoderOutput: Float32Array
   ): Promise<Float32Array> {
-    return new Float32Array(
-      await this.nativeModule.decode(tokens, encoderOutput)
-    );
+    const buffer = await this.nativeModule.decode(tokens, encoderOutput);
+    return new Float32Array(buffer);
   }
 
   /**

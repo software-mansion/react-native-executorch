@@ -25,7 +25,17 @@ constexpr static int32_t kChunkBreakBuffer = 2; // [s]
  * Determines the maximum timestamp difference available for a word to be
  * considered as fresh in streaming algorithm.
  */
-constexpr static float kStreamFreshThreshold = 2.F; // [s], originally 0.5
+constexpr static float kStreamFreshThreshold = 3.F; // [s], originally 0.5
+
+/**
+ * The size of the most recent committed suffix searched in
+ * fresh words string.
+ *
+ * For example, if the committed buffer contains ["I", "did" "a" "very" "nasty"
+ * "thing."], and kStreamCommitedSuffixSearchSize = 3, then we search for
+ * ["very" "nasty" "thing."] suffix.
+ */
+constexpr static size_t kStreamCommitedSuffixSearchSize = 5;
 
 /**
  * Determines the maximum expected size of overlapping fragments between
@@ -40,8 +50,28 @@ constexpr static size_t kStreamMaxOverlapSize =
 /**
  * Similar to kMaxStreamOverlapSize, but this one determines
  * the maximum allowed timestamp difference between the overlaping fragments.
+ *
+ * It's the first, more strict threshold, used when searching for recently
+ * committed entries.
  */
-constexpr static float kStreamMaxOverlapTimestampDiff = 15.F; // [s]
+constexpr static float kStreamMaxOverlapTimestampDiff1 = 6.F; // [s]
+
+/**
+ * Similar to kMaxStreamOverlapSize, but this one determines
+ * the maximum allowed timestamp difference between the overlaping fragments.
+ *
+ * It's the second, more liberal threshold, used in overlap correction
+ * algorithm.
+ */
+constexpr static float kStreamMaxOverlapTimestampDiff2 = 15.F; // [s]
+
+/**
+ * Number of words per 1 allowed mistake (error correction).
+ *
+ * For example, if kStreamWordsPerErrorRate = 4, then we allow maximum 1 mistake
+ * in a 4 word string.
+ */
+constexpr static size_t kStreamWordsPerErrorRate = 5;
 
 /**
  * A threshold which exceeded causes the main streaming audio buffer to be

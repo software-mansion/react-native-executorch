@@ -1,6 +1,8 @@
 #include "HypothesisBuffer.h"
 #include "Params.h"
 #include "Utils.h"
+
+#include <algorithm>
 #include <cmath>
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
@@ -17,7 +19,9 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
   size_t firstFreshWordIdx = 0;
   if (!committed_.empty()) {
     std::optional<size_t> lastMatchingWordIdx =
-        findCommittedSuffix(words, 5, 6.F, 5);
+        findCommittedSuffix(words, params::kStreamCommitedSuffixSearchSize,
+                            params::kStreamMaxOverlapTimestampDiff1,
+                            params::kStreamWordsPerErrorRate);
     firstFreshWordIdx = lastMatchingWordIdx.value_or(0);
   }
 
@@ -48,7 +52,7 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
     // which were just repeated after some time.
     size_t overlapSize = utils::findLargestOverlapingFragment(
         committed_, fresh_, params::kStreamMaxOverlapSize,
-        params::kStreamMaxOverlapTimestampDiff);
+        params::kStreamMaxOverlapTimestampDiff2);
 
     if (overlapSize > 0) {
       fresh_.erase(fresh_.begin(), fresh_.begin() + overlapSize);
@@ -124,7 +128,7 @@ std::optional<size_t> HypothesisBuffer::findCommittedSuffix(
 
   // Iterate backwards through 'words' to find the most recent occurrence of a
   // suffix of 'committed_' (or the full 'committed_' sequence).
-  for (int i = static_cast<int>(words.size()) - 1; i >= 0; --i) {
+  for (int32_t i = static_cast<int32_t>(words.size()) - 1; i >= 0; --i) {
     bool match = true;
     size_t matchedCount = 0;
     size_t contentMistakeCount = 0;
@@ -132,16 +136,16 @@ std::optional<size_t> HypothesisBuffer::findCommittedSuffix(
     // Linearly interpolate tolerance if we are at the beginning and can't check
     // all committed words.
     float effectiveTolerance = timestampDiffTolerance;
-    if (i < static_cast<int>(committedToMatchSize) - 1) {
+    if (i < static_cast<int32_t>(committedToMatchSize) - 1) {
       effectiveTolerance *=
           static_cast<float>(i + 1) / static_cast<float>(committedToMatchSize);
     }
 
     // Try to match backwards from words[i] and committed_.back()
     for (size_t j = 0; j < committedToMatchSize; ++j) {
-      int wordsIdx = i - static_cast<int>(j);
-      int committedIdx =
-          static_cast<int>(committed_.size()) - 1 - static_cast<int>(j);
+      int32_t wordsIdx = i - static_cast<int32_t>(j);
+      int32_t committedIdx =
+          static_cast<int32_t>(committed_.size()) - 1 - static_cast<int32_t>(j);
 
       if (wordsIdx < 0) {
         // We reached the beginning of the words span.
@@ -153,8 +157,8 @@ std::optional<size_t> HypothesisBuffer::findCommittedSuffix(
       const Word &w2 = committed_[committedIdx];
 
       // Check timestamps within tolerance
-      if (std::abs(w1.start - w2.start) > effectiveTolerance ||
-          std::abs(w1.end - w2.end) > effectiveTolerance) {
+      if (std::max(std::abs(w1.start - w2.start), std::abs(w1.end - w2.end)) >
+          effectiveTolerance) {
         match = false;
         break;
       }

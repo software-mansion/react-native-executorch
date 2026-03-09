@@ -24,7 +24,7 @@ OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
 }
 
 void OnlineASR::insertAudioChunk(std::span<const float> audio) {
-  std::lock_guard<std::mutex> lock(audioBufferMutex_);
+  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
 }
 
@@ -33,10 +33,16 @@ bool OnlineASR::isReady() const {
 }
 
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
-  std::unique_lock<std::mutex> lock(audioBufferMutex_);
+  std::vector<float> audioCopy;
+
+  // Copy the audio buffer to avoid keeping the lock during the entire
+  // transcription process.
+  {
+    std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+    audioCopy = audioBuffer_;
+  }
 
   std::vector<Segment> transcriptions = asr_->transcribe(audioBuffer_, options);
-  lock.unlock();
 
   if (transcriptions.empty()) {
     return {.committed = {}, .nonCommitted = {}};
@@ -106,30 +112,32 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
 
   // Since Whisper does not accept waveforms longer than 30 seconds, we need
   // to cut the audio at some safe point.
-  lock.lock();
-  const float audioDuration =
-      static_cast<float>(audioBuffer_.size()) / constants::kSamplingRate;
-  if (audioDuration > params::kStreamChunkThreshold) {
-    // Leave some portion of audio in, to improve model behavior
-    // in future iterations.
-    const float erasePoint =
-        hypothesisBuffer_.lastCommittedTime_ == lastSentenceEnd_
-            ? audioDuration
-            : std::min(lastSentenceEnd_, params::kStreamChunkThreshold);
-    const float minEraseDuration =
-        audioDuration - params::kStreamAudioBufferMaxReserve;
-    const float maxEraseDuration =
-        audioDuration - params::kStreamAudioBufferMinReserve;
-    const float eraseDuration = std::clamp(erasePoint - bufferTimeOffset_,
-                                           minEraseDuration, maxEraseDuration);
-    const size_t nSamplesToErase =
-        static_cast<size_t>(eraseDuration * constants::kSamplingRate);
+  {
+    std::scoped_lock<std::mutex> lock(audioBufferMutex_);
 
-    audioBuffer_.erase(audioBuffer_.begin(),
-                       audioBuffer_.begin() + nSamplesToErase);
-    bufferTimeOffset_ += eraseDuration;
+    const float audioDuration =
+        static_cast<float>(audioBuffer_.size()) / constants::kSamplingRate;
+    if (audioDuration > params::kStreamChunkThreshold) {
+      // Leave some portion of audio in, to improve model behavior
+      // in future iterations.
+      const float erasePoint =
+          hypothesisBuffer_.lastCommittedTime_ == lastSentenceEnd_
+              ? audioDuration
+              : std::min(lastSentenceEnd_, params::kStreamChunkThreshold);
+      const float minEraseDuration =
+          audioDuration - params::kStreamAudioBufferMaxReserve;
+      const float maxEraseDuration =
+          audioDuration - params::kStreamAudioBufferMinReserve;
+      const float eraseDuration = std::clamp(
+          erasePoint - bufferTimeOffset_, minEraseDuration, maxEraseDuration);
+      const size_t nSamplesToErase =
+          static_cast<size_t>(eraseDuration * constants::kSamplingRate);
+
+      audioBuffer_.erase(audioBuffer_.begin(),
+                         audioBuffer_.begin() + nSamplesToErase);
+      bufferTimeOffset_ += eraseDuration;
+    }
   }
-  lock.unlock();
 
   return {.committed = move_to_vector(committed),
           .nonCommitted = move_to_vector(nonCommitted)};
@@ -144,7 +152,7 @@ std::vector<Word> OnlineASR::finish() {
 }
 
 void OnlineASR::reset() {
-  std::lock_guard<std::mutex> lock(audioBufferMutex_);
+  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
 
   hypothesisBuffer_.reset();
   bufferTimeOffset_ = 0.f;

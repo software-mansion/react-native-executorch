@@ -9,8 +9,8 @@ struct Word {
   float start;
   float end;
 
-  std::string punctations =
-      ""; // Trailing punctations which appear after the main content
+  std::string
+      punctations; // Trailing punctations which appear after the main content
 };
 
 } // namespace rnexecutorch::models::speech_to_text

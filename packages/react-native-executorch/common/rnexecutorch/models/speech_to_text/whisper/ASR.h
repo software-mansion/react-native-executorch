@@ -161,9 +161,9 @@ private:
   std::unique_ptr<TokenizerModule> tokenizer_;
 
   // Tokenization helper definitions
-  const Token startOfTranscriptionToken_;
-  const Token endOfTranscriptionToken_;
-  const Token timestampBeginToken_;
+  Token startOfTranscriptionToken_;
+  Token endOfTranscriptionToken_;
+  Token timestampBeginToken_;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper

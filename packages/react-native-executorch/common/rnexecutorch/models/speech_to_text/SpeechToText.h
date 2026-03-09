@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <span>
 #include <string>
 #include <vector>
@@ -14,10 +15,12 @@ namespace models::speech_to_text {
 
 class SpeechToText {
 public:
-  explicit SpeechToText(const std::string &modelName,
-                        const std::string &modelSource,
-                        const std::string &tokenizerSource,
-                        std::shared_ptr<react::CallInvoker> callInvoker);
+  SpeechToText(const std::string &modelName, const std::string &modelSource,
+               const std::string &tokenizerSource,
+               std::shared_ptr<react::CallInvoker> callInvoker);
+
+  // Required because of std::atomic usage
+  SpeechToText(SpeechToText &&other) noexcept;
 
   void unload() noexcept;
   [[nodiscard(
@@ -53,8 +56,8 @@ private:
 
   // Online ASR-like module (streaming only)
   std::unique_ptr<schema::OnlineASR> streamer_ = nullptr;
-  bool isStreaming_ = false;
-  bool readyToProcess_ = false;
+  std::atomic<bool> isStreaming_ = false;
+  std::atomic<bool> readyToProcess_ = false;
 };
 
 } // namespace models::speech_to_text
