@@ -378,7 +378,7 @@ const EFFICIENTNET_V2_S_MODEL =
     : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
 const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`
     : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
 
 /**
