@@ -3179,6 +3179,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechPhonemeInput": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechProps": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3191,7 +3203,31 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechStreamingCallbacks": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechStreamingInput": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechStreamingPhonemeInput": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
