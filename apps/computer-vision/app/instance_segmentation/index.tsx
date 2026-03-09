@@ -76,7 +76,6 @@ const AVAILABLE_INPUT_SIZES = [384, 416, 512, 640, 1024];
  *     availableInputSizes: [640],
  *     defaultInputSize: 640,
  *     postprocessorConfig: {
- *       type: 'yolo',
  *       defaultConfidenceThreshold: 0.5,
  *       defaultIouThreshold: 0.45,
  *       applyNMS: true,
@@ -95,7 +94,7 @@ export default function InstanceSegmentationScreen() {
 
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({
-      model: YOLO26N_SEG,
+      model: YOLO26X_SEG,
     });
 
   const [imageUri, setImageUri] = useState('');

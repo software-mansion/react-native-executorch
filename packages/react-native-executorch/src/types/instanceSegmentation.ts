@@ -48,10 +48,6 @@ export interface PreprocessorConfig {
  */
 export interface PostprocessorConfig {
   /**
-   * Type of postprocessor to use. Determines how model outputs are interpreted.
-   */
-  type: 'yolo' | 'rfdetr';
-  /**
    * Default confidence threshold for this model.
    */
   defaultConfidenceThreshold?: number;
@@ -110,16 +106,23 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
  * @property availableInputSizes - Array of supported input sizes (e.g., [384, 416, 512, 640, 1024])
  * @property defaultInputSize - Default input size to use if not specified
  * @property preprocessorConfig - Optional preprocessing configuration (normalization, etc.)
- * @property postprocessorConfig - Postprocessing configuration (type, thresholds, etc.)
+ * @property postprocessorConfig - Postprocessing configuration (thresholds, NMS, etc.)
  * @category Types
  */
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
-  availableInputSizes: readonly number[];
-  defaultInputSize: number;
   preprocessorConfig?: PreprocessorConfig;
   postprocessorConfig: PostprocessorConfig;
-};
+} & (
+  | {
+      availableInputSizes: readonly number[];
+      defaultInputSize: number;
+    }
+  | {
+      availableInputSizes?: undefined;
+      defaultInputSize?: undefined;
+    }
+);
 
 /// We would bind it here - but we need a deafult conf for yolo to be applied instead of
 /**

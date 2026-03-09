@@ -18,7 +18,6 @@ using executorch::runtime::EValue;
 class BaseInstanceSegmentation : public BaseModel {
 public:
   BaseInstanceSegmentation(const std::string &modelSource,
-                           const std::string &postprocessorType,
                            std::vector<float> normMean,
                            std::vector<float> normStd, bool applyNMS,
                            std::shared_ptr<react::CallInvoker> callInvoker);
@@ -49,7 +48,6 @@ private:
   }
 
   // Member variables
-  std::string postprocessorType_;
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
   bool applyNMS_;
@@ -60,7 +58,6 @@ private:
 } // namespace models::instance_segmentation
 
 REGISTER_CONSTRUCTOR(models::instance_segmentation::BaseInstanceSegmentation,
-                     std::string, std::string, std::vector<float>,
-                     std::vector<float>, bool,
+                     std::string, std::vector<float>, std::vector<float>, bool,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
