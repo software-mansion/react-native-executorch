@@ -385,6 +385,7 @@ const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
  * @category Models - Classification
  */
 export const EFFICIENTNET_V2_S = {
+  modelName: 'efficientnet-v2-s',
   modelSource: EFFICIENTNET_V2_S_MODEL,
 };
 
@@ -392,6 +393,7 @@ export const EFFICIENTNET_V2_S = {
  * @category Models - Classification
  */
 export const EFFICIENTNET_V2_S_QUANTIZED = {
+  modelName: 'efficientnet-v2-s-quantized',
   modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
 };
 
@@ -456,6 +458,7 @@ const STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL =
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_CANDY = {
+  modelName: 'style-transfer-candy',
   modelSource: STYLE_TRANSFER_CANDY_MODEL,
 };
 
@@ -463,6 +466,7 @@ export const STYLE_TRANSFER_CANDY = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_CANDY_QUANTIZED = {
+  modelName: 'style-transfer-candy-quantized',
   modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
 };
 
@@ -470,6 +474,7 @@ export const STYLE_TRANSFER_CANDY_QUANTIZED = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_MOSAIC = {
+  modelName: 'style-transfer-mosaic',
   modelSource: STYLE_TRANSFER_MOSAIC_MODEL,
 };
 
@@ -477,6 +482,7 @@ export const STYLE_TRANSFER_MOSAIC = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
+  modelName: 'style-transfer-mosaic-quantized',
   modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
 };
 
@@ -484,6 +490,7 @@ export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_RAIN_PRINCESS = {
+  modelName: 'style-transfer-rain-princess',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_MODEL,
 };
 
@@ -491,6 +498,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
+  modelName: 'style-transfer-rain-princess-quantized',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
 };
 
@@ -498,6 +506,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_UDNIE = {
+  modelName: 'style-transfer-udnie',
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
 };
 
@@ -505,6 +514,7 @@ export const STYLE_TRANSFER_UDNIE = {
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
+  modelName: 'style-transfer-udnie-quantized',
   modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
 };
 
@@ -733,6 +743,7 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base
  * @category Models - Image Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
+  modelName: 'clip-vit-base-patch32-image',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
 };
 
@@ -740,6 +751,7 @@ export const CLIP_VIT_BASE_PATCH32_IMAGE = {
  * @category Models - Image Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
+  modelName: 'clip-vit-base-patch32-image-quantized',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
 };
 
@@ -791,6 +803,7 @@ export const MULTI_QA_MPNET_BASE_DOT_V1 = {
  * @category Models - Text Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_TEXT = {
+  modelName: 'clip-vit-base-patch32-text',
   modelSource: CLIP_VIT_BASE_PATCH32_TEXT_MODEL,
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
 };
