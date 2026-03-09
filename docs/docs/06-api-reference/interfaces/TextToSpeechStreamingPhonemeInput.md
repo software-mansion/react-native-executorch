@@ -1,17 +1,13 @@
-# Interface: TextToSpeechStreamingInput
+# Interface: TextToSpeechStreamingPhonemeInput
 
-Defined in: [types/tts.ts:205](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L205)
+Defined in: [types/tts.ts:214](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L214)
 
-Text to Speech streaming input definition
-
-Streaming mode in T2S is synchronized by passing specific callbacks
-executed at given moments of the streaming.
-Actions such as playing the audio should happen within the onNext callback.
-Callbacks can be both synchronous or asynchronous.
+Streaming input definition for pre-computed phonemes.
+Same as `TextToSpeechStreamingInput` but accepts `phonemes` instead of `text`.
 
 ## Extends
 
-- [`TextToSpeechInput`](TextToSpeechInput.md).[`TextToSpeechStreamingCallbacks`](TextToSpeechStreamingCallbacks.md)
+- [`TextToSpeechPhonemeInput`](TextToSpeechPhonemeInput.md).[`TextToSpeechStreamingCallbacks`](TextToSpeechStreamingCallbacks.md)
 
 ## Properties
 
@@ -75,28 +71,28 @@ Called after each audio chunk gets calculated.
 
 ---
 
+### phonemes
+
+> **phonemes**: `string`
+
+Defined in: [types/tts.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L104)
+
+pre-computed IPA phoneme string
+
+#### Inherited from
+
+[`TextToSpeechPhonemeInput`](TextToSpeechPhonemeInput.md).[`phonemes`](TextToSpeechPhonemeInput.md#phonemes)
+
+---
+
 ### speed?
 
 > `optional` **speed**: `number`
 
-Defined in: [types/tts.ts:90](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L90)
+Defined in: [types/tts.ts:105](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L105)
 
 optional speed argument - the higher it is, the faster the speech becomes
 
 #### Inherited from
 
-[`TextToSpeechInput`](TextToSpeechInput.md).[`speed`](TextToSpeechInput.md#speed)
-
----
-
-### text
-
-> **text**: `string`
-
-Defined in: [types/tts.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L89)
-
-a text to be spoken
-
-#### Inherited from
-
-[`TextToSpeechInput`](TextToSpeechInput.md).[`text`](TextToSpeechInput.md#text)
+[`TextToSpeechPhonemeInput`](TextToSpeechPhonemeInput.md).[`speed`](TextToSpeechPhonemeInput.md#speed)

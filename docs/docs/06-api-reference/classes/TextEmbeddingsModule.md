@@ -136,7 +136,7 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 > **forward**(`input`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L60)
+Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:63](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L63)
 
 Executes the model's forward pass, where `input` is a text that will be embedded.
 
