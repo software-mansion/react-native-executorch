@@ -483,8 +483,9 @@ inline jsi::Value getJsiValue(
     instance.setProperty(runtime, "maskWidth", instances[i].maskWidth);
     instance.setProperty(runtime, "maskHeight", instances[i].maskHeight);
 
-    // Label - return as number, let TypeScript convert to string using labelMap
-    instance.setProperty(runtime, "label", instances[i].label);
+    instance.setProperty(
+        runtime, "label",
+        jsi::String::createFromUtf8(runtime, instances[i].label));
 
     instance.setProperty(runtime, "score", instances[i].score);
     instance.setProperty(runtime, "instanceId", instances[i].instanceId);

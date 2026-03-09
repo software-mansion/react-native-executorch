@@ -10,8 +10,10 @@ namespace rnexecutorch::models::instance_segmentation {
 BaseInstanceSegmentation::BaseInstanceSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, bool applyNMS,
+    std::vector<std::string> labelNames,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
+    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS),
+      labelNames_(std::move(labelNames)) {
   avalivableMethods_ = *module_->method_names();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -107,12 +109,12 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   std::vector<types::InstanceMask> instances;
 
   size_t numTensors = tensors.size();
-  // if (numTensors != 3) {
-  //   throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-  //                           "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
-  //                           "[1,N,H,W]), got " +
-  //                               std::to_string(numTensors));
-  // }
+  if (numTensors != 3) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
+                            "[1,N,H,W]), got " +
+                                std::to_string(numTensors));
+  }
 
   // CONTRACT: [1,N,4] + [1,N,2] + [1,N,H,W]
   //   bbox:        [x1, y1, x2, y2] in model input coordinates
@@ -139,13 +141,21 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     float x2 = bboxData[i * 4 + 2];
     float y2 = bboxData[i * 4 + 3];
     float score = scoresData[i * 2 + 0];
-    int label = static_cast<int>(scoresData[i * 2 + 1]);
+    auto labelIdx = static_cast<std::size_t>(scoresData[i * 2 + 1]);
 
     if (score < confidenceThreshold)
       continue;
-    if (!allowedClasses.empty() &&
-        allowedClasses.find(label) == allowedClasses.end())
+    if (!allowedClasses.empty() && allowedClasses.find(static_cast<int32_t>(
+                                       labelIdx)) == allowedClasses.end())
       continue;
+
+    if (labelIdx >= labelNames_.size()) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::InvalidConfig,
+          "Model output class index " + std::to_string(labelIdx) +
+              " exceeds labelNames size " + std::to_string(labelNames_.size()) +
+              ". Ensure the labelMap covers all model output classes.");
+    }
 
     // Mask logits are pre-computed — just sigmoid + threshold
     const float *logits = maskData + (i * maskH * maskW);
@@ -187,7 +197,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     instance.mask = std::move(finalMask);
     instance.maskWidth = finalMaskWidth;
     instance.maskHeight = finalMaskHeight;
-    instance.label = label;
+    instance.label = labelNames_[labelIdx];
     instance.score = score;
     instance.instanceId = i;
     instances.push_back(std::move(instance));
