@@ -71,7 +71,7 @@ Result<std::vector<EValue>> Synthesizer::generate(std::span<const Token> tokens,
                                         ref_s.data(), ScalarType::Float);
 
   // Select appropriate forward method based on token count
-  auto it = std::find_if(forwardMethods_.begin(), forwardMethods_.end(),
+  auto it = std::ranges::find_if(forwardMethods_,
       [noTokens](const auto &entry) { return static_cast<int32_t>(entry.second) >= noTokens; });
   std::string selectedMethod = (it != forwardMethods_.end()) ? it->first : forwardMethods_.back().first;
 
