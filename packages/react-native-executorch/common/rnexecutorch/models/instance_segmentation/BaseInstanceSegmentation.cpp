@@ -1,7 +1,6 @@
 #include "BaseInstanceSegmentation.h"
 
 #include <cmath>
-#include <iostream>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
@@ -9,18 +8,10 @@
 namespace rnexecutorch::models::instance_segmentation {
 
 BaseInstanceSegmentation::BaseInstanceSegmentation(
-    const std::string &modelSource, const std::string &postprocessorType,
-    std::vector<float> normMean, std::vector<float> normStd, bool applyNMS,
+    const std::string &modelSource, std::vector<float> normMean,
+    std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker),
-      postprocessorType_(postprocessorType), applyNMS_(applyNMS) {
-  if (postprocessorType_ != "yolo" && postprocessorType_ != "rfdetr") {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "Postprocessor type must be 'yolo' or 'rfdetr'. Got: " +
-            postprocessorType_);
-  }
-
+    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
   avalivableMethods_ = *module_->method_names();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -103,11 +94,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
                             "and less than or equal to 1.");
   }
 
-  if (postprocessorType_ == "rfdetr") {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "RF-DETR not implemented in this POC build.");
-  }
-
   float widthRatio =
       static_cast<float>(originalSize.width) / modelInputSize.width;
   float heightRatio =
@@ -121,297 +107,90 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   std::vector<types::InstanceMask> instances;
 
   size_t numTensors = tensors.size();
-  if (numTensors < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Expected at least 2 output tensors, got " +
-                                std::to_string(numTensors));
-  }
+  // if (numTensors != 3) {
+  //   throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+  //                           "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
+  //                           "[1,N,H,W]), got " +
+  //                               std::to_string(numTensors));
+  // }
 
-  auto firstTensor = tensors[0].toTensor();
-  int featureDim = firstTensor.size(firstTensor.dim() - 1);
+  // CONTRACT: [1,N,4] + [1,N,2] + [1,N,H,W]
+  //   bbox:        [x1, y1, x2, y2] in model input coordinates
+  //   scores:      [max_score, class_id] — post-sigmoid
+  //   mask_logits: pre-sigmoid, per-detection
+  auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
+  auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
+  auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
 
-  // ════════════════════════════════════════════════════════════
-  // FORMAT A — YOLO NATIVE: [1,N,38] + [1,32,H,W]
-  //   Detection tensor: [x1,y1,x2,y2, score, class, coeff×32]
-  //   C++ computes: coefficients @ prototypes → mask per detection
-  // ════════════════════════════════════════════════════════════
-  if (featureDim == 38 && numTensors == 2) {
+  int N = bboxTensor.size(1);
+  int maskH = maskTensor.size(2);
+  int maskW = maskTensor.size(3);
 
-    auto detectionTensor = tensors[0].toTensor();
-    auto protoTensor = tensors[1].toTensor();
+  const float *bboxData =
+      static_cast<const float *>(bboxTensor.const_data_ptr());
+  const float *scoresData =
+      static_cast<const float *>(scoresTensor.const_data_ptr());
+  const float *maskData =
+      static_cast<const float *>(maskTensor.const_data_ptr());
 
-    if (protoTensor.dim() != 4 || protoTensor.size(1) != 32) {
-      throw RnExecutorchError(
-          RnExecutorchErrorCode::UnexpectedNumInputs,
-          "Expected prototype mask tensor shape [1, 32, H, W]");
+  for (int i = 0; i < N; ++i) {
+    float x1 = bboxData[i * 4 + 0];
+    float y1 = bboxData[i * 4 + 1];
+    float x2 = bboxData[i * 4 + 2];
+    float y2 = bboxData[i * 4 + 3];
+    float score = scoresData[i * 2 + 0];
+    int label = static_cast<int>(scoresData[i * 2 + 1]);
+
+    if (score < confidenceThreshold)
+      continue;
+    if (!allowedClasses.empty() &&
+        allowedClasses.find(label) == allowedClasses.end())
+      continue;
+
+    // Mask logits are pre-computed — just sigmoid + threshold
+    const float *logits = maskData + (i * maskH * maskW);
+    std::vector<uint8_t> binaryMask(maskH * maskW);
+    for (int j = 0; j < maskH * maskW; j++) {
+      float v = 1.0f / (1.0f + std::exp(-logits[j]));
+      binaryMask[j] = (v > 0.5f) ? 1 : 0;
     }
 
-    int maxDetections = detectionTensor.size(1);
-    int protoHeight = protoTensor.size(2);
-    int protoWidth = protoTensor.size(3);
-    const float *detData =
-        static_cast<const float *>(detectionTensor.const_data_ptr());
-    const float *protoData =
-        static_cast<const float *>(protoTensor.const_data_ptr());
+    x1 *= widthRatio;
+    y1 *= heightRatio;
+    x2 *= widthRatio;
+    y2 *= heightRatio;
 
-    for (int i = 0; i < maxDetections; ++i) {
-      const float *det = detData + (i * 38);
+    int finalMaskWidth = maskW;
+    int finalMaskHeight = maskH;
+    std::vector<uint8_t> finalMask = binaryMask;
 
-      float x1 = det[0];
-      float y1 = det[1];
-      float x2 = det[2];
-      float y2 = det[3];
-      float score = det[4];
-      int label = static_cast<int>(det[5]);
-
-      if (score < confidenceThreshold)
-        continue;
-      if (!allowedClasses.empty() &&
-          allowedClasses.find(label) == allowedClasses.end())
-        continue;
-
-      // mask = coefficients @ prototypes
-      std::vector<float> instanceMask(protoHeight * protoWidth, 0.0f);
-      for (int m = 0; m < 32; m++) {
-        float coef = det[6 + m];
-        const float *proto = protoData + (m * protoHeight * protoWidth);
-        for (int p = 0; p < protoHeight * protoWidth; p++) {
-          instanceMask[p] += coef * proto[p];
-        }
-      }
-
-      std::vector<uint8_t> binaryMask(protoHeight * protoWidth);
-      for (int j = 0; j < protoHeight * protoWidth; j++) {
-        float v = 1.0f / (1.0f + std::exp(-instanceMask[j]));
-        binaryMask[j] = (v > 0.5f) ? 1 : 0;
-      }
-
-      x1 *= widthRatio;
-      y1 *= heightRatio;
-      x2 *= widthRatio;
-      y2 *= heightRatio;
-
-      int finalMaskWidth = protoWidth;
-      int finalMaskHeight = protoHeight;
-      std::vector<uint8_t> finalMask = binaryMask;
-
-      if (returnMaskAtOriginalResolution) {
-        cv::Mat maskMat(protoHeight, protoWidth, CV_8UC1, binaryMask.data());
-        cv::Mat resizedMaskMat;
-        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                   cv::INTER_NEAREST);
-        finalMaskWidth = originalSize.width;
-        finalMaskHeight = originalSize.height;
-        for (int y = 0; y < finalMaskHeight; y++)
-          for (int x = 0; x < finalMaskWidth; x++)
-            if (x < x1 || x > x2 || y < y1 || y > y2)
-              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
-        finalMask.assign(resizedMaskMat.data,
-                         resizedMaskMat.data + resizedMaskMat.total());
-      }
-
-      types::InstanceMask instance;
-      instance.x1 = x1;
-      instance.y1 = y1;
-      instance.x2 = x2;
-      instance.y2 = y2;
-      instance.mask = std::move(finalMask);
-      instance.maskWidth = finalMaskWidth;
-      instance.maskHeight = finalMaskHeight;
-      instance.label = label;
-      instance.score = score;
-      instance.instanceId = i;
-      instances.push_back(std::move(instance));
+    if (returnMaskAtOriginalResolution) {
+      cv::Mat maskMat(maskH, maskW, CV_8UC1, binaryMask.data());
+      cv::Mat resizedMaskMat;
+      cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
+                 cv::INTER_NEAREST);
+      finalMaskWidth = originalSize.width;
+      finalMaskHeight = originalSize.height;
+      for (int y = 0; y < finalMaskHeight; y++)
+        for (int x = 0; x < finalMaskWidth; x++)
+          if (x < x1 || x > x2 || y < y1 || y > y2)
+            resizedMaskMat.data[y * finalMaskWidth + x] = 0;
+      finalMask.assign(resizedMaskMat.data,
+                       resizedMaskMat.data + resizedMaskMat.total());
     }
-  }
-  // ════════════════════════════════════════════════════════════
-  // FORMAT B — CONTRACT: [1,N,4] + [1,N,2] + [1,N,H,W]
-  //   bbox:        x1,y1,x2,y2 in model-input coordinates
-  //   scores:      (max_score, class_id)  — score is post-sigmoid
-  //   mask_logits: pre-sigmoid, per-detection, at whatever resolution
-  //                the export chose (128×128, 64×64, 32×32, etc.)
-  // ════════════════════════════════════════════════════════════
-  else if (featureDim == 4 && numTensors == 3) {
 
-    auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
-    auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
-    auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
-
-    int N = bboxTensor.size(1);
-    int maskH = maskTensor.size(2);
-    int maskW = maskTensor.size(3);
-
-    const float *bboxData =
-        static_cast<const float *>(bboxTensor.const_data_ptr());
-    const float *scoresData =
-        static_cast<const float *>(scoresTensor.const_data_ptr());
-    const float *maskData =
-        static_cast<const float *>(maskTensor.const_data_ptr());
-
-    for (int i = 0; i < N; ++i) {
-      float x1 = bboxData[i * 4 + 0];
-      float y1 = bboxData[i * 4 + 1];
-      float x2 = bboxData[i * 4 + 2];
-      float y2 = bboxData[i * 4 + 3];
-      float score = scoresData[i * 2 + 0];
-      int label = static_cast<int>(scoresData[i * 2 + 1]);
-
-      if (score < confidenceThreshold)
-        continue;
-      if (!allowedClasses.empty() &&
-          allowedClasses.find(label) == allowedClasses.end())
-        continue;
-
-      // Mask logits are pre-computed — just sigmoid + threshold
-      const float *logits = maskData + (i * maskH * maskW);
-      std::vector<uint8_t> binaryMask(maskH * maskW);
-      for (int j = 0; j < maskH * maskW; j++) {
-        float v = 1.0f / (1.0f + std::exp(-logits[j]));
-        binaryMask[j] = (v > 0.5f) ? 1 : 0;
-      }
-
-      x1 *= widthRatio;
-      y1 *= heightRatio;
-      x2 *= widthRatio;
-      y2 *= heightRatio;
-
-      int finalMaskWidth = maskW;
-      int finalMaskHeight = maskH;
-      std::vector<uint8_t> finalMask = binaryMask;
-
-      if (returnMaskAtOriginalResolution) {
-        cv::Mat maskMat(maskH, maskW, CV_8UC1, binaryMask.data());
-        cv::Mat resizedMaskMat;
-        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                   cv::INTER_NEAREST);
-        finalMaskWidth = originalSize.width;
-        finalMaskHeight = originalSize.height;
-        for (int y = 0; y < finalMaskHeight; y++)
-          for (int x = 0; x < finalMaskWidth; x++)
-            if (x < x1 || x > x2 || y < y1 || y > y2)
-              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
-        finalMask.assign(resizedMaskMat.data,
-                         resizedMaskMat.data + resizedMaskMat.total());
-      }
-
-      types::InstanceMask instance;
-      instance.x1 = x1;
-      instance.y1 = y1;
-      instance.x2 = x2;
-      instance.y2 = y2;
-      instance.mask = std::move(finalMask);
-      instance.maskWidth = finalMaskWidth;
-      instance.maskHeight = finalMaskHeight;
-      instance.label = label;
-      instance.score = score;
-      instance.instanceId = i;
-      instances.push_back(std::move(instance));
-    }
-  }
-  // ════════════════════════════════════════════════════════════
-  // FORMAT C — COEFFS+PROTOS: [1,N,4] + [1,N,2] + [1,N,32] + [1,32,H,W]
-  //   Same bbox/scores as contract, but masks are NOT pre-computed.
-  //   C++ computes masks only for detections that pass the filter,
-  //   which is far cheaper than doing bmm for all 300 in the model.
-  // ════════════════════════════════════════════════════════════
-  else if (featureDim == 4 && numTensors == 4) {
-
-    auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
-    auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
-    auto coeffsTensor = tensors[2].toTensor(); // [1, N, nm]
-    auto protoTensor = tensors[3].toTensor();  // [1, nm, H, W]
-
-    int N = bboxTensor.size(1);
-    int nm = coeffsTensor.size(2);
-    int protoH = protoTensor.size(2);
-    int protoW = protoTensor.size(3);
-
-    const float *bboxData =
-        static_cast<const float *>(bboxTensor.const_data_ptr());
-    const float *scoresData =
-        static_cast<const float *>(scoresTensor.const_data_ptr());
-    const float *coeffsData =
-        static_cast<const float *>(coeffsTensor.const_data_ptr());
-    const float *protoData =
-        static_cast<const float *>(protoTensor.const_data_ptr());
-
-    for (int i = 0; i < N; ++i) {
-      float x1 = bboxData[i * 4 + 0];
-      float y1 = bboxData[i * 4 + 1];
-      float x2 = bboxData[i * 4 + 2];
-      float y2 = bboxData[i * 4 + 3];
-      float score = scoresData[i * 2 + 0];
-      int label = static_cast<int>(scoresData[i * 2 + 1]);
-
-      if (score < confidenceThreshold)
-        continue;
-      if (!allowedClasses.empty() &&
-          allowedClasses.find(label) == allowedClasses.end())
-        continue;
-
-      // Compute mask: coeffs[i] @ protos → [protoH * protoW]
-      const float *coeffs = coeffsData + (i * nm);
-      std::vector<float> instanceMask(protoH * protoW, 0.0f);
-      for (int m = 0; m < nm; m++) {
-        float coef = coeffs[m];
-        const float *proto = protoData + (m * protoH * protoW);
-        for (int p = 0; p < protoH * protoW; p++) {
-          instanceMask[p] += coef * proto[p];
-        }
-      }
-
-      std::vector<uint8_t> binaryMask(protoH * protoW);
-      for (int j = 0; j < protoH * protoW; j++) {
-        float v = 1.0f / (1.0f + std::exp(-instanceMask[j]));
-        binaryMask[j] = (v > 0.5f) ? 1 : 0;
-      }
-
-      x1 *= widthRatio;
-      y1 *= heightRatio;
-      x2 *= widthRatio;
-      y2 *= heightRatio;
-
-      int finalMaskWidth = protoW;
-      int finalMaskHeight = protoH;
-      std::vector<uint8_t> finalMask = binaryMask;
-
-      if (returnMaskAtOriginalResolution) {
-        cv::Mat maskMat(protoH, protoW, CV_8UC1, binaryMask.data());
-        cv::Mat resizedMaskMat;
-        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                   cv::INTER_NEAREST);
-        finalMaskWidth = originalSize.width;
-        finalMaskHeight = originalSize.height;
-        for (int y = 0; y < finalMaskHeight; y++)
-          for (int x = 0; x < finalMaskWidth; x++)
-            if (x < x1 || x > x2 || y < y1 || y > y2)
-              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
-        finalMask.assign(resizedMaskMat.data,
-                         resizedMaskMat.data + resizedMaskMat.total());
-      }
-
-      types::InstanceMask instance;
-      instance.x1 = x1;
-      instance.y1 = y1;
-      instance.x2 = x2;
-      instance.y2 = y2;
-      instance.mask = std::move(finalMask);
-      instance.maskWidth = finalMaskWidth;
-      instance.maskHeight = finalMaskHeight;
-      instance.label = label;
-      instance.score = score;
-      instance.instanceId = i;
-      instances.push_back(std::move(instance));
-    }
-  }
-  // ════════════════════════════════════════════════════════════
-  else {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnexpectedNumInputs,
-        "Unrecognized output format: " + std::to_string(numTensors) +
-            " tensors, first tensor last dim = " + std::to_string(featureDim) +
-            ". Expected YOLO native (2 tensors, dim=38), contract (3 tensors, "
-            "dim=4), or coeffs+protos (4 tensors, dim=4).");
+    types::InstanceMask instance;
+    instance.x1 = x1;
+    instance.y1 = y1;
+    instance.x2 = x2;
+    instance.y2 = y2;
+    instance.mask = std::move(finalMask);
+    instance.maskWidth = finalMaskWidth;
+    instance.maskHeight = finalMaskHeight;
+    instance.label = label;
+    instance.score = score;
+    instance.instanceId = i;
+    instances.push_back(std::move(instance));
   }
 
   // Finalize: NMS + limit + renumber

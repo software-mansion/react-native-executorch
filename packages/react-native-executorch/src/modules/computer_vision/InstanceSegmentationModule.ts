@@ -18,7 +18,6 @@ const YOLO_SEG_CONFIG = {
   availableInputSizes: [384, 416, 512, 640, 1024] as const,
   defaultInputSize: 416,
   postprocessorConfig: {
-    type: 'yolo' as const,
     defaultConfidenceThreshold: 0.5,
     defaultIouThreshold: 0.5,
     applyNMS: true,
@@ -144,7 +143,6 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
-      modelConfig.postprocessorConfig.type,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
       modelConfig.postprocessorConfig.applyNMS ?? true
@@ -176,7 +174,6 @@ export class InstanceSegmentationModule<
    *     availableInputSizes: [640],
    *     defaultInputSize: 640,
    *     postprocessorConfig: {
-   *       type: 'yolo',
    *       defaultConfidenceThreshold: 0.5,
    *       defaultIouThreshold: 0.45,
    *       applyNMS: true,
@@ -208,7 +205,6 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
-      config.postprocessorConfig.type,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
       config.postprocessorConfig.applyNMS ?? true
@@ -272,8 +268,16 @@ export class InstanceSegmentationModule<
     // Get inputSize from options or use default
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
 
+    if (inputSize === undefined) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidArgument,
+        'inputSize must be specified in options when the model config does not define availableInputSizes'
+      );
+    }
+
     // Validate inputSize against available sizes
     if (
+      this.modelConfig.availableInputSizes &&
       !this.modelConfig.availableInputSizes.includes(
         inputSize as (typeof this.modelConfig.availableInputSizes)[number]
       )
