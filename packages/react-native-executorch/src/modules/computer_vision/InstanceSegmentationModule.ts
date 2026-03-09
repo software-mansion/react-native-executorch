@@ -19,7 +19,7 @@ const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.5,
   postprocessorConfig: {
-    applyNMS: true,
+    applyNMS: false,
   },
 };
 
@@ -50,7 +50,7 @@ const ModelConfigs = {
 type ModelConfigsType = typeof ModelConfigs;
 
 /**
- * Resolves the {@link LabelEnum} for a given built-in model name.
+ * Resolves the label map type for a given built-in model name.
  *
  * @typeParam M - A built-in model name from {@link InstanceSegmentationModelName}.
  *
@@ -77,7 +77,7 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  * - `yolo26n-seg`, `yolo26s-seg`, `yolo26m-seg`, `yolo26l-seg`, `yolo26x-seg` - YOLO models with COCO labels (80 classes)
  *
  * @typeParam T - Either a pre-configured model name from {@link InstanceSegmentationModelName}
- *   or a custom {@link LabelEnum} label map.
+ *   or a custom label map conforming to {@link LabelEnum}.
  *
  * @category Typescript API
  *
