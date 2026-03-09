@@ -24,24 +24,23 @@ BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
       }) {}
 
 Error BaseLLMRunner::load() {
-  if (is_loaded())
+  if (is_loaded()) {
     return Error::Ok;
+  }
 
   auto status = tokenizer_->load(tokenizer_path_);
   if (status != tokenizers::Error::Ok) {
     throw rnexecutorch::RnExecutorchError(
         rnexecutorch::RnExecutorchErrorCode::TokenizerError,
         "Unexpected issue occurred while loading tokenizer (error code: " +
-            std::to_string(static_cast<int>(status)) + ")");
+            std::to_string(static_cast<int32_t>(status)) + ")");
   }
 
   const auto method_names =
       ET_UNWRAP(module_->method_names(), "Failed reading method names");
 
   metadata_[kVocabSize] = tokenizer_->vocab_size();
-  for (auto &pair : metadata_) {
-    const auto &method_name = pair.first;
-    auto &value = pair.second;
+  for (auto &[method_name, value] : metadata_) {
     if (method_names.count(method_name)) {
       value = ET_UNWRAP(module_->get(method_name))
                   .toScalar()
@@ -71,7 +70,10 @@ Error BaseLLMRunner::load() {
     }
   }
   if (eos_ids_->empty()) {
-    eos_ids_->emplace(7); // fallback <|im_end|>
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::InvalidModelOutput,
+        "Model did not provide any EOS token IDs via 'get_eos_ids'. "
+        "The .pte file may be misconfigured.");
   }
 
   io_manager_ = std::make_unique<IOManager>(*module_);
@@ -89,8 +91,9 @@ Error BaseLLMRunner::generate(
   std::vector<MultimodalInput> inputs = {make_text_input(prompt)};
   auto err = generate_internal(inputs, token_callback);
 
-  if (stats_callback)
+  if (stats_callback) {
     stats_callback(stats_);
+  }
 
   return err;
 }
@@ -102,8 +105,9 @@ Error BaseLLMRunner::generate(
 
   auto err = generate_internal(inputs, token_callback);
 
-  if (stats_callback)
+  if (stats_callback) {
     stats_callback(stats_);
+  }
 
   return err;
 }

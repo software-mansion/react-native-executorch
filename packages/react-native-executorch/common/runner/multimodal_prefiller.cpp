@@ -12,6 +12,7 @@
 #include "multimodal_prefiller.h"
 #include "constants.h"
 #include "util.h"
+#include <algorithm>
 
 namespace executorch::extension::llm {
 
@@ -21,11 +22,10 @@ using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
 MultimodalPrefiller::MultimodalPrefiller(
-    Module *module, MultimodalDecoderRunner *decoder_runner,
-    tokenizers::HFTokenizer *tokenizer, IOManager *io_manager,
-    IEncoder *image_encoder)
-    : module_(module), decoder_runner_(decoder_runner), tokenizer_(tokenizer),
-      io_manager_(io_manager), image_encoder_(image_encoder) {}
+    Module &module, MultimodalDecoderRunner &decoder_runner,
+    tokenizers::HFTokenizer &tokenizer, IEncoder *image_encoder)
+    : module_(&module), decoder_runner_(&decoder_runner),
+      tokenizer_(&tokenizer), image_encoder_(image_encoder) {}
 
 Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
                                               int64_t &start_pos) {
@@ -65,7 +65,7 @@ Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
     }
 
     padded_tokens_storage.assign(max_seq_len, 0);
-    std::copy(tokens.begin(), tokens.end(), padded_tokens_storage.begin());
+    std::ranges::copy(tokens, padded_tokens_storage.begin());
 
     auto text_tensor = ::executorch::extension::from_blob(
         padded_tokens_storage.data(), {1, static_cast<SizesType>(max_seq_len)},

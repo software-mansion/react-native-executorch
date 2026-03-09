@@ -26,13 +26,16 @@ int32_t MultimodalRunner::get_visual_token_count() const {
 }
 
 bool MultimodalRunner::is_loaded() const {
-  if (!mm_prefiller_ || !mm_token_generator_)
+  if (!mm_prefiller_ || !mm_token_generator_) {
     return false;
-  if (!mm_prefiller_->is_method_loaded() || !mm_token_generator_->is_loaded())
+  }
+  if (!mm_prefiller_->is_method_loaded() || !mm_token_generator_->is_loaded()) {
     return false;
+  }
   for (const auto &[type, encoder] : encoders_) {
-    if (!encoder->is_loaded())
+    if (!encoder->is_loaded()) {
       return false;
+    }
   }
   return true;
 }
@@ -52,8 +55,7 @@ Error MultimodalRunner::load_subcomponents() {
     image_encoder = enc_it->second.get();
   }
   mm_prefiller_ = std::make_unique<MultimodalPrefiller>(
-      module_.get(), mm_decoder_runner_.get(), tokenizer_.get(),
-      io_manager_.get(), image_encoder);
+      *module_, *mm_decoder_runner_, *tokenizer_, image_encoder);
   mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids_), stats_ptr);
@@ -68,10 +70,12 @@ Error MultimodalRunner::generate_internal(
     const std::vector<MultimodalInput> &inputs,
     std::function<void(const std::string &)> token_callback) {
 
-  if (inputs.empty())
+  if (inputs.empty()) {
     return Error::InvalidArgument;
-  if (!is_loaded())
+  }
+  if (!is_loaded()) {
     ET_CHECK_OK_OR_RETURN_ERROR(load());
+  }
 
   stats_.inference_start_ms = time_in_ms();
 
@@ -116,18 +120,21 @@ Error MultimodalRunner::generate_internal(
 }
 
 void MultimodalRunner::stop_impl() {
-  if (mm_token_generator_)
+  if (mm_token_generator_) {
     mm_token_generator_->stop();
+  }
 }
 
 void MultimodalRunner::set_count_interval_impl(size_t count_interval) {
-  if (mm_token_generator_)
+  if (mm_token_generator_) {
     mm_token_generator_->set_count_interval(count_interval);
+  }
 }
 
 void MultimodalRunner::set_time_interval_impl(size_t time_interval) {
-  if (mm_token_generator_)
+  if (mm_token_generator_) {
     mm_token_generator_->set_time_interval(time_interval);
+  }
 }
 
 } // namespace executorch::extension::llm

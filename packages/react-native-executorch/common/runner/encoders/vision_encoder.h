@@ -18,7 +18,7 @@ public:
   bool is_loaded() const noexcept override;
   ::executorch::runtime::Result<::executorch::runtime::EValue>
   encode(const MultimodalInput &input) override;
-  int32_t encoderTokenCount() const noexcept override;
+  int32_t encoderTokenCount() const override;
 
 private:
   struct ImageShape {

@@ -22,11 +22,8 @@ struct ImagePath {
 
 class MultimodalInput {
 public:
-  explicit MultimodalInput(const std::string &text) : data_(text) {}
-  explicit MultimodalInput(std::string &&text) : data_(std::move(text)) {}
-  explicit MultimodalInput(const std::vector<uint64_t> &tokens)
-      : data_(tokens) {}
-  explicit MultimodalInput(std::vector<uint64_t> &&tokens)
+  explicit MultimodalInput(std::string text) : data_(std::move(text)) {}
+  explicit MultimodalInput(std::vector<uint64_t> tokens)
       : data_(std::move(tokens)) {}
   explicit MultimodalInput(ImagePath image_path)
       : data_(std::move(image_path)) {}

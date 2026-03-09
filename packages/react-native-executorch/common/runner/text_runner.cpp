@@ -4,7 +4,6 @@
 #include "util.h"
 #include <cstdint>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 
 namespace executorch::extension::llm {
 
@@ -140,13 +139,15 @@ void TextRunner::set_topp_impl(float topp) {
 }
 
 void TextRunner::set_count_interval_impl(size_t count_interval) {
-  if (text_token_generator_)
+  if (text_token_generator_) {
     text_token_generator_->set_count_interval(count_interval);
+  }
 }
 
 void TextRunner::set_time_interval_impl(size_t time_interval) {
-  if (text_token_generator_)
+  if (text_token_generator_) {
     text_token_generator_->set_time_interval(time_interval);
+  }
 }
 
 } // namespace executorch::extension::llm

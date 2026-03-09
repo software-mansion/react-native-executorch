@@ -20,10 +20,9 @@ namespace executorch::extension::llm {
 
 class MultimodalPrefiller {
 public:
-  explicit MultimodalPrefiller(Module *module,
-                               MultimodalDecoderRunner *decoder_runner,
-                               tokenizers::HFTokenizer *tokenizer,
-                               IOManager *io_manager,
+  explicit MultimodalPrefiller(Module &module,
+                               MultimodalDecoderRunner &decoder_runner,
+                               tokenizers::HFTokenizer &tokenizer,
                                IEncoder *image_encoder = nullptr);
 
   // Prefill one input segment. Updates start_pos in-place.
@@ -38,7 +37,6 @@ private:
   Module *module_;
   MultimodalDecoderRunner *decoder_runner_;
   tokenizers::HFTokenizer *tokenizer_;
-  IOManager *io_manager_;
   IEncoder *image_encoder_;
 };
 

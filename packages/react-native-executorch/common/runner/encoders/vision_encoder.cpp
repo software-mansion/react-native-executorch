@@ -40,7 +40,7 @@ bool VisionEncoder::is_loaded() const noexcept {
   return module_->is_method_loaded(kVisionEncoderMethod);
 }
 
-int32_t VisionEncoder::encoderTokenCount() const noexcept {
+int32_t VisionEncoder::encoderTokenCount() const {
   if (!is_loaded()) {
     return 0;
   }
