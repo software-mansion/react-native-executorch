@@ -88,7 +88,7 @@ export class SemanticSegmentationModule<
    * Creates a segmentation instance for a built-in model.
    * The config object is discriminated by `modelName` — each model can require different fields.
    *
-   * @param config - A {@link SemanticSegmentationModelSources} object specifying which model to load and where to fetch it from.
+   * @param namedSources - A {@link SemanticSegmentationModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SemanticSegmentationModule` instance typed to the chosen model's label map.
    *
@@ -102,10 +102,10 @@ export class SemanticSegmentationModule<
    */
 
   static async fromModelName<C extends SemanticSegmentationModelSources>(
-    config: C,
+    namedSources: C,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<SemanticSegmentationModule<ModelNameOf<C>>> {
-    const { modelName, modelSource } = config;
+    const { modelName, modelSource } = namedSources;
     const { labelMap } = ModelConfigs[modelName];
     const { preprocessorConfig } = ModelConfigs[
       modelName
@@ -127,8 +127,9 @@ export class SemanticSegmentationModule<
   }
 
   /**
-   * Creates a segmentation instance with a user-provided label map and custom config.
+   * Creates a segmentation instance with a user-provided model binary and label map.
    * Use this when working with a custom-exported segmentation model that is not one of the built-in models.
+   * Internally uses `'custom'` as the model name for telemetry unless overridden.
    *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link SemanticSegmentationConfig} object with the label map and optional preprocessing parameters.
@@ -138,13 +139,13 @@ export class SemanticSegmentationModule<
    * @example
    * ```ts
    * const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
-   * const segmentation = await SemanticSegmentationModule.fromCustomConfig(
+   * const segmentation = await SemanticSegmentationModule.fromCustomModel(
    *   'https://example.com/custom_model.pte',
    *   { labelMap: MyLabels },
    * );
    * ```
    */
-  static async fromCustomConfig<L extends LabelEnum>(
+  static async fromCustomModel<L extends LabelEnum>(
     modelSource: ResourceSource,
     config: SemanticSegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}

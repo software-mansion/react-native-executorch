@@ -66,17 +66,17 @@ export class ObjectDetectionModule<
   /**
    * Creates an object detection instance for a built-in model.
    *
-   * @param config - A {@link ObjectDetectionModelSources} object specifying which model to load and where to fetch it from.
+   * @param namedSources - A {@link ObjectDetectionModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the chosen model's label map.
    */
   static async fromModelName<C extends ObjectDetectionModelSources>(
-    config: C,
+    namedSources: C,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ObjectDetectionModule<ModelNameOf<C>>> {
-    const { modelSource } = config;
+    const { modelSource } = namedSources;
     const { labelMap, preprocessorConfig } = ModelConfigs[
-      config.modelName
+      namedSources.modelName
     ] as ObjectDetectionConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
@@ -101,14 +101,6 @@ export class ObjectDetectionModule<
   }
 
   /**
-   * Creates an object detection instance with a user-provided label map and custom config.
-   *
-   * @param modelSource - A fetchable resource pointing to the model binary.
-   * @param config - A {@link ObjectDetectionConfig} object with the label map.
-   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the provided label map.
-   */
-  /**
    * Executes the model's forward pass to detect objects within the provided image.
    *
    * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
@@ -122,7 +114,17 @@ export class ObjectDetectionModule<
     return super.forward(input, detectionThreshold);
   }
 
-  static async fromCustomConfig<L extends LabelEnum>(
+  /**
+   * Creates an object detection instance with a user-provided model binary and label map.
+   * Use this when working with a custom-exported model that is not one of the built-in presets.
+   * Internally uses `'custom'` as the model name for telemetry unless overridden.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param config - A {@link ObjectDetectionConfig} object with the label map and optional preprocessing parameters.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the provided label map.
+   */
+  static async fromCustomModel<L extends LabelEnum>(
     modelSource: ResourceSource,
     config: ObjectDetectionConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
