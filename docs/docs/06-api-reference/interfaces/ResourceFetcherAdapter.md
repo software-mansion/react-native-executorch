@@ -1,6 +1,6 @@
 # Interface: ResourceFetcherAdapter
 
-Defined in: [utils/ResourceFetcher.ts:18](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L18)
+Defined in: [utils/ResourceFetcher.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L48)
 
 Adapter interface for resource fetching operations.
 **Required Methods:**
@@ -19,7 +19,7 @@ these two methods for the library to function correctly.
 
 > **fetch**(`callback`, ...`sources`): `Promise`\<`string`[] \| `null`\>
 
-Defined in: [utils/ResourceFetcher.ts:30](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L30)
+Defined in: [utils/ResourceFetcher.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L60)
 
 Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
 
@@ -54,7 +54,7 @@ If the fetch was interrupted, it returns a promise which resolves to `null`.
 
 > **readAsString**(`path`): `Promise`\<`string`\>
 
-Defined in: [utils/ResourceFetcher.ts:44](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L44)
+Defined in: [utils/ResourceFetcher.ts:74](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L74)
 
 Read file contents as a string.
 
