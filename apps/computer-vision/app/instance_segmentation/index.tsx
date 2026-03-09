@@ -95,7 +95,7 @@ export default function InstanceSegmentationScreen() {
 
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({
-      model: YOLO26X_SEG,
+      model: YOLO26N_SEG,
     });
 
   const [imageUri, setImageUri] = useState('');

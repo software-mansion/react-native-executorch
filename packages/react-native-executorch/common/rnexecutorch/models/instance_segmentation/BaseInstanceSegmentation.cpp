@@ -5,6 +5,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
+
 namespace rnexecutorch::models::instance_segmentation {
 
 BaseInstanceSegmentation::BaseInstanceSegmentation(
@@ -13,7 +14,6 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker),
       postprocessorType_(postprocessorType), applyNMS_(applyNMS) {
-  // Validate postprocessor type
   if (postprocessorType_ != "yolo" && postprocessorType_ != "rfdetr") {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidConfig,
@@ -21,7 +21,7 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
             postprocessorType_);
   }
 
-  // Store normalization parameters if provided
+  avalivableMethods_ = *module_->method_names();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   }
@@ -29,7 +29,6 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
   }
 
-  // For multi-method models, we set a default size
   modelImageSize = cv::Size(416, 416);
 }
 
@@ -54,7 +53,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::nonMaxSuppression(
     return {};
   }
 
-  // Sort by score (descending)
   std::sort(instances.begin(), instances.end(),
             [](const types::InstanceMask &a, const types::InstanceMask &b) {
               return a.score > b.score;
@@ -75,7 +73,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::nonMaxSuppression(
         continue;
       }
 
-      // Only suppress if same class
       if (instances[i].label == instances[j].label) {
         float iou = intersectionOverUnion(instances[i], instances[j]);
         if (iou > iouThreshold) {
@@ -94,7 +91,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     int maxInstances, const std::vector<int32_t> &classIndices,
     bool returnMaskAtOriginalResolution) {
 
-  // Validate parameters
   if (confidenceThreshold <= 0 || confidenceThreshold > 1) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "Confidence threshold must be greater than 0 "
@@ -107,13 +103,9 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
                             "and less than or equal to 1.");
   }
 
-  // Check postprocessor type and delegate
-  if (postprocessorType_ == "yolo") {
-    // Continue with YOLO postprocessing below
-  } else if (postprocessorType_ == "rfdetr") {
+  if (postprocessorType_ == "rfdetr") {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "RF-DETR postprocessing is not yet implemented. "
-                            "Only YOLO models are currently supported.");
+                            "RF-DETR not implemented in this POC build.");
   }
 
   float widthRatio =
@@ -121,164 +113,316 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   float heightRatio =
       static_cast<float>(originalSize.height) / modelInputSize.height;
 
-  std::vector<types::InstanceMask> instances;
-
-  // ACTUAL tensor format from YOLO instance segmentation:
-  // tensors[0]: [1, 300, 38] - postprocessed detections
-  //             Format per detection: [x1, y1, x2, y2, score, class,
-  //             mask_coef_0...31]
-  // tensors[1]: [1, 32, 128, 128] - prototype masks
-
-  if (tensors.size() < 2) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnexpectedNumInputs,
-        "Expected at least 2 output tensors (detections, prototype masks).");
-  }
-
-  // Parse Tensor 0: postprocessed detections [1, 300, 38]
-  auto detectionTensor = tensors.at(0).toTensor();
-  if (detectionTensor.dim() != 3 || detectionTensor.size(2) != 38) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Expected detection tensor shape [1, N, 38]");
-  }
-
-  int maxDetections = detectionTensor.size(1);
-  const float *detectionData =
-      static_cast<const float *>(detectionTensor.const_data_ptr());
-
-  // Parse Tensor 1: prototype masks [1, 32, H, W]
-  auto protoTensor = tensors.at(1).toTensor();
-  if (protoTensor.dim() != 4 || protoTensor.size(1) != 32) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnexpectedNumInputs,
-        "Expected prototype mask tensor shape [1, 32, H, W]");
-  }
-
-  int protoHeight = protoTensor.size(2);
-  int protoWidth = protoTensor.size(3);
-  const float *protoData =
-      static_cast<const float *>(protoTensor.const_data_ptr());
-
-  // Create a set for fast class lookup if classIndices is provided
   std::set<int32_t> allowedClasses;
   if (!classIndices.empty()) {
     allowedClasses.insert(classIndices.begin(), classIndices.end());
   }
 
-  // Parse each detection from Tensor 0
-  for (int i = 0; i < maxDetections; ++i) {
-    // Each detection: [x1, y1, x2, y2, score, class, mask_coef_0...31]
-    const float *detection = detectionData + (i * 38);
+  std::vector<types::InstanceMask> instances;
 
-    float x1 = detection[0];
-    float y1 = detection[1];
-    float x2 = detection[2];
-    float y2 = detection[3];
-    float score = detection[4];
-    int label = static_cast<int>(detection[5]);
+  size_t numTensors = tensors.size();
+  if (numTensors < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Expected at least 2 output tensors, got " +
+                                std::to_string(numTensors));
+  }
 
-    // Skip if below confidence threshold
-    if (score < confidenceThreshold) {
-      continue;
+  auto firstTensor = tensors[0].toTensor();
+  int featureDim = firstTensor.size(firstTensor.dim() - 1);
+
+  // ════════════════════════════════════════════════════════════
+  // FORMAT A — YOLO NATIVE: [1,N,38] + [1,32,H,W]
+  //   Detection tensor: [x1,y1,x2,y2, score, class, coeff×32]
+  //   C++ computes: coefficients @ prototypes → mask per detection
+  // ════════════════════════════════════════════════════════════
+  if (featureDim == 38 && numTensors == 2) {
+
+    auto detectionTensor = tensors[0].toTensor();
+    auto protoTensor = tensors[1].toTensor();
+
+    if (protoTensor.dim() != 4 || protoTensor.size(1) != 32) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::UnexpectedNumInputs,
+          "Expected prototype mask tensor shape [1, 32, H, W]");
     }
 
-    // Filter by class if specified
-    if (!allowedClasses.empty() &&
-        allowedClasses.find(label) == allowedClasses.end()) {
-      continue;
-    }
+    int maxDetections = detectionTensor.size(1);
+    int protoHeight = protoTensor.size(2);
+    int protoWidth = protoTensor.size(3);
+    const float *detData =
+        static_cast<const float *>(detectionTensor.const_data_ptr());
+    const float *protoData =
+        static_cast<const float *>(protoTensor.const_data_ptr());
 
-    // Extract mask coefficients (32 values starting at index 6)
-    std::vector<float> maskCoefficients(32);
-    for (int j = 0; j < 32; j++) {
-      maskCoefficients[j] = detection[6 + j];
-    }
+    for (int i = 0; i < maxDetections; ++i) {
+      const float *det = detData + (i * 38);
 
-    // Generate instance mask by multiplying coefficients with prototype masks
-    // Result: [protoHeight, protoWidth]
-    std::vector<float> instanceMask(protoHeight * protoWidth, 0.0f);
+      float x1 = det[0];
+      float y1 = det[1];
+      float x2 = det[2];
+      float y2 = det[3];
+      float score = det[4];
+      int label = static_cast<int>(det[5]);
 
-    for (int maskIdx = 0; maskIdx < 32; maskIdx++) {
-      float coef = maskCoefficients[maskIdx];
-      const float *protoMask = protoData + (maskIdx * protoHeight * protoWidth);
+      if (score < confidenceThreshold)
+        continue;
+      if (!allowedClasses.empty() &&
+          allowedClasses.find(label) == allowedClasses.end())
+        continue;
 
-      for (int pixelIdx = 0; pixelIdx < protoHeight * protoWidth; pixelIdx++) {
-        instanceMask[pixelIdx] += coef * protoMask[pixelIdx];
-      }
-    }
-
-    // Apply sigmoid to mask values and threshold
-    std::vector<uint8_t> binaryMask(protoHeight * protoWidth);
-    for (int j = 0; j < protoHeight * protoWidth; j++) {
-      // Sigmoid: 1 / (1 + exp(-x))
-      float maskValue = 1.0f / (1.0f + std::exp(-instanceMask[j]));
-      binaryMask[j] = (maskValue > 0.5f) ? 1 : 0;
-    }
-
-    // Scale bounding box to original image size first
-    x1 *= widthRatio;
-    y1 *= heightRatio;
-    x2 *= widthRatio;
-    y2 *= heightRatio;
-
-    // Resize mask if needed
-    int finalMaskWidth = protoWidth;
-    int finalMaskHeight = protoHeight;
-    std::vector<uint8_t> finalMask = binaryMask;
-
-    if (returnMaskAtOriginalResolution) {
-      cv::Mat maskMat(protoHeight, protoWidth, CV_8UC1, binaryMask.data());
-      cv::Mat resizedMaskMat;
-      cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                 cv::INTER_NEAREST);
-
-      finalMaskWidth = originalSize.width;
-      finalMaskHeight = originalSize.height;
-
-      // Crop mask to bounding box (removes artifacts outside bbox)
-      for (int y = 0; y < finalMaskHeight; y++) {
-        for (int x = 0; x < finalMaskWidth; x++) {
-          int idx = y * finalMaskWidth + x;
-          // Zero out pixels outside the bounding box
-          if (x < x1 || x > x2 || y < y1 || y > y2) {
-            resizedMaskMat.data[idx] = 0;
-          }
+      // mask = coefficients @ prototypes
+      std::vector<float> instanceMask(protoHeight * protoWidth, 0.0f);
+      for (int m = 0; m < 32; m++) {
+        float coef = det[6 + m];
+        const float *proto = protoData + (m * protoHeight * protoWidth);
+        for (int p = 0; p < protoHeight * protoWidth; p++) {
+          instanceMask[p] += coef * proto[p];
         }
       }
 
-      finalMask.assign(resizedMaskMat.data,
-                       resizedMaskMat.data + resizedMaskMat.total());
+      std::vector<uint8_t> binaryMask(protoHeight * protoWidth);
+      for (int j = 0; j < protoHeight * protoWidth; j++) {
+        float v = 1.0f / (1.0f + std::exp(-instanceMask[j]));
+        binaryMask[j] = (v > 0.5f) ? 1 : 0;
+      }
+
+      x1 *= widthRatio;
+      y1 *= heightRatio;
+      x2 *= widthRatio;
+      y2 *= heightRatio;
+
+      int finalMaskWidth = protoWidth;
+      int finalMaskHeight = protoHeight;
+      std::vector<uint8_t> finalMask = binaryMask;
+
+      if (returnMaskAtOriginalResolution) {
+        cv::Mat maskMat(protoHeight, protoWidth, CV_8UC1, binaryMask.data());
+        cv::Mat resizedMaskMat;
+        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
+                   cv::INTER_NEAREST);
+        finalMaskWidth = originalSize.width;
+        finalMaskHeight = originalSize.height;
+        for (int y = 0; y < finalMaskHeight; y++)
+          for (int x = 0; x < finalMaskWidth; x++)
+            if (x < x1 || x > x2 || y < y1 || y > y2)
+              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
+        finalMask.assign(resizedMaskMat.data,
+                         resizedMaskMat.data + resizedMaskMat.total());
+      }
+
+      types::InstanceMask instance;
+      instance.x1 = x1;
+      instance.y1 = y1;
+      instance.x2 = x2;
+      instance.y2 = y2;
+      instance.mask = std::move(finalMask);
+      instance.maskWidth = finalMaskWidth;
+      instance.maskHeight = finalMaskHeight;
+      instance.label = label;
+      instance.score = score;
+      instance.instanceId = i;
+      instances.push_back(std::move(instance));
     }
+  }
+  // ════════════════════════════════════════════════════════════
+  // FORMAT B — CONTRACT: [1,N,4] + [1,N,2] + [1,N,H,W]
+  //   bbox:        x1,y1,x2,y2 in model-input coordinates
+  //   scores:      (max_score, class_id)  — score is post-sigmoid
+  //   mask_logits: pre-sigmoid, per-detection, at whatever resolution
+  //                the export chose (128×128, 64×64, 32×32, etc.)
+  // ════════════════════════════════════════════════════════════
+  else if (featureDim == 4 && numTensors == 3) {
 
-    types::InstanceMask instance;
-    instance.x1 = x1;
-    instance.y1 = y1;
-    instance.x2 = x2;
-    instance.y2 = y2;
-    instance.mask = std::move(finalMask);
-    instance.maskWidth = finalMaskWidth;
-    instance.maskHeight = finalMaskHeight;
-    instance.label = label;
-    instance.score = score;
-    instance.instanceId = i;
+    auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
+    auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
+    auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
 
-    instances.push_back(std::move(instance));
+    int N = bboxTensor.size(1);
+    int maskH = maskTensor.size(2);
+    int maskW = maskTensor.size(3);
+
+    const float *bboxData =
+        static_cast<const float *>(bboxTensor.const_data_ptr());
+    const float *scoresData =
+        static_cast<const float *>(scoresTensor.const_data_ptr());
+    const float *maskData =
+        static_cast<const float *>(maskTensor.const_data_ptr());
+
+    for (int i = 0; i < N; ++i) {
+      float x1 = bboxData[i * 4 + 0];
+      float y1 = bboxData[i * 4 + 1];
+      float x2 = bboxData[i * 4 + 2];
+      float y2 = bboxData[i * 4 + 3];
+      float score = scoresData[i * 2 + 0];
+      int label = static_cast<int>(scoresData[i * 2 + 1]);
+
+      if (score < confidenceThreshold)
+        continue;
+      if (!allowedClasses.empty() &&
+          allowedClasses.find(label) == allowedClasses.end())
+        continue;
+
+      // Mask logits are pre-computed — just sigmoid + threshold
+      const float *logits = maskData + (i * maskH * maskW);
+      std::vector<uint8_t> binaryMask(maskH * maskW);
+      for (int j = 0; j < maskH * maskW; j++) {
+        float v = 1.0f / (1.0f + std::exp(-logits[j]));
+        binaryMask[j] = (v > 0.5f) ? 1 : 0;
+      }
+
+      x1 *= widthRatio;
+      y1 *= heightRatio;
+      x2 *= widthRatio;
+      y2 *= heightRatio;
+
+      int finalMaskWidth = maskW;
+      int finalMaskHeight = maskH;
+      std::vector<uint8_t> finalMask = binaryMask;
+
+      if (returnMaskAtOriginalResolution) {
+        cv::Mat maskMat(maskH, maskW, CV_8UC1, binaryMask.data());
+        cv::Mat resizedMaskMat;
+        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
+                   cv::INTER_NEAREST);
+        finalMaskWidth = originalSize.width;
+        finalMaskHeight = originalSize.height;
+        for (int y = 0; y < finalMaskHeight; y++)
+          for (int x = 0; x < finalMaskWidth; x++)
+            if (x < x1 || x > x2 || y < y1 || y > y2)
+              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
+        finalMask.assign(resizedMaskMat.data,
+                         resizedMaskMat.data + resizedMaskMat.total());
+      }
+
+      types::InstanceMask instance;
+      instance.x1 = x1;
+      instance.y1 = y1;
+      instance.x2 = x2;
+      instance.y2 = y2;
+      instance.mask = std::move(finalMask);
+      instance.maskWidth = finalMaskWidth;
+      instance.maskHeight = finalMaskHeight;
+      instance.label = label;
+      instance.score = score;
+      instance.instanceId = i;
+      instances.push_back(std::move(instance));
+    }
+  }
+  // ════════════════════════════════════════════════════════════
+  // FORMAT C — COEFFS+PROTOS: [1,N,4] + [1,N,2] + [1,N,32] + [1,32,H,W]
+  //   Same bbox/scores as contract, but masks are NOT pre-computed.
+  //   C++ computes masks only for detections that pass the filter,
+  //   which is far cheaper than doing bmm for all 300 in the model.
+  // ════════════════════════════════════════════════════════════
+  else if (featureDim == 4 && numTensors == 4) {
+
+    auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
+    auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
+    auto coeffsTensor = tensors[2].toTensor(); // [1, N, nm]
+    auto protoTensor = tensors[3].toTensor();  // [1, nm, H, W]
+
+    int N = bboxTensor.size(1);
+    int nm = coeffsTensor.size(2);
+    int protoH = protoTensor.size(2);
+    int protoW = protoTensor.size(3);
+
+    const float *bboxData =
+        static_cast<const float *>(bboxTensor.const_data_ptr());
+    const float *scoresData =
+        static_cast<const float *>(scoresTensor.const_data_ptr());
+    const float *coeffsData =
+        static_cast<const float *>(coeffsTensor.const_data_ptr());
+    const float *protoData =
+        static_cast<const float *>(protoTensor.const_data_ptr());
+
+    for (int i = 0; i < N; ++i) {
+      float x1 = bboxData[i * 4 + 0];
+      float y1 = bboxData[i * 4 + 1];
+      float x2 = bboxData[i * 4 + 2];
+      float y2 = bboxData[i * 4 + 3];
+      float score = scoresData[i * 2 + 0];
+      int label = static_cast<int>(scoresData[i * 2 + 1]);
+
+      if (score < confidenceThreshold)
+        continue;
+      if (!allowedClasses.empty() &&
+          allowedClasses.find(label) == allowedClasses.end())
+        continue;
+
+      // Compute mask: coeffs[i] @ protos → [protoH * protoW]
+      const float *coeffs = coeffsData + (i * nm);
+      std::vector<float> instanceMask(protoH * protoW, 0.0f);
+      for (int m = 0; m < nm; m++) {
+        float coef = coeffs[m];
+        const float *proto = protoData + (m * protoH * protoW);
+        for (int p = 0; p < protoH * protoW; p++) {
+          instanceMask[p] += coef * proto[p];
+        }
+      }
+
+      std::vector<uint8_t> binaryMask(protoH * protoW);
+      for (int j = 0; j < protoH * protoW; j++) {
+        float v = 1.0f / (1.0f + std::exp(-instanceMask[j]));
+        binaryMask[j] = (v > 0.5f) ? 1 : 0;
+      }
+
+      x1 *= widthRatio;
+      y1 *= heightRatio;
+      x2 *= widthRatio;
+      y2 *= heightRatio;
+
+      int finalMaskWidth = protoW;
+      int finalMaskHeight = protoH;
+      std::vector<uint8_t> finalMask = binaryMask;
+
+      if (returnMaskAtOriginalResolution) {
+        cv::Mat maskMat(protoH, protoW, CV_8UC1, binaryMask.data());
+        cv::Mat resizedMaskMat;
+        cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
+                   cv::INTER_NEAREST);
+        finalMaskWidth = originalSize.width;
+        finalMaskHeight = originalSize.height;
+        for (int y = 0; y < finalMaskHeight; y++)
+          for (int x = 0; x < finalMaskWidth; x++)
+            if (x < x1 || x > x2 || y < y1 || y > y2)
+              resizedMaskMat.data[y * finalMaskWidth + x] = 0;
+        finalMask.assign(resizedMaskMat.data,
+                         resizedMaskMat.data + resizedMaskMat.total());
+      }
+
+      types::InstanceMask instance;
+      instance.x1 = x1;
+      instance.y1 = y1;
+      instance.x2 = x2;
+      instance.y2 = y2;
+      instance.mask = std::move(finalMask);
+      instance.maskWidth = finalMaskWidth;
+      instance.maskHeight = finalMaskHeight;
+      instance.label = label;
+      instance.score = score;
+      instance.instanceId = i;
+      instances.push_back(std::move(instance));
+    }
+  }
+  // ════════════════════════════════════════════════════════════
+  else {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::UnexpectedNumInputs,
+        "Unrecognized output format: " + std::to_string(numTensors) +
+            " tensors, first tensor last dim = " + std::to_string(featureDim) +
+            ". Expected YOLO native (2 tensors, dim=38), contract (3 tensors, "
+            "dim=4), or coeffs+protos (4 tensors, dim=4).");
   }
 
-  // Apply NMS if enabled
-  // Note: Some models (like YOLO) already apply NMS internally,
-  // but we can apply it again if requested with a different IoU threshold
+  // Finalize: NMS + limit + renumber
   if (applyNMS_ && iouThreshold < 0.45) {
-    // Only apply additional NMS if threshold is stricter than model's default
     instances = nonMaxSuppression(instances, iouThreshold);
   }
 
-  // Limit to maxInstances
   if (instances.size() > static_cast<size_t>(maxInstances)) {
     instances.resize(maxInstances);
   }
 
-  // Update instance IDs to be sequential
   for (size_t i = 0; i < instances.size(); ++i) {
     instances[i].instanceId = static_cast<int>(i);
   }
@@ -291,20 +435,20 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
     int maxInstances, std::vector<int32_t> classIndices,
     bool returnMaskAtOriginalResolution, int32_t inputSize) {
 
-  // Construct method name from inputSize (e.g., 512 -> "forward_512")
   std::string methodName = getMethodName(inputSize);
+  if (currentlyLoadedMethod_ == "") {
+    currentlyLoadedMethod_ = methodName;
+  } else {
+    module_->unload_method(currentlyLoadedMethod_);
+    currentlyLoadedMethod_ = methodName;
+  }
+  module_->load_method(methodName);
   cv::Size modelInputSize(inputSize, inputSize);
-
-  // Create input shape
   std::vector<int32_t> inputShape = {1, 3, inputSize, inputSize};
 
-  // Read and preprocess image with optional normalization
-  // readImageToTensor will apply normalization if normMean_ and normStd_ are
-  // provided
   auto [inputTensor, originalSize] = image_processing::readImageToTensor(
       imageSource, inputShape, false, normMean_, normStd_);
 
-  // Execute model
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
   if (!forwardResult.ok()) {
     throw RnExecutorchError(

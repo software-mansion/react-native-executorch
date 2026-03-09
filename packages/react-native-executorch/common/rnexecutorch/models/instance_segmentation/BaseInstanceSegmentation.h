@@ -8,6 +8,7 @@
 #include "Types.h"
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
+#include <unordered_set>
 
 namespace rnexecutorch {
 namespace models::instance_segmentation {
@@ -53,6 +54,8 @@ private:
   std::optional<cv::Scalar> normStd_;
   bool applyNMS_;
   cv::Size modelImageSize{0, 0};
+  std::unordered_set<std::string> avalivableMethods_;
+  std::string currentlyLoadedMethod_;
 };
 } // namespace models::instance_segmentation
 
