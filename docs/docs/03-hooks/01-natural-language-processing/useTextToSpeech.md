@@ -82,16 +82,23 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-The module provides two ways to generate speech:
+The module provides two ways to generate speech using either raw text or pre-generated phonemes:
 
-1.  [**`forward(text, speed)`**](../../06-api-reference/interfaces/TextToSpeechType.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+### Using Text
+
+1.  [**`forward({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+2.  [**`stream({ text, speed, onNext, ... })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+
+### Using Phonemes
+
+If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:
+
+1.  [**`forwardFromPhonemes({ phonemes, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#forwardfromphonemes): Generates the complete audio waveform from a phoneme string.
+2.  [**`streamFromPhonemes({ phonemes, speed, onNext, ... })`**](../../06-api-reference/interfaces/TextToSpeechType.md#streamfromphonemes): Streams audio chunks generated from a phoneme string.
 
 :::note
-Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
+Since `forward` and `forwardFromPhonemes` process the entire input at once, they might take a significant amount of time to produce audio for long inputs.
 :::
-
-2.  [**`stream({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed.
-    This is ideal for reducing the "time to first audio" for long sentences.
 
 ## Example
 
@@ -180,6 +187,48 @@ export default function App() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button title="Stream" onPress={generateStream} disabled={!tts.isReady} />
+    </View>
+  );
+}
+```
+
+### Synthesis from Phonemes
+
+If you already have a phoneme string obtained from an external source (e.g. the Python `phonemizer` library,
+`espeak-ng`, or any custom phonemizer), you can use `forwardFromPhonemes` or `streamFromPhonemes` to synthesize audio directly, skipping the phoneme generation stage.
+
+```tsx
+import React from 'react';
+import { Button, View } from 'react-native';
+import {
+  useTextToSpeech,
+  KOKORO_MEDIUM,
+  KOKORO_VOICE_AF_HEART,
+} from 'react-native-executorch';
+
+export default function App() {
+  const tts = useTextToSpeech({
+    model: KOKORO_MEDIUM,
+    voice: KOKORO_VOICE_AF_HEART,
+  });
+
+  const synthesizePhonemes = async () => {
+    // Example phonemes for "Hello"
+    const audioData = await tts.forwardFromPhonemes({
+      phonemes:
+        'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
+    });
+
+    // ... process or play audioData ...
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button
+        title="Synthesize Phonemes"
+        onPress={synthesizePhonemes}
+        disabled={!tts.isReady}
+      />
     </View>
   );
 }

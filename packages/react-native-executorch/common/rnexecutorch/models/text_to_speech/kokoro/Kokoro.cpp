@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <phonemis/utilities/string_utils.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 
@@ -73,16 +74,9 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   }
 }
 
-std::vector<float> Kokoro::generate(std::string text, float speed) {
-  if (text.size() > params::kMaxTextSize) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: maximum input text size exceeded");
-  }
-
-  // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_.process(text);
-
-  // Divide the phonemes string intro substrings.
+std::vector<float>
+Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
+  // Divide the phonemes string into substrings.
   // Affects the further calculations only in case of string size
   // exceeding the biggest model's input.
   auto subsentences =
@@ -98,26 +92,20 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-    std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
-    // Add audio part and pause to the main audio vector
+    // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
-    audio.insert(audio.end(), std::make_move_iterator(pause.begin()),
-                 std::make_move_iterator(pause.end()));
+    audio.resize(audio.size() + pauseMs * constants::kSamplesPerMilisecond,
+                 0.F);
   }
 
   return audio;
 }
 
-void Kokoro::stream(std::string text, float speed,
-                    std::shared_ptr<jsi::Function> callback) {
-  if (text.size() > params::kMaxTextSize) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: maximum input text size exceeded");
-  }
-
-  // Build a full callback function
+void Kokoro::streamFromPhonemesImpl(
+    const std::u32string &phonemes, float speed,
+    std::shared_ptr<jsi::Function> callback) {
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
       this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
@@ -127,21 +115,12 @@ void Kokoro::stream(std::string text, float speed,
     }
   };
 
-  // Mark the beginning of the streaming process
   isStreaming_ = true;
 
-  // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_.process(text);
-
-  // Divide the phonemes string intro substrings.
-  // Use specialized implementation to minimize the latency between the
-  // sentences.
+  // Use LATENCY strategy to minimize the time-to-first-audio for streaming
   auto subsentences =
       partitioner_.divide<Partitioner::Strategy::LATENCY>(phonemes);
 
-  // We follow the implementation of generate() method, but
-  // instead of accumulating results in a vector, we push them
-  // back to the JS side with the callback.
   for (size_t i = 0; i < subsentences.size(); i++) {
     if (!isStreaming_) {
       break;
@@ -151,7 +130,7 @@ void Kokoro::stream(std::string text, float speed,
 
     // Determine the silent padding duration to be stripped from the edges of
     // the generated audio. If a chunk ends with a space or follows one that
-    // did, it indicates a word boundary split – we use a shorter padding (20ms)
+    // did, it indicates a word boundary split – we use a shorter padding
     // to ensure natural speech flow. Otherwise, we use 50ms for standard
     // pauses.
     bool endsWithSpace = (subsentence.back() == U' ');
@@ -161,23 +140,65 @@ void Kokoro::stream(std::string text, float speed,
     // Generate an audio vector with the Kokoro model
     auto audioPart = synthesize(subsentence, speed, paddingMs);
 
-    // Calculate a pause between the sentences
+    // Calculate and append a pause between the sentences
     char32_t lastPhoneme = subsentence.back();
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-    std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
-
-    // Add pause to the audio vector
-    audioPart.insert(audioPart.end(), std::make_move_iterator(pause.begin()),
-                     std::make_move_iterator(pause.end()));
+    audioPart.resize(
+        audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
     // Push the audio right away to the JS side
     nativeCallback(audioPart);
   }
 
-  // Mark the end of the streaming process
   isStreaming_ = false;
+}
+
+std::vector<float> Kokoro::generate(std::string text, float speed) {
+  if (text.size() > params::kMaxTextSize) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: maximum input text size exceeded");
+  }
+
+  // G2P (Grapheme to Phoneme) conversion
+  auto phonemes = phonemizer_.process(text);
+
+  return generateFromPhonemesImpl(phonemes, speed);
+}
+
+std::vector<float> Kokoro::generateFromPhonemes(std::string phonemes,
+                                                float speed) {
+  if (phonemes.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: phoneme string must not be empty");
+  }
+  return generateFromPhonemesImpl(
+      phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed);
+}
+
+void Kokoro::stream(std::string text, float speed,
+                    std::shared_ptr<jsi::Function> callback) {
+  if (text.size() > params::kMaxTextSize) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: maximum input text size exceeded");
+  }
+
+  // G2P (Grapheme to Phoneme) conversion
+  auto phonemes = phonemizer_.process(text);
+
+  streamFromPhonemesImpl(phonemes, speed, callback);
+}
+
+void Kokoro::streamFromPhonemes(std::string phonemes, float speed,
+                                std::shared_ptr<jsi::Function> callback) {
+  if (phonemes.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: phoneme string must not be empty");
+  }
+  streamFromPhonemesImpl(
+      phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed,
+      callback);
 }
 
 void Kokoro::streamStop() noexcept { isStreaming_ = false; }

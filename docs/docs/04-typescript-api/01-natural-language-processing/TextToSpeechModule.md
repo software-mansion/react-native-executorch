@@ -53,15 +53,23 @@ For more information on resource sources, see [loading models](../../01-fundamen
 
 ## Running the model
 
-The module provides two ways to generate speech:
+The module provides two ways to generate speech using either raw text or pre-generated phonemes:
+
+### Using Text
 
 1.  [**`forward(text, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+2.  [**`stream({ text, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+
+### Using Phonemes
+
+If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:
+
+1.  [**`forwardFromPhonemes(phonemes, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forwardfromphonemes): Generates the complete audio waveform from a phoneme string.
+2.  [**`streamFromPhonemes({ phonemes, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#streamfromphonemes): Streams audio chunks generated from a phoneme string.
 
 :::note
-Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
+Since `forward` and `forwardFromPhonemes` process the entire input at once, they might take a significant amount of time to produce audio for long inputs.
 :::
-
-2.  [**`stream({ text, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
 
 ## Example
 
@@ -133,5 +141,36 @@ try {
   }
 } catch (error) {
   console.error('Streaming failed:', error);
+}
+```
+
+### Synthesis from Phonemes
+
+If you already have a phoneme string (e.g., from an external library), you can use `forwardFromPhonemes` or `streamFromPhonemes` to synthesize audio directly, skipping the internal phonemizer stage.
+
+```typescript
+import {
+  TextToSpeechModule,
+  KOKORO_MEDIUM,
+  KOKORO_VOICE_AF_HEART,
+} from 'react-native-executorch';
+
+const tts = new TextToSpeechModule();
+
+await tts.load({
+  model: KOKORO_MEDIUM,
+  voice: KOKORO_VOICE_AF_HEART,
+});
+
+// Example phonemes for "ExecuTorch"
+const waveform = await tts.forwardFromPhonemes('həlˈO wˈɜɹld!', 1.0);
+
+// Or stream from phonemes
+for await (const chunk of tts.streamFromPhonemes({
+  phonemes:
+    'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
+  speed: 1.0,
+})) {
+  // ... process chunk ...
 }
 ```
