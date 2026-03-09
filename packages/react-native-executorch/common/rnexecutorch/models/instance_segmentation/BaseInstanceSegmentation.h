@@ -27,7 +27,7 @@ public:
   generate(std::string imageSource, double confidenceThreshold,
            double iouThreshold, int maxInstances,
            std::vector<int32_t> classIndices,
-           bool returnMaskAtOriginalResolution, int32_t inputSize);
+           bool returnMaskAtOriginalResolution, std::string methodName);
 
 private:
   std::vector<types::InstanceMask>
@@ -43,10 +43,6 @@ private:
   std::vector<types::InstanceMask>
   nonMaxSuppression(std::vector<types::InstanceMask> instances,
                     double iouThreshold);
-
-  std::string getMethodName(int32_t inputSize) const {
-    return "forward_" + std::to_string(inputSize);
-  }
 
   // Member variables
   std::optional<cv::Scalar> normMean_;

@@ -134,6 +134,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
       static_cast<const float *>(scoresTensor.const_data_ptr());
   const float *maskData =
       static_cast<const float *>(maskTensor.const_data_ptr());
+  int32_t processed = 0;
 
   for (int i = 0; i < N; ++i) {
     float x1 = bboxData[i * 4 + 0];
@@ -157,43 +158,91 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
               ". Ensure the labelMap covers all model output classes.");
     }
 
-    // Mask logits are pre-computed — just sigmoid + threshold
+    // Scale bbox to original image coordinates
+    float origX1 = x1 * widthRatio;
+    float origY1 = y1 * heightRatio;
+    float origX2 = x2 * widthRatio;
+    float origY2 = y2 * heightRatio;
+
+    int bboxW = static_cast<int>(std::round(origX2 - origX1));
+    int bboxH = static_cast<int>(std::round(origY2 - origY1));
+
+    if (bboxW <= 0 || bboxH <= 0)
+      continue;
+
+    // Wrap logits in cv::Mat for vectorized operations
     const float *logits = maskData + (i * maskH * maskW);
-    std::vector<uint8_t> binaryMask(maskH * maskW);
-    for (int j = 0; j < maskH * maskW; j++) {
-      float v = 1.0f / (1.0f + std::exp(-logits[j]));
-      binaryMask[j] = (v > 0.5f) ? 1 : 0;
-    }
+    cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
 
-    x1 *= widthRatio;
-    y1 *= heightRatio;
-    x2 *= widthRatio;
-    y2 *= heightRatio;
+    // Float bounds in low-res mask space
+    float mx1F = x1 * maskW / modelInputSize.width;
+    float my1F = y1 * maskH / modelInputSize.height;
+    float mx2F = x2 * maskW / modelInputSize.width;
+    float my2F = y2 * maskH / modelInputSize.height;
 
-    int finalMaskWidth = maskW;
-    int finalMaskHeight = maskH;
-    std::vector<uint8_t> finalMask = binaryMask;
+    // Exact integer bounds (bbox region in mask coordinates)
+    int mx1 = std::max(0, static_cast<int>(std::floor(mx1F)));
+    int my1 = std::max(0, static_cast<int>(std::floor(my1F)));
+    int mx2 = std::min(maskW, static_cast<int>(std::ceil(mx2F)));
+    int my2 = std::min(maskH, static_cast<int>(std::ceil(my2F)));
+
+    if (mx2 <= mx1 || my2 <= my1)
+      continue;
+
+    cv::Mat finalBinaryMat;
+    int finalMaskWidth = bboxW;
+    int finalMaskHeight = bboxH;
 
     if (returnMaskAtOriginalResolution) {
-      cv::Mat maskMat(maskH, maskW, CV_8UC1, binaryMask.data());
-      cv::Mat resizedMaskMat;
-      cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                 cv::INTER_NEAREST);
-      finalMaskWidth = originalSize.width;
-      finalMaskHeight = originalSize.height;
-      for (int y = 0; y < finalMaskHeight; y++)
-        for (int x = 0; x < finalMaskWidth; x++)
-          if (x < x1 || x > x2 || y < y1 || y > y2)
-            resizedMaskMat.data[y * finalMaskWidth + x] = 0;
-      finalMask.assign(resizedMaskMat.data,
-                       resizedMaskMat.data + resizedMaskMat.total());
+      // 1px padding for warpAffine interpolation (prevents edge artifacts)
+      int pmx1 = std::max(0, mx1 - 1);
+      int pmy1 = std::max(0, my1 - 1);
+      int pmx2 = std::min(maskW, mx2 + 1);
+      int pmy2 = std::min(maskH, my2 + 1);
+
+      cv::Mat croppedLogits =
+          logitsMat(cv::Rect(pmx1, pmy1, pmx2 - pmx1, pmy2 - pmy1));
+      cv::Mat probMat;
+      cv::exp(-croppedLogits, probMat);
+      probMat = 255.0f / (1.0f + probMat);
+      probMat.convertTo(probMat, CV_8UC1);
+
+      // Affine matrix mapping padded crop -> bbox in original image space.
+      // Padding pixels fall outside the output and are clipped naturally.
+      float maskToOrigX = static_cast<float>(originalSize.width) / maskW;
+      float maskToOrigY = static_cast<float>(originalSize.height) / maskH;
+
+      cv::Mat M = (cv::Mat_<float>(2, 3) << maskToOrigX, 0,
+                   (pmx1 * maskToOrigX - origX1), 0, maskToOrigY,
+                   (pmy1 * maskToOrigY - origY1));
+
+      cv::Mat warpedMat;
+      cv::warpAffine(probMat, warpedMat, M, cv::Size(bboxW, bboxH),
+                     cv::INTER_LINEAR);
+
+      cv::threshold(warpedMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
+    } else {
+      // No padding needed — no interpolation, just threshold
+      cv::Mat croppedLogits =
+          logitsMat(cv::Rect(mx1, my1, mx2 - mx1, my2 - my1));
+      cv::Mat probMat;
+      cv::exp(-croppedLogits, probMat);
+      probMat = 255.0f / (1.0f + probMat);
+      probMat.convertTo(probMat, CV_8UC1);
+
+      cv::threshold(probMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
+      finalMaskWidth = finalBinaryMat.cols;
+      finalMaskHeight = finalBinaryMat.rows;
     }
 
+    std::vector<uint8_t> finalMask(
+        finalBinaryMat.data, finalBinaryMat.data + finalBinaryMat.total());
+
     types::InstanceMask instance;
-    instance.x1 = x1;
-    instance.y1 = y1;
-    instance.x2 = x2;
-    instance.y2 = y2;
+    instance.x1 = origX1;
+    instance.y1 = origY1;
+    instance.x2 = origX2;
+    instance.y2 = origY2;
     instance.mask = std::move(finalMask);
     instance.maskWidth = finalMaskWidth;
     instance.maskHeight = finalMaskHeight;
@@ -201,6 +250,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     instance.score = score;
     instance.instanceId = i;
     instances.push_back(std::move(instance));
+    ++processed;
   }
 
   // Finalize: NMS + limit + renumber
@@ -222,18 +272,27 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
 std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
     std::string imageSource, double confidenceThreshold, double iouThreshold,
     int maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, int32_t inputSize) {
+    bool returnMaskAtOriginalResolution, std::string methodName) {
 
-  std::string methodName = getMethodName(inputSize);
-  if (currentlyLoadedMethod_ == "") {
-    currentlyLoadedMethod_ = methodName;
-  } else {
-    module_->unload_method(currentlyLoadedMethod_);
-    currentlyLoadedMethod_ = methodName;
+  if (methodName.empty()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "methodName cannot be empty. Use 'forward' for single-method models "
+        "or 'forward_{inputSize}' for multi-method models.");
   }
-  module_->load_method(methodName);
+
+  if (currentlyLoadedMethod_ != methodName) {
+    if (!currentlyLoadedMethod_.empty()) {
+      module_->unload_method(currentlyLoadedMethod_);
+    }
+    currentlyLoadedMethod_ = methodName;
+    module_->load_method(methodName);
+  }
+
+  auto inputShapes = getAllInputShapes(methodName);
+  std::vector<int32_t> inputShape = inputShapes[0];
+  int32_t inputSize = inputShape[inputShape.size() - 1];
   cv::Size modelInputSize(inputSize, inputSize);
-  std::vector<int32_t> inputShape = {1, 3, inputSize, inputSize};
 
   auto [inputTensor, originalSize] = image_processing::readImageToTensor(
       imageSource, inputShape, false, normMean_, normStd_);
@@ -247,9 +306,11 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
             methodName + "' is valid.");
   }
 
-  return postprocess(forwardResult.get(), originalSize, modelInputSize,
-                     confidenceThreshold, iouThreshold, maxInstances,
-                     classIndices, returnMaskAtOriginalResolution);
+  auto result = postprocess(forwardResult.get(), originalSize, modelInputSize,
+                            confidenceThreshold, iouThreshold, maxInstances,
+                            classIndices, returnMaskAtOriginalResolution);
+
+  return result;
 }
 
 } // namespace rnexecutorch::models::instance_segmentation
