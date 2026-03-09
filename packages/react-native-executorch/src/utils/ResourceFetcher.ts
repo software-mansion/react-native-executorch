@@ -31,10 +31,7 @@
 import { ResourceSource } from '../types/common';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
-<<<<<<< HEAD
 import { ResourceFetcherUtils } from './ResourceFetcherUtils';
-=======
->>>>>>> 359427b1 (chore: replace generic error with RnExecutorchError in ResourceFetcher for better error handling)
 
 /**
  * Adapter interface for resource fetching operations.

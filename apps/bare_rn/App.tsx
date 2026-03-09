@@ -17,7 +17,7 @@ import {
   useLLM,
   LLAMA3_2_1B_SPINQUANT,
 } from 'react-native-executorch';
-import { BareResourceFetcher } from '@rn-executorch/bare-adapter';
+import { BareResourceFetcher } from '@react-native-executorch/bare-resource-fetcher';
 import { setConfig } from '@kesha-antonov/react-native-background-downloader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
