@@ -15,12 +15,59 @@ export type MediaArg<C extends readonly LLMCapability[]> =
   'vision' extends C[number] ? { imagePath?: string } : object;
 
 /**
+ * Union of all built-in LLM model names.
+ *
+ * @category Types
+ */
+export type LLMModelName =
+  | 'llama-3.2-3b'
+  | 'llama-3.2-3b-qlora'
+  | 'llama-3.2-3b-spinquant'
+  | 'llama-3.2-1b'
+  | 'llama-3.2-1b-qlora'
+  | 'llama-3.2-1b-spinquant'
+  | 'qwen3-0.6b'
+  | 'qwen3-0.6b-quantized'
+  | 'qwen3-1.7b'
+  | 'qwen3-1.7b-quantized'
+  | 'qwen3-4b'
+  | 'qwen3-4b-quantized'
+  | 'hammer2.1-0.5b'
+  | 'hammer2.1-0.5b-quantized'
+  | 'hammer2.1-1.5b'
+  | 'hammer2.1-1.5b-quantized'
+  | 'hammer2.1-3b'
+  | 'hammer2.1-3b-quantized'
+  | 'smollm2.1-135m'
+  | 'smollm2.1-135m-quantized'
+  | 'smollm2.1-360m'
+  | 'smollm2.1-360m-quantized'
+  | 'smollm2.1-1.7b'
+  | 'smollm2.1-1.7b-quantized'
+  | 'qwen2.5-0.5b'
+  | 'qwen2.5-0.5b-quantized'
+  | 'qwen2.5-1.5b'
+  | 'qwen2.5-1.5b-quantized'
+  | 'qwen2.5-3b'
+  | 'qwen2.5-3b-quantized'
+  | 'phi-4-mini-4b'
+  | 'phi-4-mini-4b-quantized'
+  | 'lfm2.5-1.2b-instruct'
+  | 'lfm2.5-1.2b-instruct-quantized'
+  | 'lfm2.5-vl-1.6b-quantized';
+
+/**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
  *
  * @category Types
  */
 export interface LLMProps {
   model: {
+    /**
+     * The built-in model name (e.g. `'llama-3.2-3b'`). Used for telemetry and hook reload triggers.
+     * Pass one of the pre-built LLM constants (e.g. `LLAMA3_2_3B`) to populate all required fields.
+     */
+    modelName: LLMModelName;
     /**
      * `ResourceSource` that specifies the location of the model binary.
      */
