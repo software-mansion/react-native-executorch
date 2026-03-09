@@ -8,24 +8,41 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## Classification
 
-| Model             | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ----------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| EFFICIENTNET_V2_S |              64              |              68              |            217             |                205                |            198            |
+:::info
+Times presented below are _model inference times only_ and do not include time taken for pre-processing (e.g. image resizing, normalization) or post-processing (e.g. image resizing) which are dependent on input size.
+:::
+
+| Model                       | iPhone 17 Pro (Core ML) [ms] | Google Pixel 10 (XNNPACK) [ms] |
+| --------------------------- | :--------------------------: | :----------------------------: |
+| EFFICIENTNET_V2_S           |              12              |              100               |
+| EFFICIENTNET_V2_S_QUANTIZED |              5               |               38               |
 
 ## Object Detection
 
-| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |              71              |              74              |            257             |                115                |            109            |
+:::info
+Times presented below are _model inference times only_ and do not include time taken for pre-processing (e.g. image resizing, normalization) or post-processing (e.g. image resizing) which are dependent on input size.
+:::
+
+| Model                          | iPhone 17 Pro (Core ML) [ms] | Google Pixel 10 (XNNPACK) [ms] |
+| ------------------------------ | :--------------------------: | :----------------------------: |
+| SSDLITE_320_MOBILENET_V3_LARGE |              8               |               18               |
 
 ## Style Transfer
 
-| Model                        | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ---------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| STYLE_TRANSFER_CANDY         |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_MOSAIC        |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_UDNIE         |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_RAIN_PRINCESS |             1400             |             1485             |            4255            |               2510                |           2355            |
+:::info
+Times presented below are _model inference times only_ and do not include time taken for pre-processing (e.g. image resizing, normalization) or post-processing (e.g. image resizing) which are dependent on input size.
+:::
+
+| Model                                  | iPhone 17 Pro (Core ML) [ms] | Google Pixel 10 (XNNPACK) [ms] |
+| -------------------------------------- | :--------------------------: | :----------------------------: |
+| STYLE_TRANSFER_CANDY                   |             100              |              1025              |
+| STYLE_TRANSFER_MOSAIC                  |             100              |              1025              |
+| STYLE_TRANSFER_UDNIE                   |             100              |              1025              |
+| STYLE_TRANSFER_RAIN_PRINCESS           |             100              |              1025              |
+| STYLE_TRANSFER_CANDY_QUANTIZED         |             150              |              430               |
+| STYLE_TRANSFER_MOSAIC_QUANTIZED        |             150              |              430               |
+| STYLE_TRANSFER_UDNIE_QUANTIZED         |             150              |              430               |
+| STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED |             150              |              430               |
 
 ## OCR
 
@@ -109,23 +126,39 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 
 ## Image Embeddings
 
-| Model                       | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------------- | :--------------------------: | :-----------------------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |              18              |            55             |
+:::info
+Times presented below are _model inference times only_ and do not include time taken for pre-processing (e.g. image resizing, normalization) or post-processing (e.g. image resizing) which are dependent on input size.
+:::
 
 :::info
-Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
+Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total time.
 :::
+
+| Model                                 | iPhone 17 Pro (XNNPACK) [ms] | Google Pixel 10 (XNNPACK) [ms] |
+| ------------------------------------- | :--------------------------: | :----------------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE           |              14              |               68               |
+| CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED |              11              |               31               |
 
 ## Semantic Segmentation
 
-:::warning
-Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::info
+Times presented below are _model inference times only_ and do not include time taken for pre-processing (e.g. image resizing, normalization) or post-processing (e.g. image resizing) which are dependent on input size.
 :::
 
-| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
-| ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
-| DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
+| Model                                   | iPhone 17 Pro (XNNPACK) [ms] | Google Pixel 10 (XNNPACK) [ms] |
+| --------------------------------------- | :--------------------------: | :----------------------------: |
+| DEEPLAB_V3_RESNET50                     |             2000             |              2200              |
+| DEEPLAB_V3_RESNET50_QUANTIZED           |             118              |              380               |
+| DEEPLAB_V3_RESNET101                    |             2900             |              3300              |
+| DEEPLAB_V3_RESNET101_QUANTIZED          |             174              |              660               |
+| DEEPLAB_V3_MOBILENET_V3_LARGE           |             131              |              153               |
+| DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED |              17              |               40               |
+| LRASPP_MOBILENET_V3_LARGE               |              13              |               36               |
+| LRASPP_MOBILENET_V3_LARGE_QUANTIZED     |              12              |               20               |
+| FCN_RESNET50                            |             1800             |              2160              |
+| FCN_RESNET50_QUANTIZED                  |             100              |              320               |
+| FCN_RESNET101                           |             2600             |              3160              |
+| FCN_RESNET101_QUANTIZED                 |             160              |              620               |
 
 ## Text to image
 
