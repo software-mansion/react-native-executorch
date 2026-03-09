@@ -19,18 +19,25 @@ const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.5,
   postprocessorConfig: {
-    applyNMS: false,
+    applyNMS: true,
   },
 };
 
 /**
- * Builds an ordered label name array from a label map, indexed by class ID.
- * Index i corresponds to class index i produced by the model.
+ * Builds an ordered label name array from a label map, indexed by model output
+ * class ID. Subtracts the minimum label value so that 0-indexed model outputs
+ * map correctly (e.g. COCO labels start at 1, but models output 0 for the
+ * first class).
  */
 function buildLabelNames(labelMap: LabelEnum): string[] {
-  const allLabelNames: string[] = [];
+  const entries: [string, number][] = [];
   for (const [name, value] of Object.entries(labelMap)) {
-    if (typeof value === 'number') allLabelNames[value] = name;
+    if (typeof value === 'number') entries.push([name, value]);
+  }
+  const minValue = Math.min(...entries.map(([, v]) => v));
+  const allLabelNames: string[] = [];
+  for (const [name, value] of entries) {
+    allLabelNames[value - minValue] = name;
   }
   for (let i = 0; i < allLabelNames.length; i++) {
     if (allLabelNames[i] == null) allLabelNames[i] = '';
@@ -142,12 +149,19 @@ export class InstanceSegmentationModule<
       );
     }
 
+    const labelNames = buildLabelNames(modelConfig.labelMap);
+    console.log(
+      '[InstanceSegmentation] Label names:',
+      labelNames.length,
+      'classes'
+    );
+
     const nativeModule = global.loadInstanceSegmentation(
       path,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
       modelConfig.postprocessorConfig?.applyNMS ?? true,
-      buildLabelNames(modelConfig.labelMap)
+      labelNames
     );
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
@@ -258,15 +272,9 @@ export class InstanceSegmentationModule<
 
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
 
-    if (inputSize === undefined) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidArgument,
-        'inputSize must be specified in options when the model config does not define availableInputSizes'
-      );
-    }
-
     if (
       this.modelConfig.availableInputSizes &&
+      inputSize !== undefined &&
       !this.modelConfig.availableInputSizes.includes(
         inputSize as (typeof this.modelConfig.availableInputSizes)[number]
       )
@@ -277,6 +285,9 @@ export class InstanceSegmentationModule<
       );
     }
 
+    const methodName =
+      inputSize !== undefined ? `forward_${inputSize}` : 'forward';
+
     const classIndices = options?.classesOfInterest
       ? options.classesOfInterest.map((label) => {
           const labelStr = String(label);
@@ -285,14 +296,21 @@ export class InstanceSegmentationModule<
         })
       : [];
 
-    return await this.nativeModule.generate(
+    const startTime = performance.now();
+    const result = await this.nativeModule.generate(
       imageSource,
       confidenceThreshold,
       iouThreshold,
       maxInstances,
       classIndices,
       returnMaskAtOriginalResolution,
-      inputSize
+      methodName
     );
+    const inferenceTime = performance.now() - startTime;
+    console.log(
+      `[InstanceSegmentation] Inference: ${inferenceTime.toFixed(2)}ms | Method: ${methodName} | Detected: ${result.length} instances`
+    );
+
+    return result;
   }
 }
