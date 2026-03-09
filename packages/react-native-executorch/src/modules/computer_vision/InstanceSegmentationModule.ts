@@ -1,4 +1,3 @@
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, LabelEnum } from '../../types/common';
 import {
   InstanceSegmentationModelSources,
@@ -11,18 +10,33 @@ import {
 import { CocoLabel } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
+import { BaseLabeledModule, fetchModelPath } from '../BaseLabeledModule';
 
-const YOLO_SEG_CONFIG = {
+const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   labelMap: CocoLabel,
-  availableInputSizes: [384, 416, 512, 640, 1024] as const,
-  defaultInputSize: 416,
+  availableInputSizes: [384, 512, 640] as const,
+  defaultInputSize: 384,
+  defaultConfidenceThreshold: 0.5,
+  defaultIouThreshold: 0.5,
   postprocessorConfig: {
-    defaultConfidenceThreshold: 0.5,
-    defaultIouThreshold: 0.5,
     applyNMS: true,
   },
-} as const;
+};
+
+/**
+ * Builds an ordered label name array from a label map, indexed by class ID.
+ * Index i corresponds to class index i produced by the model.
+ */
+function buildLabelNames(labelMap: LabelEnum): string[] {
+  const allLabelNames: string[] = [];
+  for (const [name, value] of Object.entries(labelMap)) {
+    if (typeof value === 'number') allLabelNames[value] = name;
+  }
+  for (let i = 0; i < allLabelNames.length; i++) {
+    if (allLabelNames[i] == null) allLabelNames[i] = '';
+  }
+  return allLabelNames;
+}
 
 const ModelConfigs = {
   'yolo26n-seg': YOLO_SEG_CONFIG,
@@ -84,8 +98,7 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  */
 export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
-> extends BaseModule {
-  private labelMap: ResolveLabels<T>;
+> extends BaseLabeledModule<ResolveLabels<T>> {
   private modelConfig: InstanceSegmentationConfig<LabelEnum>;
 
   private constructor(
@@ -93,14 +106,9 @@ export class InstanceSegmentationModule<
     modelConfig: InstanceSegmentationConfig<LabelEnum>,
     nativeModule: unknown
   ) {
-    super();
-    this.labelMap = labelMap;
+    super(labelMap, nativeModule);
     this.modelConfig = modelConfig;
-    this.nativeModule = nativeModule;
   }
-
-  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() {}
 
   /**
    * Creates an instance segmentation module for a pre-configured model.
@@ -125,13 +133,7 @@ export class InstanceSegmentationModule<
     const { modelName, modelSource } = config;
     const modelConfig = ModelConfigs[modelName as keyof typeof ModelConfigs];
 
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-      );
-    }
+    const path = await fetchModelPath(modelSource, onDownloadProgress);
 
     if (typeof global.loadInstanceSegmentation !== 'function') {
       throw new RnExecutorchError(
@@ -140,12 +142,12 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
-      paths[0],
+      path,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
-      modelConfig.postprocessorConfig.applyNMS ?? true
+      modelConfig.postprocessorConfig?.applyNMS ?? true,
+      buildLabelNames(modelConfig.labelMap)
     );
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
@@ -173,11 +175,9 @@ export class InstanceSegmentationModule<
    *     labelMap: MyLabels,
    *     availableInputSizes: [640],
    *     defaultInputSize: 640,
-   *     postprocessorConfig: {
-   *       defaultConfidenceThreshold: 0.5,
-   *       defaultIouThreshold: 0.45,
-   *       applyNMS: true,
-   *     },
+   *     defaultConfidenceThreshold: 0.5,
+   *     defaultIouThreshold: 0.45,
+   *     postprocessorConfig: { applyNMS: true },
    *   },
    * );
    * ```
@@ -187,13 +187,7 @@ export class InstanceSegmentationModule<
     config: InstanceSegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<InstanceSegmentationModule<L>> {
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
+    const path = await fetchModelPath(modelSource, onDownloadProgress);
 
     if (typeof global.loadInstanceSegmentation !== 'function') {
       throw new RnExecutorchError(
@@ -202,12 +196,12 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
-      paths[0],
+      path,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
-      config.postprocessorConfig.applyNMS ?? true
+      config.postprocessorConfig?.applyNMS ?? true,
+      buildLabelNames(config.labelMap)
     );
 
     return new InstanceSegmentationModule<L>(
@@ -252,20 +246,16 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Extract options with defaults from config
     const confidenceThreshold =
       options?.confidenceThreshold ??
-      this.modelConfig.postprocessorConfig.defaultConfidenceThreshold ??
-      0.55;
+      this.modelConfig.defaultConfidenceThreshold ??
+      0.5;
     const iouThreshold =
-      options?.iouThreshold ??
-      this.modelConfig.postprocessorConfig.defaultIouThreshold ??
-      0.55;
+      options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.5;
     const maxInstances = options?.maxInstances ?? 100;
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;
 
-    // Get inputSize from options or use default
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
 
     if (inputSize === undefined) {
@@ -275,7 +265,6 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Validate inputSize against available sizes
     if (
       this.modelConfig.availableInputSizes &&
       !this.modelConfig.availableInputSizes.includes(
@@ -288,7 +277,6 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Convert classesOfInterest labels to indices
     const classIndices = options?.classesOfInterest
       ? options.classesOfInterest.map((label) => {
           const labelStr = String(label);
@@ -297,39 +285,14 @@ export class InstanceSegmentationModule<
         })
       : [];
 
-    // Measure inference time
-    const startTime = performance.now();
-    const nativeResult = await this.nativeModule.generate(
+    return await this.nativeModule.generate(
       imageSource,
       confidenceThreshold,
       iouThreshold,
       maxInstances,
       classIndices,
       returnMaskAtOriginalResolution,
-      inputSize // Pass inputSize as number instead of methodName as string
+      inputSize
     );
-    const endTime = performance.now();
-    const inferenceTime = endTime - startTime;
-
-    console.log(
-      `[Instance Segmentation] Inference completed in ${inferenceTime.toFixed(2)}ms | Input size: ${inputSize}x${inputSize} | Detected: ${nativeResult.length} instances`
-    );
-
-    // Convert label indices back to label names
-    // YOLO outputs 0-indexed class IDs, but COCO labels are 1-indexed, so add 1
-    const reverseLabelMap = Object.entries(
-      this.labelMap as Record<string, number>
-    ).reduce(
-      (acc, [key, value]) => {
-        acc[value as number] = key;
-        return acc;
-      },
-      {} as Record<number, string>
-    );
-
-    return nativeResult.map((instance: any) => ({
-      ...instance,
-      label: reverseLabelMap[instance.label + 1] || `UNKNOWN_${instance.label}`,
-    })) as SegmentedInstance<ResolveLabels<T>>[];
   }
 }
