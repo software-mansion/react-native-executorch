@@ -2,6 +2,15 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 
 /**
+ * Union of all built-in Text-to-Image model names.
+ *
+ * @category Types
+ */
+export type TextToImageModelName =
+  | 'bk-sdm-tiny-vpred-512'
+  | 'bk-sdm-tiny-vpred-256';
+
+/**
  * Configuration properties for the `useTextToImage` hook.
  *
  * @category Types
@@ -11,6 +20,11 @@ export interface TextToImageProps {
    * Object containing the required model sources for the diffusion pipeline.
    */
   model: {
+    /**
+     * The built-in model name (e.g. `'bk-sdm-tiny-vpred-512'`). Used for telemetry and hook reload triggers.
+     * Pass one of the pre-built TTI constants (e.g. `BK_SDM_TINY_VPRED_512`) to populate all required fields.
+     */
+    modelName: TextToImageModelName;
     /** Source for the text tokenizer binary/config. */
     tokenizerSource: ResourceSource;
     /** Source for the diffusion scheduler binary/config. */

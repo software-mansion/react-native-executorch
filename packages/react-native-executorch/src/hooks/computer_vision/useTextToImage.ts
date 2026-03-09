@@ -20,28 +20,63 @@ export const useTextToImage = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
-
-  const [module] = useState(() => new TextToImageModule(inferenceCallback));
+  const [moduleInstance, setModuleInstance] =
+    useState<TextToImageModule | null>(null);
 
   useEffect(() => {
     if (preventLoad) return;
 
-    (async () => {
-      setDownloadProgress(0);
-      setError(null);
-      try {
-        setIsReady(false);
-        await module.load(model, setDownloadProgress);
-        setIsReady(true);
-      } catch (err) {
-        setError(parseUnknownError(err));
+    let active = true;
+    setDownloadProgress(0);
+    setError(null);
+    setIsReady(false);
+
+    TextToImageModule.fromModelName(
+      {
+        modelName: model.modelName,
+        tokenizerSource: model.tokenizerSource,
+        schedulerSource: model.schedulerSource,
+        encoderSource: model.encoderSource,
+        unetSource: model.unetSource,
+        decoderSource: model.decoderSource,
+        inferenceCallback,
+      },
+      (p) => {
+        if (active) setDownloadProgress(p);
       }
-    })();
+    )
+      .then((mod) => {
+        if (!active) {
+          mod.delete();
+          return;
+        }
+        setModuleInstance((prev) => {
+          prev?.delete();
+          return mod;
+        });
+        setIsReady(true);
+      })
+      .catch((err) => {
+        if (active) setError(parseUnknownError(err));
+      });
 
     return () => {
-      module.delete();
+      active = false;
+      setModuleInstance((prev) => {
+        prev?.delete();
+        return null;
+      });
     };
-  }, [module, model, preventLoad]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    model.modelName,
+    model.tokenizerSource,
+    model.schedulerSource,
+    model.encoderSource,
+    model.unetSource,
+    model.decoderSource,
+    preventLoad,
+  ]);
 
   const generate = async (
     input: string,
@@ -49,7 +84,7 @@ export const useTextToImage = ({
     numSteps?: number,
     seed?: number
   ): Promise<string> => {
-    if (!isReady)
+    if (!isReady || !moduleInstance)
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
@@ -61,17 +96,17 @@ export const useTextToImage = ({
       );
     try {
       setIsGenerating(true);
-      return await module.forward(input, imageSize, numSteps, seed);
+      return await moduleInstance.forward(input, imageSize, numSteps, seed);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const interrupt = useCallback(() => {
-    if (isGenerating) {
-      module.interrupt();
+    if (isGenerating && moduleInstance) {
+      moduleInstance.interrupt();
     }
-  }, [module, isGenerating]);
+  }, [moduleInstance, isGenerating]);
 
   return {
     isReady,
