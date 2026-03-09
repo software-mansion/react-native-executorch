@@ -20,18 +20,21 @@ export class ImageEmbeddingsModule extends BaseModule {
   /**
    * Creates an image embeddings instance for a built-in model.
    *
-   * @param model - An object specifying which built-in model to load and where to fetch it from.
+   * @param namedSources - An object specifying which built-in model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `ImageEmbeddingsModule` instance.
    */
   static async fromModelName(
-    model: { modelName: ImageEmbeddingsModelName; modelSource: ResourceSource },
+    namedSources: {
+      modelName: ImageEmbeddingsModelName;
+      modelSource: ResourceSource;
+    },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageEmbeddingsModule> {
     try {
       const paths = await ResourceFetcher.fetch(
         onDownloadProgress,
-        model.modelSource
+        namedSources.modelSource
       );
 
       if (!paths?.[0]) {
@@ -46,6 +49,24 @@ export class ImageEmbeddingsModule extends BaseModule {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
     }
+  }
+
+  /**
+   * Creates an image embeddings instance with a user-provided model binary.
+   * Use this when working with a custom-exported model that is not one of the built-in presets.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ImageEmbeddingsModule` instance.
+   */
+  static fromCustomModel(
+    modelSource: ResourceSource,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ImageEmbeddingsModule> {
+    return ImageEmbeddingsModule.fromModelName(
+      { modelName: 'custom' as ImageEmbeddingsModelName, modelSource },
+      onDownloadProgress
+    );
   }
 
   /**
