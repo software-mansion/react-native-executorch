@@ -44,8 +44,8 @@ Error MultimodalRunner::load_subcomponents() {
 
   Stats *stats_ptr = &stats_;
 
-  mm_decoder_runner_ = std::make_unique<MultimodalDecoderRunner>(
-      module_.get(), io_manager_.get());
+  mm_decoder_runner_ =
+      std::make_unique<MultimodalDecoderRunner>(*module_, io_manager_.get());
   IEncoder *image_encoder = nullptr;
   auto enc_it = encoders_.find(MultimodalType::Image);
   if (enc_it != encoders_.end()) {

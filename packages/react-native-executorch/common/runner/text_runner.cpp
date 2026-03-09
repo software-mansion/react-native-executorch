@@ -28,7 +28,7 @@ Error TextRunner::load_subcomponents() {
   Stats *stats_ptr = &stats_;
 
   text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
-      module_.get(), io_manager_.get(), config_.temperature, config_.topp);
+      *module_, io_manager_.get(), config_.temperature, config_.topp);
   text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);

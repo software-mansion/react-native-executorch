@@ -16,7 +16,7 @@
 namespace executorch::extension::llm {
 class MultimodalDecoderRunner : public TextDecoderRunner {
 public:
-  explicit MultimodalDecoderRunner(Module *module, IOManager *io_manager)
+  explicit MultimodalDecoderRunner(Module &module, IOManager *io_manager)
       : TextDecoderRunner(module, io_manager) {}
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
