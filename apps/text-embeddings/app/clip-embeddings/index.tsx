@@ -15,7 +15,7 @@ import {
   useTextEmbeddings,
   useImageEmbeddings,
   CLIP_VIT_BASE_PATCH32_TEXT,
-  CLIP_VIT_BASE_PATCH32_IMAGE,
+  CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
 } from 'react-native-executorch';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
@@ -29,7 +29,9 @@ export default function ClipEmbeddingsScreenWrapper() {
 
 function ClipEmbeddingsScreen() {
   const textModel = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
-  const imageModel = useImageEmbeddings({ model: CLIP_VIT_BASE_PATCH32_IMAGE });
+  const imageModel = useImageEmbeddings({
+    model: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  });
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<

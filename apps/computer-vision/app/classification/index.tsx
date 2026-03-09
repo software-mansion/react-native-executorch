@@ -1,6 +1,9 @@
 import Spinner from '../../components/Spinner';
 import { getImage } from '../../utils';
-import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
+import {
+  useClassification,
+  EFFICIENTNET_V2_S_QUANTIZED,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { BottomBar } from '../../components/BottomBar';
 import React, { useContext, useEffect, useState } from 'react';
@@ -13,7 +16,7 @@ export default function ClassificationScreen() {
   );
   const [imageUri, setImageUri] = useState('');
 
-  const model = useClassification({ model: EFFICIENTNET_V2_S });
+  const model = useClassification({ model: EFFICIENTNET_V2_S_QUANTIZED });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
