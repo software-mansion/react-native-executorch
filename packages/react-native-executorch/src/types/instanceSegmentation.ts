@@ -5,7 +5,7 @@ import { Bbox } from './objectDetection';
 /**
  * Represents a single detected instance in instance segmentation output.
  *
- * @typeParam L - The {@link LabelEnum} type for the model.
+ * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
  * @property {Bbox} bbox - The bounding box of the instance.
  * @property {Uint8Array} mask - Binary mask (0 or 1) representing the instance.
@@ -28,7 +28,7 @@ export interface SegmentedInstance<L extends LabelEnum> {
 /**
  * Options for instance segmentation forward pass.
  *
- * @typeParam L - The {@link LabelEnum} type for the model.
+ * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
  */
 export interface InstanceSegmentationOptions<L extends LabelEnum> {
@@ -63,9 +63,9 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
 }
 
 /**
- * Configuration for a custom instance segmentation model.
+ * Configuration for an instance segmentation model.
  *
- * @typeParam T - The {@link LabelEnum} type for the model.
+ * @typeParam T - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
  */
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
@@ -137,7 +137,7 @@ export interface InstanceSegmentationProps<
  * Return type for the `useInstanceSegmentation` hook.
  * Manages the state and operations for instance segmentation models.
  *
- * @typeParam L - The {@link LabelEnum} representing the model's class labels.
+ * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
  *
  * @category Types
  */
@@ -166,7 +166,7 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
    * Executes the model's forward pass to perform instance segmentation on the provided image.
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
    * @param options - Optional configuration for the segmentation process.
-   * @returns A Promise resolving to an array of instance masks.
+   * @returns A Promise resolving to an array of {@link SegmentedInstance} objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
   forward: (
