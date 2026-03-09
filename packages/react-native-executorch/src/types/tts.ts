@@ -203,8 +203,7 @@ export interface TextToSpeechStreamingCallbacks {
  * @category Types
  */
 export interface TextToSpeechStreamingInput
-  extends TextToSpeechInput,
-    TextToSpeechStreamingCallbacks {}
+  extends TextToSpeechInput, TextToSpeechStreamingCallbacks {}
 
 /**
  * Streaming input definition for pre-computed phonemes.
@@ -213,5 +212,4 @@ export interface TextToSpeechStreamingInput
  * @category Types
  */
 export interface TextToSpeechStreamingPhonemeInput
-  extends TextToSpeechPhonemeInput,
-    TextToSpeechStreamingCallbacks {}
+  extends TextToSpeechPhonemeInput, TextToSpeechStreamingCallbacks {}
