@@ -277,6 +277,10 @@ export interface TranscriptionResult {
  * @category Types
  */
 export interface SpeechToTextModelConfig {
+  /**
+   * The built-in model name (e.g. `'whisper-tiny-en'`). Used for telemetry and hook reload triggers.
+   * Pass one of the pre-built STT constants (e.g. `WHISPER_TINY_EN`) to populate all required fields.
+   */
   modelName: SpeechToTextModelName;
 
   /**

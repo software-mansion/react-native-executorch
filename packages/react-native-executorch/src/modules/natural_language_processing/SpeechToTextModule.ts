@@ -1,11 +1,14 @@
 import {
   DecodingOptions,
   SpeechToTextModelConfig,
+  SpeechToTextModelName,
   TranscriptionResult,
 } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
@@ -16,14 +19,65 @@ export class SpeechToTextModule {
   private nativeModule: any;
   private modelConfig!: SpeechToTextModelConfig;
 
+  private constructor() {}
+
   /**
-   * Loads the model specified by the config object.
-   * `onDownloadProgressCallback` allows you to monitor the current progress of the model download.
+   * Creates a Speech to Text instance for a built-in model.
    *
-   * @param model - Configuration object containing model sources.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param namedSources - Configuration object containing model name, sources, and multilingual flag.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `SpeechToTextModule` instance.
+   *
+   * @example
+   * ```ts
+   * import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+   * const stt = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN);
+   * ```
    */
-  public async load(
+  static async fromModelName(
+    namedSources: SpeechToTextModelConfig,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<SpeechToTextModule> {
+    const instance = new SpeechToTextModule();
+    try {
+      await instance.internalLoad(namedSources, onDownloadProgress);
+      return instance;
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
+    }
+  }
+
+  /**
+   * Creates a Speech to Text instance with user-provided model binaries.
+   * Use this when working with a custom-exported STT model.
+   * Internally uses `'custom'` as the model name for telemetry.
+   *
+   * @param encoderSource - A fetchable resource pointing to the encoder model binary.
+   * @param decoderSource - A fetchable resource pointing to the decoder model binary.
+   * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
+   * @param isMultilingual - Whether the model supports multiple languages.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `SpeechToTextModule` instance.
+   */
+  static fromCustomModel(
+    modelSource: ResourceSource,
+    tokenizerSource: ResourceSource,
+    isMultilingual: boolean,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<SpeechToTextModule> {
+    return SpeechToTextModule.fromModelName(
+      {
+        modelName: 'custom' as SpeechToTextModelName,
+        modelSource,
+        tokenizerSource,
+        isMultilingual,
+      },
+      onDownloadProgress
+    );
+  }
+
+  private async internalLoad(
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
