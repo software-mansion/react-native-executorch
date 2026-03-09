@@ -114,6 +114,55 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
+## Vision-Language Models (VLM)
+
+Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`load`](../../06-api-reference/classes/LLMModule.md#load):
+
+```typescript
+import { LLMModule, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+
+const llm = new LLMModule({
+  tokenCallback: (token) => console.log(token),
+});
+
+await llm.load(LFM2_VL_1_6B_QUANTIZED);
+```
+
+The `capabilities` field is already set on the model constant. You can also construct the model object explicitly:
+
+```typescript
+await llm.load({
+  modelSource: '...',
+  tokenizerSource: '...',
+  tokenizerConfigSource: '...',
+  capabilities: ['vision'],
+});
+```
+
+Once loaded, pass `imagePath` to [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage):
+
+```typescript
+const response = await llm.sendMessage('What is in this image?', {
+  imagePath: '/path/to/image.jpg',
+});
+```
+
+Or use [`generate`](../../06-api-reference/classes/LLMModule.md#generate) with `imagePaths` directly:
+
+```typescript
+const chat: Message[] = [
+  {
+    role: 'user',
+    content: [
+      { type: 'image' },
+      { type: 'text', text: 'Describe this image.' },
+    ],
+  },
+];
+
+const response = await llm.generate(chat, undefined, ['/path/to/image.jpg']);
+```
+
 ## Deleting the model from memory
 
 To delete the model from memory, you can use the [`delete`](../../06-api-reference/classes/LLMModule.md#delete) method.
