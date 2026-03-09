@@ -26,42 +26,6 @@ export interface SegmentedInstance<L extends LabelEnum> {
 }
 
 /**
- * Preprocessor configuration for instance segmentation models.
- *
- * @category Types
- */
-export interface PreprocessorConfig {
-  /**
-   * Mean values for normalization [R, G, B]. Applied as: (pixel / 255.0 - mean) / std
-   */
-  normMean?: [number, number, number];
-  /**
-   * Standard deviation values for normalization [R, G, B].
-   */
-  normStd?: [number, number, number];
-}
-
-/**
- * Postprocessor configuration for instance segmentation models.
- *
- * @category Types
- */
-export interface PostprocessorConfig {
-  /**
-   * Default confidence threshold for this model.
-   */
-  defaultConfidenceThreshold?: number;
-  /**
-   * Default IoU threshold for NMS for this model.
-   */
-  defaultIouThreshold?: number;
-  /**
-   * Whether to apply Non-Maximum Suppression (NMS). Default: true
-   */
-  applyNMS?: boolean;
-}
-
-/**
  * Options for instance segmentation forward pass.
  *
  * @typeParam L - The {@link LabelEnum} type for the model.
@@ -75,7 +39,7 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
   confidenceThreshold?: number;
   /**
    * IoU threshold for non-maximum suppression.
-   * Defaults to model's defaultIouThreshold (typically 0.45).
+   * Defaults to model's defaultIouThreshold (typically 0.5).
    */
   iouThreshold?: number;
   /**
@@ -91,7 +55,7 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
    */
   returnMaskAtOriginalResolution?: boolean;
   /**
-   * Input size for the model (e.g., 384, 416, 512, 640, 1024).
+   * Input size for the model (e.g., 384, 512, 640).
    * Must be one of the model's availableInputSizes.
    * Defaults to model's defaultInputSize.
    */
@@ -99,20 +63,20 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
 }
 
 /**
- * Configuration for custom instance segmentation model.
+ * Configuration for a custom instance segmentation model.
  *
  * @typeParam T - The {@link LabelEnum} type for the model.
- * @property labelMap - The enum-like object mapping class names to indices
- * @property availableInputSizes - Array of supported input sizes (e.g., [384, 416, 512, 640, 1024])
- * @property defaultInputSize - Default input size to use if not specified
- * @property preprocessorConfig - Optional preprocessing configuration (normalization, etc.)
- * @property postprocessorConfig - Postprocessing configuration (thresholds, NMS, etc.)
  * @category Types
  */
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
-  preprocessorConfig?: PreprocessorConfig;
-  postprocessorConfig: PostprocessorConfig;
+  preprocessorConfig?: {
+    normMean?: [number, number, number];
+    normStd?: [number, number, number];
+  };
+  postprocessorConfig?: { applyNMS?: boolean };
+  defaultConfidenceThreshold?: number;
+  defaultIouThreshold?: number;
 } & (
   | {
       availableInputSizes: readonly number[];
@@ -124,7 +88,6 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
     }
 );
 
-/// We would bind it here - but we need a deafult conf for yolo to be applied instead of
 /**
  * Per-model config for {@link InstanceSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
