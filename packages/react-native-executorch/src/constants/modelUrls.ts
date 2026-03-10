@@ -547,6 +547,7 @@ const FCN_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${NEXT_VERSION_TAG}/fcn
  * @category Models - Semantic Segmentation
  */
 export const DEEPLAB_V3_RESNET50 = {
+  modelName: 'deeplab-v3-resnet50',
   modelSource: DEEPLAB_V3_RESNET50_MODEL,
 } as const;
 
