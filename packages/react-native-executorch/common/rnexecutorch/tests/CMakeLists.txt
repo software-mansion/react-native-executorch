@@ -201,9 +201,9 @@ add_rn_test(TokenizerModuleTests integration/TokenizerModuleTest.cpp
 add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/asr/ASR.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/ASR.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/HypothesisBuffer.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/OnlineASR.cpp
         ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp
         ${TOKENIZER_SOURCES}
         ${DSP_SOURCES}
