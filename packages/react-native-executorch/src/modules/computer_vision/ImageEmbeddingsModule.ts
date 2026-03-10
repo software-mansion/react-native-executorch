@@ -34,7 +34,7 @@ export class ImageEmbeddingsModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadImageEmbeddings(paths[0]);
+      this.nativeModule = await global.loadImageEmbeddings(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

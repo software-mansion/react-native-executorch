@@ -77,7 +77,7 @@ export class TextToImageModule extends BaseModule {
       const response = await fetch('file://' + schedulerPath);
       const schedulerConfig = await response.json();
 
-      this.nativeModule = global.loadTextToImage(
+      this.nativeModule = await global.loadTextToImage(
         tokenizerPath,
         encoderPath,
         unetPath,

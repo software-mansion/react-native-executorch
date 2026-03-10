@@ -35,7 +35,7 @@ export class StyleTransferModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadStyleTransfer(paths[0]);
+      this.nativeModule = await global.loadStyleTransfer(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

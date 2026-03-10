@@ -88,7 +88,7 @@ export class ObjectDetectionModule<
       if (allLabelNames[i] == null) allLabelNames[i] = '';
     }
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
-    const nativeModule = global.loadObjectDetection(
+    const nativeModule = await global.loadObjectDetection(
       modelPath,
       normMean,
       normStd,
@@ -137,7 +137,7 @@ export class ObjectDetectionModule<
       if (allLabelNames[i] == null) allLabelNames[i] = '';
     }
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
-    const nativeModule = global.loadObjectDetection(
+    const nativeModule = await global.loadObjectDetection(
       modelPath,
       normMean,
       normStd,

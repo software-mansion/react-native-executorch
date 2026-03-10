@@ -35,7 +35,7 @@ export class ClassificationModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadClassification(paths[0]);
+      this.nativeModule = await global.loadClassification(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

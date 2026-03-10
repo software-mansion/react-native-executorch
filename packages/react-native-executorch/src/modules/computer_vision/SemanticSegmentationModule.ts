@@ -114,7 +114,7 @@ export class SemanticSegmentationModule<
     const normStd = preprocessorConfig?.normStd ?? [];
     const allClassNames = Object.keys(labelMap).filter((k) => isNaN(Number(k)));
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
-    const nativeModule = global.loadSemanticSegmentation(
+    const nativeModule = await global.loadSemanticSegmentation(
       modelPath,
       normMean,
       normStd,
@@ -155,7 +155,7 @@ export class SemanticSegmentationModule<
       isNaN(Number(k))
     );
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
-    const nativeModule = global.loadSemanticSegmentation(
+    const nativeModule = await global.loadSemanticSegmentation(
       modelPath,
       normMean,
       normStd,
