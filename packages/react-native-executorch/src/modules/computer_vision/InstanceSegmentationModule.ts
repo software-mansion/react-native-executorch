@@ -8,13 +8,13 @@ import {
   SegmentedInstance,
   InstanceSegmentationOptions,
 } from '../../types/instanceSegmentation';
-import { CocoLabel } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseLabeledModule, fetchModelPath } from '../BaseLabeledModule';
+import { CocoLabelYolo } from '../../constants/commonVision';
 
-const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
-  labelMap: CocoLabel,
+const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabelYolo> = {
+  labelMap: CocoLabelYolo,
   availableInputSizes: [384, 512, 640] as const,
   defaultInputSize: 384,
   defaultConfidenceThreshold: 0.5,
