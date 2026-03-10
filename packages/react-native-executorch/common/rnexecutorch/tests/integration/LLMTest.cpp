@@ -161,6 +161,35 @@ TEST_F(LLMTest, EmptyPromptThrows) {
   EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
 }
 
+TEST_F(LLMTest, CountTextTokensPositive) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_GT(model.countTextTokens("hello world"), 0);
+}
+
+TEST_F(LLMTest, CountTextTokensEmptyString) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_GE(model.countTextTokens(""), 0);
+}
+
+TEST_F(LLMTest, GetMaxContextLengthPositive) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_GT(model.getMaxContextLength(), 0);
+}
+
+TEST_F(LLMTest, ResetZerosGeneratedTokenCount) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  model.generate(formatChatML(kSystemPrompt, "Hi"), nullptr);
+  EXPECT_GT(model.getGeneratedTokenCount(), 0);
+  model.reset();
+  EXPECT_EQ(model.getGeneratedTokenCount(), 0);
+}
+
+TEST_F(LLMTest, PromptTokenCountNonZeroAfterGenerate) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  model.generate(formatChatML(kSystemPrompt, "Hi"), nullptr);
+  EXPECT_GT(model.getPromptTokenCount(), 0);
+}
+
 TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
   // smolLm2_135M_8da4w.pte has no vision_encoder method
   auto module = std::make_unique<::executorch::extension::Module>(
@@ -168,47 +197,70 @@ TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
       ::executorch::extension::Module::LoadMode::File);
 
   auto encoder =
-      std::make_unique<executorch::extension::llm::VisionEncoder>(module.get());
+      std::make_unique<executorch::extension::llm::VisionEncoder>(*module);
 
   EXPECT_THROW(encoder->load(), rnexecutorch::RnExecutorchError);
 }
 
-#include <runner/base_llm_runner.h>
+// ============================================================================
+// VLM-specific tests
+// ============================================================================
+constexpr auto kVlmModelPath = "lfm2_5_vl_quantized_xnnpack_v2.pte";
+constexpr auto kVlmTokenizerPath = "lfm2_vl_tokenizer.json";
+constexpr auto kVlmImageToken = "<image>";
+constexpr auto kTestImagePath =
+    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
-// Minimal concrete subclass — only used in tests to verify base class behavior
-class StubRunner : public rnexecutorch::llm::runner::BaseLLMRunner {
-public:
-  using BaseLLMRunner::BaseLLMRunner;
-  bool is_loaded() const override { return loaded_; }
-  ::executorch::runtime::Error load_subcomponents() override {
-    loaded_ = true;
-    return ::executorch::runtime::Error::Ok;
-  }
-  ::executorch::runtime::Error generate_internal(
-      const std::vector<::executorch::extension::llm::MultimodalInput> &,
-      std::function<void(const std::string &)>) override {
-    return ::executorch::runtime::Error::Ok;
-  }
-  void stop_impl() override {}
-  void set_temperature_impl(float t) override { last_temp_ = t; }
-  void set_topp_impl(float) override {}
-  void set_count_interval_impl(size_t) override {}
-  void set_time_interval_impl(size_t) override {}
-
-  bool loaded_ = false;
-  float last_temp_ = -1.f;
-};
-
-TEST(BaseLLMRunnerTest, SetTemperatureWritesConfigAndCallsImpl) {
-  StubRunner runner(nullptr, "dummy_tokenizer.json");
-  runner.set_temperature(0.5f);
-  EXPECT_FLOAT_EQ(runner.config_.temperature, 0.5f);
-  EXPECT_FLOAT_EQ(runner.last_temp_, 0.5f);
+TEST_F(LLMTest, TextModelIsNotMultimodal) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_EQ(model.getVisualTokenCount(), 0);
 }
 
-TEST(BaseLLMRunnerTest, ResetZerosPos) {
-  StubRunner runner(nullptr, "dummy_tokenizer.json");
-  runner.pos_ = 42;
-  runner.reset();
-  EXPECT_EQ(runner.pos_, 0);
+TEST_F(LLMTest, GenerateMultimodalOnTextModelThrows) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_THROW(model.generateMultimodal("hello", {}, "<image>", nullptr),
+               RnExecutorchError);
+}
+
+// Fixture that loads the VLM model once for all VLM tests
+class VLMTest : public ::testing::Test {
+protected:
+  static void SetUpTestSuite() {
+    invoker_ = createMockCallInvoker();
+    model_ =
+        std::make_unique<LLM>(kVlmModelPath, kVlmTokenizerPath,
+                              std::vector<std::string>{"vision"}, invoker_);
+  }
+
+  static void TearDownTestSuite() {
+    model_.reset();
+    invoker_.reset();
+  }
+
+  static std::shared_ptr<facebook::react::CallInvoker> invoker_;
+  static std::unique_ptr<LLM> model_;
+};
+
+std::shared_ptr<facebook::react::CallInvoker> VLMTest::invoker_;
+std::unique_ptr<LLM> VLMTest::model_;
+
+TEST_F(VLMTest, GenerateMultimodalEmptyImageTokenThrows) {
+  EXPECT_THROW(
+      model_->generateMultimodal("hello", {kTestImagePath}, "", nullptr),
+      RnExecutorchError);
+}
+
+TEST_F(VLMTest, GenerateMultimodalMorePlaceholdersThanImagePaths) {
+  std::string prompt = std::string(kVlmImageToken) + " and " + kVlmImageToken;
+  EXPECT_THROW(model_->generateMultimodal(prompt, {kTestImagePath},
+                                          kVlmImageToken, nullptr),
+               RnExecutorchError);
+}
+
+TEST_F(VLMTest, GenerateMultimodalMoreImagePathsThanPlaceholders) {
+  std::string prompt = std::string(kVlmImageToken) + " describe";
+  EXPECT_THROW(model_->generateMultimodal(prompt,
+                                          {kTestImagePath, kTestImagePath},
+                                          kVlmImageToken, nullptr),
+               RnExecutorchError);
 }

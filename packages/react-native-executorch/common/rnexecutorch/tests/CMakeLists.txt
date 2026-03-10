@@ -135,6 +135,14 @@ function(add_rn_test TEST_TARGET TEST_FILENAME)
 endfunction()
 
 add_rn_test(NumericalTests unit/NumericalTest.cpp)
+add_rn_test(RunnerTests unit/RunnerTest.cpp
+    SOURCES
+        ${COMMON_DIR}/runner/base_llm_runner.cpp
+        ${COMMON_DIR}/runner/sampler.cpp
+        ${COMMON_DIR}/runner/arange_util.cpp
+        integration/stubs/jsi_stubs.cpp
+    LIBS tokenizers_deps
+)
 add_rn_test(LogTests unit/LogTest.cpp)
 add_rn_test(FileUtilsTest unit/FileUtilsTest.cpp)
 add_rn_test(ImageProcessingTest unit/ImageProcessingTest.cpp

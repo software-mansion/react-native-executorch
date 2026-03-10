@@ -86,7 +86,8 @@ Error BaseLLMRunner::generate(
     std::function<void(const std::string &)> token_callback,
     std::function<void(const Stats &)> stats_callback) {
 
-  ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
+  ET_CHECK_OR_RETURN_ERROR(!prompt.empty(), InvalidArgument,
+                           "Prompt cannot be null");
 
   std::vector<MultimodalInput> inputs = {make_text_input(prompt)};
   auto err = generate_internal(inputs, token_callback);
