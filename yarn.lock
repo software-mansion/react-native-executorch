@@ -6700,6 +6700,7 @@ __metadata:
     expo-status-bar: "npm:~55.0.4"
     metro-config: "npm:^0.84.2"
     react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-native: "npm:0.83.2"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
@@ -10806,6 +10807,7 @@ __metadata:
     expo-status-bar: "npm:~55.0.4"
     metro-config: "npm:^0.84.2"
     react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-native: "npm:0.83.2"
     react-native-audio-api: "npm:^0.11.6"
     react-native-device-info: "npm:^15.0.2"
@@ -13417,6 +13419,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-dom@npm:19.2.4":
+  version: 19.2.4
+  resolution: "react-dom@npm:19.2.4"
+  dependencies:
+    scheduler: "npm:^0.27.0"
+  peerDependencies:
+    react: ^19.2.4
+  checksum: 10/ec17721a8cb131bc33480a9f738bc5bbfe4bd11b11cf69f3f473605346578a329ad26ceef6ef0761ea67a4b455803407dd7ed4ba3d8a5abd2cee8c32d221e498
+  languageName: node
+  linkType: hard
+
 "react-fast-compare@npm:^3.2.2":
   version: 3.2.2
   resolution: "react-fast-compare@npm:3.2.2"
@@ -14262,7 +14275,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:0.27.0":
+"scheduler@npm:0.27.0, scheduler@npm:^0.27.0":
   version: 0.27.0
   resolution: "scheduler@npm:0.27.0"
   checksum: 10/eab3c3a8373195173e59c147224fc30dabe6dd453f248f5e610e8458512a5a2ee3a06465dc400ebfe6d35c9f5b7f3bb6b2e41c88c86fd177c25a73e7286a1e06
@@ -15079,6 +15092,7 @@ __metadata:
     expo-router: "npm:~55.0.4"
     expo-status-bar: "npm:~55.0.4"
     react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-native: "npm:0.83.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.30.0"
