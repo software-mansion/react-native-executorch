@@ -57,7 +57,7 @@ TEST(S2TCtorTests, InvalidModelPathThrows) {
 TEST(S2TCtorTests, InvalidTokenizerPathThrows) {
   EXPECT_THROW(
       SpeechToText("whisper", kValidModelPath, "nonexistent.json", nullptr),
-      std::filesystem::filesystem_error);
+      rnexecutorch::RnExecutorchError);
 }
 
 TEST(S2TEncodeTests, EncodeReturnsNonNull) {
