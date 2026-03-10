@@ -38,7 +38,7 @@ import {
   ProgressHandlerParams,
 } from '@kesha-antonov/react-native-background-downloader';
 import * as RNFS from '@dr.pogodin/react-native-fs';
-import { Image } from 'react-native';
+import { Image, Platform } from 'react-native';
 import { RNEDirectory } from './constants/directories';
 import {
   ResourceSource,
@@ -91,6 +91,11 @@ interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
   ): Promise<string[] | string | null>;
   handleRemoteFile(
     sourceExtended: ResourceSourceExtended
+  ): Promise<string[] | string | null>;
+  handleRemoteFileAndroid(
+    sourceExtended: ResourceSourceExtended,
+    source: ResourceSource,
+    uri: string
   ): Promise<string[] | string | null>;
 }
 
@@ -514,6 +519,10 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
     }
     await ResourceFetcherUtils.createDirectoryIfNoExists();
 
+    if (Platform.OS === 'android') {
+      return this.handleRemoteFileAndroid(sourceExtended, source, uri);
+    }
+
     return new Promise((resolve, reject) => {
       const task = createDownloadTask({
         id: filename,
@@ -555,6 +564,53 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
       };
       this.downloads.set(source, downloadResource);
     });
+  },
+
+  async handleRemoteFileAndroid(
+    sourceExtended: ResourceSourceExtended,
+    source: ResourceSource,
+    uri: string
+  ): Promise<string[] | string | null> {
+    const rnfsDownload = RNFS.downloadFile({
+      fromUrl: uri,
+      toFile: sourceExtended.cacheFileUri!,
+      progress: (res: { bytesWritten: number; contentLength: number }) => {
+        if (res.contentLength > 0) {
+          sourceExtended.callback!(res.bytesWritten / res.contentLength);
+        }
+      },
+      progressInterval: 500,
+    });
+
+    const downloadResource: DownloadResource = {
+      task: {
+        stop: () => RNFS.stopDownload(rnfsDownload.jobId),
+        pause: () => {},
+        resume: () => {},
+      } as unknown as DownloadTask,
+      status: DownloadStatus.ONGOING,
+      extendedInfo: sourceExtended,
+    };
+    this.downloads.set(source, downloadResource);
+
+    try {
+      const result = await rnfsDownload.promise;
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        this.downloads.delete(source);
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          `Failed to fetch resource from '${uri}', status: ${result.statusCode}`
+        );
+      }
+      return await this.completeDownload(sourceExtended, source);
+    } catch (error) {
+      this.downloads.delete(source);
+      if (error instanceof RnExecutorchError) throw error;
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+        `Failed to fetch resource from '${uri}', context: ${error}`
+      );
+    }
   },
 
   /**
