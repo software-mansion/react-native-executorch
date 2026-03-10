@@ -32,6 +32,7 @@ TEST_EXECUTABLES=(
   "TextToImageTests"
   "OCRTests"
   "VerticalOCRTests"
+  "InstanceSegmentationTests"
 )
 
 # ============================================================================
@@ -66,6 +67,8 @@ MODELS=(
   "t2i_encoder.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/text_encoder/model.pte"
   "t2i_unet.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/unet/model.256.pte"
   "t2i_decoder.pte|https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/vae/model.256.pte"
+  "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
+  "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
 )
 
 # ============================================================================
