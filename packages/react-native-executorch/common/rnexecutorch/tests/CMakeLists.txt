@@ -289,6 +289,13 @@ add_rn_test(TextToImageTests integration/TextToImageTest.cpp
     LIBS tokenizers_deps
 )
 
+add_rn_test(InstanceSegmentationTests integration/InstanceSegmentationTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/instance_segmentation/BaseInstanceSegmentation.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps android
+)
+
 add_rn_test(OCRTests integration/OCRTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/ocr/OCR.cpp

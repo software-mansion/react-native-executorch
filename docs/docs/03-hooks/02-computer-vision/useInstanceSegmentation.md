@@ -66,7 +66,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Instance
   - `confidenceThreshold` - Minimum confidence score for including instances. Defaults to the model's configured threshold (typically `0.5`).
   - `iouThreshold` - IoU threshold for non-maximum suppression. Defaults to `0.5`.
   - `maxInstances` - Maximum number of instances to return. Defaults to `100`.
-  - `classesOfInterest` - Filter results to include only specific classes (e.g. `['PERSON', 'CAR']`).
+  - `classesOfInterest` - Filter results to include only specific classes (e.g. `['PERSON', 'CAR']`). Use label names from the model's label enum (e.g. [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLabelYolo.md) for YOLO models).
   - `returnMaskAtOriginalResolution` - Whether to resize masks to the original image resolution. Defaults to `true`.
   - `inputSize` - Input size for the model (e.g. `384`, `512`, `640`). Must be one of the model's available input sizes. If the model has only one forward method (i.e. no `availableInputSizes` configured), this option is not needed.
 
@@ -121,10 +121,14 @@ function App() {
 
 ## Supported models
 
-| Model       | Number of classes | Class list                                               | Available input sizes |
-| ----------- | ----------------- | -------------------------------------------------------- | --------------------- |
-| yolo26n-seg | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) | 384, 512, 640         |
-| yolo26s-seg | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) | 384, 512, 640         |
-| yolo26m-seg | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) | 384, 512, 640         |
-| yolo26l-seg | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) | 384, 512, 640         |
-| yolo26x-seg | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) | 384, 512, 640         |
+:::info
+YOLO models use the [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLabelYolo.md) enum (80 classes, 0-indexed), which differs from [`CocoLabel`](../../06-api-reference/enumerations/CocoLabel.md) used by RF-DETR and SSDLite object detection models (91 classes, 1-indexed). When filtering with `classesOfInterest`, use the label names from `CocoLabelYolo`.
+:::
+
+| Model       | Number of classes | Class list                                                          | Available input sizes |
+| ----------- | ----------------- | ------------------------------------------------------------------- | --------------------- |
+| yolo26n-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26s-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26m-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26l-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26x-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |

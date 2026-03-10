@@ -104,7 +104,11 @@ To run the model, use the [`forward`](../../06-api-reference/classes/InstanceSeg
 - `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
 - `options` (optional) - An [`InstanceSegmentationOptions`](../../06-api-reference/interfaces/InstanceSegmentationOptions.md) object for configuring the segmentation (confidence threshold, IoU threshold, input size, classes of interest, etc.).
 
-The method returns a promise resolving to an array of [`SegmentedInstance`](../../06-api-reference/interfaces/SegmentedInstance.md) objects. Each object contains bounding box coordinates, a binary segmentation mask, the label of the detected instance, and the confidence score.
+The method returns a promise resolving to an array of [`SegmentedInstance`](../../06-api-reference/interfaces/SegmentedInstance.md) objects. Each object contains bounding box coordinates, a binary segmentation mask, a string `label` (resolved from the model's label enum), and the confidence score.
+
+:::info
+Built-in YOLO models use [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLabelYolo.md) (80 classes, 0-indexed), not [`CocoLabel`](../../06-api-reference/enumerations/CocoLabel.md) (91 classes, 1-indexed, used by RF-DETR / SSDLite). When filtering with `classesOfInterest`, use the key names from `CocoLabelYolo`.
+:::
 
 ## Managing memory
 
