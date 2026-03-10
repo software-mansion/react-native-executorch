@@ -454,11 +454,20 @@ export const STYLE_TRANSFER_UDNIE = {
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_TINY_EN_MODEL = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack.pte`;
 
-const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_quantized_xnnpack.pte`;
+
+const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`;
 const WHISPER_BASE_EN_MODEL = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack.pte`;
 
-const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-base-quantized.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-base-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_quantized_xnnpack.pte`;
+
+const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`;
 const WHISPER_SMALL_EN_MODEL = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack.pte`;
+
+const WHISPER_SMALL_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-small-quantized.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-small-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_quantized_xnnpack.pte`;
 
 const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_TINY_MODEL = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack.pte`;
@@ -482,6 +491,16 @@ export const WHISPER_TINY_EN = {
 /**
  * @category Models - Speech To Text
  */
+export const WHISPER_TINY_EN_QUANTIZED = {
+  type: 'whisper' as const,
+  isMultilingual: false,
+  modelSource: WHISPER_TINY_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_TINY_EN_QUANTIZED_TOKENIZER,
+};
+
+/**
+ * @category Models - Speech To Text
+ */
 export const WHISPER_BASE_EN = {
   type: 'whisper' as const,
   isMultilingual: false,
@@ -492,11 +511,31 @@ export const WHISPER_BASE_EN = {
 /**
  * @category Models - Speech To Text
  */
+export const WHISPER_BASE_EN_QUANTIZED = {
+  type: 'whisper' as const,
+  isMultilingual: false,
+  modelSource: WHISPER_BASE_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_BASE_EN_QUANTIZED_TOKENIZER,
+};
+
+/**
+ * @category Models - Speech To Text
+ */
 export const WHISPER_SMALL_EN = {
   type: 'whisper' as const,
   isMultilingual: false,
   modelSource: WHISPER_SMALL_EN_MODEL,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
+};
+
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_SMALL_EN_QUANTIZED = {
+  type: 'whisper' as const,
+  isMultilingual: false,
+  modelSource: WHISPER_SMALL_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_SMALL_EN_QUANTIZED_TOKENIZER,
 };
 
 /**
