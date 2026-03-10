@@ -38,7 +38,7 @@
     "expo-asset": "55.0.8",
     "expo-file-system": "^55.0.10",
     "react": "19.2.4",
-    "react-native": "0.84.1",
+    "react-native": "0.83.2",
     "react-native-executorch": "workspace:*",
     "typescript": "~5.9.2"
   }
