@@ -531,7 +531,7 @@ The `imagePath` should be a local file path on the device.
 
 ### Functional generation with images
 
-You can also use `generate` directly, passing `imagePaths` as the third argument:
+You can also use `generate` directly by setting `mediaPath` on user messages:
 
 ```tsx
 const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
@@ -540,14 +540,12 @@ const handleGenerate = async () => {
   const chat: Message[] = [
     {
       role: 'user',
-      content: [
-        { type: 'image' },
-        { type: 'text', text: 'Describe this image.' },
-      ],
+      content: 'Describe this image.',
+      mediaPath: '/path/to/image.jpg',
     },
   ];
 
-  const response = await llm.generate(chat, undefined, ['/path/to/image.jpg']);
+  const response = await llm.generate(chat);
   console.log(response);
 };
 ```

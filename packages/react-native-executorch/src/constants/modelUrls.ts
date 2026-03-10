@@ -385,7 +385,7 @@ export const LFM2_VL_1_6B_QUANTIZED = {
   modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
-};
+} as const;
 
 // Classification
 const EFFICIENTNET_V2_S_MODEL =

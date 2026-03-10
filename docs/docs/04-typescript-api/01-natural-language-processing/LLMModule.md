@@ -147,20 +147,18 @@ const response = await llm.sendMessage('What is in this image?', {
 });
 ```
 
-Or use [`generate`](../../06-api-reference/classes/LLMModule.md#generate) with `imagePaths` directly:
+Or use [`generate`](../../06-api-reference/classes/LLMModule.md#generate) with `mediaPath` on the message:
 
 ```typescript
 const chat: Message[] = [
   {
     role: 'user',
-    content: [
-      { type: 'image' },
-      { type: 'text', text: 'Describe this image.' },
-    ],
+    content: 'Describe this image.',
+    mediaPath: '/path/to/image.jpg',
   },
 ];
 
-const response = await llm.generate(chat, undefined, ['/path/to/image.jpg']);
+const response = await llm.generate(chat);
 ```
 
 ## Deleting the model from memory

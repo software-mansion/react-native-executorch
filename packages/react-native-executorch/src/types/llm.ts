@@ -103,16 +103,13 @@ export interface LLMTypeBase {
   getGeneratedTokenCount: () => number;
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
+   * For multimodal models, set `mediaPath` on user messages to include images.
    *
-   * @param messages - Array of messages representing the chat history.
+   * @param messages - Array of messages representing the chat history. User messages may include a `mediaPath` field with a local image path.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated tokens as `string`.
    */
-  generate: (
-    messages: Message[],
-    tools?: LLMTool[],
-    imagePaths?: string[]
-  ) => Promise<string>;
+  generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
   /**
    * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
    *

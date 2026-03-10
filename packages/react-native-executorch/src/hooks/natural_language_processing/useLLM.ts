@@ -97,9 +97,9 @@ export function useLLM({
   );
 
   const generate = useCallback(
-    (messages: Message[], tools?: LLMTool[], imagePaths?: string[]) => {
+    (messages: Message[], tools?: LLMTool[]) => {
       setResponse('');
-      return controllerInstance.generate(messages, tools, imagePaths);
+      return controllerInstance.generate(messages, tools);
     },
     [controllerInstance]
   );

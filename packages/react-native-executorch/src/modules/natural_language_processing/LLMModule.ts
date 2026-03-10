@@ -108,17 +108,14 @@ export class LLMModule {
 
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
+   * For multimodal models, set `mediaPath` on user messages to include images.
    *
-   * @param messages - Array of messages representing the chat history.
+   * @param messages - Array of messages representing the chat history. User messages may include a `mediaPath` field with a local image path.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated response as a string.
    */
-  async generate(
-    messages: Message[],
-    tools?: LLMTool[],
-    imagePaths?: string[]
-  ): Promise<string> {
-    return await this.controller.generate(messages, tools, imagePaths);
+  async generate(messages: Message[], tools?: LLMTool[]): Promise<string> {
+    return await this.controller.generate(messages, tools);
   }
 
   /**

@@ -288,8 +288,7 @@ export class LLMController {
 
   public async generate(
     messages: Message[],
-    tools?: LLMTool[],
-    imagePaths?: string[]
+    tools?: LLMTool[]
   ): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(
@@ -309,6 +308,10 @@ export class LLMController {
       );
     }
 
+    const imagePaths = messages
+      .filter((m) => m.mediaPath)
+      .map((m) => m.mediaPath!);
+
     const renderedChat: string = this.applyChatTemplate(
       messages,
       this.tokenizerConfig,
@@ -317,7 +320,10 @@ export class LLMController {
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
-    return await this.forward(renderedChat, imagePaths);
+    return await this.forward(
+      renderedChat,
+      imagePaths.length > 0 ? imagePaths : undefined
+    );
   }
 
   public async sendMessage(
@@ -367,14 +373,9 @@ export class LLMController {
         countTokensCallback
       );
 
-    const imagePaths = messageHistoryWithPrompt
-      .filter((m) => m.mediaPath)
-      .map((m) => m.mediaPath!);
-
     const response = await this.generate(
       messageHistoryWithPrompt,
-      this.toolsConfig?.tools,
-      imagePaths.length > 0 ? imagePaths : undefined
+      this.toolsConfig?.tools
     );
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
