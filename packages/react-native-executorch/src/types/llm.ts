@@ -157,7 +157,7 @@ export interface LLMTypeMultimodal<
 }
 
 /**
- * Return type for `useLLM` when `model.isMultimodal` is absent or `false`.
+ * Return type for `useLLM` when `model.capabilities` is absent or does not include `'vision'`.
  * `sendMessage` accepts only text.
  *
  * @category Types

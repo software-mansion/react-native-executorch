@@ -186,6 +186,17 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
+  private getImageToken(): string {
+    const token = this.tokenizerConfig.image_token;
+    if (!token) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config is missing 'image_token'. Vision models require tokenizerConfigSource with an 'image_token' field."
+      );
+    }
+    return token;
+  }
+
   private filterSpecialTokens(text: string): string {
     let filtered = text;
     if (
@@ -240,7 +251,7 @@ export class LLMController {
           ? await this.nativeModule.generateMultimodal(
               input,
               imagePaths,
-              this.tokenizerConfig?.image_token ?? '<image>',
+              this.getImageToken(),
               this.onToken
             )
           : await this.nativeModule.generate(input, this.onToken);
