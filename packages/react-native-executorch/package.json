@@ -34,7 +34,7 @@
   "scripts": {
     "example": "yarn workspace react-native-executorch-example",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "prepack": "cp ../../README.md ./README.md",
