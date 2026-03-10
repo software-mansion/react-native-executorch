@@ -483,9 +483,7 @@ inline jsi::Value getJsiValue(
     instance.setProperty(runtime, "maskWidth", instances[i].maskWidth);
     instance.setProperty(runtime, "maskHeight", instances[i].maskHeight);
 
-    instance.setProperty(
-        runtime, "label",
-        jsi::String::createFromUtf8(runtime, instances[i].label));
+    instance.setProperty(runtime, "classIndex", instances[i].classIndex);
 
     instance.setProperty(runtime, "score", instances[i].score);
     instance.setProperty(runtime, "instanceId", instances[i].instanceId);

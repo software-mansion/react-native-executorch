@@ -48,8 +48,7 @@ declare global {
     source: string,
     normMean: number[] | [],
     normStd: number[] | [],
-    applyNMS: boolean,
-    labelNames: string[]
+    applyNMS: boolean
   ) => any;
   var loadObjectDetection: (
     source: string,

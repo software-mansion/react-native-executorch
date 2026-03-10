@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View, Text } from 'react-native';
 import {
   Canvas,
@@ -10,8 +10,6 @@ import {
   Rect,
   Group,
 } from '@shopify/react-native-skia';
-import type { SegmentedInstance } from 'react-native-executorch';
-import type { LabelEnum } from 'react-native-executorch';
 
 const INSTANCE_COLORS = [
   [255, 87, 51, 180],
@@ -26,39 +24,101 @@ const INSTANCE_COLORS = [
   [131, 51, 255, 180],
 ];
 
-interface Props {
-  imageUri: string;
-  instances: SegmentedInstance<LabelEnum>[];
-  imageWidth: number;
-  imageHeight: number;
+const MAX_MASK_DIM = 256;
+
+/** Display-only data — no raw mask buffers. */
+export interface DisplayInstance {
+  bbox: { x1: number; y1: number; x2: number; y2: number };
+  label: string;
+  score: number;
+  maskImage: SkImage;
+}
+
+/**
+ * Convert raw segmentation output into lightweight display instances.
+ * Call this eagerly (in the forward callback) so raw Uint8Array masks
+ * can be garbage-collected immediately.
+ */
+export function buildDisplayInstances(
+  rawInstances: {
+    bbox: { x1: number; y1: number; x2: number; y2: number };
+    mask: Uint8Array;
+    maskWidth: number;
+    maskHeight: number;
+    label: string | number;
+    score: number;
+  }[]
+): DisplayInstance[] {
+  return rawInstances
+    .map((inst, i) => {
+      const color = INSTANCE_COLORS[i % INSTANCE_COLORS.length];
+      const img = createMaskImage(
+        inst.mask,
+        inst.maskWidth,
+        inst.maskHeight,
+        color
+      );
+      if (!img) return null;
+      return {
+        bbox: inst.bbox,
+        label: String(inst.label),
+        score: inst.score,
+        maskImage: img,
+      };
+    })
+    .filter((d): d is DisplayInstance => d !== null);
 }
 
 function createMaskImage(
   mask: Uint8Array,
-  width: number,
-  height: number,
+  srcW: number,
+  srcH: number,
   color: number[]
 ): SkImage | null {
-  const pixels = new Uint8Array(width * height * 4);
-  for (let j = 0; j < mask.length; j++) {
-    if (mask[j] > 0) {
-      pixels[j * 4] = color[0];
-      pixels[j * 4 + 1] = color[1];
-      pixels[j * 4 + 2] = color[2];
-      pixels[j * 4 + 3] = color[3];
+  const downscale = Math.min(1, MAX_MASK_DIM / Math.max(srcW, srcH));
+  const dstW = Math.max(1, Math.round(srcW * downscale));
+  const dstH = Math.max(1, Math.round(srcH * downscale));
+
+  const pixels = new Uint8Array(dstW * dstH * 4);
+  const r = color[0],
+    g = color[1],
+    b = color[2],
+    a = color[3];
+
+  for (let dy = 0; dy < dstH; dy++) {
+    const sy = Math.min(Math.floor(dy / downscale), srcH - 1);
+    for (let dx = 0; dx < dstW; dx++) {
+      const sx = Math.min(Math.floor(dx / downscale), srcW - 1);
+      if (mask[sy * srcW + sx] > 0) {
+        const idx = (dy * dstW + dx) * 4;
+        pixels[idx] = r;
+        pixels[idx + 1] = g;
+        pixels[idx + 2] = b;
+        pixels[idx + 3] = a;
+      }
     }
   }
+
   const data = Skia.Data.fromBytes(pixels);
-  return Skia.Image.MakeImage(
+  const image = Skia.Image.MakeImage(
     {
-      width,
-      height,
+      width: dstW,
+      height: dstH,
       alphaType: AlphaType.Premul,
       colorType: ColorType.RGBA_8888,
     },
     data,
-    width * 4
+    dstW * 4
   );
+  data.dispose();
+  return image;
+}
+
+interface Props {
+  imageUri: string;
+  instances: DisplayInstance[];
+  imageWidth: number;
+  imageHeight: number;
 }
 
 export default function ImageWithMasks({
@@ -75,17 +135,12 @@ export default function ImageWithMasks({
   const offsetX = (layout.width - imageWidth * scale) / 2;
   const offsetY = (layout.height - imageHeight * scale) / 2;
 
-  const maskImages = instances
-    .map((instance, i) => {
-      const color = INSTANCE_COLORS[i % INSTANCE_COLORS.length];
-      return createMaskImage(
-        instance.mask,
-        instance.maskWidth,
-        instance.maskHeight,
-        color
-      );
-    })
-    .filter((img): img is SkImage => img !== null);
+  // Dispose Skia images when instances are replaced or on unmount
+  useEffect(() => {
+    return () => {
+      instances.forEach((inst) => inst.maskImage.dispose());
+    };
+  }, [instances]);
 
   return (
     <View
@@ -108,8 +163,7 @@ export default function ImageWithMasks({
       {instances.length > 0 && (
         <View style={styles.overlay}>
           <Canvas style={styles.canvas}>
-            {maskImages.map((maskImg, idx) => {
-              const inst = instances[idx];
+            {instances.map((inst, idx) => {
               const mx = inst.bbox.x1 * scale + offsetX;
               const my = inst.bbox.y1 * scale + offsetY;
               const mw = (inst.bbox.x2 - inst.bbox.x1) * scale;
@@ -117,7 +171,7 @@ export default function ImageWithMasks({
               return (
                 <SkiaImage
                   key={`mask-${idx}`}
-                  image={maskImg}
+                  image={inst.maskImage}
                   fit="fill"
                   x={mx}
                   y={my}
@@ -127,12 +181,12 @@ export default function ImageWithMasks({
               );
             })}
 
-            {instances.map((instance, idx) => {
+            {instances.map((inst, idx) => {
               const color = INSTANCE_COLORS[idx % INSTANCE_COLORS.length];
-              const bboxX = instance.bbox.x1 * scale + offsetX;
-              const bboxY = instance.bbox.y1 * scale + offsetY;
-              const bboxW = (instance.bbox.x2 - instance.bbox.x1) * scale;
-              const bboxH = (instance.bbox.y2 - instance.bbox.y1) * scale;
+              const bboxX = inst.bbox.x1 * scale + offsetX;
+              const bboxY = inst.bbox.y1 * scale + offsetY;
+              const bboxW = (inst.bbox.x2 - inst.bbox.x1) * scale;
+              const bboxH = (inst.bbox.y2 - inst.bbox.y1) * scale;
 
               return (
                 <Group key={`bbox-${idx}`}>
@@ -150,10 +204,10 @@ export default function ImageWithMasks({
             })}
           </Canvas>
 
-          {instances.map((instance, idx) => {
+          {instances.map((inst, idx) => {
             const color = INSTANCE_COLORS[idx % INSTANCE_COLORS.length];
-            const bboxX = instance.bbox.x1 * scale + offsetX;
-            const bboxY = instance.bbox.y1 * scale + offsetY;
+            const bboxX = inst.bbox.x1 * scale + offsetX;
+            const bboxY = inst.bbox.y1 * scale + offsetY;
 
             return (
               <View
@@ -168,8 +222,7 @@ export default function ImageWithMasks({
                 ]}
               >
                 <Text style={styles.labelText}>
-                  {String(instance.label) || 'Unknown'}{' '}
-                  {(instance.score * 100).toFixed(0)}%
+                  {inst.label || 'Unknown'} {(inst.score * 100).toFixed(0)}%
                 </Text>
               </View>
             );

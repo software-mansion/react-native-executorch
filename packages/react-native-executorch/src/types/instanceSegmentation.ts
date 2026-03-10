@@ -3,6 +3,22 @@ import { LabelEnum, ResourceSource } from './common';
 import { Bbox } from './objectDetection';
 
 /**
+ * Raw instance returned from the native C++ side, carrying a numeric
+ * `classIndex` instead of a resolved label string.
+ *
+ * @internal
+ */
+export interface NativeSegmentedInstance {
+  bbox: Bbox;
+  mask: Uint8Array;
+  maskWidth: number;
+  maskHeight: number;
+  classIndex: number;
+  score: number;
+  instanceId: number;
+}
+
+/**
  * Represents a single detected instance in instance segmentation output.
  *
  * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.

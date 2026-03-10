@@ -4,6 +4,7 @@ import {
   InstanceSegmentationConfig,
   InstanceSegmentationModelName,
   InstanceModelNameOf,
+  NativeSegmentedInstance,
   SegmentedInstance,
   InstanceSegmentationOptions,
 } from '../../types/instanceSegmentation';
@@ -24,25 +25,24 @@ const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
 };
 
 /**
- * Builds an ordered label name array from a label map, indexed by model output
- * class ID. Subtracts the minimum label value so that 0-indexed model outputs
- * map correctly (e.g. COCO labels start at 1, but models output 0 for the
- * first class).
+ * Builds a reverse map from 0-based model class index to label key name, and
+ * computes the minimum enum value (offset) so TS enum values can be converted
+ * to 0-based model indices.
  */
-function buildLabelNames(labelMap: LabelEnum): string[] {
+function buildClassIndexMap(labelMap: LabelEnum): {
+  indexToLabel: Map<number, string>;
+  minValue: number;
+} {
   const entries: [string, number][] = [];
   for (const [name, value] of Object.entries(labelMap)) {
     if (typeof value === 'number') entries.push([name, value]);
   }
   const minValue = Math.min(...entries.map(([, v]) => v));
-  const allLabelNames: string[] = [];
+  const indexToLabel = new Map<number, string>();
   for (const [name, value] of entries) {
-    allLabelNames[value - minValue] = name;
+    indexToLabel.set(value - minValue, name);
   }
-  for (let i = 0; i < allLabelNames.length; i++) {
-    if (allLabelNames[i] == null) allLabelNames[i] = '';
-  }
-  return allLabelNames;
+  return { indexToLabel, minValue };
 }
 
 const ModelConfigs = {
@@ -107,14 +107,20 @@ export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
 > extends BaseLabeledModule<ResolveLabels<T>> {
   private modelConfig: InstanceSegmentationConfig<LabelEnum>;
+  private classIndexToLabel: Map<number, string>;
+  private labelEnumOffset: number;
 
   private constructor(
     labelMap: ResolveLabels<T>,
     modelConfig: InstanceSegmentationConfig<LabelEnum>,
-    nativeModule: unknown
+    nativeModule: unknown,
+    classIndexToLabel: Map<number, string>,
+    labelEnumOffset: number
   ) {
     super(labelMap, nativeModule);
     this.modelConfig = modelConfig;
+    this.classIndexToLabel = classIndexToLabel;
+    this.labelEnumOffset = labelEnumOffset;
   }
 
   /**
@@ -149,25 +155,21 @@ export class InstanceSegmentationModule<
       );
     }
 
-    const labelNames = buildLabelNames(modelConfig.labelMap);
-    console.log(
-      '[InstanceSegmentation] Label names:',
-      labelNames.length,
-      'classes'
-    );
+    const { indexToLabel, minValue } = buildClassIndexMap(modelConfig.labelMap);
 
     const nativeModule = global.loadInstanceSegmentation(
       path,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
-      modelConfig.postprocessorConfig?.applyNMS ?? true,
-      labelNames
+      modelConfig.postprocessorConfig?.applyNMS ?? true
     );
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
       modelConfig.labelMap as ResolveLabels<InstanceModelNameOf<C>>,
       modelConfig,
-      nativeModule
+      nativeModule,
+      indexToLabel,
+      minValue
     );
   }
 
@@ -210,18 +212,21 @@ export class InstanceSegmentationModule<
       );
     }
 
+    const { indexToLabel, minValue } = buildClassIndexMap(config.labelMap);
+
     const nativeModule = global.loadInstanceSegmentation(
       path,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
-      config.postprocessorConfig?.applyNMS ?? true,
-      buildLabelNames(config.labelMap)
+      config.postprocessorConfig?.applyNMS ?? true
     );
 
     return new InstanceSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
       config,
-      nativeModule
+      nativeModule,
+      indexToLabel,
+      minValue
     );
   }
 
@@ -291,26 +296,38 @@ export class InstanceSegmentationModule<
     const classIndices = options?.classesOfInterest
       ? options.classesOfInterest.map((label) => {
           const labelStr = String(label);
-          const index = this.labelMap[labelStr as keyof ResolveLabels<T>];
-          return typeof index === 'number' ? index : -1;
+          const enumValue = this.labelMap[labelStr as keyof ResolveLabels<T>];
+          return typeof enumValue === 'number'
+            ? enumValue - this.labelEnumOffset
+            : -1;
         })
       : [];
 
     const startTime = performance.now();
-    const result = await this.nativeModule.generate(
-      imageSource,
-      confidenceThreshold,
-      iouThreshold,
-      maxInstances,
-      classIndices,
-      returnMaskAtOriginalResolution,
-      methodName
-    );
+    const nativeResult: NativeSegmentedInstance[] =
+      await this.nativeModule.generate(
+        imageSource,
+        confidenceThreshold,
+        iouThreshold,
+        maxInstances,
+        classIndices,
+        returnMaskAtOriginalResolution,
+        methodName
+      );
     const inferenceTime = performance.now() - startTime;
     console.log(
-      `[InstanceSegmentation] Inference: ${inferenceTime.toFixed(2)}ms | Method: ${methodName} | Detected: ${result.length} instances`
+      `[InstanceSegmentation] Inference: ${inferenceTime.toFixed(2)}ms | Method: ${methodName} | Detected: ${nativeResult.length} instances`
     );
 
-    return result;
+    return nativeResult.map((inst) => ({
+      bbox: inst.bbox,
+      mask: inst.mask,
+      maskWidth: inst.maskWidth,
+      maskHeight: inst.maskHeight,
+      label: (this.classIndexToLabel.get(inst.classIndex) ??
+        String(inst.classIndex)) as keyof ResolveLabels<T>,
+      score: inst.score,
+      instanceId: inst.instanceId,
+    }));
   }
 }

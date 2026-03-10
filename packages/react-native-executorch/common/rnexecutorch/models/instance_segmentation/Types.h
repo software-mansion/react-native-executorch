@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <cstdint>
 #include <vector>
 
 namespace rnexecutorch::models::instance_segmentation::types {
@@ -19,7 +19,7 @@ struct InstanceMask {
   std::vector<uint8_t> mask; ///< Binary mask (0 or 1) for the instance
   int maskWidth;             ///< Width of the mask array
   int maskHeight;            ///< Height of the mask array
-  std::string label;         ///< Class label name
+  int32_t classIndex;        ///< Model output class index
   float score;               ///< Confidence score [0, 1]
   int instanceId;            ///< Unique identifier for this instance
 };
