@@ -1,6 +1,6 @@
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
-import { LLMConfig, LLMTool, Message } from '../../types/llm';
+import { LLMCapability, LLMConfig, LLMTool, Message } from '../../types/llm';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
@@ -51,6 +51,7 @@ export class LLMModule {
       modelSource: ResourceSource;
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
+      capabilities?: readonly LLMCapability[];
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
@@ -101,8 +102,8 @@ export class LLMModule {
    * @param input - Raw input string containing the prompt and conversation history.
    * @returns The generated response as a string.
    */
-  async forward(input: string): Promise<string> {
-    return await this.controller.forward(input);
+  async forward(input: string, imagePaths?: string[]): Promise<string> {
+    return await this.controller.forward(input, imagePaths);
   }
 
   /**
@@ -112,8 +113,12 @@ export class LLMModule {
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated response as a string.
    */
-  async generate(messages: Message[], tools?: LLMTool[]): Promise<string> {
-    return await this.controller.generate(messages, tools);
+  async generate(
+    messages: Message[],
+    tools?: LLMTool[],
+    imagePaths?: string[]
+  ): Promise<string> {
+    return await this.controller.generate(messages, tools, imagePaths);
   }
 
   /**
@@ -124,8 +129,11 @@ export class LLMModule {
    * @param message - The message string to send.
    * @returns - Updated message history including the new user message and model response.
    */
-  async sendMessage(message: string): Promise<Message[]> {
-    await this.controller.sendMessage(message);
+  async sendMessage(
+    message: string,
+    media?: { imagePath?: string }
+  ): Promise<Message[]> {
+    await this.controller.sendMessage(message, media);
     return this.controller.messageHistory;
   }
 
