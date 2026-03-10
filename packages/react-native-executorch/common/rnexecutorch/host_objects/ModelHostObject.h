@@ -173,6 +173,10 @@ public:
                                        "stream"));
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
+          synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
           promiseHostFunction<&Model::generateFromPhonemes>,
           "generateFromPhonemes"));
       addFunctions(JSI_EXPORT_FUNCTION(
