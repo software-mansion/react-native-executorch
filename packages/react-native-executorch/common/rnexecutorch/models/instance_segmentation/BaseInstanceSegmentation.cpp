@@ -10,10 +10,8 @@ namespace rnexecutorch::models::instance_segmentation {
 BaseInstanceSegmentation::BaseInstanceSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, bool applyNMS,
-    std::vector<std::string> labelNames,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS),
-      labelNames_(std::move(labelNames)) {
+    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
   avalivableMethods_ = *module_->method_names();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -66,7 +64,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::nonMaxSuppression(
         continue;
       }
 
-      if (instances[i].label == instances[j].label) {
+      if (instances[i].classIndex == instances[j].classIndex) {
         float iou = intersectionOverUnion(instances[i], instances[j]);
         if (iou > iouThreshold) {
           suppressed[j] = true;
@@ -149,14 +147,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     if (!allowedClasses.empty() && allowedClasses.find(static_cast<int32_t>(
                                        labelIdx)) == allowedClasses.end())
       continue;
-
-    if (labelIdx >= labelNames_.size()) {
-      throw RnExecutorchError(
-          RnExecutorchErrorCode::InvalidConfig,
-          "Model output class index " + std::to_string(labelIdx) +
-              " exceeds labelNames size " + std::to_string(labelNames_.size()) +
-              ". Ensure the labelMap covers all model output classes.");
-    }
 
     // Scale bbox to original image coordinates
     float origX1 = x1 * widthRatio;
@@ -246,7 +236,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     instance.mask = std::move(finalMask);
     instance.maskWidth = finalMaskWidth;
     instance.maskHeight = finalMaskHeight;
-    instance.label = labelNames_[labelIdx];
+    instance.classIndex = static_cast<int32_t>(labelIdx);
     instance.score = score;
     instance.instanceId = i;
     instances.push_back(std::move(instance));
@@ -254,7 +244,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   }
 
   // Finalize: NMS + limit + renumber
-  if (applyNMS_ && iouThreshold < 0.45) {
+  if (applyNMS_) {
     instances = nonMaxSuppression(instances, iouThreshold);
   }
 

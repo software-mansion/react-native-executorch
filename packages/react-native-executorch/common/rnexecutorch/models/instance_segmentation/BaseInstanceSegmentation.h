@@ -20,7 +20,6 @@ public:
   BaseInstanceSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
                            std::vector<float> normStd, bool applyNMS,
-                           std::vector<std::string> labelNames,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::InstanceMask>
@@ -48,7 +47,6 @@ private:
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
   bool applyNMS_;
-  std::vector<std::string> labelNames_;
   cv::Size modelImageSize{0, 0};
   std::unordered_set<std::string> avalivableMethods_;
   std::string currentlyLoadedMethod_;
@@ -57,6 +55,5 @@ private:
 
 REGISTER_CONSTRUCTOR(models::instance_segmentation::BaseInstanceSegmentation,
                      std::string, std::vector<float>, std::vector<float>, bool,
-                     std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

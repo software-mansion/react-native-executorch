@@ -1,10 +1,7 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import {
-  useInstanceSegmentation,
-  YOLO26X_SEG,
-} from 'react-native-executorch';
+import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
 import {
   View,
   StyleSheet,
@@ -15,7 +12,10 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
-import ImageWithMasks from '../../components/ImageWithMasks';
+import ImageWithMasks, {
+  buildDisplayInstances,
+  DisplayInstance,
+} from '../../components/ImageWithMasks';
 
 const AVAILABLE_INPUT_SIZES = [384, 512, 640];
 
@@ -24,12 +24,12 @@ export default function InstanceSegmentationScreen() {
 
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({
-      model: YOLO26X_SEG,
+      model: YOLO26N_SEG,
     });
 
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [instances, setInstances] = useState<any[]>([]);
+  const [instances, setInstances] = useState<DisplayInstance[]>([]);
   const [selectedInputSize, setSelectedInputSize] = useState(
     AVAILABLE_INPUT_SIZES[0]
   );
@@ -61,7 +61,10 @@ export default function InstanceSegmentationScreen() {
         inputSize: selectedInputSize,
       });
 
-      setInstances(output);
+      // Convert raw masks → small Skia images immediately.
+      // Raw Uint8Array mask buffers (backed by native OwningArrayBuffer)
+      // go out of scope here and become eligible for GC right away.
+      setInstances(buildDisplayInstances(output));
     } catch (e) {
       console.error(e);
     }
