@@ -39,38 +39,39 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
 }
 
 void Kokoro::loadVoice(const std::string &voiceSource) {
-  constexpr size_t rows = static_cast<size_t>(constants::kMaxInputTokens);
-  constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize); // 256
-  const size_t expectedCount = rows * cols;
-  const std::streamsize expectedBytes =
-      static_cast<std::streamsize>(expectedCount * sizeof(float));
+  constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize);
+  constexpr size_t bytesPerRow = cols * sizeof(float);
 
   std::ifstream in(voiceSource, std::ios::binary);
   if (!in) {
     throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "[Kokoro::loadSingleVoice]: cannot open file: " +
+                            "[Kokoro::loadVoice]: cannot open file: " +
                                 voiceSource);
   }
 
-  // Check the file size
+  // Determine number of rows from file size
   in.seekg(0, std::ios::end);
-  const std::streamsize fileSize = in.tellg();
+  const auto fileSize = static_cast<size_t>(in.tellg());
   in.seekg(0, std::ios::beg);
-  if (fileSize < expectedBytes) {
+
+  if (fileSize < bytesPerRow) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadSingleVoice]: file too small: expected at least " +
-            std::to_string(expectedBytes) + " bytes, got " +
+        "[Kokoro::loadVoice]: file too small: need at least " +
+            std::to_string(bytesPerRow) + " bytes for one row, got " +
             std::to_string(fileSize));
   }
 
-  // Read [rows, 1, cols] as contiguous floats directly into voice_
-  // ([rows][cols])
-  if (!in.read(reinterpret_cast<char *>(voice_.data()->data()),
-               expectedBytes)) {
+  const size_t rows = fileSize / bytesPerRow;
+  const auto readBytes = static_cast<std::streamsize>(rows * bytesPerRow);
+
+  // Resize voice vector to hold all rows from the file
+  voice_.resize(rows);
+
+  if (!in.read(reinterpret_cast<char *>(voice_.data()->data()), readBytes)) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadSingleVoice]: failed to read voice weights");
+        "[Kokoro::loadVoice]: failed to read voice weights");
   }
 }
 
@@ -92,7 +93,6 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
@@ -108,10 +108,11 @@ void Kokoro::streamFromPhonemesImpl(
     std::shared_ptr<jsi::Function> callback) {
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
-      this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
-        callback->call(rt,
-                       rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
-      });
+      this->callInvoker_->invokeAsync(
+          [callback, audioVec = std::move(audioVec)](jsi::Runtime &rt) {
+            callback->call(
+                rt, rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
+          });
     }
   };
 
@@ -149,7 +150,7 @@ void Kokoro::streamFromPhonemesImpl(
         audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
     // Push the audio right away to the JS side
-    nativeCallback(audioPart);
+    nativeCallback(std::move(audioPart));
   }
 
   isStreaming_ = false;
@@ -219,7 +220,8 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
   const auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // Select the appropriate voice vector
-  size_t voiceID = std::min(phonemes.size() - 1, noTokens);
+  size_t voiceID = std::min({phonemes.size() - 1, noTokens - 1,
+                             voice_.size() - 1});
   auto &voice = voice_[voiceID];
 
   // Initialize text mask
@@ -254,9 +256,7 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
   auto croppedAudio =
       utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
-  std::vector<float> result(croppedAudio.begin(), croppedAudio.end());
-
-  return result;
+  return {croppedAudio.begin(), croppedAudio.end()};
 }
 
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {

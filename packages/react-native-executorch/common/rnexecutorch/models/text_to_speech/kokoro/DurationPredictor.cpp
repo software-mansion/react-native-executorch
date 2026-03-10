@@ -175,7 +175,7 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
         shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
 
     durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled)
-                                                     : std::floor(scaled));
+                                                      : std::floor(scaled));
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders

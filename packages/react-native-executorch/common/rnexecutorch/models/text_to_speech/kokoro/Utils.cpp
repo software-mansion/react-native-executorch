@@ -55,8 +55,8 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
   auto lbound = findAudioBound<false>(audio);
   auto rbound = findAudioBound<true>(audio);
 
-  lbound = std::max(lbound - margin, size_t(0));
-  rbound = std::min(rbound + margin, audio.size() - 1);
+  lbound = lbound > margin ? lbound - margin : 0;
+  rbound = std::min(rbound + margin, audio.size() > 0 ? audio.size() - 1 : 0);
 
   return audio.subspan(lbound, rbound >= lbound ? rbound - lbound + 1 : 0);
 }
@@ -85,7 +85,7 @@ std::vector<Token> tokenize(const std::u32string &phonemes,
                               ? constants::kVocab.at(p)
                               : constants::kInvalidToken;
                  });
-  auto validSeqEnd = std::partition(
+  auto validSeqEnd = std::stable_partition(
       tokens.begin() + 1, tokens.begin() + effNoTokens + 1,
       [](Token t) -> bool { return t != constants::kInvalidToken; });
   std::fill(validSeqEnd, tokens.begin() + effNoTokens + 1,
