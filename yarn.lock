@@ -62,7 +62,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/eslint-parser@npm:^7.25.1":
+"@babel/eslint-parser@npm:^7.12.0, @babel/eslint-parser@npm:^7.25.1":
   version: 7.28.6
   resolution: "@babel/eslint-parser@npm:7.28.6"
   dependencies:
@@ -6721,6 +6721,7 @@ __metadata:
   resolution: "computer-vision@workspace:apps/computer-vision"
   dependencies:
     "@babel/core": "npm:^7.29.0"
+    "@expo/log-box": "npm:55.0.7"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.84.1"
     "@react-navigation/drawer": "npm:^7.8.1"
@@ -10826,6 +10827,7 @@ __metadata:
   resolution: "llm@workspace:apps/llm"
   dependencies:
     "@babel/core": "npm:^7.29.0"
+    "@expo/log-box": "npm:55.0.7"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.84.1"
     "@react-navigation/drawer": "npm:^7.8.1"
@@ -13578,8 +13580,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "react-native-executorch-monorepo@workspace:."
   dependencies:
+    "@babel/eslint-parser": "npm:^7.12.0"
     "@cspell/eslint-plugin": "npm:^8.19.0"
     "@evilmartians/lefthook": "npm:^2.1.1"
+    "@expo/log-box": "npm:55.0.7"
     "@react-native/eslint-config": "npm:^0.79.0"
     cspell: "npm:^8.19.0"
     eslint: "npm:^8.57.0"
@@ -15102,6 +15106,7 @@ __metadata:
   resolution: "text-embeddings@workspace:apps/text-embeddings"
   dependencies:
     "@babel/core": "npm:^7.29.0"
+    "@expo/log-box": "npm:55.0.7"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.28"

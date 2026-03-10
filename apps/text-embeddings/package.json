@@ -11,6 +11,7 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@expo/log-box": "55.0.7",
     "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-navigation/drawer": "^7.8.1",
     "@react-navigation/native": "^7.1.28",
