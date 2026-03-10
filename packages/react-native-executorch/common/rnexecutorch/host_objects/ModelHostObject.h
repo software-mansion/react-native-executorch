@@ -436,6 +436,7 @@ public:
   JSI_HOST_FUNCTION(unload) {
     try {
       model->unload();
+      thisValue.asObject(runtime).setExternalMemoryPressure(runtime, 0);
     } catch (const RnExecutorchError &e) {
       jsi::Object errorData(runtime);
       errorData.setProperty(runtime, "code", e.getNumericCode());

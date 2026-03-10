@@ -255,6 +255,9 @@ int32_t LLM::getMaxContextLength() const {
   return runner_->get_max_context_length();
 }
 
-void LLM::unload() noexcept { runner_.reset(nullptr); }
+void LLM::unload() noexcept {
+  runner.reset(nullptr);
+  BaseModel::unload();
+}
 
 } // namespace rnexecutorch::models::llm
