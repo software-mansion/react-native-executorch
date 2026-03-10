@@ -83,7 +83,7 @@ We use Docusaurus versioning to "freeze" documentation for older releases.
 When you release a new npm version (e.g., `1.0.0`), you must snapshot the documentation. Run this command from the `docs/` folder:
 
 ```bash
-yarn docusaurus docs:version 1.0.0
+yarn docs:version 1.0.0
 ```
 ### Why is this important?
 
