@@ -79,7 +79,7 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
   return populateDictionary(result.argmax, result.classBuffers);
 }
 
-image_segmentation::SegmentationResult
+semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
@@ -106,7 +106,8 @@ BaseSemanticSegmentation::generateFromFrame(
                        allClasses_, classesOfInterest, resize);
 }
 
-image_segmentation::SegmentationResult BaseSemanticSegmentation::computeResult(
+semantic_segmentation::SegmentationResult
+BaseSemanticSegmentation::computeResult(
     const Tensor &tensor, cv::Size originalSize,
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
@@ -215,7 +216,7 @@ image_segmentation::SegmentationResult BaseSemanticSegmentation::computeResult(
     }
   }
 
-  return image_segmentation::SegmentationResult{argmax, buffersToReturn};
+  return semantic_segmentation::SegmentationResult{argmax, buffersToReturn};
 }
 
 std::shared_ptr<jsi::Object> BaseSemanticSegmentation::populateDictionary(
