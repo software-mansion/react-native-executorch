@@ -214,12 +214,13 @@ TEST(InstanceSegFilterTests, ClassFilterReturnsOnlyMatchingClasses) {
 TEST(InstanceSegFilterTests, EmptyFilterReturnsAllClasses) {
   BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
                                  nullptr);
-  auto unfilteredResults =
+  auto allResults =
       model.generate(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
-  auto filteredResults =
-      model.generate(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
+  EXPECT_FALSE(allResults.empty());
 
-  EXPECT_EQ(unfilteredResults.size(), filteredResults.size());
+  auto noResults = model.generate(kValidTestImagePath, 0.3, 0.5, 100, {50},
+                                  true, kMethodName);
+  EXPECT_TRUE(noResults.empty());
 }
 
 // ============================================================================

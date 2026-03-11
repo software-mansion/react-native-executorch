@@ -25,6 +25,7 @@
 #include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
 #include <rnexecutorch/models/style_transfer/Types.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 
 using namespace rnexecutorch::models::speech_to_text;
 
@@ -432,6 +433,16 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
   return mapObj;
 }
 
+inline jsi::Value getJsiValue(const utils::computer_vision::BBox &bbox,
+                              jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "x1", bbox.x1);
+  obj.setProperty(runtime, "y1", bbox.y1);
+  obj.setProperty(runtime, "x2", bbox.x2);
+  obj.setProperty(runtime, "y2", bbox.y2);
+  return obj;
+}
+
 inline jsi::Value getJsiValue(
     const std::vector<models::object_detection::types::Detection> &detections,
     jsi::Runtime &runtime) {
@@ -462,13 +473,8 @@ inline jsi::Value getJsiValue(
   for (std::size_t i = 0; i < instances.size(); ++i) {
     jsi::Object instance(runtime);
 
-    // Bbox
-    jsi::Object bbox(runtime);
-    bbox.setProperty(runtime, "x1", instances[i].x1);
-    bbox.setProperty(runtime, "y1", instances[i].y1);
-    bbox.setProperty(runtime, "x2", instances[i].x2);
-    bbox.setProperty(runtime, "y2", instances[i].y2);
-    instance.setProperty(runtime, "bbox", bbox);
+    instance.setProperty(runtime, "bbox",
+                         getJsiValue(instances[i].bbox, runtime));
 
     // Mask as Uint8Array
     auto maskBuffer = std::make_shared<OwningArrayBuffer>(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 #include <vector>
 
 namespace rnexecutorch::models::instance_segmentation::types {
@@ -12,16 +13,26 @@ namespace rnexecutorch::models::instance_segmentation::types {
  * confidence score, and a unique instance identifier.
  */
 struct InstanceMask {
-  float x1;                  ///< Bounding box left coordinate
-  float y1;                  ///< Bounding box top coordinate
-  float x2;                  ///< Bounding box right coordinate
-  float y2;                  ///< Bounding box bottom coordinate
-  std::vector<uint8_t> mask; ///< Binary mask (0 or 1) for the instance
-  int maskWidth;             ///< Width of the mask array
-  int maskHeight;            ///< Height of the mask array
-  int32_t classIndex;        ///< Model output class index
-  float score;               ///< Confidence score [0, 1]
-  int instanceId;            ///< Unique identifier for this instance
+  utils::computer_vision::BBox bbox; ///< Bounding box coordinates
+  std::vector<uint8_t> mask;         ///< Binary mask (0 or 1) for the instance
+  int32_t maskWidth;                 ///< Width of the mask array
+  int32_t maskHeight;                ///< Height of the mask array
+  int32_t classIndex;                ///< Model output class index
+  float score;                       ///< Confidence score [0, 1]
+  int32_t instanceId;                ///< Unique identifier for this instance
+
+  InstanceMask() = default;
+  InstanceMask(const InstanceMask &) = default;
+  InstanceMask(InstanceMask &&) = default;
+  InstanceMask &operator=(const InstanceMask &) = default;
+  InstanceMask &operator=(InstanceMask &&) = default;
+
+  InstanceMask(utils::computer_vision::BBox bbox, std::vector<uint8_t> mask,
+               int32_t maskWidth, int32_t maskHeight, int32_t classIndex,
+               float score, int32_t instanceId)
+      : bbox(bbox), mask(std::move(mask)), maskWidth(maskWidth),
+        maskHeight(maskHeight), classIndex(classIndex), score(score),
+        instanceId(instanceId) {}
 };
 
 } // namespace rnexecutorch::models::instance_segmentation::types
