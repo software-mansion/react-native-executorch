@@ -47,8 +47,7 @@ cv::Mat extractFromCVPixelBuffer(void *pixelBuffer) {
                             errorMessage);
   }
 
-  // Note: We don't unlock here - Vision Camera manages the lifecycle
-  // When frame.dispose() is called, Vision Camera will unlock and release
+  CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
 
   return mat;
 }
