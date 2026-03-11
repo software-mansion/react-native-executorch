@@ -25,27 +25,46 @@ public:
          const std::string &synthesizerSource, const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Processes the entire text at once, before sending back to the JS side.
+  /**
+   * Processes the entire text at once, before sending back to the JS side.
+   */
   std::vector<float> generate(std::string text, float speed = 1.F);
 
-  // Accepts pre-computed phonemes (as a UTF-8 IPA string) and synthesizes
-  // audio, bypassing the built-in phonemizer. This allows callers to use
-  // an external G2P system (e.g. the Python `phonemizer` library, espeak-ng,
-  // or any custom phonemizer).
+  /**
+   * Similar to generate(), but accepts pre-computed phonemes (as a UTF-8 IPA
+   * string) and synthesizes audio, bypassing the built-in phonemizer.
+   */
   std::vector<float> generateFromPhonemes(std::string phonemes,
                                           float speed = 1.F);
 
-  // Processes text in chunks, sending each chunk individualy to the JS side
-  // with asynchronous callbacks.
-  void stream(std::string text, float speed,
+  /**
+   * Processes text from inputTextBuffer_ in chunks, sending each chunk
+   * individualy to the JS side with asynchronous callbacks.
+   *
+   * Allows an incrementally expanded input by using an input text buffer.
+   */
+  void stream(float speed, bool stopOnEmptyBuffer,
               std::shared_ptr<jsi::Function> callback);
 
   // Streaming variant that accepts pre-computed phonemes instead of text.
   void streamFromPhonemes(std::string phonemes, float speed,
                           std::shared_ptr<jsi::Function> callback);
 
-  // Stops the streaming process
-  void streamStop() noexcept;
+  /**
+   * Updates the input streaming buffer by adding more text to be processed.
+   *
+   * @param text A new chunk of text, appended to the end of the input buffer.
+   */
+  void streamInsert(std::string textChunk) noexcept;
+
+  /**
+   * Stops the streaming process.
+   *
+   * @param instant If true, stops the streaming as soon as possible by
+   * switching the isStreaming_ flag. Otherwise allows to process the rest of
+   * the buffer first, by switching the stopOnEmptyBuffer_ flag.
+   */
+  void streamStop(bool instant) noexcept;
 
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
@@ -80,8 +99,12 @@ private:
   // Each row is a style vector for a given input token count.
   std::vector<std::array<float, constants::kVoiceRefSize>> voice_;
 
-  // Extra control variables
+  // Streaming state control variables
+  std::string inputTextBuffer_;
+  mutable std::mutex inputTextBufferMutex_;
   std::atomic<bool> isStreaming_{false};
+  std::atomic<bool> stopOnEmptyBuffer_{true};
+  int32_t streamSkippedIterations = 0;
 };
 } // namespace models::text_to_speech::kokoro
 

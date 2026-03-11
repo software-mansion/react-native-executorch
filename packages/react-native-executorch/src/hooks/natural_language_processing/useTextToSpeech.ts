@@ -5,7 +5,6 @@ import {
   TextToSpeechInput,
   TextToSpeechPhonemeInput,
   TextToSpeechType,
-  TextToSpeechStreamingCallbacks,
   TextToSpeechStreamingInput,
   TextToSpeechStreamingPhonemeInput,
 } from '../../types/tts';
@@ -66,49 +65,27 @@ export const useTextToSpeech = ({
   ]);
 
   // Shared guard for all generation methods
-  const guardReady = (methodName: string) => {
-    if (!isReady)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        `The model is currently not loaded. Please load the model before calling ${methodName}().`
-      );
-    if (isGenerating)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
-  };
-
-  // Shared streaming orchestration (guards + onBegin/onNext/onEnd lifecycle)
-  const runStream = useCallback(
-    async (
-      methodName: string,
-      generator: AsyncGenerator<Float32Array>,
-      callbacks: TextToSpeechStreamingCallbacks
-    ) => {
-      guardReady(methodName);
-      setIsGenerating(true);
-      try {
-        await callbacks.onBegin?.();
-        for await (const audio of generator) {
-          if (callbacks.onNext) {
-            await callbacks.onNext(audio);
-          }
-        }
-      } finally {
-        await callbacks.onEnd?.();
-        setIsGenerating(false);
-      }
+  const guardReady = useCallback(
+    (methodName: string) => {
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          `The model is currently not loaded. Please load the model before calling ${methodName}().`
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isReady, isGenerating, moduleInstance]
+    [isReady, isGenerating]
   );
 
   const forward = async (input: TextToSpeechInput) => {
     guardReady('forward');
     try {
       setIsGenerating(true);
-      return await moduleInstance.forward(input.text, input.speed ?? 1.0);
+      return await moduleInstance.forward(input.text ?? '', input.speed ?? 1.0);
     } finally {
       setIsGenerating(false);
     }
@@ -119,7 +96,7 @@ export const useTextToSpeech = ({
     try {
       setIsGenerating(true);
       return await moduleInstance.forwardFromPhonemes(
-        input.phonemes,
+        input.phonemes ?? '',
         input.speed ?? 1.0
       );
     } finally {
@@ -129,27 +106,50 @@ export const useTextToSpeech = ({
 
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
-      await runStream(
-        'stream',
-        moduleInstance.stream({ text: input.text, speed: input.speed ?? 1.0 }),
-        input
-      );
+      guardReady('stream');
+      setIsGenerating(true);
+      try {
+        if (input.text) {
+          moduleInstance.streamInsert(input.text);
+        }
+
+        await input.onBegin?.();
+        for await (const audio of moduleInstance.stream({
+          speed: input.speed ?? 1.0,
+          stopAutomatically: input.stopAutomatically ?? true,
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
     },
-    [runStream, moduleInstance]
+    [moduleInstance, guardReady]
   );
 
   const streamFromPhonemes = useCallback(
     async (input: TextToSpeechStreamingPhonemeInput) => {
-      await runStream(
-        'streamFromPhonemes',
-        moduleInstance.streamFromPhonemes({
-          phonemes: input.phonemes,
+      guardReady('streamFromPhonemes');
+      setIsGenerating(true);
+      try {
+        await input.onBegin?.();
+        for await (const audio of moduleInstance.streamFromPhonemes({
+          phonemes: input.phonemes ?? '',
           speed: input.speed ?? 1.0,
-        }),
-        input
-      );
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
     },
-    [runStream, moduleInstance]
+    [moduleInstance, guardReady]
   );
 
   return {
@@ -160,7 +160,8 @@ export const useTextToSpeech = ({
     forwardFromPhonemes,
     stream,
     streamFromPhonemes,
-    streamStop: moduleInstance.streamStop,
+    streamInsert: (text: string) => moduleInstance.streamInsert(text),
+    streamStop: (instant: boolean = true) => moduleInstance.streamStop(instant),
     downloadProgress,
   };
 };
