@@ -6,7 +6,6 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
-import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
@@ -28,39 +27,31 @@ export class SpeechToTextModule {
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    try {
-      this.modelConfig = model;
+    this.modelConfig = model;
 
-      const tokenizerLoadPromise = ResourceFetcher.fetch(
-        undefined,
-        model.tokenizerSource
+    const tokenizerLoadPromise = ResourceFetcher.fetch(
+      undefined,
+      model.tokenizerSource
+    );
+    const modelPromise = ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      model.modelSource
+    );
+    const [tokenizerSources, modelSources] = await Promise.all([
+      tokenizerLoadPromise,
+      modelPromise,
+    ]);
+    if (!modelSources?.[0] || !tokenizerSources?.[0]) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
-      const encoderDecoderPromise = ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.encoderSource,
-        model.decoderSource
-      );
-      const [tokenizerSources, encoderDecoderResults] = await Promise.all([
-        tokenizerLoadPromise,
-        encoderDecoderPromise,
-      ]);
-      const encoderSource = encoderDecoderResults?.[0];
-      const decoderSource = encoderDecoderResults?.[1];
-      if (!encoderSource || !decoderSource || !tokenizerSources) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
-      }
-      this.nativeModule = await global.loadSpeechToText(
-        encoderSource,
-        decoderSource,
-        tokenizerSources[0]!
-      );
-    } catch (error) {
-      Logger.error('Load failed:', error);
-      throw parseUnknownError(error);
     }
+    this.nativeModule = await global.loadSpeechToText(
+      model.type,
+      modelSources[0],
+      tokenizerSources[0]
+    );
   }
 
   /**
@@ -78,7 +69,8 @@ export class SpeechToTextModule {
    * @returns The encoded output.
    */
   public async encode(waveform: Float32Array): Promise<Float32Array> {
-    return new Float32Array(await this.nativeModule.encode(waveform));
+    const buffer = await this.nativeModule.encode(waveform);
+    return new Float32Array(buffer);
   }
 
   /**
@@ -92,9 +84,8 @@ export class SpeechToTextModule {
     tokens: Int32Array,
     encoderOutput: Float32Array
   ): Promise<Float32Array> {
-    return new Float32Array(
-      await this.nativeModule.decode(tokens, encoderOutput)
-    );
+    const buffer = await this.nativeModule.decode(tokens, encoderOutput);
+    return new Float32Array(buffer);
   }
 
   /**

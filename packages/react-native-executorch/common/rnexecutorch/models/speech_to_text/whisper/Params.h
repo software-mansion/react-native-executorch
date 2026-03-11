@@ -1,0 +1,100 @@
+#pragma once
+
+#include <cinttypes>
+
+/**
+ * Hyperparameters
+ *
+ * Those are adjustable values, which when changed, affect the behavior
+ * of the underlying model and/or algorithms.
+ */
+namespace rnexecutorch::models::speech_to_text::whisper::params {
+
+/**
+ * Determines the range of buffer left when skipping an audio chunk
+ * of size lower than maximum allowed chunk size.
+ *
+ * If the audio length does not exceed [kChunkSize * kSamplingRate] - [buffer],
+ * then instead of moving to the last returned timestamp, we jump across the
+ * entire 30 seconds chunk. This resolves the issue of multiple redundant
+ * segments being produced by the transcription algorithm.
+ */
+constexpr static int32_t kChunkBreakBuffer = 2; // [s]
+
+/**
+ * Determines the maximum timestamp difference available for a word to be
+ * considered as fresh in streaming algorithm.
+ */
+constexpr static float kStreamFreshThreshold = 3.F; // [s], originally 0.5
+
+/**
+ * The size of the most recent committed suffix searched in
+ * fresh words string.
+ *
+ * For example, if the committed buffer contains ["I", "did" "a" "very" "nasty"
+ * "thing."], and kStreamCommitedSuffixSearchSize = 3, then we search for
+ * ["very" "nasty" "thing."] suffix.
+ */
+constexpr static size_t kStreamCommitedSuffixSearchSize = 5;
+
+/**
+ * Determines the maximum expected size of overlapping fragments between
+ * fresh words buffer and commited words buffer in streaming mode.
+ *
+ * It is a limit of maximum amount of erased repeated words from fresh buffer.
+ * The bigger it gets, the less probable it is to commit the same phrase twice.
+ */
+constexpr static size_t kStreamMaxOverlapSize =
+    12; // Number of overlaping words
+
+/**
+ * Similar to kMaxStreamOverlapSize, but this one determines
+ * the maximum allowed timestamp difference between the overlaping fragments.
+ *
+ * It's the first, more strict threshold, used when searching for recently
+ * committed entries.
+ */
+constexpr static float kStreamMaxOverlapTimestampDiff1 = 6.F; // [s]
+
+/**
+ * Similar to kMaxStreamOverlapSize, but this one determines
+ * the maximum allowed timestamp difference between the overlaping fragments.
+ *
+ * It's the second, more liberal threshold, used in overlap correction
+ * algorithm.
+ */
+constexpr static float kStreamMaxOverlapTimestampDiff2 = 15.F; // [s]
+
+/**
+ * Number of words per 1 allowed mistake (error correction).
+ *
+ * For example, if kStreamWordsPerErrorRate = 4, then we allow maximum 1 mistake
+ * in a 4 word string.
+ */
+constexpr static size_t kStreamWordsPerErrorRate = 5;
+
+/**
+ * A threshold which exceeded causes the main streaming audio buffer to be
+ * cleared.
+ */
+constexpr static float kStreamChunkThreshold = 20.F; // [s]
+
+/**
+ * Decides how much of recent audio waveform is always kept in when
+ * clearing the audio buffer in streaming algorithm.
+ */
+constexpr static float kStreamAudioBufferMinReserve = 2.F; // [s]
+
+/**
+ * Decides how much of recent audio waveform can be kept in when
+ * clearing the audio buffer in streaming algorithm.
+ */
+constexpr static float kStreamAudioBufferMaxReserve = 6.F; // [s]
+
+/**
+ * An estimate of number of words per second produced in a standard
+ * human conversation speech.
+ */
+constexpr static float kStreamWordsPerSecond = 2.5F;
+
+} // namespace rnexecutorch::models::speech_to_text::whisper::params
