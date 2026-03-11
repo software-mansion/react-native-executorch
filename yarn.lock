@@ -8091,12 +8091,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-document-picker@npm:~13.0.3":
-  version: 13.0.3
-  resolution: "expo-document-picker@npm:13.0.3"
+"expo-document-picker@npm:~55.0.8":
+  version: 55.0.8
+  resolution: "expo-document-picker@npm:55.0.8"
   peerDependencies:
     expo: "*"
-  checksum: 10/a336310e6327d26f36ac19b5867e2ef453dd59a0e30f7b2854c34bc1f874d967f92ced4e0b5fddc2b193ba1d88059033e6f3b076980c060169b191f4af184f90
+  checksum: 10/9e66c6e97366f3816042fff5d6cc4f18a44f2bb693c64423c7fa06ff62fdba1f81e26a65cc4963b41a78a8b4d0960a2fc1073539e454bc4418fc0e5b94bc941a
   languageName: node
   linkType: hard
 
@@ -10800,7 +10800,7 @@ __metadata:
     expo-brightness: "npm:~55.0.8"
     expo-calendar: "npm:~55.0.9"
     expo-constants: "npm:~55.0.7"
-    expo-document-picker: "npm:~13.0.3"
+    expo-document-picker: "npm:~55.0.8"
     expo-font: "npm:~55.0.4"
     expo-linking: "npm:~55.0.7"
     expo-router: "npm:~55.0.4"
