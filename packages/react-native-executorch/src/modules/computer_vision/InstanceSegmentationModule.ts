@@ -11,12 +11,30 @@ import {
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseLabeledModule, fetchModelPath } from '../BaseLabeledModule';
-import { CocoLabelYolo } from '../../constants/commonVision';
+import {
+  CocoLabel,
+  CocoLabelYolo,
+  IMAGENET1K_MEAN,
+  IMAGENET1K_STD,
+} from '../../constants/commonVision';
 
 const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabelYolo> = {
+  preprocessorConfig: undefined,
   labelMap: CocoLabelYolo,
   availableInputSizes: [384, 512, 640] as const,
   defaultInputSize: 384,
+  defaultConfidenceThreshold: 0.5,
+  defaultIouThreshold: 0.5,
+  postprocessorConfig: {
+    applyNMS: false,
+  },
+};
+
+const RF_DETR_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
+  preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
+  labelMap: CocoLabel,
+  availableInputSizes: undefined,
+  defaultInputSize: undefined, //RFDetr exposes only one method named forward
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.5,
   postprocessorConfig: {
@@ -51,6 +69,7 @@ const ModelConfigs = {
   'yolo26m-seg': YOLO_SEG_CONFIG,
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
+  'rfdetr-seg': RF_DETR_SEG_CONFIG,
 } as const;
 
 /** @internal */
@@ -157,7 +176,7 @@ export class InstanceSegmentationModule<
 
     const { indexToLabel, minValue } = buildClassIndexMap(modelConfig.labelMap);
 
-    const nativeModule = global.loadInstanceSegmentation(
+    const nativeModule = await global.loadInstanceSegmentation(
       path,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
@@ -214,7 +233,7 @@ export class InstanceSegmentationModule<
 
     const { indexToLabel, minValue } = buildClassIndexMap(config.labelMap);
 
-    const nativeModule = global.loadInstanceSegmentation(
+    const nativeModule = await global.loadInstanceSegmentation(
       path,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
@@ -228,6 +247,21 @@ export class InstanceSegmentationModule<
       indexToLabel,
       minValue
     );
+  }
+
+  /**
+   * Returns the available input sizes for this model, or undefined if the model accepts any size.
+   *
+   * @returns An array of available input sizes, or undefined if not constrained.
+   *
+   * @example
+   * ```ts
+   * const sizes = segmentation.getAvailableInputSizes();
+   * console.log(sizes); // [384, 512, 640] for YOLO models, or undefined for RF-DETR
+   * ```
+   */
+  getAvailableInputSizes(): readonly number[] | undefined {
+    return this.modelConfig.availableInputSizes;
   }
 
   /**
@@ -303,7 +337,6 @@ export class InstanceSegmentationModule<
         })
       : [];
 
-    const startTime = performance.now();
     const nativeResult: NativeSegmentedInstance[] =
       await this.nativeModule.generate(
         imageSource,
@@ -314,18 +347,15 @@ export class InstanceSegmentationModule<
         returnMaskAtOriginalResolution,
         methodName
       );
-    const inferenceTime = performance.now() - startTime;
-    console.log(
-      `[InstanceSegmentation] Inference: ${inferenceTime.toFixed(2)}ms | Method: ${methodName} | Detected: ${nativeResult.length} instances`
-    );
 
     return nativeResult.map((inst) => ({
       bbox: inst.bbox,
       mask: inst.mask,
       maskWidth: inst.maskWidth,
       maskHeight: inst.maskHeight,
-      label: (this.classIndexToLabel.get(inst.classIndex) ??
-        String(inst.classIndex)) as keyof ResolveLabels<T>,
+      label: (this.classIndexToLabel.get(
+        inst.classIndex - this.labelEnumOffset
+      ) ?? String(inst.classIndex)) as keyof ResolveLabels<T>,
       score: inst.score,
       instanceId: inst.instanceId,
     }));
