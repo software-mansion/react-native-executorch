@@ -10,7 +10,11 @@ import {
 } from '../../types/instanceSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-import { BaseLabeledModule, fetchModelPath } from '../BaseLabeledModule';
+import {
+  BaseLabeledModule,
+  fetchModelPath,
+  ResolveLabels as ResolveLabelsFor,
+} from '../BaseLabeledModule';
 import {
   CocoLabel,
   CocoLabelYolo,
@@ -18,7 +22,7 @@ import {
   IMAGENET1K_STD,
 } from '../../constants/commonVision';
 
-const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabelYolo> = {
+const YOLO_SEG_CONFIG = {
   preprocessorConfig: undefined,
   labelMap: CocoLabelYolo,
   availableInputSizes: [384, 512, 640] as const,
@@ -28,9 +32,9 @@ const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabelYolo> = {
   postprocessorConfig: {
     applyNMS: false,
   },
-};
+} satisfies InstanceSegmentationConfig<typeof CocoLabelYolo>;
 
-const RF_DETR_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
+const RF_DETR_SEG_CONFIG = {
   preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
   labelMap: CocoLabel,
   availableInputSizes: undefined,
@@ -40,7 +44,7 @@ const RF_DETR_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   postprocessorConfig: {
     applyNMS: true,
   },
-};
+} satisfies InstanceSegmentationConfig<typeof CocoLabel>;
 
 /**
  * Builds a reverse map from 0-based model class index to label key name, and
@@ -92,7 +96,7 @@ export type InstanceSegmentationLabels<
  * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
  */
 type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
-  T extends InstanceSegmentationModelName ? InstanceSegmentationLabels<T> : T;
+  ResolveLabelsFor<T, ModelConfigsType>;
 
 /**
  * Generic instance segmentation module with type-safe label maps.
