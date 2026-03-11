@@ -381,7 +381,7 @@ const LFM2_VL_TOKENIZER_CONFIG = `https://huggingface.co/software-mansion/react-
  */
 export const LFM2_VL_1_6B_QUANTIZED = {
   modelName: 'lfm2.5-vl-1.6b-quantized',
-  capabilities: ['vision'] as const,
+  capabilities: ['vision'],
   modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
