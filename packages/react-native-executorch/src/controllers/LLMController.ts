@@ -121,7 +121,6 @@ export class LLMController {
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
 
-
       if (this.nativeModule) {
         this.nativeModule.unload();
       }
