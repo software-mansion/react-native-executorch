@@ -72,7 +72,7 @@ declare global {
     modelName: string,
     modelSource: string,
     tokenizerSource: string
-  ) => any;
+  ) => Promise<any>;
   var loadTextToSpeechKokoro: (
     lang: string,
     taggerData: string,
