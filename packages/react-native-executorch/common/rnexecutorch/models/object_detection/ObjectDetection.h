@@ -77,7 +77,6 @@ public:
 protected:
   std::vector<types::Detection> runInference(cv::Mat image,
                                              double detectionThreshold);
-  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
 
 private:
   /**
@@ -99,9 +98,6 @@ private:
   std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,
                                             cv::Size originalSize,
                                             double detectionThreshold);
-
-  /// Expected input image dimensions derived from the model's input shape.
-  cv::Size modelImageSize{0, 0};
 
   /// Optional per-channel mean for input normalisation (set in constructor).
   std::optional<cv::Scalar> normMean_;
