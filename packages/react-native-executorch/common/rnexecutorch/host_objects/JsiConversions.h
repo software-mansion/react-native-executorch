@@ -2,6 +2,7 @@
 
 #include <codecvt>
 #include <cstdint>
+#include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <set>
 #include <span>
 #include <type_traits>
@@ -581,9 +582,9 @@ getJsiValue(const models::style_transfer::PixelDataResult &result,
   return obj;
 }
 
-inline jsi::Value
-getJsiValue(const models::image_segmentation::SegmentationResult &result,
-            jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(
+    const rnexecutorch::models::image_segmentation::SegmentationResult &result,
+    jsi::Runtime &runtime) {
   jsi::Object dict(runtime);
 
   auto argmaxArrayBuffer = jsi::ArrayBuffer(runtime, result.argmax);

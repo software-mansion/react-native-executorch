@@ -138,7 +138,6 @@ export class SemanticSegmentationModule<
     }
 
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
-    const allClassNames = this.allClassNames;
 
     return (
       frame: any,
@@ -155,7 +154,6 @@ export class SemanticSegmentationModule<
         };
         return nativeGenerateFromFrame(
           frameData,
-          allClassNames,
           classesOfInterest,
           resizeToInput
         );
@@ -296,7 +294,7 @@ export class SemanticSegmentationModule<
     );
 
     const nativeResult = await this.nativeModule.generate(
-      imageSource,
+      input,
       classesOfInterestNames,
       resizeToInput
     );

@@ -129,6 +129,7 @@ export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
 export * from './hooks/computer_vision/useStyleTransfer';
 export * from './hooks/computer_vision/useSemanticSegmentation';
+export * from './hooks/computer_vision/useSemanticSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';

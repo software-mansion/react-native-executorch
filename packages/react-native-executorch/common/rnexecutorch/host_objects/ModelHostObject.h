@@ -86,6 +86,16 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
           "streamStop"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          promiseHostFunction<&Model::generateFromPhonemes>,
+          "generateFromPhonemes"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          promiseHostFunction<&Model::streamFromPhonemes>,
+          "streamFromPhonemes"));
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {
@@ -196,21 +206,6 @@ public:
                               "generateFromString"));
     }
 
-    if constexpr (meta::HasGenerateFromFrame<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<&Model::generateFromPhonemes>,
-          "generateFromPhonemes"));
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<&Model::streamFromPhonemes>,
-          "streamFromPhonemes"));
-    }
-
     if constexpr (meta::HasGenerateFromString<Model>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
@@ -228,13 +223,6 @@ public:
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                               promiseHostFunction<&Model::generateFromPixels>,
-                              "generateFromPixels"));
-    }
-
-    if constexpr (meta::HasGenerateFromPixels<Model>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              visionHostFunction<&Model::generateFromPixels>,
                               "generateFromPixels"));
     }
   }

@@ -15,7 +15,8 @@ BaseSemanticSegmentation::BaseSemanticSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::vector<std::string> allClasses,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), allClasses_(std::move(allClasses)) {
+    : VisionModel(modelSource, callInvoker),
+      allClasses_(std::move(allClasses)) {
   initModelImageSize();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -49,6 +50,30 @@ void BaseSemanticSegmentation::initModelImageSize() {
   numModelPixels = modelImageSize.area();
 }
 
+cv::Mat BaseSemanticSegmentation::preprocessFrame(const cv::Mat &frame) const {
+  cv::Mat rgb;
+  if (frame.channels() == 4) {
+#ifdef __APPLE__
+    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  } else if (frame.channels() == 3) {
+    rgb = frame;
+  } else {
+    char msg[64];
+    std::snprintf(msg, sizeof(msg), "Unsupported frame format: %d channels",
+                  frame.channels());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput, msg);
+  }
+  if (rgb.size() != modelImageSize) {
+    cv::Mat resized;
+    cv::resize(rgb, resized, modelImageSize);
+    return resized;
+  }
+  return rgb;
+}
+
 TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
                                                cv::Size &originalSize) {
   auto [inputTensor, origSize] = image_processing::readImageToTensor(
@@ -62,11 +87,8 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   std::scoped_lock lock(inference_mutex_);
 
-  cv::Mat preprocessed = preprocessFrame(image);
-
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+  cv::Size originalSize;
+  auto inputTensor = preprocess(imageSource, originalSize);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
@@ -76,11 +98,39 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
                             "Ensure the model input is correct.");
   }
 
-  return postprocess(forwardResult->at(0).toTensor(), originalSize, allClasses_,
-                     classesOfInterest, resize);
+  auto result = computeResult(forwardResult->at(0).toTensor(), originalSize,
+                              allClasses_, classesOfInterest, resize);
+  return populateDictionary(result.argmax, result.classBuffers);
 }
 
-std::shared_ptr<jsi::Object> BaseSemanticSegmentation::postprocess(
+image_segmentation::SegmentationResult
+BaseSemanticSegmentation::generateFromFrame(
+    jsi::Runtime &runtime, const jsi::Value &frameData,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  std::scoped_lock lock(inference_mutex_);
+
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  cv::Mat preprocessed = preprocessFrame(frame);
+  cv::Size originalSize = frame.size();
+
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  auto inputTensor =
+      (normMean_ && normStd_)
+          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
+                                                  *normMean_, *normStd_)
+          : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+
+  auto forwardResult = BaseModel::forward(inputTensor);
+  if (!forwardResult.ok()) {
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed.");
+  }
+
+  return computeResult(forwardResult->at(0).toTensor(), originalSize,
+                       allClasses_, classesOfInterest, resize);
+}
+
+image_segmentation::SegmentationResult BaseSemanticSegmentation::computeResult(
     const Tensor &tensor, cv::Size originalSize,
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
@@ -189,13 +239,13 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::postprocess(
     }
   }
 
-  return populateDictionary(argmax, buffersToReturn);
+  return image_segmentation::SegmentationResult{argmax, buffersToReturn};
 }
 
 std::shared_ptr<jsi::Object> BaseSemanticSegmentation::populateDictionary(
     std::shared_ptr<OwningArrayBuffer> argmax,
-    std::shared_ptr<std::unordered_map<std::string_view,
-                                       std::shared_ptr<OwningArrayBuffer>>>
+    std::shared_ptr<
+        std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>
         classesToOutput) {
   auto promisePtr = std::make_shared<std::promise<void>>();
   std::future<void> doneFuture = promisePtr->get_future();
