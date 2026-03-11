@@ -84,6 +84,12 @@ target_link_options(opencv_deps INTERFACE -fopenmp -static-openmp)
 add_library(tokenizers_deps INTERFACE)
 target_include_directories(tokenizers_deps INTERFACE "${TOKENIZERS_DIR}")
 
+# Phonemis
+add_library(phonemis STATIC IMPORTED)
+  set_target_properties(phonemis PROPERTIES
+      IMPORTED_LOCATION "${ANDROID_THIRD_PARTY}/phonemis/${ANDROID_ABI}/libphonemis.a"
+  )
+
 # Source Definitions
 set(CORE_SOURCES
     ${RNEXECUTORCH_DIR}/models/BaseModel.cpp
@@ -216,6 +222,16 @@ add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
         ${TOKENIZER_SOURCES}
         ${DSP_SOURCES}
     LIBS tokenizers_deps z
+)
+
+add_rn_test(TextToSpeechTests integration/TextToSpeechTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Kokoro.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/DurationPredictor.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Synthesizer.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Partitioner.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Utils.cpp
+    LIBS ${PHONEMIS_LIBS}
 )
 
 add_rn_test(LLMTests integration/LLMTest.cpp

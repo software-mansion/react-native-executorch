@@ -5,7 +5,6 @@ import {
   TextToSpeechInput,
   TextToSpeechPhonemeInput,
   TextToSpeechType,
-  TextToSpeechStreamingCallbacks,
   TextToSpeechStreamingInput,
   TextToSpeechStreamingPhonemeInput,
 } from '../../types/tts';
@@ -91,36 +90,11 @@ export const useTextToSpeech = ({
     [isReady, isGenerating, moduleInstance]
   );
 
-  // Shared streaming orchestration (guards + onBegin/onNext/onEnd lifecycle)
-  const runStream = useCallback(
-    async (
-      methodName: string,
-      generator: AsyncGenerator<Float32Array>,
-      callbacks: TextToSpeechStreamingCallbacks
-    ) => {
-      guardReady(methodName);
-      setIsGenerating(true);
-      try {
-        await callbacks.onBegin?.();
-        for await (const audio of generator) {
-          if (callbacks.onNext) {
-            await callbacks.onNext(audio);
-          }
-        }
-      } finally {
-        await callbacks.onEnd?.();
-        setIsGenerating(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isReady, isGenerating, moduleInstance]
-  );
-
   const forward = async (input: TextToSpeechInput) => {
     const instance = guardReady('forward');
     try {
       setIsGenerating(true);
-      return await instance.forward(input.text, input.speed ?? 1.0);
+      return await instance.forward(input.text ?? "", input.speed ?? 1.0);
     } finally {
       setIsGenerating(false);
     }
@@ -131,7 +105,7 @@ export const useTextToSpeech = ({
     try {
       setIsGenerating(true);
       return await instance.forwardFromPhonemes(
-        input.phonemes,
+        input.phonemes ?? "",
         input.speed ?? 1.0
       );
     } finally {
@@ -142,29 +116,62 @@ export const useTextToSpeech = ({
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
       const instance = guardReady('stream');
-      await runStream(
-        'stream',
-        instance.stream({ text: input.text, speed: input.speed ?? 1.0 }),
-        input
-      );
+      setIsGenerating(true);
+      try {
+        if (input.text) {
+          instance.streamInsert(input.text);
+        }
+
+        await input.onBegin?.();
+        for await (const audio of instance.stream({
+          speed: input.speed ?? 1.0,
+          stopAutomatically: input.stopAutomatically ?? true,
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
     },
-    [guardReady, runStream]
+    [moduleInstance, guardReady]
   );
 
   const streamFromPhonemes = useCallback(
     async (input: TextToSpeechStreamingPhonemeInput) => {
       const instance = guardReady('streamFromPhonemes');
-      await runStream(
-        'streamFromPhonemes',
-        instance.streamFromPhonemes({
-          phonemes: input.phonemes,
+      setIsGenerating(true);
+      try {
+        await input.onBegin?.();
+        for await (const audio of instance.streamFromPhonemes({
+          phonemes: input.phonemes ?? '',
           speed: input.speed ?? 1.0,
-        }),
-        input
-      );
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
     },
-    [guardReady, runStream]
+    [guardReady]
   );
+
+  const streamInsert = useCallback((text: string) => {
+    if (moduleInstance) {
+      moduleInstance.streamInsert(text);
+    }
+  }, [moduleInstance]);
+
+  const streamStop = useCallback((instant: boolean = true) => {
+    if (moduleInstance) {
+      moduleInstance.streamStop(instant);
+    }
+  }, [moduleInstance]);
 
   return {
     error,
@@ -174,7 +181,8 @@ export const useTextToSpeech = ({
     forwardFromPhonemes,
     stream,
     streamFromPhonemes,
-    streamStop: () => moduleInstance?.streamStop(),
+    streamInsert,
+    streamStop,
     downloadProgress,
   };
 };

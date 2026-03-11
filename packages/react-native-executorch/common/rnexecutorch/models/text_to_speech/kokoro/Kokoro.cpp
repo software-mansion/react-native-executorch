@@ -7,6 +7,7 @@
 #include <phonemis/utilities/string_utils.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
+#include <thread>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -103,9 +104,8 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
   return audio;
 }
 
-void Kokoro::streamFromPhonemesImpl(
-    const std::u32string &phonemes, float speed,
-    std::shared_ptr<jsi::Function> callback) {
+void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
+                                    std::shared_ptr<jsi::Function> callback) {
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
       this->callInvoker_->invokeAsync(
@@ -115,8 +115,6 @@ void Kokoro::streamFromPhonemesImpl(
           });
     }
   };
-
-  isStreaming_ = true;
 
   // Use LATENCY strategy to minimize the time-to-first-audio for streaming
   auto subsentences =
@@ -152,14 +150,16 @@ void Kokoro::streamFromPhonemesImpl(
     // Push the audio right away to the JS side
     nativeCallback(std::move(audioPart));
   }
-
-  isStreaming_ = false;
 }
 
 std::vector<float> Kokoro::generate(std::string text, float speed) {
   if (text.size() > params::kMaxTextSize) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: maximum input text size exceeded");
+  }
+
+  if (text.empty()) {
+    return {};
   }
 
   // G2P (Grapheme to Phoneme) conversion
@@ -171,24 +171,74 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
 std::vector<float> Kokoro::generateFromPhonemes(std::string phonemes,
                                                 float speed) {
   if (phonemes.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: phoneme string must not be empty");
+    return {};
   }
+
   return generateFromPhonemesImpl(
       phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed);
 }
 
-void Kokoro::stream(std::string text, float speed,
+void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
                     std::shared_ptr<jsi::Function> callback) {
-  if (text.size() > params::kMaxTextSize) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: maximum input text size exceeded");
+  isStreaming_ = true;
+  stopOnEmptyBuffer_ = stopOnEmptyBuffer;
+
+  // The outer streaming loop is responsible for handling the input buffer.
+  // The extracted text is then passed to the inner loop, which performs a
+  // standard streaming on a fixed amount of input text.
+  while (isStreaming_) {
+    std::string text;
+
+    // Extract the code relying on input buffer for a separate mutex lock
+    // section.
+    {
+      std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
+      if (inputTextBuffer_.empty() && stopOnEmptyBuffer_) {
+        break;
+      }
+
+      // Try to find the most recent available end of sentence character.
+      size_t searchLimit =
+          std::min(inputTextBuffer_.size(), params::kMaxTextSize);
+      auto eosIt = std::find_first_of(
+          inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
+          inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
+          constants::kEndOfSentenceCharacters.end());
+      size_t chunkSize = (eosIt != inputTextBuffer_.rend())
+                             ? std::distance(eosIt, inputTextBuffer_.rend())
+                             : 0;
+
+      // To maximize the quality of the speech, we try to avoid processing
+      // chunks which end in the middle of a sentence.
+      if (chunkSize > 0 ||
+          streamSkippedIterations >= params::kStreamMaxSkippedIterations) {
+        text = inputTextBuffer_.substr(0, chunkSize);
+        inputTextBuffer_.erase(0, chunkSize);
+        streamSkippedIterations = 0;
+      } else {
+        streamSkippedIterations++;
+      }
+    }
+
+    if (!text.empty()) {
+      // Now we proceed with a standard streaming logic for fixed-size input.
+      auto phonemes = phonemizer_.process(text);
+      streamFromPhonemesImpl(phonemes, speed, callback);
+    }
+
+    // A little bit of pause to not overload the thread.
+    if (isStreaming_) {
+      std::this_thread::sleep_for(
+          std::chrono::milliseconds(params::kStreamPause));
+    }
   }
 
-  // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_.process(text);
-
-  streamFromPhonemesImpl(phonemes, speed, callback);
+  {
+    std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
+    inputTextBuffer_.clear();
+    isStreaming_ = false;
+    streamSkippedIterations = 0;
+  }
 }
 
 void Kokoro::streamFromPhonemes(std::string phonemes, float speed,
@@ -197,12 +247,26 @@ void Kokoro::streamFromPhonemes(std::string phonemes, float speed,
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: phoneme string must not be empty");
   }
+
+  isStreaming_ = true;
   streamFromPhonemesImpl(
       phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed,
       callback);
+  isStreaming_ = false;
 }
 
-void Kokoro::streamStop() noexcept { isStreaming_ = false; }
+void Kokoro::streamInsert(std::string textChunk) noexcept {
+  std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
+  inputTextBuffer_.append(textChunk);
+}
+
+void Kokoro::streamStop(bool instant) noexcept {
+  if (instant) {
+    isStreaming_ = false;
+  } else {
+    stopOnEmptyBuffer_ = true;
+  }
+}
 
 std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
                                       float speed, size_t paddingMs) {
@@ -220,8 +284,8 @@ std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
   const auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // Select the appropriate voice vector
-  size_t voiceID = std::min({phonemes.size() - 1, noTokens - 1,
-                             voice_.size() - 1});
+  size_t voiceID =
+      std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
   auto &voice = voice_[voiceID];
 
   // Initialize text mask

@@ -93,7 +93,7 @@ export interface TextToSpeechProps extends TextToSpeechConfig {
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
  */
 export interface TextToSpeechInput {
-  text: string;
+  text?: string;
   speed?: number;
 }
 
@@ -108,7 +108,7 @@ export interface TextToSpeechInput {
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
  */
 export interface TextToSpeechPhonemeInput {
-  phonemes: string;
+  phonemes?: string;
   speed?: number;
 }
 
@@ -180,9 +180,17 @@ export interface TextToSpeechType {
   ) => Promise<void>;
 
   /**
-   * Interrupts and stops the currently active audio generation stream.
+   * Inserts new text chunk into the buffer to be processed in streaming mode.
    */
-  streamStop: () => void;
+  streamInsert: (textChunk: string) => void;
+
+  /**
+   * Interrupts and stops the currently active audio generation stream.
+   *
+   * @param instant If true, stops the streaming as soon as possible. Otherwise
+   *                allows the module to complete processing for the remains of the buffer.
+   */
+  streamStop: (instant?: boolean) => void;
 }
 
 /**
@@ -207,10 +215,16 @@ export interface TextToSpeechStreamingCallbacks {
  * Actions such as playing the audio should happen within the onNext callback.
  * Callbacks can be both synchronous or asynchronous.
  *
+ * Enables an incrementally expanded input, in other words adding
+ * new text chunks with streamInsert() as the streaming is running.
+ *
  * @category Types
+ * @property {boolean} [stopAutomatically] - If true, streaming will stop automatically when the buffer is empty.
  */
 export interface TextToSpeechStreamingInput
-  extends TextToSpeechInput, TextToSpeechStreamingCallbacks {}
+  extends TextToSpeechInput, TextToSpeechStreamingCallbacks {
+  stopAutomatically?: boolean;
+}
 
 /**
  * Streaming input definition for pre-computed phonemes.

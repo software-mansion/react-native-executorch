@@ -34,6 +34,10 @@ inline constexpr int32_t kSamplingRate =
     24000; // Corresponds to Kokoro's model audio frequency
 inline constexpr int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
+// Special text characters
+inline const std::unordered_set<char> kEndOfSentenceCharacters = {'.', '?', '!',
+                                                                  ';'};
+
 // Special phonemes
 inline const std::unordered_set<char32_t> kEndOfSentencePhonemes = {
     U'.', U'?', U'!', U';', U'…'};
