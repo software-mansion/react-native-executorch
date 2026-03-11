@@ -175,11 +175,11 @@ Data presented in the following sections is based on inference with forward_640 
 
 | Model       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ----------- | ---------------------- | ------------------ |
-| YOLO26n_SEG | 92                     | 668                |
-| YOLO26s_SEG | 220                    | 712                |
-| YOLO26m_SEG | 570                    | 815                |
-| YOLO26l_SEG | 680                    | 1024               |
-| YOLO26x_SEG | 1410                   | 1450               |
+| YOLO26N_SEG | 92                     | 668                |
+| YOLO26S_SEG | 220                    | 712                |
+| YOLO26M_SEG | 570                    | 815                |
+| YOLO26L_SEG | 680                    | 1024               |
+| YOLO26X_SEG | 1410                   | 1450               |
 
 ## Text to image
 
