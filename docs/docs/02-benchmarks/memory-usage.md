@@ -2,32 +2,68 @@
 title: Memory Usage
 ---
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (Android).
-:::
-
 ## Classification
 
-| Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
-| ----------------- | :--------------------: | :----------------: |
-| EFFICIENTNET_V2_S |          230           |         87         |
+:::info
+Memory usage values represent the peak memory increase observed while the model was
+loaded and actively running inference, relative to the baseline app memory
+before model initialization.
+:::
+
+| Model / Device                   | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
+| -------------------------------- | :----------------: | :------------------: |
+| EFFICIENTNET_V2_S (XNNPACK FP32) |        101         |         122          |
+| EFFICIENTNET_V2_S (XNNPACK INT8) |         62         |          78          |
+| EFFICIENTNET_V2_S (Core ML FP32) |        101         |          -           |
+| EFFICIENTNET_V2_S (Core ML FP16) |         87         |          -           |
 
 ## Object Detection
 
-| Model                          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------ | :--------------------: | :----------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |          164           |        132         |
+:::info
+Memory usage values represent the peak memory increase observed while the model was
+loaded and actively running inference, relative to the baseline app memory
+before model initialization.
+:::
+
+| Model / Device                                | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
+| --------------------------------------------- | :----------------: | :------------------: |
+| SSDLITE_320_MOBILENET_V3_LARGE (XNNPACK FP32) |         94         |         104          |
+| SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP32) |         83         |          -           |
+| SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP16) |         62         |          -           |
 
 ## Style Transfer
 
-| Model                        | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
-| ---------------------------- | :--------------------: | :----------------: |
-| STYLE_TRANSFER_CANDY         |          1200          |        380         |
-| STYLE_TRANSFER_MOSAIC        |          1200          |        380         |
-| STYLE_TRANSFER_UDNIE         |          1200          |        380         |
-| STYLE_TRANSFER_RAIN_PRINCESS |          1200          |        380         |
+:::info
+Memory usage values represent the peak memory increase observed while the model was
+loaded and actively running inference, relative to the baseline app memory
+before model initialization.
+:::
+
+| Model / Device                              | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
+| ------------------------------------------- | :----------------: | :------------------: |
+| STYLE_TRANSFER_CANDY (XNNPACK FP32)         |        1200        |         1200         |
+| STYLE_TRANSFER_CANDY (XNNPACK INT8)         |        800         |         800          |
+| STYLE_TRANSFER_CANDY (Core ML FP32)         |        400         |          -           |
+| STYLE_TRANSFER_CANDY (Core ML FP16)         |        380         |          -           |
+| STYLE_TRANSFER_MOSAIC (XNNPACK FP32)        |        1200        |         1200         |
+| STYLE_TRANSFER_MOSAIC (XNNPACK INT8)        |        800         |         800          |
+| STYLE_TRANSFER_MOSAIC (Core ML FP32)        |        400         |          -           |
+| STYLE_TRANSFER_MOSAIC (Core ML FP16)        |        380         |          -           |
+| STYLE_TRANSFER_UDNIE (XNNPACK FP32)         |        1200        |         1200         |
+| STYLE_TRANSFER_UDNIE (XNNPACK INT8)         |        800         |         800          |
+| STYLE_TRANSFER_UDNIE (Core ML FP32)         |        400         |          -           |
+| STYLE_TRANSFER_UDNIE (Core ML FP16)         |        380         |          -           |
+| STYLE_TRANSFER_RAIN_PRINCESS (XNNPACK FP32) |        1200        |         1200         |
+| STYLE_TRANSFER_RAIN_PRINCESS (XNNPACK INT8) |        800         |         800          |
+| STYLE_TRANSFER_RAIN_PRINCESS (Core ML FP32) |        400         |          -           |
+| STYLE_TRANSFER_RAIN_PRINCESS (Core ML FP16) |        380         |          -           |
 
 ## OCR
+
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
 
 | Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------------------------------ | :--------------------: | :----------------: |
@@ -35,11 +71,21 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 
 ## Vertical OCR
 
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
+
 | Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------------------------------ | :--------------------: | :----------------: |
 | Detector (CRAFT) + Recognizer (CRNN) |       1000-1600        |     1000-1500      |
 
 ## LLMs
+
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
 
 | Model                 | Android (XNNPACK) [GB] | iOS (XNNPACK) [GB] |
 | --------------------- | :--------------------: | :----------------: |
@@ -52,11 +98,21 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 
 ## Speech to text
 
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
+
 | Model        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------ | :--------------------: | :----------------: |
 | WHISPER_TINY |          410           |        375         |
 
 ## Text to speech
+
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
 
 | Model         | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------- | :--------------------: | :----------------: |
@@ -69,6 +125,11 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 
 ## Text Embeddings
 
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
+
 | Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------------------- | :--------------------: | :----------------: |
 | ALL_MINILM_L6_V2           |           95           |        110         |
@@ -79,14 +140,27 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 
 ## Image Embeddings
 
-| Model                       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------- | :--------------------: | :----------------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |          345           |        340         |
+:::info
+Memory usage values represent the peak memory increase observed while the model was
+loaded and actively running inference, relative to the baseline app memory
+before model initialization.
+:::
+
+| Model / Device                             | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
+| ------------------------------------------ | :----------------: | :------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE (XNNPACK FP32) |        340         |         345          |
 
 ## Semantic Segmentation
 
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
+
 :::warning
-Data presented in the following sections is based on inference with non-resized output. When resize is enabled, expect higher memory usage and inference time with higher resolutions.
+Data presented in the following sections is based on inference with non-resized
+output. When resize is enabled, expect higher memory usage and inference time
+with higher resolutions.
 :::
 
 | Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
@@ -94,6 +168,11 @@ Data presented in the following sections is based on inference with non-resized 
 | DEELABV3_RESNET50 | 930                    | 660                |
 
 ## Text to image
+
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
 
 | Model                 | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | --------------------- | ---------------------- | ------------------ |

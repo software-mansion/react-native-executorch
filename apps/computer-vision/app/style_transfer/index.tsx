@@ -3,7 +3,7 @@ import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
   useStyleTransfer,
-  STYLE_TRANSFER_CANDY,
+  STYLE_TRANSFER_CANDY_QUANTIZED,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
@@ -11,7 +11,7 @@ import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 
 export default function StyleTransferScreen() {
-  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
+  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY_QUANTIZED });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);

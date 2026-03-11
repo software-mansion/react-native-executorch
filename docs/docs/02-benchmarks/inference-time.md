@@ -3,29 +3,84 @@ title: Inference Time
 ---
 
 :::warning
-Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+Times presented in the tables are measured as consecutive runs of the model.
+Initial run times may be up to 2x longer due to model loading and
+initialization.
 :::
 
 ## Classification
 
-| Model             | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ----------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| EFFICIENTNET_V2_S |              64              |              68              |            217             |                205                |            198            |
+:::info
+Inference times are measured directly from native C++ code, wrapping only the
+model's forward pass, excluding input-dependent pre- and post-processing (e.g.
+image resizing, normalization) and any overhead from React Native runtime.
+:::
+
+:::info
+For this model all input images, whether larger or smaller, are resized before
+processing. Resizing is typically fast for small images but may be noticeably
+slower for very large images, which can increase total time.
+:::
+
+| Model / Device                   | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
+| :------------------------------- | :----------------: | :------------------: |
+| EFFICIENTNET_V2_S (XNNPACK FP32) |         70         |         100          |
+| EFFICIENTNET_V2_S (XNNPACK INT8) |         22         |          38          |
+| EFFICIENTNET_V2_S (Core ML FP32) |         12         |          -           |
+| EFFICIENTNET_V2_S (Core ML FP16) |         5          |          -           |
 
 ## Object Detection
 
-| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |              71              |              74              |            257             |                115                |            109            |
+:::info
+Inference times are measured directly from native C++ code, wrapping only the
+model's forward pass, excluding input-dependent pre- and post-processing (e.g.
+image resizing, normalization) and any overhead from React Native runtime.
+:::
+
+:::info
+For this model all input images, whether larger or smaller, are resized before
+processing. Resizing is typically fast for small images but may be noticeably
+slower for very large images, which can increase total time.
+:::
+
+| Model / Device                                | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
+| :-------------------------------------------- | :----------------: | :------------------: |
+| SSDLITE_320_MOBILENET_V3_LARGE (XNNPACK FP32) |         20         |          18          |
+| SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP32) |         18         |          -           |
+| SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP16) |         8          |          -           |
 
 ## Style Transfer
 
-| Model                        | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ---------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| STYLE_TRANSFER_CANDY         |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_MOSAIC        |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_UDNIE         |             1400             |             1485             |            4255            |               2510                |           2355            |
-| STYLE_TRANSFER_RAIN_PRINCESS |             1400             |             1485             |            4255            |               2510                |           2355            |
+:::info
+Inference times are measured directly from native C++ code, wrapping only the
+model's forward pass, excluding input-dependent pre- and post-processing (e.g.
+image resizing, normalization) and any overhead from React Native runtime.
+:::
+
+:::info
+For this model all input images, whether larger or smaller, are resized before
+processing. Resizing is typically fast for small images but may be noticeably
+slower for very large images, which can increase total time.
+:::
+
+| Model / Device                              | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
+| :------------------------------------------ | :----------------: | :------------------: |
+| STYLE_TRANSFER_CANDY (XNNPACK FP32)         |        1192        |         1025         |
+| STYLE_TRANSFER_CANDY (XNNPACK INT8)         |        272         |         430          |
+| STYLE_TRANSFER_CANDY (Core ML FP32)         |        100         |          -           |
+| STYLE_TRANSFER_CANDY (Core ML FP16)         |        150         |          -           |
+| STYLE_TRANSFER_MOSAIC (XNNPACK FP32)        |        1192        |         1025         |
+| STYLE_TRANSFER_MOSAIC (XNNPACK INT8)        |        272         |         430          |
+| STYLE_TRANSFER_MOSAIC (Core ML FP32)        |        100         |          -           |
+| STYLE_TRANSFER_MOSAIC (Core ML FP16)        |        150         |          -           |
+| STYLE_TRANSFER_UDNIE (XNNPACK FP32)         |        1192        |         1025         |
+| STYLE_TRANSFER_UDNIE (XNNPACK INT8)         |        272         |         430          |
+| STYLE_TRANSFER_UDNIE (Core ML FP32)         |        100         |          -           |
+| STYLE_TRANSFER_UDNIE (Core ML FP16)         |        150         |          -           |
+| STYLE_TRANSFER_RAIN_PRINCESS (XNNPACK FP32) |        1192        |         1025         |
+| STYLE_TRANSFER_RAIN_PRINCESS (XNNPACK INT8) |        272         |         430          |
+| STYLE_TRANSFER_RAIN_PRINCESS (Core ML FP32) |        100         |          -           |
+| STYLE_TRANSFER_RAIN_PRINCESS (Core ML FP16) |        150         |          -           |
 
 ## OCR
 
@@ -109,23 +164,51 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 
 ## Image Embeddings
 
-| Model                       | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------------- | :--------------------------: | :-----------------------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |              18              |            55             |
+:::info
+Inference times are measured directly from native C++ code, wrapping only the
+model's forward pass, excluding input-dependent pre- and post-processing (e.g.
+image resizing, normalization) and any overhead from React Native runtime.
+:::
 
 :::info
-Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
+For this model all input images, whether larger or smaller, are resized before
+processing. Resizing is typically fast for small images but may be noticeably
+slower for very large images, which can increase total time.
 :::
+
+| Model / Device                             | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
+| :----------------------------------------- | :----------------: | :------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE (XNNPACK FP32) |         14         |          68          |
+| CLIP_VIT_BASE_PATCH32_IMAGE (XNNPACK INT8) |         11         |          31          |
 
 ## Semantic Segmentation
 
-:::warning
-Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::info
+Inference times are measured directly from native C++ code, wrapping only the
+model's forward pass, excluding input-dependent pre- and post-processing (e.g.
+image resizing, normalization) and any overhead from React Native runtime.
 :::
 
-| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
-| ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
-| DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
+:::info
+For this model all input images, whether larger or smaller, are resized before
+processing. Resizing is typically fast for small images but may be noticeably
+slower for very large images, which can increase total time.
+:::
+
+| Model / Device                               | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
+| :------------------------------------------- | :----------------: | :------------------: |
+| DEEPLAB_V3_RESNET50 (XNNPACK FP32)           |        2000        |         2200         |
+| DEEPLAB_V3_RESNET50 (XNNPACK INT8)           |        118         |         380          |
+| DEEPLAB_V3_RESNET101 (XNNPACK FP32)          |        2900        |         3300         |
+| DEEPLAB_V3_RESNET101 (XNNPACK INT8)          |        174         |         660          |
+| DEEPLAB_V3_MOBILENET_V3_LARGE (XNNPACK FP32) |        131         |         153          |
+| DEEPLAB_V3_MOBILENET_V3_LARGE (XNNPACK INT8) |         17         |          40          |
+| LRASPP_MOBILENET_V3_LARGE (XNNPACK FP32)     |         13         |          36          |
+| LRASPP_MOBILENET_V3_LARGE (XNNPACK INT8)     |         12         |          20          |
+| FCN_RESNET50 (XNNPACK FP32)                  |        1800        |         2160         |
+| FCN_RESNET50 (XNNPACK INT8)                  |        100         |         320          |
+| FCN_RESNET101 (XNNPACK FP32)                 |        2600        |         3160         |
+| FCN_RESNET101 (XNNPACK INT8)                 |        160         |         620          |
 
 ## Text to image
 

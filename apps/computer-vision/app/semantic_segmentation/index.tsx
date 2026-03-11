@@ -2,7 +2,7 @@ import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
-  DEEPLAB_V3_RESNET50,
+  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
   useSemanticSegmentation,
 } from 'react-native-executorch';
 import {
@@ -46,7 +46,7 @@ export default function SemanticSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
   const { isReady, isGenerating, downloadProgress, forward } =
     useSemanticSegmentation({
-      model: DEEPLAB_V3_RESNET50,
+      model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
     });
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
