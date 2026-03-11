@@ -256,7 +256,7 @@ int32_t LLM::getMaxContextLength() const {
 }
 
 void LLM::unload() noexcept {
-  runner.reset(nullptr);
+  runner_.reset(nullptr);
   BaseModel::unload();
 }
 
