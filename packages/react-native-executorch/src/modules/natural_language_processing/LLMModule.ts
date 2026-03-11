@@ -1,6 +1,6 @@
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
-import { LLMConfig, LLMTool, Message } from '../../types/llm';
+import { LLMCapability, LLMConfig, LLMTool, Message } from '../../types/llm';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
@@ -51,6 +51,7 @@ export class LLMModule {
       modelSource: ResourceSource;
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
+      capabilities?: readonly LLMCapability[];
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
@@ -101,14 +102,15 @@ export class LLMModule {
    * @param input - Raw input string containing the prompt and conversation history.
    * @returns The generated response as a string.
    */
-  async forward(input: string): Promise<string> {
-    return await this.controller.forward(input);
+  async forward(input: string, imagePaths?: string[]): Promise<string> {
+    return await this.controller.forward(input, imagePaths);
   }
 
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
+   * For multimodal models, set `mediaPath` on user messages to include images.
    *
-   * @param messages - Array of messages representing the chat history.
+   * @param messages - Array of messages representing the chat history. User messages may include a `mediaPath` field with a local image path.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated response as a string.
    */
@@ -124,8 +126,11 @@ export class LLMModule {
    * @param message - The message string to send.
    * @returns - Updated message history including the new user message and model response.
    */
-  async sendMessage(message: string): Promise<Message[]> {
-    await this.controller.sendMessage(message);
+  async sendMessage(
+    message: string,
+    media?: { imagePath?: string }
+  ): Promise<Message[]> {
+    await this.controller.sendMessage(message, media);
     return this.controller.messageHistory;
   }
 

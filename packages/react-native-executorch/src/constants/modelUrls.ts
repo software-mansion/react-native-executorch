@@ -371,6 +371,22 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
   tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
 };
 
+// LFM2.5-VL-1.6B (Vision-Language)
+const LFM2_VL_1_6B_QUANTIZED_MODEL = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
+const LFM2_VL_TOKENIZER = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer.json`;
+const LFM2_VL_TOKENIZER_CONFIG = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json`;
+
+/**
+ * @category Models - VLM
+ */
+export const LFM2_VL_1_6B_QUANTIZED = {
+  modelName: 'lfm2.5-vl-1.6b-quantized',
+  capabilities: ['vision'],
+  modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
+  tokenizerSource: LFM2_VL_TOKENIZER,
+  tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
+} as const;
+
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
