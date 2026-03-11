@@ -108,7 +108,7 @@ export interface TextToSpeechInput {
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
  */
 export interface TextToSpeechPhonemeInput {
-  phonemes?: string;
+  phonemes: string;
   speed?: number;
 }
 
