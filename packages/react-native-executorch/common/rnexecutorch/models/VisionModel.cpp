@@ -1,7 +1,6 @@
 #include "VisionModel.h"
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch::models {
