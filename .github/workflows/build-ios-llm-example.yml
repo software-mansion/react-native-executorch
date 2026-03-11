@@ -55,6 +55,11 @@ jobs:
           else
             echo "Exact cache hit, skipping prebuild"
           fi
+      - name: Download react-native-audio-api prebuilt binaries
+        working-directory: node_modules/react-native-audio-api
+        run: |
+          chmod +x scripts/download-prebuilt-binaries.sh
+          scripts/download-prebuilt-binaries.sh ios
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
