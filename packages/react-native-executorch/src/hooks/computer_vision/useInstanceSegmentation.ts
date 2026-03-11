@@ -47,17 +47,25 @@ export const useInstanceSegmentation = <
 }: InstanceSegmentationProps<C>): InstanceSegmentationType<
   InstanceSegmentationLabels<C['modelName']>
 > => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory<InstanceSegmentationModule<InstanceModelNameOf<C>>, C>({
-      factory: InstanceSegmentationModule.fromModelName,
-      config: model,
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    instance,
+  } = useModuleFactory<InstanceSegmentationModule<InstanceModelNameOf<C>>, C>({
+    factory: InstanceSegmentationModule.fromModelName,
+    config: model,
+    preventLoad,
+  });
 
   const forward: InstanceSegmentationType<
     InstanceSegmentationLabels<C['modelName']>
   >['forward'] = (imageSource, options) =>
     runForward((instance) => instance.forward(imageSource, options) as any);
+
+  const getAvailableInputSizes = () => instance?.getAvailableInputSizes();
 
   return {
     error,
@@ -65,5 +73,6 @@ export const useInstanceSegmentation = <
     isGenerating,
     downloadProgress,
     forward,
+    getAvailableInputSizes,
   };
 };

@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, ResourceSource } from './common';
+import { LabelEnum, ResourceSource, Triple } from './common';
 import { Bbox } from './objectDetection';
 
 /**
@@ -87,8 +87,8 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
   preprocessorConfig?: {
-    normMean?: [number, number, number];
-    normStd?: [number, number, number];
+    normMean?: Triple<number>;
+    normStd?: Triple<number>;
   };
   postprocessorConfig?: { applyNMS?: boolean };
   defaultConfidenceThreshold?: number;
@@ -115,7 +115,8 @@ export type InstanceSegmentationModelSources =
   | { modelName: 'yolo26s-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26m-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26l-seg'; modelSource: ResourceSource }
-  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource };
+  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource }
+  | { modelName: 'rfdetr-seg'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in instance segmentation model names.
@@ -189,4 +190,10 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
     imageSource: string,
     options?: InstanceSegmentationOptions<L>
   ) => Promise<SegmentedInstance<L>[]>;
+
+  /**
+   * Returns the available input sizes for this model, or undefined if the model accepts single forward input size.
+   * @returns An array of available input sizes, or undefined if not constrained.
+   */
+  getAvailableInputSizes: () => readonly number[] | undefined;
 }

@@ -675,7 +675,7 @@ const YOLO26S_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26s-
 const YOLO26M_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26m-seg/xnnpack/yolo26m-seg.pte`;
 const YOLO26L_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26l-seg/xnnpack/yolo26l-seg.pte`;
 const YOLO26X_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26x-seg/xnnpack/yolo26x-seg.pte`;
-
+const RF_DETR_SEG_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${NEXT_VERSION_TAG}/rfdetr_segmentation.pte`;
 /**
  * @category Models - Instance Segmentation
  */
@@ -714,6 +714,14 @@ export const YOLO26L_SEG = {
 export const YOLO26X_SEG = {
   modelName: 'yolo26x-seg',
   modelSource: YOLO26X_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const RF_DETR_SEG = {
+  modelName: 'rfdetr-seg',
+  modelSource: RF_DETR_SEG_MODEL,
 } as const;
 
 // Image Embeddings

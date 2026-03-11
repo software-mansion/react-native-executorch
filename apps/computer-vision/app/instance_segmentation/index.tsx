@@ -17,26 +17,39 @@ import ImageWithMasks, {
   DisplayInstance,
 } from '../../components/ImageWithMasks';
 
-const AVAILABLE_INPUT_SIZES = [384, 512, 640];
-
 export default function InstanceSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const { isReady, isGenerating, downloadProgress, forward, error } =
-    useInstanceSegmentation({
-      model: YOLO26N_SEG,
-    });
+  const {
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    error,
+    getAvailableInputSizes,
+  } = useInstanceSegmentation({
+    model: YOLO26N_SEG,
+  });
 
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [instances, setInstances] = useState<DisplayInstance[]>([]);
-  const [selectedInputSize, setSelectedInputSize] = useState(
-    AVAILABLE_INPUT_SIZES[0]
+  const [selectedInputSize, setSelectedInputSize] = useState<number | null>(
+    null
   );
+
+  const availableInputSizes = getAvailableInputSizes();
 
   useEffect(() => {
     setGlobalGenerating(isGenerating);
   }, [isGenerating, setGlobalGenerating]);
+
+  // Set default input size when model is ready
+  useEffect(() => {
+    if (isReady && availableInputSizes && availableInputSizes.length > 0) {
+      setSelectedInputSize(availableInputSizes[0]);
+    }
+  }, [isReady, availableInputSizes]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -58,8 +71,10 @@ export default function InstanceSegmentationScreen() {
         iouThreshold: 0.55,
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
-        inputSize: selectedInputSize,
+        inputSize: selectedInputSize ?? undefined,
       });
+
+      console.log('Output is ', output[0].label);
 
       // Convert raw masks → small Skia images immediately.
       // Raw Uint8Array mask buffers (backed by native OwningArrayBuffer)
@@ -105,7 +120,7 @@ export default function InstanceSegmentationScreen() {
           />
         </View>
 
-        {imageUri && (
+        {imageUri && availableInputSizes && availableInputSizes.length > 0 && (
           <View style={styles.inputSizeContainer}>
             <Text style={styles.inputSizeLabel}>Input Size:</Text>
             <ScrollView
@@ -113,7 +128,7 @@ export default function InstanceSegmentationScreen() {
               showsHorizontalScrollIndicator={false}
               style={styles.inputSizeScroll}
             >
-              {AVAILABLE_INPUT_SIZES.map((size) => (
+              {availableInputSizes.map((size) => (
                 <TouchableOpacity
                   key={size}
                   style={[

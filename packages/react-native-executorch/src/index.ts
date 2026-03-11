@@ -45,8 +45,8 @@ declare global {
   var loadClassification: (source: string) => Promise<any>;
   var loadInstanceSegmentation: (
     source: string,
-    normMean: number[] | [],
-    normStd: number[] | [],
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | [],
     applyNMS: boolean
   ) => any;
   var loadObjectDetection: (
