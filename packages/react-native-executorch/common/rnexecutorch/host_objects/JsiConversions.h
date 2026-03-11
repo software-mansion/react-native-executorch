@@ -449,13 +449,8 @@ inline jsi::Value getJsiValue(
   jsi::Array array(runtime, detections.size());
   for (std::size_t i = 0; i < detections.size(); ++i) {
     jsi::Object detection(runtime);
-    jsi::Object bbox(runtime);
-    bbox.setProperty(runtime, "x1", detections[i].x1);
-    bbox.setProperty(runtime, "y1", detections[i].y1);
-    bbox.setProperty(runtime, "x2", detections[i].x2);
-    bbox.setProperty(runtime, "y2", detections[i].y2);
-
-    detection.setProperty(runtime, "bbox", bbox);
+    detection.setProperty(runtime, "bbox",
+                          getJsiValue(detections[i].bbox, runtime));
     detection.setProperty(
         runtime, "label",
         jsi::String::createFromUtf8(runtime, detections[i].label));
@@ -465,10 +460,10 @@ inline jsi::Value getJsiValue(
   return array;
 }
 
-inline jsi::Value getJsiValue(
-    const std::vector<models::instance_segmentation::types::InstanceMask>
-        &instances,
-    jsi::Runtime &runtime) {
+inline jsi::Value
+getJsiValue(const std::vector<models::instance_segmentation::types::Instance>
+                &instances,
+            jsi::Runtime &runtime) {
   jsi::Array array(runtime, instances.size());
   for (std::size_t i = 0; i < instances.size(); ++i) {
     jsi::Object instance(runtime);

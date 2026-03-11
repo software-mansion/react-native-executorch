@@ -22,14 +22,14 @@ public:
                            std::vector<float> normStd, bool applyNMS,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
-  [[nodiscard("Registered non-void function")]] std::vector<types::InstanceMask>
+  [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
   generate(std::string imageSource, double confidenceThreshold,
            double iouThreshold, int32_t maxInstances,
            std::vector<int32_t> classIndices,
            bool returnMaskAtOriginalResolution, std::string methodName);
 
 private:
-  std::vector<types::InstanceMask>
+  std::vector<types::Instance>
   postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
               cv::Size modelInputSize, double confidenceThreshold,
               double iouThreshold, int32_t maxInstances,
@@ -43,7 +43,7 @@ private:
                                 float origX1, float origY1, bool warpToOriginal,
                                 int32_t &outWidth, int32_t &outHeight);
 
-  std::optional<types::InstanceMask>
+  std::optional<types::Instance>
   processDetection(int32_t detectionIndex, const float *bboxData,
                    const float *scoresData, const float *maskData,
                    int32_t maskH, int32_t maskW, cv::Size modelInputSize,

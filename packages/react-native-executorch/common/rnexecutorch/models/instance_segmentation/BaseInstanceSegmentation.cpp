@@ -90,7 +90,7 @@ cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
   return finalBinaryMat;
 }
 
-std::optional<types::InstanceMask> BaseInstanceSegmentation::processDetection(
+std::optional<types::Instance> BaseInstanceSegmentation::processDetection(
     int32_t detectionIndex, const float *bboxData, const float *scoresData,
     const float *maskData, int32_t maskH, int32_t maskW,
     cv::Size modelInputSize, cv::Size originalSize, float widthRatio,
@@ -140,13 +140,13 @@ std::optional<types::InstanceMask> BaseInstanceSegmentation::processDetection(
   std::vector<uint8_t> finalMask(finalBinaryMat.data,
                                  finalBinaryMat.data + finalBinaryMat.total());
 
-  return types::InstanceMask(
+  return types::Instance(
       utils::computer_vision::BBox{origX1, origY1, origX2, origY2},
       std::move(finalMask), finalMaskWidth, finalMaskHeight,
       static_cast<int32_t>(labelIdx), score, i);
 }
 
-std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
+std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
     const std::vector<EValue> &tensors, cv::Size originalSize,
     cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, const std::vector<int32_t> &classIndices,
@@ -175,7 +175,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     allowedClasses.insert(classIndices.begin(), classIndices.end());
   }
 
-  std::vector<types::InstanceMask> instances;
+  std::vector<types::Instance> instances;
 
   size_t numTensors = tensors.size();
   if (numTensors != 3) {
@@ -231,7 +231,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   return instances;
 }
 
-std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
+std::vector<types::Instance> BaseInstanceSegmentation::generate(
     std::string imageSource, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, std::vector<int32_t> classIndices,
     bool returnMaskAtOriginalResolution, std::string methodName) {
