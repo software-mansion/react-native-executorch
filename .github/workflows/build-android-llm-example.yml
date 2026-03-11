@@ -52,6 +52,7 @@ jobs:
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
       - name: Cache Expo prebuild
+        id: expo-prebuild-cache
         uses: actions/cache@v4
         with:
           path: ${{ env.WORKING_DIRECTORY }}/android
@@ -61,10 +62,10 @@ jobs:
       - name: Generate native Android project
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          if [ ! -d "android" ]; then
+          if [ "${{ steps.expo-prebuild-cache.outputs.cache-hit }}" != 'true' ]; then
             npx expo prebuild --platform android --no-install
           else
-            echo "Android project exists, skipping prebuild"
+            echo "Exact cache hit, skipping prebuild"
           fi
       - name: Cache Gradle
         uses: actions/cache@v4
