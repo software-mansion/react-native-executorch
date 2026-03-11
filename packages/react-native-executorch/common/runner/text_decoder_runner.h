@@ -19,7 +19,7 @@ namespace llm {
 
 class TextDecoderRunner {
 public:
-  explicit TextDecoderRunner(Module *module, IOManager *io_manager,
+  explicit TextDecoderRunner(Module &module, IOManager *io_manager,
                              float temperature = 0.8F, float topp = 0.9F);
 
   virtual ~TextDecoderRunner() = default;
@@ -99,13 +99,7 @@ public:
   }
 
 protected:
-  /**
-   * Note: TextDecoderRunner does not own the Module or IOManager instance. It
-   * is expected that the outer class (likely Runner) manages the lifecycle of
-   * them. This means that the responsibility for creating, maintaining, and
-   * destroying the Module lies outside of TextDecoderRunner. Ensure that the
-   * Module remains valid for the duration of TextDecoderRunner's usage.
-   */
+  // Non-owning. The runner (BaseLLMRunner) owns the Module and outlives this.
   Module *module_;
   IOManager *io_manager_;
   bool should_stop_{false};

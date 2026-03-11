@@ -4,24 +4,24 @@ title: Model Size
 
 ## Classification
 
-| Model             | XNNPACK [MB] | Core ML [MB] |
-| ----------------- | :----------: | :----------: |
-| EFFICIENTNET_V2_S |     85.6     |     43.9     |
+| Model             | XNNPACK FP32 [MB] | XNNPACK INT8 [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |
+| :---------------- | :---------------: | :---------------: | :---------------: | :---------------: |
+| EFFICIENTNET_V2_S |       85.7        |       22.9        |       86.5        |       43.9        |
 
 ## Object Detection
 
-| Model                          | XNNPACK [MB] |
-| ------------------------------ | :----------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |     13.9     |
+| Model                          | XNNPACK FP32 [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |
+| ------------------------------ | :---------------: | :---------------: | :---------------: |
+| SSDLITE_320_MOBILENET_V3_LARGE |       13.9        |       15.6        |       8.46        |
 
 ## Style Transfer
 
-| Model                        | XNNPACK [MB] | Core ML [MB] |
-| ---------------------------- | :----------: | :----------: |
-| STYLE_TRANSFER_CANDY         |     6.78     |     5.22     |
-| STYLE_TRANSFER_MOSAIC        |     6.78     |     5.22     |
-| STYLE_TRANSFER_UDNIE         |     6.78     |     5.22     |
-| STYLE_TRANSFER_RAIN_PRINCESS |     6.78     |     5.22     |
+| Model                        | XNNPACK FP32 [MB] | XNNPACK INT8 [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |
+| ---------------------------- | :---------------: | :---------------: | :---------------: | :---------------: |
+| STYLE_TRANSFER_CANDY         |       6.82        |       1.84        |       7.12        |       3.79        |
+| STYLE_TRANSFER_MOSAIC        |       6.82        |       1.84        |       7.12        |       3.79        |
+| STYLE_TRANSFER_UDNIE         |       6.82        |       1.84        |       7.12        |       3.79        |
+| STYLE_TRANSFER_RAIN_PRINCESS |       6.82        |       1.84        |       7.12        |       3.79        |
 
 ## OCR
 
@@ -82,15 +82,20 @@ title: Model Size
 
 ## Image Embeddings
 
-| Model                       | XNNPACK [MB] |
-| --------------------------- | :----------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
+| Model                       | XNNPACK FP32 [MB] | XNNPACK INT8 [MB] |
+| --------------------------- | :---------------: | :---------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |        352        |       96.4        |
 
 ## Semantic Segmentation
 
-| Model             | XNNPACK [MB] |
-| ----------------- | ------------ |
-| DEELABV3_RESNET50 | 168          |
+| Model                         | XNNPACK FP32 [MB] | XNNPACK INT8 [MB] |
+| ----------------------------- | :---------------: | :---------------: |
+| DEEPLAB_V3_RESNET50           |        168        |       42.4        |
+| DEEPLAB_V3_RESNET101          |        244        |       61.7        |
+| DEEPLAB_V3_MOBILENET_V3_LARGE |       44.1        |       11.4        |
+| LRASPP_MOBILENET_V3_LARGE     |       12.9        |       3.53        |
+| FCN_RESNET50                  |        141        |       35.7        |
+| FCN_RESNET101                 |        217        |        55         |
 
 ## Text to image
 

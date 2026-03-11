@@ -135,6 +135,14 @@ function(add_rn_test TEST_TARGET TEST_FILENAME)
 endfunction()
 
 add_rn_test(NumericalTests unit/NumericalTest.cpp)
+add_rn_test(RunnerTests unit/RunnerTest.cpp
+    SOURCES
+        ${COMMON_DIR}/runner/base_llm_runner.cpp
+        ${COMMON_DIR}/runner/sampler.cpp
+        ${COMMON_DIR}/runner/arange_util.cpp
+        integration/stubs/jsi_stubs.cpp
+    LIBS tokenizers_deps
+)
 add_rn_test(LogTests unit/LogTest.cpp)
 add_rn_test(FileUtilsTest unit/FileUtilsTest.cpp)
 add_rn_test(ImageProcessingTest unit/ImageProcessingTest.cpp
@@ -201,9 +209,9 @@ add_rn_test(TokenizerModuleTests integration/TokenizerModuleTest.cpp
 add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/asr/ASR.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
-        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/ASR.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/HypothesisBuffer.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/OnlineASR.cpp
         ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp
         ${TOKENIZER_SOURCES}
         ${DSP_SOURCES}
@@ -213,12 +221,17 @@ add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
 add_rn_test(LLMTests integration/LLMTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
-        ${COMMON_DIR}/runner/runner.cpp
+        ${COMMON_DIR}/runner/base_llm_runner.cpp
+        ${COMMON_DIR}/runner/text_runner.cpp
+        ${COMMON_DIR}/runner/multimodal_runner.cpp
+        ${COMMON_DIR}/runner/multimodal_prefiller.cpp
         ${COMMON_DIR}/runner/text_prefiller.cpp
         ${COMMON_DIR}/runner/text_decoder_runner.cpp
         ${COMMON_DIR}/runner/sampler.cpp
         ${COMMON_DIR}/runner/arange_util.cpp
-    LIBS tokenizers_deps
+        ${COMMON_DIR}/runner/encoders/vision_encoder.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS tokenizers_deps opencv_deps
 )
 
 add_rn_test(TextToImageTests integration/TextToImageTest.cpp

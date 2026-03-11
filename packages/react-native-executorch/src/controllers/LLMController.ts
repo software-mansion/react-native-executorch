@@ -5,6 +5,7 @@ import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
   ChatConfig,
   GenerationConfig,
+  LLMCapability,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -24,7 +25,6 @@ export class LLMController {
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
-
   // User callbacks
   private tokenCallback: (token: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
@@ -75,11 +75,13 @@ export class LLMController {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    capabilities,
     onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    capabilities?: readonly LLMCapability[];
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -118,7 +120,12 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
-      this.nativeModule = await global.loadLLM(modelPath, tokenizerPath);
+
+      this.nativeModule = await global.loadLLM(
+        modelPath,
+        tokenizerPath,
+        capabilities ?? []
+      );
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -179,6 +186,17 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
+  private getImageToken(): string {
+    const token = this.tokenizerConfig.image_token;
+    if (!token) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config is missing 'image_token'. Vision models require tokenizerConfigSource with an 'image_token' field."
+      );
+    }
+    return token;
+  }
+
   private filterSpecialTokens(text: string): string {
     let filtered = text;
     if (
@@ -212,7 +230,7 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string): Promise<string> {
+  public async forward(input: string, imagePaths?: string[]): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -228,7 +246,15 @@ export class LLMController {
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response = await this.nativeModule.generate(input, this.onToken);
+      const response =
+        imagePaths && imagePaths.length > 0
+          ? await this.nativeModule.generateMultimodal(
+              input,
+              imagePaths,
+              this.getImageToken(),
+              this.onToken
+            )
+          : await this.nativeModule.generate(input, this.onToken);
       return this.filterSpecialTokens(response);
     } catch (e) {
       throw parseUnknownError(e);
@@ -293,6 +319,10 @@ export class LLMController {
       );
     }
 
+    const imagePaths = messages
+      .filter((m) => m.mediaPath)
+      .map((m) => m.mediaPath!);
+
     const renderedChat: string = this.applyChatTemplate(
       messages,
       this.tokenizerConfig,
@@ -301,16 +331,38 @@ export class LLMController {
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
-    return await this.forward(renderedChat);
+    return await this.forward(
+      renderedChat,
+      imagePaths.length > 0 ? imagePaths : undefined
+    );
   }
 
-  public async sendMessage(message: string): Promise<string> {
-    const updatedHistory = [
-      ...this._messageHistory,
-      { content: message, role: 'user' as const },
-    ];
+  public async sendMessage(
+    message: string,
+    media?: { imagePath?: string }
+  ): Promise<string> {
+    const mediaPath = media?.imagePath;
+    const newMessage: Message = {
+      content: message,
+      role: 'user',
+      ...(mediaPath ? { mediaPath } : {}),
+    };
+    const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
+    const historyForTemplate = updatedHistory.map((m) =>
+      m.mediaPath
+        ? {
+            ...m,
+            content: [
+              { type: 'image' },
+              { type: 'text', text: m.content },
+            ] as any,
+          }
+        : m
+    );
+
+    const visualTokenCount = this.nativeModule.getVisualTokenCount();
     const countTokensCallback = (messages: Message[]) => {
       const rendered = this.applyChatTemplate(
         messages,
@@ -319,13 +371,15 @@ export class LLMController {
         // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
-      return this.nativeModule.countTextTokens(rendered);
+      const textTokens = this.nativeModule.countTextTokens(rendered);
+      const imageCount = messages.filter((m) => m.mediaPath).length;
+      return textTokens + imageCount * (visualTokenCount - 1);
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
       this.chatConfig.contextStrategy.buildContext(
         this.chatConfig.systemPrompt,
-        updatedHistory,
+        historyForTemplate,
         maxContextLength,
         countTokensCallback
       );
@@ -341,24 +395,23 @@ export class LLMController {
         { content: response, role: 'assistant' },
       ]);
     }
-    if (!this.toolsConfig) {
-      return response;
+
+    if (this.toolsConfig) {
+      const toolCalls = parseToolCall(response);
+      for (const toolCall of toolCalls) {
+        this.toolsConfig
+          .executeToolCallback(toolCall)
+          .then((toolResponse: string | null) => {
+            if (toolResponse) {
+              this.messageHistoryCallback([
+                ...this._messageHistory,
+                { content: toolResponse, role: 'assistant' },
+              ]);
+            }
+          });
+      }
     }
 
-    const toolCalls = parseToolCall(response);
-
-    for (const toolCall of toolCalls) {
-      this.toolsConfig
-        .executeToolCallback(toolCall)
-        .then((toolResponse: string | null) => {
-          if (toolResponse) {
-            this.messageHistoryCallback([
-              ...this._messageHistory,
-              { content: toolResponse, role: 'assistant' },
-            ]);
-          }
-        });
-    }
     return response;
   }
 

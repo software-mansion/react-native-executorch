@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { URL_PREFIX, VERSION_TAG, NEXT_VERSION_TAG } from './versions';
+import { NEXT_VERSION_TAG, URL_PREFIX, VERSION_TAG } from './versions';
 
 // LLMs
 
@@ -371,21 +371,53 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
   tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
 };
 
+// LFM2.5-VL-1.6B (Vision-Language)
+const LFM2_VL_1_6B_QUANTIZED_MODEL = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
+const LFM2_VL_TOKENIZER = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer.json`;
+const LFM2_VL_TOKENIZER_CONFIG = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json`;
+
+/**
+ * @category Models - VLM
+ */
+export const LFM2_VL_1_6B_QUANTIZED = {
+  modelName: 'lfm2.5-vl-1.6b-quantized',
+  capabilities: ['vision'],
+  modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
+  tokenizerSource: LFM2_VL_TOKENIZER,
+  tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
+} as const;
+
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_all.pte`
-    : `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack.pte`;
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp32.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
+const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`
+    : `${URL_PREFIX}-efficientnet-v2-s/${NEXT_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
 
 /**
  * @category Models - Classification
  */
 export const EFFICIENTNET_V2_S = {
+  modelName: 'efficientnet-v2-s',
   modelSource: EFFICIENTNET_V2_S_MODEL,
 };
 
+/**
+ * @category Models - Classification
+ */
+export const EFFICIENTNET_V2_S_QUANTIZED = {
+  modelName: 'efficientnet-v2-s-quantized',
+  modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
+};
+
 // Object detection
-const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
+const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
+  Platform.OS === 'ios'
+    ? `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`
+    : `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${NEXT_VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
 const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/rfdetr_detector.pte`;
 
 /**
@@ -407,84 +439,136 @@ export const RF_DETR_NANO = {
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-candy/${VERSION_TAG}/coreml/style_transfer_candy_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-candy/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_CANDY_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/coreml/style_transfer_candy_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-candy/${NEXT_VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack_int8.pte`;
 const STYLE_TRANSFER_MOSAIC_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-mosaic/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-mosaic/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/coreml/style_transfer_mosaic_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-mosaic/${NEXT_VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack_int8.pte`;
 const STYLE_TRANSFER_RAIN_PRINCESS_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-rain-princess/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-rain-princess/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/coreml/style_transfer_rain_princess_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-rain-princess/${NEXT_VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack_int8.pte`;
 const STYLE_TRANSFER_UDNIE_MODEL =
   Platform.OS === `ios`
-    ? `${URL_PREFIX}-style-transfer-udnie/${VERSION_TAG}/coreml/style_transfer_udnie_coreml.pte`
-    : `${URL_PREFIX}-style-transfer-udnie/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack.pte`;
+    ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp32.pte`
+    : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_fp32.pte`;
+const STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL =
+  Platform.OS === `ios`
+    ? `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/coreml/style_transfer_udnie_coreml_fp16.pte`
+    : `${URL_PREFIX}-style-transfer-udnie/${NEXT_VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack_int8.pte`;
 
 /**
  * @category Models - Style Transfer
  */
 export const STYLE_TRANSFER_CANDY = {
+  modelName: 'style-transfer-candy',
   modelSource: STYLE_TRANSFER_CANDY_MODEL,
 };
 
 /**
  * @category Models - Style Transfer
  */
+export const STYLE_TRANSFER_CANDY_QUANTIZED = {
+  modelName: 'style-transfer-candy-quantized',
+  modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
 export const STYLE_TRANSFER_MOSAIC = {
+  modelName: 'style-transfer-mosaic',
   modelSource: STYLE_TRANSFER_MOSAIC_MODEL,
 };
 
 /**
  * @category Models - Style Transfer
  */
+export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
+  modelName: 'style-transfer-mosaic-quantized',
+  modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
 export const STYLE_TRANSFER_RAIN_PRINCESS = {
+  modelName: 'style-transfer-rain-princess',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_MODEL,
 };
 
 /**
  * @category Models - Style Transfer
  */
+export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
+  modelName: 'style-transfer-rain-princess-quantized',
+  modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
 export const STYLE_TRANSFER_UDNIE = {
+  modelName: 'style-transfer-udnie',
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
+};
+
+/**
+ * @category Models - Style Transfer
+ */
+export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
+  modelName: 'style-transfer-udnie-quantized',
+  modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
 };
 
 // S2T
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
-const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
+const WHISPER_TINY_EN_MODEL = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack.pte`;
 
-const WHISPER_TINY_EN_ENCODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte`;
-const WHISPER_TINY_EN_DECODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte`;
+const WHISPER_TINY_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_quantized_xnnpack.pte`;
 
-const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
-const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
+const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_MODEL = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack.pte`;
 
-const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_EN_ENCODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_encoder_xnnpack.pte`;
-const WHISPER_SMALL_EN_DECODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_decoder_xnnpack.pte`;
+const WHISPER_BASE_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-base-quantized.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-base-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_quantized_xnnpack.pte`;
+
+const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_MODEL = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack.pte`;
+
+const WHISPER_SMALL_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-small-quantized.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-small-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_quantized_xnnpack.pte`;
 
 const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_encoder_xnnpack.pte`;
-const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_decoder_xnnpack.pte`;
+const WHISPER_TINY_MODEL = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack.pte`;
 
 const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_ENCODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_encoder_xnnpack.pte`;
-const WHISPER_BASE_DECODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_decoder_xnnpack.pte`;
+const WHISPER_BASE_MODEL = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_xnnpack.pte`;
 
 const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
-const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
+const WHISPER_SMALL_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_xnnpack.pte`;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY_EN = {
+  type: 'whisper' as const,
   isMultilingual: false,
-  encoderSource: WHISPER_TINY_EN_ENCODER,
-  decoderSource: WHISPER_TINY_EN_DECODER,
+  modelSource: WHISPER_TINY_EN_MODEL,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 };
 
@@ -492,39 +576,59 @@ export const WHISPER_TINY_EN = {
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY_EN_QUANTIZED = {
+  type: 'whisper' as const,
   isMultilingual: false,
-  encoderSource: WHISPER_TINY_EN_ENCODER_QUANTIZED,
-  decoderSource: WHISPER_TINY_EN_DECODER_QUANTIZED,
-  tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
+  modelSource: WHISPER_TINY_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_TINY_EN_QUANTIZED_TOKENIZER,
 };
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE_EN = {
+  type: 'whisper' as const,
   isMultilingual: false,
-  encoderSource: WHISPER_BASE_EN_ENCODER,
-  decoderSource: WHISPER_BASE_EN_DECODER,
+  modelSource: WHISPER_BASE_EN_MODEL,
   tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
 };
 
 /**
  * @category Models - Speech To Text
  */
-export const WHISPER_SMALL_EN = {
+export const WHISPER_BASE_EN_QUANTIZED = {
+  type: 'whisper' as const,
   isMultilingual: false,
-  encoderSource: WHISPER_SMALL_EN_ENCODER,
-  decoderSource: WHISPER_SMALL_EN_DECODER,
+  modelSource: WHISPER_BASE_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_BASE_EN_QUANTIZED_TOKENIZER,
+};
+
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_SMALL_EN = {
+  type: 'whisper' as const,
+  isMultilingual: false,
+  modelSource: WHISPER_SMALL_EN_MODEL,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 };
 
 /**
  * @category Models - Speech To Text
  */
+export const WHISPER_SMALL_EN_QUANTIZED = {
+  type: 'whisper' as const,
+  isMultilingual: false,
+  modelSource: WHISPER_SMALL_EN_QUANTIZED_MODEL,
+  tokenizerSource: WHISPER_SMALL_EN_QUANTIZED_TOKENIZER,
+};
+
+/**
+ * @category Models - Speech To Text
+ */
 export const WHISPER_TINY = {
+  type: 'whisper' as const,
   isMultilingual: true,
-  encoderSource: WHISPER_TINY_ENCODER_MODEL,
-  decoderSource: WHISPER_TINY_DECODER_MODEL,
+  modelSource: WHISPER_TINY_MODEL,
   tokenizerSource: WHISPER_TINY_TOKENIZER,
 };
 
@@ -532,9 +636,9 @@ export const WHISPER_TINY = {
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE = {
+  type: 'whisper' as const,
   isMultilingual: true,
-  encoderSource: WHISPER_BASE_ENCODER_MODEL,
-  decoderSource: WHISPER_BASE_DECODER_MODEL,
+  modelSource: WHISPER_BASE_MODEL,
   tokenizerSource: WHISPER_BASE_TOKENIZER,
 };
 
@@ -542,9 +646,9 @@ export const WHISPER_BASE = {
  * @category Models - Speech To Text
  */
 export const WHISPER_SMALL = {
+  type: 'whisper' as const,
   isMultilingual: true,
-  encoderSource: WHISPER_SMALL_ENCODER_MODEL,
-  decoderSource: WHISPER_SMALL_DECODER_MODEL,
+  modelSource: WHISPER_SMALL_MODEL,
   tokenizerSource: WHISPER_SMALL_TOKENIZER,
 };
 
@@ -725,13 +829,23 @@ export const RF_DETR_SEG = {
 } as const;
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_int8.pte`;
 
 /**
  * @category Models - Image Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
+  modelName: 'clip-vit-base-patch32-image',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
+};
+
+/**
+ * @category Models - Image Embeddings
+ */
+export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
+  modelName: 'clip-vit-base-patch32-image-quantized',
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
 };
 
 // Text Embeddings
@@ -743,8 +857,8 @@ const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1
 const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
 const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
 const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`;
 
 /**
  * @category Models - Text Embeddings
@@ -782,6 +896,7 @@ export const MULTI_QA_MPNET_BASE_DOT_V1 = {
  * @category Models - Text Embeddings
  */
 export const CLIP_VIT_BASE_PATCH32_TEXT = {
+  modelName: 'clip-vit-base-patch32-text',
   modelSource: CLIP_VIT_BASE_PATCH32_TEXT_MODEL,
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
 };

@@ -17,7 +17,6 @@ inline constexpr auto kMaxSeqLen = "get_max_seq_len";
 inline constexpr auto kMaxContextLen = "get_max_context_len";
 inline constexpr auto kVocabSize = "get_vocab_size";
 inline constexpr auto kUseKVCache = "use_kv_cache";
-inline constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 
 // Multimodal method name conventions
 inline constexpr auto kVisionEncoderMethod = "vision_encoder";

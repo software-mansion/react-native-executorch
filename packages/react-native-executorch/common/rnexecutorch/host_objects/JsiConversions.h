@@ -19,12 +19,12 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
-#include <rnexecutorch/models/speech_to_text/types/Segment.h>
-#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
+#include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
+#include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 #include <rnexecutorch/utils/computer_vision/Types.h>
 
-using namespace rnexecutorch::models::speech_to_text::types;
+using namespace rnexecutorch::models::speech_to_text;
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -555,7 +555,8 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
     jsi::Object wordObj(runtime);
     wordObj.setProperty(
         runtime, "word",
-        jsi::String::createFromUtf8(runtime, seg.words[i].content));
+        jsi::String::createFromUtf8(runtime, seg.words[i].content +
+                                                 seg.words[i].punctations));
     wordObj.setProperty(runtime, "start",
                         static_cast<double>(seg.words[i].start));
     wordObj.setProperty(runtime, "end", static_cast<double>(seg.words[i].end));
