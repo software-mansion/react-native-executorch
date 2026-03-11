@@ -20,24 +20,22 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors");
   }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
+  inputTensorDims_ = inputShapes[0];
+  if (inputTensorDims_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  inputTensorDims_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
 }
 
 PixelDataResult StyleTransfer::postprocess(const Tensor &tensor,
                                            cv::Size outputSize) {
-  // Convert tensor output (at modelImageSize) to CV_8UC3 BGR mat
-  cv::Mat mat = image_processing::getMatrixFromTensor(modelImageSize, tensor);
+  // Convert tensor output (at model input size) to CV_8UC3 BGR mat
+  cv::Mat mat = image_processing::getMatrixFromTensor(modelInputSize(), tensor);
 
   // Resize only if requested output differs from model output size
   if (mat.size() != outputSize) {
@@ -64,9 +62,8 @@ PixelDataResult StyleTransfer::runInference(cv::Mat image,
 
   cv::Mat preprocessed = preprocessFrame(image);
 
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+      image_processing::getTensorFromMatrix(inputTensorDims_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -95,7 +92,7 @@ PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
 
   // For real-time frame processing, output at modelImageSize to avoid
   // allocating large buffers (e.g. 1280x720x3 ~2.7MB) on every frame.
-  return runInference(frame, modelImageSize);
+  return runInference(frame, modelInputSize());
 }
 
 PixelDataResult StyleTransfer::generateFromPixels(JSTensorViewIn pixelData) {

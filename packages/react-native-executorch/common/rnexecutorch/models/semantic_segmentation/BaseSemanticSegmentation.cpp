@@ -38,22 +38,20 @@ void BaseSemanticSegmentation::initModelImageSize() {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
+  inputTensorDims_ = inputShapes[0];
+  if (inputTensorDims_.size() < 2) {
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             "Unexpected model input size, expected at least 2 "
                             "dimensions but got: " +
-                                std::to_string(modelInputShape.size()) + ".");
+                                std::to_string(inputTensorDims_.size()) + ".");
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
-  numModelPixels = modelImageSize.area();
+  numModelPixels = modelInputSize().area();
 }
 
 TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
                                                cv::Size &originalSize) {
   auto [inputTensor, origSize] = image_processing::readImageToTensor(
-      imageSource, getAllInputShapes()[0], false, normMean_, normStd_);
+      imageSource, inputTensorDims_, false, normMean_, normStd_);
   originalSize = origSize;
   return inputTensor;
 }
@@ -89,12 +87,12 @@ BaseSemanticSegmentation::generateFromFrame(
   cv::Mat preprocessed = preprocessFrame(frame);
   cv::Size originalSize = frame.size();
 
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
       (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
-                                                  *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+          ? image_processing::getTensorFromMatrix(
+                inputTensorDims_, preprocessed, *normMean_, *normStd_)
+          : image_processing::getTensorFromMatrix(inputTensorDims_,
+                                                  preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

@@ -18,18 +18,16 @@ Classification::Classification(const std::string &modelSource,
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
+  inputTensorDims_ = inputShapes[0];
+  if (inputTensorDims_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  inputTensorDims_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
 }
 
 std::unordered_map<std::string_view, float>
@@ -38,9 +36,8 @@ Classification::runInference(cv::Mat image) {
 
   cv::Mat preprocessed = preprocessFrame(image);
 
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+      image_processing::getTensorFromMatrix(inputTensorDims_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -48,7 +45,6 @@ Classification::runInference(cv::Mat image) {
                             "The model's forward function did not succeed. "
                             "Ensure the model input is correct.");
   }
-
   return postprocess(forwardResult->at(0).toTensor());
 }
 
