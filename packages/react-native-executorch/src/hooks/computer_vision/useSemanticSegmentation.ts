@@ -1,3 +1,4 @@
+import { PixelData } from '../..';
 import {
   SemanticSegmentationModule,
   SegmentationLabels,
@@ -50,7 +51,7 @@ export const useSemanticSegmentation = <
   });
 
   const forward = <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
-    imageSource: string,
+    imageSource: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ) =>

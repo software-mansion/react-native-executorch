@@ -88,8 +88,7 @@ cv::Mat extractFromAHardwareBuffer(void *hardwareBuffer) {
                             errorMessage);
   }
 
-  // Note: We don't unlock here - Vision Camera manages the lifecycle
-
+  AHardwareBuffer_unlock(buffer, nullptr);
   return mat;
 #else
   throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,

@@ -15,7 +15,7 @@ import { Frame, PixelData, ScalarType } from '../../types/common';
  *
  * @category Typescript API
  */
-function isPixelData(input: unknown): input is PixelData {
+export function isPixelData(input: unknown): input is PixelData {
   return (
     typeof input === 'object' &&
     input !== null &&

@@ -2,23 +2,10 @@ import { Logger } from '../common/Logger';
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
-import { Frame, PixelData, ResourceSource, ScalarType } from '../types/common';
+import { isPixelData } from '../modules/computer_vision/VisionModule';
+import { Frame, PixelData, ResourceSource } from '../types/common';
 import { OCRLanguage, OCRDetection } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
-
-function isPixelData(input: unknown): input is PixelData {
-  return (
-    typeof input === 'object' &&
-    input !== null &&
-    'dataPtr' in input &&
-    input.dataPtr instanceof Uint8Array &&
-    'sizes' in input &&
-    Array.isArray(input.sizes) &&
-    input.sizes.length === 3 &&
-    'scalarType' in input &&
-    input.scalarType === ScalarType.BYTE
-  );
-}
 
 export abstract class BaseOCRController {
   protected nativeModule: any;

@@ -50,49 +50,6 @@ export default function ObjectDetectionScreen() {
     }
   };
 
-  const runForwardPixels = async () => {
-    try {
-      console.log('Testing with hardcoded pixel data...');
-
-      // Create a simple 320x320 test image (all zeros - black image)
-      // In a real scenario, you would load actual image pixel data here
-      const width = 320;
-      const height = 320;
-      const channels = 3; // RGB
-
-      // Create a black image (you can replace this with actual pixel data)
-      const rgbData = new Uint8Array(width * height * channels);
-
-      // Optionally, add some test pattern (e.g., white square in center)
-      for (let y = 100; y < 220; y++) {
-        for (let x = 100; x < 220; x++) {
-          const idx = (y * width + x) * 3;
-          rgbData[idx + 0] = 255; // R
-          rgbData[idx + 1] = 255; // G
-          rgbData[idx + 2] = 255; // B
-        }
-      }
-
-      const pixelData: PixelData = {
-        dataPtr: rgbData,
-        sizes: [height, width, channels],
-        scalarType: ScalarType.BYTE,
-      };
-
-      console.log('Running forward with hardcoded pixel data...', {
-        sizes: pixelData.sizes,
-        dataSize: pixelData.dataPtr.byteLength,
-      });
-
-      // Run inference using unified forward() API
-      const output = await ssdLite.forward(pixelData, 0.3);
-      console.log('Pixel data result:', output.length, 'detections');
-      setResults(output);
-    } catch (e) {
-      console.error('Error in runForwardPixels:', e);
-    }
-  };
-
   if (!rfDetr.isReady) {
     return (
       <Spinner
