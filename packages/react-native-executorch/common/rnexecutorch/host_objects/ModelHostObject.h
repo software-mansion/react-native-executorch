@@ -86,16 +86,6 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
           "streamStop"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<&Model::generateFromPhonemes>,
-          "generateFromPhonemes"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          promiseHostFunction<&Model::streamFromPhonemes>,
-          "streamFromPhonemes"));
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {
@@ -197,6 +187,18 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromPhonemes>,
+                              "generateFromPhonemes"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::streamFromPhonemes>,
+                              "streamFromPhonemes"));
     }
 
     if constexpr (meta::HasGenerateFromString<Model>) {
