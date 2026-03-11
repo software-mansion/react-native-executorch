@@ -1,4 +1,9 @@
-import { ResourceSource, LabelEnum } from '../../types/common';
+import {
+  ResourceSource,
+  LabelEnum,
+  Frame,
+  PixelData,
+} from '../../types/common';
 import {
   DeeplabLabel,
   ModelNameOf,
@@ -61,20 +66,6 @@ export type SegmentationLabels<M extends SemanticSegmentationModelName> =
 /** @internal */
 type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
   ResolveLabelsFor<T, ModelConfigsType>;
-
-function isPixelData(input: unknown): input is PixelData {
-  return (
-    typeof input === 'object' &&
-    input !== null &&
-    'dataPtr' in input &&
-    (input as any).dataPtr instanceof Uint8Array &&
-    'sizes' in input &&
-    Array.isArray((input as any).sizes) &&
-    (input as any).sizes.length === 3 &&
-    'scalarType' in input &&
-    (input as any).scalarType === ScalarType.BYTE
-  );
-}
 
 /**
  * Generic semantic segmentation module with type-safe label maps.

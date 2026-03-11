@@ -225,7 +225,7 @@ readImageToTensor(const std::string &path,
   if (tensorDims.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected tensor size, expected at least 2 dimentions "
+                  "Unexpected tensor size, expected at least 2 dimensions "
                   "but got: %zu.",
                   tensorDims.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
