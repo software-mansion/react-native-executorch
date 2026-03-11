@@ -24,6 +24,7 @@
         }
       ],
       "expo-router",
+      "./plugins/withReactNativeImagePickerFix",
       [
         "react-native-audio-api",
         {
