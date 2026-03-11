@@ -27,6 +27,8 @@ import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 
+const recorder = new AudioRecorder();
+
 export default function VoiceChatScreenWrapper() {
   const isFocused = useIsFocused();
 
@@ -36,8 +38,6 @@ export default function VoiceChatScreenWrapper() {
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
-
-  const [recorder] = useState(() => new AudioRecorder());
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 

@@ -3,13 +3,13 @@ pre-commit:
   commands:
     lint:
       glob: '*.{js,ts,jsx,tsx}'
-      run: npx eslint {staged_files}
+      run: ./node_modules/.bin/eslint {staged_files}
     types:
       glob: '*.{js,ts,jsx,tsx}'
       run: yarn typecheck
     format-js:
       glob: '*.{js,ts,jsx,tsx}'
-      run: npx prettier --write {staged_files} && git add {staged_files}
+      run: ./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}
     format-objc:
       glob: '*.{h,hpp,m,mm,c,cpp}'
       run: clang-format -i {staged_files} && git add {staged_files}
@@ -18,10 +18,10 @@ pre-commit:
       run: ktlint -F {staged_files} && git add {staged_files}
     lint-docs:
       glob: '*.{md}'
-      run: npx eslint {staged_files}
+      run: ./node_modules/.bin/eslint {staged_files}
     format-other:
       glob: '*.{json,yml,watchmanconfig,md,css}'
-      run: npx prettier --write {staged_files} && git add {staged_files}
+      run: ./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}
     spell-check-other:
       glob: '*.{md,css}'
       run: cspell {staged_files} --config .cspell.json --quiet && git add {staged_files}
