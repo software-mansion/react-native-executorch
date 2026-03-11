@@ -5,13 +5,13 @@ title: useSemanticSegmentation
 Semantic semantic segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook `useSemanticSegmentation` for this task.
 
 :::warning
-It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/image-segmentation-68d5291bdf4a30bee0220f4f), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/semantic-segmentation-68d5291bdf4a30bee0220f4f), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## API Reference
 
 - For detailed API Reference for `useSemanticSegmentation` see: [`useSemanticSegmentation` API Reference](../../06-api-reference/functions/useSemanticSegmentation.md).
-- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---semantic-segmentation).
 
 ## High Level Overview
 
@@ -49,7 +49,7 @@ The hook is generic over the model config — TypeScript automatically infers th
 You need more details? Check the following resources:
 
 - For detailed information about `useSemanticSegmentation` arguments check this section: [`useSemanticSegmentation` arguments](../../06-api-reference/functions/useSemanticSegmentation.md#parameters).
-- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---semantic-segmentation).
 - For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
@@ -117,7 +117,12 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                            | Number of classes | Class list                                                                                |
-| ------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------- |
-| [deeplabv3_resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
-| selfie-segmentation                                                                              | 2                 | [SelfieSegmentationLabel](../../06-api-reference/enumerations/SelfieSegmentationLabel.md) |
+| Model                                                                                                       | Number of classes | Class list                                                                                | Quantized |
+| ----------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------- | :-------: |
+| [deeplab-v3-resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)           | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [deeplab-v3-resnet101](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)          | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [deeplab-v3-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [lraspp-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-lraspp)         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [fcn-resnet50](https://huggingface.co/software-mansion/react-native-executorch-fcn)                         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [fcn-resnet101](https://huggingface.co/software-mansion/react-native-executorch-fcn)                        | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [selfie-segmentation](https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation)  | 2                 | [SelfieSegmentationLabel](../../06-api-reference/enumerations/SelfieSegmentationLabel.md) |    No     |
