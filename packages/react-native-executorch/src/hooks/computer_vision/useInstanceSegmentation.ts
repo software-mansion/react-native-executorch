@@ -5,7 +5,6 @@ import {
 import {
   InstanceSegmentationProps,
   InstanceSegmentationType,
-  InstanceModelNameOf,
   InstanceSegmentationModelSources,
 } from '../../types/instanceSegmentation';
 import { useModuleFactory } from '../useModuleFactory';
@@ -54,8 +53,9 @@ export const useInstanceSegmentation = <
     downloadProgress,
     runForward,
     instance,
-  } = useModuleFactory<InstanceSegmentationModule<InstanceModelNameOf<C>>, C>({
-    factory: InstanceSegmentationModule.fromModelName,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      InstanceSegmentationModule.fromModelName(config, onProgress),
     config: model,
     preventLoad,
   });
@@ -63,7 +63,7 @@ export const useInstanceSegmentation = <
   const forward: InstanceSegmentationType<
     InstanceSegmentationLabels<C['modelName']>
   >['forward'] = (imageSource, options) =>
-    runForward((instance) => instance.forward(imageSource, options) as any);
+    runForward((inst) => inst.forward(imageSource, options));
 
   const getAvailableInputSizes = () => instance?.getAvailableInputSizes();
 

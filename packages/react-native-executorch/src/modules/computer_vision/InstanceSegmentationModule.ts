@@ -88,7 +88,7 @@ type ModelConfigsType = typeof ModelConfigs;
  */
 export type InstanceSegmentationLabels<
   M extends InstanceSegmentationModelName,
-> = ModelConfigsType[M]['labelMap'];
+> = ResolveLabels<M>;
 
 /**
  * @internal
