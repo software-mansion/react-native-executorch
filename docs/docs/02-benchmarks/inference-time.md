@@ -221,11 +221,11 @@ Times presented in the tables are measured for forward method with input size eq
 
 | Model       | Samsung Galaxy S24 (XNNPACK) [ms] | Iphone 17 pro (XNNPACK) [ms] |
 | ----------- | --------------------------------- | ---------------------------- |
-| YOLO26n_SEG | 92                                | 90                           |
-| YOLO26s_SEG | 220                               | 188                          |
-| YOLO26m_SEG | 570                               | 550                          |
-| YOLO26l_SEG | 680                               | 608                          |
-| YOLO26x_SEG | 1410                              | 1338                         |
+| YOLO26N_SEG | 92                                | 90                           |
+| YOLO26S_SEG | 220                               | 188                          |
+| YOLO26M_SEG | 570                               | 550                          |
+| YOLO26L_SEG | 680                               | 608                          |
+| YOLO26X_SEG | 1410                              | 1338                         |
 
 ## Text to image
 
