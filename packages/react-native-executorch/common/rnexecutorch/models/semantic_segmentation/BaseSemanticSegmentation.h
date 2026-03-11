@@ -36,13 +36,13 @@ public:
   // Must NOT use callInvoker — returns a plain SegmentationResult that
   // visionHostFunction converts to JSI via getJsiValue.
   [[nodiscard("Registered non-void function")]]
-  image_segmentation::SegmentationResult
+  semantic_segmentation::SegmentationResult
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                     std::set<std::string, std::less<>> classesOfInterest,
                     bool resize);
 
 protected:
-  virtual image_segmentation::SegmentationResult
+  virtual semantic_segmentation::SegmentationResult
   computeResult(const Tensor &tensor, cv::Size originalSize,
                 std::vector<std::string> &allClasses,
                 std::set<std::string, std::less<>> &classesOfInterest,

@@ -2,7 +2,6 @@
 
 #include <codecvt>
 #include <cstdint>
-#include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <set>
 #include <span>
 #include <type_traits>
@@ -18,6 +17,7 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
 #include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
 #include <rnexecutorch/models/style_transfer/Types.h>
@@ -583,7 +583,8 @@ getJsiValue(const models::style_transfer::PixelDataResult &result,
 }
 
 inline jsi::Value getJsiValue(
-    const rnexecutorch::models::image_segmentation::SegmentationResult &result,
+    const rnexecutorch::models::semantic_segmentation::SegmentationResult
+        &result,
     jsi::Runtime &runtime) {
   jsi::Object dict(runtime);
 

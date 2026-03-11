@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace rnexecutorch::models::image_segmentation {
+namespace rnexecutorch::models::semantic_segmentation {
 
 struct SegmentationResult {
   std::shared_ptr<OwningArrayBuffer> argmax;
@@ -14,4 +14,4 @@ struct SegmentationResult {
       classBuffers;
 };
 
-} // namespace rnexecutorch::models::image_segmentation
+} // namespace rnexecutorch::models::semantic_segmentation
