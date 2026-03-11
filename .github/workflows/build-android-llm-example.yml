@@ -57,8 +57,6 @@ jobs:
         with:
           path: ${{ env.WORKING_DIRECTORY }}/android
           key: ${{ runner.os }}-expo-android-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-expo-android-
       - name: Generate native Android project
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
