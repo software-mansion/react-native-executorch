@@ -2,7 +2,6 @@
 #include "utils/TestUtils.h"
 #include <algorithm>
 #include <gtest/gtest.h>
-#include <ranges>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/text_to_speech/kokoro/Kokoro.h>
 

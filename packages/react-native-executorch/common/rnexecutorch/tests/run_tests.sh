@@ -29,6 +29,7 @@ TEST_EXECUTABLES=(
   "VADTests"
   "TokenizerModuleTests"
   "SpeechToTextTests"
+  "TextToSpeechTests"
   "LLMTests"
   "ImageSegmentationTests"
   "TextToImageTests"
