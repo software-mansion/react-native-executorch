@@ -94,7 +94,7 @@ export const useTextToSpeech = ({
     const instance = guardReady('forward');
     try {
       setIsGenerating(true);
-      return await instance.forward(input.text ?? "", input.speed ?? 1.0);
+      return await instance.forward(input.text ?? '', input.speed ?? 1.0);
     } finally {
       setIsGenerating(false);
     }
@@ -105,7 +105,7 @@ export const useTextToSpeech = ({
     try {
       setIsGenerating(true);
       return await instance.forwardFromPhonemes(
-        input.phonemes ?? "",
+        input.phonemes ?? '',
         input.speed ?? 1.0
       );
     } finally {
@@ -136,7 +136,7 @@ export const useTextToSpeech = ({
         setIsGenerating(false);
       }
     },
-    [moduleInstance, guardReady]
+    [guardReady]
   );
 
   const streamFromPhonemes = useCallback(
@@ -161,17 +161,23 @@ export const useTextToSpeech = ({
     [guardReady]
   );
 
-  const streamInsert = useCallback((text: string) => {
-    if (moduleInstance) {
-      moduleInstance.streamInsert(text);
-    }
-  }, [moduleInstance]);
+  const streamInsert = useCallback(
+    (text: string) => {
+      if (moduleInstance) {
+        moduleInstance.streamInsert(text);
+      }
+    },
+    [moduleInstance]
+  );
 
-  const streamStop = useCallback((instant: boolean = true) => {
-    if (moduleInstance) {
-      moduleInstance.streamStop(instant);
-    }
-  }, [moduleInstance]);
+  const streamStop = useCallback(
+    (instant: boolean = true) => {
+      if (moduleInstance) {
+        moduleInstance.streamStop(instant);
+      }
+    },
+    [moduleInstance]
+  );
 
   return {
     error,

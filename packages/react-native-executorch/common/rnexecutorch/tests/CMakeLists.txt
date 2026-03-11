@@ -231,7 +231,7 @@ add_rn_test(TextToSpeechTests integration/TextToSpeechTest.cpp
         ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Synthesizer.cpp
         ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Partitioner.cpp
         ${RNEXECUTORCH_DIR}/models/text_to_speech/kokoro/Utils.cpp
-    LIBS ${PHONEMIS_LIBS}
+    LIBS phonemis
 )
 
 add_rn_test(LLMTests integration/LLMTest.cpp
