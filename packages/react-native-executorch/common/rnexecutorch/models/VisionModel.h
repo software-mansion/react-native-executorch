@@ -99,9 +99,18 @@ protected:
    */
   virtual cv::Mat preprocessFrame(const cv::Mat &frame) const;
 
-  /// Expected input image dimensions derived from the model's input shape.
-  /// Set by subclass constructors after loading the model.
-  cv::Size modelImageSize{0, 0};
+  /// Cached input tensor shape (getAllInputShapes()[0]).
+  /// Set once by each subclass constructor to avoid per-frame metadata lookups.
+  std::vector<int32_t> inputTensorDims_;
+
+  /// Convenience accessor: spatial dimensions of the model input.
+  cv::Size modelInputSize() const {
+    if (inputTensorDims_.size() < 2) {
+      return {0, 0};
+    }
+    return cv::Size(inputTensorDims_[inputTensorDims_.size() - 1],
+                    inputTensorDims_[inputTensorDims_.size() - 2]);
+  }
 
   /**
    * @brief Extract and preprocess frame from VisionCamera in one call

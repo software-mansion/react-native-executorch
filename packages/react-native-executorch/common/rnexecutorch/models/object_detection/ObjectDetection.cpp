@@ -19,18 +19,16 @@ ObjectDetection::ObjectDetection(
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 2) {
+  inputTensorDims_ = inputTensors[0];
+  if (inputTensorDims_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  inputTensorDims_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
@@ -48,10 +46,10 @@ ObjectDetection::ObjectDetection(
 std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
-  float widthRatio =
-      static_cast<float>(originalSize.width) / modelImageSize.width;
+  const cv::Size inputSize = modelInputSize();
+  float widthRatio = static_cast<float>(originalSize.width) / inputSize.width;
   float heightRatio =
-      static_cast<float>(originalSize.height) / modelImageSize.height;
+      static_cast<float>(originalSize.height) / inputSize.height;
 
   std::vector<types::Detection> detections;
   auto bboxTensor = tensors.at(0).toTensor();
@@ -102,12 +100,12 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
   cv::Size originalSize = image.size();
   cv::Mat preprocessed = preprocessFrame(image);
 
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
       (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
-                                                  *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+          ? image_processing::getTensorFromMatrix(
+                inputTensorDims_, preprocessed, *normMean_, *normStd_)
+          : image_processing::getTensorFromMatrix(inputTensorDims_,
+                                                  preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

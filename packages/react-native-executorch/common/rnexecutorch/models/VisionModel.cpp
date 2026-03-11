@@ -42,9 +42,10 @@ cv::Mat VisionModel::preprocessFrame(const cv::Mat &frame) const {
                             errorMessage);
   }
 
-  if (rgb.size() != modelImageSize) {
+  const cv::Size targetSize = modelInputSize();
+  if (rgb.size() != targetSize) {
     cv::Mat resized;
-    cv::resize(rgb, resized, modelImageSize);
+    cv::resize(rgb, resized, targetSize);
     return resized;
   }
 
