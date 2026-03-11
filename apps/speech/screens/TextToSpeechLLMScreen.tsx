@@ -84,7 +84,7 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
       setDisplayText(llm.response);
 
       const previousLength = processedLengthRef.current;
-      if (llm.response.length > previousLength) {
+      if (llm.response.length > previousLength && isTtsStreaming) {
         const newChunk = llm.response.slice(previousLength);
         tts.streamInsert(newChunk);
         processedLengthRef.current = llm.response.length;
@@ -92,7 +92,7 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
     } else {
       processedLengthRef.current = 0;
     }
-  }, [llm.response, tts]);
+  }, [llm.response, tts, isTtsStreaming]);
 
   const handleGenerate = async () => {
     setDisplayText('');
