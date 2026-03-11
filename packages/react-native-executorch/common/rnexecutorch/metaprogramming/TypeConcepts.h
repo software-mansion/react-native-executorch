@@ -27,26 +27,6 @@ concept HasGenerateFromPixels = requires(T t) {
 };
 
 template <typename T>
-concept HasGenerateFromString = requires(T t) {
-  { &T::generateFromString };
-};
-
-template <typename T>
-concept HasGenerateFromPixels = requires(T t) {
-  { &T::generateFromPixels };
-};
-
-template <typename T>
-concept HasGenerateFromString = requires(T t) {
-  { &T::generateFromString };
-};
-
-template <typename T>
-concept HasGenerateFromPixels = requires(T t) {
-  { &T::generateFromPixels };
-};
-
-template <typename T>
 concept HasGenerateFromFrame = requires(T t) {
   { &T::generateFromFrame };
 };

@@ -9,7 +9,7 @@
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/models/VisionModel.h>
-#include <rnexecutorch/models/image_segmentation/Types.h>
+#include <rnexecutorch/models/semantic_segmentation/Types.h>
 
 namespace rnexecutorch {
 namespace models::semantic_segmentation {
@@ -18,7 +18,7 @@ using namespace facebook;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class BaseSemanticSegmentation : public BaseModel {
+class BaseSemanticSegmentation : public VisionModel {
 public:
   BaseSemanticSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
@@ -26,18 +26,29 @@ public:
                            std::vector<std::string> allClasses,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
+  // Async path: called from promiseHostFunction on a thread-pool thread.
+  // Returns a jsi::Object via callInvoker (safe to block there).
   [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
   generate(std::string imageSource,
            std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
+  // Sync path: called from visionHostFunction on the camera worklet thread.
+  // Must NOT use callInvoker — returns a plain SegmentationResult that
+  // visionHostFunction converts to JSI via getJsiValue.
+  [[nodiscard("Registered non-void function")]]
+  image_segmentation::SegmentationResult
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
+                    std::set<std::string, std::less<>> classesOfInterest,
+                    bool resize);
+
 protected:
   cv::Mat preprocessFrame(const cv::Mat &frame) const override;
 
-  virtual SegmentationResult
-  postprocess(const Tensor &tensor, cv::Size originalSize,
-              std::vector<std::string> &allClasses,
-              std::set<std::string, std::less<>> &classesOfInterest,
-              bool resize);
+  virtual image_segmentation::SegmentationResult
+  computeResult(const Tensor &tensor, cv::Size originalSize,
+                std::vector<std::string> &allClasses,
+                std::set<std::string, std::less<>> &classesOfInterest,
+                bool resize);
 
   cv::Size modelImageSize;
   std::size_t numModelPixels;
@@ -48,12 +59,13 @@ protected:
 private:
   void initModelImageSize();
 
-  SegmentationResult runInference(
-      cv::Mat image, cv::Size originalSize, std::vector<std::string> allClasses,
-      std::set<std::string, std::less<>> classesOfInterest, bool resize);
+  TensorPtr preprocess(const std::string &imageSource, cv::Size &originalSize);
 
-  TensorPtr preprocessFromString(const std::string &imageSource,
-                                 cv::Size &originalSize);
+  std::shared_ptr<jsi::Object> populateDictionary(
+      std::shared_ptr<OwningArrayBuffer> argmax,
+      std::shared_ptr<
+          std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>
+          classesToOutput);
 };
 } // namespace models::semantic_segmentation
 

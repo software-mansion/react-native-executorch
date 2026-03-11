@@ -34,14 +34,20 @@ export const useSemanticSegmentation = <
 }: SemanticSegmentationProps<C>): SemanticSegmentationType<
   SegmentationLabels<ModelNameOf<C>>
 > => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        SemanticSegmentationModule.fromModelName(config, onProgress),
-      config: model,
-      deps: [model.modelName, model.modelSource],
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    instance,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      SemanticSegmentationModule.fromModelName(config, onProgress),
+    config: model,
+    deps: [model.modelName, model.modelSource],
+    preventLoad,
+  });
 
   const forward = <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
     imageSource: string,
@@ -52,5 +58,14 @@ export const useSemanticSegmentation = <
       inst.forward(imageSource, classesOfInterest, resizeToInput)
     );
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  const runOnFrame = instance?.runOnFrame ?? null;
+
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    runOnFrame,
+  };
 };

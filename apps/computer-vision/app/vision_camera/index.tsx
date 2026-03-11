@@ -26,12 +26,19 @@ import {
 } from 'react-native-vision-camera';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 import {
-  DEEPLAB_V3_RESNET50,
+  DEEPLAB_V3_RESNET50_QUANTIZED,
+  DEEPLAB_V3_RESNET101_QUANTIZED,
+  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
+  FCN_RESNET50_QUANTIZED,
+  FCN_RESNET101_QUANTIZED,
+  SELFIE_SEGMENTATION,
   Detection,
   EFFICIENTNET_V2_S,
+  RF_DETR_NANO,
   SSDLITE_320_MOBILENET_V3_LARGE,
   useClassification,
-  useImageSegmentation,
+  useSemanticSegmentation,
   useObjectDetection,
 } from 'react-native-executorch';
 import {
@@ -48,7 +55,17 @@ import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
 
 type TaskId = 'classification' | 'objectDetection' | 'segmentation';
-type ModelId = 'classification' | 'objectDetection' | 'segmentation';
+type ModelId =
+  | 'classification'
+  | 'objectDetection_ssdlite'
+  | 'objectDetection_rfdetr'
+  | 'segmentation_deeplab_resnet50'
+  | 'segmentation_deeplab_resnet101'
+  | 'segmentation_deeplab_mobilenet'
+  | 'segmentation_lraspp'
+  | 'segmentation_fcn_resnet50'
+  | 'segmentation_fcn_resnet101'
+  | 'segmentation_selfie';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -62,12 +79,23 @@ const TASKS: Task[] = [
   {
     id: 'segmentation',
     label: 'Segment',
-    variants: [{ id: 'segmentation', label: 'DeepLab V3' }],
+    variants: [
+      { id: 'segmentation_deeplab_resnet50', label: 'DeepLab ResNet50' },
+      { id: 'segmentation_deeplab_resnet101', label: 'DeepLab ResNet101' },
+      { id: 'segmentation_deeplab_mobilenet', label: 'DeepLab MobileNet' },
+      { id: 'segmentation_lraspp', label: 'LRASPP MobileNet' },
+      { id: 'segmentation_fcn_resnet50', label: 'FCN ResNet50' },
+      { id: 'segmentation_fcn_resnet101', label: 'FCN ResNet101' },
+      { id: 'segmentation_selfie', label: 'Selfie' },
+    ],
   },
   {
     id: 'objectDetection',
     label: 'Detect',
-    variants: [{ id: 'objectDetection', label: 'SSDLite MobileNet' }],
+    variants: [
+      { id: 'objectDetection_ssdlite', label: 'SSDLite MobileNet' },
+      { id: 'objectDetection_rfdetr', label: 'RF-DETR Nano' },
+    ],
   },
 ];
 
@@ -129,20 +157,76 @@ export default function VisionCameraScreen() {
     model: EFFICIENTNET_V2_S,
     preventLoad: activeModel !== 'classification',
   });
-  const objectDetection = useObjectDetection({
+  const objectDetectionSsdlite = useObjectDetection({
     model: SSDLITE_320_MOBILENET_V3_LARGE,
-    preventLoad: activeModel !== 'objectDetection',
+    preventLoad: activeModel !== 'objectDetection_ssdlite',
   });
-  const segmentation = useImageSegmentation({
-    model: DEEPLAB_V3_RESNET50,
-    preventLoad: activeModel !== 'segmentation',
+  const objectDetectionRfdetr = useObjectDetection({
+    model: RF_DETR_NANO,
+    preventLoad: activeModel !== 'objectDetection_rfdetr',
   });
 
-  const activeIsGenerating = {
-    classification: classification.isGenerating,
-    objectDetection: objectDetection.isGenerating,
-    segmentation: segmentation.isGenerating,
-  }[activeModel];
+  const activeObjectDetection =
+    {
+      objectDetection_ssdlite: objectDetectionSsdlite,
+      objectDetection_rfdetr: objectDetectionRfdetr,
+    }[activeModel as 'objectDetection_ssdlite' | 'objectDetection_rfdetr'] ??
+    null;
+  const segDeeplabResnet50 = useSemanticSegmentation({
+    model: DEEPLAB_V3_RESNET50_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_deeplab_resnet50',
+  });
+  const segDeeplabResnet101 = useSemanticSegmentation({
+    model: DEEPLAB_V3_RESNET101_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_deeplab_resnet101',
+  });
+  const segDeeplabMobilenet = useSemanticSegmentation({
+    model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_deeplab_mobilenet',
+  });
+  const segLraspp = useSemanticSegmentation({
+    model: LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_lraspp',
+  });
+  const segFcnResnet50 = useSemanticSegmentation({
+    model: FCN_RESNET50_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_fcn_resnet50',
+  });
+  const segFcnResnet101 = useSemanticSegmentation({
+    model: FCN_RESNET101_QUANTIZED,
+    preventLoad: activeModel !== 'segmentation_fcn_resnet101',
+  });
+  const segSelfie = useSemanticSegmentation({
+    model: SELFIE_SEGMENTATION,
+    preventLoad: activeModel !== 'segmentation_selfie',
+  });
+
+  const activeSegmentation =
+    {
+      segmentation_deeplab_resnet50: segDeeplabResnet50,
+      segmentation_deeplab_resnet101: segDeeplabResnet101,
+      segmentation_deeplab_mobilenet: segDeeplabMobilenet,
+      segmentation_lraspp: segLraspp,
+      segmentation_fcn_resnet50: segFcnResnet50,
+      segmentation_fcn_resnet101: segFcnResnet101,
+      segmentation_selfie: segSelfie,
+    }[
+      activeModel as
+        | 'segmentation_deeplab_resnet50'
+        | 'segmentation_deeplab_resnet101'
+        | 'segmentation_deeplab_mobilenet'
+        | 'segmentation_lraspp'
+        | 'segmentation_fcn_resnet50'
+        | 'segmentation_fcn_resnet101'
+        | 'segmentation_selfie'
+    ] ?? null;
+
+  const activeIsGenerating =
+    activeModel === 'classification'
+      ? classification.isGenerating
+      : activeModel.startsWith('objectDetection')
+        ? (activeObjectDetection?.isGenerating ?? false)
+        : (activeSegmentation?.isGenerating ?? false);
 
   useEffect(() => {
     setGlobalGenerating(activeIsGenerating);
@@ -211,8 +295,8 @@ export default function VisionCameraScreen() {
   );
 
   const classRof = classification.runOnFrame;
-  const detRof = objectDetection.runOnFrame;
-  const segRof = segmentation.runOnFrame;
+  const detRof = activeObjectDetection?.runOnFrame ?? null;
+  const segRof = activeSegmentation?.runOnFrame ?? null;
 
   useEffect(() => {
     frameKillSwitch.setBlocking(true);
@@ -255,7 +339,7 @@ export default function VisionCameraScreen() {
               }
               scheduleOnRN(updateClass, { label: bestLabel, score: bestScore });
             }
-          } else if (activeModel === 'objectDetection') {
+          } else if (activeModel.startsWith('objectDetection')) {
             if (!detRof) return;
             const iw = frame.width > frame.height ? frame.height : frame.width;
             const ih = frame.width > frame.height ? frame.width : frame.height;
@@ -267,7 +351,7 @@ export default function VisionCameraScreen() {
                 imageHeight: ih,
               });
             }
-          } else if (activeModel === 'segmentation') {
+          } else if (activeModel.startsWith('segmentation')) {
             if (!segRof) return;
             const result = segRof(frame, [], false);
             if (result?.ARGMAX) {
@@ -313,17 +397,19 @@ export default function VisionCameraScreen() {
     ),
   });
 
-  const activeIsReady = {
-    classification: classification.isReady,
-    objectDetection: objectDetection.isReady,
-    segmentation: segmentation.isReady,
-  }[activeModel];
+  const activeIsReady =
+    activeModel === 'classification'
+      ? classification.isReady
+      : activeModel.startsWith('objectDetection')
+        ? (activeObjectDetection?.isReady ?? false)
+        : (activeSegmentation?.isReady ?? false);
 
-  const activeDownloadProgress = {
-    classification: classification.downloadProgress,
-    objectDetection: objectDetection.downloadProgress,
-    segmentation: segmentation.downloadProgress,
-  }[activeModel];
+  const activeDownloadProgress =
+    activeModel === 'classification'
+      ? classification.downloadProgress
+      : activeModel.startsWith('objectDetection')
+        ? (activeObjectDetection?.downloadProgress ?? 0)
+        : (activeSegmentation?.downloadProgress ?? 0);
 
   if (!cameraPermission.hasPermission) {
     return (
@@ -393,7 +479,7 @@ export default function VisionCameraScreen() {
           })
         }
       >
-        {activeModel === 'segmentation' && maskImage && (
+        {activeModel.startsWith('segmentation') && maskImage && (
           <Canvas style={StyleSheet.absoluteFill}>
             <SkiaImage
               image={maskImage}
@@ -406,7 +492,7 @@ export default function VisionCameraScreen() {
           </Canvas>
         )}
 
-        {activeModel === 'objectDetection' && (
+        {activeModel.startsWith('objectDetection') && (
           <>
             {detections.map((det, i) => {
               const left = det.bbox.x1 * detScale + detOX;
@@ -480,7 +566,6 @@ export default function VisionCameraScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabsContent}
-          pointerEvents="box-none"
         >
           {TASKS.map((t) => (
             <TouchableOpacity
@@ -507,7 +592,6 @@ export default function VisionCameraScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipsContent}
-          pointerEvents="box-none"
         >
           {activeTaskInfo.variants.map((v) => (
             <TouchableOpacity
