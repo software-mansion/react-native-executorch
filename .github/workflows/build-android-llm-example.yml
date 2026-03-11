@@ -56,7 +56,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.WORKING_DIRECTORY }}/android
-          key: ${{ runner.os }}-expo-android-${{ hashFiles('${{ env.WORKING_DIRECTORY }}/app.json', '${{ env.WORKING_DIRECTORY }}/package.json') }}
+          key: ${{ runner.os }}-expo-android-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
           restore-keys: |
             ${{ runner.os }}-expo-android-
       - name: Generate native Android project
