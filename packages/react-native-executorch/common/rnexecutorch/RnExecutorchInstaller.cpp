@@ -1,6 +1,5 @@
 #include "RnExecutorchInstaller.h"
 
-#include <iostream>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>

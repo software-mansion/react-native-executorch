@@ -74,8 +74,6 @@ export default function InstanceSegmentationScreen() {
         inputSize: selectedInputSize ?? undefined,
       });
 
-      console.log('Output is ', output[0].label);
-
       // Convert raw masks → small Skia images immediately.
       // Raw Uint8Array mask buffers (backed by native OwningArrayBuffer)
       // go out of scope here and become eligible for GC right away.

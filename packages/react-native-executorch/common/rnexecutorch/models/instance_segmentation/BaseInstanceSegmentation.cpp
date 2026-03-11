@@ -1,9 +1,12 @@
 #include "BaseInstanceSegmentation.h"
 
 #include <cmath>
+#include <cstdint>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
+#include <rnexecutorch/utils/computer_vision/Processing.h>
 
 namespace rnexecutorch::models::instance_segmentation {
 
@@ -12,85 +15,153 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
-  avalivableMethods_ = *module_->method_names();
+
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  } else if (!normMean.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  } else if (!normStd.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normStd must have 3 elements — ignoring provided value.");
   }
-
-  modelImageSize = cv::Size(416, 416);
 }
 
-float BaseInstanceSegmentation::intersectionOverUnion(
-    const types::InstanceMask &a, const types::InstanceMask &b) {
-  float x1 = std::max(a.x1, b.x1);
-  float y1 = std::max(a.y1, b.y1);
-  float x2 = std::min(a.x2, b.x2);
-  float y2 = std::min(a.y2, b.y2);
+cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
+    const cv::Mat &logitsMat, float x1, float y1, float x2, float y2,
+    cv::Size modelInputSize, cv::Size originalSize, int32_t maskW,
+    int32_t maskH, int32_t bboxW, int32_t bboxH, float origX1, float origY1,
+    bool warpToOriginal, int32_t &outWidth, int32_t &outHeight) {
 
-  float intersectionArea = std::max(0.0f, x2 - x1) * std::max(0.0f, y2 - y1);
-  float areaA = (a.x2 - a.x1) * (a.y2 - a.y1);
-  float areaB = (b.x2 - b.x1) * (b.y2 - b.y1);
-  float unionArea = areaA + areaB - intersectionArea;
+  float mx1F = x1 * maskW / modelInputSize.width;
+  float my1F = y1 * maskH / modelInputSize.height;
+  float mx2F = x2 * maskW / modelInputSize.width;
+  float my2F = y2 * maskH / modelInputSize.height;
 
-  return (unionArea > 0) ? (intersectionArea / unionArea) : 0.0f;
+  int32_t mx1 = std::max(0, static_cast<int32_t>(std::floor(mx1F)));
+  int32_t my1 = std::max(0, static_cast<int32_t>(std::floor(my1F)));
+  int32_t mx2 = std::min(maskW, static_cast<int32_t>(std::ceil(mx2F)));
+  int32_t my2 = std::min(maskH, static_cast<int32_t>(std::ceil(my2F)));
+
+  cv::Mat finalBinaryMat;
+  outWidth = bboxW;
+  outHeight = bboxH;
+
+  if (warpToOriginal) {
+    int32_t pmx1 = std::max(0, mx1 - 1);
+    int32_t pmy1 = std::max(0, my1 - 1);
+    int32_t pmx2 = std::min(maskW, mx2 + 1);
+    int32_t pmy2 = std::min(maskH, my2 + 1);
+
+    cv::Mat croppedLogits =
+        logitsMat(cv::Rect(pmx1, pmy1, pmx2 - pmx1, pmy2 - pmy1));
+    cv::Mat probMat;
+    cv::exp(-croppedLogits, probMat);
+    probMat = 255.0f / (1.0f + probMat);
+    probMat.convertTo(probMat, CV_8UC1);
+
+    float maskToOrigX = static_cast<float>(originalSize.width) / maskW;
+    float maskToOrigY = static_cast<float>(originalSize.height) / maskH;
+
+    cv::Mat M =
+        (cv::Mat_<float>(2, 3) << maskToOrigX, 0, (pmx1 * maskToOrigX - origX1),
+         0, maskToOrigY, (pmy1 * maskToOrigY - origY1));
+
+    cv::Mat warpedMat;
+    cv::warpAffine(probMat, warpedMat, M, cv::Size(bboxW, bboxH),
+                   cv::INTER_LINEAR);
+
+    cv::threshold(warpedMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
+  } else {
+    cv::Mat croppedLogits = logitsMat(cv::Rect(mx1, my1, mx2 - mx1, my2 - my1));
+    cv::Mat probMat;
+    cv::exp(-croppedLogits, probMat);
+    probMat = 255.0f / (1.0f + probMat);
+    probMat.convertTo(probMat, CV_8UC1);
+
+    cv::threshold(probMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
+    outWidth = finalBinaryMat.cols;
+    outHeight = finalBinaryMat.rows;
+  }
+
+  return finalBinaryMat;
 }
 
-std::vector<types::InstanceMask> BaseInstanceSegmentation::nonMaxSuppression(
-    std::vector<types::InstanceMask> instances, double iouThreshold) {
-  if (instances.empty()) {
-    return {};
+std::optional<types::InstanceMask> BaseInstanceSegmentation::processDetection(
+    int32_t detectionIndex, const float *bboxData, const float *scoresData,
+    const float *maskData, int32_t maskH, int32_t maskW,
+    cv::Size modelInputSize, cv::Size originalSize, float widthRatio,
+    float heightRatio, double confidenceThreshold,
+    const std::set<int32_t> &allowedClasses,
+    bool returnMaskAtOriginalResolution) {
+
+  int32_t i = detectionIndex;
+
+  float x1 = bboxData[i * 4 + 0];
+  float y1 = bboxData[i * 4 + 1];
+  float x2 = bboxData[i * 4 + 2];
+  float y2 = bboxData[i * 4 + 3];
+  float score = scoresData[i * 2 + 0];
+  auto labelIdx = static_cast<std::size_t>(scoresData[i * 2 + 1]);
+
+  if (score < confidenceThreshold) {
+    return std::nullopt;
+  }
+  if (!allowedClasses.empty() && allowedClasses.find(static_cast<int32_t>(
+                                     labelIdx)) == allowedClasses.end()) {
+    return std::nullopt;
   }
 
-  std::sort(instances.begin(), instances.end(),
-            [](const types::InstanceMask &a, const types::InstanceMask &b) {
-              return a.score > b.score;
-            });
+  // Scale bbox to original image coordinates
+  float origX1 = x1 * widthRatio;
+  float origY1 = y1 * heightRatio;
+  float origX2 = x2 * widthRatio;
+  float origY2 = y2 * heightRatio;
 
-  std::vector<types::InstanceMask> result;
-  std::vector<bool> suppressed(instances.size(), false);
+  int32_t bboxW = static_cast<int32_t>(std::round(origX2 - origX1));
+  int32_t bboxH = static_cast<int32_t>(std::round(origY2 - origY1));
 
-  for (size_t i = 0; i < instances.size(); ++i) {
-    if (suppressed[i]) {
-      continue;
-    }
-
-    result.push_back(instances[i]);
-
-    for (size_t j = i + 1; j < instances.size(); ++j) {
-      if (suppressed[j]) {
-        continue;
-      }
-
-      if (instances[i].classIndex == instances[j].classIndex) {
-        float iou = intersectionOverUnion(instances[i], instances[j]);
-        if (iou > iouThreshold) {
-          suppressed[j] = true;
-        }
-      }
-    }
+  if (bboxW <= 0 || bboxH <= 0) {
+    return std::nullopt;
   }
 
-  return result;
+  const float *logits = maskData + (i * maskH * maskW);
+  cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
+
+  int32_t finalMaskWidth, finalMaskHeight;
+  cv::Mat finalBinaryMat = processMaskFromLogits(
+      logitsMat, x1, y1, x2, y2, modelInputSize, originalSize, maskW, maskH,
+      bboxW, bboxH, origX1, origY1, returnMaskAtOriginalResolution,
+      finalMaskWidth, finalMaskHeight);
+
+  std::vector<uint8_t> finalMask(finalBinaryMat.data,
+                                 finalBinaryMat.data + finalBinaryMat.total());
+
+  return types::InstanceMask(
+      utils::computer_vision::BBox{origX1, origY1, origX2, origY2},
+      std::move(finalMask), finalMaskWidth, finalMaskHeight,
+      static_cast<int32_t>(labelIdx), score, i);
 }
 
 std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     const std::vector<EValue> &tensors, cv::Size originalSize,
     cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
-    int maxInstances, const std::vector<int32_t> &classIndices,
+    int32_t maxInstances, const std::vector<int32_t> &classIndices,
     bool returnMaskAtOriginalResolution) {
 
-  if (confidenceThreshold <= 0 || confidenceThreshold > 1) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "Confidence threshold must be greater than 0 "
-                            "and less than or equal to 1.");
+  if (confidenceThreshold < 0 || confidenceThreshold > 1) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "Confidence threshold must be greater or equal to 0 "
+        "and less than or equal to 1.");
   }
 
-  if (iouThreshold <= 0 || iouThreshold > 1) {
+  if (iouThreshold < 0 || iouThreshold > 1) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "IoU threshold must be greater than 0 "
+                            "IoU threshold must be greater or equal to 0 "
                             "and less than or equal to 1.");
   }
 
@@ -122,138 +193,39 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
   auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
   auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
 
-  int N = bboxTensor.size(1);
-  int maskH = maskTensor.size(2);
-  int maskW = maskTensor.size(3);
+  int32_t N = bboxTensor.size(1);
+  int32_t maskH = maskTensor.size(2);
+  int32_t maskW = maskTensor.size(3);
+  const float *bboxData = bboxTensor.const_data_ptr<float>();
+  const float *scoresData = scoresTensor.const_data_ptr<float>();
+  const float *maskData = maskTensor.const_data_ptr<float>();
 
-  const float *bboxData =
-      static_cast<const float *>(bboxTensor.const_data_ptr());
-  const float *scoresData =
-      static_cast<const float *>(scoresTensor.const_data_ptr());
-  const float *maskData =
-      static_cast<const float *>(maskTensor.const_data_ptr());
   int32_t processed = 0;
 
-  for (int i = 0; i < N; ++i) {
-    float x1 = bboxData[i * 4 + 0];
-    float y1 = bboxData[i * 4 + 1];
-    float x2 = bboxData[i * 4 + 2];
-    float y2 = bboxData[i * 4 + 3];
-    float score = scoresData[i * 2 + 0];
-    auto labelIdx = static_cast<std::size_t>(scoresData[i * 2 + 1]);
+  for (int32_t i = 0; i < N; ++i) {
+    auto instance = processDetection(
+        i, bboxData, scoresData, maskData, maskH, maskW, modelInputSize,
+        originalSize, widthRatio, heightRatio, confidenceThreshold,
+        allowedClasses, returnMaskAtOriginalResolution);
 
-    if (score < confidenceThreshold)
-      continue;
-    if (!allowedClasses.empty() && allowedClasses.find(static_cast<int32_t>(
-                                       labelIdx)) == allowedClasses.end())
-      continue;
-
-    // Scale bbox to original image coordinates
-    float origX1 = x1 * widthRatio;
-    float origY1 = y1 * heightRatio;
-    float origX2 = x2 * widthRatio;
-    float origY2 = y2 * heightRatio;
-
-    int bboxW = static_cast<int>(std::round(origX2 - origX1));
-    int bboxH = static_cast<int>(std::round(origY2 - origY1));
-
-    if (bboxW <= 0 || bboxH <= 0)
-      continue;
-
-    // Wrap logits in cv::Mat for vectorized operations
-    const float *logits = maskData + (i * maskH * maskW);
-    cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
-
-    // Float bounds in low-res mask space
-    float mx1F = x1 * maskW / modelInputSize.width;
-    float my1F = y1 * maskH / modelInputSize.height;
-    float mx2F = x2 * maskW / modelInputSize.width;
-    float my2F = y2 * maskH / modelInputSize.height;
-
-    // Exact integer bounds (bbox region in mask coordinates)
-    int mx1 = std::max(0, static_cast<int>(std::floor(mx1F)));
-    int my1 = std::max(0, static_cast<int>(std::floor(my1F)));
-    int mx2 = std::min(maskW, static_cast<int>(std::ceil(mx2F)));
-    int my2 = std::min(maskH, static_cast<int>(std::ceil(my2F)));
-
-    if (mx2 <= mx1 || my2 <= my1)
-      continue;
-
-    cv::Mat finalBinaryMat;
-    int finalMaskWidth = bboxW;
-    int finalMaskHeight = bboxH;
-
-    if (returnMaskAtOriginalResolution) {
-      // 1px padding for warpAffine interpolation (prevents edge artifacts)
-      int pmx1 = std::max(0, mx1 - 1);
-      int pmy1 = std::max(0, my1 - 1);
-      int pmx2 = std::min(maskW, mx2 + 1);
-      int pmy2 = std::min(maskH, my2 + 1);
-
-      cv::Mat croppedLogits =
-          logitsMat(cv::Rect(pmx1, pmy1, pmx2 - pmx1, pmy2 - pmy1));
-      cv::Mat probMat;
-      cv::exp(-croppedLogits, probMat);
-      probMat = 255.0f / (1.0f + probMat);
-      probMat.convertTo(probMat, CV_8UC1);
-
-      // Affine matrix mapping padded crop -> bbox in original image space.
-      // Padding pixels fall outside the output and are clipped naturally.
-      float maskToOrigX = static_cast<float>(originalSize.width) / maskW;
-      float maskToOrigY = static_cast<float>(originalSize.height) / maskH;
-
-      cv::Mat M = (cv::Mat_<float>(2, 3) << maskToOrigX, 0,
-                   (pmx1 * maskToOrigX - origX1), 0, maskToOrigY,
-                   (pmy1 * maskToOrigY - origY1));
-
-      cv::Mat warpedMat;
-      cv::warpAffine(probMat, warpedMat, M, cv::Size(bboxW, bboxH),
-                     cv::INTER_LINEAR);
-
-      cv::threshold(warpedMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
-    } else {
-      // No padding needed — no interpolation, just threshold
-      cv::Mat croppedLogits =
-          logitsMat(cv::Rect(mx1, my1, mx2 - mx1, my2 - my1));
-      cv::Mat probMat;
-      cv::exp(-croppedLogits, probMat);
-      probMat = 255.0f / (1.0f + probMat);
-      probMat.convertTo(probMat, CV_8UC1);
-
-      cv::threshold(probMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
-      finalMaskWidth = finalBinaryMat.cols;
-      finalMaskHeight = finalBinaryMat.rows;
+    if (instance.has_value()) {
+      instances.push_back(std::move(*instance));
+      ++processed;
     }
-
-    std::vector<uint8_t> finalMask(
-        finalBinaryMat.data, finalBinaryMat.data + finalBinaryMat.total());
-
-    types::InstanceMask instance;
-    instance.x1 = origX1;
-    instance.y1 = origY1;
-    instance.x2 = origX2;
-    instance.y2 = origY2;
-    instance.mask = std::move(finalMask);
-    instance.maskWidth = finalMaskWidth;
-    instance.maskHeight = finalMaskHeight;
-    instance.classIndex = static_cast<int32_t>(labelIdx);
-    instance.score = score;
-    instance.instanceId = i;
-    instances.push_back(std::move(instance));
-    ++processed;
   }
 
   // Finalize: NMS + limit + renumber
   if (applyNMS_) {
-    instances = nonMaxSuppression(instances, iouThreshold);
+    instances =
+        utils::computer_vision::nonMaxSuppression(instances, iouThreshold);
   }
 
-  if (instances.size() > static_cast<size_t>(maxInstances)) {
+  if (std::cmp_greater(instances.size(), maxInstances)) {
     instances.resize(maxInstances);
   }
 
   for (size_t i = 0; i < instances.size(); ++i) {
-    instances[i].instanceId = static_cast<int>(i);
+    instances[i].instanceId = static_cast<int32_t>(i);
   }
 
   return instances;
@@ -261,7 +233,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
 
 std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
     std::string imageSource, double confidenceThreshold, double iouThreshold,
-    int maxInstances, std::vector<int32_t> classIndices,
+    int32_t maxInstances, std::vector<int32_t> classIndices,
     bool returnMaskAtOriginalResolution, std::string methodName) {
 
   if (methodName.empty()) {
