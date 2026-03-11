@@ -53,6 +53,12 @@ std::vector<types::OCRDetection>
 OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto frameObj = frameData.asObject(runtime);
   cv::Mat frame = ::rnexecutorch::utils::extractFrame(runtime, frameObj);
+  // Camera sensors deliver landscape frames; rotate to portrait orientation.
+  if (frame.cols > frame.rows) {
+    cv::Mat upright;
+    cv::rotate(frame, upright, cv::ROTATE_90_CLOCKWISE);
+    frame = std::move(upright);
+  }
   // extractFrame returns RGB; convert to BGR for consistency with readImage
   cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
   return runInference(frame);

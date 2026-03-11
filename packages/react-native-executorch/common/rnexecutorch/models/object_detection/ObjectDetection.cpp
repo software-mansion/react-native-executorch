@@ -23,7 +23,7 @@ ObjectDetection::ObjectDetection(
   if (modelInputShape.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
                   modelInputShape.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -43,39 +43,6 @@ ObjectDetection::ObjectDetection(
     log(LOG_LEVEL::Warn,
         "normStd must have 3 elements — ignoring provided value.");
   }
-}
-
-cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
-  cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
-                                 tensorDims[tensorDims.size() - 2]);
-
-  cv::Mat rgb;
-
-  if (frame.channels() == 4) {
-#ifdef __APPLE__
-    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
-#else
-    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
-#endif
-  } else if (frame.channels() == 3) {
-    rgb = frame;
-  } else {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported frame format: %d channels", frame.channels());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
-  }
-
-  // Only resize if dimensions don't match
-  if (rgb.size() != tensorSize) {
-    cv::Mat resized;
-    cv::resize(rgb, resized, tensorSize);
-    return resized;
-  }
-
-  return rgb;
 }
 
 std::vector<types::Detection>

@@ -24,7 +24,7 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
   if (modelInputShape.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
                   modelInputShape.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -32,34 +32,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
-}
-
-cv::Mat StyleTransfer::preprocessFrame(const cv::Mat &frame) const {
-  cv::Mat rgb;
-
-  if (frame.channels() == 4) {
-#ifdef __APPLE__
-    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
-#else
-    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
-#endif
-  } else if (frame.channels() == 3) {
-    rgb = frame;
-  } else {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported frame format: %d channels", frame.channels());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
-  }
-
-  if (rgb.size() != modelImageSize) {
-    cv::Mat resized;
-    cv::resize(rgb, resized, modelImageSize);
-    return resized;
-  }
-
-  return rgb;
 }
 
 PixelDataResult StyleTransfer::postprocess(const Tensor &tensor,

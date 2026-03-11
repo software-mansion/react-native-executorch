@@ -31,13 +31,8 @@ public:
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   generateFromPixels(JSTensorViewIn pixelData);
 
-protected:
-  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
-
 private:
   std::shared_ptr<OwningArrayBuffer> runInference(cv::Mat image);
-
-  cv::Size modelImageSize{0, 0};
 };
 } // namespace models::embeddings
 

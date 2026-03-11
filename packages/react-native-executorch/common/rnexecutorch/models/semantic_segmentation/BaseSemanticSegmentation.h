@@ -42,15 +42,11 @@ public:
                     bool resize);
 
 protected:
-  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
-
   virtual image_segmentation::SegmentationResult
   computeResult(const Tensor &tensor, cv::Size originalSize,
                 std::vector<std::string> &allClasses,
                 std::set<std::string, std::less<>> &classesOfInterest,
                 bool resize);
-
-  cv::Size modelImageSize;
   std::size_t numModelPixels;
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;

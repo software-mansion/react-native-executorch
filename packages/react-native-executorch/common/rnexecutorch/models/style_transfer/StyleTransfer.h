@@ -33,9 +33,6 @@ public:
   [[nodiscard("Registered non-void function")]] PixelDataResult
   generateFromPixels(JSTensorViewIn pixelData);
 
-protected:
-  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
-
 private:
   // outputSize: size to resize the styled output to before returning.
   //   Pass modelImageSize for real-time frame processing (avoids large allocs).
@@ -43,8 +40,6 @@ private:
   PixelDataResult runInference(cv::Mat image, cv::Size outputSize);
 
   PixelDataResult postprocess(const Tensor &tensor, cv::Size outputSize);
-
-  cv::Size modelImageSize{0, 0};
 };
 } // namespace models::style_transfer
 

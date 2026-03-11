@@ -86,11 +86,9 @@ protected:
   /**
    * @brief Preprocess a camera frame for model input
    *
-   * This method should implement model-specific preprocessing such as:
-   * - Resizing to the model's expected input size
-   * - Color space conversion (e.g., BGR to RGB)
-   * - Normalization
-   * - Any other model-specific transformations
+   * Converts 4-channel frames (BGRA on iOS, RGBA on Android) to RGB and
+   * resizes to modelImageSize if needed. Subclasses may override for
+   * model-specific preprocessing (e.g., normalisation).
    *
    * @param frame Input frame from camera (already extracted and rotated by
    * FrameExtractor)
@@ -99,7 +97,11 @@ protected:
    * @note The input frame is already in RGB format and rotated 90° clockwise
    * @note This method is called under mutex protection in generateFromFrame()
    */
-  virtual cv::Mat preprocessFrame(const cv::Mat &frame) const = 0;
+  virtual cv::Mat preprocessFrame(const cv::Mat &frame) const;
+
+  /// Expected input image dimensions derived from the model's input shape.
+  /// Set by subclass constructors after loading the model.
+  cv::Size modelImageSize{0, 0};
 
   /**
    * @brief Extract and preprocess frame from VisionCamera in one call

@@ -31,15 +31,10 @@ public:
       std::string_view, float>
   generateFromPixels(JSTensorViewIn pixelData);
 
-protected:
-  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
-
 private:
   std::unordered_map<std::string_view, float> runInference(cv::Mat image);
 
   std::unordered_map<std::string_view, float> postprocess(const Tensor &tensor);
-
-  cv::Size modelImageSize{0, 0};
 };
 } // namespace models::classification
 
