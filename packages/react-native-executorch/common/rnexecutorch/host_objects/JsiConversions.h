@@ -6,6 +6,7 @@
 #include <span>
 #include <type_traits>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
@@ -607,6 +608,14 @@ inline jsi::Value getJsiValue(
   }
 
   return dict;
+}
+
+inline jsi::Value
+getJsiValue(const models::style_transfer::StyleTransferResult &result,
+            jsi::Runtime &runtime) {
+  return std::visit(
+      [&runtime](const auto &value) { return getJsiValue(value, runtime); },
+      result);
 }
 
 } // namespace rnexecutorch::jsi_conversion

@@ -1,4 +1,5 @@
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
+import { PixelData } from '../../types/common';
 import {
   StyleTransferProps,
   StyleTransferType,
@@ -9,7 +10,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * React hook for managing a Style Transfer model instance.
  *
  * @category Hooks
- * @param StyleTransferProps - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param props - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Style Transfer model.
  */
 export const useStyleTransfer = ({
@@ -25,8 +26,14 @@ export const useStyleTransfer = ({
       preventLoad,
     });
 
-  const forward = (imageSource: string) =>
+  const forward = (imageSource: string | PixelData) =>
     runForward((inst) => inst.forward(imageSource));
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+  } as StyleTransferType;
 };
