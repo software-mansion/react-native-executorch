@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
@@ -92,6 +92,14 @@ export function useModuleFactory<M extends Deletable, Config>({
     }
   };
 
+  const runOnFrame = useMemo(
+    () =>
+      instance && 'runOnFrame' in instance
+        ? (instance.runOnFrame as ((...args: any[]) => any) | null)
+        : null,
+    [instance]
+  );
+
   return {
     error,
     isReady,
@@ -99,5 +107,6 @@ export function useModuleFactory<M extends Deletable, Config>({
     downloadProgress,
     runForward,
     instance,
+    runOnFrame,
   };
 }

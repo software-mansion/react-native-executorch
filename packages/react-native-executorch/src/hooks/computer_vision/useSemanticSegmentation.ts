@@ -41,7 +41,7 @@ export const useSemanticSegmentation = <
     isGenerating,
     downloadProgress,
     runForward,
-    instance,
+    runOnFrame,
   } = useModuleFactory({
     factory: (config, onProgress) =>
       SemanticSegmentationModule.fromModelName(config, onProgress),
@@ -58,8 +58,6 @@ export const useSemanticSegmentation = <
     runForward((inst) =>
       inst.forward(imageSource, classesOfInterest, resizeToInput)
     );
-
-  const runOnFrame = instance?.runOnFrame ?? null;
 
   return {
     error,
