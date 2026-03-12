@@ -208,13 +208,6 @@ public:
                               "generateFromString"));
     }
 
-    if constexpr (meta::HasGenerateFromString<Model>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateFromString>,
-                              "generateFromString"));
-    }
-
     if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
