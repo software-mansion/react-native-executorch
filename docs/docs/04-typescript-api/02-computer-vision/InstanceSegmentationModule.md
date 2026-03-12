@@ -54,7 +54,7 @@ const segmentation = await InstanceSegmentationModule.fromModelName({
 Use [`fromCustomConfig`](../../06-api-reference/classes/InstanceSegmentationModule.md#fromcustomconfig) for custom-exported models with your own label map. It accepts:
 
 - `modelSource` - Location of the model binary.
-- `config` - An [`InstanceSegmentationConfig`](../../06-api-reference/interfaces/InstanceSegmentationConfig.md) object with:
+- `config` - An [`InstanceSegmentationConfig`](../../06-api-reference/type-aliases/InstanceSegmentationConfig.md) object with:
   - `labelMap` - An enum-like object mapping class names to indices.
   - `preprocessorConfig` (optional) - Normalization parameters (`normMean`, `normStd`).
   - `postprocessorConfig` (optional) - Postprocessing settings (`applyNMS`).
