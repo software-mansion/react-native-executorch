@@ -151,7 +151,24 @@ add_rn_test(ImageProcessingTest unit/ImageProcessingTest.cpp
     LIBS opencv_deps
 )
 
+add_rn_test(FrameProcessorTests unit/FrameProcessorTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps android
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
+
+add_rn_test(VisionModelTests integration/VisionModelTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps android
+)
 
 add_rn_test(ClassificationTests integration/ClassificationTest.cpp
     SOURCES
