@@ -40,14 +40,18 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 <details>
 <summary><strong> :blue_book: Table of Contents </strong></summary>
 
-- [:yin_yang: Supported Versions](#yin_yang-supported-versions)
-- [:earth_africa: Real-world Example](#earth_africa-real-world-example)
-- [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
+- [:yin\_yang: Supported Versions](#yin_yang-supported-versions)
+- [:earth\_africa: Real-world Example](#earth_africa-real-world-example)
+- [:llama: **Quickstart - Running Llama**](#llama-quickstart---running-llama)
+  - [:one: **Installation**](#one-installation)
+  - [:two: **Setup \& Initialization**](#two-setup--initialization)
+  - [:three: **Run the Model!**](#three-run-the-model)
 - [:calling: Demo Apps](#calling-demo-apps)
 - [:robot: Ready-made Models](#robot-ready-made-models)
 - [:books: Documentation](#books-documentation)
-- [:balance_scale: License](#balance_scale-license)
+- [:balance\_scale: License](#balance_scale-license)
 - [:soon: What's Next?](#soon-whats-next)
+- [React Native ExecuTorch is created by Software Mansion](#react-native-executorch-is-created-by-software-mansion)
 
 </details>
 
@@ -154,7 +158,7 @@ For the bare React Native app (`bare_rn`), navigate to `apps/bare_rn` and run:
 
 ```bash
 yarn
-yarn ios   # or yarn android
+yarn < ios | android >
 ```
 
 > [!WARNING]
