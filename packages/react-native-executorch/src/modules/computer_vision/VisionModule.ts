@@ -127,7 +127,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
         RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
-
     // Type detection and routing
     if (typeof input === 'string') {
       return await this.nativeModule.generateFromString(input, ...args);

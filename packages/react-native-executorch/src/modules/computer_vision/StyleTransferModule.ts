@@ -11,7 +11,7 @@ import { VisionModule } from './VisionModule';
  *
  * @category Typescript API
  */
-export class StyleTransferModule extends VisionModule<PixelData> {
+export class StyleTransferModule extends VisionModule<PixelData | string> {
   private constructor(nativeModule: unknown) {
     super();
     this.nativeModule = nativeModule;
