@@ -1,8 +1,8 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { StyleTransferModelName } from '../../types/styleTransfer';
 import { ResourceSource, PixelData } from '../../types/common';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
 import { VisionModule } from './VisionModule';
 
