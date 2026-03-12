@@ -74,7 +74,6 @@ export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
   }
 
   async forward(input: string | PixelData): Promise<Float32Array> {
-    const result = await super.forward(input);
-    return new Float32Array(result as unknown as ArrayBuffer);
+    return super.forward(input);
   }
 }
