@@ -36,20 +36,20 @@ React Native ExecuTorch conecta React Native con las capacidades nativas de la p
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
-<summary><strong> :blue_book: Tabla de contenidos </strong></summary>
+<summary><strong>Tabla de contenidos</strong></summary>
 
-- [:yin_yang: Versiones compatibles](#yin_yang-versiones-compatibles)
-- [:earth_africa: Ejemplo del mundo real](#earth_africa-ejemplo-del-mundo-real)
-- [:llama: Inicio rápido - Ejecutar Llama](#llama-inicio-rápido---ejecutar-llama)
-- [:calling: Aplicaciones de demostración](#calling-aplicaciones-de-demostración)
-- [:robot: Modelos listos para usar](#robot-modelos-listos-para-usar)
-- [:books: Documentación](#books-documentación)
-- [:balance_scale: Licencia](#balance_scale-licencia)
-- [:soon: ¿Qué sigue?](#soon-qué-sigue)
+- [Versiones compatibles](#versiones-compatibles)
+- [Ejemplo del mundo real](#ejemplo-del-mundo-real)
+- [Inicio rápido - Ejecutar Llama](#inicio-rápido---ejecutar-llama)
+- [Aplicaciones de demostración](#aplicaciones-de-demostración)
+- [Modelos listos para usar](#modelos-listos-para-usar)
+- [Documentación](#documentación)
+- [Licencia](#licencia)
+- [¿Qué sigue?](#qué-sigue)
 
 </details>
 
-## :yin_yang: Versiones compatibles
+## Versiones compatibles
 
 Las versiones mínimas compatibles son:
 
@@ -60,17 +60,17 @@ Las versiones mínimas compatibles son:
 > [!IMPORTANT]
 > React Native ExecuTorch solo admite la [nueva arquitectura de React Native](https://reactnative.dev/architecture/landing-page).
 
-## :earth_africa: Ejemplo del mundo real
+## Ejemplo del mundo real
 
 React Native ExecuTorch impulsa [Private Mind](https://privatemind.swmansion.com/), una aplicación móvil de IA centrada en la privacidad disponible en [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) y [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Promoción de Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## :llama: **Inicio rápido - Ejecutar Llama**
+## Inicio rápido - Ejecutar Llama
 
 **¡Comienza con la generación de texto impulsada por IA en 3 sencillos pasos!**
 
-### :one: **Instalación**
+### :one: Instalación
 
 ```bash
 # Instalar el paquete
@@ -88,7 +88,7 @@ yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-down
 yarn expo run:< ios | android >
 ```
 
-### :two: **Configuración e inicialización**
+### :two: Configuración e inicialización
 
 Agrega esto a tu archivo de componente:
 
@@ -127,7 +127,7 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: Aplicaciones de demostración
+## Aplicaciones de demostración
 
 Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/software-mansion/react-native-executorch/tree/main/apps) que muestran casos de uso de nuestra biblioteca:
 
@@ -151,20 +151,20 @@ yarn expo run:< ios | android >
 > [!WARNING]
 > Ejecutar LLMs requiere una cantidad significativa de RAM. Si experimentas cierres inesperados de la aplicación, intenta aumentar la cantidad de RAM asignada al emulador.
 
-## :robot: Modelos listos para usar
+## Modelos listos para usar
 
 Nuestra biblioteca incluye varios modelos de IA listos para usar; la lista completa está disponible en la documentación. Si te interesa ejecutar tu propio modelo de IA, primero debes exportarlo al formato `.pte`. Las instrucciones para hacerlo están disponibles en la [API de Python](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) y en el [README de optimum-executorch](<(https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately)>).
 
-## :books: Documentación
+## Documentación
 
 Consulta cómo nuestra biblioteca puede ayudarte a crear funciones de IA en React Native visitando nuestra documentación:
 https://docs.swmansion.com/react-native-executorch
 
-## :balance_scale: Licencia
+## Licencia
 
 Esta biblioteca está licenciada bajo [La Licencia MIT](./LICENSE).
 
-## :soon: ¿Qué sigue?
+## ¿Qué sigue?
 
 Para conocer nuestros próximos planes y desarrollos, visita nuestros [hitos](https://github.com/software-mansion/react-native-executorch/milestones).
 
