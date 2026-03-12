@@ -16,6 +16,11 @@ struct BBox {
   bool isValid() const {
     return x2 > x1 && y2 > y1 && x1 >= 0.0f && y1 >= 0.0f;
   }
+
+  BBox scale(float widthRatio, float heightRatio) const {
+    return {x1 * widthRatio, y1 * heightRatio, x2 * widthRatio,
+            y2 * heightRatio};
+  }
 };
 
 template <typename T>

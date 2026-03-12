@@ -30,120 +30,148 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
   }
 }
 
-cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
-    const cv::Mat &logitsMat, float x1, float y1, float x2, float y2,
-    cv::Size modelInputSize, cv::Size originalSize, int32_t maskW,
-    int32_t maskH, int32_t bboxW, int32_t bboxH, float origX1, float origY1,
-    bool warpToOriginal, int32_t &outWidth, int32_t &outHeight) {
+std::tuple<utils::computer_vision::BBox, float, int32_t>
+BaseInstanceSegmentation::extractDetectionData(const float *bboxData,
+                                               const float *scoresData,
+                                               int32_t index) {
+  utils::computer_vision::BBox bbox{
+      bboxData[index * 4], bboxData[index * 4 + 1], bboxData[index * 4 + 2],
+      bboxData[index * 4 + 3]};
+  float score = scoresData[index * 2];
+  int32_t label = static_cast<int32_t>(scoresData[index * 2 + 1]);
 
-  float mx1F = x1 * maskW / modelInputSize.width;
-  float my1F = y1 * maskH / modelInputSize.height;
-  float mx2F = x2 * maskW / modelInputSize.width;
-  float my2F = y2 * maskH / modelInputSize.height;
+  return {bbox, score, label};
+}
+
+cv::Rect BaseInstanceSegmentation::computeMaskCropRect(
+    const utils::computer_vision::BBox &bboxModel, cv::Size modelInputSize,
+    cv::Size maskSize) {
+
+  float mx1F = bboxModel.x1 * maskSize.width / modelInputSize.width;
+  float my1F = bboxModel.y1 * maskSize.height / modelInputSize.height;
+  float mx2F = bboxModel.x2 * maskSize.width / modelInputSize.width;
+  float my2F = bboxModel.y2 * maskSize.height / modelInputSize.height;
 
   int32_t mx1 = std::max(0, static_cast<int32_t>(std::floor(mx1F)));
   int32_t my1 = std::max(0, static_cast<int32_t>(std::floor(my1F)));
-  int32_t mx2 = std::min(maskW, static_cast<int32_t>(std::ceil(mx2F)));
-  int32_t my2 = std::min(maskH, static_cast<int32_t>(std::ceil(my2F)));
+  int32_t mx2 = std::min(maskSize.width, static_cast<int32_t>(std::ceil(mx2F)));
+  int32_t my2 =
+      std::min(maskSize.height, static_cast<int32_t>(std::ceil(my2F)));
 
-  cv::Mat finalBinaryMat;
-  outWidth = bboxW;
-  outHeight = bboxH;
+  return cv::Rect(mx1, my1, mx2 - mx1, my2 - my1);
+}
+
+cv::Rect BaseInstanceSegmentation::addPaddingToRect(const cv::Rect &rect,
+                                                    cv::Size maskSize) {
+  int32_t x1 = std::max(0, rect.x - 1);
+  int32_t y1 = std::max(0, rect.y - 1);
+  int32_t x2 = std::min(maskSize.width, rect.x + rect.width + 1);
+  int32_t y2 = std::min(maskSize.height, rect.y + rect.height + 1);
+
+  return cv::Rect(x1, y1, x2 - x1, y2 - y1);
+}
+
+cv::Mat BaseInstanceSegmentation::applySigmoid(const cv::Mat &logits) {
+  cv::Mat probMat;
+  cv::exp(-logits, probMat);
+  probMat = 255.0f / (1.0f + probMat);
+  probMat.convertTo(probMat, CV_8UC1);
+  return probMat;
+}
+
+cv::Mat BaseInstanceSegmentation::warpToOriginalResolution(
+    const cv::Mat &probMat, const cv::Rect &maskRect, cv::Size originalSize,
+    cv::Size maskSize, const utils::computer_vision::BBox &bboxOriginal) {
+
+  float scaleX = static_cast<float>(originalSize.width) / maskSize.width;
+  float scaleY = static_cast<float>(originalSize.height) / maskSize.height;
+
+  cv::Mat M = (cv::Mat_<float>(2, 3) << scaleX, 0,
+               (maskRect.x * scaleX - bboxOriginal.x1), 0, scaleY,
+               (maskRect.y * scaleY - bboxOriginal.y1));
+
+  cv::Size bboxSize(static_cast<int32_t>(std::round(bboxOriginal.width())),
+                    static_cast<int32_t>(std::round(bboxOriginal.height())));
+
+  cv::Mat warped;
+  cv::warpAffine(probMat, warped, M, bboxSize, cv::INTER_LINEAR);
+  return warped;
+}
+
+cv::Mat BaseInstanceSegmentation::thresholdToBinary(const cv::Mat &probMat) {
+  cv::Mat binary;
+  cv::threshold(probMat, binary, 127, 1, cv::THRESH_BINARY);
+  return binary;
+}
+
+cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
+    const cv::Mat &logitsMat, const utils::computer_vision::BBox &bboxModel,
+    const utils::computer_vision::BBox &bboxOriginal, cv::Size modelInputSize,
+    cv::Size originalSize, cv::Size maskSize, bool warpToOriginal,
+    cv::Size &outSize) {
+
+  cv::Rect cropRect = computeMaskCropRect(bboxModel, modelInputSize, maskSize);
 
   if (warpToOriginal) {
-    int32_t pmx1 = std::max(0, mx1 - 1);
-    int32_t pmy1 = std::max(0, my1 - 1);
-    int32_t pmx2 = std::min(maskW, mx2 + 1);
-    int32_t pmy2 = std::min(maskH, my2 + 1);
-
-    cv::Mat croppedLogits =
-        logitsMat(cv::Rect(pmx1, pmy1, pmx2 - pmx1, pmy2 - pmy1));
-    cv::Mat probMat;
-    cv::exp(-croppedLogits, probMat);
-    probMat = 255.0f / (1.0f + probMat);
-    probMat.convertTo(probMat, CV_8UC1);
-
-    float maskToOrigX = static_cast<float>(originalSize.width) / maskW;
-    float maskToOrigY = static_cast<float>(originalSize.height) / maskH;
-
-    cv::Mat M =
-        (cv::Mat_<float>(2, 3) << maskToOrigX, 0, (pmx1 * maskToOrigX - origX1),
-         0, maskToOrigY, (pmy1 * maskToOrigY - origY1));
-
-    cv::Mat warpedMat;
-    cv::warpAffine(probMat, warpedMat, M, cv::Size(bboxW, bboxH),
-                   cv::INTER_LINEAR);
-
-    cv::threshold(warpedMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
-  } else {
-    cv::Mat croppedLogits = logitsMat(cv::Rect(mx1, my1, mx2 - mx1, my2 - my1));
-    cv::Mat probMat;
-    cv::exp(-croppedLogits, probMat);
-    probMat = 255.0f / (1.0f + probMat);
-    probMat.convertTo(probMat, CV_8UC1);
-
-    cv::threshold(probMat, finalBinaryMat, 127, 1, cv::THRESH_BINARY);
-    outWidth = finalBinaryMat.cols;
-    outHeight = finalBinaryMat.rows;
+    cropRect = addPaddingToRect(cropRect, maskSize);
   }
 
-  return finalBinaryMat;
+  cv::Mat cropped = logitsMat(cropRect);
+  cv::Mat probMat = applySigmoid(cropped);
+
+  if (warpToOriginal) {
+    probMat = warpToOriginalResolution(probMat, cropRect, originalSize,
+                                       maskSize, bboxOriginal);
+  }
+  cv::Mat binaryMask = thresholdToBinary(probMat);
+  outSize = cv::Size(binaryMask.cols, binaryMask.rows);
+
+  return binaryMask;
 }
 
 std::optional<types::Instance> BaseInstanceSegmentation::processDetection(
     int32_t detectionIndex, const float *bboxData, const float *scoresData,
-    const float *maskData, int32_t maskH, int32_t maskW,
-    cv::Size modelInputSize, cv::Size originalSize, float widthRatio,
-    float heightRatio, double confidenceThreshold,
+    const cv::Mat &logitsMat, cv::Size modelInputSize, cv::Size originalSize,
+    float widthRatio, float heightRatio, double confidenceThreshold,
     const std::set<int32_t> &allowedClasses,
     bool returnMaskAtOriginalResolution) {
 
-  int32_t i = detectionIndex;
+  // Extract detection data
+  auto [bboxModel, score, labelIdx] =
+      extractDetectionData(bboxData, scoresData, detectionIndex);
 
-  float x1 = bboxData[i * 4 + 0];
-  float y1 = bboxData[i * 4 + 1];
-  float x2 = bboxData[i * 4 + 2];
-  float y2 = bboxData[i * 4 + 3];
-  float score = scoresData[i * 2 + 0];
-  auto labelIdx = static_cast<std::size_t>(scoresData[i * 2 + 1]);
-
+  // Filter by confidence
   if (score < confidenceThreshold) {
     return std::nullopt;
   }
-  if (!allowedClasses.empty() && allowedClasses.find(static_cast<int32_t>(
-                                     labelIdx)) == allowedClasses.end()) {
+
+  // Filter by class
+  if (!allowedClasses.empty() &&
+      allowedClasses.find(labelIdx) == allowedClasses.end()) {
     return std::nullopt;
   }
 
   // Scale bbox to original image coordinates
-  float origX1 = x1 * widthRatio;
-  float origY1 = y1 * heightRatio;
-  float origX2 = x2 * widthRatio;
-  float origY2 = y2 * heightRatio;
+  utils::computer_vision::BBox bboxOriginal =
+      bboxModel.scale(widthRatio, heightRatio);
 
-  int32_t bboxW = static_cast<int32_t>(std::round(origX2 - origX1));
-  int32_t bboxH = static_cast<int32_t>(std::round(origY2 - origY1));
-
-  if (bboxW <= 0 || bboxH <= 0) {
+  if (!bboxOriginal.isValid()) {
     return std::nullopt;
   }
 
-  const float *logits = maskData + (i * maskH * maskW);
-  cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
-
-  int32_t finalMaskWidth, finalMaskHeight;
+  // Process mask
+  cv::Size maskSize(logitsMat.cols, logitsMat.rows);
+  cv::Size outSize;
   cv::Mat finalBinaryMat = processMaskFromLogits(
-      logitsMat, x1, y1, x2, y2, modelInputSize, originalSize, maskW, maskH,
-      bboxW, bboxH, origX1, origY1, returnMaskAtOriginalResolution,
-      finalMaskWidth, finalMaskHeight);
+      logitsMat, bboxModel, bboxOriginal, modelInputSize, originalSize,
+      maskSize, returnMaskAtOriginalResolution, outSize);
 
+  // Create instance
   std::vector<uint8_t> finalMask(finalBinaryMat.data,
                                  finalBinaryMat.data + finalBinaryMat.total());
 
-  return types::Instance(
-      utils::computer_vision::BBox{origX1, origY1, origX2, origY2},
-      std::move(finalMask), finalMaskWidth, finalMaskHeight,
-      static_cast<int32_t>(labelIdx), score, i);
+  return types::Instance(bboxOriginal, std::move(finalMask), outSize.width,
+                         outSize.height, labelIdx, score, detectionIndex);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
@@ -203,10 +231,14 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
   int32_t processed = 0;
 
   for (int32_t i = 0; i < N; ++i) {
+    // Extract mask logits for this detection
+    const float *logits = maskData + (i * maskH * maskW);
+    cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
+
     auto instance = processDetection(
-        i, bboxData, scoresData, maskData, maskH, maskW, modelInputSize,
-        originalSize, widthRatio, heightRatio, confidenceThreshold,
-        allowedClasses, returnMaskAtOriginalResolution);
+        i, bboxData, scoresData, logitsMat, modelInputSize, originalSize,
+        widthRatio, heightRatio, confidenceThreshold, allowedClasses,
+        returnMaskAtOriginalResolution);
 
     if (instance.has_value()) {
       instances.push_back(std::move(*instance));
