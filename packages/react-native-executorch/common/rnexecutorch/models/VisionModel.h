@@ -33,7 +33,7 @@ namespace models {
  *   std::unordered_map<std::string_view, float>
  *   generateFromFrame(jsi::Runtime& runtime, const jsi::Value& frameValue) {
  *     auto frameObject = frameValue.asObject(runtime);
- *     cv::Mat frame = utils::extractFrame(runtime, frameObject);
+ *     cv::Mat frame = extractFromFrame(runtime, frameObject);
  *     return runInference(frame);
  *   }
  * };

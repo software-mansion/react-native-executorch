@@ -4,6 +4,8 @@ import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
 type Deletable = { delete: () => void };
 
+type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
+
 /**
  * Shared hook for modules that are instantiated via an async static factory
  * (i.e. `SomeModule.fromModelName(config, onProgress)`).
@@ -95,7 +97,7 @@ export function useModuleFactory<M extends Deletable, Config>({
   const runOnFrame = useMemo(
     () =>
       instance && 'runOnFrame' in instance
-        ? (instance.runOnFrame as ((...args: any[]) => any) | null)
+        ? (instance.runOnFrame as RunOnFrame<M> | null)
         : null,
     [instance]
   );
