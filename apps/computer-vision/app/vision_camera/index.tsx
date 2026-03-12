@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import {
   Camera,
   Frame,
@@ -235,6 +236,7 @@ export default function VisionCameraScreen() {
   const [fps, setFps] = useState(0);
   const [frameMs, setFrameMs] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
+  const isFocused = useIsFocused();
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
   const device =
@@ -461,7 +463,7 @@ export default function VisionCameraScreen() {
         style={StyleSheet.absoluteFill}
         device={device}
         outputs={[frameOutput]}
-        isActive={true}
+        isActive={isFocused}
         format={format}
         orientationSource="interface"
       />

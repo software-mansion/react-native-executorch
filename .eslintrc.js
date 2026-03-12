@@ -32,7 +32,7 @@ module.exports = {
         customWordListFile: path.resolve(__dirname, '.cspell-wordlist.txt'),
       },
     ],
-    'camelcase': 'error',
+    'camelcase': ['error', { properties: 'never' }],
   },
   plugins: ['prettier', 'markdown'],
   overrides: [
