@@ -5390,6 +5390,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@webgpu/types@npm:^0.1.69":
+  version: 0.1.69
+  resolution: "@webgpu/types@npm:0.1.69"
+  checksum: 10/f6037e9586c20c0192cc9e82f0d4bcbeda4c22c7611dd1903a82ff4fd5b1564663511e9f4c9803641a028bc3eb43703da43b010d3ae2a859bff9ba858e44281d
+  languageName: node
+  linkType: hard
+
 "@xmldom/xmldom@npm:^0.8.8":
   version: 0.8.11
   resolution: "@xmldom/xmldom@npm:0.8.11"
@@ -13675,6 +13682,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-wgpu@npm:^0.5.8":
+  version: 0.5.8
+  resolution: "react-native-wgpu@npm:0.5.8"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-reanimated: ">=4.2.1"
+    react-native-worklets: ">=0.7.2"
+  peerDependenciesMeta:
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 10/901f5b1bc3889160f7cb9e8f9c25ac11955c32dd1ab9c787fbb6d4ed836ee562662e09194fc633f89f9f01264bd8b61ffc24d9afdda0d79b2fa77059ba97e35a
+  languageName: node
+  linkType: hard
+
 "react-native-worklets@npm:0.7.4":
   version: 0.7.4
   resolution: "react-native-worklets@npm:0.7.4"
@@ -14583,6 +14607,7 @@ __metadata:
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.84.0"
     "@types/react": "npm:~19.1.10"
+    "@webgpu/types": "npm:^0.1.69"
     buffer: "npm:^6.0.3"
     expo: "npm:^54.0.27"
     expo-font: "npm:~14.0.10"
@@ -14597,7 +14622,9 @@ __metadata:
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
+    react-native-wgpu: "npm:^0.5.8"
     react-native-worklets: "npm:0.7.4"
+    typegpu: "npm:^0.10.2"
   languageName: unknown
   linkType: soft
 
@@ -15082,6 +15109,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tinyest@npm:~0.3.0":
+  version: 0.3.1
+  resolution: "tinyest@npm:0.3.1"
+  checksum: 10/a4c1f8b7864305173f5ad96a245cc1d92e011bc50066ee6f5531bfd3a70255d663c3bb72a5c291c716c75ed68b87a1a28955ff678f49f49c3405c47481ff1ae2
+  languageName: node
+  linkType: hard
+
 "tinyglobby@npm:^0.2.11, tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.13, tinyglobby@npm:^0.2.15":
   version: 0.2.15
   resolution: "tinyglobby@npm:0.2.15"
@@ -15142,6 +15176,16 @@ __metadata:
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
+  languageName: node
+  linkType: hard
+
+"tsover-runtime@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "tsover-runtime@npm:0.0.5"
+  dependencies:
+    minimatch: "npm:^9.0.0"
+    unplugin: "npm:^2.0.0"
+  checksum: 10/6b74416488d7539fcb7905b1085c6b1807938a19c1c3808c0451ce0d7e460c97fee7c502c197ae9bbe1aa543e1e4b2579fe83a91f3d62bb06465298c5ad408a0
   languageName: node
   linkType: hard
 
@@ -15254,6 +15298,24 @@ __metadata:
     possible-typed-array-names: "npm:^1.0.0"
     reflect.getprototypeof: "npm:^1.0.6"
   checksum: 10/d6b2f0e81161682d2726eb92b1dc2b0890890f9930f33f9bcf6fc7272895ce66bc368066d273e6677776de167608adc53fcf81f1be39a146d64b630edbf2081c
+  languageName: node
+  linkType: hard
+
+"typed-binary@npm:^4.3.1":
+  version: 4.3.2
+  resolution: "typed-binary@npm:4.3.2"
+  checksum: 10/35a91834caa7cd386776b46d8ccd58c533430be3d40bb0604f11b43d10f618a7aa3077d5edac33726b7ed953696d1165fd86eb13124c316674955b5d0aea9d14
+  languageName: node
+  linkType: hard
+
+"typegpu@npm:^0.10.2":
+  version: 0.10.2
+  resolution: "typegpu@npm:0.10.2"
+  dependencies:
+    tinyest: "npm:~0.3.0"
+    tsover-runtime: "npm:^0.0.5"
+    typed-binary: "npm:^4.3.1"
+  checksum: 10/c83a4d7081ab28b18d5f8e42f4f95e573180f68996c6499fe67730f06ded7bc8f89b85bd78dd832ded97e511528228fa6add32bdd25ca22325f2e4b689956517
   languageName: node
   linkType: hard
 
@@ -15402,6 +15464,18 @@ __metadata:
   version: 1.0.0
   resolution: "unpipe@npm:1.0.0"
   checksum: 10/4fa18d8d8d977c55cb09715385c203197105e10a6d220087ec819f50cb68870f02942244f1017565484237f1f8c5d3cd413631b1ae104d3096f24fdfde1b4aa2
+  languageName: node
+  linkType: hard
+
+"unplugin@npm:^2.0.0":
+  version: 2.3.11
+  resolution: "unplugin@npm:2.3.11"
+  dependencies:
+    "@jridgewell/remapping": "npm:^2.3.5"
+    acorn: "npm:^8.15.0"
+    picomatch: "npm:^4.0.3"
+    webpack-virtual-modules: "npm:^0.6.2"
+  checksum: 10/7b4adbfaac8894e8491c452c0b67c612b57e103761e842d9013ebea89a4ae92a78df4ec0aa30e5e3eaaefd47dd287973d5a662271624b7346a15d9236d257f9d
   languageName: node
   linkType: hard
 
@@ -15654,6 +15728,13 @@ __metadata:
   version: 5.0.0
   resolution: "webidl-conversions@npm:5.0.0"
   checksum: 10/cea864dd9cf1f2133d82169a446fb94427ba089e4676f5895273ea085f165649afe587ae3f19f2f0370751a724bba2d96e9956d652b3e41ac1feaaa4376e2d70
+  languageName: node
+  linkType: hard
+
+"webpack-virtual-modules@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "webpack-virtual-modules@npm:0.6.2"
+  checksum: 10/d9a0d035f7ec0c7f1055aaf88bfe48b7f96458043916a1b2926d9012fd61de3810a6b768e31a8cd4b3c84a9b6d55824361a9dd20aaf9f5ccfb6f017af216a178
   languageName: node
   linkType: hard
 
