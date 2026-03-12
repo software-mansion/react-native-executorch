@@ -37,12 +37,21 @@ private:
               const std::vector<int32_t> &classIndices,
               bool returnMaskAtOriginalResolution);
 
-  // Data extraction helpers
+  void validateThresholds(double confidenceThreshold,
+                          double iouThreshold) const;
+  void validateOutputTensors(const std::vector<EValue> &tensors) const;
+
+  std::set<int32_t>
+  prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
+
+  // Model loading and input helpers
+  void ensureMethodLoaded(const std::string &methodName);
+  cv::Size getInputSize(const std::string &methodName);
+
   std::tuple<utils::computer_vision::BBox, float, int32_t>
   extractDetectionData(const float *bboxData, const float *scoresData,
                        int32_t index);
 
-  // Helper functions for mask processing
   cv::Rect computeMaskCropRect(const utils::computer_vision::BBox &bboxModel,
                                cv::Size modelInputSize, cv::Size maskSize);
 
@@ -57,20 +66,15 @@ private:
 
   cv::Mat thresholdToBinary(const cv::Mat &probMat);
 
+  std::vector<types::Instance>
+  finalizeInstances(std::vector<types::Instance> instances, double iouThreshold,
+                    int32_t maxInstances) const;
+
   cv::Mat processMaskFromLogits(
       const cv::Mat &logitsMat, const utils::computer_vision::BBox &bboxModel,
       const utils::computer_vision::BBox &bboxOriginal, cv::Size modelInputSize,
-      cv::Size originalSize, cv::Size maskSize, bool warpToOriginal,
-      cv::Size &outSize);
+      cv::Size originalSize, bool warpToOriginal);
 
-  std::optional<types::Instance> processDetection(
-      int32_t detectionIndex, const float *bboxData, const float *scoresData,
-      const cv::Mat &logitsMat, cv::Size modelInputSize, cv::Size originalSize,
-      float widthRatio, float heightRatio, double confidenceThreshold,
-      const std::set<int32_t> &allowedClasses,
-      bool returnMaskAtOriginalResolution);
-
-  // Member variables
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
   bool applyNMS_;

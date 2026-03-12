@@ -107,9 +107,9 @@ cv::Mat BaseInstanceSegmentation::thresholdToBinary(const cv::Mat &probMat) {
 cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
     const cv::Mat &logitsMat, const utils::computer_vision::BBox &bboxModel,
     const utils::computer_vision::BBox &bboxOriginal, cv::Size modelInputSize,
-    cv::Size originalSize, cv::Size maskSize, bool warpToOriginal,
-    cv::Size &outSize) {
+    cv::Size originalSize, bool warpToOriginal) {
 
+  cv::Size maskSize = logitsMat.size();
   cv::Rect cropRect = computeMaskCropRect(bboxModel, modelInputSize, maskSize);
 
   if (warpToOriginal) {
@@ -123,63 +123,11 @@ cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
     probMat = warpToOriginalResolution(probMat, cropRect, originalSize,
                                        maskSize, bboxOriginal);
   }
-  cv::Mat binaryMask = thresholdToBinary(probMat);
-  outSize = cv::Size(binaryMask.cols, binaryMask.rows);
-
-  return binaryMask;
+  return thresholdToBinary(probMat);
 }
 
-std::optional<types::Instance> BaseInstanceSegmentation::processDetection(
-    int32_t detectionIndex, const float *bboxData, const float *scoresData,
-    const cv::Mat &logitsMat, cv::Size modelInputSize, cv::Size originalSize,
-    float widthRatio, float heightRatio, double confidenceThreshold,
-    const std::set<int32_t> &allowedClasses,
-    bool returnMaskAtOriginalResolution) {
-
-  // Extract detection data
-  auto [bboxModel, score, labelIdx] =
-      extractDetectionData(bboxData, scoresData, detectionIndex);
-
-  // Filter by confidence
-  if (score < confidenceThreshold) {
-    return std::nullopt;
-  }
-
-  // Filter by class
-  if (!allowedClasses.empty() &&
-      allowedClasses.find(labelIdx) == allowedClasses.end()) {
-    return std::nullopt;
-  }
-
-  // Scale bbox to original image coordinates
-  utils::computer_vision::BBox bboxOriginal =
-      bboxModel.scale(widthRatio, heightRatio);
-
-  if (!bboxOriginal.isValid()) {
-    return std::nullopt;
-  }
-
-  // Process mask
-  cv::Size maskSize(logitsMat.cols, logitsMat.rows);
-  cv::Size outSize;
-  cv::Mat finalBinaryMat = processMaskFromLogits(
-      logitsMat, bboxModel, bboxOriginal, modelInputSize, originalSize,
-      maskSize, returnMaskAtOriginalResolution, outSize);
-
-  // Create instance
-  std::vector<uint8_t> finalMask(finalBinaryMat.data,
-                                 finalBinaryMat.data + finalBinaryMat.total());
-
-  return types::Instance(bboxOriginal, std::move(finalMask), outSize.width,
-                         outSize.height, labelIdx, score, detectionIndex);
-}
-
-std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
-    const std::vector<EValue> &tensors, cv::Size originalSize,
-    cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
-    int32_t maxInstances, const std::vector<int32_t> &classIndices,
-    bool returnMaskAtOriginalResolution) {
-
+void BaseInstanceSegmentation::validateThresholds(double confidenceThreshold,
+                                                  double iouThreshold) const {
   if (confidenceThreshold < 0 || confidenceThreshold > 1) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidConfig,
@@ -192,82 +140,29 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
                             "IoU threshold must be greater or equal to 0 "
                             "and less than or equal to 1.");
   }
+}
 
-  float widthRatio =
-      static_cast<float>(originalSize.width) / modelInputSize.width;
-  float heightRatio =
-      static_cast<float>(originalSize.height) / modelInputSize.height;
+void BaseInstanceSegmentation::validateOutputTensors(
+    const std::vector<EValue> &tensors) const {
+  if (tensors.size() != 3) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
+                            "[1,N,H,W]), got " +
+                                std::to_string(tensors.size()));
+  }
+}
 
+std::set<int32_t> BaseInstanceSegmentation::prepareAllowedClasses(
+    const std::vector<int32_t> &classIndices) const {
   std::set<int32_t> allowedClasses;
   if (!classIndices.empty()) {
     allowedClasses.insert(classIndices.begin(), classIndices.end());
   }
-
-  std::vector<types::Instance> instances;
-
-  size_t numTensors = tensors.size();
-  if (numTensors != 3) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
-                            "[1,N,H,W]), got " +
-                                std::to_string(numTensors));
-  }
-
-  // CONTRACT: [1,N,4] + [1,N,2] + [1,N,H,W]
-  //   bbox:        [x1, y1, x2, y2] in model input coordinates
-  //   scores:      [max_score, class_id] — post-sigmoid
-  //   mask_logits: pre-sigmoid, per-detection
-  auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
-  auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
-  auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
-
-  int32_t N = bboxTensor.size(1);
-  int32_t maskH = maskTensor.size(2);
-  int32_t maskW = maskTensor.size(3);
-  const float *bboxData = bboxTensor.const_data_ptr<float>();
-  const float *scoresData = scoresTensor.const_data_ptr<float>();
-  const float *maskData = maskTensor.const_data_ptr<float>();
-
-  int32_t processed = 0;
-
-  for (int32_t i = 0; i < N; ++i) {
-    // Extract mask logits for this detection
-    const float *logits = maskData + (i * maskH * maskW);
-    cv::Mat logitsMat(maskH, maskW, CV_32FC1, const_cast<float *>(logits));
-
-    auto instance = processDetection(
-        i, bboxData, scoresData, logitsMat, modelInputSize, originalSize,
-        widthRatio, heightRatio, confidenceThreshold, allowedClasses,
-        returnMaskAtOriginalResolution);
-
-    if (instance.has_value()) {
-      instances.push_back(std::move(*instance));
-      ++processed;
-    }
-  }
-
-  // Finalize: NMS + limit + renumber
-  if (applyNMS_) {
-    instances =
-        utils::computer_vision::nonMaxSuppression(instances, iouThreshold);
-  }
-
-  if (std::cmp_greater(instances.size(), maxInstances)) {
-    instances.resize(maxInstances);
-  }
-
-  for (size_t i = 0; i < instances.size(); ++i) {
-    instances[i].instanceId = static_cast<int32_t>(i);
-  }
-
-  return instances;
+  return allowedClasses;
 }
 
-std::vector<types::Instance> BaseInstanceSegmentation::generate(
-    std::string imageSource, double confidenceThreshold, double iouThreshold,
-    int32_t maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, std::string methodName) {
-
+void BaseInstanceSegmentation::ensureMethodLoaded(
+    const std::string &methodName) {
   if (methodName.empty()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidConfig,
@@ -282,14 +177,114 @@ std::vector<types::Instance> BaseInstanceSegmentation::generate(
     currentlyLoadedMethod_ = methodName;
     module_->load_method(methodName);
   }
+}
 
+cv::Size BaseInstanceSegmentation::getInputSize(const std::string &methodName) {
   auto inputShapes = getAllInputShapes(methodName);
   std::vector<int32_t> inputShape = inputShapes[0];
   int32_t inputSize = inputShape[inputShape.size() - 1];
-  cv::Size modelInputSize(inputSize, inputSize);
+  return cv::Size(inputSize, inputSize);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
+    std::vector<types::Instance> instances, double iouThreshold,
+    int32_t maxInstances) const {
+
+  if (applyNMS_) {
+    instances =
+        utils::computer_vision::nonMaxSuppression(instances, iouThreshold);
+  }
+
+  if (std::cmp_greater(instances.size(), maxInstances)) {
+    instances.resize(maxInstances);
+  }
+
+  for (int32_t i = 0; i < instances.size(); ++i) {
+    instances[i].instanceId = static_cast<int32_t>(i);
+  }
+
+  return instances;
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
+    const std::vector<EValue> &tensors, cv::Size originalSize,
+    cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
+    int32_t maxInstances, const std::vector<int32_t> &classIndices,
+    bool returnMaskAtOriginalResolution) {
+
+  validateThresholds(confidenceThreshold, iouThreshold);
+  validateOutputTensors(tensors);
+
+  float widthRatio =
+      static_cast<float>(originalSize.width) / modelInputSize.width;
+  float heightRatio =
+      static_cast<float>(originalSize.height) / modelInputSize.height;
+  std::set<int32_t> allowedClasses = prepareAllowedClasses(classIndices);
+
+  // CONTRACT
+  auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
+  auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
+  auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
+
+  int32_t N = bboxTensor.size(1);
+  int32_t maskH = maskTensor.size(2);
+  int32_t maskW = maskTensor.size(3);
+
+  const float *bboxData = bboxTensor.const_data_ptr<float>();
+  const float *scoresData = scoresTensor.const_data_ptr<float>();
+  const float *maskData = maskTensor.const_data_ptr<float>();
+
+  auto isValidDetection =
+      [&allowedClasses, &confidenceThreshold](float score, int32_t labelIdx) {
+        if (score < confidenceThreshold)
+          return false;
+        if (!allowedClasses.empty() && allowedClasses.count(labelIdx) == 0)
+          return false;
+        return true;
+      };
+
+  std::vector<types::Instance> instances;
+
+  for (int32_t i = 0; i < N; ++i) {
+    auto [bboxModel, score, labelIdx] =
+        extractDetectionData(bboxData, scoresData, i);
+
+    if (!isValidDetection(score, labelIdx))
+      continue;
+
+    utils::computer_vision::BBox bboxOriginal =
+        bboxModel.scale(widthRatio, heightRatio);
+    if (!bboxOriginal.isValid())
+      continue;
+
+    cv::Mat logitsMat(maskH, maskW, CV_32FC1,
+                      const_cast<float *>(maskData + (i * maskH * maskW)));
+
+    cv::Mat binaryMask = processMaskFromLogits(
+        logitsMat, bboxModel, bboxOriginal, modelInputSize, originalSize,
+        returnMaskAtOriginalResolution);
+
+    instances.emplace_back(
+        bboxOriginal,
+        std::vector<uint8_t>(binaryMask.data,
+                             binaryMask.data + binaryMask.total()),
+        binaryMask.cols, binaryMask.rows, labelIdx, score, i);
+  }
+
+  return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::generate(
+    std::string imageSource, double confidenceThreshold, double iouThreshold,
+    int32_t maxInstances, std::vector<int32_t> classIndices,
+    bool returnMaskAtOriginalResolution, std::string methodName) {
+
+  ensureMethodLoaded(methodName);
+  cv::Size modelInputSize = getInputSize(methodName);
 
   auto [inputTensor, originalSize] = image_processing::readImageToTensor(
-      imageSource, inputShape, false, normMean_, normStd_);
+      imageSource, getAllInputShapes(methodName)[0], false, normMean_,
+      normStd_);
 
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
   if (!forwardResult.ok()) {
@@ -300,11 +295,9 @@ std::vector<types::Instance> BaseInstanceSegmentation::generate(
             methodName + "' is valid.");
   }
 
-  auto result = postprocess(forwardResult.get(), originalSize, modelInputSize,
-                            confidenceThreshold, iouThreshold, maxInstances,
-                            classIndices, returnMaskAtOriginalResolution);
-
-  return result;
+  return postprocess(forwardResult.get(), originalSize, modelInputSize,
+                     confidenceThreshold, iouThreshold, maxInstances,
+                     classIndices, returnMaskAtOriginalResolution);
 }
 
 } // namespace rnexecutorch::models::instance_segmentation
