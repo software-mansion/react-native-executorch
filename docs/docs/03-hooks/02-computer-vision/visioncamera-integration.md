@@ -2,7 +2,7 @@
 title: VisionCamera Integration
 ---
 
-React Native ExecuTorch vision models support real-time frame processing via [VisionCamera](https://react-native-vision-camera.com/) using the `runOnFrame` worklet. This page explains how `runOnFrame` works and how to use it with any supported model.
+React Native ExecuTorch vision models support real-time frame processing via [VisionCamera](https://react-native-vision-camera-v5-docs.vercel.app) using the `runOnFrame` worklet. This page explains how `runOnFrame` works and how to use it with any supported model.
 
 ## Which models support runOnFrame?
 
