@@ -48,4 +48,6 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-[`forward`](../../06-api-reference/classes/ImageEmbeddingsModule.md#forward) accepts one argument: image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+[`forward`](../../06-api-reference/classes/ImageEmbeddingsModule.md#forward) accepts one argument — the image to embed. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer). The method returns a promise resolving to a `Float32Array` representing the embedding.
+
+For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vision/visioncamera-integration.md) instead.

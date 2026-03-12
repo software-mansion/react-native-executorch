@@ -66,7 +66,7 @@ You need more details? Check the following resources:
 
 To run the model, use the [`forward`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) method. It accepts three arguments:
 
-- [`imageSource`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- [`input`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - [`classesOfInterest`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]` (no class masks). The `ARGMAX` map is always returned regardless of this parameter.
 - [`resizeToInput`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions (e.g. 224x224 for `DEEPLAB_V3_RESNET50`).
 
@@ -114,6 +114,12 @@ function App() {
   // ...
 }
 ```
+
+## VisionCamera integration
+
+For real-time segmentation on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns the same segmentation result object as `forward`.
+
+See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models
 
