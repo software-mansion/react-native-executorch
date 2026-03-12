@@ -9,36 +9,24 @@ using namespace facebook;
 
 cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
                                       const jsi::Value &frameData) const {
-  return ::rnexecutorch::utils::frameToMat(runtime, frameData);
+  cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
+  cv::Mat rgb;
+#ifdef __APPLE__
+  cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+  cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  return rgb;
 }
 
-cv::Mat VisionModel::preprocessFrame(const cv::Mat &frame) const {
-  cv::Mat rgb;
-
-  if (frame.channels() == 4) {
-#ifdef __APPLE__
-    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
-#else
-    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
-#endif
-  } else if (frame.channels() == 3) {
-    rgb = frame;
-  } else {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported frame format: %d channels", frame.channels());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
-  }
-
+cv::Mat VisionModel::preprocess(const cv::Mat &image) const {
   const cv::Size targetSize = modelInputSize();
-  if (rgb.size() != targetSize) {
-    cv::Mat resized;
-    cv::resize(rgb, resized, targetSize);
-    return resized;
+  if (image.size() == targetSize) {
+    return image;
   }
-
-  return rgb;
+  cv::Mat resized;
+  cv::resize(image, resized, targetSize);
+  return resized;
 }
 
 cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {

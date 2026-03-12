@@ -1,13 +1,10 @@
 #pragma once
 
-#include <executorch/extension/tensor/tensor_ptr.h>
-#include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include <set>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/semantic_segmentation/Types.h>
 
@@ -16,7 +13,6 @@ namespace models::semantic_segmentation {
 using namespace facebook;
 
 using executorch::aten::Tensor;
-using executorch::extension::TensorPtr;
 
 class BaseSemanticSegmentation : public VisionModel {
 public:
@@ -26,16 +22,18 @@ public:
                            std::vector<std::string> allClasses,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Async path: called from promiseHostFunction on a thread-pool thread.
-  // Returns a jsi::Object via callInvoker (safe to block there).
-  [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
+  [[nodiscard("Registered non-void function")]]
+  semantic_segmentation::SegmentationResult
   generateFromString(std::string imageSource,
                      std::set<std::string, std::less<>> classesOfInterest,
                      bool resize);
 
-  // Sync path: called from visionHostFunction on the camera worklet thread.
-  // Must NOT use callInvoker — returns a plain SegmentationResult that
-  // visionHostFunction converts to JSI via getJsiValue.
+  [[nodiscard("Registered non-void function")]]
+  semantic_segmentation::SegmentationResult
+  generateFromPixels(JSTensorViewIn pixelData,
+                     std::set<std::string, std::less<>> classesOfInterest,
+                     bool resize);
+
   [[nodiscard("Registered non-void function")]]
   semantic_segmentation::SegmentationResult
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
@@ -56,13 +54,10 @@ protected:
 private:
   void initModelImageSize();
 
-  TensorPtr preprocess(const std::string &imageSource, cv::Size &originalSize);
-
-  std::shared_ptr<jsi::Object> populateDictionary(
-      std::shared_ptr<OwningArrayBuffer> argmax,
-      std::shared_ptr<
-          std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>
-          classesToOutput);
+  semantic_segmentation::SegmentationResult
+  runInference(cv::Mat image, cv::Size originalSize,
+               std::set<std::string, std::less<>> &classesOfInterest,
+               bool resize);
 };
 } // namespace models::semantic_segmentation
 
