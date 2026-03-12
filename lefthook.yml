@@ -1,4 +1,5 @@
 pre-commit:
+  parallel: true
   commands:
     lint:
       glob: '*.{js,ts,jsx,tsx}'
