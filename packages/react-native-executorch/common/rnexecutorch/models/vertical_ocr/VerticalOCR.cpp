@@ -209,6 +209,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
 }
 
 void VerticalOCR::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
   detector.unload();
   recognizer.unload();
 }

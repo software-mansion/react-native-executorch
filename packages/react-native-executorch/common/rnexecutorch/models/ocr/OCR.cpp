@@ -79,6 +79,7 @@ std::size_t OCR::getMemoryLowerBound() const noexcept {
 }
 
 void OCR::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
   detector.unload();
   recognitionHandler.unload();
 }
