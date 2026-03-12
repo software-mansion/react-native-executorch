@@ -86,7 +86,7 @@ For more information on loading resources, take a look at [loading models](../..
 
 To run the model, use the [`forward`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) method. It accepts three arguments:
 
-- [`imageSource`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- [`input`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - [`classesOfInterest`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]`. The `ARGMAX` map is always returned regardless.
 - [`resizeToInput`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions.
 
@@ -112,6 +112,8 @@ result.ARGMAX; // Int32Array
 result.CAT; // Float32Array
 result.DOG; // Float32Array
 ```
+
+For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vision/visioncamera-integration.md) instead.
 
 ## Managing memory
 
