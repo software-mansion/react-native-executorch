@@ -14,10 +14,12 @@ TypeScript API implementation of the [useSpeechToText](../../03-hooks/01-natural
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY_EN, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY_EN,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
 // Standard transcription (returns string)
 const text = await model.transcribe(waveform);
@@ -40,18 +42,17 @@ All methods of `SpeechToTextModule` are explained in details here: [`SpeechToTex
 
 ## Loading the model
 
-Create an instance of [`SpeechToTextModule`](../../06-api-reference/classes/SpeechToTextModule.md) and use the [`load`](../../06-api-reference/classes/SpeechToTextModule.md#load) method. It accepts an object with the following fields:
+Use the static [`fromModelName`](../../06-api-reference/classes/SpeechToTextModule.md#frommodelname) factory method. It accepts an object with the following fields:
 
-- [`model`](../../06-api-reference/classes/SpeechToTextModule.md#model) - Object containing:
-  - [`isMultilingual`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual) - Flag indicating if model is multilingual.
+- [`isMultilingual`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual) - Flag indicating if model is multilingual.
+- [`modelSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#modelsource) - The location of the used model (bundled encoder + decoder functionality).
+- [`tokenizerSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource) - The location of the used tokenizer.
 
-  - [`modelSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#modelsource) - The location of the used model (bundled encoder + decoder functionality).
+And an optional second argument:
 
-  - [`tokenizerSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource) - The location of the used tokenizer.
+- `onDownloadProgress` - Callback to track download progress.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/SpeechToTextModule.md#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+This method returns a promise resolving to a `SpeechToTextModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
@@ -66,10 +67,12 @@ If you aim to obtain a transcription in other languages than English, use the mu
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY } from 'react-native-executorch';
 
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
@@ -121,10 +124,12 @@ import * as FileSystem from 'expo-file-system';
 
 const transcribeAudio = async () => {
   // Initialize with the model config
-  const model = new SpeechToTextModule();
-  await model.load(WHISPER_TINY_EN, (progress) => {
-    console.log(progress);
-  });
+  const model = await SpeechToTextModule.fromModelName(
+    WHISPER_TINY_EN,
+    (progress) => {
+      console.log(progress);
+    }
+  );
 
   // Download the audio file
   const { uri } = await FileSystem.downloadAsync(
@@ -163,10 +168,12 @@ import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
 // Load the model
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY_EN, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY_EN,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
 // Configure audio session
 AudioManager.setAudioSessionOptions({

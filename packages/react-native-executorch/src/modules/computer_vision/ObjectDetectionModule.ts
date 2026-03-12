@@ -119,6 +119,25 @@ export class ObjectDetectionModule<
    * Use this when working with a custom-exported model that is not one of the built-in presets.
    * Internally uses `'custom'` as the model name for telemetry unless overridden.
    *
+   * ## Required model contract
+   *
+   * The `.pte` model binary must expose a single `forward` method with the following interface:
+   *
+   * **Input:** one `float32` tensor of shape `[1, 3, H, W]` — a single RGB image, values in
+   * `[0, 1]` after optional per-channel normalization `(pixel − mean) / std`.
+   * H and W are read from the model's declared input shape at load time.
+   *
+   * **Outputs:** exactly three `float32` tensors, in this order:
+   * 1. Bounding boxes — flat `[4·N]` array of `(x1, y1, x2, y2)` coordinates in model-input
+   *    pixel space, repeated for N detections.
+   * 2. Confidence scores — flat `[N]` array of values in `[0, 1]`.
+   * 3. Class indices — flat `[N]` array of `float32`-encoded integer class indices
+   *    (0-based, matching the order of entries in your `labelMap`).
+   *
+   * Preprocessing (resize → normalize) and postprocessing (coordinate rescaling, threshold
+   * filtering, NMS) are handled by the native runtime — your model only needs to produce
+   * the raw detections above.
+   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link ObjectDetectionConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.

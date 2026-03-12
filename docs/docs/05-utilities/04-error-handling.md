@@ -16,12 +16,12 @@ import {
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
-const llm = new LLMModule({
-  tokenCallback: (token) => console.log(token),
-  messageHistoryCallback: (messages) => console.log(messages),
-});
-
-await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
+const llm = await LLMModule.fromModelName(
+  LLAMA3_2_1B_QLORA,
+  (progress) => console.log(progress),
+  (token) => console.log(token),
+  (messages) => console.log(messages)
+);
 
 // Try to set an invalid configuration
 try {

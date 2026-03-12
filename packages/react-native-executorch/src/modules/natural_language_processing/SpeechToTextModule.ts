@@ -53,8 +53,11 @@ export class SpeechToTextModule {
    * Use this when working with a custom-exported STT model.
    * Internally uses `'custom'` as the model name for telemetry.
    *
-   * @param encoderSource - A fetchable resource pointing to the encoder model binary.
-   * @param decoderSource - A fetchable resource pointing to the decoder model binary.
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Currently only the Whisper architecture is supported by the native runner.
+   * Refer to the native source code for the current expected interface.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
    * @param isMultilingual - Whether the model supports multiple languages.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.

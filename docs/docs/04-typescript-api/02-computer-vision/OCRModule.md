@@ -15,11 +15,8 @@ TypeScript API implementation of the [useOCR](../../03-hooks/02-computer-vision/
 import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const ocrModule = new OCRModule();
-
-// Loading the model
-await ocrModule.load(OCR_ENGLISH);
+// Creating an instance and loading the model
+const ocrModule = await OCRModule.fromModelName(OCR_ENGLISH);
 
 // Running the model
 const detections = await ocrModule.forward(imageUri);
@@ -31,16 +28,13 @@ All methods of `OCRModule` are explained in details here: [`OCRModule` API Refer
 
 ## Loading the model
 
-To load the model, use the [`load`](../../06-api-reference/classes/OCRModule.md#load) method. It accepts an object:
+Use the static [`fromModelName`](../../06-api-reference/classes/OCRModule.md#frommodelname) factory method. It accepts a model config object (e.g. `OCR_ENGLISH`) containing:
 
-- [`model`](../../06-api-reference/classes/OCRModule.md#model) - Object containing:
-  - [`detectorSource`](../../06-api-reference/classes/OCRModule.md#detectorsource) - Location of the used detector.
-  - [`recognizerSource`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Location of the used recognizer.
-  - [`language`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Language used in OCR.
+- [`detectorSource`](../../06-api-reference/classes/OCRModule.md#detectorsource) - Location of the used detector.
+- [`recognizerSource`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Location of the used recognizer.
+- [`language`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Language used in OCR.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/OCRModule.md#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to an `OCRModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

@@ -129,3 +129,4 @@ metaprogramming
 ktlint
 lefthook
 espeak
+NCHW

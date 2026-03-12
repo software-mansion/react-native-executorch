@@ -35,8 +35,10 @@ export class LLMModule {
    * Creates an LLM instance for a built-in model.
    *
    * @param namedSources - An object specifying the model name, model source, tokenizer source,
-   *   tokenizer config source, and optional token/message callbacks.
+   *   tokenizer config source, and optional capabilities.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @param tokenCallback - Optional callback invoked on every generated token.
+   * @param messageHistoryCallback - Optional callback invoked when the model finishes a response, with the full message history.
    * @returns A Promise resolving to an `LLMModule` instance.
    *
    * @example
@@ -52,15 +54,12 @@ export class LLMModule {
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
       capabilities?: readonly LLMCapability[];
-      tokenCallback?: (token: string) => void;
-      messageHistoryCallback?: (messageHistory: Message[]) => void;
     },
-    onDownloadProgress: (progress: number) => void = () => {}
+    onDownloadProgress: (progress: number) => void = () => {},
+    tokenCallback?: (token: string) => void,
+    messageHistoryCallback?: (messageHistory: Message[]) => void
   ): Promise<LLMModule> {
-    const instance = new LLMModule({
-      tokenCallback: namedSources.tokenCallback,
-      messageHistoryCallback: namedSources.messageHistoryCallback,
-    });
+    const instance = new LLMModule({ tokenCallback, messageHistoryCallback });
     try {
       await instance.controller.load({
         modelSource: namedSources.modelSource,
@@ -80,11 +79,19 @@ export class LLMModule {
    * Use this when working with a custom-exported LLM.
    * Internally uses `'custom'` as the model name for telemetry.
    *
+   * ## Required model contract
+   *
+   * The `.pte` model binary must be exported following the
+   * [ExecuTorch LLM export process](https://docs.pytorch.org/executorch/1.1/llm/export-llm.html).
+   * The native runner expects the standard ExecuTorch text-generation interface — KV-cache
+   * management, prefill/decode phases, and logit sampling are all handled by the runtime.
+   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer JSON file.
    * @param tokenizerConfigSource - A fetchable resource pointing to the tokenizer config JSON file.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @param callbacks - Optional token and message history callbacks.
+   * @param tokenCallback - Optional callback invoked on every generated token.
+   * @param messageHistoryCallback - Optional callback invoked when the model finishes a response, with the full message history.
    * @returns A Promise resolving to an `LLMModule` instance.
    */
   static fromCustomModel(
@@ -92,10 +99,8 @@ export class LLMModule {
     tokenizerSource: ResourceSource,
     tokenizerConfigSource: ResourceSource,
     onDownloadProgress: (progress: number) => void = () => {},
-    callbacks: {
-      tokenCallback?: (token: string) => void;
-      messageHistoryCallback?: (messageHistory: Message[]) => void;
-    } = {}
+    tokenCallback?: (token: string) => void,
+    messageHistoryCallback?: (messageHistory: Message[]) => void
   ): Promise<LLMModule> {
     return LLMModule.fromModelName(
       {
@@ -103,9 +108,10 @@ export class LLMModule {
         modelSource,
         tokenizerSource,
         tokenizerConfigSource,
-        ...callbacks,
       },
-      onDownloadProgress
+      onDownloadProgress,
+      tokenCallback,
+      messageHistoryCallback
     );
   }
 

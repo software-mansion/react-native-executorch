@@ -17,11 +17,9 @@ import {
   ALL_MINILM_L6_V2,
 } from 'react-native-executorch';
 
-// Creating an instance
-const textEmbeddingsModule = new TextEmbeddingsModule();
-
-// Loading the model
-await textEmbeddingsModule.load(ALL_MINILM_L6_V2);
+// Creating an instance and loading the model
+const textEmbeddingsModule =
+  await TextEmbeddingsModule.fromModelName(ALL_MINILM_L6_V2);
 
 // Running the model
 const embedding = await textEmbeddingsModule.forward('Hello World!');
@@ -33,15 +31,12 @@ All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbed
 
 ## Loading the model
 
-To load the model, use the [`load`](../../06-api-reference/classes/TextEmbeddingsModule.md#load) method. It accepts an object:
+Use the static [`fromModelName`](../../06-api-reference/classes/TextEmbeddingsModule.md#frommodelname) factory method. It accepts a model config object (e.g. `ALL_MINILM_L6_V2`) containing:
 
-- [`model`](../../06-api-reference/classes/TextEmbeddingsModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#modelsource) - Location of the used model.
-  - [`tokenizerSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#tokenizersource) - Location of the used tokenizer.
+- [`modelSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#modelsource) - Location of the used model.
+- [`tokenizerSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#tokenizersource) - Location of the used tokenizer.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to a `TextEmbeddingsModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

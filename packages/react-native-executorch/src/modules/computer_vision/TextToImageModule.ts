@@ -63,6 +63,9 @@ export class TextToImageModule extends BaseModule {
    * Use this when working with a custom-exported diffusion pipeline.
    * Internally uses `'custom'` as the model name for telemetry.
    *
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
    * @param sources - An object containing the pipeline source paths.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @param inferenceCallback - Optional callback triggered after each diffusion step.

@@ -60,6 +60,9 @@ export class VerticalOCRModule {
    * Use this when working with a custom-exported Vertical OCR model.
    * Internally uses `'custom'` as the model name for telemetry.
    *
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
    * @param detectorSource - A fetchable resource pointing to the text detector model binary.
    * @param recognizerSource - A fetchable resource pointing to the text recognizer model binary.
    * @param language - The language for the OCR model.

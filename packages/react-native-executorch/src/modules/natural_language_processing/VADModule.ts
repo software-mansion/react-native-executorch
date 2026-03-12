@@ -50,6 +50,9 @@ export class VADModule extends BaseModule {
    * Creates a VAD instance with a user-provided model binary.
    * Use this when working with a custom-exported model that is not one of the built-in presets.
    *
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `VADModule` instance.

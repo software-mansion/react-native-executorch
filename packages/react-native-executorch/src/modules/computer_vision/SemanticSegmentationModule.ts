@@ -131,6 +131,22 @@ export class SemanticSegmentationModule<
    * Use this when working with a custom-exported segmentation model that is not one of the built-in models.
    * Internally uses `'custom'` as the model name for telemetry unless overridden.
    *
+   * ## Required model contract
+   *
+   * The `.pte` model binary must expose a single `forward` method with the following interface:
+   *
+   * **Input:** one `float32` tensor of shape `[1, 3, H, W]` — a single RGB image, values in
+   * `[0, 1]` after optional per-channel normalization `(pixel − mean) / std`.
+   * H and W are read from the model's declared input shape at load time.
+   *
+   * **Output:** one `float32` tensor of shape `[1, C, H_out, W_out]` (NCHW) containing raw
+   * logits — one channel per class, in the same order as the entries in your `labelMap`.
+   * For binary segmentation a single-channel output is also supported: channel 0 is treated
+   * as the foreground probability and a synthetic background channel is added automatically.
+   *
+   * Preprocessing (resize → normalize) and postprocessing (softmax, argmax, resize back to
+   * original dimensions) are handled by the native runtime.
+   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link SemanticSegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
