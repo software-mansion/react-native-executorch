@@ -18,13 +18,13 @@ ImageEmbeddings::ImageEmbeddings(
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  inputTensorDims_ = inputTensors[0];
-  if (inputTensorDims_.size() < 2) {
+  modelInputShape_ = inputTensors[0];
+  if (modelInputShape_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  inputTensorDims_.size());
+                  modelInputShape_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             errorMessage);
   }
@@ -34,10 +34,10 @@ std::shared_ptr<OwningArrayBuffer>
 ImageEmbeddings::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
 
-  cv::Mat preprocessed = preprocessFrame(image);
+  cv::Mat preprocessed = preprocess(image);
 
   auto inputTensor =
-      image_processing::getTensorFromMatrix(inputTensorDims_, preprocessed);
+      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
