@@ -9,6 +9,7 @@
 #include "Types.h"
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 
 namespace rnexecutorch {
 namespace models::instance_segmentation {
@@ -36,21 +37,38 @@ private:
               const std::vector<int32_t> &classIndices,
               bool returnMaskAtOriginalResolution);
 
-  cv::Mat processMaskFromLogits(const cv::Mat &logitsMat, float x1, float y1,
-                                float x2, float y2, cv::Size modelInputSize,
-                                cv::Size originalSize, int32_t maskW,
-                                int32_t maskH, int32_t bboxW, int32_t bboxH,
-                                float origX1, float origY1, bool warpToOriginal,
-                                int32_t &outWidth, int32_t &outHeight);
+  // Data extraction helpers
+  std::tuple<utils::computer_vision::BBox, float, int32_t>
+  extractDetectionData(const float *bboxData, const float *scoresData,
+                       int32_t index);
 
-  std::optional<types::Instance>
-  processDetection(int32_t detectionIndex, const float *bboxData,
-                   const float *scoresData, const float *maskData,
-                   int32_t maskH, int32_t maskW, cv::Size modelInputSize,
-                   cv::Size originalSize, float widthRatio, float heightRatio,
-                   double confidenceThreshold,
-                   const std::set<int32_t> &allowedClasses,
-                   bool returnMaskAtOriginalResolution);
+  // Helper functions for mask processing
+  cv::Rect computeMaskCropRect(const utils::computer_vision::BBox &bboxModel,
+                               cv::Size modelInputSize, cv::Size maskSize);
+
+  cv::Rect addPaddingToRect(const cv::Rect &rect, cv::Size maskSize);
+
+  cv::Mat applySigmoid(const cv::Mat &logits);
+
+  cv::Mat
+  warpToOriginalResolution(const cv::Mat &probMat, const cv::Rect &maskRect,
+                           cv::Size originalSize, cv::Size maskSize,
+                           const utils::computer_vision::BBox &bboxOriginal);
+
+  cv::Mat thresholdToBinary(const cv::Mat &probMat);
+
+  cv::Mat processMaskFromLogits(
+      const cv::Mat &logitsMat, const utils::computer_vision::BBox &bboxModel,
+      const utils::computer_vision::BBox &bboxOriginal, cv::Size modelInputSize,
+      cv::Size originalSize, cv::Size maskSize, bool warpToOriginal,
+      cv::Size &outSize);
+
+  std::optional<types::Instance> processDetection(
+      int32_t detectionIndex, const float *bboxData, const float *scoresData,
+      const cv::Mat &logitsMat, cv::Size modelInputSize, cv::Size originalSize,
+      float widthRatio, float heightRatio, double confidenceThreshold,
+      const std::set<int32_t> &allowedClasses,
+      bool returnMaskAtOriginalResolution);
 
   // Member variables
   std::optional<cv::Scalar> normMean_;
