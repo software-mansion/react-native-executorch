@@ -29,35 +29,43 @@ export const useTextToSpeech = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const [moduleInstance] = useState(() => new TextToSpeechModule());
+  const [moduleInstance, setModuleInstance] =
+    useState<TextToSpeechModule | null>(null);
 
   useEffect(() => {
     if (preventLoad) return;
 
-    (async () => {
-      setDownloadProgress(0);
-      setError(null);
-      try {
-        setIsReady(false);
-        await moduleInstance.load(
-          {
-            model,
-            voice,
-          },
-          setDownloadProgress
-        );
+    let active = true;
+    setDownloadProgress(0);
+    setError(null);
+    setIsReady(false);
+
+    TextToSpeechModule.fromModelName({ model, voice }, setDownloadProgress)
+      .then((mod) => {
+        if (!active) {
+          mod.delete();
+          return;
+        }
+        setModuleInstance((prev) => {
+          prev?.delete();
+          return mod;
+        });
         setIsReady(true);
-      } catch (err) {
-        setError(parseUnknownError(err));
-      }
-    })();
+      })
+      .catch((err) => {
+        if (active) setError(parseUnknownError(err));
+      });
 
     return () => {
-      moduleInstance.delete();
+      active = false;
+      setModuleInstance((prev) => {
+        prev?.delete();
+        return null;
+      });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    moduleInstance,
+    model.modelName,
     model.durationPredictorSource,
     model.synthesizerSource,
     voice?.voiceSource,
@@ -66,18 +74,22 @@ export const useTextToSpeech = ({
   ]);
 
   // Shared guard for all generation methods
-  const guardReady = (methodName: string) => {
-    if (!isReady)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        `The model is currently not loaded. Please load the model before calling ${methodName}().`
-      );
-    if (isGenerating)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
-  };
+  const guardReady = useCallback(
+    (methodName: string): TextToSpeechModule => {
+      if (!isReady || !moduleInstance)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          `The model is currently not loaded. Please load the model before calling ${methodName}().`
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
+      return moduleInstance;
+    },
+    [isReady, isGenerating, moduleInstance]
+  );
 
   // Shared streaming orchestration (guards + onBegin/onNext/onEnd lifecycle)
   const runStream = useCallback(
@@ -105,20 +117,20 @@ export const useTextToSpeech = ({
   );
 
   const forward = async (input: TextToSpeechInput) => {
-    guardReady('forward');
+    const instance = guardReady('forward');
     try {
       setIsGenerating(true);
-      return await moduleInstance.forward(input.text, input.speed ?? 1.0);
+      return await instance.forward(input.text, input.speed ?? 1.0);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const forwardFromPhonemes = async (input: TextToSpeechPhonemeInput) => {
-    guardReady('forwardFromPhonemes');
+    const instance = guardReady('forwardFromPhonemes');
     try {
       setIsGenerating(true);
-      return await moduleInstance.forwardFromPhonemes(
+      return await instance.forwardFromPhonemes(
         input.phonemes,
         input.speed ?? 1.0
       );
@@ -129,27 +141,29 @@ export const useTextToSpeech = ({
 
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
+      const instance = guardReady('stream');
       await runStream(
         'stream',
-        moduleInstance.stream({ text: input.text, speed: input.speed ?? 1.0 }),
+        instance.stream({ text: input.text, speed: input.speed ?? 1.0 }),
         input
       );
     },
-    [runStream, moduleInstance]
+    [guardReady, runStream]
   );
 
   const streamFromPhonemes = useCallback(
     async (input: TextToSpeechStreamingPhonemeInput) => {
+      const instance = guardReady('streamFromPhonemes');
       await runStream(
         'streamFromPhonemes',
-        moduleInstance.streamFromPhonemes({
+        instance.streamFromPhonemes({
           phonemes: input.phonemes,
           speed: input.speed ?? 1.0,
         }),
         input
       );
     },
-    [runStream, moduleInstance]
+    [guardReady, runStream]
   );
 
   return {
@@ -160,7 +174,7 @@ export const useTextToSpeech = ({
     forwardFromPhonemes,
     stream,
     streamFromPhonemes,
-    streamStop: moduleInstance.streamStop,
+    streamStop: () => moduleInstance?.streamStop(),
     downloadProgress,
   };
 };
