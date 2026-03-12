@@ -1,9 +1,4 @@
-import {
-  ResourceSource,
-  LabelEnum,
-  Frame,
-  PixelData,
-} from '../../types/common';
+import { ResourceSource, LabelEnum, PixelData } from '../../types/common';
 import {
   DeeplabLabel,
   ModelNameOf,
@@ -12,14 +7,12 @@ import {
   SemanticSegmentationModelName,
   SelfieSegmentationLabel,
 } from '../../types/semanticSegmentation';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
 import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 import {
-  BaseLabeledModule,
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
-} from '../BaseLabeledModule';
+  VisionLabeledModule,
+} from './VisionLabeledModule';
 
 const PascalVocSegmentationConfig = {
   labelMap: DeeplabLabel,
@@ -84,76 +77,12 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
  */
 export class SemanticSegmentationModule<
   T extends SemanticSegmentationModelName | LabelEnum,
-> extends BaseLabeledModule<ResolveLabels<T>> {
+> extends VisionLabeledModule<
+  Record<'ARGMAX', Int32Array> & Record<keyof ResolveLabels<T>, Float32Array>,
+  ResolveLabels<T>
+> {
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
-  }
-
-  /**
-   * Synchronous worklet function for real-time VisionCamera frame processing.
-   * Automatically handles native buffer extraction and cleanup.
-   *
-   * **Use this for VisionCamera frame processing in worklets.**
-   * For async processing, use `forward()` instead.
-   *
-   * Available after model is loaded.
-   *
-   * @example
-   * ```typescript
-   * const [runOnFrame, setRunOnFrame] = useState(null);
-   * setRunOnFrame(() => segmentation.runOnFrame);
-   *
-   * const frameOutput = useFrameOutput({
-   *   onFrame(frame) {
-   *     'worklet';
-   *     if (!runOnFrame) return;
-   *     const result = runOnFrame(frame, [], true);
-   *     frame.dispose();
-   *   }
-   * });
-   * ```
-   *
-   * @param frame - VisionCamera Frame object
-   * @param classesOfInterest - Labels for which to return per-class probability masks.
-   * @param resizeToInput - Whether to resize masks to original frame dimensions. Defaults to `true`.
-   */
-  get runOnFrame():
-    | ((
-        frame: Frame,
-        classesOfInterest?: string[],
-        resizeToInput?: boolean
-      ) => any)
-    | null {
-    if (!this.nativeModule?.generateFromFrame) {
-      return null;
-    }
-
-    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
-
-    return (
-      frame: any,
-      classesOfInterest: string[] = [],
-      resizeToInput: boolean = true
-    ): any => {
-      'worklet';
-
-      let nativeBuffer: any = null;
-      try {
-        nativeBuffer = frame.getNativeBuffer();
-        const frameData = {
-          nativeBuffer: nativeBuffer.pointer,
-        };
-        return nativeGenerateFromFrame(
-          frameData,
-          classesOfInterest,
-          resizeToInput
-        );
-      } finally {
-        if (nativeBuffer?.release) {
-          nativeBuffer.release();
-        }
-      }
-    };
   }
 
   /**
@@ -268,29 +197,12 @@ export class SemanticSegmentationModule<
    * @returns A Promise resolving to an object with an `'ARGMAX'` key mapped to an `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
-  async forward<K extends keyof ResolveLabels<T>>(
+  override async forward<K extends keyof ResolveLabels<T>>(
     input: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ): Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>> {
-    if (this.nativeModule == null) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded.'
-      );
-    }
-
-    const classesOfInterestNames = classesOfInterest.map((label) =>
-      String(label)
-    );
-
-    const nativeResult = await this.nativeModule.generateFromString(
-      input,
-      classesOfInterestNames,
-      resizeToInput
-    );
-
-    return nativeResult as Record<'ARGMAX', Int32Array> &
-      Record<K, Float32Array>;
+    const classesOfInterestNames = classesOfInterest.map(String);
+    return super.forward(input, classesOfInterestNames, resizeToInput);
   }
 }

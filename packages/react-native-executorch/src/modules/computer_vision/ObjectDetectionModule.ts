@@ -13,8 +13,8 @@ import {
 import {
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
-} from '../BaseLabeledModule';
-import { VisionLabeledModule } from './VisionLabeledModule';
+  VisionLabeledModule,
+} from './VisionLabeledModule';
 
 const ModelConfigs = {
   'ssdlite-320-mobilenet-v3-large': {
