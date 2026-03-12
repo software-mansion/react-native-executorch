@@ -121,6 +121,10 @@ export class LLMController {
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
 
+      if (this.nativeModule) {
+        this.nativeModule.unload();
+      }
+
       this.nativeModule = await global.loadLLM(
         modelPath,
         tokenizerPath,
