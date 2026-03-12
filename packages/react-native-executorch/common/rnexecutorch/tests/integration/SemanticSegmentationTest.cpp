@@ -1,11 +1,12 @@
+#include <executorch/extension/tensor/tensor.h>
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/semantic_segmentation/Constants.h>
 #include <rnexecutorch/models/semantic_segmentation/SemanticSegmentation.h>
 #include <string>
 #include <vector>
-
-#include <executorch/extension/tensor/tensor.h>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::semantic_segmentation;
@@ -15,6 +16,15 @@ using executorch::runtime::EValue;
 
 constexpr auto kValidSemanticSegmentationModelPath =
     "deeplabV3_xnnpack_fp32.pte";
+constexpr auto kValidTestImagePath =
+    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+
+static JSTensorViewIn makeRgbView(std::vector<uint8_t> &buf, int32_t h,
+                                  int32_t w) {
+  buf.assign(static_cast<size_t>(h * w * 3), 128);
+  return JSTensorViewIn{
+      buf.data(), {h, w, 3}, executorch::aten::ScalarType::Byte};
+}
 
 // Test fixture for tests that need dummy input data
 class SemanticSegmentationForwardTest : public ::testing::Test {
@@ -94,6 +104,121 @@ TEST_F(SemanticSegmentationForwardTest, ForwardAfterUnloadThrows) {
   EXPECT_THROW((void)model->forward(EValue(inputTensor)), RnExecutorchError);
 }
 
+// ============================================================================
+// generateFromString tests
+// ============================================================================
+TEST(SemanticSegmentationGenerateTests, InvalidImagePathThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString("nonexistent_image.jpg", {}, true),
+      RnExecutorchError);
+}
+
+TEST(SemanticSegmentationGenerateTests, EmptyImagePathThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  EXPECT_THROW((void)model.generateFromString("", {}, true), RnExecutorchError);
+}
+
+TEST(SemanticSegmentationGenerateTests, MalformedURIThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString("not_a_valid_uri://bad", {}, true),
+      RnExecutorchError);
+}
+
+TEST(SemanticSegmentationGenerateTests, ValidImageNoFilterReturnsResult) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  auto result = model.generateFromString(kValidTestImagePath, {}, true);
+  EXPECT_NE(result.argmax, nullptr);
+  EXPECT_NE(result.classBuffers, nullptr);
+}
+
+TEST(SemanticSegmentationGenerateTests, ValidImageReturnsAllClasses) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  auto result = model.generateFromString(kValidTestImagePath, {}, true);
+  ASSERT_NE(result.classBuffers, nullptr);
+  EXPECT_EQ(result.classBuffers->size(), 21u);
+}
+
+TEST(SemanticSegmentationGenerateTests, ClassFilterLimitsClassBuffers) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::set<std::string, std::less<>> filter = {"PERSON", "CAT"};
+  auto result = model.generateFromString(kValidTestImagePath, filter, true);
+  ASSERT_NE(result.classBuffers, nullptr);
+  // Only the requested classes should appear in classBuffers
+  for (const auto &[label, _] : *result.classBuffers) {
+    EXPECT_TRUE(filter.count(label) > 0);
+  }
+}
+
+TEST(SemanticSegmentationGenerateTests, ResizeFalseReturnsResult) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  auto result = model.generateFromString(kValidTestImagePath, {}, false);
+  EXPECT_NE(result.argmax, nullptr);
+}
+
+// ============================================================================
+// generateFromPixels tests
+// ============================================================================
+TEST(SemanticSegmentationPixelTests, ValidPixelsNoFilterReturnsResult) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf;
+  auto view = makeRgbView(buf, 64, 64);
+  auto result = model.generateFromPixels(view, {}, true);
+  EXPECT_NE(result.argmax, nullptr);
+  EXPECT_NE(result.classBuffers, nullptr);
+}
+
+TEST(SemanticSegmentationPixelTests, ValidPixelsReturnsAllClasses) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf;
+  auto view = makeRgbView(buf, 64, 64);
+  auto result = model.generateFromPixels(view, {}, true);
+  ASSERT_NE(result.classBuffers, nullptr);
+  EXPECT_EQ(result.classBuffers->size(), 21u);
+}
+
+TEST(SemanticSegmentationPixelTests, ClassFilterLimitsClassBuffers) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf;
+  auto view = makeRgbView(buf, 64, 64);
+  std::set<std::string, std::less<>> filter = {"PERSON"};
+  auto result = model.generateFromPixels(view, filter, true);
+  ASSERT_NE(result.classBuffers, nullptr);
+  for (const auto &[label, _] : *result.classBuffers) {
+    EXPECT_EQ(label, "PERSON");
+  }
+}
+
+TEST(SemanticSegmentationPixelTests, WrongSizesThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf(16, 0);
+  JSTensorViewIn view{buf.data(), {4, 4}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
+               RnExecutorchError);
+}
+
+TEST(SemanticSegmentationPixelTests, WrongChannelsThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf(64, 0);
+  JSTensorViewIn view{
+      buf.data(), {4, 4, 4}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
+               RnExecutorchError);
+}
+
+TEST(SemanticSegmentationPixelTests, WrongScalarTypeThrows) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
+  std::vector<uint8_t> buf(48, 0);
+  JSTensorViewIn view{
+      buf.data(), {4, 4, 3}, executorch::aten::ScalarType::Float};
+  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
+               RnExecutorchError);
+}
+
+// ============================================================================
+// Inherited BaseModel tests
+// ============================================================================
 TEST(SemanticSegmentationInheritedTests, GetInputShapeWorks) {
   SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
@@ -125,6 +250,9 @@ TEST(SemanticSegmentationInheritedTests, InputShapeIsSquare) {
   EXPECT_EQ(shape[2], shape[3]); // Height == Width for DeepLabV3
 }
 
+// ============================================================================
+// Constants tests
+// ============================================================================
 TEST(SemanticSegmentationConstantsTests, ClassLabelsHas21Entries) {
   EXPECT_EQ(constants::kDeeplabV3Resnet50Labels.size(), 21u);
 }
