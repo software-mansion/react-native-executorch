@@ -17,9 +17,15 @@ import { Logger } from '../../common/Logger';
  */
 export class SpeechToTextModule {
   private nativeModule: any;
-  private modelConfig!: SpeechToTextModelConfig;
+  private modelConfig: SpeechToTextModelConfig;
 
-  private constructor() {}
+  private constructor(
+    nativeModule: unknown,
+    modelConfig: SpeechToTextModelConfig
+  ) {
+    this.nativeModule = nativeModule;
+    this.modelConfig = modelConfig;
+  }
 
   /**
    * Creates a Speech to Text instance for a built-in model.
@@ -38,10 +44,12 @@ export class SpeechToTextModule {
     namedSources: SpeechToTextModelConfig,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<SpeechToTextModule> {
-    const instance = new SpeechToTextModule();
     try {
-      await instance.internalLoad(namedSources, onDownloadProgress);
-      return instance;
+      const nativeModule = await SpeechToTextModule.loadWhisper(
+        namedSources,
+        onDownloadProgress
+      );
+      return new SpeechToTextModule(nativeModule, namedSources);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -80,12 +88,10 @@ export class SpeechToTextModule {
     );
   }
 
-  private async internalLoad(
+  private static async loadWhisper(
     model: SpeechToTextModelConfig,
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ) {
-    this.modelConfig = model;
-
+    onDownloadProgressCallback: (progress: number) => void
+  ): Promise<unknown> {
     const tokenizerLoadPromise = ResourceFetcher.fetch(
       undefined,
       model.tokenizerSource
@@ -105,7 +111,7 @@ export class SpeechToTextModule {
       );
     }
     // Currently only Whisper architecture is supported
-    this.nativeModule = await global.loadSpeechToText(
+    return await global.loadSpeechToText(
       'whisper',
       modelSources[0],
       tokenizerSources[0]

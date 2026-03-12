@@ -20,9 +20,8 @@ import {
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
-const styleTransferModule = await StyleTransferModule.fromModelName({
-  modelSource: STYLE_TRANSFER_CANDY,
-});
+const styleTransferModule =
+  await StyleTransferModule.fromModelName(STYLE_TRANSFER_CANDY);
 
 // Running the model
 const generatedImageUrl = await styleTransferModule.forward(imageUri);
@@ -36,7 +35,8 @@ All methods of `StyleTransferModule` are explained in details here: [`StyleTrans
 
 To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/StyleTransferModule.md#frommodelname) factory with the following parameters:
 
-- `model` - Object containing:
+- `namedSources` - Object containing:
+  - `modelName` - Model name identifier.
   - `modelSource` - Location of the model binary.
 
 - `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).

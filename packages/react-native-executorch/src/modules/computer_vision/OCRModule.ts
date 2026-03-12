@@ -12,8 +12,8 @@ import { parseUnknownError } from '../../errors/errorUtils';
 export class OCRModule {
   private controller: OCRController;
 
-  private constructor() {
-    this.controller = new OCRController();
+  private constructor(controller: OCRController) {
+    this.controller = controller;
   }
 
   /**
@@ -38,15 +38,15 @@ export class OCRModule {
     },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<OCRModule> {
-    const instance = new OCRModule();
     try {
-      await instance.controller.load(
+      const controller = new OCRController();
+      await controller.load(
         namedSources.detectorSource,
         namedSources.recognizerSource,
         namedSources.language,
         onDownloadProgress
       );
-      return instance;
+      return new OCRModule(controller);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

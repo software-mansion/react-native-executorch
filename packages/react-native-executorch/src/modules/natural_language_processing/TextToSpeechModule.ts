@@ -80,7 +80,7 @@ export class TextToSpeechModule {
       voice.extra.lexiconSource
     );
 
-    if (paths === null || paths.length !== 5 || paths.some((p) => p == null)) {
+    if (paths === null || paths.length !== 5) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'Download interrupted or missing resource.'
@@ -122,7 +122,7 @@ export class TextToSpeechModule {
     speed: number = 1.0
   ): Promise<Float32Array> {
     this.ensureLoaded('forward');
-    return await (this.nativeModule as any).generate(text, speed);
+    return await this.nativeModule.generate(text, speed);
   }
 
   /**
@@ -139,10 +139,7 @@ export class TextToSpeechModule {
     speed: number = 1.0
   ): Promise<Float32Array> {
     this.ensureLoaded('forwardFromPhonemes');
-    return await (this.nativeModule as any).generateFromPhonemes(
-      phonemes,
-      speed
-    );
+    return await this.nativeModule.generateFromPhonemes(phonemes, speed);
   }
 
   /**

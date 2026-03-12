@@ -18,9 +18,9 @@ import {
 } from 'react-native-executorch';
 
 // Creating and loading the module
-const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName({
-  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE,
-});
+const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName(
+  CLIP_VIT_BASE_PATCH32_IMAGE
+);
 
 // Running the model
 const embedding = await imageEmbeddingsModule.forward(
@@ -36,7 +36,8 @@ All methods of `ImageEmbeddingsModule` are explained in details here: [`ImageEmb
 
 To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/ImageEmbeddingsModule.md#frommodelname) factory with the following parameters:
 
-- `model` - Object containing:
+- `namedSources` - Object containing:
+  - `modelName` - Model name identifier.
   - `modelSource` - Location of the model binary.
 
 - `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).

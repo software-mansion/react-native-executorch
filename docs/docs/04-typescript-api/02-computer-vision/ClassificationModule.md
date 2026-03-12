@@ -20,9 +20,8 @@ import {
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
-const classificationModule = await ClassificationModule.fromModelName({
-  modelSource: EFFICIENTNET_V2_S,
-});
+const classificationModule =
+  await ClassificationModule.fromModelName(EFFICIENTNET_V2_S);
 
 // Running the model
 const classesWithProbabilities = await classificationModule.forward(imageUri);
@@ -36,7 +35,8 @@ All methods of `ClassificationModule` are explained in details here: [`Classific
 
 To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/ClassificationModule.md#frommodelname) factory with the following parameters:
 
-- `model` - Object containing:
+- `namedSources` - Object containing:
+  - `modelName` - Model name identifier.
   - `modelSource` - Location of the model binary.
 
 - `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).

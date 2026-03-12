@@ -29,8 +29,9 @@ All methods of `VerticalOCRModule` are explained in details here: [`VerticalOCRM
 
 ## Loading the model
 
-Use the static [`fromModelName`](../../06-api-reference/classes/VerticalOCRModule.md#frommodelname) factory method. It accepts a model config object (e.g. `{ ...OCR_ENGLISH, independentCharacters: true }`) containing:
+Use the static [`fromModelName`](../../06-api-reference/classes/VerticalOCRModule.md#frommodelname) factory method. It accepts a `namedSources` object (e.g. `{ ...OCR_ENGLISH, independentCharacters: true }`) containing:
 
+- `modelName` - Model name identifier.
 - [`detectorSource`](../../06-api-reference/classes/VerticalOCRModule.md#detectorsource) - Location of the used detector.
 - [`recognizerSource`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Location of the used recognizer.
 - [`language`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Language used in OCR.

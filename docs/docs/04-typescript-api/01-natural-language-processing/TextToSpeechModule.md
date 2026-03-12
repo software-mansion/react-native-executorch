@@ -39,7 +39,7 @@ Use the static [`fromModelName`](../../06-api-reference/classes/TextToSpeechModu
   - [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration (e.g. `KOKORO_MEDIUM`).
   - [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration (e.g. `KOKORO_VOICE_AF_HEART`).
 
-- `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
+- [`onDownloadProgress`](../../06-api-reference/classes/TextToSpeechModule.md#frommodelname) - Optional callback to track download progress (value between 0 and 1).
 
 This method returns a promise that resolves to a `TextToSpeechModule` instance once the assets are downloaded and loaded into memory.
 

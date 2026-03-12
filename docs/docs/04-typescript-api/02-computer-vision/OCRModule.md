@@ -28,8 +28,9 @@ All methods of `OCRModule` are explained in details here: [`OCRModule` API Refer
 
 ## Loading the model
 
-Use the static [`fromModelName`](../../06-api-reference/classes/OCRModule.md#frommodelname) factory method. It accepts a model config object (e.g. `OCR_ENGLISH`) containing:
+Use the static [`fromModelName`](../../06-api-reference/classes/OCRModule.md#frommodelname) factory method. It accepts a `namedSources` object (e.g. `OCR_ENGLISH`) containing:
 
+- `modelName` - Model name identifier.
 - [`detectorSource`](../../06-api-reference/classes/OCRModule.md#detectorsource) - Location of the used detector.
 - [`recognizerSource`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Location of the used recognizer.
 - [`language`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Language used in OCR.

@@ -129,10 +129,10 @@ The `capabilities` field is already set on the model constant. You can also cons
 
 ```typescript
 const llm = await LLMModule.fromModelName({
-  modelName: 'custom',
-  modelSource: '...',
-  tokenizerSource: '...',
-  tokenizerConfigSource: '...',
+  modelName: 'lfm2.5-vl-1.6b-quantized',
+  modelSource: require('./path/to/model.pte'),
+  tokenizerSource: require('./path/to/tokenizer.json'),
+  tokenizerConfigSource: require('./path/to/tokenizer_config.json'),
   capabilities: ['vision'],
 });
 ```

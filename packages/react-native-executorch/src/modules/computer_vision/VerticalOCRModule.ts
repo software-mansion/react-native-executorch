@@ -12,8 +12,8 @@ import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
 export class VerticalOCRModule {
   private controller: VerticalOCRController;
 
-  private constructor() {
-    this.controller = new VerticalOCRController();
+  private constructor(controller: VerticalOCRController) {
+    this.controller = controller;
   }
 
   /**
@@ -39,16 +39,16 @@ export class VerticalOCRModule {
     },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<VerticalOCRModule> {
-    const instance = new VerticalOCRModule();
     try {
-      await instance.controller.load(
+      const controller = new VerticalOCRController();
+      await controller.load(
         namedSources.detectorSource,
         namedSources.recognizerSource,
         namedSources.language,
         namedSources.independentCharacters ?? false,
         onDownloadProgress
       );
-      return instance;
+      return new VerticalOCRModule(controller);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
