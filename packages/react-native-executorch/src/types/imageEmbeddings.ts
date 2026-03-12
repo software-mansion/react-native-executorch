@@ -6,7 +6,9 @@ import { ResourceSource } from './common';
  *
  * @category Types
  */
-export type ImageEmbeddingsModelName = 'clip-vit-base-patch32-image';
+export type ImageEmbeddingsModelName =
+  | 'clip-vit-base-patch32-image'
+  | 'clip-vit-base-patch32-image-quantized';
 
 /**
  * Props for the `useImageEmbeddings` hook.

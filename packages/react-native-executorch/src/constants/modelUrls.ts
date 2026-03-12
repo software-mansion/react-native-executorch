@@ -445,7 +445,7 @@ export const EFFICIENTNET_V2_S = {
 export const EFFICIENTNET_V2_S_QUANTIZED = {
   modelName: 'efficientnet-v2-s-quantized',
   modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
-};
+} as const;
 
 // Object detection
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
@@ -518,7 +518,7 @@ export const STYLE_TRANSFER_CANDY = {
 export const STYLE_TRANSFER_CANDY_QUANTIZED = {
   modelName: 'style-transfer-candy-quantized',
   modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -534,7 +534,7 @@ export const STYLE_TRANSFER_MOSAIC = {
 export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
   modelName: 'style-transfer-mosaic-quantized',
   modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -550,7 +550,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
 export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
   modelName: 'style-transfer-rain-princess-quantized',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -566,7 +566,7 @@ export const STYLE_TRANSFER_UDNIE = {
 export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
   modelName: 'style-transfer-udnie-quantized',
   modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
-};
+} as const;
 
 // S2T
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
@@ -824,7 +824,7 @@ export const CLIP_VIT_BASE_PATCH32_IMAGE = {
 export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
   modelName: 'clip-vit-base-patch32-image-quantized',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
-};
+} as const;
 
 // Text Embeddings
 const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;

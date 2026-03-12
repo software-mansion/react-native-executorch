@@ -2,7 +2,13 @@ import { LLMController } from '../../controllers/LLMController';
 import { Logger } from '../../common/Logger';
 import { parseUnknownError } from '../../errors/errorUtils';
 import { ResourceSource } from '../../types/common';
-import { LLMCapability, LLMConfig, LLMModelName, LLMTool, Message } from '../../types/llm';
+import {
+  LLMCapability,
+  LLMConfig,
+  LLMModelName,
+  LLMTool,
+  Message,
+} from '../../types/llm';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.

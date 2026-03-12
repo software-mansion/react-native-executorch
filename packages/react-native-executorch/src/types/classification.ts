@@ -6,7 +6,9 @@ import { ResourceSource } from './common';
  *
  * @category Types
  */
-export type ClassificationModelName = 'efficientnet-v2-s';
+export type ClassificationModelName =
+  | 'efficientnet-v2-s'
+  | 'efficientnet-v2-s-quantized';
 
 /**
  * Props for the `useClassification` hook.

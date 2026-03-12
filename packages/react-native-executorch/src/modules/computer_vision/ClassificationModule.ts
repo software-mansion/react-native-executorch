@@ -44,7 +44,9 @@ export class ClassificationModule extends BaseModule {
         );
       }
 
-      return new ClassificationModule(await global.loadClassification(paths[0]));
+      return new ClassificationModule(
+        await global.loadClassification(paths[0])
+      );
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

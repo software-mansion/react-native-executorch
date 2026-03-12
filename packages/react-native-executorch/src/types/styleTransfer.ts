@@ -8,9 +8,13 @@ import { ResourceSource } from './common';
  */
 export type StyleTransferModelName =
   | 'style-transfer-candy'
+  | 'style-transfer-candy-quantized'
   | 'style-transfer-mosaic'
+  | 'style-transfer-mosaic-quantized'
   | 'style-transfer-rain-princess'
-  | 'style-transfer-udnie';
+  | 'style-transfer-rain-princess-quantized'
+  | 'style-transfer-udnie'
+  | 'style-transfer-udnie-quantized';
 
 /**
  * Configuration properties for the `useStyleTransfer` hook.
