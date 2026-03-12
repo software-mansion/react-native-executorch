@@ -284,7 +284,7 @@ export class SemanticSegmentationModule<
       String(label)
     );
 
-    const nativeResult = await this.nativeModule.generate(
+    const nativeResult = await this.nativeModule.generateFromString(
       input,
       classesOfInterestNames,
       resizeToInput

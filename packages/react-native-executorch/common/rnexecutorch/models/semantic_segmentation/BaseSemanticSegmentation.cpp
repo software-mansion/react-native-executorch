@@ -56,7 +56,7 @@ TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
   return inputTensor;
 }
 
-std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
+std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generateFromString(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   std::scoped_lock lock(inference_mutex_);

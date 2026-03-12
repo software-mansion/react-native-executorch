@@ -29,8 +29,9 @@ public:
   // Async path: called from promiseHostFunction on a thread-pool thread.
   // Returns a jsi::Object via callInvoker (safe to block there).
   [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
-  generate(std::string imageSource,
-           std::set<std::string, std::less<>> classesOfInterest, bool resize);
+  generateFromString(std::string imageSource,
+                     std::set<std::string, std::less<>> classesOfInterest,
+                     bool resize);
 
   // Sync path: called from visionHostFunction on the camera worklet thread.
   // Must NOT use callInvoker — returns a plain SegmentationResult that
