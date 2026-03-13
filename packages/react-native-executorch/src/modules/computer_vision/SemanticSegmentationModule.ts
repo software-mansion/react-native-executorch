@@ -94,10 +94,7 @@ export class SemanticSegmentationModule<
    *
    * @example
    * ```ts
-   * const segmentation = await SemanticSegmentationModule.fromModelName({
-   *   modelName: 'deeplab-v3',
-   *   modelSource: 'https://example.com/deeplab.pte',
-   * });
+   * const segmentation = await SemanticSegmentationModule.fromModelName(DEEPLAB_V3_RESNET50);
    * ```
    */
 

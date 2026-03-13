@@ -20,10 +20,8 @@ import {
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
-const segmentation = await SemanticSegmentationModule.fromModelName({
-  modelName: 'deeplab-v3',
-  modelSource: DEEPLAB_V3_RESNET50,
-});
+const segmentation =
+  await SemanticSegmentationModule.fromModelName(DEEPLAB_V3_RESNET50);
 
 // Running the model
 const result = await segmentation.forward(imageUri);
