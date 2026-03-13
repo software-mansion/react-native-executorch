@@ -45,7 +45,6 @@ public:
                      std::string methodName);
 
 protected:
-  cv::Mat preprocess(const cv::Mat &image) const override;
   cv::Size modelInputSize() const override;
 
 private:

@@ -30,22 +30,6 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
   }
 }
 
-cv::Mat BaseInstanceSegmentation::preprocess(const cv::Mat &image) const {
-  cv::Mat resized = VisionModel::preprocess(image);
-
-  if (!normMean_.has_value() && !normStd_.has_value()) {
-    return resized;
-  }
-
-  cv::Mat normalized;
-  resized.convertTo(normalized, CV_32FC3);
-  cv::Scalar mean = normMean_.value_or(cv::Scalar(0, 0, 0));
-  cv::Scalar std = normStd_.value_or(cv::Scalar(1, 1, 1));
-  normalized = (normalized - mean) / std;
-
-  return normalized;
-}
-
 cv::Size BaseInstanceSegmentation::modelInputSize() const {
   if (currentlyLoadedMethod_.empty()) {
     return VisionModel::modelInputSize();
@@ -75,8 +59,12 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
 
   cv::Mat preprocessed = preprocess(image);
 
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto inputTensor = (normMean_.has_value() && normStd_.has_value())
+                         ? image_processing::getTensorFromMatrix(
+                               modelInputShape_, preprocessed,
+                               normMean_.value(), normStd_.value())
+                         : image_processing::getTensorFromMatrix(
+                               modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
   if (!forwardResult.ok()) {
