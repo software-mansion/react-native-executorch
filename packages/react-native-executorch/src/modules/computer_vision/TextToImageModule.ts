@@ -16,8 +16,12 @@ import { Logger } from '../../common/Logger';
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;
 
-  private constructor(inferenceCallback?: (stepIdx: number) => void) {
+  private constructor(
+    nativeModule: unknown,
+    inferenceCallback?: (stepIdx: number) => void
+  ) {
     super();
+    this.nativeModule = nativeModule;
     this.inferenceCallback = (stepIdx: number) => {
       inferenceCallback?.(stepIdx);
     };
@@ -48,10 +52,15 @@ export class TextToImageModule extends BaseModule {
     },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextToImageModule> {
-    const instance = new TextToImageModule(namedSources.inferenceCallback);
     try {
-      await instance.internalLoad(namedSources, onDownloadProgress);
-      return instance;
+      const nativeModule = await TextToImageModule.load(
+        namedSources,
+        onDownloadProgress
+      );
+      return new TextToImageModule(
+        nativeModule,
+        namedSources.inferenceCallback
+      );
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -92,7 +101,7 @@ export class TextToImageModule extends BaseModule {
     );
   }
 
-  private async internalLoad(
+  private static async load(
     model: {
       tokenizerSource: ResourceSource;
       schedulerSource: ResourceSource;
@@ -101,7 +110,7 @@ export class TextToImageModule extends BaseModule {
       decoderSource: ResourceSource;
     },
     onDownloadProgressCallback: (progress: number) => void
-  ): Promise<void> {
+  ): Promise<unknown> {
     const results = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
       model.tokenizerSource,
@@ -110,7 +119,7 @@ export class TextToImageModule extends BaseModule {
       model.unetSource,
       model.decoderSource
     );
-    if (!results) {
+    if (!results || results.length !== 5) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
@@ -135,7 +144,7 @@ export class TextToImageModule extends BaseModule {
     const response = await fetch('file://' + schedulerPath);
     const schedulerConfig = await response.json();
 
-    this.nativeModule = global.loadTextToImage(
+    return global.loadTextToImage(
       tokenizerPath,
       encoderPath,
       unetPath,
