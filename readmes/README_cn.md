@@ -138,7 +138,7 @@ const handleGenerate = async () => {
 - `text-embeddings` - 用于语义搜索的文本表示计算
 - `bare_rn` - 适用于原生 React Native（无 Expo）的 LLM 聊天示例
 
-如果您想运行 Expo 示例应用程序，请导航到其项目目录。然后安装依赖项并运行应用：
+如果您想运行示例应用程序，请导航到其项目目录。然后安装依赖项并运行应用：
 
 ```bash
 yarn && yarn < ios | android >

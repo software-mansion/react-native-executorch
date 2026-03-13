@@ -142,7 +142,7 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `text-embeddings` - Computing text representations for semantic search
 - `bare_rn` - LLM chat example for bare React Native (without Expo)
 
-If you would like to run an Expo demo app, navigate to its project directory.Then install dependencies and run app with:
+If you would like to run a demo app, navigate to its project directory. Then install dependencies and run app with:
 
 ```bash
 yarn && yarn < ios | android >

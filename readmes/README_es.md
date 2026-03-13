@@ -138,7 +138,7 @@ Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/softw
 - `text-embeddings` - Cálculo de representaciones de texto para búsqueda semántica
 - `bare_rn` - Ejemplo de chat LLM para React Native puro (sin Expo)
 
-Si deseas ejecutar una aplicación de demostración de Expo, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
+Si deseas ejecutar una aplicación de demostración, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
 
 ```bash
 yarn && yarn < ios | android >

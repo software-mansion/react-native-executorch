@@ -138,7 +138,7 @@ Nous hébergeons actuellement quelques applications [exemples](https://github.co
 - `text-embeddings` - Calcul de représentations textuelles pour la recherche sémantique
 - `bare_rn` - Exemple de chat LLM pour React Native sans Expo
 
-Si vous souhaitez exécuter une application de démonstration Expo, accédez à son répertoire de projet. Puis installez les dépendances et lancez l'application avec :
+Si vous souhaitez exécuter une application de démonstration, accédez à son répertoire de projet. Puis installez les dépendances et lancez l'application avec :
 
 ```bash
 yarn && yarn < ios | android >
