@@ -90,7 +90,7 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Depending on the platform, choose either iOS or Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
 ### :two: Setup & Initialization
@@ -142,23 +142,10 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `text-embeddings` - Computing text representations for semantic search
 - `bare_rn` - LLM chat example for bare React Native (without Expo)
 
-If you would like to run an Expo demo app, navigate to its project directory and install dependencies with:
+If you would like to run an Expo demo app, navigate to its project directory.Then install dependencies and run app with:
 
 ```bash
-yarn
-```
-
-Then, depending on the platform, choose either iOS or Android:
-
-```bash
-yarn expo run:< ios | android >
-```
-
-For the bare React Native app (`bare_rn`), navigate to `apps/bare_rn` and run:
-
-```bash
-yarn
-yarn < ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]

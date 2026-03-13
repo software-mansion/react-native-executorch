@@ -14,6 +14,7 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/文档-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
     <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 <p align="center">
@@ -27,7 +28,7 @@
 
 **React Native ExecuTorch** 是一个使用 React Native 在设备上运行 AI 模型的声明式工具，得益于 **ExecuTorch** 的支持 :rocket:。它为各种 LLM、计算机视觉模型等提供了开箱即用的支持。访问我们的 [HuggingFace](https://huggingface.co/software-mansion) 页面，以探索这些模型。
 
-**ExecuTorch** 由 Meta 开发，是一个创新的框架，允许在移动电话或微控制器等设备上执行 AI 模型。
+[**ExecuTorch**](https://executorch.ai) 由 Meta 开发，是一个创新的框架，允许在移动电话或微控制器等设备上执行 AI 模型。
 
 React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥梁，使开发者无需深入的本地编程或机器学习知识即可高效地在移动设备上本地运行 AI 模型。
 
@@ -85,7 +86,7 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # 根据平台，选择 iOS 或 Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
 ### :two: 设置和初始化
@@ -132,20 +133,15 @@ const handleGenerate = async () => {
 我们目前托管了一些示例 [应用程序](https://github.com/software-mansion/react-native-executorch/tree/main/apps)，展示了我们库的使用案例：
 
 - `llm` - 展现 LLM 使用的聊天应用程序
-- `speech-to-text` - 准备用于转录任务的 Whisper 模型
+- `speech` - 语音转文字和文字转语音任务实现
 - `computer-vision` - 计算机视觉相关任务
 - `text-embeddings` - 用于语义搜索的文本表示计算
+- `bare_rn` - 适用于原生 React Native（无 Expo）的 LLM 聊天示例
 
-如果您想运行示例应用程序，请导航到其项目目录并安装依赖项：
-
-```bash
-yarn
-```
-
-然后，根据平台，选择 iOS 或 Android：
+如果您想运行 Expo 示例应用程序，请导航到其项目目录。然后安装依赖项并运行应用：
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]

@@ -14,20 +14,21 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
     <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 <p align="center">
-  <a href="../README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
-  <a href="README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
-  <a href="README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
-  <a href="README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
-  <a href="README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
-  <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
 **React Native ExecuTorch** एक घोषणात्मक तरीका प्रदान करता है जिससे React Native का उपयोग करके उपकरण पर AI मॉडल्स को चलाया जा सके, जो **ExecuTorch** द्वारा संचालित है :rocket:. यह LLMs, कंप्यूटर विज़न मॉडल्स, और भी कई के लिए आउट-ऑफ़-द-बॉक्स सपोर्ट प्रदान करता है। इन मॉडलों का अन्वेषण करने के लिए हमारे [HuggingFace](https://huggingface.co/software-mansion) पेज पर जाएं।
 
-**ExecuTorch**, Meta द्वारा विकसित, एक नया फ्रेमवर्क है जो मोबाइल फोनों या माइक्रोकंट्रोलर्स जैसे उपकरणों पर AI मॉडल निष्पादन की अनुमति देता है।
+[**ExecuTorch**](https://executorch.ai), Meta द्वारा विकसित, एक नया फ्रेमवर्क है जो मोबाइल फोनों या माइक्रोकंट्रोलर्स जैसे उपकरणों पर AI मॉडल निष्पादन की अनुमति देता है।
 
 React Native ExecuTorch, React Native और नेटिव प्लेटफॉर्म क्षमताओं के बीच की खाई को पाटता है, जिससे डेवलपर्स मोबाइल उपकरणों पर स्थानीय AI मॉडलों को प्रभावी ढंग से चला सकते हैं। इसे नेटिव प्रोग्रामिंग या मशीन लर्निंग में व्यापक विशेषज्ञता की आवश्यकता के बिना हासिल किया जा सकता है।
 
@@ -85,7 +86,7 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # प्लेटफॉर्म के अनुसार, या तो iOS या Android चुनें
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
 ### :two: सेटअप और आरंभिककरण
@@ -132,20 +133,15 @@ const handleGenerate = async () => {
 हम वर्तमान में कुछ उदाहरण [ऐप्स](https://github.com/software-mansion/react-native-executorch/tree/main/apps) होस्ट कर रहे हैं जो हमारी लाइब्रेरी के उपयोग के मामलों को प्रदर्शित करते हैं:
 
 - `llm` - चैट एप्लिकेशन जो LLMs के उपयोग को दिखाता है
-- `speech-to-text` - व्हिस्पर मॉडल ट्रांसक्रिप्शन कार्यों के लिए तैयार
+- `speech` - स्पीच-टू-टेक्स्ट और टेक्स्ट-टू-स्पीच कार्यों के कार्यान्वयन
 - `computer-vision` - कंप्यूटर विज़न से संबंधित कार्य
 - `text-embeddings` - अर्थ सेमांटिक खोज के लिए पाठ प्रस्तुतिकरण की गणना
+- `bare_rn` - bare React Native (Expo के बिना) के लिए LLM चैट उदाहरण
 
-यदि आप डेमो ऐप चलाना चाहते हैं, तो इसके प्रोजेक्ट डायरेक्टरी में नेविगेट करें और निर्भरता इंस्टॉल करें:
-
-```bash
-yarn
-```
-
-फिर, प्लेटफॉर्म के अनुसार, या तो iOS या Android चुनें:
+यदि आप Expo डेमो ऐप चलाना चाहते हैं, तो इसके प्रोजेक्ट डायरेक्टरी में नेविगेट करें। फिर निर्भरता इंस्टॉल करें और ऐप चलाएं:
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]

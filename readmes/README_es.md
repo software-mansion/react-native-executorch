@@ -14,6 +14,7 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentación-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
     <img src="https://img.shields.io/badge/Contrátanos-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 <p align="center">
@@ -27,7 +28,7 @@
 
 **React Native ExecuTorch** ofrece una forma declarativa de ejecutar modelos de IA en el dispositivo utilizando React Native, impulsado por **ExecuTorch** :rocket:. Proporciona soporte listo para usar para una amplia gama de LLMs, modelos de visión por computadora y más. Visita nuestra página en [HuggingFace](https://huggingface.co/software-mansion) para explorar estos modelos.
 
-**ExecuTorch**, desarrollado por Meta, es un marco innovador que permite la ejecución de modelos de IA en dispositivos como teléfonos móviles o microcontroladores.
+[**ExecuTorch**](https://executorch.ai), desarrollado por Meta, es un marco innovador que permite la ejecución de modelos de IA en dispositivos como teléfonos móviles o microcontroladores.
 
 React Native ExecuTorch conecta React Native con las capacidades nativas de la plataforma, permitiendo a los desarrolladores ejecutar modelos locales de IA en dispositivos móviles de manera eficiente. Esto puede lograrse sin necesidad de una gran experiencia en programación nativa o aprendizaje automático.
 
@@ -85,7 +86,7 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Dependiendo de la plataforma, elige iOS o Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
 ### :two: Configuración e inicialización
@@ -132,20 +133,15 @@ const handleGenerate = async () => {
 Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/software-mansion/react-native-executorch/tree/main/apps) que muestran casos de uso de nuestra biblioteca:
 
 - `llm` - Aplicación de chat que muestra el uso de LLMs
-- `speech-to-text` - Modelo Whisper listo para tareas de transcripción
+- `speech` - Implementaciones de tareas de voz a texto y texto a voz
 - `computer-vision` - Tareas relacionadas con visión por computadora
 - `text-embeddings` - Cálculo de representaciones de texto para búsqueda semántica
+- `bare_rn` - Ejemplo de chat LLM para React Native puro (sin Expo)
 
-Si deseas ejecutar una aplicación de demostración, navega al directorio del proyecto e instala las dependencias con:
-
-```bash
-yarn
-```
-
-Luego, dependiendo de la plataforma, elige iOS o Android:
+Si deseas ejecutar una aplicación de demostración de Expo, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]

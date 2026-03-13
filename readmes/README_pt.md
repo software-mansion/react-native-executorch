@@ -28,7 +28,7 @@
 
 **React Native ExecuTorch** fornece uma maneira declarativa de executar modelos de IA no dispositivo usando React Native, impulsionado pelo **ExecuTorch** :rocket:. Oferece suporte pronto para uso para uma ampla gama de LLMs, modelos de visão computacional e mais. Visite nossa página no [HuggingFace](https://huggingface.co/software-mansion) para explorar esses modelos.
 
-**ExecuTorch**, desenvolvido pela Meta, é uma estrutura inovadora que permite a execução de modelos de IA em dispositivos, como telefones móveis ou microcontroladores.
+[**ExecuTorch**](https://executorch.ai), desenvolvido pela Meta, é uma estrutura inovadora que permite a execução de modelos de IA em dispositivos, como telefones móveis ou microcontroladores.
 
 React Native ExecuTorch faz a ponte entre React Native e as capacidades das plataformas nativas, permitindo que desenvolvedores executem modelos de IA localmente em dispositivos móveis de maneira eficiente. Isso pode ser alcançado sem a necessidade de extenso conhecimento em programação nativa ou aprendizado de máquina.
 
@@ -86,7 +86,7 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Dependendo da plataforma, escolha iOS ou Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
 ### :two: Configuração e Inicialização
@@ -133,20 +133,15 @@ const handleGenerate = async () => {
 Atualmente, hospedamos alguns [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) de exemplo demonstrando casos de uso de nossa biblioteca:
 
 - `llm` - Aplicativo de chat demonstrando o uso de LLMs
-- `speech-to-text` - Modelo Whisper pronto para tarefas de transcrição
+- `speech` - Implementações de tarefas de fala para texto e texto para fala
 - `computer-vision` - Tarefas relacionadas à visão computacional
 - `text-embeddings` - Computação de representações de texto para busca semântica
+- `bare_rn` - Exemplo de chat LLM para React Native puro (sem Expo)
 
-Se deseja executar o aplicativo de demonstração, navegue até o diretório do projeto e instale as dependências com:
-
-```bash
-yarn
-```
-
-Então, dependendo da plataforma, escolha iOS ou Android:
+Se deseja executar um aplicativo de demonstração Expo, navegue até seu diretório de projeto. Em seguida, instale as dependências e execute o aplicativo com:
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]
