@@ -1,9 +1,9 @@
-import { useModule } from '../useModule';
 import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
 import {
   ClassificationProps,
   ClassificationType,
 } from '../../types/classification';
+import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing a Classification model instance.
@@ -15,9 +15,18 @@ import {
 export const useClassification = ({
   model,
   preventLoad = false,
-}: ClassificationProps): ClassificationType =>
-  useModule({
-    module: ClassificationModule,
-    model,
-    preventLoad: preventLoad,
-  });
+}: ClassificationProps): ClassificationType => {
+  const { error, isReady, isGenerating, downloadProgress, runForward } =
+    useModuleFactory({
+      factory: (config, onProgress) =>
+        ClassificationModule.fromModelName(config, onProgress),
+      config: model,
+      deps: [model.modelName, model.modelSource],
+      preventLoad,
+    });
+
+  const forward = (imageSource: string) =>
+    runForward((inst) => inst.forward(imageSource));
+
+  return { error, isReady, isGenerating, downloadProgress, forward };
+};

@@ -16,11 +16,8 @@ import { VerticalOCRModule, OCR_ENGLISH } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const verticalOCRModule = new VerticalOCRModule();
-
-// Loading the model
-await verticalOCRModule.load(OCR_ENGLISH);
+// Creating an instance and loading the model
+const verticalOCRModule = await VerticalOCRModule.fromModelName(OCR_ENGLISH);
 
 // Running the model
 const detections = await verticalOCRModule.forward(imageUri);
@@ -32,18 +29,15 @@ All methods of `VerticalOCRModule` are explained in details here: [`VerticalOCRM
 
 ## Loading the model
 
-To load the model, use the [`load`](../../06-api-reference/classes/VerticalOCRModule.md#load) method. It accepts an object:
+Use the static [`fromModelName`](../../06-api-reference/classes/VerticalOCRModule.md#frommodelname) factory method. It accepts a `namedSources` object (e.g. `{ ...OCR_ENGLISH, independentCharacters: true }`) containing:
 
-- [`model`](../../06-api-reference/classes/VerticalOCRModule.md#model) - Object containing:
-  - [`detectorSource`](../../06-api-reference/classes/VerticalOCRModule.md#detectorsource) - Location of the used detector.
-  - [`recognizerSource`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Location of the used recognizer.
-  - [`language`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Language used in OCR.
+- `modelName` - Model name identifier.
+- [`detectorSource`](../../06-api-reference/classes/VerticalOCRModule.md#detectorsource) - Location of the used detector.
+- [`recognizerSource`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Location of the used recognizer.
+- [`language`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Language used in OCR.
+- [`independentCharacters`](../../06-api-reference/classes/VerticalOCRModule.md#independentcharacters) - Flag indicating whether to treat characters as independent.
 
-- [`independentCharacters`](../../06-api-reference/classes/VerticalOCRModule.md#independentcharacters) - Flag indicating to either treat characters as independent or not.
-
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/VerticalOCRModule.md#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to a `VerticalOCRModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

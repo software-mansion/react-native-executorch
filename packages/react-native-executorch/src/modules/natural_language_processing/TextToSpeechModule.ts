@@ -16,87 +16,89 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class TextToSpeechModule {
-  /**
-   * Native module instance
-   */
-  nativeModule: any = null;
+  private nativeModule: any;
 
-  /**
-   * Loads the model and voice assets specified by the config object.
-   * `onDownloadProgressCallback` allows you to monitor the current progress.
-   *
-   * @param config - Configuration object containing `model` source and `voice`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
-   */
-  public async load(
-    config: TextToSpeechConfig,
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
-    // Select the text to speech model based on it's fixed identifier
-    if (config.model.type === 'kokoro') {
-      await this.loadKokoro(
-        config.model,
-        config.voice,
-        onDownloadProgressCallback
-      );
-    }
-    // ... more models? ...
+  private constructor(nativeModule: unknown) {
+    this.nativeModule = nativeModule;
   }
 
-  // Specialized loader - Kokoro model
-  private async loadKokoro(
-    model: KokoroConfig,
-    voice: VoiceConfig,
-    onDownloadProgressCallback: (progress: number) => void
-  ): Promise<void> {
+  /**
+   * Creates a Text to Speech instance.
+   *
+   * @param config - Configuration object containing `model` and `voice`.
+   *   Pass one of the built-in constants (e.g. `{ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART }`), or use require() to pass them.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TextToSpeechModule` instance.
+   *
+   * @example
+   * ```ts
+   * import { TextToSpeechModule, KOKORO_MEDIUM, KOKORO_VOICE_AF_HEART } from 'react-native-executorch';
+   * const tts = await TextToSpeechModule.fromModelName(
+   *   { model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART },
+   * );
+   * ```
+   */
+  static async fromModelName(
+    config: TextToSpeechConfig,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<TextToSpeechModule> {
     try {
-      if (
-        !voice.extra ||
-        !voice.extra.taggerSource ||
-        !voice.extra.lexiconSource
-      ) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.InvalidConfig,
-          'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
-        );
-      }
-
-      const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.durationPredictorSource,
-        model.synthesizerSource,
-        voice.voiceSource,
-        voice.extra.taggerSource,
-        voice.extra.lexiconSource
+      const nativeModule = await TextToSpeechModule.loadKokoro(
+        config.model,
+        config.voice,
+        onDownloadProgress
       );
-
-      if (
-        paths === null ||
-        paths.length !== 5 ||
-        paths.some((p) => p == null)
-      ) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'Download interrupted or missing resource.'
-        );
-      }
-
-      const modelPaths = paths.slice(0, 2) as [string, string, string, string];
-      const voiceDataPath = paths[2] as string;
-      const phonemizerPaths = paths.slice(3, 5) as [string, string];
-
-      this.nativeModule = await global.loadTextToSpeechKokoro(
-        voice.lang,
-        phonemizerPaths[0],
-        phonemizerPaths[1],
-        modelPaths[0],
-        modelPaths[1],
-        voiceDataPath
-      );
+      return new TextToSpeechModule(nativeModule);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
     }
+  }
+
+  private static async loadKokoro(
+    model: KokoroConfig,
+    voice: VoiceConfig,
+    onDownloadProgressCallback: (progress: number) => void
+  ): Promise<unknown> {
+    if (
+      !voice.extra ||
+      !voice.extra.taggerSource ||
+      !voice.extra.lexiconSource
+    ) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
+      );
+    }
+
+    const paths = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      model.durationPredictorSource,
+      model.synthesizerSource,
+      voice.voiceSource,
+      voice.extra.taggerSource,
+      voice.extra.lexiconSource
+    );
+
+    if (paths === null || paths.length !== 5) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'Download interrupted or missing resource.'
+      );
+    }
+
+    const modelPaths = paths.slice(0, 2) as [string, string];
+    const voiceDataPath = paths[2] as string;
+    const phonemizerPaths = paths.slice(3, 5) as [string, string];
+
+    return await global.loadTextToSpeechKokoro(
+      voice.lang,
+      phonemizerPaths[0],
+      phonemizerPaths[1],
+      modelPaths[0],
+      modelPaths[1],
+      voiceDataPath
+    );
   }
 
   private ensureLoaded(methodName: string): void {

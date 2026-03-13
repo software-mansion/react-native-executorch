@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { OCRProps, OCRType } from '../../types/ocr';
+import { useCallback, useEffect, useState } from 'react';
 import { OCRController } from '../../controllers/OCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
+import { OCRDetection, OCRProps, OCRType } from '../../types/ocr';
 
 /**
  * React hook for managing an OCR instance.
@@ -11,12 +11,12 @@ import { RnExecutorchError } from '../../errors/errorUtils';
  * @returns Ready to use OCR model.
  */
 export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
-  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
 
-  const [controllerInstance] = useState(
+  const [controller] = useState(
     () =>
       new OCRController({
         isReadyCallback: setIsReady,
@@ -26,33 +26,37 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   );
 
   useEffect(() => {
+    setDownloadProgress(0);
+    setError(null);
+
     if (preventLoad) return;
 
-    (async () => {
-      await controllerInstance.load(
-        model.detectorSource,
-        model.recognizerSource,
-        model.language,
-        setDownloadProgress
-      );
-    })();
+    controller.load(
+      model.detectorSource,
+      model.recognizerSource,
+      model.language,
+      setDownloadProgress
+    );
 
     return () => {
-      controllerInstance.delete();
+      if (controller.isReady) {
+        controller.delete();
+      }
     };
   }, [
-    controllerInstance,
+    controller,
+    model.modelName,
     model.detectorSource,
     model.recognizerSource,
     model.language,
     preventLoad,
   ]);
 
-  return {
-    error,
-    isReady,
-    isGenerating,
-    forward: controllerInstance.forward,
-    downloadProgress,
-  };
+  const forward = useCallback(
+    (imageSource: string): Promise<OCRDetection[]> =>
+      controller.forward(imageSource),
+    [controller]
+  );
+
+  return { error, isReady, isGenerating, downloadProgress, forward };
 };

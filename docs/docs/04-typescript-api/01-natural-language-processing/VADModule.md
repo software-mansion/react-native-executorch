@@ -14,10 +14,9 @@ TypeScript API implementation of the [useVAD](../../03-hooks/01-natural-language
 ```typescript
 import { VADModule, FSMN_VAD } from 'react-native-executorch';
 
-const model = new VADModule();
-await model.load(FSMN_VAD, (progress) => {
-  console.log(progress);
-});
+const model = await VADModule.fromModelName(FSMN_VAD, (progress) =>
+  console.log(progress)
+);
 
 await model.forward(waveform);
 ```
@@ -28,14 +27,15 @@ All methods of `VADModule` are explained in details here: [`VADModule` API Refer
 
 ## Loading the model
 
-To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/VADModule.md#load) method with the following parameters:
+To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/VADModule.md#frommodelname) factory with the following parameters:
 
-- [`model`](../../06-api-reference/classes/VADModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/VADModule.md#modelsource) - Location of the used model.
+- `namedSources` - Object containing:
+  - `modelName` - Model name identifier.
+  - `modelSource` - Location of the model binary.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/VADModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `VADModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { ImageEmbeddingsModelName } from '../../types/imageEmbeddings';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
@@ -11,20 +12,29 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class ImageEmbeddingsModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
+   * Creates an image embeddings instance for a built-in model.
    *
-   * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param namedSources - An object specifying which built-in model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ImageEmbeddingsModule` instance.
    */
-  async load(
-    model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+  static async fromModelName(
+    namedSources: {
+      modelName: ImageEmbeddingsModelName;
+      modelSource: ResourceSource;
+    },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ImageEmbeddingsModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.modelSource
+        onDownloadProgress,
+        namedSources.modelSource
       );
 
       if (!paths?.[0]) {
@@ -34,7 +44,9 @@ export class ImageEmbeddingsModule extends BaseModule {
         );
       }
 
-      this.nativeModule = await global.loadImageEmbeddings(paths[0]);
+      return new ImageEmbeddingsModule(
+        await global.loadImageEmbeddings(paths[0])
+      );
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -42,10 +54,31 @@ export class ImageEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass. Returns an embedding array for a given sentence.
+   * Creates an image embeddings instance with a user-provided model binary.
+   * Use this when working with a custom-exported model that is not one of the built-in presets.
    *
-   * @param imageSource - The image source (URI/URL) to image that will be embedded.
-   * @returns A Float32Array containing the image embeddings.
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ImageEmbeddingsModule` instance.
+   */
+  static fromCustomModel(
+    modelSource: ResourceSource,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ImageEmbeddingsModule> {
+    return ImageEmbeddingsModule.fromModelName(
+      { modelName: 'custom' as ImageEmbeddingsModelName, modelSource },
+      onDownloadProgress
+    );
+  }
+
+  /**
+   * Executes the model's forward pass to generate an embedding for the provided image.
+   *
+   * @param imageSource - A string image source (file path, URI, or Base64).
+   * @returns A Promise resolving to a `Float32Array` containing the image embedding vector.
    */
   async forward(imageSource: string): Promise<Float32Array> {
     if (this.nativeModule == null)

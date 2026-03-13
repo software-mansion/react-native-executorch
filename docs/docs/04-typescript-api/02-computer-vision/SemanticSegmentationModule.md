@@ -20,10 +20,8 @@ import {
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
-const segmentation = await SemanticSegmentationModule.fromModelName({
-  modelName: 'deeplab-v3',
-  modelSource: DEEPLAB_V3_RESNET50,
-});
+const segmentation =
+  await SemanticSegmentationModule.fromModelName(DEEPLAB_V3_RESNET50);
 
 // Running the model
 const result = await segmentation.forward(imageUri);
@@ -51,14 +49,14 @@ const segmentation = await SemanticSegmentationModule.fromModelName(
 
 The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3-resnet50'`, `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`, `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`, `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`, `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`, `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`, and `'selfie-segmentation'`.
 
-### Custom models — `fromCustomConfig`
+### Custom models — `fromCustomModel`
 
-Use [`fromCustomConfig`](../../06-api-reference/classes/SemanticSegmentationModule.md#fromcustomconfig) for custom-exported segmentation models with your own label map:
+Use [`fromCustomModel`](../../06-api-reference/classes/SemanticSegmentationModule.md#fromcustommodel) for custom-exported segmentation models with your own label map:
 
 ```typescript
 const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
 
-const segmentation = await SemanticSegmentationModule.fromCustomConfig(
+const segmentation = await SemanticSegmentationModule.fromCustomModel(
   'https://example.com/custom_model.pte',
   {
     labelMap: MyLabels,
@@ -71,6 +69,16 @@ const segmentation = await SemanticSegmentationModule.fromCustomConfig(
 ```
 
 The `preprocessorConfig` is optional. If omitted, no input normalization is applied. The module instance will be typed to your custom label map — `forward` will accept and return keys from `MyLabels`.
+
+### Required model contract
+
+The `.pte` binary must expose a single `forward` method with the following interface:
+
+**Input:** one `float32` tensor of shape `[1, 3, H, W]` — a single RGB image, values in `[0, 1]` after optional per-channel normalization `(pixel − mean) / std`. H and W are read from the model's declared input shape at load time.
+
+**Output:** one `float32` tensor of shape `[1, C, H_out, W_out]` (NCHW) containing raw logits — one channel per class, in the same order as the entries in your `labelMap`. For binary segmentation a single-channel output is also supported: channel 0 is treated as the foreground probability and a synthetic background channel is added automatically.
+
+Preprocessing (resize → normalize) and postprocessing (softmax, argmax, resize back to original dimensions) are handled by the native runtime.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { OCRType, VerticalOCRProps } from '../../types/ocr';
+import { useCallback, useEffect, useState } from 'react';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
+import { OCRDetection, OCRType, VerticalOCRProps } from '../../types/ocr';
 
 /**
  * React hook for managing a Vertical OCR instance.
@@ -15,12 +15,12 @@ export const useVerticalOCR = ({
   independentCharacters = false,
   preventLoad = false,
 }: VerticalOCRProps): OCRType => {
-  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
 
-  const [controllerInstance] = useState(
+  const [controller] = useState(
     () =>
       new VerticalOCRController({
         isReadyCallback: setIsReady,
@@ -30,23 +30,27 @@ export const useVerticalOCR = ({
   );
 
   useEffect(() => {
+    setDownloadProgress(0);
+    setError(null);
+
     if (preventLoad) return;
 
-    (async () => {
-      await controllerInstance.load(
-        model.detectorSource,
-        model.recognizerSource,
-        model.language,
-        independentCharacters,
-        setDownloadProgress
-      );
-    })();
+    controller.load(
+      model.detectorSource,
+      model.recognizerSource,
+      model.language,
+      independentCharacters,
+      setDownloadProgress
+    );
 
     return () => {
-      controllerInstance.delete();
+      if (controller.isReady) {
+        controller.delete();
+      }
     };
   }, [
-    controllerInstance,
+    controller,
+    model.modelName,
     model.detectorSource,
     model.recognizerSource,
     model.language,
@@ -54,11 +58,11 @@ export const useVerticalOCR = ({
     preventLoad,
   ]);
 
-  return {
-    error,
-    isReady,
-    isGenerating,
-    forward: controllerInstance.forward,
-    downloadProgress,
-  };
+  const forward = useCallback(
+    (imageSource: string): Promise<OCRDetection[]> =>
+      controller.forward(imageSource),
+    [controller]
+  );
+
+  return { error, isReady, isGenerating, downloadProgress, forward };
 };

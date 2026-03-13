@@ -2,6 +2,13 @@ import { ResourceSource } from './common';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
+ * Union of all built-in Text to Speech model names.
+ *
+ * @category Types
+ */
+export type TextToSpeechModelName = 'kokoro-small' | 'kokoro-medium';
+
+/**
  * List all the languages available in TTS models (as lang shorthands)
  *
  * @category Types
@@ -43,12 +50,12 @@ export interface KokoroVoiceExtras {
  * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
  *
  * @category Types
- * @property {'kokoro'} type - model type identifier
+ * @property {TextToSpeechModelName} modelName - model name identifier
  * @property {ResourceSource} durationPredictorSource - source to Kokoro's duration predictor model binary
  * @property {ResourceSource} synthesizerSource - source to Kokoro's synthesizer model binary
  */
 export interface KokoroConfig {
-  type: 'kokoro';
+  modelName: TextToSpeechModelName;
   durationPredictorSource: ResourceSource;
   synthesizerSource: ResourceSource;
 }

@@ -19,15 +19,9 @@ import {
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 
-const model = new TextToSpeechModule();
-await model.load(
-  {
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AF_HEART,
-  },
-  (progress) => {
-    console.log(progress);
-  }
+const model = await TextToSpeechModule.fromModelName(
+  { model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART },
+  (progress) => console.log(progress)
 );
 
 await model.forward(text, 1.0);
@@ -39,15 +33,15 @@ All methods of `TextToSpeechModule` are explained in details here: [`TextToSpeec
 
 ## Loading the model
 
-To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/TextToSpeechModule.md#load) method with the following parameters:
+Use the static [`fromModelName`](../../06-api-reference/classes/TextToSpeechModule.md#frommodelname) factory method with the following parameters:
 
-- [`config`](../../06-api-reference/classes/TextToSpeechModule.md#config) - Object containing:
-  - [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration.
-  - [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration.
+- [`config`](../../06-api-reference/interfaces/TextToSpeechConfig.md) - Object containing:
+  - [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration (e.g. `KOKORO_MEDIUM`).
+  - [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration (e.g. `KOKORO_VOICE_AF_HEART`).
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToSpeechModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgress`](../../06-api-reference/classes/TextToSpeechModule.md#frommodelname) - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise that resolves once the assets are downloaded and loaded into memory.
+This method returns a promise that resolves to a `TextToSpeechModule` instance once the assets are downloaded and loaded into memory.
 
 For more information on resource sources, see [loading models](../../01-fundamentals/02-loading-models.md).
 
@@ -83,15 +77,13 @@ import {
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = new TextToSpeechModule();
+const tts = await TextToSpeechModule.fromModelName({
+  model: KOKORO_MEDIUM,
+  voice: KOKORO_VOICE_AF_HEART,
+});
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
-  await tts.load({
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AF_HEART,
-  });
-
   const waveform = await tts.forward('Hello from ExecuTorch!', 1.0);
 
   // Create audio buffer and play
@@ -117,10 +109,11 @@ import {
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = new TextToSpeechModule();
+const tts = await TextToSpeechModule.fromModelName({
+  model: KOKORO_MEDIUM,
+  voice: KOKORO_VOICE_AF_HEART,
+});
 const audioContext = new AudioContext({ sampleRate: 24000 });
-
-await tts.load({ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART });
 
 try {
   for await (const chunk of tts.stream({
@@ -155,9 +148,7 @@ import {
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 
-const tts = new TextToSpeechModule();
-
-await tts.load({
+const tts = await TextToSpeechModule.fromModelName({
   model: KOKORO_MEDIUM,
   voice: KOKORO_VOICE_AF_HEART,
 });

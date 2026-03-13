@@ -1,6 +1,14 @@
 import { LLMController } from '../../controllers/LLMController';
+import { Logger } from '../../common/Logger';
+import { parseUnknownError } from '../../errors/errorUtils';
 import { ResourceSource } from '../../types/common';
-import { LLMCapability, LLMConfig, LLMTool, Message } from '../../types/llm';
+import {
+  LLMCapability,
+  LLMConfig,
+  LLMModelName,
+  LLMTool,
+  Message,
+} from '../../types/llm';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
@@ -9,26 +17,12 @@ import { LLMCapability, LLMConfig, LLMTool, Message } from '../../types/llm';
  */
 export class LLMModule {
   private controller: LLMController;
-  private pendingConfig?: LLMConfig;
 
-  /**
-   * Creates a new instance of `LLMModule` with optional callbacks.
-   * @param optionalCallbacks - Object containing optional callbacks.
-   *
-   * @returns A new LLMModule instance.
-   */
-  constructor({
+  private constructor({
     tokenCallback,
     messageHistoryCallback,
   }: {
-    /**
-     * An optional function that will be called on every generated token (`string`) with that token as its only argument.
-     */
     tokenCallback?: (token: string) => void;
-    /**
-     * An optional function called on every finished message (`Message[]`).
-     * Returns the entire message history.
-     */
     messageHistoryCallback?: (messageHistory: Message[]) => void;
   } = {}) {
     this.controller = new LLMController({
@@ -38,32 +32,87 @@ export class LLMModule {
   }
 
   /**
-   * Loads the LLM model and tokenizer.
+   * Creates an LLM instance for a built-in model.
    *
-   * @param model - Object containing model, tokenizer, and tokenizer config sources.
-   * @param model.modelSource - `ResourceSource` that specifies the location of the model binary.
-   * @param model.tokenizerSource - `ResourceSource` pointing to the JSON file which contains the tokenizer.
-   * @param model.tokenizerConfigSource - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
-   * @param onDownloadProgressCallback - Optional callback to track download progress (value between 0 and 1).
+   * @param namedSources - An object specifying the model name, model source, tokenizer source,
+   *   tokenizer config source, and optional capabilities.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @param tokenCallback - Optional callback invoked on every generated token.
+   * @param messageHistoryCallback - Optional callback invoked when the model finishes a response, with the full message history.
+   * @returns A Promise resolving to an `LLMModule` instance.
+   *
+   * @example
+   * ```ts
+   * import { LLMModule, LLAMA3_2_3B } from 'react-native-executorch';
+   * const llm = await LLMModule.fromModelName(LLAMA3_2_3B);
+   * ```
    */
-  async load(
-    model: {
+  static async fromModelName(
+    namedSources: {
+      modelName: LLMModelName;
       modelSource: ResourceSource;
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
       capabilities?: readonly LLMCapability[];
     },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ) {
-    await this.controller.load({
-      ...model,
-      onDownloadProgressCallback,
-    });
-
-    if (this.pendingConfig) {
-      this.controller.configure(this.pendingConfig);
-      this.pendingConfig = undefined;
+    onDownloadProgress: (progress: number) => void = () => {},
+    tokenCallback?: (token: string) => void,
+    messageHistoryCallback?: (messageHistory: Message[]) => void
+  ): Promise<LLMModule> {
+    const instance = new LLMModule({ tokenCallback, messageHistoryCallback });
+    try {
+      await instance.controller.load({
+        modelSource: namedSources.modelSource,
+        tokenizerSource: namedSources.tokenizerSource,
+        tokenizerConfigSource: namedSources.tokenizerConfigSource,
+        onDownloadProgressCallback: onDownloadProgress,
+      });
+      return instance;
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
+  }
+
+  /**
+   * Creates an LLM instance with a user-provided model binary.
+   * Use this when working with a custom-exported LLM.
+   * Internally uses `'custom'` as the model name for telemetry.
+   *
+   * ## Required model contract
+   *
+   * The `.pte` model binary must be exported following the
+   * [ExecuTorch LLM export process](https://docs.pytorch.org/executorch/1.1/llm/export-llm.html).
+   * The native runner expects the standard ExecuTorch text-generation interface — KV-cache
+   * management, prefill/decode phases, and logit sampling are all handled by the runtime.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param tokenizerSource - A fetchable resource pointing to the tokenizer JSON file.
+   * @param tokenizerConfigSource - A fetchable resource pointing to the tokenizer config JSON file.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @param tokenCallback - Optional callback invoked on every generated token.
+   * @param messageHistoryCallback - Optional callback invoked when the model finishes a response, with the full message history.
+   * @returns A Promise resolving to an `LLMModule` instance.
+   */
+  static fromCustomModel(
+    modelSource: ResourceSource,
+    tokenizerSource: ResourceSource,
+    tokenizerConfigSource: ResourceSource,
+    onDownloadProgress: (progress: number) => void = () => {},
+    tokenCallback?: (token: string) => void,
+    messageHistoryCallback?: (messageHistory: Message[]) => void
+  ): Promise<LLMModule> {
+    return LLMModule.fromModelName(
+      {
+        modelName: 'custom' as LLMModelName,
+        modelSource,
+        tokenizerSource,
+        tokenizerConfigSource,
+      },
+      onDownloadProgress,
+      tokenCallback,
+      messageHistoryCallback
+    );
   }
 
   /**
@@ -86,11 +135,7 @@ export class LLMModule {
    * @param config - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure(config: LLMConfig) {
-    if (this.controller.isReady) {
-      this.controller.configure(config);
-    } else {
-      this.pendingConfig = config;
-    }
+    this.controller.configure(config);
   }
 
   /**

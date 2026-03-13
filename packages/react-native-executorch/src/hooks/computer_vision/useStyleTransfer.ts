@@ -1,9 +1,9 @@
-import { useModule } from '../useModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
 import {
   StyleTransferProps,
   StyleTransferType,
 } from '../../types/styleTransfer';
+import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing a Style Transfer model instance.
@@ -15,9 +15,18 @@ import {
 export const useStyleTransfer = ({
   model,
   preventLoad = false,
-}: StyleTransferProps): StyleTransferType =>
-  useModule({
-    module: StyleTransferModule,
-    model,
-    preventLoad: preventLoad,
-  });
+}: StyleTransferProps): StyleTransferType => {
+  const { error, isReady, isGenerating, downloadProgress, runForward } =
+    useModuleFactory({
+      factory: (config, onProgress) =>
+        StyleTransferModule.fromModelName(config, onProgress),
+      config: model,
+      deps: [model.modelName, model.modelSource],
+      preventLoad,
+    });
+
+  const forward = (imageSource: string) =>
+    runForward((inst) => inst.forward(imageSource));
+
+  return { error, isReady, isGenerating, downloadProgress, forward };
+};

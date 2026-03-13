@@ -1,5 +1,6 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
+import { TextToImageModelName } from '../../types/tti';
 import { BaseModule } from '../BaseModule';
 
 import { PNG } from 'pngjs/browser';
@@ -15,25 +16,92 @@ import { Logger } from '../../common/Logger';
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;
 
-  /**
-   * Creates a new instance of `TextToImageModule` with optional callback on inference step.
-   *
-   * @param inferenceCallback - Optional callback function that receives the current step index during inference.
-   */
-  constructor(inferenceCallback?: (stepIdx: number) => void) {
+  private constructor(
+    nativeModule: unknown,
+    inferenceCallback?: (stepIdx: number) => void
+  ) {
     super();
+    this.nativeModule = nativeModule;
     this.inferenceCallback = (stepIdx: number) => {
       inferenceCallback?.(stepIdx);
     };
   }
 
   /**
-   * Loads the model from specified resources.
+   * Creates a Text to Image instance for a built-in model.
    *
-   * @param model - Object containing sources for tokenizer, scheduler, encoder, unet, and decoder.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param namedSources - An object specifying the model name, pipeline sources, and optional inference callback.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TextToImageModule` instance.
+   *
+   * @example
+   * ```ts
+   * import { TextToImageModule, BK_SDM_TINY_VPRED_512 } from 'react-native-executorch';
+   * const tti = await TextToImageModule.fromModelName(BK_SDM_TINY_VPRED_512);
+   * ```
    */
-  async load(
+  static async fromModelName(
+    namedSources: {
+      modelName: TextToImageModelName;
+      tokenizerSource: ResourceSource;
+      schedulerSource: ResourceSource;
+      encoderSource: ResourceSource;
+      unetSource: ResourceSource;
+      decoderSource: ResourceSource;
+      inferenceCallback?: (stepIdx: number) => void;
+    },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<TextToImageModule> {
+    try {
+      const nativeModule = await TextToImageModule.load(
+        namedSources,
+        onDownloadProgress
+      );
+      return new TextToImageModule(
+        nativeModule,
+        namedSources.inferenceCallback
+      );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
+    }
+  }
+
+  /**
+   * Creates a Text to Image instance with user-provided model binaries.
+   * Use this when working with a custom-exported diffusion pipeline.
+   * Internally uses `'custom'` as the model name for telemetry.
+   *
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
+   * @param sources - An object containing the pipeline source paths.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @param inferenceCallback - Optional callback triggered after each diffusion step.
+   * @returns A Promise resolving to a `TextToImageModule` instance.
+   */
+  static fromCustomModel(
+    sources: {
+      tokenizerSource: ResourceSource;
+      schedulerSource: ResourceSource;
+      encoderSource: ResourceSource;
+      unetSource: ResourceSource;
+      decoderSource: ResourceSource;
+    },
+    onDownloadProgress: (progress: number) => void = () => {},
+    inferenceCallback?: (stepIdx: number) => void
+  ): Promise<TextToImageModule> {
+    return TextToImageModule.fromModelName(
+      {
+        modelName: 'custom' as TextToImageModelName,
+        ...sources,
+        inferenceCallback,
+      },
+      onDownloadProgress
+    );
+  }
+
+  private static async load(
     model: {
       tokenizerSource: ResourceSource;
       schedulerSource: ResourceSource;
@@ -41,56 +109,51 @@ export class TextToImageModule extends BaseModule {
       unetSource: ResourceSource;
       decoderSource: ResourceSource;
     },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
-    try {
-      const results = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.tokenizerSource,
-        model.schedulerSource,
-        model.encoderSource,
-        model.unetSource,
-        model.decoderSource
+    onDownloadProgressCallback: (progress: number) => void
+  ): Promise<unknown> {
+    const results = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      model.tokenizerSource,
+      model.schedulerSource,
+      model.encoderSource,
+      model.unetSource,
+      model.decoderSource
+    );
+    if (!results || results.length !== 5) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
-      if (!results) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
-      }
-      const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
-        results;
-
-      if (
-        !tokenizerPath ||
-        !schedulerPath ||
-        !encoderPath ||
-        !unetPath ||
-        !decoderPath
-      ) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
-      }
-
-      const response = await fetch('file://' + schedulerPath);
-      const schedulerConfig = await response.json();
-
-      this.nativeModule = await global.loadTextToImage(
-        tokenizerPath,
-        encoderPath,
-        unetPath,
-        decoderPath,
-        schedulerConfig.beta_start,
-        schedulerConfig.beta_end,
-        schedulerConfig.num_train_timesteps,
-        schedulerConfig.steps_offset
-      );
-    } catch (error) {
-      Logger.error('Load failed:', error);
-      throw parseUnknownError(error);
     }
+    const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
+      results;
+
+    if (
+      !tokenizerPath ||
+      !schedulerPath ||
+      !encoderPath ||
+      !unetPath ||
+      !decoderPath
+    ) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
+    }
+
+    const response = await fetch('file://' + schedulerPath);
+    const schedulerConfig = await response.json();
+
+    return global.loadTextToImage(
+      tokenizerPath,
+      encoderPath,
+      unetPath,
+      decoderPath,
+      schedulerConfig.beta_start,
+      schedulerConfig.beta_end,
+      schedulerConfig.num_train_timesteps,
+      schedulerConfig.steps_offset
+    );
   }
 
   /**

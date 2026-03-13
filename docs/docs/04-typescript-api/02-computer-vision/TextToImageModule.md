@@ -19,11 +19,10 @@ import {
 
 const input = 'a castle';
 
-// Creating an instance
-const textToImageModule = new TextToImageModule();
-
-// Loading the model
-await textToImageModule.load(BK_SDM_TINY_VPRED_256);
+// Creating an instance and loading the model
+const textToImageModule = await TextToImageModule.fromModelName(
+  BK_SDM_TINY_VPRED_256
+);
 
 // Running the model
 const image = await textToImageModule.forward(input);
@@ -35,22 +34,16 @@ All methods of `TextToImageModule` are explained in details here: [`TextToImageM
 
 ## Loading the model
 
-To load the model, use the [`load`](../../06-api-reference/classes/TextToImageModule.md#load) method. It accepts an object:
+Use the static [`fromModelName`](../../06-api-reference/classes/TextToImageModule.md#frommodelname) factory method. It accepts a model config object (e.g. `BK_SDM_TINY_VPRED_256`) containing:
 
-- [`model`](../../06-api-reference/classes/TextToImageModule.md#model) - Object containing:
-  - [`schedulerSource`](../../06-api-reference/classes/TextToImageModule.md#schedulersource) - Location of the used scheduler.
+- [`schedulerSource`](../../06-api-reference/classes/TextToImageModule.md#schedulersource) - Location of the used scheduler.
+- [`tokenizerSource`](../../06-api-reference/classes/TextToImageModule.md#tokenizersource) - Location of the used tokenizer.
+- [`encoderSource`](../../06-api-reference/classes/TextToImageModule.md#encodersource) - Location of the used encoder.
+- [`unetSource`](../../06-api-reference/classes/TextToImageModule.md#unetsource) - Location of the used unet.
+- [`decoderSource`](../../06-api-reference/classes/TextToImageModule.md#decodersource) - Location of the used decoder.
+- [`inferenceCallback`](../../06-api-reference/classes/TextToImageModule.md#inferencecallback) - Optional callback invoked at each denoising step.
 
-  - [`tokenizerSource`](../../06-api-reference/classes/TextToImageModule.md#tokenizersource) - Location of the used tokenizer.
-
-  - [`encoderSource`](../../06-api-reference/classes/TextToImageModule.md#encodersource) - Location of the used encoder.
-
-  - [`unetSource`](../../06-api-reference/classes/TextToImageModule.md#unetsource) - Location of the used unet.
-
-  - [`decoderSource`](../../06-api-reference/classes/TextToImageModule.md#decodersource) - Location of the used decoder.
-
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToImageModule.md#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to a `TextToImageModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
@@ -64,7 +57,7 @@ The seed value should be a positive integer.
 
 ## Listening for inference steps
 
-To monitor the progress of image generation, you can pass an [`inferenceCallback`](../../06-api-reference/classes/TextToImageModule.md#inferencecallback) function to the [constructor](../../06-api-reference/classes/TextToImageModule.md#constructor). The callback is invoked at each denoising step (for a total of `numSteps + 1` times), yielding the current step index that can be used, for example, to display a progress bar.
+To monitor the progress of image generation, you can pass an [`inferenceCallback`](../../06-api-reference/classes/TextToImageModule.md#inferencecallback) in the model config object passed to `fromModelName`. The callback is invoked at each denoising step (for a total of `numSteps + 1` times), yielding the current step index that can be used, for example, to display a progress bar.
 
 ## Deleting the model from memory
 

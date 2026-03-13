@@ -19,11 +19,9 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const styleTransferModule = new StyleTransferModule();
-
-// Loading the model
-await styleTransferModule.load(STYLE_TRANSFER_CANDY);
+// Creating and loading the module
+const styleTransferModule =
+  await StyleTransferModule.fromModelName(STYLE_TRANSFER_CANDY);
 
 // Running the model
 const generatedImageUrl = await styleTransferModule.forward(imageUri);
@@ -35,14 +33,15 @@ All methods of `StyleTransferModule` are explained in details here: [`StyleTrans
 
 ## Loading the model
 
-To load the model, create a new instance of the module and use the [`load`](../../06-api-reference/classes/StyleTransferModule.md#load) method on it. It accepts an object:
+To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/StyleTransferModule.md#frommodelname) factory with the following parameters:
 
-- [`model`](../../06-api-reference/classes/StyleTransferModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/StyleTransferModule.md#modelsource) - Location of the used model.
+- `namedSources` - Object containing:
+  - `modelName` - Model name identifier.
+  - `modelSource` - Location of the model binary.
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/StyleTransferModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `StyleTransferModule` instance.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

@@ -14,12 +14,10 @@ type Deletable = { delete: () => void };
  *
  * @internal
  */
-export function useModuleFactory<
-  M extends Deletable,
-  Config extends { modelName: string; modelSource: unknown },
->({
+export function useModuleFactory<M extends Deletable, Config>({
   factory,
   config,
+  deps,
   preventLoad = false,
 }: {
   factory: (
@@ -27,6 +25,7 @@ export function useModuleFactory<
     onProgress: (progress: number) => void
   ) => Promise<M>;
   config: Config;
+  deps: ReadonlyArray<unknown>;
   preventLoad?: boolean;
 }) {
   const [error, setError] = useState<RnExecutorchError | null>(null);
@@ -38,27 +37,39 @@ export function useModuleFactory<
   useEffect(() => {
     if (preventLoad) return;
 
-    let currentInstance: M | null = null;
+    let active = true;
+    setDownloadProgress(0);
+    setError(null);
+    setIsReady(false);
 
-    (async () => {
-      setDownloadProgress(0);
-      setError(null);
-      setIsReady(false);
-      try {
-        currentInstance = await factory(config, setDownloadProgress);
-        setInstance(currentInstance);
+    factory(config, (p) => {
+      if (active) setDownloadProgress(p);
+    })
+      .then((mod) => {
+        if (!active) {
+          mod.delete();
+          return;
+        }
+        setInstance((prev) => {
+          prev?.delete();
+          return mod;
+        });
         setIsReady(true);
-      } catch (err) {
-        setError(parseUnknownError(err));
-      }
-    })();
+      })
+      .catch((err) => {
+        if (active) setError(parseUnknownError(err));
+      });
 
     return () => {
-      currentInstance?.delete();
+      active = false;
+      setInstance((prev) => {
+        prev?.delete();
+        return null;
+      });
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.modelName, config.modelSource, preventLoad]);
+  }, [...deps, preventLoad]);
 
   const runForward = async <R>(fn: (instance: M) => Promise<R>): Promise<R> => {
     if (!isReady || !instance) {

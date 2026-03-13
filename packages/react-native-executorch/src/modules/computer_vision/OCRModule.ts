@@ -1,6 +1,6 @@
 import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
-import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
 import { Logger } from '../../common/Logger';
 import { parseUnknownError } from '../../errors/errorUtils';
 
@@ -12,37 +12,76 @@ import { parseUnknownError } from '../../errors/errorUtils';
 export class OCRModule {
   private controller: OCRController;
 
-  constructor() {
-    this.controller = new OCRController();
+  private constructor(controller: OCRController) {
+    this.controller = controller;
   }
 
   /**
-   * Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
-   * `recognizerSource` is a string that specifies the location of the recognizer binary,
-   * and `language` is a parameter that specifies the language of the text to be recognized by the OCR.
+   * Creates an OCR instance for a built-in model.
    *
-   * @param model - Object containing `detectorSource`, `recognizerSource`, and `language`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param namedSources - An object specifying the model name, detector source, recognizer source, and language.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `OCRModule` instance.
+   *
+   * @example
+   * ```ts
+   * import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
+   * const ocr = await OCRModule.fromModelName(OCR_ENGLISH);
+   * ```
    */
-  async load(
-    model: {
+  static async fromModelName(
+    namedSources: {
+      modelName: OCRModelName;
       detectorSource: ResourceSource;
       recognizerSource: ResourceSource;
       language: OCRLanguage;
     },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ) {
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<OCRModule> {
     try {
-      await this.controller.load(
-        model.detectorSource,
-        model.recognizerSource,
-        model.language,
-        onDownloadProgressCallback
+      const controller = new OCRController();
+      await controller.load(
+        namedSources.detectorSource,
+        namedSources.recognizerSource,
+        namedSources.language,
+        onDownloadProgress
       );
+      return new OCRModule(controller);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
     }
+  }
+
+  /**
+   * Creates an OCR instance with a user-provided model binary.
+   * Use this when working with a custom-exported OCR model.
+   * Internally uses `'custom'` as the model name for telemetry.
+   *
+   * @remarks The native model contract for this method is not formally defined and may change
+   * between releases. Refer to the native source code for the current expected tensor interface.
+   *
+   * @param detectorSource - A fetchable resource pointing to the text detector model binary.
+   * @param recognizerSource - A fetchable resource pointing to the text recognizer model binary.
+   * @param language - The language for the OCR model.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `OCRModule` instance.
+   */
+  static fromCustomModel(
+    detectorSource: ResourceSource,
+    recognizerSource: ResourceSource,
+    language: OCRLanguage,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<OCRModule> {
+    return OCRModule.fromModelName(
+      {
+        modelName: `ocr-${language}` as OCRModelName,
+        detectorSource,
+        recognizerSource,
+        language,
+      },
+      onDownloadProgress
+    );
   }
 
   /**

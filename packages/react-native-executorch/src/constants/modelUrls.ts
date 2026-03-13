@@ -17,55 +17,61 @@ const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokeni
  * @category Models - LMM
  */
 export const LLAMA3_2_3B = {
+  modelName: 'llama-3.2-3b',
   modelSource: LLAMA3_2_3B_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LLAMA3_2_3B_QLORA = {
+  modelName: 'llama-3.2-3b-qlora',
   modelSource: LLAMA3_2_3B_QLORA_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LLAMA3_2_3B_SPINQUANT = {
+  modelName: 'llama-3.2-3b-spinquant',
   modelSource: LLAMA3_2_3B_SPINQUANT_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LLAMA3_2_1B = {
+  modelName: 'llama-3.2-1b',
   modelSource: LLAMA3_2_1B_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LLAMA3_2_1B_QLORA = {
+  modelName: 'llama-3.2-1b-qlora',
   modelSource: LLAMA3_2_1B_QLORA_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LLAMA3_2_1B_SPINQUANT = {
+  modelName: 'llama-3.2-1b-spinquant',
   modelSource: LLAMA3_2_1B_SPINQUANT_MODEL,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-};
+} as const;
 
 // QWEN 3
 const QWEN3_0_6B_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/qwen-3-0.6B/original/qwen3_0_6b_bf16.pte`;
@@ -81,55 +87,61 @@ const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer_co
  * @category Models - LMM
  */
 export const QWEN3_0_6B = {
+  modelName: 'qwen3-0.6b',
   modelSource: QWEN3_0_6B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN3_0_6B_QUANTIZED = {
+  modelName: 'qwen3-0.6b-quantized',
   modelSource: QWEN3_0_6B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN3_1_7B = {
+  modelName: 'qwen3-1.7b',
   modelSource: QWEN3_1_7B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN3_1_7B_QUANTIZED = {
+  modelName: 'qwen3-1.7b-quantized',
   modelSource: QWEN3_1_7B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN3_4B = {
+  modelName: 'qwen3-4b',
   modelSource: QWEN3_4B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN3_4B_QUANTIZED = {
+  modelName: 'qwen3-4b-quantized',
   modelSource: QWEN3_4B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-};
+} as const;
 
 // HAMMER 2.1
 const HAMMER2_1_0_5B_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/hammer-2.1-0.5B/original/hammer2_1_0_5B_bf16.pte`;
@@ -145,55 +157,61 @@ const HAMMER2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/toke
  * @category Models - LMM
  */
 export const HAMMER2_1_0_5B = {
+  modelName: 'hammer2.1-0.5b',
   modelSource: HAMMER2_1_0_5B_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const HAMMER2_1_0_5B_QUANTIZED = {
+  modelName: 'hammer2.1-0.5b-quantized',
   modelSource: HAMMER2_1_0_5B_QUANTIZED_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const HAMMER2_1_1_5B = {
+  modelName: 'hammer2.1-1.5b',
   modelSource: HAMMER2_1_1_5B_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const HAMMER2_1_1_5B_QUANTIZED = {
+  modelName: 'hammer2.1-1.5b-quantized',
   modelSource: HAMMER2_1_1_5B_QUANTIZED_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const HAMMER2_1_3B = {
+  modelName: 'hammer2.1-3b',
   modelSource: HAMMER2_1_3B_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const HAMMER2_1_3B_QUANTIZED = {
+  modelName: 'hammer2.1-3b-quantized',
   modelSource: HAMMER2_1_3B_QUANTIZED_MODEL,
   tokenizerSource: HAMMER2_1_TOKENIZER,
   tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 // SMOLLM2
 const SMOLLM2_1_135M_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/smolLm-2-135M/original/smolLm2_135M_bf16.pte`;
@@ -209,55 +227,61 @@ const SMOLLM2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/tokeni
  * @category Models - LMM
  */
 export const SMOLLM2_1_135M = {
+  modelName: 'smollm2.1-135m',
   modelSource: SMOLLM2_1_135M_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const SMOLLM2_1_135M_QUANTIZED = {
+  modelName: 'smollm2.1-135m-quantized',
   modelSource: SMOLLM2_1_135M_QUANTIZED_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const SMOLLM2_1_360M = {
+  modelName: 'smollm2.1-360m',
   modelSource: SMOLLM2_1_360M_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const SMOLLM2_1_360M_QUANTIZED = {
+  modelName: 'smollm2.1-360m-quantized',
   modelSource: SMOLLM2_1_360M_QUANTIZED_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const SMOLLM2_1_1_7B = {
+  modelName: 'smollm2.1-1.7b',
   modelSource: SMOLLM2_1_1_7B_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const SMOLLM2_1_1_7B_QUANTIZED = {
+  modelName: 'smollm2.1-1.7b-quantized',
   modelSource: SMOLLM2_1_1_7B_QUANTIZED_MODEL,
   tokenizerSource: SMOLLM2_1_TOKENIZER,
   tokenizerConfigSource: SMOLLM2_1_TOKENIZER_CONFIG,
-};
+} as const;
 
 // QWEN 2.5
 const QWEN2_5_0_5B_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/qwen-2.5-0.5B/original/qwen2_5_0_5b_bf16.pte`;
@@ -273,55 +297,61 @@ const QWEN2_5_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/tokenize
  * @category Models - LMM
  */
 export const QWEN2_5_0_5B = {
+  modelName: 'qwen2.5-0.5b',
   modelSource: QWEN2_5_0_5B_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN2_5_0_5B_QUANTIZED = {
+  modelName: 'qwen2.5-0.5b-quantized',
   modelSource: QWEN2_5_0_5B_QUANTIZED_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN2_5_1_5B = {
+  modelName: 'qwen2.5-1.5b',
   modelSource: QWEN2_5_1_5B_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN2_5_1_5B_QUANTIZED = {
+  modelName: 'qwen2.5-1.5b-quantized',
   modelSource: QWEN2_5_1_5B_QUANTIZED_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN2_5_3B = {
+  modelName: 'qwen2.5-3b',
   modelSource: QWEN2_5_3B_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const QWEN2_5_3B_QUANTIZED = {
+  modelName: 'qwen2.5-3b-quantized',
   modelSource: QWEN2_5_3B_QUANTIZED_MODEL,
   tokenizerSource: QWEN2_5_TOKENIZER,
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
-};
+} as const;
 
 // PHI 4
 const PHI_4_MINI_4B_MODEL = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/original/phi-4-mini_bf16.pte`;
@@ -333,19 +363,21 @@ const PHI_4_MINI_TOKENIZER_CONFIG = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/tok
  * @category Models - LMM
  */
 export const PHI_4_MINI_4B = {
+  modelName: 'phi-4-mini-4b',
   modelSource: PHI_4_MINI_4B_MODEL,
   tokenizerSource: PHI_4_MINI_TOKENIZER,
   tokenizerConfigSource: PHI_4_MINI_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const PHI_4_MINI_4B_QUANTIZED = {
+  modelName: 'phi-4-mini-4b-quantized',
   modelSource: PHI_4_MINI_4B_QUANTIZED_MODEL,
   tokenizerSource: PHI_4_MINI_TOKENIZER,
   tokenizerConfigSource: PHI_4_MINI_TOKENIZER_CONFIG,
-};
+} as const;
 
 // LFM2.5-1.2B-Instruct
 const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION_TAG}/original/lfm2_5_1_2b_fp16.pte`;
@@ -357,19 +389,21 @@ const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_
  * @category Models - LMM
  */
 export const LFM2_5_1_2B_INSTRUCT = {
+  modelName: 'lfm2.5-1.2b-instruct',
   modelSource: LFM2_5_1_2B_INSTRUCT_MODEL,
   tokenizerSource: LFM2_5_1_2B_TOKENIZER,
   tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
-};
+} as const;
 
 /**
  * @category Models - LMM
  */
 export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
+  modelName: 'lfm2.5-1.2b-instruct-quantized',
   modelSource: LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL,
   tokenizerSource: LFM2_5_1_2B_TOKENIZER,
   tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
-};
+} as const;
 
 // LFM2.5-VL-1.6B (Vision-Language)
 const LFM2_VL_1_6B_QUANTIZED_MODEL = `https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
@@ -403,7 +437,7 @@ const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
 export const EFFICIENTNET_V2_S = {
   modelName: 'efficientnet-v2-s',
   modelSource: EFFICIENTNET_V2_S_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Classification
@@ -411,7 +445,7 @@ export const EFFICIENTNET_V2_S = {
 export const EFFICIENTNET_V2_S_QUANTIZED = {
   modelName: 'efficientnet-v2-s-quantized',
   modelSource: EFFICIENTNET_V2_S_QUANTIZED_MODEL,
-};
+} as const;
 
 // Object detection
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
@@ -476,7 +510,7 @@ const STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL =
 export const STYLE_TRANSFER_CANDY = {
   modelName: 'style-transfer-candy',
   modelSource: STYLE_TRANSFER_CANDY_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -484,7 +518,7 @@ export const STYLE_TRANSFER_CANDY = {
 export const STYLE_TRANSFER_CANDY_QUANTIZED = {
   modelName: 'style-transfer-candy-quantized',
   modelSource: STYLE_TRANSFER_CANDY_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -492,7 +526,7 @@ export const STYLE_TRANSFER_CANDY_QUANTIZED = {
 export const STYLE_TRANSFER_MOSAIC = {
   modelName: 'style-transfer-mosaic',
   modelSource: STYLE_TRANSFER_MOSAIC_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -500,7 +534,7 @@ export const STYLE_TRANSFER_MOSAIC = {
 export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
   modelName: 'style-transfer-mosaic-quantized',
   modelSource: STYLE_TRANSFER_MOSAIC_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -508,7 +542,7 @@ export const STYLE_TRANSFER_MOSAIC_QUANTIZED = {
 export const STYLE_TRANSFER_RAIN_PRINCESS = {
   modelName: 'style-transfer-rain-princess',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -516,7 +550,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
 export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
   modelName: 'style-transfer-rain-princess-quantized',
   modelSource: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -524,7 +558,7 @@ export const STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED = {
 export const STYLE_TRANSFER_UDNIE = {
   modelName: 'style-transfer-udnie',
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Style Transfer
@@ -532,7 +566,7 @@ export const STYLE_TRANSFER_UDNIE = {
 export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
   modelName: 'style-transfer-udnie-quantized',
   modelSource: STYLE_TRANSFER_UDNIE_QUANTIZED_MODEL,
-};
+} as const;
 
 // S2T
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
@@ -566,91 +600,91 @@ const WHISPER_SMALL_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnn
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY_EN = {
-  type: 'whisper' as const,
+  modelName: 'whisper-tiny-en',
   isMultilingual: false,
   modelSource: WHISPER_TINY_EN_MODEL,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY_EN_QUANTIZED = {
-  type: 'whisper' as const,
+  modelName: 'whisper-tiny-en-quantized',
   isMultilingual: false,
   modelSource: WHISPER_TINY_EN_QUANTIZED_MODEL,
   tokenizerSource: WHISPER_TINY_EN_QUANTIZED_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE_EN = {
-  type: 'whisper' as const,
+  modelName: 'whisper-base-en',
   isMultilingual: false,
   modelSource: WHISPER_BASE_EN_MODEL,
   tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE_EN_QUANTIZED = {
-  type: 'whisper' as const,
+  modelName: 'whisper-base-en-quantized',
   isMultilingual: false,
   modelSource: WHISPER_BASE_EN_QUANTIZED_MODEL,
   tokenizerSource: WHISPER_BASE_EN_QUANTIZED_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_SMALL_EN = {
-  type: 'whisper' as const,
+  modelName: 'whisper-small-en',
   isMultilingual: false,
   modelSource: WHISPER_SMALL_EN_MODEL,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_SMALL_EN_QUANTIZED = {
-  type: 'whisper' as const,
+  modelName: 'whisper-small-en-quantized',
   isMultilingual: false,
   modelSource: WHISPER_SMALL_EN_QUANTIZED_MODEL,
   tokenizerSource: WHISPER_SMALL_EN_QUANTIZED_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_TINY = {
-  type: 'whisper' as const,
+  modelName: 'whisper-tiny',
   isMultilingual: true,
   modelSource: WHISPER_TINY_MODEL,
   tokenizerSource: WHISPER_TINY_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_BASE = {
-  type: 'whisper' as const,
+  modelName: 'whisper-base',
   isMultilingual: true,
   modelSource: WHISPER_BASE_MODEL,
   tokenizerSource: WHISPER_BASE_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Speech To Text
  */
 export const WHISPER_SMALL = {
-  type: 'whisper' as const,
+  modelName: 'whisper-small',
   isMultilingual: true,
   modelSource: WHISPER_SMALL_MODEL,
   tokenizerSource: WHISPER_SMALL_TOKENIZER,
-};
+} as const;
 
 // Semantic Segmentation
 const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet50/xnnpack/deeplabv3_resnet50_xnnpack_fp32.pte`;
@@ -763,6 +797,7 @@ export const FCN_RESNET101_QUANTIZED = {
 } as const;
 
 const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${NEXT_VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
+
 /**
  * @category Models - Semantic Segmentation
  */
@@ -781,7 +816,7 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
   modelName: 'clip-vit-base-patch32-image',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
-};
+} as const;
 
 /**
  * @category Models - Image Embeddings
@@ -789,7 +824,7 @@ export const CLIP_VIT_BASE_PATCH32_IMAGE = {
 export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
   modelName: 'clip-vit-base-patch32-image-quantized',
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL,
-};
+} as const;
 
 // Text Embeddings
 const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
@@ -807,33 +842,37 @@ const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch3
  * @category Models - Text Embeddings
  */
 export const ALL_MINILM_L6_V2 = {
+  modelName: 'all-minilm-l6-v2',
   modelSource: ALL_MINILM_L6_V2_MODEL,
   tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Text Embeddings
  */
 export const ALL_MPNET_BASE_V2 = {
+  modelName: 'all-mpnet-base-v2',
   modelSource: ALL_MPNET_BASE_V2_MODEL,
   tokenizerSource: ALL_MPNET_BASE_V2_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Text Embeddings
  */
 export const MULTI_QA_MINILM_L6_COS_V1 = {
+  modelName: 'multi-qa-minilm-l6-cos-v1',
   modelSource: MULTI_QA_MINILM_L6_COS_V1_MODEL,
   tokenizerSource: MULTI_QA_MINILM_L6_COS_V1_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Text Embeddings
  */
 export const MULTI_QA_MPNET_BASE_DOT_V1 = {
+  modelName: 'multi-qa-mpnet-base-dot-v1',
   modelSource: MULTI_QA_MPNET_BASE_DOT_V1_MODEL,
   tokenizerSource: MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER,
-};
+} as const;
 
 /**
  * @category Models - Text Embeddings
@@ -842,7 +881,7 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
   modelName: 'clip-vit-base-patch32-text',
   modelSource: CLIP_VIT_BASE_PATCH32_TEXT_MODEL,
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
-};
+} as const;
 
 // Image generation
 
@@ -850,23 +889,25 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
  * @category Models - Image Generation
  */
 export const BK_SDM_TINY_VPRED_512 = {
+  modelName: 'bk-sdm-tiny-vpred-512',
   schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
   tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
   encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
   unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.pte`,
   decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.pte`,
-};
+} as const;
 
 /**
  * @category Models - Image Generation
  */
 export const BK_SDM_TINY_VPRED_256 = {
+  modelName: 'bk-sdm-tiny-vpred-256',
   schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
   tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
   encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
   unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.256.pte`,
   decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.256.pte`,
-};
+} as const;
 
 // Voice Activity Detection
 const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn-vad_xnnpack.pte`;
@@ -875,5 +916,6 @@ const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn-vad_x
  * @category Models - Voice Activity Detection
  */
 export const FSMN_VAD = {
+  modelName: 'fsmn-vad',
   modelSource: FSMN_VAD_MODEL,
-};
+} as const;

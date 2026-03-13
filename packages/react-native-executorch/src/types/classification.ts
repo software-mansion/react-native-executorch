@@ -2,15 +2,25 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from './common';
 
 /**
+ * Union of all built-in classification model names.
+ *
+ * @category Types
+ */
+export type ClassificationModelName =
+  | 'efficientnet-v2-s'
+  | 'efficientnet-v2-s-quantized';
+
+/**
  * Props for the `useClassification` hook.
  *
  * @category Types
- * @property {Object} model - An object containing the model source.
+ * @property {Object} model - An object containing the model configuration.
+ * @property {ClassificationModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - The source of the classification model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface ClassificationProps {
-  model: { modelSource: ResourceSource };
+  model: { modelName: ClassificationModelName; modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 

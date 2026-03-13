@@ -39,6 +39,7 @@ export const useSemanticSegmentation = <
       factory: (config, onProgress) =>
         SemanticSegmentationModule.fromModelName(config, onProgress),
       config: model,
+      deps: [model.modelName, model.modelSource],
       preventLoad,
     });
 

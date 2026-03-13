@@ -78,6 +78,7 @@ export function useLLM({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     controllerInstance,
+    model.modelName,
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,

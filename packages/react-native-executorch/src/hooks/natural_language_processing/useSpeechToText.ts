@@ -24,42 +24,52 @@ export const useSpeechToText = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-
-  const [moduleInstance, _] = useState(() => new SpeechToTextModule());
+  const [moduleInstance, setModuleInstance] =
+    useState<SpeechToTextModule | null>(null);
 
   useEffect(() => {
     if (preventLoad) return;
-    let isMounted = true;
 
-    (async () => {
-      setDownloadProgress(0);
-      setError(null);
-      try {
-        setIsReady(false);
-        await moduleInstance.load(
-          {
-            type: model.type,
-            isMultilingual: model.isMultilingual,
-            modelSource: model.modelSource,
-            tokenizerSource: model.tokenizerSource,
-          },
-          (progress) => {
-            if (isMounted) setDownloadProgress(progress);
-          }
-        );
-        if (isMounted) setIsReady(true);
-      } catch (err) {
-        if (isMounted) setError(parseUnknownError(err));
+    let active = true;
+    setDownloadProgress(0);
+    setError(null);
+    setIsReady(false);
+
+    SpeechToTextModule.fromModelName(
+      {
+        modelName: model.modelName,
+        isMultilingual: model.isMultilingual,
+        modelSource: model.modelSource,
+        tokenizerSource: model.tokenizerSource,
+      },
+      (p) => {
+        if (active) setDownloadProgress(p);
       }
-    })();
+    )
+      .then((mod) => {
+        if (!active) {
+          mod.delete();
+          return;
+        }
+        setModuleInstance((prev) => {
+          prev?.delete();
+          return mod;
+        });
+        setIsReady(true);
+      })
+      .catch((err) => {
+        if (active) setError(parseUnknownError(err));
+      });
 
     return () => {
-      isMounted = false;
-      moduleInstance.delete();
+      active = false;
+      setModuleInstance((prev) => {
+        prev?.delete();
+        return null;
+      });
     };
   }, [
-    moduleInstance,
-    model.type,
+    model.modelName,
     model.isMultilingual,
     model.modelSource,
     model.tokenizerSource,
@@ -71,7 +81,7 @@ export const useSpeechToText = ({
       waveform: Float32Array,
       options: DecodingOptions = {}
     ): Promise<TranscriptionResult> => {
-      if (!isReady) {
+      if (!isReady || !moduleInstance) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
           'The model is currently not loaded. Please load the model before calling this function.'
@@ -103,7 +113,7 @@ export const useSpeechToText = ({
       void,
       unknown
     > {
-      if (!isReady) {
+      if (!isReady || !moduleInstance) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
           'The model is currently not loaded. Please load the model before calling this function.'
@@ -131,16 +141,43 @@ export const useSpeechToText = ({
 
   const streamInsert = useCallback(
     (waveform: Float32Array) => {
-      if (!isReady) return;
+      if (!isReady || !moduleInstance) return;
       moduleInstance.streamInsert(waveform);
     },
     [isReady, moduleInstance]
   );
 
   const streamStop = useCallback(() => {
-    if (!isReady) return;
+    if (!isReady || !moduleInstance) return;
     moduleInstance.streamStop();
   }, [isReady, moduleInstance]);
+
+  const encode = useCallback(
+    (waveform: Float32Array): Promise<Float32Array> => {
+      if (!moduleInstance)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling this function.'
+        );
+      return moduleInstance.encode(waveform);
+    },
+    [moduleInstance]
+  );
+
+  const decode = useCallback(
+    (
+      tokens: Int32Array,
+      encoderOutput: Float32Array
+    ): Promise<Float32Array> => {
+      if (!moduleInstance)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling this function.'
+        );
+      return moduleInstance.decode(tokens, encoderOutput);
+    },
+    [moduleInstance]
+  );
 
   return {
     error,
@@ -151,7 +188,7 @@ export const useSpeechToText = ({
     stream,
     streamInsert,
     streamStop,
-    encode: moduleInstance.encode.bind(moduleInstance),
-    decode: moduleInstance.decode.bind(moduleInstance),
+    encode,
+    decode,
   };
 };
