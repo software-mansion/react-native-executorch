@@ -28,9 +28,9 @@ import Svg, { Path, Polygon } from 'react-native-svg';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
-import ClassificationTask from './tasks/ClassificationTask';
-import ObjectDetectionTask from './tasks/ObjectDetectionTask';
-import SegmentationTask from './tasks/SegmentationTask';
+import ClassificationTask from '../../components/vision_camera/tasks/ClassificationTask';
+import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
+import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
 
 type TaskId = 'classification' | 'objectDetection' | 'segmentation';
 type ModelId =
