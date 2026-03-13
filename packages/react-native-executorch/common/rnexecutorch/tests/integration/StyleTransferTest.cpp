@@ -191,8 +191,8 @@ TEST(StyleTransferPixelTests, OutputDimensionsMatchInputSize) {
 // ============================================================================
 TEST(StyleTransferThreadSafetyTests, TwoConcurrentGeneratesDoNotCrash) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  std::atomic<int> successCount{0};
-  std::atomic<int> exceptionCount{0};
+  std::atomic<int32_t> successCount{0};
+  std::atomic<int32_t> exceptionCount{0};
 
   auto task = [&]() {
     try {
