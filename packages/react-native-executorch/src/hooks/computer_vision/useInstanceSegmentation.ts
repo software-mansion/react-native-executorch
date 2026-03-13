@@ -53,6 +53,7 @@ export const useInstanceSegmentation = <
     downloadProgress,
     runForward,
     instance,
+    runOnFrame,
   } = useModuleFactory({
     factory: (config, onProgress) =>
       InstanceSegmentationModule.fromModelName(config, onProgress),
@@ -74,5 +75,6 @@ export const useInstanceSegmentation = <
     downloadProgress,
     forward,
     getAvailableInputSizes,
+    runOnFrame,
   };
 };

@@ -1,4 +1,4 @@
-import { ResourceSource, LabelEnum } from '../../types/common';
+import { ResourceSource, LabelEnum, PixelData } from '../../types/common';
 import {
   InstanceSegmentationModelSources,
   InstanceSegmentationConfig,
@@ -11,10 +11,10 @@ import {
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import {
-  BaseLabeledModule,
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
-} from '../BaseLabeledModule';
+  VisionLabeledModule,
+} from './VisionLabeledModule';
 import {
   CocoLabel,
   CocoLabelYolo,
@@ -128,7 +128,10 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  */
 export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
-> extends BaseLabeledModule<ResolveLabels<T>> {
+> extends VisionLabeledModule<
+  SegmentedInstance<ResolveLabels<T>>[],
+  ResolveLabels<T>
+> {
   private modelConfig: InstanceSegmentationConfig<LabelEnum>;
   private classIndexToLabel: Map<number, string>;
   private labelEnumOffset: number;
@@ -271,7 +274,11 @@ export class InstanceSegmentationModule<
   /**
    * Executes the model's forward pass to perform instance segmentation on the provided image.
    *
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * @param input - Image source (string path or PixelData object)
    * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
    * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`, and `instanceId`.
    * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
@@ -293,7 +300,7 @@ export class InstanceSegmentationModule<
    * ```
    */
   async forward(
-    imageSource: string,
+    input: string | PixelData,
     options?: InstanceSegmentationOptions<ResolveLabels<T>>
   ): Promise<SegmentedInstance<ResolveLabels<T>>[]> {
     if (this.nativeModule == null) {
@@ -342,15 +349,25 @@ export class InstanceSegmentationModule<
       : [];
 
     const nativeResult: NativeSegmentedInstance[] =
-      await this.nativeModule.generate(
-        imageSource,
-        confidenceThreshold,
-        iouThreshold,
-        maxInstances,
-        classIndices,
-        returnMaskAtOriginalResolution,
-        methodName
-      );
+      typeof input === 'string'
+        ? await this.nativeModule.generateFromString(
+            input,
+            confidenceThreshold,
+            iouThreshold,
+            maxInstances,
+            classIndices,
+            returnMaskAtOriginalResolution,
+            methodName
+          )
+        : await this.nativeModule.generateFromPixels(
+            input,
+            confidenceThreshold,
+            iouThreshold,
+            maxInstances,
+            classIndices,
+            returnMaskAtOriginalResolution,
+            methodName
+          );
 
     return nativeResult.map((inst) => ({
       bbox: inst.bbox,

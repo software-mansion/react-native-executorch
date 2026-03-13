@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, ResourceSource, Triple } from './common';
+import { LabelEnum, ResourceSource, Triple, Frame } from './common';
 import { Bbox } from './objectDetection';
 
 /**
@@ -196,4 +196,24 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
    * @returns An array of available input sizes, or undefined if not constrained.
    */
   getAvailableInputSizes: () => readonly number[] | undefined;
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @param frame - VisionCamera Frame object
+   * @param options - Optional configuration for the segmentation process.
+   * @returns Array of SegmentedInstance objects representing detected items in the frame.
+   */
+  runOnFrame:
+    | ((
+        frame: Frame,
+        options?: InstanceSegmentationOptions<L>
+      ) => SegmentedInstance<L>[])
+    | null;
 }
