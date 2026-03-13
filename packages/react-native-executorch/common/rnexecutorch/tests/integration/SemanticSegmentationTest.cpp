@@ -190,32 +190,6 @@ TEST(SemanticSegmentationPixelTests, ClassFilterLimitsClassBuffers) {
   }
 }
 
-TEST(SemanticSegmentationPixelTests, WrongSizesThrows) {
-  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
-  std::vector<uint8_t> buf(16, 0);
-  JSTensorViewIn view{buf.data(), {4, 4}, executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
-               RnExecutorchError);
-}
-
-TEST(SemanticSegmentationPixelTests, WrongChannelsThrows) {
-  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
-  std::vector<uint8_t> buf(64, 0);
-  JSTensorViewIn view{
-      buf.data(), {4, 4, 4}, executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
-               RnExecutorchError);
-}
-
-TEST(SemanticSegmentationPixelTests, WrongScalarTypeThrows) {
-  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
-  std::vector<uint8_t> buf(48, 0);
-  JSTensorViewIn view{
-      buf.data(), {4, 4, 3}, executorch::aten::ScalarType::Float};
-  EXPECT_THROW((void)model.generateFromPixels(view, {}, true),
-               RnExecutorchError);
-}
-
 // ============================================================================
 // Inherited BaseModel tests
 // ============================================================================

@@ -11,6 +11,7 @@ The following hooks expose `runOnFrame`:
 - [`useClassification`](./useClassification.md)
 - [`useImageEmbeddings`](./useImageEmbeddings.md)
 - [`useOCR`](./useOCR.md)
+- [`useVerticalOCR`](./useVerticalOCR.md)
 - [`useObjectDetection`](./useObjectDetection.md)
 - [`useSemanticSegmentation`](./useSemanticSegmentation.md)
 - [`useStyleTransfer`](./useStyleTransfer.md)
@@ -32,35 +33,23 @@ Use `runOnFrame` when you need to process every camera frame. Use `forward` for 
 
 ## Setup
 
-### 1. Store runOnFrame in state
-
-`runOnFrame` is a worklet function. Passing it directly to `useState` would cause React to invoke it as a state-updater function. Use the functional form of `setState` instead:
+`runOnFrame` is a stable worklet function exposed directly from the hook. Pass it to `useFrameProcessor` and guard with `model.isReady` — no need to store it in state:
 
 ```tsx
-import React, { useState, useEffect } from 'react';
-import { Camera, useFrameProcessor } from 'react-native-vision-camera';
+import { useFrameProcessor } from 'react-native-vision-camera';
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 
 export default function App() {
   const model = useClassification({ model: EFFICIENTNET_V2_S });
 
-  const [runOnFrame, setRunOnFrame] = useState<typeof model.runOnFrame>(null);
-
-  useEffect(() => {
-    if (model.isReady) {
-      setRunOnFrame(() => model.runOnFrame);
-    }
-  }, [model.isReady, model.runOnFrame]);
-
   const frameProcessor = useFrameProcessor(
     (frame) => {
       'worklet';
-      if (!runOnFrame) return;
+      if (!model.isReady) return;
 
-      runOnFrame(frame);
-      // use the returned result ...
+      model.runOnFrame(frame); // use the returned result
     },
-    [runOnFrame]
+    [model.isReady, model.runOnFrame]
   );
 
   return <Camera frameProcessor={frameProcessor} isActive device={device} />;
@@ -70,7 +59,7 @@ export default function App() {
 ## Full example (Classification)
 
 ```tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import {
   Camera,
@@ -82,26 +71,18 @@ import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 export default function App() {
   const device = useCameraDevice('back');
   const model = useClassification({ model: EFFICIENTNET_V2_S });
-
-  const [runOnFrame, setRunOnFrame] = useState<typeof model.runOnFrame>(null);
   const [topLabel, setTopLabel] = useState<string>('');
-
-  useEffect(() => {
-    if (model.isReady) {
-      setRunOnFrame(() => model.runOnFrame);
-    }
-  }, [model.isReady, model.runOnFrame]);
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
       'worklet';
-      if (!runOnFrame) return;
+      if (!model.isReady) return;
 
-      const scores = runOnFrame(frame);
+      const scores = model.runOnFrame(frame);
       const top = Object.entries(scores).sort(([, a], [, b]) => b - a)[0];
       if (top) setTopLabel(top[0]);
     },
-    [runOnFrame]
+    [model.isReady, model.runOnFrame]
   );
 
   if (!device) return null;

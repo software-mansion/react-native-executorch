@@ -1,7 +1,9 @@
 #include "BaseModelTests.h"
 #include <cmath>
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 
 using namespace rnexecutorch;
@@ -121,4 +123,17 @@ TEST(ImageEmbeddingsInheritedTests, GetMethodMetaWorks) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(ImageEmbeddingsPixelTests, ValidPixelsReturnsEmbedding) {
+  ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto result = model.generateFromPixels(view);
+  EXPECT_NE(result, nullptr);
+  EXPECT_GT(result->size(), 0u);
 }

@@ -32,8 +32,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
   }
 }
 
-// Runs inference and returns the styled BGR cv::Mat resized to outputSize.
-// Acquires inference_mutex_ for the duration.
 cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
   std::scoped_lock lock(inference_mutex_);
 
@@ -84,11 +82,8 @@ StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
 
 PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
-  // extractFromFrame rotates landscape frames 90° CW automatically.
   cv::Mat frame = extractFromFrame(runtime, frameData);
 
-  // For real-time frame processing, output at modelInputSize to avoid
-  // allocating large buffers (e.g. 1280x720x3 ~2.7MB) on every frame.
   return toPixelDataResult(runInference(frame, modelInputSize()));
 }
 

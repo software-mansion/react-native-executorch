@@ -1,6 +1,8 @@
 #include "BaseModelTests.h"
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/classification/Constants.h>
 
@@ -114,4 +116,16 @@ TEST(ClassificationInheritedTests, GetMethodMetaWorks) {
   Classification model(kValidClassificationModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(ClassificationPixelTests, ValidPixelsReturnsResults) {
+  Classification model(kValidClassificationModelPath, nullptr);
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(view);
+  EXPECT_FALSE(results.empty());
 }
