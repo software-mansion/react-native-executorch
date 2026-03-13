@@ -1,9 +1,9 @@
+// apps/computer-vision/app/vision_camera/index.tsx
 import React, {
   useCallback,
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -18,43 +18,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import {
   Camera,
-  Frame,
   getCameraFormat,
   Templates,
   useCameraDevices,
   useCameraPermission,
   useFrameOutput,
 } from 'react-native-vision-camera';
-import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
-import {
-  DEEPLAB_V3_RESNET50_QUANTIZED,
-  DEEPLAB_V3_RESNET101_QUANTIZED,
-  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
-  FCN_RESNET50_QUANTIZED,
-  FCN_RESNET101_QUANTIZED,
-  SELFIE_SEGMENTATION,
-  Detection,
-  EFFICIENTNET_V2_S,
-  RF_DETR_NANO,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  useClassification,
-  useSemanticSegmentation,
-  useObjectDetection,
-} from 'react-native-executorch';
-import {
-  AlphaType,
-  Canvas,
-  ColorType,
-  Image as SkiaImage,
-  Skia,
-  SkImage,
-} from '@shopify/react-native-skia';
+import { createSynchronizable } from 'react-native-worklets';
 import Svg, { Path, Polygon } from 'react-native-svg';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
-import { CLASS_COLORS, labelColor, labelColorBg } from './utils/colors';
+import ClassificationTask from './tasks/ClassificationTask';
+import ObjectDetectionTask from './tasks/ObjectDetectionTask';
+import SegmentationTask from './tasks/SegmentationTask';
 
 type TaskId = 'classification' | 'objectDetection' | 'segmentation';
 type ModelId =
@@ -101,6 +78,8 @@ const TASKS: Task[] = [
   },
 ];
 
+// Module-level const so worklets in task components can always reference the same stable object.
+// Never replaced — only mutated via setBlocking to avoid closure staleness.
 const frameKillSwitch = createSynchronizable(false);
 
 export default function VisionCameraScreen() {
@@ -108,93 +87,18 @@ export default function VisionCameraScreen() {
   const [activeTask, setActiveTask] = useState<TaskId>('classification');
   const [activeModel, setActiveModel] = useState<ModelId>('classification');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
-  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(
+  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
     'back'
   );
-  const { setGlobalGenerating } = useContext(GeneratingContext);
-
-  const classification = useClassification({
-    model: EFFICIENTNET_V2_S,
-    preventLoad: activeModel !== 'classification',
-  });
-  const objectDetectionSsdlite = useObjectDetection({
-    model: SSDLITE_320_MOBILENET_V3_LARGE,
-    preventLoad: activeModel !== 'objectDetection_ssdlite',
-  });
-  const objectDetectionRfdetr = useObjectDetection({
-    model: RF_DETR_NANO,
-    preventLoad: activeModel !== 'objectDetection_rfdetr',
-  });
-
-  const activeObjectDetection =
-    {
-      objectDetection_ssdlite: objectDetectionSsdlite,
-      objectDetection_rfdetr: objectDetectionRfdetr,
-    }[activeModel as 'objectDetection_ssdlite' | 'objectDetection_rfdetr'] ??
-    null;
-  const segDeeplabResnet50 = useSemanticSegmentation({
-    model: DEEPLAB_V3_RESNET50_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_resnet50',
-  });
-  const segDeeplabResnet101 = useSemanticSegmentation({
-    model: DEEPLAB_V3_RESNET101_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_resnet101',
-  });
-  const segDeeplabMobilenet = useSemanticSegmentation({
-    model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_mobilenet',
-  });
-  const segLraspp = useSemanticSegmentation({
-    model: LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_lraspp',
-  });
-  const segFcnResnet50 = useSemanticSegmentation({
-    model: FCN_RESNET50_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_fcn_resnet50',
-  });
-  const segFcnResnet101 = useSemanticSegmentation({
-    model: FCN_RESNET101_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_fcn_resnet101',
-  });
-  const segSelfie = useSemanticSegmentation({
-    model: SELFIE_SEGMENTATION,
-    preventLoad: activeModel !== 'segmentation_selfie',
-  });
-
-  const activeSegmentation =
-    {
-      segmentation_deeplab_resnet50: segDeeplabResnet50,
-      segmentation_deeplab_resnet101: segDeeplabResnet101,
-      segmentation_deeplab_mobilenet: segDeeplabMobilenet,
-      segmentation_lraspp: segLraspp,
-      segmentation_fcn_resnet50: segFcnResnet50,
-      segmentation_fcn_resnet101: segFcnResnet101,
-      segmentation_selfie: segSelfie,
-    }[
-      activeModel as
-        | 'segmentation_deeplab_resnet50'
-        | 'segmentation_deeplab_resnet101'
-        | 'segmentation_deeplab_mobilenet'
-        | 'segmentation_lraspp'
-        | 'segmentation_fcn_resnet50'
-        | 'segmentation_fcn_resnet101'
-        | 'segmentation_selfie'
-    ] ?? null;
-
-  const activeIsGenerating =
-    activeModel === 'classification'
-      ? classification.isGenerating
-      : activeModel.startsWith('objectDetection')
-        ? (activeObjectDetection?.isGenerating ?? false)
-        : (activeSegmentation?.isGenerating ?? false);
-
-  useEffect(() => {
-    setGlobalGenerating(activeIsGenerating);
-  }, [activeIsGenerating, setGlobalGenerating]);
-
   const [fps, setFps] = useState(0);
   const [frameMs, setFrameMs] = useState(0);
-  const lastFrameTimeRef = useRef(Date.now());
+  const [isReady, setIsReady] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [frameOutput, setFrameOutput] = useState<ReturnType<
+    typeof useFrameOutput
+  > | null>(null);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+
   const isFocused = useIsFocused();
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
@@ -209,168 +113,25 @@ export default function VisionCameraScreen() {
     }
   }, [device]);
 
-  const [classResult, setClassResult] = useState({ label: '', score: 0 });
-  const [detections, setDetections] = useState<Detection[]>([]);
-  const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
-  const [maskImage, setMaskImage] = useState<SkImage | null>(null);
-
-  const updateClass = useCallback((r: { label: string; score: number }) => {
-    setClassResult(r);
-    const now = Date.now();
-    const diff = now - lastFrameTimeRef.current;
-    if (diff > 0) {
-      setFps(Math.round(1000 / diff));
-      setFrameMs(diff);
-    }
-    lastFrameTimeRef.current = now;
-  }, []);
-
-  const updateFps = useCallback(() => {
-    const now = Date.now();
-    const diff = now - lastFrameTimeRef.current;
-    if (diff > 0) {
-      setFps(Math.round(1000 / diff));
-      setFrameMs(diff);
-    }
-    lastFrameTimeRef.current = now;
-  }, []);
-
-  const updateDetections = useCallback(
-    (p: { results: Detection[]; imageWidth: number; imageHeight: number }) => {
-      setDetections(p.results);
-      setImageSize({ width: p.imageWidth, height: p.imageHeight });
-      updateFps();
-    },
-    [updateFps]
-  );
-
-  const updateMask = useCallback(
-    (img: SkImage) => {
-      setMaskImage((prev) => {
-        prev?.dispose();
-        return img;
-      });
-      updateFps();
-    },
-    [updateFps]
-  );
-
-  const classRof = classification.runOnFrame;
-  const detRof = activeObjectDetection?.runOnFrame ?? null;
-  const segRof = activeSegmentation?.runOnFrame ?? null;
-
   useEffect(() => {
     frameKillSwitch.setBlocking(true);
-    setMaskImage((prev) => {
-      prev?.dispose();
-      return null;
-    });
     const id = setTimeout(() => {
       frameKillSwitch.setBlocking(false);
     }, 300);
     return () => clearTimeout(id);
   }, [activeModel]);
 
-  const frameOutput = useFrameOutput({
-    pixelFormat: 'rgb',
-    dropFramesWhileBusy: true,
-    onFrame: useCallback(
-      (frame: Frame) => {
-        'worklet';
+  const handleFpsChange = useCallback((newFps: number, newMs: number) => {
+    setFps(newFps);
+    setFrameMs(newMs);
+  }, []);
 
-        if (frameKillSwitch.getDirty()) {
-          frame.dispose();
-          return;
-        }
-
-        try {
-          if (activeModel === 'classification') {
-            if (!classRof) return;
-            const result = classRof(frame);
-            if (result) {
-              let bestLabel = '';
-              let bestScore = -1;
-              const entries = Object.entries(result);
-              for (let i = 0; i < entries.length; i++) {
-                const [label, score] = entries[i]!;
-                if ((score as number) > bestScore) {
-                  bestScore = score as number;
-                  bestLabel = label;
-                }
-              }
-              scheduleOnRN(updateClass, { label: bestLabel, score: bestScore });
-            }
-          } else if (activeModel.startsWith('objectDetection')) {
-            if (!detRof) return;
-            const iw = frame.width > frame.height ? frame.height : frame.width;
-            const ih = frame.width > frame.height ? frame.width : frame.height;
-            const result = detRof(frame, 0.5);
-            if (result) {
-              scheduleOnRN(updateDetections, {
-                results: result,
-                imageWidth: iw,
-                imageHeight: ih,
-              });
-            }
-          } else if (activeModel.startsWith('segmentation')) {
-            if (!segRof) return;
-            const result = segRof(frame, [], false);
-            if (result?.ARGMAX) {
-              const argmax: Int32Array = result.ARGMAX;
-              const side = Math.round(Math.sqrt(argmax.length));
-              const pixels = new Uint8Array(side * side * 4);
-              for (let i = 0; i < argmax.length; i++) {
-                const color = CLASS_COLORS[argmax[i]!] ?? [0, 0, 0, 0];
-                pixels[i * 4] = color[0]!;
-                pixels[i * 4 + 1] = color[1]!;
-                pixels[i * 4 + 2] = color[2]!;
-                pixels[i * 4 + 3] = color[3]!;
-              }
-              const skData = Skia.Data.fromBytes(pixels);
-              const img = Skia.Image.MakeImage(
-                {
-                  width: side,
-                  height: side,
-                  alphaType: AlphaType.Unpremul,
-                  colorType: ColorType.RGBA_8888,
-                },
-                skData,
-                side * 4
-              );
-              if (img) scheduleOnRN(updateMask, img);
-            }
-          }
-        } catch {
-          // ignore
-        } finally {
-          frame.dispose();
-        }
-      },
-      [
-        activeModel,
-        classRof,
-        detRof,
-        segRof,
-        updateClass,
-        updateDetections,
-        updateMask,
-      ]
-    ),
-  });
-
-  const activeIsReady =
-    activeModel === 'classification'
-      ? classification.isReady
-      : activeModel.startsWith('objectDetection')
-        ? (activeObjectDetection?.isReady ?? false)
-        : (activeSegmentation?.isReady ?? false);
-
-  const activeDownloadProgress =
-    activeModel === 'classification'
-      ? classification.downloadProgress
-      : activeModel.startsWith('objectDetection')
-        ? (activeObjectDetection?.downloadProgress ?? 0)
-        : (activeSegmentation?.downloadProgress ?? 0);
+  const handleGeneratingChange = useCallback(
+    (generating: boolean) => {
+      setGlobalGenerating(generating);
+    },
+    [setGlobalGenerating]
+  );
 
   if (!cameraPermission.hasPermission) {
     return (
@@ -394,25 +155,22 @@ export default function VisionCameraScreen() {
     );
   }
 
-  function coverFit(imgW: number, imgH: number) {
-    const scale = Math.max(canvasSize.width / imgW, canvasSize.height / imgH);
-    return {
-      scale,
-      offsetX: (canvasSize.width - imgW * scale) / 2,
-      offsetY: (canvasSize.height - imgH * scale) / 2,
-    };
-  }
-
-  const {
-    scale: detScale,
-    offsetX: detOX,
-    offsetY: detOY,
-  } = coverFit(imageSize.width, imageSize.height);
-
   const activeTaskInfo = TASKS.find((t) => t.id === activeTask)!;
   const activeVariantLabel =
     activeTaskInfo.variants.find((v) => v.id === activeModel)?.label ??
     activeTaskInfo.variants[0]!.label;
+
+  const taskProps = {
+    activeModel,
+    canvasSize,
+    cameraPosition,
+    frameKillSwitch,
+    onFrameOutputChange: setFrameOutput,
+    onReadyChange: setIsReady,
+    onProgressChange: setDownloadProgress,
+    onGeneratingChange: handleGeneratingChange,
+    onFpsChange: handleFpsChange,
+  };
 
   return (
     <View style={styles.container}>
@@ -421,17 +179,15 @@ export default function VisionCameraScreen() {
       <Camera
         style={StyleSheet.absoluteFill}
         device={device}
-        outputs={[frameOutput]}
+        outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         format={format}
         orientationSource="interface"
       />
 
+      {/* Layout sentinel — measures the full-screen area for bbox/canvas sizing */}
       <View
-        style={[
-          StyleSheet.absoluteFill,
-          cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-        ]}
+        style={StyleSheet.absoluteFill}
         pointerEvents="none"
         onLayout={(e) =>
           setCanvasSize({
@@ -439,75 +195,38 @@ export default function VisionCameraScreen() {
             height: e.nativeEvent.layout.height,
           })
         }
-      >
-        {activeModel.startsWith('segmentation') && maskImage && (
-          <Canvas style={StyleSheet.absoluteFill}>
-            <SkiaImage
-              image={maskImage}
-              fit="cover"
-              x={0}
-              y={0}
-              width={canvasSize.width}
-              height={canvasSize.height}
-            />
-          </Canvas>
-        )}
+      />
 
-        {activeModel.startsWith('objectDetection') && (
-          <>
-            {detections.map((det, i) => {
-              const left = det.bbox.x1 * detScale + detOX;
-              const top = det.bbox.y1 * detScale + detOY;
-              const w = (det.bbox.x2 - det.bbox.x1) * detScale;
-              const h = (det.bbox.y2 - det.bbox.y1) * detScale;
-              return (
-                <View
-                  key={i}
-                  style={[
-                    styles.bbox,
-                    {
-                      left,
-                      top,
-                      width: w,
-                      height: h,
-                      borderColor: labelColor(det.label),
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.bboxLabel,
-                      { backgroundColor: labelColorBg(det.label) },
-                      cameraPosition === 'front' && {
-                        transform: [{ scaleX: -1 }],
-                      },
-                    ]}
-                  >
-                    <Text style={styles.bboxLabelText}>
-                      {det.label} {(det.score * 100).toFixed(1)}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </>
-        )}
-      </View>
+      {activeTask === 'classification' && <ClassificationTask {...taskProps} />}
+      {activeTask === 'objectDetection' && (
+        <ObjectDetectionTask
+          {...taskProps}
+          activeModel={
+            activeModel as 'objectDetection_ssdlite' | 'objectDetection_rfdetr'
+          }
+        />
+      )}
+      {activeTask === 'segmentation' && (
+        <SegmentationTask
+          {...taskProps}
+          activeModel={
+            activeModel as
+              | 'segmentation_deeplab_resnet50'
+              | 'segmentation_deeplab_resnet101'
+              | 'segmentation_deeplab_mobilenet'
+              | 'segmentation_lraspp'
+              | 'segmentation_fcn_resnet50'
+              | 'segmentation_fcn_resnet101'
+              | 'segmentation_selfie'
+          }
+        />
+      )}
 
-      {activeModel === 'classification' && classResult.label ? (
-        <View style={styles.classResultOverlay} pointerEvents="none">
-          <Text style={styles.classResultLabel}>{classResult.label}</Text>
-          <Text style={styles.classResultScore}>
-            {(classResult.score * 100).toFixed(1)}%
-          </Text>
-        </View>
-      ) : null}
-
-      {!activeIsReady && (
+      {!isReady && (
         <View style={styles.loadingOverlay}>
           <Spinner
             visible
-            textContent={`Loading ${activeTaskInfo.label} ${(activeDownloadProgress * 100).toFixed(0)}%`}
+            textContent={`Loading ${activeTaskInfo.label} ${(downloadProgress * 100).toFixed(0)}%`}
           />
         </View>
       )}
@@ -587,7 +306,6 @@ export default function VisionCameraScreen() {
           }
         >
           <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-            {/* Camera body */}
             <Path
               d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
               stroke="white"
@@ -595,7 +313,6 @@ export default function VisionCameraScreen() {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Rotate arrows — arc with arrowhead around the lens */}
             <Path
               d="M9 13.5a3 3 0 1 0 3-3"
               stroke="white"
@@ -633,7 +350,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   topOverlay: {
     position: 'absolute',
     top: 0,
@@ -663,7 +379,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-
   tabsContent: {
     paddingHorizontal: 12,
     gap: 6,
@@ -686,7 +401,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabTextActive: { color: 'white' },
-
   chipsContent: {
     paddingHorizontal: 12,
     gap: 6,
@@ -709,47 +423,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   variantChipTextActive: { color: 'white' },
-
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: 'cyan',
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    top: -22,
-    left: -2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: { color: 'white', fontSize: 11, fontWeight: '600' },
-
-  classResultOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  classResultLabel: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
-    paddingHorizontal: 24,
-  },
-  classResultScore: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 4,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
-  },
   bottomOverlay: {
     position: 'absolute',
     bottom: 0,
