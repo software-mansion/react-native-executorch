@@ -12,10 +12,6 @@ import { VisionModule } from './VisionModule';
  * @category Typescript API
  */
 export class StyleTransferModule extends VisionModule<PixelData | string> {
-  private constructor(nativeModule: unknown) {
-    super();
-    this.nativeModule = nativeModule;
-  }
   /**
    * Creates a style transfer instance for a built-in model.
    *
@@ -43,7 +39,9 @@ export class StyleTransferModule extends VisionModule<PixelData | string> {
         );
       }
 
-      return new StyleTransferModule(await global.loadStyleTransfer(paths[0]));
+      const instance = new StyleTransferModule();
+      instance.nativeModule = await global.loadStyleTransfer(paths[0]);
+      return instance;
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
