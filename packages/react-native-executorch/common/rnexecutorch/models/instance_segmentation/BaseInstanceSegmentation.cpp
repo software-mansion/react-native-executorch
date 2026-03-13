@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
@@ -283,8 +284,8 @@ std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
     instances.resize(maxInstances);
   }
 
-  for (int32_t i = 0; i < instances.size(); ++i) {
-    instances[i].instanceId = static_cast<int32_t>(i);
+  for (int32_t i = 0; std::cmp_less(i, instances.size()); ++i) {
+    instances[i].instanceId = i;
   }
 
   return instances;
@@ -320,10 +321,12 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
 
   auto isValidDetection =
       [&allowedClasses, &confidenceThreshold](float score, int32_t labelIdx) {
-        if (score < confidenceThreshold)
+        if (score < confidenceThreshold) {
           return false;
-        if (!allowedClasses.empty() && allowedClasses.count(labelIdx) == 0)
+        }
+        if (!allowedClasses.empty() && allowedClasses.count(labelIdx) == 0) {
           return false;
+        }
         return true;
       };
 
@@ -333,13 +336,15 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
     auto [bboxModel, score, labelIdx] =
         extractDetectionData(bboxData, scoresData, i);
 
-    if (!isValidDetection(score, labelIdx))
+    if (!isValidDetection(score, labelIdx)) {
       continue;
+    }
 
     utils::computer_vision::BBox bboxOriginal =
         bboxModel.scale(widthRatio, heightRatio);
-    if (!bboxOriginal.isValid())
+    if (!bboxOriginal.isValid()) {
       continue;
+    }
 
     cv::Mat logitsMat(maskH, maskW, CV_32FC1,
                       const_cast<float *>(maskData + (i * maskH * maskW)));
