@@ -1,6 +1,8 @@
 #include "BaseModelTests.h"
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <string>
 
@@ -125,4 +127,17 @@ TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
   for (const auto &detection : results) {
     EXPECT_FALSE(detection.text.empty());
   }
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(OCRPixelTests, ValidPixelsReturnsResults) {
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
+            createMockCallInvoker());
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(view);
+  EXPECT_GE(results.size(), 0u);
 }

@@ -1,6 +1,8 @@
 #include "BaseModelTests.h"
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <string>
 
@@ -238,4 +240,17 @@ TEST(VerticalOCRStrategyTests, BothStrategiesReturnValidResults) {
   // Both should return some results (or none if no text detected)
   EXPECT_GE(independentResults.size(), 0u);
   EXPECT_GE(jointResults.size(), 0u);
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(VerticalOCRPixelTests, ValidPixelsReturnsResults) {
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
+                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(view);
+  EXPECT_GE(results.size(), 0u);
 }

@@ -10,7 +10,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * React hook for managing a Style Transfer model instance.
  *
  * @category Hooks
- * @param props - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param StyleTransferProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Style Transfer model.
  */
 export const useStyleTransfer = ({
