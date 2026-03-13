@@ -14,6 +14,7 @@ namespace rnexecutorch {
 // to this variable. It's done to not handle SSL intricacies manually, as it is
 // done automagically in ObjC++/Kotlin.
 extern FetchUrlFunc_t fetchUrlFunc;
+extern std::string tempDirPath;
 namespace image_processing {
 std::vector<float> colorMatToVector(const cv::Mat &mat) {
   return colorMatToVector(mat, cv::Scalar(0.0, 0.0, 0.0),
@@ -64,7 +65,9 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
 std::string saveToTempFile(const cv::Mat &image) {
   std::string filename = "rn_executorch_" + file_utils::getTimeID() + ".png";
 
-  std::filesystem::path tempDir = std::filesystem::temp_directory_path();
+  std::filesystem::path tempDir = tempDirPath.empty()
+                                      ? std::filesystem::temp_directory_path()
+                                      : std::filesystem::path(tempDirPath);
   std::filesystem::path filePath = tempDir / filename;
 
   if (!cv::imwrite(filePath.string(), image)) {

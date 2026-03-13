@@ -41,8 +41,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
       throw std::runtime_error("Error fetching data from a url");
     }
   };
+  std::string cacheDir = [NSTemporaryDirectory() UTF8String];
   rnexecutorch::RnExecutorchInstaller::injectJSIBindings(
-      jsiRuntime, jsCallInvoker, fetchUrl);
+      jsiRuntime, jsCallInvoker, fetchUrl, cacheDir);
 
   NSLog(@"Successfully installed JSI bindings for react-native-executorch!");
   return @true;

@@ -30,11 +30,13 @@ namespace rnexecutorch {
 // Kotlin/ObjectiveC++ and then bound to this variable. It's done to not handle
 // SSL intricacies manually, as it is done automagically in ObjC++/Kotlin.
 FetchUrlFunc_t fetchUrlFunc;
+std::string tempDirPath;
 
 void RnExecutorchInstaller::injectJSIBindings(
     jsi::Runtime *jsiRuntime, std::shared_ptr<react::CallInvoker> jsCallInvoker,
-    FetchUrlFunc_t fetchDataFromUrl) {
+    FetchUrlFunc_t fetchDataFromUrl, const std::string &cacheDir) {
   fetchUrlFunc = fetchDataFromUrl;
+  tempDirPath = cacheDir;
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadStyleTransfer",

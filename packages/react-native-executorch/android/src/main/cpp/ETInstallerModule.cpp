@@ -33,7 +33,9 @@ void ETInstallerModule::registerNatives() {
   });
 }
 
-void ETInstallerModule::injectJSIBindings() {
+void ETInstallerModule::injectJSIBindings(
+    jni::alias_ref<jstring> cacheDirPath) {
+  auto cacheDir = cacheDirPath->toStdString();
   // Grab a function for fetching images via URL from Java
   auto fetchDataByUrl = [](std::string url) {
     // Attaching Current Thread to JVM
@@ -65,7 +67,7 @@ void ETInstallerModule::injectJSIBindings() {
   };
 
   RnExecutorchInstaller::injectJSIBindings(jsiRuntime_, jsCallInvoker_,
-                                           fetchDataByUrl);
+                                           fetchDataByUrl, cacheDir);
 }
 } // namespace rnexecutorch
 

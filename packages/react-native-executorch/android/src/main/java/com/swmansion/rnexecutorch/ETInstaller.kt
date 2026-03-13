@@ -45,7 +45,7 @@ class ETInstaller(
     callInvoker: CallInvokerHolderImpl,
   ): HybridData
 
-  private external fun injectJSIBindings()
+  private external fun injectJSIBindings(cacheDirPath: String)
 
   init {
     try {
@@ -60,7 +60,7 @@ class ETInstaller(
 
   @ReactMethod(isBlockingSynchronousMethod = true)
   override fun install(): Boolean {
-    injectJSIBindings()
+    injectJSIBindings(reactApplicationContext.cacheDir.absolutePath)
     return true
   }
 }

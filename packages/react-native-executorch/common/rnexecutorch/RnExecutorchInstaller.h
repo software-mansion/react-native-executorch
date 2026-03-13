@@ -17,6 +17,7 @@ namespace rnexecutorch {
 
 using FetchUrlFunc_t = std::function<std::vector<std::byte>(std::string)>;
 extern FetchUrlFunc_t fetchUrlFunc;
+extern std::string tempDirPath;
 using namespace facebook;
 
 class RnExecutorchInstaller {
@@ -24,7 +25,8 @@ public:
   static void
   injectJSIBindings(jsi::Runtime *jsiRuntime,
                     std::shared_ptr<react::CallInvoker> jsCallInvoker,
-                    FetchUrlFunc_t fetchDataFromUrl);
+                    FetchUrlFunc_t fetchDataFromUrl,
+                    const std::string &cacheDir);
 
 private:
   template <typename ModelT>
@@ -56,72 +58,67 @@ private:
           // access), then dispatch the heavy model construction to a background
           // thread and return a Promise.
           auto constructorArgs =
-              meta::createConstructorArgsWithCallInvoker<ModelT>(
-                  args, runtime, jsCallInvoker);
+              meta::createConstructorArgsWithCallInvoker<ModelT>(args, runtime,
+                                                                 jsCallInvoker);
 
           return Promise::createPromise(
               runtime, jsCallInvoker,
-              [jsCallInvoker,
-               constructorArgs =
-                   std::move(constructorArgs)](std::shared_ptr<Promise> promise) {
-                threads::GlobalThreadPool::detach(
-                    [jsCallInvoker, promise,
-                     constructorArgs = std::move(constructorArgs)]() {
-                      try {
-                        auto modelImplementationPtr = std::apply(
-                            [](auto &&...unpackedArgs) {
-                              return std::make_shared<ModelT>(
-                                  std::forward<decltype(unpackedArgs)>(
-                                      unpackedArgs)...);
-                            },
-                            std::move(constructorArgs));
+              [jsCallInvoker, constructorArgs = std::move(constructorArgs)](
+                  std::shared_ptr<Promise> promise) {
+                threads::GlobalThreadPool::detach([jsCallInvoker, promise,
+                                                   constructorArgs = std::move(
+                                                       constructorArgs)]() {
+                  try {
+                    auto modelImplementationPtr = std::apply(
+                        [](auto &&...unpackedArgs) {
+                          return std::make_shared<ModelT>(
+                              std::forward<decltype(unpackedArgs)>(
+                                  unpackedArgs)...);
+                        },
+                        std::move(constructorArgs));
 
-                        auto modelHostObject =
-                            std::make_shared<ModelHostObject<ModelT>>(
-                                modelImplementationPtr, jsCallInvoker);
+                    auto modelHostObject =
+                        std::make_shared<ModelHostObject<ModelT>>(
+                            modelImplementationPtr, jsCallInvoker);
 
-                        auto memoryLowerBound =
-                            modelImplementationPtr->getMemoryLowerBound();
+                    auto memoryLowerBound =
+                        modelImplementationPtr->getMemoryLowerBound();
 
-                        jsCallInvoker->invokeAsync(
-                            [promise, modelHostObject,
-                             memoryLowerBound](jsi::Runtime &rt) {
-                              auto jsiObject =
-                                  jsi::Object::createFromHostObject(
-                                      rt, modelHostObject);
-                              jsiObject.setExternalMemoryPressure(
-                                  rt, memoryLowerBound);
-                              promise->resolve(std::move(jsiObject));
-                            });
-                      } catch (const rnexecutorch::RnExecutorchError &e) {
-                        auto code = e.getNumericCode();
-                        auto msg = std::string(e.what());
-                        jsCallInvoker->invokeAsync(
-                            [promise, code, msg](jsi::Runtime &rt) {
-                              jsi::Object errorData(rt);
-                              errorData.setProperty(rt, "code", code);
-                              errorData.setProperty(
-                                  rt, "message",
-                                  jsi::String::createFromUtf8(rt, msg));
-                              promise->reject(
-                                  jsi::Value(rt, std::move(errorData)));
-                            });
-                      } catch (const std::runtime_error &e) {
-                        jsCallInvoker->invokeAsync(
-                            [promise, msg = std::string(e.what())]() {
-                              promise->reject(msg);
-                            });
-                      } catch (const std::exception &e) {
-                        jsCallInvoker->invokeAsync(
-                            [promise, msg = std::string(e.what())]() {
-                              promise->reject(msg);
-                            });
-                      } catch (...) {
-                        jsCallInvoker->invokeAsync([promise]() {
-                          promise->reject(std::string("Unknown error"));
-                        });
-                      }
+                    jsCallInvoker->invokeAsync([promise, modelHostObject,
+                                                memoryLowerBound](
+                                                   jsi::Runtime &rt) {
+                      auto jsiObject = jsi::Object::createFromHostObject(
+                          rt, modelHostObject);
+                      jsiObject.setExternalMemoryPressure(rt, memoryLowerBound);
+                      promise->resolve(std::move(jsiObject));
                     });
+                  } catch (const rnexecutorch::RnExecutorchError &e) {
+                    auto code = e.getNumericCode();
+                    auto msg = std::string(e.what());
+                    jsCallInvoker->invokeAsync([promise, code,
+                                                msg](jsi::Runtime &rt) {
+                      jsi::Object errorData(rt);
+                      errorData.setProperty(rt, "code", code);
+                      errorData.setProperty(
+                          rt, "message", jsi::String::createFromUtf8(rt, msg));
+                      promise->reject(jsi::Value(rt, std::move(errorData)));
+                    });
+                  } catch (const std::runtime_error &e) {
+                    jsCallInvoker->invokeAsync(
+                        [promise, msg = std::string(e.what())]() {
+                          promise->reject(msg);
+                        });
+                  } catch (const std::exception &e) {
+                    jsCallInvoker->invokeAsync(
+                        [promise, msg = std::string(e.what())]() {
+                          promise->reject(msg);
+                        });
+                  } catch (...) {
+                    jsCallInvoker->invokeAsync([promise]() {
+                      promise->reject(std::string("Unknown error"));
+                    });
+                  }
+                });
               });
         });
   }
