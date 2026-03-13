@@ -4,6 +4,7 @@
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch::models::ocr {
 OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
@@ -12,12 +13,8 @@ OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
     : detector(detectorSource, callInvoker),
       recognitionHandler(recognizerSource, symbols, callInvoker) {}
 
-std::vector<types::OCRDetection> OCR::generate(std::string input) {
-  cv::Mat image = image_processing::readImage(input);
-  if (image.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "Failed to load image from path: " + input);
-  }
+std::vector<types::OCRDetection> OCR::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
 
   /*
    1. Detection process returns the list of bounding boxes containing areas
@@ -43,12 +40,46 @@ std::vector<types::OCRDetection> OCR::generate(std::string input) {
   return result;
 }
 
+std::vector<types::OCRDetection> OCR::generateFromString(std::string input) {
+  cv::Mat image = image_processing::readImage(input);
+  if (image.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "Failed to load image from path: " + input);
+  }
+  return runInference(image);
+}
+
+std::vector<types::OCRDetection>
+OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
+  cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
+  cv::Mat bgr;
+#ifdef __APPLE__
+  cv::cvtColor(frame, bgr, cv::COLOR_BGRA2BGR);
+#elif defined(__ANDROID__)
+  cv::cvtColor(frame, bgr, cv::COLOR_RGBA2BGR);
+#else
+  throw RnExecutorchError(
+      RnExecutorchErrorCode::PlatformNotSupported,
+      "generateFromFrame is not supported on this platform");
+#endif
+  return runInference(bgr);
+}
+
+std::vector<types::OCRDetection>
+OCR::generateFromPixels(JSTensorViewIn pixelData) {
+  cv::Mat image;
+  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image,
+               cv::COLOR_RGB2BGR);
+  return runInference(image);
+}
+
 std::size_t OCR::getMemoryLowerBound() const noexcept {
   return detector.getMemoryLowerBound() +
          recognitionHandler.getMemoryLowerBound();
 }
 
 void OCR::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
   detector.unload();
   recognitionHandler.unload();
 }

@@ -1,4 +1,4 @@
-import { ResourceSource, LabelEnum } from '../../types/common';
+import { ResourceSource, LabelEnum, PixelData } from '../../types/common';
 import {
   DeeplabLabel,
   ModelNameOf,
@@ -7,14 +7,12 @@ import {
   SemanticSegmentationModelName,
   SelfieSegmentationLabel,
 } from '../../types/semanticSegmentation';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
 import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 import {
-  BaseLabeledModule,
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
-} from '../BaseLabeledModule';
+  VisionLabeledModule,
+} from './VisionLabeledModule';
 
 const PascalVocSegmentationConfig = {
   labelMap: DeeplabLabel,
@@ -79,7 +77,10 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
  */
 export class SemanticSegmentationModule<
   T extends SemanticSegmentationModelName | LabelEnum,
-> extends BaseLabeledModule<ResolveLabels<T>> {
+> extends VisionLabeledModule<
+  Record<'ARGMAX', Int32Array> & Record<keyof ResolveLabels<T>, Float32Array>,
+  ResolveLabels<T>
+> {
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
   }
@@ -184,35 +185,24 @@ export class SemanticSegmentationModule<
   /**
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
    *
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
    * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
    * @returns A Promise resolving to an object with an `'ARGMAX'` key mapped to an `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
-  async forward<K extends keyof ResolveLabels<T>>(
-    imageSource: string,
+  override async forward<K extends keyof ResolveLabels<T>>(
+    input: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ): Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>> {
-    if (this.nativeModule == null) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded.'
-      );
-    }
-
-    const classesOfInterestNames = classesOfInterest.map((label) =>
-      String(label)
-    );
-
-    const nativeResult = await this.nativeModule.generate(
-      imageSource,
-      classesOfInterestNames,
-      resizeToInput
-    );
-
-    return nativeResult as Record<'ARGMAX', Int32Array> &
-      Record<K, Float32Array>;
+    const classesOfInterestNames = classesOfInterest.map(String);
+    return super.forward(input, classesOfInterestNames, resizeToInput);
   }
 }

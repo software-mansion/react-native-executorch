@@ -6,6 +6,7 @@
 #include <span>
 #include <type_traits>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
@@ -17,8 +18,10 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
 #include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
+#include <rnexecutorch/models/style_transfer/Types.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 
 using namespace rnexecutorch::models::speech_to_text;
@@ -557,4 +560,62 @@ inline jsi::Value getJsiValue(const TranscriptionResult &result,
 
   return obj;
 }
+inline jsi::Value
+getJsiValue(const models::style_transfer::PixelDataResult &result,
+            jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+
+  auto arrayBuffer = jsi::ArrayBuffer(runtime, result.dataPtr);
+  auto uint8ArrayCtor =
+      runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+  auto uint8Array =
+      uint8ArrayCtor.callAsConstructor(runtime, arrayBuffer).getObject(runtime);
+  obj.setProperty(runtime, "dataPtr", uint8Array);
+
+  auto sizesArray = jsi::Array(runtime, 3);
+  sizesArray.setValueAtIndex(runtime, 0, jsi::Value(result.height));
+  sizesArray.setValueAtIndex(runtime, 1, jsi::Value(result.width));
+  sizesArray.setValueAtIndex(runtime, 2, jsi::Value(4));
+  obj.setProperty(runtime, "sizes", sizesArray);
+
+  obj.setProperty(runtime, "scalarType", jsi::Value(0));
+
+  return obj;
+}
+
+inline jsi::Value getJsiValue(
+    const rnexecutorch::models::semantic_segmentation::SegmentationResult
+        &result,
+    jsi::Runtime &runtime) {
+  jsi::Object dict(runtime);
+
+  auto argmaxArrayBuffer = jsi::ArrayBuffer(runtime, result.argmax);
+  auto int32ArrayCtor =
+      runtime.global().getPropertyAsFunction(runtime, "Int32Array");
+  auto int32Array = int32ArrayCtor.callAsConstructor(runtime, argmaxArrayBuffer)
+                        .getObject(runtime);
+  dict.setProperty(runtime, "ARGMAX", int32Array);
+
+  for (auto &[classLabel, owningBuffer] : *result.classBuffers) {
+    auto classArrayBuffer = jsi::ArrayBuffer(runtime, owningBuffer);
+    auto float32ArrayCtor =
+        runtime.global().getPropertyAsFunction(runtime, "Float32Array");
+    auto float32Array =
+        float32ArrayCtor.callAsConstructor(runtime, classArrayBuffer)
+            .getObject(runtime);
+    dict.setProperty(runtime, jsi::String::createFromAscii(runtime, classLabel),
+                     float32Array);
+  }
+
+  return dict;
+}
+
+inline jsi::Value
+getJsiValue(const models::style_transfer::StyleTransferResult &result,
+            jsi::Runtime &runtime) {
+  return std::visit(
+      [&runtime](const auto &value) { return getJsiValue(value, runtime); },
+      result);
+}
+
 } // namespace rnexecutorch::jsi_conversion

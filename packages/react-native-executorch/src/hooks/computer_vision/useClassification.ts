@@ -3,6 +3,7 @@ import {
   ClassificationProps,
   ClassificationType,
 } from '../../types/classification';
+import { PixelData } from '../../types/common';
 import { useModuleFactory } from '../useModuleFactory';
 
 /**
@@ -16,17 +17,30 @@ export const useClassification = ({
   model,
   preventLoad = false,
 }: ClassificationProps): ClassificationType => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        ClassificationModule.fromModelName(config, onProgress),
-      config: model,
-      deps: [model.modelName, model.modelSource],
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    runOnFrame,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      ClassificationModule.fromModelName(config, onProgress),
+    config: model,
+    deps: [model.modelName, model.modelSource],
+    preventLoad,
+  });
 
-  const forward = (imageSource: string) =>
+  const forward = (imageSource: string | PixelData) =>
     runForward((inst) => inst.forward(imageSource));
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    runOnFrame,
+  };
 };

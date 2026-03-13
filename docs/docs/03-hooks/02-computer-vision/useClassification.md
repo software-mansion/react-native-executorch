@@ -52,11 +52,17 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ClassificationType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns a promise, which can resolve either to an error or an object containing categories with their probabilities.
+To run the model, use the [`forward`](../../06-api-reference/interfaces/ClassificationType.md#forward) method. It accepts one argument — the image to classify. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer). The function returns a promise resolving to an object containing categories with their probabilities.
 
 :::info
 Images from external sources are stored in your application's temporary directory.
 :::
+
+## VisionCamera integration
+
+For real-time classification on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns `{ [category: string]: number }`.
+
+See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Example
 

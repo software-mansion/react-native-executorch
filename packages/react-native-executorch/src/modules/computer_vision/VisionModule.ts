@@ -3,19 +3,7 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { Frame, PixelData, ScalarType } from '../../types/common';
 
-/**
- * Base class for computer vision models that support multiple input types.
- *
- * VisionModule extends BaseModule with:
- * - Unified `forward()` API accepting string paths or raw pixel data
- * - `runOnFrame` getter for real-time VisionCamera frame processing
- * - Shared frame processor creation logic
- *
- * Subclasses should only implement model-specific loading logic.
- *
- * @category Typescript API
- */
-function isPixelData(input: unknown): input is PixelData {
+export function isPixelData(input: unknown): input is PixelData {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -29,6 +17,18 @@ function isPixelData(input: unknown): input is PixelData {
   );
 }
 
+/**
+ * Base class for computer vision models that support multiple input types.
+ *
+ * VisionModule extends BaseModule with:
+ * - Unified `forward()` API accepting string paths or raw pixel data
+ * - `runOnFrame` getter for real-time VisionCamera frame processing
+ * - Shared frame processor creation logic
+ *
+ * Subclasses implement model-specific loading logic and may override `forward` for typed signatures.
+ *
+ * @category Typescript API
+ */
 export abstract class VisionModule<TOutput> extends BaseModule {
   /**
    * Synchronous worklet function for real-time VisionCamera frame processing.
@@ -127,7 +127,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
         RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
-
     // Type detection and routing
     if (typeof input === 'string') {
       return await this.nativeModule.generateFromString(input, ...args);

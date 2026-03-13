@@ -6792,14 +6792,14 @@ __metadata:
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-image-picker: "npm:^7.2.2"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
-    react-native-nitro-image: "npm:^0.12.0"
-    react-native-nitro-modules: "npm:^0.33.9"
+    react-native-nitro-image: "npm:0.13.0"
+    react-native-nitro-modules: "npm:0.35.0"
     react-native-reanimated: "npm:~4.2.2"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:5.0.0-beta.2"
+    react-native-vision-camera: "npm:5.0.0-beta.6"
     react-native-worklets: "npm:0.7.4"
   languageName: unknown
   linkType: soft
@@ -13549,24 +13549,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-image@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "react-native-nitro-image@npm:0.12.0"
+"react-native-nitro-image@npm:0.13.0":
+  version: 0.13.0
+  resolution: "react-native-nitro-image@npm:0.13.0"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/03f165381c35e060d4d05eae3ce029b32a4009482f327e9526840f306181ca87a862b335e12667c55d4ee9f2069542ca93dd112feb7f1822bf7d2ddc38fe58f0
+  checksum: 10/77f04e0c262fed839aa16276a31cce6d6969788d2aada55594fd083959dec9e00bd75f7bd8333cc59f3768bf329592736da60688e827a8d25d18de8bbda9b2d7
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:^0.33.9":
-  version: 0.33.9
-  resolution: "react-native-nitro-modules@npm:0.33.9"
+"react-native-nitro-modules@npm:0.35.0":
+  version: 0.35.0
+  resolution: "react-native-nitro-modules@npm:0.35.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/4ebf4db46d1e4987a0e52054724081aa9712bcd1d505a6dbdd47aebc6afe72a7abaa0e947651d9f3cc594e4eb3dba47fc6f59db27c5a5ed383946e40d96543a0
+  checksum: 10/6c9166a115a03bfc26d3cb9a75761a1fdf33a06bdfb853779539cfe3d7dc2239e242a7fbd4cbb7e9dc0af90a373606fc607fa8a09ef4ff49f7ff29ccff736bbf
   languageName: node
   linkType: hard
 
@@ -13662,16 +13662,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:5.0.0-beta.2":
-  version: 5.0.0-beta.2
-  resolution: "react-native-vision-camera@npm:5.0.0-beta.2"
+"react-native-vision-camera@npm:5.0.0-beta.6":
+  version: 5.0.0-beta.6
+  resolution: "react-native-vision-camera@npm:5.0.0-beta.6"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
     react-native-worklets: "*"
-  checksum: 10/1f38d097d001c10b8544d0b931a9387a91c5df1e0677ae53e639962a90589586af02ca658ca5e99a5ca179af8d86bc8365227cf70750f2df4bfb775f4a26fc6d
+  checksum: 10/5c1f3104869e51b173d2bba88a69397c08949314a47a14d70e9ea01b6531c8c74ea6e15f8de4bab6c55eb82c673f8231b6be223d8b4b44a8df433f1cd35c0376
   languageName: node
   linkType: hard
 

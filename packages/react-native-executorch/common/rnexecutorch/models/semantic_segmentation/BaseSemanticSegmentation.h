@@ -1,23 +1,20 @@
 #pragma once
 
-#include <executorch/extension/tensor/tensor_ptr.h>
-#include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include <set>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
+#include <rnexecutorch/models/semantic_segmentation/Types.h>
 
 namespace rnexecutorch {
 namespace models::semantic_segmentation {
 using namespace facebook;
 
 using executorch::aten::Tensor;
-using executorch::extension::TensorPtr;
 
-class BaseSemanticSegmentation : public BaseModel {
+class BaseSemanticSegmentation : public VisionModel {
 public:
   BaseSemanticSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
@@ -25,33 +22,42 @@ public:
                            std::vector<std::string> allClasses,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
-  [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
-  generate(std::string imageSource,
-           std::set<std::string, std::less<>> classesOfInterest, bool resize);
+  [[nodiscard("Registered non-void function")]]
+  semantic_segmentation::SegmentationResult
+  generateFromString(std::string imageSource,
+                     std::set<std::string, std::less<>> classesOfInterest,
+                     bool resize);
+
+  [[nodiscard("Registered non-void function")]]
+  semantic_segmentation::SegmentationResult
+  generateFromPixels(JSTensorViewIn pixelData,
+                     std::set<std::string, std::less<>> classesOfInterest,
+                     bool resize);
+
+  [[nodiscard("Registered non-void function")]]
+  semantic_segmentation::SegmentationResult
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
+                    std::set<std::string, std::less<>> classesOfInterest,
+                    bool resize);
 
 protected:
-  virtual TensorPtr preprocess(const std::string &imageSource,
-                               cv::Size &originalSize);
-  virtual std::shared_ptr<jsi::Object>
-  postprocess(const Tensor &tensor, cv::Size originalSize,
-              std::vector<std::string> &allClasses,
-              std::set<std::string, std::less<>> &classesOfInterest,
-              bool resize);
-
-  cv::Size modelImageSize;
+  virtual semantic_segmentation::SegmentationResult
+  computeResult(const Tensor &tensor, cv::Size originalSize,
+                std::vector<std::string> &allClasses,
+                std::set<std::string, std::less<>> &classesOfInterest,
+                bool resize);
   std::size_t numModelPixels;
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
   std::vector<std::string> allClasses_;
 
-  std::shared_ptr<jsi::Object> populateDictionary(
-      std::shared_ptr<OwningArrayBuffer> argmax,
-      std::shared_ptr<std::unordered_map<std::string_view,
-                                         std::shared_ptr<OwningArrayBuffer>>>
-          classesToOutput);
-
 private:
   void initModelImageSize();
+
+  semantic_segmentation::SegmentationResult
+  runInference(cv::Mat image, cv::Size originalSize,
+               std::set<std::string, std::less<>> &classesOfInterest,
+               bool resize);
 };
 } // namespace models::semantic_segmentation
 

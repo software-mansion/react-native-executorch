@@ -1,6 +1,8 @@
 #include "BaseModelTests.h"
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <string>
 
@@ -41,7 +43,7 @@ template <> struct ModelTraits<OCR> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath);
+    (void)model.generateFromString(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -67,27 +69,27 @@ TEST(OCRCtorTests, EmptySymbolsThrows) {
 TEST(OCRGenerateTests, InvalidImagePathThrows) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, EmptyImagePathThrows) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, MalformedURIThrows) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, ValidImageReturnsResults) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   // May or may not have detections depending on image content
   EXPECT_GE(results.size(), 0u);
 }
@@ -95,7 +97,7 @@ TEST(OCRGenerateTests, ValidImageReturnsResults) {
 TEST(OCRGenerateTests, DetectionsHaveValidBoundingBoxes) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   for (const auto &detection : results) {
     // Each bbox should have 4 points
@@ -110,7 +112,7 @@ TEST(OCRGenerateTests, DetectionsHaveValidBoundingBoxes) {
 TEST(OCRGenerateTests, DetectionsHaveValidScores) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.score, 0.0f);
@@ -121,8 +123,21 @@ TEST(OCRGenerateTests, DetectionsHaveValidScores) {
 TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
   OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
             createMockCallInvoker());
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   for (const auto &detection : results) {
     EXPECT_FALSE(detection.text.empty());
   }
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(OCRPixelTests, ValidPixelsReturnsResults) {
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
+            createMockCallInvoker());
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(view);
+  EXPECT_GE(results.size(), 0u);
 }

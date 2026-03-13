@@ -60,6 +60,15 @@ export default function _layout() {
         }}
       >
         <Drawer.Screen
+          name="vision_camera/index"
+          options={{
+            drawerLabel: 'Vision Camera',
+            title: 'Vision Camera',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',
@@ -80,14 +89,6 @@ export default function _layout() {
           options={{
             drawerLabel: 'Object Detection',
             title: 'Object Detection',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
-        />
-        <Drawer.Screen
-          name="object_detection_live/index"
-          options={{
-            drawerLabel: 'Object Detection (Live)',
-            title: 'Object Detection (Live)',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

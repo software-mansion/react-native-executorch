@@ -1,7 +1,9 @@
 #include "BaseModelTests.h"
 #include <cmath>
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 
 using namespace rnexecutorch;
@@ -29,7 +31,7 @@ template <> struct ModelTraits<ImageEmbeddings> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath);
+    (void)model.generateFromString(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -43,31 +45,31 @@ INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, CommonModelTest,
 // ============================================================================
 TEST(ImageEmbeddingsGenerateTests, InvalidImagePathThrows) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, EmptyImagePathThrows) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, MalformedURIThrows) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, ValidImageReturnsResults) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
+  auto result = model.generateFromString(kValidTestImagePath);
   EXPECT_NE(result, nullptr);
   EXPECT_GT(result->size(), 0u);
 }
 
 TEST(ImageEmbeddingsGenerateTests, ResultsHaveCorrectSize) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
+  auto result = model.generateFromString(kValidTestImagePath);
   size_t numFloats = result->size() / sizeof(float);
   constexpr size_t kClipEmbeddingDimensions = 512;
   EXPECT_EQ(numFloats, kClipEmbeddingDimensions);
@@ -77,7 +79,7 @@ TEST(ImageEmbeddingsGenerateTests, ResultsAreNormalized) {
   // TODO: Investigate the source of the issue;
   GTEST_SKIP() << "Expected to fail in emulator environments";
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
+  auto result = model.generateFromString(kValidTestImagePath);
 
   const float *data = reinterpret_cast<const float *>(result->data());
   size_t numFloats = result->size() / sizeof(float);
@@ -92,7 +94,7 @@ TEST(ImageEmbeddingsGenerateTests, ResultsAreNormalized) {
 
 TEST(ImageEmbeddingsGenerateTests, ResultsContainValidValues) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
+  auto result = model.generateFromString(kValidTestImagePath);
 
   const float *data = reinterpret_cast<const float *>(result->data());
   size_t numFloats = result->size() / sizeof(float);
@@ -121,4 +123,17 @@ TEST(ImageEmbeddingsInheritedTests, GetMethodMetaWorks) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(ImageEmbeddingsPixelTests, ValidPixelsReturnsEmbedding) {
+  ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto result = model.generateFromPixels(view);
+  EXPECT_NE(result, nullptr);
+  EXPECT_GT(result->size(), 0u);
 }

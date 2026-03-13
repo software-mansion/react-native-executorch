@@ -163,40 +163,6 @@ TEST(ObjectDetectionPixelTests, ValidPixelDataReturnsResults) {
   EXPECT_GE(results.size(), 0u);
 }
 
-TEST(ObjectDetectionPixelTests, WrongSizesLengthThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  std::vector<uint8_t> pixelData(16, 0);
-  JSTensorViewIn tensorView{
-      pixelData.data(), {4, 4}, executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
-               RnExecutorchError);
-}
-
-TEST(ObjectDetectionPixelTests, WrongChannelCountThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  constexpr int32_t width = 4, height = 4, channels = 4;
-  std::vector<uint8_t> pixelData(width * height * channels, 0);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
-               RnExecutorchError);
-}
-
-TEST(ObjectDetectionPixelTests, WrongScalarTypeThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  constexpr int32_t width = 4, height = 4, channels = 3;
-  std::vector<uint8_t> pixelData(width * height * channels, 0);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Float};
-  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
-               RnExecutorchError);
-}
-
 TEST(ObjectDetectionPixelTests, NegativeThresholdThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);

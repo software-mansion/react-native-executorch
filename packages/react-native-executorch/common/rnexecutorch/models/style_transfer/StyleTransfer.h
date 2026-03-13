@@ -9,25 +9,30 @@
 #include <opencv2/opencv.hpp>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/jsi/OwningArrayBuffer.h>
+#include <rnexecutorch/models/VisionModel.h>
+#include <rnexecutorch/models/style_transfer/Types.h>
 
 namespace rnexecutorch {
 namespace models::style_transfer {
 using namespace facebook;
-using executorch::aten::Tensor;
-using executorch::extension::TensorPtr;
 
-class StyleTransfer : public BaseModel {
+class StyleTransfer : public VisionModel {
 public:
   StyleTransfer(const std::string &modelSource,
                 std::shared_ptr<react::CallInvoker> callInvoker);
-  [[nodiscard("Registered non-void function")]] std::string
-  generate(std::string imageSource);
+
+  [[nodiscard("Registered non-void function")]] StyleTransferResult
+  generateFromString(std::string imageSource, bool saveToFile);
+
+  [[nodiscard("Registered non-void function")]] PixelDataResult
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData);
+
+  [[nodiscard("Registered non-void function")]] StyleTransferResult
+  generateFromPixels(JSTensorViewIn pixelData, bool saveToFile);
 
 private:
-  std::string postprocess(const Tensor &tensor, cv::Size originalSize);
-
-  cv::Size modelImageSize{0, 0};
+  cv::Mat runInference(cv::Mat image, cv::Size outputSize);
 };
 } // namespace models::style_transfer
 

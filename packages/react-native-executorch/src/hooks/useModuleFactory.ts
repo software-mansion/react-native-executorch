@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
 type Deletable = { delete: () => void };
+
+type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
 
 /**
  * Shared hook for modules that are instantiated via an async static factory
@@ -92,6 +94,14 @@ export function useModuleFactory<M extends Deletable, Config>({
     }
   };
 
+  const runOnFrame = useMemo(
+    () =>
+      instance && 'runOnFrame' in instance
+        ? (instance.runOnFrame as RunOnFrame<M> | null)
+        : null,
+    [instance]
+  );
+
   return {
     error,
     isReady,
@@ -99,5 +109,6 @@ export function useModuleFactory<M extends Deletable, Config>({
     downloadProgress,
     runForward,
     instance,
+    runOnFrame,
   };
 }

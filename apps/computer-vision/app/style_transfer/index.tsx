@@ -16,20 +16,24 @@ export default function StyleTransferScreen() {
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
+
   const [imageUri, setImageUri] = useState('');
+  const [styledUri, setStyledUri] = useState('');
+
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
     const uri = image?.uri;
     if (typeof uri === 'string') {
-      setImageUri(uri as string);
+      setImageUri(uri);
+      setStyledUri('');
     }
   };
 
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await model.forward(imageUri);
-        setImageUri(output);
+        const uri = await model.forward(imageUri, 'url');
+        setStyledUri(uri);
       } catch (e) {
         console.error(e);
       }
@@ -52,9 +56,11 @@ export default function StyleTransferScreen() {
           style={styles.image}
           resizeMode="contain"
           source={
-            imageUri
-              ? { uri: imageUri }
-              : require('../../assets/icons/executorch_logo.png')
+            styledUri
+              ? { uri: styledUri }
+              : imageUri
+                ? { uri: imageUri }
+                : require('../../assets/icons/executorch_logo.png')
           }
         />
       </View>

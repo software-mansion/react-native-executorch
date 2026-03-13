@@ -12,31 +12,33 @@ namespace rnexecutorch::models::classification {
 
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
+  modelInputShape_ = inputShapes[0];
+  if (modelInputShape_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  modelInputShape_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
 }
 
 std::unordered_map<std::string_view, float>
-Classification::generate(std::string imageSource) {
+Classification::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
+
+  cv::Mat preprocessed = preprocess(image);
+
   auto inputTensor =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0])
-          .first;
+      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw RnExecutorchError(forwardResult.error(),
@@ -44,6 +46,30 @@ Classification::generate(std::string imageSource) {
                             "Ensure the model input is correct.");
   }
   return postprocess(forwardResult->at(0).toTensor());
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromString(std::string imageSource) {
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
+
+  cv::Mat imageRGB;
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+
+  return runInference(imageRGB);
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromFrame(jsi::Runtime &runtime,
+                                  const jsi::Value &frameData) {
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  return runInference(frame);
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromPixels(JSTensorViewIn pixelData) {
+  cv::Mat image = extractFromPixels(pixelData);
+
+  return runInference(image);
 }
 
 std::unordered_map<std::string_view, float>

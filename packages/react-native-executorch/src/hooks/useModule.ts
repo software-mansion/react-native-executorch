@@ -76,6 +76,8 @@ export const useModule = <
 
     return () => {
       isMounted = false;
+      setIsReady(false);
+      setRunOnFrame(null);
       moduleInstance.delete();
     };
 

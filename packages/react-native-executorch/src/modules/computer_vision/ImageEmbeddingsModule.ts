@@ -1,22 +1,17 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
 import { ImageEmbeddingsModelName } from '../../types/imageEmbeddings';
+import { ResourceSource, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
+import { VisionModule } from './VisionModule';
 
 /**
  * Module for generating image embeddings from input images.
  *
  * @category Typescript API
  */
-export class ImageEmbeddingsModule extends BaseModule {
-  private constructor(nativeModule: unknown) {
-    super();
-    this.nativeModule = nativeModule;
-  }
-
+export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
   /**
    * Creates an image embeddings instance for a built-in model.
    *
@@ -44,9 +39,9 @@ export class ImageEmbeddingsModule extends BaseModule {
         );
       }
 
-      return new ImageEmbeddingsModule(
-        await global.loadImageEmbeddings(paths[0])
-      );
+      const instance = new ImageEmbeddingsModule();
+      instance.nativeModule = await global.loadImageEmbeddings(paths[0]);
+      return instance;
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -74,18 +69,7 @@ export class ImageEmbeddingsModule extends BaseModule {
     );
   }
 
-  /**
-   * Executes the model's forward pass to generate an embedding for the provided image.
-   *
-   * @param imageSource - A string image source (file path, URI, or Base64).
-   * @returns A Promise resolving to a `Float32Array` containing the image embedding vector.
-   */
-  async forward(imageSource: string): Promise<Float32Array> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    return new Float32Array(await this.nativeModule.generate(imageSource));
+  async forward(input: string | PixelData): Promise<Float32Array> {
+    return super.forward(input);
   }
 }

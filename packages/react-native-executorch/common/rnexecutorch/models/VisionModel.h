@@ -23,8 +23,8 @@ namespace models {
  * Usage:
  * Subclasses should:
  * 1. Inherit from VisionModel instead of BaseModel
- * 2. Implement preprocessFrame() with model-specific preprocessing
- * 3. Delegate to runInference() which handles locking internally
+ * 2. Optionally override preprocess() for model-specific preprocessing
+ * 3. Implement runInference() which acquires the lock internally
  *
  * Example:
  * @code
@@ -33,7 +33,7 @@ namespace models {
  *   std::unordered_map<std::string_view, float>
  *   generateFromFrame(jsi::Runtime& runtime, const jsi::Value& frameValue) {
  *     auto frameObject = frameValue.asObject(runtime);
- *     cv::Mat frame = utils::extractFrame(runtime, frameObject);
+ *     cv::Mat frame = extractFromFrame(runtime, frameObject);
  *     return runInference(frame);
  *   }
  * };
@@ -53,6 +53,20 @@ public:
 
   virtual ~VisionModel() = default;
 
+  /**
+   * @brief Thread-safe unload that waits for any in-flight inference to
+   * complete
+   *
+   * Overrides BaseModel::unload() to acquire inference_mutex_ before
+   * resetting the module. This prevents a crash where BaseModel::unload()
+   * destroys module_ while generateFromFrame() is still executing on the
+   * VisionCamera worklet thread.
+   */
+  void unload() noexcept {
+    std::scoped_lock lock(inference_mutex_);
+    BaseModel::unload();
+  }
+
 protected:
   /**
    * @brief Mutex to ensure thread-safe inference
@@ -70,44 +84,42 @@ protected:
   mutable std::mutex inference_mutex_;
 
   /**
-   * @brief Preprocess a camera frame for model input
+   * @brief Resize an RGB image to the model's expected input size
    *
-   * This method should implement model-specific preprocessing such as:
-   * - Resizing to the model's expected input size
-   * - Color space conversion (e.g., BGR to RGB)
-   * - Normalization
-   * - Any other model-specific transformations
+   * Resizes to modelInputSize() if needed. Subclasses may override for
+   * model-specific preprocessing (e.g., normalisation).
    *
-   * @param frame Input frame from camera (already extracted and rotated by
-   * FrameExtractor)
-   * @return Preprocessed cv::Mat ready for tensor conversion
+   * @param image Input image in RGB format
+   * @return cv::Mat resized to modelInputSize(), in RGB format
    *
-   * @note The input frame is already in RGB format and rotated 90° clockwise
-   * @note This method is called under mutex protection in generateFromFrame()
+   * @note Called from runInference() under the inference mutex
    */
-  virtual cv::Mat preprocessFrame(const cv::Mat &frame) const = 0;
+  virtual cv::Mat preprocess(const cv::Mat &image) const;
+
+  /// Cached input tensor shape (getAllInputShapes()[0]).
+  /// Set once by each subclass constructor to avoid per-frame metadata lookups.
+  std::vector<int32_t> modelInputShape_;
+
+  /// Convenience accessor: spatial dimensions of the model input.
+  cv::Size modelInputSize() const {
+    if (modelInputShape_.size() < 2) {
+      return {0, 0};
+    }
+    return cv::Size(modelInputShape_[modelInputShape_.size() - 1],
+                    modelInputShape_[modelInputShape_.size() - 2]);
+  }
 
   /**
-   * @brief Extract and preprocess frame from VisionCamera in one call
+   * @brief Extract an RGB cv::Mat from a VisionCamera frame
    *
-   * This is a convenience method that combines frame extraction and
-   * preprocessing. It handles both nativeBuffer (zero-copy) and ArrayBuffer
-   * paths automatically.
+   * Calls frameToMat() then converts the raw 4-channel frame
+   * (BGRA on iOS, RGBA on Android) to RGB.
    *
    * @param runtime JSI runtime
    * @param frameData JSI value containing frame data from VisionCamera
+   * @return cv::Mat in RGB format (3 channels)
    *
-   * @return Preprocessed cv::Mat ready for tensor conversion
-   *
-   * @throws std::runtime_error if frame extraction fails
-   *
-   * @note This method does NOT acquire the inference mutex - caller is
-   * responsible
-   * @note Typical usage:
-   * @code
-   *   cv::Mat preprocessed = extractFromFrame(runtime, frameData);
-   *   auto tensor = image_processing::getTensorFromMatrix(dims, preprocessed);
-   * @endcode
+   * @note Does NOT acquire the inference mutex — caller is responsible
    */
   cv::Mat extractFromFrame(jsi::Runtime &runtime,
                            const jsi::Value &frameData) const;

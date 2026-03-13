@@ -1,22 +1,17 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
 import { StyleTransferModelName } from '../../types/styleTransfer';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { ResourceSource, PixelData } from '../../types/common';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
+import { VisionModule } from './VisionModule';
 
 /**
  * Module for style transfer tasks.
  *
  * @category Typescript API
  */
-export class StyleTransferModule extends BaseModule {
-  private constructor(nativeModule: unknown) {
-    super();
-    this.nativeModule = nativeModule;
-  }
-
+export class StyleTransferModule extends VisionModule<PixelData | string> {
   /**
    * Creates a style transfer instance for a built-in model.
    *
@@ -44,7 +39,9 @@ export class StyleTransferModule extends BaseModule {
         );
       }
 
-      return new StyleTransferModule(await global.loadStyleTransfer(paths[0]));
+      const instance = new StyleTransferModule();
+      instance.nativeModule = await global.loadStyleTransfer(paths[0]);
+      return instance;
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
@@ -72,18 +69,12 @@ export class StyleTransferModule extends BaseModule {
     );
   }
 
-  /**
-   * Executes the model's forward pass to apply the selected style to the provided image.
-   *
-   * @param imageSource - A string image source (file path, URI, or Base64).
-   * @returns A Promise resolving to the stylized image as a Base64-encoded string.
-   */
-  async forward(imageSource: string): Promise<string> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    return await this.nativeModule.generate(imageSource);
+  async forward<O extends 'pixelData' | 'url' = 'pixelData'>(
+    input: string | PixelData,
+    output?: O
+  ): Promise<O extends 'url' ? string : PixelData> {
+    return super.forward(input, output === 'url') as Promise<
+      O extends 'url' ? string : PixelData
+    >;
   }
 }

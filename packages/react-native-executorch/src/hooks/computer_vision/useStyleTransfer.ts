@@ -1,4 +1,5 @@
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
+import { PixelData } from '../../types/common';
 import {
   StyleTransferProps,
   StyleTransferType,
@@ -25,8 +26,14 @@ export const useStyleTransfer = ({
       preventLoad,
     });
 
-  const forward = (imageSource: string) =>
+  const forward = (imageSource: string | PixelData) =>
     runForward((inst) => inst.forward(imageSource));
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+  } as StyleTransferType;
 };
