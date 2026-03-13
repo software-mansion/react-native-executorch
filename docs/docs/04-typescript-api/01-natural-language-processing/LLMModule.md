@@ -19,10 +19,8 @@ import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
 const llm = await LLMModule.fromModelName(
   LLAMA3_2_1B_QLORA,
   (progress) => console.log(progress),
-  {
-    tokenCallback: (token) => console.log(token),
-    messageHistoryCallback: (messages) => console.log(messages),
-  }
+  (token) => console.log(token),
+  (messages) => console.log(messages),
 );
 
 // Running the model - returns the generated response
