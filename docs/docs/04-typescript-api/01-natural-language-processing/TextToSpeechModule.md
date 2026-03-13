@@ -52,14 +52,14 @@ The module provides two ways to generate speech using either raw text or pre-gen
 ### Using Text
 
 1.  [**`forward(text, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
-2.  [**`stream({ text, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+2.  [**`stream({ speed, stopAutomatically, onNext, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert) and allows stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
 
 ### Using Phonemes
 
 If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:
 
 1.  [**`forwardFromPhonemes(phonemes, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forwardfromphonemes): Generates the complete audio waveform from a phoneme string.
-2.  [**`streamFromPhonemes({ phonemes, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#streamfromphonemes): Streams audio chunks generated from a phoneme string.
+2.  [**`streamFromPhonemes({ phonemes, speed, onNext, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#streamfromphonemes): Streams audio chunks generated from a phoneme string.
 
 :::note
 Since `forward` and `forwardFromPhonemes` process the entire input at once, they might take a significant amount of time to produce audio for long inputs.
