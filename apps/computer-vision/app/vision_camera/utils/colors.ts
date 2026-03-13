@@ -1,5 +1,3 @@
-// apps/computer-vision/app/vision_camera/utils/colors.ts
-
 export const CLASS_COLORS: number[][] = [
   [0, 0, 0, 0],
   [51, 255, 87, 180],

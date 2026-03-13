@@ -1,4 +1,3 @@
-// apps/computer-vision/app/vision_camera/index.tsx
 import React, {
   useCallback,
   useContext,
