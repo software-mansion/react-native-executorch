@@ -34,7 +34,7 @@
   "scripts": {
     "example": "yarn workspace react-native-executorch-example",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "prepack": "cp ../../README.md ./README.md",
@@ -72,11 +72,11 @@
   "devDependencies": {
     "@react-native-community/cli": "latest",
     "@types/jest": "^30.0.0",
-    "@types/react": "~19.1.10",
+    "@types/react": "~19.2.14",
     "jest": "^30.2.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "react": "19.2.4",
+    "react-native": "0.83.2",
     "react-native-builder-bob": "^0.40.12",
     "typescript": "~5.9.2"
   },

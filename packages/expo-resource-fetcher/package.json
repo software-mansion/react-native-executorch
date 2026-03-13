@@ -22,7 +22,7 @@
   "scripts": {
     "prepare": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "clean": "del-cli lib"
   },
   "peerDependencies": {
@@ -33,12 +33,12 @@
     "react-native-executorch": "*"
   },
   "devDependencies": {
-    "@types/react": "~19.1.10",
-    "expo": "^54.0.0",
-    "expo-asset": "12.0.11",
-    "expo-file-system": "^19.0.20",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "@types/react": "~19.2.14",
+    "expo": "^55.0.5",
+    "expo-asset": "55.0.8",
+    "expo-file-system": "^55.0.10",
+    "react": "19.2.4",
+    "react-native": "0.83.2",
     "react-native-executorch": "workspace:*",
     "typescript": "~5.9.2"
   }

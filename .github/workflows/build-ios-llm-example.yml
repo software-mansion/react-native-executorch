@@ -42,6 +42,7 @@ jobs:
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
       - name: Cache Expo prebuild
+        id: expo-prebuild-cache
         uses: actions/cache@v4
         with:
           path: apps/llm/ios
@@ -49,11 +50,16 @@ jobs:
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
-          if [ ! -d "ios" ]; then
+          if [ "${{ steps.expo-prebuild-cache.outputs.cache-hit }}" != 'true' ]; then
             npx expo prebuild --platform ios --no-install
           else
-            echo "iOS project exists, skipping prebuild"
+            echo "Exact cache hit, skipping prebuild"
           fi
+      - name: Download react-native-audio-api prebuilt binaries
+        working-directory: node_modules/react-native-audio-api
+        run: |
+          chmod +x scripts/download-prebuilt-binaries.sh
+          scripts/download-prebuilt-binaries.sh ios
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |

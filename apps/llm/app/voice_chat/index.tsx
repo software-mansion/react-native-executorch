@@ -27,6 +27,8 @@ import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 
+const recorder = new AudioRecorder();
+
 export default function VoiceChatScreenWrapper() {
   const isFocused = useIsFocused();
 
@@ -36,14 +38,6 @@ export default function VoiceChatScreenWrapper() {
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
-
-  const [recorder] = useState(
-    () =>
-      new AudioRecorder({
-        sampleRate: 16000,
-        bufferLengthInSamples: 1600,
-      })
-  );
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -60,7 +54,7 @@ function VoiceChatScreen() {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
       iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+      iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
     });
     AudioManager.requestRecordingPermissions();
   }, []);
@@ -74,9 +68,12 @@ function VoiceChatScreen() {
       setIsRecording(true);
       setLiveTranscription('');
 
-      recorder.onAudioReady(({ buffer }) => {
-        speechToText.streamInsert(buffer.getChannelData(0));
-      });
+      recorder.onAudioReady(
+        { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
+        ({ buffer }) => {
+          speechToText.streamInsert(buffer.getChannelData(0));
+        }
+      );
       recorder.start();
 
       let finalResult = '';
