@@ -1,7 +1,4 @@
 #include "ImageEmbeddings.h"
-
-#include <span>
-
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
