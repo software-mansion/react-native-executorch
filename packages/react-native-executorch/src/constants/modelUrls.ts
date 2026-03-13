@@ -806,6 +806,63 @@ export const SELFIE_SEGMENTATION = {
   modelSource: SELFIE_SEGMENTATION_MODEL,
 } as const;
 
+/**
+ * @category Models - Instance Segmentation
+ */
+const YOLO26N_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26n-seg/xnnpack/yolo26n-seg.pte`;
+const YOLO26S_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26s-seg/xnnpack/yolo26s-seg.pte`;
+const YOLO26M_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26m-seg/xnnpack/yolo26m-seg.pte`;
+const YOLO26L_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26l-seg/xnnpack/yolo26l-seg.pte`;
+const YOLO26X_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${NEXT_VERSION_TAG}/yolo26x-seg/xnnpack/yolo26x-seg.pte`;
+const RF_DETR_SEG_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${NEXT_VERSION_TAG}/rfdetr_segmentation.pte`;
+/**
+ * @category Models - Instance Segmentation
+ */
+export const YOLO26N_SEG = {
+  modelName: 'yolo26n-seg',
+  modelSource: YOLO26N_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const YOLO26S_SEG = {
+  modelName: 'yolo26s-seg',
+  modelSource: YOLO26S_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const YOLO26M_SEG = {
+  modelName: 'yolo26m-seg',
+  modelSource: YOLO26M_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const YOLO26L_SEG = {
+  modelName: 'yolo26l-seg',
+  modelSource: YOLO26L_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const YOLO26X_SEG = {
+  modelName: 'yolo26x-seg',
+  modelSource: YOLO26X_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const RF_DETR_SEG = {
+  modelName: 'rfdetr-seg',
+  modelSource: RF_DETR_SEG_MODEL,
+} as const;
+
 // Image Embeddings
 const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_fp32.pte`;
 const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_vision_xnnpack_int8.pte`;

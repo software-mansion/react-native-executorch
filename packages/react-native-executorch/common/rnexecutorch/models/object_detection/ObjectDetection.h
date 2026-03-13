@@ -8,7 +8,6 @@
 #include "Types.h"
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/VisionModel.h>
-#include <rnexecutorch/models/object_detection/Utils.h>
 
 namespace rnexecutorch {
 namespace models::object_detection {

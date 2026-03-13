@@ -167,6 +167,20 @@ with higher resolutions.
 | ----------------- | ---------------------- | ------------------ |
 | DEELABV3_RESNET50 | 930                    | 660                |
 
+## Instance Segmentation
+
+:::warning
+Data presented in the following sections is based on inference with forward_640 method.
+:::
+
+| Model       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ----------- | ---------------------- | ------------------ |
+| YOLO26N_SEG | 92                     | 668                |
+| YOLO26S_SEG | 220                    | 712                |
+| YOLO26M_SEG | 570                    | 815                |
+| YOLO26L_SEG | 680                    | 1024               |
+| YOLO26X_SEG | 1410                   | 1450               |
+
 ## Text to image
 
 :::info
