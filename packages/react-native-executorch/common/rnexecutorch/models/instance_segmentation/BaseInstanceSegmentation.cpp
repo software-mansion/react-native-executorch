@@ -117,10 +117,9 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(
-    const JSTensorViewIn &tensorView, double confidenceThreshold,
-    double iouThreshold, int32_t maxInstances,
-    std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
-    std::string methodName) {
+    JSTensorViewIn tensorView, double confidenceThreshold, double iouThreshold,
+    int32_t maxInstances, std::vector<int32_t> classIndices,
+    bool returnMaskAtOriginalResolution, std::string methodName) {
 
   cv::Mat image = extractFromPixels(tensorView);
   return runInference(image, confidenceThreshold, iouThreshold, maxInstances,

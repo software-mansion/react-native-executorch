@@ -272,6 +272,79 @@ export class InstanceSegmentationModule<
   }
 
   /**
+   * Override runOnFrame to add label mapping for VisionCamera integration.
+   * The parent's runOnFrame returns raw native results with class indices;
+   * this override maps them to label strings and provides an options-based API.
+   */
+  override get runOnFrame():
+    | ((
+        frame: any,
+        options?: InstanceSegmentationOptions<ResolveLabels<T>>
+      ) => SegmentedInstance<ResolveLabels<T>>[])
+    | null {
+    const baseRunOnFrame = super.runOnFrame;
+    if (!baseRunOnFrame) return null;
+
+    // Convert Map to plain object for worklet serialization
+    const labelLookup: Record<number, string> = {};
+    this.classIndexToLabel.forEach((label, index) => {
+      labelLookup[index] = label;
+    });
+    const labelEnumOffset = this.labelEnumOffset;
+    const defaultConfidenceThreshold =
+      this.modelConfig.defaultConfidenceThreshold ?? 0.5;
+    const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.5;
+    const defaultInputSize = this.modelConfig.defaultInputSize;
+
+    return (
+      frame: any,
+      options?: InstanceSegmentationOptions<ResolveLabels<T>>
+    ): SegmentedInstance<ResolveLabels<T>>[] => {
+      'worklet';
+
+      const confidenceThreshold =
+        options?.confidenceThreshold ?? defaultConfidenceThreshold;
+      const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
+      const maxInstances = options?.maxInstances ?? 100;
+      const returnMaskAtOriginalResolution =
+        options?.returnMaskAtOriginalResolution ?? true;
+      const inputSize = options?.inputSize ?? defaultInputSize;
+      const methodName =
+        inputSize !== undefined ? `forward_${inputSize}` : 'forward';
+
+      const classIndices = options?.classesOfInterest
+        ? options.classesOfInterest.map((label) => {
+            const labelStr = String(label);
+            const enumValue = (labelLookup as any)[labelStr];
+            return typeof enumValue === 'number'
+              ? enumValue - labelEnumOffset
+              : -1;
+          })
+        : [];
+
+      const nativeResults = baseRunOnFrame(
+        frame,
+        confidenceThreshold,
+        iouThreshold,
+        maxInstances,
+        classIndices,
+        returnMaskAtOriginalResolution,
+        methodName
+      );
+      return nativeResults.map((inst: any) => ({
+        bbox: inst.bbox,
+        mask: inst.mask,
+        maskWidth: inst.maskWidth,
+        maskHeight: inst.maskHeight,
+        label: (labelLookup[inst.classIndex - labelEnumOffset] ??
+          String(inst.classIndex)) as keyof ResolveLabels<T>,
+        score: inst.score,
+        instanceId: inst.instanceId,
+      }));
+    };
+  }
+
+  /**
    * Executes the model's forward pass to perform instance segmentation on the provided image.
    *
    * Supports two input types:

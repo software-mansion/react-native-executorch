@@ -38,9 +38,9 @@ public:
                     std::string methodName);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
-  generateFromPixels(const JSTensorViewIn &tensorView,
-                     double confidenceThreshold, double iouThreshold,
-                     int32_t maxInstances, std::vector<int32_t> classIndices,
+  generateFromPixels(JSTensorViewIn tensorView, double confidenceThreshold,
+                     double iouThreshold, int32_t maxInstances,
+                     std::vector<int32_t> classIndices,
                      bool returnMaskAtOriginalResolution,
                      std::string methodName);
 
@@ -109,3 +109,4 @@ private:
 REGISTER_CONSTRUCTOR(models::instance_segmentation::BaseInstanceSegmentation,
                      std::string, std::vector<float>, std::vector<float>, bool,
                      std::shared_ptr<react::CallInvoker>);
+} // namespace rnexecutorch
