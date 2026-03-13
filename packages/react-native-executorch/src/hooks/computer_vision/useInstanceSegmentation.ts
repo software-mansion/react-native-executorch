@@ -58,6 +58,7 @@ export const useInstanceSegmentation = <
     factory: (config, onProgress) =>
       InstanceSegmentationModule.fromModelName(config, onProgress),
     config: model,
+    deps: [model.modelName, model.modelSource],
     preventLoad,
   });
 
