@@ -93,13 +93,7 @@ TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
 // ============================================================================
 // generateFromString saveToFile tests
 // ============================================================================
-TEST(StyleTransferSaveToFileTests, SaveToFileFalseReturnsPixelDataVariant) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  auto result = model.generateFromString(kValidTestImagePath, false);
-  EXPECT_TRUE(std::holds_alternative<PixelDataResult>(result));
-}
-
-TEST(StyleTransferSaveToFileTests, SaveToFileFalsePixelDataIsNonNull) {
+TEST(StyleTransferSaveToFileTests, SaveToFileFalseReturnsValidPixelData) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
   auto result = model.generateFromString(kValidTestImagePath, false);
   ASSERT_TRUE(std::holds_alternative<PixelDataResult>(result));
@@ -158,15 +152,8 @@ TEST(StyleTransferPixelTests, ValidPixelsSaveToFileFalseHasPositiveDimensions) {
   EXPECT_GT(pr.height, 0);
 }
 
-TEST(StyleTransferPixelTests, ValidPixelsSaveToFileTrueReturnsString) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  std::vector<uint8_t> buf;
-  auto view = makeRgbView(buf, 64, 64);
-  auto result = model.generateFromPixels(view, true);
-  EXPECT_TRUE(std::holds_alternative<std::string>(result));
-}
-
-TEST(StyleTransferPixelTests, ValidPixelsSaveToFileTrueHasFileScheme) {
+TEST(StyleTransferPixelTests,
+     ValidPixelsSaveToFileTrueReturnsFileSchemeString) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
   std::vector<uint8_t> buf;
   auto view = makeRgbView(buf, 64, 64);

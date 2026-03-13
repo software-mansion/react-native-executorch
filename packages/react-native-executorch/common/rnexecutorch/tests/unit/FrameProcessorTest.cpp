@@ -18,28 +18,20 @@ static JSTensorViewIn makeValidView(std::vector<uint8_t> &buf, int32_t h,
 // ============================================================================
 // Valid input
 // ============================================================================
-TEST(PixelsToMatValidInput, ProducesCorrectRows) {
+TEST(PixelsToMatValidInput, ProducesCorrectDimensions) {
   std::vector<uint8_t> buf;
   auto view = makeValidView(buf, 48, 64);
-  EXPECT_EQ(pixelsToMat(view).rows, 48);
-}
-
-TEST(PixelsToMatValidInput, ProducesCorrectCols) {
-  std::vector<uint8_t> buf;
-  auto view = makeValidView(buf, 48, 64);
-  EXPECT_EQ(pixelsToMat(view).cols, 64);
-}
-
-TEST(PixelsToMatValidInput, ProducesThreeChannelMat) {
-  std::vector<uint8_t> buf;
-  auto view = makeValidView(buf, 4, 4);
-  EXPECT_EQ(pixelsToMat(view).channels(), 3);
+  auto mat = pixelsToMat(view);
+  EXPECT_EQ(mat.rows, 48);
+  EXPECT_EQ(mat.cols, 64);
 }
 
 TEST(PixelsToMatValidInput, MatTypeIsCV_8UC3) {
   std::vector<uint8_t> buf;
   auto view = makeValidView(buf, 4, 4);
-  EXPECT_EQ(pixelsToMat(view).type(), CV_8UC3);
+  auto mat = pixelsToMat(view);
+  EXPECT_EQ(mat.channels(), 3);
+  EXPECT_EQ(mat.type(), CV_8UC3);
 }
 
 TEST(PixelsToMatValidInput, MatWrapsOriginalData) {
