@@ -1,4 +1,3 @@
-// apps/computer-vision/app/vision_camera/tasks/types.ts
 import { useFrameOutput } from 'react-native-vision-camera';
 import { createSynchronizable } from 'react-native-worklets';
 

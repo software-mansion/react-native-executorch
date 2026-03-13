@@ -1,4 +1,3 @@
-// apps/computer-vision/app/vision_camera/tasks/ObjectDetectionTask.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
