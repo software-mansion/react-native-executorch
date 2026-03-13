@@ -584,9 +584,29 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
     const downloadResource: DownloadResource = {
       task: {
-        stop: () => RNFS.stopDownload(rnfsDownload.jobId),
-        pause: () => {},
-        resume: () => {},
+        stop: async () => {
+          RNFS.stopDownload(rnfsDownload.jobId);
+          if (
+            sourceExtended.cacheFileUri &&
+            (await ResourceFetcherUtils.checkFileExists(
+              sourceExtended.cacheFileUri
+            ))
+          ) {
+            await RNFS.unlink(sourceExtended.cacheFileUri);
+          }
+        },
+        pause: () => {
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.PlatformNotSupported,
+            'Pause is not supported on Android when using RNFS. Use cancelFetching and re-fetch instead.'
+          );
+        },
+        resume: () => {
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.PlatformNotSupported,
+            'Resume is not supported on Android when using RNFS. Use fetch to restart the download.'
+          );
+        },
       } as unknown as DownloadTask,
       status: DownloadStatus.ONGOING,
       extendedInfo: sourceExtended,
