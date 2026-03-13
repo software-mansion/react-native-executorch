@@ -12,10 +12,6 @@ import { VisionModule } from './VisionModule';
  * @category Typescript API
  */
 export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
-  private constructor(nativeModule: unknown) {
-    super();
-    this.nativeModule = nativeModule;
-  }
   /**
    * Creates an image embeddings instance for a built-in model.
    *
@@ -43,9 +39,9 @@ export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
         );
       }
 
-      return new ImageEmbeddingsModule(
-        await global.loadImageEmbeddings(paths[0])
-      );
+      const instance = new ImageEmbeddingsModule();
+      instance.nativeModule = await global.loadImageEmbeddings(paths[0]);
+      return instance;
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
