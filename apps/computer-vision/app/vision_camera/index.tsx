@@ -32,18 +32,23 @@ import ClassificationTask from '../../components/vision_camera/tasks/Classificat
 import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
 import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
 
-type TaskId = 'classification' | 'objectDetection' | 'segmentation';
+type TaskId =
+  | 'classification'
+  | 'objectDetection'
+  | 'segmentation'
+  | 'instanceSegmentation';
 type ModelId =
   | 'classification'
-  | 'objectDetectionSsdlite'
-  | 'objectDetectionRfdetr'
-  | 'segmentationDeeplabResnet50'
-  | 'segmentationDeeplabResnet101'
-  | 'segmentationDeeplabMobilenet'
-  | 'segmentationLraspp'
-  | 'segmentationFcnResnet50'
-  | 'segmentationFcnResnet101'
-  | 'segmentationSelfie';
+  | 'objectDetection_ssdlite'
+  | 'objectDetection_rfdetr'
+  | 'segmentation_deeplab_resnet50'
+  | 'segmentation_deeplab_resnet101'
+  | 'segmentation_deeplab_mobilenet'
+  | 'segmentation_lraspp'
+  | 'segmentation_fcn_resnet50'
+  | 'segmentation_fcn_resnet101'
+  | 'segmentation_selfie'
+  | 'instanceSegmentation_yolo26n';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -74,6 +79,11 @@ const TASKS: Task[] = [
       { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
       { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
     ],
+  },
+  {
+    id: 'instanceSegmentation',
+    label: 'Inst Seg',
+    variants: [{ id: 'instanceSegmentation_yolo26n', label: 'YOLO26N Seg' }],
   },
 ];
 

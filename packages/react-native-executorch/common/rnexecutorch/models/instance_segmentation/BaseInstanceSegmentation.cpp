@@ -14,7 +14,7 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
+    : VisionModel(modelSource, callInvoker), applyNMS_(applyNMS) {
 
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -28,6 +28,103 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     log(LOG_LEVEL::Warn,
         "normStd must have 3 elements — ignoring provided value.");
   }
+}
+
+cv::Mat BaseInstanceSegmentation::preprocess(const cv::Mat &image) const {
+  cv::Mat resized = VisionModel::preprocess(image);
+
+  if (!normMean_.has_value() && !normStd_.has_value()) {
+    return resized;
+  }
+
+  cv::Mat normalized;
+  resized.convertTo(normalized, CV_32FC3);
+  cv::Scalar mean = normMean_.value_or(cv::Scalar(0, 0, 0));
+  cv::Scalar std = normStd_.value_or(cv::Scalar(1, 1, 1));
+  normalized = (normalized - mean) / std;
+
+  return normalized;
+}
+
+cv::Size BaseInstanceSegmentation::modelInputSize() const {
+  if (currentlyLoadedMethod_.empty()) {
+    return VisionModel::modelInputSize();
+  }
+  auto inputShapes = getAllInputShapes(currentlyLoadedMethod_);
+  if (inputShapes.empty() || inputShapes[0].size() < 2) {
+    return VisionModel::modelInputSize();
+  }
+  const auto &shape = inputShapes[0];
+  return cv::Size(shape[shape.size() - 1], shape[shape.size() - 2]);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::runInference(
+    const cv::Mat &image, double confidenceThreshold, double iouThreshold,
+    int32_t maxInstances, const std::vector<int32_t> &classIndices,
+    bool returnMaskAtOriginalResolution, const std::string &methodName) {
+
+  std::scoped_lock lock(inference_mutex_);
+
+  ensureMethodLoaded(methodName);
+
+  auto inputShapes = getAllInputShapes(methodName);
+  modelInputShape_ = inputShapes[0];
+
+  cv::Size modelInputSize = getInputSize(methodName);
+  cv::Size originalSize(image.cols, image.rows);
+
+  cv::Mat preprocessed = preprocess(image);
+
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+
+  auto forwardResult = BaseModel::execute(methodName, {inputTensor});
+  if (!forwardResult.ok()) {
+    throw RnExecutorchError(
+        forwardResult.error(),
+        "The model's forward function did not succeed. "
+        "Ensure the model input is correct and method name '" +
+            methodName + "' is valid.");
+  }
+
+  return postprocess(forwardResult.get(), originalSize, modelInputSize,
+                     confidenceThreshold, iouThreshold, maxInstances,
+                     classIndices, returnMaskAtOriginalResolution);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::generateFromString(
+    std::string imageSource, double confidenceThreshold, double iouThreshold,
+    int32_t maxInstances, std::vector<int32_t> classIndices,
+    bool returnMaskAtOriginalResolution, std::string methodName) {
+
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
+  cv::Mat imageRGB;
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+
+  return runInference(imageRGB, confidenceThreshold, iouThreshold, maxInstances,
+                      classIndices, returnMaskAtOriginalResolution, methodName);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
+    jsi::Runtime &runtime, const jsi::Value &frameData,
+    double confidenceThreshold, double iouThreshold, int32_t maxInstances,
+    std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
+    std::string methodName) {
+
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  return runInference(frame, confidenceThreshold, iouThreshold, maxInstances,
+                      classIndices, returnMaskAtOriginalResolution, methodName);
+}
+
+std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(
+    const JSTensorViewIn &tensorView, double confidenceThreshold,
+    double iouThreshold, int32_t maxInstances,
+    std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
+    std::string methodName) {
+
+  cv::Mat image = extractFromPixels(tensorView);
+  return runInference(image, confidenceThreshold, iouThreshold, maxInstances,
+                      classIndices, returnMaskAtOriginalResolution, methodName);
 }
 
 std::tuple<utils::computer_vision::BBox, float, int32_t>
@@ -272,32 +369,6 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
   }
 
   return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
-}
-
-std::vector<types::Instance> BaseInstanceSegmentation::generate(
-    std::string imageSource, double confidenceThreshold, double iouThreshold,
-    int32_t maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, std::string methodName) {
-
-  ensureMethodLoaded(methodName);
-  cv::Size modelInputSize = getInputSize(methodName);
-
-  auto [inputTensor, originalSize] = image_processing::readImageToTensor(
-      imageSource, getAllInputShapes(methodName)[0], false, normMean_,
-      normStd_);
-
-  auto forwardResult = BaseModel::execute(methodName, {inputTensor});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(
-        forwardResult.error(),
-        "The model's forward function did not succeed. "
-        "Ensure the model input is correct and method name '" +
-            methodName + "' is valid.");
-  }
-
-  return postprocess(forwardResult.get(), originalSize, modelInputSize,
-                     confidenceThreshold, iouThreshold, maxInstances,
-                     classIndices, returnMaskAtOriginalResolution);
 }
 
 } // namespace rnexecutorch::models::instance_segmentation

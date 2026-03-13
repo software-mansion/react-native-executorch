@@ -8,7 +8,7 @@
 
 #include "Types.h"
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/utils/computer_vision/Types.h>
 
 namespace rnexecutorch {
@@ -16,7 +16,7 @@ namespace models::instance_segmentation {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-class BaseInstanceSegmentation : public BaseModel {
+class BaseInstanceSegmentation : public VisionModel {
 public:
   BaseInstanceSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
@@ -24,12 +24,36 @@ public:
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
-  generate(std::string imageSource, double confidenceThreshold,
-           double iouThreshold, int32_t maxInstances,
-           std::vector<int32_t> classIndices,
-           bool returnMaskAtOriginalResolution, std::string methodName);
+  generateFromString(std::string imageSource, double confidenceThreshold,
+                     double iouThreshold, int32_t maxInstances,
+                     std::vector<int32_t> classIndices,
+                     bool returnMaskAtOriginalResolution,
+                     std::string methodName);
+
+  [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
+                    double confidenceThreshold, double iouThreshold,
+                    int32_t maxInstances, std::vector<int32_t> classIndices,
+                    bool returnMaskAtOriginalResolution,
+                    std::string methodName);
+
+  [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
+  generateFromPixels(const JSTensorViewIn &tensorView,
+                     double confidenceThreshold, double iouThreshold,
+                     int32_t maxInstances, std::vector<int32_t> classIndices,
+                     bool returnMaskAtOriginalResolution,
+                     std::string methodName);
+
+protected:
+  cv::Mat preprocess(const cv::Mat &image) const override;
+  cv::Size modelInputSize() const override;
 
 private:
+  std::vector<types::Instance> runInference(
+      const cv::Mat &image, double confidenceThreshold, double iouThreshold,
+      int32_t maxInstances, const std::vector<int32_t> &classIndices,
+      bool returnMaskAtOriginalResolution, const std::string &methodName);
+
   std::vector<types::Instance>
   postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
               cv::Size modelInputSize, double confidenceThreshold,
@@ -85,4 +109,3 @@ private:
 REGISTER_CONSTRUCTOR(models::instance_segmentation::BaseInstanceSegmentation,
                      std::string, std::vector<float>, std::vector<float>, bool,
                      std::shared_ptr<react::CallInvoker>);
-} // namespace rnexecutorch

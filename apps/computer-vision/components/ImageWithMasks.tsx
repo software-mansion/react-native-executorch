@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, View, Text } from 'react-native';
 import {
   Canvas,
@@ -134,13 +134,6 @@ export default function ImageWithMasks({
   const scale = Math.min(scaleX, scaleY);
   const offsetX = (layout.width - imageWidth * scale) / 2;
   const offsetY = (layout.height - imageHeight * scale) / 2;
-
-  // Dispose Skia images when instances are replaced or on unmount
-  useEffect(() => {
-    return () => {
-      instances.forEach((inst) => inst.maskImage.dispose());
-    };
-  }, [instances]);
 
   return (
     <View

@@ -90,8 +90,24 @@ protected:
    */
   virtual cv::Mat preprocess(const cv::Mat &image) const;
 
-  /// Convenience accessor: spatial dimensions of the model input.
-  cv::Size modelInputSize() const;
+  /// Cached input tensor shape (getAllInputShapes()[0]).
+  /// Set once by each subclass constructor to avoid per-frame metadata lookups.
+  std::vector<int32_t> modelInputShape_;
+
+  /**
+   * @brief Get the spatial dimensions of the model input.
+   *
+   * By default, returns the last two dimensions of modelInputShape_.
+   * Subclasses may override this for models with dynamic or multiple input
+   * sizes.
+   */
+  virtual cv::Size modelInputSize() const {
+    if (modelInputShape_.size() < 2) {
+      return {0, 0};
+    }
+    return cv::Size(modelInputShape_[modelInputShape_.size() - 1],
+                    modelInputShape_[modelInputShape_.size() - 2]);
+  }
 
   /**
    * @brief Extract an RGB cv::Mat from a VisionCamera frame
