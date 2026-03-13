@@ -14,6 +14,7 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/文档-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
     <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 <p align="center">
@@ -27,7 +28,7 @@
 
 **React Native ExecuTorch** 是一个使用 React Native 在设备上运行 AI 模型的声明式工具，得益于 **ExecuTorch** 的支持 :rocket:。它为各种 LLM、计算机视觉模型等提供了开箱即用的支持。访问我们的 [HuggingFace](https://huggingface.co/software-mansion) 页面，以探索这些模型。
 
-**ExecuTorch** 由 Meta 开发，是一个创新的框架，允许在移动电话或微控制器等设备上执行 AI 模型。
+[**ExecuTorch**](https://executorch.ai) 由 Meta 开发，是一个创新的框架，允许在移动电话或微控制器等设备上执行 AI 模型。
 
 React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥梁，使开发者无需深入的本地编程或机器学习知识即可高效地在移动设备上本地运行 AI 模型。
 
@@ -36,20 +37,20 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
-<summary><strong> :blue_book: 目录 </strong></summary>
+<summary><strong>目录</strong></summary>
 
-- [:yin_yang: 支持的版本](#yin_yang-supported-versions)
-- [:earth_africa: 实际案例](#earth_africa-real-world-example)
-- [:llama: 快速入门 - 运行 Llama](#llama-quickstart---running-llama)
-- [:calling: 示例应用](#calling-demo-apps)
-- [:robot: 现成模型](#robot-ready-made-models)
-- [:books: 文档](#books-documentation)
-- [:balance_scale: 许可证](#balance_scale-license)
-- [:soon: 接下来是什么？](#soon-whats-next)
+- [支持的版本](#支持的版本)
+- [实际案例](#实际案例)
+- [快速入门 - 运行 Llama](#快速入门---运行-llama)
+- [示例应用](#示例应用)
+- [现成模型](#现成模型)
+- [文档](#文档)
+- [许可证](#许可证)
+- [接下来是什么？](#接下来是什么)
 
 </details>
 
-## :yin_yang: 支持的版本
+## 支持的版本
 
 最低支持版本为：
 
@@ -60,17 +61,17 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 > [!IMPORTANT]
 > React Native ExecuTorch 仅支持 [New React Native architecture](https://reactnative.dev/architecture/landing-page)。
 
-## :earth_africa: 实际案例
+## 实际案例
 
 React Native ExecuTorch 为 [Private Mind](https://privatemind.swmansion.com/) 提供了动力，这是一款以隐私优先的移动 AI 应用程序，可在 [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) 和 [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) 上获得。
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## :llama: **快速入门 - 运行 Llama**
+## 快速入门 - 运行 Llama
 
 **通过三个简单步骤，开始使用 AI 驱动的文本生成！**
 
-### :one: **安装**
+### :one: 安装
 
 ```bash
 # 安装包
@@ -85,10 +86,10 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # 根据平台，选择 iOS 或 Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
-### :two: **设置和初始化**
+### :two: 设置和初始化
 
 将此添加到您的组件文件中：
 
@@ -112,7 +113,7 @@ function MyComponent() {
 }
 ```
 
-### :three: **运行模型！**
+### :three: 运行模型！
 
 ```tsx
 const handleGenerate = async () => {
@@ -127,44 +128,39 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: 示例应用
+## 示例应用
 
 我们目前托管了一些示例 [应用程序](https://github.com/software-mansion/react-native-executorch/tree/main/apps)，展示了我们库的使用案例：
 
 - `llm` - 展现 LLM 使用的聊天应用程序
-- `speech-to-text` - 准备用于转录任务的 Whisper 模型
+- `speech` - 语音转文字和文字转语音任务实现
 - `computer-vision` - 计算机视觉相关任务
 - `text-embeddings` - 用于语义搜索的文本表示计算
+- `bare_rn` - 适用于原生 React Native（无 Expo）的 LLM 聊天示例
 
-如果您想运行示例应用程序，请导航到其项目目录并安装依赖项：
-
-```bash
-yarn
-```
-
-然后，根据平台，选择 iOS 或 Android：
+如果您想运行示例应用程序，请导航到其项目目录。然后安装依赖项并运行应用：
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]
 > 运行 LLM 需要大量的 RAM。如果您遇到意外的应用崩溃，请尝试增加分配给模拟器的 RAM。
 
-## :robot: 现成模型
+## 现成模型
 
 我们的库中有许多现成可用的 AI 模型；完整列表可在文档中查看。如果您有兴趣运行自己的 AI 模型，首先需要将其导出为 `.pte` 格式。关于如何执行此操作的说明可在 [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) 和 [optimum-executorch 说明](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately) 中获取。
 
-## :books: 文档
+## 文档
 
 查看我们的文档，了解我们的库如何帮助您构建 React Native AI 功能：
 https://docs.swmansion.com/react-native-executorch
 
-## :balance_scale: 许可证
+## 许可证
 
 此库受 [MIT 许可证](./LICENSE) 许可。
 
-## :soon: 接下来是什么？
+## 接下来是什么？
 
 若要了解我们的计划和发展，敬请访问我们的 [milestones](https://github.com/software-mansion/react-native-executorch/milestones)。
 
