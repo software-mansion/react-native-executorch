@@ -6,7 +6,6 @@
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::style_transfer {
 using namespace facebook;
