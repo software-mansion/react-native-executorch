@@ -65,7 +65,7 @@ const handleSpeech = async (text: string) => {
 
 `useTextToSpeech` takes [`TextToSpeechProps`](../../06-api-reference/interfaces/TextToSpeechProps.md) that consists of:
 
-- `model` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/KokoroConfig.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/KokoroConfig.md#synthesizersource), and [`type`](../../06-api-reference/interfaces/KokoroConfig.md#type).
+- `model` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/KokoroConfig.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/KokoroConfig.md#synthesizersource), and [`modelName`](../../06-api-reference/interfaces/KokoroConfig.md#modelname).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) which prevents auto-loading of the model.
 - [`voice`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) of type [`VoiceConfig`](../../06-api-reference/interfaces/VoiceConfig.md) - configuration of specific voice used in TTS.
 
