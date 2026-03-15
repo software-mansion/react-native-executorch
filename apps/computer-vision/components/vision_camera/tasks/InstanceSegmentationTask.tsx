@@ -7,6 +7,8 @@ import {
   YOLO26N_SEG,
   RF_DETR_SEG,
   useInstanceSegmentation,
+  CocoLabel,
+  CocoLabelYolo,
 } from 'react-native-executorch';
 import { Canvas, Image as SkiaImage } from '@shopify/react-native-skia';
 import { labelColor, labelColorBg } from '../utils/colors';
@@ -65,7 +67,9 @@ export default function InstanceSegmentationTask({
 
   const updateInstances = useCallback(
     (p: {
-      results: SegmentedInstance<any>[];
+      results:
+        | SegmentedInstance<typeof CocoLabel>[]
+        | SegmentedInstance<typeof CocoLabelYolo>[];
       imageWidth: number;
       imageHeight: number;
     }) => {
@@ -140,7 +144,7 @@ export default function InstanceSegmentationTask({
           frame.dispose();
         }
       },
-      [instSegRof, frameKillSwitch, updateInstances]
+      [instSegRof, frameKillSwitch, updateInstances, activeModel]
     ),
   });
 

@@ -74,7 +74,11 @@ const ModelConfigs = {
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
   'rfdetr-seg': RF_DETR_SEG_CONFIG,
-} as const;
+} as const satisfies Record<
+  InstanceSegmentationModelName,
+  | InstanceSegmentationConfig<typeof CocoLabel>
+  | InstanceSegmentationConfig<typeof CocoLabelYolo>
+>;
 
 /** @internal */
 type ModelConfigsType = typeof ModelConfigs;
