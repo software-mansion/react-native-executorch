@@ -89,8 +89,11 @@ export abstract class BaseOCRController {
   };
 
   get runOnFrame(): ((frame: Frame) => OCRDetection[]) | null {
-    if (!this.nativeModule?.generateFromFrame) {
-      return null;
+    if (!this.isReady) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling runOnFrame().'
+      );
     }
 
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;

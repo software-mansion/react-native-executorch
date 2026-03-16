@@ -60,7 +60,7 @@ export interface ImageEmbeddingsType {
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    *
-   * @param input - Image source (string or PixelData object)
+   * @param input - Image source (string or {@link PixelData} object)
    * @returns A Promise that resolves to a `Float32Array` containing the generated embedding vector.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */

@@ -59,8 +59,11 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    * ```
    */
   get runOnFrame(): ((frame: Frame, ...args: any[]) => TOutput) | null {
-    if (!this.nativeModule?.generateFromFrame) {
-      return null;
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling runOnFrame().'
+      );
     }
 
     // Extract pure JSI function reference (runs on JS thread)
@@ -73,9 +76,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       let nativeBuffer: any = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
-        const frameData = {
-          nativeBuffer: nativeBuffer.pointer,
-        };
+        const frameData = { nativeBuffer: nativeBuffer.pointer };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {
         if (nativeBuffer?.release) {

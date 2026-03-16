@@ -4,6 +4,8 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { VisionModule } from './VisionModule';
 
+export { ResolveLabels } from '../../types/computerVision';
+
 /**
  * Fetches a model binary and returns its local path, throwing if the download
  * was interrupted (paused or cancelled).
@@ -23,22 +25,6 @@ export async function fetchModelPath(
   }
   return paths[0];
 }
-
-/**
- * Given a model configs record (mapping model names to `{ labelMap }`) and a
- * type `T` (either a model name key or a raw {@link LabelEnum}), resolves to
- * the label map for that model or `T` itself.
- *
- * @internal
- */
-export type ResolveLabels<
-  T,
-  Configs extends Record<string, { labelMap: LabelEnum }>,
-> = T extends keyof Configs
-  ? Configs[T]['labelMap']
-  : T extends LabelEnum
-    ? T
-    : never;
 
 /**
  * Base class for computer vision modules that carry a type-safe label map

@@ -14,6 +14,10 @@ import { VisionModule } from './VisionModule';
 export class ClassificationModule extends VisionModule<{
   [category: string]: number;
 }> {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
   /**
    * Creates a classification instance for a built-in model.
    *
@@ -41,9 +45,9 @@ export class ClassificationModule extends VisionModule<{
         );
       }
 
-      const instance = new ClassificationModule();
-      instance.nativeModule = await global.loadClassification(paths[0]);
-      return instance;
+      return new ClassificationModule(
+        await global.loadClassification(paths[0])
+      );
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

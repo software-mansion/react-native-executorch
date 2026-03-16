@@ -77,20 +77,6 @@ export interface ClassificationType {
    *
    * Available after model is loaded (`isReady: true`).
    *
-   * @example
-   * ```typescript
-   * const { runOnFrame, isReady } = useClassification({ model: MODEL });
-   *
-   * const frameOutput = useFrameOutput({
-   *   onFrame(frame) {
-   *     'worklet';
-   *     if (!runOnFrame) return;
-   *     const result = runOnFrame(frame);
-   *     frame.dispose();
-   *   }
-   * });
-   * ```
-   *
    * @param frame - VisionCamera Frame object
    * @returns Object mapping class labels to confidence scores.
    */
