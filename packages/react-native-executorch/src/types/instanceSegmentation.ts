@@ -80,6 +80,13 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
  *
  * @typeParam T - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
+ *
+ * @remarks
+ * The `availableInputSizes` and `defaultInputSize` fields are mutually inclusive:
+ * - **Either both must be provided** (for models with multiple input sizes), or
+ * - **Both must be omitted** (for models with a single input size).
+ *
+ * This discriminated union ensures type safety and prevents partial configuration.
  */
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;

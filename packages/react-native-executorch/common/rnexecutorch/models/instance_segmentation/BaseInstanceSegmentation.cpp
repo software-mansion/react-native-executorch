@@ -315,14 +315,14 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
       static_cast<float>(originalSize.width) / modelInputSize.width;
   float heightRatio =
       static_cast<float>(originalSize.height) / modelInputSize.height;
-  std::set<int32_t> allowedClasses = prepareAllowedClasses(classIndices);
+  auto allowedClasses = prepareAllowedClasses(classIndices);
 
   // CONTRACT
   auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
   auto scoresTensor = tensors[1].toTensor(); // [1, N, 2]
   auto maskTensor = tensors[2].toTensor();   // [1, N, H, W]
 
-  int32_t N = bboxTensor.size(1);
+  int32_t numInstances = bboxTensor.size(1);
   int32_t maskH = maskTensor.size(2);
   int32_t maskW = maskTensor.size(3);
 
@@ -343,7 +343,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
 
   std::vector<types::Instance> instances;
 
-  for (int32_t i = 0; i < N; ++i) {
+  for (int32_t i = 0; i < numInstances; ++i) {
     auto [bboxModel, score, labelIdx] =
         extractDetectionData(bboxData, scoresData, i);
 
