@@ -2,7 +2,6 @@
 
 #include "Types.h"
 #include <algorithm>
-#include <ranges>
 #include <vector>
 
 namespace rnexecutorch::utils::computer_vision {
