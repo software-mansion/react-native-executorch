@@ -34,7 +34,7 @@ const YOLO_SEG_CONFIG = {
   },
 } satisfies InstanceSegmentationConfig<typeof CocoLabelYolo>;
 
-const RF_DETR_SEG_CONFIG = {
+const RF_DETR_NANO_SEG_CONFIG = {
   preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
   labelMap: CocoLabel,
   availableInputSizes: undefined,
@@ -73,7 +73,7 @@ const ModelConfigs = {
   'yolo26m-seg': YOLO_SEG_CONFIG,
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
-  'rfdetr-seg': RF_DETR_SEG_CONFIG,
+  'rfdetr-nano-seg': RF_DETR_NANO_SEG_CONFIG,
 } as const satisfies Record<
   InstanceSegmentationModelName,
   | InstanceSegmentationConfig<typeof CocoLabel>
@@ -109,6 +109,7 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  *
  * Supported models (download from HuggingFace):
  * - `yolo26n-seg`, `yolo26s-seg`, `yolo26m-seg`, `yolo26l-seg`, `yolo26x-seg` - YOLO models with COCO labels (80 classes)
+ * - `rfdetr-nano-seg` - RF-DETR Nano model with COCO labels (80 classes)
  *
  * @typeParam T - Either a pre-configured model name from {@link InstanceSegmentationModelName}
  *   or a custom label map conforming to {@link LabelEnum}.

@@ -5,7 +5,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import {
   SegmentedInstance,
   YOLO26N_SEG,
-  RF_DETR_SEG,
+  RF_DETR_NANO_SEG,
   useInstanceSegmentation,
   CocoLabel,
   CocoLabelYolo,
@@ -40,7 +40,7 @@ export default function InstanceSegmentationTask({
     preventLoad: activeModel !== 'instanceSegmentation_yolo26n',
   });
   const rfdetr = useInstanceSegmentation({
-    model: RF_DETR_SEG,
+    model: RF_DETR_NANO_SEG,
     preventLoad: activeModel !== 'instanceSegmentation_rfdetr',
   });
 

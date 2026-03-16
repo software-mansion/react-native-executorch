@@ -19,7 +19,7 @@ float computeIoU(const BBox &a, const BBox &b) {
 }
 
 BBox scaleBBox(const BBox &box, float widthRatio, float heightRatio) {
-  return BBox{
+  return {
       .x1 = box.x1 * widthRatio,
       .y1 = box.y1 * heightRatio,
       .x2 = box.x2 * widthRatio,
@@ -28,7 +28,7 @@ BBox scaleBBox(const BBox &box, float widthRatio, float heightRatio) {
 }
 
 BBox clipBBox(const BBox &box, float maxWidth, float maxHeight) {
-  return BBox{
+  return {
       .x1 = std::max(0.0f, box.x1),
       .y1 = std::max(0.0f, box.y1),
       .x2 = std::min(maxWidth, box.x2),

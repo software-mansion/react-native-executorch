@@ -28,10 +28,10 @@ import Svg, { Path, Polygon } from 'react-native-svg';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
-import ClassificationTask from './tasks/ClassificationTask';
-import ObjectDetectionTask from './tasks/ObjectDetectionTask';
-import SegmentationTask from './tasks/SegmentationTask';
-import InstanceSegmentationTask from './tasks/InstanceSegmentationTask';
+import ClassificationTask from '../../components/vision_camera/tasks/ClassificationTask';
+import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
+import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
+import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
 
 type TaskId =
   | 'classification'
@@ -40,15 +40,15 @@ type TaskId =
   | 'instanceSegmentation';
 type ModelId =
   | 'classification'
-  | 'objectDetection_ssdlite'
-  | 'objectDetection_rfdetr'
-  | 'segmentation_deeplab_resnet50'
-  | 'segmentation_deeplab_resnet101'
-  | 'segmentation_deeplab_mobilenet'
-  | 'segmentation_lraspp'
-  | 'segmentation_fcn_resnet50'
-  | 'segmentation_fcn_resnet101'
-  | 'segmentation_selfie'
+  | 'objectDetectionSsdlite'
+  | 'objectDetectionRfdetr'
+  | 'segmentationDeeplabResnet50'
+  | 'segmentationDeeplabResnet101'
+  | 'segmentationDeeplabMobilenet'
+  | 'segmentationLraspp'
+  | 'segmentationFcnResnet50'
+  | 'segmentationFcnResnet101'
+  | 'segmentationSelfie'
   | 'instanceSegmentation_yolo26n'
   | 'instanceSegmentation_rfdetr';
 
@@ -87,7 +87,7 @@ const TASKS: Task[] = [
     label: 'Inst Seg',
     variants: [
       { id: 'instanceSegmentation_yolo26n', label: 'YOLO26N Seg' },
-      { id: 'instanceSegmentation_rfdetr', label: 'RF-DETR Seg' },
+      { id: 'instanceSegmentation_rfdetr', label: 'RF-DETR Nano Seg' },
     ],
   },
 ];
@@ -216,7 +216,7 @@ export default function VisionCameraScreen() {
         <ObjectDetectionTask
           {...taskProps}
           activeModel={
-            activeModel as 'objectDetection_ssdlite' | 'objectDetection_rfdetr'
+            activeModel as 'objectDetectionSsdlite' | 'objectDetectionRfdetr'
           }
         />
       )}
@@ -225,13 +225,13 @@ export default function VisionCameraScreen() {
           {...taskProps}
           activeModel={
             activeModel as
-              | 'segmentation_deeplab_resnet50'
-              | 'segmentation_deeplab_resnet101'
-              | 'segmentation_deeplab_mobilenet'
-              | 'segmentation_lraspp'
-              | 'segmentation_fcn_resnet50'
-              | 'segmentation_fcn_resnet101'
-              | 'segmentation_selfie'
+              | 'segmentationDeeplabResnet50'
+              | 'segmentationDeeplabResnet101'
+              | 'segmentationDeeplabMobilenet'
+              | 'segmentationLraspp'
+              | 'segmentationFcnResnet50'
+              | 'segmentationFcnResnet101'
+              | 'segmentationSelfie'
           }
         />
       )}

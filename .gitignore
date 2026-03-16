@@ -103,5 +103,3 @@ packages/react-native-executorch/common/rnexecutorch/tests/integration/assets/mo
 Makefile
 *.pte
 
-# Test assets
-packages/react-native-executorch/common/rnexecutorch/tests/integration/assets/models/
