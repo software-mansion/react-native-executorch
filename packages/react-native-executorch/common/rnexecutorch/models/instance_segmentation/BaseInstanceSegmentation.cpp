@@ -332,11 +332,8 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
 
   auto isValidDetection =
       [&allowedClasses, &confidenceThreshold](float score, int32_t labelIdx) {
-        if (score < confidenceThreshold ||
-            (!allowedClasses.empty() && allowedClasses.count(labelIdx) == 0)) {
-          return false;
-        }
-        return true;
+        return score >= confidenceThreshold &&
+               (allowedClasses.empty() || allowedClasses.count(labelIdx) != 0);
       };
 
   std::vector<types::Instance> instances;
