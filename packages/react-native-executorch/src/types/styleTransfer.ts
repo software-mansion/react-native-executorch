@@ -67,13 +67,13 @@ export interface StyleTransferType {
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    *
    * @param input - Image source (string or PixelData object)
-   * @param output - Output format: `'pixelData'` (default) returns raw RGBA pixel data; `'url'` saves the result to a temp file and returns its `file://` path.
-   * @returns A Promise resolving to `PixelData` when `output` is `'pixelData'` (default), or a `file://` URL string when `output` is `'url'`.
+   * @param outputType - Output format: `'pixelData'` (default) returns raw RGBA pixel data; `'url'` saves the result to a temp file and returns its `file://` path.
+   * @returns A Promise resolving to `PixelData` when `outputType` is `'pixelData'` (default), or a `file://` URL string when `outputType` is `'url'`.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
   forward<O extends 'pixelData' | 'url' = 'pixelData'>(
     input: string | PixelData,
-    output?: O
+    outputType?: O
   ): Promise<O extends 'url' ? string : PixelData>;
 
   /**

@@ -50,7 +50,7 @@ For more information on loading resources, take a look at [loading models](../..
 To run the model, use the [`forward`](../../06-api-reference/classes/StyleTransferModule.md#forward) method. It accepts two arguments:
 
 - `input` (required) — The image to stylize. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
-- `output` (optional) — Controls the return format:
+- `outputType` (optional) — Controls the return format:
   - `'pixelData'` (default) — Returns a `PixelData` object with raw RGB pixels. No file is written.
   - `'url'` — Saves the result to a temp file and returns its URI as a `string`.
 

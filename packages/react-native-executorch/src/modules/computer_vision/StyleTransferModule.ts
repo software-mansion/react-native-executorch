@@ -71,9 +71,9 @@ export class StyleTransferModule extends VisionModule<PixelData | string> {
 
   async forward<O extends 'pixelData' | 'url' = 'pixelData'>(
     input: string | PixelData,
-    output?: O
+    outputType?: O
   ): Promise<O extends 'url' ? string : PixelData> {
-    return super.forward(input, output === 'url') as Promise<
+    return super.forward(input, outputType === 'url') as Promise<
       O extends 'url' ? string : PixelData
     >;
   }
