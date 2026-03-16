@@ -364,11 +364,10 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
         logitsMat, bboxModel, bboxOriginal, modelInputSize, originalSize,
         returnMaskAtOriginalResolution);
 
-    instances.emplace_back(
-        bboxOriginal,
-        std::vector<uint8_t>(binaryMask.data,
-                             binaryMask.data + binaryMask.total()),
-        binaryMask.cols, binaryMask.rows, labelIdx, score);
+    instances.emplace_back(bboxOriginal,
+                           std::make_shared<OwningArrayBuffer>(
+                               binaryMask.data, binaryMask.total()),
+                           binaryMask.cols, binaryMask.rows, labelIdx, score);
   }
 
   return finalizeInstances(std::move(instances), iouThreshold, maxInstances);

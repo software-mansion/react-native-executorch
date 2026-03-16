@@ -161,10 +161,11 @@ TEST(InstanceSegResultTests, InstancesHaveValidMasks) {
   for (const auto &inst : results) {
     EXPECT_GT(inst.maskWidth, 0);
     EXPECT_GT(inst.maskHeight, 0);
-    EXPECT_EQ(inst.mask.size(),
+    EXPECT_EQ(inst.mask->size(),
               static_cast<size_t>(inst.maskWidth) * inst.maskHeight);
 
-    for (uint8_t val : inst.mask) {
+    for (size_t i = 0; i < inst.mask->size(); ++i) {
+      uint8_t val = inst.mask->data()[i];
       EXPECT_TRUE(val == 0 || val == 1);
     }
   }
@@ -222,7 +223,7 @@ TEST(InstanceSegMaskTests, LowResMaskIsSmallerThanOriginal) {
                               kMethodName);
 
   if (!hiRes.empty() && !loRes.empty()) {
-    EXPECT_LE(loRes[0].mask.size(), hiRes[0].mask.size());
+    EXPECT_LE(loRes[0].mask->size(), hiRes[0].mask->size());
   }
 }
 

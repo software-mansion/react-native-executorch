@@ -471,10 +471,8 @@ getJsiValue(const std::vector<models::instance_segmentation::types::Instance>
     instance.setProperty(runtime, "bbox",
                          getJsiValue(instances[i].bbox, runtime));
 
-    // Mask as Uint8Array
-    auto maskBuffer = std::make_shared<OwningArrayBuffer>(
-        instances[i].mask.data(), instances[i].mask.size());
-    jsi::ArrayBuffer arrayBuffer(runtime, maskBuffer);
+    // Mask as Uint8Array - reuse existing OwningArrayBuffer
+    jsi::ArrayBuffer arrayBuffer(runtime, instances[i].mask);
     auto uint8ArrayCtor =
         runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
     auto uint8Array = uint8ArrayCtor.callAsConstructor(runtime, arrayBuffer)
