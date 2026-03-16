@@ -106,15 +106,17 @@ These errors occur during file read/write operations.
 
 These errors occur during model download and resource management.
 
-| Error Code                          | Description                      | When It Occurs                                        | How to Handle                                                             |
-| ----------------------------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| `DownloadInterrupted`               | Download was interrupted         | Not all files were downloaded successfully            | Retry the download                                                        |
-| `ResourceFetcherDownloadFailed`     | Resource download failed         | Network error, invalid URL, or server error           | Check network connection and URL validity, retry with exponential backoff |
-| `ResourceFetcherDownloadInProgress` | Download already in progress     | Calling `fetch()` for same resource while downloading | Wait for current download to complete                                     |
-| `ResourceFetcherAlreadyPaused`      | Download already paused          | Calling `pauseFetching()` on already paused download  | Check download state before pausing                                       |
-| `ResourceFetcherAlreadyOngoing`     | Download already ongoing         | Calling `resumeFetching()` on active download         | No action needed, download is already running                             |
-| `ResourceFetcherNotActive`          | No active download found         | Calling pause/resume/cancel on non-existent download  | Verify download was started before trying to control it                   |
-| `ResourceFetcherMissingUri`         | Required URI information missing | Internal state error during download operations       | Restart the download from beginning                                       |
+| Error Code                             | Description                                | When It Occurs                                                       | How to Handle                                                             |
+| -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `DownloadInterrupted`                  | Download was interrupted                   | Not all files were downloaded successfully                           | Retry the download                                                        |
+| `ResourceFetcherDownloadFailed`        | Resource download failed                   | Network error, invalid URL, or server error                          | Check network connection and URL validity, retry with exponential backoff |
+| `ResourceFetcherDownloadInProgress`    | Download already in progress               | Calling `fetch()` for same resource while downloading                | Wait for current download to complete                                     |
+| `ResourceFetcherAlreadyPaused`         | Download already paused                    | Calling `pauseFetching()` on already paused download                 | Check download state before pausing                                       |
+| `ResourceFetcherAlreadyOngoing`        | Download already ongoing                   | Calling `resumeFetching()` on active download                        | No action needed, download is already running                             |
+| `ResourceFetcherNotActive`             | No active download found                   | Calling pause/resume/cancel on non-existent download                 | Verify download was started before trying to control it                   |
+| `ResourceFetcherMissingUri`            | Required URI information missing           | Internal state error during download operations                      | Restart the download from beginning                                       |
+| `ResourceFetcherAdapterNotInitialized` | Resource fetcher not initialized           | Trying to load resources without calling `initExecutorch()` first    | Call `initExecutorch({ resourceFetcher: ... })` before loading models     |
+| `ResourceFetcherPlatformNotSupported`  | Platform not supported by resource fetcher | Using a resource fetcher feature unavailable on the current platform | Use a platform-appropriate fetcher or avoid the unsupported operation     |
 
 ### Speech-to-Text Streaming Errors
 
