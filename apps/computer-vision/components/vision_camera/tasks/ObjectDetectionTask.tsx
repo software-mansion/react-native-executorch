@@ -11,7 +11,7 @@ import {
 import { labelColor, labelColorBg } from '../utils/colors';
 import { TaskProps } from './types';
 
-type ObjModelId = 'objectDetection_ssdlite' | 'objectDetection_rfdetr';
+type ObjModelId = 'objectDetectionSsdlite' | 'objectDetectionRfdetr';
 
 type Props = TaskProps & { activeModel: ObjModelId };
 
@@ -28,14 +28,14 @@ export default function ObjectDetectionTask({
 }: Props) {
   const ssdlite = useObjectDetection({
     model: SSDLITE_320_MOBILENET_V3_LARGE,
-    preventLoad: activeModel !== 'objectDetection_ssdlite',
+    preventLoad: activeModel !== 'objectDetectionSsdlite',
   });
   const rfdetr = useObjectDetection({
     model: RF_DETR_NANO,
-    preventLoad: activeModel !== 'objectDetection_rfdetr',
+    preventLoad: activeModel !== 'objectDetectionRfdetr',
   });
 
-  const active = activeModel === 'objectDetection_ssdlite' ? ssdlite : rfdetr;
+  const active = activeModel === 'objectDetectionSsdlite' ? ssdlite : rfdetr;
 
   const [detections, setDetections] = useState<Detection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });

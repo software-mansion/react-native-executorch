@@ -24,13 +24,13 @@ import { CLASS_COLORS } from '../utils/colors';
 import { TaskProps } from './types';
 
 type SegModelId =
-  | 'segmentation_deeplab_resnet50'
-  | 'segmentation_deeplab_resnet101'
-  | 'segmentation_deeplab_mobilenet'
-  | 'segmentation_lraspp'
-  | 'segmentation_fcn_resnet50'
-  | 'segmentation_fcn_resnet101'
-  | 'segmentation_selfie';
+  | 'segmentationDeeplabResnet50'
+  | 'segmentationDeeplabResnet101'
+  | 'segmentationDeeplabMobilenet'
+  | 'segmentationLraspp'
+  | 'segmentationFcnResnet50'
+  | 'segmentationFcnResnet101'
+  | 'segmentationSelfie';
 
 type Props = TaskProps & { activeModel: SegModelId };
 
@@ -47,41 +47,41 @@ export default function SegmentationTask({
 }: Props) {
   const segDeeplabResnet50 = useSemanticSegmentation({
     model: DEEPLAB_V3_RESNET50_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_resnet50',
+    preventLoad: activeModel !== 'segmentationDeeplabResnet50',
   });
   const segDeeplabResnet101 = useSemanticSegmentation({
     model: DEEPLAB_V3_RESNET101_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_resnet101',
+    preventLoad: activeModel !== 'segmentationDeeplabResnet101',
   });
   const segDeeplabMobilenet = useSemanticSegmentation({
     model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_deeplab_mobilenet',
+    preventLoad: activeModel !== 'segmentationDeeplabMobilenet',
   });
   const segLraspp = useSemanticSegmentation({
     model: LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_lraspp',
+    preventLoad: activeModel !== 'segmentationLraspp',
   });
   const segFcnResnet50 = useSemanticSegmentation({
     model: FCN_RESNET50_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_fcn_resnet50',
+    preventLoad: activeModel !== 'segmentationFcnResnet50',
   });
   const segFcnResnet101 = useSemanticSegmentation({
     model: FCN_RESNET101_QUANTIZED,
-    preventLoad: activeModel !== 'segmentation_fcn_resnet101',
+    preventLoad: activeModel !== 'segmentationFcnResnet101',
   });
   const segSelfie = useSemanticSegmentation({
     model: SELFIE_SEGMENTATION,
-    preventLoad: activeModel !== 'segmentation_selfie',
+    preventLoad: activeModel !== 'segmentationSelfie',
   });
 
   const active = {
-    segmentation_deeplab_resnet50: segDeeplabResnet50,
-    segmentation_deeplab_resnet101: segDeeplabResnet101,
-    segmentation_deeplab_mobilenet: segDeeplabMobilenet,
-    segmentation_lraspp: segLraspp,
-    segmentation_fcn_resnet50: segFcnResnet50,
-    segmentation_fcn_resnet101: segFcnResnet101,
-    segmentation_selfie: segSelfie,
+    segmentationDeeplabResnet50: segDeeplabResnet50,
+    segmentationDeeplabResnet101: segDeeplabResnet101,
+    segmentationDeeplabMobilenet: segDeeplabMobilenet,
+    segmentationLraspp: segLraspp,
+    segmentationFcnResnet50: segFcnResnet50,
+    segmentationFcnResnet101: segFcnResnet101,
+    segmentationSelfie: segSelfie,
   }[activeModel];
 
   const [maskImage, setMaskImage] = useState<SkImage | null>(null);

@@ -35,15 +35,15 @@ import SegmentationTask from '../../components/vision_camera/tasks/SegmentationT
 type TaskId = 'classification' | 'objectDetection' | 'segmentation';
 type ModelId =
   | 'classification'
-  | 'objectDetection_ssdlite'
-  | 'objectDetection_rfdetr'
-  | 'segmentation_deeplab_resnet50'
-  | 'segmentation_deeplab_resnet101'
-  | 'segmentation_deeplab_mobilenet'
-  | 'segmentation_lraspp'
-  | 'segmentation_fcn_resnet50'
-  | 'segmentation_fcn_resnet101'
-  | 'segmentation_selfie';
+  | 'objectDetectionSsdlite'
+  | 'objectDetectionRfdetr'
+  | 'segmentationDeeplabResnet50'
+  | 'segmentationDeeplabResnet101'
+  | 'segmentationDeeplabMobilenet'
+  | 'segmentationLraspp'
+  | 'segmentationFcnResnet50'
+  | 'segmentationFcnResnet101'
+  | 'segmentationSelfie';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -58,21 +58,21 @@ const TASKS: Task[] = [
     id: 'segmentation',
     label: 'Segment',
     variants: [
-      { id: 'segmentation_deeplab_resnet50', label: 'DeepLab ResNet50' },
-      { id: 'segmentation_deeplab_resnet101', label: 'DeepLab ResNet101' },
-      { id: 'segmentation_deeplab_mobilenet', label: 'DeepLab MobileNet' },
-      { id: 'segmentation_lraspp', label: 'LRASPP MobileNet' },
-      { id: 'segmentation_fcn_resnet50', label: 'FCN ResNet50' },
-      { id: 'segmentation_fcn_resnet101', label: 'FCN ResNet101' },
-      { id: 'segmentation_selfie', label: 'Selfie' },
+      { id: 'segmentationDeeplabResnet50', label: 'DeepLab ResNet50' },
+      { id: 'segmentationDeeplabResnet101', label: 'DeepLab ResNet101' },
+      { id: 'segmentationDeeplabMobilenet', label: 'DeepLab MobileNet' },
+      { id: 'segmentationLraspp', label: 'LRASPP MobileNet' },
+      { id: 'segmentationFcnResnet50', label: 'FCN ResNet50' },
+      { id: 'segmentationFcnResnet101', label: 'FCN ResNet101' },
+      { id: 'segmentationSelfie', label: 'Selfie' },
     ],
   },
   {
     id: 'objectDetection',
     label: 'Detect',
     variants: [
-      { id: 'objectDetection_ssdlite', label: 'SSDLite MobileNet' },
-      { id: 'objectDetection_rfdetr', label: 'RF-DETR Nano' },
+      { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
+      { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
     ],
   },
 ];
@@ -201,7 +201,7 @@ export default function VisionCameraScreen() {
         <ObjectDetectionTask
           {...taskProps}
           activeModel={
-            activeModel as 'objectDetection_ssdlite' | 'objectDetection_rfdetr'
+            activeModel as 'objectDetectionSsdlite' | 'objectDetectionRfdetr'
           }
         />
       )}
@@ -210,13 +210,13 @@ export default function VisionCameraScreen() {
           {...taskProps}
           activeModel={
             activeModel as
-              | 'segmentation_deeplab_resnet50'
-              | 'segmentation_deeplab_resnet101'
-              | 'segmentation_deeplab_mobilenet'
-              | 'segmentation_lraspp'
-              | 'segmentation_fcn_resnet50'
-              | 'segmentation_fcn_resnet101'
-              | 'segmentation_selfie'
+              | 'segmentationDeeplabResnet50'
+              | 'segmentationDeeplabResnet101'
+              | 'segmentationDeeplabMobilenet'
+              | 'segmentationLraspp'
+              | 'segmentationFcnResnet50'
+              | 'segmentationFcnResnet101'
+              | 'segmentationSelfie'
           }
         />
       )}
