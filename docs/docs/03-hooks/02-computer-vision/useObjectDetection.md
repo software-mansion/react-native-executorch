@@ -109,8 +109,6 @@ function App() {
 
 ## VisionCamera integration
 
-For real-time object detection on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns `Detection[]`.
-
 See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models

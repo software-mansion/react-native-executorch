@@ -117,8 +117,6 @@ function App() {
 
 ## VisionCamera integration
 
-For real-time segmentation on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns the same segmentation result object as `forward`.
-
 See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models

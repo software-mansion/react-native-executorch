@@ -67,8 +67,6 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/ImageEmb
 
 ## VisionCamera integration
 
-For real-time embedding on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns `Float32Array`.
-
 See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Example

@@ -62,8 +62,6 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/OCRType.
 
 ## VisionCamera integration
 
-For real-time text recognition on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns `OCRDetection[]`.
-
 See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Detection object

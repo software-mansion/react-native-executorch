@@ -60,8 +60,6 @@ Images from external sources are stored in your application's temporary director
 
 ## VisionCamera integration
 
-For real-time classification on camera frames, use `runOnFrame`. It runs synchronously on the JS worklet thread and returns `{ [category: string]: number }`.
-
 See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Example
