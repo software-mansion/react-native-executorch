@@ -61,7 +61,7 @@ PixelDataResult toPixelDataResult(const cv::Mat &bgrMat) {
   cv::cvtColor(bgrMat, rgba, cv::COLOR_BGR2RGBA);
   std::size_t dataSize = static_cast<std::size_t>(size.width) * size.height * 4;
   auto pixelBuffer = std::make_shared<OwningArrayBuffer>(rgba.data, dataSize);
-  return PixelDataResult{pixelBuffer, size.width, size.height};
+  return PixelDataResult{pixelBuffer, size.width, size.height, rgba.channels()};
 }
 
 StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,

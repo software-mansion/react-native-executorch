@@ -11,6 +11,7 @@ struct PixelDataResult {
   std::shared_ptr<OwningArrayBuffer> dataPtr;
   int width;
   int height;
+  int channels;
 };
 
 using StyleTransferResult = std::variant<PixelDataResult, std::string>;

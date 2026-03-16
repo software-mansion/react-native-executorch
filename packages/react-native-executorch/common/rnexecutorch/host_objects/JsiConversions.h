@@ -575,7 +575,7 @@ getJsiValue(const models::style_transfer::PixelDataResult &result,
   auto sizesArray = jsi::Array(runtime, 3);
   sizesArray.setValueAtIndex(runtime, 0, jsi::Value(result.height));
   sizesArray.setValueAtIndex(runtime, 1, jsi::Value(result.width));
-  sizesArray.setValueAtIndex(runtime, 2, jsi::Value(4));
+  sizesArray.setValueAtIndex(runtime, 2, jsi::Value(result.channels));
   obj.setProperty(runtime, "sizes", sizesArray);
 
   obj.setProperty(runtime, "scalarType",
