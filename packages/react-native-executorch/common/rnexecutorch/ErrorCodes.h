@@ -134,6 +134,12 @@ enum class RnExecutorchErrorCode : int32_t {
    * Thrown when trying to load resources without fetcher initialization.
    */
   ResourceFetcherAdapterNotInitialized = 186,
+  /**
+   * Thrown when the platform does not support the resource fetching feature,
+   * which is required for downloading models and other resources in React
+   * Native ExecuTorch.
+   */
+  ResourceFetcherPlatformNotSupported = 187,
 };
 
 } // namespace rnexecutorch

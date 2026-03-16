@@ -115,6 +115,10 @@ export const errorDefinitions = {
    * Thrown when trying to load resources without fetcher initialization.
    */
   ResourceFetcherAdapterNotInitialized: 0xba,
+  /**
+   * Thrown when the platform does not support the resource fetching feature, which is required for downloading models and other resources in React Native ExecuTorch.
+   */
+  ResourceFetcherPlatformNotSupported: 0xbb,
 
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h
