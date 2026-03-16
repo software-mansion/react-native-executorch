@@ -54,4 +54,10 @@ readImageToTensor(const std::string &path,
                   bool maintainAspectRatio = false,
                   std::optional<cv::Scalar> normMean = std::nullopt,
                   std::optional<cv::Scalar> normStd = std::nullopt);
+/**
+ * @brief Applies sigmoid activation to logits and converts to uint8 binary mask
+ * @param logits Input matrix containing raw logits (pre-sigmoid)
+ * @return 8-bit unsigned integer matrix with values scaled to [0, 255]
+ */
+cv::Mat applySigmoid(const cv::Mat &logits);
 } // namespace rnexecutorch::image_processing

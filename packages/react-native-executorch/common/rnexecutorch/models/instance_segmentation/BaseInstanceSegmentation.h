@@ -80,8 +80,6 @@ private:
 
   cv::Rect addPaddingToRect(const cv::Rect &rect, cv::Size maskSize);
 
-  cv::Mat applySigmoid(const cv::Mat &logits);
-
   cv::Mat
   warpToOriginalResolution(const cv::Mat &probMat, const cv::Rect &maskRect,
                            cv::Size originalSize, cv::Size maskSize,

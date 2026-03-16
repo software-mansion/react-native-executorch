@@ -60,8 +60,14 @@ Use [`fromCustomConfig`](../../06-api-reference/classes/InstanceSegmentationModu
   - `postprocessorConfig` (optional) - Postprocessing settings (`applyNMS`).
   - `defaultConfidenceThreshold` (optional) - Default confidence threshold.
   - `defaultIouThreshold` (optional) - Default IoU threshold.
-  - `availableInputSizes` and `defaultInputSize` (optional) - Supported input sizes and the default.
+  - `availableInputSizes` and `defaultInputSize` - **Required** if your model supports multiple input sizes (i.e., exports multiple forward methods like `forward_384`, `forward_512`, `forward_640`). Both must be specified together or omitted together.
 - `onDownloadProgress` (optional) - Callback to track download progress.
+
+:::tip
+If your model supports **multiple input sizes**, you must specify both `availableInputSizes` (an array of supported sizes) and `defaultInputSize` (the default size to use when no `inputSize` is provided in options). The model must expose separate methods named `forward_{inputSize}` for each size.
+
+If your model supports only **one input size**, omit both fields and export a single `forward` method.
+:::
 
 ```typescript
 const MyLabels = { GRAPE_GREEN: 0, GRAPE_RED: 1, LEAF: 2 } as const;

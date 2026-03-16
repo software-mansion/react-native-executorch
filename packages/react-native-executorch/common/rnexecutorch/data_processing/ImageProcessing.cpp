@@ -249,5 +249,13 @@ readImageToTensor(const std::string &path,
   }
   return {image_processing::getTensorFromMatrix(tensorDims, input), imageSize};
 }
+
+cv::Mat applySigmoid(const cv::Mat &logits) {
+  cv::Mat probMat;
+  cv::exp(-logits, probMat);
+  probMat = 255.0f / (1.0f + probMat);
+  probMat.convertTo(probMat, CV_8UC1);
+  return probMat;
+}
 } // namespace image_processing
 } // namespace rnexecutorch

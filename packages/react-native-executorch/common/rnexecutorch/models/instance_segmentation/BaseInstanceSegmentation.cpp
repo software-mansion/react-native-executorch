@@ -53,9 +53,15 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
   ensureMethodLoaded(methodName);
 
   auto inputShapes = getAllInputShapes(methodName);
-  modelInputShape_ = inputShapes[0];
+  if (inputShapes.empty() || inputShapes[0].empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Method '" + methodName +
+                                "' has invalid input tensor shape.");
+  }
 
-  cv::Size modelInputSize = getInputSize(methodName);
+  modelInputShape_ = inputShapes[0];
+  const auto &shape = modelInputShape_;
+  cv::Size modelInputSize(shape[shape.size() - 1], shape[shape.size() - 2]);
   cv::Size originalSize(image.cols, image.rows);
 
   cv::Mat preprocessed = preprocess(image);
@@ -156,14 +162,6 @@ cv::Rect BaseInstanceSegmentation::addPaddingToRect(const cv::Rect &rect,
   return cv::Rect(x1, y1, x2 - x1, y2 - y1);
 }
 
-cv::Mat BaseInstanceSegmentation::applySigmoid(const cv::Mat &logits) {
-  cv::Mat probMat;
-  cv::exp(-logits, probMat);
-  probMat = 255.0f / (1.0f + probMat);
-  probMat.convertTo(probMat, CV_8UC1);
-  return probMat;
-}
-
 cv::Mat BaseInstanceSegmentation::warpToOriginalResolution(
     const cv::Mat &probMat, const cv::Rect &maskRect, cv::Size originalSize,
     cv::Size maskSize, const utils::computer_vision::BBox &bboxOriginal) {
@@ -202,7 +200,7 @@ cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
   }
 
   cv::Mat cropped = logitsMat(cropRect);
-  cv::Mat probMat = applySigmoid(cropped);
+  cv::Mat probMat = image_processing::applySigmoid(cropped);
 
   if (warpToOriginal) {
     probMat = warpToOriginalResolution(probMat, cropRect, originalSize,
@@ -260,13 +258,30 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
       module_->unload_method(currentlyLoadedMethod_);
     }
     currentlyLoadedMethod_ = methodName;
-    module_->load_method(methodName);
+    auto loadResult = module_->load_method(methodName);
+    if (loadResult != executorch::runtime::Error::Ok) {
+      throw RnExecutorchError(
+          loadResult, "Failed to load method '" + methodName +
+                          "'. Ensure the method exists in the exported model.");
+    }
   }
 }
 
 cv::Size BaseInstanceSegmentation::getInputSize(const std::string &methodName) {
   auto inputShapes = getAllInputShapes(methodName);
-  std::vector<int32_t> inputShape = inputShapes[0];
+  if (inputShapes.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Method '" + methodName +
+                                "' has no input tensors.");
+  }
+
+  const auto &inputShape = inputShapes[0];
+  if (inputShape.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Method '" + methodName +
+                                "' input tensor has no dimensions.");
+  }
+
   int32_t inputSize = inputShape[inputShape.size() - 1];
   return cv::Size(inputSize, inputSize);
 }
