@@ -69,7 +69,7 @@ cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {
         "Invalid pixel data: scalarType must be BYTE (Uint8Array)");
   }
 
-  uint8_t *dataPtr = static_cast<uint8_t *>(pixelData.dataPtr);
+  auto *dataPtr = static_cast<uint8_t *>(pixelData.dataPtr);
   return cv::Mat(height, width, CV_8UC3, dataPtr);
 }
 
