@@ -81,6 +81,10 @@ jobs:
           NIGHTLY_UNIQUE_NAME="${GIT_COMMIT:0:7}-$DATE"
           sed -i "3s/.*/  \"version\": \"$MAJOR.$MINOR.$PATCH-nightly-$NIGHTLY_UNIQUE_NAME\",/" package.json
 
+      - name: Build core package
+        working-directory: packages/react-native-executorch
+        run: yarn prepare
+
       - name: Build package
         working-directory: ${{ env.PACKAGE_DIR }}
         run: yarn prepare
