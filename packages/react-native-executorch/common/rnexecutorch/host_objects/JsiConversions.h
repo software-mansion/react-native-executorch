@@ -487,7 +487,6 @@ getJsiValue(const std::vector<models::instance_segmentation::types::Instance>
     instance.setProperty(runtime, "classIndex", instances[i].classIndex);
 
     instance.setProperty(runtime, "score", instances[i].score);
-    instance.setProperty(runtime, "instanceId", instances[i].instanceId);
 
     array.setValueAtIndex(runtime, i, instance);
   }

@@ -170,19 +170,6 @@ TEST(InstanceSegResultTests, InstancesHaveValidMasks) {
   }
 }
 
-TEST(InstanceSegResultTests, InstancesHaveUniqueIds) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results =
-      model.generate(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
-
-  std::set<int> ids;
-  for (const auto &inst : results) {
-    EXPECT_TRUE(ids.insert(inst.instanceId).second)
-        << "Duplicate instanceId: " << inst.instanceId;
-  }
-}
-
 TEST(InstanceSegResultTests, InstancesHaveValidClassIndices) {
   BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
                                  nullptr);

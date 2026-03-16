@@ -15,13 +15,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { useInstanceSegmentation } from 'react-native-executorch';
+import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
 
 const model = useInstanceSegmentation({
-  model: {
-    modelName: 'yolo26n-seg',
-    modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
-  },
+  model: YOLO26N_SEG,
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -39,7 +36,7 @@ try {
 `useInstanceSegmentation` takes [`InstanceSegmentationProps`](../../06-api-reference/interfaces/InstanceSegmentationProps.md) that consists of:
 
 - `model` - An object containing:
-  - `modelName` - The name of a built-in model. See [`InstanceSegmentationModelSources`](../../06-api-reference/interfaces/InstanceSegmentationProps.md) for the list of supported models.
+  - `modelName` - The name of a built-in model. See [`InstanceSegmentationModelName`](../../06-api-reference/types/InstanceSegmentationModelName.md) for the list of supported models.
   - `modelSource` - The location of the model binary (a URL or a bundled resource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/InstanceSegmentationProps.md#preventload) which prevents auto-loading of the model.
 
@@ -78,19 +75,15 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Instance
 - `mask` - A `Uint8Array` binary mask (0 or 1) representing the instance's segmentation.
 - `maskWidth` - Width of the mask array.
 - `maskHeight` - Height of the mask array.
-- `instanceId` - Unique identifier for this instance.
 
 ## Example
 
 ```typescript
-import { useInstanceSegmentation } from 'react-native-executorch';
+import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
 
 function App() {
   const model = useInstanceSegmentation({
-    model: {
-      modelName: 'yolo26n-seg',
-      modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
-    },
+    model: YOLO26N_SEG,
   });
 
   const handleSegment = async () => {

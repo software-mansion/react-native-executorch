@@ -284,10 +284,6 @@ std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
     instances.resize(maxInstances);
   }
 
-  for (int32_t i = 0; std::cmp_less(i, instances.size()); ++i) {
-    instances[i].instanceId = i;
-  }
-
   return instances;
 }
 
@@ -357,7 +353,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
         bboxOriginal,
         std::vector<uint8_t>(binaryMask.data,
                              binaryMask.data + binaryMask.total()),
-        binaryMask.cols, binaryMask.rows, labelIdx, score, i);
+        binaryMask.cols, binaryMask.rows, labelIdx, score);
   }
 
   return finalizeInstances(std::move(instances), iouThreshold, maxInstances);

@@ -343,7 +343,6 @@ export class InstanceSegmentationModule<
         label: (labelLookup[inst.classIndex - labelEnumOffset] ??
           String(inst.classIndex)) as keyof ResolveLabels<T>,
         score: inst.score,
-        instanceId: inst.instanceId,
       }));
     };
   }
@@ -357,7 +356,7 @@ export class InstanceSegmentationModule<
    *
    * @param input - Image source (string path or PixelData object)
    * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
-   * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`, and `instanceId`.
+   * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`.
    * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
    *
    * @example
@@ -455,7 +454,6 @@ export class InstanceSegmentationModule<
         inst.classIndex - this.labelEnumOffset
       ) ?? String(inst.classIndex)) as keyof ResolveLabels<T>,
       score: inst.score,
-      instanceId: inst.instanceId,
     }));
   }
 }

@@ -15,7 +15,6 @@ export interface NativeSegmentedInstance {
   maskHeight: number;
   classIndex: number;
   score: number;
-  instanceId: number;
 }
 
 /**
@@ -29,7 +28,6 @@ export interface NativeSegmentedInstance {
  * @property {number} maskHeight - Height of the mask array.
  * @property {keyof L} label - The class label of the instance.
  * @property {number} score - Confidence score [0, 1].
- * @property {number} instanceId - Unique identifier for this instance.
  */
 export interface SegmentedInstance<L extends LabelEnum> {
   bbox: Bbox;
@@ -38,7 +36,6 @@ export interface SegmentedInstance<L extends LabelEnum> {
   maskHeight: number;
   label: keyof L;
   score: number;
-  instanceId: number;
 }
 
 /**

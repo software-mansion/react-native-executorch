@@ -10,7 +10,7 @@ namespace rnexecutorch::models::instance_segmentation::types {
  * Represents a single detected instance in instance segmentation output.
  *
  * Contains bounding box coordinates, binary segmentation mask, class label,
- * confidence score, and a unique instance identifier.
+ * and confidence score.
  */
 struct Instance {
   utils::computer_vision::BBox bbox; ///< Bounding box coordinates
@@ -19,15 +19,13 @@ struct Instance {
   int32_t maskHeight;                ///< Height of the mask array
   int32_t classIndex;                ///< Model output class index
   float score;                       ///< Confidence score [0, 1]
-  int32_t instanceId;                ///< Unique identifier for this instance
 
   Instance() = default;
   Instance(utils::computer_vision::BBox bbox, std::vector<uint8_t> mask,
            int32_t maskWidth, int32_t maskHeight, int32_t classIndex,
-           float score, int32_t instanceId)
+           float score)
       : bbox(bbox), mask(std::move(mask)), maskWidth(maskWidth),
-        maskHeight(maskHeight), classIndex(classIndex), score(score),
-        instanceId(instanceId) {}
+        maskHeight(maskHeight), classIndex(classIndex), score(score) {}
 };
 
 } // namespace rnexecutorch::models::instance_segmentation::types
