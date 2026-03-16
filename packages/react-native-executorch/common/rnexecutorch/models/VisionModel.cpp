@@ -7,6 +7,23 @@ namespace rnexecutorch::models {
 
 using namespace facebook;
 
+VisionModel::VisionModel(const std::string &modelSource,
+                         std::shared_ptr<react::CallInvoker> callInvoker)
+    : BaseModel(modelSource, callInvoker) {}
+
+void VisionModel::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
+  BaseModel::unload();
+}
+
+cv::Size VisionModel::modelInputSize() const {
+  if (modelInputShape_.size() < 2) {
+    return {0, 0};
+  }
+  return cv::Size(modelInputShape_[modelInputShape_.size() - 1],
+                  modelInputShape_[modelInputShape_.size() - 2]);
+}
+
 cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
                                       const jsi::Value &frameData) const {
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);

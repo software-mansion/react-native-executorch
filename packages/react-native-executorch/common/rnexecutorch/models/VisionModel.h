@@ -41,15 +41,8 @@ namespace models {
  */
 class VisionModel : public BaseModel {
 public:
-  /**
-   * @brief Construct a VisionModel with the same parameters as BaseModel
-   *
-   * VisionModel uses the same construction pattern as BaseModel, just adding
-   * thread-safety on top.
-   */
   VisionModel(const std::string &modelSource,
-              std::shared_ptr<react::CallInvoker> callInvoker)
-      : BaseModel(modelSource, callInvoker) {}
+              std::shared_ptr<react::CallInvoker> callInvoker);
 
   virtual ~VisionModel() = default;
 
@@ -62,12 +55,13 @@ public:
    * destroys module_ while generateFromFrame() is still executing on the
    * VisionCamera worklet thread.
    */
-  void unload() noexcept {
-    std::scoped_lock lock(inference_mutex_);
-    BaseModel::unload();
-  }
+  void unload() noexcept;
 
 protected:
+  /// Cached input tensor shape (getAllInputShapes()[0]).
+  /// Set once by each subclass constructor to avoid per-frame metadata lookups.
+  std::vector<int32_t> modelInputShape_;
+
   /**
    * @brief Mutex to ensure thread-safe inference
    *
@@ -96,18 +90,8 @@ protected:
    */
   virtual cv::Mat preprocess(const cv::Mat &image) const;
 
-  /// Cached input tensor shape (getAllInputShapes()[0]).
-  /// Set once by each subclass constructor to avoid per-frame metadata lookups.
-  std::vector<int32_t> modelInputShape_;
-
   /// Convenience accessor: spatial dimensions of the model input.
-  cv::Size modelInputSize() const {
-    if (modelInputShape_.size() < 2) {
-      return {0, 0};
-    }
-    return cv::Size(modelInputShape_[modelInputShape_.size() - 1],
-                    modelInputShape_[modelInputShape_.size() - 2]);
-  }
+  cv::Size modelInputSize() const;
 
   /**
    * @brief Extract an RGB cv::Mat from a VisionCamera frame
