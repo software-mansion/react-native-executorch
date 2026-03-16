@@ -36,7 +36,7 @@ try {
 `useInstanceSegmentation` takes [`InstanceSegmentationProps`](../../06-api-reference/interfaces/InstanceSegmentationProps.md) that consists of:
 
 - `model` - An object containing:
-  - `modelName` - The name of a built-in model. See [`InstanceSegmentationModelName`](../../06-api-reference/types/InstanceSegmentationModelName.md) for the list of supported models.
+  - `modelName` - The name of a built-in model. See [`InstanceSegmentationModelName`](../../06-api-reference/type-aliases/InstanceSegmentationModelName.md) for the list of supported models.
   - `modelSource` - The location of the model binary (a URL or a bundled resource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/InstanceSegmentationProps.md#preventload) which prevents auto-loading of the model.
 

@@ -11,15 +11,16 @@ TypeScript API implementation of the [useInstanceSegmentation](../../03-hooks/02
 ## High Level Overview
 
 ```typescript
-import { InstanceSegmentationModule } from 'react-native-executorch';
+import {
+  InstanceSegmentationModule,
+  YOLO26N_SEG,
+} from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
-const segmentation = await InstanceSegmentationModule.fromModelName({
-  modelName: 'yolo26n-seg',
-  modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
-});
+const segmentation =
+  await InstanceSegmentationModule.fromModelName(YOLO26N_SEG);
 
 // Running the model
 const instances = await segmentation.forward(imageUri);
@@ -37,16 +38,19 @@ There are two ways to create an `InstanceSegmentationModule`:
 
 Use [`fromModelName`](../../06-api-reference/classes/InstanceSegmentationModule.md#frommodelname) for pre-configured models. It accepts:
 
-- `config` - An object containing:
-  - `modelName` - The name of a built-in model (e.g. `'yolo26n-seg'`).
+- `config` - A model configuration object (e.g. `YOLO26N_SEG`, `YOLO26S_SEG`) imported from the library, containing:
+  - `modelName` - The name of a built-in model.
   - `modelSource` - Location of the model binary (a URL or a bundled resource).
 - `onDownloadProgress` (optional) - Callback to track download progress, receiving a value between 0 and 1.
 
 ```typescript
-const segmentation = await InstanceSegmentationModule.fromModelName({
-  modelName: 'yolo26n-seg',
-  modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
-});
+import {
+  InstanceSegmentationModule,
+  YOLO26N_SEG,
+} from 'react-native-executorch';
+
+const segmentation =
+  await InstanceSegmentationModule.fromModelName(YOLO26N_SEG);
 ```
 
 ### From a custom config
@@ -60,7 +64,8 @@ Use [`fromCustomConfig`](../../06-api-reference/classes/InstanceSegmentationModu
   - `postprocessorConfig` (optional) - Postprocessing settings (`applyNMS`).
   - `defaultConfidenceThreshold` (optional) - Default confidence threshold.
   - `defaultIouThreshold` (optional) - Default IoU threshold.
-  - `availableInputSizes` and `defaultInputSize` - **Required** if your model supports multiple input sizes (i.e., exports multiple forward methods like `forward_384`, `forward_512`, `forward_640`). Both must be specified together or omitted together.
+  - `availableInputSizes` (optional) - Array of supported input sizes (e.g., `[384, 512, 640]`). **Required** if your model exports multiple forward methods.
+  - `defaultInputSize` (optional) - The input size to use when `options.inputSize` is not provided. **Required** if `availableInputSizes` is specified.
 - `onDownloadProgress` (optional) - Callback to track download progress.
 
 :::tip
