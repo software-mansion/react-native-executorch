@@ -597,13 +597,13 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
         },
         pause: () => {
           throw new RnExecutorchError(
-            RnExecutorchErrorCode.PlatformNotSupported,
+            RnExecutorchErrorCode.ResourceFetcherPlatformNotSupported,
             'Pause is not supported on Android when using RNFS. Use cancelFetching and re-fetch instead.'
           );
         },
         resume: () => {
           throw new RnExecutorchError(
-            RnExecutorchErrorCode.PlatformNotSupported,
+            RnExecutorchErrorCode.ResourceFetcherPlatformNotSupported,
             'Resume is not supported on Android when using RNFS. Use fetch to restart the download.'
           );
         },
