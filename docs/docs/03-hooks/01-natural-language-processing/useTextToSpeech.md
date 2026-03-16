@@ -87,7 +87,8 @@ The module provides two ways to generate speech using either raw text or pre-gen
 ### Using Text
 
 1.  [**`forward({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
-2.  [**`stream({ text, speed, onNext, ... })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+2.  [**`stream({speed, stopAutomatically, onNext, ...})`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator-like functionality (managed via callbacks like `onNext`) that yields chunks of audio as they are computed.
+    This is ideal for reducing the "time to first audio" for long sentences. You can also dynamically insert text during the generation process using `streamInsert(text)` and stop it with `streamStop(instant)`.
 
 ### Using Phonemes
 

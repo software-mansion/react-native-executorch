@@ -17,6 +17,7 @@ import { Logger } from '../../common/Logger';
  */
 export class TextToSpeechModule {
   private nativeModule: any;
+  private isStreaming: boolean = false;
 
   private constructor(nativeModule: unknown) {
     this.nativeModule = nativeModule;
@@ -143,17 +144,23 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Shared streaming implementation. Wraps a native streaming call in an
-   * async generator that yields Float32Array audio chunks as they arrive.
+   * Starts a streaming synthesis session. Yields audio chunks as they are generated.
+   *
+   * @param input - Input object containing text and optional speed.
+   * @returns An async generator yielding Float32Array audio chunks.
    */
-  private async *streamImpl(
-    nativeCall: (cb: (audio: number[]) => void) => Promise<void>
-  ): AsyncGenerator<Float32Array> {
+  public async *stream({
+    speed,
+    stopAutomatically,
+  }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
+    // Stores computed audio segments
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
-    let finished = false;
     let error: unknown;
+    let nativeStreamFinished = false;
+
+    this.isStreaming = true;
 
     const wake = () => {
       waiter?.();
@@ -162,44 +169,34 @@ export class TextToSpeechModule {
 
     (async () => {
       try {
-        await nativeCall((audio: number[]) => {
-          queue.push(new Float32Array(audio));
-          wake();
-        });
-        finished = true;
+        await this.nativeModule.stream(
+          speed,
+          stopAutomatically,
+          (audio: number[]) => {
+            queue.push(new Float32Array(audio));
+            wake();
+          }
+        );
+        nativeStreamFinished = true;
         wake();
       } catch (e) {
         error = e;
-        finished = true;
+        nativeStreamFinished = true;
         wake();
       }
     })();
 
-    while (true) {
+    while (this.isStreaming) {
       if (queue.length > 0) {
         yield queue.shift()!;
-        if (finished && queue.length === 0) {
+        if (nativeStreamFinished && queue.length === 0) {
           return;
         }
         continue;
       }
       if (error) throw error;
-      if (finished) return;
       await new Promise<void>((r) => (waiter = r));
     }
-  }
-
-  /**
-   * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   *
-   * @param input - Input object containing text and optional speed.
-   * @returns An async generator yielding Float32Array audio chunks.
-   */
-  public async *stream({
-    text,
-    speed,
-  }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
-    yield* this.streamImpl((cb) => this.nativeModule.stream(text, speed, cb));
   }
 
   /**
@@ -213,16 +210,68 @@ export class TextToSpeechModule {
     phonemes,
     speed,
   }: TextToSpeechStreamingPhonemeInput): AsyncGenerator<Float32Array> {
-    yield* this.streamImpl((cb) =>
-      this.nativeModule.streamFromPhonemes(phonemes, speed, cb)
-    );
+    const queue: Float32Array[] = [];
+
+    let waiter: (() => void) | null = null;
+    let error: unknown;
+    let nativeStreamFinished = false;
+
+    const wake = () => {
+      waiter?.();
+      waiter = null;
+    };
+
+    (async () => {
+      try {
+        await this.nativeModule.streamFromPhonemes(
+          phonemes,
+          speed,
+          (audio: number[]) => {
+            queue.push(new Float32Array(audio));
+            wake();
+          }
+        );
+        nativeStreamFinished = true;
+        wake();
+      } catch (e) {
+        error = e;
+        nativeStreamFinished = true;
+        wake();
+      }
+    })();
+
+    while (this.isStreaming) {
+      if (queue.length > 0) {
+        yield queue.shift()!;
+        if (nativeStreamFinished && queue.length === 0) {
+          return;
+        }
+        continue;
+      }
+      if (error) throw error;
+      await new Promise<void>((r) => (waiter = r));
+    }
+  }
+
+  /**
+   * Inserts new text chunk into the buffer to be processed in streaming mode.
+   */
+  public streamInsert(textChunk: string): void {
+    this.nativeModule.streamInsert(textChunk);
   }
 
   /**
    * Stops the streaming process if there is any ongoing.
+   *
+   * * @param instant If true, stops the streaming as soon as possible. Otherwise
+   *                  allows the module to complete processing for the remains of the buffer.
    */
-  public streamStop(): void {
-    this.nativeModule.streamStop();
+  public streamStop(instant: boolean = true): void {
+    this.nativeModule.streamStop(instant);
+
+    if (instant) {
+      this.isStreaming = false;
+    }
   }
 
   /**
