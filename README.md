@@ -38,20 +38,24 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
-<summary><strong> :blue_book: Table of Contents </strong></summary>
+<summary><strong>Table of Contents</strong></summary>
 
-- [:yin_yang: Supported Versions](#yin_yang-supported-versions)
-- [:earth_africa: Real-world Example](#earth_africa-real-world-example)
-- [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
-- [:calling: Demo Apps](#calling-demo-apps)
-- [:robot: Ready-made Models](#robot-ready-made-models)
-- [:books: Documentation](#books-documentation)
-- [:balance_scale: License](#balance_scale-license)
-- [:soon: What's Next?](#soon-whats-next)
+- [Supported Versions](#supported-versions)
+- [Real-world Example](#real-world-example)
+- [Quickstart - Running Llama](#quickstart---running-llama)
+  - [:one: Installation](#one-installation)
+  - [:two: Setup \& Initialization](#two-setup--initialization)
+  - [:three: Run the Model!](#three-run-the-model)
+- [Demo Apps](#demo-apps)
+- [Ready-made Models](#ready-made-models)
+- [Documentation](#documentation)
+- [License](#license)
+- [What's Next?](#whats-next)
+- [React Native ExecuTorch is created by Software Mansion](#react-native-executorch-is-created-by-software-mansion)
 
 </details>
 
-## :yin_yang: Supported Versions
+## Supported Versions
 
 The minimal supported version are:
 * iOS 17.0
@@ -61,17 +65,17 @@ The minimal supported version are:
 > [!IMPORTANT]
 > React Native ExecuTorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
-## :earth_africa: Real-world Example
+## Real-world Example
 
 React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## :llama: **Quickstart - Running Llama**
+## Quickstart - Running Llama
 
 **Get started with AI-powered text generation in 3 easy steps!**
 
-### :one: **Installation**
+### :one: Installation
 
 ```bash
 # Install the package
@@ -86,10 +90,10 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Depending on the platform, choose either iOS or Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
-### :two: **Setup & Initialization**
+### :two: Setup & Initialization
 
 Add this to your component file:
 
@@ -113,7 +117,7 @@ function MyComponent() {
 }
 ```
 
-### :three: **Run the Model!**
+### :three: Run the Model!
 
 ```tsx
 const handleGenerate = async () => {
@@ -128,7 +132,7 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: Demo Apps
+## Demo Apps
 
 We currently host a few example [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) demonstrating use cases of our library:
 
@@ -136,36 +140,31 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `speech` - Speech to Text & Text to Speech task implementations
 - `computer-vision` - Computer vision related tasks
 - `text-embeddings` - Computing text representations for semantic search
+- `bare_rn` - LLM chat example for bare React Native (without Expo)
 
-If you would like to run demo app, navigate to its project directory and install dependencies with:
-
-```bash
-yarn
-```
-
-Then, depending on the platform, choose either iOS or Android:
+If you would like to run a demo app, navigate to its project directory. Then install dependencies and run app with:
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]
 > Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
-## :robot: Ready-made Models
+## Ready-made Models
 
 Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) and [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
 
-## :books: Documentation
+## Documentation
 
 Check out how our library can help you build your React Native AI features by visiting our docs:
 https://docs.swmansion.com/react-native-executorch
 
-## :balance_scale: License
+## License
 
 This library is licensed under [The MIT License](./LICENSE).
 
-## :soon: What's Next?
+## What's Next?
 
 To learn about our upcoming plans and developments, please visit our [milestones](https://github.com/software-mansion/react-native-executorch/milestones).
 

@@ -111,6 +111,10 @@ export enum RnExecutorchErrorCode {
    */
   ResourceFetcherAdapterNotInitialized = 186,
   /**
+   * Thrown when the platform does not support the resource fetching feature, which is required for downloading models and other resources in React Native ExecuTorch.
+   */
+  ResourceFetcherPlatformNotSupported = 187,
+  /**
    * Status indicating a successful operation.
    */
   Ok = 0,

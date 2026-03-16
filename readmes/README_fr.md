@@ -14,6 +14,7 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
     <img src="https://img.shields.io/badge/Engagez--nous-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 <p align="center">
@@ -27,7 +28,7 @@
 
 **React Native ExecuTorch** offre une manière déclarative de faire tourner des modèles AI sur des appareils utilisant React Native, propulsé par **ExecuTorch** :rocket:. Il propose un support natif pour une large gamme de LLM, de modèles de vision par ordinateur, et plus encore. Visitez notre page [HuggingFace](https://huggingface.co/software-mansion) pour explorer ces modèles.
 
-**ExecuTorch**, développé par Meta, est un cadre innovant permettant l'exécution de modèles AI sur des appareils comme les téléphones mobiles ou les microcontrôleurs.
+[**ExecuTorch**](https://executorch.ai), développé par Meta, est un cadre innovant permettant l'exécution de modèles AI sur des appareils comme les téléphones mobiles ou les microcontrôleurs.
 
 React Native ExecuTorch comble le fossé entre React Native et les capacités natives de la plateforme, permettant aux développeurs de faire tourner efficacement des modèles AI locaux sur des appareils mobiles. Cela peut être réalisé sans besoin d'une expertise approfondie en programmation native ou en apprentissage machine.
 
@@ -36,20 +37,20 @@ React Native ExecuTorch comble le fossé entre React Native et les capacités na
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
-<summary><strong> :blue_book: Table des matières </strong></summary>
+<summary><strong>Table des matières</strong></summary>
 
-- [:yin_yang: Versions supportées](#yin_yang-versions-support%C3%A9es)
-- [:earth_africa: Exemple du monde réel](#earth_africa-exemple-du-monde-r%C3%A9el)
-- [:llama: Démarrage rapide - Exécution de Llama](#llama-d%C3%A9marrage-rapide---ex%C3%A9cution-de-llama)
-- [:calling: Applications de démonstration](#calling-applications-de-d%C3%A9monstration)
-- [:robot: Modèles prêts à l'emploi](#robot-mod%C3%A8les-pr%C3%AAts-%C3%A0-l'emploi)
-- [:books: Documentation](#books-documentation)
-- [:balance_scale: Licence](#balance_scale-licence)
-- [:soon: Quelle est la suite ?](#soon-quelle-est-la-suite)
+- [Versions supportées](#versions-support%C3%A9es)
+- [Exemple du monde réel](#exemple-du-monde-r%C3%A9el)
+- [Démarrage rapide - Exécution de Llama](#d%C3%A9marrage-rapide---ex%C3%A9cution-de-llama)
+- [Applications de démonstration](#applications-de-d%C3%A9monstration)
+- [Modèles prêts à l'emploi](#mod%C3%A8les-pr%C3%AAts-%C3%A0-lemploi)
+- [Documentation](#documentation)
+- [Licence](#licence)
+- [Quelle est la suite ?](#quelle-est-la-suite-)
 
 </details>
 
-## :yin_yang: Versions supportées
+## Versions supportées
 
 Les versions minimales supportées sont :
 
@@ -60,17 +61,17 @@ Les versions minimales supportées sont :
 > [!IMPORTANT]
 > React Native ExecuTorch ne supporte que la [nouvelle architecture React Native](https://reactnative.dev/architecture/landing-page).
 
-## :earth_africa: Exemple du monde réel
+## Exemple du monde réel
 
 React Native ExecuTorch alimente [Private Mind](https://privatemind.swmansion.com/), une appli AI mobile axée sur la confidentialité, disponible sur [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) et [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Promo Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## :llama: **Démarrage rapide - Exécution de Llama**
+## Démarrage rapide - Exécution de Llama
 
 **Commencez avec la génération de texte AI en 3 étapes faciles !**
 
-### :one: **Installation**
+### :one: Installation
 
 ```bash
 # Installez le package
@@ -85,10 +86,10 @@ yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Selon la plateforme, choisissez soit iOS soit Android
-yarn expo run:< ios | android >
+yarn < ios | android >
 ```
 
-### :two: **Configuration et Initialisation**
+### :two: Configuration et Initialisation
 
 Ajoutez ceci à votre fichier de composant :
 
@@ -112,7 +113,7 @@ function MyComponent() {
 }
 ```
 
-### :three: **Exécutez le modèle !**
+### :three: Exécutez le modèle !
 
 ```tsx
 const handleGenerate = async () => {
@@ -127,44 +128,39 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: Applications de démonstration
+## Applications de démonstration
 
 Nous hébergeons actuellement quelques applications [exemples](https://github.com/software-mansion/react-native-executorch/tree/main/apps) démontrant des cas d'utilisation de notre bibliothèque :
 
 - `llm` - Application de chat montrant l'utilisation de LLM
-- `speech-to-text` - Modèle Whisper prêt pour les tâches de transcription
+- `speech` - Implémentations de tâches de parole en texte et de texte en parole
 - `computer-vision` - Tâches liées à la vision par ordinateur
 - `text-embeddings` - Calcul de représentations textuelles pour la recherche sémantique
+- `bare_rn` - Exemple de chat LLM pour React Native sans Expo
 
-Si vous souhaitez exécuter une application de démonstration, accédez à son répertoire de projet et installez les dépendances avec :
-
-```bash
-yarn
-```
-
-Ensuite, selon la plateforme, choisissez soit iOS soit Android :
+Si vous souhaitez exécuter une application de démonstration, accédez à son répertoire de projet. Puis installez les dépendances et lancez l'application avec :
 
 ```bash
-yarn expo run:< ios | android >
+yarn && yarn < ios | android >
 ```
 
 > [!WARNING]
 > L'exécution des LLM nécessite une quantité importante de RAM. Si vous rencontrez des plantages inattendus de l'application, essayez d'augmenter la quantité de RAM allouée à l'émulateur.
 
-## :robot: Modèles prêts à l'emploi
+## Modèles prêts à l'emploi
 
 Notre bibliothèque contient un certain nombre de modèles AI prêts à l'emploi ; une liste complète est disponible dans la documentation. Si vous êtes intéressé à exécuter votre propre modèle AI, vous devez d'abord l'exporter au format `.pte`. Les instructions sur la façon de faire cela sont disponibles dans [l'API Python](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) et le [README optimum-executorch](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
 
-## :books: Documentation
+## Documentation
 
 Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :
 https://docs.swmansion.com/react-native-executorch
 
-## :balance_scale: Licence
+## Licence
 
 Cette bibliothèque est sous licence [MIT](./LICENSE).
 
-## :soon: Quelle est la suite ?
+## Quelle est la suite ?
 
 Pour en savoir plus sur nos futures plans et développements, veuillez consulter nos [jalons](https://github.com/software-mansion/react-native-executorch/milestones).
 

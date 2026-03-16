@@ -9,6 +9,7 @@
     ]
   },
   "scripts": {
+    "prepare": "yarn workspaces foreach --all --topological-dev run prepare",
     "lint": "yarn workspaces foreach --all --parallel run lint",
     "typecheck": "yarn workspaces foreach --all --parallel run typecheck",
     "codegen:errors": "npx ts-node scripts/generate-errors.ts"
