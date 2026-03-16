@@ -1,11 +1,10 @@
 #include "BaseModelTests.h"
-#include <atomic>
+#include "VisionModelTests.h"
 #include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
-#include <thread>
 #include <variant>
 
 using namespace rnexecutorch;
@@ -48,6 +47,8 @@ template <> struct ModelTraits<StyleTransfer> {
 using StyleTransferTypes = ::testing::Types<StyleTransfer>;
 INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, CommonModelTest,
                                StyleTransferTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, VisionModelTest,
+                               StyleTransferTypes);
 
 // ============================================================================
 // generateFromString tests
@@ -77,17 +78,6 @@ TEST(StyleTransferGenerateTests, ValidImageReturnsFilePath) {
   EXPECT_NE(pr.dataPtr, nullptr);
   EXPECT_GT(pr.width, 0);
   EXPECT_GT(pr.height, 0);
-}
-
-TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, false));
-  auto result1 = model.generateFromString(kValidTestImagePath, false);
-  auto result2 = model.generateFromString(kValidTestImagePath, false);
-  ASSERT_TRUE(std::holds_alternative<PixelDataResult>(result1));
-  ASSERT_TRUE(std::holds_alternative<PixelDataResult>(result2));
-  EXPECT_NE(std::get<PixelDataResult>(result1).dataPtr, nullptr);
-  EXPECT_NE(std::get<PixelDataResult>(result2).dataPtr, nullptr);
 }
 
 // ============================================================================
@@ -171,48 +161,6 @@ TEST(StyleTransferPixelTests, OutputDimensionsMatchInputSize) {
   auto &pr = std::get<PixelDataResult>(result);
   EXPECT_EQ(pr.width, 64);
   EXPECT_EQ(pr.height, 64);
-}
-
-// ============================================================================
-// Thread safety tests
-// ============================================================================
-TEST(StyleTransferThreadSafetyTests, TwoConcurrentGeneratesDoNotCrash) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  std::atomic<int32_t> successCount{0};
-  std::atomic<int32_t> exceptionCount{0};
-
-  auto task = [&]() {
-    try {
-      (void)model.generateFromString(kValidTestImagePath, false);
-      successCount++;
-    } catch (const RnExecutorchError &) {
-      exceptionCount++;
-    }
-  };
-
-  std::thread a(task);
-  std::thread b(task);
-  a.join();
-  b.join();
-
-  EXPECT_EQ(successCount + exceptionCount, 2);
-}
-
-TEST(StyleTransferThreadSafetyTests,
-     GenerateAndUnloadConcurrentlyDoesNotCrash) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-
-  std::thread a([&]() {
-    try {
-      (void)model.generateFromString(kValidTestImagePath, false);
-    } catch (const RnExecutorchError &) {
-    }
-  });
-  std::thread b([&]() { model.unload(); });
-
-  a.join();
-  b.join();
-  // If we reach here without crashing, the mutex serialized correctly.
 }
 
 // ============================================================================

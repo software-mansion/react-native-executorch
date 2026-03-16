@@ -1,4 +1,5 @@
 #include "BaseModelTests.h"
+#include "VisionModelTests.h"
 #include <executorch/extension/tensor/tensor.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
@@ -56,6 +57,8 @@ template <> struct ModelTraits<ObjectDetection> {
 
 using ObjectDetectionTypes = ::testing::Types<ObjectDetection>;
 INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
+                               ObjectDetectionTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, VisionModelTest,
                                ObjectDetectionTypes);
 
 // ============================================================================

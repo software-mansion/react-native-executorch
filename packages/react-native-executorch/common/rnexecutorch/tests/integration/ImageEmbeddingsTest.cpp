@@ -1,4 +1,5 @@
 #include "BaseModelTests.h"
+#include "VisionModelTests.h"
 #include <cmath>
 #include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
@@ -38,6 +39,8 @@ template <> struct ModelTraits<ImageEmbeddings> {
 
 using ImageEmbeddingsTypes = ::testing::Types<ImageEmbeddings>;
 INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, CommonModelTest,
+                               ImageEmbeddingsTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, VisionModelTest,
                                ImageEmbeddingsTypes);
 
 // ============================================================================

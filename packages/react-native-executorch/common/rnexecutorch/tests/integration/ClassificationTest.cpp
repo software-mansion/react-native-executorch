@@ -1,4 +1,5 @@
 #include "BaseModelTests.h"
+#include "VisionModelTests.h"
 #include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
@@ -37,6 +38,8 @@ template <> struct ModelTraits<Classification> {
 
 using ClassificationTypes = ::testing::Types<Classification>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest,
+                               ClassificationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(Classification, VisionModelTest,
                                ClassificationTypes);
 
 // ============================================================================
