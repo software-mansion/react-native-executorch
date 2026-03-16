@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.6f2565c1.css">
-<script src="/react-native-executorch/assets/js/runtime~main.82aeb9b5.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.d0fcb7b7.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.5df80d79.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.7fab3da1.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -52,7 +52,8 @@
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="using-text">Using Text<a href="#using-text" class="hash-link" aria-label="Direct link to Using Text" title="Direct link to Using Text" translate="no">​</a></h3>
 <ol>
 <li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechType#forward"><strong><code>forward({ text, speed })</code></strong></a>: Generates the complete audio waveform at once. Returns a promise resolving to a <code>Float32Array</code>.</li>
-<li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechType#stream"><strong><code>stream({ text, speed, onNext, ... })</code></strong></a>: An async generator that yields chunks of audio as they are computed. This is ideal for reducing the &quot;time to first audio&quot; for long sentences.</li>
+<li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechType#stream"><strong><code>stream({speed, stopAutomatically, onNext, ...})</code></strong></a>: An async generator-like functionality (managed via callbacks like <code>onNext</code>) that yields chunks of audio as they are computed.
+This is ideal for reducing the &quot;time to first audio&quot; for long sentences. You can also dynamically insert text during the generation process using <code>streamInsert(text)</code> and stop it with <code>streamStop(instant)</code>.</li>
 </ol>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="using-phonemes">Using Phonemes<a href="#using-phonemes" class="hash-link" aria-label="Direct link to Using Phonemes" title="Direct link to Using Phonemes" translate="no">​</a></h3>
 <p>If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:</p>
