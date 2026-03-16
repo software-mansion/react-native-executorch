@@ -14,6 +14,17 @@ title: Model Size
 | ------------------------------ | :---------------: | :---------------: | :---------------: |
 | SSDLITE_320_MOBILENET_V3_LARGE |       13.9        |       15.6        |       8.46        |
 
+## Instance Segmentation
+
+| Model            | XNNPACK [MB] |
+| ---------------- | :----------: |
+| YOLO26N_SEG      |     11.6     |
+| YOLO26S_SEG      |     42.3     |
+| YOLO26M_SEG      |     95.4     |
+| YOLO26L_SEG      |     113      |
+| YOLO26X_SEG      |     252      |
+| RF_DETR_NANO_SEG |     124      |
+
 ## Style Transfer
 
 | Model                        | XNNPACK FP32 [MB] | XNNPACK INT8 [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |

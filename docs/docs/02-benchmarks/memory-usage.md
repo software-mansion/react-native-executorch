@@ -169,17 +169,23 @@ with higher resolutions.
 
 ## Instance Segmentation
 
+:::info
+All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
+(Android).
+:::
+
 :::warning
 Data presented in the following sections is based on inference with forward_640 method.
 :::
 
-| Model       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ----------- | ---------------------- | ------------------ |
-| YOLO26N_SEG | 92                     | 668                |
-| YOLO26S_SEG | 220                    | 712                |
-| YOLO26M_SEG | 570                    | 815                |
-| YOLO26L_SEG | 680                    | 1024               |
-| YOLO26X_SEG | 1410                   | 1450               |
+| Model            | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ---------------- | ---------------------- | ------------------ |
+| YOLO26N_SEG      | 92                     | 668                |
+| YOLO26S_SEG      | 220                    | 712                |
+| YOLO26M_SEG      | 570                    | 815                |
+| YOLO26L_SEG      | 680                    | 1024               |
+| YOLO26X_SEG      | 1410                   | 1450               |
+| RF_DETR_NANO_SEG | 620                    | 603                |
 
 ## Text to image
 

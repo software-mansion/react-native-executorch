@@ -41,7 +41,6 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Object Detection Live</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}></TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.navigate('instance_segmentation/')}

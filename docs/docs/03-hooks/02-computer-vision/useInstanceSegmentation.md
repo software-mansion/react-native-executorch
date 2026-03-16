@@ -118,10 +118,11 @@ function App() {
 YOLO models use the [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLabelYolo.md) enum (80 classes, 0-indexed), which differs from [`CocoLabel`](../../06-api-reference/enumerations/CocoLabel.md) used by RF-DETR and SSDLite object detection models (91 classes, 1-indexed). When filtering with `classesOfInterest`, use the label names from `CocoLabelYolo`.
 :::
 
-| Model       | Number of classes | Class list                                                          | Available input sizes |
-| ----------- | ----------------- | ------------------------------------------------------------------- | --------------------- |
-| yolo26n-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
-| yolo26s-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
-| yolo26m-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
-| yolo26l-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
-| yolo26x-seg | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| Model           | Number of classes | Class list                                                          | Available input sizes |
+| --------------- | ----------------- | ------------------------------------------------------------------- | --------------------- |
+| yolo26n-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26s-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26m-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26l-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| yolo26x-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
+| rfdetr-nano-seg | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)            | N/A                   |
