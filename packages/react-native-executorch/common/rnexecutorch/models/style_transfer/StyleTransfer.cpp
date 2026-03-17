@@ -13,37 +13,31 @@ using executorch::extension::TensorPtr;
 
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors");
   }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
+  modelInputShape_ = inputShapes[0];
+  if (modelInputShape_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  modelInputShape_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::string StyleTransfer::postprocess(const Tensor &tensor,
-                                       cv::Size originalSize) {
-  cv::Mat mat = image_processing::getMatrixFromTensor(modelImageSize, tensor);
-  cv::resize(mat, mat, originalSize);
+cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
+  std::scoped_lock lock(inference_mutex_);
 
-  return image_processing::saveToTempFile(mat);
-}
+  cv::Mat preprocessed = preprocess(image);
 
-std::string StyleTransfer::generate(std::string imageSource) {
-  auto [inputTensor, originalSize] =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -52,7 +46,55 @@ std::string StyleTransfer::generate(std::string imageSource) {
                             "Ensure the model input is correct.");
   }
 
-  return postprocess(forwardResult->at(0).toTensor(), originalSize);
+  cv::Mat mat = image_processing::getMatrixFromTensor(
+      modelInputSize(), forwardResult->at(0).toTensor());
+  if (mat.size() != outputSize) {
+    cv::resize(mat, mat, outputSize);
+  }
+  return mat;
+}
+
+PixelDataResult toPixelDataResult(const cv::Mat &bgrMat) {
+  cv::Size size = bgrMat.size();
+  // Convert BGR -> RGBA so JS can pass the buffer directly to Skia
+  cv::Mat rgba;
+  cv::cvtColor(bgrMat, rgba, cv::COLOR_BGR2RGBA);
+  std::size_t dataSize = static_cast<std::size_t>(size.width) * size.height * 4;
+  auto pixelBuffer = std::make_shared<OwningArrayBuffer>(rgba.data, dataSize);
+  return PixelDataResult{pixelBuffer, size.width, size.height, rgba.channels()};
+}
+
+StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
+                                                      bool saveToFile) {
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
+  cv::Size originalSize = imageBGR.size();
+
+  cv::Mat imageRGB;
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+
+  cv::Mat result = runInference(imageRGB, originalSize);
+  if (saveToFile) {
+    return image_processing::saveToTempFile(result);
+  }
+  return toPixelDataResult(result);
+}
+
+PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
+                                                 const jsi::Value &frameData) {
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+
+  return toPixelDataResult(runInference(frame, modelInputSize()));
+}
+
+StyleTransferResult StyleTransfer::generateFromPixels(JSTensorViewIn pixelData,
+                                                      bool saveToFile) {
+  cv::Mat image = extractFromPixels(pixelData);
+
+  cv::Mat result = runInference(image, image.size());
+  if (saveToFile) {
+    return image_processing::saveToTempFile(result);
+  }
+  return toPixelDataResult(result);
 }
 
 } // namespace rnexecutorch::models::style_transfer

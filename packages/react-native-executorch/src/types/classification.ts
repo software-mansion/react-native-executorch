@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { ResourceSource } from './common';
+import { ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Union of all built-in classification model names.
@@ -53,9 +53,32 @@ export interface ClassificationType {
 
   /**
    * Executes the model's forward pass to classify the provided image.
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be classified.
-   * @returns A Promise that resolves to the classification result (typically containing labels and confidence scores).
+   *
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
+   * @returns A Promise that resolves to the classification result (labels and confidence scores).
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
-  forward: (imageSource: string) => Promise<{ [category: string]: number }>;
+  forward: (
+    input: string | PixelData
+  ) => Promise<{ [category: string]: number }>;
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @param frame - VisionCamera Frame object
+   * @returns Object mapping class labels to confidence scores.
+   */
+  runOnFrame: ((frame: Frame) => { [category: string]: number }) | null;
 }

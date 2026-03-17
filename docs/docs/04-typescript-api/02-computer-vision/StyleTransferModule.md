@@ -47,7 +47,14 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/classes/StyleTransferModule.md#forward) method on the module object. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The method returns a promise, which can resolve either to an error or a URL to generated image.
+To run the model, use the [`forward`](../../06-api-reference/classes/StyleTransferModule.md#forward) method. It accepts two arguments:
+
+- `input` (required) — The image to stylize. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
+- `outputType` (optional) — Controls the return format:
+  - `'pixelData'` (default) — Returns a `PixelData` object with raw RGB pixels. No file is written.
+  - `'url'` — Saves the result to a temp file and returns its URI as a `string`.
+
+For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vision/visioncamera-integration.md) instead.
 
 ## Managing memory
 

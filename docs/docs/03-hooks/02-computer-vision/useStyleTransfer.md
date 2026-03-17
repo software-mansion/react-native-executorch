@@ -23,10 +23,13 @@ import {
 
 const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
 
-const imageUri = 'file::///Users/.../cute_cat.png';
+const imageUri = 'file:///Users/.../cute_cat.png';
 
 try {
-  const generatedImageUrl = await model.forward(imageUri);
+  // Returns a file URI string
+  const uri = await model.forward(imageUri, 'url');
+  // Or returns raw PixelData (default)
+  const pixels = await model.forward(imageUri);
 } catch (error) {
   console.error(error);
 }
@@ -51,29 +54,53 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use [`forward`](../../06-api-reference/interfaces/StyleTransferType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns a promise which can resolve either to an error or a URL to generated image.
+To run the model, use the [`forward`](../../06-api-reference/interfaces/StyleTransferType.md#forward) method. It accepts two arguments:
+
+- `input` (required) — The image to stylize. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
+- `outputType` (optional) — Controls the return format:
+  - `'pixelData'` (default) — Returns a `PixelData` object with raw RGB pixels. No file is written.
+  - `'url'` — Saves the result to a temp file and returns its URI as a `string`.
 
 :::info
-Images from external sources and the generated image are stored in your application's temporary directory.
+When `outputType` is `'url'`, the generated image is stored in your application's temporary directory.
 :::
 
 ## Example
 
 ```typescript
+import {
+  useStyleTransfer,
+  STYLE_TRANSFER_CANDY,
+} from 'react-native-executorch';
+
 function App() {
   const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
 
-  // ...
-  const imageUri = 'file::///Users/.../cute_cat.png';
+  // Returns a file URI — easy to pass to <Image source={{ uri }} />
+  const runWithUrl = async (imageUri: string) => {
+    try {
+      const uri = await model.forward(imageUri, 'url');
+      console.log('Styled image saved at:', uri);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  try {
-    const generatedImageUrl = await model.forward(imageUri);
-  } catch (error) {
-    console.error(error);
-  }
-  // ...
+  // Returns raw PixelData — useful for further processing or frame pipelines
+  const runWithPixelData = async (imageUri: string) => {
+    try {
+      const pixels = await model.forward(imageUri);
+      // pixels.dataPtr is a Uint8Array of RGB bytes
+    } catch (error) {
+      console.error(error);
+    }
+  };
 }
 ```
+
+## VisionCamera integration
+
+See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models
 

@@ -1,4 +1,5 @@
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
+import { PixelData } from '../../types/common';
 import {
   StyleTransferProps,
   StyleTransferType,
@@ -16,17 +17,32 @@ export const useStyleTransfer = ({
   model,
   preventLoad = false,
 }: StyleTransferProps): StyleTransferType => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        StyleTransferModule.fromModelName(config, onProgress),
-      config: model,
-      deps: [model.modelName, model.modelSource],
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    runOnFrame,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      StyleTransferModule.fromModelName(config, onProgress),
+    config: model,
+    deps: [model.modelName, model.modelSource],
+    preventLoad,
+  });
 
-  const forward = (imageSource: string) =>
-    runForward((inst) => inst.forward(imageSource));
+  const forward = <O extends 'pixelData' | 'url' = 'pixelData'>(
+    imageSource: string | PixelData,
+    outputType?: O
+  ) => runForward((inst) => inst.forward(imageSource, outputType));
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    runOnFrame,
+  } as StyleTransferType;
 };

@@ -5,7 +5,6 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
-#include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch::models::object_detection {
 
@@ -20,18 +19,16 @@ ObjectDetection::ObjectDetection(
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 2) {
+  modelInputShape_ = inputTensors[0];
+  if (modelInputShape_.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
-                  modelInputShape.size());
+                  modelInputShape_.size());
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             errorMessage);
   }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
@@ -46,46 +43,13 @@ ObjectDetection::ObjectDetection(
   }
 }
 
-cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
-  cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
-                                 tensorDims[tensorDims.size() - 2]);
-
-  cv::Mat rgb;
-
-  if (frame.channels() == 4) {
-#ifdef __APPLE__
-    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
-#else
-    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
-#endif
-  } else if (frame.channels() == 3) {
-    rgb = frame;
-  } else {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported frame format: %d channels", frame.channels());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
-  }
-
-  // Only resize if dimensions don't match
-  if (rgb.size() != tensorSize) {
-    cv::Mat resized;
-    cv::resize(rgb, resized, tensorSize);
-    return resized;
-  }
-
-  return rgb;
-}
-
 std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
-  float widthRatio =
-      static_cast<float>(originalSize.width) / modelImageSize.width;
+  const cv::Size inputSize = modelInputSize();
+  float widthRatio = static_cast<float>(originalSize.width) / inputSize.width;
   float heightRatio =
-      static_cast<float>(originalSize.height) / modelImageSize.height;
+      static_cast<float>(originalSize.height) / inputSize.height;
 
   std::vector<types::Detection> detections;
   auto bboxTensor = tensors.at(0).toTensor();
@@ -134,14 +98,14 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Size originalSize = image.size();
-  cv::Mat preprocessed = preprocessFrame(image);
+  cv::Mat preprocessed = preprocess(image);
 
-  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
       (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
-                                                  *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+          ? image_processing::getTensorFromMatrix(
+                modelInputShape_, preprocessed, *normMean_, *normStd_)
+          : image_processing::getTensorFromMatrix(modelInputShape_,
+                                                  preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -168,9 +132,7 @@ std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
                                    double detectionThreshold) {
-  auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = rnexecutorch::utils::extractFrame(runtime, frameObj);
-
+  cv::Mat frame = extractFromFrame(runtime, frameData);
   return runInference(frame, detectionThreshold);
 }
 

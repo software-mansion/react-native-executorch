@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, Triple, ResourceSource } from './common';
+import { LabelEnum, Triple, ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Configuration for a custom semantic segmentation model.
@@ -148,15 +148,44 @@ export interface SemanticSegmentationType<L extends LabelEnum> {
 
   /**
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
+   *
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
    * @param classesOfInterest - An optional array of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
    * @returns A Promise resolving to an object with an `'ARGMAX'` `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
   forward: <K extends keyof L>(
-    imageSource: string,
+    input: string | PixelData,
     classesOfInterest?: K[],
     resizeToInput?: boolean
   ) => Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>>;
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @param frame - VisionCamera Frame object
+   * @param classesOfInterest - Labels for which to return per-class probability masks.
+   * @param resizeToInput - Whether to resize masks to original frame dimensions. Defaults to `true`.
+   * @returns Object with `ARGMAX` Int32Array and per-class Float32Array masks.
+   */
+  runOnFrame:
+    | ((
+        frame: Frame,
+        classesOfInterest?: string[],
+        resizeToInput?: boolean
+      ) => Record<'ARGMAX', Int32Array> & Record<string, Float32Array>)
+    | null;
 }

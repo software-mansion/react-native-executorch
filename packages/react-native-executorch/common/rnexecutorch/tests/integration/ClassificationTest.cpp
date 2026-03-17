@@ -1,6 +1,9 @@
 #include "BaseModelTests.h"
+#include "VisionModelTests.h"
+#include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/classification/Constants.h>
 
@@ -28,7 +31,7 @@ template <> struct ModelTraits<Classification> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath);
+    (void)model.generateFromString(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -36,43 +39,45 @@ template <> struct ModelTraits<Classification> {
 using ClassificationTypes = ::testing::Types<Classification>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest,
                                ClassificationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(Classification, VisionModelTest,
+                               ClassificationTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, EmptyImagePathThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, MalformedURIThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   EXPECT_FALSE(results.empty());
 }
 
 TEST(ClassificationGenerateTests, ResultsHaveCorrectSize) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   auto expectedNumClasses = constants::kImagenet1kV1Labels.size();
   EXPECT_EQ(results.size(), expectedNumClasses);
 }
 
 TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   float sum = 0.0f;
   for (const auto &[label, prob] : results) {
@@ -85,7 +90,7 @@ TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
 
 TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   float maxProb = 0.0f;
   for (const auto &[label, prob] : results) {
@@ -114,4 +119,16 @@ TEST(ClassificationInheritedTests, GetMethodMetaWorks) {
   Classification model(kValidClassificationModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
+}
+
+// ============================================================================
+// generateFromPixels smoke test
+// ============================================================================
+TEST(ClassificationPixelTests, ValidPixelsReturnsResults) {
+  Classification model(kValidClassificationModelPath, nullptr);
+  std::vector<uint8_t> buf(64 * 64 * 3, 128);
+  JSTensorViewIn view{
+      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(view);
+  EXPECT_FALSE(results.empty());
 }

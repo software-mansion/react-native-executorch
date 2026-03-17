@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Frame, PixelData } from '../../types/common';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { OCRDetection, OCRType, VerticalOCRProps } from '../../types/ocr';
@@ -19,6 +20,10 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
+
+  const [runOnFrame, setRunOnFrame] = useState<
+    ((frame: Frame) => OCRDetection[]) | null
+  >(null);
 
   const [controller] = useState(
     () =>
@@ -43,7 +48,13 @@ export const useVerticalOCR = ({
       setDownloadProgress
     );
 
+    const worklet = controller.runOnFrame;
+    if (worklet) {
+      setRunOnFrame(() => worklet);
+    }
+
     return () => {
+      setRunOnFrame(null);
       if (controller.isReady) {
         controller.delete();
       }
@@ -59,10 +70,17 @@ export const useVerticalOCR = ({
   ]);
 
   const forward = useCallback(
-    (imageSource: string): Promise<OCRDetection[]> =>
+    (imageSource: string | PixelData): Promise<OCRDetection[]> =>
       controller.forward(imageSource),
     [controller]
   );
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    forward,
+    downloadProgress,
+    runOnFrame,
+  };
 };

@@ -1,3 +1,4 @@
+import { PixelData } from '../..';
 import {
   SemanticSegmentationModule,
   SegmentationLabels,
@@ -34,17 +35,23 @@ export const useSemanticSegmentation = <
 }: SemanticSegmentationProps<C>): SemanticSegmentationType<
   SegmentationLabels<ModelNameOf<C>>
 > => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        SemanticSegmentationModule.fromModelName(config, onProgress),
-      config: model,
-      deps: [model.modelName, model.modelSource],
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    runOnFrame,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      SemanticSegmentationModule.fromModelName(config, onProgress),
+    config: model,
+    deps: [model.modelName, model.modelSource],
+    preventLoad,
+  });
 
   const forward = <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
-    imageSource: string,
+    imageSource: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ) =>
@@ -52,5 +59,12 @@ export const useSemanticSegmentation = <
       inst.forward(imageSource, classesOfInterest, resizeToInput)
     );
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    runOnFrame,
+  };
 };

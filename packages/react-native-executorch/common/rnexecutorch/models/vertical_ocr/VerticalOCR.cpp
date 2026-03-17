@@ -1,10 +1,11 @@
 #include "VerticalOCR.h"
-#include <future>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
@@ -16,12 +17,9 @@ VerticalOCR::VerticalOCR(const std::string &detectorSource,
       converter(symbols), independentCharacters(independentChars),
       callInvoker(invoker) {}
 
-std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
-  cv::Mat image = image_processing::readImage(input);
-  if (image.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "Failed to load image from path: " + input);
-  }
+std::vector<types::OCRDetection> VerticalOCR::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
+
   // 1. Large Detector
   std::vector<types::DetectorBBox> largeBoxes =
       detector.generate(image, constants::kLargeDetectorWidth);
@@ -42,6 +40,41 @@ std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   }
 
   return predictions;
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromString(std::string input) {
+  cv::Mat image = image_processing::readImage(input);
+  if (image.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "Failed to load image from path: " + input);
+  }
+  return runInference(image);
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
+                               const jsi::Value &frameData) {
+  cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
+  cv::Mat bgr;
+#ifdef __APPLE__
+  cv::cvtColor(frame, bgr, cv::COLOR_BGRA2BGR);
+#elif defined(__ANDROID__)
+  cv::cvtColor(frame, bgr, cv::COLOR_RGBA2BGR);
+#else
+  throw RnExecutorchError(
+      RnExecutorchErrorCode::PlatformNotSupported,
+      "generateFromFrame is not supported on this platform");
+#endif
+  return runInference(bgr);
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromPixels(JSTensorViewIn pixelData) {
+  cv::Mat image;
+  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image,
+               cv::COLOR_RGB2BGR);
+  return runInference(image);
 }
 
 std::size_t VerticalOCR::getMemoryLowerBound() const noexcept {
@@ -176,6 +209,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
 }
 
 void VerticalOCR::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
   detector.unload();
   recognizer.unload();
 }

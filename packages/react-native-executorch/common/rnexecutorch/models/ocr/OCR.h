@@ -1,9 +1,11 @@
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/ocr/Detector.h>
 #include <rnexecutorch/models/ocr/RecognitionHandler.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -28,13 +30,20 @@ public:
                const std::string &recognizerSource, const std::string &symbols,
                std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
-  generate(std::string input);
+  generateFromString(std::string input);
+  [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData);
+  [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
+  generateFromPixels(JSTensorViewIn pixelData);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
+  std::vector<types::OCRDetection> runInference(cv::Mat image);
+
   Detector detector;
   RecognitionHandler recognitionHandler;
+  mutable std::mutex inference_mutex_;
 };
 } // namespace models::ocr
 

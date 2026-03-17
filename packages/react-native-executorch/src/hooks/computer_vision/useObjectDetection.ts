@@ -7,7 +7,6 @@ import {
   ObjectDetectionProps,
   ObjectDetectionType,
 } from '../../types/objectDetection';
-import { useMemo } from 'react';
 import { PixelData } from '../../types/common';
 import { useModuleFactory } from '../useModuleFactory';
 
@@ -31,7 +30,7 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
     isGenerating,
     downloadProgress,
     runForward,
-    instance,
+    runOnFrame,
   } = useModuleFactory({
     factory: (config, onProgress) =>
       ObjectDetectionModule.fromModelName(config, onProgress),
@@ -42,8 +41,6 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
 
   const forward = (input: string | PixelData, detectionThreshold?: number) =>
     runForward((inst) => inst.forward(input, detectionThreshold));
-
-  const runOnFrame = useMemo(() => instance?.runOnFrame ?? null, [instance]);
 
   return {
     error,
