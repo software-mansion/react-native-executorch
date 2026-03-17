@@ -56,7 +56,7 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 
 - iOS 17.0
 - Android 13
-- React Native 0.81
+- React Native - 请参阅[兼容性表格](https://docs.swmansion.com/react-native-executorch/docs/next/other/compatibility)
 
 > [!IMPORTANT]
 > React Native ExecuTorch 仅支持 [New React Native architecture](https://reactnative.dev/architecture/landing-page)。

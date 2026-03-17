@@ -56,7 +56,7 @@ Las versiones mínimas compatibles son:
 
 - iOS 17.0
 - Android 13
-- React Native 0.81
+- React Native - ver [tabla de compatibilidad](https://docs.swmansion.com/react-native-executorch/docs/next/other/compatibility)
 
 > [!IMPORTANT]
 > React Native ExecuTorch solo admite la [nueva arquitectura de React Native](https://reactnative.dev/architecture/landing-page).
