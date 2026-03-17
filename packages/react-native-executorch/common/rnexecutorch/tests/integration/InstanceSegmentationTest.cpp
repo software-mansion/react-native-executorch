@@ -139,10 +139,10 @@ TEST(InstanceSegResultTests, InstancesHaveValidBoundingBoxes) {
                                           {}, true, kMethodName);
 
   for (const auto &inst : results) {
-    EXPECT_LE(inst.x1, inst.x2);
-    EXPECT_LE(inst.y1, inst.y2);
-    EXPECT_GE(inst.x1, 0.0f);
-    EXPECT_GE(inst.y1, 0.0f);
+    EXPECT_LE(inst.bbox.x1, inst.bbox.x2);
+    EXPECT_LE(inst.bbox.y1, inst.bbox.y2);
+    EXPECT_GE(inst.bbox.x1, 0.0f);
+    EXPECT_GE(inst.bbox.y1, 0.0f);
   }
 }
 
@@ -242,10 +242,10 @@ TEST(InstanceSegNMSTests, NMSEnabledReturnsFewerOrEqualResults) {
   BaseInstanceSegmentation modelWithoutNMS(kValidInstanceSegModelPath, {}, {},
                                            false, nullptr);
 
-  auto nmsResults = modelWithNMS.generate(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
-  auto noNmsResults = modelWithoutNMS.generate(kValidTestImagePath, 0.3, 0.5,
-                                               100, {}, true, kMethodName);
+  auto nmsResults = modelWithNMS.generateFromString(
+      kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
+  auto noNmsResults = modelWithoutNMS.generateFromString(
+      kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   EXPECT_LE(nmsResults.size(), noNmsResults.size());
 }

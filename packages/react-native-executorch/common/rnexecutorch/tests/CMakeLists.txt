@@ -189,10 +189,10 @@ add_rn_test(ClassificationTests integration/ClassificationTest.cpp
 add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/object_detection/ObjectDetection.cpp
-        ${RNEXECUTORCH_DIR}/models/object_detection/Utils.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -292,6 +292,10 @@ add_rn_test(TextToImageTests integration/TextToImageTest.cpp
 add_rn_test(InstanceSegmentationTests integration/InstanceSegmentationTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/instance_segmentation/BaseInstanceSegmentation.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
