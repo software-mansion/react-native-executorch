@@ -40,7 +40,7 @@ cv::Size BaseInstanceSegmentation::modelInputSize() const {
     return VisionModel::modelInputSize();
   }
   const auto &shape = inputShapes[0];
-  return cv::Size(shape[shape.size() - 2], shape[shape.size() - 1]);
+  return {shape[shape.size() - 2], shape[shape.size() - 1]};
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::runInference(
@@ -149,7 +149,7 @@ cv::Rect BaseInstanceSegmentation::computeMaskCropRect(
   int32_t my2 =
       std::min(maskSize.height, static_cast<int32_t>(std::ceil(my2F)));
 
-  return cv::Rect(mx1, my1, mx2 - mx1, my2 - my1);
+  return {mx1, my1, mx2 - mx1, my2 - my1};
 }
 
 cv::Rect BaseInstanceSegmentation::addPaddingToRect(const cv::Rect &rect,
@@ -159,7 +159,7 @@ cv::Rect BaseInstanceSegmentation::addPaddingToRect(const cv::Rect &rect,
   int32_t x2 = std::min(maskSize.width, rect.x + rect.width + 1);
   int32_t y2 = std::min(maskSize.height, rect.y + rect.height + 1);
 
-  return cv::Rect(x1, y1, x2 - x1, y2 - y1);
+  return {x1, y1, x2 - x1, y2 - y1};
 }
 
 cv::Mat BaseInstanceSegmentation::warpToOriginalResolution(
@@ -251,6 +251,12 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
         RnExecutorchErrorCode::InvalidConfig,
         "methodName cannot be empty. Use 'forward' for single-method models "
         "or 'forward_{inputSize}' for multi-method models.");
+  }
+
+  if (!module_) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Model not loaded: Cannot load method '" +
+                                methodName + "'");
   }
 
   if (currentlyLoadedMethod_ != methodName) {

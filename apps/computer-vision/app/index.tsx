@@ -37,12 +37,6 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('object_detection_live/')}
-        >
-          <Text style={styles.buttonText}>Object Detection Live</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
           onPress={() => router.navigate('instance_segmentation/')}
         >
           <Text style={styles.buttonText}>Instance Segmentation</Text>
