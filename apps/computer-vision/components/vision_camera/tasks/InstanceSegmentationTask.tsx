@@ -73,26 +73,11 @@ export default function InstanceSegmentationTask({
       imageWidth: number;
       imageHeight: number;
     }) => {
-      console.log(`[${activeModel}] Got ${p.results.length} instances`);
-      if (p.results.length > 0) {
-        const first = p.results[0];
-        console.log(`[${activeModel}] First instance:`, {
-          label: first.label,
-          score: first.score,
-          bbox: first.bbox,
-          maskWidth: first.maskWidth,
-          maskHeight: first.maskHeight,
-          maskSize: first.mask.length,
-        });
-      }
       const displayInstances = buildDisplayInstances(
         p.results.map((inst) => ({
           ...inst,
           label: String(inst.label),
         }))
-      );
-      console.log(
-        `[${activeModel}] Built ${displayInstances.length} display instances`
       );
       setInstances((prev) => {
         // Dispose old mask images
@@ -105,7 +90,7 @@ export default function InstanceSegmentationTask({
       if (diff > 0) onFpsChange(Math.round(1000 / diff), diff);
       lastFrameTimeRef.current = now;
     },
-    [onFpsChange, activeModel]
+    [onFpsChange]
   );
 
   const frameOutput = useFrameOutput({

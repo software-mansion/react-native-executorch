@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, ResourceSource, Triple, Frame } from './common';
+import { LabelEnum, ResourceSource, Triple, Frame, PixelData } from './common';
 import { Bbox } from './objectDetection';
 
 /**
@@ -185,13 +185,13 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
 
   /**
    * Executes the model's forward pass to perform instance segmentation on the provided image.
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
+   * @param imageSource - A string (e.g., a file path, URI ) or PixelData representing the image source to be processed.
    * @param options - Optional configuration for the segmentation process.
    * @returns A Promise resolving to an array of {@link SegmentedInstance} objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
   forward: (
-    imageSource: string,
+    imageSource: string | PixelData,
     options?: InstanceSegmentationOptions<L>
   ) => Promise<SegmentedInstance<L>[]>;
 

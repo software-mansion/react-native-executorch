@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <iostream>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
@@ -234,7 +233,7 @@ void BaseInstanceSegmentation::validateThresholds(double confidenceThreshold,
 void BaseInstanceSegmentation::validateOutputTensors(
     const std::vector<EValue> &tensors) const {
   if (tensors.size() != 3) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
                             "Expected 3 output tensors ([1,N,4] + [1,N,2] + "
                             "[1,N,H,W]), got " +
                                 std::to_string(tensors.size()));
@@ -268,13 +267,13 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
   if (!currentlyLoadedMethod_.empty()) {
     module_->unload_method(currentlyLoadedMethod_);
   }
-  currentlyLoadedMethod_ = methodName;
   auto loadResult = module_->load_method(methodName);
   if (loadResult != executorch::runtime::Error::Ok) {
     throw RnExecutorchError(
         loadResult, "Failed to load method '" + methodName +
                         "'. Ensure the method exists in the exported model.");
   }
+  currentlyLoadedMethod_ = methodName;
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
