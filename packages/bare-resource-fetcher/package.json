@@ -1,5 +1,5 @@
 {
-  "name": "@react-native-executorch/bare-resource-fetcher",
+  "name": "react-native-executorch-bare-resource-fetcher",
   "version": "0.8.0-rc1",
   "description": "Bare React Native resource fetcher for react-native-executorch",
   "main": "lib/index.js",

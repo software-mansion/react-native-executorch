@@ -1,11 +1,11 @@
-# @react-native-executorch/expo-resource-fetcher
+# react-native-executorch-expo-resource-fetcher
 
 Expo adapter for `react-native-executorch` that provides resource fetching capabilities using Expo's filesystem APIs.
 
 ## Installation
 
 ```bash
-yarn add @react-native-executorch/expo-resource-fetcher
+yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 ```
 
@@ -13,7 +13,7 @@ yarn add expo-file-system expo-asset
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: ExpoResourceFetcher,

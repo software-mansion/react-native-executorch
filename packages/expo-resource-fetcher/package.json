@@ -1,5 +1,5 @@
 {
-  "name": "@react-native-executorch/expo-resource-fetcher",
+  "name": "react-native-executorch-expo-resource-fetcher",
   "version": "0.8.0-rc1",
   "description": "Expo resource fetcher for react-native-executorch",
   "main": "lib/index.js",

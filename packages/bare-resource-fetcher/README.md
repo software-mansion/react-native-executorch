@@ -1,11 +1,11 @@
-# @react-native-executorch/bare-resource-fetcher
+# react-native-executorch-bare-resource-fetcher
 
 Bare React Native adapter for `react-native-executorch` that provides resource fetching capabilities using native filesystem libraries.
 
 ## Installation
 
 ```bash
-yarn add @react-native-executorch/bare-resource-fetcher
+yarn add react-native-executorch-bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 ```
 
@@ -22,7 +22,7 @@ After installing, follow the setup guides for the native dependencies:
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { BareResourceFetcher } from '@react-native-executorch/bare-resource-fetcher';
+import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: BareResourceFetcher,

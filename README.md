@@ -82,11 +82,11 @@ React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion
 yarn add react-native-executorch
 
 # If you use expo, please add these packages for resource fetching:
-yarn add @react-native-executorch/expo-resource-fetcher
+yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
 #if you use bare React Native project use these packages:
-yarn add @react-native-executorch/bare-resource-fetcher
+yarn add react-native-executorch-bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # Depending on the platform, choose either iOS or Android
@@ -104,7 +104,7 @@ import {
   Message,
   initExecutorch,
 } from 'react-native-executorch';
-import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: ExpoResourceFetcher,
