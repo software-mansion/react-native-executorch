@@ -15,13 +15,14 @@ MODELS_DIR="$SCRIPT_DIR/integration/assets/models"
 # Test executables
 # ============================================================================
 TEST_EXECUTABLES=(
-    <<<<<<< HEAD
     "NumericalTests"
     "RunnerTests"
     "LogTests"
     "FileUtilsTest"
     "ImageProcessingTest"
+    "FrameProcessorTests"
     "BaseModelTests"
+    "VisionModelTests"
     "ClassificationTests"
     "ObjectDetectionTests"
     "ImageEmbeddingsTests"
@@ -32,8 +33,8 @@ TEST_EXECUTABLES=(
     "SpeechToTextTests"
     "TextToSpeechTests"
     "LLMTests"
-    "ImageSegmentationTests"
     "TextToImageTests"
+    "InstanceSegmentationTests"
     "OCRTests"
     "VerticalOCRTests"
 )

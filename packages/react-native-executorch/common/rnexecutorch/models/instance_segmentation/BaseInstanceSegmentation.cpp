@@ -40,7 +40,7 @@ cv::Size BaseInstanceSegmentation::modelInputSize() const {
     return VisionModel::modelInputSize();
   }
   const auto &shape = inputShapes[0];
-  return cv::Size(shape[shape.size() - 1], shape[shape.size() - 2]);
+  return cv::Size(shape[shape.size() - 2], shape[shape.size() - 1]);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::runInference(
@@ -61,7 +61,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
 
   modelInputShape_ = inputShapes[0];
   const auto &shape = modelInputShape_;
-  cv::Size modelInputSize(shape[shape.size() - 1], shape[shape.size() - 2]);
+  cv::Size modelInputSize(shape[shape.size() - 2], shape[shape.size() - 1]);
   cv::Size originalSize(image.cols, image.rows);
 
   cv::Mat preprocessed = preprocess(image);
