@@ -19,8 +19,12 @@ import Spinner from '../../components/Spinner';
 import {
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
+  HAMMER2_1_0_5B_QUANTIZED,
   HAMMER2_1_1_5B_QUANTIZED,
+  HAMMER2_1_3B_QUANTIZED,
+  LLMProps,
 } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -29,6 +33,14 @@ import * as Calendar from 'expo-calendar';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
+
+type LLMModelSources = LLMProps['model'];
+
+const MODELS: ModelOption<LLMModelSources>[] = [
+  { label: 'Hammer 0.5B', value: HAMMER2_1_0_5B_QUANTIZED },
+  { label: 'Hammer 1.5B', value: HAMMER2_1_1_5B_QUANTIZED },
+  { label: 'Hammer 3B', value: HAMMER2_1_3B_QUANTIZED },
+];
 
 export default function LLMToolCallingScreenWrapper() {
   const isFocused = useIsFocused();
@@ -41,10 +53,13 @@ function LLMToolCallingScreen() {
   const [userInput, setUserInput] = useState('');
   const [hasCalendarPermission, setHasCalendarPermission] = useState(true);
   const [hasBrightnessPermission, setHasBrightnessPermission] = useState(true);
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    HAMMER2_1_1_5B_QUANTIZED
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: HAMMER2_1_1_5B_QUANTIZED });
+  const llm = useLLM({ model: selectedModel });
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -211,6 +226,12 @@ function LLMToolCallingScreen() {
               </Text>
             </TouchableOpacity>
           )}
+
+          <ModelPicker
+            models={MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+          />
 
           <View style={styles.bottomContainer}>
             <TextInput

@@ -1,9 +1,16 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
   DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+  DEEPLAB_V3_RESNET50_QUANTIZED,
+  DEEPLAB_V3_RESNET101_QUANTIZED,
+  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
+  FCN_RESNET50_QUANTIZED,
+  FCN_RESNET101_QUANTIZED,
   useSemanticSegmentation,
+  SemanticSegmentationModelSources,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -42,12 +49,28 @@ const numberToColor: number[][] = [
   [162, 51, 255], // 20 Amethyst
 ];
 
+const MODELS: ModelOption<SemanticSegmentationModelSources>[] = [
+  {
+    label: 'DeepLab MobileNet',
+    value: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+  },
+  { label: 'DeepLab ResNet50', value: DEEPLAB_V3_RESNET50_QUANTIZED },
+  { label: 'DeepLab ResNet101', value: DEEPLAB_V3_RESNET101_QUANTIZED },
+  { label: 'LRASPP MobileNet', value: LRASPP_MOBILENET_V3_LARGE_QUANTIZED },
+  { label: 'FCN ResNet50', value: FCN_RESNET50_QUANTIZED },
+  { label: 'FCN ResNet101', value: FCN_RESNET101_QUANTIZED },
+];
+
 export default function SemanticSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
+  const [selectedModel, setSelectedModel] =
+    useState<SemanticSegmentationModelSources>(
+      DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED
+    );
+
   const { isReady, isGenerating, downloadProgress, forward } =
-    useSemanticSegmentation({
-      model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-    });
+    useSemanticSegmentation({ model: selectedModel });
+
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [segImage, setSegImage] = useState<SkImage | null>(null);
@@ -61,10 +84,7 @@ export default function SemanticSegmentationScreen() {
     const image = await getImage(isCamera);
     if (!image?.uri) return;
     setImageUri(image.uri);
-    setImageSize({
-      width: image.width ?? 0,
-      height: image.height ?? 0,
-    });
+    setImageSize({ width: image.width ?? 0, height: image.height ?? 0 });
     setSegImage(null);
   };
 
@@ -150,6 +170,14 @@ export default function SemanticSegmentationScreen() {
           </View>
         )}
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setSegImage(null);
+        }}
+      />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
@@ -159,20 +187,9 @@ export default function SemanticSegmentationScreen() {
 }
 
 const styles = StyleSheet.create({
-  imageCanvasContainer: {
-    flex: 6,
-    width: '100%',
-    padding: 16,
-  },
-  imageContainer: {
-    flex: 1,
-    width: '100%',
-  },
-  image: {
-    flex: 1,
-    borderRadius: 8,
-    width: '100%',
-  },
+  imageCanvasContainer: { flex: 6, width: '100%', padding: 16 },
+  imageContainer: { flex: 1, width: '100%' },
+  image: { flex: 1, borderRadius: 8, width: '100%' },
   canvasContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -180,8 +197,5 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 4,
   },
-  canvas: {
-    width: '100%',
-    height: '100%',
-  },
+  canvas: { width: '100%', height: '100%' },
 });

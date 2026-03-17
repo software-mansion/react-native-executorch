@@ -10,10 +10,35 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
+  KOKORO_SMALL,
   KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
+  KOKORO_VOICE_AF_RIVER,
+  KOKORO_VOICE_AF_SARAH,
+  KOKORO_VOICE_AM_ADAM,
+  KOKORO_VOICE_AM_MICHAEL,
+  KOKORO_VOICE_BF_EMMA,
+  KOKORO_VOICE_BM_DANIEL,
   useTextToSpeech,
+  KokoroConfig,
+  VoiceConfig,
 } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../components/ModelPicker';
+
+const TTS_MODELS: ModelOption<KokoroConfig>[] = [
+  { label: 'Kokoro Small', value: KOKORO_SMALL },
+  { label: 'Kokoro Medium', value: KOKORO_MEDIUM },
+];
+
+const VOICES: ModelOption<VoiceConfig>[] = [
+  { label: 'AF Heart', value: KOKORO_VOICE_AF_HEART },
+  { label: 'AF River', value: KOKORO_VOICE_AF_RIVER },
+  { label: 'AF Sarah', value: KOKORO_VOICE_AF_SARAH },
+  { label: 'AM Adam', value: KOKORO_VOICE_AM_ADAM },
+  { label: 'AM Michael', value: KOKORO_VOICE_AM_MICHAEL },
+  { label: 'BF Emma', value: KOKORO_VOICE_BF_EMMA },
+  { label: 'BM Daniel', value: KOKORO_VOICE_BM_DANIEL },
+];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -48,9 +73,15 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
+  const [selectedModel, setSelectedModel] =
+    useState<KokoroConfig>(KOKORO_MEDIUM);
+  const [selectedVoice, setSelectedVoice] = useState<VoiceConfig>(
+    KOKORO_VOICE_AF_HEART
+  );
+
   const model = useTextToSpeech({
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AF_HEART,
+    model: selectedModel,
+    voice: selectedVoice,
   });
 
   const [inputText, setInputText] = useState('');
@@ -156,6 +187,17 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <View style={styles.statusContainer}>
             <Text>Status: {getModelStatus()}</Text>
           </View>
+
+          <ModelPicker
+            models={TTS_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+          />
+          <ModelPicker
+            models={VOICES}
+            selectedModel={selectedVoice}
+            onSelect={(m) => setSelectedVoice(m)}
+          />
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Enter text to synthesize</Text>

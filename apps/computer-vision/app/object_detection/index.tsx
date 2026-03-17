@@ -1,16 +1,24 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
   Detection,
   useObjectDetection,
   RF_DETR_NANO,
+  SSDLITE_320_MOBILENET_V3_LARGE,
+  ObjectDetectionModelSources,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+
+const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
+  { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
+  { label: 'SSDLite MobileNet', value: SSDLITE_320_MOBILENET_V3_LARGE },
+];
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -19,12 +27,14 @@ export default function ObjectDetectionScreen() {
     width: number;
     height: number;
   }>();
+  const [selectedModel, setSelectedModel] =
+    useState<ObjectDetectionModelSources>(RF_DETR_NANO);
 
-  const rfDetr = useObjectDetection({ model: RF_DETR_NANO });
+  const model = useObjectDetection({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
-    setGlobalGenerating(rfDetr.isGenerating);
-  }, [rfDetr.isGenerating, setGlobalGenerating]);
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -42,7 +52,7 @@ export default function ObjectDetectionScreen() {
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await rfDetr.forward(imageUri);
+        const output = await model.forward(imageUri);
         setResults(output);
       } catch (e) {
         console.error(e);
@@ -50,11 +60,11 @@ export default function ObjectDetectionScreen() {
     }
   };
 
-  if (!rfDetr.isReady) {
+  if (!model.isReady) {
     return (
       <Spinner
-        visible={!rfDetr.isReady}
-        textContent={`Loading the model ${(rfDetr.downloadProgress * 100).toFixed(0)} %`}
+        visible={!model.isReady}
+        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
@@ -81,6 +91,14 @@ export default function ObjectDetectionScreen() {
           )}
         </View>
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setResults([]);
+        }}
+      />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
@@ -99,31 +117,6 @@ const styles = StyleSheet.create({
     flex: 2,
     borderRadius: 8,
     width: '100%',
-  },
-  results: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    padding: 4,
-  },
-  resultHeader: {
-    fontSize: 18,
-    color: 'navy',
-  },
-  resultsList: {
-    flex: 1,
-  },
-  resultRecord: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-    padding: 8,
-    borderBottomWidth: 1,
-  },
-  resultLabel: {
-    flex: 1,
-    marginRight: 4,
   },
   fullSizeImage: {
     width: '100%',

@@ -1,17 +1,40 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
   useStyleTransfer,
   STYLE_TRANSFER_CANDY_QUANTIZED,
+  STYLE_TRANSFER_MOSAIC_QUANTIZED,
+  STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED,
+  STYLE_TRANSFER_UDNIE_QUANTIZED,
+  StyleTransferModelName,
+  ResourceSource,
 } from 'react-native-executorch';
+
 import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 
+type StyleTransferModelSources = {
+  modelName: StyleTransferModelName;
+  modelSource: ResourceSource;
+};
+
+const MODELS: ModelOption<StyleTransferModelSources>[] = [
+  { label: 'Candy', value: STYLE_TRANSFER_CANDY_QUANTIZED },
+  { label: 'Mosaic', value: STYLE_TRANSFER_MOSAIC_QUANTIZED },
+  { label: 'Rain Princess', value: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED },
+  { label: 'Udnie', value: STYLE_TRANSFER_UDNIE_QUANTIZED },
+];
+
 export default function StyleTransferScreen() {
-  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY_QUANTIZED });
+  const [selectedModel, setSelectedModel] = useState<StyleTransferModelSources>(
+    STYLE_TRANSFER_CANDY_QUANTIZED
+  );
+
+  const model = useStyleTransfer({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
@@ -64,6 +87,14 @@ export default function StyleTransferScreen() {
           }
         />
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setStyledUri('');
+        }}
+      />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
@@ -73,14 +104,6 @@ export default function StyleTransferScreen() {
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    flex: 6,
-    width: '100%',
-    padding: 16,
-  },
-  image: {
-    flex: 1,
-    borderRadius: 8,
-    width: '100%',
-  },
+  imageContainer: { flex: 6, width: '100%', padding: 16 },
+  image: { flex: 1, borderRadius: 8, width: '100%' },
 });

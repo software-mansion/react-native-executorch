@@ -11,13 +11,30 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B_SPINQUANT,
+  LLAMA3_2_3B_SPINQUANT,
+  QWEN3_0_6B_QUANTIZED,
+  QWEN3_1_7B_QUANTIZED,
+  LLMProps,
+} from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
+
+type LLMModelSources = LLMProps['model'];
+
+const MODELS: ModelOption<LLMModelSources>[] = [
+  { label: 'Llama 1B', value: LLAMA3_2_1B_SPINQUANT },
+  { label: 'Llama 3B', value: LLAMA3_2_3B_SPINQUANT },
+  { label: 'Qwen3 0.6B', value: QWEN3_0_6B_QUANTIZED },
+  { label: 'Qwen3 1.7B', value: QWEN3_1_7B_QUANTIZED },
+];
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -27,10 +44,13 @@ export default function LLMScreenWrapper() {
 function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    LLAMA3_2_1B_SPINQUANT
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+  const llm = useLLM({ model: selectedModel });
 
   useEffect(() => {
     if (llm.error) {
@@ -85,6 +105,12 @@ function LLMScreen() {
               </Text>
             </View>
           )}
+
+          <ModelPicker
+            models={MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+          />
 
           <View style={styles.bottomContainer}>
             <TextInput

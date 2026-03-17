@@ -1,12 +1,35 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
-import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
+import {
+  useOCR,
+  OCR_ENGLISH,
+  OCR_GERMAN,
+  OCR_FRENCH,
+  OCR_SPANISH,
+  OCR_ITALIAN,
+  OCR_JAPANESE,
+  OCR_KOREAN,
+  OCRProps,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+
+type OCRModelSources = OCRProps['model'];
+
+const MODELS: ModelOption<OCRModelSources>[] = [
+  { label: 'English', value: OCR_ENGLISH },
+  { label: 'German', value: OCR_GERMAN },
+  { label: 'French', value: OCR_FRENCH },
+  { label: 'Spanish', value: OCR_SPANISH },
+  { label: 'Italian', value: OCR_ITALIAN },
+  { label: 'Japanese', value: OCR_JAPANESE },
+  { label: 'Korean', value: OCR_KOREAN },
+];
 
 export default function OCRScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -15,9 +38,11 @@ export default function OCRScreen() {
     width: number;
     height: number;
   }>();
+  const [selectedModel, setSelectedModel] =
+    useState<OCRModelSources>(OCR_ENGLISH);
 
   const model = useOCR({
-    model: OCR_ENGLISH,
+    model: selectedModel,
   });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
@@ -89,6 +114,14 @@ export default function OCRScreen() {
           </View>
         )}
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setResults([]);
+        }}
+      />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}

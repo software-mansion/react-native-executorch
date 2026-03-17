@@ -48,11 +48,6 @@ export const useVerticalOCR = ({
       setDownloadProgress
     );
 
-    const worklet = controller.runOnFrame;
-    if (worklet) {
-      setRunOnFrame(() => worklet);
-    }
-
     return () => {
       setRunOnFrame(null);
       if (controller.isReady) {
@@ -68,6 +63,21 @@ export const useVerticalOCR = ({
     independentCharacters,
     preventLoad,
   ]);
+
+  useEffect(() => {
+    if (isReady) {
+      try {
+        const worklet = controller.runOnFrame;
+        if (worklet) {
+          setRunOnFrame(() => worklet);
+        }
+      } catch {
+        // runOnFrame not available
+      }
+    } else {
+      setRunOnFrame(null);
+    }
+  }, [controller, isReady]);
 
   const forward = useCallback(
     (imageSource: string | PixelData): Promise<OCRDetection[]> =>

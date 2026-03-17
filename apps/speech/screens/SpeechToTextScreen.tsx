@@ -14,8 +14,22 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useSpeechToText,
   WHISPER_TINY_EN,
+  WHISPER_TINY_EN_QUANTIZED,
+  WHISPER_BASE_EN,
+  WHISPER_SMALL_EN,
   TranscriptionResult,
+  SpeechToTextProps,
 } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../components/ModelPicker';
+
+type STTModelSources = SpeechToTextProps['model'];
+
+const MODELS: ModelOption<STTModelSources>[] = [
+  { label: 'Whisper Tiny', value: WHISPER_TINY_EN },
+  { label: 'Whisper Tiny Q', value: WHISPER_TINY_EN_QUANTIZED },
+  { label: 'Whisper Base', value: WHISPER_BASE_EN },
+  { label: 'Whisper Small', value: WHISPER_SMALL_EN },
+];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -31,8 +45,11 @@ import { VerboseTranscription } from '../components/VerboseTranscription';
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
+  const [selectedModel, setSelectedModel] =
+    useState<STTModelSources>(WHISPER_TINY_EN);
+
   const model = useSpeechToText({
-    model: WHISPER_TINY_EN,
+    model: selectedModel,
   });
 
   const [transcription, setTranscription] =
@@ -236,6 +253,16 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
           <View style={styles.statusContainer}>
             <Text>Status: {getModelStatus()}</Text>
           </View>
+
+          <ModelPicker
+            models={MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => {
+              setSelectedModel(m);
+              setTranscription(null);
+              setLiveResult(null);
+            }}
+          />
 
           <View style={styles.toggleContainer}>
             <Text style={styles.toggleLabel}>Enable Timestamps (Verbose)</Text>
