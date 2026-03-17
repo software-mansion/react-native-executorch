@@ -75,19 +75,19 @@ const TASKS: Task[] = [
     ],
   },
   {
-    id: 'objectDetection',
-    label: 'Detect',
-    variants: [
-      { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
-      { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
-    ],
-  },
-  {
     id: 'instanceSegmentation',
     label: 'Inst Seg',
     variants: [
       { id: 'instanceSegmentation_yolo26n', label: 'YOLO26N Seg' },
       { id: 'instanceSegmentation_rfdetr', label: 'RF-DETR Nano Seg' },
+    ],
+  },
+  {
+    id: 'objectDetection',
+    label: 'Detect',
+    variants: [
+      { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
+      { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
     ],
   },
 ];

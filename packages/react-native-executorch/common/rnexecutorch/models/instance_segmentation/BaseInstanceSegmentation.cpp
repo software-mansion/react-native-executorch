@@ -43,6 +43,16 @@ cv::Size BaseInstanceSegmentation::modelInputSize() const {
   return {shape[shape.size() - 2], shape[shape.size() - 1]};
 }
 
+TensorPtr BaseInstanceSegmentation::buildInputTensor(const cv::Mat &image) {
+  cv::Mat preprocessed = preprocess(image);
+  return (normMean_.has_value() && normStd_.has_value())
+             ? image_processing::getTensorFromMatrix(
+                   modelInputShape_, preprocessed, normMean_.value(),
+                   normStd_.value())
+             : image_processing::getTensorFromMatrix(modelInputShape_,
+                                                     preprocessed);
+}
+
 std::vector<types::Instance> BaseInstanceSegmentation::runInference(
     const cv::Mat &image, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, const std::vector<int32_t> &classIndices,
@@ -64,16 +74,8 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
   cv::Size modelInputSize(shape[shape.size() - 2], shape[shape.size() - 1]);
   cv::Size originalSize(image.cols, image.rows);
 
-  cv::Mat preprocessed = preprocess(image);
-
-  auto inputTensor = (normMean_.has_value() && normStd_.has_value())
-                         ? image_processing::getTensorFromMatrix(
-                               modelInputShape_, preprocessed,
-                               normMean_.value(), normStd_.value())
-                         : image_processing::getTensorFromMatrix(
-                               modelInputShape_, preprocessed);
-
-  auto forwardResult = BaseModel::execute(methodName, {inputTensor});
+  auto forwardResult =
+      BaseModel::execute(methodName, {buildInputTensor(image)});
   if (!forwardResult.ok()) {
     throw RnExecutorchError(
         forwardResult.error(),
@@ -82,9 +84,13 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
             methodName + "' is valid.");
   }
 
-  return postprocess(forwardResult.get(), originalSize, modelInputSize,
-                     confidenceThreshold, iouThreshold, maxInstances,
-                     classIndices, returnMaskAtOriginalResolution);
+  validateThresholds(confidenceThreshold, iouThreshold);
+  validateOutputTensors(forwardResult.get());
+
+  auto instances = collectInstances(
+      forwardResult.get(), originalSize, modelInputSize, confidenceThreshold,
+      classIndices, returnMaskAtOriginalResolution);
+  return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromString(
@@ -259,37 +265,16 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
                                 methodName + "'");
   }
 
-  if (currentlyLoadedMethod_ != methodName) {
-    if (!currentlyLoadedMethod_.empty()) {
-      module_->unload_method(currentlyLoadedMethod_);
-    }
-    currentlyLoadedMethod_ = methodName;
-    auto loadResult = module_->load_method(methodName);
-    if (loadResult != executorch::runtime::Error::Ok) {
-      throw RnExecutorchError(
-          loadResult, "Failed to load method '" + methodName +
-                          "'. Ensure the method exists in the exported model.");
-    }
+  if (!currentlyLoadedMethod_.empty()) {
+    module_->unload_method(currentlyLoadedMethod_);
   }
-}
-
-cv::Size BaseInstanceSegmentation::getInputSize(const std::string &methodName) {
-  auto inputShapes = getAllInputShapes(methodName);
-  if (inputShapes.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Method '" + methodName +
-                                "' has no input tensors.");
+  currentlyLoadedMethod_ = methodName;
+  auto loadResult = module_->load_method(methodName);
+  if (loadResult != executorch::runtime::Error::Ok) {
+    throw RnExecutorchError(
+        loadResult, "Failed to load method '" + methodName +
+                        "'. Ensure the method exists in the exported model.");
   }
-
-  const auto &inputShape = inputShapes[0];
-  if (inputShape.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Method '" + methodName +
-                                "' input tensor has no dimensions.");
-  }
-
-  int32_t inputSize = inputShape[inputShape.size() - 1];
-  return cv::Size(inputSize, inputSize);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
@@ -308,14 +293,11 @@ std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
   return instances;
 }
 
-std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
+std::vector<types::Instance> BaseInstanceSegmentation::collectInstances(
     const std::vector<EValue> &tensors, cv::Size originalSize,
-    cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
-    int32_t maxInstances, const std::vector<int32_t> &classIndices,
+    cv::Size modelInputSize, double confidenceThreshold,
+    const std::vector<int32_t> &classIndices,
     bool returnMaskAtOriginalResolution) {
-
-  validateThresholds(confidenceThreshold, iouThreshold);
-  validateOutputTensors(tensors);
 
   float widthRatio =
       static_cast<float>(originalSize.width) / modelInputSize.width;
@@ -371,7 +353,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::postprocess(
                            binaryMask.cols, binaryMask.rows, labelIdx, score);
   }
 
-  return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
+  return instances;
 }
 
 } // namespace rnexecutorch::models::instance_segmentation

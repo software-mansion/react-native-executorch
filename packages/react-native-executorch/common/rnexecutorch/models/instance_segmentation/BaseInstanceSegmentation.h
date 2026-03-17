@@ -53,12 +53,13 @@ private:
       int32_t maxInstances, const std::vector<int32_t> &classIndices,
       bool returnMaskAtOriginalResolution, const std::string &methodName);
 
+  TensorPtr buildInputTensor(const cv::Mat &image);
+
   std::vector<types::Instance>
-  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
-              cv::Size modelInputSize, double confidenceThreshold,
-              double iouThreshold, int32_t maxInstances,
-              const std::vector<int32_t> &classIndices,
-              bool returnMaskAtOriginalResolution);
+  collectInstances(const std::vector<EValue> &tensors, cv::Size originalSize,
+                   cv::Size modelInputSize, double confidenceThreshold,
+                   const std::vector<int32_t> &classIndices,
+                   bool returnMaskAtOriginalResolution);
 
   void validateThresholds(double confidenceThreshold,
                           double iouThreshold) const;
@@ -69,7 +70,6 @@ private:
 
   // Model loading and input helpers
   void ensureMethodLoaded(const std::string &methodName);
-  cv::Size getInputSize(const std::string &methodName);
 
   std::tuple<utils::computer_vision::BBox, float, int32_t>
   extractDetectionData(const float *bboxData, const float *scoresData,
