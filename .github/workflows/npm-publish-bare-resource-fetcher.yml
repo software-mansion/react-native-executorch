@@ -118,4 +118,4 @@ jobs:
         run: mv ${{ env.PACKAGE_DIR }}/${{ env.PACKAGE_NAME }} .
 
       - name: Publish package to npm
-        run: npm publish $PACKAGE_NAME --tag ${{ env.TAG }} --provenance
+        run: npm publish $PACKAGE_NAME --tag ${{ env.TAG }} --provenance --access public
