@@ -19,9 +19,10 @@ using namespace facebook;
 cv::Mat extractFrame(jsi::Runtime &runtime, const jsi::Object &frameData);
 
 /**
- * @brief Convert a VisionCamera frame to a rotated RGB cv::Mat.
+ * @brief Convert a VisionCamera frame to an RGB cv::Mat.
  *
- * Handles frame extraction and landscape→portrait rotation.
+ * Expects the frame buffer to already be correctly oriented — use
+ * enablePhysicalBufferRotation on the FrameOutput to ensure this.
  * Callers are responsible for any further colour space conversion.
  */
 cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData);

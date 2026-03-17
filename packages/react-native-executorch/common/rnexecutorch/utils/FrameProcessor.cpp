@@ -28,15 +28,7 @@ cv::Mat extractFrame(jsi::Runtime &runtime, const jsi::Object &frameData) {
 
 cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = extractFrame(runtime, frameObj);
-
-  // Camera sensors deliver landscape frames; rotate to portrait orientation.
-  if (frame.cols > frame.rows) {
-    cv::Mat upright;
-    cv::rotate(frame, upright, cv::ROTATE_90_CLOCKWISE);
-    return upright;
-  }
-  return frame;
+  return extractFrame(runtime, frameObj);
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

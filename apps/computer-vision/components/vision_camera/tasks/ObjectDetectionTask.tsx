@@ -79,8 +79,8 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const iw = frame.width > frame.height ? frame.height : frame.width;
-          const ih = frame.width > frame.height ? frame.width : frame.height;
+          const iw = frame.width;
+          const ih = frame.height;
           const result = detRof(frame, 0.5);
           if (result) {
             scheduleOnRN(updateDetections, {

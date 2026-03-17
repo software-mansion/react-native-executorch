@@ -138,6 +138,7 @@ export default function SegmentationTask({
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
+    enablePhysicalBufferRotation: true,
     dropFramesWhileBusy: true,
     onFrame: useCallback(
       (frame: Frame) => {
