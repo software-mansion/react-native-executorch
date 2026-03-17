@@ -78,11 +78,11 @@ React Native ExecuTorch 为 [Private Mind](https://privatemind.swmansion.com/) �
 yarn add react-native-executorch
 
 # 如果您使用 expo，请添加这些包用于资源获取：
-yarn add @react-native-executorch/expo-resource-fetcher
+yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
 # 如果您使用原生 React Native 项目，请使用这些包：
-yarn add @react-native-executorch/bare-resource-fetcher
+yarn add react-native-executorch-bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 # 根据平台，选择 iOS 或 Android
@@ -100,7 +100,7 @@ import {
   Message,
   initExecutorch,
 } from 'react-native-executorch';
-import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: ExpoResourceFetcher,

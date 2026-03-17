@@ -7,7 +7,7 @@ import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
 import { TextToSpeechLLMScreen } from './screens/TextToSpeechLLMScreen';
 import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: ExpoResourceFetcher,

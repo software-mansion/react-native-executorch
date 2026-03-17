@@ -11,7 +11,6 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.81.6",
     "@react-navigation/drawer": "^7.8.1",
     "@react-navigation/native": "^7.1.28",
@@ -30,6 +29,7 @@
     "react-native-audio-api": "^0.8.2",
     "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
+    "react-native-executorch-expo-resource-fetcher": "workspace:*",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-image-picker": "^7.2.2",
     "react-native-loading-spinner-overlay": "^3.0.1",
