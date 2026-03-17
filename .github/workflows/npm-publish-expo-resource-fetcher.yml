@@ -71,7 +71,7 @@ jobs:
         run: exit 1 # this should never happen
 
       - name: Set nightly version
-        if: ${{ inputs.latest-build != 'true' }}
+        if: ${{ !inputs.latest-build }}
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
           VERSION=${{ env.PACKAGE_VERSION }}
@@ -94,7 +94,7 @@ jobs:
         run: npm pack
 
       - name: Restore version
-        if: ${{ inputs.latest-build != 'true' }}
+        if: ${{ !inputs.latest-build }}
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
           VERSION=${{ env.PACKAGE_VERSION }}
