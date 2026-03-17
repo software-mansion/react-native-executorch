@@ -62,7 +62,7 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
 
 /**
  * Generic semantic segmentation module with type-safe label maps.
- * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
+ * Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
  *
  * @typeParam T - Either a built-in model name (`'deeplab-v3-resnet50'`,
