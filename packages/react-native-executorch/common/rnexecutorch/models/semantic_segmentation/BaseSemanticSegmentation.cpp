@@ -6,6 +6,7 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch::models::semantic_segmentation {
 
@@ -95,8 +96,38 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  auto orient = extractFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  return runInference(frame, frame.size(), classesOfInterest, resize);
+  auto result = runInference(frame, frame.size(), classesOfInterest, resize);
+
+  // Pre-rotation dimensions from runInference — used to wrap raw buffers before transform.
+  const int w = result.outputWidth;
+  const int h = result.outputHeight;
+
+  // Transform argmax mask
+  if (result.argmax && w > 0 && h > 0) {
+    cv::Mat argmaxMat(h, w, CV_32SC1, result.argmax->data());
+    cv::Mat transformed = utils::transformMat(argmaxMat, orient);
+    result.argmax = std::make_shared<OwningArrayBuffer>(
+        transformed.data,
+        static_cast<size_t>(transformed.total() * transformed.elemSize()));
+    // Update dimensions to reflect post-rotation layout (right/left swaps w↔h)
+    result.outputWidth = transformed.cols;
+    result.outputHeight = transformed.rows;
+  }
+
+  // Transform each class probability buffer
+  if (result.classBuffers && w > 0 && h > 0) {
+    for (auto &[label, buf] : *result.classBuffers) {
+      cv::Mat classMat(h, w, CV_32FC1, buf->data());
+      cv::Mat transformed = utils::transformMat(classMat, orient);
+      buf = std::make_shared<OwningArrayBuffer>(
+          transformed.data,
+          static_cast<size_t>(transformed.total() * transformed.elemSize()));
+    }
+  }
+
+  return result;
 }
 
 semantic_segmentation::SegmentationResult
@@ -209,7 +240,17 @@ BaseSemanticSegmentation::computeResult(
     }
   }
 
-  return semantic_segmentation::SegmentationResult{argmax, buffersToReturn};
+  SegmentationResult result;
+  result.argmax = argmax;
+  result.classBuffers = buffersToReturn;
+  if (resize) {
+    result.outputWidth = originalSize.width;
+    result.outputHeight = originalSize.height;
+  } else {
+    result.outputWidth = static_cast<int>(outputW);
+    result.outputHeight = static_cast<int>(outputH);
+  }
+  return result;
 }
 
 } // namespace rnexecutorch::models::semantic_segmentation

@@ -2,6 +2,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch::models {
 
@@ -48,6 +49,11 @@ cv::Mat VisionModel::preprocess(const cv::Mat &image) const {
 
 cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {
   return ::rnexecutorch::utils::pixelsToMat(tensorView);
+}
+
+utils::FrameOrientation VisionModel::extractFrameOrientation(
+    jsi::Runtime &runtime, const jsi::Value &frameData) const {
+  return ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
 }
 
 } // namespace rnexecutorch::models

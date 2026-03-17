@@ -31,6 +31,37 @@ cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData) {
   return extractFrame(runtime, frameObj);
 }
 
+FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
+                                      const jsi::Value &frameData) {
+  auto obj = frameData.asObject(runtime);
+
+  std::string orientation = "up";
+  if (obj.hasProperty(runtime, "orientation")) {
+    auto val = obj.getProperty(runtime, "orientation");
+    if (val.isString()) orientation = val.getString(runtime).utf8(runtime);
+  }
+
+  bool isMirrored = false;
+  if (obj.hasProperty(runtime, "isMirrored")) {
+    auto val = obj.getProperty(runtime, "isMirrored");
+    if (val.isBool()) isMirrored = val.getBool();
+  }
+
+  int frameWidth = 0;
+  if (obj.hasProperty(runtime, "frameWidth")) {
+    auto val = obj.getProperty(runtime, "frameWidth");
+    if (val.isNumber()) frameWidth = static_cast<int>(val.asNumber());
+  }
+
+  int frameHeight = 0;
+  if (obj.hasProperty(runtime, "frameHeight")) {
+    auto val = obj.getProperty(runtime, "frameHeight");
+    if (val.isNumber()) frameHeight = static_cast<int>(val.asNumber());
+  }
+
+  return {orientation, isMirrored, frameWidth, frameHeight};
+}
+
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {
   if (pixelData.sizes.size() != 3) {
     char errorMessage[100];

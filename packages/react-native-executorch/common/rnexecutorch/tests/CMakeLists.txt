@@ -165,6 +165,12 @@ add_rn_test(FrameProcessorTests unit/FrameProcessorTest.cpp
     LIBS opencv_deps android
 )
 
+add_rn_test(FrameTransformTests unit/FrameTransformTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
+    LIBS opencv_deps
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 
 add_rn_test(VisionModelTests integration/VisionModelTest.cpp
@@ -172,6 +178,7 @@ add_rn_test(VisionModelTests integration/VisionModelTest.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -182,6 +189,7 @@ add_rn_test(ClassificationTests integration/ClassificationTest.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -192,6 +200,7 @@ add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
@@ -204,6 +213,7 @@ add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -222,6 +232,7 @@ add_rn_test(StyleTransferTests integration/StyleTransferTest.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -312,6 +323,7 @@ add_rn_test(OCRTests integration/OCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )
@@ -328,6 +340,7 @@ add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android
 )

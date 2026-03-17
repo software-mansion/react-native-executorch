@@ -76,7 +76,13 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       let nativeBuffer: any = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
-        const frameData = { nativeBuffer: nativeBuffer.pointer };
+        const frameData = {
+          nativeBuffer: nativeBuffer.pointer,
+          orientation: frame.orientation,
+          isMirrored: frame.isMirrored,
+          frameWidth: frame.width,
+          frameHeight: frame.height,
+        };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {
         if (nativeBuffer?.release) {

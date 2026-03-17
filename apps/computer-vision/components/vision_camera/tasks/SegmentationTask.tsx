@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -138,7 +138,6 @@ export default function SegmentationTask({
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
-    enablePhysicalBufferRotation: true,
     dropFramesWhileBusy: true,
     onFrame: useCallback(
       (frame: Frame) => {
@@ -194,7 +193,10 @@ export default function SegmentationTask({
     <View
       style={[
         StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
+        // TODO: remove when VisionCamera fixes front camera orientation reporting on iOS
+        // https://github.com/mrousavy/react-native-vision-camera/issues/124
+        Platform.OS === 'ios' &&
+          cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
       ]}
       pointerEvents="none"
     >

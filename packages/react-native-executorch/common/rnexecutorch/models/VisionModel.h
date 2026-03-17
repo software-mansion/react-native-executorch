@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch {
 namespace models {
@@ -143,6 +144,16 @@ protected:
    * @endcode
    */
   cv::Mat extractFromPixels(const JSTensorViewIn &tensorView) const;
+
+  /**
+   * @brief Read orientation metadata from JSI frameData object.
+   *
+   * Reads orientation, isMirrored, frameWidth, frameHeight.
+   * Falls back to "up"/false/0/0 if fields are absent (e.g. when
+   * enablePhysicalBufferRotation is used — transform will then be a no-op).
+   */
+  utils::FrameOrientation extractFrameOrientation(
+      jsi::Runtime &runtime, const jsi::Value &frameData) const;
 };
 
 } // namespace models

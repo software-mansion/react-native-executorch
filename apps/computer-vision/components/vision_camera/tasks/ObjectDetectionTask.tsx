@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -79,14 +79,16 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const iw = frame.width;
-          const ih = frame.height;
+          const orientation = frame.orientation;
+          const swapAxes = orientation === 'left' || orientation === 'right';
+          const screenW = swapAxes ? frame.height : frame.width;
+          const screenH = swapAxes ? frame.width : frame.height;
           const result = detRof(frame, 0.5);
           if (result) {
             scheduleOnRN(updateDetections, {
               results: result,
-              imageWidth: iw,
-              imageHeight: ih,
+              imageWidth: screenW,
+              imageHeight: screenH,
             });
           }
         } catch {
@@ -114,7 +116,10 @@ export default function ObjectDetectionTask({
     <View
       style={[
         StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
+        // TODO: remove when VisionCamera fixes front camera orientation reporting on iOS
+        // https://github.com/mrousavy/react-native-vision-camera/issues/124
+        Platform.OS === 'ios' &&
+          cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
       ]}
       pointerEvents="none"
     >
@@ -141,7 +146,8 @@ export default function ObjectDetectionTask({
               style={[
                 styles.bboxLabel,
                 { backgroundColor: labelColorBg(det.label) },
-                cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
+                Platform.OS === 'ios' &&
+                  cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
               ]}
             >
               <Text style={styles.bboxLabelText}>
