@@ -143,6 +143,10 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    * @returns Array of Detection objects representing detected items in the frame.
    */
   runOnFrame:
-    | ((frame: Frame, detectionThreshold: number) => Detection<L>[])
+    | ((
+        frame: Frame,
+        isMirrored: boolean,
+        detectionThreshold: number
+      ) => Detection<L>[])
     | null;
 }

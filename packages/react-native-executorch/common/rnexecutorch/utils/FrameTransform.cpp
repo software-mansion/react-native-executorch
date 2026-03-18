@@ -91,7 +91,21 @@ void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
     x2 = nx2;
     y2 = ny2;
   }
-  // "left": no-op
+  // "left": no-op (coords already in screen space)
+
+#if defined(__APPLE__)
+  if (orient.isMirrored) {
+    // After CW/CCW rotation ("up"/"down") screen dims are swapped: rH × rW.
+    // After no-op/180° ("left"/"right") screen dims are unchanged: rW × rH.
+    bool swapped = (orient.orientation == "up" || orient.orientation == "down");
+    float sw = swapped ? h : w;
+    float sh = swapped ? w : h;
+    float nx1 = sw - x2, ny1 = sh - y2;
+    float nx2 = sw - x1, ny2 = sh - y1;
+    x1 = nx1; y1 = ny1;
+    x2 = nx2; y2 = ny2;
+  }
+#endif
 }
 
 cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient) {
@@ -103,7 +117,13 @@ cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient) {
   } else if (orient.orientation == "down") {
     cv::rotate(result, result, cv::ROTATE_90_COUNTERCLOCKWISE);
   }
-  // "left": no-op
+  // "left": no-op (mask already in screen space)
+
+#if defined(__APPLE__)
+  if (orient.isMirrored) {
+    cv::rotate(result, result, cv::ROTATE_180);
+  }
+#endif
   return result;
 }
 
