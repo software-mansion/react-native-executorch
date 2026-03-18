@@ -31,10 +31,12 @@ const MODELS: ModelOption<OCRModelSources>[] = [
   { label: 'Japanese', value: OCR_JAPANESE },
   { label: 'Korean', value: OCR_KOREAN },
 ];
+import ErrorBanner from '../../components/ErrorBanner';
 
 export default function OCRScreen() {
   const [imageUri, setImageUri] = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
     height: number;
@@ -50,6 +52,10 @@ export default function OCRScreen() {
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -71,14 +77,14 @@ export default function OCRScreen() {
       setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  if (!model.isReady) {
+  if (!model.isReady && !model.error) {
     return (
       <Spinner
-        visible={!model.isReady}
+        visible={true}
         textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
@@ -86,6 +92,7 @@ export default function OCRScreen() {
 
   return (
     <ScreenWrapper>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (

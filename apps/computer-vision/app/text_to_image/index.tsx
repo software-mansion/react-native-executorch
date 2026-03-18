@@ -24,6 +24,7 @@ import ColorPalette from '../../colors';
 import ProgressBar from '../../components/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
 import { StatsBar } from '../../components/StatsBar';
+import ErrorBanner from '../../components/ErrorBanner';
 
 type TextToImageModelSources = TextToImageProps['model'];
 
@@ -36,11 +37,17 @@ export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [image, setImage] = useState<string | null>(null);
   const [steps, setSteps] = useState<number>(40);
+  
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<TextToImageModelSources>(
     BK_SDM_TINY_VPRED_256
   );
   const [generationTime, setGenerationTime] = useState<number | null>(null);
+
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [imageTitle, setImageTitle] = useState<string | null>(null);
 
   const imageSize = 224;
   const model = useTextToImage({
@@ -54,8 +61,28 @@ export default function TextToImageScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const runForward = async () => {
     if (!input.trim()) return;
+    
+    setImageTitle(input);
+    
     try {
       const start = Date.now();
       const output = await model.generate(input, imageSize, steps);
@@ -65,27 +92,41 @@ export default function TextToImageScreen() {
         setGenerationTime(Date.now() - start);
       }
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
+      setImageTitle(null);
     } finally {
       setInferenceStepIdx(0);
     }
   };
 
-  if (!model.isReady) {
+  if (!model.isReady && !model.error) {
     return (
       <Spinner
-        visible={!model.isReady}
+        visible={true}
         textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback 
+      onPress={() => {
+        Keyboard.dismiss();
+        setShowTextInput(false);
+      }}
+    >
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        {keyboardVisible && <View style={styles.overlay} />}
+        
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
+
+        <View style={styles.titleContainer}>
+          {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
+        </View>
+
         <View style={styles.imageContainer}>
           {model.isGenerating ? (
             <View style={styles.progressContainer}>
@@ -171,11 +212,28 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    zIndex: 1,
+  },
+  titleContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    alignItems: 'center',
+  },
+  titleText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
   imageContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+    zIndex: 0,
   },
   image: {
     width: 256,

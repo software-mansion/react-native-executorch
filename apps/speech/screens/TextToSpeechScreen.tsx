@@ -49,6 +49,7 @@ import {
   AudioBufferSourceNode,
 } from 'react-native-audio-api';
 import SWMIcon from '../assets/swm_icon.svg';
+import ErrorBanner from '../components/ErrorBanner';
 
 /**
  * Converts an audio vector (Float32Array) to an AudioBuffer for playback
@@ -90,6 +91,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode>(null);
@@ -158,18 +160,21 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
         onNext,
         onEnd,
       });
-    } catch (error) {
-      console.error('Error generating or playing audio:', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
       setIsPlaying(false);
     }
   };
 
   const getModelStatus = () => {
-    if (model.error) return `${model.error}`;
     if (model.isGenerating) return 'Generating audio...';
     if (model.isReady) return 'Ready to synthesize';
     return `Loading model: ${(100 * model.downloadProgress).toFixed(2)}%`;
   };
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   return (
     <SafeAreaProvider>
@@ -190,6 +195,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <View style={styles.statusContainer}>
             <Text>Status: {getModelStatus()}</Text>
           </View>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <ModelPicker
             label="Model"

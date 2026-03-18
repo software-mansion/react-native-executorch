@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import SWMIcon from '../../assets/icons/swm_icon.svg';
 import Spinner from '../../components/Spinner';
+import ErrorBanner from '../../components/ErrorBanner';
 import {
   useSpeechToText,
   useLLM,
@@ -64,6 +65,7 @@ function VoiceChatScreen() {
     useState<LLMModelSources>(QWEN3_0_6B_QUANTIZED);
   const [selectedSTT, setSelectedSTT] =
     useState<STTModelSources>(WHISPER_TINY_EN);
+  const [error, setError] = useState<string | null>(null);
 
   const [recorder] = useState(
     () =>
@@ -116,7 +118,7 @@ function VoiceChatScreen() {
           finalResult = text;
         }
       } catch (e) {
-        console.error('Streaming error:', e);
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
         if (finalResult.trim().length > 0) {
           await llm.sendMessage(finalResult);
@@ -127,20 +129,18 @@ function VoiceChatScreen() {
   };
 
   useEffect(() => {
-    if (llm.error) {
-      console.error('LLM error:', llm.error);
-    }
+    if (llm.error) setError(String(llm.error));
   }, [llm.error]);
 
   useEffect(() => {
-    if (speechToText.error) {
-      console.error('speechToText error:', speechToText.error);
-    }
+    if (speechToText.error) setError(String(speechToText.error));
   }, [speechToText.error]);
 
-  return !llm.isReady || !speechToText.isReady ? (
+  return (!llm.isReady || !speechToText.isReady) &&
+    !llm.error &&
+    !speechToText.error ? (
     <Spinner
-      visible={!llm.isReady || !speechToText.isReady}
+      visible={true}
       textContent={`Loading the LLM model ${(llm.downloadProgress * 100).toFixed(0)} %\nLoading the speech model ${(speechToText.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
@@ -154,7 +154,7 @@ function VoiceChatScreen() {
           <SWMIcon width={45} height={45} />
           <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
         </View>
-
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
         {llm.messageHistory.length > 0 || liveTranscription.length > 0 ? (
           <View style={styles.chatContainer}>
             <Messages
