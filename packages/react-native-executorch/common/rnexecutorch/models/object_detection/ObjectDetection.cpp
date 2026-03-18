@@ -141,10 +141,11 @@ ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    double detectionThreshold) {
   auto orient = extractFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  auto detections = runInference(frame, detectionThreshold);
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
+  auto detections = runInference(rotated, detectionThreshold);
   for (auto &det : detections) {
-    ::rnexecutorch::utils::transformBbox(det.x1, det.y1, det.x2, det.y2,
-                                         orient);
+    ::rnexecutorch::utils::inverseRotateBbox(
+        det.x1, det.y1, det.x2, det.y2, orient, rotated.cols, rotated.rows);
   }
   return detections;
 }

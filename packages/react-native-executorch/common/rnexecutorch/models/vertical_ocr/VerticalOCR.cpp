@@ -67,13 +67,8 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
       RnExecutorchErrorCode::PlatformNotSupported,
       "generateFromFrame is not supported on this platform");
 #endif
-  std::vector<types::OCRDetection> detections = runInference(bgr);
-
-  for (auto &det : detections) {
-    ::rnexecutorch::utils::transformPoints(det.bbox, orient);
-  }
-
-  return detections;
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
+  return runInference(rotated);
 }
 
 std::vector<types::OCRDetection>

@@ -52,7 +52,6 @@ std::vector<types::OCRDetection> OCR::generateFromString(std::string input) {
 std::vector<types::OCRDetection>
 OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
   cv::Mat bgr;
 #ifdef __APPLE__
@@ -64,13 +63,8 @@ OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
       RnExecutorchErrorCode::PlatformNotSupported,
       "generateFromFrame is not supported on this platform");
 #endif
-  std::vector<types::OCRDetection> detections = runInference(bgr);
-
-  for (auto &det : detections) {
-    ::rnexecutorch::utils::transformPoints(det.bbox, orient);
-  }
-
-  return detections;
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
+  return runInference(rotated);
 }
 
 std::vector<types::OCRDetection>

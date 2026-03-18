@@ -98,32 +98,27 @@ BaseSemanticSegmentation::generateFromFrame(
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   auto orient = extractFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  auto result = runInference(frame, frame.size(), classesOfInterest, resize);
+  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto result = runInference(rotated, rotated.size(), classesOfInterest, resize);
 
-  // Pre-rotation dimensions from runInference — used to wrap raw buffers before transform.
   const int w = result.outputWidth;
   const int h = result.outputHeight;
 
-  // Transform argmax mask
   if (result.argmax && w > 0 && h > 0) {
-    cv::Mat argmaxMat(h, w, CV_32SC1, result.argmax->data());
-    cv::Mat transformed = utils::transformMat(argmaxMat, orient);
+    cv::Mat m(h, w, CV_32SC1, result.argmax->data());
+    cv::Mat inv = utils::inverseRotateMat(m, orient);
     result.argmax = std::make_shared<OwningArrayBuffer>(
-        transformed.data,
-        static_cast<size_t>(transformed.total() * transformed.elemSize()));
-    // Update dimensions to reflect post-rotation layout (right/left swaps w↔h)
-    result.outputWidth = transformed.cols;
-    result.outputHeight = transformed.rows;
+        inv.data, static_cast<size_t>(inv.total() * inv.elemSize()));
+    result.outputWidth = inv.cols;
+    result.outputHeight = inv.rows;
   }
 
-  // Transform each class probability buffer
   if (result.classBuffers && w > 0 && h > 0) {
     for (auto &[label, buf] : *result.classBuffers) {
-      cv::Mat classMat(h, w, CV_32FC1, buf->data());
-      cv::Mat transformed = utils::transformMat(classMat, orient);
+      cv::Mat m(h, w, CV_32FC1, buf->data());
+      cv::Mat inv = utils::inverseRotateMat(m, orient);
       buf = std::make_shared<OwningArrayBuffer>(
-          transformed.data,
-          static_cast<size_t>(transformed.total() * transformed.elemSize()));
+          inv.data, static_cast<size_t>(inv.total() * inv.elemSize()));
     }
   }
 

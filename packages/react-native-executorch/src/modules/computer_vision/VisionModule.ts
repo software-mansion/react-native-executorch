@@ -2,7 +2,6 @@ import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { Frame, PixelData, ScalarType } from '../../types/common';
-import { Platform } from 'react-native';
 
 export function isPixelData(input: unknown): input is PixelData {
   return (
@@ -77,7 +76,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       let nativeBuffer: any = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
-        console.log(frame.orientation);
+        console.log(frame.orientation, frame.width, frame.height);
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,

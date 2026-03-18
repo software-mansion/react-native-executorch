@@ -39,6 +39,37 @@ void transformBbox(float &x1, float &y1, float &x2, float &y2,
 cv::Mat transformMat(const cv::Mat &mat, const FrameOrientation &orient);
 
 /**
+ * @brief Rotate/flip a cv::Mat so the model sees an upright image.
+ *
+ * Applies the correct rotation per orientation so the output matches how a
+ * human would see the scene, regardless of device orientation:
+ *   "up"    (landscape-left)       → no rotation
+ *   "down"  (landscape-right)      → 180°
+ *   "left"  (portrait upright)     → CW
+ *   "right" (portrait upside-down) → CCW
+ * Also applies isMirrored flip and rotate180 (iOS front camera correction).
+ * Returns a new mat (does not modify input).
+ */
+cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient);
+
+/**
+ * @brief Map bbox coords from rotated-frame space back to screen space.
+ *
+ * Inverse of rotateFrameForModel for coordinates.
+ * rW/rH are the rotated frame dimensions (rotated.cols / rotated.rows).
+ */
+void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
+                       const FrameOrientation &orient, int rW, int rH);
+
+/**
+ * @brief Rotate a cv::Mat from rotated-frame space back to screen space.
+ *
+ * Inverse of rotateFrameForModel for matrices.
+ * Returns a new mat (does not modify input).
+ */
+cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient);
+
+/**
  * @brief Transform 4-point bbox from raw frame pixel space to screen space.
  *
  * Templated on point type — requires P to have float x and y members.
@@ -60,26 +91,9 @@ void transformPoints(std::array<P, 4> &points,
       x = w - x;
     }
 
-    // Sensor native = landscape-left.
-    float nx = x, ny = y;
-    if (orient.orientation == "up") {
-      // CW: new_x = h - y, new_y = x
-      nx = h - y;
-      ny = x;
-    } else if (orient.orientation == "down") {
-      // CW: new_x = h - y, new_y = x
-      nx = h - y;
-      ny = x;
-    } else if (orient.orientation == "left") {
-      // CW: new_x = h - y, new_y = x
-      nx = h - y;
-      ny = x;
-    } else if (orient.orientation == "right") {
-      // CW: new_x = h - y, new_y = x
-      nx = h - y;
-      ny = x;
-    }
-    // "up" = landscape-left: no-op
+    // Sensor native = landscape-left — apply CW rotation for all orientations.
+    float nx = h - y;
+    float ny = x;
 
     if (orient.rotate180) {
       nx = h - nx;

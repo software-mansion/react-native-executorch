@@ -140,6 +140,7 @@ export default function SegmentationTask({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,
+
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -149,7 +150,12 @@ export default function SegmentationTask({
         }
         try {
           if (!segRof) return;
-          const result = segRof(frame, cameraPositionSync.getDirty(), [], false);
+          const result = segRof(
+            frame,
+            cameraPositionSync.getDirty(),
+            [],
+            false
+          );
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
             const side = Math.round(Math.sqrt(argmax.length));

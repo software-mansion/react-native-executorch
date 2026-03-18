@@ -71,6 +71,7 @@ export default function ObjectDetectionTask({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,
+
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -80,10 +81,10 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          // C++ always does CW rotation, so output space is always frameH × frameW
+          const result = detRof(frame, cameraPositionSync.getDirty(), 0.5);
+          // C++ maps coords to screen space (portrait: frameH × frameW)
           const screenW = frame.height;
           const screenH = frame.width;
-          const result = detRof(frame, cameraPositionSync.getDirty(), 0.5);
           if (result) {
             scheduleOnRN(updateDetections, {
               results: result,
