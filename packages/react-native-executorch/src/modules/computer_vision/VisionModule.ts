@@ -55,6 +55,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   }
    * });
    * ```
+   * @returns A worklet function for frame processing, or null if the model is not loaded.
    */
   get runOnFrame(): ((frame: Frame, ...args: any[]) => TOutput) | null {
     if (!this.nativeModule) {

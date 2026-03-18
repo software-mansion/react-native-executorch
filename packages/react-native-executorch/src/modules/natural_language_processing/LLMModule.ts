@@ -138,7 +138,7 @@ export class LLMModule {
    * It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper.
    * If you want a simple chat with model the consider using `sendMessage`
    * @param input - Raw input string containing the prompt and conversation history.
-   * @param imagePaths
+   * @param imagePaths - Optional array of local image paths for multimodal inference.
    * @returns The generated response as a string.
    */
   async forward(input: string, imagePaths?: string[]): Promise<string> {
@@ -161,7 +161,7 @@ export class LLMModule {
    * After model responds it will call `messageHistoryCallback()` containing both user message and model response.
    * It also returns them.
    * @param message - The message string to send.
-   * @param media
+   * @param media - Optional media object containing a local image path for multimodal models.
    * @returns - Updated message history including the new user message and model response.
    */
   async sendMessage(

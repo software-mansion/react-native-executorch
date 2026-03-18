@@ -9,8 +9,9 @@ export { ResolveLabels } from '../../types/computerVision';
 /**
  * Fetches a model binary and returns its local path, throwing if the download
  * was interrupted (paused or cancelled).
- * @param source
- * @param onDownloadProgress
+ * @param source - The resource source to fetch the model binary from.
+ * @param onDownloadProgress - Callback invoked with download progress (0–1).
+ * @returns A promise resolving to the local file path of the downloaded model.
  * @internal
  */
 export async function fetchModelPath(

@@ -198,6 +198,7 @@ export class TextToSpeechModule {
    * Starts a streaming synthesis session from pre-computed phonemes.
    * Bypasses the built-in phonemizer, allowing use of external G2P systems.
    * @param input - Input object containing phonemes and optional speed.
+   * @yields An audio chunk generated during synthesis.
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *streamFromPhonemes({
@@ -249,7 +250,7 @@ export class TextToSpeechModule {
 
   /**
    * Inserts new text chunk into the buffer to be processed in streaming mode.
-   * @param textChunk
+   * @param textChunk - The text fragment to append to the streaming buffer.
    */
   public streamInsert(textChunk: string): void {
     this.nativeModule.streamInsert(textChunk);
@@ -257,9 +258,8 @@ export class TextToSpeechModule {
 
   /**
    * Stops the streaming process if there is any ongoing.
-   * @param instant If true, stops the streaming as soon as possible. Otherwise
+   * @param instant - If true, stops the streaming as soon as possible. Otherwise
    *                  allows the module to complete processing for the remains of the buffer.
-   * @param instant
    */
   public streamStop(instant: boolean = true): void {
     this.nativeModule.streamStop(instant);
