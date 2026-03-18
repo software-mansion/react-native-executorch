@@ -20,6 +20,7 @@ The following hooks expose `runOnFrame`:
 - [`useOCR`](./useOCR.md)
 - [`useVerticalOCR`](./useVerticalOCR.md)
 - [`useObjectDetection`](./useObjectDetection.md)
+- [`useInstanceSegmentation`](./useInstanceSegmentation.md)
 - [`useSemanticSegmentation`](./useSemanticSegmentation.md)
 - [`useStyleTransfer`](./useStyleTransfer.md)
 

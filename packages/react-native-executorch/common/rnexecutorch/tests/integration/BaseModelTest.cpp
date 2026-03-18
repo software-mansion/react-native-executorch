@@ -19,6 +19,9 @@ constexpr auto kValidStyleTransferModelPath =
 // Common tests via typed test suite
 // ============================================================================
 namespace model_tests {
+
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CommonModelTest);
+
 template <> struct ModelTraits<BaseModel> {
   using ModelType = BaseModel;
 

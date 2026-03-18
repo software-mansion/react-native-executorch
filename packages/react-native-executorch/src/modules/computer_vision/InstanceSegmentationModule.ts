@@ -295,6 +295,13 @@ export class InstanceSegmentationModule<
     this.classIndexToLabel.forEach((label, index) => {
       labelLookup[index] = label;
     });
+    // Create reverse map (label → enum value) for classesOfInterest lookup
+    const labelMap: Record<string, number> = {};
+    for (const [name, value] of Object.entries(this.labelMap)) {
+      if (typeof value === 'number') {
+        labelMap[name] = value;
+      }
+    }
     const labelEnumOffset = this.labelEnumOffset;
     const defaultConfidenceThreshold =
       this.modelConfig.defaultConfidenceThreshold ?? 0.5;
@@ -320,7 +327,7 @@ export class InstanceSegmentationModule<
       const classIndices = options?.classesOfInterest
         ? options.classesOfInterest.map((label) => {
             const labelStr = String(label);
-            const enumValue = (labelLookup as any)[labelStr];
+            const enumValue = labelMap[labelStr];
             return typeof enumValue === 'number'
               ? enumValue - labelEnumOffset
               : -1;

@@ -58,7 +58,7 @@ For more information on loading resources, take a look at [loading models](../..
 
 To run the model, use the [`forward`](../../06-api-reference/interfaces/InstanceSegmentationType.md#forward) method. It accepts two arguments:
 
-- `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - `options` (optional) - An [`InstanceSegmentationOptions`](../../06-api-reference/interfaces/InstanceSegmentationOptions.md) object with the following fields:
   - `confidenceThreshold` - Minimum confidence score for including instances. Defaults to the model's configured threshold (typically `0.5`).
   - `iouThreshold` - IoU threshold for non-maximum suppression. Defaults to `0.5`.
@@ -111,6 +111,10 @@ function App() {
   // ...
 }
 ```
+
+## VisionCamera integration
+
+See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models
 

@@ -112,7 +112,7 @@ The model must produce **3 output tensors**:
 
 To run the model, use the [`forward`](../../06-api-reference/classes/InstanceSegmentationModule.md#forward) method. It accepts two arguments:
 
-- `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- `imageSource` (required) - The image to process. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - `options` (optional) - An [`InstanceSegmentationOptions`](../../06-api-reference/interfaces/InstanceSegmentationOptions.md) object for configuring the segmentation (confidence threshold, IoU threshold, input size, classes of interest, etc.).
 
 The method returns a promise resolving to an array of [`SegmentedInstance`](../../06-api-reference/interfaces/SegmentedInstance.md) objects. Each object contains bounding box coordinates, a binary segmentation mask, a string `label` (resolved from the model's label enum), and the confidence score.
