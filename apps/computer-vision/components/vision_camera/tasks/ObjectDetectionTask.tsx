@@ -80,11 +80,9 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const orientation = frame.orientation;
-          // "up"/"down" = landscape orientations where buffer axes are swapped vs screen
-          const swapAxes = orientation === 'up' || orientation === 'down';
-          const screenW = swapAxes ? frame.height : frame.width;
-          const screenH = swapAxes ? frame.width : frame.height;
+          // C++ always does CW rotation, so output space is always frameH × frameW
+          const screenW = frame.height;
+          const screenH = frame.width;
           const result = detRof(frame, cameraPositionSync.getDirty(), 0.5);
           if (result) {
             scheduleOnRN(updateDetections, {

@@ -34,9 +34,9 @@ void transformBbox(float &x1, float &y1, float &x2, float &y2,
     x1 = nx1; y1 = ny1;
     x2 = nx2; y2 = ny2;
   } else if (orient.orientation == "left") {
-    // CCW: new_x = y, new_y = w - x
-    float nx1 = y1, ny1 = w - x2;
-    float nx2 = y2, ny2 = w - x1;
+    // CW: new_x = h - y, new_y = x
+    float nx1 = h - y2, ny1 = x1;
+    float nx2 = h - y1, ny2 = x2;
     x1 = nx1; y1 = ny1;
     x2 = nx2; y2 = ny2;
   } else {

@@ -71,9 +71,9 @@ void transformPoints(std::array<P, 4> &points,
       nx = h - y;
       ny = x;
     } else if (orient.orientation == "left") {
-      // CCW: new_x = y, new_y = w - x
-      nx = y;
-      ny = w - x;
+      // CW: new_x = h - y, new_y = x
+      nx = h - y;
+      ny = x;
     } else if (orient.orientation == "right") {
       // CW: new_x = h - y, new_y = x
       nx = h - y;
