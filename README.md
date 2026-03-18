@@ -8,6 +8,10 @@
   </h1>
 </div>
 
+[![Ad](https://revive-adserver.swmansion.com/www/images/zone-gh-react-native-executorch-1?n=1)](https://revive-adserver.swmansion.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-1&n=1)
+[![Ad](https://revive-adserver.swmansion.com/www/images/zone-gh-react-native-executorch-2?n=1)](https://revive-adserver.swmansion.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-2&n=1)
+[![Ad](https://revive-adserver.swmansion.com/www/images/zone-gh-react-native-executorch-3?n=1)](https://revive-adserver.swmansion.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-3&n=1)
+
 <div align="center">
   <a href="https://github.com/software-mansion/react-native-executorch/graphs/contributors"><img src="https://img.shields.io/github/contributors/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Contributors"></a>
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
