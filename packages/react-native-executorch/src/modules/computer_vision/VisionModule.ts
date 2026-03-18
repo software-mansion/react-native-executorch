@@ -2,6 +2,7 @@ import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { Frame, PixelData, ScalarType } from '../../types/common';
+import { Platform } from 'react-native';
 
 export function isPixelData(input: unknown): input is PixelData {
   return (
@@ -70,18 +71,20 @@ export abstract class VisionModule<TOutput> extends BaseModule {
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
     // Return worklet that captures ONLY the JSI function
-    return (frame: any, ...args: any[]): TOutput => {
+    return (frame: any, cameraPosition: string, ...args: any[]): TOutput => {
       'worklet';
 
       let nativeBuffer: any = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
+        console.log(frame.orientation);
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
           isMirrored: frame.isMirrored,
           frameWidth: frame.width,
           frameHeight: frame.height,
+          cameraPosition: cameraPosition ?? 'back',
         };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {

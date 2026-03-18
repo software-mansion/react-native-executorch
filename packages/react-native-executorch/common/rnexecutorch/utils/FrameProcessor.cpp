@@ -59,7 +59,29 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
     if (val.isNumber()) frameHeight = static_cast<int>(val.asNumber());
   }
 
-  return {orientation, isMirrored, frameWidth, frameHeight};
+  std::string cameraPosition = "back";
+  if (obj.hasProperty(runtime, "cameraPosition")) {
+    auto val = obj.getProperty(runtime, "cameraPosition");
+    if (val.isString()) cameraPosition = val.getString(runtime).utf8(runtime);
+  }
+
+  // VisionCamera does not set isMirrored=true for front camera (known bug).
+  bool rotate180 = false;
+  if (cameraPosition == "front") {
+    isMirrored = !isMirrored;
+#ifdef __ANDROID__
+    // Android front camera reports orientation shifted by 180° vs iOS.
+    if (orientation == "up") orientation = "down";
+    else if (orientation == "down") orientation = "up";
+    else if (orientation == "left") orientation = "right";
+    else if (orientation == "right") orientation = "left";
+#else
+    // iOS front camera needs an extra 180° rotation after the main transform.
+    rotate180 = true;
+#endif
+  }
+
+  return {orientation, isMirrored, frameWidth, frameHeight, rotate180};
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

@@ -47,6 +47,7 @@ export default function ClassificationTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';

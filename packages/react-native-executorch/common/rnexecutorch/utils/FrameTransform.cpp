@@ -47,6 +47,14 @@ void transformBbox(float &x1, float &y1, float &x2, float &y2,
     x1 = nx1; y1 = ny1;
     x2 = nx2; y2 = ny2;
   }
+
+  // Extra 180° in post-rotation screen space (screen dims are h x w after CW).
+  if (orient.rotate180) {
+    float nx1 = h - x2, ny1 = w - y2;
+    float nx2 = h - x1, ny2 = w - y1;
+    x1 = nx1; y1 = ny1;
+    x2 = nx2; y2 = ny2;
+  }
 }
 
 cv::Mat transformMat(const cv::Mat &mat, const FrameOrientation &orient) {
@@ -67,6 +75,10 @@ cv::Mat transformMat(const cv::Mat &mat, const FrameOrientation &orient) {
   } else {
     assert(orient.orientation == "right" && "Unknown orientation; expected up/right/left/down");
     cv::rotate(result, result, cv::ROTATE_90_CLOCKWISE);
+  }
+
+  if (orient.rotate180) {
+    cv::rotate(result, result, cv::ROTATE_180);
   }
 
   return result;

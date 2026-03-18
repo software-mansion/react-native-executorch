@@ -92,9 +92,10 @@ const TASKS: Task[] = [
   },
 ];
 
-// Module-level const so worklets in task components can always reference the same stable object.
+// Module-level consts so worklets in task components can always reference the same stable objects.
 // Never replaced — only mutated via setBlocking to avoid closure staleness.
 const frameKillSwitch = createSynchronizable(false);
+const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
 
 export default function VisionCameraScreen() {
   const insets = useSafeAreaInsets();
@@ -134,6 +135,10 @@ export default function VisionCameraScreen() {
     }, 300);
     return () => clearTimeout(id);
   }, [activeModel]);
+
+  useEffect(() => {
+    cameraPositionSync.setBlocking(cameraPosition);
+  }, [cameraPosition]);
 
   const handleFpsChange = useCallback((newFps: number, newMs: number) => {
     setFps(newFps);
@@ -178,6 +183,7 @@ export default function VisionCameraScreen() {
     activeModel,
     canvasSize,
     cameraPosition,
+    cameraPositionSync,
     frameKillSwitch,
     onFrameOutputChange: setFrameOutput,
     onReadyChange: setIsReady,

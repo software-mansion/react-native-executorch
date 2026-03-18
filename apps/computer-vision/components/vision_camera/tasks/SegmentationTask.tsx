@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -37,7 +37,7 @@ type Props = TaskProps & { activeModel: SegModelId };
 export default function SegmentationTask({
   activeModel,
   canvasSize,
-  cameraPosition,
+  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -139,6 +139,7 @@ export default function SegmentationTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -148,7 +149,7 @@ export default function SegmentationTask({
         }
         try {
           if (!segRof) return;
-          const result = segRof(frame, [], false);
+          const result = segRof(frame, cameraPositionSync.getDirty(), [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
             const side = Math.round(Math.sqrt(argmax.length));
@@ -179,7 +180,7 @@ export default function SegmentationTask({
           frame.dispose();
         }
       },
-      [colors, frameKillSwitch, segRof, updateMask]
+      [cameraPositionSync, colors, frameKillSwitch, segRof, updateMask]
     ),
   });
 
@@ -190,16 +191,7 @@ export default function SegmentationTask({
   if (!maskImage) return null;
 
   return (
-    <View
-      style={[
-        StyleSheet.absoluteFill,
-        // TODO: remove when VisionCamera fixes front camera orientation reporting on iOS
-        // https://github.com/mrousavy/react-native-vision-camera/issues/124
-        Platform.OS === 'ios' &&
-          cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-      ]}
-      pointerEvents="none"
-    >
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Canvas style={StyleSheet.absoluteFill}>
         <SkiaImage
           image={maskImage}

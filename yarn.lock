@@ -7231,13 +7231,13 @@ __metadata:
     react-native-image-picker: "npm:^7.2.2"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
     react-native-nitro-image: "npm:0.13.0"
-    react-native-nitro-modules: "npm:0.35.0"
+    react-native-nitro-modules: "npm:0.35.2"
     react-native-reanimated: "npm:~4.2.2"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:5.0.0-beta.6"
+    react-native-vision-camera: "npm:5.0.0-beta.7"
     react-native-worklets: "npm:0.7.4"
   languageName: unknown
   linkType: soft
@@ -14494,13 +14494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:0.35.0":
-  version: 0.35.0
-  resolution: "react-native-nitro-modules@npm:0.35.0"
+"react-native-nitro-modules@npm:0.35.2":
+  version: 0.35.2
+  resolution: "react-native-nitro-modules@npm:0.35.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/6c9166a115a03bfc26d3cb9a75761a1fdf33a06bdfb853779539cfe3d7dc2239e242a7fbd4cbb7e9dc0af90a373606fc607fa8a09ef4ff49f7ff29ccff736bbf
+  checksum: 10/22977e5e22c63fb91526c90fa59fcfe5c7f97978c583400f433a1d3ef8ee32fbceb0ad1b009b5bf0d1794e94a11716ad752fd7702c2d67fc808a0256c6e35488
   languageName: node
   linkType: hard
 
@@ -14596,16 +14596,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:5.0.0-beta.6":
-  version: 5.0.0-beta.6
-  resolution: "react-native-vision-camera@npm:5.0.0-beta.6"
+"react-native-vision-camera@npm:5.0.0-beta.7":
+  version: 5.0.0-beta.7
+  resolution: "react-native-vision-camera@npm:5.0.0-beta.7"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
     react-native-worklets: "*"
-  checksum: 10/5c1f3104869e51b173d2bba88a69397c08949314a47a14d70e9ea01b6531c8c74ea6e15f8de4bab6c55eb82c673f8231b6be223d8b4b44a8df433f1cd35c0376
+  checksum: 10/da627aa3c5f5be836ca36f12c98852efc07e82fccbec336da2cffef05fcad9e368c4f20e812fa55229d63f1f2b457f511e96b8debdc17fa2cea4b4205973e1ac
   languageName: node
   linkType: hard
 

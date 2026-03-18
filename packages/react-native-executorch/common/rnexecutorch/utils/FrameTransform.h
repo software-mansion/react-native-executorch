@@ -13,6 +13,7 @@ struct FrameOrientation {
   bool isMirrored;
   int frameWidth;  // raw frame width (sensor native, before any rotation)
   int frameHeight; // raw frame height (sensor native, before any rotation)
+  bool rotate180 = false; // apply extra 180° after main rotation (front camera correction)
 };
 
 /**
@@ -79,6 +80,11 @@ void transformPoints(std::array<P, 4> &points,
       ny = x;
     }
     // "up" = landscape-left: no-op
+
+    if (orient.rotate180) {
+      nx = h - nx;
+      ny = w - ny;
+    }
 
     p.x = nx;
     p.y = ny;
