@@ -66,13 +66,18 @@ export default function ImageWithBboxes({
         const top = y1 * scaleY + offsetY;
         const width = (x2 - x1) * scaleX;
         const height = (y2 - y1) * scaleY;
+        const labelTop = top < 22 ? top + height + 2 : top - 22;
 
         return (
-          <View key={index} style={[styles.bbox, { left, top, width, height }]}>
-            <Text style={styles.label}>
+          <React.Fragment key={index}>
+            <View style={[styles.bbox, { left, top, width, height }]} />
+            <Text
+              style={[styles.label, { left, top: labelTop }]}
+              numberOfLines={1}
+            >
               {detection.label} ({(detection.score * 100).toFixed(1)}%)
             </Text>
-          </View>
+          </React.Fragment>
         );
       })}
     </View>
@@ -96,8 +101,6 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    top: -20,
-    left: 0,
     backgroundColor: 'rgba(255, 0, 0, 0.7)',
     color: 'white',
     fontSize: 12,

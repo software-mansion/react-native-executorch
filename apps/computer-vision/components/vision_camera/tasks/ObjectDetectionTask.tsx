@@ -127,31 +127,36 @@ export default function ObjectDetectionTask({
         const top = det.bbox.y1 * scale + offsetY;
         const w = (det.bbox.x2 - det.bbox.x1) * scale;
         const h = (det.bbox.y2 - det.bbox.y1) * scale;
+        const labelTop = top < 26 ? top + h + 2 : top - 26;
         return (
-          <View
-            key={i}
-            style={[
-              styles.bbox,
-              {
-                left,
-                top,
-                width: w,
-                height: h,
-                borderColor: labelColor(det.label),
-              },
-            ]}
-          >
+          <React.Fragment key={i}>
+            <View
+              style={[
+                styles.bbox,
+                {
+                  left,
+                  top,
+                  width: w,
+                  height: h,
+                  borderColor: labelColor(det.label),
+                },
+              ]}
+            />
             <View
               style={[
                 styles.bboxLabel,
-                { backgroundColor: labelColorBg(det.label) },
+                {
+                  backgroundColor: labelColorBg(det.label),
+                  left,
+                  top: labelTop,
+                },
               ]}
             >
-              <Text style={styles.bboxLabelText}>
+              <Text style={styles.bboxLabelText} numberOfLines={1}>
                 {det.label} {(det.score * 100).toFixed(1)}
               </Text>
             </View>
-          </View>
+          </React.Fragment>
         );
       })}
     </View>
@@ -167,8 +172,6 @@ const styles = StyleSheet.create({
   },
   bboxLabel: {
     position: 'absolute',
-    top: -22,
-    left: -2,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
