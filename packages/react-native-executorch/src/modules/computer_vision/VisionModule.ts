@@ -70,20 +70,18 @@ export abstract class VisionModule<TOutput> extends BaseModule {
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
     // Return worklet that captures ONLY the JSI function
-    return (frame: any, cameraPosition: string, ...args: any[]): TOutput => {
+    return (frame: any, ...args: any[]): TOutput => {
       'worklet';
 
       let nativeBuffer: any = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
-        console.log(frame.orientation, frame.width, frame.height);
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
           isMirrored: frame.isMirrored,
           frameWidth: frame.width,
           frameHeight: frame.height,
-          cameraPosition: cameraPosition ?? 'back',
         };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {

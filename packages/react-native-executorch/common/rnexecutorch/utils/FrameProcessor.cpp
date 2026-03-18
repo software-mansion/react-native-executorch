@@ -38,50 +38,32 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
   std::string orientation = "up";
   if (obj.hasProperty(runtime, "orientation")) {
     auto val = obj.getProperty(runtime, "orientation");
-    if (val.isString()) orientation = val.getString(runtime).utf8(runtime);
+    if (val.isString())
+      orientation = val.getString(runtime).utf8(runtime);
   }
 
   bool isMirrored = false;
   if (obj.hasProperty(runtime, "isMirrored")) {
     auto val = obj.getProperty(runtime, "isMirrored");
-    if (val.isBool()) isMirrored = val.getBool();
+    if (val.isBool())
+      isMirrored = val.getBool();
   }
 
   int frameWidth = 0;
   if (obj.hasProperty(runtime, "frameWidth")) {
     auto val = obj.getProperty(runtime, "frameWidth");
-    if (val.isNumber()) frameWidth = static_cast<int>(val.asNumber());
+    if (val.isNumber())
+      frameWidth = static_cast<int>(val.asNumber());
   }
 
   int frameHeight = 0;
   if (obj.hasProperty(runtime, "frameHeight")) {
     auto val = obj.getProperty(runtime, "frameHeight");
-    if (val.isNumber()) frameHeight = static_cast<int>(val.asNumber());
+    if (val.isNumber())
+      frameHeight = static_cast<int>(val.asNumber());
   }
 
-  std::string cameraPosition = "back";
-  if (obj.hasProperty(runtime, "cameraPosition")) {
-    auto val = obj.getProperty(runtime, "cameraPosition");
-    if (val.isString()) cameraPosition = val.getString(runtime).utf8(runtime);
-  }
-
-  // VisionCamera does not set isMirrored=true for front camera (known bug).
-  bool rotate180 = false;
-  if (cameraPosition == "front") {
-    isMirrored = !isMirrored;
-#ifdef __ANDROID__
-    // Android front camera reports orientation shifted by 180° vs iOS.
-    if (orientation == "up") orientation = "down";
-    else if (orientation == "down") orientation = "up";
-    else if (orientation == "left") orientation = "right";
-    else if (orientation == "right") orientation = "left";
-#else
-    // iOS front camera needs an extra 180° rotation after the main transform.
-    rotate180 = true;
-#endif
-  }
-
-  return {orientation, isMirrored, frameWidth, frameHeight, rotate180};
+  return {orientation, isMirrored, frameWidth, frameHeight};
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

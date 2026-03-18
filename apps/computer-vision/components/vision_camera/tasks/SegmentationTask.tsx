@@ -37,7 +37,6 @@ type Props = TaskProps & { activeModel: SegModelId };
 export default function SegmentationTask({
   activeModel,
   canvasSize,
-  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -140,7 +139,6 @@ export default function SegmentationTask({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,
-
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -150,12 +148,7 @@ export default function SegmentationTask({
         }
         try {
           if (!segRof) return;
-          const result = segRof(
-            frame,
-            cameraPositionSync.getDirty(),
-            [],
-            false
-          );
+          const result = segRof(frame, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
             const side = Math.round(Math.sqrt(argmax.length));
@@ -186,7 +179,7 @@ export default function SegmentationTask({
           frame.dispose();
         }
       },
-      [cameraPositionSync, colors, frameKillSwitch, segRof, updateMask]
+      [colors, frameKillSwitch, segRof, updateMask]
     ),
   });
 

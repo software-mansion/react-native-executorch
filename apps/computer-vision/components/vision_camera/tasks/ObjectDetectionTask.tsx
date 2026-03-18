@@ -18,7 +18,6 @@ type Props = TaskProps & { activeModel: ObjModelId };
 export default function ObjectDetectionTask({
   activeModel,
   canvasSize,
-  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -81,7 +80,7 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const result = detRof(frame, cameraPositionSync.getDirty(), 0.5);
+          const result = detRof(frame, 0.5);
           // C++ maps coords to screen space (portrait: frameH × frameW)
           const screenW = frame.height;
           const screenH = frame.width;
@@ -98,7 +97,7 @@ export default function ObjectDetectionTask({
           frame.dispose();
         }
       },
-      [detRof, frameKillSwitch, updateDetections, cameraPositionSync]
+      [detRof, frameKillSwitch, updateDetections]
     ),
   });
 

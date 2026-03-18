@@ -1,10 +1,11 @@
 #pragma once
 
-// NOTE: This header must NOT include <jsi/jsi.h> — it is used in JSI-free unit tests.
+// NOTE: This header must NOT include <jsi/jsi.h> — it is used in JSI-free unit
+// tests.
 
 #include <array>
-#include <string>
 #include <opencv2/opencv.hpp>
+#include <string>
 
 namespace rnexecutorch::utils {
 
@@ -13,7 +14,6 @@ struct FrameOrientation {
   bool isMirrored;
   int frameWidth;  // raw frame width (sensor native, before any rotation)
   int frameHeight; // raw frame height (sensor native, before any rotation)
-  bool rotate180 = false; // apply extra 180° after main rotation (front camera correction)
 };
 
 /**
@@ -47,7 +47,7 @@ cv::Mat transformMat(const cv::Mat &mat, const FrameOrientation &orient);
  *   "down"  (landscape-right)      → 180°
  *   "left"  (portrait upright)     → CW
  *   "right" (portrait upside-down) → CCW
- * Also applies isMirrored flip and rotate180 (iOS front camera correction).
+ * Also applies isMirrored flip.
  * Returns a new mat (does not modify input).
  */
 cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient);
@@ -77,8 +77,7 @@ cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient);
  * Template implementation in header (required for templates).
  */
 template <typename P>
-void transformPoints(std::array<P, 4> &points,
-                     const FrameOrientation &orient) {
+void transformPoints(std::array<P, 4> &points, const FrameOrientation &orient) {
   const float w = static_cast<float>(orient.frameWidth);
   const float h = static_cast<float>(orient.frameHeight);
 
@@ -92,16 +91,8 @@ void transformPoints(std::array<P, 4> &points,
     }
 
     // Sensor native = landscape-left — apply CW rotation for all orientations.
-    float nx = h - y;
-    float ny = x;
-
-    if (orient.rotate180) {
-      nx = h - nx;
-      ny = w - ny;
-    }
-
-    p.x = nx;
-    p.y = ny;
+    p.x = h - y;
+    p.y = x;
   }
 }
 

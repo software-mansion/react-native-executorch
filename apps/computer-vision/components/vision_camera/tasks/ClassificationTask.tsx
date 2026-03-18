@@ -5,7 +5,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { EFFICIENTNET_V2_S, useClassification } from 'react-native-executorch';
 import { TaskProps } from './types';
 
-type Props = Omit<TaskProps, 'activeModel' | 'canvasSize' | 'cameraPosition'>;
+type Props = Omit<TaskProps, 'activeModel' | 'canvasSize'>;
 
 export default function ClassificationTask({
   frameKillSwitch,
