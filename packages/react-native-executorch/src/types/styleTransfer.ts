@@ -3,7 +3,6 @@ import { ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Union of all built-in style transfer model names.
- *
  * @category Types
  */
 export type StyleTransferModelName =
@@ -18,9 +17,8 @@ export type StyleTransferModelName =
 
 /**
  * Configuration properties for the `useStyleTransfer` hook.
- *
  * @category Types
- * @property {Object} model - Object containing the model configuration.
+ * @property {object} model - Object containing the model configuration.
  * @property {StyleTransferModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - `ResourceSource` that specifies the location of the style transfer model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
@@ -33,7 +31,6 @@ export interface StyleTransferProps {
 /**
  * Return type for the `useStyleTransfer` hook.
  * Manages the state and operations for applying artistic style transfer to images.
- *
  * @category Types
  */
 export interface StyleTransferType {
@@ -65,7 +62,6 @@ export interface StyleTransferType {
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-   *
    * @param input - Image source (string or PixelData object)
    * @param outputType - Output format: `'pixelData'` (default) returns raw RGBA pixel data; `'url'` saves the result to a temp file and returns its `file://` path.
    * @returns A Promise resolving to `PixelData` when `outputType` is `'pixelData'` (default), or a `file://` URL string when `outputType` is `'url'`.
@@ -84,7 +80,6 @@ export interface StyleTransferType {
    * For async processing, use `forward()` instead.
    *
    * Available after model is loaded (`isReady: true`).
-   *
    * @param frame - VisionCamera Frame object
    * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @returns PixelData containing the stylized frame as raw RGB pixel data.

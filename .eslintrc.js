@@ -1,6 +1,7 @@
 const path = require('path');
 
 const VALID_CATEGORIES = [
+  'Base Classes',
   'Hooks',
   'Interfaces',
   'Models - Classification',
@@ -13,6 +14,7 @@ const VALID_CATEGORIES = [
   'Models - Style Transfer',
   'Models - Text Embeddings',
   'Models - Text to Speech',
+  'Models - VLM',
   'Models - Voice Activity Detection',
   'OCR Supported Alphabets',
   'TTS Supported Voices',

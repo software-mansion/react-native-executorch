@@ -26,6 +26,7 @@ const ModelConfigs = {
 type ModelConfigsType = typeof ModelConfigs;
 
 /**
+<<<<<<< HEAD
  * Resolves the {@link LabelEnum} for a given built-in classification model name.
  *
  * @typeParam M - A built-in model name from {@link ClassificationModelName}.
@@ -47,6 +48,9 @@ type ResolveLabels<T extends ClassificationModelName | LabelEnum> =
  * @typeParam T - Either a built-in model name (e.g. `'efficientnet-v2-s'`)
  *   or a custom {@link LabelEnum} label map.
  *
+=======
+ * Module for image classification tasks.
+>>>>>>> 7e05ef70c (chore: autofix lint issues)
  * @category Typescript API
  */
 export class ClassificationModule<

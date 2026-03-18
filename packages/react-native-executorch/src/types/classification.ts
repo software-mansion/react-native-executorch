@@ -31,7 +31,6 @@ export type ClassificationModelSources =
 
 /**
  * Union of all built-in classification model names.
- *
  * @category Types
  */
 export type ClassificationModelName = ClassificationModelSources['modelName'];
@@ -87,7 +86,6 @@ export interface ClassificationType<L extends LabelEnum> {
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-   *
    * @param input - Image source (string or PixelData object)
    * @returns A Promise that resolves to the classification result mapping label keys to confidence scores.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
@@ -102,7 +100,6 @@ export interface ClassificationType<L extends LabelEnum> {
    * For async processing, use `forward()` instead.
    *
    * Available after model is loaded (`isReady: true`).
-   *
    * @param frame - VisionCamera Frame object
    * @returns Object mapping class labels to confidence scores.
    */

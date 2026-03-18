@@ -4,14 +4,12 @@
 
 /**
  * Represents a source of a resource, which can be a string (e.g., URL or file path), a number (e.g., resource ID), or an object (e.g., binary data).
- *
  * @category Types
  */
 export type ResourceSource = string | number | object;
 
 /**
  * Enum representing the scalar types of tensors.
- *
  * @category Types
  */
 export enum ScalarType {
@@ -107,7 +105,6 @@ export enum ScalarType {
 
 /**
  * Represents the data buffer of a tensor, which can be one of several typed array formats.
- *
  * @category Types
  */
 export type TensorBuffer =
@@ -125,7 +122,6 @@ export type TensorBuffer =
 
 /**
  * Represents a pointer to a tensor, including its data buffer, size dimensions, and scalar type.
- *
  * @category Types
  * @property {TensorBuffer} dataPtr - The data buffer of the tensor.
  * @property {number[]} sizes - An array representing the size of each dimension of the tensor.
@@ -140,14 +136,12 @@ export interface TensorPtr {
 /**
  * A readonly record mapping string keys to numeric or string values.
  * Used to represent enum-like label maps for models.
- *
  * @category Types
  */
 export type LabelEnum = Readonly<Record<string, number | string>>;
 
 /**
  * A readonly triple of values, typically used for per-channel normalization parameters.
- *
  * @category Types
  */
 export type Triple<T> = readonly [T, T, T];
@@ -158,7 +152,6 @@ export type Triple<T> = readonly [T, T, T];
  * - dataPtr must be Uint8Array (8-bit unsigned integers)
  * - scalarType is always BYTE (ScalarType.BYTE)
  * - sizes represents [height, width, channels] where channels must be 3 (RGB)
- *
  * @category Types
  * @example
  * ```typescript

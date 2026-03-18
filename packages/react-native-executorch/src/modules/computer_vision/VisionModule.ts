@@ -26,7 +26,6 @@ export function isPixelData(input: unknown): input is PixelData {
  * - Shared frame processor creation logic
  *
  * Subclasses implement model-specific loading logic and may override `forward` for typed signatures.
- *
  * @category Typescript API
  */
 export abstract class VisionModule<TOutput> extends BaseModule {
@@ -37,7 +36,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *
    * **Use this for VisionCamera frame processing in worklets.**
    * For async processing, use `forward()` instead.
-   *
    * @example
    * ```typescript
    * const model = new ClassificationModule();
@@ -104,11 +102,9 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    * This method is async and cannot be called in worklet context.
-   *
    * @param input - Image source (string path or PixelData object)
    * @param args - Additional model-specific arguments
    * @returns A Promise that resolves to the model output.
-   *
    * @example
    * ```typescript
    * // String path (async)

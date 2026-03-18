@@ -4,6 +4,7 @@ export const IMAGENET1K_MEAN: Triple<number> = [0.485, 0.456, 0.406];
 export const IMAGENET1K_STD: Triple<number> = [0.229, 0.224, 0.225];
 
 /**
+<<<<<<< HEAD
  * COCO dataset class labels used by **RF-DETR** and **SSDLite** object detection models.
  *
  * This enum is **1-indexed** and contains **91 classes**, matching the original COCO
@@ -11,6 +12,9 @@ export const IMAGENET1K_STD: Triple<number> = [0.229, 0.224, 0.225];
  * use {@link CocoLabelYolo} instead — a 0-indexed, 80-class variant.
  *
  * @see {@link CocoLabelYolo} for the YOLO-specific variant
+=======
+ * COCO dataset class labels used for object detection.
+>>>>>>> 7e05ef70c (chore: autofix lint issues)
  * @category Types
  */
 export enum CocoLabel {

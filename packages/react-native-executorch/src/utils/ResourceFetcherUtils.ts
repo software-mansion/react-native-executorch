@@ -2,22 +2,22 @@ import { ResourceSource } from '..';
 
 /**
  * Http status codes
- *
  * @category Types
  */
 export enum HTTP_CODE {
-  /** * Everything is ok.
+  /**
+    Everything is ok.
    */
   OK = 200,
 
-  /** * Server has fulfilled a client request for a specific part of a resource, instead of sending the entire file.
+  /**
+    Server has fulfilled a client request for a specific part of a resource, instead of sending the entire file.
    */
   PARTIAL_CONTENT = 206,
 }
 
 /**
  * Download status of the file.
- *
  * @category Types
  */
 export enum DownloadStatus {
@@ -34,7 +34,6 @@ export enum DownloadStatus {
 
 /**
  * Types of sources that can be downloaded
- *
  * @category Types
  */
 export enum SourceType {
@@ -66,7 +65,6 @@ export enum SourceType {
 
 /**
  * Extended interface for resource sources, tracking download state and file locations.
- *
  * @category Interfaces
  */
 export interface ResourceSourceExtended {
@@ -113,7 +111,6 @@ export interface ResourceSourceExtended {
 
 /**
  * Utility functions for fetching and managing resources.
- *
  * @category Utilities - General
  */
 export namespace ResourceFetcherUtils {

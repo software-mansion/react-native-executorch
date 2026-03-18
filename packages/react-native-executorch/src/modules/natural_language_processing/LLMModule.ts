@@ -12,7 +12,6 @@ import {
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
- *
  * @category Typescript API
  */
 export class LLMModule {
@@ -33,14 +32,12 @@ export class LLMModule {
 
   /**
    * Creates an LLM instance for a built-in model.
-   *
    * @param namedSources - An object specifying the model name, model source, tokenizer source,
    *   tokenizer config source, and optional capabilities.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @param tokenCallback - Optional callback invoked on every generated token.
    * @param messageHistoryCallback - Optional callback invoked when the model finishes a response, with the full message history.
    * @returns A Promise resolving to an `LLMModule` instance.
-   *
    * @example
    * ```ts
    * import { LLMModule, LLAMA3_2_3B } from 'react-native-executorch';
@@ -85,7 +82,6 @@ export class LLMModule {
    * [ExecuTorch LLM export process](https://docs.pytorch.org/executorch/1.1/llm/export-llm.html).
    * The native runner expects the standard ExecuTorch text-generation interface — KV-cache
    * management, prefill/decode phases, and logit sampling are all handled by the runtime.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer JSON file.
    * @param tokenizerConfigSource - A fetchable resource pointing to the tokenizer config JSON file.
@@ -117,7 +113,6 @@ export class LLMModule {
 
   /**
    * Sets new token callback invoked on every token batch.
-   *
    * @param tokenCallback - Callback function to handle new tokens.
    */
   setTokenCallback({
@@ -131,7 +126,6 @@ export class LLMModule {
   /**
    * Configures chat and tool calling and generation settings.
    * See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
-   *
    * @param config - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure(config: LLMConfig) {
@@ -143,8 +137,8 @@ export class LLMModule {
    * You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method.
    * It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper.
    * If you want a simple chat with model the consider using `sendMessage`
-   *
    * @param input - Raw input string containing the prompt and conversation history.
+   * @param imagePaths
    * @returns The generated response as a string.
    */
   async forward(input: string, imagePaths?: string[]): Promise<string> {
@@ -154,7 +148,6 @@ export class LLMModule {
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
    * For multimodal models, set `mediaPath` on user messages to include images.
-   *
    * @param messages - Array of messages representing the chat history. User messages may include a `mediaPath` field with a local image path.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated response as a string.
@@ -167,8 +160,8 @@ export class LLMModule {
    * Method to add user message to conversation.
    * After model responds it will call `messageHistoryCallback()` containing both user message and model response.
    * It also returns them.
-   *
    * @param message - The message string to send.
+   * @param media
    * @returns - Updated message history including the new user message and model response.
    */
   async sendMessage(
@@ -183,7 +176,6 @@ export class LLMModule {
    * Deletes all messages starting with message on `index` position.
    * After deletion it will call `messageHistoryCallback()` containing new history.
    * It also returns it.
-   *
    * @param index - The index of the message to delete from history.
    * @returns - Updated message history after deletion.
    */
@@ -201,7 +193,6 @@ export class LLMModule {
 
   /**
    * Returns the number of tokens generated in the last response.
-   *
    * @returns The count of generated tokens.
    */
   getGeneratedTokenCount(): number {
@@ -210,7 +201,6 @@ export class LLMModule {
 
   /**
    * Returns the number of prompt tokens in the last message.
-   *
    * @returns The count of prompt token.
    */
   getPromptTokensCount() {
@@ -219,7 +209,6 @@ export class LLMModule {
 
   /**
    * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
-   *
    * @returns The count of prompt and generated tokens.
    */
   getTotalTokensCount() {

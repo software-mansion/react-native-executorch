@@ -24,12 +24,10 @@ export class TextToSpeechModule {
 
   /**
    * Creates a Text to Speech instance.
-   *
    * @param config - Configuration object containing `model` and `voice`.
    *   Pass one of the built-in constants (e.g. `{ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART }`), or use require() to pass them.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `TextToSpeechModule` instance.
-   *
    * @example
    * ```ts
    * import { TextToSpeechModule, KOKORO_MEDIUM, KOKORO_VOICE_AF_HEART } from 'react-native-executorch';
@@ -128,7 +126,6 @@ export class TextToSpeechModule {
    * Synthesizes pre-computed phonemes into speech, bypassing the built-in phonemizer.
    * This allows using an external G2P system (e.g. the Python `phonemizer` library,
    * espeak-ng, or any custom phonemizer).
-   *
    * @param phonemes The pre-computed IPA phoneme string.
    * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
    * @returns A promise resolving to the synthesized audio waveform.
@@ -200,7 +197,6 @@ export class TextToSpeechModule {
   /**
    * Starts a streaming synthesis session from pre-computed phonemes.
    * Bypasses the built-in phonemizer, allowing use of external G2P systems.
-   *
    * @param input - Input object containing phonemes and optional speed.
    * @returns An async generator yielding Float32Array audio chunks.
    */
@@ -253,6 +249,7 @@ export class TextToSpeechModule {
 
   /**
    * Inserts new text chunk into the buffer to be processed in streaming mode.
+   * @param textChunk
    */
   public streamInsert(textChunk: string): void {
     this.nativeModule.streamInsert(textChunk);
@@ -260,9 +257,9 @@ export class TextToSpeechModule {
 
   /**
    * Stops the streaming process if there is any ongoing.
-   *
-   * * @param instant If true, stops the streaming as soon as possible. Otherwise
+   * @param instant If true, stops the streaming as soon as possible. Otherwise
    *                  allows the module to complete processing for the remains of the buffer.
+   * @param instant
    */
   public streamStop(instant: boolean = true): void {
     this.nativeModule.streamStop(instant);

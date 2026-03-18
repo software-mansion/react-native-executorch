@@ -28,11 +28,9 @@ export class SpeechToTextModule {
 
   /**
    * Creates a Speech to Text instance for a built-in model.
-   *
    * @param namedSources - Configuration object containing model name, sources, and multilingual flag.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SpeechToTextModule` instance.
-   *
    * @example
    * ```ts
    * import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -59,11 +57,9 @@ export class SpeechToTextModule {
    * Creates a Speech to Text instance with user-provided model binaries.
    * Use this when working with a custom-exported STT model.
    * Internally uses `'custom'` as the model name for telemetry.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Currently only the Whisper architecture is supported by the native runner.
    * Refer to the native source code for the current expected interface.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
    * @param isMultilingual - Whether the model supports multiple languages.

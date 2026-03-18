@@ -12,7 +12,6 @@ import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing an Object Detection model instance.
- *
  * @typeParam C - A {@link ObjectDetectionModelSources} config specifying which built-in model to load.
  * @category Hooks
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.

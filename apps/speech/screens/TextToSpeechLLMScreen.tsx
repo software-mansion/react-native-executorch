@@ -30,6 +30,7 @@ interface TextToSpeechLLMProps {
 /**
  * Converts an audio vector (Float32Array) to an AudioBuffer for playback
  * @param audioVector - The generated audio samples from the model
+ * @param audioContext
  * @param sampleRate - The sample rate (default: 24000 Hz for Kokoro)
  * @returns AudioBuffer ready for playback
  */

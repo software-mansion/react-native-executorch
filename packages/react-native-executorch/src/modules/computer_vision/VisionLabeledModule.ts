@@ -9,7 +9,8 @@ export { ResolveLabels } from '../../types/computerVision';
 /**
  * Fetches a model binary and returns its local path, throwing if the download
  * was interrupted (paused or cancelled).
- *
+ * @param source
+ * @param onDownloadProgress
  * @internal
  */
 export async function fetchModelPath(
@@ -29,7 +30,6 @@ export async function fetchModelPath(
 /**
  * Base class for computer vision modules that carry a type-safe label map
  * and support the full VisionModule API (string/PixelData forward + runOnFrame).
- *
  * @typeParam TOutput - The model's output type.
  * @typeParam LabelMap - The resolved {@link LabelEnum} for the model's output classes.
  * @internal

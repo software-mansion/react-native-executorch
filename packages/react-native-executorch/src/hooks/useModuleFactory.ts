@@ -13,7 +13,7 @@ type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
  * Handles model loading, download progress, error state, and enforces the
  * not-loaded / already-generating guards so individual hooks only need to
  * define their typed `forward` wrapper.
- *
+ * @param root0
  * @internal
  */
 export function useModuleFactory<M extends Deletable, Config>({

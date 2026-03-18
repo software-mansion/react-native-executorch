@@ -6,7 +6,6 @@ import { parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
- *
  * @category Typescript API
  */
 export class OCRModule {
@@ -18,11 +17,9 @@ export class OCRModule {
 
   /**
    * Creates an OCR instance for a built-in model.
-   *
    * @param namedSources - An object specifying the model name, detector source, recognizer source, and language.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `OCRModule` instance.
-   *
    * @example
    * ```ts
    * import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
@@ -57,10 +54,8 @@ export class OCRModule {
    * Creates an OCR instance with a user-provided model binary.
    * Use this when working with a custom-exported OCR model.
    * Internally uses `'custom'` as the model name for telemetry.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Refer to the native source code for the current expected tensor interface.
-   *
    * @param detectorSource - A fetchable resource pointing to the text detector model binary.
    * @param recognizerSource - A fetchable resource pointing to the text recognizer model binary.
    * @param language - The language for the OCR model.
@@ -86,7 +81,6 @@ export class OCRModule {
 
   /**
    * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   *
    * @param imageSource - The image source to be processed.
    * @returns The OCR result as a `OCRDetection[]`.
    */

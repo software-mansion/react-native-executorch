@@ -13,7 +13,6 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * React hook for managing a Large Language Model (LLM) instance.
- *
  * @category Hooks
  * @param props - Object containing model, tokenizer, and tokenizer config sources.
  * @returns An object implementing the `LLMTypeMultimodal` interface when `model.capabilities` is provided, otherwise `LLMType`.

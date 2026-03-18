@@ -8,7 +8,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for generating text embeddings from input text.
- *
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
@@ -19,7 +18,6 @@ export class TextEmbeddingsModule extends BaseModule {
 
   /**
    * Creates a text embeddings instance for a built-in model.
-   *
    * @param namedSources - An object specifying which built-in model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
@@ -57,10 +55,8 @@ export class TextEmbeddingsModule extends BaseModule {
   /**
    * Creates a text embeddings instance with a user-provided model binary and tokenizer.
    * Use this when working with a custom-exported model that is not one of the built-in presets.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Refer to the native source code for the current expected tensor interface.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
@@ -83,7 +79,6 @@ export class TextEmbeddingsModule extends BaseModule {
 
   /**
    * Executes the model's forward pass to generate an embedding for the provided text.
-   *
    * @param input - The text string to embed.
    * @returns A Promise resolving to a `Float32Array` containing the embedding vector.
    */
