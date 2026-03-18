@@ -34,6 +34,8 @@ React Native Executorch supports only the [New React Native architecture](https:
 
 If your app still runs on the old architecture, please consider upgrading to the New Architecture.
 
+For supported React Native and Expo versions, see the [Compatibility table](../07-other/01-compatibility.mdx).
+
 ## Installation
 
 Installation is pretty straightforward, just use your favorite package manager.
