@@ -102,14 +102,13 @@ BaseSemanticSegmentation::generateFromFrame(
   // Always run inference without resize — rotate first, then resize.
   auto result = runInference(rotated, rotated.size(), classesOfInterest, false);
 
-  const int w = result.outputWidth;
-  const int h = result.outputHeight;
+  const cv::Size outputSize = modelInputSize();
   // JS reads maskW=frame.height, maskH=frame.width (sensor-native swap).
   const cv::Size screenSize(frame.rows, frame.cols);
 
   auto inverseAndResize = [&](std::shared_ptr<OwningArrayBuffer> &buf,
-                              int cvType, int interpFlag) {
-    cv::Mat m(h, w, cvType, buf->data());
+                              int32_t cvType, int32_t interpFlag) {
+    cv::Mat m(outputSize, cvType, buf->data());
     cv::Mat inv = utils::inverseRotateMat(m, orient);
     if (resize && inv.size() != screenSize) {
       cv::resize(inv, inv, screenSize, 0, 0, interpFlag);
@@ -119,13 +118,11 @@ BaseSemanticSegmentation::generateFromFrame(
     return inv;
   };
 
-  if (result.argmax && w > 0 && h > 0) {
-    cv::Mat inv = inverseAndResize(result.argmax, CV_32SC1, cv::INTER_NEAREST);
-    result.outputWidth = inv.cols;
-    result.outputHeight = inv.rows;
+  if (result.argmax && outputSize.area() > 0) {
+    inverseAndResize(result.argmax, CV_32SC1, cv::INTER_NEAREST);
   }
 
-  if (result.classBuffers && w > 0 && h > 0) {
+  if (result.classBuffers && outputSize.area() > 0) {
     for (auto &[label, buf] : *result.classBuffers) {
       inverseAndResize(buf, CV_32FC1, cv::INTER_LINEAR);
     }
@@ -244,17 +241,7 @@ BaseSemanticSegmentation::computeResult(
     }
   }
 
-  SegmentationResult result;
-  result.argmax = argmax;
-  result.classBuffers = buffersToReturn;
-  if (resize) {
-    result.outputWidth = originalSize.width;
-    result.outputHeight = originalSize.height;
-  } else {
-    result.outputWidth = static_cast<int>(outputW);
-    result.outputHeight = static_cast<int>(outputH);
-  }
-  return result;
+  return semantic_segmentation::SegmentationResult{argmax, buffersToReturn};
 }
 
 } // namespace rnexecutorch::models::semantic_segmentation
