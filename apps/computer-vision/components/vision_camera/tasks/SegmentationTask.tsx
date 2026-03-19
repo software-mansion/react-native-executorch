@@ -153,6 +153,8 @@ export default function SegmentationTask({
           const result = segRof(frame, isFrontCamera, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
+            // Sensor frames are landscape-native, so width/height are swapped
+            // relative to portrait screen orientation.
             const screenW = frame.height;
             const screenH = frame.width;
             const maskW =

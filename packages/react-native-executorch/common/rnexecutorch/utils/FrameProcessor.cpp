@@ -35,11 +35,11 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
                                       const jsi::Value &frameData) {
   auto obj = frameData.asObject(runtime);
 
-  std::string orientation = "up";
+  std::string orientStr = "up";
   if (obj.hasProperty(runtime, "orientation")) {
     auto val = obj.getProperty(runtime, "orientation");
     if (val.isString())
-      orientation = val.getString(runtime).utf8(runtime);
+      orientStr = val.getString(runtime).utf8(runtime);
   }
 
   bool isMirrored = false;
@@ -49,7 +49,7 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
       isMirrored = val.getBool();
   }
 
-  return {orientation, isMirrored};
+  return {orientationFromString(orientStr), isMirrored};
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

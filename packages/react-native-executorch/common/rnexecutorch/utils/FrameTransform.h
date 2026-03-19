@@ -9,8 +9,17 @@
 
 namespace rnexecutorch::utils {
 
+enum class Orientation { Up, Down, Left, Right };
+
+inline Orientation orientationFromString(const std::string &s) {
+  if (s == "down") return Orientation::Down;
+  if (s == "left") return Orientation::Left;
+  if (s == "right") return Orientation::Right;
+  return Orientation::Up;
+}
+
 struct FrameOrientation {
-  std::string orientation; // "up"|"right"|"left"|"down"
+  Orientation orientation;
   bool isMirrored;
 };
 
@@ -24,7 +33,9 @@ struct FrameOrientation {
  *   "left"  (portrait upright)     → CW
  *   "right" (portrait upside-down) → CCW
  * Also applies isMirrored flip.
- * Returns a new mat (does not modify input).
+ * Does not modify or clone the input — cv::rotate/cv::flip allocate
+ * internally when needed. Returns the input mat unchanged when no
+ * transform is needed (Up, not mirrored).
  */
 cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient);
 
@@ -41,7 +52,7 @@ void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
  * @brief Rotate a cv::Mat from rotated-frame space back to screen space.
  *
  * Inverse of rotateFrameForModel for matrices.
- * Returns a new mat (does not modify input).
+ * Does not modify or clone the input.
  */
 cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient);
 
@@ -62,25 +73,25 @@ void inverseRotatePoints(std::array<P, 4> &points,
     float x = p.x;
     float y = p.y;
 
-    if (orient.orientation == "up") {
+    if (orient.orientation == Orientation::Up) {
       // landscape-left → portrait: nx = h-y, ny = x
       p.x = h - y;
       p.y = x;
-    } else if (orient.orientation == "right") {
+    } else if (orient.orientation == Orientation::Right) {
       // upside-down portrait → portrait: nx = w-x, ny = h-y
       p.x = w - x;
       p.y = h - y;
-    } else if (orient.orientation == "down") {
+    } else if (orient.orientation == Orientation::Down) {
       // landscape-right → portrait: nx = y, ny = w-x
       p.x = y;
       p.y = w - x;
     }
-    // "left": no-op
+    // Left: no-op
   }
 
 #if defined(__APPLE__)
   if (orient.isMirrored) {
-    bool swapped = (orient.orientation == "up" || orient.orientation == "down");
+    bool swapped = (orient.orientation == Orientation::Up || orient.orientation == Orientation::Down);
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
     for (auto &p : points) {

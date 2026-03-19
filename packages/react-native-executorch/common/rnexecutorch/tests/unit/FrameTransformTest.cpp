@@ -5,7 +5,7 @@
 using namespace rnexecutorch::utils;
 
 static FrameOrientation makeOrient(const std::string &o, bool mirrored) {
-  return {o, mirrored};
+  return {orientationFromString(o), mirrored};
 }
 
 // ============================================================================

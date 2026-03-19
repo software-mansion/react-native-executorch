@@ -65,6 +65,8 @@ export default function OCRTask({
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
           const result = ocrRof(frame, isFrontCamera);
           if (result) {
+            // Sensor frames are landscape-native, so width/height are swapped
+            // relative to portrait screen orientation.
             scheduleOnRN(updateDetections, {
               results: result,
               frameW: frame.height,
@@ -109,12 +111,7 @@ export default function OCRTask({
           const labelY = det.bbox[0]!.y * scale + offsetY - 4;
           return (
             <React.Fragment key={i}>
-              <Polygon
-                points={pts}
-                fill="none"
-                stroke="cyan"
-                strokeWidth={2}
-              />
+              <Polygon points={pts} fill="none" stroke="cyan" strokeWidth={2} />
               <SvgText
                 x={labelX}
                 y={labelY}

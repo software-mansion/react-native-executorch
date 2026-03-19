@@ -83,6 +83,8 @@ export default function ObjectDetectionTask({
           if (!detRof) return;
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
           const result = detRof(frame, isFrontCamera, 0.5);
+          // Sensor frames are landscape-native, so width/height are swapped
+          // relative to portrait screen orientation.
           const screenW = frame.height;
           const screenH = frame.width;
           if (result) {
