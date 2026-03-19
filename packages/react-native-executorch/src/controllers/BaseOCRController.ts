@@ -89,7 +89,7 @@ export abstract class BaseOCRController {
   };
 
   get runOnFrame():
-    | ((frame: Frame, isMirrored: boolean) => OCRDetection[])
+    | ((frame: Frame, isFrontCamera: boolean) => OCRDetection[])
     | null {
     if (!this.isReady) {
       throw new RnExecutorchError(
@@ -100,7 +100,7 @@ export abstract class BaseOCRController {
 
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
-    return (frame: any, isMirrored: boolean): OCRDetection[] => {
+    return (frame: any, isFrontCamera: boolean): OCRDetection[] => {
       'worklet';
 
       let nativeBuffer: any = null;
@@ -109,7 +109,7 @@ export abstract class BaseOCRController {
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
-          isMirrored,
+          isMirrored: isFrontCamera,
         };
         return nativeGenerateFromFrame(frameData);
       } finally {

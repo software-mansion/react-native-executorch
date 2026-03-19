@@ -145,7 +145,7 @@ export interface ObjectDetectionType<L extends LabelEnum> {
   runOnFrame:
     | ((
         frame: Frame,
-        isMirrored: boolean,
+        isFrontCamera: boolean,
         detectionThreshold: number
       ) => Detection<L>[])
     | null;

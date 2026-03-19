@@ -149,8 +149,8 @@ export default function SegmentationTask({
         }
         try {
           if (!segRof) return;
-          const isMirrored = cameraPositionSync.getDirty() === 'front';
-          const result = segRof(frame, isMirrored, [], false);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = segRof(frame, isFrontCamera, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
             const screenW = frame.height;

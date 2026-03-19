@@ -52,7 +52,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   onFrame(frame) {
    *     'worklet';
    *     if (!runOnFrame) return;
-   *     const result = runOnFrame(frame, isMirrored);
+   *     const result = runOnFrame(frame, isFrontCamera);
    *     frame.dispose();
    *   }
    * });
@@ -70,7 +70,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
     // Return worklet that captures ONLY the JSI function
-    return (frame: any, isMirrored: boolean, ...args: any[]): TOutput => {
+    return (frame: any, isFrontCamera: boolean, ...args: any[]): TOutput => {
       'worklet';
 
       let nativeBuffer: any = null;
@@ -79,7 +79,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
-          isMirrored,
+          isMirrored: isFrontCamera,
         };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {

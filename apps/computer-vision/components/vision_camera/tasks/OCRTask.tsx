@@ -62,8 +62,8 @@ export default function OCRTask({
         }
         try {
           if (!ocrRof) return;
-          const isMirrored = cameraPositionSync.getDirty() === 'front';
-          const result = ocrRof(frame, isMirrored);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = ocrRof(frame, isFrontCamera);
           if (result) {
             scheduleOnRN(updateDetections, {
               results: result,

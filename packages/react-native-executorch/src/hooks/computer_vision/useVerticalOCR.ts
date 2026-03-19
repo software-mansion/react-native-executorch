@@ -22,7 +22,7 @@ export const useVerticalOCR = ({
   const [error, setError] = useState<RnExecutorchError | null>(null);
 
   const [runOnFrame, setRunOnFrame] = useState<
-    ((frame: Frame, isMirrored: boolean) => OCRDetection[]) | null
+    ((frame: Frame, isFrontCamera: boolean) => OCRDetection[]) | null
   >(null);
 
   const [controller] = useState(

@@ -103,8 +103,8 @@ export default function StyleTransferTask({
         }
         try {
           if (!styleRof) return;
-          const isMirrored = cameraPositionSync.getDirty() === 'front';
-          const result = styleRof(frame, isMirrored);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = styleRof(frame, isFrontCamera);
           if (result) {
             const pixels = new Uint8Array(result.dataPtr.buffer);
             const skData = Skia.Data.fromBytes(pixels);

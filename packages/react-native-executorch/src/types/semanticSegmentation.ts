@@ -184,7 +184,7 @@ export interface SemanticSegmentationType<L extends LabelEnum> {
   runOnFrame:
     | ((
         frame: Frame,
-        isMirrored: boolean,
+        isFrontCamera: boolean,
         classesOfInterest?: string[],
         resizeToInput?: boolean
       ) => Record<'ARGMAX', Int32Array> & Record<string, Float32Array>)

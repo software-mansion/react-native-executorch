@@ -81,8 +81,8 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const isMirrored = cameraPositionSync.getDirty() === 'front';
-          const result = detRof(frame, isMirrored, 0.5);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = detRof(frame, isFrontCamera, 0.5);
           const screenW = frame.height;
           const screenH = frame.width;
           if (result) {

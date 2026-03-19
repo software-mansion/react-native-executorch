@@ -221,7 +221,7 @@ export default function VisionCameraScreen() {
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         format={format}
-        orientationSource="interface"
+        orientationSource="device"
       />
 
       {/* Layout sentinel — measures the full-screen area for bbox/canvas sizing */}

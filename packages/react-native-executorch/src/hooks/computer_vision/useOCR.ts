@@ -17,7 +17,7 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [runOnFrame, setRunOnFrame] = useState<
-    ((frame: Frame, isMirrored: boolean) => OCRDetection[]) | null
+    ((frame: Frame, isFrontCamera: boolean) => OCRDetection[]) | null
   >(null);
 
   const [controller] = useState(
