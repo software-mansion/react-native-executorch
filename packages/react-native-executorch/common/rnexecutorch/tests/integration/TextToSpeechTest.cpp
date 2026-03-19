@@ -8,6 +8,11 @@
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::text_to_speech::kokoro;
 
+// Kokoro doesn't use the CommonModelTest suite, so suppress the warning
+namespace model_tests {
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CommonModelTest);
+}
+
 constexpr auto kValidLang = "en-us";
 constexpr auto kValidTaggerPath = "kokoro_en_tagger.json";
 constexpr auto kValidPhonemizerPath = "kokoro_us_lexicon.json";

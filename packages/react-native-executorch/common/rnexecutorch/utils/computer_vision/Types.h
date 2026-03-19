@@ -5,7 +5,6 @@
 namespace rnexecutorch::utils::computer_vision {
 
 struct BBox {
-  float x1, y1, x2, y2;
 
   float width() const { return x2 - x1; }
 
@@ -21,6 +20,8 @@ struct BBox {
     return {x1 * widthRatio, y1 * heightRatio, x2 * widthRatio,
             y2 * heightRatio};
   }
+
+  float x1, y1, x2, y2;
 };
 
 template <typename T>

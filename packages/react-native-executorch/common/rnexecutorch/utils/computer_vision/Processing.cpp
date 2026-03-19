@@ -18,22 +18,4 @@ float computeIoU(const BBox &a, const BBox &b) {
   return (unionArea > 0.0f) ? (intersectionArea / unionArea) : 0.0f;
 }
 
-BBox scaleBBox(const BBox &box, float widthRatio, float heightRatio) {
-  return {
-      .x1 = box.x1 * widthRatio,
-      .y1 = box.y1 * heightRatio,
-      .x2 = box.x2 * widthRatio,
-      .y2 = box.y2 * heightRatio,
-  };
-}
-
-BBox clipBBox(const BBox &box, float maxWidth, float maxHeight) {
-  return {
-      .x1 = std::max(0.0f, box.x1),
-      .y1 = std::max(0.0f, box.y1),
-      .x2 = std::min(maxWidth, box.x2),
-      .y2 = std::min(maxHeight, box.y2),
-  };
-}
-
 } // namespace rnexecutorch::utils::computer_vision

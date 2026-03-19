@@ -8,10 +8,6 @@ namespace rnexecutorch::utils::computer_vision {
 
 float computeIoU(const BBox &a, const BBox &b);
 
-BBox scaleBBox(const BBox &box, float widthRatio, float heightRatio);
-
-BBox clipBBox(const BBox &box, float maxWidth, float maxHeight);
-
 template <HasBBoxAndScore T>
 std::vector<T> nonMaxSuppression(std::vector<T> items, double iouThreshold) {
   if (items.empty()) {
