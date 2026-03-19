@@ -63,15 +63,15 @@ void inverseRotatePoints(std::array<P, 4> &points,
     float y = p.y;
 
     if (orient.orientation == "up") {
-      // CW: nx = h-y, ny = x
+      // landscape-left → portrait: nx = h-y, ny = x
       p.x = h - y;
       p.y = x;
     } else if (orient.orientation == "right") {
-      // 180°: nx = w-x, ny = h-y
+      // upside-down portrait → portrait: nx = w-x, ny = h-y
       p.x = w - x;
       p.y = h - y;
     } else if (orient.orientation == "down") {
-      // CCW: nx = y, ny = w-x
+      // landscape-right → portrait: nx = y, ny = w-x
       p.x = y;
       p.y = w - x;
     }

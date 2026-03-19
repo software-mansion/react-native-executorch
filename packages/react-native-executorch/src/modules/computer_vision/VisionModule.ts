@@ -52,7 +52,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   onFrame(frame) {
    *     'worklet';
    *     if (!runOnFrame) return;
-   *     const result = runOnFrame(frame);
+   *     const result = runOnFrame(frame, isMirrored);
    *     frame.dispose();
    *   }
    * });

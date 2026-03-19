@@ -75,7 +75,7 @@ export default function ClassificationTask({
             scheduleOnRN(updateClass, { label: bestLabel, score: bestScore });
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }

@@ -121,7 +121,7 @@ export default function StyleTransferTask({
             if (img) scheduleOnRN(updateImage, img);
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }

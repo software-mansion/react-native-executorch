@@ -93,7 +93,7 @@ export default function ObjectDetectionTask({
             });
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }

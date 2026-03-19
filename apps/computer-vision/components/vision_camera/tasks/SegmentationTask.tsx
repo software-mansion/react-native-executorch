@@ -185,7 +185,7 @@ export default function SegmentationTask({
             if (img) scheduleOnRN(updateMask, img);
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }

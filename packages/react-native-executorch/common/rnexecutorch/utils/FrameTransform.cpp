@@ -4,6 +4,10 @@ namespace rnexecutorch::utils {
 
 cv::Mat rotateFrameForModel(const cv::Mat &mat,
                             const FrameOrientation &orient) {
+  if (!orient.isMirrored && orient.orientation == "up") {
+    return mat.clone();
+  }
+
   cv::Mat result = mat.clone();
 
   if (orient.isMirrored) {
@@ -28,7 +32,7 @@ void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
   const float h = static_cast<float>(rH);
 
   if (orient.orientation == "up") {
-    // CW: nx = h - y, ny = x
+    // landscape-left → portrait: nx = h - y, ny = x
     float nx1 = h - y2, ny1 = x1;
     float nx2 = h - y1, ny2 = x2;
     x1 = nx1;
@@ -36,7 +40,7 @@ void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
     x2 = nx2;
     y2 = ny2;
   } else if (orient.orientation == "right") {
-    // 180°: nx = w - x, ny = h - y
+    // upside-down portrait → portrait: nx = w - x, ny = h - y
     float nx1 = w - x2, ny1 = h - y2;
     float nx2 = w - x1, ny2 = h - y1;
     x1 = nx1;
@@ -44,7 +48,7 @@ void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
     x2 = nx2;
     y2 = ny2;
   } else if (orient.orientation == "down") {
-    // CCW: nx = y, ny = w - x
+    // landscape-right → portrait: nx = y, ny = w - x
     float nx1 = y1, ny1 = w - x2;
     float nx2 = y2, ny2 = w - x1;
     x1 = nx1;
