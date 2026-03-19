@@ -6107,6 +6107,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/other/compatibility": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/typescript-api/computer-vision/ClassificationModule": {
     "shouldDisplay": true,
     "hasMarkdown": false,
