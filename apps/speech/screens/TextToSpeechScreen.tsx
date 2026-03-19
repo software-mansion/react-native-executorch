@@ -36,6 +36,7 @@ const VOICES: ModelOption<VoiceConfig>[] = [
   { label: 'AF Sarah', value: KOKORO_VOICE_AF_SARAH },
   { label: 'AM Adam', value: KOKORO_VOICE_AM_ADAM },
   { label: 'AM Michael', value: KOKORO_VOICE_AM_MICHAEL },
+  { label: 'AM Santa', value: KOKORO_VOICE_AM_SANTA },
   { label: 'BF Emma', value: KOKORO_VOICE_BF_EMMA },
   { label: 'BM Daniel', value: KOKORO_VOICE_BM_DANIEL },
 ];
