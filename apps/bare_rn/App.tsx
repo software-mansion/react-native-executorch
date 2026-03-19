@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -176,6 +177,22 @@ function App() {
                 <Text style={styles.welcomeSubtitle}>
                   What can I help you with?
                 </Text>
+                <View style={styles.suggestionsContainer}>
+                  {[
+                    'Explain quantum computing in simple terms',
+                    'Write a short poem about coding',
+                    'What are the benefits of on-device AI?',
+                    'Give me 3 fun facts about space',
+                  ].map((prompt, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      style={styles.suggestionChip}
+                      onPress={() => setUserInput(prompt)}
+                    >
+                      <Text style={styles.suggestionChipText}>{prompt}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </TouchableWithoutFeedback>
           )}
@@ -252,6 +269,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: ColorPalette.blueDark,
     textAlign: 'center',
+  },
+  suggestionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: 16,
+  },
+  suggestionChip: {
+    borderWidth: 1,
+    borderColor: ColorPalette.blueLight,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: '#fafbff',
+  },
+  suggestionChipText: {
+    fontSize: 13,
+    color: ColorPalette.primary,
   },
   messageBubble: {
     maxWidth: '80%',

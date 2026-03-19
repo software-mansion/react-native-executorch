@@ -2717,7 +2717,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 94f4264de2cb156960cd82b338a403f4653f2fd9
   React-microtasksnativemodule: 6c4ee39a36958c39c97b074d28f360246a335e84
   react-native-background-downloader: 114f96122822fa97b06ea0f2250b8e8270696995
-  react-native-executorch: 86764f0bd936e8ff18fdb30c36343bb01aab54da
+  react-native-executorch: 517da022131a15a98ea5337f02a88e7807a1ec3d
   react-native-safe-area-context: befb5404eb8a16fdc07fa2bebab3568ecabcbb8a
   React-NativeModulesApple: ebf2ce72b35870036900d6498b33724386540a71
   React-oscompat: eb0626e8ba1a2c61673c991bf9dc21834898475d
