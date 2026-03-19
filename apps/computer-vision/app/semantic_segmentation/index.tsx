@@ -24,6 +24,7 @@ import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 const numberToColor: number[][] = [
   [255, 87, 51], // 0 Red
@@ -75,6 +76,7 @@ export default function SemanticSegmentationScreen() {
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [segImage, setSegImage] = useState<SkImage | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   useEffect(() => {
     setGlobalGenerating(isGenerating);
@@ -91,6 +93,7 @@ export default function SemanticSegmentationScreen() {
   const runForward = async () => {
     if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
     try {
+      const start = Date.now();
       const { width, height } = imageSize;
       const output = await forward(imageUri, [], true);
       const argmax = output.ARGMAX || [];
@@ -119,6 +122,7 @@ export default function SemanticSegmentationScreen() {
         width * 4
       );
       setSegImage(img);
+      setInferenceTime(Date.now() - start);
     } catch (e) {
       console.error(e);
     }
@@ -179,6 +183,7 @@ export default function SemanticSegmentationScreen() {
           setSegImage(null);
         }}
       />
+      <StatsBar inferenceTime={inferenceTime} />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}

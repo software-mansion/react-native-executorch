@@ -20,6 +20,8 @@ const SUGGESTED_PROMPTS = [
   "I'm Bob. Does it have warranty? I'll pay €50.",
   "Name's Sara. What condition? My bid is $75.",
 ];
+import { useLLMStats } from '../../hooks/useLLMStats';
+import { StatsBar } from '../../components/StatsBar';
 import {
   useLLM,
   fixAndValidateStructuredOutput,
@@ -85,7 +87,8 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: selectedModel }); // try out 4B model if 1.7B struggles with following structured output
+  const llm = useLLM({ model: selectedModel });
+  const { stats, onMessageSend } = useLLMStats(llm.response, llm.isGenerating);
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -136,6 +139,7 @@ function LLMScreen() {
   }, [llm.error]);
 
   const sendMessage = async () => {
+    onMessageSend();
     setUserInput('');
     textInputRef.current?.clear();
     try {
@@ -190,7 +194,7 @@ function LLMScreen() {
             onSelect={(m) => setSelectedModel(m)}
             disabled={llm.isGenerating}
           />
-
+          <StatsBar stats={stats} />
           <View style={styles.bottomContainer}>
             <TextInput
               autoCorrect={false}

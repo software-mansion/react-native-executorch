@@ -16,6 +16,7 @@ import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 type StyleTransferModelSources = {
   modelName: StyleTransferModelName;
@@ -42,6 +43,7 @@ export default function StyleTransferScreen() {
 
   const [imageUri, setImageUri] = useState('');
   const [styledUri, setStyledUri] = useState('');
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -55,7 +57,9 @@ export default function StyleTransferScreen() {
   const runForward = async () => {
     if (imageUri) {
       try {
+        const start = Date.now();
         const uri = await model.forward(imageUri, 'url');
+        setInferenceTime(Date.now() - start);
         setStyledUri(uri);
       } catch (e) {
         console.error(e);
@@ -96,6 +100,7 @@ export default function StyleTransferScreen() {
           setStyledUri('');
         }}
       />
+      <StatsBar inferenceTime={inferenceTime} />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}

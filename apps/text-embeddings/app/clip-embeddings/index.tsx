@@ -40,6 +40,7 @@ function ClipEmbeddingsScreen() {
   const [topMatches, setTopMatches] = useState<
     { sentence: string; similarity: number }[]
   >([]);
+  const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
 
   useEffect(
     () => {
@@ -75,7 +76,9 @@ function ClipEmbeddingsScreen() {
     if (!textModel.isReady || !inputSentence.trim()) return;
 
     try {
+      const start = Date.now();
       const inputEmbedding = await textModel.forward(inputSentence);
+      setEmbeddingTime(Date.now() - start);
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
           sentence,
@@ -93,7 +96,9 @@ function ClipEmbeddingsScreen() {
     if (!textModel.isReady || !inputSentence.trim()) return;
 
     try {
+      const start = Date.now();
       const embedding = await textModel.forward(inputSentence);
+      setEmbeddingTime(Date.now() - start);
       setSentencesWithEmbeddings((prev) => [
         ...prev,
         { sentence: inputSentence, embedding },
@@ -123,9 +128,12 @@ function ClipEmbeddingsScreen() {
       return;
 
     try {
+      const start = Date.now();
+      // Array.from to get numbers[]
       const inputImageEmbedding = await imageModel.forward(
         output.assets[0].uri
       );
+      setEmbeddingTime(Date.now() - start);
 
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
@@ -263,6 +271,11 @@ function ClipEmbeddingsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+            {embeddingTime !== null && (
+              <Text style={styles.statsText}>
+                Embedding time: {embeddingTime} ms
+              </Text>
+            )}
             {topMatches.length > 0 && (
               <View style={styles.topMatchesContainer}>
                 <Text style={styles.sectionTitle}>Top Matches</Text>
@@ -374,6 +387,12 @@ const styles = StyleSheet.create({
   },
   topMatchesContainer: {
     marginTop: 20,
+  },
+  statsText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 8,
+    textAlign: 'center',
   },
   flexContainer: {
     flex: 1,

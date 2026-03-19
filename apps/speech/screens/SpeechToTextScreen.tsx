@@ -54,6 +54,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const [transcription, setTranscription] =
     useState<TranscriptionResult | null>(null);
+  const [transcriptionTime, setTranscriptionTime] = useState<number | null>(
+    null
+  );
 
   const [liveResult, setLiveResult] = useState<{
     fullText: string;
@@ -113,9 +116,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const decodedAudioData = await audioContext.decodeAudioData(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
+      const start = Date.now();
       const result = await model.transcribe(audioBuffer, {
         verbose: enableTimestamps,
       });
+      setTranscriptionTime(Date.now() - start);
       setTranscription(result);
     } catch (error) {
       console.error('Error decoding audio data', error);
@@ -252,6 +257,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
           <View style={styles.statusContainer}>
             <Text>Status: {getModelStatus()}</Text>
+            {transcriptionTime !== null && (
+              <Text style={styles.statsText}>
+                Transcription: {transcriptionTime} ms
+              </Text>
+            )}
           </View>
 
           <ModelPicker
@@ -384,6 +394,12 @@ const styles = StyleSheet.create({
   statusContainer: {
     marginTop: 12,
     alignItems: 'center',
+  },
+  statsText: {
+    fontSize: 13,
+    color: '#334155',
+    fontWeight: '500',
+    marginTop: 4,
   },
   toggleContainer: {
     flexDirection: 'row',

@@ -28,6 +28,8 @@ const SUGGESTED_PROMPTS = [
   'What are the benefits of on-device AI?',
   'Give me 3 fun facts about space',
 ];
+import { useLLMStats } from '../../hooks/useLLMStats';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -44,6 +46,7 @@ function LLMScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: selectedModel });
+  const { stats, onMessageSend } = useLLMStats(llm.response, llm.isGenerating);
 
   useEffect(() => {
     if (llm.error) {
@@ -56,6 +59,7 @@ function LLMScreen() {
   }, [llm.isGenerating, setGlobalGenerating]);
 
   const sendMessage = async () => {
+    onMessageSend();
     setUserInput('');
     textInputRef.current?.clear();
     try {
@@ -109,7 +113,7 @@ function LLMScreen() {
             onSelect={(m) => setSelectedModel(m)}
             disabled={llm.isGenerating}
           />
-
+          <StatsBar stats={stats} />
           <View style={styles.bottomContainer}>
             <TextInput
               autoCorrect={false}

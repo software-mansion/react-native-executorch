@@ -30,6 +30,8 @@ const MODELS: ModelOption<TextToImageModelSources>[] = [
   { label: 'BK-SDM 256', value: BK_SDM_TINY_VPRED_256 },
   { label: 'BK-SDM 512', value: BK_SDM_TINY_VPRED_512 },
 ];
+import { BottomBarWithTextInput } from '../../components/BottomBarWithTextInput';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
@@ -39,6 +41,9 @@ export default function TextToImageScreen() {
   const [selectedModel, setSelectedModel] = useState<TextToImageModelSources>(
     BK_SDM_TINY_VPRED_256
   );
+  const [generationTime, setGenerationTime] = useState<number | null>(null);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const imageSize = 224;
   const model = useTextToImage({
@@ -55,8 +60,15 @@ export default function TextToImageScreen() {
   const runForward = async () => {
     if (!input.trim()) return;
     try {
+      const start = Date.now();
       const output = await model.generate(input, imageSize, steps);
       if (output.length) setImage(output);
+      else {
+        setImageTitle(prevImageTitle);
+        return;
+      }
+      setGenerationTime(Date.now() - start);
+      setImage(output);
     } catch (e) {
       console.error(e);
     } finally {
@@ -133,6 +145,20 @@ export default function TextToImageScreen() {
             onChangeText={setInput}
             onSubmitEditing={runForward}
             returnKeyType="send"
+          />
+        </View>
+        <StatsBar inferenceTime={generationTime} />
+        <View style={styles.bottomContainer}>
+          <BottomBarWithTextInput
+            runModel={runForward}
+            numSteps={steps}
+            setSteps={setSteps}
+            stopModel={model.interrupt}
+            isGenerating={model.isGenerating}
+            isReady={model.isReady}
+            showTextInput={showTextInput}
+            setShowTextInput={setShowTextInput}
+            keyboardVisible={keyboardVisible}
           />
           {model.isGenerating ? (
             <TouchableOpacity

@@ -7,6 +7,7 @@ import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function VerticalOCRScree() {
   const [imageUri, setImageUri] = useState('');
@@ -15,6 +16,7 @@ export default function VerticalOCRScree() {
     width: number;
     height: number;
   }>();
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
   const model = useVerticalOCR({
     model: OCR_ENGLISH,
     independentCharacters: true,
@@ -38,7 +40,9 @@ export default function VerticalOCRScree() {
 
   const runForward = async () => {
     try {
+      const start = Date.now();
       const output = await model.forward(imageUri);
+      setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {
       console.error(e);
@@ -89,6 +93,10 @@ export default function VerticalOCRScree() {
           </View>
         )}
       </View>
+      <StatsBar
+        inferenceTime={inferenceTime}
+        detectionCount={results.length > 0 ? results.length : null}
+      />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}

@@ -18,6 +18,7 @@ import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 type OCRModelSources = OCRProps['model'];
 
@@ -40,6 +41,7 @@ export default function OCRScreen() {
   }>();
   const [selectedModel, setSelectedModel] =
     useState<OCRModelSources>(OCR_ENGLISH);
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const model = useOCR({
     model: selectedModel,
@@ -63,7 +65,9 @@ export default function OCRScreen() {
 
   const runForward = async () => {
     try {
+      const start = Date.now();
       const output = await model.forward(imageUri);
+      setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {
       console.error(e);
@@ -122,6 +126,10 @@ export default function OCRScreen() {
           setSelectedModel(m);
           setResults([]);
         }}
+      />
+      <StatsBar
+        inferenceTime={inferenceTime}
+        detectionCount={results.length > 0 ? results.length : null}
       />
       <BottomBar
         handleCameraPress={handleCameraPress}
