@@ -12,6 +12,14 @@ import {
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from '../../components/Spinner';
+import SuggestedPrompts from '../../components/SuggestedPrompts';
+
+const SUGGESTED_PROMPTS = [
+  "I'm John. Is this damaged? I offer $100.",
+  "Hi, I'm Alice! How old is it? Offering $250 USD.",
+  "I'm Bob. Does it have warranty? I'll pay €50.",
+  "Name's Sara. What condition? My bid is $75.",
+];
 import {
   useLLM,
   fixAndValidateStructuredOutput,
@@ -169,6 +177,10 @@ function LLMScreen() {
                 I can parse user's questions! Introduce yourself, ask questions
                 and offer a price for some product.
               </Text>
+              <SuggestedPrompts
+                prompts={SUGGESTED_PROMPTS}
+                onSelect={setUserInput}
+              />
             </View>
           )}
 
@@ -198,6 +210,7 @@ function LLMScreen() {
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}
+              value={userInput}
               onChangeText={(text: string) => setUserInput(text)}
             />
             {userInput && (
