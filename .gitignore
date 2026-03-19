@@ -102,3 +102,4 @@ packages/react-native-executorch/common/rnexecutorch/tests/integration/assets/mo
 *.tgz
 Makefile
 *.pte
+

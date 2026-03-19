@@ -90,9 +90,14 @@ protected:
    */
   virtual cv::Mat preprocess(const cv::Mat &image) const;
 
-  /// Convenience accessor: spatial dimensions of the model input.
-  cv::Size modelInputSize() const;
-
+  /**
+   * @brief Get the spatial dimensions of the model input.
+   *
+   * By default, returns the last two dimensions of modelInputShape_.
+   * Subclasses may override this for models with dynamic or multiple input
+   * sizes.
+   */
+  virtual cv::Size modelInputSize() const;
   /**
    * @brief Extract an RGB cv::Mat from a VisionCamera frame
    *

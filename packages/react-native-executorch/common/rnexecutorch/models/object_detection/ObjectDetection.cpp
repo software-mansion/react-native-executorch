@@ -1,10 +1,13 @@
 #include "ObjectDetection.h"
+#include "Constants.h"
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/computer_vision/Processing.h>
 
 namespace rnexecutorch::models::object_detection {
 
@@ -83,10 +86,13 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
               " exceeds labelNames size " + std::to_string(labelNames_.size()) +
               ". Ensure the labelMap covers all model output classes.");
     }
-    detections.emplace_back(x1, y1, x2, y2, labelNames_[labelIdx], scores[i]);
+    detections.emplace_back(utils::computer_vision::BBox{x1, y1, x2, y2},
+                            labelNames_[labelIdx],
+                            static_cast<int32_t>(labelIdx), scores[i]);
   }
 
-  return utils::nonMaxSuppression(detections);
+  return utils::computer_vision::nonMaxSuppression(detections,
+                                                   constants::IOU_THRESHOLD);
 }
 
 std::vector<types::Detection>

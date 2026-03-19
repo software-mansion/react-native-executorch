@@ -4,8 +4,13 @@ export const IMAGENET1K_MEAN: Triple<number> = [0.485, 0.456, 0.406];
 export const IMAGENET1K_STD: Triple<number> = [0.229, 0.224, 0.225];
 
 /**
- * COCO dataset class labels used for object detection.
+ * COCO dataset class labels used by **RF-DETR** and **SSDLite** object detection models.
  *
+ * This enum is **1-indexed** and contains **91 classes**, matching the original COCO
+ * dataset category IDs. For **YOLO** models (object detection or instance segmentation),
+ * use {@link CocoLabelYolo} instead — a 0-indexed, 80-class variant.
+ *
+ * @see {@link CocoLabelYolo} for the YOLO-specific variant
  * @category Types
  */
 export enum CocoLabel {
@@ -99,4 +104,101 @@ export enum CocoLabel {
   HAIR_DRIER = 89,
   TOOTHBRUSH = 90,
   HAIR_BRUSH = 91,
+}
+
+/**
+ * COCO dataset class labels used by **YOLO** models for instance segmentation and object detection.
+ *
+ * This enum is **0-indexed** (values start at 0) and contains exactly **80 classes** —
+ * the standard COCO detection subset without gaps. This differs from {@link CocoLabel},
+ * which is 1-indexed with 91 classes and includes extra categories not present in the
+ * YOLO label set.
+ *
+ * Use this enum when working with YOLO models (e.g. `yolo26n-seg`).
+ * For RF-DETR or SSDLite models, use {@link CocoLabel}.
+ *
+ * @see {@link CocoLabel} for the RF-DETR / SSDLite variant
+ * @category Types
+ */
+export enum CocoLabelYolo {
+  PERSON = 0,
+  BICYCLE = 1,
+  CAR = 2,
+  MOTORCYCLE = 3,
+  AIRPLANE = 4,
+  BUS = 5,
+  TRAIN = 6,
+  TRUCK = 7,
+  BOAT = 8,
+  TRAFFIC_LIGHT = 9,
+  FIRE_HYDRANT = 10,
+  STOP_SIGN = 11,
+  PARKING_METER = 12,
+  BENCH = 13,
+  BIRD = 14,
+  CAT = 15,
+  DOG = 16,
+  HORSE = 17,
+  SHEEP = 18,
+  COW = 19,
+  ELEPHANT = 20,
+  BEAR = 21,
+  ZEBRA = 22,
+  GIRAFFE = 23,
+  BACKPACK = 24,
+  UMBRELLA = 25,
+  HANDBAG = 26,
+  TIE = 27,
+  SUITCASE = 28,
+  FRISBEE = 29,
+  SKIS = 30,
+  SNOWBOARD = 31,
+  SPORTS_BALL = 32,
+  KITE = 33,
+  BASEBALL_BAT = 34,
+  BASEBALL_GLOVE = 35,
+  SKATEBOARD = 36,
+  SURFBOARD = 37,
+  TENNIS_RACKET = 38,
+  BOTTLE = 39,
+  WINE_GLASS = 40,
+  CUP = 41,
+  FORK = 42,
+  KNIFE = 43,
+  SPOON = 44,
+  BOWL = 45,
+  BANANA = 46,
+  APPLE = 47,
+  SANDWICH = 48,
+  ORANGE = 49,
+  BROCCOLI = 50,
+  CARROT = 51,
+  HOT_DOG = 52,
+  PIZZA = 53,
+  DONUT = 54,
+  CAKE = 55,
+  CHAIR = 56,
+  COUCH = 57,
+  POTTED_PLANT = 58,
+  BED = 59,
+  DINING_TABLE = 60,
+  TOILET = 61,
+  TV = 62,
+  LAPTOP = 63,
+  MOUSE = 64,
+  REMOTE = 65,
+  KEYBOARD = 66,
+  CELL_PHONE = 67,
+  MICROWAVE = 68,
+  OVEN = 69,
+  TOASTER = 70,
+  SINK = 71,
+  REFRIGERATOR = 72,
+  BOOK = 73,
+  CLOCK = 74,
+  VASE = 75,
+  SCISSORS = 76,
+  TEDDY_BEAR = 77,
+  HAIR_DRIER = 78,
+  TOOTHBRUSH = 79,
 }

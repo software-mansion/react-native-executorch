@@ -31,8 +31,13 @@ import ColorPalette from '../../colors';
 import ClassificationTask from '../../components/vision_camera/tasks/ClassificationTask';
 import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
 import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
+import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
 
-type TaskId = 'classification' | 'objectDetection' | 'segmentation';
+type TaskId =
+  | 'classification'
+  | 'objectDetection'
+  | 'segmentation'
+  | 'instanceSegmentation';
 type ModelId =
   | 'classification'
   | 'objectDetectionSsdlite'
@@ -43,7 +48,9 @@ type ModelId =
   | 'segmentationLraspp'
   | 'segmentationFcnResnet50'
   | 'segmentationFcnResnet101'
-  | 'segmentationSelfie';
+  | 'segmentationSelfie'
+  | 'instanceSegmentationYolo26n'
+  | 'instanceSegmentationRfdetr';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -65,6 +72,14 @@ const TASKS: Task[] = [
       { id: 'segmentationFcnResnet50', label: 'FCN ResNet50' },
       { id: 'segmentationFcnResnet101', label: 'FCN ResNet101' },
       { id: 'segmentationSelfie', label: 'Selfie' },
+    ],
+  },
+  {
+    id: 'instanceSegmentation',
+    label: 'Inst Seg',
+    variants: [
+      { id: 'instanceSegmentationYolo26n', label: 'YOLO26N Seg' },
+      { id: 'instanceSegmentationRfdetr', label: 'RF-DETR Nano Seg' },
     ],
   },
   {
@@ -217,6 +232,16 @@ export default function VisionCameraScreen() {
               | 'segmentationFcnResnet50'
               | 'segmentationFcnResnet101'
               | 'segmentationSelfie'
+          }
+        />
+      )}
+      {activeTask === 'instanceSegmentation' && (
+        <InstanceSegmentationTask
+          {...taskProps}
+          activeModel={
+            activeModel as
+              | 'instanceSegmentationYolo26n'
+              | 'instanceSegmentationRfdetr'
           }
         />
       )}

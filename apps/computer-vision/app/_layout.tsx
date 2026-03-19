@@ -85,6 +85,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="instance_segmentation/index"
+          options={{
+            drawerLabel: 'Instance Segmentation',
+            title: 'Instance Segmentation',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="object_detection/index"
           options={{
             drawerLabel: 'Object Detection',

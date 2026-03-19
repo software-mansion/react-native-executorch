@@ -21,7 +21,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @example
  * ```ts
  * const { isReady, forward } = useSemanticSegmentation({
- *   model: { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+ *   model: { modelName: 'deeplab-v3-resnet50', modelSource: DEEPLAB_V3_RESNET50 },
  * });
  * ```
  *

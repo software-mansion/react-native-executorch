@@ -16,6 +16,8 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
+#include <rnexecutorch/models/instance_segmentation/Types.h>
+#include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/models/semantic_segmentation/Types.h>
@@ -23,6 +25,7 @@
 #include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
 #include <rnexecutorch/models/style_transfer/Types.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 
 using namespace rnexecutorch::models::speech_to_text;
 
@@ -430,24 +433,60 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
   return mapObj;
 }
 
+inline jsi::Value getJsiValue(const utils::computer_vision::BBox &bbox,
+                              jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "x1", bbox.x1);
+  obj.setProperty(runtime, "y1", bbox.y1);
+  obj.setProperty(runtime, "x2", bbox.x2);
+  obj.setProperty(runtime, "y2", bbox.y2);
+  return obj;
+}
+
 inline jsi::Value getJsiValue(
     const std::vector<models::object_detection::types::Detection> &detections,
     jsi::Runtime &runtime) {
   jsi::Array array(runtime, detections.size());
   for (std::size_t i = 0; i < detections.size(); ++i) {
     jsi::Object detection(runtime);
-    jsi::Object bbox(runtime);
-    bbox.setProperty(runtime, "x1", detections[i].x1);
-    bbox.setProperty(runtime, "y1", detections[i].y1);
-    bbox.setProperty(runtime, "x2", detections[i].x2);
-    bbox.setProperty(runtime, "y2", detections[i].y2);
-
-    detection.setProperty(runtime, "bbox", bbox);
+    detection.setProperty(runtime, "bbox",
+                          getJsiValue(detections[i].bbox, runtime));
     detection.setProperty(
         runtime, "label",
         jsi::String::createFromUtf8(runtime, detections[i].label));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
+  }
+  return array;
+}
+
+inline jsi::Value
+getJsiValue(const std::vector<models::instance_segmentation::types::Instance>
+                &instances,
+            jsi::Runtime &runtime) {
+  jsi::Array array(runtime, instances.size());
+  for (std::size_t i = 0; i < instances.size(); ++i) {
+    jsi::Object instance(runtime);
+
+    instance.setProperty(runtime, "bbox",
+                         getJsiValue(instances[i].bbox, runtime));
+
+    // Mask as Uint8Array - reuse existing OwningArrayBuffer
+    jsi::ArrayBuffer arrayBuffer(runtime, instances[i].mask);
+    auto uint8ArrayCtor =
+        runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+    auto uint8Array = uint8ArrayCtor.callAsConstructor(runtime, arrayBuffer)
+                          .getObject(runtime);
+    instance.setProperty(runtime, "mask", uint8Array);
+
+    instance.setProperty(runtime, "maskWidth", instances[i].maskWidth);
+    instance.setProperty(runtime, "maskHeight", instances[i].maskHeight);
+
+    instance.setProperty(runtime, "classIndex", instances[i].classIndex);
+
+    instance.setProperty(runtime, "score", instances[i].score);
+
+    array.setValueAtIndex(runtime, i, instance);
   }
   return array;
 }
