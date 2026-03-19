@@ -18,6 +18,7 @@ const config = {
   projectName: 'react-native-executorch',
 
   onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
   markdown: {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
