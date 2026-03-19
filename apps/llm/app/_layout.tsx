@@ -8,6 +8,7 @@ import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItemList,
+  DrawerToggleButton,
 } from '@react-navigation/drawer';
 import { GeneratingContext } from '../context';
 
@@ -55,6 +56,9 @@ export default function _layout() {
           drawerInactiveTintColor: '#888',
           headerTintColor: ColorPalette.primary,
           headerTitleStyle: { color: ColorPalette.primary },
+          headerLeft: () => (
+            <DrawerToggleButton tintColor={ColorPalette.primary} />
+          ),
         }}
       >
         <Drawer.Screen
