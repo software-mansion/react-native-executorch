@@ -117,6 +117,7 @@ export default function OCRScreen() {
       <ModelPicker
         models={MODELS}
         selectedModel={selectedModel}
+        disabled={model.isGenerating}
         onSelect={(m) => {
           setSelectedModel(m);
           setResults([]);

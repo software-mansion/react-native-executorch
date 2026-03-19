@@ -17,10 +17,9 @@ import {
   fixAndValidateStructuredOutput,
   getStructuredOutputPrompt,
   QWEN3_1_7B_QUANTIZED,
-  QWEN3_4B_QUANTIZED,
-  LLMProps,
 } from 'react-native-executorch';
-import { ModelPicker, ModelOption } from '../../components/ModelPicker';
+import { ModelPicker } from '../../components/ModelPicker';
+import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -63,13 +62,6 @@ const responseSchemaWithZod = z.object({
   bid: z.number().meta({ description: 'Amount of money, that user offers.' }),
   currency: z.optional(z.string().meta({ description: 'Currency of offer.' })),
 });
-
-type LLMModelSources = LLMProps['model'];
-
-const MODELS: ModelOption<LLMModelSources>[] = [
-  { label: 'Qwen3 1.7B', value: QWEN3_1_7B_QUANTIZED },
-  { label: 'Qwen3 4B', value: QWEN3_4B_QUANTIZED },
-];
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -181,9 +173,10 @@ function LLMScreen() {
           )}
 
           <ModelPicker
-            models={MODELS}
+            models={LLM_MODELS}
             selectedModel={selectedModel}
             onSelect={(m) => setSelectedModel(m)}
+            disabled={llm.isGenerating}
           />
 
           <View style={styles.bottomContainer}>

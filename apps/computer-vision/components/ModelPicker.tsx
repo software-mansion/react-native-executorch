@@ -17,6 +17,7 @@ type Props<T> = {
   selectedModel: T;
   onSelect: (model: T) => void;
   label?: string;
+  disabled?: boolean;
 };
 
 export function ModelPicker<T>({
@@ -24,6 +25,7 @@ export function ModelPicker<T>({
   selectedModel,
   onSelect,
   label,
+  disabled,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
   const selected = models.find((m) => m.value === selectedModel);
@@ -31,9 +33,9 @@ export function ModelPicker<T>({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.trigger}
-        onPress={() => setOpen((v) => !v)}
-        activeOpacity={0.7}
+        style={[styles.trigger, disabled && styles.triggerDisabled]}
+        onPress={() => !disabled && setOpen((v) => !v)}
+        activeOpacity={disabled ? 1 : 0.7}
       >
         {label && <Text style={styles.label}>{label}</Text>}
         <Text style={styles.triggerText}>{selected?.label ?? '—'}</Text>
@@ -85,6 +87,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     backgroundColor: '#f5f5f5',
+  },
+  triggerDisabled: {
+    opacity: 0.4,
   },
   label: {
     fontSize: 12,

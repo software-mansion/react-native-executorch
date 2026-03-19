@@ -94,6 +94,7 @@ export default function ObjectDetectionScreen() {
       <ModelPicker
         models={MODELS}
         selectedModel={selectedModel}
+        disabled={model.isGenerating}
         onSelect={(m) => {
           setSelectedModel(m);
           setResults([]);

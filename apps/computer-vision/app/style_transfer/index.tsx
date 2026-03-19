@@ -90,6 +90,7 @@ export default function StyleTransferScreen() {
       <ModelPicker
         models={MODELS}
         selectedModel={selectedModel}
+        disabled={model.isGenerating}
         onSelect={(m) => {
           setSelectedModel(m);
           setStyledUri('');

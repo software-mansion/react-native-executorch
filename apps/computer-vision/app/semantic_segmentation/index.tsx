@@ -173,6 +173,7 @@ export default function SemanticSegmentationScreen() {
       <ModelPicker
         models={MODELS}
         selectedModel={selectedModel}
+        disabled={isGenerating}
         onSelect={(m) => {
           setSelectedModel(m);
           setSegImage(null);

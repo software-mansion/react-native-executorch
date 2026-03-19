@@ -101,6 +101,7 @@ export default function TextToImageScreen() {
         <ModelPicker
           models={MODELS}
           selectedModel={selectedModel}
+          disabled={model.isGenerating}
           onSelect={(m) => {
             setSelectedModel(m);
             setImage(null);

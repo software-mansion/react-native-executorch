@@ -192,12 +192,14 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
             label="Model"
             models={TTS_MODELS}
             selectedModel={selectedModel}
+            disabled={model.isGenerating}
             onSelect={(m) => setSelectedModel(m)}
           />
           <ModelPicker
             label="Voice"
             models={VOICES}
             selectedModel={selectedVoice}
+            disabled={model.isGenerating}
             onSelect={(m) => setSelectedVoice(m)}
           />
 
