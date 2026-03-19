@@ -14,12 +14,6 @@ namespace rnexecutorch::models::instance_segmentation::types {
  * and confidence score.
  */
 struct Instance {
-  utils::computer_vision::BBox bbox;
-  std::shared_ptr<OwningArrayBuffer> mask;
-  int32_t maskWidth;
-  int32_t maskHeight;
-  int32_t classIndex;
-  float score;
 
   Instance() = default;
   Instance(utils::computer_vision::BBox bbox,
@@ -27,6 +21,13 @@ struct Instance {
            int32_t maskHeight, int32_t classIndex, float score)
       : bbox(bbox), mask(std::move(mask)), maskWidth(maskWidth),
         maskHeight(maskHeight), classIndex(classIndex), score(score) {}
+
+  utils::computer_vision::BBox bbox;
+  std::shared_ptr<OwningArrayBuffer> mask;
+  int32_t maskWidth;
+  int32_t maskHeight;
+  int32_t classIndex;
+  float score;
 };
 
 } // namespace rnexecutorch::models::instance_segmentation::types
