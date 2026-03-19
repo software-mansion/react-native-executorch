@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -8,7 +8,7 @@ import {
   SSDLITE_320_MOBILENET_V3_LARGE,
   useObjectDetection,
 } from 'react-native-executorch';
-import { labelColor, labelColorBg } from '../utils/colors';
+import BoundingBoxes from '../../BoundingBoxes';
 import { TaskProps } from './types';
 
 type ObjModelId = 'objectDetectionSsdlite' | 'objectDetectionRfdetr';
@@ -122,59 +122,13 @@ export default function ObjectDetectionTask({
 
   return (
     <View style={[StyleSheet.absoluteFill]} pointerEvents="none">
-      {detections.map((det, i) => {
-        const left = det.bbox.x1 * scale + offsetX;
-        const top = det.bbox.y1 * scale + offsetY;
-        const w = (det.bbox.x2 - det.bbox.x1) * scale;
-        const h = (det.bbox.y2 - det.bbox.y1) * scale;
-        const labelTop = top < 26 ? top + h + 2 : top - 26;
-        return (
-          <React.Fragment key={i}>
-            <View
-              style={[
-                styles.bbox,
-                {
-                  left,
-                  top,
-                  width: w,
-                  height: h,
-                  borderColor: labelColor(det.label),
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.bboxLabel,
-                {
-                  backgroundColor: labelColorBg(det.label),
-                  left,
-                  top: labelTop,
-                },
-              ]}
-            >
-              <Text style={styles.bboxLabelText} numberOfLines={1}>
-                {det.label} {(det.score * 100).toFixed(1)}
-              </Text>
-            </View>
-          </React.Fragment>
-        );
-      })}
+      <BoundingBoxes
+        detections={detections}
+        scaleX={scale}
+        scaleY={scale}
+        offsetX={offsetX}
+        offsetY={offsetY}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: 'cyan',
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: { color: 'white', fontSize: 11, fontWeight: '600' },
-});
