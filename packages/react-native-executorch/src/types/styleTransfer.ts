@@ -88,5 +88,5 @@ export interface StyleTransferType {
    * @param frame - VisionCamera Frame object
    * @returns PixelData containing the stylized frame as raw RGB pixel data.
    */
-  runOnFrame: ((frame: Frame) => PixelData) | null;
+  runOnFrame: ((frame: Frame, isMirrored: boolean) => PixelData) | null;
 }

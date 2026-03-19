@@ -32,12 +32,16 @@ import ClassificationTask from '../../components/vision_camera/tasks/Classificat
 import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
 import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
 import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
+import OCRTask from '../../components/vision_camera/tasks/OCRTask';
+import StyleTransferTask from '../../components/vision_camera/tasks/StyleTransferTask';
 
 type TaskId =
   | 'classification'
   | 'objectDetection'
   | 'segmentation'
-  | 'instanceSegmentation';
+  | 'instanceSegmentation'
+  | 'ocr'
+  | 'styleTransfer';
 type ModelId =
   | 'classification'
   | 'objectDetectionSsdlite'
@@ -50,7 +54,10 @@ type ModelId =
   | 'segmentationFcnResnet101'
   | 'segmentationSelfie'
   | 'instanceSegmentationYolo26n'
-  | 'instanceSegmentationRfdetr';
+  | 'instanceSegmentationRfdetr'
+  | 'ocr'
+  | 'styleTransferCandy'
+  | 'styleTransferMosaic';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -88,6 +95,19 @@ const TASKS: Task[] = [
     variants: [
       { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
       { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
+    ],
+  },
+  {
+    id: 'ocr',
+    label: 'OCR',
+    variants: [{ id: 'ocr', label: 'English' }],
+  },
+  {
+    id: 'styleTransfer',
+    label: 'Style',
+    variants: [
+      { id: 'styleTransferCandy', label: 'Candy' },
+      { id: 'styleTransferMosaic', label: 'Mosaic' },
     ],
   },
 ];
@@ -247,6 +267,15 @@ export default function VisionCameraScreen() {
             activeModel as
               | 'instanceSegmentationYolo26n'
               | 'instanceSegmentationRfdetr'
+          }
+        />
+      )}
+      {activeTask === 'ocr' && <OCRTask {...taskProps} />}
+      {activeTask === 'styleTransfer' && (
+        <StyleTransferTask
+          {...taskProps}
+          activeModel={
+            activeModel as 'styleTransferCandy' | 'styleTransferMosaic'
           }
         />
       )}

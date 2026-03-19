@@ -153,8 +153,17 @@ export default function SegmentationTask({
           const result = segRof(frame, isMirrored, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
-            const side = Math.round(Math.sqrt(argmax.length));
-            const pixels = new Uint8Array(side * side * 4);
+            const screenW = frame.height;
+            const screenH = frame.width;
+            const maskW =
+              argmax.length === screenW * screenH
+                ? screenW
+                : Math.round(Math.sqrt(argmax.length));
+            const maskH =
+              argmax.length === screenW * screenH
+                ? screenH
+                : Math.round(Math.sqrt(argmax.length));
+            const pixels = new Uint8Array(maskW * maskH * 4);
             for (let i = 0; i < argmax.length; i++) {
               const color = colors[argmax[i]!] ?? [0, 0, 0, 0];
               pixels[i * 4] = color[0]!;
@@ -165,13 +174,13 @@ export default function SegmentationTask({
             const skData = Skia.Data.fromBytes(pixels);
             const img = Skia.Image.MakeImage(
               {
-                width: side,
-                height: side,
+                width: maskW,
+                height: maskH,
                 alphaType: AlphaType.Unpremul,
                 colorType: ColorType.RGBA_8888,
               },
               skData,
-              side * 4
+              maskW * 4
             );
             if (img) scheduleOnRN(updateMask, img);
           }

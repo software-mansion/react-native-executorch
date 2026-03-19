@@ -96,4 +96,50 @@ void transformPoints(std::array<P, 4> &points, const FrameOrientation &orient) {
   }
 }
 
+/**
+ * @brief Map 4-point bbox from rotated-frame space back to screen space.
+ *
+ * Inverse of rotateFrameForModel for 4-point bboxes.
+ * rW/rH are the rotated frame dimensions (rotated.cols / rotated.rows).
+ * Templated on point type — requires P to have float x and y members.
+ */
+template <typename P>
+void inverseRotatePoints(std::array<P, 4> &points,
+                         const FrameOrientation &orient, int rW, int rH) {
+  const float w = static_cast<float>(rW);
+  const float h = static_cast<float>(rH);
+
+  for (auto &p : points) {
+    float x = p.x;
+    float y = p.y;
+
+    if (orient.orientation == "up") {
+      // CW: nx = h-y, ny = x
+      p.x = h - y;
+      p.y = x;
+    } else if (orient.orientation == "right") {
+      // 180°: nx = w-x, ny = h-y
+      p.x = w - x;
+      p.y = h - y;
+    } else if (orient.orientation == "down") {
+      // CCW: nx = y, ny = w-x
+      p.x = y;
+      p.y = w - x;
+    }
+    // "left": no-op
+  }
+
+#if defined(__APPLE__)
+  if (orient.isMirrored) {
+    bool swapped = (orient.orientation == "up" || orient.orientation == "down");
+    float sw = swapped ? h : w;
+    float sh = swapped ? w : h;
+    for (auto &p : points) {
+      p.x = sw - p.x;
+      p.y = sh - p.y;
+    }
+  }
+#endif
+}
+
 } // namespace rnexecutorch::utils

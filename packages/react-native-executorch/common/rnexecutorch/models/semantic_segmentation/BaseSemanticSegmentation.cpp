@@ -99,14 +99,21 @@ BaseSemanticSegmentation::generateFromFrame(
   auto orient = extractFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
-  auto result = runInference(rotated, rotated.size(), classesOfInterest, resize);
+  // Always run inference without resize — rotate first, then resize.
+  auto result =
+      runInference(rotated, rotated.size(), classesOfInterest, false);
 
   const int w = result.outputWidth;
   const int h = result.outputHeight;
+  // JS reads maskW=frame.height, maskH=frame.width (sensor-native swap).
+  const cv::Size screenSize(frame.rows, frame.cols);
 
   if (result.argmax && w > 0 && h > 0) {
     cv::Mat m(h, w, CV_32SC1, result.argmax->data());
     cv::Mat inv = utils::inverseRotateMat(m, orient);
+    if (resize && inv.size() != screenSize) {
+      cv::resize(inv, inv, screenSize, 0, 0, cv::INTER_NEAREST);
+    }
     result.argmax = std::make_shared<OwningArrayBuffer>(
         inv.data, static_cast<size_t>(inv.total() * inv.elemSize()));
     result.outputWidth = inv.cols;
@@ -117,6 +124,9 @@ BaseSemanticSegmentation::generateFromFrame(
     for (auto &[label, buf] : *result.classBuffers) {
       cv::Mat m(h, w, CV_32FC1, buf->data());
       cv::Mat inv = utils::inverseRotateMat(m, orient);
+      if (resize && inv.size() != screenSize) {
+        cv::resize(inv, inv, screenSize);
+      }
       buf = std::make_shared<OwningArrayBuffer>(
           inv.data, static_cast<size_t>(inv.total() * inv.elemSize()));
     }

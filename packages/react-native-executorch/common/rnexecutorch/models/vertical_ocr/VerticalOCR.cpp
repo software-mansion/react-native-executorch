@@ -68,7 +68,12 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
       "generateFromFrame is not supported on this platform");
 #endif
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
-  return runInference(rotated);
+  auto detections = runInference(rotated);
+  for (auto &det : detections) {
+    ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
+                                               rotated.cols, rotated.rows);
+  }
+  return detections;
 }
 
 std::vector<types::OCRDetection>

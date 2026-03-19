@@ -84,8 +84,9 @@ PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
   auto orient = extractFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat output = runInference(frame, modelInputSize());
-  cv::Mat oriented = utils::transformMat(output, orient);
+  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  cv::Mat output = runInference(rotated, modelInputSize());
+  cv::Mat oriented = utils::inverseRotateMat(output, orient);
   return toPixelDataResult(oriented);
 }
 

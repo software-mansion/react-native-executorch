@@ -17,7 +17,7 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [runOnFrame, setRunOnFrame] = useState<
-    ((frame: Frame) => OCRDetection[]) | null
+    ((frame: Frame, isMirrored: boolean) => OCRDetection[]) | null
   >(null);
 
   const [controller] = useState(
@@ -58,18 +58,12 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   ]);
 
   useEffect(() => {
-    if (isReady) {
-      try {
-        const worklet = controller.runOnFrame;
-        if (worklet) {
-          setRunOnFrame(() => worklet);
-        }
-      } catch {
-        // runOnFrame not available
-      }
-    } else {
+    if (!isReady) {
       setRunOnFrame(null);
+      return;
     }
+    const worklet = controller.runOnFrame;
+    if (worklet) setRunOnFrame(() => worklet);
   }, [controller, isReady]);
 
   const forward = useCallback(

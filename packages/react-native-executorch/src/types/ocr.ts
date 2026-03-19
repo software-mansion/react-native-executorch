@@ -138,7 +138,7 @@ export interface OCRType {
    * @param frame - VisionCamera Frame object
    * @returns Array of OCRDetection results for the frame.
    */
-  runOnFrame: ((frame: Frame) => OCRDetection[]) | null;
+  runOnFrame: ((frame: Frame, isMirrored: boolean) => OCRDetection[]) | null;
 }
 
 /**
