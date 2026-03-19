@@ -20,6 +20,7 @@ TEST_EXECUTABLES=(
   "LogTests"
   "FileUtilsTest"
   "ImageProcessingTest"
+  "FrameTransformTests"
   "BaseModelTests"
   "ClassificationTests"
   "ObjectDetectionTests"

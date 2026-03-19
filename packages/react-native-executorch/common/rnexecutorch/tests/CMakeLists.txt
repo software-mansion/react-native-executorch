@@ -165,6 +165,12 @@ add_rn_test(FrameProcessorTests unit/FrameProcessorTest.cpp
     LIBS opencv_deps android
 )
 
+add_rn_test(FrameTransformTests unit/FrameTransformTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
+    LIBS opencv_deps
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 
 add_rn_test(VisionModelTests integration/VisionModelTest.cpp
