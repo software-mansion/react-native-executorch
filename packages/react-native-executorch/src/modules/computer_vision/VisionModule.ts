@@ -80,8 +80,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
           isMirrored,
-          frameWidth: frame.width,
-          frameHeight: frame.height,
         };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {

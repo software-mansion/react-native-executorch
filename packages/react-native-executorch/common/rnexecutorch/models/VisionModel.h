@@ -148,8 +148,8 @@ protected:
   /**
    * @brief Read orientation metadata from JSI frameData object.
    *
-   * Reads orientation, isMirrored, frameWidth, frameHeight.
-   * Falls back to "up"/false/0/0 if fields are absent (e.g. when
+   * Reads orientation and isMirrored.
+   * Falls back to "up"/false if fields are absent (e.g. when
    * enablePhysicalBufferRotation is used — transform will then be a no-op).
    */
   utils::FrameOrientation extractFrameOrientation(

@@ -88,7 +88,9 @@ export abstract class BaseOCRController {
     }
   };
 
-  get runOnFrame(): ((frame: Frame, isMirrored: boolean) => OCRDetection[]) | null {
+  get runOnFrame():
+    | ((frame: Frame, isMirrored: boolean) => OCRDetection[])
+    | null {
     if (!this.isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -108,8 +110,6 @@ export abstract class BaseOCRController {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
           isMirrored,
-          frameWidth: frame.width,
-          frameHeight: frame.height,
         };
         return nativeGenerateFromFrame(frameData);
       } finally {

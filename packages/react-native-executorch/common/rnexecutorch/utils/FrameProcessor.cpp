@@ -49,21 +49,7 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
       isMirrored = val.getBool();
   }
 
-  int frameWidth = 0;
-  if (obj.hasProperty(runtime, "frameWidth")) {
-    auto val = obj.getProperty(runtime, "frameWidth");
-    if (val.isNumber())
-      frameWidth = static_cast<int>(val.asNumber());
-  }
-
-  int frameHeight = 0;
-  if (obj.hasProperty(runtime, "frameHeight")) {
-    auto val = obj.getProperty(runtime, "frameHeight");
-    if (val.isNumber())
-      frameHeight = static_cast<int>(val.asNumber());
-  }
-
-  return {orientation, isMirrored, frameWidth, frameHeight};
+  return {orientation, isMirrored};
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

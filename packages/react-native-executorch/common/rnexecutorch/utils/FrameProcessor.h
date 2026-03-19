@@ -31,8 +31,8 @@ cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData);
 /**
  * @brief Read orientation metadata from a VisionCamera frameData JSI object.
  *
- * Reads orientation, isMirrored, frameWidth, frameHeight from the frameData
- * object. Falls back to "up"/false/0/0 if fields are absent (e.g. when
+ * Reads orientation and isMirrored from the frameData object.
+ * Falls back to "up"/false if fields are absent (e.g. when
  * enablePhysicalBufferRotation is used — transform will be a no-op).
  */
 FrameOrientation readFrameOrientation(jsi::Runtime &runtime,

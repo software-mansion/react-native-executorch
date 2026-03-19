@@ -6,7 +6,7 @@ import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
 import Svg, { Polygon, Text as SvgText } from 'react-native-svg';
 import { TaskProps } from './types';
 
-type Props = TaskProps & { activeModel: string };
+type Props = Omit<TaskProps, 'activeModel'>;
 
 export default function OCRTask({
   canvasSize,
