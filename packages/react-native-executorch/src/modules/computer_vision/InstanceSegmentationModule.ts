@@ -328,9 +328,8 @@ export class InstanceSegmentationModule<
         ? options.classesOfInterest.map((label) => {
             const labelStr = String(label);
             const enumValue = labelMap[labelStr];
-            return typeof enumValue === 'number'
-              ? enumValue - labelEnumOffset
-              : -1;
+            // Don't normalize - send raw enum values to match model output
+            return typeof enumValue === 'number' ? enumValue : -1;
           })
         : [];
 
@@ -426,9 +425,8 @@ export class InstanceSegmentationModule<
       ? options.classesOfInterest.map((label) => {
           const labelStr = String(label);
           const enumValue = this.labelMap[labelStr as keyof ResolveLabels<T>];
-          return typeof enumValue === 'number'
-            ? enumValue - this.labelEnumOffset
-            : -1;
+          // Don't normalize - send raw enum values to match model output
+          return typeof enumValue === 'number' ? enumValue : -1;
         })
       : [];
 
