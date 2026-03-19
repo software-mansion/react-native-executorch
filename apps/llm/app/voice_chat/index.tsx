@@ -15,8 +15,16 @@ import {
   useSpeechToText,
   useLLM,
   QWEN3_0_6B_QUANTIZED,
+  QWEN3_1_7B_QUANTIZED,
+  LLAMA3_2_1B_SPINQUANT,
   WHISPER_TINY_EN,
+  WHISPER_TINY_EN_QUANTIZED,
+  WHISPER_BASE_EN,
+  WHISPER_SMALL_EN,
+  LLMProps,
+  SpeechToTextProps,
 } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import MicIcon from '../../assets/icons/mic_icon.svg';
 import StopIcon from '../../assets/icons/stop_icon.svg';
@@ -27,6 +35,22 @@ import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 
+type LLMModelSources = LLMProps['model'];
+type STTModelSources = SpeechToTextProps['model'];
+
+const LLM_MODELS: ModelOption<LLMModelSources>[] = [
+  { label: 'Qwen3 0.6B', value: QWEN3_0_6B_QUANTIZED },
+  { label: 'Qwen3 1.7B', value: QWEN3_1_7B_QUANTIZED },
+  { label: 'Llama 1B', value: LLAMA3_2_1B_SPINQUANT },
+];
+
+const STT_MODELS: ModelOption<STTModelSources>[] = [
+  { label: 'Whisper Tiny', value: WHISPER_TINY_EN },
+  { label: 'Whisper Tiny Q', value: WHISPER_TINY_EN_QUANTIZED },
+  { label: 'Whisper Base', value: WHISPER_BASE_EN },
+  { label: 'Whisper Small', value: WHISPER_SMALL_EN },
+];
+
 export default function VoiceChatScreenWrapper() {
   const isFocused = useIsFocused();
 
@@ -36,6 +60,10 @@ export default function VoiceChatScreenWrapper() {
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
+  const [selectedLLM, setSelectedLLM] =
+    useState<LLMModelSources>(QWEN3_0_6B_QUANTIZED);
+  const [selectedSTT, setSelectedSTT] =
+    useState<STTModelSources>(WHISPER_TINY_EN);
 
   const [recorder] = useState(
     () =>
@@ -47,9 +75,9 @@ function VoiceChatScreen() {
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: QWEN3_0_6B_QUANTIZED });
+  const llm = useLLM({ model: selectedLLM });
   const speechToText = useSpeechToText({
-    model: WHISPER_TINY_EN,
+    model: selectedSTT,
   });
 
   useEffect(() => {
@@ -154,6 +182,17 @@ function VoiceChatScreen() {
             </Text>
           </View>
         )}
+
+        <ModelPicker
+          models={LLM_MODELS}
+          selectedModel={selectedLLM}
+          onSelect={(m) => setSelectedLLM(m)}
+        />
+        <ModelPicker
+          models={STT_MODELS}
+          selectedModel={selectedSTT}
+          onSelect={(m) => setSelectedSTT(m)}
+        />
 
         <View style={styles.bottomContainer}>
           {DeviceInfo.isEmulatorSync() ? (

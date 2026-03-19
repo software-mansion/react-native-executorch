@@ -1,0 +1,87 @@
+import {
+  LLAMA3_2_1B,
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_1B_SPINQUANT,
+  LLAMA3_2_3B,
+  LLAMA3_2_3B_QLORA,
+  LLAMA3_2_3B_SPINQUANT,
+  QWEN3_0_6B,
+  QWEN3_0_6B_QUANTIZED,
+  QWEN3_1_7B,
+  QWEN3_1_7B_QUANTIZED,
+  QWEN3_4B,
+  QWEN3_4B_QUANTIZED,
+  HAMMER2_1_0_5B,
+  HAMMER2_1_0_5B_QUANTIZED,
+  HAMMER2_1_1_5B,
+  HAMMER2_1_1_5B_QUANTIZED,
+  HAMMER2_1_3B,
+  HAMMER2_1_3B_QUANTIZED,
+  SMOLLM2_1_135M,
+  SMOLLM2_1_135M_QUANTIZED,
+  SMOLLM2_1_360M,
+  SMOLLM2_1_360M_QUANTIZED,
+  SMOLLM2_1_1_7B,
+  SMOLLM2_1_1_7B_QUANTIZED,
+  QWEN2_5_0_5B,
+  QWEN2_5_0_5B_QUANTIZED,
+  QWEN2_5_1_5B,
+  QWEN2_5_1_5B_QUANTIZED,
+  QWEN2_5_3B,
+  QWEN2_5_3B_QUANTIZED,
+  PHI_4_MINI_4B,
+  PHI_4_MINI_4B_QUANTIZED,
+  LFM2_5_1_2B_INSTRUCT,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+  LLMProps,
+} from 'react-native-executorch';
+import { ModelOption } from './ModelPicker';
+
+export type LLMModelSources = LLMProps['model'];
+
+export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
+  // Llama 3.2
+  { label: 'Llama 3.2 1B', value: LLAMA3_2_1B },
+  { label: 'Llama 3.2 1B QLoRA', value: LLAMA3_2_1B_QLORA },
+  { label: 'Llama 3.2 1B SpinQuant', value: LLAMA3_2_1B_SPINQUANT },
+  { label: 'Llama 3.2 3B', value: LLAMA3_2_3B },
+  { label: 'Llama 3.2 3B QLoRA', value: LLAMA3_2_3B_QLORA },
+  { label: 'Llama 3.2 3B SpinQuant', value: LLAMA3_2_3B_SPINQUANT },
+  // Qwen3
+  { label: 'Qwen3 0.6B', value: QWEN3_0_6B },
+  { label: 'Qwen3 0.6B Quantized', value: QWEN3_0_6B_QUANTIZED },
+  { label: 'Qwen3 1.7B', value: QWEN3_1_7B },
+  { label: 'Qwen3 1.7B Quantized', value: QWEN3_1_7B_QUANTIZED },
+  { label: 'Qwen3 4B', value: QWEN3_4B },
+  { label: 'Qwen3 4B Quantized', value: QWEN3_4B_QUANTIZED },
+  // Hammer 2.1
+  { label: 'Hammer 2.1 0.5B', value: HAMMER2_1_0_5B },
+  { label: 'Hammer 2.1 0.5B Quantized', value: HAMMER2_1_0_5B_QUANTIZED },
+  { label: 'Hammer 2.1 1.5B', value: HAMMER2_1_1_5B },
+  { label: 'Hammer 2.1 1.5B Quantized', value: HAMMER2_1_1_5B_QUANTIZED },
+  { label: 'Hammer 2.1 3B', value: HAMMER2_1_3B },
+  { label: 'Hammer 2.1 3B Quantized', value: HAMMER2_1_3B_QUANTIZED },
+  // SmolLM2
+  { label: 'SmolLM2 135M', value: SMOLLM2_1_135M },
+  { label: 'SmolLM2 135M Quantized', value: SMOLLM2_1_135M_QUANTIZED },
+  { label: 'SmolLM2 360M', value: SMOLLM2_1_360M },
+  { label: 'SmolLM2 360M Quantized', value: SMOLLM2_1_360M_QUANTIZED },
+  { label: 'SmolLM2 1.7B', value: SMOLLM2_1_1_7B },
+  { label: 'SmolLM2 1.7B Quantized', value: SMOLLM2_1_1_7B_QUANTIZED },
+  // Qwen2.5
+  { label: 'Qwen2.5 0.5B', value: QWEN2_5_0_5B },
+  { label: 'Qwen2.5 0.5B Quantized', value: QWEN2_5_0_5B_QUANTIZED },
+  { label: 'Qwen2.5 1.5B', value: QWEN2_5_1_5B },
+  { label: 'Qwen2.5 1.5B Quantized', value: QWEN2_5_1_5B_QUANTIZED },
+  { label: 'Qwen2.5 3B', value: QWEN2_5_3B },
+  { label: 'Qwen2.5 3B Quantized', value: QWEN2_5_3B_QUANTIZED },
+  // Phi-4
+  { label: 'Phi-4 Mini 4B', value: PHI_4_MINI_4B },
+  { label: 'Phi-4 Mini 4B Quantized', value: PHI_4_MINI_4B_QUANTIZED },
+  // LFM2.5
+  { label: 'LFM2.5 1.2B Instruct', value: LFM2_5_1_2B_INSTRUCT },
+  {
+    label: 'LFM2.5 1.2B Instruct Quantized',
+    value: LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+  },
+];

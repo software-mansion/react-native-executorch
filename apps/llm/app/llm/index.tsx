@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
+import { ModelPicker } from '../../components/ModelPicker';
+import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -27,10 +29,13 @@ export default function LLMScreenWrapper() {
 function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    LLAMA3_2_1B_SPINQUANT
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+  const llm = useLLM({ model: selectedModel });
 
   useEffect(() => {
     if (llm.error) {
@@ -85,6 +90,13 @@ function LLMScreen() {
               </Text>
             </View>
           )}
+
+          <ModelPicker
+            models={LLM_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+            disabled={llm.isGenerating}
+          />
 
           <View style={styles.bottomContainer}>
             <TextInput

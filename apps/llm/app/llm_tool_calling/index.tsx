@@ -21,6 +21,8 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   HAMMER2_1_1_5B_QUANTIZED,
 } from 'react-native-executorch';
+import { ModelPicker } from '../../components/ModelPicker';
+import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -41,10 +43,13 @@ function LLMToolCallingScreen() {
   const [userInput, setUserInput] = useState('');
   const [hasCalendarPermission, setHasCalendarPermission] = useState(true);
   const [hasBrightnessPermission, setHasBrightnessPermission] = useState(true);
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    HAMMER2_1_1_5B_QUANTIZED
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: HAMMER2_1_1_5B_QUANTIZED });
+  const llm = useLLM({ model: selectedModel });
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -211,6 +216,13 @@ function LLMToolCallingScreen() {
               </Text>
             </TouchableOpacity>
           )}
+
+          <ModelPicker
+            models={LLM_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+            disabled={llm.isGenerating}
+          />
 
           <View style={styles.bottomContainer}>
             <TextInput

@@ -42,11 +42,6 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
       setDownloadProgress
     );
 
-    const worklet = controller.runOnFrame;
-    if (worklet) {
-      setRunOnFrame(() => worklet);
-    }
-
     return () => {
       setRunOnFrame(null);
       if (controller.isReady) {
@@ -61,6 +56,21 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
     model.language,
     preventLoad,
   ]);
+
+  useEffect(() => {
+    if (isReady) {
+      try {
+        const worklet = controller.runOnFrame;
+        if (worklet) {
+          setRunOnFrame(() => worklet);
+        }
+      } catch {
+        // runOnFrame not available
+      }
+    } else {
+      setRunOnFrame(null);
+    }
+  }, [controller, isReady]);
 
   const forward = useCallback(
     (imageSource: string | PixelData): Promise<OCRDetection[]> =>

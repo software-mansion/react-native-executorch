@@ -18,6 +18,8 @@ import {
   getStructuredOutputPrompt,
   QWEN3_1_7B_QUANTIZED,
 } from 'react-native-executorch';
+import { ModelPicker } from '../../components/ModelPicker';
+import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -70,10 +72,12 @@ export default function LLMScreenWrapper() {
 function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const [selectedModel, setSelectedModel] =
+    useState<LLMModelSources>(QWEN3_1_7B_QUANTIZED);
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: QWEN3_1_7B_QUANTIZED }); // try out 4B model if 1.7B struggles with following structured output
+  const llm = useLLM({ model: selectedModel }); // try out 4B model if 1.7B struggles with following structured output
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -167,6 +171,13 @@ function LLMScreen() {
               </Text>
             </View>
           )}
+
+          <ModelPicker
+            models={LLM_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+            disabled={llm.isGenerating}
+          />
 
           <View style={styles.bottomContainer}>
             <TextInput
