@@ -11,7 +11,6 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.81.5",
     "@react-navigation/drawer": "^7.8.1",
     "@react-navigation/native": "^7.1.28",
