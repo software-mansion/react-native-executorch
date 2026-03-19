@@ -1,0 +1,58 @@
+.compatibility {
+  overflow-x: auto;
+}
+
+.compatibility table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.compatibility th {
+  text-align: center;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.compatibility td {
+  text-align: center;
+  padding: 6px 8px;
+}
+
+.version {
+  font-weight: 600;
+  color: var(--swm-navy-light-100);
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .version {
+  color: var(--swm-navy-dark-40);
+}
+
+.supported {
+  background-color: var(--swm-green-light-40);
+  color: var(--swm-green-dark-120);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+[data-theme='dark'] .supported {
+  background-color: var(--swm-green-dark-140);
+  color: var(--swm-green-dark-40);
+}
+
+.notSupported {
+  background-color: var(--swm-red-light-40);
+  color: var(--swm-red-light-100);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+[data-theme='dark'] .notSupported {
+  background-color: var(--swm-red-dark-140);
+  color: var(--swm-red-dark-80);
+}

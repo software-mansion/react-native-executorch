@@ -64,7 +64,7 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 The minimal supported version are:
 * iOS 17.0
 * Android 13
-* React Native 0.81
+* React Native - see [compatibility table](https://docs.swmansion.com/react-native-executorch/docs/next/other/compatibility)
 
 > [!IMPORTANT]
 > React Native ExecuTorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).

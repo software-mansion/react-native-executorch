@@ -60,7 +60,7 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 
 - iOS 17.0
 - Android 13
-- React Native 0.81
+- React Native - [संगतता तालिका](https://docs.swmansion.com/react-native-executorch/docs/next/other/compatibility) देखें
 
 > [!IMPORTANT]
 > React Native ExecuTorch केवल [नई React Native आर्किटेक्चर](https://reactnative.dev/architecture/landing-page) का समर्थन करता है।
