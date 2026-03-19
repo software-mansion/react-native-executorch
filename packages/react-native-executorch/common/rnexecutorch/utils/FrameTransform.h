@@ -1,8 +1,5 @@
 #pragma once
 
-// NOTE: This header must NOT include <jsi/jsi.h> — it is used in JSI-free unit
-// tests.
-
 #include <array>
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -12,9 +9,12 @@ namespace rnexecutorch::utils {
 enum class Orientation { Up, Down, Left, Right };
 
 inline Orientation orientationFromString(const std::string &s) {
-  if (s == "down") return Orientation::Down;
-  if (s == "left") return Orientation::Left;
-  if (s == "right") return Orientation::Right;
+  if (s == "down")
+    return Orientation::Down;
+  if (s == "left")
+    return Orientation::Left;
+  if (s == "right")
+    return Orientation::Right;
   return Orientation::Up;
 }
 
@@ -91,7 +91,8 @@ void inverseRotatePoints(std::array<P, 4> &points,
 
 #if defined(__APPLE__)
   if (orient.isMirrored) {
-    bool swapped = (orient.orientation == Orientation::Up || orient.orientation == Orientation::Down);
+    bool swapped = (orient.orientation == Orientation::Up ||
+                    orient.orientation == Orientation::Down);
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
     for (auto &p : points) {

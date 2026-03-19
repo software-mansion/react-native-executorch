@@ -139,6 +139,7 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    * Available after model is loaded (`isReady: true`).
    *
    * @param frame - VisionCamera Frame object
+   * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @param detectionThreshold - The threshold for detection sensitivity.
    * @returns Array of Detection objects representing detected items in the frame.
    */

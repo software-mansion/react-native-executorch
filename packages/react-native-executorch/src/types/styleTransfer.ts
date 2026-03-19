@@ -86,6 +86,7 @@ export interface StyleTransferType {
    * Available after model is loaded (`isReady: true`).
    *
    * @param frame - VisionCamera Frame object
+   * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @returns PixelData containing the stylized frame as raw RGB pixel data.
    */
   runOnFrame: ((frame: Frame, isFrontCamera: boolean) => PixelData) | null;

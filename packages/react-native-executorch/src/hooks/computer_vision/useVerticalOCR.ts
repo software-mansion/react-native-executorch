@@ -40,13 +40,18 @@ export const useVerticalOCR = ({
 
     if (preventLoad) return;
 
-    controller.load(
-      model.detectorSource,
-      model.recognizerSource,
-      model.language,
-      independentCharacters,
-      setDownloadProgress
-    );
+    controller
+      .load(
+        model.detectorSource,
+        model.recognizerSource,
+        model.language,
+        independentCharacters,
+        setDownloadProgress
+      )
+      .then(() => {
+        const worklet = controller.runOnFrame;
+        if (worklet) setRunOnFrame(() => worklet);
+      });
 
     return () => {
       setRunOnFrame(null);
@@ -63,15 +68,6 @@ export const useVerticalOCR = ({
     independentCharacters,
     preventLoad,
   ]);
-
-  useEffect(() => {
-    if (!isReady) {
-      setRunOnFrame(null);
-      return;
-    }
-    const worklet = controller.runOnFrame;
-    if (worklet) setRunOnFrame(() => worklet);
-  }, [controller, isReady]);
 
   const forward = useCallback(
     (imageSource: string | PixelData): Promise<OCRDetection[]> =>
