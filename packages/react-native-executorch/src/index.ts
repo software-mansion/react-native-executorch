@@ -43,13 +43,18 @@ declare global {
     normStd: Triple<number> | [],
     allClasses: string[]
   ) => Promise<any>;
-  var loadClassification: (source: string) => Promise<any>;
   var loadInstanceSegmentation: (
     source: string,
     normMean: Triple<number> | [],
     normStd: Triple<number> | [],
     applyNMS: boolean
-  ) => any;
+  ) => Promise<any>;
+  var loadClassification: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | [],
+    labelNames: string[]
+  ) => Promise<any>;
   var loadObjectDetection: (
     source: string,
     normMean: Triple<number> | [],
@@ -199,6 +204,7 @@ export * from './types/tti';
 
 // constants
 export * from './constants/commonVision';
+export * from './constants/classification';
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
 export * from './constants/tts/models';

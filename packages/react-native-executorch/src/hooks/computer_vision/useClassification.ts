@@ -1,5 +1,9 @@
-import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
 import {
+  ClassificationModule,
+  ClassificationLabels,
+} from '../../modules/computer_vision/ClassificationModule';
+import {
+  ClassificationModelSources,
   ClassificationProps,
   ClassificationType,
 } from '../../types/classification';
@@ -9,14 +13,17 @@ import { useModuleFactory } from '../useModuleFactory';
 /**
  * React hook for managing a Classification model instance.
  *
+ * @typeParam C - A {@link ClassificationModelSources} config specifying which built-in model to load.
  * @category Hooks
- * @param ClassificationProps - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param props - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Classification model.
  */
-export const useClassification = ({
+export const useClassification = <C extends ClassificationModelSources>({
   model,
   preventLoad = false,
-}: ClassificationProps): ClassificationType => {
+}: ClassificationProps<C>): ClassificationType<
+  ClassificationLabels<C['modelName']>
+> => {
   const {
     error,
     isReady,
@@ -32,8 +39,8 @@ export const useClassification = ({
     preventLoad,
   });
 
-  const forward = (imageSource: string | PixelData) =>
-    runForward((inst) => inst.forward(imageSource));
+  const forward = (input: string | PixelData) =>
+    runForward((inst) => inst.forward(input));
 
   return {
     error,
