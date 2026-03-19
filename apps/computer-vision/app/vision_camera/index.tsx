@@ -49,8 +49,8 @@ type ModelId =
   | 'segmentationFcnResnet50'
   | 'segmentationFcnResnet101'
   | 'segmentationSelfie'
-  | 'instanceSegmentation_yolo26n'
-  | 'instanceSegmentation_rfdetr';
+  | 'instanceSegmentationYolo26n'
+  | 'instanceSegmentationRfdetr';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -78,8 +78,8 @@ const TASKS: Task[] = [
     id: 'instanceSegmentation',
     label: 'Inst Seg',
     variants: [
-      { id: 'instanceSegmentation_yolo26n', label: 'YOLO26N Seg' },
-      { id: 'instanceSegmentation_rfdetr', label: 'RF-DETR Nano Seg' },
+      { id: 'instanceSegmentationYolo26n', label: 'YOLO26N Seg' },
+      { id: 'instanceSegmentationRfdetr', label: 'RF-DETR Nano Seg' },
     ],
   },
   {
@@ -240,8 +240,8 @@ export default function VisionCameraScreen() {
           {...taskProps}
           activeModel={
             activeModel as
-              | 'instanceSegmentation_yolo26n'
-              | 'instanceSegmentation_rfdetr'
+              | 'instanceSegmentationYolo26n'
+              | 'instanceSegmentationRfdetr'
           }
         />
       )}

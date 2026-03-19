@@ -73,6 +73,8 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
   cv::Size modelInputSize(shape[shape.size() - 2], shape[shape.size() - 1]);
   cv::Size originalSize(image.cols, image.rows);
 
+  validateThresholds(confidenceThreshold, iouThreshold);
+
   auto forwardResult =
       BaseModel::execute(methodName, {buildInputTensor(image)});
   if (!forwardResult.ok()) {
@@ -83,7 +85,6 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
             methodName + "' is valid.");
   }
 
-  validateThresholds(confidenceThreshold, iouThreshold);
   validateOutputTensors(forwardResult.get());
 
   auto instances = collectInstances(
@@ -254,25 +255,31 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
   if (methodName.empty()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidConfig,
-        "methodName cannot be empty. Use 'forward' for single-method models "
+        "Method name cannot be empty. Use 'forward' for single-method models "
         "or 'forward_{inputSize}' for multi-method models.");
+  }
+
+  if (currentlyLoadedMethod_ == methodName) {
+    return;
   }
 
   if (!module_) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Model not loaded: Cannot load method '" +
-                                methodName + "'");
+                            "Model not loaded. Cannot load method '" +
+                                methodName + "'.");
   }
 
   if (!currentlyLoadedMethod_.empty()) {
     module_->unload_method(currentlyLoadedMethod_);
   }
+
   auto loadResult = module_->load_method(methodName);
   if (loadResult != executorch::runtime::Error::Ok) {
     throw RnExecutorchError(
         loadResult, "Failed to load method '" + methodName +
                         "'. Ensure the method exists in the exported model.");
   }
+
   currentlyLoadedMethod_ = methodName;
 }
 

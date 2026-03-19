@@ -19,8 +19,8 @@ import {
 } from '../../../components/ImageWithMasks';
 
 type InstSegModelId =
-  | 'instanceSegmentation_yolo26n'
-  | 'instanceSegmentation_rfdetr';
+  | 'instanceSegmentationYolo26n'
+  | 'instanceSegmentationRfdetr';
 
 type Props = TaskProps & { activeModel: InstSegModelId };
 
@@ -37,15 +37,15 @@ export default function InstanceSegmentationTask({
 }: Props) {
   const yolo26n = useInstanceSegmentation({
     model: YOLO26N_SEG,
-    preventLoad: activeModel !== 'instanceSegmentation_yolo26n',
+    preventLoad: activeModel !== 'instanceSegmentationYolo26n',
   });
   const rfdetr = useInstanceSegmentation({
     model: RF_DETR_NANO_SEG,
-    preventLoad: activeModel !== 'instanceSegmentation_rfdetr',
+    preventLoad: activeModel !== 'instanceSegmentationRfdetr',
   });
 
   const active =
-    activeModel === 'instanceSegmentation_yolo26n' ? yolo26n : rfdetr;
+    activeModel === 'instanceSegmentationYolo26n' ? yolo26n : rfdetr;
 
   const [instances, setInstances] = useState<DisplayInstance[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
@@ -112,7 +112,7 @@ export default function InstanceSegmentationTask({
             iouThreshold: 0.5,
             maxInstances: 5,
             returnMaskAtOriginalResolution: false,
-            ...(activeModel === 'instanceSegmentation_yolo26n' && {
+            ...(activeModel === 'instanceSegmentationYolo26n' && {
               inputSize: 384,
             }),
           });
