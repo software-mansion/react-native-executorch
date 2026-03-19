@@ -31,6 +31,14 @@ import * as Calendar from 'expo-calendar';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
+import SuggestedPrompts from '../../components/SuggestedPrompts';
+
+const SUGGESTED_PROMPTS = [
+  'What events do I have today?',
+  'Add a meeting tomorrow at 2pm',
+  'Set screen brightness to 50%',
+  'What do I have scheduled this week?',
+];
 
 export default function LLMToolCallingScreenWrapper() {
   const isFocused = useIsFocused();
@@ -191,6 +199,10 @@ function LLMToolCallingScreen() {
               <Text style={styles.bottomHelloText}>
                 I can use calendar! Ask me to check it or add an event for you!
               </Text>
+              <SuggestedPrompts
+                prompts={SUGGESTED_PROMPTS}
+                onSelect={setUserInput}
+              />
             </View>
           )}
 
@@ -239,6 +251,7 @@ function LLMToolCallingScreen() {
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}
+              value={userInput}
               onChangeText={(text: string) => setUserInput(text)}
             />
             {userInput && (

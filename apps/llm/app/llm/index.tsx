@@ -20,6 +20,14 @@ import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
+import SuggestedPrompts from '../../components/SuggestedPrompts';
+
+const SUGGESTED_PROMPTS = [
+  'Explain quantum computing in simple terms',
+  'Write a short poem about coding',
+  'What are the benefits of on-device AI?',
+  'Give me 3 fun facts about space',
+];
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -88,6 +96,10 @@ function LLMScreen() {
               <Text style={styles.bottomHelloText}>
                 What can I help you with?
               </Text>
+              <SuggestedPrompts
+                prompts={SUGGESTED_PROMPTS}
+                onSelect={setUserInput}
+              />
             </View>
           )}
 
@@ -113,6 +125,7 @@ function LLMScreen() {
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}
+              value={userInput}
               onChangeText={(text: string) => setUserInput(text)}
             />
             {userInput && (

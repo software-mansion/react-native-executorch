@@ -20,6 +20,14 @@ import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
+import SuggestedPrompts from '../../components/SuggestedPrompts';
+
+const SUGGESTED_PROMPTS = [
+  "What's in this image?",
+  'Describe this scene in detail',
+  'What objects can you see?',
+  'What text appears in this image?',
+];
 
 export default function MultimodalLLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -108,6 +116,10 @@ function MultimodalLLMScreen() {
               <Text style={styles.bottomHelloText}>
                 Pick an image and ask me anything about it.
               </Text>
+              <SuggestedPrompts
+                prompts={SUGGESTED_PROMPTS}
+                onSelect={setUserInput}
+              />
             </View>
           )}
 
@@ -152,6 +164,7 @@ function MultimodalLLMScreen() {
               placeholder={imageUri ? 'Ask about the image…' : 'Your message'}
               placeholderTextColor="#C1C6E5"
               multiline
+              value={userInput}
               onChangeText={setUserInput}
             />
 
