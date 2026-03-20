@@ -99,7 +99,11 @@ export type InstanceSegmentationLabels<
   M extends InstanceSegmentationModelName,
 > = ResolveLabels<M>;
 
-/** @internal */
+/**
+ * Resolves the label type: if `T` is a {@link InstanceSegmentationModelName}, looks up its labels
+ * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
+ * @internal
+ */
 type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
   ResolveLabelsFor<T, ModelConfigsType>;
 
