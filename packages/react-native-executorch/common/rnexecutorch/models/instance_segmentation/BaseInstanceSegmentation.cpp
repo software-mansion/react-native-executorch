@@ -6,6 +6,8 @@
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
 
 namespace rnexecutorch::models::instance_segmentation {
@@ -112,9 +114,23 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
     std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
     std::string methodName) {
 
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  return runInference(frame, confidenceThreshold, iouThreshold, maxInstances,
-                      classIndices, returnMaskAtOriginalResolution, methodName);
+  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto instances =
+      runInference(rotated, confidenceThreshold, iouThreshold, maxInstances,
+                   classIndices, returnMaskAtOriginalResolution, methodName);
+  for (auto &inst : instances) {
+    utils::inverseRotateBbox(inst.bbox, orient, rotated.size());
+    // Inverse-rotate the mask to match the screen orientation
+    cv::Mat maskMat(inst.maskHeight, inst.maskWidth, CV_8UC1, inst.mask->data());
+    cv::Mat invMask = utils::inverseRotateMat(maskMat, orient);
+    inst.mask = std::make_shared<OwningArrayBuffer>(
+        invMask.data, static_cast<size_t>(invMask.total()));
+    inst.maskWidth = invMask.cols;
+    inst.maskHeight = invMask.rows;
+  }
+  return instances;
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(

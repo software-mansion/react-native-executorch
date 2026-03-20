@@ -289,6 +289,7 @@ export class InstanceSegmentationModule<
   override get runOnFrame():
     | ((
         frame: Frame,
+        isFrontCamera: boolean,
         options?: InstanceSegmentationOptions<ResolveLabels<T>>
       ) => SegmentedInstance<ResolveLabels<T>>[])
     | null {
@@ -315,6 +316,7 @@ export class InstanceSegmentationModule<
 
     return (
       frame: Frame,
+      isFrontCamera: boolean,
       options?: InstanceSegmentationOptions<ResolveLabels<T>>
     ): SegmentedInstance<ResolveLabels<T>>[] => {
       'worklet';
@@ -340,6 +342,7 @@ export class InstanceSegmentationModule<
 
       const nativeResults = baseRunOnFrame(
         frame,
+        isFrontCamera,
         confidenceThreshold,
         iouThreshold,
         maxInstances,

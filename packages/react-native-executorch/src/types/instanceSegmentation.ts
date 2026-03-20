@@ -211,12 +211,14 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
    * Available after model is loaded (`isReady: true`).
    *
    * @param frame - VisionCamera Frame object
+   * @param isFrontCamera - Whether the front camera is active (for mirroring correction).
    * @param options - Optional configuration for the segmentation process.
    * @returns Array of SegmentedInstance objects representing detected items in the frame.
    */
   runOnFrame:
     | ((
         frame: Frame,
+        isFrontCamera: boolean,
         options?: InstanceSegmentationOptions<L>
       ) => SegmentedInstance<L>[])
     | null;
