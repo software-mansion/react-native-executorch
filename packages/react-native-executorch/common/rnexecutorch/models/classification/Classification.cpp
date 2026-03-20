@@ -2,6 +2,8 @@
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/Log.h>
+
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
@@ -16,9 +18,15 @@ Classification::Classification(const std::string &modelSource,
       labelNames_(std::move(labelNames)) {
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  } else if (!normMean.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  } else if (!normStd.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normStd must have 3 elements — ignoring provided value.");
   }
 
   auto inputShapes = getAllInputShapes();
