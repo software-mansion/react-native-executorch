@@ -5,7 +5,6 @@ import {
   ClassificationModelSources,
 } from '../../types/classification';
 import { Imagenet1kLabel } from '../../constants/classification';
-import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 import {
   fetchModelPath,
   ResolveLabels as ResolveLabelsFor,
@@ -15,11 +14,9 @@ import {
 const ModelConfigs = {
   'efficientnet-v2-s': {
     labelMap: Imagenet1kLabel,
-    preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
   },
   'efficientnet-v2-s-quantized': {
     labelMap: Imagenet1kLabel,
-    preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
   },
 } as const satisfies Record<
   ClassificationModelName,

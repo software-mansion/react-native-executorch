@@ -5,8 +5,6 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/classification/Classification.h>
-#include <rnexecutorch/models/classification/Constants.h>
-
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::classification;
 using namespace model_tests;
@@ -14,15 +12,16 @@ using namespace model_tests;
 constexpr auto kValidClassificationModelPath = "efficientnet_v2_s_xnnpack.pte";
 constexpr auto kValidTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr size_t kImagenet1kNumClasses = 1000;
 
 static std::vector<float> kImagenetNormMean = {0.485f, 0.456f, 0.406f};
 static std::vector<float> kImagenetNormStd = {0.229f, 0.224f, 0.225f};
 
 static std::vector<std::string> getImagenetLabelNames() {
   std::vector<std::string> names;
-  names.reserve(constants::kImagenet1kV1Labels.size());
-  for (const auto &label : constants::kImagenet1kV1Labels) {
-    names.emplace_back(label);
+  names.reserve(kImagenet1kNumClasses);
+  for (size_t i = 0; i < kImagenet1kNumClasses; ++i) {
+    names.emplace_back("class_" + std::to_string(i));
   }
   return names;
 }
@@ -89,7 +88,7 @@ TEST(ClassificationGenerateTests, ResultsHaveCorrectSize) {
   Classification model(kValidClassificationModelPath, kImagenetNormMean,
                        kImagenetNormStd, getImagenetLabelNames(), nullptr);
   auto results = model.generateFromString(kValidTestImagePath);
-  auto expectedNumClasses = constants::kImagenet1kV1Labels.size();
+  auto expectedNumClasses = kImagenet1kNumClasses;
   EXPECT_EQ(results.size(), expectedNumClasses);
 }
 
