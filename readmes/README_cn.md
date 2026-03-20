@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+  <img src="../docs/static/img/logo-hero-flame.png" alt="RNE Logo 🔥" width="25%">
 </div>
 
 <div align="center">

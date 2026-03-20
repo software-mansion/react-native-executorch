@@ -6,7 +6,7 @@ const config = {
   title: 'React Native ExecuTorch',
   tagline:
     'Declarative way to run AI models in React Native on device, powered by ExecuTorch',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
 
   url: 'https://docs.swmansion.com',
 
@@ -139,8 +139,8 @@ const config = {
         title: 'React Native ExecuTorch',
         hideOnScroll: true,
         logo: {
-          alt: 'React Native ExecuTorch',
-          src: 'img/logo-hero.svg',
+          alt: 'React Native ExecuTorch 🔥💀',
+          src: 'img/logo-hero-flame.png',
         },
         items: [
           {

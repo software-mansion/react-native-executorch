@@ -23,8 +23,8 @@ const WaveLight = (
         y2="602.914"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#7394FF" />
-        <stop offset="1" stop-color="#7394FF" />
+        <stop stop-color="#ff6600" />
+        <stop offset="1" stop-color="#ff6600" />
       </linearGradient>
     </defs>
   </svg>
@@ -51,8 +51,8 @@ const WaveDark = (
         y2="1311.93"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#313C9C" />
-        <stop offset="1" stop-color="#313C9C" />
+        <stop stop-color="#ff3300" />
+        <stop offset="1" stop-color="#ff3300" />
       </linearGradient>
     </defs>
   </svg>
@@ -79,8 +79,8 @@ const WaveLightMobile = (
         y2="195"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#7394FF" />
-        <stop offset="1" stop-color="#7394FF" />
+        <stop stop-color="#ff6600" />
+        <stop offset="1" stop-color="#ff6600" />
       </linearGradient>
     </defs>
   </svg>
@@ -107,8 +107,8 @@ const WaveDarkMobile = (
         y2="357.737"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#313C9C" />
-        <stop offset="1" stop-color="#313C9C" />
+        <stop stop-color="#ff3300" />
+        <stop offset="1" stop-color="#ff3300" />
       </linearGradient>
     </defs>
   </svg>

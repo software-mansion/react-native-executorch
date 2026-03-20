@@ -2,11 +2,14 @@
   position: relative;
   top: 0;
   display: flex;
+  min-height: 100vh;
+  align-items: center;
+  background-color: #130302;
 }
 
 .heading {
   width: 100%;
-  margin-top: 11rem;
+  margin: auto 0;
 }
 
 .subheadingContainer {
@@ -36,7 +39,7 @@
 }
 
 .headingLabel :nth-child(2) {
-  color: var(--swm-cornflower-80);
+  color: var(--swm-flame-80); /* 🔥 */
 }
 
 .subheadingLabel {
@@ -73,8 +76,11 @@
 }
 
 @media (max-width: 420px) {
+  .hero {
+    min-height: 80vh;
+  }
   .heading {
-    margin-top: 6rem;
+    margin: auto 0;
   }
   .headingLabel {
     font-size: 26px;

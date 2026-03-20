@@ -10,7 +10,7 @@
   margin-right: 2rem;
   width: 48px;
   height: 48px;
-  background-color: #2563eb;
+  background-color: #ff6600;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -25,7 +25,7 @@
 }
 
 .prevButton:hover {
-  background-color: #1d4ed8;
+  background-color: #ff3300;
 }
 
 .nextButton {
@@ -33,7 +33,7 @@
   margin-left: 2rem;
   width: 48px;
   height: 48px;
-  background-color: #2563eb;
+  background-color: #ff6600;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -44,7 +44,7 @@
 }
 
 .nextButton:hover {
-  background-color: #1d4ed8;
+  background-color: #ff3300;
 }
 
 .icon {
@@ -97,7 +97,7 @@
 .link {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background-color: #2563eb;
+  background-color: #ff6600;
   color: white;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -106,7 +106,7 @@
 }
 
 .link:hover {
-  background-color: #1d4ed8;
+  background-color: #ff3300;
 }
 
 .image {
@@ -130,7 +130,7 @@
 }
 
 .swiper :global(.swiper-pagination-bullet-active) {
-  background-color: #2563eb;
+  background-color: #ff6600;
   opacity: 1;
 }
 

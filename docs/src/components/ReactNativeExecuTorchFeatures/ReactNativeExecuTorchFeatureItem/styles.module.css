@@ -1,13 +1,13 @@
 .featureItem {
-  background-color: var(--swm-cornflower-0);
-  box-shadow: -12px 12px 0px var(--swm-cornflower-80);
+  background-color: var(--swm-flame-0);
+  box-shadow: -12px 12px 0px var(--swm-flame-80);
   flex: 1;
   padding: 1.5em;
 }
 
 [data-theme='dark'] .featureItem {
-  background-color: var(--swm-cornflower-60);
-  box-shadow: -12px 12px 0px var(--swm-cornflower-80);
+  background-color: var(--swm-flame-60);
+  box-shadow: -12px 12px 0px var(--swm-flame-80);
 }
 
 [data-theme='dark'] .featureTitle,
