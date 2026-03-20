@@ -55,6 +55,8 @@ const RF_DETR_NANO_SEG_CONFIG = {
  * Builds a reverse map from 0-based model class index to label key name, and
  * computes the minimum enum value (offset) so TS enum values can be converted
  * to 0-based model indices.
+ * @param labelMap - The label enum to build the index map from.
+ * @returns An object containing `indexToLabel` map and `minValue` offset.
  */
 function buildClassIndexMap(labelMap: LabelEnum): {
   indexToLabel: Map<number, string>;
@@ -90,20 +92,14 @@ type ModelConfigsType = typeof ModelConfigs;
 
 /**
  * Resolves the label map type for a given built-in model name.
- *
  * @typeParam M - A built-in model name from {@link InstanceSegmentationModelName}.
- *
  * @category Types
  */
 export type InstanceSegmentationLabels<
   M extends InstanceSegmentationModelName,
 > = ResolveLabels<M>;
 
-/**
- * @internal
- * Resolves the label type: if `T` is a {@link InstanceSegmentationModelName}, looks up its labels
- * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
- */
+/** @internal */
 type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
   ResolveLabelsFor<T, ModelConfigsType>;
 
@@ -115,12 +111,9 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  * Supported models (download from HuggingFace):
  * - `yolo26n-seg`, `yolo26s-seg`, `yolo26m-seg`, `yolo26l-seg`, `yolo26x-seg` - YOLO models with COCO labels (80 classes)
  * - `rfdetr-nano-seg` - RF-DETR Nano model with COCO labels (80 classes)
- *
  * @typeParam T - Either a pre-configured model name from {@link InstanceSegmentationModelName}
  *   or a custom label map conforming to {@link LabelEnum}.
- *
  * @category Typescript API
- *
  * @example
  * ```ts
  * const segmentation = await InstanceSegmentationModule.fromModelName({
@@ -162,11 +155,9 @@ export class InstanceSegmentationModule<
   /**
    * Creates an instance segmentation module for a pre-configured model.
    * The config object is discriminated by `modelName` — each model can require different fields.
-   *
    * @param config - A {@link InstanceSegmentationModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `InstanceSegmentationModule` instance typed to the chosen model's label map.
-   *
    * @example
    * ```ts
    * const segmentation = await InstanceSegmentationModule.fromModelName({
@@ -212,12 +203,10 @@ export class InstanceSegmentationModule<
   /**
    * Creates an instance segmentation module with a user-provided label map and custom config.
    * Use this when working with a custom-exported segmentation model that is not one of the pre-configured models.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link InstanceSegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `InstanceSegmentationModule` instance typed to the provided label map.
-   *
    * @example
    * ```ts
    * const MyLabels = { PERSON: 0, CAR: 1 } as const;
@@ -268,9 +257,7 @@ export class InstanceSegmentationModule<
 
   /**
    * Returns the available input sizes for this model, or undefined if the model accepts any size.
-   *
    * @returns An array of available input sizes, or undefined if not constrained.
-   *
    * @example
    * ```ts
    * const sizes = segmentation.getAvailableInputSizes();
@@ -285,6 +272,7 @@ export class InstanceSegmentationModule<
    * Override runOnFrame to add label mapping for VisionCamera integration.
    * The parent's runOnFrame returns raw native results with class indices;
    * this override maps them to label strings and provides an options-based API.
+   * @returns A worklet function for VisionCamera frame processing, or null if the model is not loaded.
    */
   override get runOnFrame():
     | ((
@@ -368,12 +356,10 @@ export class InstanceSegmentationModule<
    * Supports two input types:
    * 1. **String path/URI**: File path, URL, or Base64-encoded string
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
-   *
    * @param input - Image source (string path or PixelData object)
    * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
    * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`.
    * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
-   *
    * @example
    * ```ts
    * const results = await segmentation.forward('path/to/image.jpg', {

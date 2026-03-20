@@ -5,7 +5,6 @@ import { Bbox } from './objectDetection';
 /**
  * Raw instance returned from the native C++ side, carrying a numeric
  * `classIndex` instead of a resolved label string.
- *
  * @internal
  */
 export interface NativeSegmentedInstance {
@@ -19,7 +18,6 @@ export interface NativeSegmentedInstance {
 
 /**
  * Represents a single detected instance in instance segmentation output.
- *
  * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
  * @property {Bbox} bbox - The bounding box of the instance.
@@ -40,7 +38,6 @@ export interface SegmentedInstance<L extends LabelEnum> {
 
 /**
  * Options for instance segmentation forward pass.
- *
  * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
  */
@@ -77,10 +74,8 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
 
 /**
  * Configuration for an instance segmentation model.
- *
  * @typeParam T - The label map type for the model, must conform to {@link LabelEnum}.
  * @category Types
- *
  * @remarks
  * The `availableInputSizes` and `defaultInputSize` fields are mutually inclusive:
  * - **Either both must be provided** (for models with multiple input sizes), or
@@ -111,7 +106,6 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
 /**
  * Per-model config for {@link InstanceSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
- *
  * @category Types
  */
 export type InstanceSegmentationModelSources =
@@ -124,7 +118,6 @@ export type InstanceSegmentationModelSources =
 
 /**
  * Union of all built-in instance segmentation model names.
- *
  * @category Types
  */
 export type InstanceSegmentationModelName =
@@ -132,7 +125,6 @@ export type InstanceSegmentationModelName =
 
 /**
  * Extracts the instance segmentation model name from a {@link InstanceSegmentationModelSources} config object.
- *
  * @category Types
  */
 export type InstanceModelNameOf<C extends InstanceSegmentationModelSources> =
@@ -140,11 +132,9 @@ export type InstanceModelNameOf<C extends InstanceSegmentationModelSources> =
 
 /**
  * Props for the `useInstanceSegmentation` hook.
- *
  * @typeParam C - A {@link InstanceSegmentationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- *
  * @category Types
  */
 export interface InstanceSegmentationProps<
@@ -157,9 +147,7 @@ export interface InstanceSegmentationProps<
 /**
  * Return type for the `useInstanceSegmentation` hook.
  * Manages the state and operations for instance segmentation models.
- *
  * @typeParam L - The label map type for the model, must conform to {@link LabelEnum}.
- *
  * @category Types
  */
 export interface InstanceSegmentationType<L extends LabelEnum> {
@@ -209,7 +197,6 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
    * For async processing, use `forward()` instead.
    *
    * Available after model is loaded (`isReady: true`).
-   *
    * @param frame - VisionCamera Frame object
    * @param isFrontCamera - Whether the front camera is active (for mirroring correction).
    * @param options - Optional configuration for the segmentation process.
