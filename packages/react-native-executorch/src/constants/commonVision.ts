@@ -10,7 +10,6 @@ export const IMAGENET1K_STD: Triple<number> = [0.229, 0.224, 0.225];
  * This enum is **1-indexed** and contains **91 classes**, matching the original COCO
  * dataset category IDs. For **YOLO** models (object detection or instance segmentation),
  * use {@link CocoLabelYolo} instead — a 0-indexed, 80-class variant.
- *
  * @see {@link CocoLabelYolo} for the YOLO-specific variant
 =======
  * COCO dataset class labels used for object detection.
@@ -120,7 +119,6 @@ export enum CocoLabel {
  *
  * Use this enum when working with YOLO models (e.g. `yolo26n-seg`).
  * For RF-DETR or SSDLite models, use {@link CocoLabel}.
- *
  * @see {@link CocoLabel} for the RF-DETR / SSDLite variant
  * @category Types
  */

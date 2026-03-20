@@ -9,6 +9,7 @@ const VALID_CATEGORIES = [
   'Models - Image Generation',
   'Models - LMM',
   'Models - Object Detection',
+  'Models - Instance Segmentation',
   'Models - Semantic Segmentation',
   'Models - Speech To Text',
   'Models - Style Transfer',
