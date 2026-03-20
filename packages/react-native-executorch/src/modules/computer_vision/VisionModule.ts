@@ -77,7 +77,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       try {
         nativeBuffer = frame.getNativeBuffer();
         /**
-        Currently isMirrored is nevert set to true in VisionCamera.
+        Currently isMirrored is never set to true in VisionCamera.
         That's why we need to use our own property to determine if we need
         to mirror the results
         **/
