@@ -1,7 +1,6 @@
 /**
  * ImageNet-1K class labels used for image classification.
  * Contains 1000 classes from the ImageNet Large Scale Visual Recognition Challenge.
- *
  * @category Types
  */
 export enum Imagenet1kLabel {

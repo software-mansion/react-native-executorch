@@ -26,11 +26,8 @@ const ModelConfigs = {
 type ModelConfigsType = typeof ModelConfigs;
 
 /**
-<<<<<<< HEAD
  * Resolves the {@link LabelEnum} for a given built-in classification model name.
- *
  * @typeParam M - A built-in model name from {@link ClassificationModelName}.
- *
  * @category Types
  */
 export type ClassificationLabels<M extends ClassificationModelName> =
@@ -44,13 +41,8 @@ type ResolveLabels<T extends ClassificationModelName | LabelEnum> =
 
 /**
  * Generic classification module with type-safe label maps.
- *
  * @typeParam T - Either a built-in model name (e.g. `'efficientnet-v2-s'`)
  *   or a custom {@link LabelEnum} label map.
- *
-=======
- * Module for image classification tasks.
->>>>>>> 7e05ef70c (chore: autofix lint issues)
  * @category Typescript API
  */
 export class ClassificationModule<
@@ -65,7 +57,6 @@ export class ClassificationModule<
 
   /**
    * Creates a classification instance for a built-in model.
-   *
    * @param namedSources - A {@link ClassificationModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `ClassificationModule` instance typed to the chosen model's label map.
@@ -114,7 +105,6 @@ export class ClassificationModule<
    *
    * **Output:** one `float32` tensor of shape `[1, C]` containing raw logits — one value per class,
    * in the same order as the entries in your `labelMap`. Softmax is applied by the native runtime.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link ClassificationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
@@ -149,7 +139,6 @@ export class ClassificationModule<
 
   /**
    * Executes the model's forward pass to classify the provided image.
-   *
    * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
    * @returns A Promise resolving to an object mapping label keys to confidence scores.
    */

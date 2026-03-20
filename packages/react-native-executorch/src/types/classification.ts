@@ -5,13 +5,11 @@ export { Imagenet1kLabel };
 
 /**
  * Configuration for a custom classification model.
- *
  * @typeParam T - The {@link LabelEnum} type for the model.
  * @property labelMap - The enum-like object mapping class names to indices.
  * @property preprocessorConfig - Optional preprocessing parameters.
  * @property preprocessorConfig.normMean - Per-channel mean values for input normalization.
  * @property preprocessorConfig.normStd - Per-channel standard deviation values for input normalization.
- *
  * @category Types
  */
 export type ClassificationConfig<T extends LabelEnum> = {
@@ -22,7 +20,6 @@ export type ClassificationConfig<T extends LabelEnum> = {
 /**
  * Per-model config for {@link ClassificationModule.fromModelName}.
  * Each model name maps to its required fields.
- *
  * @category Types
  */
 export type ClassificationModelSources =
@@ -37,11 +34,9 @@ export type ClassificationModelName = ClassificationModelSources['modelName'];
 
 /**
  * Props for the `useClassification` hook.
- *
  * @typeParam C - A {@link ClassificationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- *
  * @category Types
  */
 export interface ClassificationProps<C extends ClassificationModelSources> {
@@ -52,9 +47,7 @@ export interface ClassificationProps<C extends ClassificationModelSources> {
 /**
  * Return type for the `useClassification` hook.
  * Manages the state and operations for Computer Vision image classification.
- *
  * @typeParam L - The {@link LabelEnum} representing the model's class labels.
- *
  * @category Types
  */
 export interface ClassificationType<L extends LabelEnum> {
