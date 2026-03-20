@@ -206,8 +206,10 @@ std::vector<types::Detection> ObjectDetection::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     double detectionThreshold, double iouThreshold,
     std::vector<int32_t> classIndices, std::string methodName) {
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  auto detections = runInference(frame, detectionThreshold, iouThreshold,
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
+  auto detections = runInference(rotated, detectionThreshold, iouThreshold,
                                  classIndices, methodName);
 
   for (auto &det : detections) {
