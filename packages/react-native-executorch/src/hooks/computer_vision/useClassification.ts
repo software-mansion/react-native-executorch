@@ -12,7 +12,6 @@ import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing a Classification model instance.
- *
  * @typeParam C - A {@link ClassificationModelSources} config specifying which built-in model to load.
  * @category Hooks
  * @param props - Configuration object containing `model` source and optional `preventLoad` flag.
