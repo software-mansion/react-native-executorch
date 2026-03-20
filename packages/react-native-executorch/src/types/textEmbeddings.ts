@@ -3,7 +3,6 @@ import { ResourceSource } from '../types/common';
 
 /**
  * Union of all built-in text embeddings model names.
- *
  * @category Types
  */
 export type TextEmbeddingsModelName =
@@ -15,9 +14,8 @@ export type TextEmbeddingsModelName =
 
 /**
  * Props for the useTextEmbeddings hook.
- *
  * @category Types
- * @property {Object} model - An object containing the model configuration.
+ * @property {object} model - An object containing the model configuration.
  * @property {TextEmbeddingsModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - The source of the text embeddings model binary.
  * @property {ResourceSource} model.tokenizerSource - The source of the tokenizer JSON file.
@@ -43,7 +41,6 @@ export interface TextEmbeddingsProps {
 
 /**
  * React hook state and methods for managing a Text Embeddings model instance.
- *
  * @category Types
  */
 export interface TextEmbeddingsType {

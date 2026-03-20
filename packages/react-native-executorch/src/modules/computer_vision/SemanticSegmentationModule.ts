@@ -48,9 +48,7 @@ type ModelConfigsType = typeof ModelConfigs;
 
 /**
  * Resolves the {@link LabelEnum} for a given built-in model name.
- *
  * @typeParam M - A built-in model name from {@link SemanticSegmentationModelName}.
- *
  * @category Types
  */
 export type SegmentationLabels<M extends SemanticSegmentationModelName> =
@@ -64,7 +62,6 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
  * Generic semantic segmentation module with type-safe label maps.
  * Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
- *
  * @typeParam T - Either a built-in model name (`'deeplab-v3-resnet50'`,
  *   `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`,
  *   `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`,
@@ -72,7 +69,6 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
  *   `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`,
  *   `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`,
  *   `'selfie-segmentation'`) or a custom {@link LabelEnum} label map.
- *
  * @category Typescript API
  */
 export class SemanticSegmentationModule<
@@ -88,11 +84,9 @@ export class SemanticSegmentationModule<
   /**
    * Creates a segmentation instance for a built-in model.
    * The config object is discriminated by `modelName` — each model can require different fields.
-   *
    * @param namedSources - A {@link SemanticSegmentationModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SemanticSegmentationModule` instance typed to the chosen model's label map.
-   *
    * @example
    * ```ts
    * const segmentation = await SemanticSegmentationModule.fromModelName(DEEPLAB_V3_RESNET50);
@@ -144,12 +138,10 @@ export class SemanticSegmentationModule<
    *
    * Preprocessing (resize → normalize) and postprocessing (softmax, argmax, resize back to
    * original dimensions) are handled by the native runtime.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link SemanticSegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SemanticSegmentationModule` instance typed to the provided label map.
-   *
    * @example
    * ```ts
    * const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
@@ -190,7 +182,6 @@ export class SemanticSegmentationModule<
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-   *
    * @param input - Image source (string or PixelData object)
    * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.

@@ -184,20 +184,17 @@ export default function App() {
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
-    onFrame: useCallback(
-      (frame: Frame) => {
-        'worklet';
-        try {
-          if (!runOnFrame) return;
-          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
-          const result = runOnFrame(frame, isFrontCamera);
-          // ... handle result
-        } finally {
-          frame.dispose();
-        }
-      },
-      [runOnFrame]
-    ),
+    onFrame: useCallback((frame: Frame) => {
+      'worklet';
+      try {
+        if (!runOnFrame) return;
+        const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+        const result = runOnFrame(frame, isFrontCamera);
+        // ... handle result
+      } finally {
+        frame.dispose();
+      }
+    }, []),
   });
 
   // ...

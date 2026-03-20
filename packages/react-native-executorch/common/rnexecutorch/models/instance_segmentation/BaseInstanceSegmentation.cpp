@@ -123,7 +123,8 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
   for (auto &inst : instances) {
     utils::inverseRotateBbox(inst.bbox, orient, rotated.size());
     // Inverse-rotate the mask to match the screen orientation
-    cv::Mat maskMat(inst.maskHeight, inst.maskWidth, CV_8UC1, inst.mask->data());
+    cv::Mat maskMat(inst.maskHeight, inst.maskWidth, CV_8UC1,
+                    inst.mask->data());
     cv::Mat invMask = utils::inverseRotateMat(maskMat, orient);
     inst.mask = std::make_shared<OwningArrayBuffer>(
         invMask.data, static_cast<size_t>(invMask.total()));

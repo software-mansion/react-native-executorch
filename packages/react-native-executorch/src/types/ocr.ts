@@ -5,7 +5,6 @@ import { Frame, PixelData, ResourceSource } from './common';
 /**
  * OCRDetection represents a single detected text instance in an image,
  * including its bounding box, recognized text, and confidence score.
- *
  * @category Types
  * @property {Point[]} bbox - An array of points defining the bounding box around the detected text.
  * @property {string} text - The recognized text within the bounding box.
@@ -19,7 +18,6 @@ export interface OCRDetection {
 
 /**
  * Point represents a coordinate in 2D space.
- *
  * @category Types
  * @property {number} x - The x-coordinate of the point.
  * @property {number} y - The y-coordinate of the point.
@@ -31,7 +29,6 @@ export interface Point {
 
 /**
  * Configuration properties for the `useOCR` hook.
- *
  * @category Types
  */
 export interface OCRProps {
@@ -70,7 +67,6 @@ export interface OCRProps {
 
 /**
  * Configuration properties for the `useVerticalOCR` hook.
- *
  * @category Types
  */
 export interface VerticalOCRProps extends OCRProps {
@@ -84,7 +80,6 @@ export interface VerticalOCRProps extends OCRProps {
 /**
  * Return type for the `useOCR` hook.
  * Manages the state and operations for Optical Character Recognition (OCR).
- *
  * @category Types
  */
 export interface OCRType {
@@ -116,7 +111,6 @@ export interface OCRType {
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-   *
    * @param input - Image source (string or PixelData object)
    * @returns A Promise that resolves to the OCR results (recognized text and bounding boxes).
    * @throws {RnExecutorchError} If the models are not loaded or are currently processing another image.
@@ -134,7 +128,6 @@ export interface OCRType {
    * achieve real-time frame rates. Frames may be dropped if inference is still running.
    *
    * Available after model is loaded (`isReady: true`).
-   *
    * @param frame - VisionCamera Frame object
    * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @returns Array of OCRDetection results for the frame.
@@ -144,7 +137,6 @@ export interface OCRType {
 
 /**
  * Enumeration of supported OCR languages based on available symbol sets.
- *
  * @category Types
  */
 export type OCRLanguage = keyof typeof symbols;
@@ -152,7 +144,6 @@ export type OCRLanguage = keyof typeof symbols;
 /**
  * Union of all built-in OCR model names.
  * Each name is derived from the language code, e.g. `'ocr-en'`, `'ocr-ja'`.
- *
  * @category Types
  */
 export type OCRModelName = `ocr-${OCRLanguage}`;

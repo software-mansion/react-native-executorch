@@ -3,7 +3,6 @@ import { ResourceSource } from '../types/common';
 
 /**
  * Union of all built-in Text-to-Image model names.
- *
  * @category Types
  */
 export type TextToImageModelName =
@@ -12,7 +11,6 @@ export type TextToImageModelName =
 
 /**
  * Configuration properties for the `useTextToImage` hook.
- *
  * @category Types
  */
 export interface TextToImageProps {
@@ -54,7 +52,6 @@ export interface TextToImageProps {
 /**
  * Return type for the `useTextToImage` hook.
  * Manages the state and operations for generating images from text prompts using a diffusion model pipeline.
- *
  * @category Types
  */
 export interface TextToImageType {

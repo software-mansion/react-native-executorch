@@ -3,14 +3,12 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * Union of all built-in Text to Speech model names.
- *
  * @category Types
  */
 export type TextToSpeechModelName = 'kokoro-small' | 'kokoro-medium';
 
 /**
  * List all the languages available in TTS models (as lang shorthands)
- *
  * @category Types
  */
 export type TextToSpeechLanguage =
@@ -21,7 +19,6 @@ export type TextToSpeechLanguage =
  * Voice configuration
  *
  * So far in Kokoro, each voice is directly associated with a language.
- *
  * @category Types
  * @property {TextToSpeechLanguage} lang - speaker's language
  * @property {ResourceSource} voiceSource - a source to a binary file with voice embedding
@@ -35,7 +32,6 @@ export interface VoiceConfig {
 
 /**
  * Kokoro-specific voice extra props
- *
  * @category Types
  * @property {ResourceSource} taggerSource - source to Kokoro's tagger model binary
  * @property {ResourceSource} lexiconSource - source to Kokoro's lexicon binary
@@ -48,7 +44,6 @@ export interface KokoroVoiceExtras {
 /**
  * Kokoro model configuration.
  * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
- *
  * @category Types
  * @property {TextToSpeechModelName} modelName - model name identifier
  * @property {ResourceSource} durationPredictorSource - source to Kokoro's duration predictor model binary
@@ -62,7 +57,6 @@ export interface KokoroConfig {
 
 /**
  * General Text to Speech module configuration
- *
  * @category Types
  * @property {KokoroConfig} model - a selected T2S model
  * @property {VoiceConfig} voice - a selected speaker's voice
@@ -75,10 +69,8 @@ export interface TextToSpeechConfig {
 
 /**
  * Props for the useTextToSpeech hook.
- *
  * @category Types
- * @extends TextToSpeechConfig
- *
+ * @augments TextToSpeechConfig
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextToSpeechProps extends TextToSpeechConfig {
@@ -87,7 +79,6 @@ export interface TextToSpeechProps extends TextToSpeechConfig {
 
 /**
  * Text to Speech module input definition
- *
  * @category Types
  * @property {string} text - a text to be spoken
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
@@ -102,7 +93,6 @@ export interface TextToSpeechInput {
  * Use this when you have your own phonemizer (e.g. the Python `phonemizer`
  * library, espeak-ng, or any custom G2P system) and want to bypass the
  * built-in phonemizer pipeline.
- *
  * @category Types
  * @property {string} phonemes - pre-computed IPA phoneme string
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
@@ -115,7 +105,6 @@ export interface TextToSpeechPhonemeInput {
 /**
  * Return type for the `useTextToSpeech` hook.
  * Manages the state and operations for Text-to-Speech generation.
- *
  * @category Types
  */
 export interface TextToSpeechType {
@@ -141,7 +130,7 @@ export interface TextToSpeechType {
 
   /**
    * Runs the model to convert the provided text into speech audio in a single pass.
-   * * @param input - The `TextToSpeechInput` object containing the `text` to synthesize and optional `speed`.
+   * @param input - The `TextToSpeechInput` object containing the `text` to synthesize and optional `speed`.
    * @returns A Promise that resolves with the generated audio data (typically a `Float32Array`).
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
    */
@@ -150,7 +139,6 @@ export interface TextToSpeechType {
   /**
    * Synthesizes pre-computed phonemes into speech audio in a single pass.
    * Bypasses the built-in phonemizer, allowing use of external G2P systems.
-   *
    * @param input - The `TextToSpeechPhonemeInput` object containing pre-computed `phonemes` and optional `speed`.
    * @returns A Promise that resolves with the generated audio data.
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
@@ -162,7 +150,7 @@ export interface TextToSpeechType {
   /**
    * Streams the generated audio data incrementally.
    * This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
-   * * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
+   * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
    * @returns A Promise that resolves when the streaming process is complete.
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
    */
@@ -170,7 +158,6 @@ export interface TextToSpeechType {
 
   /**
    * Streams pre-computed phonemes incrementally, bypassing the built-in phonemizer.
-   *
    * @param input - The streaming input with pre-computed `phonemes` instead of `text`.
    * @returns A Promise that resolves when the streaming process is complete.
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
@@ -186,7 +173,6 @@ export interface TextToSpeechType {
 
   /**
    * Interrupts and stops the currently active audio generation stream.
-   *
    * @param instant If true, stops the streaming as soon as possible. Otherwise
    *                allows the module to complete processing for the remains of the buffer.
    */
@@ -195,7 +181,6 @@ export interface TextToSpeechType {
 
 /**
  * Shared streaming lifecycle callbacks for TTS streaming modes.
- *
  * @category Types
  * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
  * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
@@ -217,7 +202,6 @@ export interface TextToSpeechStreamingCallbacks {
  *
  * Enables an incrementally expanded input, in other words adding
  * new text chunks with streamInsert() as the streaming is running.
- *
  * @category Types
  * @property {boolean} [stopAutomatically] - If true, streaming will stop automatically when the buffer is empty.
  */
@@ -229,7 +213,6 @@ export interface TextToSpeechStreamingInput
 /**
  * Streaming input definition for pre-computed phonemes.
  * Same as `TextToSpeechStreamingInput` but accepts `phonemes` instead of `text`.
- *
  * @category Types
  */
 export interface TextToSpeechStreamingPhonemeInput

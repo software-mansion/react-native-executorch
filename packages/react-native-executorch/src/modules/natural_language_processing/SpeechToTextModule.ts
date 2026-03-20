@@ -12,7 +12,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
- *
  * @category Typescript API
  */
 export class SpeechToTextModule {
@@ -29,11 +28,9 @@ export class SpeechToTextModule {
 
   /**
    * Creates a Speech to Text instance for a built-in model.
-   *
    * @param namedSources - Configuration object containing model name, sources, and multilingual flag.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SpeechToTextModule` instance.
-   *
    * @example
    * ```ts
    * import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -60,11 +57,9 @@ export class SpeechToTextModule {
    * Creates a Speech to Text instance with user-provided model binaries.
    * Use this when working with a custom-exported STT model.
    * Internally uses `'custom'` as the model name for telemetry.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Currently only the Whisper architecture is supported by the native runner.
    * Refer to the native source code for the current expected interface.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
    * @param isMultilingual - Whether the model supports multiple languages.
@@ -128,7 +123,6 @@ export class SpeechToTextModule {
   /**
    * Runs the encoding part of the model on the provided waveform.
    * Returns the encoded waveform as a Float32Array.
-   *
    * @param waveform - The input audio waveform.
    * @returns The encoded output.
    */
@@ -139,7 +133,6 @@ export class SpeechToTextModule {
 
   /**
    * Runs the decoder of the model.
-   *
    * @param tokens - The input tokens.
    * @param encoderOutput - The encoder output.
    * @returns Decoded output.
@@ -156,7 +149,6 @@ export class SpeechToTextModule {
    * Starts a transcription process for a given input array (16kHz waveform).
    * For multilingual models, specify the language in `options`.
    * Returns the transcription as a string. Passing `number[]` is deprecated.
-   *
    * @param waveform - The Float32Array audio data.
    * @param options - Decoding options including language.
    * @returns The transcription string.
@@ -181,8 +173,8 @@ export class SpeechToTextModule {
    * Non-committed transcription contains the part of the transcription that is still being processed and may change.
    * Useful for displaying live, partial results during streaming.
    * Use with `streamInsert` and `streamStop` to control the stream.
-   *
    * @param options - Decoding options including language.
+   * @yields An object containing `committed` and `nonCommitted` transcription results.
    * @returns An async generator yielding transcription updates.
    */
   public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
@@ -255,7 +247,6 @@ export class SpeechToTextModule {
 
   /**
    * Inserts a new audio chunk into the streaming transcription session.
-   *
    * @param waveform - The audio chunk to insert.
    */
   public streamInsert(waveform: Float32Array): void {

@@ -26,7 +26,6 @@ export function isPixelData(input: unknown): input is PixelData {
  * - Shared frame processor creation logic
  *
  * Subclasses implement model-specific loading logic and may override `forward` for typed signatures.
- *
  * @category Typescript API
  */
 export abstract class VisionModule<TOutput> extends BaseModule {
@@ -37,7 +36,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *
    * **Use this for VisionCamera frame processing in worklets.**
    * For async processing, use `forward()` instead.
-   *
    * @example
    * ```typescript
    * const model = new ClassificationModule();
@@ -57,6 +55,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   }
    * });
    * ```
+   * @returns A worklet function for frame processing, or null if the model is not loaded.
    */
   get runOnFrame(): ((frame: Frame, ...args: any[]) => TOutput) | null {
     if (!this.nativeModule) {
@@ -80,7 +79,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
         Currently isMirrored is never set to true in VisionCamera.
         That's why we need to use our own property to determine if we need
         to mirror the results
-        **/
+         */
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
@@ -104,11 +103,9 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    * This method is async and cannot be called in worklet context.
-   *
    * @param input - Image source (string path or PixelData object)
    * @param args - Additional model-specific arguments
    * @returns A Promise that resolves to the model output.
-   *
    * @example
    * ```typescript
    * // String path (async)

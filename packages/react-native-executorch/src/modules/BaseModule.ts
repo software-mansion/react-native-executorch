@@ -6,7 +6,6 @@ import { TensorPtr } from '../types/common';
  *
  * Provides core functionality for loading models, running inference,
  * and managing native resources.
- *
  * @category Base Classes
  */
 export abstract class BaseModule {
@@ -46,11 +45,9 @@ export abstract class BaseModule {
    *   }
    * });
    * ```
-   *
    * @param frameData Frame data object with either nativeBuffer (zero-copy) or data (ArrayBuffer)
    * @param args Additional model-specific arguments (e.g., threshold, options)
    * @returns Model-specific output (e.g., detections, classifications, embeddings)
-   *
    * @see {@link Frame} for frame data format details
    */
   public generateFromFrame!: (frameData: Frame, ...args: any[]) => any;
@@ -58,7 +55,6 @@ export abstract class BaseModule {
   /**
    * Runs the model's forward method with the given input tensors.
    * It returns the output tensors that mimic the structure of output from ExecuTorch.
-   *
    * @param inputTensor - Array of input tensors.
    * @returns Array of output tensors.
    * @internal
@@ -69,7 +65,6 @@ export abstract class BaseModule {
 
   /**
    * Gets the input shape for a given method and index.
-   *
    * @param methodName method name
    * @param index index of the argument which shape is requested
    * @returns The input shape as an array of numbers.

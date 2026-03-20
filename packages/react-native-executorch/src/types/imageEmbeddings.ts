@@ -3,7 +3,6 @@ import { ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Union of all built-in image embeddings model names.
- *
  * @category Types
  */
 export type ImageEmbeddingsModelName =
@@ -12,9 +11,8 @@ export type ImageEmbeddingsModelName =
 
 /**
  * Props for the `useImageEmbeddings` hook.
- *
  * @category Types
- * @property {Object} model - An object containing the model configuration.
+ * @property {object} model - An object containing the model configuration.
  * @property {ImageEmbeddingsModelName} model.modelName - Unique name identifying the model.
  * @property {ResourceSource} model.modelSource - The source of the image embeddings model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -27,7 +25,6 @@ export interface ImageEmbeddingsProps {
 /**
  * Return type for the `useImageEmbeddings` hook.
  * Manages the state and operations for generating image embeddings (feature vectors) used in Computer Vision tasks.
- *
  * @category Types
  */
 export interface ImageEmbeddingsType {
@@ -59,7 +56,6 @@ export interface ImageEmbeddingsType {
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
    * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
-   *
    * @param input - Image source (string or {@link PixelData} object)
    * @returns A Promise that resolves to a `Float32Array` containing the generated embedding vector.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
@@ -74,7 +70,6 @@ export interface ImageEmbeddingsType {
    * For async processing, use `forward()` instead.
    *
    * Available after model is loaded (`isReady: true`).
-   *
    * @param frame - VisionCamera Frame object
    * @returns Float32Array containing the embedding vector for the frame.
    */

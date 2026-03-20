@@ -10,7 +10,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for text-to-image generation tasks.
- *
  * @category Typescript API
  */
 export class TextToImageModule extends BaseModule {
@@ -29,11 +28,9 @@ export class TextToImageModule extends BaseModule {
 
   /**
    * Creates a Text to Image instance for a built-in model.
-   *
    * @param namedSources - An object specifying the model name, pipeline sources, and optional inference callback.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `TextToImageModule` instance.
-   *
    * @example
    * ```ts
    * import { TextToImageModule, BK_SDM_TINY_VPRED_512 } from 'react-native-executorch';
@@ -71,10 +68,8 @@ export class TextToImageModule extends BaseModule {
    * Creates a Text to Image instance with user-provided model binaries.
    * Use this when working with a custom-exported diffusion pipeline.
    * Internally uses `'custom'` as the model name for telemetry.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Refer to the native source code for the current expected tensor interface.
-   *
    * @param sources - An object containing the pipeline source paths.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @param inferenceCallback - Optional callback triggered after each diffusion step.
@@ -159,7 +154,6 @@ export class TextToImageModule extends BaseModule {
   /**
    * Runs the model to generate an image described by `input`, and conditioned by `seed`, performing `numSteps` inference steps.
    * The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returned as a base64-encoded string.
-   *
    * @param input - The text prompt to generate the image from.
    * @param imageSize - The desired width and height of the output image in pixels.
    * @param numSteps - The number of inference steps to perform.

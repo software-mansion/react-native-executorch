@@ -3,7 +3,6 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * Named Speech to Text model variants.
- *
  * @category Types
  */
 export type SpeechToTextModelName =
@@ -19,7 +18,6 @@ export type SpeechToTextModelName =
 
 /**
  * Configuration for Speech to Text model.
- *
  * @category Types
  */
 export interface SpeechToTextProps {
@@ -35,7 +33,6 @@ export interface SpeechToTextProps {
 
 /**
  * React hook for managing Speech to Text (STT) instance.
- *
  * @category Types
  */
 export interface SpeechToTextType {
@@ -120,7 +117,6 @@ export interface SpeechToTextType {
 
 /**
  * Languages supported by whisper (not whisper.en)
- *
  * @category Types
  */
 export type SpeechToTextLanguage =
@@ -202,7 +198,6 @@ export type SpeechToTextLanguage =
 
 /**
  * Options for decoding speech to text.
- *
  * @category Types
  * @property {SpeechToTextLanguage} [language] - Optional language code to guide the transcription.
  * @property {boolean} [verbose] - Optional flag. If set, transcription result is presented with timestamps
@@ -215,7 +210,6 @@ export interface DecodingOptions {
 
 /**
  * Structure that represent single token with timestamp information.
- *
  * @category Types
  * @property {string} [word] - Token as a string value.
  * @property {number} [start] - Timestamp of the beginning of the token in audio (in seconds).
@@ -229,7 +223,6 @@ export interface Word {
 
 /**
  * Structure that represent single Segment of transcription.
- *
  * @category Types
  * @property {number} [start] - Timestamp of the beginning of the segment in audio (in seconds).
  * @property {number} [end] - Timestamp of the end of the segment in audio (in seconds).
@@ -254,7 +247,6 @@ export interface TranscriptionSegment {
 
 /**
  * Structure that represent result of transcription for a one function call (either `transcribe` or `stream`).
- *
  * @category Types
  * @property {'transcribe' | 'stream'} [task] - String indicating task, either 'transcribe' or 'stream'.
  * @property {string} [language] - Language chosen for transcription.
@@ -273,7 +265,6 @@ export interface TranscriptionResult {
 
 /**
  * Configuration for Speech to Text model.
- *
  * @category Types
  */
 export interface SpeechToTextModelConfig {

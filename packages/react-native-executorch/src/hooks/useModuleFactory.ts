@@ -13,7 +13,8 @@ type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
  * Handles model loading, download progress, error state, and enforces the
  * not-loaded / already-generating guards so individual hooks only need to
  * define their typed `forward` wrapper.
- *
+ * @param props - Options object containing the factory function, config, deps array, and optional preventLoad flag.
+ * @returns An object with error, isReady, isGenerating, downloadProgress, runForward, instance, and runOnFrame.
  * @internal
  */
 export function useModuleFactory<M extends Deletable, Config>({

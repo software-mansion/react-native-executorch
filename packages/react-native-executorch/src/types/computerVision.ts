@@ -4,7 +4,6 @@ import { LabelEnum } from './common';
  * Given a model configs record (mapping model names to `{ labelMap }`) and a
  * type `T` (either a model name key or a raw {@link LabelEnum}), resolves to
  * the label map for that model or `T` itself.
- *
  * @internal
  */
 export type ResolveLabels<

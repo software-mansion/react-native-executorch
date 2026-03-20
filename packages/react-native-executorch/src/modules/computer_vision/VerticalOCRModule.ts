@@ -6,7 +6,6 @@ import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
 
 /**
  * Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
- *
  * @category Typescript API
  */
 export class VerticalOCRModule {
@@ -18,11 +17,9 @@ export class VerticalOCRModule {
 
   /**
    * Creates a Vertical OCR instance for a built-in model.
-   *
    * @param namedSources - An object specifying the model name, detector source, recognizer source, language, and optional independent characters flag.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `VerticalOCRModule` instance.
-   *
    * @example
    * ```ts
    * import { VerticalOCRModule, OCR_JAPANESE } from 'react-native-executorch';
@@ -59,10 +56,8 @@ export class VerticalOCRModule {
    * Creates a Vertical OCR instance with a user-provided model binary.
    * Use this when working with a custom-exported Vertical OCR model.
    * Internally uses `'custom'` as the model name for telemetry.
-   *
    * @remarks The native model contract for this method is not formally defined and may change
    * between releases. Refer to the native source code for the current expected tensor interface.
-   *
    * @param detectorSource - A fetchable resource pointing to the text detector model binary.
    * @param recognizerSource - A fetchable resource pointing to the text recognizer model binary.
    * @param language - The language for the OCR model.
@@ -91,7 +86,6 @@ export class VerticalOCRModule {
 
   /**
    * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   *
    * @param imageSource - The image source to be processed.
    * @returns The OCR result as a `OCRDetection[]`.
    */

@@ -38,6 +38,8 @@ export interface DisplayInstance {
  * Convert raw segmentation output into lightweight display instances.
  * Call this eagerly (in the forward callback) so raw Uint8Array masks
  * can be garbage-collected immediately.
+ * @param rawInstances - Array of raw segmentation instances with mask buffers to convert.
+ * @returns Array of lightweight {@link DisplayInstance} objects with pre-rendered Skia images.
  */
 export function buildDisplayInstances(
   rawInstances: {
