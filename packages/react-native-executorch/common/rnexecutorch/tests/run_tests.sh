@@ -34,6 +34,7 @@ TEST_EXECUTABLES=(
   "LLMTests"
   "TextToImageTests"
   "InstanceSegmentationTests"
+  "SemanticSegmentationTests"
   "OCRTests"
   "VerticalOCRTests"
 )
