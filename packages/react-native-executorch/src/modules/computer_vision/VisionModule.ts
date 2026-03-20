@@ -76,6 +76,11 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       let nativeBuffer: { pointer: bigint; release(): void } | null = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
+        /**
+        Currently isMirrored is nevert set to true in VisionCamera.
+        That's why we need to use our own property to determine if we need
+        to mirror the results
+        **/
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
           orientation: frame.orientation,
