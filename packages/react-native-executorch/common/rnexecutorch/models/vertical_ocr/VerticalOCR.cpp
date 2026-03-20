@@ -6,6 +6,7 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
@@ -55,6 +56,7 @@ VerticalOCR::generateFromString(std::string input) {
 std::vector<types::OCRDetection>
 VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
                                const jsi::Value &frameData) {
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
   cv::Mat bgr;
 #ifdef __APPLE__
@@ -66,7 +68,13 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
       RnExecutorchErrorCode::PlatformNotSupported,
       "generateFromFrame is not supported on this platform");
 #endif
-  return runInference(bgr);
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
+  auto detections = runInference(rotated);
+  for (auto &det : detections) {
+    ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
+                                               rotated.size());
+  }
+  return detections;
 }
 
 std::vector<types::OCRDetection>

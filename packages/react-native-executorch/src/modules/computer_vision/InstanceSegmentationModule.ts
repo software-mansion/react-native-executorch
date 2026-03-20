@@ -1,4 +1,9 @@
-import { ResourceSource, LabelEnum, PixelData } from '../../types/common';
+import {
+  ResourceSource,
+  LabelEnum,
+  PixelData,
+  Frame,
+} from '../../types/common';
 import {
   InstanceSegmentationModelSources,
   InstanceSegmentationConfig,
@@ -283,7 +288,8 @@ export class InstanceSegmentationModule<
    */
   override get runOnFrame():
     | ((
-        frame: any,
+        frame: Frame,
+        isFrontCamera: boolean,
         options?: InstanceSegmentationOptions<ResolveLabels<T>>
       ) => SegmentedInstance<ResolveLabels<T>>[])
     | null {
@@ -309,7 +315,8 @@ export class InstanceSegmentationModule<
     const defaultInputSize = this.modelConfig.defaultInputSize;
 
     return (
-      frame: any,
+      frame: Frame,
+      isFrontCamera: boolean,
       options?: InstanceSegmentationOptions<ResolveLabels<T>>
     ): SegmentedInstance<ResolveLabels<T>>[] => {
       'worklet';
@@ -335,6 +342,7 @@ export class InstanceSegmentationModule<
 
       const nativeResults = baseRunOnFrame(
         frame,
+        isFrontCamera,
         confidenceThreshold,
         iouThreshold,
         maxInstances,

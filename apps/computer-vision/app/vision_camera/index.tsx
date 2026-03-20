@@ -32,12 +32,16 @@ import ClassificationTask from '../../components/vision_camera/tasks/Classificat
 import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
 import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
 import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
+import OCRTask from '../../components/vision_camera/tasks/OCRTask';
+import StyleTransferTask from '../../components/vision_camera/tasks/StyleTransferTask';
 
 type TaskId =
   | 'classification'
   | 'objectDetection'
   | 'segmentation'
-  | 'instanceSegmentation';
+  | 'instanceSegmentation'
+  | 'ocr'
+  | 'styleTransfer';
 type ModelId =
   | 'classification'
   | 'objectDetectionSsdlite'
@@ -50,7 +54,10 @@ type ModelId =
   | 'segmentationFcnResnet101'
   | 'segmentationSelfie'
   | 'instanceSegmentationYolo26n'
-  | 'instanceSegmentationRfdetr';
+  | 'instanceSegmentationRfdetr'
+  | 'ocr'
+  | 'styleTransferCandy'
+  | 'styleTransferMosaic';
 
 type TaskVariant = { id: ModelId; label: string };
 type Task = { id: TaskId; label: string; variants: TaskVariant[] };
@@ -90,11 +97,25 @@ const TASKS: Task[] = [
       { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
     ],
   },
+  {
+    id: 'ocr',
+    label: 'OCR',
+    variants: [{ id: 'ocr', label: 'English' }],
+  },
+  {
+    id: 'styleTransfer',
+    label: 'Style',
+    variants: [
+      { id: 'styleTransferCandy', label: 'Candy' },
+      { id: 'styleTransferMosaic', label: 'Mosaic' },
+    ],
+  },
 ];
 
-// Module-level const so worklets in task components can always reference the same stable object.
+// Module-level consts so worklets in task components can always reference the same stable objects.
 // Never replaced — only mutated via setBlocking to avoid closure staleness.
 const frameKillSwitch = createSynchronizable(false);
+const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
 
 export default function VisionCameraScreen() {
   const insets = useSafeAreaInsets();
@@ -121,7 +142,7 @@ export default function VisionCameraScreen() {
   const format = useMemo(() => {
     if (device == null) return undefined;
     try {
-      return getCameraFormat(device, Templates.FrameProcessing);
+      return getCameraFormat(device, { ...Templates.FrameProcessing });
     } catch {
       return undefined;
     }
@@ -134,6 +155,10 @@ export default function VisionCameraScreen() {
     }, 300);
     return () => clearTimeout(id);
   }, [activeModel]);
+
+  useEffect(() => {
+    cameraPositionSync.setBlocking(cameraPosition);
+  }, [cameraPosition]);
 
   const handleFpsChange = useCallback((newFps: number, newMs: number) => {
     setFps(newFps);
@@ -177,7 +202,7 @@ export default function VisionCameraScreen() {
   const taskProps = {
     activeModel,
     canvasSize,
-    cameraPosition,
+    cameraPositionSync,
     frameKillSwitch,
     onFrameOutputChange: setFrameOutput,
     onReadyChange: setIsReady,
@@ -196,7 +221,7 @@ export default function VisionCameraScreen() {
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         format={format}
-        orientationSource="interface"
+        orientationSource="device"
       />
 
       {/* Layout sentinel — measures the full-screen area for bbox/canvas sizing */}
@@ -242,6 +267,15 @@ export default function VisionCameraScreen() {
             activeModel as
               | 'instanceSegmentationYolo26n'
               | 'instanceSegmentationRfdetr'
+          }
+        />
+      )}
+      {activeTask === 'ocr' && <OCRTask {...taskProps} />}
+      {activeTask === 'styleTransfer' && (
+        <StyleTransferTask
+          {...taskProps}
+          activeModel={
+            activeModel as 'styleTransferCandy' | 'styleTransferMosaic'
           }
         />
       )}

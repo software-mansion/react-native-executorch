@@ -18,7 +18,7 @@ type Props = TaskProps & { activeModel: ObjModelId };
 export default function ObjectDetectionTask({
   activeModel,
   canvasSize,
-  cameraPosition,
+  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -70,6 +70,8 @@ export default function ObjectDetectionTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
+
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -79,23 +81,26 @@ export default function ObjectDetectionTask({
         }
         try {
           if (!detRof) return;
-          const iw = frame.width > frame.height ? frame.height : frame.width;
-          const ih = frame.width > frame.height ? frame.width : frame.height;
-          const result = detRof(frame, 0.5);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = detRof(frame, isFrontCamera, 0.5);
+          // Sensor frames are landscape-native, so width/height are swapped
+          // relative to portrait screen orientation.
+          const screenW = frame.height;
+          const screenH = frame.width;
           if (result) {
             scheduleOnRN(updateDetections, {
               results: result,
-              imageWidth: iw,
-              imageHeight: ih,
+              imageWidth: screenW,
+              imageHeight: screenH,
             });
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }
       },
-      [detRof, frameKillSwitch, updateDetections]
+      [cameraPositionSync, detRof, frameKillSwitch, updateDetections]
     ),
   });
 
@@ -111,13 +116,7 @@ export default function ObjectDetectionTask({
   const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
 
   return (
-    <View
-      style={[
-        StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-      ]}
-      pointerEvents="none"
-    >
+    <View style={[StyleSheet.absoluteFill]} pointerEvents="none">
       {detections.map((det, i) => {
         const left = det.bbox.x1 * scale + offsetX;
         const top = det.bbox.y1 * scale + offsetY;
@@ -141,7 +140,6 @@ export default function ObjectDetectionTask({
               style={[
                 styles.bboxLabel,
                 { backgroundColor: labelColorBg(det.label) },
-                cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
               ]}
             >
               <Text style={styles.bboxLabelText}>

@@ -37,7 +37,7 @@ type Props = TaskProps & { activeModel: SegModelId };
 export default function SegmentationTask({
   activeModel,
   canvasSize,
-  cameraPosition,
+  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -139,6 +139,7 @@ export default function SegmentationTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -148,11 +149,23 @@ export default function SegmentationTask({
         }
         try {
           if (!segRof) return;
-          const result = segRof(frame, [], false);
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = segRof(frame, isFrontCamera, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
-            const side = Math.round(Math.sqrt(argmax.length));
-            const pixels = new Uint8Array(side * side * 4);
+            // Sensor frames are landscape-native, so width/height are swapped
+            // relative to portrait screen orientation.
+            const screenW = frame.height;
+            const screenH = frame.width;
+            const maskW =
+              argmax.length === screenW * screenH
+                ? screenW
+                : Math.round(Math.sqrt(argmax.length));
+            const maskH =
+              argmax.length === screenW * screenH
+                ? screenH
+                : Math.round(Math.sqrt(argmax.length));
+            const pixels = new Uint8Array(maskW * maskH * 4);
             for (let i = 0; i < argmax.length; i++) {
               const color = colors[argmax[i]!] ?? [0, 0, 0, 0];
               pixels[i * 4] = color[0]!;
@@ -163,23 +176,23 @@ export default function SegmentationTask({
             const skData = Skia.Data.fromBytes(pixels);
             const img = Skia.Image.MakeImage(
               {
-                width: side,
-                height: side,
+                width: maskW,
+                height: maskH,
                 alphaType: AlphaType.Unpremul,
                 colorType: ColorType.RGBA_8888,
               },
               skData,
-              side * 4
+              maskW * 4
             );
             if (img) scheduleOnRN(updateMask, img);
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }
       },
-      [colors, frameKillSwitch, segRof, updateMask]
+      [cameraPositionSync, colors, frameKillSwitch, segRof, updateMask]
     ),
   });
 
@@ -190,13 +203,7 @@ export default function SegmentationTask({
   if (!maskImage) return null;
 
   return (
-    <View
-      style={[
-        StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-      ]}
-      pointerEvents="none"
-    >
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Canvas style={StyleSheet.absoluteFill}>
         <SkiaImage
           image={maskImage}

@@ -7,6 +7,7 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
 
 namespace rnexecutorch::models::object_detection {
@@ -138,8 +139,14 @@ std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
                                    double detectionThreshold) {
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-  return runInference(frame, detectionThreshold);
+  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
+  auto detections = runInference(rotated, detectionThreshold);
+  for (auto &det : detections) {
+    ::rnexecutorch::utils::inverseRotateBbox(det.bbox, orient, rotated.size());
+  }
+  return detections;
 }
 
 std::vector<types::Detection>

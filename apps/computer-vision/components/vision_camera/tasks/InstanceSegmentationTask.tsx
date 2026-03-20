@@ -27,7 +27,7 @@ type Props = TaskProps & { activeModel: InstSegModelId };
 export default function InstanceSegmentationTask({
   activeModel,
   canvasSize,
-  cameraPosition,
+  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -96,6 +96,7 @@ export default function InstanceSegmentationTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -105,9 +106,10 @@ export default function InstanceSegmentationTask({
         }
         try {
           if (!instSegRof) return;
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
           const iw = frame.width > frame.height ? frame.height : frame.width;
           const ih = frame.width > frame.height ? frame.width : frame.height;
-          const result = instSegRof(frame, {
+          const result = instSegRof(frame, isFrontCamera, {
             confidenceThreshold: 0.5,
             iouThreshold: 0.5,
             maxInstances: 5,
@@ -129,7 +131,13 @@ export default function InstanceSegmentationTask({
           frame.dispose();
         }
       },
-      [instSegRof, frameKillSwitch, updateInstances, activeModel]
+      [
+        instSegRof,
+        frameKillSwitch,
+        updateInstances,
+        activeModel,
+        cameraPositionSync,
+      ]
     ),
   });
 
@@ -145,13 +153,7 @@ export default function InstanceSegmentationTask({
   const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
 
   return (
-    <View
-      style={[
-        StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-      ]}
-      pointerEvents="none"
-    >
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {/* Render masks */}
       <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
         {instances.map((inst, i) => {
@@ -197,7 +199,6 @@ export default function InstanceSegmentationTask({
               style={[
                 styles.bboxLabel,
                 { backgroundColor: labelColorBg(label) },
-                cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
               ]}
             >
               <Text style={styles.bboxLabelText}>

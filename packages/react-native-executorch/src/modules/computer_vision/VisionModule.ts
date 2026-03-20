@@ -52,7 +52,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   onFrame(frame) {
    *     'worklet';
    *     if (!runOnFrame) return;
-   *     const result = runOnFrame(frame);
+   *     const result = runOnFrame(frame, isFrontCamera);
    *     frame.dispose();
    *   }
    * });
@@ -70,13 +70,22 @@ export abstract class VisionModule<TOutput> extends BaseModule {
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
     // Return worklet that captures ONLY the JSI function
-    return (frame: any, ...args: any[]): TOutput => {
+    return (frame: Frame, isFrontCamera: boolean, ...args: any[]): TOutput => {
       'worklet';
 
-      let nativeBuffer: any = null;
+      let nativeBuffer: { pointer: bigint; release(): void } | null = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
-        const frameData = { nativeBuffer: nativeBuffer.pointer };
+        /**
+        Currently isMirrored is never set to true in VisionCamera.
+        That's why we need to use our own property to determine if we need
+        to mirror the results
+        **/
+        const frameData = {
+          nativeBuffer: nativeBuffer.pointer,
+          orientation: frame.orientation,
+          isMirrored: isFrontCamera,
+        };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {
         if (nativeBuffer?.release) {

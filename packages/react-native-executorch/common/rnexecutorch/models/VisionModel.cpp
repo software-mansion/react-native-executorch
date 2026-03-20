@@ -2,6 +2,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch::models {
 

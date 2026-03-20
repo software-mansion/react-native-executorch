@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch {
 namespace models {

@@ -5,7 +5,10 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { EFFICIENTNET_V2_S, useClassification } from 'react-native-executorch';
 import { TaskProps } from './types';
 
-type Props = Omit<TaskProps, 'activeModel' | 'canvasSize' | 'cameraPosition'>;
+type Props = Omit<
+  TaskProps,
+  'activeModel' | 'canvasSize' | 'cameraPositionSync'
+>;
 
 export default function ClassificationTask({
   frameKillSwitch,
@@ -47,6 +50,7 @@ export default function ClassificationTask({
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    enablePreviewSizedOutputBuffers: true,
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
@@ -71,7 +75,7 @@ export default function ClassificationTask({
             scheduleOnRN(updateClass, { label: bestLabel, score: bestScore });
           }
         } catch {
-          // ignore
+          // Frame may be disposed before processing completes — transient, safe to ignore.
         } finally {
           frame.dispose();
         }

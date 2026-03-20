@@ -37,10 +37,12 @@ Use `runOnFrame` when you need to process every camera frame. Use `forward` for 
 
 ## How it works
 
-VisionCamera v5 delivers frames via [`useFrameOutput`](https://react-native-vision-camera-v5-docs.vercel.app/docs/frame-output). Inside the `onFrame` worklet you call `runOnFrame(frame)` synchronously, then use `scheduleOnRN` from `react-native-worklets` to post the result back to React state on the main thread.
+VisionCamera v5 delivers frames via [`useFrameOutput`](https://react-native-vision-camera-v5-docs.vercel.app/docs/frame-output). Inside the `onFrame` worklet you call `runOnFrame(frame, isFrontCamera)` synchronously, then use `scheduleOnRN` from `react-native-worklets` to post the result back to React state on the main thread.
+
+The `isFrontCamera` parameter tells the native side whether the front camera is active so it can correctly mirror the results. The library handles all device orientation rotation internally — results are always returned in screen-space coordinates regardless of how the user holds their device.
 
 :::warning
-You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeline expect RGB pixel data — any other format (e.g. the default `yuv`) will produce incorrect results.
+You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeline expects RGB pixel data — any other format (e.g. the default `yuv`) will produce incorrect results.
 :::
 
 :::warning
@@ -51,11 +53,27 @@ You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeli
 Always call `frame.dispose()` after processing to release the frame buffer. Wrap your inference in a `try/finally` to ensure it's always called even if `runOnFrame` throws.
 :::
 
-## Full example (Classification)
+## Camera configuration
+
+The `Camera` component requires specific props for correct orientation handling:
 
 ```tsx
-import { useState, useCallback } from 'react';
-import { Text, StyleSheet } from 'react-native';
+<Camera
+  device={device}
+  outputs={[frameOutput]}
+  isActive
+  orientationSource="device"
+/>
+```
+
+- **`orientationSource="device"`** — ensures frame orientation metadata reflects the physical device orientation, which the library uses to rotate model inputs and outputs correctly.
+- **Do not set `enablePhysicalBufferRotation`** — this prop must remain `false` (the default). If enabled, VisionCamera pre-rotates the pixel buffer, which conflicts with the library's own orientation handling and produces incorrect results.
+
+## Full example (Object Detection)
+
+```tsx
+import { useState, useCallback, useRef } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
 import {
   Camera,
   Frame,
@@ -64,17 +82,24 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
+import {
+  Detection,
+  useObjectDetection,
+  SSDLITE_320_MOBILENET_V3_LARGE,
+} from 'react-native-executorch';
 
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const devices = useCameraDevices();
   const device = devices.find((d) => d.position === 'back');
-  const model = useClassification({ model: EFFICIENTNET_V2_S });
-  const [topLabel, setTopLabel] = useState('');
+  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const [detections, setDetections] = useState<Detection[]>([]);
 
-  // Extract runOnFrame so it can be captured by the useCallback dependency array
-  const runOnFrame = model.runOnFrame;
+  const detRof = model.runOnFrame;
+
+  const updateDetections = useCallback((results: Detection[]) => {
+    setDetections(results);
+  }, []);
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
@@ -82,25 +107,18 @@ export default function App() {
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
-        if (!runOnFrame) return;
         try {
-          const scores = runOnFrame(frame);
-          if (scores) {
-            let best = '';
-            let bestScore = -1;
-            for (const [label, score] of Object.entries(scores)) {
-              if ((score as number) > bestScore) {
-                bestScore = score as number;
-                best = label;
-              }
-            }
-            scheduleOnRN(setTopLabel, best);
+          if (!detRof) return;
+          const isFrontCamera = false; // using back camera
+          const result = detRof(frame, isFrontCamera, 0.5);
+          if (result) {
+            scheduleOnRN(updateDetections, result);
           }
         } finally {
           frame.dispose();
         }
       },
-      [runOnFrame]
+      [detRof, updateDetections]
     ),
   });
 
@@ -112,28 +130,78 @@ export default function App() {
   if (!device) return null;
 
   return (
-    <>
+    <View style={styles.container}>
       <Camera
-        style={styles.camera}
+        style={StyleSheet.absoluteFill}
         device={device}
         outputs={[frameOutput]}
         isActive
+        orientationSource="device"
       />
-      <Text style={styles.label}>{topLabel}</Text>
-    </>
+      {detections.map((det, i) => (
+        <Text key={i} style={styles.label}>
+          {det.label} {(det.score * 100).toFixed(1)}%
+        </Text>
+      ))}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  camera: { flex: 1 },
+  container: { flex: 1 },
   label: {
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
     color: 'white',
-    fontSize: 20,
+    fontSize: 16,
   },
 });
+```
+
+For a complete example showing how to render bounding boxes, segmentation masks, OCR overlays, and style transfer results on top of the camera preview, see the [example app's VisionCamera tasks](https://github.com/software-mansion/react-native-executorch/tree/main/apps/computer-vision/components/vision_camera).
+
+## Handling front/back camera
+
+When switching between front and back cameras, you need to pass the correct `isFrontCamera` value to `runOnFrame`. Since worklets cannot read React state directly, use a `Synchronizable` from `react-native-worklets`:
+
+```tsx
+import { createSynchronizable } from 'react-native-worklets';
+
+// Create outside the component so it's stable across renders
+const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
+
+export default function App() {
+  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
+    'back'
+  );
+
+  // Keep the synchronizable in sync with React state
+  useEffect(() => {
+    cameraPositionSync.setBlocking(cameraPosition);
+  }, [cameraPosition]);
+
+  const frameOutput = useFrameOutput({
+    pixelFormat: 'rgb',
+    dropFramesWhileBusy: true,
+    onFrame: useCallback(
+      (frame: Frame) => {
+        'worklet';
+        try {
+          if (!runOnFrame) return;
+          const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const result = runOnFrame(frame, isFrontCamera);
+          // ... handle result
+        } finally {
+          frame.dispose();
+        }
+      },
+      [runOnFrame]
+    ),
+  });
+
+  // ...
+}
 ```
 
 ## Using the Module API
@@ -154,6 +222,7 @@ export default function App() {
   const [runOnFrame, setRunOnFrame] = useState<typeof module.runOnFrame | null>(
     null
   );
+  const [topLabel, setTopLabel] = useState('');
 
   useEffect(() => {
     module.load(EFFICIENTNET_V2_S).then(() => {
@@ -171,8 +240,9 @@ export default function App() {
         'worklet';
         if (!runOnFrame) return;
         try {
-          const result = runOnFrame(frame);
-          if (result) scheduleOnRN(setResult, result);
+          const isFrontCamera = false;
+          const result = runOnFrame(frame, isFrontCamera);
+          if (result) scheduleOnRN(setTopLabel, 'detected');
         } finally {
           frame.dispose();
         }
@@ -181,28 +251,45 @@ export default function App() {
     ),
   });
 
-  return <Camera outputs={[frameOutput]} isActive device={device} />;
+  return (
+    <Camera
+      outputs={[frameOutput]}
+      isActive
+      device={device}
+      orientationSource="device"
+    />
+  );
 }
 ```
 
 ## Common issues
 
-### Results look wrong or scrambled
+#### Bounding boxes or masks are rotated / misaligned
+
+Make sure you have set `orientationSource="device"` on the `Camera` component. Without it, the frame orientation metadata won't match the actual device orientation, causing misaligned results.
+
+Also verify that `enablePhysicalBufferRotation` is **not** set to `true` — this conflicts with the library's orientation handling.
+
+#### Results look wrong or scrambled
 
 You forgot to set `pixelFormat: 'rgb'`. The default VisionCamera pixel format is `yuv` — our frame extraction works only with RGB data.
 
-### App freezes or camera drops frames
+#### Results are mirrored on front camera
+
+You are not passing `isFrontCamera: true` when using the front camera. See [Handling front/back camera](#handling-frontback-camera) above.
+
+#### App freezes or camera drops frames
 
 Your model's inference time exceeds the frame interval. Enable `dropFramesWhileBusy: true` in `useFrameOutput`, or move inference off the worklet thread using VisionCamera's [async frame processing](https://react-native-vision-camera-v5-docs.vercel.app/docs/async-frame-processing).
 
-### Memory leak / crash after many frames
+#### Memory leak / crash after many frames
 
 You are not calling `frame.dispose()`. Always dispose the frame in a `finally` block.
 
-### `runOnFrame` is always null
+#### `runOnFrame` is always null
 
 The model hasn't finished loading yet. Guard with `if (!runOnFrame) return` inside `onFrame`, or check `model.isReady` before enabling the camera.
 
-### TypeError: `module.runOnFrame` is not a function (Module API)
+#### TypeError: `module.runOnFrame` is not a function (Module API)
 
 You passed `module.runOnFrame` directly to `setState` instead of `() => module.runOnFrame`. React invoked it as a state initializer — see the [Module API section](#using-the-module-api) above.

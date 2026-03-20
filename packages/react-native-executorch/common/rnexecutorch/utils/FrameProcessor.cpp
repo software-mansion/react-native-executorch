@@ -28,15 +28,30 @@ cv::Mat extractFrame(jsi::Runtime &runtime, const jsi::Object &frameData) {
 
 cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = extractFrame(runtime, frameObj);
+  return extractFrame(runtime, frameObj);
+}
 
-  // Camera sensors deliver landscape frames; rotate to portrait orientation.
-  if (frame.cols > frame.rows) {
-    cv::Mat upright;
-    cv::rotate(frame, upright, cv::ROTATE_90_CLOCKWISE);
-    return upright;
+FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
+                                      const jsi::Value &frameData) {
+  auto obj = frameData.asObject(runtime);
+
+  std::string orientStr = "up";
+  if (obj.hasProperty(runtime, "orientation")) {
+    auto val = obj.getProperty(runtime, "orientation");
+    if (val.isString()) {
+      orientStr = val.getString(runtime).utf8(runtime);
+    }
   }
-  return frame;
+
+  bool isMirrored = false;
+  if (obj.hasProperty(runtime, "isMirrored")) {
+    auto val = obj.getProperty(runtime, "isMirrored");
+    if (val.isBool()) {
+      isMirrored = val.getBool();
+    }
+  }
+
+  return {orientationFromString(orientStr), isMirrored};
 }
 
 cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {

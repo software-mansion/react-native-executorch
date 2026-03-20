@@ -4,7 +4,7 @@ import { createSynchronizable } from 'react-native-worklets';
 export type TaskProps = {
   activeModel: string;
   canvasSize: { width: number; height: number };
-  cameraPosition: 'front' | 'back';
+  cameraPositionSync: ReturnType<typeof createSynchronizable<'front' | 'back'>>;
   frameKillSwitch: ReturnType<typeof createSynchronizable<boolean>>;
   onFrameOutputChange: (frameOutput: ReturnType<typeof useFrameOutput>) => void;
   onReadyChange: (isReady: boolean) => void;

@@ -1,6 +1,8 @@
 #include "StyleTransfer.h"
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
@@ -81,9 +83,12 @@ StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
 
 PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
-
-  return toPixelDataResult(runInference(frame, modelInputSize()));
+  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  cv::Mat output = runInference(rotated, modelInputSize());
+  cv::Mat oriented = utils::inverseRotateMat(output, orient);
+  return toPixelDataResult(oriented);
 }
 
 StyleTransferResult StyleTransfer::generateFromPixels(JSTensorViewIn pixelData,

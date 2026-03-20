@@ -17,7 +17,7 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [runOnFrame, setRunOnFrame] = useState<
-    ((frame: Frame) => OCRDetection[]) | null
+    ((frame: Frame, isFrontCamera: boolean) => OCRDetection[]) | null
   >(null);
 
   const [controller] = useState(
@@ -35,12 +35,17 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
 
     if (preventLoad) return;
 
-    controller.load(
-      model.detectorSource,
-      model.recognizerSource,
-      model.language,
-      setDownloadProgress
-    );
+    controller
+      .load(
+        model.detectorSource,
+        model.recognizerSource,
+        model.language,
+        setDownloadProgress
+      )
+      .then(() => {
+        const worklet = controller.runOnFrame;
+        if (worklet) setRunOnFrame(() => worklet);
+      });
 
     return () => {
       setRunOnFrame(null);
@@ -56,21 +61,6 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
     model.language,
     preventLoad,
   ]);
-
-  useEffect(() => {
-    if (isReady) {
-      try {
-        const worklet = controller.runOnFrame;
-        if (worklet) {
-          setRunOnFrame(() => worklet);
-        }
-      } catch {
-        // runOnFrame not available
-      }
-    } else {
-      setRunOnFrame(null);
-    }
-  }, [controller, isReady]);
 
   const forward = useCallback(
     (imageSource: string | PixelData): Promise<OCRDetection[]> =>

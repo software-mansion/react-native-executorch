@@ -136,9 +136,10 @@ export interface OCRType {
    * Available after model is loaded (`isReady: true`).
    *
    * @param frame - VisionCamera Frame object
+   * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @returns Array of OCRDetection results for the frame.
    */
-  runOnFrame: ((frame: Frame) => OCRDetection[]) | null;
+  runOnFrame: ((frame: Frame, isFrontCamera: boolean) => OCRDetection[]) | null;
 }
 
 /**

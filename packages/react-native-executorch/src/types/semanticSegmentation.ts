@@ -177,6 +177,7 @@ export interface SemanticSegmentationType<L extends LabelEnum> {
    * Available after model is loaded (`isReady: true`).
    *
    * @param frame - VisionCamera Frame object
+   * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
    * @param classesOfInterest - Labels for which to return per-class probability masks.
    * @param resizeToInput - Whether to resize masks to original frame dimensions. Defaults to `true`.
    * @returns Object with `ARGMAX` Int32Array and per-class Float32Array masks.
@@ -184,6 +185,7 @@ export interface SemanticSegmentationType<L extends LabelEnum> {
   runOnFrame:
     | ((
         frame: Frame,
+        isFrontCamera: boolean,
         classesOfInterest?: string[],
         resizeToInput?: boolean
       ) => Record<'ARGMAX', Int32Array> & Record<string, Float32Array>)
