@@ -43,11 +43,21 @@ processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
 :::
 
+:::warning
+Times presented in the tables are measured for forward method with input size equal to 512. Other input sizes may yield slower or faster inference times.
+:::
+
 | Model / Device                                | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
 | :-------------------------------------------- | :----------------: | :------------------: |
 | SSDLITE_320_MOBILENET_V3_LARGE (XNNPACK FP32) |         20         |          18          |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP32) |         18         |          -           |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP16) |         8          |          -           |
+| RF_DETR_NANO (XNNPACK FP32)                   |        TBD         |         TBD          |
+| YOLO26N (XNNPACK FP32)                        |        TBD         |         TBD          |
+| YOLO26S (XNNPACK FP32)                        |        TBD         |         TBD          |
+| YOLO26M (XNNPACK FP32)                        |        TBD         |         TBD          |
+| YOLO26L (XNNPACK FP32)                        |        TBD         |         TBD          |
+| YOLO26X (XNNPACK FP32)                        |        TBD         |         TBD          |
 
 ## Style Transfer
 
