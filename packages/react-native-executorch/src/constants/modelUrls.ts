@@ -470,6 +470,53 @@ export const RF_DETR_NANO = {
   modelSource: RF_DETR_NANO_MODEL,
 } as const;
 
+// YOLO26 Object Detection
+const YOLO26N_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${NEXT_VERSION_TAG}/yolo26n/xnnpack/yolo26n.pte`;
+const YOLO26S_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${NEXT_VERSION_TAG}/yolo26s/xnnpack/yolo26s.pte`;
+const YOLO26M_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${NEXT_VERSION_TAG}/yolo26m/xnnpack/yolo26m.pte`;
+const YOLO26L_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${NEXT_VERSION_TAG}/yolo26l/xnnpack/yolo26l.pte`;
+const YOLO26X_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${NEXT_VERSION_TAG}/yolo26x/xnnpack/yolo26x.pte`;
+
+/**
+ * @category Models - Object Detection
+ */
+export const YOLO26N = {
+  modelName: 'yolo26n',
+  modelSource: YOLO26N_DETECTION_MODEL,
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const YOLO26S = {
+  modelName: 'yolo26s',
+  modelSource: YOLO26S_DETECTION_MODEL,
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const YOLO26M = {
+  modelName: 'yolo26m',
+  modelSource: YOLO26M_DETECTION_MODEL,
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const YOLO26L = {
+  modelName: 'yolo26l',
+  modelSource: YOLO26L_DETECTION_MODEL,
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const YOLO26X = {
+  modelName: 'yolo26x',
+  modelSource: YOLO26X_DETECTION_MODEL,
+} as const;
+
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =
   Platform.OS === `ios`

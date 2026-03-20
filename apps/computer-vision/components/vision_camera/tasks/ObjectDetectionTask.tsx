@@ -6,12 +6,16 @@ import {
   Detection,
   RF_DETR_NANO,
   SSDLITE_320_MOBILENET_V3_LARGE,
+  YOLO26N,
   useObjectDetection,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
 import { TaskProps } from './types';
 
-type ObjModelId = 'objectDetectionSsdlite' | 'objectDetectionRfdetr';
+type ObjModelId =
+  | 'objectDetectionSsdlite'
+  | 'objectDetectionRfdetr'
+  | 'objectDetectionYolo26n';
 
 type Props = TaskProps & { activeModel: ObjModelId };
 
@@ -35,8 +39,17 @@ export default function ObjectDetectionTask({
     model: RF_DETR_NANO,
     preventLoad: activeModel !== 'objectDetectionRfdetr',
   });
+  const yolo26n = useObjectDetection({
+    model: YOLO26N,
+    preventLoad: activeModel !== 'objectDetectionYolo26n',
+  });
 
-  const active = activeModel === 'objectDetectionSsdlite' ? ssdlite : rfdetr;
+  const active =
+    activeModel === 'objectDetectionSsdlite'
+      ? ssdlite
+      : activeModel === 'objectDetectionRfdetr'
+        ? rfdetr
+        : yolo26n;
 
   const [detections, setDetections] = useState<Detection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });

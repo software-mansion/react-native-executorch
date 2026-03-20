@@ -33,13 +33,35 @@ export interface Detection<L extends LabelEnum = typeof CocoLabel> {
 }
 
 /**
+ * Options for configuring object detection inference.
+ *
+ * @category Types
+ * @typeParam L - The label enum type for filtering classes of interest.
+ * @property {number} [detectionThreshold] - Minimum confidence score for detections (0-1). Defaults to model-specific value.
+ * @property {number} [iouThreshold] - IoU threshold for non-maximum suppression (0-1). Defaults to model-specific value.
+ * @property {number} [inputSize] - Input size for multi-method models (e.g., 384, 512, 640 for YOLO). Required for YOLO models if not using default.
+ * @property {(keyof L)[]} [classesOfInterest] - Optional array of class labels to filter detections. Only detections matching these classes will be returned.
+ */
+export interface ObjectDetectionOptions<L extends LabelEnum> {
+  detectionThreshold?: number;
+  iouThreshold?: number;
+  inputSize?: number;
+  classesOfInterest?: (keyof L)[];
+}
+
+/**
  * Per-model config for {@link ObjectDetectionModule.fromModelName}.
  * Each model name maps to its required fields.
  * @category Types
  */
 export type ObjectDetectionModelSources =
   | { modelName: 'ssdlite-320-mobilenet-v3-large'; modelSource: ResourceSource }
-  | { modelName: 'rf-detr-nano'; modelSource: ResourceSource };
+  | { modelName: 'rf-detr-nano'; modelSource: ResourceSource }
+  | { modelName: 'yolo26n'; modelSource: ResourceSource }
+  | { modelName: 'yolo26s'; modelSource: ResourceSource }
+  | { modelName: 'yolo26m'; modelSource: ResourceSource }
+  | { modelName: 'yolo26l'; modelSource: ResourceSource }
+  | { modelName: 'yolo26x'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in object detection model names.
@@ -50,11 +72,29 @@ export type ObjectDetectionModelName = ObjectDetectionModelSources['modelName'];
 /**
  * Configuration for a custom object detection model.
  * @category Types
+ * @typeParam T - The label enum type for the model.
+ * @property {T} labelMap - The label mapping for the model.
+ * @property {object} [preprocessorConfig] - Optional preprocessing configuration with normalization parameters.
+ * @property {number} [defaultDetectionThreshold] - Default detection confidence threshold (0-1).
+ * @property {number} [defaultIouThreshold] - Default IoU threshold for non-maximum suppression (0-1).
+ * @property {readonly number[]} [availableInputSizes] - For multi-method models, the available input sizes (e.g., [384, 512, 640]).
+ * @property {number} [defaultInputSize] - For multi-method models, the default input size to use.
  */
 export type ObjectDetectionConfig<T extends LabelEnum> = {
   labelMap: T;
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
-};
+  defaultDetectionThreshold?: number;
+  defaultIouThreshold?: number;
+} & (
+  | {
+      availableInputSizes: readonly number[];
+      defaultInputSize: number;
+    }
+  | {
+      availableInputSizes?: undefined;
+      defaultInputSize?: undefined;
+    }
+);
 
 /**
  * Props for the `useObjectDetection` hook.
@@ -98,26 +138,43 @@ export interface ObjectDetectionType<L extends LabelEnum> {
   /**
    * Executes the model's forward pass with automatic input type detection.
    * @param input - Image source (string path/URI or PixelData object)
-   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.7.
+   * @param options - Optional configuration for detection inference
    * @returns A Promise that resolves to an array of `Detection` objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    * @example
    * ```typescript
-   * // String path
-   * const detections1 = await model.forward('file:///path/to/image.jpg');
+   * // String path with options
+   * const detections1 = await model.forward('file:///path/to/image.jpg', {
+   *   detectionThreshold: 0.7,
+   *   inputSize: 640,  // For YOLO models
+   *   classesOfInterest: ['PERSON', 'CAR']
+   * });
    *
    * // Pixel data
    * const detections2 = await model.forward({
    *   dataPtr: new Uint8Array(rgbPixels),
    *   sizes: [480, 640, 3],
    *   scalarType: ScalarType.BYTE
-   * });
+   * }, { detectionThreshold: 0.5 });
    * ```
    */
   forward: (
     input: string | PixelData,
-    detectionThreshold?: number
+    options?: ObjectDetectionOptions<L>
   ) => Promise<Detection<L>[]>;
+
+  /**
+   * Returns the available input sizes for multi-method models (e.g., YOLO).
+   * Returns undefined for single-method models (e.g., RF-DETR, SSDLite).
+   *
+   * @returns Array of available input sizes or undefined
+   *
+   * @example
+   * ```typescript
+   * const sizes = model.getAvailableInputSizes(); // [384, 512, 640] for YOLO models
+   * ```
+   */
+  getAvailableInputSizes: () => readonly number[] | undefined;
 
   /**
    * Synchronous worklet function for real-time VisionCamera frame processing.
@@ -129,14 +186,12 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    * Available after model is loaded (`isReady: true`).
    * @param frame - VisionCamera Frame object
    * @param isFrontCamera - Whether the front camera is active, used for mirroring corrections.
-   * @param detectionThreshold - The threshold for detection sensitivity.
+   * @param options - Optional configuration for detection inference
    * @returns Array of Detection objects representing detected items in the frame.
    */
-  runOnFrame:
-    | ((
-        frame: Frame,
-        isFrontCamera: boolean,
-        detectionThreshold: number
-      ) => Detection<L>[])
-    | null;
+  runOnFrame: (
+    frame: Frame,
+    isFrontCamera: boolean,
+    options?: ObjectDetectionOptions<L>
+  ) => Detection<L>[];
 }

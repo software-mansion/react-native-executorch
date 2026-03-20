@@ -7,6 +7,7 @@ import {
   useObjectDetection,
   RF_DETR_NANO,
   SSDLITE_320_MOBILENET_V3_LARGE,
+  YOLO26N,
   ObjectDetectionModelSources,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
@@ -19,6 +20,7 @@ import { StatsBar } from '../../components/StatsBar';
 const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
   { label: 'SSDLite MobileNet', value: SSDLITE_320_MOBILENET_V3_LARGE },
+  { label: 'YOLO26N', value: YOLO26N },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 
