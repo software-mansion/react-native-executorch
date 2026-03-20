@@ -6,6 +6,7 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
@@ -71,7 +72,7 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
   auto detections = runInference(rotated);
   for (auto &det : detections) {
     ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
-                                               rotated.cols, rotated.rows);
+                                               rotated.size());
   }
   return detections;
 }

@@ -6,6 +6,7 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch::models::semantic_segmentation {
@@ -96,7 +97,7 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  auto orient = extractFrameOrientation(runtime, frameData);
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
   // Always run inference without resize — rotate first, then resize.
@@ -104,27 +105,28 @@ BaseSemanticSegmentation::generateFromFrame(
 
   const cv::Size outputSize = modelInputSize();
   // JS reads maskW=frame.height, maskH=frame.width (sensor-native swap).
-  const cv::Size screenSize(frame.rows, frame.cols);
+  const cv::Size frameSize = frame.size();
 
-  auto inverseAndResize = [&](std::shared_ptr<OwningArrayBuffer> &buf,
-                              int32_t cvType, int32_t interpFlag) {
+  auto inverseAndResize = [&orient, &frameSize, &outputSize,
+                           resize](std::shared_ptr<OwningArrayBuffer> &buf,
+                                   int32_t cvType, int32_t interpFlag) {
     cv::Mat m(outputSize, cvType, buf->data());
     cv::Mat inv = utils::inverseRotateMat(m, orient);
-    if (resize && inv.size() != screenSize) {
-      cv::resize(inv, inv, screenSize, 0, 0, interpFlag);
+    if (resize && inv.size() != frameSize) {
+      cv::resize(inv, inv, frameSize, 0, 0, interpFlag);
     }
     buf = std::make_shared<OwningArrayBuffer>(
         inv.data, static_cast<size_t>(inv.total() * inv.elemSize()));
-    return inv;
   };
 
-  if (result.argmax && outputSize.area() > 0) {
-    inverseAndResize(result.argmax, CV_32SC1, cv::INTER_NEAREST);
-  }
-
-  if (result.classBuffers && outputSize.area() > 0) {
-    for (auto &[label, buf] : *result.classBuffers) {
-      inverseAndResize(buf, CV_32FC1, cv::INTER_LINEAR);
+  if (outputSize.area() > 0) {
+    if (result.argmax) {
+      inverseAndResize(result.argmax, CV_32SC1, cv::INTER_NEAREST);
+    }
+    if (result.classBuffers) {
+      for (auto &[label, buf] : *result.classBuffers) {
+        inverseAndResize(buf, CV_32FC1, cv::INTER_LINEAR);
+      }
     }
   }
 

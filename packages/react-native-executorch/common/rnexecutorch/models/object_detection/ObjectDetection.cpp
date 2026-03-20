@@ -139,13 +139,12 @@ std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
                                    double detectionThreshold) {
-  auto orient = extractFrameOrientation(runtime, frameData);
+  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
   auto detections = runInference(rotated, detectionThreshold);
   for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotateBbox(
-        det.x1, det.y1, det.x2, det.y2, orient, rotated.cols, rotated.rows);
+    ::rnexecutorch::utils::inverseRotateBbox(det.bbox, orient, rotated.size());
   }
   return detections;
 }

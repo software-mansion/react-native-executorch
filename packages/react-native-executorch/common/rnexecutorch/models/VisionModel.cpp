@@ -51,9 +51,4 @@ cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {
   return ::rnexecutorch::utils::pixelsToMat(tensorView);
 }
 
-utils::FrameOrientation VisionModel::extractFrameOrientation(
-    jsi::Runtime &runtime, const jsi::Value &frameData) const {
-  return ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-}
-
 } // namespace rnexecutorch::models

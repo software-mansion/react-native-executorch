@@ -38,15 +38,17 @@ FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
   std::string orientStr = "up";
   if (obj.hasProperty(runtime, "orientation")) {
     auto val = obj.getProperty(runtime, "orientation");
-    if (val.isString())
+    if (val.isString()) {
       orientStr = val.getString(runtime).utf8(runtime);
+    }
   }
 
   bool isMirrored = false;
   if (obj.hasProperty(runtime, "isMirrored")) {
     auto val = obj.getProperty(runtime, "isMirrored");
-    if (val.isBool())
+    if (val.isBool()) {
       isMirrored = val.getBool();
+    }
   }
 
   return {orientationFromString(orientStr), isMirrored};

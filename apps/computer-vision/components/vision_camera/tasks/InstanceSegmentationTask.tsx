@@ -27,7 +27,7 @@ type Props = TaskProps & { activeModel: InstSegModelId };
 export default function InstanceSegmentationTask({
   activeModel,
   canvasSize,
-  cameraPosition,
+  cameraPositionSync,
   frameKillSwitch,
   onFrameOutputChange,
   onReadyChange,
@@ -145,13 +145,7 @@ export default function InstanceSegmentationTask({
   const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
 
   return (
-    <View
-      style={[
-        StyleSheet.absoluteFill,
-        cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
-      ]}
-      pointerEvents="none"
-    >
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {/* Render masks */}
       <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
         {instances.map((inst, i) => {
@@ -197,7 +191,6 @@ export default function InstanceSegmentationTask({
               style={[
                 styles.bboxLabel,
                 { backgroundColor: labelColorBg(label) },
-                cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
               ]}
             >
               <Text style={styles.bboxLabelText}>

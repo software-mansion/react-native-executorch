@@ -2,6 +2,7 @@
 
 #include <array>
 #include <opencv2/opencv.hpp>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 #include <string>
 
 namespace rnexecutorch::utils {
@@ -9,12 +10,15 @@ namespace rnexecutorch::utils {
 enum class Orientation { Up, Down, Left, Right };
 
 inline Orientation orientationFromString(const std::string &s) {
-  if (s == "down")
+  if (s == "down") {
     return Orientation::Down;
-  if (s == "left")
+  }
+  if (s == "left") {
     return Orientation::Left;
-  if (s == "right")
+  }
+  if (s == "right") {
     return Orientation::Right;
+  }
   return Orientation::Up;
 }
 
@@ -43,10 +47,10 @@ cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient);
  * @brief Map bbox coords from rotated-frame space back to screen space.
  *
  * Inverse of rotateFrameForModel for coordinates.
- * rW/rH are the rotated frame dimensions (rotated.cols / rotated.rows).
+ * rotatedSize is the rotated frame size (rotated.size()).
  */
-void inverseRotateBbox(float &x1, float &y1, float &x2, float &y2,
-                       const FrameOrientation &orient, int rW, int rH);
+void inverseRotateBbox(computer_vision::BBox &bbox,
+                       const FrameOrientation &orient, cv::Size rotatedSize);
 
 /**
  * @brief Rotate a cv::Mat from rotated-frame space back to screen space.
@@ -60,33 +64,38 @@ cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient);
  * @brief Map 4-point bbox from rotated-frame space back to screen space.
  *
  * Inverse of rotateFrameForModel for 4-point bboxes.
- * rW/rH are the rotated frame dimensions (rotated.cols / rotated.rows).
+ * rotatedSize is the rotated frame size (rotated.size()).
  * Templated on point type — requires P to have float x and y members.
  */
 template <typename P>
 void inverseRotatePoints(std::array<P, 4> &points,
-                         const FrameOrientation &orient, int rW, int rH) {
-  const float w = static_cast<float>(rW);
-  const float h = static_cast<float>(rH);
+                         const FrameOrientation &orient, cv::Size rotatedSize) {
+  const float w = static_cast<float>(rotatedSize.width);
+  const float h = static_cast<float>(rotatedSize.height);
 
   for (auto &p : points) {
     float x = p.x;
     float y = p.y;
 
-    if (orient.orientation == Orientation::Up) {
+    switch (orient.orientation) {
+    case Orientation::Up:
       // landscape-left → portrait: nx = h-y, ny = x
       p.x = h - y;
       p.y = x;
-    } else if (orient.orientation == Orientation::Right) {
+      break;
+    case Orientation::Right:
       // upside-down portrait → portrait: nx = w-x, ny = h-y
       p.x = w - x;
       p.y = h - y;
-    } else if (orient.orientation == Orientation::Down) {
+      break;
+    case Orientation::Down:
       // landscape-right → portrait: nx = y, ny = w-x
       p.x = y;
       p.y = w - x;
+      break;
+    case Orientation::Left:
+      break;
     }
-    // Left: no-op
   }
 
 #if defined(__APPLE__)

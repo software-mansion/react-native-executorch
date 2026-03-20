@@ -1,15 +1,18 @@
 #include <gtest/gtest.h>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/utils/FrameTransform.h>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 
 using namespace rnexecutorch::utils;
+using rnexecutorch::utils::computer_vision::BBox;
 
 static FrameOrientation makeOrient(const std::string &o, bool mirrored) {
   return {orientationFromString(o), mirrored};
 }
 
 // ============================================================================
-// rotateFrameForModel — rotates sensor-native frame so model sees upright image.
+// rotateFrameForModel — rotates sensor-native frame so model sees upright
+// image.
 //
 //   "up"    (landscape-left)       → no rotation
 //   "left"  (portrait upright)     → CW
@@ -215,7 +218,8 @@ TEST(InverseRotateMat, DoesNotModifyInput) {
 // rW/rH = rotated frame dimensions (after rotateFrameForModel).
 // On Android (no __APPLE__), isMirrored is ignored.
 //
-// Formulas (same as inverseRotatePoints per-corner, but preserves x1<=x2, y1<=y2):
+// Formulas (same as inverseRotatePoints per-corner, but preserves x1<=x2,
+// y1<=y2):
 //   "up"    → CW:  nx1=h-y2, ny1=x1, nx2=h-y1, ny2=x2
 //   "right" → 180°: nx1=w-x2, ny1=h-y2, nx2=w-x1, ny2=h-y1
 //   "down"  → CCW: nx1=y1, ny1=w-x2, nx2=y2, ny2=w-x1
@@ -224,53 +228,53 @@ TEST(InverseRotateMat, DoesNotModifyInput) {
 
 // "left" → no-op. Box unchanged.
 TEST(InverseRotateBbox, Left_NoOp) {
-  float x1 = 10, y1 = 20, x2 = 100, y2 = 200;
-  inverseRotateBbox(x1, y1, x2, y2, makeOrient("left", false), 640, 480);
-  EXPECT_FLOAT_EQ(x1, 10);
-  EXPECT_FLOAT_EQ(y1, 20);
-  EXPECT_FLOAT_EQ(x2, 100);
-  EXPECT_FLOAT_EQ(y2, 200);
+  BBox bbox{10, 20, 100, 200};
+  inverseRotateBbox(bbox, makeOrient("left", false), {640, 480});
+  EXPECT_FLOAT_EQ(bbox.x1, 10);
+  EXPECT_FLOAT_EQ(bbox.y1, 20);
+  EXPECT_FLOAT_EQ(bbox.x2, 100);
+  EXPECT_FLOAT_EQ(bbox.y2, 200);
 }
 
 // "up" → CW. rW=640, rH=480. Box (10,20)-(100,200):
 //   nx1=480-200=280, ny1=10, nx2=480-20=460, ny2=100
 TEST(InverseRotateBbox, Up_CW) {
-  float x1 = 10, y1 = 20, x2 = 100, y2 = 200;
-  inverseRotateBbox(x1, y1, x2, y2, makeOrient("up", false), 640, 480);
-  EXPECT_FLOAT_EQ(x1, 280);
-  EXPECT_FLOAT_EQ(y1, 10);
-  EXPECT_FLOAT_EQ(x2, 460);
-  EXPECT_FLOAT_EQ(y2, 100);
+  BBox bbox{10, 20, 100, 200};
+  inverseRotateBbox(bbox, makeOrient("up", false), {640, 480});
+  EXPECT_FLOAT_EQ(bbox.x1, 280);
+  EXPECT_FLOAT_EQ(bbox.y1, 10);
+  EXPECT_FLOAT_EQ(bbox.x2, 460);
+  EXPECT_FLOAT_EQ(bbox.y2, 100);
 }
 
 // "right" → 180°. rW=480, rH=640. Box (10,20)-(100,200):
 //   nx1=480-100=380, ny1=640-200=440, nx2=480-10=470, ny2=640-20=620
 TEST(InverseRotateBbox, Right_180) {
-  float x1 = 10, y1 = 20, x2 = 100, y2 = 200;
-  inverseRotateBbox(x1, y1, x2, y2, makeOrient("right", false), 480, 640);
-  EXPECT_FLOAT_EQ(x1, 380);
-  EXPECT_FLOAT_EQ(y1, 440);
-  EXPECT_FLOAT_EQ(x2, 470);
-  EXPECT_FLOAT_EQ(y2, 620);
+  BBox bbox{10, 20, 100, 200};
+  inverseRotateBbox(bbox, makeOrient("right", false), {480, 640});
+  EXPECT_FLOAT_EQ(bbox.x1, 380);
+  EXPECT_FLOAT_EQ(bbox.y1, 440);
+  EXPECT_FLOAT_EQ(bbox.x2, 470);
+  EXPECT_FLOAT_EQ(bbox.y2, 620);
 }
 
 // "down" → CCW. rW=640, rH=480. Box (10,20)-(100,200):
 //   nx1=20, ny1=640-100=540, nx2=200, ny2=640-10=630
 TEST(InverseRotateBbox, Down_CCW) {
-  float x1 = 10, y1 = 20, x2 = 100, y2 = 200;
-  inverseRotateBbox(x1, y1, x2, y2, makeOrient("down", false), 640, 480);
-  EXPECT_FLOAT_EQ(x1, 20);
-  EXPECT_FLOAT_EQ(y1, 540);
-  EXPECT_FLOAT_EQ(x2, 200);
-  EXPECT_FLOAT_EQ(y2, 630);
+  BBox bbox{10, 20, 100, 200};
+  inverseRotateBbox(bbox, makeOrient("down", false), {640, 480});
+  EXPECT_FLOAT_EQ(bbox.x1, 20);
+  EXPECT_FLOAT_EQ(bbox.y1, 540);
+  EXPECT_FLOAT_EQ(bbox.x2, 200);
+  EXPECT_FLOAT_EQ(bbox.y2, 630);
 }
 
 // Guarantees x1<=x2 and y1<=y2 after transform.
 TEST(InverseRotateBbox, OutputOrdered) {
-  float x1 = 50, y1 = 50, x2 = 150, y2 = 250;
-  inverseRotateBbox(x1, y1, x2, y2, makeOrient("up", false), 640, 480);
-  EXPECT_LE(x1, x2);
-  EXPECT_LE(y1, y2);
+  BBox bbox{50, 50, 150, 250};
+  inverseRotateBbox(bbox, makeOrient("up", false), {640, 480});
+  EXPECT_LE(bbox.x1, bbox.x2);
+  EXPECT_LE(bbox.y1, bbox.y2);
 }
 
 // ============================================================================
@@ -288,7 +292,7 @@ struct Pt {
 // "left" → no-op. Points unchanged.
 TEST(InverseRotatePoints, Left_NoOp) {
   std::array<Pt, 4> pts = {{{10, 20}, {30, 40}, {50, 60}, {70, 80}}};
-  inverseRotatePoints(pts, makeOrient("left", false), 640, 480);
+  inverseRotatePoints(pts, makeOrient("left", false), {640, 480});
   EXPECT_FLOAT_EQ(pts[0].x, 10);
   EXPECT_FLOAT_EQ(pts[0].y, 20);
   EXPECT_FLOAT_EQ(pts[1].x, 30);
@@ -302,7 +306,7 @@ TEST(InverseRotatePoints, Left_NoOp) {
 // "up" → CW per point. rW=640, rH=480. pt(10,20): nx=480-20=460, ny=10.
 TEST(InverseRotatePoints, Up_CW) {
   std::array<Pt, 4> pts = {{{10, 20}, {30, 40}, {50, 60}, {70, 80}}};
-  inverseRotatePoints(pts, makeOrient("up", false), 640, 480);
+  inverseRotatePoints(pts, makeOrient("up", false), {640, 480});
   EXPECT_FLOAT_EQ(pts[0].x, 460);
   EXPECT_FLOAT_EQ(pts[0].y, 10);
   EXPECT_FLOAT_EQ(pts[1].x, 440);
@@ -313,10 +317,11 @@ TEST(InverseRotatePoints, Up_CW) {
   EXPECT_FLOAT_EQ(pts[3].y, 70);
 }
 
-// "right" → 180° per point. rW=480, rH=640. pt(10,20): nx=480-10=470, ny=640-20=620.
+// "right" → 180° per point. rW=480, rH=640. pt(10,20): nx=480-10=470,
+// ny=640-20=620.
 TEST(InverseRotatePoints, Right_180) {
   std::array<Pt, 4> pts = {{{10, 20}, {30, 40}, {50, 60}, {70, 80}}};
-  inverseRotatePoints(pts, makeOrient("right", false), 480, 640);
+  inverseRotatePoints(pts, makeOrient("right", false), {480, 640});
   EXPECT_FLOAT_EQ(pts[0].x, 470);
   EXPECT_FLOAT_EQ(pts[0].y, 620);
   EXPECT_FLOAT_EQ(pts[1].x, 450);
@@ -330,7 +335,7 @@ TEST(InverseRotatePoints, Right_180) {
 // "down" → CCW per point. rW=640, rH=480. pt(10,20): nx=20, ny=640-10=630.
 TEST(InverseRotatePoints, Down_CCW) {
   std::array<Pt, 4> pts = {{{10, 20}, {30, 40}, {50, 60}, {70, 80}}};
-  inverseRotatePoints(pts, makeOrient("down", false), 640, 480);
+  inverseRotatePoints(pts, makeOrient("down", false), {640, 480});
   EXPECT_FLOAT_EQ(pts[0].x, 20);
   EXPECT_FLOAT_EQ(pts[0].y, 630);
   EXPECT_FLOAT_EQ(pts[1].x, 40);

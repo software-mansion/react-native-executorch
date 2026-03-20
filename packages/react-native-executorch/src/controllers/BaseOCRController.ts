@@ -100,10 +100,10 @@ export abstract class BaseOCRController {
 
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
 
-    return (frame: any, isFrontCamera: boolean): OCRDetection[] => {
+    return (frame: Frame, isFrontCamera: boolean): OCRDetection[] => {
       'worklet';
 
-      let nativeBuffer: any = null;
+      let nativeBuffer: { pointer: bigint; release(): void } | null = null;
       try {
         nativeBuffer = frame.getNativeBuffer();
         const frameData = {

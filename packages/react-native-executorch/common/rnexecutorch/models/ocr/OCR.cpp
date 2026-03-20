@@ -5,6 +5,7 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
+#include <rnexecutorch/utils/FrameTransform.h>
 
 namespace rnexecutorch::models::ocr {
 OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
@@ -67,7 +68,7 @@ OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto detections = runInference(rotated);
   for (auto &det : detections) {
     ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
-                                               rotated.cols, rotated.rows);
+                                               rotated.size());
   }
   return detections;
 }
