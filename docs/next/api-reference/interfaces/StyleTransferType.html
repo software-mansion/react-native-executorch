@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.027f46d8.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.eab52c58.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.5c92e02c.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.e31585d7.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -55,9 +55,9 @@ Manages the state and operations for applying artistic style transfer to images.
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="runonframe">runOnFrame<a href="#runonframe" class="hash-link" aria-label="Direct link to runOnFrame" title="Direct link to runOnFrame" translate="no">​</a></h3>
 <blockquote>
-<p><strong>runOnFrame</strong>: (<code>frame</code>) =&gt; <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/PixelData"><code>PixelData</code></a> | <code>null</code></p>
+<p><strong>runOnFrame</strong>: (<code>frame</code>, <code>isFrontCamera</code>) =&gt; <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/PixelData"><code>PixelData</code></a> | <code>null</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L91" target="_blank" rel="noopener noreferrer" class="">types/styleTransfer.ts:91</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L92" target="_blank" rel="noopener noreferrer" class="">types/styleTransfer.ts:92</a></p>
 <p>Synchronous worklet function for real-time VisionCamera frame processing.
 Automatically handles native buffer extraction and cleanup.</p>
 <p><strong>Use this for VisionCamera frame processing in worklets.</strong>
@@ -65,6 +65,8 @@ For async processing, use <code>forward()</code> instead.</p>
 <p>Available after model is loaded (<code>isReady: true</code>).</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="param">Param<a href="#param" class="hash-link" aria-label="Direct link to Param" title="Direct link to Param" translate="no">​</a></h4>
 <p>VisionCamera Frame object</p>
+<h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="param-1">Param<a href="#param-1" class="hash-link" aria-label="Direct link to Param" title="Direct link to Param" translate="no">​</a></h4>
+<p>Whether the front camera is active, used for mirroring corrections.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p>PixelData containing the stylized frame as raw RGB pixel data.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="methods">Methods<a href="#methods" class="hash-link" aria-label="Direct link to Methods" title="Direct link to Methods" translate="no">​</a></h2>
