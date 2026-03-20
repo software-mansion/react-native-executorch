@@ -34,7 +34,6 @@ export interface Detection<L extends LabelEnum = typeof CocoLabel> {
 
 /**
  * Options for configuring object detection inference.
- *
  * @category Types
  * @typeParam L - The label enum type for filtering classes of interest.
  * @property {number} [detectionThreshold] - Minimum confidence score for detections (0-1). Defaults to model-specific value.
@@ -166,9 +165,7 @@ export interface ObjectDetectionType<L extends LabelEnum> {
   /**
    * Returns the available input sizes for multi-method models (e.g., YOLO).
    * Returns undefined for single-method models (e.g., RF-DETR, SSDLite).
-   *
    * @returns Array of available input sizes or undefined
-   *
    * @example
    * ```typescript
    * const sizes = model.getAvailableInputSizes(); // [384, 512, 640] for YOLO models
@@ -189,9 +186,11 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    * @param options - Optional configuration for detection inference
    * @returns Array of Detection objects representing detected items in the frame.
    */
-  runOnFrame: (
-    frame: Frame,
-    isFrontCamera: boolean,
-    options?: ObjectDetectionOptions<L>
-  ) => Detection<L>[];
+  runOnFrame:
+    | ((
+        frame: Frame,
+        isFrontCamera: boolean,
+        options?: ObjectDetectionOptions<L>
+      ) => Detection<L>[])
+    | null;
 }

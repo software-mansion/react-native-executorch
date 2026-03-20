@@ -132,9 +132,7 @@ export class ObjectDetectionModule<
 
   /**
    * Returns the available input sizes for this model, or undefined if the model accepts any size.
-   *
    * @returns An array of available input sizes, or undefined if not constrained.
-   *
    * @example
    * ```typescript
    * const sizes = model.getAvailableInputSizes(); // [384, 512, 640] for YOLO models, or undefined for RF-DETR
@@ -146,10 +144,12 @@ export class ObjectDetectionModule<
 
   /**
    * Override runOnFrame to provide an options-based API for VisionCamera integration.
+   * @returns A worklet function for frame processing, or null if the model is not loaded.
    */
   override get runOnFrame():
     | ((
         frame: any,
+        isFrontCamera: boolean,
         options?: ObjectDetectionOptions<ResolveLabels<T>>
       ) => Detection<ResolveLabels<T>>[])
     | null {
@@ -171,6 +171,7 @@ export class ObjectDetectionModule<
 
     return (
       frame: any,
+      isFrontCamera: boolean,
       options?: ObjectDetectionOptions<ResolveLabels<T>>
     ): Detection<ResolveLabels<T>>[] => {
       'worklet';
@@ -192,6 +193,7 @@ export class ObjectDetectionModule<
 
       return baseRunOnFrame(
         frame,
+        isFrontCamera,
         detectionThreshold,
         iouThreshold,
         classIndices,
@@ -206,12 +208,10 @@ export class ObjectDetectionModule<
    * Supports two input types:
    * 1. **String path/URI**: File path, URL, or Base64-encoded string
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
-   *
    * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
    * @param options - Optional configuration for detection inference. Includes `detectionThreshold`, `inputSize`, and `classesOfInterest`.
    * @returns A Promise resolving to an array of {@link Detection} objects.
    * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
-   *
    * @example
    * ```typescript
    * const detections = await model.forward('path/to/image.jpg', {
