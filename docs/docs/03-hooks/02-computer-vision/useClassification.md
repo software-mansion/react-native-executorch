@@ -37,8 +37,12 @@ try {
 
 `useClassification` takes [`ClassificationProps`](../../06-api-reference/interfaces/ClassificationProps.md) that consists of:
 
-- `model` containing [`modelSource`](../../06-api-reference/interfaces/ClassificationProps.md#modelsource).
+- `model` - An object containing:
+  - `modelName` - The name of a built-in model. See [`ClassificationModelSources`](../../06-api-reference/interfaces/ClassificationProps.md) for the list of supported models.
+  - `modelSource` - The location of the model binary (a URL or a bundled resource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/ClassificationProps.md#preventload) which prevents auto-loading of the model.
+
+The hook is generic over the model config — TypeScript automatically infers the correct label type based on the `modelName` you provide. No explicit generic parameter is needed.
 
 You need more details? Check the following resources:
 
@@ -48,11 +52,17 @@ You need more details? Check the following resources:
 
 ### Returns
 
-`useClassification` returns an object called `ClassificationType` containing bunch of functions to interact with Classification models. To get more details please read: [`ClassificationType` API Reference](../../06-api-reference/interfaces/ClassificationType.md).
+`useClassification` returns a [`ClassificationType`](../../06-api-reference/interfaces/ClassificationType.md) object containing:
+
+- `isReady` - Whether the model is loaded and ready to process images.
+- `isGenerating` - Whether the model is currently processing an image.
+- `error` - An error object if the model failed to load or encountered a runtime error.
+- `downloadProgress` - A value between 0 and 1 representing the download progress of the model binary.
+- `forward` - A function to run inference on an image.
 
 ## Running the model
 
-To run the model, use the [`forward`](../../06-api-reference/interfaces/ClassificationType.md#forward) method. It accepts one argument — the image to classify. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer). The function returns a promise resolving to an object containing categories with their probabilities.
+To run the model, use the [`forward`](../../06-api-reference/interfaces/ClassificationType.md#forward) method. It accepts one argument — the image to classify. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer). The function returns a promise resolving to an object mapping label keys to their probabilities.
 
 :::info
 Images from external sources are stored in your application's temporary directory.
@@ -90,6 +100,6 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                  | Number of classes | Class list                                                                                                                                                                    | Quantized |
-| ------------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------: |
-| [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |    Yes    |
+| Model                                                                                                  | Number of classes | Class list                                                                                                                                              | Quantized |
+| ------------------------------------------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------: |
+| [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/classification.ts) |    Yes    |
