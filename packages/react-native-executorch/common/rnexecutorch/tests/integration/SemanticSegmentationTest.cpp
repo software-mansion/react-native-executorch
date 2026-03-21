@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/exec_aten/exec_aten.h>
 #include <gtest/gtest.h>
@@ -277,25 +278,14 @@ TEST(SemanticSegmentationConstantsTests, ClassLabelsHas21Entries) {
 }
 
 TEST(SemanticSegmentationConstantsTests, ClassLabelsContainExpectedClasses) {
-  auto &labels = kDeeplabV3Labels;
-  bool hasBackground = false;
-  bool hasPerson = false;
-  bool hasCat = false;
-  bool hasDog = false;
+  const auto &labels = kDeeplabV3Labels;
 
-  for (const auto &label : labels) {
-    if (label == "BACKGROUND")
-      hasBackground = true;
-    if (label == "PERSON")
-      hasPerson = true;
-    if (label == "CAT")
-      hasCat = true;
-    if (label == "DOG")
-      hasDog = true;
-  }
+  auto contains = [&labels](const std::string &target) {
+    return std::ranges::find(labels, target) != labels.end();
+  };
 
-  EXPECT_TRUE(hasBackground);
-  EXPECT_TRUE(hasPerson);
-  EXPECT_TRUE(hasCat);
-  EXPECT_TRUE(hasDog);
+  EXPECT_TRUE(contains("BACKGROUND"));
+  EXPECT_TRUE(contains("PERSON"));
+  EXPECT_TRUE(contains("CAT"));
+  EXPECT_TRUE(contains("DOG"));
 }
