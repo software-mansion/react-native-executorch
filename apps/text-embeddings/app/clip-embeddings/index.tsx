@@ -129,7 +129,6 @@ function ClipEmbeddingsScreen() {
 
     try {
       const start = Date.now();
-      // Array.from to get numbers[]
       const inputImageEmbedding = await imageModel.forward(
         output.assets[0].uri
       );

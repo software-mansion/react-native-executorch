@@ -132,7 +132,6 @@ export default function TextToImageScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Added StatsBar here, just above the input row */}
         <StatsBar inferenceTime={generationTime} />
 
         <View style={styles.inputRow}>
