@@ -40,7 +40,13 @@ function ClipEmbeddingsScreen() {
   const [topMatches, setTopMatches] = useState<
     { sentence: string; similarity: number }[]
   >([]);
-  const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
+
+  const [textEmbeddingTime, setTextEmbeddingTime] = useState<number | null>(
+    null
+  );
+  const [imageEmbeddingTime, setImageEmbeddingTime] = useState<number | null>(
+    null
+  );
 
   useEffect(
     () => {
@@ -55,11 +61,15 @@ function ClipEmbeddingsScreen() {
         ];
 
         try {
+          const start = Date.now();
           const embeddings = [];
+
           for (const sentence of sentences) {
             const embedding = await textModel.forward(sentence);
             embeddings.push({ sentence, embedding });
           }
+
+          setTextEmbeddingTime(Date.now() - start);
           setSentencesWithEmbeddings(embeddings);
         } catch (error) {
           console.error('Error generating embeddings:', error);
@@ -78,7 +88,8 @@ function ClipEmbeddingsScreen() {
     try {
       const start = Date.now();
       const inputEmbedding = await textModel.forward(inputSentence);
-      setEmbeddingTime(Date.now() - start);
+      setTextEmbeddingTime(Date.now() - start);
+
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
           sentence,
@@ -98,7 +109,8 @@ function ClipEmbeddingsScreen() {
     try {
       const start = Date.now();
       const embedding = await textModel.forward(inputSentence);
-      setEmbeddingTime(Date.now() - start);
+      setTextEmbeddingTime(Date.now() - start);
+
       setSentencesWithEmbeddings((prev) => [
         ...prev,
         { sentence: inputSentence, embedding },
@@ -119,6 +131,7 @@ function ClipEmbeddingsScreen() {
       console.error('Error clearing the list:', error);
     }
   };
+
   const checkImage = async () => {
     if (!imageModel.isReady) return;
 
@@ -132,7 +145,7 @@ function ClipEmbeddingsScreen() {
       const inputImageEmbedding = await imageModel.forward(
         output.assets[0].uri
       );
-      setEmbeddingTime(Date.now() - start);
+      setImageEmbeddingTime(Date.now() - start);
 
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
@@ -270,11 +283,18 @@ function ClipEmbeddingsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-            {embeddingTime !== null && (
+
+            {textEmbeddingTime !== null && (
               <Text style={styles.statsText}>
-                Embedding time: {embeddingTime} ms
+                Text Embedding time: {textEmbeddingTime} ms
               </Text>
             )}
+            {imageEmbeddingTime !== null && (
+              <Text style={styles.statsText}>
+                Image Embedding time: {imageEmbeddingTime} ms
+              </Text>
+            )}
+
             {topMatches.length > 0 && (
               <View style={styles.topMatchesContainer}>
                 <Text style={styles.sectionTitle}>Top Matches</Text>
@@ -293,15 +313,8 @@ function ClipEmbeddingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  scrollContainer: {
-    padding: 20,
-    alignItems: 'center',
-    flexGrow: 1,
-  },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  scrollContainer: { padding: 20, alignItems: 'center', flexGrow: 1 },
   heading: {
     fontSize: 24,
     fontWeight: '500',
@@ -323,11 +336,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#1E293B',
   },
-  sentenceText: {
-    fontSize: 14,
-    marginBottom: 6,
-    color: '#334155',
-  },
+  sentenceText: { fontSize: 14, marginBottom: 6, color: '#334155' },
   input: {
     backgroundColor: '#F1F5F9',
     borderRadius: 10,
@@ -338,10 +347,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
     textAlignVertical: 'top',
   },
-  buttonContainer: {
-    width: '100%',
-    gap: 10,
-  },
+  buttonContainer: { width: '100%', gap: 10 },
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -367,33 +373,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonDisabled: {
-    backgroundColor: '#f0f0f0',
-    borderColor: '#d3d3d3',
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  buttonTextOutline: {
-    color: 'navy',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  buttonTextDisabled: {
-    color: 'gray',
-  },
-  topMatchesContainer: {
-    marginTop: 20,
-  },
+  buttonDisabled: { backgroundColor: '#f0f0f0', borderColor: '#d3d3d3' },
+  buttonText: { color: 'white', textAlign: 'center', fontWeight: '500' },
+  buttonTextOutline: { color: 'navy', textAlign: 'center', fontWeight: '500' },
+  buttonTextDisabled: { color: 'gray' },
+  topMatchesContainer: { marginTop: 20 },
   statsText: {
     fontSize: 13,
     color: '#64748B',
     marginTop: 8,
     textAlign: 'center',
   },
-  flexContainer: {
-    flex: 1,
-  },
+  flexContainer: { flex: 1 },
 });
