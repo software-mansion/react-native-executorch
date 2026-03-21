@@ -300,12 +300,24 @@ add_rn_test(TextToImageTests integration/TextToImageTest.cpp
     LIBS tokenizers_deps
 )
 
+add_rn_test(SemanticSegmentationTests integration/SemanticSegmentationTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/semantic_segmentation/BaseSemanticSegmentation.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps android
+)
+
 add_rn_test(InstanceSegmentationTests integration/InstanceSegmentationTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/instance_segmentation/BaseInstanceSegmentation.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
         ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps android

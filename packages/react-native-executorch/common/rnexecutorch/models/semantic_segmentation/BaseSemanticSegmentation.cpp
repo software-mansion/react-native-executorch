@@ -218,11 +218,12 @@ BaseSemanticSegmentation::computeResult(
     }
   }
 
-  // Filter classes of interest
   auto buffersToReturn = std::make_shared<
       std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>();
+  bool returnAllClasses = classesOfInterest.empty();
   for (std::size_t cl = 0; cl < resultClasses.size(); ++cl) {
-    if (cl < allClasses.size() && classesOfInterest.contains(allClasses[cl])) {
+    if (cl < allClasses.size() &&
+        (returnAllClasses || classesOfInterest.contains(allClasses[cl]))) {
       (*buffersToReturn)[allClasses[cl]] = resultClasses[cl];
     }
   }
