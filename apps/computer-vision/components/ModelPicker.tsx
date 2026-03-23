@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -29,6 +29,10 @@ export function ModelPicker<T>({
 }: Props<T>) {
   const [open, setOpen] = useState(false);
   const selected = models.find((m) => m.value === selectedModel);
+
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
 
   return (
     <View style={styles.container}>
