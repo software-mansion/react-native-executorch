@@ -31,6 +31,7 @@ function TextEmbeddingsScreen() {
   const [topMatches, setTopMatches] = useState<
     { sentence: string; similarity: number }[]
   >([]);
+  const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
 
   useEffect(
     () => {
@@ -66,7 +67,9 @@ function TextEmbeddingsScreen() {
     if (!model.isReady || !inputSentence.trim()) return;
 
     try {
+      const start = Date.now();
       const inputEmbedding = await model.forward(inputSentence);
+      setEmbeddingTime(Date.now() - start);
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
           sentence,
@@ -84,7 +87,9 @@ function TextEmbeddingsScreen() {
     if (!model.isReady || !inputSentence.trim()) return;
 
     try {
+      const start = Date.now();
       const embedding = await model.forward(inputSentence);
+      setEmbeddingTime(Date.now() - start);
       setSentencesWithEmbeddings((prev) => [
         ...prev,
         { sentence: inputSentence, embedding },
@@ -217,6 +222,11 @@ function TextEmbeddingsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+            {embeddingTime !== null && (
+              <Text style={styles.statsText}>
+                Embedding time: {embeddingTime} ms
+              </Text>
+            )}
             {topMatches.length > 0 && (
               <View style={styles.topMatchesContainer}>
                 <Text style={styles.sectionTitle}>Top Matches</Text>
@@ -328,6 +338,12 @@ const styles = StyleSheet.create({
   },
   topMatchesContainer: {
     marginTop: 20,
+  },
+  statsText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 8,
+    textAlign: 'center',
   },
   flexContainer: {
     flex: 1,

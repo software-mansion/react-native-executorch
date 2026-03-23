@@ -14,6 +14,7 @@ import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
@@ -29,6 +30,7 @@ export default function ObjectDetectionScreen() {
   }>();
   const [selectedModel, setSelectedModel] =
     useState<ObjectDetectionModelSources>(RF_DETR_NANO);
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const model = useObjectDetection({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -46,13 +48,16 @@ export default function ObjectDetectionScreen() {
       setImageUri(image.uri as string);
       setImageDimensions({ width: width as number, height: height as number });
       setResults([]);
+      setInferenceTime(null);
     }
   };
 
   const runForward = async () => {
     if (imageUri) {
       try {
+        const start = Date.now();
         const output = await model.forward(imageUri);
+        setInferenceTime(Date.now() - start);
         setResults(output);
       } catch (e) {
         console.error(e);
@@ -99,6 +104,10 @@ export default function ObjectDetectionScreen() {
           setSelectedModel(m);
           setResults([]);
         }}
+      />
+      <StatsBar
+        inferenceTime={inferenceTime}
+        detectionCount={results.length > 0 ? results.length : null}
       />
       <BottomBar
         handleCameraPress={handleCameraPress}

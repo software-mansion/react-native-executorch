@@ -1,7 +1,17 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
+import {
+  useInstanceSegmentation,
+  YOLO26N_SEG,
+  YOLO26S_SEG,
+  YOLO26M_SEG,
+  YOLO26L_SEG,
+  YOLO26X_SEG,
+  RF_DETR_NANO_SEG,
+  InstanceSegmentationModelSources,
+} from 'react-native-executorch';
 import {
   View,
   StyleSheet,
@@ -16,8 +26,22 @@ import ImageWithMasks, {
   buildDisplayInstances,
   DisplayInstance,
 } from '../../components/ImageWithMasks';
+import { StatsBar } from '../../components/StatsBar';
+
+const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
+  { label: 'Yolo26N', value: YOLO26N_SEG },
+  { label: 'Yolo26S', value: YOLO26S_SEG },
+  { label: 'Yolo26M', value: YOLO26M_SEG },
+  { label: 'Yolo26L', value: YOLO26L_SEG },
+  { label: 'Yolo26X', value: YOLO26X_SEG },
+  { label: 'RF-DeTR Nano', value: RF_DETR_NANO_SEG },
+];
 
 export default function InstanceSegmentationScreen() {
+  const [selectedModel, setSelectedModel] =
+    useState<InstanceSegmentationModelSources>(YOLO26N_SEG);
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const {
@@ -28,7 +52,7 @@ export default function InstanceSegmentationScreen() {
     error,
     getAvailableInputSizes,
   } = useInstanceSegmentation({
-    model: YOLO26N_SEG,
+    model: selectedModel,
   });
 
   const [imageUri, setImageUri] = useState('');
@@ -60,12 +84,14 @@ export default function InstanceSegmentationScreen() {
       height: image.height ?? 0,
     });
     setInstances([]);
+    setInferenceTime(null);
   };
 
   const runForward = async () => {
     if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
 
     try {
+      const start = Date.now();
       const output = await forward(imageUri, {
         confidenceThreshold: 0.5,
         iouThreshold: 0.55,
@@ -73,6 +99,8 @@ export default function InstanceSegmentationScreen() {
         returnMaskAtOriginalResolution: true,
         inputSize: selectedInputSize ?? undefined,
       });
+
+      setInferenceTime(Date.now() - start);
 
       // Convert raw masks → small Skia images immediately.
       // Raw Uint8Array mask buffers (backed by native OwningArrayBuffer)
@@ -167,6 +195,22 @@ export default function InstanceSegmentationScreen() {
           </View>
         )}
       </View>
+
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        disabled={isGenerating}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setInstances([]);
+          setInferenceTime(null);
+        }}
+      />
+
+      <StatsBar
+        inferenceTime={inferenceTime}
+        detectionCount={instances.length > 0 ? instances.length : null}
+      />
 
       <BottomBar
         handleCameraPress={handleCameraPress}

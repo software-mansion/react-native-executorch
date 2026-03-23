@@ -28,6 +28,8 @@ const SUGGESTED_PROMPTS = [
   'What objects can you see?',
   'What text appears in this image?',
 ];
+import { useLLMStats } from '../../hooks/useLLMStats';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function MultimodalLLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -44,6 +46,12 @@ function MultimodalLLMScreen() {
   const vlm = useLLM({
     model: LFM2_VL_1_6B_QUANTIZED,
   });
+  const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
+  const { stats, onMessageSend } = useLLMStats(
+    vlm.response,
+    vlm.isGenerating,
+    tokenCount
+  );
 
   useEffect(() => {
     setGlobalGenerating(vlm.isGenerating);
@@ -63,6 +71,7 @@ function MultimodalLLMScreen() {
 
   const sendMessage = async () => {
     if (!userInput.trim() || vlm.isGenerating) return;
+    onMessageSend();
     const text = userInput.trim();
     setUserInput('');
     textInputRef.current?.clear();
@@ -138,6 +147,7 @@ function MultimodalLLMScreen() {
             </TouchableOpacity>
           )}
 
+          <StatsBar stats={stats} />
           <View style={styles.bottomContainer}>
             {/* Image picker button */}
             <TouchableOpacity

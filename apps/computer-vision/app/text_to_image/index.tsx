@@ -23,6 +23,7 @@ import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
 import ProgressBar from '../../components/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
+import { StatsBar } from '../../components/StatsBar';
 
 type TextToImageModelSources = TextToImageProps['model'];
 
@@ -39,6 +40,7 @@ export default function TextToImageScreen() {
   const [selectedModel, setSelectedModel] = useState<TextToImageModelSources>(
     BK_SDM_TINY_VPRED_256
   );
+  const [generationTime, setGenerationTime] = useState<number | null>(null);
 
   const imageSize = 224;
   const model = useTextToImage({
@@ -55,8 +57,13 @@ export default function TextToImageScreen() {
   const runForward = async () => {
     if (!input.trim()) return;
     try {
+      const start = Date.now();
       const output = await model.generate(input, imageSize, steps);
-      if (output.length) setImage(output);
+
+      if (output.length) {
+        setImage(output);
+        setGenerationTime(Date.now() - start);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -105,6 +112,7 @@ export default function TextToImageScreen() {
           onSelect={(m) => {
             setSelectedModel(m);
             setImage(null);
+            setGenerationTime(null);
           }}
         />
 
@@ -123,6 +131,8 @@ export default function TextToImageScreen() {
             <Text style={styles.stepButtonText}>+</Text>
           </TouchableOpacity>
         </View>
+
+        <StatsBar inferenceTime={generationTime} />
 
         <View style={styles.inputRow}>
           <TextInput

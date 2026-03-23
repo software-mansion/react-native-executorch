@@ -9,12 +9,14 @@ import { BottomBar } from '../../components/BottomBar';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function ClassificationScreen() {
   const [results, setResults] = useState<{ label: string; score: number }[]>(
     []
   );
   const [imageUri, setImageUri] = useState('');
+  const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const model = useClassification({ model: EFFICIENTNET_V2_S_QUANTIZED });
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -28,13 +30,16 @@ export default function ClassificationScreen() {
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
+      setInferenceTime(null);
     }
   };
 
   const runForward = async () => {
     if (imageUri) {
       try {
+        const start = Date.now();
         const output = await model.forward(imageUri);
+        setInferenceTime(Date.now() - start);
         const top10 = Object.entries(output)
           .sort(([, a], [, b]) => (b as number) - (a as number))
           .slice(0, 10)
@@ -80,6 +85,7 @@ export default function ClassificationScreen() {
           </View>
         )}
       </View>
+      <StatsBar inferenceTime={inferenceTime} />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}

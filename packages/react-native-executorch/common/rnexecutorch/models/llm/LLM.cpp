@@ -166,23 +166,23 @@ void LLM::reset() {
   runner_->reset();
 }
 
-size_t LLM::getGeneratedTokenCount() const noexcept {
+int32_t LLM::getGeneratedTokenCount() const noexcept {
   if (!runner_ || !runner_->is_loaded())
     return 0;
   return runner_->stats_.num_generated_tokens;
 }
 
-size_t LLM::getPromptTokenCount() const noexcept {
+int32_t LLM::getPromptTokenCount() const noexcept {
   if (!runner_ || !runner_->is_loaded())
     return 0;
-  return runner_->stats_.num_prompt_tokens;
+  return static_cast<int32_t>(runner_->stats_.num_prompt_tokens);
 }
 
 int32_t LLM::getVisualTokenCount() const {
   if (!runner_ || !runner_->is_loaded()) {
     return 0;
   }
-  return runner_->get_visual_token_count();
+  return static_cast<int32_t>(runner_->get_visual_token_count());
 }
 
 int32_t LLM::countTextTokens(std::string text) const {

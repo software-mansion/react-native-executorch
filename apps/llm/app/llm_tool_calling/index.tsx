@@ -39,6 +39,8 @@ const SUGGESTED_PROMPTS = [
   'Set screen brightness to 50%',
   'What do I have scheduled this week?',
 ];
+import { useLLMStats } from '../../hooks/useLLMStats';
+import { StatsBar } from '../../components/StatsBar';
 
 export default function LLMToolCallingScreenWrapper() {
   const isFocused = useIsFocused();
@@ -58,6 +60,12 @@ function LLMToolCallingScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: selectedModel });
+  const tokenCount = llm.isReady ? llm.getGeneratedTokenCount() : 0;
+  const { stats, onMessageSend } = useLLMStats(
+    llm.response,
+    llm.isGenerating,
+    tokenCount
+  );
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -158,6 +166,7 @@ function LLMToolCallingScreen() {
   }, []);
 
   const sendMessage = async () => {
+    onMessageSend();
     setUserInput('');
     textInputRef.current?.clear();
     try {
@@ -235,7 +244,7 @@ function LLMToolCallingScreen() {
             onSelect={(m) => setSelectedModel(m)}
             disabled={llm.isGenerating}
           />
-
+          <StatsBar stats={stats} />
           <View style={styles.bottomContainer}>
             <TextInput
               autoCorrect={false}

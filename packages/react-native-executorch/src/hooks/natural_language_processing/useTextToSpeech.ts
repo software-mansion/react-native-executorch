@@ -118,7 +118,12 @@ export const useTextToSpeech = ({
       setIsGenerating(true);
       try {
         if (input.text) {
-          instance.streamInsert(input.text);
+          // If the initial text does not end with an end of sentence character,
+          // we add an artificial dot to improve output's quality.
+          instance.streamInsert(
+            input.text +
+              ('.?!;'.includes(input.text.trim().slice(-1)) ? '' : '.')
+          );
         }
 
         await input.onBegin?.();
