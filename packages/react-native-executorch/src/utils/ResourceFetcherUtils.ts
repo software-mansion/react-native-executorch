@@ -1,4 +1,6 @@
 import { ResourceSource } from '..';
+import { getModelNameForUrl } from '../constants/modelUrls';
+import { DOWNLOAD_EVENT_ENDPOINT } from '../constants/resourceFetcher';
 
 /**
  * Http status codes
@@ -190,6 +192,46 @@ export namespace ResourceFetcherUtils {
     ) {
       const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
       fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
+    }
+  }
+
+  function getCountryCode(): string {
+    try {
+      const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+      const regionTag = locale.split('-').pop();
+      if (regionTag && regionTag.length === 2) {
+        return regionTag.toUpperCase();
+      }
+    } catch {}
+    return 'UNKNOWN';
+  }
+
+  function getModelNameFromUri(uri: string): string {
+    const knownName = getModelNameForUrl(uri);
+    if (knownName) {
+      return knownName;
+    }
+    const pathname = new URL(uri).pathname;
+    const filename = pathname.split('/').pop() ?? uri;
+    return filename.replace(/\.[^.]+$/, '');
+  }
+
+  /**
+   * Sends a download event to the analytics endpoint.
+   * @param uri - The URI of the downloaded resource.
+   */
+  export function triggerDownloadEvent(uri: string) {
+    try {
+      fetch(DOWNLOAD_EVENT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          modelName: getModelNameFromUri(uri),
+          countryCode: getCountryCode(),
+        }),
+      });
+    } catch (e) {
+      console.log(e);
     }
   }
 

@@ -75,6 +75,7 @@ export interface ResourceFetcherAdapter {
  */
 export class ResourceFetcher {
   private static adapter: ResourceFetcherAdapter | null = null;
+  private static reportedUrls = new Set<string>();
 
   /**
    * Sets a custom resource fetcher adapter for resource operations.
@@ -123,16 +124,17 @@ export class ResourceFetcher {
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
   ) {
-    for (const source of sources) {
-      if (typeof source === 'string') {
-        try {
+    const result = await this.getAdapter().fetch(callback, ...sources);
+    if (result) {
+      for (const source of sources) {
+        if (typeof source === 'string' && !this.reportedUrls.has(source)) {
+          this.reportedUrls.add(source);
           ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
-        } catch (error) {
-          throw error;
+          ResourceFetcherUtils.triggerDownloadEvent(source);
         }
       }
     }
-    return this.getAdapter().fetch(callback, ...sources);
+    return result;
   }
 
   /**

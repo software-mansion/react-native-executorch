@@ -976,3 +976,130 @@ export const FSMN_VAD = {
   modelName: 'fsmn-vad',
   modelSource: FSMN_VAD_MODEL,
 } as const;
+
+/**
+ * Registry of all available model configurations.
+ *
+ * Use this to discover and enumerate all models shipped with the library.
+ * @example
+ * ```ts
+ * import { MODEL_REGISTRY } from 'react-native-executorch';
+ *
+ * // Access a specific model
+ * const llama = MODEL_REGISTRY.LLAMA3_2_1B;
+ *
+ * // List all model names
+ * const names = Object.values(MODEL_REGISTRY).map(m => m.modelName);
+ *
+ * // Find models by name substring
+ * const whisperModels = Object.values(MODEL_REGISTRY)
+ *   .filter(m => m.modelName.includes('whisper'));
+ * ```
+ * @category Utils
+ */
+export const MODEL_REGISTRY = {
+  LLAMA3_2_3B,
+  LLAMA3_2_3B_QLORA,
+  LLAMA3_2_3B_SPINQUANT,
+  LLAMA3_2_1B,
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_1B_SPINQUANT,
+  QWEN3_0_6B,
+  QWEN3_0_6B_QUANTIZED,
+  QWEN3_1_7B,
+  QWEN3_1_7B_QUANTIZED,
+  QWEN3_4B,
+  QWEN3_4B_QUANTIZED,
+  HAMMER2_1_0_5B,
+  HAMMER2_1_0_5B_QUANTIZED,
+  HAMMER2_1_1_5B,
+  HAMMER2_1_1_5B_QUANTIZED,
+  HAMMER2_1_3B,
+  HAMMER2_1_3B_QUANTIZED,
+  SMOLLM2_1_135M,
+  SMOLLM2_1_135M_QUANTIZED,
+  SMOLLM2_1_360M,
+  SMOLLM2_1_360M_QUANTIZED,
+  SMOLLM2_1_1_7B,
+  SMOLLM2_1_1_7B_QUANTIZED,
+  QWEN2_5_0_5B,
+  QWEN2_5_0_5B_QUANTIZED,
+  QWEN2_5_1_5B,
+  QWEN2_5_1_5B_QUANTIZED,
+  QWEN2_5_3B,
+  QWEN2_5_3B_QUANTIZED,
+  PHI_4_MINI_4B,
+  PHI_4_MINI_4B_QUANTIZED,
+  LFM2_5_1_2B_INSTRUCT,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+  LFM2_VL_1_6B_QUANTIZED,
+  EFFICIENTNET_V2_S,
+  EFFICIENTNET_V2_S_QUANTIZED,
+  SSDLITE_320_MOBILENET_V3_LARGE,
+  RF_DETR_NANO,
+  STYLE_TRANSFER_CANDY,
+  STYLE_TRANSFER_CANDY_QUANTIZED,
+  STYLE_TRANSFER_MOSAIC,
+  STYLE_TRANSFER_MOSAIC_QUANTIZED,
+  STYLE_TRANSFER_RAIN_PRINCESS,
+  STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED,
+  STYLE_TRANSFER_UDNIE,
+  STYLE_TRANSFER_UDNIE_QUANTIZED,
+  WHISPER_TINY_EN,
+  WHISPER_TINY_EN_QUANTIZED,
+  WHISPER_BASE_EN,
+  WHISPER_BASE_EN_QUANTIZED,
+  WHISPER_SMALL_EN,
+  WHISPER_SMALL_EN_QUANTIZED,
+  WHISPER_TINY,
+  WHISPER_BASE,
+  WHISPER_SMALL,
+  DEEPLAB_V3_RESNET50,
+  DEEPLAB_V3_RESNET101,
+  DEEPLAB_V3_MOBILENET_V3_LARGE,
+  LRASPP_MOBILENET_V3_LARGE,
+  FCN_RESNET50,
+  FCN_RESNET101,
+  DEEPLAB_V3_RESNET50_QUANTIZED,
+  DEEPLAB_V3_RESNET101_QUANTIZED,
+  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
+  FCN_RESNET50_QUANTIZED,
+  FCN_RESNET101_QUANTIZED,
+  SELFIE_SEGMENTATION,
+  YOLO26N_SEG,
+  YOLO26S_SEG,
+  YOLO26M_SEG,
+  YOLO26L_SEG,
+  YOLO26X_SEG,
+  RF_DETR_NANO_SEG,
+  CLIP_VIT_BASE_PATCH32_IMAGE,
+  CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  ALL_MINILM_L6_V2,
+  ALL_MPNET_BASE_V2,
+  MULTI_QA_MINILM_L6_COS_V1,
+  MULTI_QA_MPNET_BASE_DOT_V1,
+  CLIP_VIT_BASE_PATCH32_TEXT,
+  BK_SDM_TINY_VPRED_512,
+  BK_SDM_TINY_VPRED_256,
+  FSMN_VAD,
+} as const;
+
+const urlToModelName = new Map<string, string>();
+for (const config of Object.values(MODEL_REGISTRY)) {
+  const modelName = config.modelName;
+  for (const [key, value] of Object.entries(config)) {
+    if (key !== 'modelName' && typeof value === 'string') {
+      urlToModelName.set(value, modelName);
+    }
+  }
+}
+
+/**
+ * Looks up the model name for a given source URL.
+ * @param url - The source URL to look up.
+ * @returns The model name if found, otherwise undefined.
+ */
+export function getModelNameForUrl(url: string): string | undefined {
+  return urlToModelName.get(url);
+}
