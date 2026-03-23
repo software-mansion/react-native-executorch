@@ -127,7 +127,7 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
     float x2 = bboxes[i * 4 + 2] * widthRatio;
     float y2 = bboxes[i * 4 + 3] * heightRatio;
 
-    if (static_cast<std::size_t>(labelIdx) >= labelNames_.size()) {
+    if (std::cmp_greater(labelIdx, labelNames_.size()) {
       throw RnExecutorchError(
           RnExecutorchErrorCode::InvalidConfig,
           "Model output class index " + std::to_string(labelIdx) +
