@@ -7,7 +7,7 @@ TypeScript API implementation of the [useLLM](../../03-hooks/01-natural-language
 ## API Reference
 
 - For detailed API Reference for `LLMModule` see: [`LLMModule` API Reference](../../06-api-reference/classes/LLMModule.md).
-- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
+- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---llm).
 - For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
 
 ## High Level Overview
@@ -20,7 +20,7 @@ const llm = await LLMModule.fromModelName(
   LLAMA3_2_1B_QLORA,
   (progress) => console.log(progress),
   (token) => console.log(token),
-  (messages) => console.log(messages),
+  (messages) => console.log(messages)
 );
 
 // Running the model - returns the generated response
