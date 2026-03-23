@@ -62,6 +62,7 @@ export class LLMModule {
         modelSource: namedSources.modelSource,
         tokenizerSource: namedSources.tokenizerSource,
         tokenizerConfigSource: namedSources.tokenizerConfigSource,
+        capabilities: namedSources.capabilities,
         onDownloadProgressCallback: onDownloadProgress,
       });
       return instance;
