@@ -31,6 +31,7 @@ export default function StyleTransferTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const candy = useStyleTransfer({
     model: STYLE_TRANSFER_CANDY,
@@ -45,6 +46,10 @@ export default function StyleTransferTask({
 
   const [styledImage, setStyledImage] = useState<SkImage | null>(null);
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(active.error ? String(active.error) : null);
+  }, [active.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(active.isReady);

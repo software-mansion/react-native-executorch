@@ -25,6 +25,7 @@ export default function ObjectDetectionTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const ssdlite = useObjectDetection({
     model: SSDLITE_320_MOBILENET_V3_LARGE,
@@ -40,6 +41,10 @@ export default function ObjectDetectionTask({
   const [detections, setDetections] = useState<Detection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(active.error ? String(active.error) : null);
+  }, [active.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(active.isReady);

@@ -10,6 +10,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
+import ErrorBanner from '../../components/ErrorBanner';
 
 export default function ClassificationScreen() {
   const [results, setResults] = useState<{ label: string; score: number }[]>(
@@ -18,11 +19,18 @@ export default function ClassificationScreen() {
   const [imageUri, setImageUri] = useState('');
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
+  const [error, setError] = useState<string | null>(null);
+
   const model = useClassification({ model: EFFICIENTNET_V2_S_QUANTIZED });
   const { setGlobalGenerating } = useContext(GeneratingContext);
+
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -46,21 +54,24 @@ export default function ClassificationScreen() {
           .map(([label, score]) => ({ label, score: score as number }));
         setResults(top10);
       } catch (e) {
-        console.error(e);
+        setError(e instanceof Error ? e.message : String(e));
       }
     }
   };
 
-  if (!model.isReady) {
+  if (!model.isReady && !model.error) {
     return (
       <Spinner
-        visible={!model.isReady}
+        visible={true}
         textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
+
   return (
     <ScreenWrapper>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
