@@ -25,6 +25,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
+import ErrorBanner from '../../components/ErrorBanner';
 
 const numberToColor: number[][] = [
   [255, 87, 51], // 0 Red
@@ -69,7 +70,7 @@ export default function SemanticSegmentationScreen() {
       DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED
     );
 
-  const { isReady, isGenerating, downloadProgress, forward } =
+  const { isReady, isGenerating, downloadProgress, forward, error: modelError } =
     useSemanticSegmentation({ model: selectedModel });
 
   const [imageUri, setImageUri] = useState('');
@@ -77,10 +78,15 @@ export default function SemanticSegmentationScreen() {
   const [segImage, setSegImage] = useState<SkImage | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setGlobalGenerating(isGenerating);
   }, [isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    if (modelError) setError(String(modelError));
+  }, [modelError]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -125,14 +131,14 @@ export default function SemanticSegmentationScreen() {
       setSegImage(img);
       setInferenceTime(Date.now() - start);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  if (!isReady) {
+  if (!isReady && !modelError) {
     return (
       <Spinner
-        visible={!isReady}
+        visible={true}
         textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
@@ -140,6 +146,7 @@ export default function SemanticSegmentationScreen() {
 
   return (
     <ScreenWrapper>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.imageCanvasContainer}>
         <View style={styles.imageContainer}>
           <Image

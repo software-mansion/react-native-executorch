@@ -34,6 +34,7 @@ export default function InstanceSegmentationTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const yolo26n = useInstanceSegmentation({
     model: YOLO26N_SEG,
@@ -50,6 +51,10 @@ export default function InstanceSegmentationTask({
   const [instances, setInstances] = useState<DisplayInstance[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(active.error ? String(active.error) : null);
+  }, [active.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(active.isReady);

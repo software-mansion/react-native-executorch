@@ -22,6 +22,7 @@ const SUGGESTED_PROMPTS = [
 ];
 import { useLLMStats } from '../../hooks/useLLMStats';
 import { StatsBar } from '../../components/StatsBar';
+import ErrorBanner from '../../components/ErrorBanner';
 import {
   useLLM,
   fixAndValidateStructuredOutput,
@@ -94,6 +95,7 @@ function LLMScreen() {
     llm.isGenerating,
     tokenCount
   );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -138,9 +140,7 @@ function LLMScreen() {
   }, [llm.messageHistory, llm.isGenerating]);
 
   useEffect(() => {
-    if (llm.error) {
-      console.error('LLM error:', llm.error);
-    }
+    if (llm.error) setError(String(llm.error));
   }, [llm.error]);
 
   const sendMessage = async () => {
@@ -150,13 +150,13 @@ function LLMScreen() {
     try {
       await llm.sendMessage(userInput);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  return !llm.isReady ? (
+  return !llm.isReady && !llm.error ? (
     <Spinner
-      visible={!llm.isReady}
+      visible={true}
       textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
@@ -170,6 +170,7 @@ function LLMScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
         <View style={styles.container}>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages

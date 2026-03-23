@@ -17,11 +17,16 @@ export default function OCRTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const model = useOCR({ model: OCR_ENGLISH });
   const [detections, setDetections] = useState<OCRDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(model.error ? String(model.error) : null);
+  }, [model.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(model.isReady);

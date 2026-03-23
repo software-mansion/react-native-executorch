@@ -34,6 +34,8 @@ import SegmentationTask from '../../components/vision_camera/tasks/SegmentationT
 import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
 import OCRTask from '../../components/vision_camera/tasks/OCRTask';
 import StyleTransferTask from '../../components/vision_camera/tasks/StyleTransferTask';
+// 1. Import ErrorBanner
+import ErrorBanner from '../../components/ErrorBanner';
 
 type TaskId =
   | 'classification'
@@ -112,8 +114,6 @@ const TASKS: Task[] = [
   },
 ];
 
-// Module-level consts so worklets in task components can always reference the same stable objects.
-// Never replaced — only mutated via setBlocking to avoid closure staleness.
 const frameKillSwitch = createSynchronizable(false);
 const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
 
@@ -132,6 +132,9 @@ export default function VisionCameraScreen() {
   const [frameOutput, setFrameOutput] = useState<ReturnType<
     typeof useFrameOutput
   > | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const isFocused = useIsFocused();
@@ -150,6 +153,7 @@ export default function VisionCameraScreen() {
 
   useEffect(() => {
     frameKillSwitch.setBlocking(true);
+    setError(null);
     const id = setTimeout(() => {
       frameKillSwitch.setBlocking(false);
     }, 300);
@@ -171,6 +175,10 @@ export default function VisionCameraScreen() {
     },
     [setGlobalGenerating]
   );
+
+  const handleErrorChange = useCallback((errorMessage: string | null) => {
+    setError(errorMessage);
+  }, []);
 
   if (!cameraPermission.hasPermission) {
     return (
@@ -209,11 +217,16 @@ export default function VisionCameraScreen() {
     onProgressChange: setDownloadProgress,
     onGeneratingChange: handleGeneratingChange,
     onFpsChange: handleFpsChange,
+    onErrorChange: handleErrorChange,
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
+
+      <View style={[styles.errorOverlay, { paddingTop: insets.top }]}>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      </View>
 
       <Camera
         style={StyleSheet.absoluteFill}
@@ -224,7 +237,6 @@ export default function VisionCameraScreen() {
         orientationSource="device"
       />
 
-      {/* Layout sentinel — measures the full-screen area for bbox/canvas sizing */}
       <View
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -280,7 +292,7 @@ export default function VisionCameraScreen() {
         />
       )}
 
-      {!isReady && (
+      {!isReady && !error && (
         <View style={styles.loadingOverlay}>
           <Spinner
             visible
@@ -387,6 +399,13 @@ export default function VisionCameraScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
+  errorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+  },
   centered: {
     flex: 1,
     backgroundColor: 'black',
@@ -407,6 +426,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
   topOverlay: {
     position: 'absolute',
@@ -415,6 +435,7 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     gap: 8,
+    zIndex: 5,
   },
   titleRow: {
     alignItems: 'center',
@@ -487,6 +508,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
+    zIndex: 5,
   },
   flipButton: {
     width: 56,

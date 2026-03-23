@@ -41,6 +41,7 @@ import SWMIcon from '../assets/swm_icon.svg';
 import DeviceInfo from 'react-native-device-info';
 
 import { VerboseTranscription } from '../components/VerboseTranscription';
+import ErrorBanner from '../components/ErrorBanner';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
@@ -64,7 +65,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   } | null>(null);
 
   const [enableTimestamps, setEnableTimestamps] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [audioURL, setAudioURL] = useState('');
+  const [hasMicPermission, setHasMicPermission] = useState(false);
 
   const isRecordingRef = useRef(false);
   const [liveTranscribing, setLiveTranscribing] = useState(false);
@@ -79,8 +82,8 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
     });
     const checkPerms = async () => {
-      const granted = await AudioManager.requestRecordingPermissions();
-      if (!granted) console.warn('Microphone permission denied!');
+      const status = await AudioManager.requestRecordingPermissions();
+      setHasMicPermission(status === 'Granted');
     };
     checkPerms();
   }, []);
@@ -122,13 +125,18 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       });
       setTranscriptionTime(Date.now() - start);
       setTranscription(result);
-    } catch (error) {
-      console.error('Error decoding audio data', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
       return;
     }
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
+    if (!hasMicPermission) {
+      setError('Microphone permission denied. Please enable it in Settings.');
+      return;
+    }
+
     isRecordingRef.current = true;
     setLiveTranscribing(true);
 
@@ -151,14 +159,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const success = await AudioManager.setAudioSessionActivity(true);
       if (!success) {
-        console.warn('Cannot start audio session correctly');
+        setError('Cannot start audio session correctly');
       }
       const result = recorder.current.start();
       if (result.status === 'error') {
-        console.warn('Recording problems: ', result.message);
+        setError(`Recording problems: ${result.message}`);
       }
     } catch (e) {
-      console.error('Failed to start recorder', e);
+      setError(e instanceof Error ? e.message : String(e));
       isRecordingRef.current = false;
       setLiveTranscribing(false);
       return;
@@ -189,8 +197,8 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
         setLiveResult(currentDisplay);
       }
-    } catch (error) {
-      console.error('Error during live transcription:', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLiveTranscribing(false);
     }
@@ -216,11 +224,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const getModelStatus = () => {
-    if (model.error) return `${model.error}`;
     if (model.isGenerating) return 'Transcribing...';
     if (model.isReady) return 'Ready to transcribe';
     return `Loading model: ${(100 * model.downloadProgress).toFixed(2)}%`;
   };
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
@@ -263,6 +274,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
               </Text>
             )}
           </View>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <ModelPicker
             models={MODELS}

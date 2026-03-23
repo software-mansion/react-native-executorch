@@ -29,6 +29,7 @@ const MODELS: ModelOption<StyleTransferModelSources>[] = [
   { label: 'Rain Princess', value: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED },
   { label: 'Udnie', value: STYLE_TRANSFER_UDNIE_QUANTIZED },
 ];
+import ErrorBanner from '../../components/ErrorBanner';
 
 export default function StyleTransferScreen() {
   const [selectedModel, setSelectedModel] = useState<StyleTransferModelSources>(
@@ -41,9 +42,14 @@ export default function StyleTransferScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
+
   const [imageUri, setImageUri] = useState('');
   const [styledUri, setStyledUri] = useState('');
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -63,15 +69,15 @@ export default function StyleTransferScreen() {
         setInferenceTime(Date.now() - start);
         setStyledUri(uri);
       } catch (e) {
-        console.error(e);
+        setError(e instanceof Error ? e.message : String(e));
       }
     }
   };
 
-  if (!model.isReady) {
+  if (!model.isReady && !model.error) {
     return (
       <Spinner
-        visible={!model.isReady}
+        visible={true}
         textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
@@ -79,6 +85,7 @@ export default function StyleTransferScreen() {
 
   return (
     <ScreenWrapper>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}

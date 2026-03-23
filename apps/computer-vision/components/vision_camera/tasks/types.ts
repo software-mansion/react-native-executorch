@@ -11,4 +11,5 @@ export type TaskProps = {
   onProgressChange: (progress: number) => void;
   onGeneratingChange: (isGenerating: boolean) => void;
   onFpsChange: (fps: number, frameMs: number) => void;
+  onErrorChange: (error: string | null) => void;
 };

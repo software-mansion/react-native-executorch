@@ -21,6 +21,7 @@ import Messages from '../../components/Messages';
 import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
+import ErrorBanner from '../../components/ErrorBanner';
 
 const SUGGESTED_PROMPTS = [
   "What's in this image?",
@@ -43,6 +44,9 @@ function MultimodalLLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
+  // Added error state
+  const [error, setError] = useState<string | null>(null);
+
   const vlm = useLLM({
     model: LFM2_VL_1_6B_QUANTIZED,
   });
@@ -57,15 +61,20 @@ function MultimodalLLMScreen() {
     setGlobalGenerating(vlm.isGenerating);
   }, [vlm.isGenerating, setGlobalGenerating]);
 
+  // Updated to use local error state
   useEffect(() => {
-    if (vlm.error) console.error('MultimodalLLM error:', vlm.error);
+    if (vlm.error) setError(String(vlm.error));
   }, [vlm.error]);
 
   const pickImage = async () => {
-    const result = await launchImageLibrary({ mediaType: 'photo' });
-    if (result.assets && result.assets.length > 0) {
-      const uri = result.assets[0]?.uri;
-      if (uri) setImageUri(uri);
+    try {
+      const result = await launchImageLibrary({ mediaType: 'photo' });
+      if (result.assets && result.assets.length > 0) {
+        const uri = result.assets[0]?.uri;
+        if (uri) setImageUri(uri);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -84,19 +93,17 @@ function MultimodalLLMScreen() {
         currentImageUri ? { imagePath: currentImageUri } : undefined
       );
     } catch (e) {
-      console.error('Generation error:', e);
+      // Updated to set UI error instead of just console.error
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  if (!vlm.isReady) {
+  // Updated Spinner check so it doesn't block the ErrorBanner if loading fails
+  if (!vlm.isReady && !vlm.error) {
     return (
       <Spinner
-        visible={!vlm.isReady}
-        textContent={
-          vlm.error
-            ? `Error: ${vlm.error.message}`
-            : `Loading model ${(vlm.downloadProgress * 100).toFixed(0)}%`
-        }
+        visible={true}
+        textContent={`Loading model ${(vlm.downloadProgress * 100).toFixed(0)}%`}
       />
     );
   }
@@ -110,6 +117,9 @@ function MultimodalLLMScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
         <View style={styles.container}>
+          {/* Injected ErrorBanner here */}
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+
           {vlm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages

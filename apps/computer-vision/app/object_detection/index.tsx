@@ -20,10 +20,12 @@ const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
   { label: 'SSDLite MobileNet', value: SSDLITE_320_MOBILENET_V3_LARGE },
 ];
+import ErrorBanner from '../../components/ErrorBanner';
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
   const [results, setResults] = useState<Detection[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
     height: number;
@@ -37,6 +39,10 @@ export default function ObjectDetectionScreen() {
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -60,7 +66,7 @@ export default function ObjectDetectionScreen() {
         setInferenceTime(Date.now() - start);
         setResults(output);
       } catch (e) {
-        console.error(e);
+        setError(e instanceof Error ? e.message : String(e));
       }
     }
   };
@@ -76,6 +82,7 @@ export default function ObjectDetectionScreen() {
 
   return (
     <ScreenWrapper>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.imageContainer}>
         <View style={styles.image}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (

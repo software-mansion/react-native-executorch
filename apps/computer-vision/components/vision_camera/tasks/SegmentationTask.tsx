@@ -44,6 +44,7 @@ export default function SegmentationTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const segDeeplabResnet50 = useSemanticSegmentation({
     model: DEEPLAB_V3_RESNET50_QUANTIZED,
@@ -86,6 +87,10 @@ export default function SegmentationTask({
 
   const [maskImage, setMaskImage] = useState<SkImage | null>(null);
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(active.error ? String(active.error) : null);
+  }, [active.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(active.isReady);

@@ -8,8 +8,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
+import ErrorBanner from '../../components/ErrorBanner';
 
-export default function VerticalOCRScree() {
+export default function VerticalOCRScreen() {
   const [imageUri, setImageUri] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [imageDimensions, setImageDimensions] = useState<{
@@ -17,14 +18,23 @@ export default function VerticalOCRScree() {
     height: number;
   }>();
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+
   const model = useVerticalOCR({
     model: OCR_ENGLISH,
     independentCharacters: true,
   });
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
+
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    if (model.error) setError(String(model.error));
+  }, [model.error]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -46,14 +56,14 @@ export default function VerticalOCRScree() {
       setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  if (!model.isReady) {
+  if (!model.isReady && !model.error) {
     return (
       <Spinner
-        visible={!model.isReady}
+        visible={true}
         textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
       />
     );
@@ -62,6 +72,8 @@ export default function VerticalOCRScree() {
   return (
     <ScreenWrapper>
       <View style={styles.container}>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
+
         <View style={styles.imageContainer}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
             <ImageWithBboxes2
@@ -87,7 +99,7 @@ export default function VerticalOCRScree() {
               {results.map(({ text, score }, index) => (
                 <View key={index} style={styles.resultRecord}>
                   <Text style={styles.resultLabel}>{text}</Text>
-                  <Text>{score.toFixed(3)}</Text>
+                  <Text>{score?.toFixed(3)}</Text>
                 </View>
               ))}
             </ScrollView>

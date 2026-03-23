@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 import { useIsFocused } from '@react-navigation/native';
 import { dotProduct } from '../../utils/math';
+import ErrorBanner from '../../components/ErrorBanner';
 
 export default function TextEmbeddingsScreenWrapper() {
   const isFocused = useIsFocused();
@@ -23,6 +24,7 @@ export default function TextEmbeddingsScreenWrapper() {
 
 function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
+  const [error, setError] = useState<string | null>(null);
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
@@ -52,8 +54,8 @@ function TextEmbeddingsScreen() {
           }
 
           setSentencesWithEmbeddings(embeddings);
-        } catch (error) {
-          console.error('Error generating embeddings:', error);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : String(e));
         }
       };
 
@@ -78,8 +80,8 @@ function TextEmbeddingsScreen() {
       );
       matches.sort((a, b) => b.similarity - a.similarity);
       setTopMatches(matches.slice(0, 3));
-    } catch (error) {
-      console.error('Error generating embedding:', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -94,8 +96,8 @@ function TextEmbeddingsScreen() {
         ...prev,
         { sentence: inputSentence, embedding },
       ]);
-    } catch (error) {
-      console.error('Error generating embedding:', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
 
     setInputSentence('');
@@ -106,8 +108,8 @@ function TextEmbeddingsScreen() {
     if (!model.isReady) return;
     try {
       setSentencesWithEmbeddings([]);
-    } catch (error) {
-      console.error('Error clearing the list:', error);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -130,6 +132,7 @@ function TextEmbeddingsScreen() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.heading}>Text Embeddings Playground</Text>
           <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>List of Existing Sentences</Text>

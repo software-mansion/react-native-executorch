@@ -16,6 +16,7 @@ import {
 import SWMIcon from '../../assets/icons/swm_icon.svg';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from '../../components/Spinner';
+import ErrorBanner from '../../components/ErrorBanner';
 import {
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
@@ -66,6 +67,7 @@ function LLMToolCallingScreen() {
     llm.isGenerating,
     tokenCount
   );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -86,9 +88,7 @@ function LLMToolCallingScreen() {
   }, [configure]);
 
   useEffect(() => {
-    if (llm.error) {
-      console.error('LLM error:', llm.error);
-    }
+    if (llm.error) setError(String(llm.error));
   }, [llm.error]);
 
   const requestCalendarPermission = async () => {
@@ -172,13 +172,13 @@ function LLMToolCallingScreen() {
     try {
       await llm.sendMessage(userInput);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
-  return !llm.isReady ? (
+  return !llm.isReady && !llm.error ? (
     <Spinner
-      visible={!llm.isReady}
+      visible={true}
       textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
@@ -193,6 +193,7 @@ function LLMToolCallingScreen() {
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
           </View>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages

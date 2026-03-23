@@ -17,10 +17,15 @@ export default function ClassificationTask({
   onProgressChange,
   onGeneratingChange,
   onFpsChange,
+  onErrorChange,
 }: Props) {
   const model = useClassification({ model: EFFICIENTNET_V2_S });
   const [classResult, setClassResult] = useState({ label: '', score: 0 });
   const lastFrameTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    onErrorChange(model.error ? String(model.error) : null);
+  }, [model.error, onErrorChange]);
 
   useEffect(() => {
     onReadyChange(model.isReady);

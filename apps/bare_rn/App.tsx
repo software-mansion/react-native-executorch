@@ -83,9 +83,64 @@ const spinnerStyles = StyleSheet.create({
   },
 });
 
+function ErrorBanner({
+  message,
+  onDismiss,
+}: {
+  message: string | null;
+  onDismiss: () => void;
+}) {
+  if (!message) return null;
+  return (
+    <View style={errorBannerStyles.container}>
+      <Text style={errorBannerStyles.message} numberOfLines={3}>
+        {message}
+      </Text>
+      <TouchableOpacity
+        onPress={onDismiss}
+        style={errorBannerStyles.closeButton}
+      >
+        <Text style={errorBannerStyles.closeText}>✕</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const errorBannerStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#FEE2E2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    paddingVertical: 10,
+    paddingLeft: 12,
+    paddingRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  message: {
+    flex: 1,
+    color: '#991B1B',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  closeText: {
+    color: '#991B1B',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
 function App() {
   const [userInput, setUserInput] = useState('');
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const textInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -98,9 +153,7 @@ function App() {
   // } });
 
   useEffect(() => {
-    if (llm.error) {
-      console.log('LLM error:', llm.error);
-    }
+    if (llm.error) setError(String(llm.error));
   }, [llm.error]);
 
   const sendMessage = async () => {
@@ -111,7 +164,7 @@ function App() {
     try {
       await llm.sendMessage(userInput);
     } catch (e) {
-      console.error(e);
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -123,11 +176,12 @@ function App() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Spinner
-          visible={!llm.isReady}
+          visible={!llm.isReady && !llm.error}
           textContent={`Loading model ${(llm.downloadProgress * 100).toFixed(0)}%`}
         />
 
         <SafeAreaView style={styles.content}>
+          <ErrorBanner message={error} onDismiss={() => setError(null)} />
           {llm.messageHistory.length > 0 || llm.isGenerating ? (
             <ScrollView
               ref={scrollViewRef}
