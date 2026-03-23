@@ -60,7 +60,12 @@ function LLMToolCallingScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: selectedModel });
-  const { stats, onMessageSend } = useLLMStats(llm.response, llm.isGenerating);
+  const tokenCount = llm.isReady ? llm.getGeneratedTokenCount() : 0;
+  const { stats, onMessageSend } = useLLMStats(
+    llm.response,
+    llm.isGenerating,
+    tokenCount
+  );
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);

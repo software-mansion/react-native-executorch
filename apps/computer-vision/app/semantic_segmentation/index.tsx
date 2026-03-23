@@ -88,6 +88,7 @@ export default function SemanticSegmentationScreen() {
     setImageUri(image.uri);
     setImageSize({ width: image.width ?? 0, height: image.height ?? 0 });
     setSegImage(null);
+    setInferenceTime(null);
   };
 
   const runForward = async () => {

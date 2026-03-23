@@ -6,7 +6,11 @@ export interface LLMStats {
   totalTokens: number;
 }
 
-export function useLLMStats(response: string, isGenerating: boolean) {
+export function useLLMStats(
+  response: string,
+  isGenerating: boolean,
+  totalTokens: number
+) {
   const sendTimeRef = useRef<number | null>(null);
   const firstTokenTimeRef = useRef<number | null>(null);
   const lastResponseRef = useRef<string>('');
@@ -19,7 +23,7 @@ export function useLLMStats(response: string, isGenerating: boolean) {
         firstTokenTimeRef.current = Date.now();
       }
     }
-  }, [response, isGenerating]);
+  }, [response, isGenerating, totalTokens]);
 
   useEffect(() => {
     if (
@@ -30,14 +34,13 @@ export function useLLMStats(response: string, isGenerating: boolean) {
       const endTime = Date.now();
       const ttft = firstTokenTimeRef.current - sendTimeRef.current;
       const totalTime = (endTime - firstTokenTimeRef.current) / 1000;
-      const totalTokens = Math.round(lastResponseRef.current.length / 4);
       const tokensPerSec =
         totalTime > 0 ? Math.round(totalTokens / totalTime) : 0;
       setStats({ ttft, tokensPerSec, totalTokens });
       sendTimeRef.current = null;
       firstTokenTimeRef.current = null;
     }
-  }, [isGenerating]);
+  }, [isGenerating, totalTokens]);
 
   const onMessageSend = () => {
     sendTimeRef.current = Date.now();

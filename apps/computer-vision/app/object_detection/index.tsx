@@ -48,6 +48,7 @@ export default function ObjectDetectionScreen() {
       setImageUri(image.uri as string);
       setImageDimensions({ width: width as number, height: height as number });
       setResults([]);
+      setInferenceTime(null);
     }
   };
 

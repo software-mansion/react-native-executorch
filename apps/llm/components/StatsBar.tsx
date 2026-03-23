@@ -15,7 +15,7 @@ export function StatsBar({ stats }: Props) {
       <Text style={styles.separator}>·</Text>
       <Text style={styles.stat}>{stats.tokensPerSec} tok/s</Text>
       <Text style={styles.separator}>·</Text>
-      <Text style={styles.stat}>~{stats.totalTokens} tokens</Text>
+      <Text style={styles.stat}>{stats.totalTokens} tokens</Text>
     </View>
   );
 }

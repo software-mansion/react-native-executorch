@@ -51,6 +51,7 @@ export default function StyleTransferScreen() {
     if (typeof uri === 'string') {
       setImageUri(uri);
       setStyledUri('');
+      setInferenceTime(null);
     }
   };
 

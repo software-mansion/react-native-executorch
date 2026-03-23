@@ -35,6 +35,7 @@ export default function VerticalOCRScree() {
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
+      setInferenceTime(null);
     }
   };
 

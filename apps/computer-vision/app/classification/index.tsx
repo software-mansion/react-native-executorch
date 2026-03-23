@@ -30,6 +30,7 @@ export default function ClassificationScreen() {
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
+      setInferenceTime(null);
     }
   };
 

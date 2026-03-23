@@ -60,6 +60,7 @@ export default function OCRScreen() {
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
+      setInferenceTime(null);
     }
   };
 

@@ -46,7 +46,12 @@ function MultimodalLLMScreen() {
   const vlm = useLLM({
     model: LFM2_VL_1_6B_QUANTIZED,
   });
-  const { stats, onMessageSend } = useLLMStats(vlm.response, vlm.isGenerating);
+  const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
+  const { stats, onMessageSend } = useLLMStats(
+    vlm.response,
+    vlm.isGenerating,
+    tokenCount
+  );
 
   useEffect(() => {
     setGlobalGenerating(vlm.isGenerating);
