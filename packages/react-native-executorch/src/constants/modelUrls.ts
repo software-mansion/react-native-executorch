@@ -14,7 +14,7 @@ const LLAMA3_2_TOKENIZER = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer.jso
 const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_3B = {
   modelName: 'llama-3.2-3b',
@@ -24,7 +24,7 @@ export const LLAMA3_2_3B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_3B_QLORA = {
   modelName: 'llama-3.2-3b-qlora',
@@ -34,7 +34,7 @@ export const LLAMA3_2_3B_QLORA = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_3B_SPINQUANT = {
   modelName: 'llama-3.2-3b-spinquant',
@@ -44,7 +44,7 @@ export const LLAMA3_2_3B_SPINQUANT = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_1B = {
   modelName: 'llama-3.2-1b',
@@ -54,7 +54,7 @@ export const LLAMA3_2_1B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_1B_QLORA = {
   modelName: 'llama-3.2-1b-qlora',
@@ -64,7 +64,7 @@ export const LLAMA3_2_1B_QLORA = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LLAMA3_2_1B_SPINQUANT = {
   modelName: 'llama-3.2-1b-spinquant',
@@ -84,7 +84,7 @@ const QWEN3_TOKENIZER = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer.json`;
 const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_0_6B = {
   modelName: 'qwen3-0.6b',
@@ -94,7 +94,7 @@ export const QWEN3_0_6B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_0_6B_QUANTIZED = {
   modelName: 'qwen3-0.6b-quantized',
@@ -104,7 +104,7 @@ export const QWEN3_0_6B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_1_7B = {
   modelName: 'qwen3-1.7b',
@@ -114,7 +114,7 @@ export const QWEN3_1_7B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_1_7B_QUANTIZED = {
   modelName: 'qwen3-1.7b-quantized',
@@ -124,7 +124,7 @@ export const QWEN3_1_7B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_4B = {
   modelName: 'qwen3-4b',
@@ -134,7 +134,7 @@ export const QWEN3_4B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN3_4B_QUANTIZED = {
   modelName: 'qwen3-4b-quantized',
@@ -154,7 +154,7 @@ const HAMMER2_1_TOKENIZER = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/tokenizer.j
 const HAMMER2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_0_5B = {
   modelName: 'hammer2.1-0.5b',
@@ -164,7 +164,7 @@ export const HAMMER2_1_0_5B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_0_5B_QUANTIZED = {
   modelName: 'hammer2.1-0.5b-quantized',
@@ -174,7 +174,7 @@ export const HAMMER2_1_0_5B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_1_5B = {
   modelName: 'hammer2.1-1.5b',
@@ -184,7 +184,7 @@ export const HAMMER2_1_1_5B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_1_5B_QUANTIZED = {
   modelName: 'hammer2.1-1.5b-quantized',
@@ -194,7 +194,7 @@ export const HAMMER2_1_1_5B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_3B = {
   modelName: 'hammer2.1-3b',
@@ -204,7 +204,7 @@ export const HAMMER2_1_3B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const HAMMER2_1_3B_QUANTIZED = {
   modelName: 'hammer2.1-3b-quantized',
@@ -224,7 +224,7 @@ const SMOLLM2_1_TOKENIZER = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/tokenizer.jso
 const SMOLLM2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_135M = {
   modelName: 'smollm2.1-135m',
@@ -234,7 +234,7 @@ export const SMOLLM2_1_135M = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_135M_QUANTIZED = {
   modelName: 'smollm2.1-135m-quantized',
@@ -244,7 +244,7 @@ export const SMOLLM2_1_135M_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_360M = {
   modelName: 'smollm2.1-360m',
@@ -254,7 +254,7 @@ export const SMOLLM2_1_360M = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_360M_QUANTIZED = {
   modelName: 'smollm2.1-360m-quantized',
@@ -264,7 +264,7 @@ export const SMOLLM2_1_360M_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_1_7B = {
   modelName: 'smollm2.1-1.7b',
@@ -274,7 +274,7 @@ export const SMOLLM2_1_1_7B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const SMOLLM2_1_1_7B_QUANTIZED = {
   modelName: 'smollm2.1-1.7b-quantized',
@@ -294,7 +294,7 @@ const QWEN2_5_TOKENIZER = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/tokenizer.json`
 const QWEN2_5_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_0_5B = {
   modelName: 'qwen2.5-0.5b',
@@ -304,7 +304,7 @@ export const QWEN2_5_0_5B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_0_5B_QUANTIZED = {
   modelName: 'qwen2.5-0.5b-quantized',
@@ -314,7 +314,7 @@ export const QWEN2_5_0_5B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_1_5B = {
   modelName: 'qwen2.5-1.5b',
@@ -324,7 +324,7 @@ export const QWEN2_5_1_5B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_1_5B_QUANTIZED = {
   modelName: 'qwen2.5-1.5b-quantized',
@@ -334,7 +334,7 @@ export const QWEN2_5_1_5B_QUANTIZED = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_3B = {
   modelName: 'qwen2.5-3b',
@@ -344,7 +344,7 @@ export const QWEN2_5_3B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const QWEN2_5_3B_QUANTIZED = {
   modelName: 'qwen2.5-3b-quantized',
@@ -360,7 +360,7 @@ const PHI_4_MINI_TOKENIZER = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/tokenizer.
 const PHI_4_MINI_TOKENIZER_CONFIG = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const PHI_4_MINI_4B = {
   modelName: 'phi-4-mini-4b',
@@ -370,7 +370,7 @@ export const PHI_4_MINI_4B = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const PHI_4_MINI_4B_QUANTIZED = {
   modelName: 'phi-4-mini-4b-quantized',
@@ -386,7 +386,7 @@ const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION
 const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION_TAG}/tokenizer_config.json`;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LFM2_5_1_2B_INSTRUCT = {
   modelName: 'lfm2.5-1.2b-instruct',
@@ -396,7 +396,7 @@ export const LFM2_5_1_2B_INSTRUCT = {
 } as const;
 
 /**
- * @category Models - LMM
+ * @category Models - LLM
  */
 export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
   modelName: 'lfm2.5-1.2b-instruct-quantized',
