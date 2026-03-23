@@ -2,7 +2,6 @@
 
 #include <ReactCommon/CallInvokerHolder.h>
 #include <fbjni/fbjni.h>
-#include <react/jni/CxxModuleWrapper.h>
 #include <react/jni/JMessageQueueThread.h>
 
 #include <memory>
