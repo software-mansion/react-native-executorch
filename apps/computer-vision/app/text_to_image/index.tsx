@@ -37,14 +37,13 @@ export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [image, setImage] = useState<string | null>(null);
   const [steps, setSteps] = useState<number>(40);
-  
+
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<TextToImageModelSources>(
     BK_SDM_TINY_VPRED_256
   );
   const [generationTime, setGenerationTime] = useState<number | null>(null);
 
-  const [showTextInput, setShowTextInput] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
@@ -80,9 +79,9 @@ export default function TextToImageScreen() {
 
   const runForward = async () => {
     if (!input.trim()) return;
-    
+
     setImageTitle(input);
-    
+
     try {
       const start = Date.now();
       const output = await model.generate(input, imageSize, steps);
@@ -109,10 +108,9 @@ export default function TextToImageScreen() {
   }
 
   return (
-    <TouchableWithoutFeedback 
+    <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
-        setShowTextInput(false);
       }}
     >
       <KeyboardAvoidingView
@@ -120,7 +118,7 @@ export default function TextToImageScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {keyboardVisible && <View style={styles.overlay} />}
-        
+
         <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
         <View style={styles.titleContainer}>
