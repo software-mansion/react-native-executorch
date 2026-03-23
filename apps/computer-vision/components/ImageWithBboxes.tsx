@@ -66,6 +66,7 @@ export default function ImageWithBboxes({
         scaleY={scaleY}
         offsetX={offsetX}
         offsetY={offsetY}
+        containerWidth={layout.width}
       />
     </View>
   );

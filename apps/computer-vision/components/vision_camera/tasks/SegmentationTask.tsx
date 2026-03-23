@@ -20,7 +20,7 @@ import {
   Skia,
   SkImage,
 } from '@shopify/react-native-skia';
-import { CLASS_COLORS } from '../utils/colors';
+import { CLASS_COLORS } from '../../utils/colors';
 import { TaskProps } from './types';
 
 type SegModelId =

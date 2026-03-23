@@ -11,7 +11,7 @@ import {
   CocoLabelYolo,
 } from 'react-native-executorch';
 import { Canvas, Image as SkiaImage } from '@shopify/react-native-skia';
-import { labelColor, labelColorBg } from '../utils/colors';
+import { labelColor, labelColorBg } from '../../utils/colors';
 import { TaskProps } from './types';
 import {
   buildDisplayInstances,

@@ -128,6 +128,7 @@ export default function ObjectDetectionTask({
         scaleY={scale}
         offsetX={offsetX}
         offsetY={offsetY}
+        containerWidth={canvasSize.width}
       />
     </View>
   );

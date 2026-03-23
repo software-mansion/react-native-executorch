@@ -1,25 +1,27 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Detection } from 'react-native-executorch';
+import { Detection, LabelEnum } from 'react-native-executorch';
 import { labelColor, labelColorBg } from './utils/colors';
 
-interface Props {
-  detections: Detection[];
+interface Props<L extends LabelEnum> {
+  detections: Detection<L>[];
   scaleX: number;
   scaleY: number;
   offsetX: number;
   offsetY: number;
   mirrorLabels?: boolean;
+  containerWidth?: number;
 }
 
-export default function BoundingBoxes({
+export default function BoundingBoxes<L extends LabelEnum>({
   detections,
   scaleX,
   scaleY,
   offsetX,
   offsetY,
   mirrorLabels = false,
-}: Props) {
+  containerWidth,
+}: Props<L>) {
   return (
     <>
       {detections.map((det, i) => {
@@ -39,7 +41,7 @@ export default function BoundingBoxes({
                   top,
                   width,
                   height,
-                  borderColor: labelColor(det.label),
+                  borderColor: labelColor(det.label as string),
                 },
               ]}
             />
@@ -49,13 +51,16 @@ export default function BoundingBoxes({
                 {
                   left,
                   top: labelTop,
-                  backgroundColor: labelColorBg(det.label),
+                  backgroundColor: labelColorBg(det.label as string),
+                  ...(containerWidth !== undefined && {
+                    maxWidth: containerWidth - left,
+                  }),
                 },
                 mirrorLabels && { transform: [{ scaleX: -1 }] },
               ]}
             >
               <Text style={styles.labelText} numberOfLines={1}>
-                {det.label} ({(det.score * 100).toFixed(1)}%)
+                {String(det.label)} ({(det.score * 100).toFixed(1)}%)
               </Text>
             </View>
           </React.Fragment>
