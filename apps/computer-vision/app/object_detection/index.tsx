@@ -8,6 +8,10 @@ import {
   RF_DETR_NANO,
   SSDLITE_320_MOBILENET_V3_LARGE,
   YOLO26N,
+  YOLO26S,
+  YOLO26M,
+  YOLO26L,
+  YOLO26X,
   ObjectDetectionModelSources,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
@@ -21,6 +25,10 @@ const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
   { label: 'SSDLite MobileNet', value: SSDLITE_320_MOBILENET_V3_LARGE },
   { label: 'YOLO26N', value: YOLO26N },
+  { label: 'YOLO26S', value: YOLO26S },
+  { label: 'YOLO26M', value: YOLO26M },
+  { label: 'YOLO26L', value: YOLO26L },
+  { label: 'YOLO26X', value: YOLO26X },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 
