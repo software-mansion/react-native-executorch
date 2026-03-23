@@ -7,7 +7,7 @@ const VALID_CATEGORIES = [
   'Models - Classification',
   'Models - Image Embeddings',
   'Models - Image Generation',
-  'Models - LMM',
+  'Models - LLM',
   'Models - Object Detection',
   'Models - Instance Segmentation',
   'Models - Semantic Segmentation',
