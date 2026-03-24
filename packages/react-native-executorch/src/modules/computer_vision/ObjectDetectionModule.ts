@@ -168,6 +168,7 @@ export class ObjectDetectionModule<
       this.modelConfig.defaultDetectionThreshold ?? 0.7;
     const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.55;
     const defaultInputSize = this.modelConfig.defaultInputSize;
+    const availableInputSizes = this.modelConfig.availableInputSizes;
 
     return (
       frame: any,
@@ -180,6 +181,20 @@ export class ObjectDetectionModule<
         options?.detectionThreshold ?? defaultDetectionThreshold;
       const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
       const inputSize = options?.inputSize ?? defaultInputSize;
+
+      if (
+        availableInputSizes &&
+        inputSize !== undefined &&
+        !availableInputSizes.includes(
+          inputSize as (typeof availableInputSizes)[number]
+        )
+      ) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidArgument,
+          `Invalid inputSize: ${inputSize}. Available sizes: ${availableInputSizes.join(', ')}`
+        );
+      }
+
       const methodName =
         inputSize !== undefined ? `forward_${inputSize}` : 'forward';
 
