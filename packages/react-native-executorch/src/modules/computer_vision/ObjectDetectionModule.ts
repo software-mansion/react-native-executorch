@@ -194,8 +194,7 @@ export class ObjectDetectionModule<
           inputSize as (typeof availableInputSizes)[number]
         )
       ) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.InvalidArgument,
+        throw new Error(
           `Invalid inputSize: ${inputSize}. Available sizes: ${availableInputSizes.join(', ')}`
         );
       }
