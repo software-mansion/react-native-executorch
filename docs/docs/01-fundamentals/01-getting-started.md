@@ -38,7 +38,7 @@ For supported React Native and Expo versions, see the [Compatibility table](../0
 
 ## Installation
 
-Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document]().
+Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document](../08-resource-fetcher/02-custom-adapter.md).
 
 <Tabs>
   <TabItem value="npm" label="NPM">
