@@ -230,9 +230,7 @@ export namespace ResourceFetcherUtils {
           countryCode: getCountryCode(),
         }),
       });
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   }
 
   /**
