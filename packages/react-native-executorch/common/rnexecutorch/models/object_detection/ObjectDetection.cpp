@@ -43,8 +43,8 @@ cv::Size ObjectDetection::modelInputSize() const {
     return VisionModel::modelInputSize();
   }
   const auto &shape = inputShapes[0];
-  return {static_cast<int>(shape[shape.size() - 2]),
-          static_cast<int>(shape[shape.size() - 1])};
+  return {static_cast<int32_t>(shape[shape.size() - 2]),
+          static_cast<int32_t>(shape[shape.size() - 1])};
 }
 
 void ObjectDetection::ensureMethodLoaded(const std::string &methodName) {
