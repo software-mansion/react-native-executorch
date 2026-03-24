@@ -116,4 +116,4 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 | Model                                                                                                                         | Number of classes | Class list                                               |
 | ----------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------- |
 | [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |
-| [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano)                                  | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |
+| [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano)                                  | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |
