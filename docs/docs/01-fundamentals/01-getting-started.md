@@ -38,13 +38,17 @@ For supported React Native and Expo versions, see the [Compatibility table](../0
 
 ## Installation
 
-Installation is pretty straightforward, just use your favorite package manager.
+Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document]().
 
 <Tabs>
   <TabItem value="npm" label="NPM">
 
     ```
     npm install react-native-executorch
+    # For Expo projects
+    pnpm install react-native-executorch-expo-resource-fetcher
+    # For bare RN projects
+    npm install react-native-executorch-bare-resource-fetcher
     ```
 
   </TabItem>
@@ -52,6 +56,11 @@ Installation is pretty straightforward, just use your favorite package manager.
 
     ```
     pnpm install react-native-executorch
+    # For Expo projects
+    pnpm install react-native-executorch-expo-resource-fetcher
+    # For bare RN projects
+    pnpm install react-native-executorch-bare-resource-fetcher
+
     ```
 
   </TabItem>
@@ -59,10 +68,28 @@ Installation is pretty straightforward, just use your favorite package manager.
 
     ```
     yarn add react-native-executorch
+    # For Expo projects
+    yarn install react-native-executorch-expo-resource-fetcher
+    # For bare RN projects
+    yarn install react-native-executorch-bare-resource-fetcher
     ```
 
   </TabItem>
 </Tabs>
+
+:::warning
+Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
+
+```js
+import { initExecutorch } from 'react-native-executorch';
+import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
+// or ExpoResourceFetcher for Expo projects
+
+initExecutorch({ resourceFetcher: BareResourceFetcher });
+```
+
+Calling any library API without initializing first will throw a `ResourceFetcherAdapterNotInitialized` error.
+:::
 
 Our library offers support for both bare React Native and Expo projects. Please follow the instructions from [Loading models section](./02-loading-models.md) to make sure you setup your project correctly. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (https://docs.expo.dev/bare/installing-expo-modules/) offers a guidance on setting up Expo Modules in a bare React Native environment.
 
