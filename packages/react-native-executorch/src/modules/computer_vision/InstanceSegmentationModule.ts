@@ -286,7 +286,12 @@ export class InstanceSegmentationModule<
       ) => SegmentedInstance<ResolveLabels<T>>[])
     | null {
     const baseRunOnFrame = super.runOnFrame;
-    if (!baseRunOnFrame) return null;
+    if (!baseRunOnFrame) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'Model is not loaded. Ensure the model has been loaded before using runOnFrame.'
+      );
+    }
 
     // Convert Map to plain object for worklet serialization
     const labelLookup: Record<number, string> = {};

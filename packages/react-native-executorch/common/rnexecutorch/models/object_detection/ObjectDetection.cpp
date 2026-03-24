@@ -40,7 +40,9 @@ cv::Size ObjectDetection::modelInputSize() const {
   }
   auto inputShapes = getAllInputShapes(currentlyLoadedMethod_);
   if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    return VisionModel::modelInputSize();
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Could not determine input shape for method: " +
+                                currentlyLoadedMethod_);
   }
   const auto &shape = inputShapes[0];
   return {static_cast<int32_t>(shape[shape.size() - 2]),

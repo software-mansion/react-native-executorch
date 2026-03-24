@@ -154,7 +154,12 @@ export class ObjectDetectionModule<
       ) => Detection<ResolveLabels<T>>[])
     | null {
     const baseRunOnFrame = super.runOnFrame;
-    if (!baseRunOnFrame) return null;
+    if (!baseRunOnFrame) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'Model is not loaded. Ensure the model has been loaded before using runOnFrame.'
+      );
+    }
 
     // Create reverse map (label → enum value) for classesOfInterest lookup
     const labelMap: Record<string, number> = {};
