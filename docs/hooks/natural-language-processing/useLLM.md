@@ -2,7 +2,7 @@
 
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
-* For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm) shipped with our library.
+* For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---llm) shipped with our library.
 * Follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export arbitrary chosen LLM model.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)danger
@@ -12,7 +12,7 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 ## API Reference[​](#api-reference "Direct link to API Reference")
 
 * For detailed API Reference for `useLLM` see: [`useLLM` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM).
-* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
+* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---llm).
 * For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](https://docs.swmansion.com/react-native-executorch/docs/api-reference#utilities---llm).
 
 ## Initializing[​](#initializing "Direct link to Initializing")
@@ -41,7 +41,7 @@ You need more details? Check the following resources:
 
 * For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM#parameters).
 * For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
-* For available LLM models please check out the following list: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
+* For available LLM models please check out the following list: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---llm).
 
 ### Returns[​](#returns "Direct link to Returns")
 

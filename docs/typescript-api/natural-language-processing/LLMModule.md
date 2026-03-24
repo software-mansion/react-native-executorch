@@ -5,7 +5,7 @@ TypeScript API implementation of the [useLLM](https://docs.swmansion.com/react-n
 ## API Reference[​](#api-reference "Direct link to API Reference")
 
 * For detailed API Reference for `LLMModule` see: [`LLMModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule).
-* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
+* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---llm).
 * For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](https://docs.swmansion.com/react-native-executorch/docs/api-reference#utilities---llm).
 
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")

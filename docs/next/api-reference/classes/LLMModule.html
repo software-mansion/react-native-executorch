@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.3898a318.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.2ae8f841.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.a0d30231.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.41f3a43d.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -28,7 +28,7 @@
 <blockquote>
 <p><strong>configure</strong>(<code>config</code>): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L131" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:131</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L132" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:132</a></p>
 <p>Configures chat and tool calling and generation settings.
 See <a href="https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model" target="_blank" rel="noopener noreferrer" class="">Configuring the model</a> for details.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -42,7 +42,7 @@ See <a href="https://docs.swmansion.com/react-native-executorch/docs/hooks/natur
 <blockquote>
 <p><strong>delete</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L223" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:223</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L224" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:224</a></p>
 <p>Method to delete the model from memory.
 Note you cannot delete model while it&#x27;s generating.
 You need to interrupt it first and make sure model stopped generation.</p>
@@ -53,7 +53,7 @@ You need to interrupt it first and make sure model stopped generation.</p>
 <blockquote>
 <p><strong>deleteMessage</strong>(<code>index</code>): <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/Message"><code>Message</code></a>[]</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L182" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:182</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L183" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:183</a></p>
 <p>Deletes all messages starting with message on <code>index</code> position.
 After deletion it will call <code>messageHistoryCallback()</code> containing new history.
 It also returns it.</p>
@@ -71,7 +71,7 @@ It also returns it.</p>
 <blockquote>
 <p><strong>forward</strong>(<code>input</code>, <code>imagePaths?</code>): <code>Promise</code>&lt;<code>string</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L144" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:144</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L145" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:145</a></p>
 <p>Runs model inference with raw input string.
 You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method.
 It doesn&#x27;t manage conversation context. It is intended for users that need access to the model itself without any wrapper.
@@ -91,7 +91,7 @@ If you want a simple chat with model the consider using <code>sendMessage</code>
 <blockquote>
 <p><strong>generate</strong>(<code>messages</code>, <code>tools?</code>): <code>Promise</code>&lt;<code>string</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L155" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:155</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L156" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:156</a></p>
 <p>Runs model to complete chat passed in <code>messages</code> argument. It doesn&#x27;t manage conversation context.
 For multimodal models, set <code>mediaPath</code> on user messages to include images.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -109,7 +109,7 @@ For multimodal models, set <code>mediaPath</code> on user messages to include im
 <blockquote>
 <p><strong>getGeneratedTokenCount</strong>(): <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L198" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:198</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L199" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:199</a></p>
 <p>Returns the number of tokens generated in the last response.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>number</code></p>
@@ -119,7 +119,7 @@ For multimodal models, set <code>mediaPath</code> on user messages to include im
 <blockquote>
 <p><strong>getPromptTokensCount</strong>(): <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L206" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:206</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L207" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:207</a></p>
 <p>Returns the number of prompt tokens in the last message.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-6">Returns<a href="#returns-6" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>number</code></p>
@@ -129,7 +129,7 @@ For multimodal models, set <code>mediaPath</code> on user messages to include im
 <blockquote>
 <p><strong>getTotalTokensCount</strong>(): <code>number</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L214" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:214</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L215" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:215</a></p>
 <p>Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-7">Returns<a href="#returns-7" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>number</code></p>
@@ -139,7 +139,7 @@ For multimodal models, set <code>mediaPath</code> on user messages to include im
 <blockquote>
 <p><strong>interrupt</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L190" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:190</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L191" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:191</a></p>
 <p>Interrupts model generation. It may return one more token after interrupt.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-8">Returns<a href="#returns-8" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>void</code></p>
@@ -148,7 +148,7 @@ For multimodal models, set <code>mediaPath</code> on user messages to include im
 <blockquote>
 <p><strong>sendMessage</strong>(<code>message</code>, <code>media?</code>): <code>Promise</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/Message"><code>Message</code></a>[]&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L167" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:167</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L168" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:168</a></p>
 <p>Method to add user message to conversation.
 After model responds it will call <code>messageHistoryCallback()</code> containing both user message and model response.
 It also returns them.</p>
@@ -170,7 +170,7 @@ It also returns them.</p>
 <blockquote>
 <p><strong>setTokenCallback</strong>(<code>tokenCallback</code>): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L118" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:118</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L119" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:119</a></p>
 <p>Sets new token callback invoked on every token batch.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-5">Parameters<a href="#parameters-5" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokencallback">tokenCallback<a href="#tokencallback" class="hash-link" aria-label="Direct link to tokenCallback" title="Direct link to tokenCallback" translate="no">​</a></h5>
@@ -184,7 +184,7 @@ It also returns them.</p>
 <blockquote>
 <p><code>static</code> <strong>fromCustomModel</strong>(<code>modelSource</code>, <code>tokenizerSource</code>, <code>tokenizerConfigSource</code>, <code>onDownloadProgress?</code>, <code>tokenCallback?</code>, <code>messageHistoryCallback?</code>): <code>Promise</code>&lt;<code>LLMModule</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L93" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:93</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L94" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:94</a></p>
 <p>Creates an LLM instance with a user-provided model binary.
 Use this when working with a custom-exported LLM.
 Internally uses <code>&#x27;custom&#x27;</code> as the model name for telemetry.</p>
