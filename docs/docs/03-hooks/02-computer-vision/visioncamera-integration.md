@@ -207,7 +207,13 @@ If you use the TypeScript Module API (e.g. `ClassificationModule`) directly inst
 
 ```tsx
 import { useState, useEffect, useCallback } from 'react';
-import { Camera, useFrameOutput } from 'react-native-vision-camera';
+import { Text, View } from 'react-native';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useFrameOutput,
+} from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   ClassificationModule,
@@ -215,19 +221,22 @@ import {
 } from 'react-native-executorch';
 
 export default function App() {
-  const [module] = useState(() => new ClassificationModule());
-  const [runOnFrame, setRunOnFrame] = useState<typeof module.runOnFrame | null>(
-    null
-  );
-  const [topLabel, setTopLabel] = useState('');
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const device = useCameraDevice('back');
+  const [runOnFrame, setRunOnFrame] = useState<any>(null);
+  const [topLabels, setTopLabels] = useState<any[]>([]);
 
   useEffect(() => {
-    module.load(EFFICIENTNET_V2_S).then(() => {
+    if (!hasPermission) requestPermission();
+  }, [hasPermission, requestPermission]);
+
+  useEffect(() => {
+    ClassificationModule.fromModelName(EFFICIENTNET_V2_S).then((module) => {
       // () => module.runOnFrame is required — passing module.runOnFrame directly
       // would cause React to call it as a state initializer function
       setRunOnFrame(() => module.runOnFrame);
     });
-  }, [module]);
+  }, []);
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
@@ -239,7 +248,13 @@ export default function App() {
         try {
           const isFrontCamera = false;
           const result = runOnFrame(frame, isFrontCamera);
-          if (result) scheduleOnRN(setTopLabel, 'detected');
+          if (result) {
+            const sorted = Object.entries(result)
+              .map(([label, score]) => ({ label, score: score as number }))
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 5);
+            scheduleOnRN(setTopLabels, sorted);
+          }
         } finally {
           frame.dispose();
         }
@@ -248,13 +263,30 @@ export default function App() {
     ),
   });
 
+  if (!device || !hasPermission)
+    return (
+      <Text>
+        {!hasPermission ? 'No camera permission' : 'No camera device'}
+      </Text>
+    );
+
   return (
-    <Camera
-      outputs={[frameOutput]}
-      isActive
-      device={device}
-      orientationSource="device"
-    />
+    <View style={{ flex: 1 }}>
+      <Camera
+        style={{ flex: 1 }}
+        outputs={[frameOutput]}
+        isActive
+        device={device}
+        orientationSource="device"
+      />
+      <View style={{ position: 'absolute', bottom: 40, left: 16 }}>
+        {topLabels.map(({ label, score }) => (
+          <Text key={label} style={{ color: 'black', fontSize: 16 }}>
+            {label}: {(score * 100).toFixed(1)}%
+          </Text>
+        ))}
+      </View>
+    </View>
   );
 }
 ```
