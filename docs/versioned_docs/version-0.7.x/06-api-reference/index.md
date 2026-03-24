@@ -35,7 +35,7 @@
 
 - [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
 
-## Models - LMM
+## Models - LLM
 
 - [HAMMER2_1_0_5B](variables/HAMMER2_1_0_5B.md)
 - [HAMMER2_1_0_5B_QUANTIZED](variables/HAMMER2_1_0_5B_QUANTIZED.md)

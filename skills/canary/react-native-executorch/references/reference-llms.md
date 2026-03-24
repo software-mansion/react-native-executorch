@@ -329,5 +329,5 @@ llm.interrupt();
 
 - [useLLM docs](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM)
 - [HuggingFace repository with exported models](https://huggingface.co/collections/software-mansion/llm)
-- [Available LLM model constants](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm)
+- [Available LLM model constants](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---llm)
 - [API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM)

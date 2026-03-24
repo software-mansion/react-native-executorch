@@ -23,7 +23,7 @@ description: "Learn how to use LLMs in your React Native applications with React
 
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
-- For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](../../06-api-reference/index.md#models---lmm) shipped with our library.
+- For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](../../06-api-reference/index.md#models---llm) shipped with our library.
 - Follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export arbitrary chosen LLM model.
 
 :::danger
@@ -33,7 +33,7 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 ## API Reference
 
 - For detailed API Reference for `useLLM` see: [`useLLM` API Reference](../../06-api-reference/functions/useLLM.md).
-- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
+- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---llm).
 - For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
 
 ## Initializing
@@ -61,7 +61,7 @@ You need more details? Check the following resources:
 
 - For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](../../06-api-reference/functions/useLLM.md#parameters).
 - For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
-- For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---lmm).
+- For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---llm).
 
 ### Returns
 
