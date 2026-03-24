@@ -52,12 +52,12 @@ Times presented in the tables are measured for forward method with input size eq
 | SSDLITE_320_MOBILENET_V3_LARGE (XNNPACK FP32) |         20         |          18          |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP32) |         18         |          -           |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP16) |         8          |          -           |
-| RF_DETR_NANO (XNNPACK FP32)                   |        TBD         |         277          |
-| YOLO26N (XNNPACK FP32)                        |        TBD         |          38          |
-| YOLO26S (XNNPACK FP32)                        |        TBD         |          72          |
-| YOLO26M (XNNPACK FP32)                        |        TBD         |         177          |
-| YOLO26L (XNNPACK FP32)                        |        TBD         |         216          |
-| YOLO26X (XNNPACK FP32)                        |        TBD         |         434          |
+| RF_DETR_NANO (XNNPACK FP32)                   |        101         |         277          |
+| YOLO26N (XNNPACK FP32)                        |         29         |          38          |
+| YOLO26S (XNNPACK FP32)                        |         60         |          72          |
+| YOLO26M (XNNPACK FP32)                        |        134         |         177          |
+| YOLO26L (XNNPACK FP32)                        |        169         |         216          |
+| YOLO26X (XNNPACK FP32)                        |        371         |         434          |
 
 ## Style Transfer
 
