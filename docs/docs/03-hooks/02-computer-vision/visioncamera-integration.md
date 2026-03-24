@@ -206,8 +206,8 @@ export default function App() {
 If you use the TypeScript Module API (e.g. `ClassificationModule`) directly instead of a hook, `runOnFrame` is a worklet function and **cannot** be passed directly to `useState` — React would invoke it as a state initializer. Use the functional updater form `() => module.runOnFrame`:
 
 ```tsx
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { Text, View } from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -223,7 +223,6 @@ import {
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
-  const moduleRef = useRef<any>(null);
   const [runOnFrame, setRunOnFrame] = useState<any>(null);
   const [topLabels, setTopLabels] = useState<any[]>([]);
 
@@ -233,7 +232,6 @@ export default function App() {
 
   useEffect(() => {
     ClassificationModule.fromModelName(EFFICIENTNET_V2_S).then((module) => {
-      moduleRef.current = module;
       // () => module.runOnFrame is required — passing module.runOnFrame directly
       // would cause React to call it as a state initializer function
       setRunOnFrame(() => module.runOnFrame);
