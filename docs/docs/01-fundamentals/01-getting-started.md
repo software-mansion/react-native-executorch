@@ -82,10 +82,10 @@ Before using any other API, you must call `initExecutorch` with a resource fetch
 
 ```js
 import { initExecutorch } from 'react-native-executorch';
-import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
-// or ExpoResourceFetcher for Expo projects
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+// or BareResourceFetcher for Expo projects
 
-initExecutorch({ resourceFetcher: BareResourceFetcher });
+initExecutorch({ resourceFetcher: ExpoResourceFetcher });
 ```
 
 Calling any library API without initializing first will throw a `ResourceFetcherAdapterNotInitialized` error.
