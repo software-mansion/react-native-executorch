@@ -7,9 +7,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export const BottomBar = ({
   handleCameraPress,
   runForward,
+  hasImage = true,
 }: {
   handleCameraPress: (isCamera: boolean) => void;
   runForward: () => void;
+  hasImage?: boolean;
 }) => {
   const { bottom } = useSafeAreaInsets();
 
@@ -31,8 +33,14 @@ export const BottomBar = ({
           />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.button} onPress={runForward}>
-        <Text style={styles.buttonText}>Run model</Text>
+      <TouchableOpacity
+        style={[styles.button, !hasImage && styles.buttonDisabled]}
+        onPress={runForward}
+        disabled={!hasImage}
+      >
+        <Text style={styles.buttonText}>
+          {hasImage ? 'Run model' : 'Pick an image to run the model'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -59,6 +67,9 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPalette.primary,
     color: '#fff',
     borderRadius: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#888',
   },
   buttonText: {
     color: '#fff',

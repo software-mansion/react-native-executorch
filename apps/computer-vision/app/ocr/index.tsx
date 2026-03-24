@@ -112,6 +112,17 @@ export default function OCRScreen() {
             />
           )}
         </View>
+        {!imageUri && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>OCR</Text>
+            <Text style={styles.infoText}>
+              This model reads and extracts text from images, returning each
+              detected text region with its bounding box and confidence score.
+              Pick an image from your gallery or take one with your camera to
+              get started.
+            </Text>
+          </View>
+        )}
         {results.length > 0 && (
           <View style={styles.results}>
             <Text style={styles.resultHeader}>Results</Text>
@@ -142,6 +153,7 @@ export default function OCRScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
       />
     </ScreenWrapper>
   );
@@ -186,5 +198,21 @@ const styles = StyleSheet.create({
   resultLabel: {
     flex: 1,
     marginRight: 4,
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -92,6 +92,26 @@ export default function VerticalOCRScreen() {
             />
           )}
         </View>
+        {!imageUri && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>Vertical OCR</Text>
+            <Text style={styles.infoText}>
+              This model reads vertical text (e.g. Japanese, Korean, Chinese
+              columns) from images, returning each detected text region with its
+              bounding box and confidence score. Pick an image from your gallery
+              or take one with your camera to get started.
+            </Text>
+          </View>
+        )}
+        {imageUri && inferenceTime !== null && results.length === 0 && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>No text detected</Text>
+            <Text style={styles.infoText}>
+              The model did not find any vertical text in this image. Try an
+              image containing vertical Japanese, Korean, or Chinese text.
+            </Text>
+          </View>
+        )}
         {results.length > 0 && (
           <View style={styles.results}>
             <Text style={styles.resultHeader}>Results</Text>
@@ -113,6 +133,7 @@ export default function VerticalOCRScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
       />
     </ScreenWrapper>
   );
@@ -157,5 +178,21 @@ const styles = StyleSheet.create({
   resultLabel: {
     flex: 1,
     marginRight: 4,
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

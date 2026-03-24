@@ -48,7 +48,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.llm",
+      "bundleIdentifier": "com.swmansion.llm",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio.",
         "NSCalendarsUsageDescription": "This app needs access to your calendar to manage events."

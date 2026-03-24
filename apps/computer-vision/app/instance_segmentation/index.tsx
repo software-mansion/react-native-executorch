@@ -144,6 +144,16 @@ export default function InstanceSegmentationScreen() {
             imageWidth={imageSize.width}
             imageHeight={imageSize.height}
           />
+          {!imageUri && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Instance Segmentation</Text>
+              <Text style={styles.infoText}>
+                This model detects individual objects and draws a precise mask
+                over each one. Pick an image from your gallery or take one with
+                your camera to get started.
+              </Text>
+            </View>
+          )}
         </View>
 
         {imageUri && availableInputSizes && availableInputSizes.length > 0 && (
@@ -215,6 +225,7 @@ export default function InstanceSegmentationScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
       />
     </ScreenWrapper>
   );
@@ -317,5 +328,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     fontFamily: 'Courier',
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

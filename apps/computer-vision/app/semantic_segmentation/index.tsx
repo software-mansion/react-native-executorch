@@ -20,7 +20,7 @@ import {
   ColorType,
   SkImage,
 } from '@shopify/react-native-skia';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
@@ -70,8 +70,13 @@ export default function SemanticSegmentationScreen() {
       DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED
     );
 
-  const { isReady, isGenerating, downloadProgress, forward, error: modelError } =
-    useSemanticSegmentation({ model: selectedModel });
+  const {
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    error: modelError,
+  } = useSemanticSegmentation({ model: selectedModel });
 
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -158,6 +163,16 @@ export default function SemanticSegmentationScreen() {
                 : require('../../assets/icons/executorch_logo.png')
             }
           />
+          {!imageUri && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Semantic Segmentation</Text>
+              <Text style={styles.infoText}>
+                This model assigns a class label to every pixel in an image,
+                painting each region with a distinct color. Pick an image from
+                your gallery or take one with your camera to get started.
+              </Text>
+            </View>
+          )}
         </View>
         {segImage && (
           <View
@@ -195,6 +210,7 @@ export default function SemanticSegmentationScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
       />
     </ScreenWrapper>
   );
@@ -212,4 +228,20 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   canvas: { width: '100%', height: '100%' },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

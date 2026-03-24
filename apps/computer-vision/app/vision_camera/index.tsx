@@ -25,6 +25,8 @@ import {
 } from 'react-native-vision-camera';
 import { createSynchronizable } from 'react-native-worklets';
 import Svg, { Path, Polygon } from 'react-native-svg';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
@@ -121,6 +123,7 @@ const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
 
 export default function VisionCameraScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [activeTask, setActiveTask] = useState<TaskId>('classification');
   const [activeModel, setActiveModel] = useState<ModelId>('classification');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
@@ -310,6 +313,13 @@ export default function VisionCameraScreen() {
         style={[styles.topOverlay, { paddingTop: insets.top + 8 }]}
         pointerEvents="box-none"
       >
+        <TouchableOpacity
+          style={[styles.backButton, { top: insets.top + 8 }]}
+          onPress={() => router.navigate('/')}
+        >
+          <Ionicons name="chevron-back" size={24} color="white" />
+        </TouchableOpacity>
+
         <View style={styles.titleRow} pointerEvents="none">
           <Text style={styles.modelTitle}>{activeVariantLabel}</Text>
           <Text style={styles.fpsText}>
@@ -524,5 +534,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.4)',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    zIndex: 10,
   },
 });
