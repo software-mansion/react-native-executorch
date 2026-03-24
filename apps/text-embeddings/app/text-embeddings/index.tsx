@@ -11,7 +11,24 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
+import { ModelPicker } from '../../components/ModelPicker';
+import {
+  useTextEmbeddings,
+  ALL_MINILM_L6_V2,
+  ALL_MPNET_BASE_V2,
+  MULTI_QA_MINILM_L6_COS_V1,
+  MULTI_QA_MPNET_BASE_DOT_V1,
+  TextEmbeddingsProps,
+} from 'react-native-executorch';
+
+type TextEmbeddingModel = TextEmbeddingsProps['model'];
+
+const MODELS: { label: string; value: TextEmbeddingModel }[] = [
+  { label: 'MiniLM L6', value: ALL_MINILM_L6_V2 },
+  { label: 'MPNet Base', value: ALL_MPNET_BASE_V2 },
+  { label: 'MultiQA MiniLM', value: MULTI_QA_MINILM_L6_COS_V1 },
+  { label: 'MultiQA MPNet', value: MULTI_QA_MPNET_BASE_DOT_V1 },
+];
 import { useIsFocused } from '@react-navigation/native';
 import { dotProduct } from '../../utils/math';
 import ErrorBanner from '../../components/ErrorBanner';
@@ -23,7 +40,9 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
+  const [selectedModel, setSelectedModel] =
+    useState<TextEmbeddingModel>(ALL_MINILM_L6_V2);
+  const model = useTextEmbeddings({ model: selectedModel });
   const [error, setError] = useState<string | null>(null);
 
   const [inputSentence, setInputSentence] = useState('');
@@ -132,6 +151,15 @@ function TextEmbeddingsScreen() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.heading}>Text Embeddings Playground</Text>
           <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
+          <ModelPicker
+            models={MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => {
+              setSelectedModel(m);
+              setSentencesWithEmbeddings([]);
+              setTopMatches([]);
+            }}
+          />
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <View style={styles.card}>

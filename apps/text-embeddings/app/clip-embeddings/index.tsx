@@ -16,11 +16,21 @@ import {
   useTextEmbeddings,
   useImageEmbeddings,
   CLIP_VIT_BASE_PATCH32_TEXT,
+  CLIP_VIT_BASE_PATCH32_IMAGE,
   CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  ImageEmbeddingsProps,
 } from 'react-native-executorch';
+
+type ImageEmbeddingModel = ImageEmbeddingsProps['model'];
+
+const IMAGE_MODELS: { label: string; value: ImageEmbeddingModel }[] = [
+  { label: 'ViT-B/32 Quantized', value: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED },
+  { label: 'ViT-B/32 FP32', value: CLIP_VIT_BASE_PATCH32_IMAGE },
+];
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { dotProduct } from '../../utils/math';
+import { ModelPicker } from '../../components/ModelPicker';
 
 const DEFAULT_LABELS = [
   'a photo of a dog',
@@ -37,10 +47,11 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
+  const [selectedImageModel, setSelectedImageModel] =
+    useState<ImageEmbeddingModel>(CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED);
+
   const textModel = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
-  const imageModel = useImageEmbeddings({
-    model: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
-  });
+  const imageModel = useImageEmbeddings({ model: selectedImageModel });
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [newLabel, setNewLabel] = useState('');
@@ -130,6 +141,15 @@ function ClipEmbeddingsScreen() {
               Image model: {getModelStatusText(imageModel)}
             </Text>
           </View>
+
+          <ModelPicker
+            models={IMAGE_MODELS}
+            selectedModel={selectedImageModel}
+            onSelect={(m) => {
+              setSelectedImageModel(m);
+              setResults([]);
+            }}
+          />
 
           {/* Image picker */}
           <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
