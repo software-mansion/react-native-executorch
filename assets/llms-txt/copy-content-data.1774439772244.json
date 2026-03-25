@@ -6479,6 +6479,30 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/resource-fetcher/custom-adapter": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/resource-fetcher/usage": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/typescript-api/computer-vision/ClassificationModule": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -6672,18 +6696,6 @@
     ]
   },
   "/react-native-executorch/docs/next/utilities/error-handling": {
-    "shouldDisplay": true,
-    "hasMarkdown": false,
-    "contentSelectors": [
-      ".theme-doc-markdown",
-      "main .container .col",
-      "main .theme-doc-wrapper",
-      "article",
-      "main .container",
-      "main"
-    ]
-  },
-  "/react-native-executorch/docs/next/utilities/resource-fetcher": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
