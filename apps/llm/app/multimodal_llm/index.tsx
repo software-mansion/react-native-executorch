@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
@@ -38,6 +39,7 @@ export default function MultimodalLLMScreenWrapper() {
 }
 
 function MultimodalLLMScreen() {
+  const { bottom } = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [userInput, setUserInput] = useState('');
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
@@ -158,7 +160,9 @@ function MultimodalLLMScreen() {
           )}
 
           <StatsBar stats={stats} />
-          <View style={styles.bottomContainer}>
+          <View
+            style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}
+          >
             {/* Image picker button */}
             <TouchableOpacity
               style={styles.imageButton}
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.blueDark,
   },
   bottomContainer: {
-    height: 100,
+    minHeight: 100,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

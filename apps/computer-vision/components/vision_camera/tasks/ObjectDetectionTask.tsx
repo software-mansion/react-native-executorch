@@ -6,12 +6,18 @@ import {
   Detection,
   RF_DETR_NANO,
   SSDLITE_320_MOBILENET_V3_LARGE,
+  YOLO26N,
   useObjectDetection,
+  CocoLabel,
+  CocoLabelYolo,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
 import { TaskProps } from './types';
 
-type ObjModelId = 'objectDetectionSsdlite' | 'objectDetectionRfdetr';
+type ObjModelId =
+  | 'objectDetectionSsdlite'
+  | 'objectDetectionRfdetr'
+  | 'objectDetectionYolo26n';
 
 type Props = TaskProps & { activeModel: ObjModelId };
 
@@ -35,10 +41,21 @@ export default function ObjectDetectionTask({
     model: RF_DETR_NANO,
     preventLoad: activeModel !== 'objectDetectionRfdetr',
   });
+  const yolo26n = useObjectDetection({
+    model: YOLO26N,
+    preventLoad: activeModel !== 'objectDetectionYolo26n',
+  });
 
-  const active = activeModel === 'objectDetectionSsdlite' ? ssdlite : rfdetr;
+  const active =
+    activeModel === 'objectDetectionSsdlite'
+      ? ssdlite
+      : activeModel === 'objectDetectionRfdetr'
+        ? rfdetr
+        : yolo26n;
 
-  const [detections, setDetections] = useState<Detection[]>([]);
+  type CommonDetection = Omit<Detection, 'label'> & { label: string };
+
+  const [detections, setDetections] = useState<CommonDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
 
@@ -61,8 +78,19 @@ export default function ObjectDetectionTask({
   const detRof = active.runOnFrame;
 
   const updateDetections = useCallback(
-    (p: { results: Detection[]; imageWidth: number; imageHeight: number }) => {
-      setDetections(p.results);
+    (p: {
+      results:
+        | Detection<typeof CocoLabel>[]
+        | Detection<typeof CocoLabelYolo>[];
+      imageWidth: number;
+      imageHeight: number;
+    }) => {
+      setDetections(
+        p.results.map((det) => ({
+          ...det,
+          label: String(det.label),
+        }))
+      );
       setImageSize({ width: p.imageWidth, height: p.imageHeight });
       const now = Date.now();
       const diff = now - lastFrameTimeRef.current;
@@ -87,7 +115,9 @@ export default function ObjectDetectionTask({
         try {
           if (!detRof) return;
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
-          const result = detRof(frame, isFrontCamera, 0.5);
+          const result = detRof(frame, isFrontCamera, {
+            detectionThreshold: 0.5,
+          });
           // Sensor frames are landscape-native, so width/height are swapped
           // relative to portrait screen orientation.
           const screenW = frame.height;

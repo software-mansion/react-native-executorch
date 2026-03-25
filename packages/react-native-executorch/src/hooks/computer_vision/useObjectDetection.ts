@@ -6,6 +6,7 @@ import {
   ObjectDetectionModelSources,
   ObjectDetectionProps,
   ObjectDetectionType,
+  ObjectDetectionOptions,
 } from '../../types/objectDetection';
 import { PixelData } from '../../types/common';
 import { useModuleFactory } from '../useModuleFactory';
@@ -30,6 +31,7 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
     downloadProgress,
     runForward,
     runOnFrame,
+    instance,
   } = useModuleFactory({
     factory: (config, onProgress) =>
       ObjectDetectionModule.fromModelName(config, onProgress),
@@ -38,8 +40,13 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
     preventLoad,
   });
 
-  const forward = (input: string | PixelData, detectionThreshold?: number) =>
-    runForward((inst) => inst.forward(input, detectionThreshold));
+  const forward = (
+    input: string | PixelData,
+    options?: ObjectDetectionOptions<ObjectDetectionLabels<C['modelName']>>
+  ) => runForward((inst) => inst.forward(input, options));
+
+  const getAvailableInputSizes = () =>
+    instance?.getAvailableInputSizes() ?? undefined;
 
   return {
     error,
@@ -48,5 +55,6 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
     downloadProgress,
     forward,
     runOnFrame,
+    getAvailableInputSizes,
   };
 };

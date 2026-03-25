@@ -57,6 +57,13 @@ public:
    * @param imageSource        URI or file path of the input image.
    * @param detectionThreshold Minimum confidence score in (0, 1] for a
    *                           detection to be included in the output.
+   * @param iouThreshold       IoU threshold for non-maximum suppression.
+   * @param classIndices       Optional list of class indices to filter results.
+   *                           Only detections matching these classes will be
+   *                           returned. Pass empty vector to include all
+   * classes.
+   * @param methodName         Name of the method to execute (e.g., "forward",
+   *                           "forward_384", "forward_512", "forward_640").
    *
    * @return A vector of @ref types::Detection objects with bounding boxes,
    *         label strings (resolved via the label names passed to the
@@ -66,16 +73,33 @@ public:
    *         fails.
    */
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromString(std::string imageSource, double detectionThreshold);
+  generateFromString(std::string imageSource, double detectionThreshold,
+                     double iouThreshold, std::vector<int32_t> classIndices,
+                     std::string methodName);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
-                    double detectionThreshold);
+                    double detectionThreshold, double iouThreshold,
+                    std::vector<int32_t> classIndices, std::string methodName);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold);
+  generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold,
+                     double iouThreshold, std::vector<int32_t> classIndices,
+                     std::string methodName);
 
 protected:
-  std::vector<types::Detection> runInference(cv::Mat image,
-                                             double detectionThreshold);
+  /**
+   * @brief Returns the model input size based on the currently loaded method.
+   *
+   * Overrides VisionModel::modelInputSize() to support multi-method models
+   * where each method may have different input dimensions.
+   *
+   * @return The expected input size for the currently loaded method.
+   */
+  cv::Size modelInputSize() const override;
+
+  std::vector<types::Detection>
+  runInference(cv::Mat image, double detectionThreshold, double iouThreshold,
+               const std::vector<int32_t> &classIndices,
+               const std::string &methodName);
 
 private:
   /**
@@ -88,15 +112,37 @@ private:
    *                           bounding boxes back to input coordinates.
    * @param detectionThreshold Confidence threshold below which detections
    *                           are discarded.
+   * @param iouThreshold       IoU threshold for non-maximum suppression.
+   * @param classIndices       Optional list of class indices to filter results.
    *
    * @return Non-max-suppressed detections above the threshold.
    *
    * @throws RnExecutorchError if the model outputs a class index that exceeds
    *         the size of @ref labelNames_.
    */
-  std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,
-                                            cv::Size originalSize,
-                                            double detectionThreshold);
+  std::vector<types::Detection>
+  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
+              double detectionThreshold, double iouThreshold,
+              const std::vector<int32_t> &classIndices);
+
+  /**
+   * @brief Ensures the specified method is loaded, unloading any previous
+   * method if necessary.
+   *
+   * @param methodName Name of the method to load (e.g., "forward",
+   * "forward_384").
+   * @throws RnExecutorchError if the method cannot be loaded.
+   */
+  void ensureMethodLoaded(const std::string &methodName);
+
+  /**
+   * @brief Prepares a set of allowed class indices for filtering detections.
+   *
+   * @param classIndices Vector of class indices to allow.
+   * @return A set containing the allowed class indices.
+   */
+  std::set<int32_t>
+  prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
 
   /// Optional per-channel mean for input normalisation (set in constructor).
   std::optional<cv::Scalar> normMean_;
@@ -106,6 +152,9 @@ private:
 
   /// Ordered label strings mapping class indices to human-readable names.
   std::vector<std::string> labelNames_;
+
+  /// Name of the currently loaded method (for multi-method models).
+  std::string currentlyLoadedMethod_;
 };
 } // namespace models::object_detection
 

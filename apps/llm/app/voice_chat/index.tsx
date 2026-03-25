@@ -34,6 +34,7 @@ import Messages from '../../components/Messages';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 import { useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeneratingContext } from '../../context';
 
 type LLMModelSources = LLMProps['model'];
@@ -59,6 +60,7 @@ export default function VoiceChatScreenWrapper() {
 }
 
 function VoiceChatScreen() {
+  const { bottom } = useSafeAreaInsets();
   const [isRecording, setIsRecording] = useState(false);
   const [liveTranscription, setLiveTranscription] = useState('');
   const [selectedLLM, setSelectedLLM] =
@@ -194,7 +196,7 @@ function VoiceChatScreen() {
           onSelect={(m) => setSelectedSTT(m)}
         />
 
-        <View style={styles.bottomContainer}>
+        <View style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}>
           {DeviceInfo.isEmulatorSync() ? (
             <View style={styles.emulatorBox}>
               <Text style={[styles.emulatorWarning]}>
@@ -265,7 +267,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
   },
   bottomContainer: {
-    height: 100,
+    minHeight: 100,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',

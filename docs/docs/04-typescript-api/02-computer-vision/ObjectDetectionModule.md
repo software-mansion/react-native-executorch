@@ -43,11 +43,25 @@ For more information on loading resources, take a look at [loading models](../..
 To run the model, use the [`forward`](../../06-api-reference/classes/ObjectDetectionModule.md#forward) method. It accepts two arguments:
 
 - `input` (required) - The image to process. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
-- `detectionThreshold` (optional) - A number between 0 and 1. Defaults to `0.7`.
+- `options` (optional) - An [`ObjectDetectionOptions`](../../06-api-reference/interfaces/ObjectDetectionOptions.md) object with:
+  - `detectionThreshold` (optional) - Minimum confidence score (0-1). Defaults to model-specific value.
+  - `iouThreshold` (optional) - IoU threshold for NMS (0-1). Defaults to model-specific value.
+  - `inputSize` (optional) - For YOLO models: `384`, `512`, or `640`. Defaults to `384`.
+  - `classesOfInterest` (optional) - Array of class labels to filter detections.
 
 The method returns a promise resolving to an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects, each containing the bounding box, label, and confidence score.
 
 For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vision/visioncamera-integration.md) instead.
+
+### Example with Options
+
+```typescript
+const detections = await model.forward(imageUri, {
+  detectionThreshold: 0.5,
+  inputSize: 640, // YOLO models only
+  classesOfInterest: ['PERSON', 'CAR'],
+});
+```
 
 ## Using a custom model
 

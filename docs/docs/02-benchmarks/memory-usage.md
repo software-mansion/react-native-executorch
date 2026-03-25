@@ -25,11 +25,21 @@ loaded and actively running inference, relative to the baseline app memory
 before model initialization.
 :::
 
+:::warning
+Data presented for YOLO models is based on inference with forward_640 method.
+:::
+
 | Model / Device                                | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
 | --------------------------------------------- | :----------------: | :------------------: |
 | SSDLITE_320_MOBILENET_V3_LARGE (XNNPACK FP32) |         94         |         104          |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP32) |         83         |          -           |
 | SSDLITE_320_MOBILENET_V3_LARGE (Core ML FP16) |         62         |          -           |
+| RF_DETR_NANO (XNNPACK FP32)                   |        145         |         162          |
+| YOLO26N (XNNPACK FP32)                        |         36         |          44          |
+| YOLO26S (XNNPACK FP32)                        |         81         |          82          |
+| YOLO26M (XNNPACK FP32)                        |        123         |         158          |
+| YOLO26L (XNNPACK FP32)                        |        170         |         172          |
+| YOLO26X (XNNPACK FP32)                        |        320         |         309          |
 
 ## Style Transfer
 

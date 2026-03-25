@@ -13,6 +13,12 @@ title: Model Size
 | Model                          | XNNPACK FP32 [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |
 | ------------------------------ | :---------------: | :---------------: | :---------------: |
 | SSDLITE_320_MOBILENET_V3_LARGE |       13.9        |       15.6        |       8.46        |
+| RF_DETR_NANO                   |        112        |         -         |         -         |
+| YOLO26N                        |       10.3        |         -         |         -         |
+| YOLO26S                        |       38.6        |         -         |         -         |
+| YOLO26M                        |       82.3        |         -         |         -         |
+| YOLO26L                        |        100        |         -         |         -         |
+| YOLO26X                        |        224        |         -         |         -         |
 
 ## Instance Segmentation
 
