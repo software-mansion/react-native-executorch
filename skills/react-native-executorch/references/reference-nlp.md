@@ -27,10 +27,10 @@ try {
 ## Example (computing similarity)
 
 ```typescript
-const dotProduct = (a: number[], b: number[]) =>
+const dotProduct = (a: Float32Array, b: Float32Array) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
 
-const cosineSimilarity = (a: number[], b: number[]) => {
+const cosineSimilarity = (a: Float32Array, b: Float32Array) => {
   const dot = dotProduct(a, b);
   const normA = Math.sqrt(dotProduct(a, a));
   const normB = Math.sqrt(dotProduct(b, b));

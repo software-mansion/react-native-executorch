@@ -12,15 +12,18 @@ description: Reference for using Large Language Models in React Native Executorc
 ## Basic Usage
 
 ```typescript
-import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
+import {
+  useLLM,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+} from 'react-native-executorch';
 
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
 ```
 
 ## Functional Mode (Stateless)
 
 ```tsx
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
 
 const handleGenerate = async () => {
   const chat: Message[] = [
@@ -51,7 +54,6 @@ useEffect(() => {
   llm.configure({
     chatConfig: {
       systemPrompt: 'You are a helpful assistant',
-      contextStrategy: new SlidingWindowContextStrategy(512),
     },
     generationConfig: {
       temperature: 0.7,
@@ -65,6 +67,81 @@ llm.sendMessage('Hello!');
 
 // Access conversation history
 console.log(llm.messageHistory);
+```
+
+## Model configuration
+
+```tsx
+import { useEffect } from 'react';
+import {
+  MessageCountContextStrategy,
+  DEFAULT_SYSTEM_PROMPT,
+  ToolCall,
+  useLLM,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+} from 'react-native-executorch';
+
+const TOOL_DEFINITIONS: LLMTool[] = [
+  {
+    name: 'get_weather',
+    description: 'Get/check weather in given location.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        location: {
+          type: 'string',
+          description: 'Location where user wants to check weather',
+        },
+      },
+      required: ['location'],
+    },
+  },
+];
+
+const getWeather = async (_call: ToolCall) => {
+  return 'The weather is great!';
+};
+
+const executeTool: (call: ToolCall) => Promise<string | null> = async (
+  call
+) => {
+  switch (call.toolName) {
+    case 'get_weather':
+      return await getWeather(call);
+    default:
+      console.error(`Wrong function! We don't handle it!`);
+      return null;
+  }
+};
+
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
+
+const { configure } = llm;
+useEffect(() => {
+  configure({
+    chatConfig: {
+      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+      initialMessageHistory: [
+        {
+          role: 'user',
+          content: 'What is the current time and date?',
+        },
+      ],
+      contextStrategy: new MessageCountContextStrategy(6),
+    },
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS,
+      executeToolCallback: executeTool,
+      displayToolCalls: true,
+    },
+    generationConfig: {
+      outputTokenBatchSize: 15,
+      batchTimeInterval: 100,
+      temperature: 0.7,
+      topp: 0.9,
+    },
+  });
+}, [configure]);
 ```
 
 ## Tool Calling
@@ -243,6 +320,58 @@ llm.interrupt();
 {
   llm.isGenerating && <Button onPress={llm.interrupt} title="Stop" />;
 }
+```
+
+## Vision-Language Models (VLM)
+
+Some models support multimodal input — text and images together. The `capabilities` field on the model constant enables this.
+
+### Loading a VLM
+
+```tsx
+import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+```
+
+### Sending a message with an image (Managed mode)
+
+```tsx
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+
+const send = () => {
+  llm.sendMessage('What is in this image?', {
+    imagePath: '/path/to/image.jpg',
+  });
+};
+
+return (
+  <View>
+    <Button onPress={send} title="Send!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
+```
+
+`imagePath` must be a local file path on the device.
+
+### Functional generation with images
+
+```tsx
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+
+const handleGenerate = async () => {
+  const chat: Message[] = [
+    {
+      role: 'user',
+      content: 'Describe this image.',
+      mediaPath: '/path/to/image.jpg',
+    },
+  ];
+
+  const response = await llm.generate(chat);
+  console.log(response);
+};
 ```
 
 ## Troubleshooting

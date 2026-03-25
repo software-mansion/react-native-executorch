@@ -54,7 +54,7 @@ function App() {
 
 ## Available Models
 
-**Model constant:** `EFFICIENTNET_V2_S`
+**Model constants:** `EFFICIENTNET_V2_S`, `EFFICIENTNET_V2_S_QUANTIZED`
 
 For the latest available models reference exported models in [HuggingFace Classification collection](https://huggingface.co/collections/software-mansion/classification)
 
@@ -109,15 +109,15 @@ const handleSegmentation = async (imageUri: string) => {
   try {
     const outputDict = await model.forward(
       imageUri,
-      [DeeplabLabel.CAT, DeeplabLabel.DOG, DeeplabLabel.PERSON],
+      ['CAT', 'DOG', 'PERSON'],
       true
     );
 
-    const argmaxArray = outputDict[DeeplabLabel.ARGMAX];
+    const argmaxArray = outputDict['ARGMAX'];
 
-    const catProbabilities = outputDict[DeeplabLabel.CAT];
-    const dogProbabilities = outputDict[DeeplabLabel.DOG];
-    const personProbabilities = outputDict[DeeplabLabel.PERSON];
+    const catProbabilities = outputDict['CAT'];
+    const dogProbabilities = outputDict['DOG'];
+    const personProbabilities = outputDict['PERSON'];
     // ...
   } catch (error) {
     console.error(error);
@@ -127,20 +127,20 @@ const handleSegmentation = async (imageUri: string) => {
 
 ## Available Models
 
-**Model constant:** `DEEPLAB_V3_RESNET50`
+**Model constants:** `DEEPLAB_V3_RESNET50`, `DEEPLAB_V3_RESNET101`, `DEEPLAB_V3_MOBILENET_V3_LARGE`, `LRASPP_MOBILENET_V3_LARGE`, `FCN_RESNET50`, `FCN_RESNET101`, `SELFIE_SEGMENTATION` — plus quantized variants (e.g. `DEEPLAB_V3_RESNET50_QUANTIZED`)
 
 For the latest available models check out exported models in [this HuggingFace Segmentation collection](https://huggingface.co/collections/software-mansion/image-segmentation)
 
 ## Troubleshooting
 
-**Performance:** Setting `resize=true` significantly increases processing time. Use `resize=false` for better performance when you don't need original image dimensions.
-**Memory usage:** Resize increases memory usage, especially with high-resolution images.
-**Pixel mapping:** When `resize=false`, pixel indices map to a 224x224 grid. When `resize=true`, indices map to original image dimensions.
+**Performance:** Setting `resizeToInput=true` significantly increases processing time. Use `resizeToInput=false` for better performance when you don't need original image dimensions.
+**Memory usage:** `resizeToInput` increases memory usage, especially with high-resolution images.
+**Pixel mapping:** When `resizeToInput=false`, pixel indices map to a 224x224 grid. When `resizeToInput=true`, indices map to original image dimensions.
 
 ## Additional references
 
-- [useSemanticSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useImageSegmentation)
-- [useSemanticSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useImageSegmentation)
+- [useSemanticSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useSemanticSegmentation)
+- [useSemanticSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useSemanticSegmentation)
 - [HuggingFace Segmentation collection](https://huggingface.co/collections/software-mansion/image-segmentation)
 - [Typescript API implementation of segmentation](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/computer-vision/SemanticSegmentationModule)
 
@@ -155,12 +155,9 @@ For the latest available models check out exported models in [this HuggingFace S
 ## Basic Usage
 
 ```typescript
-import {
-  useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-} from 'react-native-executorch';
+import { useObjectDetection, YOLO26N } from 'react-native-executorch';
 
-const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+const model = useObjectDetection({ model: YOLO26N });
 
 try {
   const detections = await model.forward('https://url-to-image.jpg');
@@ -175,6 +172,28 @@ try {
 }
 ```
 
+## Detection Options
+
+`forward` accepts an optional second argument to tune inference:
+
+```typescript
+const detections = await model.forward('https://url-to-image.jpg', {
+  detectionThreshold: 0.5, // minimum confidence score (0-1)
+  iouThreshold: 0.45, // NMS IoU threshold (0-1)
+  inputSize: 640, // for YOLO multi-size models (e.g. 384, 512, 640)
+  classesOfInterest: ['PERSON', 'CAR'], // filter to specific classes only
+});
+```
+
+## Available Input Sizes (YOLO)
+
+YOLO models support multiple input sizes. Use `getAvailableInputSizes()` to query them:
+
+```typescript
+const sizes = model.getAvailableInputSizes();
+console.log(sizes); // e.g. [384, 512, 640]
+```
+
 ## Detection Object Structure
 
 Each detection returned by `forward` has the following structure:
@@ -187,23 +206,23 @@ interface Bbox {
   y2: number; // Top-right y coordinate
 }
 
-interface Detection {
+interface Detection<L extends LabelEnum = typeof CocoLabel> {
   bbox: Bbox;
-  label: keyof typeof CocoLabels; // Object class name
+  label: keyof L; // Object class name, defaults to CocoLabel keys
   score: number; // Confidence score (0-1)
 }
 ```
 
 ## Available Models
 
-**Model constant:** `SSDLITE_320_MOBILENET_V3_LARGE`
+**Model constants:** `YOLO26N`, `YOLO26S`, `YOLO26M`, `YOLO26L`, `YOLO26X`, `RF_DETR_NANO`, `SSDLITE_320_MOBILENET_V3_LARGE`
 
 For the latest available models reference exported models in [HuggingFace Object Detection collection](https://huggingface.co/collections/software-mansion/object-detection)
 
 ## Troubleshooting
 
-**Multiple detections:** The model may detect the same object multiple times with slightly different bounding boxes. Consider implementing non-maximum suppression (NMS) if needed.
-**Confidence thresholds:** Adjust the confidence threshold based on your use case. Higher thresholds (>0.7) reduce false positives but may miss objects.
+**Multiple detections:** Use `iouThreshold` to tune NMS aggressiveness. Lower values merge more overlapping boxes.
+**Confidence thresholds:** Adjust `detectionThreshold` based on your use case. Higher values (>0.7) reduce false positives but may miss objects.
 **Coordinate system:** Bounding box coordinates are in pixel space relative to the input image dimensions.
 
 ## Additional references

@@ -88,15 +88,33 @@ const runInference = async () => {
 
 **Use cases:** Download management, storage cleanup, progress tracking, offline-first apps.
 
+## Built-in adapters vs custom adapter
+
+React Native ExecuTorch does not bundle a resource fetcher — you bring your own. Two ready-made adapters are provided:
+
+- **`ExpoResourceFetcher`** from `react-native-executorch-expo-resource-fetcher` — for Expo projects
+- **`BareResourceFetcher`** from `react-native-executorch-bare-resource-fetcher` — for bare React Native projects
+
+Register the adapter once at app startup before using any hooks or modules:
+
+```typescript
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+
+initExecutorch({ resourceFetcher: ExpoResourceFetcher });
+```
+
+If neither adapter fits your needs (custom download library, private server, custom caching), you can implement the `ResourceFetcherAdapter` interface yourself. See [Custom Adapter](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter) for details.
+
 ## Basic Usage
 
 ```typescript
-import { ResourceFetcher } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 // Download multiple resources with progress tracking
 const downloadModels = async () => {
   try {
-    const uris = await ResourceFetcher.fetch(
+    const uris = await ExpoResourceFetcher.fetch(
       (progress) =>
         console.log(`Download progress: ${(progress * 100).toFixed(1)}%`),
       'https://example.com/llama3_2.pte',
@@ -117,22 +135,22 @@ const downloadModels = async () => {
 ## Pause and Resume Downloads
 
 ```typescript
-import { ResourceFetcher } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
-const uris = ResourceFetcher.fetch(
+const uris = ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 ).then((uris) => {
-  console.log('URI resolved as: ', uris); // since we pause the fetch, uris is resolved to null
+  console.log('URI resolved as: ', uris); // null, since we paused
 });
 
-await ResourceFetcher.pauseFetching(
+await ExpoResourceFetcher.pauseFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
 
-const resolvedUris = await ResourceFetcher.resumeFetching(
+const resolvedUris = await ExpoResourceFetcher.resumeFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
@@ -141,17 +159,17 @@ const resolvedUris = await ResourceFetcher.resumeFetching(
 ## Cancel Downloads
 
 ```typescript
-import { ResourceFetcher } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
-const uris = ResourceFetcher.fetch(
+const uris = ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 ).then((uris) => {
-  console.log('URI resolved as: ', uris); // since we cancel the fetch, uris is resolved to null
+  console.log('URI resolved as: ', uris); // null, since we cancelled
 });
 
-await ResourceFetcher.cancelFetching(
+await ExpoResourceFetcher.cancelFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
@@ -160,22 +178,22 @@ await ResourceFetcher.cancelFetching(
 ## Manage Downloaded Resources
 
 ```typescript
-import { ResourceFetcher } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 // List all downloaded files
 const listFiles = async () => {
-  const files = await ResourceFetcher.listDownloadedFiles();
+  const files = await ExpoResourceFetcher.listDownloadedFiles();
   console.log('All downloaded files:', files);
 
-  const models = await ResourceFetcher.listDownloadedModels();
+  const models = await ExpoResourceFetcher.listDownloadedModels();
   console.log('Model files:', models);
 };
 
 // Clean up old resources
 const cleanup = async () => {
-  const oldModelUrl = 'https://example.com/old_model.pte';
-
-  await ResourceFetcher.deleteResources(oldModelUrl);
+  await ExpoResourceFetcher.deleteResources(
+    'https://example.com/old_model.pte'
+  );
   console.log('Old model deleted');
 };
 ```
@@ -195,11 +213,12 @@ Resources can be:
 **Progress callback:** Progress is reported as 0-1 for all downloads combined.
 **Null return:** If `fetch()` returns `null`, download was paused or cancelled.
 **Network errors:** Implement retry logic with exponential backoff for reliability.
-**Storage location:** Downloaded files are stored in application's document directory under `react-native-executorch/`
+**Pause/resume on Android:** `BareResourceFetcher` does not support pause/resume on Android. Use `ExpoResourceFetcher` if you need this on Android.
 
 ## Additional references
 
-- [ResourceFetcher full reference docs](https://docs.swmansion.com/react-native-executorch/docs/utilities/resource-fetcher)
+- [ResourceFetcher usage docs](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/usage)
+- [Custom Adapter docs](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter)
 - [Loading Models guide](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models)
 
 ---
@@ -220,13 +239,13 @@ import {
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
-const llm = new LLMModule({
-  tokenCallback: (token) => console.log(token),
-  messageHistoryCallback: (messages) => console.log(messages),
-});
-
 try {
-  await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
+  const llm = await LLMModule.fromModelName(
+    LLAMA3_2_1B_QLORA,
+    (progress) => console.log(progress),
+    (token) => console.log(token),
+    (messages) => console.log(messages)
+  );
   await llm.sendMessage('Hello!');
 } catch (err) {
   if (err instanceof RnExecutorchError) {
@@ -242,21 +261,27 @@ try {
 
 ```typescript
 import {
+  LLMModule,
+  LLAMA3_2_1B_QLORA,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
-const handleModelError = async (llm, message: string) => {
+const llm = await LLMModule.fromModelName(
+  LLAMA3_2_1B_QLORA,
+  (progress) => console.log(progress),
+  (token) => console.log(token),
+  (messages) => console.log(messages)
+);
+
+const handleModelError = async (message: string) => {
   try {
     await llm.sendMessage(message);
   } catch (err) {
     if (err instanceof RnExecutorchError) {
       switch (err.code) {
         case RnExecutorchErrorCode.ModuleNotLoaded:
-          console.error('Model not loaded. Loading now...');
-          await llm.load(LLAMA3_2_1B_QLORA);
-          // Retry the message
-          await llm.sendMessage(message);
+          console.error('Model not loaded.');
           break;
 
         case RnExecutorchErrorCode.ModelGenerating:
@@ -267,7 +292,9 @@ const handleModelError = async (llm, message: string) => {
         case RnExecutorchErrorCode.InvalidConfig:
           console.error('Invalid configuration:', err.message);
           // Reset to default config
-          await llm.configure({ topp: 0.9, temperature: 0.7 });
+          await llm.configure({
+            generationConfig: { topp: 0.9, temperature: 0.7 },
+          });
           break;
 
         default:

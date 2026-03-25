@@ -22,7 +22,11 @@ const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
 const imageUri = 'file:///Users/.../photo.png';
 
 try {
-  const generatedImageUrl = await model.forward(imageUri);
+  // Returns PixelData (raw RGB buffer) by default
+  const pixelData = await model.forward(imageUri);
+
+  // Pass 'url' as second argument to get a file URI instead
+  const generatedImageUrl = await model.forward(imageUri, 'url');
   console.log('Styled image:', generatedImageUrl);
 } catch (error) {
   console.error(error);
@@ -33,10 +37,10 @@ try {
 
 **Model constants:**
 
-- `STYLE_TRANSFER_CANDY` - Candy artistic style
-- `STYLE_TRANSFER_MOSAIC` - Mosaic artistic style
-- `STYLE_TRANSFER_UDNIE` - Udnie artistic style
-- `STYLE_TRANSFER_RAIN_PRINCESS` - Rain princess artistic style
+- `STYLE_TRANSFER_CANDY` / `STYLE_TRANSFER_CANDY_QUANTIZED`
+- `STYLE_TRANSFER_MOSAIC` / `STYLE_TRANSFER_MOSAIC_QUANTIZED`
+- `STYLE_TRANSFER_UDNIE` / `STYLE_TRANSFER_UDNIE_QUANTIZED`
+- `STYLE_TRANSFER_RAIN_PRINCESS` / `STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED`
 
 For the latest available models reference exported models in [HuggingFace Style Transfer collection](https://huggingface.co/collections/software-mansion/style-transfer)
 
@@ -101,7 +105,7 @@ function App() {
 }
 ```
 
-**Model constants:** `BK_SDM_TINY_VPRED_256`
+**Model constants:** `BK_SDM_TINY_VPRED_256`, `BK_SDM_TINY_VPRED_512`
 
 For the latest available models reference exported models in [HuggingFace Text to Image collection](https://huggingface.co/collections/software-mansion/text-to-image)
 
@@ -173,7 +177,7 @@ try {
 
 ## Available Models
 
-**Model constants:** `CLIP_VIT_BASE_PATCH32_IMAGE`
+**Model constants:** `CLIP_VIT_BASE_PATCH32_IMAGE`, `CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED`
 
 For the latest available models reference exported models in [HuggingFace Image Embeddings collection](https://huggingface.co/collections/software-mansion/image-embeddings)
 

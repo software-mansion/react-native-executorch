@@ -75,11 +75,25 @@ For a full list of available LLM models reference [HuggingFace LLMs collection](
 
 [HuggingFace PHI 4 Mini Model](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini)
 
+### LFM2.5-1.2B-Instruct
+
+- **LFM2_5_1_2B_INSTRUCT** - LFM2.5 1.2B Instruct original (fp16)
+- **LFM2_5_1_2B_INSTRUCT_QUANTIZED** - LFM2.5 1.2B Instruct quantized (8da4w)
+
+[HuggingFace LFM2.5-1.2B-Instruct Model](https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-1.2B-instruct)
+
+### LFM2.5-VL-1.6B (Vision-Language)
+
+- **LFM2_VL_1_6B_QUANTIZED** - LFM2.5 VL 1.6B quantized (8da4w), supports `capabilities: ['vision']`
+
+[HuggingFace LFM2.5-VL-1.6B Model](https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B)
+
 ---
 
 ## Image classification
 
 - **EFFICIENTNET_V2_S** - [EfficientNet V2 S](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) (CoreML for iOS, XNNPACK for Android)
+- **EFFICIENTNET_V2_S_QUANTIZED** - EfficientNet V2 S quantized
 
 For a list of all available Image Classification models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/classification).
 
@@ -87,18 +101,37 @@ For a list of all available Image Classification models reference [this Hugging 
 
 ## Object detection
 
+- **YOLO26N** - YOLO26 Nano
+- **YOLO26S** - YOLO26 Small
+- **YOLO26M** - YOLO26 Medium
+- **YOLO26L** - YOLO26 Large
+- **YOLO26X** - YOLO26 XLarge
+- **RF_DETR_NANO** - [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rfdetr-nano-detector)
 - **SSDLITE_320_MOBILENET_V3_LARGE** - [SSDLite 320 with MobileNet V3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large)
 
 For a list of all available Object Detection models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/object-detection).
 
 ---
 
+## Instance segmentation
+
+- **YOLO26N_SEG** - YOLO26 Nano segmentation
+- **YOLO26S_SEG** - YOLO26 Small segmentation
+- **YOLO26M_SEG** - YOLO26 Medium segmentation
+- **YOLO26L_SEG** - YOLO26 Large segmentation
+- **YOLO26X_SEG** - YOLO26 XLarge segmentation
+- **RF_DETR_NANO_SEG** - RF-DETR Nano segmentation
+
+For a list of all available Instance Segmentation models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/object-detection).
+
+---
+
 ## Style transfer
 
-- **STYLE_TRANSFER_CANDY** - [Candy style](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy)
-- **STYLE_TRANSFER_MOSAIC** - [Mosaic style](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-mosaic)
-- **STYLE_TRANSFER_RAIN_PRINCESS** - [Rain Princess style](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-rain-princess)
-- **STYLE_TRANSFER_UDNIE** - [Udnie style](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie)
+- **STYLE_TRANSFER_CANDY** / **STYLE_TRANSFER_CANDY_QUANTIZED**
+- **STYLE_TRANSFER_MOSAIC** / **STYLE_TRANSFER_MOSAIC_QUANTIZED**
+- **STYLE_TRANSFER_RAIN_PRINCESS** / **STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED**
+- **STYLE_TRANSFER_UDNIE** / **STYLE_TRANSFER_UDNIE_QUANTIZED**
 
 For a list of all available Style Transfer models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/style-transfer).
 
@@ -106,24 +139,30 @@ For a list of all available Style Transfer models reference [this Hugging Face c
 
 ## OCR
 
-- **DETECTOR_CRAFT** - [CRAFT text detector](https://huggingface.co/software-mansion/react-native-executorch-detector-craft) - detects text regions in images
-- **RECOGNIZER_CRNN_EN** - [CRNN text recognizer](https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en) - recognizes English text
+Use language-specific constants like `OCR_ENGLISH`, `OCR_RUSSIAN`, `OCR_SIMPLIFIED_CHINESE`, etc. Each bundles the correct detector and recognizer internally. These are not composed from individually exported constants — use the `OCR_*` constants directly.
 
-For a list of all available OCR models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/ocr).
+For the full list of language constants and supported alphabets reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/ocr).
 
 ---
 
 ## Image embeddings
 
 - **CLIP_VIT_BASE_PATCH32_IMAGE** - [CLIP ViT Base Patch32](https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32) for image embeddings
+- **CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED** - CLIP ViT Base Patch32 quantized
 
 For a list of all available Image embeddings models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/image-embeddings).
 
 ---
 
-## Image segmentation
+## Semantic segmentation
 
-- **DEEPLAB_V3_RESNET50** - [DeepLab V3](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) with ResNet50 backbone
+- **DEEPLAB_V3_RESNET50** / **DEEPLAB_V3_RESNET50_QUANTIZED**
+- **DEEPLAB_V3_RESNET101** / **DEEPLAB_V3_RESNET101_QUANTIZED**
+- **DEEPLAB_V3_MOBILENET_V3_LARGE** / **DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED**
+- **LRASPP_MOBILENET_V3_LARGE** / **LRASPP_MOBILENET_V3_LARGE_QUANTIZED**
+- **FCN_RESNET50** / **FCN_RESNET50_QUANTIZED**
+- **FCN_RESNET101** / **FCN_RESNET101_QUANTIZED**
+- **SELFIE_SEGMENTATION** - person/background segmentation
 
 For a list of all available Image Segmentation models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/image-segmentation).
 
@@ -132,6 +171,7 @@ For a list of all available Image Segmentation models reference [this Hugging Fa
 ## Text to image
 
 - **BK_SDM_TINY_VPRED_256** - BK-SDM Tiny V-Pred (256x256 resolution)
+- **BK_SDM_TINY_VPRED_512** - BK-SDM Tiny V-Pred (512x512 resolution)
 
 For a list of all available Text to Image models reference [this Hugging Face collection](https://huggingface.co/collections/software-mansion/text-to-image).
 
@@ -155,22 +195,18 @@ For a list of all available Speech to Text models reference [this Hugging Face c
 
 ### Whisper Models (English only)
 
-- **WHISPER_TINY_EN** - [Whisper Tiny](https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en)
-- **WHISPER_TINY_EN_QUANTIZED** - [Whisper Tiny English-only (quantized)](https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny-quantized.en)
-- **WHISPER_BASE_EN** - [Whisper Base](https://huggingface.co/software-mansion/react-native-executorch-whisper-base.en)
-- **WHISPER_SMALL_EN** - [Whisper Small](https://huggingface.co/software-mansion/react-native-executorch-whisper-small.en)
-- **WHISPER_MEDIUM_EN** - [Whisper Medium](https://huggingface.co/software-mansion/react-native-executorch-whisper-medium.en)
+- **WHISPER_TINY_EN** - Whisper Tiny English-only
+- **WHISPER_TINY_EN_QUANTIZED** - Whisper Tiny English-only quantized
+- **WHISPER_BASE_EN** - Whisper Base English-only
+- **WHISPER_BASE_EN_QUANTIZED** - Whisper Base English-only quantized
+- **WHISPER_SMALL_EN** - Whisper Small English-only
+- **WHISPER_SMALL_EN_QUANTIZED** - Whisper Small English-only quantized
 
 ### Whisper Models (Multilingual)
 
-- **WHISPER_TINY** - [Whisper Tiny multilingual](https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny)
-- **WHISPER_BASE** - [Whisper Base multilingual](https://huggingface.co/software-mansion/react-native-executorch-whisper-base)
-- **WHISPER_SMALL** - [Whisper Small multilingual](https://huggingface.co/software-mansion/react-native-executorch-whisper-small)
-- **WHISPER_MEDIUM** - [Whisper Medium multilingual](https://huggingface.co/software-mansion/react-native-executorch-whisper-medium)
-
-### Other models
-
-- **MOONSHINE_TINY** - [Moonshine Tiny](https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny)
+- **WHISPER_TINY** - Whisper Tiny multilingual
+- **WHISPER_BASE** - Whisper Base multilingual
+- **WHISPER_SMALL** - Whisper Small multilingual
 
 ---
 
@@ -202,12 +238,12 @@ For a list of all available VAD models reference [this Hugging Face collection](
 ```typescript
 import {
   useLLM,
-  LLAMA3_2_1B,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
   QWEN3_1_7B_QUANTIZED,
 } from 'react-native-executorch';
 
-const llama = useLLM(LLAMA3_2_1B);
-const qwen = useLLM(QWEN3_1_7B_QUANTIZED);
+const lfm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
+const qwen = useLLM({ model: QWEN3_1_7B_QUANTIZED });
 ```
 
 ---
