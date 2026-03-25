@@ -2,6 +2,7 @@ import ColorPalette from '../colors';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import DeviceInfo from 'react-native-device-info';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const BottomBar = ({
   handleCameraPress,
@@ -10,8 +11,10 @@ export const BottomBar = ({
   handleCameraPress: (isCamera: boolean) => void;
   runForward: () => void;
 }) => {
+  const { bottom } = useSafeAreaInsets();
+
   return (
-    <View style={styles.bottomContainer}>
+    <View style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}>
       <View style={styles.bottomIconsContainer}>
         <TouchableOpacity onPress={() => handleCameraPress(false)}>
           <FontAwesome name="photo" size={24} color={ColorPalette.primary} />
@@ -40,8 +43,8 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 15,
     alignItems: 'center',
-    padding: 16,
-    flex: 1,
+    paddingTop: 16,
+    paddingHorizontal: 16,
   },
   bottomIconsContainer: {
     flexDirection: 'row',

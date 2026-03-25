@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spinner from '../../components/Spinner';
 import {
   useTextToImage,
@@ -34,6 +35,7 @@ const MODELS: ModelOption<TextToImageModelSources>[] = [
 ];
 
 export default function TextToImageScreen() {
+  const { bottom } = useSafeAreaInsets();
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [image, setImage] = useState<string | null>(null);
   const [steps, setSteps] = useState<number>(40);
@@ -173,7 +175,7 @@ export default function TextToImageScreen() {
 
         <StatsBar inferenceTime={generationTime} />
 
-        <View style={styles.inputRow}>
+        <View style={[styles.inputRow, { marginBottom: bottom || 12 }]}>
           <TextInput
             style={styles.textInput}
             placeholder="Enter prompt..."
