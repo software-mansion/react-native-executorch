@@ -130,6 +130,7 @@ export default function ClassificationScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );

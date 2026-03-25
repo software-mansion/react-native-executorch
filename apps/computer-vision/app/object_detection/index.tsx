@@ -140,6 +140,7 @@ export default function ObjectDetectionScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );

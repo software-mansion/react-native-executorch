@@ -8,12 +8,15 @@ export const BottomBar = ({
   handleCameraPress,
   runForward,
   hasImage = true,
+  isGenerating = false,
 }: {
   handleCameraPress: (isCamera: boolean) => void;
   runForward: () => void;
   hasImage?: boolean;
+  isGenerating?: boolean;
 }) => {
   const { bottom } = useSafeAreaInsets();
+  const disabled = !hasImage || isGenerating;
 
   return (
     <View style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}>
@@ -34,12 +37,16 @@ export const BottomBar = ({
         </TouchableOpacity>
       </View>
       <TouchableOpacity
-        style={[styles.button, !hasImage && styles.buttonDisabled]}
+        style={[styles.button, disabled && styles.buttonDisabled]}
         onPress={runForward}
-        disabled={!hasImage}
+        disabled={disabled}
       >
         <Text style={styles.buttonText}>
-          {hasImage ? 'Run model' : 'Pick an image to run the model'}
+          {isGenerating
+            ? 'Running...'
+            : hasImage
+              ? 'Run model'
+              : 'Pick an image to run the model'}
         </Text>
       </TouchableOpacity>
     </View>

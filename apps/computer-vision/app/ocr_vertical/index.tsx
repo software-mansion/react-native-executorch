@@ -134,6 +134,7 @@ export default function VerticalOCRScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );

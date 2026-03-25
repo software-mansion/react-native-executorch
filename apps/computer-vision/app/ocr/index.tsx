@@ -154,6 +154,7 @@ export default function OCRScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );

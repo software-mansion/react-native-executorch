@@ -124,6 +124,7 @@ export default function StyleTransferScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );

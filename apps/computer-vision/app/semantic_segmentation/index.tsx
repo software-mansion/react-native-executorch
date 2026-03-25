@@ -9,6 +9,7 @@ import {
   LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
   FCN_RESNET50_QUANTIZED,
   FCN_RESNET101_QUANTIZED,
+  SELFIE_SEGMENTATION,
   useSemanticSegmentation,
   SemanticSegmentationModelSources,
 } from 'react-native-executorch';
@@ -61,6 +62,7 @@ const MODELS: ModelOption<SemanticSegmentationModelSources>[] = [
   { label: 'LRASPP MobileNet', value: LRASPP_MOBILENET_V3_LARGE_QUANTIZED },
   { label: 'FCN ResNet50', value: FCN_RESNET50_QUANTIZED },
   { label: 'FCN ResNet101', value: FCN_RESNET101_QUANTIZED },
+  { label: 'Selfie Segmentation', value: SELFIE_SEGMENTATION },
 ];
 
 export default function SemanticSegmentationScreen() {
@@ -211,6 +213,7 @@ export default function SemanticSegmentationScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={isGenerating}
       />
     </ScreenWrapper>
   );

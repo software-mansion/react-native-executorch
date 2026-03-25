@@ -226,6 +226,7 @@ export default function InstanceSegmentationScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
         hasImage={!!imageUri}
+        isGenerating={isGenerating}
       />
     </ScreenWrapper>
   );
