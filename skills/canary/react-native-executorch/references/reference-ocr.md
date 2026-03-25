@@ -46,31 +46,24 @@ The `bbox` array contains four points representing the corners of the detected t
 
 ## Language Support
 
-Different recognizer models support different alphabets and languages:
+Use the appropriate `OCR_*` language constant for your target language — each one bundles the correct detector and recognizer internally:
 
 ```typescript
 import {
   useOCR,
   OCR_ENGLISH,
-  RECOGNIZER_LATIN_CRNN,
-  RECOGNIZER_CYRILLIC_CRNN,
-  DETECTOR_CRAFT,
+  OCR_RUSSIAN,
+  OCR_GERMAN,
 } from 'react-native-executorch';
 
-// For English (uses Latin alphabet)
 const englishOCR = useOCR({ model: OCR_ENGLISH });
-
-// For custom language configuration
-const customOCR = useOCR({
-  model: {
-    detectorSource: DETECTOR_CRAFT,
-    recognizerSource: RECOGNIZER_CYRILLIC_CRNN,
-    language: 'ru', // Russian
-  },
-});
+const russianOCR = useOCR({ model: OCR_RUSSIAN });
+const germanOCR = useOCR({ model: OCR_GERMAN });
 ```
 
-**Important:** The recognizer model must match the alphabet of your target language. For example, use `RECOGNIZER_LATIN_CRNN` for English, Polish, German, etc., and `RECOGNIZER_CYRILLIC_CRNN` for Russian, Ukrainian, etc.
+For the full list of supported language constants see [OCR Supported Alphabets](https://docs.swmansion.com/react-native-executorch/docs/api-reference#ocr-supported-alphabets).
+
+**Important:** The recognizer embedded in each constant is matched to the correct alphabet. Latin-alphabet languages (English, German, Polish, etc.) and Cyrillic-alphabet languages (Russian, Ukrainian, etc.) use different recognizer models — always use the matching `OCR_*` constant.
 
 ## Available Models
 
@@ -126,7 +119,7 @@ The `independentCharacters` parameter controls how text is processed:
 ```typescript
 // Character mode - each character detected separately (better for CJK)
 const charMode = useVerticalOCR({
-  model: OCR_CHINESE,
+  model: OCR_SIMPLIFIED_CHINESE,
   independentCharacters: true,
 });
 

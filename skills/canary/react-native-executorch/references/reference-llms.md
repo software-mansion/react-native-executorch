@@ -12,15 +12,18 @@ description: Reference for using Large Language Models in React Native Executorc
 ## Basic Usage
 
 ```typescript
-import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
+import {
+  useLLM,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+} from 'react-native-executorch';
 
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
 ```
 
 ## Functional Mode (Stateless)
 
 ```tsx
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
 
 const handleGenerate = async () => {
   const chat: Message[] = [
@@ -75,7 +78,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   ToolCall,
   useLLM,
-  LLAMA3_2_1B_SPINQUANT,
+  LFM2_5_1_2B_INSTRUCT_QUANTIZED,
 } from 'react-native-executorch';
 
 const TOOL_DEFINITIONS: LLMTool[] = [
@@ -111,7 +114,7 @@ const executeTool: (call: ToolCall) => Promise<string | null> = async (
   }
 };
 
-const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT_QUANTIZED });
 
 const { configure } = llm;
 useEffect(() => {
@@ -317,6 +320,58 @@ llm.interrupt();
 {
   llm.isGenerating && <Button onPress={llm.interrupt} title="Stop" />;
 }
+```
+
+## Vision-Language Models (VLM)
+
+Some models support multimodal input — text and images together. The `capabilities` field on the model constant enables this.
+
+### Loading a VLM
+
+```tsx
+import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+```
+
+### Sending a message with an image (Managed mode)
+
+```tsx
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+
+const send = () => {
+  llm.sendMessage('What is in this image?', {
+    imagePath: '/path/to/image.jpg',
+  });
+};
+
+return (
+  <View>
+    <Button onPress={send} title="Send!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
+```
+
+`imagePath` must be a local file path on the device.
+
+### Functional generation with images
+
+```tsx
+const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+
+const handleGenerate = async () => {
+  const chat: Message[] = [
+    {
+      role: 'user',
+      content: 'Describe this image.',
+      mediaPath: '/path/to/image.jpg',
+    },
+  ];
+
+  const response = await llm.generate(chat);
+  console.log(response);
+};
 ```
 
 ## Troubleshooting
