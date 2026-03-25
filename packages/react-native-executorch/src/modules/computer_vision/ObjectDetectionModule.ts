@@ -148,7 +148,7 @@ export class ObjectDetectionModule<
    * @throws {RnExecutorchError} If the underlying native worklet is unavailable (should not occur on a loaded module).
    */
   override get runOnFrame(): (
-    frame: any,
+    frame: Frame,
     isFrontCamera: boolean,
     options?: ObjectDetectionOptions<ResolveLabels<T>>
   ) => Detection<ResolveLabels<T>>[] {
