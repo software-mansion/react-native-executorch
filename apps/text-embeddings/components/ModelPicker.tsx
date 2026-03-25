@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  ScrollView,
+  View,
 } from 'react-native';
 
 export type ModelOption<T> = {
@@ -20,6 +21,8 @@ type Props<T> = {
   disabled?: boolean;
 };
 
+const DROPDOWN_MAX_HEIGHT = 200;
+
 export function ModelPicker<T>({
   models,
   selectedModel,
@@ -28,18 +31,44 @@ export function ModelPicker<T>({
   disabled,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
+  const [triggerHeight, setTriggerHeight] = useState(0);
+  const [expandUp, setExpandUp] = useState(false);
+  const triggerRef = useRef<React.ComponentRef<typeof TouchableOpacity>>(null);
   const selected = models.find((m) => m.value === selectedModel);
 
   useEffect(() => {
     if (disabled) setOpen(false);
   }, [disabled]);
 
+  const handleLayout = () => {
+    triggerRef.current?.measure(
+      (
+        _x: number,
+        _y: number,
+        _width: number,
+        height: number,
+        _pageX: number,
+        pageY: number
+      ) => {
+        setTriggerHeight(height);
+        const spaceBelow = Dimensions.get('window').height - (pageY + height);
+        setExpandUp(spaceBelow < DROPDOWN_MAX_HEIGHT);
+      }
+    );
+  };
+
+  const dropdownPosition = expandUp
+    ? { bottom: triggerHeight + 2 }
+    : { top: triggerHeight + 2 };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
+        ref={triggerRef}
         style={[styles.trigger, disabled && styles.triggerDisabled]}
         onPress={() => !disabled && setOpen((v) => !v)}
         activeOpacity={disabled ? 1 : 0.7}
+        onLayout={handleLayout}
       >
         {label && <Text style={styles.label}>{label}</Text>}
         <Text style={styles.triggerText}>{selected?.label ?? '—'}</Text>
@@ -48,7 +77,7 @@ export function ModelPicker<T>({
 
       {open && (
         <ScrollView
-          style={styles.dropdown}
+          style={[styles.dropdown, dropdownPosition]}
           nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
         >
@@ -81,7 +110,12 @@ export function ModelPicker<T>({
 }
 
 const styles = StyleSheet.create({
-  container: { marginHorizontal: 12, marginVertical: 4, alignSelf: 'stretch' },
+  container: {
+    marginHorizontal: 12,
+    marginVertical: 4,
+    alignSelf: 'stretch',
+    zIndex: 100,
+  },
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -112,12 +146,20 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   dropdown: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     borderWidth: 1,
     borderColor: '#C1C6E5',
     borderRadius: 8,
     backgroundColor: '#fff',
-    maxHeight: 200,
-    marginTop: 2,
+    maxHeight: DROPDOWN_MAX_HEIGHT,
+    zIndex: 100,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   option: {
     paddingHorizontal: 12,
