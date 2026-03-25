@@ -1,4 +1,9 @@
-import { LabelEnum, PixelData, ResourceSource } from '../../types/common';
+import {
+  Frame,
+  LabelEnum,
+  PixelData,
+  ResourceSource,
+} from '../../types/common';
 import {
   Detection,
   ObjectDetectionConfig,
