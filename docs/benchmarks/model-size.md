@@ -2,24 +2,41 @@
 
 ## Classification[​](#classification "Direct link to Classification")
 
-| Model               | XNNPACK \[MB] | Core ML \[MB] |
-| ------------------- | ------------- | ------------- |
-| EFFICIENTNET\_V2\_S | 85.6          | 43.9          |
+| Model               | XNNPACK FP32 \[MB] | XNNPACK INT8 \[MB] | Core ML FP32 \[MB] | Core ML FP16 \[MB] |
+| ------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| EFFICIENTNET\_V2\_S | 85.7               | 22.9               | 86.5               | 43.9               |
 
 ## Object Detection[​](#object-detection "Direct link to Object Detection")
 
-| Model                              | XNNPACK \[MB] |
-| ---------------------------------- | ------------- |
-| SSDLITE\_320\_MOBILENET\_V3\_LARGE | 13.9          |
+| Model                              | XNNPACK FP32 \[MB] | Core ML FP32 \[MB] | Core ML FP16 \[MB] |
+| ---------------------------------- | ------------------ | ------------------ | ------------------ |
+| SSDLITE\_320\_MOBILENET\_V3\_LARGE | 13.9               | 15.6               | 8.46               |
+| RF\_DETR\_NANO                     | 112                | -                  | -                  |
+| YOLO26N                            | 10.3               | -                  | -                  |
+| YOLO26S                            | 38.6               | -                  | -                  |
+| YOLO26M                            | 82.3               | -                  | -                  |
+| YOLO26L                            | 100                | -                  | -                  |
+| YOLO26X                            | 224                | -                  | -                  |
+
+## Instance Segmentation[​](#instance-segmentation "Direct link to Instance Segmentation")
+
+| Model               | XNNPACK \[MB] |
+| ------------------- | ------------- |
+| YOLO26N\_SEG        | 11.6          |
+| YOLO26S\_SEG        | 42.3          |
+| YOLO26M\_SEG        | 95.4          |
+| YOLO26L\_SEG        | 113           |
+| YOLO26X\_SEG        | 252           |
+| RF\_DETR\_NANO\_SEG | 124           |
 
 ## Style Transfer[​](#style-transfer "Direct link to Style Transfer")
 
-| Model                           | XNNPACK \[MB] | Core ML \[MB] |
-| ------------------------------- | ------------- | ------------- |
-| STYLE\_TRANSFER\_CANDY          | 6.78          | 5.22          |
-| STYLE\_TRANSFER\_MOSAIC         | 6.78          | 5.22          |
-| STYLE\_TRANSFER\_UDNIE          | 6.78          | 5.22          |
-| STYLE\_TRANSFER\_RAIN\_PRINCESS | 6.78          | 5.22          |
+| Model                           | XNNPACK FP32 \[MB] | XNNPACK INT8 \[MB] | Core ML FP32 \[MB] | Core ML FP16 \[MB] |
+| ------------------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| STYLE\_TRANSFER\_CANDY          | 6.82               | 1.84               | 7.12               | 3.79               |
+| STYLE\_TRANSFER\_MOSAIC         | 6.82               | 1.84               | 7.12               | 3.79               |
+| STYLE\_TRANSFER\_UDNIE          | 6.82               | 1.84               | 7.12               | 3.79               |
+| STYLE\_TRANSFER\_RAIN\_PRINCESS | 6.82               | 1.84               | 7.12               | 3.79               |
 
 ## OCR[​](#ocr "Direct link to OCR")
 
@@ -80,15 +97,20 @@
 
 ## Image Embeddings[​](#image-embeddings "Direct link to Image Embeddings")
 
-| Model                           | XNNPACK \[MB] |
-| ------------------------------- | ------------- |
-| CLIP\_VIT\_BASE\_PATCH32\_IMAGE | 352           |
+| Model                           | XNNPACK FP32 \[MB] | XNNPACK INT8 \[MB] |
+| ------------------------------- | ------------------ | ------------------ |
+| CLIP\_VIT\_BASE\_PATCH32\_IMAGE | 352                | 96.4               |
 
-## Image Segmentation[​](#image-segmentation "Direct link to Image Segmentation")
+## Semantic Segmentation[​](#semantic-segmentation "Direct link to Semantic Segmentation")
 
-| Model              | XNNPACK \[MB] |
-| ------------------ | ------------- |
-| DEELABV3\_RESNET50 | 168           |
+| Model                             | XNNPACK FP32 \[MB] | XNNPACK INT8 \[MB] |
+| --------------------------------- | ------------------ | ------------------ |
+| DEEPLAB\_V3\_RESNET50             | 168                | 42.4               |
+| DEEPLAB\_V3\_RESNET101            | 244                | 61.7               |
+| DEEPLAB\_V3\_MOBILENET\_V3\_LARGE | 44.1               | 11.4               |
+| LRASPP\_MOBILENET\_V3\_LARGE      | 12.9               | 3.53               |
+| FCN\_RESNET50                     | 141                | 35.7               |
+| FCN\_RESNET101                    | 217                | 55                 |
 
 ## Text to image[​](#text-to-image "Direct link to Text to image")
 

@@ -15,11 +15,10 @@ import {
   CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
-// Creating an instance
-const imageEmbeddingsModule = new ImageEmbeddingsModule();
-
-// Loading the model
-await imageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH32_IMAGE);
+// Creating and loading the module
+const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName(
+  CLIP_VIT_BASE_PATCH32_IMAGE
+);
 
 // Running the model
 const embedding = await imageEmbeddingsModule.forward(
@@ -34,18 +33,21 @@ All methods of `ImageEmbeddingsModule` are explained in details here: [`ImageEmb
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To initialize the module, create an instance and call the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#load) method with the following parameters:
+To create a ready-to-use instance, call the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#frommodelname) factory with the following parameters:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#model) - Object containing:
+* `namedSources` - Object containing:
 
-  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#modelsource) - Location of the used model.
+  * `modelName` - Model name identifier.
+  * `modelSource` - Location of the model binary.
 
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#ondownloadprogresscallback) - Callback to track download progress.
+* `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `ImageEmbeddingsModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-[`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#forward) accepts one argument, which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+[`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ImageEmbeddingsModule#forward) accepts one argument — the image to embed. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/PixelData) object (raw RGB pixel buffer). The method returns a promise resolving to a `Float32Array` representing the embedding.
+
+For real-time frame processing, use [`runOnFrame`](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/visioncamera-integration.md) instead.

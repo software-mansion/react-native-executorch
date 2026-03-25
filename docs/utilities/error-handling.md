@@ -14,12 +14,12 @@ import {
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
-const llm = new LLMModule({
-  tokenCallback: (token) => console.log(token),
-  messageHistoryCallback: (messages) => console.log(messages),
-});
-
-await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
+const llm = await LLMModule.fromModelName(
+  LLAMA3_2_1B_QLORA,
+  (progress) => console.log(progress),
+  (token) => console.log(token),
+  (messages) => console.log(messages)
+);
 
 // Try to set an invalid configuration
 try {
@@ -82,14 +82,15 @@ These errors occur when trying to perform operations on a model in an invalid st
 
 These errors occur when invalid configuration or input is provided.
 
-| Error Code             | Description                          | When It Occurs                                                            | How to Handle                                        |
-| ---------------------- | ------------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `InvalidConfig`        | Configuration parameters are invalid | Setting parameters outside valid ranges (e.g., `topp` outside \[0, 1])    | Check parameter constraints and provide valid values |
-| `InvalidUserInput`     | Input provided to API is invalid     | Passing empty arrays, null values, or malformed data to methods           | Validate input before calling methods                |
-| `InvalidModelSource`   | Model source type is invalid         | Providing wrong type for model source (e.g., object when string expected) | Ensure model source matches expected type            |
-| `LanguageNotSupported` | Language not supported by model      | Passing unsupported language to multilingual OCR or Speech-to-Text models | Use a supported language or different model          |
-| `WrongDimensions`      | Input tensor dimensions don't match  | Providing input with incorrect shape for the model                        | Check model's expected input dimensions              |
-| `UnexpectedNumInputs`  | Wrong number of inputs provided      | Passing more or fewer inputs than model expects                           | Match the number of inputs to model metadata         |
+| Error Code             | Description                          | When It Occurs                                                                          | How to Handle                                            |
+| ---------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `InvalidConfig`        | Configuration parameters are invalid | Setting parameters outside valid ranges (e.g., `topp` outside \[0, 1])                  | Check parameter constraints and provide valid values     |
+| `InvalidUserInput`     | Input provided to API is invalid     | Passing empty arrays, null values, or malformed data to methods                         | Validate input before calling methods                    |
+| `InvalidModelSource`   | Model source type is invalid         | Providing wrong type for model source (e.g., object when string expected)               | Ensure model source matches expected type                |
+| `LanguageNotSupported` | Language not supported by model      | Passing unsupported language to multilingual OCR or Speech-to-Text models               | Use a supported language or different model              |
+| `PlatformNotSupported` | Current platform is not supported    | Using features (e.g., camera frame processing) on an unsupported platform or OS version | Ensure you're running on a supported platform/OS version |
+| `WrongDimensions`      | Input tensor dimensions don't match  | Providing input with incorrect shape for the model                                      | Check model's expected input dimensions                  |
+| `UnexpectedNumInputs`  | Wrong number of inputs provided      | Passing more or fewer inputs than model expects                                         | Match the number of inputs to model metadata             |
 
 ### File Operations Errors[​](#file-operations-errors "Direct link to File Operations Errors")
 
@@ -104,15 +105,17 @@ These errors occur during file read/write operations.
 
 These errors occur during model download and resource management.
 
-| Error Code                          | Description                      | When It Occurs                                        | How to Handle                                                             |
-| ----------------------------------- | -------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| `DownloadInterrupted`               | Download was interrupted         | Not all files were downloaded successfully            | Retry the download                                                        |
-| `ResourceFetcherDownloadFailed`     | Resource download failed         | Network error, invalid URL, or server error           | Check network connection and URL validity, retry with exponential backoff |
-| `ResourceFetcherDownloadInProgress` | Download already in progress     | Calling `fetch()` for same resource while downloading | Wait for current download to complete                                     |
-| `ResourceFetcherAlreadyPaused`      | Download already paused          | Calling `pauseFetching()` on already paused download  | Check download state before pausing                                       |
-| `ResourceFetcherAlreadyOngoing`     | Download already ongoing         | Calling `resumeFetching()` on active download         | No action needed, download is already running                             |
-| `ResourceFetcherNotActive`          | No active download found         | Calling pause/resume/cancel on non-existent download  | Verify download was started before trying to control it                   |
-| `ResourceFetcherMissingUri`         | Required URI information missing | Internal state error during download operations       | Restart the download from beginning                                       |
+| Error Code                             | Description                                | When It Occurs                                                       | How to Handle                                                             |
+| -------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `DownloadInterrupted`                  | Download was interrupted                   | Not all files were downloaded successfully                           | Retry the download                                                        |
+| `ResourceFetcherDownloadFailed`        | Resource download failed                   | Network error, invalid URL, or server error                          | Check network connection and URL validity, retry with exponential backoff |
+| `ResourceFetcherDownloadInProgress`    | Download already in progress               | Calling `fetch()` for same resource while downloading                | Wait for current download to complete                                     |
+| `ResourceFetcherAlreadyPaused`         | Download already paused                    | Calling `pauseFetching()` on already paused download                 | Check download state before pausing                                       |
+| `ResourceFetcherAlreadyOngoing`        | Download already ongoing                   | Calling `resumeFetching()` on active download                        | No action needed, download is already running                             |
+| `ResourceFetcherNotActive`             | No active download found                   | Calling pause/resume/cancel on non-existent download                 | Verify download was started before trying to control it                   |
+| `ResourceFetcherMissingUri`            | Required URI information missing           | Internal state error during download operations                      | Restart the download from beginning                                       |
+| `ResourceFetcherAdapterNotInitialized` | Resource fetcher not initialized           | Trying to load resources without calling `initExecutorch()` first    | Call `initExecutorch({ resourceFetcher: ... })` before loading models     |
+| `ResourceFetcherPlatformNotSupported`  | Platform not supported by resource fetcher | Using a resource fetcher feature unavailable on the current platform | Use a platform-appropriate fetcher or avoid the unsupported operation     |
 
 ### Speech-to-Text Streaming Errors[​](#speech-to-text-streaming-errors "Direct link to Speech-to-Text Streaming Errors")
 

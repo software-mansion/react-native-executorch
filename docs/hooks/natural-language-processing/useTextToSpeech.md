@@ -4,7 +4,7 @@ Text to speech is a task that allows to transform written text into spoken langu
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)warning
 
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-kokoro). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-kokoro). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 
 ## API Reference[​](#api-reference "Direct link to API Reference")
 
@@ -50,7 +50,7 @@ const handleSpeech = async (text: string) => {
 
 `useTextToSpeech` takes [`TextToSpeechProps`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechProps) that consists of:
 
-* `model` of type [`KokoroConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig) containing the [`durationPredictorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#durationpredictorsource), [`synthesizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#synthesizersource), and [`type`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#type).
+* `model` of type [`KokoroConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig) containing the [`durationPredictorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#durationpredictorsource), [`synthesizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#synthesizersource), and [`modelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig#modelname).
 * An optional flag [`preventLoad`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechProps#preventload) which prevents auto-loading of the model.
 * [`voice`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechProps#preventload) of type [`VoiceConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/VoiceConfig) - configuration of specific voice used in TTS.
 
@@ -67,15 +67,23 @@ You need more details? Check the following resources:
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-The module provides two ways to generate speech:
+The module provides two ways to generate speech using either raw text or pre-generated phonemes:
 
-1. [**`forward(text, speed)`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+### Using Text[​](#using-text "Direct link to Using Text")
+
+1. [**`forward({ text, speed })`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+2. [**`stream({speed, stopAutomatically, onNext, ...})`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#stream): An async generator-like functionality (managed via callbacks like `onNext`) that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. You can also dynamically insert text during the generation process using `streamInsert(text)` and stop it with `streamStop(instant)`.
+
+### Using Phonemes[​](#using-phonemes "Direct link to Using Phonemes")
+
+If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:
+
+1. [**`forwardFromPhonemes({ phonemes, speed })`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#forwardfromphonemes): Generates the complete audio waveform from a phoneme string.
+2. [**`streamFromPhonemes({ phonemes, speed, onNext, ... })`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#streamfromphonemes): Streams audio chunks generated from a phoneme string.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)note
 
-Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
-
-2. [**`stream({ text, speed })`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TextToSpeechType#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
+Since `forward` and `forwardFromPhonemes` process the entire input at once, they might take a significant amount of time to produce audio for long inputs.
 
 ## Example[​](#example "Direct link to Example")
 
@@ -165,6 +173,48 @@ export default function App() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button title="Stream" onPress={generateStream} disabled={!tts.isReady} />
+    </View>
+  );
+}
+
+```
+
+### Synthesis from Phonemes[​](#synthesis-from-phonemes "Direct link to Synthesis from Phonemes")
+
+If you already have a phoneme string obtained from an external source (e.g. the Python `phonemizer` library, `espeak-ng`, or any custom phonemizer), you can use `forwardFromPhonemes` or `streamFromPhonemes` to synthesize audio directly, skipping the phoneme generation stage.
+
+```tsx
+import React from 'react';
+import { Button, View } from 'react-native';
+import {
+  useTextToSpeech,
+  KOKORO_MEDIUM,
+  KOKORO_VOICE_AF_HEART,
+} from 'react-native-executorch';
+
+export default function App() {
+  const tts = useTextToSpeech({
+    model: KOKORO_MEDIUM,
+    voice: KOKORO_VOICE_AF_HEART,
+  });
+
+  const synthesizePhonemes = async () => {
+    // Example phonemes for "Hello"
+    const audioData = await tts.forwardFromPhonemes({
+      phonemes:
+        'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
+    });
+
+    // ... process or play audioData ...
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button
+        title="Synthesize Phonemes"
+        onPress={synthesizePhonemes}
+        disabled={!tts.isReady}
+      />
     </View>
   );
 }

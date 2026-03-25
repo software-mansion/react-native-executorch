@@ -13,14 +13,13 @@ TypeScript API implementation of the [useLLM](https://docs.swmansion.com/react-n
 ```typescript
 import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
 
-// Creating an instance
-const llm = new LLMModule({
-  tokenCallback: (token) => console.log(token),
-  messageHistoryCallback: (messages) => console.log(messages),
-});
-
-// Loading the model
-await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
+// Creating an instance and loading the model
+const llm = await LLMModule.fromModelName(
+  LLAMA3_2_1B_QLORA,
+  (progress) => console.log(progress),
+  (token) => console.log(token),
+  (messages) => console.log(messages)
+);
 
 // Running the model - returns the generated response
 const response = await llm.sendMessage('Hello, World!');
@@ -40,31 +39,27 @@ All methods of `LLMModule` are explained in details here: [LLMModule API Referen
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To create a new instance of `LLMModule`, use the [constructor](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#constructor) with optional callbacks:
+Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname) factory method:
 
-* [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) - Function called on every generated token.
+```typescript
+const llm = await LLMModule.fromModelName(
+  LLAMA3_2_3B, // model config constant
+  onDownloadProgress, // optional, progress 0–1
+  tokenCallback, // optional, called on every token
+  messageHistoryCallback // optional, called when generation finishes
+);
 
-* [`messageHistoryCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#messagehistorycallback) - Function called on every finished message.
+```
 
-Then, to load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#load) method. It accepts an object with the following fields:
+The model config object contains `modelSource`, `tokenizerSource`, `tokenizerConfigSource`, and optional `capabilities`. Pass one of the built-in constants (e.g. `LLAMA3_2_3B`) or construct it manually.
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#model) - Object containing:
-
-  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#modelsource) - The location of the used model.
-
-  * [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokenizersource) - The location of the used tokenizer.
-
-  * [`tokenizerConfigSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokenizerconfigsource) - The location of the used tokenizer config.
-
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+This method returns a promise resolving to an `LLMModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Listening for download progress[​](#listening-for-download-progress "Direct link to Listening for download progress")
 
-To subscribe to the download progress event, you can pass the [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#ondownloadprogresscallback) function to the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#load) method. This function is called whenever the download progress changes.
+To subscribe to the download progress event, you can pass the `onDownloadProgress` callback as the second argument to [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname). This function is called whenever the download progress changes.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
@@ -96,7 +91,7 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   * [`initialMessageHistory`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-  * [`contextWindowLength`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+  * [`contextStrategy`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#contextstrategy) - Object implementing [`ContextStrategy`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ContextStrategy) interface used to manage conversation context, including trimming history if necessary. Custom strategies can be implemented or one of the built-in options can be used (e.g. [`NoopContextStrategy`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/NoopContextStrategy), [`MessageCountContextStrategy`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/MessageCountContextStrategy) or the default [`SlidingWindowContextStrategy`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SlidingWindowContextStrategy)).
 
 * [`toolsConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 
@@ -115,6 +110,80 @@ To configure model (i.e. change system prompt, load initial conversation history
   * [`temperature`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
   * [`topp`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+
+## Vision-Language Models (VLM)[​](#vision-language-models-vlm "Direct link to Vision-Language Models (VLM)")
+
+Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname):
+
+```typescript
+import { LLMModule, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+
+const llm = await LLMModule.fromModelName(
+  LFM2_VL_1_6B_QUANTIZED,
+  undefined,
+  (token) => console.log(token)
+);
+
+```
+
+The `capabilities` field is already set on the model constant. You can also construct the model object explicitly:
+
+```typescript
+const llm = await LLMModule.fromModelName({
+  modelName: 'lfm2.5-vl-1.6b-quantized',
+  modelSource: require('./path/to/model.pte'),
+  tokenizerSource: require('./path/to/tokenizer.json'),
+  tokenizerConfigSource: require('./path/to/tokenizer_config.json'),
+  capabilities: ['vision'],
+});
+
+```
+
+Once loaded, pass `imagePath` to [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage):
+
+```typescript
+const response = await llm.sendMessage('What is in this image?', {
+  imagePath: '/path/to/image.jpg',
+});
+
+```
+
+Or use [`generate`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#generate) with `mediaPath` on the message:
+
+```typescript
+const chat: Message[] = [
+  {
+    role: 'user',
+    content: 'Describe this image.',
+    mediaPath: '/path/to/image.jpg',
+  },
+];
+
+const response = await llm.generate(chat);
+
+```
+
+## Using a custom model[​](#using-a-custom-model "Direct link to Using a custom model")
+
+Use [`fromCustomModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#fromcustommodel) to load your own exported LLM instead of a built-in preset:
+
+```typescript
+import { LLMModule } from 'react-native-executorch';
+
+const llm = await LLMModule.fromCustomModel(
+  'https://example.com/model.pte',
+  'https://example.com/tokenizer.json',
+  'https://example.com/tokenizer_config.json',
+  (progress) => console.log(progress),
+  (token) => console.log(token),
+  (messages) => console.log(messages)
+);
+
+```
+
+### Required model contract[​](#required-model-contract "Direct link to Required model contract")
+
+The `.pte` model binary must be exported following the [ExecuTorch LLM export process](https://docs.pytorch.org/executorch/1.1/llm/export-llm.html). The native runner expects the standard ExecuTorch text-generation interface — KV-cache management, prefill/decode phases, and logit sampling are all handled by the runtime.
 
 ## Deleting the model from memory[​](#deleting-the-model-from-memory "Direct link to Deleting the model from memory")
 

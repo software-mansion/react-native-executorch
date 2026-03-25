@@ -13,11 +13,8 @@ TypeScript API implementation of the [useOCR](https://docs.swmansion.com/react-n
 import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const ocrModule = new OCRModule();
-
-// Loading the model
-await ocrModule.load(OCR_ENGLISH);
+// Creating an instance and loading the model
+const ocrModule = await OCRModule.fromModelName(OCR_ENGLISH);
 
 // Running the model
 const detections = await ocrModule.forward(imageUri);
@@ -30,20 +27,19 @@ All methods of `OCRModule` are explained in details here: [`OCRModule` API Refer
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#load) method. It accepts an object:
+Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#frommodelname) factory method. It accepts a `namedSources` object (e.g. `OCR_ENGLISH`) containing:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#model) - Object containing:
+* `modelName` - Model name identifier.
+* [`detectorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#detectorsource) - Location of the used detector.
+* [`recognizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#recognizersource) - Location of the used recognizer.
+* [`language`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#recognizersource) - Language used in OCR.
 
-  * [`detectorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#detectorsource) - Location of the used detector.
-  * [`recognizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#recognizersource) - Location of the used recognizer.
-  * [`language`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#recognizersource) - Language used in OCR.
-
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to an `OCRModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or an array of [`OCRDetection`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/OCRDetection) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score.
+To run the model, use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/OCRModule#forward) method. It accepts one argument — the image to recognize. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/PixelData) object (raw RGB pixel buffer). The method returns a promise resolving to an array of [`OCRDetection`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/OCRDetection) objects, each containing the bounding box, recognized text, and confidence score.
+
+For real-time frame processing, use [`runOnFrame`](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/visioncamera-integration.md) instead.

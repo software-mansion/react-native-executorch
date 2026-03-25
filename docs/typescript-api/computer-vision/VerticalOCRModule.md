@@ -14,11 +14,8 @@ import { VerticalOCRModule, OCR_ENGLISH } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const verticalOCRModule = new VerticalOCRModule();
-
-// Loading the model
-await verticalOCRModule.load(OCR_ENGLISH);
+// Creating an instance and loading the model
+const verticalOCRModule = await VerticalOCRModule.fromModelName(OCR_ENGLISH);
 
 // Running the model
 const detections = await verticalOCRModule.forward(imageUri);
@@ -31,22 +28,20 @@ All methods of `VerticalOCRModule` are explained in details here: [`VerticalOCRM
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#load) method. It accepts an object:
+Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#frommodelname) factory method. It accepts a `namedSources` object (e.g. `{ ...OCR_ENGLISH, independentCharacters: true }`) containing:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#model) - Object containing:
+* `modelName` - Model name identifier.
+* [`detectorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#detectorsource) - Location of the used detector.
+* [`recognizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#recognizersource) - Location of the used recognizer.
+* [`language`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#recognizersource) - Language used in OCR.
+* [`independentCharacters`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#independentcharacters) - Flag indicating whether to treat characters as independent.
 
-  * [`detectorSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#detectorsource) - Location of the used detector.
-  * [`recognizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#recognizersource) - Location of the used recognizer.
-  * [`language`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#recognizersource) - Language used in OCR.
-
-* [`independentCharacters`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#independentcharacters) - Flag indicating to either treat characters as independent or not.
-
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to a `VerticalOCRModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or an array of [`OCRDetection`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/OCRDetection) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score.
+To run the model, use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VerticalOCRModule#forward) method. It accepts one argument — the image to recognize. The image can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/PixelData) object (raw RGB pixel buffer). The method returns a promise resolving to an array of [`OCRDetection`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/OCRDetection) objects, each containing the bounding box, recognized text, and confidence score.
+
+For real-time frame processing, use [`runOnFrame`](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/visioncamera-integration.md) instead.

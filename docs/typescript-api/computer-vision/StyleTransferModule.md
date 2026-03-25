@@ -17,11 +17,9 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const styleTransferModule = new StyleTransferModule();
-
-// Loading the model
-await styleTransferModule.load(STYLE_TRANSFER_CANDY);
+// Creating and loading the module
+const styleTransferModule =
+  await StyleTransferModule.fromModelName(STYLE_TRANSFER_CANDY);
 
 // Running the model
 const generatedImageUrl = await styleTransferModule.forward(imageUri);
@@ -34,21 +32,33 @@ All methods of `StyleTransferModule` are explained in details here: [`StyleTrans
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To load the model, create a new instance of the module and use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#load) method on it. It accepts an object:
+To create a ready-to-use instance, call the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#frommodelname) factory with the following parameters:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#model) - Object containing:
+* `namedSources` - Object containing:
 
-  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#modelsource) - Location of the used model.
+  * `modelName` - Model name identifier.
+  * `modelSource` - Location of the model binary.
 
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#ondownloadprogresscallback) - Callback to track download progress.
+* `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `StyleTransferModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#forward) method on the module object. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or a URL to generated image.
+To run the model, use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/StyleTransferModule#forward) method. It accepts two arguments:
+
+* `input` (required) — The image to stylize. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/PixelData) object (raw RGB pixel buffer).
+
+* `outputType` (optional) — Controls the return format:
+
+  <!-- -->
+
+  * `'pixelData'` (default) — Returns a `PixelData` object with raw RGB pixels. No file is written.
+  * `'url'` — Saves the result to a temp file and returns its URI as a `string`.
+
+For real-time frame processing, use [`runOnFrame`](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/visioncamera-integration.md) instead.
 
 ## Managing memory[​](#managing-memory "Direct link to Managing memory")
 

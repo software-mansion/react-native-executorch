@@ -12,10 +12,9 @@ TypeScript API implementation of the [useVAD](https://docs.swmansion.com/react-n
 ```typescript
 import { VADModule, FSMN_VAD } from 'react-native-executorch';
 
-const model = new VADModule();
-await model.load(FSMN_VAD, (progress) => {
-  console.log(progress);
-});
+const model = await VADModule.fromModelName(FSMN_VAD, (progress) =>
+  console.log(progress)
+);
 
 await model.forward(waveform);
 
@@ -27,15 +26,16 @@ All methods of `VADModule` are explained in details here: [`VADModule` API Refer
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To initialize the module, create an instance and call the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VADModule#load) method with the following parameters:
+To create a ready-to-use instance, call the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VADModule#frommodelname) factory with the following parameters:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VADModule#model) - Object containing:
+* `namedSources` - Object containing:
 
-  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VADModule#modelsource) - Location of the used model.
+  * `modelName` - Model name identifier.
+  * `modelSource` - Location of the model binary.
 
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/VADModule#ondownloadprogresscallback) - Callback to track download progress.
+* `onDownloadProgress` - Optional callback to track download progress (value between 0 and 1).
 
-This method returns a promise, which can resolve to an error or void.
+The factory returns a promise that resolves to a loaded `VADModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 

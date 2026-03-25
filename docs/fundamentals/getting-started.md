@@ -14,9 +14,11 @@ React Native Executorch supports only the [New React Native architecture](https:
 
 If your app still runs on the old architecture, please consider upgrading to the New Architecture.
 
+For supported React Native and Expo versions, see the [Compatibility table](https://docs.swmansion.com/react-native-executorch/docs/other/compatibility.md).
+
 ## Installation[​](#installation "Direct link to Installation")
 
-Installation is pretty straightforward, just use your favorite package manager.
+Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter.md).
 
 * NPM
 * PNPM
@@ -24,20 +26,48 @@ Installation is pretty straightforward, just use your favorite package manager.
 
 ```text
 npm install react-native-executorch
+# For Expo projects
+npm install react-native-executorch-expo-resource-fetcher
+# For bare React Native projects
+npm install react-native-executorch-bare-resource-fetcher
 
 ```
 
 ```text
 pnpm install react-native-executorch
+# For Expo projects
+pnpm install react-native-executorch-expo-resource-fetcher
+# For bare React Native projects
+pnpm install react-native-executorch-bare-resource-fetcher
+
 
 ```
 
 ```text
 yarn add react-native-executorch
+# For Expo projects
+yarn install react-native-executorch-expo-resource-fetcher
+# For bare React Native projects
+yarn install react-native-executorch-bare-resource-fetcher
 
 ```
 
-If you're using bare React Native (instead of a managed Expo project), you also need to install Expo Modules because the underlying implementation relies on expo-file-system. Since expo-file-system is an Expo package, bare React Native projects need **Expo Modules** to properly integrate and use it. The link provided (<https://docs.expo.dev/bare/installing-expo-modules/>) offers guidance on setting up Expo Modules in a bare React Native environment.
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)warning
+
+Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
+
+```js
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+// or BareResourceFetcher for Expo projects
+
+initExecutorch({ resourceFetcher: ExpoResourceFetcher });
+
+```
+
+Calling any library API without initializing first will throw a `ResourceFetcherAdapterNotInitialized` error.
+
+Our library offers support for both bare React Native and Expo projects. Please follow the instructions from [Loading models section](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) to make sure you setup your project correctly. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (<https://docs.expo.dev/bare/installing-expo-modules/>) offers a guidance on setting up Expo Modules in a bare React Native environment.
 
 If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
@@ -63,7 +93,7 @@ Because we are using ExecuTorch under the hood, you won't be able to build iOS a
 Running the app with the library:
 
 ```bash
-yarn run expo:<ios | android> -d
+yarn <ios | android> -d
 
 ```
 

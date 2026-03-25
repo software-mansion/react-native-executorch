@@ -12,12 +12,20 @@ TypeScript API implementation of the [useSpeechToText](https://docs.swmansion.co
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY_EN, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY_EN,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
-await model.transcribe(waveform);
+// Standard transcription (returns string)
+const text = await model.transcribe(waveform);
+
+// Transcription with timestamps (returns Word[])
+const textWithTimestamps = await model.transcribe(waveform, {
+  enableTimestamps: true,
+});
 
 ```
 
@@ -32,21 +40,17 @@ All methods of `SpeechToTextModule` are explained in details here: [`SpeechToTex
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-Create an instance of [`SpeechToTextModule`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule) and use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#load) method. It accepts an object with the following fields:
+Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#frommodelname) factory method. It accepts an object with the following fields:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#model) - Object containing:
+* [`isMultilingual`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#ismultilingual) - Flag indicating if model is multilingual.
+* [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#modelsource) - The location of the used model (bundled encoder + decoder functionality).
+* [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#tokenizersource) - The location of the used tokenizer.
 
-  * [`isMultilingual`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#ismultilingual) - Flag indicating if model is multilingual.
+And an optional second argument:
 
-  * [`encoderSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#encodersource) - The location of the used encoder.
+* `onDownloadProgress` - Callback to track download progress.
 
-  * [`decoderSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#decodersource) - The location of the used decoder.
-
-  * [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextModelConfig#tokenizersource) - The location of the used tokenizer.
-
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+This method returns a promise resolving to a `SpeechToTextModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
@@ -61,12 +65,51 @@ If you aim to obtain a transcription in other languages than English, use the mu
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY } from 'react-native-executorch';
 
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
+
+```
+
+### Timestamps & Transcription Stat Data[​](#timestamps--transcription-stat-data "Direct link to Timestamps & Transcription Stat Data")
+
+You can obtain word-level timestamps and other useful parameters from transcription ([`transcribe`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#transcribe) and [`stream`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#stream) methods) by setting `verbose: true` in the options. The result mimics the *verbose\_json* format from OpenAI Whisper API. For more information please read [`transcribe`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#transcribe), [`stream`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/SpeechToTextModule#stream), and [`TranscriptionResult`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TranscriptionResult) API References.
+
+```typescript
+const transcription = await model.transcribe(audioBuffer, { verbose: true });
+// Example result
+//
+// transcription: {
+//   task: "transcription",
+//   text: "Example text for a ...",
+//   duration: 9.05,
+//   language: "en",
+//   segments: [
+//     {
+//       start: 0,
+//       end: 5.4,
+//       text: "Example text for",
+//       words: [
+//         {
+//            word: "Example",
+//            start: 0,
+//            end: 1.4
+//         },
+//         ...
+//       ]
+//       tokens: [1, 32, 45, ...],
+//       temperature: 0.0,
+//       avgLogprob: -1.235,
+//       compressionRatio: 1.632
+//     },
+//     ...
+//   ]
+// }
 
 ```
 
@@ -79,27 +122,43 @@ import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
-// Load the model
-const model = new SpeechToTextModule();
+const transcribeAudio = async () => {
+  // Initialize with the model config
+  const model = await SpeechToTextModule.fromModelName(
+    WHISPER_TINY_EN,
+    (progress) => {
+      console.log(progress);
+    }
+  );
 
-// Download the audio file
-const { uri } = await FileSystem.downloadAsync(
-  'https://some-audio-url.com/file.mp3',
-  FileSystem.cacheDirectory + 'audio_file'
-);
+  // Download the audio file
+  const { uri } = await FileSystem.downloadAsync(
+    'https://some-audio-url.com/file.mp3',
+    FileSystem.cacheDirectory + 'audio_file'
+  );
 
-// Decode the audio data
-const audioContext = new AudioContext({ sampleRate: 16000 });
-const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
-const audioBuffer = decodedAudioData.getChannelData(0);
+  // Decode the audio data (Correct as per your previous code)
+  const audioContext = new AudioContext({ sampleRate: 16000 });
+  const decodedAudioData = await audioContext.decodeAudioData(uri);
+  const audioBuffer = decodedAudioData.getChannelData(0);
 
-// Transcribe the audio
-try {
-  const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription);
-} catch (error) {
-  console.error('Error during audio transcription', error);
-}
+  // Transcribe the audio
+  try {
+    // Option 1: Text only
+    const resultText = await model.transcribe(audioBuffer);
+    console.log('Text:', resultText.text); // .text is the standard property now
+
+    // Option 2: With timestamps (Use 'verbose' instead of 'enableTimestamps')
+    const resultVerbose = await model.transcribe(audioBuffer, {
+      verbose: true,
+    });
+
+    console.log('Full Text:', resultVerbose.text);
+    console.log('Segments:', resultVerbose.segments); // Contains start/end/more parameters
+  } catch (error) {
+    console.error('Error during audio transcription', error);
+  }
+};
 
 ```
 
@@ -110,10 +169,12 @@ import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
 // Load the model
-const model = new SpeechToTextModule();
-await model.load(WHISPER_TINY_EN, (progress) => {
-  console.log(progress);
-});
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY_EN,
+  (progress) => {
+    console.log(progress);
+  }
+);
 
 // Configure audio session
 AudioManager.setAudioSessionOptions({
@@ -121,27 +182,41 @@ AudioManager.setAudioSessionOptions({
   iosMode: 'spokenAudio',
   iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
 });
-AudioManager.requestRecordingPermissions();
+await AudioManager.requestRecordingPermissions();
 
-// Initialize audio recorder
+// Initialize audio recorder with FULL config in constructor
 const recorder = new AudioRecorder({
   sampleRate: 16000,
-  bufferLengthInSamples: 1600,
+  channelCount: 1,
+  bitsPerSample: 16,
+  bufferLengthInSamples: 16000, // e.g. 1 second buffer
 });
-recorder.onAudioReady(({ buffer }) => {
+
+// Pass ONLY the callback to onAudioReady
+recorder.onAudioReady((chunk) => {
   // Insert the audio into the streaming transcription
-  model.streamInsert(buffer.getChannelData(0));
+  model.streamInsert(chunk.buffer.getChannelData(0));
 });
-recorder.start();
+
+await recorder.start();
 
 // Start streaming transcription
 try {
-  let transcription = '';
-  for await (const { committed, nonCommitted } of model.stream()) {
-    console.log('Streaming transcription:', { committed, nonCommitted });
-    transcription += committed;
+  let finalTranscription = '';
+
+  // Use 'verbose' flag for timestamps/segments
+  const streamIter = model.stream({ verbose: true });
+
+  for await (const { committed, nonCommitted } of streamIter) {
+    // Note: committed/nonCommitted are objects { text, segments } now
+    console.log('Committed Text:', committed.text);
+    console.log('Live Text:', nonCommitted.text);
+
+    if (committed.text) {
+      finalTranscription += committed.text;
+    }
   }
-  console.log('Final transcription:', transcription);
+  console.log('Final transcription:', finalTranscription);
 } catch (error) {
   console.error('Error during streaming transcription:', error);
 }

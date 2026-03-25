@@ -15,11 +15,9 @@ import {
   ALL_MINILM_L6_V2,
 } from 'react-native-executorch';
 
-// Creating an instance
-const textEmbeddingsModule = new TextEmbeddingsModule();
-
-// Loading the model
-await textEmbeddingsModule.load(ALL_MINILM_L6_V2);
+// Creating an instance and loading the model
+const textEmbeddingsModule =
+  await TextEmbeddingsModule.fromModelName(ALL_MINILM_L6_V2);
 
 // Running the model
 const embedding = await textEmbeddingsModule.forward('Hello World!');
@@ -32,16 +30,12 @@ All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbed
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#load) method. It accepts an object:
+Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#frommodelname) factory method. It accepts a model config object (e.g. `ALL_MINILM_L6_V2`) containing:
 
-* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#model) - Object containing:
+* [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#modelsource) - Location of the used model.
+* [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#tokenizersource) - Location of the used tokenizer.
 
-  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#modelsource) - Location of the used model.
-  * [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#tokenizersource) - Location of the used tokenizer.
-
-* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#ondownloadprogresscallback) - Callback to track download progress.
-
-This method returns a promise, which can resolve to an error or void.
+And an optional `onDownloadProgress` callback. It returns a promise resolving to a `TextEmbeddingsModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
