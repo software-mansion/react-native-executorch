@@ -6,10 +6,10 @@ export { CocoLabel };
 /**
  * Represents a bounding box for a detected object in an image.
  * @category Types
- * @property {number} x1 - The x-coordinate of the bottom-left corner of the bounding box.
- * @property {number} y1 - The y-coordinate of the bottom-left corner of the bounding box.
- * @property {number} x2 - The x-coordinate of the top-right corner of the bounding box.
- * @property {number} y2 - The y-coordinate of the top-right corner of the bounding box.
+ * @property {number} x1 - The x-coordinate of the top-left corner of the bounding box.
+ * @property {number} y1 - The y-coordinate of the top-left corner of the bounding box.
+ * @property {number} x2 - The x-coordinate of the bottom-right corner of the bounding box.
+ * @property {number} y2 - The y-coordinate of the bottom-right corner of the bounding box.
  */
 export interface Bbox {
   x1: number;

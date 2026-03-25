@@ -1,4 +1,9 @@
-import { LabelEnum, PixelData, ResourceSource } from '../../types/common';
+import {
+  Frame,
+  LabelEnum,
+  PixelData,
+  ResourceSource,
+} from '../../types/common';
 import {
   Detection,
   ObjectDetectionConfig,
@@ -144,15 +149,14 @@ export class ObjectDetectionModule<
 
   /**
    * Override runOnFrame to provide an options-based API for VisionCamera integration.
-   * @returns A worklet function for frame processing, or null if the model is not loaded.
+   * @returns A worklet function for frame processing.
+   * @throws {RnExecutorchError} If the underlying native worklet is unavailable (should not occur on a loaded module).
    */
-  override get runOnFrame():
-    | ((
-        frame: any,
-        isFrontCamera: boolean,
-        options?: ObjectDetectionOptions<ResolveLabels<T>>
-      ) => Detection<ResolveLabels<T>>[])
-    | null {
+  override get runOnFrame(): (
+    frame: Frame,
+    isFrontCamera: boolean,
+    options?: ObjectDetectionOptions<ResolveLabels<T>>
+  ) => Detection<ResolveLabels<T>>[] {
     const baseRunOnFrame = super.runOnFrame;
     if (!baseRunOnFrame) {
       throw new RnExecutorchError(

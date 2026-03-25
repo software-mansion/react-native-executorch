@@ -53,6 +53,8 @@ For more information on loading resources, take a look at [loading models](../..
 - `error` - An error object if the model failed to load or encountered a runtime error.
 - `downloadProgress` - A value between 0 and 1 representing the download progress of the model binary.
 - `forward` - A function to run inference on an image.
+- `getAvailableInputSizes` - Returns the available input sizes for the loaded model, or `undefined` if the model accepts only a single input size. Use this to populate UI controls for selecting the input resolution.
+- `runOnFrame` - A synchronous worklet function for real-time VisionCamera frame processing. See [VisionCamera Integration](./visioncamera-integration.md) for usage.
 
 ## Running the model
 
