@@ -59,7 +59,7 @@ const segmentation =
 
 ### From a custom config[​](#from-a-custom-config "Direct link to From a custom config")
 
-Use [`fromCustomConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/InstanceSegmentationModule#fromcustomconfig) for custom-exported models with your own label map. It accepts:
+Use [`fromCustomModel`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/InstanceSegmentationModule#fromcustommodel) for custom-exported models with your own label map. It accepts:
 
 * `modelSource` - Location of the model binary.
 
@@ -86,7 +86,7 @@ If your model supports only **one input size**, omit both fields and export a si
 ```typescript
 const MyLabels = { GRAPE_GREEN: 0, GRAPE_RED: 1, LEAF: 2 } as const;
 
-const segmentation = await InstanceSegmentationModule.fromCustomConfig(
+const segmentation = await InstanceSegmentationModule.fromCustomModel(
   'https://huggingface.co/.../grape_seg.pte',
   {
     labelMap: MyLabels,
