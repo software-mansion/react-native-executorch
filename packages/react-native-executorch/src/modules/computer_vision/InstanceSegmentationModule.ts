@@ -214,7 +214,7 @@ export class InstanceSegmentationModule<
    * @example
    * ```ts
    * const MyLabels = { PERSON: 0, CAR: 1 } as const;
-   * const segmentation = await InstanceSegmentationModule.fromCustomConfig(
+   * const segmentation = await InstanceSegmentationModule.fromCustomModel(
    *   'https://huggingface.co/.../custom_model.pte',
    *   {
    *     labelMap: MyLabels,
@@ -227,7 +227,7 @@ export class InstanceSegmentationModule<
    * );
    * ```
    */
-  static async fromCustomConfig<L extends LabelEnum>(
+  static async fromCustomModel<L extends LabelEnum>(
     modelSource: ResourceSource,
     config: InstanceSegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
