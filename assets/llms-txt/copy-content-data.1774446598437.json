@@ -2483,6 +2483,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/functions/getModelNameForUrl": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/functions/getStructuredOutputPrompt": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3587,6 +3599,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/ResourceFetcherUtils/functions/triggerDownloadEvent": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/react-native-executorch/namespaces/ResourceFetcherUtils/functions/triggerHuggingFaceDownloadCounter": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -4680,6 +4704,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/variables/LRASPP_MOBILENET_V3_LARGE_QUANTIZED": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/variables/MODEL_REGISTRY": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -6696,6 +6732,18 @@
     ]
   },
   "/react-native-executorch/docs/next/utilities/error-handling": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/utilities/model-registry": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
