@@ -106,7 +106,7 @@ function createMaskImage(
     {
       width: dstW,
       height: dstH,
-      alphaType: AlphaType.Premul,
+      alphaType: AlphaType.Unpremul,
       colorType: ColorType.RGBA_8888,
     },
     data,

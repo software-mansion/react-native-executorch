@@ -32,7 +32,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
   /**
    * Synchronous worklet function for real-time VisionCamera frame processing.
    *
-   * Only available after the model is loaded. Returns null if not loaded.
+   * Only available after the model is loaded.
    *
    * **Use this for VisionCamera frame processing in worklets.**
    * For async processing, use `forward()` instead.
@@ -55,9 +55,10 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *   }
    * });
    * ```
-   * @returns A worklet function for frame processing, or null if the model is not loaded.
+   * @returns A worklet function for frame processing.
+   * @throws {RnExecutorchError} If the model is not loaded.
    */
-  get runOnFrame(): ((frame: Frame, ...args: any[]) => TOutput) | null {
+  get runOnFrame(): (frame: Frame, ...args: any[]) => TOutput {
     if (!this.nativeModule) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,

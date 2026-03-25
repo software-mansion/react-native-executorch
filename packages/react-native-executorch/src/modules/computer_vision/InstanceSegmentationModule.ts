@@ -276,15 +276,14 @@ export class InstanceSegmentationModule<
    * Override runOnFrame to add label mapping for VisionCamera integration.
    * The parent's runOnFrame returns raw native results with class indices;
    * this override maps them to label strings and provides an options-based API.
-   * @returns A worklet function for VisionCamera frame processing, or null if the model is not loaded.
+   * @returns A worklet function for VisionCamera frame processing.
+   * @throws {RnExecutorchError} If the underlying native worklet is unavailable (should not occur on a loaded module).
    */
-  override get runOnFrame():
-    | ((
-        frame: Frame,
-        isFrontCamera: boolean,
-        options?: InstanceSegmentationOptions<ResolveLabels<T>>
-      ) => SegmentedInstance<ResolveLabels<T>>[])
-    | null {
+  override get runOnFrame(): (
+    frame: Frame,
+    isFrontCamera: boolean,
+    options?: InstanceSegmentationOptions<ResolveLabels<T>>
+  ) => SegmentedInstance<ResolveLabels<T>>[] {
     const baseRunOnFrame = super.runOnFrame;
     if (!baseRunOnFrame) {
       throw new RnExecutorchError(
