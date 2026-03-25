@@ -5,19 +5,21 @@
 The release process of new minor version consists of the following steps:
 
 1. Update version tags in `packages/react-native-executorch/src/constants/modelUrls.ts` to point to the proper `MINOR` version and update tags on [🤗 huggingface](https://huggingface.co/software-mansion).
-2. Commit with a message 'Release v{MAJOR}.{MINOR}.0'.
-3. Create a new release branch `release/{MAJOR}.{MINOR}` and push it to the remote.
-4. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
-5. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the following publish workflows:
+2. Make sure unreleased models with tags `NEXT_VERSION_TAG` are updated to `VERSION_TAG`.
+3. Update version in `packages/react-native-executorch/src/constants/versions.ts`.
+4. Commit with a message 'Release v{MAJOR}.{MINOR}.0'.
+5. Create a new release branch `release/{MAJOR}.{MINOR}` and push it to the remote.
+6. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
+7. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the following publish workflows:
    - [npm publish (core)](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml)
    - [npm publish bare-resource-fetcher](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish-bare-resource-fetcher.yml)
    - [npm publish expo-resource-fetcher](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish-expo-resource-fetcher.yml)
-6. Create the release notes on GitHub.
-7. Bump version in `package.json` on the `main` branch to `v{MAJOR}.{NEXT_MINOR}.0` for the core package and both adapter packages (`bare-resource-fetcher`, `expo-resource-fetcher`). Commit with a message 'Bump version to v{MAJOR}.{NEXT_MINOR}.0'.
-8. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
-9. Create a PR with the updated docs.
-10. Update README.md with release video, if available.
-11. Update README.md links to release branch.
+8. Create the release notes on GitHub.
+9. Bump version in `package.json` on the `main` branch to `v{MAJOR}.{NEXT_MINOR}.0` for the core package and both adapter packages (`bare-resource-fetcher`, `expo-resource-fetcher`). Commit with a message 'Bump version to v{MAJOR}.{NEXT_MINOR}.0'.
+10. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
+11. Create a PR with the updated docs.
+12. Update README.md with release video, if available.
+13. Update README.md links to release branch.
 
 ## Patch release
 
