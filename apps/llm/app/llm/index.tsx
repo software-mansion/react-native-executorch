@@ -84,9 +84,7 @@ function LLMScreen() {
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={{
-          ...styles.container,
-        }}
+        style={styles.container}
         collapsable={false}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
@@ -123,7 +121,13 @@ function LLMScreen() {
           />
           <StatsBar stats={stats} />
           <View
-            style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}
+            style={[
+              styles.bottomContainer,
+              Platform.OS === 'android' && {
+                paddingBottom: bottom || 16,
+                height: 100 + (bottom || 16),
+              },
+            ]}
           >
             <TextInput
               autoCorrect={false}
@@ -177,6 +181,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   helloText: {
     fontFamily: 'medium',
@@ -191,7 +196,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
   },
   bottomContainer: {
-    minHeight: 100,
+    height: 100,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

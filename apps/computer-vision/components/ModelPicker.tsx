@@ -40,7 +40,12 @@ export function ModelPicker<T>({
     if (disabled) setOpen(false);
   }, [disabled]);
 
-  const handleLayout = () => {
+  const handlePress = () => {
+    if (disabled) return;
+    if (open) {
+      setOpen(false);
+      return;
+    }
     triggerRef.current?.measure(
       (
         _x: number,
@@ -53,6 +58,7 @@ export function ModelPicker<T>({
         setTriggerHeight(height);
         const spaceBelow = Dimensions.get('window').height - (pageY + height);
         setExpandUp(spaceBelow < DROPDOWN_MAX_HEIGHT);
+        setOpen(true);
       }
     );
   };
@@ -66,9 +72,8 @@ export function ModelPicker<T>({
       <TouchableOpacity
         ref={triggerRef}
         style={[styles.trigger, disabled && styles.triggerDisabled]}
-        onPress={() => !disabled && setOpen((v) => !v)}
+        onPress={handlePress}
         activeOpacity={disabled ? 1 : 0.7}
-        onLayout={handleLayout}
       >
         {label && <Text style={styles.label}>{label}</Text>}
         <Text style={styles.triggerText}>{selected?.label ?? '—'}</Text>
