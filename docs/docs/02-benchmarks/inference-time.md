@@ -139,7 +139,7 @@ Average time for encoding audio of given length over 10 runs. For `Whisper` mode
 
 | Model              | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Whisper-tiny (30s) |             248              |             254              |            1145            |                435                |            526            |
+| Whisper-tiny (30s) |              89              |              93              |            403             |                277                |            260            |
 
 ### Decoding
 
@@ -147,7 +147,7 @@ Average time for decoding one token in sequence of approximately 100 tokens, wit
 
 | Model              | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Whisper-tiny (30s) |              23              |              25              |            121             |                92                 |            115            |
+| Whisper-tiny (30s) |              6               |              6               |             40             |                28                 |            25             |
 
 ## Text to Speech
 
