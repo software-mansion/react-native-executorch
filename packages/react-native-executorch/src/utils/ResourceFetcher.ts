@@ -129,8 +129,12 @@ export class ResourceFetcher {
       for (const source of sources) {
         if (typeof source === 'string' && !this.reportedUrls.has(source)) {
           this.reportedUrls.add(source);
-          ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
-          ResourceFetcherUtils.triggerDownloadEvent(source);
+          try {
+            ResourceFetcherUtils.triggerDownloadEvent(source);
+            ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
+          } catch (error) {
+            throw error;
+          }
         }
       }
     }
