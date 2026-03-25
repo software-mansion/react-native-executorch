@@ -2,7 +2,7 @@
 title: Custom Adapter
 ---
 
-If the built-in `BareResourceFetcher` and `ExpoResourceFetcher` don't fit your needs, for example, you want to use a different download library, or fetch from a private server you can implement your own adapter and plug it into React Native ExecuTorch.
+If the built-in `BareResourceFetcher` and `ExpoResourceFetcher` don't fit your needs, you can implement your own adapter and plug it into React Native ExecuTorch. This is useful if you want to use a different download library, fetch from a private server, or add custom caching logic.
 
 ## The ResourceFetcherAdapter interface
 
