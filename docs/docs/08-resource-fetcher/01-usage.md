@@ -11,7 +11,7 @@ All examples below use `ExpoResourceFetcher`. If you're on bare React Native, re
 import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 ```
 
-The API is identical between both adapters.
+The public API is identical between both adapters.
 :::
 
 ## fetch
@@ -50,6 +50,10 @@ If the resource is an object, it will be saved as a JSON file on disk.
 
 Pauses an ongoing download.
 
+:::info
+Bare Resource Fetcher doesn't support this feature on Android.
+:::
+
 ### Reference
 
 ```typescript
@@ -78,6 +82,10 @@ await ExpoResourceFetcher.pauseFetching(
 `Promise<void>` – A promise that resolves once the download is paused.
 
 ## resumeFetching
+
+:::info
+Bare Resource Fetcher doesn't support this feature on Android.
+:::
 
 Resumes a paused download.
 
