@@ -13,10 +13,10 @@ import { useModuleFactory } from '../useModuleFactory';
  * React hook for managing an Instance Segmentation model instance.
  * @typeParam C - A {@link InstanceSegmentationModelSources} config specifying which model to load.
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.
- * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and a typed `forward` function.
+ * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`), a typed `forward` function, `getAvailableInputSizes` helper, and a `runOnFrame` worklet for VisionCamera integration.
  * @example
  * ```ts
- * const { isReady, isGenerating, forward, error, downloadProgress } =
+ * const { isReady, isGenerating, forward, error, downloadProgress, getAvailableInputSizes, runOnFrame } =
  *   useInstanceSegmentation({
  *     model: {
  *       modelName: 'yolo26n-seg',

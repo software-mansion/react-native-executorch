@@ -196,7 +196,9 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
    * **Use this for VisionCamera frame processing in worklets.**
    * For async processing, use `forward()` instead.
    *
-   * Available after model is loaded (`isReady: true`).
+   * `null` until the model is ready (`isReady: true`). The property itself is
+   * `null` when the model has not loaded yet — the function always returns an
+   * array (never `null`) once called.
    * @param frame - VisionCamera Frame object
    * @param isFrontCamera - Whether the front camera is active (for mirroring correction).
    * @param options - Optional configuration for the segmentation process.
