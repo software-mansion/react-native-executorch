@@ -18,6 +18,7 @@ import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
@@ -38,6 +39,7 @@ export default function LLMScreenWrapper() {
 }
 
 function LLMScreen() {
+  const { bottom } = useSafeAreaInsets();
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
@@ -120,7 +122,9 @@ function LLMScreen() {
             disabled={llm.isGenerating}
           />
           <StatsBar stats={stats} />
-          <View style={styles.bottomContainer}>
+          <View
+            style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}
+          >
             <TextInput
               autoCorrect={false}
               onFocus={() => setIsTextInputFocused(true)}
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
   },
   bottomContainer: {
-    height: 100,
+    minHeight: 100,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
