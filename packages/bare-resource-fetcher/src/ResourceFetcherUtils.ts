@@ -26,6 +26,7 @@ export namespace ResourceFetcherUtils {
   export const calculateDownloadProgress = CoreUtils.calculateDownloadProgress;
   export const triggerHuggingFaceDownloadCounter =
     CoreUtils.triggerHuggingFaceDownloadCounter;
+  export const triggerDownloadEvent = CoreUtils.triggerDownloadEvent;
   export const getFilenameFromUri = CoreUtils.getFilenameFromUri;
 
   export function getType(source: ResourceSource): SourceType {
