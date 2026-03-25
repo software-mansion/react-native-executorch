@@ -13,16 +13,27 @@ description: Reference for using Speech to Text, Text to Speech and Voice Activi
 ```typescript
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
+import * as FileSystem from 'expo-file-system';
 
-const model = useSpeechToText({ model: WHISPER_TINY_EN });
+const model = useSpeechToText({
+  model: WHISPER_TINY_EN,
+});
 
-// Process audio file
+const { uri } = await FileSystem.downloadAsync(
+  'https://some-audio-url.com/file.mp3',
+  FileSystem.cacheDirectory + 'audio_file'
+);
+
 const audioContext = new AudioContext({ sampleRate: 16000 });
-const decodedAudio = await audioContext.decodeAudioDataSource(audioUri);
-const waveform = decodedAudio.getChannelData(0);
+const decodedAudioData = await audioContext.decodeAudioData(uri);
+const audioBuffer = decodedAudioData.getChannelData(0);
 
-const transcription = await model.transcribe(waveform);
-console.log(transcription);
+try {
+  const transcription = await model.transcribe(audioBuffer);
+  console.log(transcription.text);
+} catch (error) {
+  console.error('Error during audio transcription', error);
+}
 ```
 
 ## Multilingual Transcription
@@ -38,31 +49,142 @@ const transcription = await model.transcribe(spanishAudio, {
 });
 ```
 
-## Streaming Transcription
+## Timestamps & Transcription Stat Data
+
+You can obtain word-level timestamps and other useful parameters from transcription by setting `verbose: true` in the options:
 
 ```typescript
-import { AudioRecorder, AudioManager } from 'react-native-audio-api';
+const transcription = await model.transcribe(audioBuffer, { verbose: true });
+// Example result
+// {
+//   task: "transcription",
+//   text: "Example text for a ...",
+//   duration: 9.05,
+//   language: "en",
+//   segments: [
+//     {
+//       start: 0,
+//       end: 5.4,
+//       text: "Example text for",
+//       words: [
+//         {
+//            word: "Example",
+//            start: 0,
+//            end: 1.4
+//         },
+//         ...
+//       ],
+//       tokens: [1, 32, 45, ...],
+//       temperature: 0.0,
+//       avgLogProb: -1.235,
+//       compressionRatio: 1.632
+//     },
+//     ...
+//   ]
+// }
+```
 
-const recorder = new AudioRecorder({
-  sampleRate: 16000,
-  bufferLengthInSamples: 1600,
-});
+## Streaming Transcription
 
-// Start streaming
-recorder.onAudioReady(({ buffer }) => {
-  model.streamInsert(buffer.getChannelData(0));
-});
-recorder.start();
+For audio longer than 30 seconds, use streaming transcription with the whisper-streaming algorithm. This intelligently chunks audio to avoid cutting speech mid-sentence:
 
-await model.stream();
+```tsx
+import React, { useEffect, useState, useRef } from 'react';
+import { Text, Button, View, SafeAreaView } from 'react-native';
+import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-// Access results
-console.log(model.committedTranscription);
-console.log(model.nonCommittedTranscription);
+export default function App() {
+  const model = useSpeechToText({
+    model: WHISPER_TINY_EN,
+  });
 
-// Stop streaming
-recorder.stop();
-model.streamStop();
+  const [transcribedText, setTranscribedText] = useState('');
+
+  const isRecordingRef = useRef(false);
+
+  const [recorder] = useState(() => new AudioRecorder());
+
+  useEffect(() => {
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+    });
+    AudioManager.requestRecordingPermissions();
+  }, []);
+
+  const handleStartStreamingTranscribe = async () => {
+    isRecordingRef.current = true;
+    setTranscribedText('');
+
+    const sampleRate = 16000;
+
+    recorder.onAudioReady(
+      {
+        sampleRate,
+        bufferLength: 0.1 * sampleRate,
+        channelCount: 1,
+      },
+      (chunk) => {
+        model.streamInsert(chunk.buffer.getChannelData(0));
+      }
+    );
+
+    try {
+      await recorder.start();
+    } catch (e) {
+      console.error('Recorder failed:', e);
+      return;
+    }
+
+    try {
+      let accumulatedCommitted = '';
+
+      const streamIter = model.stream({ verbose: false });
+
+      for await (const { committed, nonCommitted } of streamIter) {
+        if (!isRecordingRef.current) break;
+
+        if (committed.text) {
+          accumulatedCommitted += committed.text;
+        }
+
+        setTranscribedText(accumulatedCommitted + nonCommitted.text);
+      }
+    } catch (error) {
+      console.error('Error during streaming transcription:', error);
+    }
+  };
+
+  const handleStopStreamingTranscribe = () => {
+    isRecordingRef.current = false;
+    recorder.stop();
+    model.streamStop();
+  };
+
+  return (
+    <SafeAreaView>
+      <View style={{ padding: 20 }}>
+        <Text style={{ marginBottom: 20, fontSize: 18 }}>
+          {transcribedText || 'Press start to speak...'}
+        </Text>
+
+        <Button
+          onPress={handleStartStreamingTranscribe}
+          title="Start Streaming"
+          disabled={model.isGenerating}
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          onPress={handleStopStreamingTranscribe}
+          title="Stop Streaming"
+          color="red"
+        />
+      </View>
+    </SafeAreaView>
+  );
+}
 ```
 
 ## Troubleshooting
@@ -103,8 +225,7 @@ const model = useTextToSpeech({
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 const handleSpeech = async (text: string) => {
-  const speed = 1.0;
-  const waveform = await model.forward(text, speed);
+  const waveform = await model.forward({ text, speed: 1.0 });
 
   const audioBuffer = audioContext.createBuffer(1, waveform.length, 24000);
   audioBuffer.getChannelData(0).set(waveform);
@@ -120,20 +241,42 @@ const handleSpeech = async (text: string) => {
 
 ```typescript
 // Stream chunks for lower latency
-await tts.stream({
+await model.stream({
   text: 'Long text to be streamed chunk by chunk...',
   speed: 1.0,
+  onBegin: async () => console.log('Streaming started'),
   onNext: async (chunk) => {
     return new Promise((resolve) => {
-      const buffer = ctx.createBuffer(1, chunk.length, 24000);
+      const buffer = audioContext.createBuffer(1, chunk.length, 24000);
       buffer.getChannelData(0).set(chunk);
 
-      const source = ctx.createBufferSource();
+      const source = audioContext.createBufferSource();
       source.buffer = buffer;
-      source.connect(ctx.destination);
+      source.connect(audioContext.destination);
       source.onEnded = () => resolve();
       source.start();
     });
+  },
+  onEnd: async () => console.log('Streaming finished'),
+  stopAutomatically: true,
+});
+```
+
+## Phoneme-based synthesis
+
+If you have pre-computed phonemes, use `forwardFromPhonemes` or `streamFromPhonemes` to skip the text-to-phoneme step:
+
+```typescript
+const waveform = await model.forwardFromPhonemes({
+  phonemes: 'hɛloʊ',
+  speed: 1.0,
+});
+
+await model.streamFromPhonemes({
+  phonemes: 'hɛloʊ wɜːld',
+  speed: 1.0,
+  onNext: async (chunk) => {
+    /* play chunk */
   },
 });
 ```
@@ -146,17 +289,14 @@ For all available models check out [this exported HuggingFace models collection]
 
 **Available Voices:**
 
-- `KOKORO_VOICE_AF_HEART` - Female, heart
-- `KOKORO_VOICE_AF_SKY` - Female, sky
-- `KOKORO_VOICE_AF_BELLA` - Female, bella
-- `KOKORO_VOICE_AF_NICOLE` - Female, nicole
-- `KOKORO_VOICE_AF_SARAH` - Female, sarah
-- `KOKORO_VOICE_AM_ADAM` - Male, adam
-- `KOKORO_VOICE_AM_MICHAEL` - Male, michael
+- `KOKORO_VOICE_AF_HEART` - American Female, heart
+- `KOKORO_VOICE_AF_RIVER` - American Female, river
+- `KOKORO_VOICE_AF_SARAH` - American Female, sarah
+- `KOKORO_VOICE_AM_ADAM` - American Male, adam
+- `KOKORO_VOICE_AM_MICHAEL` - American Male, michael
+- `KOKORO_VOICE_AM_SANTA` - American Male, santa
 - `KOKORO_VOICE_BF_EMMA` - British Female, emma
-- `KOKORO_VOICE_BF_ISABELLA` - British Female, isabella
-- `KOKORO_VOICE_BM_GEORGE` - British Male, george
-- `KOKORO_VOICE_BM_LEWIS` - British Male, lewis
+- `KOKORO_VOICE_BM_DANIEL` - British Male, daniel
 
 ## Troubleshooting
 
