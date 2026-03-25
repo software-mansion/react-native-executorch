@@ -225,8 +225,7 @@ const model = useTextToSpeech({
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 const handleSpeech = async (text: string) => {
-  const speed = 1.0;
-  const waveform = await model.forward(text, speed);
+  const waveform = await model.forward({ text, speed: 1.0 });
 
   const audioBuffer = audioContext.createBuffer(1, waveform.length, 24000);
   audioBuffer.getChannelData(0).set(waveform);
@@ -242,20 +241,42 @@ const handleSpeech = async (text: string) => {
 
 ```typescript
 // Stream chunks for lower latency
-await tts.stream({
+await model.stream({
   text: 'Long text to be streamed chunk by chunk...',
   speed: 1.0,
+  onBegin: async () => console.log('Streaming started'),
   onNext: async (chunk) => {
     return new Promise((resolve) => {
-      const buffer = ctx.createBuffer(1, chunk.length, 24000);
+      const buffer = audioContext.createBuffer(1, chunk.length, 24000);
       buffer.getChannelData(0).set(chunk);
 
-      const source = ctx.createBufferSource();
+      const source = audioContext.createBufferSource();
       source.buffer = buffer;
-      source.connect(ctx.destination);
+      source.connect(audioContext.destination);
       source.onEnded = () => resolve();
       source.start();
     });
+  },
+  onEnd: async () => console.log('Streaming finished'),
+  stopAutomatically: true,
+});
+```
+
+## Phoneme-based synthesis
+
+If you have pre-computed phonemes, use `forwardFromPhonemes` or `streamFromPhonemes` to skip the text-to-phoneme step:
+
+```typescript
+const waveform = await model.forwardFromPhonemes({
+  phonemes: 'hɛloʊ',
+  speed: 1.0,
+});
+
+await model.streamFromPhonemes({
+  phonemes: 'hɛloʊ wɜːld',
+  speed: 1.0,
+  onNext: async (chunk) => {
+    /* play chunk */
   },
 });
 ```
@@ -268,17 +289,14 @@ For all available models check out [this exported HuggingFace models collection]
 
 **Available Voices:**
 
-- `KOKORO_VOICE_AF_HEART` - Female, heart
-- `KOKORO_VOICE_AF_SKY` - Female, sky
-- `KOKORO_VOICE_AF_BELLA` - Female, bella
-- `KOKORO_VOICE_AF_NICOLE` - Female, nicole
-- `KOKORO_VOICE_AF_SARAH` - Female, sarah
-- `KOKORO_VOICE_AM_ADAM` - Male, adam
-- `KOKORO_VOICE_AM_MICHAEL` - Male, michael
+- `KOKORO_VOICE_AF_HEART` - American Female, heart
+- `KOKORO_VOICE_AF_RIVER` - American Female, river
+- `KOKORO_VOICE_AF_SARAH` - American Female, sarah
+- `KOKORO_VOICE_AM_ADAM` - American Male, adam
+- `KOKORO_VOICE_AM_MICHAEL` - American Male, michael
+- `KOKORO_VOICE_AM_SANTA` - American Male, santa
 - `KOKORO_VOICE_BF_EMMA` - British Female, emma
-- `KOKORO_VOICE_BF_ISABELLA` - British Female, isabella
-- `KOKORO_VOICE_BM_GEORGE` - British Male, george
-- `KOKORO_VOICE_BM_LEWIS` - British Male, lewis
+- `KOKORO_VOICE_BM_DANIEL` - British Male, daniel
 
 ## Troubleshooting
 
