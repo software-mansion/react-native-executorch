@@ -292,7 +292,9 @@ const handleModelError = async (message: string) => {
         case RnExecutorchErrorCode.InvalidConfig:
           console.error('Invalid configuration:', err.message);
           // Reset to default config
-          await llm.configure({ topp: 0.9, temperature: 0.7 });
+          await llm.configure({
+            generationConfig: { topp: 0.9, temperature: 0.7 },
+          });
           break;
 
         default:
