@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.502d26ba.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.c7398af7.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.057c99a6.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.0013dc2e.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -90,12 +90,14 @@ Manages the state and operations for instance segmentation models.</p>
 <blockquote>
 <p><strong>runOnFrame</strong>: (<code>frame</code>, <code>isFrontCamera</code>, <code>options?</code>) =&gt; <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/SegmentedInstance"><code>SegmentedInstance</code></a>&lt;<code>L</code>&gt;[] | <code>null</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/instanceSegmentation.ts#L205" target="_blank" rel="noopener noreferrer" class="">types/instanceSegmentation.ts:205</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/instanceSegmentation.ts#L207" target="_blank" rel="noopener noreferrer" class="">types/instanceSegmentation.ts:207</a></p>
 <p>Synchronous worklet function for real-time VisionCamera frame processing.
 Automatically handles native buffer extraction and cleanup.</p>
 <p><strong>Use this for VisionCamera frame processing in worklets.</strong>
 For async processing, use <code>forward()</code> instead.</p>
-<p>Available after model is loaded (<code>isReady: true</code>).</p>
+<p><code>null</code> until the model is ready (<code>isReady: true</code>). The property itself is
+<code>null</code> when the model has not loaded yet — the function always returns an
+array (never <code>null</code>) once called.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="param">Param<a href="#param" class="hash-link" aria-label="Direct link to Param" title="Direct link to Param" translate="no">​</a></h4>
 <p>VisionCamera Frame object</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="param-1">Param<a href="#param-1" class="hash-link" aria-label="Direct link to Param" title="Direct link to Param" translate="no">​</a></h4>
