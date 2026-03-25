@@ -1,12 +1,13 @@
 # Class: InstanceSegmentationModule\<T\>
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:136](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L136)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:136](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L136)
 
 Generic instance segmentation module with type-safe label maps.
 Use a model name (e.g. `'yolo26n-seg'`) as the generic parameter for pre-configured models,
 or a custom label enum for custom configs.
 
 Supported models (download from HuggingFace):
+
 - `yolo26n-seg`, `yolo26s-seg`, `yolo26m-seg`, `yolo26l-seg`, `yolo26x-seg` - YOLO models with COCO labels (80 classes)
 - `rfdetr-nano-seg` - RF-DETR Nano model with COCO labels (80 classes)
 
@@ -34,10 +35,10 @@ const results = await segmentation.forward('path/to/image.jpg', {
 
 ### T
 
-`T` *extends* [`InstanceSegmentationModelName`](../type-aliases/InstanceSegmentationModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
+`T` _extends_ [`InstanceSegmentationModelName`](../type-aliases/InstanceSegmentationModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
 
 Either a pre-configured model name from [InstanceSegmentationModelName](../type-aliases/InstanceSegmentationModelName.md)
-  or a custom label map conforming to [LabelEnum](../type-aliases/LabelEnum.md).
+or a custom label map conforming to [LabelEnum](../type-aliases/LabelEnum.md).
 
 ## Properties
 
@@ -54,12 +55,14 @@ making it worklet-compatible and safe to call from VisionCamera's
 frame processor thread.
 
 **Performance characteristics:**
+
 - **Zero-copy path**: When using `frame.getNativeBuffer()` from VisionCamera v5,
   frame data is accessed directly without copying (fastest, recommended).
 - **Copy path**: When using `frame.toArrayBuffer()`, pixel data is copied
   from native to JS, then accessed from native code (slower, fallback).
 
 **Usage with VisionCamera:**
+
 ```typescript
 const frameOutput = useFrameOutput({
   pixelFormat: 'rgb',
@@ -68,12 +71,16 @@ const frameOutput = useFrameOutput({
     // Zero-copy approach (recommended)
     const nativeBuffer = frame.getNativeBuffer();
     const result = model.generateFromFrame(
-      { nativeBuffer: nativeBuffer.pointer, width: frame.width, height: frame.height },
+      {
+        nativeBuffer: nativeBuffer.pointer,
+        width: frame.width,
+        height: frame.height,
+      },
       ...args
     );
     nativeBuffer.release();
     frame.dispose();
-  }
+  },
 });
 ```
 
@@ -105,19 +112,19 @@ Model-specific output (e.g., detections, classifications, embeddings)
 
 `VisionLabeledModule.generateFromFrame`
 
-***
+---
 
 ### labelMap
 
 > `protected` `readonly` **labelMap**: `ResolveLabels`
 
-Defined in: [modules/computer\_vision/VisionLabeledModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/VisionLabeledModule.ts#L42)
+Defined in: [modules/computer_vision/VisionLabeledModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/VisionLabeledModule.ts#L42)
 
 #### Inherited from
 
 `VisionLabeledModule.labelMap`
 
-***
+---
 
 ### nativeModule
 
@@ -139,9 +146,9 @@ Native module instance (JSI Host Object)
 
 #### Get Signature
 
-> **get** **runOnFrame**(): (`frame`, `isFrontCamera`, `options?`) => [`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
+> **get** **runOnFrame**(): (`frame`, `isFrontCamera`, `options?`) => [`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:282](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L282)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:282](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L282)
 
 Override runOnFrame to add label mapping for VisionCamera integration.
 The parent's runOnFrame returns raw native results with class indices;
@@ -155,7 +162,7 @@ If the underlying native worklet is unavailable (should not occur on a loaded mo
 
 A worklet function for VisionCamera frame processing.
 
-> (`frame`, `isFrontCamera`, `options?`): [`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
+> (`frame`, `isFrontCamera`, `options?`): [`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
 
 ###### Parameters
 
@@ -169,11 +176,11 @@ A worklet function for VisionCamera frame processing.
 
 ###### options?
 
-[`InstanceSegmentationOptions`](../interfaces/InstanceSegmentationOptions.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>
+[`InstanceSegmentationOptions`](../interfaces/InstanceSegmentationOptions.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>
 
 ###### Returns
 
-[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
+[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]
 
 #### Overrides
 
@@ -199,17 +206,18 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 `VisionLabeledModule.delete`
 
-***
+---
 
 ### forward()
 
-> **forward**(`input`, `options?`): `Promise`\<[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
+> **forward**(`input`, `options?`): `Promise`\<[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:387](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L387)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:387](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L387)
 
 Executes the model's forward pass to perform instance segmentation on the provided image.
 
 Supports two input types:
+
 1. **String path/URI**: File path, URL, or Base64-encoded string
 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
 
@@ -223,13 +231,13 @@ Image source (string path or PixelData object)
 
 ##### options?
 
-[`InstanceSegmentationOptions`](../interfaces/InstanceSegmentationOptions.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>
+[`InstanceSegmentationOptions`](../interfaces/InstanceSegmentationOptions.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>
 
 Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
 
 #### Returns
 
-`Promise`\<[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: *typeof* [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
+`Promise`\<[`SegmentedInstance`](../interfaces/SegmentedInstance.md)\<`ResolveLabels`\<`T`, \{ `rfdetr-nano-seg`: \{ `availableInputSizes`: `undefined`; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `undefined`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabel`](../enumerations/CocoLabel.md); `postprocessorConfig`: \{ `applyNMS`: `true`; \}; `preprocessorConfig`: \{ `normMean`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; `normStd`: [`Triple`](../type-aliases/Triple.md)\<`number`\>; \}; \}; `yolo26l-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26m-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26n-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26s-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; `yolo26x-seg`: \{ `availableInputSizes`: readonly \[`384`, `512`, `640`\]; `defaultConfidenceThreshold`: `number`; `defaultInputSize`: `number`; `defaultIouThreshold`: `number`; `labelMap`: _typeof_ [`CocoLabelYolo`](../enumerations/CocoLabelYolo.md); `postprocessorConfig`: \{ `applyNMS`: `false`; \}; `preprocessorConfig`: `undefined`; \}; \}\>\>[]\>
 
 A Promise resolving to an array of [SegmentedInstance](../interfaces/SegmentedInstance.md) objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`.
 
@@ -258,7 +266,7 @@ results.forEach((inst) => {
 
 `VisionLabeledModule.forward`
 
-***
+---
 
 ### forwardET()
 
@@ -289,13 +297,13 @@ Array of output tensors.
 
 `VisionLabeledModule.forwardET`
 
-***
+---
 
 ### getAvailableInputSizes()
 
 > **getAvailableInputSizes**(): readonly `number`[] \| `undefined`
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:271](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L271)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:271](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L271)
 
 Returns the available input sizes for this model, or undefined if the model accepts any size.
 
@@ -312,7 +320,7 @@ const sizes = segmentation.getAvailableInputSizes();
 console.log(sizes); // [384, 512, 640] for YOLO models, or undefined for RF-DETR
 ```
 
-***
+---
 
 ### getInputShape()
 
@@ -346,13 +354,13 @@ The input shape as an array of numbers.
 
 `VisionLabeledModule.getInputShape`
 
-***
+---
 
-### fromCustomConfig()
+### fromCustomModel()
 
-> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`InstanceSegmentationModule`\<`L`\>\>
+> `static` **fromCustomModel**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`InstanceSegmentationModule`\<`L`\>\>
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:230](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L230)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:230](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L230)
 
 Creates an instance segmentation module with a user-provided label map and custom config.
 Use this when working with a custom-exported segmentation model that is not one of the pre-configured models.
@@ -361,7 +369,7 @@ Use this when working with a custom-exported segmentation model that is not one 
 
 ##### L
 
-`L` *extends* `Readonly`\<`Record`\<`string`, `string` \| `number`\>\>
+`L` _extends_ `Readonly`\<`Record`\<`string`, `string` \| `number`\>\>
 
 #### Parameters
 
@@ -393,7 +401,7 @@ A Promise resolving to an `InstanceSegmentationModule` instance typed to the pro
 
 ```ts
 const MyLabels = { PERSON: 0, CAR: 1 } as const;
-const segmentation = await InstanceSegmentationModule.fromCustomConfig(
+const segmentation = await InstanceSegmentationModule.fromCustomModel(
   'https://huggingface.co/.../custom_model.pte',
   {
     labelMap: MyLabels,
@@ -402,17 +410,17 @@ const segmentation = await InstanceSegmentationModule.fromCustomConfig(
     defaultConfidenceThreshold: 0.5,
     defaultIouThreshold: 0.45,
     postprocessorConfig: { applyNMS: true },
-  },
+  }
 );
 ```
 
-***
+---
 
 ### fromModelName()
 
 > `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`InstanceSegmentationModule`\<[`InstanceModelNameOf`](../type-aliases/InstanceModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [modules/computer\_vision/InstanceSegmentationModule.ts:173](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L173)
+Defined in: [modules/computer_vision/InstanceSegmentationModule.ts:173](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/modules/computer_vision/InstanceSegmentationModule.ts#L173)
 
 Creates an instance segmentation module for a pre-configured model.
 The config object is discriminated by `modelName` — each model can require different fields.
@@ -421,7 +429,7 @@ The config object is discriminated by `modelName` — each model can require dif
 
 ##### C
 
-`C` *extends* [`InstanceSegmentationModelSources`](../type-aliases/InstanceSegmentationModelSources.md)
+`C` _extends_ [`InstanceSegmentationModelSources`](../type-aliases/InstanceSegmentationModelSources.md)
 
 #### Parameters
 
