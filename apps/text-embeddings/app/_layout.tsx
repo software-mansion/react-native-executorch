@@ -59,6 +59,14 @@ export default function _layout() {
         }}
       >
         <Drawer.Screen
+          name="index"
+          options={{
+            drawerLabel: () => null,
+            title: 'Main Menu',
+            drawerItemStyle: { display: 'none' },
+          }}
+        />
+        <Drawer.Screen
           name="text-embeddings/index"
           options={{
             drawerLabel: 'Text embeddings',
@@ -72,14 +80,6 @@ export default function _layout() {
             drawerLabel: 'CLIP embeddings',
             title: 'CLIP embeddings',
             headerTitleStyle: { color: ColorPalette.primary },
-          }}
-        />
-        <Drawer.Screen
-          name="index"
-          options={{
-            drawerLabel: () => null,
-            title: 'Main Menu',
-            drawerItemStyle: { display: 'none' },
           }}
         />
       </Drawer>
