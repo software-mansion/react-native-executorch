@@ -70,9 +70,19 @@ export default function InstanceSegmentationScreen() {
 
   // Set default input size when model is ready
   useEffect(() => {
-    if (isReady && availableInputSizes && availableInputSizes.length > 0) {
-      setSelectedInputSize(availableInputSizes[0]);
+    if (!isReady) return;
+
+    if (availableInputSizes && availableInputSizes.length > 0) {
+      setSelectedInputSize((prev) => {
+        if (typeof prev === 'number' && availableInputSizes.includes(prev)) {
+          return prev;
+        }
+        return availableInputSizes[0];
+      });
+      return;
     }
+
+    setSelectedInputSize(null);
   }, [isReady, availableInputSizes]);
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -90,6 +100,13 @@ export default function InstanceSegmentationScreen() {
   const runForward = async () => {
     if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
 
+    const inputSize =
+      availableInputSizes &&
+      typeof selectedInputSize === 'number' &&
+      availableInputSizes.includes(selectedInputSize)
+        ? selectedInputSize
+        : undefined;
+
     try {
       const start = Date.now();
       const output = await forward(imageUri, {
@@ -97,7 +114,7 @@ export default function InstanceSegmentationScreen() {
         iouThreshold: 0.55,
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
-        inputSize: selectedInputSize ?? undefined,
+        inputSize,
       });
 
       setInferenceTime(Date.now() - start);
