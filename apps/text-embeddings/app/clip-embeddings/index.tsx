@@ -97,7 +97,7 @@ function ClipEmbeddingsScreen() {
           similarity: dotProduct(imageEmbedding, textEmbedding),
         });
       }
-      setTextEmbeddingTime(Date.now() - txtStart);
+      setTextEmbeddingTime(Math.round((Date.now() - txtStart) / labels.length));
 
       scored.sort((a, b) => b.similarity - a.similarity);
       setResults(scored);
