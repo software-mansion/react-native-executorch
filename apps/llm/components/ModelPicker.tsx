@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,6 +34,7 @@ export function ModelPicker<T>({
   const [open, setOpen] = useState(false);
   const [triggerHeight, setTriggerHeight] = useState(0);
   const [expandUp, setExpandUp] = useState(false);
+  const [dropdownTop, setDropdownTop] = useState(0);
   const triggerRef = useRef<React.ComponentRef<typeof TouchableOpacity>>(null);
   const selected = models.find((m) => m.value === selectedModel);
 
@@ -58,59 +60,85 @@ export function ModelPicker<T>({
         setTriggerHeight(height);
         const spaceBelow = Dimensions.get('window').height - (pageY + height);
         setExpandUp(spaceBelow < DROPDOWN_MAX_HEIGHT);
+        setDropdownTop(pageY);
         setOpen(true);
       }
     );
   };
 
-  const dropdownPosition = expandUp
-    ? { bottom: triggerHeight + 2 }
-    : { top: triggerHeight + 2 };
+  const dropdownStylePosition = expandUp
+    ? {
+        bottom: Dimensions.get('window').height - dropdownTop,
+        left: 12,
+        right: 12,
+      }
+    : {
+        top: dropdownTop + triggerHeight + 2,
+        left: 12,
+        right: 12,
+      };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        ref={triggerRef}
-        style={[styles.trigger, disabled && styles.triggerDisabled]}
-        onPress={handlePress}
-        activeOpacity={disabled ? 1 : 0.7}
-      >
-        {label && <Text style={styles.label}>{label}</Text>}
-        <Text style={styles.triggerText}>{selected?.label ?? '—'}</Text>
-        <Text style={styles.chevron}>{open ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
+    <>
+      <View style={styles.container}>
+        <TouchableOpacity
+          ref={triggerRef}
+          style={[styles.trigger, disabled && styles.triggerDisabled]}
+          onPress={handlePress}
+          activeOpacity={disabled ? 1 : 0.7}
+        >
+          {label && <Text style={styles.label}>{label}</Text>}
+          <Text style={styles.triggerText}>{selected?.label ?? '—'}</Text>
+          <Text style={styles.chevron}>{open ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+      </View>
 
       {open && (
-        <ScrollView
-          style={[styles.dropdown, dropdownPosition]}
-          nestedScrollEnabled
-          keyboardShouldPersistTaps="handled"
+        <Modal
+          transparent
+          visible={open}
+          onRequestClose={() => setOpen(false)}
+          animationType="none"
         >
-          {models.map((item) => {
-            const isSelected = item.value === selectedModel;
-            return (
-              <TouchableOpacity
-                key={item.label}
-                style={[styles.option, isSelected && styles.optionSelected]}
-                onPress={() => {
-                  onSelect(item.value);
-                  setOpen(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    isSelected && styles.optionTextSelected,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setOpen(false)}
+          />
+          <View style={[styles.dropdown, dropdownStylePosition]}>
+            <ScrollView
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+            >
+              {models.map((item) => {
+                const isSelected = item.value === selectedModel;
+                return (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={[styles.option, isSelected && styles.optionSelected]}
+                    onPress={() => {
+                      onSelect(item.value);
+                      setOpen(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isSelected && styles.optionTextSelected,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Modal>
       )}
-    </View>
+    </>
   );
 }
 
@@ -150,21 +178,23 @@ const styles = StyleSheet.create({
     color: '#888',
     marginLeft: 6,
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
   dropdown: {
     position: 'absolute',
-    left: 0,
-    right: 0,
     borderWidth: 1,
     borderColor: '#C1C6E5',
     borderRadius: 8,
     backgroundColor: '#fff',
     maxHeight: DROPDOWN_MAX_HEIGHT,
-    zIndex: 100,
-    elevation: 4,
+    zIndex: 1000,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   option: {
     paddingHorizontal: 12,
