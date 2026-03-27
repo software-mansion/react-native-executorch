@@ -127,7 +127,6 @@ if (
   global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
   global.loadVerticalOCR == null ||
-  // eslint-disable-next-line camelcase
   global.__rne_isEmulator == null
 ) {
   if (!ETInstallerNativeModule) {
