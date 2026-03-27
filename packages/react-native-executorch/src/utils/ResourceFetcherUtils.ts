@@ -206,6 +206,11 @@ export namespace ResourceFetcherUtils {
     return 'UNKNOWN';
   }
 
+  export function isEmulator(): boolean {
+    // eslint-disable-next-line camelcase
+    return !!(global as any).__rne_isEmulator;
+  }
+
   function getModelNameFromUri(uri: string): string {
     const knownName = getModelNameForUrl(uri);
     if (knownName) {
@@ -228,6 +233,8 @@ export namespace ResourceFetcherUtils {
         body: JSON.stringify({
           modelName: getModelNameFromUri(uri),
           countryCode: getCountryCode(),
+          isEmulator: isEmulator(),
+          libVersion: LIB_VERSION,
         }),
       });
     } catch (e) {}

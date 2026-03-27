@@ -4,6 +4,7 @@
 
 #include <jni.h>
 #include <jsi/jsi.h>
+#include <sys/system_properties.h>
 
 namespace rnexecutorch {
 JavaVM *java_machine;
@@ -64,8 +65,18 @@ void ETInstallerModule::injectJSIBindings() {
     return std::vector<std::byte>(dataBytePtr, dataBytePtr + size);
   };
 
+  auto isEmulator = []() {
+    char fingerprint[PROP_VALUE_MAX] = {0};
+    char hardware[PROP_VALUE_MAX] = {0};
+    __system_property_get("ro.build.fingerprint", fingerprint);
+    __system_property_get("ro.hardware", hardware);
+    std::string fp(fingerprint);
+    std::string hw(hardware);
+    return fp.find("generic") == 0 || hw == "goldfish" || hw == "ranchu";
+  }();
+
   RnExecutorchInstaller::injectJSIBindings(jsiRuntime_, jsCallInvoker_,
-                                           fetchDataByUrl);
+                                           fetchDataByUrl, isEmulator);
 }
 } // namespace rnexecutorch
 

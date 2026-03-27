@@ -4,6 +4,7 @@
 
 #import <React/RCTCallInvoker.h>
 #import <ReactCommon/RCTTurboModule.h>
+#import <TargetConditionals.h>
 #include <rnexecutorch/RnExecutorchInstaller.h>
 #include <stdexcept>
 
@@ -41,8 +42,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
       throw std::runtime_error("Error fetching data from a url");
     }
   };
+  bool isEmulator = TARGET_OS_SIMULATOR;
   rnexecutorch::RnExecutorchInstaller::injectJSIBindings(
-      jsiRuntime, jsCallInvoker, fetchUrl);
+      jsiRuntime, jsCallInvoker, fetchUrl, isEmulator);
 
   NSLog(@"Successfully installed JSI bindings for react-native-executorch!");
   return @true;
