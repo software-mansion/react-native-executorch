@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   View,
   SafeAreaView,
   ScrollView,
+  Image,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -15,11 +16,29 @@ import {
   useTextEmbeddings,
   useImageEmbeddings,
   CLIP_VIT_BASE_PATCH32_TEXT,
+  CLIP_VIT_BASE_PATCH32_IMAGE,
   CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  ImageEmbeddingsProps,
 } from 'react-native-executorch';
+
+type ImageEmbeddingModel = ImageEmbeddingsProps['model'];
+
+const IMAGE_MODELS: { label: string; value: ImageEmbeddingModel }[] = [
+  { label: 'ViT-B/32 Quantized', value: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED },
+  { label: 'ViT-B/32 FP32', value: CLIP_VIT_BASE_PATCH32_IMAGE },
+];
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { dotProduct } from '../../utils/math';
+import { ModelPicker } from '../../components/ModelPicker';
+
+const DEFAULT_LABELS = [
+  'a photo of a dog',
+  'a photo of a cat',
+  'a landscape photo',
+  'a photo of food',
+  'a photo of people',
+];
 
 export default function ClipEmbeddingsScreenWrapper() {
   const isFocused = useIsFocused();
@@ -28,283 +47,228 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
+  const [selectedImageModel, setSelectedImageModel] =
+    useState<ImageEmbeddingModel>(CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED);
+
   const textModel = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
-  const imageModel = useImageEmbeddings({
-    model: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
-  });
+  const imageModel = useImageEmbeddings({ model: selectedImageModel });
 
-  const [inputSentence, setInputSentence] = useState('');
-  const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
-    { sentence: string; embedding: Float32Array }[]
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [newLabel, setNewLabel] = useState('');
+  const [labels, setLabels] = useState<string[]>(DEFAULT_LABELS);
+  const [results, setResults] = useState<
+    { label: string; similarity: number }[]
   >([]);
-  const [topMatches, setTopMatches] = useState<
-    { sentence: string; similarity: number }[]
-  >([]);
-
-  const [textEmbeddingTime, setTextEmbeddingTime] = useState<number | null>(
-    null
-  );
   const [imageEmbeddingTime, setImageEmbeddingTime] = useState<number | null>(
     null
   );
-
-  useEffect(
-    () => {
-      const computeEmbeddings = async () => {
-        if (!textModel.isReady) return;
-
-        const sentences = [
-          'The weather is lovely today.',
-          'Night party pictures',
-          'Cute animals.',
-          'Bike club photos',
-        ];
-
-        try {
-          const start = Date.now();
-          const embeddings = [];
-
-          for (const sentence of sentences) {
-            const embedding = await textModel.forward(sentence);
-            embeddings.push({ sentence, embedding });
-          }
-
-          setTextEmbeddingTime(Date.now() - start);
-          setSentencesWithEmbeddings(embeddings);
-        } catch (error) {
-          console.error('Error generating embeddings:', error);
-        }
-      };
-
-      computeEmbeddings();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [textModel.isReady]
+  const [textEmbeddingTime, setTextEmbeddingTime] = useState<number | null>(
+    null
   );
 
-  const checkSimilarities = async () => {
-    if (!textModel.isReady || !inputSentence.trim()) return;
-
-    try {
-      const start = Date.now();
-      const inputEmbedding = await textModel.forward(inputSentence);
-      setTextEmbeddingTime(Date.now() - start);
-
-      const matches = sentencesWithEmbeddings.map(
-        ({ sentence, embedding }) => ({
-          sentence,
-          similarity: dotProduct(inputEmbedding, embedding),
-        })
-      );
-      matches.sort((a, b) => b.similarity - a.similarity);
-      setTopMatches(matches.slice(0, 3));
-    } catch (error) {
-      console.error('Error generating embedding:', error);
-    }
-  };
-
-  const addToSentences = async () => {
-    if (!textModel.isReady || !inputSentence.trim()) return;
-
-    try {
-      const start = Date.now();
-      const embedding = await textModel.forward(inputSentence);
-      setTextEmbeddingTime(Date.now() - start);
-
-      setSentencesWithEmbeddings((prev) => [
-        ...prev,
-        { sentence: inputSentence, embedding },
-      ]);
-    } catch (error) {
-      console.error('Error generating embedding:', error);
-    }
-
-    setInputSentence('');
-    setTopMatches([]);
-  };
-
-  const clearList = async () => {
-    if (!textModel.isReady) return;
-    try {
-      setSentencesWithEmbeddings([]);
-    } catch (error) {
-      console.error('Error clearing the list:', error);
-    }
-  };
-
-  const checkImage = async () => {
-    if (!imageModel.isReady) return;
-
-    const output = await launchImageLibrary({ mediaType: 'photo' });
-
-    if (!output.assets || output.assets.length === 0 || !output.assets[0].uri)
-      return;
-
-    try {
-      const start = Date.now();
-      const inputImageEmbedding = await imageModel.forward(
-        output.assets[0].uri
-      );
-      setImageEmbeddingTime(Date.now() - start);
-
-      const matches = sentencesWithEmbeddings.map(
-        ({ sentence, embedding }) => ({
-          sentence,
-          similarity: dotProduct(inputImageEmbedding, embedding),
-        })
-      );
-      matches.sort((a, b) => b.similarity - a.similarity);
-      setTopMatches(matches.slice(0, 3));
-    } catch (error) {
-      console.error('Error generating embedding:', error);
-    }
-  };
-
   const getModelStatusText = (model: typeof textModel | typeof imageModel) => {
-    if (model.error) {
-      return `Oops! ${model.error}`;
-    }
-    if (!model.isReady) {
-      return `Loading model ${(model.downloadProgress * 100).toFixed(2)}%`;
-    }
-    return model.isGenerating ? 'Generating...' : 'Model is ready';
+    if (model.error) return `Oops! ${model.error}`;
+    if (!model.isReady)
+      return `Loading ${(model.downloadProgress * 100).toFixed(0)}%`;
+    return model.isGenerating ? 'Generating…' : 'Ready';
   };
+
+  const pickImage = async () => {
+    const output = await launchImageLibrary({ mediaType: 'photo' });
+    if (!output.assets?.[0]?.uri) return;
+    setImageUri(output.assets[0].uri);
+    setResults([]);
+  };
+
+  const classify = async () => {
+    if (!imageUri || !imageModel.isReady || !textModel.isReady) return;
+
+    try {
+      const imgStart = Date.now();
+      const imageEmbedding = await imageModel.forward(imageUri);
+      setImageEmbeddingTime(Date.now() - imgStart);
+
+      const txtStart = Date.now();
+      const scored: { label: string; similarity: number }[] = [];
+      for (const label of labels) {
+        const textEmbedding = await textModel.forward(label);
+        scored.push({
+          label,
+          similarity: dotProduct(imageEmbedding, textEmbedding),
+        });
+      }
+      setTextEmbeddingTime(Math.round((Date.now() - txtStart) / labels.length));
+
+      scored.sort((a, b) => b.similarity - a.similarity);
+      setResults(scored);
+    } catch (e) {
+      console.error('Error during classification:', e);
+    }
+  };
+
+  const addLabel = () => {
+    const trimmed = newLabel.trim();
+    if (!trimmed || labels.includes(trimmed)) return;
+    setLabels((prev) => [...prev, trimmed]);
+    setNewLabel('');
+    setResults([]);
+  };
+
+  const removeLabel = (label: string) => {
+    setLabels((prev) => prev.filter((l) => l !== label));
+    setResults((prev) => prev.filter((r) => r.label !== label));
+  };
+
+  const modelsReady = textModel.isReady && imageModel.isReady;
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={styles.flexContainer}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Text style={styles.heading}>Text Embeddings Playground</Text>
-          <Text style={styles.sectionTitle}>
-            Text Model: {getModelStatusText(textModel)}
-          </Text>
-          <Text style={styles.sectionTitle}>
-            Image Model: {getModelStatusText(imageModel)}
-          </Text>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>List of Existing Sentences</Text>
-            {sentencesWithEmbeddings.map((item, index) => (
-              <Text key={index} style={styles.sentenceText}>
-                - {item.sentence}
-              </Text>
-            ))}
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.heading}>CLIP Image Embeddings</Text>
+
+          <View style={styles.statusRow}>
+            <Text style={styles.statusText}>
+              Text model: {getModelStatusText(textModel)}
+            </Text>
+            <Text style={styles.statusText}>
+              Image model: {getModelStatusText(imageModel)}
+            </Text>
           </View>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Try Your Sentence</Text>
-            <TextInput
-              placeholder="Type your sentence here..."
-              style={styles.input}
-              value={inputSentence}
-              onChangeText={setInputSentence}
-              multiline
+
+          <ModelPicker
+            models={IMAGE_MODELS}
+            selectedModel={selectedImageModel}
+            onSelect={(m) => {
+              setSelectedImageModel(m);
+              setResults([]);
+            }}
+          />
+
+          {/* Image picker */}
+          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Ionicons name="image-outline" size={48} color="#94A3B8" />
+                <Text style={styles.imagePlaceholderText}>
+                  Tap to pick an image
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Classify button */}
+          <TouchableOpacity
+            style={[
+              styles.classifyButton,
+              (!imageUri || !modelsReady) && styles.buttonDisabled,
+            ]}
+            onPress={classify}
+            disabled={!imageUri || !modelsReady}
+          >
+            <Ionicons
+              name="sparkles-outline"
+              size={18}
+              color={imageUri && modelsReady ? 'white' : 'gray'}
             />
-            <View style={styles.buttonContainer}>
+            <Text
+              style={[
+                styles.classifyButtonText,
+                (!imageUri || !modelsReady) && styles.buttonTextDisabled,
+              ]}
+            >
+              {!imageUri ? 'Pick an image first' : 'Find best matching label'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Results */}
+          {results.length > 0 && (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Results</Text>
+              {results.map((item, index) => (
+                <View key={item.label} style={styles.resultRow}>
+                  <Text
+                    style={[
+                      styles.resultLabel,
+                      index === 0 && styles.topResultLabel,
+                    ]}
+                  >
+                    {index === 0 ? '🥇 ' : ''}
+                    {item.label}
+                  </Text>
+                  <Text style={styles.resultScore}>
+                    {item.similarity.toFixed(3)}
+                  </Text>
+                </View>
+              ))}
+              {(imageEmbeddingTime !== null || textEmbeddingTime !== null) && (
+                <View style={styles.statsContainer}>
+                  {imageEmbeddingTime !== null && (
+                    <Text style={styles.statsText}>
+                      Image embedding: {imageEmbeddingTime} ms
+                    </Text>
+                  )}
+                  {textEmbeddingTime !== null && (
+                    <Text style={styles.statsText}>
+                      Text embeddings: {textEmbeddingTime} ms
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Labels */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Text Labels</Text>
+            {labels.map((label) => (
+              <View key={label} style={styles.labelRow}>
+                <Text style={styles.labelText}>{label}</Text>
+                <TouchableOpacity onPress={() => removeLabel(label)}>
+                  <Ionicons
+                    name="close-circle-outline"
+                    size={20}
+                    color="#94A3B8"
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+            <View style={styles.addLabelRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="Add a label…"
+                value={newLabel}
+                onChangeText={setNewLabel}
+                onSubmitEditing={addLabel}
+                returnKeyType="done"
+              />
               <TouchableOpacity
-                onPress={checkSimilarities}
                 style={[
-                  styles.buttonPrimary,
-                  !inputSentence && styles.buttonDisabled,
+                  styles.addButton,
+                  !newLabel.trim() && styles.buttonDisabled,
                 ]}
-                disabled={!inputSentence}
+                onPress={addLabel}
+                disabled={!newLabel.trim()}
               >
                 <Ionicons
-                  name="search"
-                  size={16}
-                  color={!inputSentence ? 'gray' : 'white'}
+                  name="add"
+                  size={20}
+                  color={newLabel.trim() ? 'white' : 'gray'}
                 />
-                <Text
-                  style={[
-                    styles.buttonText,
-                    !inputSentence && styles.buttonTextDisabled,
-                  ]}
-                >
-                  Find Similar
-                </Text>
               </TouchableOpacity>
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  onPress={addToSentences}
-                  style={[
-                    styles.buttonSecondary,
-                    !inputSentence && styles.buttonDisabled,
-                  ]}
-                  disabled={!inputSentence}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={16}
-                    color={!inputSentence ? 'gray' : 'navy'}
-                  />
-                  <Text
-                    style={[
-                      styles.buttonTextOutline,
-                      !inputSentence && styles.buttonTextDisabled,
-                    ]}
-                  >
-                    Add to List
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={checkImage}
-                  style={styles.buttonSecondary}
-                >
-                  <Text style={styles.buttonTextOutline}>
-                    Compare sentences to image
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={clearList}
-                  style={[
-                    styles.buttonSecondary,
-                    sentencesWithEmbeddings.length === 0 &&
-                      styles.buttonDisabled,
-                  ]}
-                  disabled={sentencesWithEmbeddings.length === 0}
-                >
-                  <Ionicons
-                    name="close-outline"
-                    size={16}
-                    color={
-                      sentencesWithEmbeddings.length === 0 ? 'gray' : 'navy'
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.buttonTextOutline,
-                      sentencesWithEmbeddings.length === 0 &&
-                        styles.buttonTextDisabled,
-                    ]}
-                  >
-                    Clear List
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </View>
-
-            {textEmbeddingTime !== null && (
-              <Text style={styles.statsText}>
-                Text Embedding time: {textEmbeddingTime} ms
-              </Text>
-            )}
-            {imageEmbeddingTime !== null && (
-              <Text style={styles.statsText}>
-                Image Embedding time: {imageEmbeddingTime} ms
-              </Text>
-            )}
-
-            {topMatches.length > 0 && (
-              <View style={styles.topMatchesContainer}>
-                <Text style={styles.sectionTitle}>Top Matches</Text>
-                {topMatches.map((item, index) => (
-                  <Text key={index} style={styles.sentenceText}>
-                    {item.sentence} ({item.similarity.toFixed(2)})
-                  </Text>
-                ))}
-              </View>
-            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -314,13 +278,38 @@ function ClipEmbeddingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  flex: { flex: 1 },
   scrollContainer: { padding: 20, alignItems: 'center', flexGrow: 1 },
   heading: {
     fontSize: 24,
     fontWeight: '500',
-    marginBottom: 20,
+    marginBottom: 12,
     color: '#0F172A',
   },
+  statusRow: {
+    width: '100%',
+    marginBottom: 16,
+    gap: 2,
+  },
+  statusText: { fontSize: 13, color: '#64748B' },
+  imagePicker: {
+    width: '100%',
+    height: 220,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#fff',
+  },
+  image: { width: '100%', height: '100%' },
+  imagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  imagePlaceholderText: { fontSize: 14, color: '#94A3B8' },
   card: {
     backgroundColor: '#FFFFFF',
     width: '100%',
@@ -331,58 +320,67 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 12,
     color: '#1E293B',
   },
-  sentenceText: { fontSize: 14, marginBottom: 6, color: '#334155' },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  labelText: { fontSize: 14, color: '#334155', flex: 1 },
+  addLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+  },
   input: {
+    flex: 1,
     backgroundColor: '#F1F5F9',
     borderRadius: 10,
     padding: 10,
-    marginBottom: 10,
-    fontSize: 16,
+    fontSize: 14,
     color: '#0F172A',
-    minHeight: 40,
-    textAlignVertical: 'top',
   },
-  buttonContainer: { width: '100%', gap: 10 },
-  buttonGroup: {
+  addButton: {
+    backgroundColor: 'navy',
+    borderRadius: 10,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  classifyButton: {
+    width: '100%',
+    backgroundColor: 'navy',
+    padding: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  classifyButtonText: { color: 'white', fontWeight: '600', fontSize: 15 },
+  buttonDisabled: { backgroundColor: '#f0f0f0', borderColor: '#d3d3d3' },
+  buttonTextDisabled: { color: 'gray' },
+  resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
-  },
-  buttonPrimary: {
-    flex: 1,
-    backgroundColor: 'navy',
-    padding: 12,
-    borderRadius: 10,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: 'navy',
-    padding: 12,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonDisabled: { backgroundColor: '#f0f0f0', borderColor: '#d3d3d3' },
-  buttonText: { color: 'white', textAlign: 'center', fontWeight: '500' },
-  buttonTextOutline: { color: 'navy', textAlign: 'center', fontWeight: '500' },
-  buttonTextDisabled: { color: 'gray' },
-  topMatchesContainer: { marginTop: 20 },
-  statsText: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  flexContainer: { flex: 1 },
+  resultLabel: { fontSize: 14, color: '#334155', flex: 1 },
+  topResultLabel: { fontWeight: '700', color: '#0F172A' },
+  resultScore: { fontSize: 13, color: '#64748B', marginLeft: 8 },
+  statsContainer: { marginTop: 12, gap: 2 },
+  statsText: { fontSize: 12, color: '#94A3B8' },
 });

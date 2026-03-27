@@ -180,7 +180,8 @@ function VoiceChatScreen() {
           <View style={styles.helloMessageContainer}>
             <Text style={styles.helloText}>Hello! 👋</Text>
             <Text style={styles.bottomHelloText}>
-              What can I help you with?
+              Tap the mic and speak to me. I'll transcribe your voice and
+              respond using a language model — all on-device.
             </Text>
           </View>
         )}
@@ -196,7 +197,15 @@ function VoiceChatScreen() {
           onSelect={(m) => setSelectedSTT(m)}
         />
 
-        <View style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}>
+        <View
+          style={[
+            styles.bottomContainer,
+            Platform.OS === 'android' && {
+              paddingBottom: bottom || 16,
+              height: 100 + (bottom || 16),
+            },
+          ]}
+        >
           {DeviceInfo.isEmulatorSync() ? (
             <View style={styles.emulatorBox}>
               <Text style={[styles.emulatorWarning]}>
@@ -267,7 +276,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
   },
   bottomContainer: {
-    minHeight: 100,
+    height: 100,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',

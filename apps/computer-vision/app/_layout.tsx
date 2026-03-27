@@ -60,6 +60,14 @@ export default function _layout() {
         }}
       >
         <Drawer.Screen
+          name="index"
+          options={{
+            drawerLabel: () => null,
+            title: 'Main Menu',
+            drawerItemStyle: { display: 'none' },
+          }}
+        />
+        <Drawer.Screen
           name="vision_camera/index"
           options={{
             drawerLabel: 'Vision Camera',
@@ -130,14 +138,6 @@ export default function _layout() {
             drawerLabel: 'Image Generation',
             title: 'Image Generation',
             headerTitleStyle: { color: ColorPalette.primary },
-          }}
-        />
-        <Drawer.Screen
-          name="index"
-          options={{
-            drawerLabel: () => null,
-            title: 'Main Menu',
-            drawerItemStyle: { display: 'none' },
           }}
         />
       </Drawer>

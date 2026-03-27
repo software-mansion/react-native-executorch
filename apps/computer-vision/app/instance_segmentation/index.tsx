@@ -70,9 +70,19 @@ export default function InstanceSegmentationScreen() {
 
   // Set default input size when model is ready
   useEffect(() => {
-    if (isReady && availableInputSizes && availableInputSizes.length > 0) {
-      setSelectedInputSize(availableInputSizes[0]);
+    if (!isReady) return;
+
+    if (availableInputSizes && availableInputSizes.length > 0) {
+      setSelectedInputSize((prev) => {
+        if (typeof prev === 'number' && availableInputSizes.includes(prev)) {
+          return prev;
+        }
+        return availableInputSizes[0];
+      });
+      return;
     }
+
+    setSelectedInputSize(null);
   }, [isReady, availableInputSizes]);
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -90,6 +100,13 @@ export default function InstanceSegmentationScreen() {
   const runForward = async () => {
     if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
 
+    const inputSize =
+      availableInputSizes &&
+      typeof selectedInputSize === 'number' &&
+      availableInputSizes.includes(selectedInputSize)
+        ? selectedInputSize
+        : undefined;
+
     try {
       const start = Date.now();
       const output = await forward(imageUri, {
@@ -97,7 +114,7 @@ export default function InstanceSegmentationScreen() {
         iouThreshold: 0.55,
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
-        inputSize: selectedInputSize ?? undefined,
+        inputSize,
       });
 
       setInferenceTime(Date.now() - start);
@@ -144,6 +161,16 @@ export default function InstanceSegmentationScreen() {
             imageWidth={imageSize.width}
             imageHeight={imageSize.height}
           />
+          {!imageUri && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Instance Segmentation</Text>
+              <Text style={styles.infoText}>
+                This model detects individual objects and draws a precise mask
+                over each one. Pick an image from your gallery or take one with
+                your camera to get started.
+              </Text>
+            </View>
+          )}
         </View>
 
         {imageUri && availableInputSizes && availableInputSizes.length > 0 && (
@@ -215,6 +242,8 @@ export default function InstanceSegmentationScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
+        isGenerating={isGenerating}
       />
     </ScreenWrapper>
   );
@@ -317,5 +346,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     fontFamily: 'Courier',
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

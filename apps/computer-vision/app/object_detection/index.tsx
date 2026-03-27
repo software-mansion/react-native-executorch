@@ -14,7 +14,7 @@ import {
   YOLO26X,
   ObjectDetectionModelSources,
 } from 'react-native-executorch';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
@@ -112,6 +112,16 @@ export default function ObjectDetectionScreen() {
             />
           )}
         </View>
+        {!imageUri && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>Object Detection</Text>
+            <Text style={styles.infoText}>
+              This model detects objects in an image and draws bounding boxes
+              around them with class labels and confidence scores. Pick an image
+              from your gallery or take one with your camera to get started.
+            </Text>
+          </View>
+        )}
       </View>
       <ModelPicker
         models={MODELS}
@@ -129,6 +139,8 @@ export default function ObjectDetectionScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );
@@ -148,5 +160,21 @@ const styles = StyleSheet.create({
   fullSizeImage: {
     width: '100%',
     height: '100%',
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -12,7 +12,8 @@ import {
   ResourceSource,
 } from 'react-native-executorch';
 
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
+
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
@@ -98,6 +99,16 @@ export default function StyleTransferScreen() {
                 : require('../../assets/icons/executorch_logo.png')
           }
         />
+        {!imageUri && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>Style Transfer</Text>
+            <Text style={styles.infoText}>
+              This model applies artistic styles to your images, transforming
+              them to look like famous paintings. Pick an image from your
+              gallery or take one with your camera to get started.
+            </Text>
+          </View>
+        )}
       </View>
       <ModelPicker
         models={MODELS}
@@ -112,6 +123,8 @@ export default function StyleTransferScreen() {
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );
@@ -120,4 +133,20 @@ export default function StyleTransferScreen() {
 const styles = StyleSheet.create({
   imageContainer: { flex: 6, width: '100%', padding: 16 },
   image: { flex: 1, borderRadius: 8, width: '100%' },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

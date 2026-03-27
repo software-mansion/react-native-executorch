@@ -2,8 +2,16 @@ import Spinner from '../../components/Spinner';
 import { getImage } from '../../utils';
 import {
   useClassification,
+  EFFICIENTNET_V2_S,
   EFFICIENTNET_V2_S_QUANTIZED,
+  ClassificationModelSources,
 } from 'react-native-executorch';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
+
+const MODELS: ModelOption<ClassificationModelSources>[] = [
+  { label: 'EfficientNet V2 S Quantized', value: EFFICIENTNET_V2_S_QUANTIZED },
+  { label: 'EfficientNet V2 S', value: EFFICIENTNET_V2_S },
+];
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { BottomBar } from '../../components/BottomBar';
 import React, { useContext, useEffect, useState } from 'react';
@@ -13,6 +21,8 @@ import { StatsBar } from '../../components/StatsBar';
 import ErrorBanner from '../../components/ErrorBanner';
 
 export default function ClassificationScreen() {
+  const [selectedModel, setSelectedModel] =
+    useState<ClassificationModelSources>(EFFICIENTNET_V2_S_QUANTIZED);
   const [results, setResults] = useState<{ label: string; score: number }[]>(
     []
   );
@@ -21,7 +31,7 @@ export default function ClassificationScreen() {
 
   const [error, setError] = useState<string | null>(null);
 
-  const model = useClassification({ model: EFFICIENTNET_V2_S_QUANTIZED });
+  const model = useClassification({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
@@ -82,6 +92,16 @@ export default function ClassificationScreen() {
               : require('../../assets/icons/executorch_logo.png')
           }
         />
+        {!imageUri && (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoTitle}>Image Classification</Text>
+            <Text style={styles.infoText}>
+              This model analyzes an image and returns the top 10 most likely
+              labels with confidence scores. Use the gallery or camera icons
+              below to pick an image, then tap the button to run the model.
+            </Text>
+          </View>
+        )}
         {results.length > 0 && (
           <View style={styles.results}>
             <Text style={styles.resultHeader}>Results Top 10</Text>
@@ -96,10 +116,21 @@ export default function ClassificationScreen() {
           </View>
         )}
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        disabled={model.isGenerating}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setResults([]);
+        }}
+      />
       <StatsBar inferenceTime={inferenceTime} />
       <BottomBar
         handleCameraPress={handleCameraPress}
         runForward={runForward}
+        hasImage={!!imageUri}
+        isGenerating={model.isGenerating}
       />
     </ScreenWrapper>
   );
@@ -140,5 +171,21 @@ const styles = StyleSheet.create({
   resultLabel: {
     flex: 1,
     marginRight: 4,
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

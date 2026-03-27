@@ -161,7 +161,13 @@ function MultimodalLLMScreen() {
 
           <StatsBar stats={stats} />
           <View
-            style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}
+            style={[
+              styles.bottomContainer,
+              Platform.OS === 'android' && {
+                paddingBottom: bottom || 16,
+                height: 100 + (bottom || 16),
+              },
+            ]}
           >
             {/* Image picker button */}
             <TouchableOpacity
@@ -279,6 +285,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   helloText: {
     fontFamily: 'medium',
@@ -313,7 +320,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.blueDark,
   },
   bottomContainer: {
-    minHeight: 100,
+    height: 100,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

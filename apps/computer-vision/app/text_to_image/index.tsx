@@ -133,16 +133,21 @@ export default function TextToImageScreen() {
               <Text style={styles.text}>Generating...</Text>
               <ProgressBar numSteps={steps} currentStep={inferenceStepIdx} />
             </View>
-          ) : (
+          ) : image?.length ? (
             <Image
               style={styles.image}
               resizeMode="contain"
-              source={
-                image?.length
-                  ? { uri: `data:image/png;base64,${image}` }
-                  : require('../../assets/icons/executorch_logo.png')
-              }
+              source={{ uri: `data:image/png;base64,${image}` }}
             />
+          ) : (
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Text to Image</Text>
+              <Text style={styles.infoText}>
+                This model generates images from text descriptions using a
+                diffusion process. Type a prompt below and tap the send button
+                to generate an image.
+              </Text>
+            </View>
           )}
         </View>
 
@@ -194,7 +199,10 @@ export default function TextToImageScreen() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.sendButton}
+              style={[
+                styles.sendButton,
+                !input.trim() && styles.sendButtonDisabled,
+              ]}
               onPress={runForward}
               disabled={!input.trim()}
             >
@@ -295,5 +303,24 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPalette.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#888',
+  },
+  infoContainer: {
+    alignItems: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'navy',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
