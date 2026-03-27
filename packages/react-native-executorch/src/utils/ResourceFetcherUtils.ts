@@ -1,6 +1,9 @@
 import { ResourceSource } from '..';
 import { getModelNameForUrl } from '../constants/modelUrls';
-import { DOWNLOAD_EVENT_ENDPOINT } from '../constants/resourceFetcher';
+import {
+  DOWNLOAD_EVENT_ENDPOINT,
+  LIB_VERSION,
+} from '../constants/resourceFetcher';
 
 /**
  * Http status codes
@@ -206,6 +209,10 @@ export namespace ResourceFetcherUtils {
     return 'UNKNOWN';
   }
 
+  export function isEmulator(): boolean {
+    return global.__rne_isEmulator;
+  }
+
   function getModelNameFromUri(uri: string): string {
     const knownName = getModelNameForUrl(uri);
     if (knownName) {
@@ -228,6 +235,8 @@ export namespace ResourceFetcherUtils {
         body: JSON.stringify({
           modelName: getModelNameFromUri(uri),
           countryCode: getCountryCode(),
+          isEmulator: isEmulator(),
+          libVersion: LIB_VERSION,
         }),
       });
     } catch (e) {}

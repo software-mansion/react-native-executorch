@@ -2,6 +2,8 @@
 
 #include <rnexecutorch/RnExecutorchInstaller.h>
 
+#include "EmulatorDetection.h"
+
 #include <jni.h>
 #include <jsi/jsi.h>
 
@@ -64,8 +66,10 @@ void ETInstallerModule::injectJSIBindings() {
     return std::vector<std::byte>(dataBytePtr, dataBytePtr + size);
   };
 
+  auto _isEmulator = isEmulator();
+
   RnExecutorchInstaller::injectJSIBindings(jsiRuntime_, jsCallInvoker_,
-                                           fetchDataByUrl);
+                                           fetchDataByUrl, _isEmulator);
 }
 } // namespace rnexecutorch
 
