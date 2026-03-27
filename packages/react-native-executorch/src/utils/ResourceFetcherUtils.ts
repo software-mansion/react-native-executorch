@@ -1,6 +1,9 @@
 import { ResourceSource } from '..';
 import { getModelNameForUrl } from '../constants/modelUrls';
-import { DOWNLOAD_EVENT_ENDPOINT } from '../constants/resourceFetcher';
+import {
+  DOWNLOAD_EVENT_ENDPOINT,
+  LIB_VERSION,
+} from '../constants/resourceFetcher';
 
 /**
  * Http status codes
@@ -207,7 +210,6 @@ export namespace ResourceFetcherUtils {
   }
 
   export function isEmulator(): boolean {
-    // eslint-disable-next-line camelcase
     return !!(global as any).__rne_isEmulator;
   }
 
