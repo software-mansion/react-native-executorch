@@ -210,7 +210,7 @@ export namespace ResourceFetcherUtils {
   }
 
   export function isEmulator(): boolean {
-    return !!(global as any).__rne_isEmulator;
+    return global.__rne_isEmulator;
   }
 
   function getModelNameFromUri(uri: string): string {

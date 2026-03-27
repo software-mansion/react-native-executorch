@@ -106,7 +106,7 @@ declare global {
     independentCharacters?: boolean
   ) => Promise<any>;
   // eslint-disable-next-line camelcase
-  var __rne_isEmulator: () => boolean;
+  var __rne_isEmulator: boolean;
 }
 // eslint-disable no-var
 
