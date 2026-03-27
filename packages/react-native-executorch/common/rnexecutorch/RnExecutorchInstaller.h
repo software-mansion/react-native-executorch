@@ -22,7 +22,7 @@ public:
   static void
   injectJSIBindings(jsi::Runtime *jsiRuntime,
                     std::shared_ptr<react::CallInvoker> jsCallInvoker,
-                    FetchUrlFunc_t fetchDataFromUrl);
+                    FetchUrlFunc_t fetchDataFromUrl, bool isEmulator);
 
 private:
   template <typename ModelT>

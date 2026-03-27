@@ -176,6 +176,10 @@ export namespace ResourceFetcherUtils {
     }
   }
 
+  export function isEmulator(): boolean {
+    return global.__rne_isEmulator;
+  }
+
   export async function checkFileExists(fileUri: string) {
     const fileInfo = await getInfoAsync(fileUri);
     return fileInfo.exists;
@@ -214,6 +218,7 @@ export namespace ResourceFetcherUtils {
         body: JSON.stringify({
           modelName: getModelNameFromUri(uri),
           countryCode: getCountryCode(),
+          isEmulator: isEmulator(),
           libVersion: LIB_VERSION,
         }),
       });
