@@ -23,7 +23,7 @@ inline bool isEmulator() {
 #else
     char value[PROP_VALUE_MAX] = {0};
     __system_property_get(key, value);
-    return std::string(value);
+    return {value};
 #endif
   };
 
