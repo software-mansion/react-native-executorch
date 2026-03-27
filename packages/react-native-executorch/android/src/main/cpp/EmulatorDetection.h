@@ -9,8 +9,9 @@ inline bool isEmulator() {
   auto readProp = [](const char *key) -> std::string {
 #if __ANDROID_API__ >= 26
     const prop_info *pi = __system_property_find(key);
-    if (pi == nullptr)
+    if (pi == nullptr) {
       return "";
+    }
     std::string result;
     __system_property_read_callback(
         pi,
