@@ -3,6 +3,8 @@
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
+using rnexecutorch::log;
+using rnexecutorch::LOG_LEVEL;
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <runner/constants.h>
 
@@ -75,22 +77,29 @@ Result<VisionEncoder::ImageShape> VisionEncoder::getInputShape() const {
 }
 
 std::vector<float>
-VisionEncoder::preprocessImage(const std::string &path,
-                               const ImageShape &targetShape) const {
-  cv::Mat mat = rnexecutorch::image_processing::readImage(path);
-  cv::resize(mat, mat, cv::Size(targetShape.width, targetShape.height));
-  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
+VisionEncoder::preprocessMat(const cv::Mat &rgb,
+                             const ImageShape &targetShape) const {
+  cv::Mat resized;
+  cv::resize(rgb, resized, cv::Size(targetShape.width, targetShape.height));
 
   const int32_t pixelCount = targetShape.height * targetShape.width;
   std::vector<float> chw(targetShape.channels * pixelCount);
   for (int32_t i = 0; i < pixelCount; ++i) {
     cv::Vec3b px =
-        mat.at<cv::Vec3b>(i / targetShape.width, i % targetShape.width);
+        resized.at<cv::Vec3b>(i / targetShape.width, i % targetShape.width);
     for (int32_t c = 0; c < targetShape.channels; ++c) {
       chw[c * pixelCount + i] = static_cast<float>(px[c]);
     }
   }
   return chw;
+}
+
+std::vector<float>
+VisionEncoder::preprocessImage(const std::string &path,
+                               const ImageShape &targetShape) const {
+  cv::Mat mat = rnexecutorch::image_processing::readImage(path);
+  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
+  return preprocessMat(mat, targetShape);
 }
 
 Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
@@ -124,6 +133,40 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
   auto embedding = result[0];
   embedding_cache_.emplace(path, embedding);
   return embedding;
+}
+
+Result<EValue> VisionEncoder::encode(const cv::Mat &image) {
+  log(LOG_LEVEL::Info,
+      "[VisionEncoder] encode(cv::Mat) called, mat size:", image.cols, "x",
+      image.rows, "channels:", image.channels());
+  if (!is_loaded()) {
+    log(LOG_LEVEL::Error, "[VisionEncoder] encoder not loaded!");
+    return Error::InvalidState;
+  }
+
+  auto shape = ET_UNWRAP(getInputShape());
+  log(LOG_LEVEL::Info, "[VisionEncoder] target shape:", shape.width, "x",
+      shape.height, "ch:", shape.channels, "batch:", shape.with_batch);
+  auto chw = preprocessMat(image, shape);
+  log(LOG_LEVEL::Info, "[VisionEncoder] preprocessed, chw size:", chw.size(),
+      "first few values:", chw[0], chw[1], chw[2]);
+
+  std::vector<::executorch::aten::SizesType> sizes = {
+      shape.channels, shape.height, shape.width};
+  if (shape.with_batch) {
+    sizes.insert(sizes.begin(), 1);
+  }
+
+  auto image_tensor = ::executorch::extension::from_blob(
+      chw.data(), sizes, ::executorch::aten::ScalarType::Float);
+
+  log(LOG_LEVEL::Info, "[VisionEncoder] executing vision_encoder method...");
+  auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
+  log(LOG_LEVEL::Info,
+      "[VisionEncoder] vision_encoder done, output tensor "
+      "dims:",
+      result[0].toTensor().dim());
+  return result[0];
 }
 
 } // namespace executorch::extension::llm

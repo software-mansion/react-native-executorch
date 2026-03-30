@@ -13,6 +13,9 @@
 #include "constants.h"
 #include "util.h"
 #include <algorithm>
+#include <rnexecutorch/Log.h>
+using rnexecutorch::log;
+using rnexecutorch::LOG_LEVEL;
 
 namespace executorch::extension::llm {
 
@@ -33,11 +36,26 @@ Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
   std::vector<int64_t> padded_tokens_storage;
   TensorPtr sliced_embed_storage;
 
+  log(LOG_LEVEL::Info,
+      "[Prefiller] prefill called — is_image:", input.is_image(),
+      "is_image_mat:", input.is_image_mat(), "is_text:", input.is_text(),
+      "is_tokens:", input.is_tokens());
+
   if (input.is_image()) {
     ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
                              "No image encoder registered");
     auto encode_result = image_encoder_->encode(input);
     ET_CHECK_OK_OR_RETURN_ERROR(encode_result.error(), "Image encoding failed");
+    encoder_output = *encode_result;
+
+  } else if (input.is_image_mat()) {
+    log(LOG_LEVEL::Info, "[Prefiller] got image_mat input");
+    ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
+                             "No image encoder registered");
+    auto encode_result = image_encoder_->encode(input.get_image_mat());
+    ET_CHECK_OK_OR_RETURN_ERROR(encode_result.error(),
+                                "Image mat encoding failed");
+    log(LOG_LEVEL::Info, "[Prefiller] image_mat encoded successfully");
     encoder_output = *encode_result;
 
   } else if (input.is_text() || input.is_tokens()) {

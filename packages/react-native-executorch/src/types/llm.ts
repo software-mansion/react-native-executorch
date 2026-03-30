@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { ResourceSource } from './common';
+import { Frame, ResourceSource } from './common';
 
 /**
  * Capabilities a multimodal LLM can have.
@@ -191,6 +191,19 @@ export interface LLMTypeMultimodal<
    * @returns The model's response as a `string`.
    */
   sendMessage: (message: string, media?: MediaArg<C>) => Promise<string>;
+
+  /**
+   * Builds a synchronous worklet function for real-time VisionCamera frame processing.
+   * Applies the chat template eagerly on the JS thread, then returns a worklet
+   * that blocks the frame thread while the VLM generates a complete response.
+   * Only available when capabilities include `'vision'`.
+   * @param userMessage - The user message to send with each frame (e.g. "What is on this image?").
+   * @returns A worklet function `(frame, isFrontCamera) => string`.
+   */
+  buildRunOnFrame?: (
+    userMessage: string,
+    onToken?: (token: string) => void
+  ) => (frame: Frame, isFrontCamera: boolean) => string;
 }
 
 /**

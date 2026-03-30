@@ -161,6 +161,11 @@ public:
           ModelHostObject<Model>,
           synchronousHostFunction<&Model::getVisualTokenCount>,
           "getVisualTokenCount"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              synchronousHostFunction<&Model::setFrameCallback>,
+                              "setFrameCallback"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,10 @@ public:
                                  std::vector<std::string> imagePaths,
                                  std::string imageToken,
                                  std::shared_ptr<jsi::Function> callback);
+  std::string generateFromFrame(jsi::Runtime &runtime,
+                                const jsi::Value &frameData, std::string prompt,
+                                std::string imageToken);
+  void setFrameCallback(std::shared_ptr<jsi::Function> callback);
 
   void interrupt();
   void reset();
@@ -42,7 +47,9 @@ public:
   int32_t getMaxContextLength() const;
 
 private:
+  mutable std::mutex inference_mutex_;
   std::unique_ptr<::executorch::extension::llm::BaseLLMRunner> runner_;
+  std::shared_ptr<jsi::Function> frameCallback_;
 };
 } // namespace models::llm
 

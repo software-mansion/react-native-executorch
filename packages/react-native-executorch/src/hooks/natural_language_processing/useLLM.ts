@@ -153,5 +153,13 @@ export function useLLM({
     sendMessage: sendMessage,
     deleteMessage: deleteMessage,
     interrupt: interrupt,
+    ...(model.capabilities?.includes('vision') && isReady
+      ? {
+          buildRunOnFrame: (
+            userMessage: string,
+            onToken?: (token: string) => void
+          ) => controllerInstance.buildRunOnFrame(userMessage, onToken),
+        }
+      : {}),
   };
 }

@@ -15,9 +15,15 @@
 #include <variant>
 #include <vector>
 
+#include <opencv2/core/mat.hpp>
+
 namespace executorch::extension::llm {
 struct ImagePath {
   std::string path;
+};
+
+struct ImageMat {
+  cv::Mat mat;
 };
 
 class MultimodalInput {
@@ -27,6 +33,7 @@ public:
       : data_(std::move(tokens)) {}
   explicit MultimodalInput(ImagePath image_path)
       : data_(std::move(image_path)) {}
+  explicit MultimodalInput(ImageMat image_mat) : data_(std::move(image_mat)) {}
 
   MultimodalInput(const MultimodalInput &) = default;
   MultimodalInput &operator=(const MultimodalInput &) = default;
@@ -42,6 +49,9 @@ public:
   bool is_image() const noexcept {
     return std::holds_alternative<ImagePath>(data_);
   }
+  bool is_image_mat() const noexcept {
+    return std::holds_alternative<ImageMat>(data_);
+  }
 
   const std::string &get_text() const & { return std::get<std::string>(data_); }
   const std::vector<uint64_t> &get_tokens() const & {
@@ -50,9 +60,12 @@ public:
   const std::string &get_image_path() const & {
     return std::get<ImagePath>(data_).path;
   }
+  const cv::Mat &get_image_mat() const & {
+    return std::get<ImageMat>(data_).mat;
+  }
 
 private:
-  std::variant<std::string, std::vector<uint64_t>, ImagePath> data_;
+  std::variant<std::string, std::vector<uint64_t>, ImagePath, ImageMat> data_;
 };
 
 inline MultimodalInput make_text_input(const std::string &text) noexcept {
@@ -63,6 +76,9 @@ inline MultimodalInput make_text_input(std::string &&text) noexcept {
 }
 inline MultimodalInput make_image_input(std::string path) noexcept {
   return MultimodalInput(ImagePath{std::move(path)});
+}
+inline MultimodalInput make_image_mat_input(cv::Mat mat) noexcept {
+  return MultimodalInput(ImageMat{std::move(mat)});
 }
 
 } // namespace executorch::extension::llm

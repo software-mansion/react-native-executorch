@@ -60,6 +60,15 @@ export default function _layout() {
         }}
       >
         <Drawer.Screen
+          name="vlm_camera/index"
+          options={{
+            drawerLabel: 'VLM Camera',
+            title: 'VLM Camera',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="vision_camera/index"
           options={{
             drawerLabel: 'Vision Camera',

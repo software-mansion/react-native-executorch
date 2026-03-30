@@ -1,4 +1,4 @@
-import { ResourceSource } from '../types/common';
+import { Frame, ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
@@ -199,6 +199,73 @@ export class LLMController {
       );
     }
     return token;
+  }
+
+  /**
+   * Returns a worklet function for real-time VisionCamera frame processing.
+   * The chat template is applied eagerly on the JS thread so the worklet
+   * only needs to pass the pre-rendered prompt to native.
+   *
+   * @param userMessage - The user message to send with each frame.
+   * @param onToken - Called on the JS thread for each generated token (via callInvoker).
+   */
+  public buildRunOnFrame(
+    userMessage: string,
+    onToken?: (token: string) => void
+  ): (frame: Frame, isFrontCamera: boolean) => string {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling buildRunOnFrame().'
+      );
+    }
+
+    const imageToken = this.getImageToken();
+
+    // Apply chat template on the JS thread (Jinja not available in worklets)
+    const messages: Message[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'image' },
+          { type: 'text', text: userMessage },
+        ] as any,
+        mediaPath: 'frame',
+      },
+    ];
+
+    const renderedPrompt = this.applyChatTemplate(
+      messages,
+      this.tokenizerConfig,
+      undefined,
+      // eslint-disable-next-line camelcase
+      { add_generation_prompt: true }
+    );
+
+    // Register the token callback so C++ can stream tokens to JS via callInvoker
+    const tokenHandler = onToken ?? this.onToken;
+    this.nativeModule.setFrameCallback(tokenHandler);
+
+    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
+
+    return (frame: Frame, isFrontCamera: boolean): string => {
+      'worklet';
+
+      let nativeBuffer: { pointer: bigint; release(): void } | null = null;
+      try {
+        nativeBuffer = frame.getNativeBuffer();
+        const frameData = {
+          nativeBuffer: nativeBuffer.pointer,
+          orientation: frame.orientation,
+          isMirrored: isFrontCamera,
+        };
+        return nativeGenerateFromFrame(frameData, renderedPrompt, imageToken);
+      } finally {
+        if (nativeBuffer?.release) {
+          nativeBuffer.release();
+        }
+      }
+    };
   }
 
   private filterSpecialTokens(text: string): string {
