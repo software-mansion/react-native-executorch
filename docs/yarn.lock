@@ -4121,15 +4121,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swmansion/t-rex-ui@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@swmansion/t-rex-ui@npm:1.2.2"
+"@swmansion/t-rex-ui@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "@swmansion/t-rex-ui@npm:1.3.2"
   dependencies:
     "@docusaurus/core": "npm:3.9.2"
     "@docusaurus/module-type-aliases": "npm:3.9.2"
     "@docusaurus/plugin-debug": "npm:3.9.2"
     "@docusaurus/preset-classic": "npm:3.9.2"
     "@docusaurus/theme-search-algolia": "npm:3.9.2"
+    fs-extra: "npm:^11.3.3"
+    gray-matter: "npm:^4.0.3"
+    remark-mdx: "npm:^3.0.0"
+    remark-parse: "npm:^11.0.0"
+    remark-stringify: "npm:^11.0.0"
+    unified: "npm:^11.0.5"
   peerDependencies:
     "@docsearch/core": ^4.4.0
     "@docsearch/css": ^4.4.0
@@ -4140,7 +4146,8 @@ __metadata:
     copy-text-to-clipboard: ^3.2.2
     react: "*"
     react-dom: "*"
-  checksum: 10/08ab5e7fb6f52ae1ed4ec3c8c6ee91b9e94c49e9a2cd6801c61901e5af9e1c750553fa00c8f4e6e8a3fa2eba396bb5fb42d03a3d724fe6fd03427c45aecfde65
+    react-icons: "*"
+  checksum: 10/b967537293a9369f1fd00f8a420b016aa1ce95a70cd6840d96f6ca6366b64059e4e85bdc5629f84be83314ee94bae6a92f952b3204b8f891dd3c9c5504c0838c
   languageName: node
   linkType: hard
 
@@ -6493,7 +6500,7 @@ __metadata:
     "@mui/material": "npm:^7.3.7"
     "@signalwire/docusaurus-plugin-llms-txt": "npm:2.0.0-alpha.7"
     "@signalwire/docusaurus-theme-llms-txt": "npm:1.0.0-alpha.9"
-    "@swmansion/t-rex-ui": "npm:^1.2.2"
+    "@swmansion/t-rex-ui": "npm:^1.3.2"
     clsx: "npm:^2.1.0"
     copy-text-to-clipboard: "npm:^3.2.2"
     docusaurus-plugin-typedoc: "npm:^1.4.2"
@@ -7343,6 +7350,17 @@ __metadata:
     jsonfile: "npm:^6.0.1"
     universalify: "npm:^2.0.0"
   checksum: 10/d559545c73fda69c75aa786f345c2f738b623b42aea850200b1582e006a35278f63787179e3194ba19413c26a280441758952b0c7e88dd96762d497e365a6c3e
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^11.3.3":
+  version: 11.3.4
+  resolution: "fs-extra@npm:11.3.4"
+  dependencies:
+    graceful-fs: "npm:^4.2.0"
+    jsonfile: "npm:^6.0.1"
+    universalify: "npm:^2.0.0"
+  checksum: 10/1b8deea9c540a2efe63c750bc9e1ba6238115579d1571d67fe8fb58e3fb6df19aba29fd4ebb81217cf0bf5bce0df30ca68dbc3e06f6652b856edd385ce0ff649
   languageName: node
   linkType: hard
 
@@ -13405,7 +13423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unified@npm:^11, unified@npm:^11.0.0, unified@npm:^11.0.3, unified@npm:^11.0.4":
+"unified@npm:^11, unified@npm:^11.0.0, unified@npm:^11.0.3, unified@npm:^11.0.4, unified@npm:^11.0.5":
   version: 11.0.5
   resolution: "unified@npm:11.0.5"
   dependencies:
