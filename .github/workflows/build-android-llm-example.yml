@@ -45,6 +45,10 @@ jobs:
           distribution: 'zulu'
           java-version: 17
           cache: 'gradle'
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27b
       - name: Install root dependencies
         run: yarn install --immutable
       - name: Install Expo CLI
