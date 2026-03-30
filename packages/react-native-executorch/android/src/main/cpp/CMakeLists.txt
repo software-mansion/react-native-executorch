@@ -58,9 +58,22 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
 
   set_target_properties(cpuinfo PROPERTIES
                         IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so")
+
+  # ------- QNN backend (optional, only linked if present) -------
+  set(QNN_BACKEND_LIB "${LIBS_DIR}/executorch/${ANDROID_ABI}/libqnn_executorch_backend.so")
+  if(EXISTS "${QNN_BACKEND_LIB}")
+    add_library(qnn_executorch_backend SHARED IMPORTED)
+    set_target_properties(qnn_executorch_backend PROPERTIES
+                          IMPORTED_LOCATION "${QNN_BACKEND_LIB}")
+    set(QNN_LIBS "qnn_executorch_backend")
+  else()
+    set(QNN_LIBS "")
+  endif()
+
   set(EXECUTORCH_LIBS
     "pthreadpool"
     "cpuinfo"
+    ${QNN_LIBS}
   )
 endif()
 
