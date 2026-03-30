@@ -139,4 +139,4 @@ YOLO models use the [`CocoLabelYolo`](https://docs.swmansion.com/react-native-ex
 | yolo26m-seg     | 80                | [COCO (YOLO)](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabelYolo) | 384, 512, 640         |
 | yolo26l-seg     | 80                | [COCO (YOLO)](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabelYolo) | 384, 512, 640         |
 | yolo26x-seg     | 80                | [COCO (YOLO)](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabelYolo) | 384, 512, 640         |
-| rfdetr-nano-seg | 91                | [COCO](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabel)            | N/A                   |
+| rfdetr-nano-seg | 91                | [COCO](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabel)            | 312 (fixed)           |
