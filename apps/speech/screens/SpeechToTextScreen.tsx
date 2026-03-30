@@ -25,7 +25,15 @@ import { ModelPicker, ModelOption } from '../components/ModelPicker';
 type STTModelSources = SpeechToTextProps['model'];
 
 const MODELS: ModelOption<STTModelSources>[] = [
-  { label: 'Whisper Tiny', value: WHISPER_TINY_EN },
+  {
+    label: 'Whisper Tiny',
+    value: {
+      isMultilingual: false,
+      modelName: 'whisper-base',
+      modelSource: 'http://192.168.83.59:8000/whisper_coreml_ane.pte',
+      tokenizerSource: WHISPER_TINY_EN.tokenizerSource,
+    },
+  },
   { label: 'Whisper Tiny Q', value: WHISPER_TINY_EN_QUANTIZED },
   { label: 'Whisper Base', value: WHISPER_BASE_EN },
   { label: 'Whisper Small', value: WHISPER_SMALL_EN },
@@ -50,18 +58,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     useState<STTModelSources>(WHISPER_TINY_EN);
 
   const model = useSpeechToText({
-    // model: WHISPER_TINY_EN,
-    model: {
-      isMultilingual: false,
-<<<<<<< HEAD
-      encoderSource: 'http://192.168.83.59:8000/whisper_encoder_coreml.pte',
-      decoderSource: 'http://192.168.83.59:8000/whisper_decoder_coreml.pte',
-=======
-      encoderSource: 'http://192.168.82.121:8000/whisper_encoder_coreml.pte',
-      decoderSource: 'http://192.168.82.121:8000/whisper_decoder_coreml.pte',
->>>>>>> cd660fa64 (chore: work in progress)
-      tokenizerSource: WHISPER_TINY_EN.tokenizerSource,
-    },
+    model: selectedModel,
   });
 
   const [transcription, setTranscription] =
