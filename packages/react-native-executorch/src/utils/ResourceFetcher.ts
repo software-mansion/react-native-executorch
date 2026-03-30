@@ -57,7 +57,7 @@ export interface ResourceFetcherAdapter {
   fetch(
     callback: (downloadProgress: number) => void,
     ...sources: ResourceSource[]
-  ): Promise<string[] | null>;
+  ): Promise<string[]>;
 
   /**
    * Read file contents as a string.

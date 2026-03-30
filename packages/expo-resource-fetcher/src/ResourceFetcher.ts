@@ -54,8 +54,6 @@ import {
   HTTP_CODE,
   DownloadStatus,
   SourceType,
-  ResourceSourceExtended,
-  DownloadResource,
 } from './ResourceFetcherUtils';
 
 interface ExpoResourceFetcherInterface extends ResourceFetcherAdapter {

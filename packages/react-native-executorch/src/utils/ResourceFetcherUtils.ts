@@ -1,10 +1,8 @@
-import { ResourceSource } from '..';
 import { getModelNameForUrl } from '../constants/modelUrls';
 import {
   DOWNLOAD_EVENT_ENDPOINT,
   LIB_VERSION,
 } from '../constants/resourceFetcher';
-
 /**
  * Http status codes
  * @category Types
@@ -66,52 +64,6 @@ export enum SourceType {
    * Represents a file located at a remote URL.
    */
   REMOTE_FILE,
-}
-
-/**
- * Extended interface for resource sources, tracking download state and file locations.
- * @category Interfaces
- */
-export interface ResourceSourceExtended {
-  /**
-   * The original source definition.
-   */
-  source: ResourceSource;
-
-  /**
-   * The type of the source (local, remote, etc.).
-   */
-  sourceType: SourceType;
-
-  /**
-   * Optional callback to report download progress (0 to 1).
-   */
-  callback?: (downloadProgress: number) => void;
-
-  /**
-   * Array of paths or identifiers for the resulting files.
-   */
-  results: string[];
-
-  /**
-   * The URI of the resource.
-   */
-  uri?: string;
-
-  /**
-   * The local file URI where the resource is stored.
-   */
-  fileUri?: string;
-
-  /**
-   * The URI where the file is cached.
-   */
-  cacheFileUri?: string;
-
-  /**
-   * Reference to the next resource in a linked chain of resources.
-   */
-  next?: ResourceSourceExtended;
 }
 
 /**

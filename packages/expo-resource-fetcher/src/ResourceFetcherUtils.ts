@@ -6,7 +6,6 @@ import {
   HTTP_CODE,
   DownloadStatus,
   SourceType,
-  ResourceSourceExtended,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
@@ -15,19 +14,9 @@ import { Asset } from 'expo-asset';
 /**
  * @internal
  */
-import {
-  getInfoAsync,
-  makeDirectoryAsync,
-  type DownloadResumable,
-} from 'expo-file-system/legacy';
+import { getInfoAsync, makeDirectoryAsync } from 'expo-file-system/legacy';
 
-export { HTTP_CODE, DownloadStatus, SourceType, ResourceSourceExtended };
-
-export interface DownloadResource {
-  downloadResumable: DownloadResumable;
-  status: DownloadStatus;
-  extendedInfo: ResourceSourceExtended;
-}
+export { HTTP_CODE, DownloadStatus, SourceType };
 
 /**
  * Utility functions for fetching and managing resources.

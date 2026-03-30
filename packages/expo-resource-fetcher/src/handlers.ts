@@ -31,7 +31,7 @@ export interface ActiveDownload {
   // settle and reject are the resolve/reject of the Promise returned by handleRemote.
   // They are stored here so that cancel() and resume() in the fetcher class can
   // unblock the fetch() loop from outside the download flow.
-  settle: (path: string | null) => void;
+  settle: (path: string) => void;
   reject: (error: unknown) => void;
 }
 
@@ -57,7 +57,7 @@ export async function handleAsset(
   source: number,
   progressCallback: (progress: number) => void,
   downloads: Map<ResourceSource, ActiveDownload>
-): Promise<string | null> {
+): Promise<string> {
   const asset = Asset.fromModule(source);
   const uri = asset.uri;
 
@@ -93,7 +93,7 @@ export async function handleRemote(
   source: ResourceSource,
   progressCallback: (progress: number) => void,
   downloads: Map<ResourceSource, ActiveDownload>
-): Promise<string | null> {
+): Promise<string> {
   if (downloads.has(source)) {
     throw new RnExecutorchError(
       RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
@@ -114,9 +114,9 @@ export async function handleRemote(
   // We need a Promise whose resolution can be triggered from outside this function —
   // by cancel() or resume() in the fetcher class. A plain async function can't do that,
   // so we create the Promise manually and store settle/reject in the downloads map.
-  let settle: (path: string | null) => void = () => {};
+  let settle: (path: string) => void = () => {};
   let reject: (error: unknown) => void = () => {};
-  const promise = new Promise<string | null>((res, rej) => {
+  const promise = new Promise<string>((res, rej) => {
     settle = res;
     reject = rej;
   });

@@ -1,1 +1,1 @@
-export * from './ResourceFetcherV2';
+export * from './ResourceFetcher';
