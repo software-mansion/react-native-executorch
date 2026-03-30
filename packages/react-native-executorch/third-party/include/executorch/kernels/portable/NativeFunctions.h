@@ -22,6 +22,8 @@ namespace executor {
 namespace native {
 torch::executor::Tensor & _cdist_forward_out(const torch::executor::Tensor & x1, const torch::executor::Tensor & x2, double p, torch::executor::optional<int64_t> compute_mode, torch::executor::Tensor & out);
 torch::executor::Tensor & _cdist_forward_out(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & x1, const torch::executor::Tensor & x2, double p, torch::executor::optional<int64_t> compute_mode, torch::executor::Tensor & out);
+torch::executor::Tensor & _conj_physical_out(const torch::executor::Tensor & self, torch::executor::Tensor & out);
+torch::executor::Tensor & _conj_physical_out(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::Tensor & out);
 torch::executor::Tensor & log_softmax_out(const torch::executor::Tensor & self, int64_t dim, bool half_to_float, torch::executor::Tensor & out);
 torch::executor::Tensor & log_softmax_out(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, int64_t dim, bool half_to_float, torch::executor::Tensor & out);
 ::std::tuple<torch::executor::Tensor &,torch::executor::Tensor &,torch::executor::Tensor &> _native_batch_norm_legit_out(const torch::executor::Tensor & input, const torch::executor::optional<torch::executor::Tensor> & weight, const torch::executor::optional<torch::executor::Tensor> & bias, torch::executor::Tensor & running_mean, torch::executor::Tensor & running_var, bool training, double momentum, double eps, torch::executor::Tensor & out, torch::executor::Tensor & save_mean, torch::executor::Tensor & save_invstd);

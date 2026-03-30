@@ -38,42 +38,97 @@ set(RN_VERSION_LINK_LIBRARIES
 
 # ------- Executorch -------
 
+# libexecutorch.so is the thin JNI wrapper (JNI_OnLoad + ASR entry points).
+# It has a hard NEEDED dependency on libqnn_executorch_backend.so, so both must be bundled.
+# All other runtime symbols are statically linked from executorch-static/*.a below.
 add_library(executorch SHARED IMPORTED)
-
 set_target_properties(executorch PROPERTIES
                       IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libexecutorch.so")
 
 
+set(EXECUTORCH_STATIC_DIR "${LIBS_DIR}/executorch-static/${ANDROID_ABI}")
+
+# Libs that use static constructors for kernel/backend registration — must use --whole-archive
+# so registrations are not stripped by the linker.
+set(EXECUTORCH_WHOLE_ARCHIVE_LIBS
+  "${EXECUTORCH_STATIC_DIR}/liboptimized_native_cpu_ops_lib.a"
+  "${EXECUTORCH_STATIC_DIR}/libxnnpack_backend.a"
+  "${EXECUTORCH_STATIC_DIR}/libvulkan_backend.a"
+)
+
+# Libs linked normally — only pull in symbols that are referenced.
+# Do NOT include libs whose symbols are already compiled by this project
+# (e.g. libextension_llm_runner, libextension_llm_sampler, libportable_kernels
+# overlap with common/runner/*.cpp).
+set(EXECUTORCH_STATIC_LIBS
+  "${EXECUTORCH_STATIC_DIR}/libexecutorch_core.a"
+  "${EXECUTORCH_STATIC_DIR}/libexecutorch.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_module.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_tensor.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_threadpool.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_data_loader.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_runner_util.a"
+  "${EXECUTORCH_STATIC_DIR}/libtokenizers.a"
+  "${EXECUTORCH_STATIC_DIR}/libsentencepiece.a"
+  "${EXECUTORCH_STATIC_DIR}/libportable_kernels.a"
+  "${EXECUTORCH_STATIC_DIR}/liboptimized_kernels.a"
+  "${EXECUTORCH_STATIC_DIR}/libXNNPACK.a"
+  "${EXECUTORCH_STATIC_DIR}/libxnnpack-microkernels-prod.a"
+  "${EXECUTORCH_STATIC_DIR}/libkleidiai.a"
+  "${EXECUTORCH_STATIC_DIR}/libre2.a"
+  "${EXECUTORCH_STATIC_DIR}/libcpublas.a"
+  "${EXECUTORCH_STATIC_DIR}/libeigen_blas.a"
+  "${EXECUTORCH_STATIC_DIR}/libpthreadpool.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_flat_tensor.a"
+  "${EXECUTORCH_STATIC_DIR}/libextension_named_data_map.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_message.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_globals.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_log_sink_set.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_format.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_check_op.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_conditions.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_nullguard.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_internal_proto.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_globals.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_entry.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_sink.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_initialize.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_log_flags.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_str_format_internal.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_strings.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_strings_internal.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_base.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_raw_logging_internal.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_spinlock_wait.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_synchronization.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_symbolize.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_stacktrace.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_int128.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_time.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_time_zone.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_throw_delegate.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_status.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_statusor.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_malloc_internal.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_raw_hash_set.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_hash.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_kernel_timeout_internal.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_examine_stack.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_strerror.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_city.a"
+  "${EXECUTORCH_STATIC_DIR}/libabsl_low_level_hash.a"
+)
+
 if(ANDROID_ABI STREQUAL "arm64-v8a")
   target_compile_definitions(react-native-executorch PRIVATE ARCH_ARM64)
 
-  # ------- pthreadpool -------
-  add_library(pthreadpool SHARED IMPORTED)
-
-  set_target_properties(pthreadpool PROPERTIES
-                        IMPORTED_LOCATION "${LIBS_DIR}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so")
-
   # ------- cpuinfo -------
   add_library(cpuinfo SHARED IMPORTED)
-
   set_target_properties(cpuinfo PROPERTIES
                         IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so")
 
-  # ------- QNN backend (optional, only linked if present) -------
-  set(QNN_BACKEND_LIB "${LIBS_DIR}/executorch/${ANDROID_ABI}/libqnn_executorch_backend.so")
-  if(EXISTS "${QNN_BACKEND_LIB}")
-    add_library(qnn_executorch_backend SHARED IMPORTED)
-    set_target_properties(qnn_executorch_backend PROPERTIES
-                          IMPORTED_LOCATION "${QNN_BACKEND_LIB}")
-    set(QNN_LIBS "qnn_executorch_backend")
-  else()
-    set(QNN_LIBS "")
-  endif()
-
   set(EXECUTORCH_LIBS
-    "pthreadpool"
     "cpuinfo"
-    ${QNN_LIBS}
   )
 endif()
 
@@ -116,7 +171,12 @@ target_link_libraries(
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}
   ${PHONEMIS_LIBS}
+  -Wl,--whole-archive
+  ${EXECUTORCH_WHOLE_ARCHIVE_LIBS}
+  -Wl,--no-whole-archive
+  ${EXECUTORCH_STATIC_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
+  vulkan
   z
 )

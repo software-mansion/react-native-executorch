@@ -12,7 +12,7 @@
 #include <memory>
 #include <mutex>
 
-#include <pthreadpool/pthreadpool.h>
+#include <pthreadpool.h>
 
 #include <executorch/runtime/core/function_ref.h>
 

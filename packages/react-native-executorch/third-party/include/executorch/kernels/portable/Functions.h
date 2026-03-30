@@ -31,6 +31,12 @@ TORCH_API inline torch::executor::Tensor & _cdist_forward_outf(torch::executor::
 }
 
 
+// aten::_conj_physical.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
+TORCH_API inline torch::executor::Tensor & _conj_physical_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::Tensor & out) {
+    return ::torch::executor::native::_conj_physical_out(context, self, out);
+}
+
+
 // aten::_log_softmax.out(Tensor self, int dim, bool half_to_float, *, Tensor(a!) out) -> Tensor(a!)
 TORCH_API inline torch::executor::Tensor & _log_softmax_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, int64_t dim, bool half_to_float, torch::executor::Tensor & out) {
     return ::torch::executor::native::log_softmax_out(context, self, dim, half_to_float, out);
