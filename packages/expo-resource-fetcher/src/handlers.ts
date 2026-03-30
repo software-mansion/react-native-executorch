@@ -28,9 +28,10 @@ export interface ActiveDownload {
   uri: string;
   fileUri: string;
   cacheFileUri: string;
-  /** Resolves the pending Promise<string | null> inside the fetch() loop. */
+  // settle and reject are the resolve/reject of the Promise returned by handleRemote.
+  // They are stored here so that cancel() and resume() in the fetcher class can
+  // unblock the fetch() loop from outside the download flow.
   settle: (path: string | null) => void;
-  /** Rejects the pending Promise inside the fetch() loop. */
   reject: (error: unknown) => void;
 }
 
@@ -61,7 +62,9 @@ export async function handleAsset(
   const uri = asset.uri;
 
   if (uri.startsWith('http')) {
-    // Dev mode: asset served from Metro dev server
+    // Dev mode: asset served from Metro dev server.
+    // uri is the resolved HTTP URL; source is the original require() number the
+    // user holds, so it must be used as the downloads map key for pause/cancel to work.
     return handleRemote(uri, source, progressCallback, downloads);
   }
 
@@ -81,7 +84,11 @@ export async function handleAsset(
   return ResourceFetcherUtils.removeFilePrefix(fileUriWithType);
 }
 
-export function handleRemote(
+// uri and source are separate parameters because for asset sources (dev mode),
+// source is the require() number the user holds (used as the downloads map key),
+// while uri is the resolved HTTP URL needed for the actual download.
+// For plain remote strings they are the same value.
+export async function handleRemote(
   uri: string,
   source: ResourceSource,
   progressCallback: (progress: number) => void,
@@ -94,57 +101,58 @@ export function handleRemote(
     );
   }
 
-  let settle!: (path: string | null) => void;
-  let reject!: (error: unknown) => void;
+  const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
+  const fileUri = `${RNEDirectory}${filename}`;
+  const cacheFileUri = `${cacheDirectory}${filename}`;
 
+  if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+    return ResourceFetcherUtils.removeFilePrefix(fileUri);
+  }
+
+  await ResourceFetcherUtils.createDirectoryIfNoExists();
+
+  // We need a Promise whose resolution can be triggered from outside this function —
+  // by cancel() or resume() in the fetcher class. A plain async function can't do that,
+  // so we create the Promise manually and store settle/reject in the downloads map.
+  let settle: (path: string | null) => void = () => {};
+  let reject: (error: unknown) => void = () => {};
   const promise = new Promise<string | null>((res, rej) => {
     settle = res;
     reject = rej;
   });
 
-  void (async () => {
-    const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
-    const fileUri = `${RNEDirectory}${filename}`;
-    const cacheFileUri = `${cacheDirectory}${filename}`;
-
-    try {
-      if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
-        settle(ResourceFetcherUtils.removeFilePrefix(fileUri));
-        return;
+  const downloadResumable = createDownloadResumable(
+    uri,
+    cacheFileUri,
+    { sessionType: FileSystemSessionType.BACKGROUND },
+    ({
+      totalBytesWritten,
+      totalBytesExpectedToWrite,
+    }: {
+      totalBytesWritten: number;
+      totalBytesExpectedToWrite: number;
+    }) => {
+      if (totalBytesExpectedToWrite === -1) {
+        progressCallback(0);
+      } else {
+        progressCallback(totalBytesWritten / totalBytesExpectedToWrite);
       }
+    }
+  );
 
-      await ResourceFetcherUtils.createDirectoryIfNoExists();
+  downloads.set(source, {
+    downloadResumable,
+    status: DownloadStatus.ONGOING,
+    uri,
+    fileUri,
+    cacheFileUri,
+    settle,
+    reject,
+  });
 
-      const downloadResumable = createDownloadResumable(
-        uri,
-        cacheFileUri,
-        { sessionType: FileSystemSessionType.BACKGROUND },
-        ({
-          totalBytesWritten,
-          totalBytesExpectedToWrite,
-        }: {
-          totalBytesWritten: number;
-          totalBytesExpectedToWrite: number;
-        }) => {
-          if (totalBytesExpectedToWrite === -1) {
-            progressCallback(0);
-          } else {
-            progressCallback(totalBytesWritten / totalBytesExpectedToWrite);
-          }
-        }
-      );
-
-      downloads.set(source, {
-        downloadResumable,
-        status: DownloadStatus.ONGOING,
-        uri,
-        fileUri,
-        cacheFileUri,
-        settle,
-        reject,
-      });
-
-      const result = await downloadResumable.downloadAsync();
+  downloadResumable
+    .downloadAsync()
+    .then(async (result) => {
       const dl = downloads.get(source);
       // If paused or canceled during the download, settle/reject will be called
       // externally by resume() or cancel() — do nothing here.
@@ -165,15 +173,22 @@ export function handleRemote(
         return;
       }
 
-      await moveAsync({ from: cacheFileUri, to: fileUri });
+      try {
+        await moveAsync({ from: cacheFileUri, to: fileUri });
+      } catch (error) {
+        downloads.delete(source);
+        reject(error);
+        return;
+      }
+
       downloads.delete(source);
       ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
       settle(ResourceFetcherUtils.removeFilePrefix(fileUri));
-    } catch (error) {
+    })
+    .catch((error) => {
       downloads.delete(source);
       reject(error);
-    }
-  })();
+    });
 
   return promise;
 }
