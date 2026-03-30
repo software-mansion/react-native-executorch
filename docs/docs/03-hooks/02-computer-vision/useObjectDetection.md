@@ -118,15 +118,15 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models
 
-| Model                                                                                                                         | Number of classes | Class list                                                    | Multi-size Support |
-| ----------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------- | ------------------ |
-| [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)      | No                 |
-| [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano)                                  | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)      | No                 |
-| [YOLO26N](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)  |
-| [YOLO26S](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)  |
-| [YOLO26M](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)  |
-| [YOLO26L](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)  |
-| [YOLO26X](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)  |
+| Model                                                                                                                         | Number of classes | Class list                                                    | Multi-size Support  |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------- | ------------------- |
+| [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)      | No (fixed: 320×320) |
+| [RF-DETR Nano](https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano)                                  | 80                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)      | No (fixed: 312×312) |
+| [YOLO26N](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)   |
+| [YOLO26S](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)   |
+| [YOLO26M](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)   |
+| [YOLO26L](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)   |
+| [YOLO26X](https://huggingface.co/software-mansion/react-native-executorch-yolo26)                                             | 80                | [COCO YOLO](../../06-api-reference/enumerations/CocoLabel.md) | Yes (384/512/640)   |
 
 :::tip
 YOLO models support multiple input sizes (384px, 512px, 640px). Smaller sizes are faster but less accurate, while larger sizes are more accurate but slower. Choose based on your speed/accuracy requirements.

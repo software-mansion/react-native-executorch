@@ -44,7 +44,7 @@ slower for very large images, which can increase total time.
 :::
 
 :::warning
-Times presented in the tables are measured for forward method with input size equal to 512. Other input sizes may yield slower or faster inference times.
+Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano uses a fixed resolution of 312×312.
 :::
 
 | Model / Device                                | iPhone 17 Pro [ms] | Google Pixel 10 [ms] |
@@ -226,7 +226,7 @@ slower for very large images, which can increase total time.
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 :::warning
-Times presented in the tables are measured for forward method with input size equal to 512. Other input sizes may yield slower or faster inference times.
+Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano Seg uses a fixed resolution of 312×312.
 :::
 
 | Model            | Samsung Galaxy S24 (XNNPACK) [ms] | Iphone 17 pro (XNNPACK) [ms] |

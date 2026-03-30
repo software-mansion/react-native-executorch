@@ -131,4 +131,4 @@ YOLO models use the [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLa
 | yolo26m-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
 | yolo26l-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
 | yolo26x-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
-| rfdetr-nano-seg | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)            | N/A                   |
+| rfdetr-nano-seg | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)            | 312 (fixed)           |
