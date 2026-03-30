@@ -234,6 +234,7 @@ export class ResourceFetcher {
           to: resource.extendedInfo.fileUri,
         });
         this.downloads.delete(source);
+        ResourceFetcherUtils.triggerDownloadEvent(resource.extendedInfo.uri);
         ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(
           resource.extendedInfo.uri
         );
@@ -503,6 +504,7 @@ export class ResourceFetcher {
       to: sourceExtended.fileUri,
     });
     this.downloads.delete(source);
+    ResourceFetcherUtils.triggerDownloadEvent(uri);
     ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
     return ResourceFetcherUtils.removeFilePrefix(sourceExtended.fileUri);
   }
