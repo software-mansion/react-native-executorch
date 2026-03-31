@@ -90,7 +90,7 @@ To run the model, use the [`forward`](../../06-api-reference/classes/SemanticSeg
 - [`classesOfInterest`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]`. The `ARGMAX` map is always returned regardless.
 - [`resizeToInput`](../../06-api-reference/classes/SemanticSegmentationModule.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions.
 
-:::warning
+:::tip
 Setting `resizeToInput` to `false` will make `forward` faster.
 :::
 

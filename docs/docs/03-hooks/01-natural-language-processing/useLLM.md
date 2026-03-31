@@ -23,10 +23,13 @@ description: "Learn how to use LLMs in your React Native applications with React
 
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
-- For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](../../06-api-reference/index.md#models---llm) shipped with our library.
-- Follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export arbitrary chosen LLM model.
+:::info
+It is recommended to use models provided by us, which are available at our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](../../06-api-reference/index.md#models---llm) shipped with our library.
 
-:::danger
+Alternatively, follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export an arbitrary LLM model.
+:::
+
+:::warning
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
 :::
 

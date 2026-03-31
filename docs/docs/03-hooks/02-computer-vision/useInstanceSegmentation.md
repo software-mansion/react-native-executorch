@@ -4,7 +4,7 @@ title: useInstanceSegmentation
 
 Instance segmentation is a computer vision technique that detects individual objects within an image and produces a per-pixel segmentation mask for each one. Unlike object detection (which only returns bounding boxes), instance segmentation provides precise object boundaries. React Native ExecuTorch offers a dedicated hook `useInstanceSegmentation` for this task.
 
-:::warning
+:::info
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/instance-segmentation).
 :::
 

@@ -4,7 +4,7 @@ title: useExecutorchModule
 
 useExecutorchModule provides React Native bindings to the ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from JavaScript.
 
-:::warning
+:::info
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
 :::
 
@@ -91,6 +91,10 @@ const inputTensor = {
 
 After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its [`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) as an ArrayBuffer. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
 
+:::info
+This code assumes that you have handled preprocessing of the input image (scaling, normalization) and postprocessing of the output (interpreting the raw output data) according to the model's requirements. Make sure to adjust these parts depending on your specific data and model outputs.
+:::
+
 ```typescript
 try {
   // Perform the forward operation and receive the stylized image output.
@@ -102,7 +106,3 @@ try {
   console.error('Error during model execution:', error);
 }
 ```
-
-:::info
-This code assumes that you have handled preprocessing of the input image (scaling, normalization) and postprocessing of the output (interpreting the raw output data) according to the model's requirements. Make sure to adjust these parts depending on your specific data and model outputs.
-:::

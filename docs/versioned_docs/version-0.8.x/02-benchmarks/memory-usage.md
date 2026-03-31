@@ -2,13 +2,13 @@
 title: Memory Usage
 ---
 
-## Classification
-
 :::info
 Memory usage values represent the peak memory increase observed while the model was
 loaded and actively running inference, relative to the baseline app memory
 before model initialization.
 :::
+
+## Classification
 
 | Model / Device                   | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
 | -------------------------------- | :----------------: | :------------------: |
@@ -19,13 +19,7 @@ before model initialization.
 
 ## Object Detection
 
-:::info
-Memory usage values represent the peak memory increase observed while the model was
-loaded and actively running inference, relative to the baseline app memory
-before model initialization.
-:::
-
-:::warning
+:::note
 Data presented for YOLO models is based on inference with forward_640 method.
 :::
 
@@ -42,12 +36,6 @@ Data presented for YOLO models is based on inference with forward_640 method.
 | YOLO26X (XNNPACK FP32)                        |        320         |         309          |
 
 ## Style Transfer
-
-:::info
-Memory usage values represent the peak memory increase observed while the model was
-loaded and actively running inference, relative to the baseline app memory
-before model initialization.
-:::
 
 | Model / Device                              | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
 | ------------------------------------------- | :----------------: | :------------------: |
@@ -70,91 +58,55 @@ before model initialization.
 
 ## OCR
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------ | :--------------------: | :----------------: |
-| Detector (CRAFT) + Recognizer (CRNN) |          1400          |        1320        |
+| Model / Device                                      | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| --------------------------------------------------- | :----------------: | :-------------: |
+| Detector (CRAFT) + Recognizer (CRNN) (XNNPACK FP32) |        1320        |      1400       |
 
 ## Vertical OCR
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------ | :--------------------: | :----------------: |
-| Detector (CRAFT) + Recognizer (CRNN) |       1000-1600        |     1000-1500      |
+| Model / Device                                      | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| --------------------------------------------------- | :----------------: | :-------------: |
+| Detector (CRAFT) + Recognizer (CRNN) (XNNPACK FP32) |     1000-1500      |    1000-1600    |
 
 ## LLMs
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
+| Model / Device                  | iPhone 17 Pro [GB] | OnePlus 12 [GB] |
+| ------------------------------- | :----------------: | :-------------: |
+| LLAMA3_2_1B (XNNPACK)           |        3.1         |       3.3       |
+| LLAMA3_2_1B_SPINQUANT (XNNPACK) |        2.4         |       1.9       |
+| LLAMA3_2_1B_QLORA (XNNPACK)     |        2.8         |       2.7       |
+| LLAMA3_2_3B (XNNPACK)           |        7.3         |       7.1       |
+| LLAMA3_2_3B_SPINQUANT (XNNPACK) |        3.8         |       3.7       |
+| LLAMA3_2_3B_QLORA (XNNPACK)     |        4.0         |       3.9       |
 
-| Model                 | Android (XNNPACK) [GB] | iOS (XNNPACK) [GB] |
-| --------------------- | :--------------------: | :----------------: |
-| LLAMA3_2_1B           |          3.3           |        3.1         |
-| LLAMA3_2_1B_SPINQUANT |          1.9           |        2.4         |
-| LLAMA3_2_1B_QLORA     |          2.7           |        2.8         |
-| LLAMA3_2_3B           |          7.1           |        7.3         |
-| LLAMA3_2_3B_SPINQUANT |          3.7           |        3.8         |
-| LLAMA3_2_3B_QLORA     |          3.9           |        4.0         |
+## Speech to Text
 
-## Speech to text
+| Model / Device         | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ---------------------- | :----------------: | :-------------: |
+| WHISPER_TINY (XNNPACK) |        375         |       410       |
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
+## Text to Speech
 
-| Model        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------ | :--------------------: | :----------------: |
-| WHISPER_TINY |          410           |        375         |
-
-## Text to speech
-
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-| Model         | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------- | :--------------------: | :----------------: |
-| KOKORO_SMALL  |          820           |        820         |
-| KOKORO_MEDIUM |          1140          |        1100        |
-
-:::info
+:::note
 The reported memory usage values include the memory footprint of the Phonemis package, which is used for phonemizing input text. Currently, this can range from 100 to 150 MB depending on the device.
 :::
 
+| Model / Device          | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ----------------------- | :----------------: | :-------------: |
+| KOKORO_SMALL (XNNPACK)  |        820         |       820       |
+| KOKORO_MEDIUM (XNNPACK) |        1100        |      1140       |
+
 ## Text Embeddings
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-| Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------- | :--------------------: | :----------------: |
-| ALL_MINILM_L6_V2           |           95           |        110         |
-| ALL_MPNET_BASE_V2          |          405           |        455         |
-| MULTI_QA_MINILM_L6_COS_V1  |          120           |        140         |
-| MULTI_QA_MPNET_BASE_DOT_V1 |          435           |        455         |
-| CLIP_VIT_BASE_PATCH32_TEXT |          200           |        280         |
+| Model / Device                       | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ------------------------------------ | :----------------: | :-------------: |
+| ALL_MINILM_L6_V2 (XNNPACK)           |        110         |       95        |
+| ALL_MPNET_BASE_V2 (XNNPACK)          |        455         |       405       |
+| MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)  |        140         |       120       |
+| MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK) |        455         |       435       |
+| CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK) |        280         |       200       |
 
 ## Image Embeddings
-
-:::info
-Memory usage values represent the peak memory increase observed while the model was
-loaded and actively running inference, relative to the baseline app memory
-before model initialization.
-:::
 
 | Model / Device                             | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
 | ------------------------------------------ | :----------------: | :------------------: |
@@ -163,48 +115,33 @@ before model initialization.
 ## Semantic Segmentation
 
 :::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-:::warning
 Data presented in the following sections is based on inference with non-resized
 output. When resize is enabled, expect higher memory usage and inference time
 with higher resolutions.
 :::
 
-| Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ----------------- | ---------------------- | ------------------ |
-| DEELABV3_RESNET50 | 930                    | 660                |
+| Model / Device              | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| --------------------------- | :----------------: | :-------------: |
+| DEELABV3_RESNET50 (XNNPACK) |        660         |       930       |
 
 ## Instance Segmentation
 
 :::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-:::warning
 Data presented in the following sections is based on inference with forward_640 method.
 :::
 
-| Model            | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ---------------- | ---------------------- | ------------------ |
-| YOLO26N_SEG      | 92                     | 668                |
-| YOLO26S_SEG      | 220                    | 712                |
-| YOLO26M_SEG      | 570                    | 815                |
-| YOLO26L_SEG      | 680                    | 1024               |
-| YOLO26X_SEG      | 1410                   | 1450               |
-| RF_DETR_NANO_SEG | 620                    | 603                |
+| Model / Device             | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| -------------------------- | :----------------: | :-------------: |
+| YOLO26N_SEG (XNNPACK)      |        668         |       92        |
+| YOLO26S_SEG (XNNPACK)      |        712         |       220       |
+| YOLO26M_SEG (XNNPACK)      |        815         |       570       |
+| YOLO26L_SEG (XNNPACK)      |        1024        |       680       |
+| YOLO26X_SEG (XNNPACK)      |        1450        |      1410       |
+| RF_DETR_NANO_SEG (XNNPACK) |        603         |       620       |
 
-## Text to image
+## Text to Image
 
-:::info
-All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12
-(Android).
-:::
-
-| Model                 | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------- | ---------------------- | ------------------ |
-| BK_SDM_TINY_VPRED_256 | 2400                   | 2400               |
-| BK_SDM_TINY_VPRED     | 6210                   | 6050               |
+| Model / Device                  | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ------------------------------- | :----------------: | :-------------: |
+| BK_SDM_TINY_VPRED_256 (XNNPACK) |        2400        |      2400       |
+| BK_SDM_TINY_VPRED (XNNPACK)     |        6050        |      6210       |

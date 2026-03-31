@@ -44,6 +44,8 @@ initExecutorch({
 });
 ```
 
+## Loading
+
 **1. Load from React Native assets folder (For Files < 512MB)**
 
 ```typescript
@@ -72,7 +74,7 @@ useExecutorchModule({
 });
 ```
 
-:::info
+:::note
 The downloaded files are stored in documents directory of your application.
 :::
 
@@ -85,10 +87,7 @@ Our library offers out-of-the-box support for multiple models. To make things ea
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:
 
 ```typescript
-import { useLLM } from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
 
-const llama = useLLM({
-  modelSource: 'https://.../llama3_2.pte',
-  tokenizerSource: require('../assets/tokenizer.bin'),
-});
+const llama = useLLM({ model: LLAMA3_2_1B });
 ```

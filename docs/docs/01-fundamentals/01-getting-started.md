@@ -43,7 +43,7 @@ Installation is pretty straightforward, use your package manager of choice to in
 <Tabs>
   <TabItem value="npm" label="NPM">
 
-    ```
+    ```bash
     npm install react-native-executorch
     # For Expo projects
     npm install react-native-executorch-expo-resource-fetcher
@@ -54,19 +54,18 @@ Installation is pretty straightforward, use your package manager of choice to in
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
 
-    ```
+    ```bash
     pnpm install react-native-executorch
     # For Expo projects
     pnpm install react-native-executorch-expo-resource-fetcher
     # For bare React Native projects
     pnpm install react-native-executorch-bare-resource-fetcher
-
     ```
 
   </TabItem>
   <TabItem value="yarn" label="YARN">
 
-    ```
+    ```bash
     yarn add react-native-executorch
     # For Expo projects
     yarn install react-native-executorch-expo-resource-fetcher
@@ -127,7 +126,7 @@ Adding new functionality to the library follows a consistent three-step integrat
 
 2. **Native Implementation:** We develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
 
-3. **TS Bindings:** Finally, we implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user."
+3. **TS Bindings:** Finally, we implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user.
 
 ## Good reads
 

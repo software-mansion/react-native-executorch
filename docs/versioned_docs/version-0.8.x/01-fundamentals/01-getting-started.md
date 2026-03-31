@@ -43,7 +43,7 @@ Installation is pretty straightforward, use your package manager of choice to in
 <Tabs>
   <TabItem value="npm" label="NPM">
 
-    ```
+    ```bash
     npm install react-native-executorch
     # For Expo projects
     npm install react-native-executorch-expo-resource-fetcher
@@ -54,19 +54,18 @@ Installation is pretty straightforward, use your package manager of choice to in
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
 
-    ```
+    ```bash
     pnpm install react-native-executorch
     # For Expo projects
     pnpm install react-native-executorch-expo-resource-fetcher
     # For bare React Native projects
     pnpm install react-native-executorch-bare-resource-fetcher
-
     ```
 
   </TabItem>
   <TabItem value="yarn" label="YARN">
 
-    ```
+    ```bash
     yarn add react-native-executorch
     # For Expo projects
     yarn install react-native-executorch-expo-resource-fetcher
