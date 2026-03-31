@@ -9,7 +9,18 @@
   background-color: #ffffff;
 }
 [data-theme='dark'][class*='plugin-pages'] {
-  background-color: var(--swm-navy-100);
+  background-color: #130302;
+  background-image:
+    radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 51, 0, 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 102, 0, 0.05) 0%,
+      transparent 50%
+    );
 }
 
 table {
@@ -191,4 +202,55 @@ table thead tr {
 /* Hide the toggle arrow */
 .hide-api-items .menu__link--sublist::after {
   display: none !important;
+}
+
+/* Admonition text color overrides for better readability */
+[data-theme='dark'] .theme-admonition {
+  color: #f5f5f5 !important;
+}
+
+[data-theme='dark'] .theme-admonition h5 {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .theme-admonition-note {
+  background-color: var(--swm-admonition-dark-cornflower) !important;
+  border-color: var(--swm-admonition-dark-cornflower-shadow) !important;
+}
+
+[data-theme='dark'] .theme-admonition-tip {
+  background-color: var(--swm-admonition-dark-green) !important;
+  border-color: var(--swm-admonition-dark-green-shadow) !important;
+}
+
+[data-theme='dark'] .theme-admonition-info {
+  background-color: var(--swm-admonition-dark-blue) !important;
+  border-color: var(--swm-admonition-dark-blue-shadow) !important;
+}
+
+[data-theme='dark'] .theme-admonition-caution,
+[data-theme='dark'] .theme-admonition-warning {
+  background-color: var(--swm-admonition-dark-yellow) !important;
+  border-color: var(--swm-admonition-dark-yellow-shadow) !important;
+}
+
+[data-theme='dark'] .theme-admonition-danger {
+  background-color: var(--swm-admonition-dark-red) !important;
+  border-color: var(--swm-admonition-dark-red-shadow) !important;
+}
+
+/* Docs page background */
+[data-theme='dark'] .main-wrapper,
+[data-theme='dark'] article {
+  background-color: #130302 !important;
+}
+
+[data-theme='dark'] .theme-doc-markdown {
+  background-color: transparent !important;
+}
+
+/* Code blocks on dark background */
+[data-theme='dark'] [class*='codeBlockContent'] pre,
+[data-theme='dark'] [class*='codeBlockContent'] code {
+  background-color: #1a0503 !important;
 }
