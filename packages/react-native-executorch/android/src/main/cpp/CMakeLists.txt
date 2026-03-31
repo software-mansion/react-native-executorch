@@ -54,6 +54,7 @@ set(EXECUTORCH_WHOLE_ARCHIVE_LIBS
   "${EXECUTORCH_STATIC_DIR}/liboptimized_native_cpu_ops_lib.a"
   "${EXECUTORCH_STATIC_DIR}/libxnnpack_backend.a"
   "${EXECUTORCH_STATIC_DIR}/libvulkan_backend.a"
+  "${EXECUTORCH_STATIC_DIR}/libexecutorch.a"
 )
 
 # Libs linked normally — only pull in symbols that are referenced.
@@ -62,7 +63,6 @@ set(EXECUTORCH_WHOLE_ARCHIVE_LIBS
 # overlap with common/runner/*.cpp).
 set(EXECUTORCH_STATIC_LIBS
   "${EXECUTORCH_STATIC_DIR}/libexecutorch_core.a"
-  "${EXECUTORCH_STATIC_DIR}/libexecutorch.a"
   "${EXECUTORCH_STATIC_DIR}/libextension_module.a"
   "${EXECUTORCH_STATIC_DIR}/libextension_tensor.a"
   "${EXECUTORCH_STATIC_DIR}/libextension_threadpool.a"
@@ -74,7 +74,6 @@ set(EXECUTORCH_STATIC_LIBS
   "${EXECUTORCH_STATIC_DIR}/liboptimized_kernels.a"
   "${EXECUTORCH_STATIC_DIR}/libXNNPACK.a"
   "${EXECUTORCH_STATIC_DIR}/libxnnpack-microkernels-prod.a"
-  "${EXECUTORCH_STATIC_DIR}/libkleidiai.a"
   "${EXECUTORCH_STATIC_DIR}/libre2.a"
   "${EXECUTORCH_STATIC_DIR}/libcpublas.a"
   "${EXECUTORCH_STATIC_DIR}/libeigen_blas.a"
@@ -130,6 +129,9 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
   set(EXECUTORCH_LIBS
     "cpuinfo"
   )
+
+  # kleidiai is ARM-only (Kleidi AI acceleration library)
+  list(APPEND EXECUTORCH_STATIC_LIBS "${EXECUTORCH_STATIC_DIR}/libkleidiai.a")
 endif()
 
 # ------- OpenCV -------
