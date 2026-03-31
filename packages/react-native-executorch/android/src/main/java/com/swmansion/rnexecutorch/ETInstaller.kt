@@ -50,6 +50,11 @@ class ETInstaller(
   init {
     try {
       System.loadLibrary("executorch")
+      try {
+        System.loadLibrary("qnn_executorch_backend")
+      } catch (e: UnsatisfiedLinkError) {
+        // QNN backend not available on this device (non-Qualcomm hardware)
+      }
       System.loadLibrary("react-native-executorch")
       val jsCallInvokerHolder = reactContext.jsCallInvokerHolder as CallInvokerHolderImpl
       mHybridData = initHybrid(reactContext.javaScriptContextHolder!!.get(), jsCallInvokerHolder)
