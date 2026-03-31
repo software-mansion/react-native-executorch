@@ -126,8 +126,14 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
   set_target_properties(cpuinfo PROPERTIES
                         IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so")
 
+  # ------- QNN backend -------
+  add_library(qnn_executorch_backend SHARED IMPORTED)
+  set_target_properties(qnn_executorch_backend PROPERTIES
+                        IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libqnn_executorch_backend.so")
+
   set(EXECUTORCH_LIBS
     "cpuinfo"
+    "qnn_executorch_backend"
   )
 
   # kleidiai is ARM-only (Kleidi AI acceleration library)
