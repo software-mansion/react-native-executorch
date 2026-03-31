@@ -452,7 +452,10 @@ const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
   Platform.OS === 'ios'
     ? `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`
     : `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
-const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${VERSION_TAG}/rfdetr_detector.pte`;
+const RF_DETR_NANO_MODEL =
+  Platform.OS === 'ios'
+    ? `${URL_PREFIX}-rfdetr-nano-detector/${VERSION_TAG}/coreml/rfdetr_n_det_coreml_int8.pte`
+    : `${URL_PREFIX}-rfdetr-nano-detector/${VERSION_TAG}/rfdetr_detector.pte`;
 
 /**
  * @category Models - Object Detection
@@ -861,7 +864,10 @@ const YOLO26S_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/yolo26s-seg/x
 const YOLO26M_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/yolo26m-seg/xnnpack/yolo26m-seg.pte`;
 const YOLO26L_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/yolo26l-seg/xnnpack/yolo26l-seg.pte`;
 const YOLO26X_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/yolo26x-seg/xnnpack/yolo26x-seg.pte`;
-const RF_DETR_NANO_SEG_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${VERSION_TAG}/rfdetr_segmentation.pte`;
+const RF_DETR_NANO_SEG_MODEL =
+  Platform.OS === 'ios'
+    ? `${URL_PREFIX}-rfdetr-nano-segmentation/${VERSION_TAG}/coreml/rfdetr_n_seg_coreml_int8.pte`
+    : `${URL_PREFIX}-rfdetr-nano-segmentation/${VERSION_TAG}/rfdetr_segmentation.pte`;
 /**
  * @category Models - Instance Segmentation
  */
