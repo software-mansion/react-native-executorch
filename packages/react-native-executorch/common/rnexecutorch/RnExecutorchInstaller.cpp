@@ -34,8 +34,11 @@ FetchUrlFunc_t fetchUrlFunc;
 
 void RnExecutorchInstaller::injectJSIBindings(
     jsi::Runtime *jsiRuntime, std::shared_ptr<react::CallInvoker> jsCallInvoker,
-    FetchUrlFunc_t fetchDataFromUrl) {
+    FetchUrlFunc_t fetchDataFromUrl, bool isEmulator) {
   fetchUrlFunc = fetchDataFromUrl;
+
+  jsiRuntime->global().setProperty(*jsiRuntime, "__rne_isEmulator",
+                                   jsi::Value(isEmulator));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadStyleTransfer",
