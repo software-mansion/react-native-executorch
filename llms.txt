@@ -66,7 +66,7 @@
 ## Benchmarks
 
 - [Inference Time](https://docs.swmansion.com/react-native-executorch/docs/benchmarks/inference-time.md): Times presented in the tables are measured as consecutive runs of the model.
-- [Memory Usage](https://docs.swmansion.com/react-native-executorch/docs/benchmarks/memory-usage.md): Classification
+- [Memory Usage](https://docs.swmansion.com/react-native-executorch/docs/benchmarks/memory-usage.md): Memory usage values represent the peak memory increase observed while the model was
 - [Model Size](https://docs.swmansion.com/react-native-executorch/docs/benchmarks/model-size.md): Classification
 
 ## Category
