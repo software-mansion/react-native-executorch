@@ -31,6 +31,8 @@ import {
   QWEN2_5_3B_QUANTIZED,
   PHI_4_MINI_4B,
   PHI_4_MINI_4B_QUANTIZED,
+  LFM2_5_350M,
+  LFM2_5_350M_QUANTIZED,
   LFM2_5_1_2B_INSTRUCT,
   LFM2_5_1_2B_INSTRUCT_QUANTIZED,
   LLMProps,
@@ -79,6 +81,8 @@ export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
   { label: 'Phi-4 Mini 4B', value: PHI_4_MINI_4B },
   { label: 'Phi-4 Mini 4B Quantized', value: PHI_4_MINI_4B_QUANTIZED },
   // LFM2.5
+  { label: 'LFM2.5 350M', value: LFM2_5_350M },
+  { label: 'LFM2.5 350M Quantized', value: LFM2_5_350M_QUANTIZED },
   { label: 'LFM2.5 1.2B Instruct', value: LFM2_5_1_2B_INSTRUCT },
   {
     label: 'LFM2.5 1.2B Instruct Quantized',
