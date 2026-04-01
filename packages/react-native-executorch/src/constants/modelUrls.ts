@@ -380,10 +380,10 @@ export const PHI_4_MINI_4B_QUANTIZED = {
 } as const;
 
 // LFM2.5-1.2B-Instruct
-const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/original/lfm2_5_1_2b_fp16.pte`;
-const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/quantized/lfm2_5_1_2b_8da4w.pte`;
-const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer.json`;
-const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer_config.json`;
+const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-1.2B-instruct/original/lfm2_5_1_2b_fp16.pte`;
+const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-1.2B-instruct/quantized/lfm2_5_1_2b_8da4w.pte`;
+const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-1.2B-instruct/tokenizer.json`;
+const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-1.2B-instruct/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -405,10 +405,36 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
   tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
 } as const;
 
+// LFM2.5-350M
+const LFM2_5_350M_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-350M/xnnpack/lfm2_5_350m_xnnpack_fp16.pte`;
+const LFM2_5_350M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-350M/xnnpack/lfm2_5_350m_xnnpack_8w4da.pte`;
+const LFM2_5_350M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-350M/tokenizer.json`;
+const LFM2_5_350M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-350M/tokenizer_config.json`;
+
+/**
+ * @category Models - LLM
+ */
+export const LFM2_5_350M = {
+  modelName: 'lfm2.5-350m',
+  modelSource: LFM2_5_350M_MODEL,
+  tokenizerSource: LFM2_5_350M_TOKENIZER,
+  tokenizerConfigSource: LFM2_5_350M_TOKENIZER_CONFIG,
+} as const;
+
+/**
+ * @category Models - LLM
+ */
+export const LFM2_5_350M_QUANTIZED = {
+  modelName: 'lfm2.5-350m-quantized',
+  modelSource: LFM2_5_350M_QUANTIZED_MODEL,
+  tokenizerSource: LFM2_5_350M_TOKENIZER,
+  tokenizerConfigSource: LFM2_5_350M_TOKENIZER_CONFIG,
+} as const;
+
 // LFM2.5-VL-1.6B
-const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm2.5-VL-1.6B/${VERSION_TAG}/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
-const LFM2_VL_TOKENIZER = `${URL_PREFIX}-lfm2.5-VL-1.6B/${VERSION_TAG}/tokenizer.json`;
-const LFM2_VL_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-VL-1.6B/${VERSION_TAG}/tokenizer_config.json`;
+const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
+const LFM2_VL_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/tokenizer.json`;
+const LFM2_VL_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/tokenizer_config.json`;
 
 /**
  * @category Models - VLM
@@ -1081,6 +1107,8 @@ export const MODEL_REGISTRY = {
     QWEN2_5_3B_QUANTIZED,
     PHI_4_MINI_4B,
     PHI_4_MINI_4B_QUANTIZED,
+    LFM2_5_350M,
+    LFM2_5_350M_QUANTIZED,
     LFM2_5_1_2B_INSTRUCT,
     LFM2_5_1_2B_INSTRUCT_QUANTIZED,
     LFM2_VL_1_6B_QUANTIZED,
