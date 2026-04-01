@@ -46,7 +46,7 @@ initExecutorch({
 
 ## Loading
 
-**1. Load from React Native assets folder (For Files < 512MB)**
+### Load from React Native assets folder (for files < 512MB)
 
 ```typescript
 useExecutorchModule({
@@ -54,7 +54,7 @@ useExecutorchModule({
 });
 ```
 
-**2. Load from remote URL:**
+### Load from remote URL
 
 For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
 
@@ -64,7 +64,7 @@ useExecutorchModule({
 });
 ```
 
-**3. Load from local file system:**
+### Load from local file system
 
 If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
 
