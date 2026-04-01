@@ -2,21 +2,19 @@
 title: Inference Time
 ---
 
-:::warning
+:::info
 Times presented in the tables are measured as consecutive runs of the model.
 Initial run times may be up to 2x longer due to model loading and
 initialization.
-:::
 
-## Classification
-
-:::info
 Inference times are measured directly from native C++ code, wrapping only the
 model's forward pass, excluding input-dependent pre- and post-processing (e.g.
 image resizing, normalization) and any overhead from React Native runtime.
 :::
 
-:::info
+## Classification
+
+:::note
 For this model all input images, whether larger or smaller, are resized before
 processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
@@ -31,19 +29,11 @@ slower for very large images, which can increase total time.
 
 ## Object Detection
 
-:::info
-Inference times are measured directly from native C++ code, wrapping only the
-model's forward pass, excluding input-dependent pre- and post-processing (e.g.
-image resizing, normalization) and any overhead from React Native runtime.
-:::
-
-:::info
+:::note
 For this model all input images, whether larger or smaller, are resized before
 processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
-:::
 
-:::warning
 Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano uses a fixed resolution of 312×312.
 :::
 
@@ -61,13 +51,7 @@ Times presented in the tables are measured for YOLO models with input size equal
 
 ## Style Transfer
 
-:::info
-Inference times are measured directly from native C++ code, wrapping only the
-model's forward pass, excluding input-dependent pre- and post-processing (e.g.
-image resizing, normalization) and any overhead from React Native runtime.
-:::
-
-:::info
+:::note
 For this model all input images, whether larger or smaller, are resized before
 processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
@@ -107,7 +91,9 @@ The values below represent the averages across all runs for the benchmark image.
 
 ## Vertical OCR
 
-Notice that the recognizer models, as well as detector's `forward_320` method, were executed between 4 and 21 times during a single recognition.
+:::note
+Recognizer models, as well as detector's `forward_320` method, were executed between 4 and 21 times during a single recognition.
+:::
 The values below represent the averages across all runs for the benchmark image.
 
 | Model                           | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
@@ -160,6 +146,10 @@ Average time to synthesize speech from an input text of approximately 60 tokens,
 
 ## Text Embeddings
 
+:::note
+Benchmark times for text embeddings are highly dependent on the sentence length. The numbers below are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
+:::
+
 | Model                      | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | -------------------------- | :--------------------------: | :-----------------------: |
 | ALL_MINILM_L6_V2           |              7               |            21             |
@@ -168,19 +158,9 @@ Average time to synthesize speech from an input text of approximately 60 tokens,
 | MULTI_QA_MPNET_BASE_DOT_V1 |              24              |            88             |
 | CLIP_VIT_BASE_PATCH32_TEXT |              14              |            39             |
 
-:::info
-Benchmark times for text embeddings are highly dependent on the sentence length. The numbers above are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
-:::
-
 ## Image Embeddings
 
-:::info
-Inference times are measured directly from native C++ code, wrapping only the
-model's forward pass, excluding input-dependent pre- and post-processing (e.g.
-image resizing, normalization) and any overhead from React Native runtime.
-:::
-
-:::info
+:::note
 For this model all input images, whether larger or smaller, are resized before
 processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
@@ -193,13 +173,7 @@ slower for very large images, which can increase total time.
 
 ## Semantic Segmentation
 
-:::info
-Inference times are measured directly from native C++ code, wrapping only the
-model's forward pass, excluding input-dependent pre- and post-processing (e.g.
-image resizing, normalization) and any overhead from React Native runtime.
-:::
-
-:::info
+:::note
 For this model all input images, whether larger or smaller, are resized before
 processing. Resizing is typically fast for small images but may be noticeably
 slower for very large images, which can increase total time.
@@ -222,10 +196,7 @@ slower for very large images, which can increase total time.
 
 ## Instance Segmentation
 
-:::warning
-Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
-:::
-:::warning
+:::note
 Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano Seg uses a fixed resolution of 312×312.
 :::
 

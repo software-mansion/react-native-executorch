@@ -18,7 +18,7 @@ description: "Learn how to tokenize your text in your React Native applications 
 Tokenization is the process of breaking down text into smaller units called tokens. It’s a crucial step in natural language processing that
 converts text into a format that machine learning models can understand.
 
-:::info
+:::note
 We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/index) under the hood, ensuring compatibility with the Hugging Face ecosystem.
 :::
 

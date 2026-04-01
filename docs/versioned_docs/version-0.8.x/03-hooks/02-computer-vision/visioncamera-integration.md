@@ -42,16 +42,11 @@ VisionCamera v5 delivers frames via [`useFrameOutput`](https://react-native-visi
 The `isFrontCamera` parameter tells the native side whether the front camera is active so it can correctly mirror the results. The library handles all device orientation rotation internally — results are always returned in screen-space coordinates regardless of how the user holds their device.
 
 :::warning
-You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeline expects RGB pixel data — any other format (e.g. the default `yuv`) will produce incorrect results.
-:::
 
-:::warning
-`runOnFrame` is synchronous and runs on the JS worklet thread. For models with longer inference times, use `dropFramesWhileBusy: true` to skip frames and avoid blocking the camera pipeline. For more control, see VisionCamera's [async frame processing guide](https://react-native-vision-camera-v5-docs.vercel.app/docs/async-frame-processing).
-:::
-
-:::note
-Always call `frame.dispose()` after processing to release the frame buffer. Wrap your inference in a `try/finally` to ensure it's always called even if `runOnFrame` throws.
-:::
+- You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeline expects RGB pixel data — any other format (e.g. the default `yuv`) will produce incorrect results.
+- `runOnFrame` is synchronous and runs on the JS worklet thread. For models with longer inference times, use `dropFramesWhileBusy: true` to skip frames and avoid blocking the camera pipeline. For more control, see VisionCamera's [async frame processing guide](https://react-native-vision-camera-v5-docs.vercel.app/docs/async-frame-processing).
+- Always call `frame.dispose()` after processing to release the frame buffer. Wrap your inference in a `try/finally` to ensure it's always called even if `runOnFrame` throws.
+  :::
 
 ## Camera configuration
 

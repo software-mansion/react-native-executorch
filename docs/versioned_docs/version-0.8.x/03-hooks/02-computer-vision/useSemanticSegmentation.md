@@ -4,7 +4,7 @@ title: useSemanticSegmentation
 
 Semantic semantic segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook `useSemanticSegmentation` for this task.
 
-:::warning
+:::info
 It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/semantic-segmentation-68d5291bdf4a30bee0220f4f), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
@@ -70,7 +70,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Semantic
 - [`classesOfInterest`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]` (no class masks). The `ARGMAX` map is always returned regardless of this parameter.
 - [`resizeToInput`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions (e.g. 224x224 for `DEEPLAB_V3_RESNET50`).
 
-:::warning
+:::tip
 Setting `resizeToInput` to `false` will make `forward` faster.
 :::
 
@@ -123,10 +123,10 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 | Model                                                                                                       | Number of classes | Class list                                                                                | Quantized |
 | ----------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------- | :-------: |
-| [deeplab-v3-resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)           | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
-| [deeplab-v3-resnet101](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)          | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
-| [deeplab-v3-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
-| [lraspp-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-lraspp)         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
-| [fcn-resnet50](https://huggingface.co/software-mansion/react-native-executorch-fcn)                         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
-| [fcn-resnet101](https://huggingface.co/software-mansion/react-native-executorch-fcn)                        | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    Yes    |
+| [deeplab-v3-resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)           | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
+| [deeplab-v3-resnet101](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)          | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
+| [deeplab-v3-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
+| [lraspp-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-lraspp)         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
+| [fcn-resnet50](https://huggingface.co/software-mansion/react-native-executorch-fcn)                         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
+| [fcn-resnet101](https://huggingface.co/software-mansion/react-native-executorch-fcn)                        | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |    ✅     |
 | [selfie-segmentation](https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation)  | 2                 | [SelfieSegmentationLabel](../../06-api-reference/enumerations/SelfieSegmentationLabel.md) |    No     |

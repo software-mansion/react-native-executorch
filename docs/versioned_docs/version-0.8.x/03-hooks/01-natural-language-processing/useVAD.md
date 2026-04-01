@@ -4,7 +4,7 @@ title: useVAD
 
 Voice Activity Detection (VAD) is the task of analyzing an audio signal to identify time segments containing human speech, separating them from non-speech sections like silence and background noise.
 
-:::caution
+:::info
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
@@ -67,7 +67,7 @@ You need more details? Check the following resources:
 
 Before running the model's [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method. The method returns a promise that resolves to the array of detected speech [`Segment[]`](../../06-api-reference/interfaces/Segment.md).
 
-:::info
+:::note
 Timestamps in returned speech segments, correspond to indices of input array (waveform).
 :::
 

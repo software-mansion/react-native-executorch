@@ -92,6 +92,10 @@ const inputTensor = {
 
 After passing input to the forward function, you'll receive an array of [`TensorPtr`](../../06-api-reference/interfaces/TensorPtr.md) objects. Each TensorPtr contains its [`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) field as an `ArrayBuffer`. Since `ArrayBuffer` represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a `Float32Array` view for float32 tensors, `Int32Array` for int32 tensors, etc.).
 
+:::info
+This code assumes that you have handled preprocessing of the input image (scaling, normalization) and postprocessing of the output (interpreting the raw output data) according to the model's requirements. Make sure to adjust these parts depending on your specific data and model outputs.
+:::
+
 ```typescript
 try {
   // Perform the forward operation and receive the stylized image output.
@@ -106,7 +110,3 @@ try {
 // Clean up resources when done
 executorchModule.delete();
 ```
-
-:::info
-This code assumes that you have handled preprocessing of the input image (scaling, normalization) and postprocessing of the output (interpreting the raw output data) according to the model's requirements. Make sure to adjust these parts depending on your specific data and model outputs.
-:::

@@ -19,7 +19,7 @@ description: "Learn how to use speech-to-text models in your React Native applic
 
 Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants.
 
-:::warning
+:::info
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 

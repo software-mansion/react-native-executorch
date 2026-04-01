@@ -17,7 +17,7 @@ description: "Learn how to use text embeddings models in your React Native appli
 
 Text Embedding is the process of converting text into a numerical representation. This representation can be used for various natural language processing tasks, such as semantic search, text classification, and clustering.
 
-:::warning
+:::info
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/text-embeddings-68d0ed42f8ca0200d0283362). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
@@ -113,6 +113,6 @@ function App() {
 
 **`Embedding Dimensions`** - The size of the output embedding vector. This is the number of dimensions in the vector representation of the input text.
 
-:::info
+:::note
 For the supported models, the returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
 :::
