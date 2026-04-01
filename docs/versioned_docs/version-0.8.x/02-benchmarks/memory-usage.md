@@ -20,7 +20,7 @@ before model initialization.
 ## Object Detection
 
 :::note
-Data presented for YOLO models is based on inference with forward_640 method.
+Data presented for YOLO models is based on inference with `forward_640` method.
 :::
 
 | Model / Device                                | iPhone 17 Pro [MB] | Google Pixel 10 [MB] |
@@ -114,20 +114,20 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 
 ## Semantic Segmentation
 
-:::info
+:::note
 Data presented in the following sections is based on inference with non-resized
 output. When resize is enabled, expect higher memory usage and inference time
 with higher resolutions.
 :::
 
-| Model / Device              | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
-| --------------------------- | :----------------: | :-------------: |
-| DEELABV3_RESNET50 (XNNPACK) |        660         |       930       |
+| Model / Device               | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ---------------------------- | :----------------: | :-------------: |
+| DEEPLABV3_RESNET50 (XNNPACK) |        660         |       930       |
 
 ## Instance Segmentation
 
-:::info
-Data presented in the following sections is based on inference with forward_640 method.
+:::note
+Data presented in the following sections is based on inference with `forward_640` method.
 :::
 
 | Model / Device             | iPhone 17 Pro [MB] | OnePlus 12 [MB] |

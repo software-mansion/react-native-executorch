@@ -26,7 +26,7 @@ import TabItem from '@theme/TabItem';
 
 ## React Native ExecuTorch
 
-React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Plus, we’ll provide a set of pre-exported models for common use cases, so you won’t have to worry about handling exports yourself. With just a few lines of JavaScript, you’ll be able to run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
+React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Additionally, we provide a set of pre-exported models for common use cases, so you don’t have to worry about handling exports yourself. With just a few lines of JavaScript, you can run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
 
 ## Compatibility
 
@@ -122,11 +122,11 @@ yarn <ios | android> -d
 
 Adding new functionality to the library follows a consistent three-step integration pipeline:
 
-1. **Model Serialization:** We export PyTorch models for specific tasks (e.g., object detection) into the \*.pte format, which is optimized for the ExecuTorch runtime.
+1. **Model Serialization:** Export PyTorch model for a specific task (e.g. object detection) into the `*.pte` format, which is optimized for the ExecuTorch runtime.
 
-2. **Native Implementation:** We develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
+2. **Native Implementation:** Develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
 
-3. **TS Bindings:** Finally, we implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user."
+3. **TS Bindings:** Finally, implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user.
 
 ## Good reads
 
