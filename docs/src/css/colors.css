@@ -31,19 +31,18 @@
   --swm-purple-dark-40: #e9dbff;
   --swm-purple-dark-transparent: #473d6840;
 
-  /* Remap blues to flames 🔥 */
-  --swm-blue-light-100: #ff6600;
-  --swm-blue-light-80: #ff8533;
-  --swm-blue-light-60: #ffa366;
-  --swm-blue-light-40: #ffcc99;
-  --swm-blue-light-20: #ffe6cc;
+  --swm-blue-light-100: #38acdd;
+  --swm-blue-light-80: #5bb9e0;
+  --swm-blue-light-60: #87cce8;
+  --swm-blue-light-40: #b5e1f1;
+  --swm-blue-light-20: #e1f3fa;
 
-  --swm-blue-dark-140: #4d0000;
-  --swm-blue-dark-120: #800000;
-  --swm-blue-dark-100: #ff3300;
-  --swm-blue-dark-80: #ff6600;
-  --swm-blue-dark-60: #ff9933;
-  --swm-blue-dark-40: #ffcc66;
+  --swm-blue-dark-140: #1b4865;
+  --swm-blue-dark-120: #126893;
+  --swm-blue-dark-100: #00a9f0;
+  --swm-blue-dark-80: #6fcef5;
+  --swm-blue-dark-60: #a8dbf0;
+  --swm-blue-dark-40: #d7f0fa;
 
   --swm-green-light-100: #57b495;
   --swm-green-light-80: #82cab2;
@@ -85,52 +84,41 @@
   --swm-yellow-dark-40: #fff9db;
 
   /* react-native-executorch */
-  --swm-navy-100: #130302; /* Deep flame black for dark theme */
+  --swm-navy-100: #160042;
 
-  /* FLAME COLOR PALETTE 🔥 */
-  --swm-flame-140: #4d0000;
-  --swm-flame-120: #800000;
-  --swm-flame-100: #ff3300;
-  --swm-flame-80: #ff6600;
-  --swm-flame-60: #ff9933;
-  --swm-flame-40: #ffcc66;
-  --swm-flame-20: #ffe6cc;
-  --swm-flame-0: #fff9f0;
+  --swm-cornflower-140: #23326f;
+  --swm-cornflower-120: #3851b4;
+  --swm-cornflower-100: #4b6cf4;
+  --swm-cornflower-80: #7394ff;
+  --swm-cornflower-60: #a6c2ff;
+  --swm-cornflower-40: #d0e2ff;
+  --swm-cornflower-20: #e6efff;
+  --swm-cornflower-0: #f7faff;
 
-  /* Legacy cornflower aliases - mapped to flame colors */
-  --swm-cornflower-140: var(--swm-flame-140);
-  --swm-cornflower-120: var(--swm-flame-120);
-  --swm-cornflower-100: var(--swm-flame-100);
-  --swm-cornflower-80: var(--swm-flame-80);
-  --swm-cornflower-60: var(--swm-flame-60);
-  --swm-cornflower-40: var(--swm-flame-40);
-  --swm-cornflower-20: var(--swm-flame-20);
-  --swm-cornflower-0: var(--swm-flame-0);
-
-  /* Admonitions colors - 🔥 FLAME THEME with better contrast */
-  --swm-admonition-light-cornflower: #fff5e6;
+  /* Admonitions colors */
+  --swm-admonition-light-cornflower: #f4f5fc;
   --swm-admonition-light-green: #eff6f0;
   --swm-admonition-light-red: #faf2f2;
-  --swm-admonition-light-blue: #fff5e6;
+  --swm-admonition-light-blue: #ebf4f7;
   --swm-admonition-light-yellow: #faf5ef;
 
-  --swm-admonition-light-cornflower-shadow: #cc5200;
+  --swm-admonition-light-cornflower-shadow: #4b6cf4;
   --swm-admonition-light-green-shadow: #10a05a;
   --swm-admonition-light-red-shadow: #dc5153;
-  --swm-admonition-light-blue-shadow: #cc5200;
+  --swm-admonition-light-blue-shadow: #2aafcd;
   --swm-admonition-light-yellow-shadow: #c79c03;
 
-  --swm-admonition-dark-cornflower: #2d0a00;
-  --swm-admonition-dark-green: #0a3d26;
-  --swm-admonition-dark-red: #4a1f20;
-  --swm-admonition-dark-blue: #2d0a00;
-  --swm-admonition-dark-yellow: #3d2e05;
+  --swm-admonition-dark-cornflower: #425fd8;
+  --swm-admonition-dark-green: #0f8c4f;
+  --swm-admonition-dark-red: #c24c4e;
+  --swm-admonition-dark-blue: #269cb7;
+  --swm-admonition-dark-yellow: #b18b04;
 
-  --swm-admonition-dark-cornflower-shadow: #ff6600;
-  --swm-admonition-dark-green-shadow: #10a05a;
-  --swm-admonition-dark-red-shadow: #ff3333;
-  --swm-admonition-dark-blue-shadow: #ff6600;
-  --swm-admonition-dark-yellow-shadow: #ffcc00;
+  --swm-admonition-dark-cornflower-shadow: #324387;
+  --swm-admonition-dark-green-shadow: #195943;
+  --swm-admonition-dark-red-shadow: #723942;
+  --swm-admonition-dark-blue-shadow: #246177;
+  --swm-admonition-dark-yellow-shadow: #6a591d;
 
   /* Black & White palette, mainly for background settings */
   --swm-off-white: #f8f9ff;
@@ -143,14 +131,14 @@
   --swm-navy: #232736;
   --swm-navy-transparent: #23273613;
 
-  /* Infima main colors - 🔥 FLAME THEME */
-  --ifm-color-primary: var(--swm-flame-100);
-  --ifm-color-primary-dark: var(--swm-flame-120);
-  --ifm-color-primary-darker: var(--swm-flame-140);
-  --ifm-color-primary-darkest: var(--swm-flame-140);
-  --ifm-color-primary-light: var(--swm-flame-80);
-  --ifm-color-primary-lighter: var(--swm-flame-60);
-  --ifm-color-primary-lightest: var(--swm-flame-40);
+  /* Infima main colors */
+  --ifm-color-primary: var(--swm-navy-light-100);
+  --ifm-color-primary-dark: var(--swm-navy-dark-80);
+  --ifm-color-primary-darker: var(--swm-navy-dark-100);
+  --ifm-color-primary-darkest: var(--swm-navy-dark-120);
+  --ifm-color-primary-light: var(--swm-navy-light-100);
+  --ifm-color-primary-lighter: var(--swm-navy-light-80);
+  --ifm-color-primary-lightest: var(--swm-navy-light-40);
 
   /* Main site settings */
   --swm-background: var(--swm-white);
@@ -158,9 +146,6 @@
 
   --ifm-background-color: var(--swm-background);
   --ifm-navbar-background-color: var(--swm-background);
-
-  /* Docs markdown background */
-  --docusaurus-highlighted-code-line-bg: var(--swm-flame-20);
 
   /* Color Mode */
   --swm-color-mode-enabled: var(--swm-navy-light-20);
@@ -171,7 +156,7 @@
   --swm-color-mode-disabled-color-landing: var(--ifm-font-color-base);
 
   /* Typography */
-  --ifm-heading-color: var(--swm-flame-100);
+  --ifm-heading-color: var(--ifm-color-primary);
   --ifm-font-color-base: var(--swm-navy-light-100);
 
   /* Tabs */
@@ -349,15 +334,15 @@
 }
 
 :root[data-theme='dark'] {
-  /* Infima main colors - 🔥 FLAME THEME */
-  --ifm-color-primary: var(--swm-flame-80);
+  /* Infima main colors */
+  --ifm-color-primary: var(--swm-navy-light-10);
 
-  /* Main site settings - FLAME BLACK */
-  --swm-background: #130302;
-  --swm-off-background: #1a0503;
+  /* Main site settings */
+  --swm-background: var(--swm-navy);
+  --swm-off-background: var(--swm-off-navy);
 
-  --ifm-background-color: #130302;
-  --ifm-navbar-background-color: #130302;
+  --ifm-background-color: var(--swm-background);
+  --ifm-navbar-background-color: var(--swm-background);
 
   /* Color Mode */
   --swm-color-mode-enabled: var(--swm-off-navy);
@@ -365,7 +350,7 @@
   --swm-color-mode-disabled-color: var(--swm-navy-light-40);
 
   /* Typography */
-  --ifm-font-color-base: #f5f5f5;
+  --ifm-font-color-base: var(--swm-navy-light-10);
 
   /* Tabs */
   --swm-tab: var(--swm-navy-light-60);
@@ -464,8 +449,8 @@
   --swm-search-page-query-text-color: var(--swm-navy-light-10);
 
   /* Sidebar */
-  --swm-sidebar-background: #130302;
-  --swm-sidebar-elements-background: #1a0503;
+  --swm-sidebar-background: var(--swm-navy);
+  --swm-sidebar-elements-background: var(--swm-off-navy);
   --swm-sidebar-menu-color: var(--swm-navy-light-20);
 
   /* Mobile sidebar */
@@ -493,8 +478,8 @@
   --swm-hire-us-section-color: var(--swm-white);
 
   /* Cards */
-  --swm-card-background: #130302;
-  --swm-card-border: #ff3300;
+  --swm-card-background: var(--swm-navy);
+  --swm-card-border: var(--swm-navy-dark-60);
   --swm-card-border-hover: var(--swm-cornflower-80);
 
   /* Sidebar label*/

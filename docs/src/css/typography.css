@@ -132,15 +132,6 @@ h6 {
   letter-spacing: var(--swm-heading-letter-spacing-smaller);
 }
 
-/* METAL TEXT EFFECTS 🔥 */
-[data-theme='dark'] h1,
-[data-theme='dark'] h2,
-[data-theme='dark'] h3 {
-  text-shadow:
-    0 0 20px rgba(255, 102, 0, 0.4),
-    0 0 10px rgba(255, 51, 0, 0.3);
-}
-
 h1 {
   line-height: var(--swm-h1-line-height);
   letter-spacing: var(--swm-heading-letter-spacing-bigger);

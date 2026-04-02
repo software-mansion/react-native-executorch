@@ -25,8 +25,8 @@ const WaveLight = (
         y2="1903.04"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#ff6600" />
-        <stop offset="1" stop-color="#ff6600" />
+        <stop stop-color="#7394FF" />
+        <stop offset="1" stop-color="#7394FF" />
       </linearGradient>
       <clipPath id="clip0_2020_324">
         <rect width="1440" height="300" fill="white" />
@@ -58,8 +58,8 @@ const WaveDark = (
         y2="1621.13"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#ff3300" />
-        <stop offset="1" stop-color="#ff3300" />
+        <stop stop-color="#313C9C" />
+        <stop offset="1" stop-color="#313C9C" />
       </linearGradient>
       <clipPath id="clip0_2002_315">
         <rect width="1440" height="300" fill="white" />
@@ -91,8 +91,8 @@ const WaveLightMobile = (
         y2="2284.07"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#ff6600" />
-        <stop offset="1" stop-color="#ff6600" />
+        <stop stop-color="#7394FF" />
+        <stop offset="1" stop-color="#7394FF" />
       </linearGradient>
       <clipPath id="clip0_2020_322">
         <rect width="390" height="150" fill="white" />
@@ -124,8 +124,8 @@ const WaveDarkMobile = (
         y2="1922.28"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#ff3300" />
-        <stop offset="1" stop-color="#ff3300" />
+        <stop stop-color="#313C9C" />
+        <stop offset="1" stop-color="#313C9C" />
       </linearGradient>
       <clipPath id="clip0_2001_312">
         <rect width="390" height="150" fill="white" />
