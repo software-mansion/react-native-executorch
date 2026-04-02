@@ -101,8 +101,8 @@ a.homepageButtonLink:hover {
 }
 
 [data-theme='dark'] .homepageButton {
-  background-color: var(--swm-flame-100);
-  border-color: var(--swm-flame-100);
+  background-color: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
 }
 
 [data-theme='dark'] .homepageButton:hover {
@@ -112,11 +112,11 @@ a.homepageButtonLink:hover {
 /* Button - transparent styling */
 
 [data-theme='dark'] .buttonTransparentStyling {
-  color: var(--swm-flame-100);
+  color: var(--swm-cornflower-100);
 }
 
 [data-theme='dark'] .buttonTransparentStyling svg {
-  stroke: var(--swm-flame-100);
+  stroke: var(--swm-cornflower-100);
 }
 
 /* Button - navy styling */
@@ -135,5 +135,5 @@ a.homepageButtonLink:hover {
 }
 
 [data-theme='dark'] .buttonPurpleBorderStyling {
-  border: 1px solid var(--swm-flame-100);
+  border: 1px solid var(--swm-cornflower-100);
 }

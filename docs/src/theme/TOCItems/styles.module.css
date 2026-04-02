@@ -1,5 +1,5 @@
 [data-theme='light'] .TOCItemsWrapper > div {
-  background-color: var(--swm-flame-20);
+  background-color: var(--swm-cornflower-20);
 }
 
 .hireUsContainer {
@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: var(--swm-flame-20); /* 🔥 */
+  background-color: var(--swm-blue-light-20);
   gap: 1rem;
 }
 

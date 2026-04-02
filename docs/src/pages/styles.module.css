@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   gap: 10rem;
-  min-height: 100vh;
 }
 
 .container > div {
@@ -15,12 +14,12 @@
   position: relative;
   width: 100%;
   margin-top: 18rem;
-  background: linear-gradient(#ff6600, #ffffff); /* 🔥 FLAMES */
+  background: linear-gradient(#7394ff, #ffffff);
   padding-top: 8.25rem;
 }
 
 [data-theme='dark'] .linearGradient {
-  background: linear-gradient(#ff3300, #0d0000); /* 🔥 METAL FLAMES */
+  background: linear-gradient(#313c9c, #160042);
 }
 
 .hireUsSection {
