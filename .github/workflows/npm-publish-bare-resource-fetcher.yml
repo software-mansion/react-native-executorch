@@ -38,7 +38,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.22.1
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
