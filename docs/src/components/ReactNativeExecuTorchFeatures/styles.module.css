@@ -24,8 +24,8 @@
 }
 
 [data-theme='dark'] .featuresButton:hover {
-  background-color: var(--swm-flame-100);
-  border-color: var(--swm-flame-100);
+  background-color: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
   color: var(--swm-off-white);
 }
 
