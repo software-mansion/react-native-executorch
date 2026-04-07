@@ -181,6 +181,48 @@ std::size_t BaseModel::getMemoryLowerBound() const noexcept {
 
 void BaseModel::unload() noexcept { module_.reset(nullptr); }
 
+void BaseModel::ensureMethodLoaded(const std::string &methodName) {
+  if (methodName.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "methodName cannot be empty");
+  }
+  if (currentlyLoadedMethod_ == methodName) {
+    return;
+  }
+  if (!module_) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Model module is not loaded");
+  }
+  if (!currentlyLoadedMethod_.empty()) {
+    module_->unload_method(currentlyLoadedMethod_);
+  }
+  auto loadResult = module_->load_method(methodName);
+  if (loadResult != executorch::runtime::Error::Ok) {
+    throw RnExecutorchError(
+        loadResult, "Failed to load method '" + methodName +
+                        "'. Ensure the method exists in the exported model.");
+  }
+  currentlyLoadedMethod_ = methodName;
+}
+
+cv::Size BaseModel::getModelInputSize(const std::string &methodName) const {
+  std::string method = methodName.empty() ? currentlyLoadedMethod_ : methodName;
+  if (method.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "No method specified and no method currently loaded");
+  }
+
+  auto inputShapes = getAllInputShapes(method);
+  if (inputShapes.empty() || inputShapes[0].size() < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Could not determine input shape for method: " +
+                                method);
+  }
+
+  const auto &shape = inputShapes[0];
+  return cv::Size(shape[shape.size() - 1], shape[shape.size() - 2]);
+}
+
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();

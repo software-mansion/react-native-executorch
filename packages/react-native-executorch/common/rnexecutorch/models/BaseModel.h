@@ -6,6 +6,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
+#include <opencv2/core/types.hpp>
 #include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
@@ -52,6 +53,35 @@ protected:
   std::unique_ptr<Module> module_;
 
   std::size_t memorySizeLowerBound{0};
+
+  /**
+   * @brief Ensures the specified method is loaded, unloading any previous
+   * method if necessary.
+   *
+   * This helper is useful for models that support multiple methods with
+   * different input sizes (e.g., "forward_384", "forward_512", "forward_640").
+   *
+   * @param methodName Name of the method to load (e.g., "forward",
+   * "forward_384").
+   * @throws RnExecutorchError if the method cannot be loaded or if methodName
+   * is empty.
+   */
+  void ensureMethodLoaded(const std::string &methodName);
+
+  /**
+   * @brief Get model input spatial dimensions for a specific method.
+   *
+   * Useful for multi-method models with different input sizes per method.
+   * Returns the last two dimensions of the input shape as cv::Size.
+   *
+   * @param methodName Method to query (uses currentlyLoadedMethod_ if empty)
+   * @return Size (width, height) of the model input for the specified method
+   * @throws RnExecutorchError if method metadata cannot be retrieved
+   */
+  cv::Size getModelInputSize(const std::string &methodName = "") const;
+
+  /// Name of the currently loaded method (for multi-method models).
+  std::string currentlyLoadedMethod_;
 
 private:
   std::vector<int32_t>
