@@ -2,11 +2,29 @@
 
 #include "Types.h"
 #include <algorithm>
+#include <set>
+#include <string>
 #include <vector>
 
 namespace rnexecutorch::utils::computer_vision {
 
 float computeIoU(const BBox &a, const BBox &b);
+
+/**
+ * @brief Convert class indices vector to a set for O(1) lookup
+ * @param classIndices Vector of allowed class indices
+ * @return Set of allowed class indices (empty set = allow all)
+ */
+std::set<int32_t>
+prepareAllowedClasses(const std::vector<int32_t> &classIndices);
+
+/**
+ * @brief Validate that a threshold is in [0, 1] range
+ * @param value Threshold value to validate
+ * @param name Name of the threshold (for error messages)
+ * @throws RnExecutorchError if value is out of range
+ */
+void validateThreshold(double value, const std::string &name);
 
 template <HasBBoxAndScore T>
 std::vector<T> nonMaxSuppression(std::vector<T> items, double iouThreshold) {
