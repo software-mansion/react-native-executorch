@@ -20,7 +20,7 @@ using executorch::runtime::Error;
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::vector<std::string> capabilities,
          std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
+    : BaseModel(modelSource, callInvoker, Module::LoadMode::Mmap) {
 
   if (capabilities.empty()) {
     runner_ =
@@ -194,9 +194,7 @@ int32_t LLM::countTextTokens(std::string text) const {
   return runner_->count_text_tokens(text);
 }
 
-size_t LLM::getMemoryLowerBound() const noexcept {
-  return memorySizeLowerBound;
-}
+size_t LLM::getMemoryLowerBound() const noexcept { return 0; }
 
 void LLM::setCountInterval(size_t countInterval) {
   if (!runner_ || !runner_->is_loaded()) {
