@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <mutex>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
 
@@ -20,8 +21,10 @@ public:
   [[nodiscard(
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   generate(const std::string input);
+  void unload() noexcept;
 
 private:
+  mutable std::mutex generate_mutex_;
   std::vector<std::vector<int32_t>> inputShapes;
   TokenIdsWithAttentionMask preprocess(const std::string &input);
   std::unique_ptr<TokenizerModule> tokenizer;
