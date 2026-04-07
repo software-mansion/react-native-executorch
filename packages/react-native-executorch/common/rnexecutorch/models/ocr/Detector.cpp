@@ -61,17 +61,10 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
 }
 
 cv::Size Detector::calculateModelImageSize(int32_t methodInputWidth) {
-
   utils::validateInputWidth(methodInputWidth, constants::kDetectorInputWidths,
                             "Detector");
   std::string methodName = "forward_" + std::to_string(methodInputWidth);
-
-  auto inputShapes = getAllInputShapes(methodName);
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  cv::Size modelInputSize =
-      cv::Size(modelInputShape[modelInputShape.size() - 1],
-               modelInputShape[modelInputShape.size() - 2]);
-  return modelInputSize;
+  return getModelInputSize(methodName);
 }
 
 std::vector<types::DetectorBBox>
