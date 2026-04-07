@@ -45,14 +45,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
 
   ensureMethodLoaded(methodName);
 
-  auto inputShapes = getAllInputShapes(methodName);
-  if (inputShapes.empty() || inputShapes[0].empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Method '" + methodName +
-                                "' has invalid input tensor shape.");
-  }
-
-  modelInputShape_ = inputShapes[0];
+  modelInputShape_ = validateAndGetInputShape(methodName, 2);
   const auto &shape = modelInputShape_;
   cv::Size modelInputSize(shape[shape.size() - 2], shape[shape.size() - 1]);
   cv::Size originalSize(image.cols, image.rows);

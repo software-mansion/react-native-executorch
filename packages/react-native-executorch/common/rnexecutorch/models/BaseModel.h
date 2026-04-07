@@ -80,6 +80,22 @@ protected:
    */
   cv::Size getModelInputSize(const std::string &methodName = "") const;
 
+  /**
+   * @brief Validate and get input shape for model
+   *
+   * Validates that the model has at least one input tensor and that the first
+   * input has the minimum required dimensions.
+   *
+   * @param methodName Method to get shapes for (default: "forward")
+   * @param minDimensions Minimum expected dimensions (default: 2)
+   * @throws RnExecutorchError if validation fails (no inputs or insufficient
+   * dimensions)
+   * @return The first input shape vector
+   */
+  std::vector<int32_t>
+  validateAndGetInputShape(const std::string &methodName = "forward",
+                          size_t minDimensions = 2) const;
+
   /// Name of the currently loaded method (for multi-method models).
   std::string currentlyLoadedMethod_;
 

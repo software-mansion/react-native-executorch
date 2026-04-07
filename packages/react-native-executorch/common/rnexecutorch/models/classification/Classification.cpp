@@ -17,22 +17,7 @@ Classification::Classification(const std::string &modelSource,
     : VisionModel(modelSource, callInvoker),
       labelNames_(std::move(labelNames)) {
   initNormalization(normMean, normStd);
-
-  auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Model seems to not take any input tensors.");
-  }
-  modelInputShape_ = inputShapes[0];
-  if (modelInputShape_.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimensions "
-                  "but got: %zu.",
-                  modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
-  }
+  modelInputShape_ = validateAndGetInputShape();
 }
 
 std::unordered_map<std::string_view, float>

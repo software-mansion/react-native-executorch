@@ -10,21 +10,7 @@ ImageEmbeddings::ImageEmbeddings(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker) {
-  auto inputTensors = getAllInputShapes();
-  if (inputTensors.size() == 0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Model seems to not take any input tensors.");
-  }
-  modelInputShape_ = inputTensors[0];
-  if (modelInputShape_.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimensions "
-                  "but got: %zu.",
-                  modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
-  }
+  modelInputShape_ = validateAndGetInputShape();
 }
 
 std::shared_ptr<OwningArrayBuffer>

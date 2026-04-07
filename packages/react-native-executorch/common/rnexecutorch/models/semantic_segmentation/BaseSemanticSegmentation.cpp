@@ -22,18 +22,7 @@ BaseSemanticSegmentation::BaseSemanticSegmentation(
 }
 
 void BaseSemanticSegmentation::initModelImageSize() {
-  auto inputShapes = getAllInputShapes();
-  if (inputShapes.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Model seems to not take any input tensors.");
-  }
-  modelInputShape_ = inputShapes[0];
-  if (modelInputShape_.size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            "Unexpected model input size, expected at least 2 "
-                            "dimensions but got: " +
-                                std::to_string(modelInputShape_.size()) + ".");
-  }
+  modelInputShape_ = validateAndGetInputShape();
   numModelPixels = modelInputSize().area();
 }
 

@@ -104,14 +104,8 @@ std::vector<types::Detection> ObjectDetection::runInference(
 
   cv::Size originalSize = image.size();
 
-  // Query input shapes for the currently loaded method
-  auto inputShapes = getAllInputShapes(methodName);
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Could not determine input shape for method: " +
-                                methodName);
-  }
-  modelInputShape_ = inputShapes[0];
+  // Query and validate input shapes for the currently loaded method
+  modelInputShape_ = validateAndGetInputShape(methodName, 2);
 
   cv::Mat preprocessed = preprocess(image);
   auto inputTensor = createInputTensor(preprocessed);

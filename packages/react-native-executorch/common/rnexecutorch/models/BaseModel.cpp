@@ -224,6 +224,28 @@ cv::Size BaseModel::getModelInputSize(const std::string &methodName) const {
 }
 
 std::vector<int32_t>
+BaseModel::validateAndGetInputShape(const std::string &methodName,
+                                   size_t minDimensions) const {
+  auto inputShapes = getAllInputShapes(methodName);
+
+  if (inputShapes.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Model seems to not take any input tensors.");
+  }
+
+  const auto &shape = inputShapes[0];
+  if (shape.size() < minDimensions) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::WrongDimensions,
+        "Unexpected model input size, expected at least " +
+            std::to_string(minDimensions) + " dimensions but got: " +
+            std::to_string(shape.size()) + ".");
+  }
+
+  return shape;
+}
+
+std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();
   return std::vector<int32_t>(sizes.begin(), sizes.end());
