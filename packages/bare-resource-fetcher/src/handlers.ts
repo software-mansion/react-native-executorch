@@ -20,10 +20,10 @@ export interface ActiveDownload {
   uri: string;
   fileUri: string;
   cacheFileUri: string;
-  // settle and reject are the resolve/reject of the Promise returned by handleRemote.
+  // resolve and reject are the resolve/reject of the Promise returned by handleRemote.
   // They are stored here so that cancel() and resume() in the fetcher class can
   // unblock the fetch() loop from outside the download flow.
-  settle: (path: string) => void;
+  resolve: (path: string) => void;
   reject: (error: unknown) => void;
   // iOS only: background downloader task, used for pause/resume/cancel
   task?: DownloadTask;
@@ -108,11 +108,11 @@ export async function handleRemote(
 
   // We need a Promise whose resolution can be triggered from outside this function —
   // by cancel() or resume() in the fetcher class. A plain async function can't do that,
-  // so we create the Promise manually and store settle/reject in the downloads map.
-  let settle: (path: string) => void = () => {};
+  // so we create the Promise manually and store resolve/reject in the downloads map.
+  let resolve: (path: string) => void = () => {};
   let reject: (error: unknown) => void = () => {};
   const promise = new Promise<string>((res, rej) => {
-    settle = res;
+    resolve = res;
     reject = rej;
   });
 
@@ -133,7 +133,7 @@ export async function handleRemote(
       uri,
       fileUri,
       cacheFileUri,
-      settle,
+      resolve,
       reject,
       jobId: rnfsDownload.jobId,
     });
@@ -162,8 +162,7 @@ export async function handleRemote(
         }
 
         downloads.delete(source);
-        ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
-        settle(ResourceFetcherUtils.removeFilePrefix(fileUri));
+        resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
       })
       .catch((error: unknown) => {
         if (!downloads.has(source)) return; // canceled externally
@@ -186,16 +185,17 @@ export async function handleRemote(
         progressCallback(progress.bytesDownloaded / progress.bytesTotal);
       })
       .done(async () => {
-        const dl = downloads.get(source);
-        // If paused or canceled, settle/reject will be called externally — do nothing here.
-        if (!dl || dl.status === DownloadStatus.PAUSED) return;
+        const downloadHandle = downloads.get(source);
+        // If paused or canceled, resolve/reject will be called externally — do nothing here.
+        if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
+          return;
 
         try {
           await RNFS.moveFile(cacheFileUri, fileUri);
           // Required by the background downloader library to signal iOS that the
           // background download session is complete.
           const fn = fileUri.split('/').pop();
-          if (fn) await completeHandler(fn);
+          if (fn) completeHandler(fn);
         } catch (error) {
           downloads.delete(source);
           reject(error);
@@ -203,8 +203,7 @@ export async function handleRemote(
         }
 
         downloads.delete(source);
-        ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
-        settle(ResourceFetcherUtils.removeFilePrefix(fileUri));
+        resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
       })
       .error((error: any) => {
         if (!downloads.has(source)) return; // canceled externally
@@ -224,7 +223,7 @@ export async function handleRemote(
       uri,
       fileUri,
       cacheFileUri,
-      settle,
+      resolve,
       reject,
       task,
     });

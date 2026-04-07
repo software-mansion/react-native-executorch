@@ -89,7 +89,7 @@ export abstract class BaseResourceFetcherClass<
    * @remarks
    * The returned Promise must be resolvable from outside this function —
    * `cancel()` and `resume()` need to unblock the `fetch()` loop by calling
-   * `settle`/`reject` stored on the `downloads` map entry. See handlers.ts
+   * `resolve`/`reject` stored on the `downloads` map entry. See handlers.ts
    * for the leaked-resolver pattern used to achieve this.
    */
   protected abstract handleRemote(
@@ -108,7 +108,7 @@ export abstract class BaseResourceFetcherClass<
 
   /**
    * Resume a paused download for `source`. The result must flow back through
-   * the original `fetch()` promise — call `settle(path)` on the `downloads`
+   * the original `fetch()` promise — call `resolve(path)` on the `downloads`
    * map entry rather than creating a new Promise. Should throw
    * `ResourceFetcherAlreadyOngoing` if the download is not paused, and
    * `ResourceFetcherPlatformNotSupported` if the platform does not support

@@ -79,29 +79,29 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
   }
 
   protected async pause(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
-    if (dl.status === DownloadStatus.PAUSED) {
+    const downloadHandle = this.downloads.get(source)!;
+    if (downloadHandle.status === DownloadStatus.PAUSED) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
         "The file download is currently paused. Can't pause the download of the same file twice."
       );
     }
-    dl.status = DownloadStatus.PAUSED;
-    await dl.downloadResumable.pauseAsync();
+    downloadHandle.status = DownloadStatus.PAUSED;
+    await downloadHandle.downloadResumable.pauseAsync();
   }
 
   protected async resume(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
-    if (dl.status === DownloadStatus.ONGOING) {
+    const downloadHandle = this.downloads.get(source)!;
+    if (downloadHandle.status === DownloadStatus.ONGOING) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
         "The file download is currently ongoing. Can't resume the ongoing download."
       );
     }
-    dl.status = DownloadStatus.ONGOING;
-    const result = await dl.downloadResumable.resumeAsync();
+    downloadHandle.status = DownloadStatus.ONGOING;
+    const result = await downloadHandle.downloadResumable.resumeAsync();
     const current = this.downloads.get(source);
-    // Paused again or canceled during resume — settle/reject handled elsewhere.
+    // Paused again or canceled during resume — resolve/reject handled elsewhere.
     if (!current || current.status === DownloadStatus.PAUSED) return;
 
     if (
@@ -110,27 +110,32 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
         result.status !== HTTP_CODE.PARTIAL_CONTENT)
     ) {
       this.downloads.delete(source);
-      dl.reject(
+      downloadHandle.reject(
         new RnExecutorchError(
           RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-          `Failed to resume download from '${dl.uri}', status: ${result?.status}`
+          `Failed to resume download from '${downloadHandle.uri}', status: ${result?.status}`
         )
       );
       return;
     }
 
     const { moveAsync } = await import('expo-file-system/legacy');
-    await moveAsync({ from: dl.cacheFileUri, to: dl.fileUri });
+    await moveAsync({
+      from: downloadHandle.cacheFileUri,
+      to: downloadHandle.fileUri,
+    });
     this.downloads.delete(source);
-    ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(dl.uri);
-    dl.settle(ResourceFetcherUtils.removeFilePrefix(dl.fileUri));
+    ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(downloadHandle.uri);
+    downloadHandle.resolve(
+      ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri)
+    );
   }
 
   protected async cancel(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
-    await dl.downloadResumable.cancelAsync();
+    const downloadHandle = this.downloads.get(source)!;
+    await downloadHandle.downloadResumable.cancelAsync();
     this.downloads.delete(source);
-    dl.reject(
+    downloadHandle.reject(
       new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'Download was canceled.'

@@ -24,6 +24,7 @@
  */
 
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import { Platform } from 'react-native';
 import { RNEDirectory } from './constants/directories';
 import {
   ResourceSource,
@@ -71,59 +72,83 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
   }
 
   protected async pause(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
-    if (dl.status === DownloadStatus.PAUSED) {
+    const downloadHandle = this.downloads.get(source)!;
+    if (downloadHandle.status === DownloadStatus.PAUSED) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
         "The file download is currently paused. Can't pause the download of the same file twice."
       );
     }
-    if (!dl.task) {
+    if (Platform.OS === 'android') {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherPlatformNotSupported,
         'Pause is not supported on Android. Use cancelFetching and re-fetch instead.'
       );
     }
-    dl.status = DownloadStatus.PAUSED;
-    dl.task.pause();
+    if (!downloadHandle.task) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+        'Download task is missing. This should not happen on iOS.'
+      );
+    }
+    downloadHandle.status = DownloadStatus.PAUSED;
+    downloadHandle.task.pause();
   }
 
   protected async resume(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
-    if (dl.status === DownloadStatus.ONGOING) {
+    const downloadHandle = this.downloads.get(source)!;
+    if (downloadHandle.status === DownloadStatus.ONGOING) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
         "The file download is currently ongoing. Can't resume the ongoing download."
       );
     }
-    if (!dl.task) {
+    if (Platform.OS === 'android') {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ResourceFetcherPlatformNotSupported,
         'Resume is not supported on Android. Use fetch to restart the download.'
       );
     }
+    if (!downloadHandle.task) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+        'Download task is missing. This should not happen on iOS.'
+      );
+    }
     // Set status back to ONGOING before resuming so the .done() callback
     // registered in handleRemote knows it's safe to proceed (not paused/canceled).
-    dl.status = DownloadStatus.ONGOING;
-    dl.task.resume();
+    downloadHandle.status = DownloadStatus.ONGOING;
+    downloadHandle.task.resume();
   }
 
   protected async cancel(source: ResourceSource): Promise<void> {
-    const dl = this.downloads.get(source)!;
+    const downloadHandle = this.downloads.get(source)!;
 
-    if (dl.task) {
-      // iOS: background downloader cancel
-      dl.task.stop();
-    } else if (dl.jobId !== undefined) {
-      // Android: RNFS cancel + cleanup of partial file
-      RNFS.stopDownload(dl.jobId);
-      if (await ResourceFetcherUtils.checkFileExists(dl.cacheFileUri)) {
-        await RNFS.unlink(dl.cacheFileUri);
+    if (Platform.OS === 'ios') {
+      if (!downloadHandle.task) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          'Download task is missing. This should not happen on iOS.'
+        );
+      }
+      downloadHandle.task.stop();
+    } else if (Platform.OS === 'android') {
+      if (downloadHandle.jobId === undefined) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          'Download job ID is missing. This should not happen on Android.'
+        );
+      }
+      RNFS.stopDownload(downloadHandle.jobId);
+      if (
+        await ResourceFetcherUtils.checkFileExists(downloadHandle.cacheFileUri)
+      ) {
+        await RNFS.unlink(downloadHandle.cacheFileUri);
       }
     }
 
     this.downloads.delete(source);
-    dl.reject(
+    downloadHandle.reject(
       new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'Download was canceled.'
