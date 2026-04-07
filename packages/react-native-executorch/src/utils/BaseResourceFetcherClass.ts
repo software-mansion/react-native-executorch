@@ -96,7 +96,7 @@ export abstract class BaseResourceFetcherClass<
     uri: string,
     source: ResourceSource,
     progressCallback: (progress: number) => void
-  ): Promise<string>;
+  ): Promise<{ path: string; wasDownloaded: boolean }>;
 
   /**
    * Pause the active download for `source`. Should throw
@@ -152,7 +152,7 @@ export abstract class BaseResourceFetcherClass<
   async fetch(
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
-  ): Promise<string[]> {
+  ): Promise<{ paths: string[]; wasDownloaded: boolean[] }> {
     if (sources.length === 0) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.InvalidUserInput,
@@ -164,7 +164,8 @@ export abstract class BaseResourceFetcherClass<
     // Key by source so we can look up progress info without relying on index
     // alignment (getFilesSizes skips sources whose HEAD request fails).
     const infoMap = new Map(info.map((entry) => [entry.source, entry]));
-    const results: string[] = [];
+    const paths: string[] = [];
+    const wasDownloaded: boolean[] = [];
 
     for (const source of sources) {
       const fileInfo = infoMap.get(source);
@@ -178,20 +179,27 @@ export abstract class BaseResourceFetcherClass<
             )
           : () => {};
 
-      results.push(await this.fetchOne(source, progressCallback));
+      const result = await this.fetchOne(source, progressCallback);
+      paths.push(result.path);
+      wasDownloaded.push(result.wasDownloaded);
     }
 
-    return results;
+    return { paths, wasDownloaded };
   }
 
   private async fetchOne(
     source: ResourceSource,
     progressCallback: (progress: number) => void
-  ): Promise<string> {
-    if (typeof source === 'object') return this.handleObject(source);
+  ): Promise<{ path: string; wasDownloaded: boolean }> {
+    if (typeof source === 'object')
+      return { path: await this.handleObject(source), wasDownloaded: false };
     if (typeof source === 'number')
-      return this.handleAsset(source, progressCallback);
-    if (source.startsWith('file://')) return this.handleLocalFile(source);
+      return {
+        path: await this.handleAsset(source, progressCallback),
+        wasDownloaded: false,
+      };
+    if (source.startsWith('file://'))
+      return { path: this.handleLocalFile(source), wasDownloaded: false };
     return this.handleRemote(source, source, progressCallback);
   }
 

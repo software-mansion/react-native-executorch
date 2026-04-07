@@ -27,6 +27,7 @@ import {
   deleteAsync,
   readDirectoryAsync,
   readAsStringAsync,
+  moveAsync,
 } from 'expo-file-system/legacy';
 import { RNEDirectory } from './constants/directories';
 import {
@@ -74,7 +75,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
     uri: string,
     source: ResourceSource,
     progressCallback: (progress: number) => void
-  ): Promise<string> {
+  ): Promise<{ path: string; wasDownloaded: boolean }> {
     return handleRemote(uri, source, progressCallback, this.downloads);
   }
 
@@ -119,13 +120,11 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
       return;
     }
 
-    const { moveAsync } = await import('expo-file-system/legacy');
     await moveAsync({
       from: downloadHandle.cacheFileUri,
       to: downloadHandle.fileUri,
     });
     this.downloads.delete(source);
-    ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(downloadHandle.uri);
     downloadHandle.resolve(
       ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri)
     );

@@ -61,7 +61,7 @@ export async function handleAsset(
     // Dev mode: asset served from Metro dev server.
     // uri is the resolved HTTP URL; source is the original require() number the
     // user holds, so it must be used as the downloads map key for pause/cancel to work.
-    return handleRemote(uri, source, progressCallback, downloads);
+    return (await handleRemote(uri, source, progressCallback, downloads)).path;
   }
 
   // Release mode: asset bundled locally, copy to RNEDirectory
@@ -88,7 +88,7 @@ export async function handleRemote(
   source: ResourceSource,
   progressCallback: (progress: number) => void,
   downloads: Map<ResourceSource, ActiveDownload>
-): Promise<string> {
+): Promise<{ path: string; wasDownloaded: boolean }> {
   if (downloads.has(source)) {
     throw new RnExecutorchError(
       RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
@@ -101,7 +101,10 @@ export async function handleRemote(
   const cacheFileUri = `${RNFS.CachesDirectoryPath}/${filename}`;
 
   if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
-    return ResourceFetcherUtils.removeFilePrefix(fileUri);
+    return {
+      path: ResourceFetcherUtils.removeFilePrefix(fileUri),
+      wasDownloaded: false,
+    };
   }
 
   await ResourceFetcherUtils.createDirectoryIfNoExists();
@@ -229,5 +232,5 @@ export async function handleRemote(
     });
   }
 
-  return promise;
+  return promise.then((path) => ({ path, wasDownloaded: true }));
 }

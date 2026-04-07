@@ -67,7 +67,7 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
     uri: string,
     source: ResourceSource,
     progressCallback: (progress: number) => void
-  ): Promise<string> {
+  ): Promise<{ path: string; wasDownloaded: boolean }> {
     return handleRemote(uri, source, progressCallback, this.downloads);
   }
 
