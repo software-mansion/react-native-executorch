@@ -27,11 +27,11 @@ jobs:
         with:
           xcode-version: latest-stable
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "yarn"
@@ -42,7 +42,7 @@ jobs:
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
       - name: Cache Expo prebuild
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: apps/llm/ios
           # key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
