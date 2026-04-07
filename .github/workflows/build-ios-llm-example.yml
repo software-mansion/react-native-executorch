@@ -41,20 +41,11 @@ jobs:
         run: |
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
-      - name: Cache Expo prebuild
-        uses: actions/cache@v5
-        with:
-          path: apps/llm/ios
-          # key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
-          key: ${{ runner.os }}-expo-ios-nocache-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
-          if [ ! -d "ios" ]; then
-            npx expo prebuild --platform ios --no-install
-          else
-            echo "iOS project exists, skipping prebuild"
-          fi
+          rm -rf ios
+          npx expo prebuild --platform ios --no-install
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
