@@ -63,6 +63,12 @@ protected:
   /// Set once by each subclass constructor to avoid per-frame metadata lookups.
   std::vector<int32_t> modelInputShape_;
 
+  /// Normalization mean values (RGB channels)
+  std::optional<cv::Scalar> normMean_;
+
+  /// Normalization standard deviation values (RGB channels)
+  std::optional<cv::Scalar> normStd_;
+
   /**
    * @brief Mutex to ensure thread-safe inference
    *
@@ -99,6 +105,62 @@ protected:
    * sizes.
    */
   virtual cv::Size modelInputSize() const;
+
+  /**
+   * @brief Initialize normalization parameters from vectors
+   *
+   * Validates size == 3 and converts to cv::Scalar.
+   * Logs warning if invalid but non-empty. Sets nullopt if empty/invalid.
+   *
+   * @param normMean Mean values for RGB channels (expected size: 3)
+   * @param normStd Standard deviation values for RGB channels (expected size: 3)
+   */
+  void initNormalization(const std::vector<float> &normMean,
+                        const std::vector<float> &normStd);
+
+  /**
+   * @brief Create input tensor from preprocessed image
+   *
+   * Applies normalization if normMean_ and normStd_ are set.
+   *
+   * @param preprocessed Preprocessed image (resized, RGB format)
+   * @return TensorPtr ready for model input
+   */
+  TensorPtr createInputTensor(const cv::Mat &preprocessed) const;
+
+  /**
+   * @brief Load and convert image from path to RGB format
+   *
+   * Common preprocessing: readImage (BGR) → convert to RGB
+   *
+   * @param imageSource Path to the image file
+   * @return cv::Mat in RGB format
+   */
+  cv::Mat loadImageToRGB(const std::string &imageSource) const;
+
+  /**
+   * @brief Process camera frame with rotation support
+   *
+   * @param runtime JSI runtime
+   * @param frameData JSI value containing frame data from VisionCamera
+   * @return Pair of {rotated RGB frame, orientation info}
+   */
+  std::pair<cv::Mat, utils::FrameOrientation>
+  loadFrameRotated(jsi::Runtime &runtime, const jsi::Value &frameData) const;
+
+  /**
+   * @brief Process camera frame with rotation, also returning original size
+   *
+   * For models that need original frame size (e.g., semantic segmentation)
+   *
+   * @param runtime JSI runtime
+   * @param frameData JSI value containing frame data from VisionCamera
+   * @return Tuple of {rotated RGB frame, orientation info, original size}
+   */
+  std::tuple<cv::Mat, utils::FrameOrientation, cv::Size>
+  loadFrameRotatedWithSize(jsi::Runtime &runtime,
+                          const jsi::Value &frameData) const;
+
   /**
    * @brief Extract an RGB cv::Mat from a VisionCamera frame
    *
