@@ -22,7 +22,6 @@ interface FilesSizesResult {
  * Contains the shared fetch loop, source dispatching, and pause/resume/cancel
  * plumbing. Concrete subclasses (expo, bare) implement the platform-specific
  * file system operations and download mechanics.
- *
  * @typeParam TDownload - The platform-specific active download descriptor type.
  */
 export abstract class BaseResourceFetcherClass<
@@ -85,7 +84,6 @@ export abstract class BaseResourceFetcherClass<
    * are the same value.
    *
    * Returns `null` if the download was interrupted by `cancel()`.
-   *
    * @remarks
    * The returned Promise must be resolvable from outside this function —
    * `cancel()` and `resume()` need to unblock the `fetch()` loop by calling

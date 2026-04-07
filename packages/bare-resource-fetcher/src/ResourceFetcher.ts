@@ -158,7 +158,6 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Lists all the downloaded files used by React Native ExecuTorch.
-   *
    * @returns A promise that resolves to an array of URIs for all the downloaded files.
    */
   async listDownloadedFiles(): Promise<string[]> {
@@ -194,7 +193,6 @@ class BareResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Fetches the total size of remote files. Works only for remote files.
-   *
    * @param sources - The resource identifiers (URLs).
    * @returns A promise that resolves to the combined size of files in bytes.
    */

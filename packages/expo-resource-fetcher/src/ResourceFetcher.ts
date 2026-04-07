@@ -144,7 +144,6 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Reads the contents of a file as a string.
-   *
    * @param path - Absolute file path or file URI to read.
    * @returns A promise that resolves to the file contents as a string.
    */
@@ -155,7 +154,6 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Lists all the downloaded files used by React Native ExecuTorch.
-   *
    * @returns A promise that resolves to an array of URIs for all the downloaded files.
    */
   async listDownloadedFiles(): Promise<string[]> {
@@ -165,7 +163,6 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Deletes downloaded resources from the local filesystem.
-   *
    * @param sources - The resource identifiers used when calling `fetch`.
    * @returns A promise that resolves once all specified resources have been removed.
    */
@@ -183,7 +180,6 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   /**
    * Fetches the total size of remote files. Works only for remote files.
-   *
    * @param sources - The resource identifiers (URLs).
    * @returns A promise that resolves to the combined size of files in bytes.
    */
