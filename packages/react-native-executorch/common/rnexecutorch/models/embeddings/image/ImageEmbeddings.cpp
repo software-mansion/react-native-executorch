@@ -32,9 +32,7 @@ ImageEmbeddings::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
-
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto inputTensor = createInputTensor(preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
@@ -52,11 +50,7 @@ ImageEmbeddings::runInference(cv::Mat image) {
 
 std::shared_ptr<OwningArrayBuffer>
 ImageEmbeddings::generateFromString(std::string imageSource) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
   return runInference(imageRGB);
 }
 

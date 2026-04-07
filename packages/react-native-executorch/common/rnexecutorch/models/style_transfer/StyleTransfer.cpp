@@ -37,9 +37,7 @@ cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
-
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto inputTensor = createInputTensor(preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -68,11 +66,8 @@ PixelDataResult toPixelDataResult(const cv::Mat &bgrMat) {
 
 StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
                                                       bool saveToFile) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-  cv::Size originalSize = imageBGR.size();
-
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
+  cv::Size originalSize = imageRGB.size();
 
   cv::Mat result = runInference(imageRGB, originalSize);
   if (saveToFile) {
@@ -83,9 +78,7 @@ StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
 
 PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient] = loadFrameRotated(runtime, frameData);
   cv::Mat output = runInference(rotated, modelInputSize());
   cv::Mat oriented = utils::inverseRotateMat(output, orient);
   return toPixelDataResult(oriented);

@@ -16,18 +16,7 @@ Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker),
       labelNames_(std::move(labelNames)) {
-  if (normMean.size() == 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
-  }
-  if (normStd.size() == 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
-  }
+  initNormalization(normMean, normStd);
 
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
@@ -51,13 +40,7 @@ Classification::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
-
-  auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, preprocessed, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  preprocessed);
+  auto inputTensor = createInputTensor(preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -70,11 +53,7 @@ Classification::runInference(cv::Mat image) {
 
 std::unordered_map<std::string_view, float>
 Classification::generateFromString(std::string imageSource) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
   return runInference(imageRGB);
 }
 

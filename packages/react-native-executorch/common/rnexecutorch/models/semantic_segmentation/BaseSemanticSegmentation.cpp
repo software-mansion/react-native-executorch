@@ -18,18 +18,7 @@ BaseSemanticSegmentation::BaseSemanticSegmentation(
     : VisionModel(modelSource, callInvoker),
       allClasses_(std::move(allClasses)) {
   initModelImageSize();
-  if (normMean.size() == 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
-  }
-  if (normStd.size() == 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
-  }
+  initNormalization(normMean, normStd);
 }
 
 void BaseSemanticSegmentation::initModelImageSize() {
@@ -55,12 +44,7 @@ BaseSemanticSegmentation::runInference(
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = VisionModel::preprocess(image);
-  auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, preprocessed, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  preprocessed);
+  auto inputTensor = createInputTensor(preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -77,11 +61,8 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromString(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-  cv::Size originalSize = imageBGR.size();
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
+  cv::Size originalSize = imageRGB.size();
   return runInference(imageRGB, originalSize, classesOfInterest, resize);
 }
 
@@ -97,15 +78,13 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient, originalSize] = loadFrameRotatedWithSize(runtime, frameData);
   // Always run inference without resize — rotate first, then resize.
   auto result = runInference(rotated, rotated.size(), classesOfInterest, false);
 
   const cv::Size outputSize = modelInputSize();
   // JS reads maskW=frame.height, maskH=frame.width (sensor-native swap).
-  const cv::Size frameSize = frame.size();
+  const cv::Size frameSize = originalSize;
 
   auto inverseAndResize = [&orient, &frameSize, &outputSize,
                            resize](std::shared_ptr<OwningArrayBuffer> &buf,
