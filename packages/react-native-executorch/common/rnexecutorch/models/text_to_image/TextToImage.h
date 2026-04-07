@@ -50,7 +50,7 @@ private:
   static constexpr float guidanceScale = 7.5f;
   static constexpr float latentsScale = 0.18215f;
   bool interrupted = false;
-  mutable std::mutex generate_mutex_;
+  mutable std::mutex inference_mutex_;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;

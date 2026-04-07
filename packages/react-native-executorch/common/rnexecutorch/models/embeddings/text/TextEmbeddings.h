@@ -24,7 +24,7 @@ public:
   void unload() noexcept;
 
 private:
-  mutable std::mutex generate_mutex_;
+  mutable std::mutex inference_mutex_;
   std::vector<std::vector<int32_t>> inputShapes;
   TokenIdsWithAttentionMask preprocess(const std::string &input);
   std::unique_ptr<TokenizerModule> tokenizer;
