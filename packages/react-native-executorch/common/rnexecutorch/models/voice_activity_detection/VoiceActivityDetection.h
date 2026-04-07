@@ -24,14 +24,6 @@ public:
   [[nodiscard("Registered non-void function")]] std::vector<types::Segment>
   generate(std::span<float> waveform) const;
 
-  /**
-   * @brief Thread-safe unload that waits for any in-flight inference to
-   * complete.
-   *
-   * Mirrors VisionModel::unload(). Without this, BaseModel::unload() can
-   * destroy module_ while generate() is still calling forward() on a worker
-   * thread, causing SIGILL / SIGSEGV crashes.
-   */
   void unload() noexcept;
 
 private:
