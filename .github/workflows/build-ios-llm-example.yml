@@ -4,16 +4,16 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/build-ios-llm-example.yml'
-      - '*.podspec'
-      - 'apps/llm/**'
-      - 'packages/react-native-executorch/**'
+      - ".github/workflows/build-ios-llm-example.yml"
+      - "*.podspec"
+      - "apps/llm/**"
+      - "packages/react-native-executorch/**"
   pull_request:
     paths:
-      - '.github/workflows/build-ios-llm-example.yml'
-      - '*.podspec'
-      - 'apps/llm/**'
-      - 'packages/react-native-executorch/**'
+      - ".github/workflows/build-ios-llm-example.yml"
+      - "*.podspec"
+      - "apps/llm/**"
+      - "packages/react-native-executorch/**"
   workflow_dispatch:
 jobs:
   build:
@@ -33,8 +33,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'yarn'
+          node-version: "24"
+          cache: "yarn"
       - name: Install root dependencies
         run: yarn install --immutable
       - name: Install Expo CLI
@@ -45,7 +45,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: apps/llm/ios
-          key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
+          # key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
+          key: ${{ runner.os }}-expo-ios-nocache-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
