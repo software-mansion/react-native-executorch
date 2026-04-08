@@ -1,6 +1,5 @@
 #include "LLM.h"
 
-#include <cmath>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 #include <map>
