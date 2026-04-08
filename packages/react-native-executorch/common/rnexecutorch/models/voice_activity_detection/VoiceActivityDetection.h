@@ -25,10 +25,9 @@ public:
   generate(std::span<float> waveform) const;
   void unload() noexcept;
 
-  void unload() noexcept;
-
 private:
   mutable std::mutex inference_mutex_;
+
   std::vector<std::array<float, constants::kPaddedWindowSize>>
   preprocess(std::span<float> waveform) const;
   std::vector<types::Segment> postprocess(const std::vector<float> &scores,
