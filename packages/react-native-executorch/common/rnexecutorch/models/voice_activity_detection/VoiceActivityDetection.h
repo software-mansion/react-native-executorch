@@ -23,6 +23,7 @@ public:
                          std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::Segment>
   generate(std::span<float> waveform) const;
+
   void unload() noexcept;
 
 private:
