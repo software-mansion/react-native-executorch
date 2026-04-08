@@ -1,5 +1,6 @@
 #include "LLM.h"
 
+#include <cmath>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 #include <map>
@@ -42,8 +43,12 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     throw RnExecutorchError(loadResult, "Failed to load LLM runner");
   }
 
-  memorySizeLowerBound = fs::file_size(fs::path(modelSource)) +
-                         fs::file_size(fs::path(tokenizerSource));
+  // I am purposefully not adding file size of the model here. The reason is
+  // that Hermes would crash the app if we try to alloc too much memory here.
+  // Also, given we're using mmap, the true memory consumption of a model is not
+  // really equal to the size of the model. The size of the tokenizer file is a
+  // hint to the GC that this object might be worth getting rid of.
+  memorySizeLowerBound = fs::file_size(fs::path(tokenizerSource));
 }
 
 std::string LLM::generate(std::string input,
@@ -194,7 +199,9 @@ int32_t LLM::countTextTokens(std::string text) const {
   return runner_->count_text_tokens(text);
 }
 
-size_t LLM::getMemoryLowerBound() const noexcept { return 0; }
+size_t LLM::getMemoryLowerBound() const noexcept {
+  return memorySizeLowerBound;
+};
 
 void LLM::setCountInterval(size_t countInterval) {
   if (!runner_ || !runner_->is_loaded()) {
