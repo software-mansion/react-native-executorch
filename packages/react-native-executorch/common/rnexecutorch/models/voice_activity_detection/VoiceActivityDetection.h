@@ -5,6 +5,7 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <executorch/runtime/core/evalue.h>
+#include <mutex>
 #include <span>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
@@ -23,7 +24,11 @@ public:
   [[nodiscard("Registered non-void function")]] std::vector<types::Segment>
   generate(std::span<float> waveform) const;
 
+  void unload() noexcept;
+
 private:
+  mutable std::mutex inference_mutex_;
+
   std::vector<std::array<float, constants::kPaddedWindowSize>>
   preprocess(std::span<float> waveform) const;
   std::vector<types::Segment> postprocess(const std::vector<float> &scores,

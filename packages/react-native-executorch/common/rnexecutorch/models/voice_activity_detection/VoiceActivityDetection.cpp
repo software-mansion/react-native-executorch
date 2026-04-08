@@ -54,8 +54,14 @@ VoiceActivityDetection::preprocess(std::span<float> waveform) const {
   return frameBuffer;
 }
 
+void VoiceActivityDetection::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
+  BaseModel::unload();
+}
+
 std::vector<types::Segment>
 VoiceActivityDetection::generate(std::span<float> waveform) const {
+  std::scoped_lock lock(inference_mutex_);
 
   auto windowedInput = preprocess(waveform);
   auto [chunksNumber, remainder] = std::div(
