@@ -200,7 +200,7 @@ int32_t LLM::countTextTokens(std::string text) const {
 
 size_t LLM::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
-};
+}
 
 void LLM::setCountInterval(size_t countInterval) {
   if (!runner_ || !runner_->is_loaded()) {
