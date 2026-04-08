@@ -20,6 +20,7 @@
     "third-party",
     "!third-party/ios/ExecutorchLib",
     "!third-party/ios/libs/executorch",
+    "!ios/*.xcodeproj",
     "!ios/build",
     "!android/build",
     "!android/gradle",

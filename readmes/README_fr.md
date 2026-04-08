@@ -140,7 +140,7 @@ Nous hébergeons actuellement quelques applications [exemples](https://github.co
 - `speech` - Implémentations de tâches de parole en texte et de texte en parole
 - `computer-vision` - Tâches liées à la vision par ordinateur
 - `text-embeddings` - Calcul de représentations textuelles pour la recherche sémantique
-- `bare_rn` - Exemple de chat LLM pour React Native sans Expo
+- `bare-rn` - Exemple de chat LLM pour React Native sans Expo
 
 Si vous souhaitez exécuter une application de démonstration, accédez à son répertoire de projet. Puis installez les dépendances et lancez l'application avec :
 

@@ -144,7 +144,7 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `speech` - Speech to Text & Text to Speech task implementations
 - `computer-vision` - Computer vision related tasks
 - `text-embeddings` - Computing text representations for semantic search
-- `bare_rn` - LLM chat example for bare React Native (without Expo)
+- `bare-rn` - LLM chat example for bare React Native (without Expo)
 
 If you would like to run a demo app, navigate to its project directory. Then install dependencies and run app with:
 

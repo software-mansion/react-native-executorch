@@ -6500,9 +6500,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bare_rn@workspace:apps/bare_rn":
+"bare-rn@workspace:apps/bare-rn":
   version: 0.0.0-use.local
-  resolution: "bare_rn@workspace:apps/bare_rn"
+  resolution: "bare-rn@workspace:apps/bare-rn"
   dependencies:
     "@babel/core": "npm:^7.25.2"
     "@babel/plugin-transform-export-namespace-from": "npm:^7.25.2"
