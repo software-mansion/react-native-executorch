@@ -42,9 +42,6 @@ jobs:
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
-      - name: Update NPM
-        run: npm install -g npm@latest
-
       - name: Determine version
         working-directory: ${{ env.EXECUTORCH_DIR }}
         run: |
