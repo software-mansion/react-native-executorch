@@ -4,16 +4,16 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/build-ios-llm-example.yml'
-      - '*.podspec'
-      - 'apps/llm/**'
-      - 'packages/react-native-executorch/**'
+      - ".github/workflows/build-ios-llm-example.yml"
+      - "*.podspec"
+      - "apps/llm/**"
+      - "packages/react-native-executorch/**"
   pull_request:
     paths:
-      - '.github/workflows/build-ios-llm-example.yml'
-      - '*.podspec'
-      - 'apps/llm/**'
-      - 'packages/react-native-executorch/**'
+      - ".github/workflows/build-ios-llm-example.yml"
+      - "*.podspec"
+      - "apps/llm/**"
+      - "packages/react-native-executorch/**"
   workflow_dispatch:
 jobs:
   build:
@@ -27,33 +27,25 @@ jobs:
         with:
           xcode-version: latest-stable
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '18'
-          cache: 'yarn'
+          node-version: "24"
+          cache: "yarn"
       - name: Install root dependencies
         run: yarn install --immutable
       - name: Install Expo CLI
         run: |
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
-      - name: Cache Expo prebuild
-        uses: actions/cache@v4
-        with:
-          path: apps/llm/ios
-          key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
-          if [ ! -d "ios" ]; then
-            npx expo prebuild --platform ios --no-install
-          else
-            echo "iOS project exists, skipping prebuild"
-          fi
+          rm -rf ios
+          npx expo prebuild --platform ios --no-install
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
