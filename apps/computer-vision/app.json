@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
-        "NSCameraUsageDescription": "Process photo from camera"
+        "NSCameraUsageDescription": "Process photo from camera",
+        "NSMicrophoneUsageDescription": "Required for WebRTC (not currently used)"
       }
     },
     "android": {
@@ -26,7 +27,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.computervision",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"

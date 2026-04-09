@@ -1,0 +1,75 @@
+buildscript {
+    ext.kotlin_version = '1.9.0'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 34
+
+    buildFeatures {
+        prefab true
+    }
+
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 34
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++20"
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+
+        ndk {
+            // Only build for architectures where OpenCV/ExecuTorch libraries exist
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.facebook.react:react-native:+'
+
+    // WebRTC classes - provided by app via autolinking
+    if (findProject(':react-native-webrtc') != null) {
+        compileOnly project(':react-native-webrtc')
+    }
+
+    // ExecuTorch for vision model processing
+    if (findProject(':react-native-executorch') != null) {
+        implementation project(':react-native-executorch')
+    }
+}

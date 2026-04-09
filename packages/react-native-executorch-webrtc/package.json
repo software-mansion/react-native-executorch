@@ -1,0 +1,45 @@
+{
+  "name": "react-native-executorch-webrtc",
+  "version": "0.1.0",
+  "description": "ExecuTorch WebRTC frame processor integration for react-native-webrtc",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
+  "files": [
+    "lib",
+    "android",
+    "react-native.config.js",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/software-mansion/react-native-executorch.git",
+    "directory": "packages/react-native-executorch-webrtc"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli lib"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-executorch": "*",
+    "react-native-webrtc": ">=121.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-executorch": "workspace:*",
+    "react-native-webrtc": "^124.0.7",
+    "typescript": "~5.9.2"
+  }
+}
