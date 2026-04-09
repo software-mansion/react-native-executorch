@@ -412,23 +412,45 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   cv::add(smoothMask, 3.0f, smoothMask);
   cv::multiply(t2, smoothMask, fullMask);
 
-  // Apply mask directly to Y plane (black = Y value of 16)
+  // Blur the mask edges for smoother blending
+  cv::GaussianBlur(fullMask, fullMask, cv::Size(15, 15), 0);
+
+  // Create Y plane Mat (packed, no stride padding)
+  cv::Mat yMat(height, width, CV_8UC1);
+  for (int row = 0; row < height; row++) {
+    memcpy(yMat.ptr(row), ySrc + row * actualYStride, width);
+  }
+
+  // Create blurred Y using downscale-blur-upscale for performance
+  // Downscale 3x, stack blur (O(1) fast blur), upscale back
+  cv::Mat ySmall, yBlurredSmall, yBlurred;
+  int smallW = width / 3;
+  int smallH = height / 3;
+  cv::resize(yMat, ySmall, cv::Size(smallW, smallH), 0, 0, cv::INTER_AREA);
+  cv::stackBlur(ySmall, yBlurredSmall, cv::Size(25, 25)); // O(1) fast blur
+  cv::resize(yBlurredSmall, yBlurred, cv::Size(width, height), 0, 0,
+             cv::INTER_LINEAR);
+
+  // Blend: foreground (mask=1) uses original, background (mask=0) uses blurred
   std::vector<uint8_t> outY(actualYStride * height);
-  const uint8_t BLACK_Y = 16; // Black in YUV
 
   for (int row = 0; row < height; row++) {
-    const uint8_t *srcY = ySrc + row * actualYStride;
+    const uint8_t *srcY = yMat.ptr<uint8_t>(row);
+    const uint8_t *blurY = yBlurred.ptr<uint8_t>(row);
     const float *maskRow = fullMask.ptr<float>(row);
     uint8_t *dstY = outY.data() + row * actualYStride;
 
     for (int col = 0; col < width; col++) {
       float prob = maskRow[col];
+      // prob=1: foreground (person) = original
+      // prob=0: background = blurred
       dstY[col] =
-          static_cast<uint8_t>(BLACK_Y * (1.0f - prob) + srcY[col] * prob);
+          static_cast<uint8_t>(blurY[col] * (1.0f - prob) + srcY[col] * prob);
     }
     // Copy stride padding if any
     if (actualYStride > width) {
-      memcpy(dstY + width, srcY + width, actualYStride - width);
+      memcpy(dstY + width, ySrc + row * actualYStride + width,
+             actualYStride - width);
     }
   }
 

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  ScrollView,
 } from 'react-native';
 import {
   RTCView,
@@ -143,35 +144,41 @@ export default function WebRTCTest() {
     }
   };
 
-  // Switch between front and back camera using applyConstraints (recommended)
+  // Switch between front and back camera
   const switchCamera = async () => {
     if (!streamRef.current) return;
 
+    const newFacingMode = isFrontCamera ? 'environment' : 'user';
+    console.log('Switching camera to:', newFacingMode);
+
+    // Stop current stream completely
+    streamRef.current.getTracks().forEach((track) => {
+      track.stop();
+    });
+    setStream(null);
+    streamRef.current = null;
+
+    // Wait for camera to fully release, then start new stream
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     try {
-      console.log('Switching camera...');
-      const videoTrack = streamRef.current.getVideoTracks()[0];
+      const mediaStream = await mediaDevices.getUserMedia({
+        video: {
+          facingMode: newFacingMode,
+          frameRate: 30,
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      });
 
-      if (videoTrack) {
-        // Use applyConstraints instead of stopping and restarting
-        await videoTrack.applyConstraints({
-          facingMode: isFrontCamera ? 'environment' : 'user',
-        });
-
-        setIsFrontCamera(!isFrontCamera);
-        console.log('Camera switched successfully');
-      }
-    } catch (error) {
-      console.error(
-        'Error switching camera with applyConstraints, falling back to restart:',
-        error
-      );
-
-      // Fallback: stop and restart
-      stopCamera();
+      setStream(mediaStream);
+      streamRef.current = mediaStream;
       setIsFrontCamera(!isFrontCamera);
-      setTimeout(() => {
-        startCamera();
-      }, 100);
+      console.log('Camera switched successfully');
+    } catch (error) {
+      console.error('Error switching camera:', error);
+      setCameraStarted(false);
     }
   };
 
@@ -184,15 +191,11 @@ export default function WebRTCTest() {
     };
   }, []);
 
-  // Auto-start camera when facingMode changes
-  useEffect(() => {
-    if (cameraStarted && !stream) {
-      startCamera();
-    }
-  }, [isFrontCamera]);
-
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Text style={styles.title}>WebRTC Camera Test</Text>
 
       <Text style={styles.description}>
@@ -348,15 +351,18 @@ export default function WebRTCTest() {
           ✓ Results sent back to JS via event emitter
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 24,
@@ -372,7 +378,7 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    height: 300,
+    height: 500,
     backgroundColor: '#000',
     borderRadius: 12,
     overflow: 'hidden',

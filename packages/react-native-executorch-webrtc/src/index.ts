@@ -53,6 +53,22 @@ export function configureBackgroundRemoval(modelPath: string): void {
   }
 }
 
+/**
+ * Get the current frame processing FPS
+ * @returns Promise resolving to current FPS (0 if not processing)
+ */
+export async function getFps(): Promise<number> {
+  if (Platform.OS !== 'android') {
+    return 0;
+  }
+
+  const { ExecutorchWebRTC } = NativeModules;
+  if (ExecutorchWebRTC) {
+    return ExecutorchWebRTC.getFps();
+  }
+  return 0;
+}
+
 // Legacy alias
 export const configureBackgroundBlur = configureBackgroundRemoval;
 

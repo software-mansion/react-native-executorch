@@ -8,7 +8,5 @@ import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
  * Required by react-native-webrtc's ProcessorProvider system.
  */
 class ExecutorchFrameProcessorFactory : VideoFrameProcessorFactoryInterface {
-    override fun build(): VideoFrameProcessor {
-        return ExecutorchFrameProcessor()
-    }
+  override fun build(): VideoFrameProcessor = ExecutorchFrameProcessor()
 }
