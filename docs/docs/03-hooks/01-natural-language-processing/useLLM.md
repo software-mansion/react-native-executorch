@@ -564,4 +564,5 @@ const handleGenerate = async () => {
 | [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)                               |  135M, 360M, 1.7B   |    ✅     |      -       |
 | [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)                             |       1B, 3B        |    ✅     |      -       |
 | [LFM2.5](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5)                                  | 350M, 1.2B, 1.6B-VL |    ✅     |      -       |
+| [LFM2.5-VL-450M](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5/tree/main/lfm2.5-VL-450M) |        450M         |    ✅     |    vision    |
 | [LFM2.5-VL-1.6B](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5/tree/main/lfm2.5-VL-1.6B) |        1.6B         |    ✅     |    vision    |
