@@ -433,6 +433,7 @@ export const LFM2_5_350M_QUANTIZED = {
 
 // LFM2.5-VL-1.6B
 const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte`;
+const LFM2_VL_450M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm2.5-VL-1.6B/${VERSION_TAG}/quantized/lfm2_5_vl_450m_8da4w_xnnpack.pte`;
 const LFM2_VL_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/tokenizer.json`;
 const LFM2_VL_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2.5-VL-1.6B/tokenizer_config.json`;
 
@@ -443,6 +444,17 @@ export const LFM2_VL_1_6B_QUANTIZED = {
   modelName: 'lfm2.5-vl-1.6b-quantized',
   capabilities: ['vision'],
   modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
+  tokenizerSource: LFM2_VL_TOKENIZER,
+  tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
+} as const;
+
+/**
+ * @category Models - VLM
+ */
+export const LFM2_VL_450M_QUANTIZED = {
+  modelName: 'lfm2.5-vl-450m-quantized',
+  capabilities: ['vision'],
+  modelSource: LFM2_VL_450M_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_TOKENIZER_CONFIG,
 } as const;
@@ -1112,6 +1124,7 @@ export const MODEL_REGISTRY = {
     LFM2_5_1_2B_INSTRUCT,
     LFM2_5_1_2B_INSTRUCT_QUANTIZED,
     LFM2_VL_1_6B_QUANTIZED,
+    LFM2_VL_450M_QUANTIZED,
     EFFICIENTNET_V2_S,
     EFFICIENTNET_V2_S_QUANTIZED,
     SSDLITE_320_MOBILENET_V3_LARGE,
