@@ -24,16 +24,35 @@ using executorch::extension::TensorPtr;
  * Thread Safety:
  * - All inference operations are protected by a mutex via scoped_lock
  *
+ * Normalization:
+ * Subclasses should call initNormalization() with ImageNet mean/std when the
+ * model expects ImageNet-normalized inputs (e.g., Classification, Detection,
+ * Segmentation). Skip initNormalization() when the model:
+ * - Has built-in normalization layers (e.g., some embeddings models)
+ * - Expects raw pixel values [0, 255] (e.g., StyleTransfer)
+ * - Uses non-ImageNet normalization (handle in custom preprocess())
+ *
+ * The createInputTensor() method safely handles both cases via std::optional.
+ *
  * Usage:
  * Subclasses should:
  * 1. Inherit from VisionModel instead of BaseModel
- * 2. Optionally override preprocess() for model-specific preprocessing
- * 3. Implement runInference() which acquires the lock internally
+ * 2. Call initNormalization() if model expects normalized inputs
+ * 3. Optionally override preprocess() for model-specific preprocessing
+ * 4. Implement runInference() which acquires the lock internally
  *
  * Example:
  * @code
  * class Classification : public VisionModel {
  * public:
+ *   Classification(const std::string& modelSource,
+ *                  std::shared_ptr<react::CallInvoker> callInvoker,
+ *                  const std::vector<float>& normMean,
+ *                  const std::vector<float>& normStd)
+ *       : VisionModel(modelSource, callInvoker) {
+ *     initNormalization(normMean, normStd);  // ImageNet normalization
+ *   }
+ *
  *   std::unordered_map<std::string_view, float>
  *   generateFromFrame(jsi::Runtime& runtime, const jsi::Value& frameValue) {
  *     auto frameObject = frameValue.asObject(runtime);
@@ -66,10 +85,16 @@ protected:
   /// Set once by each subclass constructor to avoid per-frame metadata lookups.
   std::vector<int32_t> modelInputShape_;
 
-  /// Normalization mean values (RGB channels)
+  /// Normalization mean values (RGB channels).
+  /// Optional: set via initNormalization() for models expecting normalized
+  /// inputs (e.g., ImageNet preprocessing). Leave as nullopt for models with
+  /// built-in normalization or raw pixel input expectations.
   std::optional<cv::Scalar> normMean_;
 
-  /// Normalization standard deviation values (RGB channels)
+  /// Normalization standard deviation values (RGB channels).
+  /// Optional: set via initNormalization() for models expecting normalized
+  /// inputs (e.g., ImageNet preprocessing). Leave as nullopt for models with
+  /// built-in normalization or raw pixel input expectations.
   std::optional<cv::Scalar> normStd_;
 
   /**
