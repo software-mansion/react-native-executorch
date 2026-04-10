@@ -8,6 +8,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
+#include <rnexecutorch/utils/TensorHelpers.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
 #include <set>
 
@@ -43,20 +44,9 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
   std::set<int32_t> allowedClasses(classIndices.begin(), classIndices.end());
 
   std::vector<types::Detection> detections;
-  auto bboxTensor = tensors.at(0).toTensor();
-  std::span<const float> bboxes(
-      static_cast<const float *>(bboxTensor.const_data_ptr()),
-      bboxTensor.numel());
-
-  auto scoreTensor = tensors.at(1).toTensor();
-  std::span<const float> scores(
-      static_cast<const float *>(scoreTensor.const_data_ptr()),
-      scoreTensor.numel());
-
-  auto labelTensor = tensors.at(2).toTensor();
-  std::span<const float> labels(
-      static_cast<const float *>(labelTensor.const_data_ptr()),
-      labelTensor.numel());
+  auto bboxes = utils::tensor::toSpan<float>(tensors.at(0));
+  auto scores = utils::tensor::toSpan<float>(tensors.at(1));
+  auto labels = utils::tensor::toSpan<float>(tensors.at(2));
 
   for (std::size_t i = 0; i < scores.size(); ++i) {
     if (scores[i] < detectionThreshold) {
@@ -110,16 +100,13 @@ std::vector<types::Detection> ObjectDetection::runInference(
   cv::Mat preprocessed = preprocess(image);
   auto inputTensor = createInputTensor(preprocessed);
 
-  auto executeResult = execute(methodName, {inputTensor});
-  if (!executeResult.ok()) {
-    throw RnExecutorchError(executeResult.error(),
-                            "The model's " + methodName +
-                                " method did not succeed. "
-                                "Ensure the model input is correct.");
-  }
+  auto outputs = executeOrThrow(methodName, {inputTensor},
+                                "The model's " + methodName +
+                                    " method did not succeed. "
+                                    "Ensure the model input is correct.");
 
-  return postprocess(executeResult.get(), originalSize, detectionThreshold,
-                     iouThreshold, classIndices);
+  return postprocess(outputs, originalSize, detectionThreshold, iouThreshold,
+                     classIndices);
 }
 
 std::vector<types::Detection> ObjectDetection::generateFromString(
@@ -138,9 +125,7 @@ std::vector<types::Detection> ObjectDetection::generateFromFrame(
   auto detections = runInference(rotated, detectionThreshold, iouThreshold,
                                  classIndices, methodName);
 
-  for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotateBbox(det.bbox, orient, rotated.size());
-  }
+  utils::inverseRotateBboxes(detections, orient, rotated.size());
   return detections;
 }
 
