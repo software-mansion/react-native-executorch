@@ -140,7 +140,7 @@ Atualmente, hospedamos alguns [apps](https://github.com/software-mansion/react-n
 - `speech` - Implementações de tarefas de fala para texto e texto para fala
 - `computer-vision` - Tarefas relacionadas à visão computacional
 - `text-embeddings` - Computação de representações de texto para busca semântica
-- `bare_rn` - Exemplo de chat LLM para React Native puro (sem Expo)
+- `bare-rn` - Exemplo de chat LLM para React Native puro (sem Expo)
 
 Se deseja executar um aplicativo de demonstração, navegue até seu diretório de projeto. Em seguida, instale as dependências e execute o aplicativo com:
 

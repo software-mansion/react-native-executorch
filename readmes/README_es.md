@@ -140,7 +140,7 @@ Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/softw
 - `speech` - Implementaciones de tareas de voz a texto y texto a voz
 - `computer-vision` - Tareas relacionadas con visión por computadora
 - `text-embeddings` - Cálculo de representaciones de texto para búsqueda semántica
-- `bare_rn` - Ejemplo de chat LLM para React Native puro (sin Expo)
+- `bare-rn` - Ejemplo de chat LLM para React Native puro (sin Expo)
 
 Si deseas ejecutar una aplicación de demostración, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
 
