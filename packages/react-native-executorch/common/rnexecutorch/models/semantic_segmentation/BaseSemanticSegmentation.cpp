@@ -8,6 +8,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
+#include <rnexecutorch/utils/TensorHelpers.h>
 
 namespace rnexecutorch::models::semantic_segmentation {
 
@@ -35,15 +36,12 @@ BaseSemanticSegmentation::runInference(
   cv::Mat preprocessed = VisionModel::preprocess(image);
   auto inputTensor = createInputTensor(preprocessed);
 
-  auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  auto outputs = forwardOrThrow(inputTensor,
+                                "The model's forward function did not succeed. "
+                                "Ensure the model input is correct.");
 
-  return computeResult(forwardResult->at(0).toTensor(), originalSize,
-                       allClasses_, classesOfInterest, resize);
+  return computeResult(outputs.at(0).toTensor(), originalSize, allClasses_,
+                       classesOfInterest, resize);
 }
 
 semantic_segmentation::SegmentationResult
@@ -107,8 +105,7 @@ BaseSemanticSegmentation::computeResult(
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
 
-  const auto *dataPtr = tensor.const_data_ptr<float>();
-  auto resultData = std::span(dataPtr, tensor.numel());
+  auto resultData = utils::tensor::toSpan<float>(tensor);
 
   // Read output dimensions directly from tensor shape
   std::size_t numChannels =
