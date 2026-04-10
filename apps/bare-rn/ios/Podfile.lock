@@ -1781,7 +1781,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-executorch (0.8.0):
+  - react-native-executorch (0.9.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2717,7 +2717,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 94f4264de2cb156960cd82b338a403f4653f2fd9
   React-microtasksnativemodule: 6c4ee39a36958c39c97b074d28f360246a335e84
   react-native-background-downloader: 114f96122822fa97b06ea0f2250b8e8270696995
-  react-native-executorch: 517da022131a15a98ea5337f02a88e7807a1ec3d
+  react-native-executorch: 273c1ffd131a92738c35267c7af737275e8b32a5
   react-native-safe-area-context: befb5404eb8a16fdc07fa2bebab3568ecabcbb8a
   React-NativeModulesApple: ebf2ce72b35870036900d6498b33724386540a71
   React-oscompat: eb0626e8ba1a2c61673c991bf9dc21834898475d
@@ -2753,6 +2753,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 728df40394d49f3f471688747cf558158b3a3bd1
 
-PODFILE CHECKSUM: 1046fccfc0b74e3539ad2925f193026dd32b4293
+PODFILE CHECKSUM: 421dcdee6cbb1e2a032c3b2e3ffc9371849b2199
 
 COCOAPODS: 1.16.2

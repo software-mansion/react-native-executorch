@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "bare_rn.app"
-               BlueprintName = "bare_rn"
-               ReferencedContainer = "container:bare_rn.xcodeproj">
+               BuildableName = "bare-rn.app"
+               BlueprintName = "bare-rn"
+               ReferencedContainer = "container:bare-rn.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "bare_rnTests.xctest"
-               BlueprintName = "bare_rnTests"
-               ReferencedContainer = "container:bare_rn.xcodeproj">
+               BuildableName = "bare-rnTests.xctest"
+               BlueprintName = "bare-rnTests"
+               ReferencedContainer = "container:bare-rn.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "bare_rn.app"
-            BlueprintName = "bare_rn"
-            ReferencedContainer = "container:bare_rn.xcodeproj">
+            BuildableName = "bare-rn.app"
+            BlueprintName = "bare-rn"
+            ReferencedContainer = "container:bare-rn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "bare_rn.app"
-            BlueprintName = "bare_rn"
-            ReferencedContainer = "container:bare_rn.xcodeproj">
+            BuildableName = "bare-rn.app"
+            BlueprintName = "bare-rn"
+            ReferencedContainer = "container:bare-rn.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
