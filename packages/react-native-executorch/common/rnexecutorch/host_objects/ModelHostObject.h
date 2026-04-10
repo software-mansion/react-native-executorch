@@ -375,7 +375,9 @@ public:
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            threads::GlobalThreadPool::detach([this, promise,
+            threads::GlobalThreadPool::detach([model = this->model,
+                                               callInvoker = this->callInvoker,
+                                               promise,
                                                argsConverted =
                                                    std::move(argsConverted)]() {
               try {
