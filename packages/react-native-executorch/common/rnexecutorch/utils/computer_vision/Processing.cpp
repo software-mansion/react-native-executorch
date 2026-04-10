@@ -27,4 +27,14 @@ void validateThreshold(double value, const std::string &name) {
   }
 }
 
+std::tuple<BBox, float, int32_t> extractDetectionData(const float *bboxData,
+                                                      const float *scoresData,
+                                                      int32_t index) {
+  BBox bbox{bboxData[index * 4], bboxData[index * 4 + 1],
+            bboxData[index * 4 + 2], bboxData[index * 4 + 3]};
+  float score = scoresData[index * 2];
+  int32_t label = static_cast<int32_t>(scoresData[index * 2 + 1]);
+  return {bbox, score, label};
+}
+
 } // namespace rnexecutorch::utils::computer_vision

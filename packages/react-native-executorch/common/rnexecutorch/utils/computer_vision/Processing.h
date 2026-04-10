@@ -2,13 +2,37 @@
 
 #include "Types.h"
 #include <algorithm>
+#include <cstdint>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace rnexecutorch::utils::computer_vision {
 
 float computeIoU(const BBox &a, const BBox &b);
+
+/**
+ * @brief Extract detection data at a specific index from raw tensor buffers
+ *
+ * Parses bounding box coordinates, confidence score, and class label from
+ * typical object detection model outputs.
+ *
+ * @param bboxData Pointer to bounding box data (format: [x1, y1, x2, y2] per
+ * detection)
+ * @param scoresData Pointer to scores data (format: [score, label] per
+ * detection)
+ * @param index Index of the detection to extract
+ * @return Tuple of {bbox, score, label}
+ *
+ * Example:
+ * @code
+ * auto [bbox, score, label] = extractDetectionData(bboxData, scoresData, i);
+ * @endcode
+ */
+std::tuple<BBox, float, int32_t> extractDetectionData(const float *bboxData,
+                                                      const float *scoresData,
+                                                      int32_t index);
 
 /**
  * @brief Validate that a threshold is in [0, 1] range
