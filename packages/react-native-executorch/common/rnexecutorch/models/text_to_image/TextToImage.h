@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -49,6 +50,7 @@ private:
   static constexpr float guidanceScale = 7.5f;
   static constexpr float latentsScale = 0.18215f;
   bool interrupted = false;
+  mutable std::mutex inference_mutex_;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;

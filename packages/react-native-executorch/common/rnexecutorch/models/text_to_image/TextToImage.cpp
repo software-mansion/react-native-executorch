@@ -58,6 +58,7 @@ std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, int32_t imageSize,
                       size_t numInferenceSteps, int32_t seed,
                       std::shared_ptr<jsi::Function> callback) {
+  std::scoped_lock lock(inference_mutex_);
   setImageSize(imageSize);
   setSeed(seed);
 
@@ -137,6 +138,7 @@ size_t TextToImage::getMemoryLowerBound() const noexcept {
 }
 
 void TextToImage::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
   encoder->unload();
   unet->unload();
   decoder->unload();
