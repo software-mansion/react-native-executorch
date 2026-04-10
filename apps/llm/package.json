@@ -11,8 +11,9 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@expo/log-box": "~55.0.10",
     "@react-native/metro-config": "^0.85.0",
-    "@react-navigation/drawer": "^7.8.1",
+    "@react-navigation/drawer": "^7.9.4",
     "@react-navigation/native": "^7.1.28",
     "expo": "^55.0.13",
     "expo-brightness": "~55.0.13",

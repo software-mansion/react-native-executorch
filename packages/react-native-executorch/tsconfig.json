@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
+    "ignoreDeprecations": "6.0",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
