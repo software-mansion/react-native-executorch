@@ -112,4 +112,33 @@ void inverseRotatePoints(std::array<P, 4> &points,
 #endif
 }
 
+/**
+ * @brief Apply inverse rotation to bounding boxes in a batch
+ *
+ * Convenience helper to inverse-rotate bboxes for all items in a container.
+ * Each item must have a .bbox member of type computer_vision::BBox.
+ *
+ * @tparam Container Type that supports iteration and has items with .bbox
+ * member
+ * @param items Container of detection/segmentation results
+ * @param orient Frame orientation info (from loadFrameRotated)
+ * @param rotatedSize Size of the rotated frame (rotated.size())
+ *
+ * Example:
+ * @code
+ * std::vector<Detection> detections = runDetection(frame);
+ * inverseRotateBboxes(detections, orient, rotated.size());
+ * @endcode
+ */
+template <typename Container>
+  requires requires(Container c) {
+    { c.begin()->bbox } -> std::convertible_to<computer_vision::BBox &>;
+  }
+void inverseRotateBboxes(Container &items, const FrameOrientation &orient,
+                         cv::Size rotatedSize) {
+  for (auto &item : items) {
+    inverseRotateBbox(item.bbox, orient, rotatedSize);
+  }
+}
+
 } // namespace rnexecutorch::utils
