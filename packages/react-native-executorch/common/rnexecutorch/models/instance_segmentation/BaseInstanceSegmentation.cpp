@@ -51,21 +51,17 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
                                             "confidenceThreshold");
   utils::computer_vision::validateThreshold(iouThreshold, "iouThreshold");
 
-  auto forwardResult =
-      BaseModel::execute(methodName, {buildInputTensor(image)});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(
-        forwardResult.error(),
-        "The model's forward function did not succeed. "
-        "Ensure the model input is correct and method name '" +
-            methodName + "' is valid.");
-  }
+  auto outputs =
+      executeOrThrow(methodName, {buildInputTensor(image)},
+                     "The model's forward function did not succeed. "
+                     "Ensure the model input is correct and method name '" +
+                         methodName + "' is valid.");
 
-  validateOutputTensors(forwardResult.get());
+  validateOutputTensors(outputs);
 
-  auto instances = collectInstances(
-      forwardResult.get(), originalSize, modelInputSize, confidenceThreshold,
-      classIndices, returnMaskAtOriginalResolution);
+  auto instances = collectInstances(outputs, originalSize, modelInputSize,
+                                    confidenceThreshold, classIndices,
+                                    returnMaskAtOriginalResolution);
   return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
 }
 
@@ -89,9 +85,12 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
   auto instances =
       runInference(rotated, confidenceThreshold, iouThreshold, maxInstances,
                    classIndices, returnMaskAtOriginalResolution, methodName);
+
+  // Inverse-rotate bboxes for all instances
+  utils::inverseRotateBboxes(instances, orient, rotated.size());
+
+  // Inverse-rotate masks (instance-specific logic)
   for (auto &inst : instances) {
-    utils::inverseRotateBbox(inst.bbox, orient, rotated.size());
-    // Inverse-rotate the mask to match the screen orientation
     cv::Mat maskMat(inst.maskHeight, inst.maskWidth, CV_8UC1,
                     inst.mask->data());
     cv::Mat invMask = utils::inverseRotateMat(maskMat, orient);
@@ -111,19 +110,6 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(
   cv::Mat image = extractFromPixels(tensorView);
   return runInference(image, confidenceThreshold, iouThreshold, maxInstances,
                       classIndices, returnMaskAtOriginalResolution, methodName);
-}
-
-std::tuple<utils::computer_vision::BBox, float, int32_t>
-BaseInstanceSegmentation::extractDetectionData(const float *bboxData,
-                                               const float *scoresData,
-                                               int32_t index) {
-  utils::computer_vision::BBox bbox{
-      bboxData[index * 4], bboxData[index * 4 + 1], bboxData[index * 4 + 2],
-      bboxData[index * 4 + 3]};
-  float score = scoresData[index * 2];
-  int32_t label = static_cast<int32_t>(scoresData[index * 2 + 1]);
-
-  return {bbox, score, label};
 }
 
 cv::Rect BaseInstanceSegmentation::computeMaskCropRect(
@@ -262,7 +248,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::collectInstances(
 
   for (int32_t i = 0; i < numInstances; ++i) {
     auto [bboxModel, score, labelIdx] =
-        extractDetectionData(bboxData, scoresData, i);
+        utils::computer_vision::extractDetectionData(bboxData, scoresData, i);
 
     if (!isValidDetection(score, labelIdx)) {
       continue;

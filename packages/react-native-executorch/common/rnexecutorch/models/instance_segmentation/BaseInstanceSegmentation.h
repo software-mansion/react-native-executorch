@@ -63,10 +63,6 @@ private:
 
   void validateOutputTensors(const std::vector<EValue> &tensors) const;
 
-  std::tuple<utils::computer_vision::BBox, float, int32_t>
-  extractDetectionData(const float *bboxData, const float *scoresData,
-                       int32_t index);
-
   cv::Rect computeMaskCropRect(const utils::computer_vision::BBox &bboxModel,
                                cv::Size modelInputSize, cv::Size maskSize);
 
