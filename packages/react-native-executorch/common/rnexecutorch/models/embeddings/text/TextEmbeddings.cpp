@@ -35,8 +35,14 @@ TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   return {.inputIds = inputIds64, .attentionMask = attentionMask};
 }
 
+void TextEmbeddings::unload() noexcept {
+  std::scoped_lock lock(inference_mutex_);
+  BaseModel::unload();
+}
+
 std::shared_ptr<OwningArrayBuffer>
 TextEmbeddings::generate(const std::string input) {
+  std::scoped_lock lock(inference_mutex_);
   auto preprocessed = preprocess(input);
 
   std::vector<int32_t> tokenIdsShape = {

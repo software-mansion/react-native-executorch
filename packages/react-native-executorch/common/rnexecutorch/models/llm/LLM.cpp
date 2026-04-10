@@ -20,7 +20,7 @@ using executorch::runtime::Error;
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::vector<std::string> capabilities,
          std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker, Module::LoadMode::File) {
+    : BaseModel(modelSource, callInvoker, Module::LoadMode::Mmap) {
 
   if (capabilities.empty()) {
     runner_ =
@@ -42,8 +42,12 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     throw RnExecutorchError(loadResult, "Failed to load LLM runner");
   }
 
-  memorySizeLowerBound = fs::file_size(fs::path(modelSource)) +
-                         fs::file_size(fs::path(tokenizerSource));
+  // I am purposefully not adding file size of the model here. The reason is
+  // that Hermes would crash the app if we try to alloc too much memory here.
+  // Also, given we're using mmap, the true memory consumption of a model is not
+  // really equal to the size of the model. The size of the tokenizer file is a
+  // hint to the GC that this object might be worth getting rid of.
+  memorySizeLowerBound = fs::file_size(fs::path(tokenizerSource));
 }
 
 std::string LLM::generate(std::string input,
