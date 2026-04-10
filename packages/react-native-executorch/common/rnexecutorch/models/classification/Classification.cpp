@@ -6,6 +6,7 @@
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
+#include <rnexecutorch/utils/TensorHelpers.h>
 
 namespace rnexecutorch::models::classification {
 
@@ -27,13 +28,10 @@ Classification::runInference(cv::Mat image) {
   cv::Mat preprocessed = preprocess(image);
   auto inputTensor = createInputTensor(preprocessed);
 
-  auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
-  return postprocess(forwardResult->at(0).toTensor());
+  auto outputs = forwardOrThrow(inputTensor,
+                                "The model's forward function did not succeed. "
+                                "Ensure the model input is correct.");
+  return postprocess(outputs.at(0).toTensor());
 }
 
 std::unordered_map<std::string_view, float>
@@ -58,8 +56,7 @@ Classification::generateFromPixels(JSTensorViewIn pixelData) {
 
 std::unordered_map<std::string_view, float>
 Classification::postprocess(const Tensor &tensor) {
-  std::span<const float> resultData(
-      static_cast<const float *>(tensor.const_data_ptr()), tensor.numel());
+  auto resultData = utils::tensor::toSpan<float>(tensor);
   std::vector<float> resultVec(resultData.begin(), resultData.end());
 
   if (resultVec.size() != labelNames_.size()) {
