@@ -83,6 +83,59 @@ protected:
   validateAndGetInputShape(const std::string &methodName = "forward",
                            size_t minDimensions = 2) const;
 
+  /**
+   * @brief Execute forward and throw on error
+   *
+   * Convenience helper that calls forward() and throws RnExecutorchError if
+   * the result is not ok. Reduces error-checking boilerplate in model
+   * implementations.
+   *
+   * @param input Single input value for the forward method
+   * @param contextMessage Custom error message (default: generic message)
+   * @return std::vector<EValue> The successful forward result
+   * @throws RnExecutorchError if forward fails
+   */
+  std::vector<EValue>
+  forwardOrThrow(const EValue &input,
+                 const std::string &contextMessage =
+                     "Model forward failed. Ensure input is correct.") const;
+
+  /**
+   * @brief Execute forward with multiple inputs and throw on error
+   *
+   * Convenience helper that calls forward() and throws RnExecutorchError if
+   * the result is not ok. Reduces error-checking boilerplate in model
+   * implementations.
+   *
+   * @param inputs Vector of input values for the forward method
+   * @param contextMessage Custom error message (default: generic message)
+   * @return std::vector<EValue> The successful forward result
+   * @throws RnExecutorchError if forward fails
+   */
+  std::vector<EValue>
+  forwardOrThrow(const std::vector<EValue> &inputs,
+                 const std::string &contextMessage =
+                     "Model forward failed. Ensure input is correct.") const;
+
+  /**
+   * @brief Execute named method and throw on error
+   *
+   * Convenience helper that calls execute() and throws RnExecutorchError if
+   * the result is not ok. Reduces error-checking boilerplate in model
+   * implementations.
+   *
+   * @param methodName Name of the method to execute
+   * @param inputs Vector of input values for the method
+   * @param contextMessage Custom error message (default: auto-generated from
+   * method name)
+   * @return std::vector<EValue> The successful execution result
+   * @throws RnExecutorchError if execution fails
+   */
+  std::vector<EValue>
+  executeOrThrow(const std::string &methodName,
+                 const std::vector<EValue> &inputs,
+                 const std::string &contextMessage = "") const;
+
   /// Name of the currently loaded method (for multi-method models).
   std::string currentlyLoadedMethod_;
 

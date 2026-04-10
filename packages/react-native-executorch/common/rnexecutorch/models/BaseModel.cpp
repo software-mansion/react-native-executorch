@@ -227,6 +227,41 @@ BaseModel::validateAndGetInputShape(const std::string &methodName,
   return shape;
 }
 
+std::vector<EValue>
+BaseModel::forwardOrThrow(const EValue &input,
+                          const std::string &contextMessage) const {
+  auto result = forward(input);
+  if (!result.ok()) {
+    throw RnExecutorchError(result.error(), contextMessage);
+  }
+  return std::move(result.get());
+}
+
+std::vector<EValue>
+BaseModel::forwardOrThrow(const std::vector<EValue> &inputs,
+                          const std::string &contextMessage) const {
+  auto result = forward(inputs);
+  if (!result.ok()) {
+    throw RnExecutorchError(result.error(), contextMessage);
+  }
+  return std::move(result.get());
+}
+
+std::vector<EValue>
+BaseModel::executeOrThrow(const std::string &methodName,
+                          const std::vector<EValue> &inputs,
+                          const std::string &contextMessage) const {
+  auto result = execute(methodName, inputs);
+  if (!result.ok()) {
+    std::string message =
+        contextMessage.empty()
+            ? "Model " + methodName + " method failed. Ensure input is correct."
+            : contextMessage;
+    throw RnExecutorchError(result.error(), message);
+  }
+  return std::move(result.get());
+}
+
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();
