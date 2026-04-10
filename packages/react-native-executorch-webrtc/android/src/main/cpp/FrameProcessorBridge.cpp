@@ -4,31 +4,33 @@
 #include <jni.h>
 #include <memory>
 #include <opencv2/opencv.hpp>
+#include <set>
 #include <string>
 #include <vector>
 
-#include <executorch/extension/module/module.h>
-#include <executorch/extension/tensor/tensor.h>
-#include <executorch/runtime/core/exec_aten/exec_aten.h>
+// Use BaseSemanticSegmentation from react-native-executorch
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
+#include <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
 
 #define LOG_TAG "ExecutorchWebRTC-JNI"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-// Global model instance
-static std::unique_ptr<executorch::extension::Module> g_model = nullptr;
+using namespace rnexecutorch;
+using namespace rnexecutorch::models::semantic_segmentation;
+
+// Global segmentation model instance (reuses react-native-executorch's
+// implementation)
+static std::unique_ptr<BaseSemanticSegmentation> g_segmentation = nullptr;
 static bool g_modelLoaded = false;
 static std::string g_modelPath;
 
 // Model input dimensions (dynamically read from model)
 static int g_modelHeight = 256;
 static int g_modelWidth = 256;
-static bool g_buffersInitialized = false;
 
-// Pre-allocated buffers (resized dynamically based on model input)
-static std::vector<float> g_inputData;
+// Pre-allocated buffers
 static cv::Mat g_resizedRgb;
-static cv::Mat g_floatMat;
 
 // Debug logging rate limiter
 static long long g_lastDebugLogTime = 0;
@@ -36,29 +38,7 @@ static long long g_lastDebugLogTime = 0;
 extern "C" {
 
 /**
- * Reallocate buffers based on model input dimensions
- */
-static void reallocateBuffers(int height, int width) {
-  g_modelHeight = height;
-  g_modelWidth = width;
-  g_inputData.resize(1 * 3 * height * width);
-  g_resizedRgb = cv::Mat(height, width, CV_8UC3);
-  g_floatMat = cv::Mat(height, width, CV_32FC3);
-  g_buffersInitialized = true;
-  LOGD("Buffers reallocated for model size: %dx%d", width, height);
-}
-
-/**
- * Ensure buffers are initialized (called before first frame if needed)
- */
-static void ensureBuffersInitialized() {
-  if (!g_buffersInitialized) {
-    reallocateBuffers(256, 256);
-  }
-}
-
-/**
- * Load the segmentation model
+ * Load the segmentation model using BaseSemanticSegmentation
  */
 JNIEXPORT jboolean JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
@@ -72,57 +52,49 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
   g_modelPath = std::string(pathChars);
   env->ReleaseStringUTFChars(modelPath, pathChars);
 
-  LOGD("Loading ExecuTorch model from: %s", g_modelPath.c_str());
+  LOGD("Loading segmentation model via BaseSemanticSegmentation: %s",
+       g_modelPath.c_str());
 
   try {
-    g_model = std::make_unique<executorch::extension::Module>(
-        g_modelPath,
-        executorch::extension::Module::LoadMode::MmapUseMlockIgnoreErrors);
+    // Create BaseSemanticSegmentation with:
+    // - modelSource: path to .pte file
+    // - normMean: empty (uses default 0, which means /255.0 normalization)
+    // - normStd: empty (uses default 1)
+    // - allClasses: ["foreground", "background"] for binary segmentation
+    // - callInvoker: nullptr (we don't need JSI operations)
+    std::vector<float> normMean = {}; // Default normalization
+    std::vector<float> normStd = {};
+    std::vector<std::string> allClasses = {"foreground", "background"};
 
-    // Get model input shape to determine expected dimensions
-    auto methodMeta = g_model->method_meta("forward");
-    if (methodMeta.ok()) {
-      auto inputMeta = methodMeta->input_tensor_meta(0);
-      if (inputMeta.ok()) {
-        auto sizes = inputMeta->sizes();
-        // Expected shape: [1, 3, H, W] (NCHW format)
-        if (sizes.size() >= 4) {
-          int modelH = static_cast<int>(sizes[sizes.size() - 2]);
-          int modelW = static_cast<int>(sizes[sizes.size() - 1]);
-          LOGD("Model input shape detected: [1, 3, %d, %d]", modelH, modelW);
-          reallocateBuffers(modelH, modelW);
-        } else if (sizes.size() >= 2) {
-          int modelH = static_cast<int>(sizes[sizes.size() - 2]);
-          int modelW = static_cast<int>(sizes[sizes.size() - 1]);
-          LOGD("Model input shape (2D): [%d, %d]", modelH, modelW);
-          reallocateBuffers(modelH, modelW);
-        } else {
-          LOGD("Could not determine model input shape, using default 256x256");
-          reallocateBuffers(256, 256);
-        }
-      } else {
-        LOGD("Could not get input tensor meta, using default 256x256");
-        reallocateBuffers(256, 256);
-      }
-    } else {
-      LOGD("Could not get method meta, using default 256x256");
-      reallocateBuffers(256, 256);
+    g_segmentation = std::make_unique<BaseSemanticSegmentation>(
+        g_modelPath, normMean, normStd, allClasses, nullptr);
+
+    // Get model input size from shape [N, C, H, W]
+    auto inputShapes = g_segmentation->getAllInputShapes();
+    if (!inputShapes.empty() && inputShapes[0].size() >= 4) {
+      g_modelHeight = inputShapes[0][inputShapes[0].size() - 2];
+      g_modelWidth = inputShapes[0][inputShapes[0].size() - 1];
     }
 
+    LOGD("Model input size: %dx%d", g_modelWidth, g_modelHeight);
+
+    // Pre-allocate buffers
+    g_resizedRgb = cv::Mat(g_modelHeight, g_modelWidth, CV_8UC3);
+
     g_modelLoaded = true;
-    LOGD("✅ Model loaded successfully!");
+    LOGD("✅ Segmentation model loaded successfully via "
+         "BaseSemanticSegmentation!");
     return JNI_TRUE;
   } catch (const std::exception &e) {
     LOGE("❌ Failed to load model: %s", e.what());
     g_modelLoaded = false;
-    reallocateBuffers(256, 256); // Use default size
+    g_segmentation.reset();
     return JNI_FALSE;
   }
 }
 
 /**
- * Process I420 frame directly - does segmentation and applies mask in one call.
- * This avoids multiple JNI crossings and RGB conversions in Kotlin.
+ * Process I420 frame - does segmentation and applies blur in one call.
  *
  * @param yData Y plane data
  * @param uData U plane data
@@ -132,15 +104,13 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
  * @param yStride Y plane stride
  * @param uvStride U/V plane stride
  * @param rotation Frame rotation in degrees (0, 90, 180, 270)
- * @return Modified Y plane with background blacked out (or null on error)
+ * @return Modified Y plane with background blurred (or null on error)
  */
 JNIEXPORT jbyteArray JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     JNIEnv *env, jobject thiz, jbyteArray yData, jbyteArray uData,
     jbyteArray vData, jint width, jint height, jint yStride, jint uvStride,
     jint rotation) {
-  // Ensure buffers are initialized
-  ensureBuffersInitialized();
 
   // Get input buffers and their actual sizes
   jsize yDataSize = env->GetArrayLength(yData);
@@ -163,8 +133,6 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   }
 
   // Determine actual stride based on buffer sizes
-  // If buffer is smaller than stride * height, the actual stride is width (no
-  // padding)
   int actualYStride = (yDataSize >= yStride * height) ? yStride : width;
   int actualUVStride =
       (uDataSize >= uvStride * (height / 2)) ? uvStride : (width / 2);
@@ -175,10 +143,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
                  std::chrono::system_clock::now().time_since_epoch())
                  .count();
   if (now - lastBufferLogTime > 2000) {
-    LOGD("Buffer sizes: Y=%d (expected %d), U=%d, V=%d, actualYStride=%d, "
-         "actualUVStride=%d",
-         yDataSize, yStride * height, uDataSize, vDataSize, actualYStride,
-         actualUVStride);
+    LOGD("Buffer sizes: Y=%d, U=%d, V=%d, actualYStride=%d, actualUVStride=%d",
+         yDataSize, uDataSize, vDataSize, actualYStride, actualUVStride);
     lastBufferLogTime = now;
   }
 
@@ -192,7 +158,6 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   }
 
   // Merge I420 to single buffer for cvtColor
-  // Create the combined I420 buffer (Y plane followed by U and V planes)
   cv::Mat i420(height * 3 / 2, width, CV_8UC1);
 
   // Copy Y plane row by row (handle stride correctly)
@@ -202,8 +167,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   }
 
   // Copy U and V planes
-  uint8_t *uSrc = reinterpret_cast<uint8_t *>(uPtr);
-  uint8_t *vSrc = reinterpret_cast<uint8_t *>(vPtr);
+  auto *uSrc = reinterpret_cast<uint8_t *>(uPtr);
+  auto *vSrc = reinterpret_cast<uint8_t *>(vPtr);
   uint8_t *uvDst = i420.ptr(height);
   int uvWidth = width / 2;
   int uvHeight = height / 2;
@@ -221,10 +186,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   cv::cvtColor(i420, rgbFull, cv::COLOR_YUV2RGB_I420);
 
   // Rotate image to upright for model inference
-  // Frame rotation tells us how the sensor is rotated, so we rotate opposite to
-  // get upright
   cv::Mat rgbRotated;
-  int rotateCode = -1; // -1 means no rotation needed
+  int rotateCode = -1;
   if (rotation == 90) {
     rotateCode = cv::ROTATE_90_CLOCKWISE;
   } else if (rotation == 180) {
@@ -239,21 +202,13 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     rgbRotated = rgbFull;
   }
 
-  // Resize to model input size (use dynamic dimensions)
-  cv::resize(rgbRotated, g_resizedRgb, cv::Size(g_modelWidth, g_modelHeight));
-
   // Run segmentation
   cv::Mat mask;
 
-  if (!g_modelLoaded || !g_model) {
+  if (!g_modelLoaded || !g_segmentation) {
     // Rate-limited logging for missing model
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
     if (now - g_lastDebugLogTime > 1000) {
-      LOGD("Model not loaded (g_modelLoaded=%d, g_model=%p), using placeholder "
-           "ellipse mask",
-           g_modelLoaded ? 1 : 0, g_model.get());
+      LOGD("Model not loaded, using placeholder ellipse mask");
       g_lastDebugLogTime = now;
     }
 
@@ -276,84 +231,43 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
       }
     }
   } else {
-    // Run ExecuTorch model
-    g_resizedRgb.convertTo(g_floatMat, CV_32FC3, 1.0 / 255.0);
+    // Use BaseSemanticSegmentation via generateFromPixels
+    try {
+      // Create JSTensorViewIn from the rotated RGB image
+      // generateFromPixels expects [height, width, 3] RGB uint8 data
+      JSTensorViewIn pixelData;
+      pixelData.dataPtr = rgbRotated.data;
+      pixelData.sizes = {rgbRotated.rows, rgbRotated.cols, 3};
+      pixelData.scalarType = executorch::aten::ScalarType::Byte;
 
-    // Convert HWC to NCHW
-    float *inputPtr = g_inputData.data();
-    for (int c = 0; c < 3; c++) {
-      for (int y = 0; y < g_modelHeight; y++) {
-        const cv::Vec3f *row = g_floatMat.ptr<cv::Vec3f>(y);
-        for (int x = 0; x < g_modelWidth; x++) {
-          *inputPtr++ = row[x][c];
+      // Run inference - returns foreground probability mask
+      std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
+      auto result = g_segmentation->generateFromPixels(
+          pixelData, classesOfInterest, false);
+
+      // Extract foreground mask from result
+      if (result.classBuffers && result.classBuffers->count("foreground")) {
+        auto &fgBuffer = result.classBuffers->at("foreground");
+        auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
+
+        // The mask is at model input size, need to get its dimensions
+        // For now, assume it's the model input size
+        mask = cv::Mat(g_modelHeight, g_modelWidth, CV_32FC1, fgData).clone();
+
+        // Rate-limited debug logging
+        if (now - g_lastDebugLogTime > 1000) {
+          double minVal, maxVal;
+          cv::minMaxLoc(mask, &minVal, &maxVal);
+          LOGD("Segmentation result: size=%dx%d, min=%.4f, max=%.4f", mask.cols,
+               mask.rows, minVal, maxVal);
+          g_lastDebugLogTime = now;
         }
+      } else {
+        LOGE("No foreground mask in result, using fallback");
+        mask = cv::Mat::ones(g_modelHeight, g_modelWidth, CV_32FC1);
       }
-    }
-
-    std::vector<executorch::aten::SizesType> shape = {1, 3, g_modelHeight,
-                                                      g_modelWidth};
-    auto inputTensor = executorch::extension::from_blob(
-        g_inputData.data(), shape, executorch::aten::ScalarType::Float);
-
-    std::vector<executorch::runtime::EValue> inputs = {inputTensor};
-    auto result = g_model->forward(inputs);
-
-    if (result.ok() && !result.get().empty()) {
-      auto outputTensor = result.get()[0].toTensor();
-      const float *outputData = outputTensor.const_data_ptr<float>();
-
-      // Get output tensor dimensions
-      int outputH = g_modelHeight;
-      int outputW = g_modelWidth;
-      if (outputTensor.dim() >= 2) {
-        outputH = static_cast<int>(outputTensor.size(outputTensor.dim() - 2));
-        outputW = static_cast<int>(outputTensor.size(outputTensor.dim() - 1));
-      }
-
-      // Rate-limited debug logging (once per second)
-      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                     std::chrono::system_clock::now().time_since_epoch())
-                     .count();
-      if (now - g_lastDebugLogTime > 1000) {
-        // Log tensor info
-        LOGD("Model output: dim=%zd, outputH=%d, outputW=%d, numel=%zd",
-             (ssize_t)outputTensor.dim(), outputH, outputW,
-             (ssize_t)outputTensor.numel());
-
-        // Sample output values to understand the range
-        ssize_t totalElements = outputTensor.numel();
-        float minVal = outputData[0], maxVal = outputData[0], sum = 0;
-        for (ssize_t i = 0; i < totalElements; i++) {
-          float v = outputData[i];
-          if (v < minVal)
-            minVal = v;
-          if (v > maxVal)
-            maxVal = v;
-          sum += v;
-        }
-        float mean = sum / totalElements;
-        LOGD("Output stats: min=%.4f, max=%.4f, mean=%.4f", minVal, maxVal,
-             mean);
-
-        // Log first few values
-        int numSamples = (totalElements < 10) ? (int)totalElements : 10;
-        std::string samples = "First values: ";
-        for (int i = 0; i < numSamples; i++) {
-          samples += std::to_string(outputData[i]) + " ";
-        }
-        LOGD("%s", samples.c_str());
-
-        g_lastDebugLogTime = now;
-      }
-
-      mask =
-          cv::Mat(outputH, outputW, CV_32FC1, const_cast<float *>(outputData))
-              .clone();
-    } else {
-      // Fallback - keep everything
-      LOGE("Model forward FAILED! result.ok()=%d, result.get().empty()=%d",
-           result.ok() ? 1 : 0,
-           result.ok() ? (result.get().empty() ? 1 : 0) : -1);
+    } catch (const std::exception &e) {
+      LOGE("Segmentation failed: %s", e.what());
       mask = cv::Mat::ones(g_modelHeight, g_modelWidth, CV_32FC1);
     }
   }
@@ -361,13 +275,9 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   // Resize mask to rotated frame size, then rotate back to original orientation
   cv::Mat fullMask;
   if (rotation == 90 || rotation == 270) {
-    // For 90/270 rotation, the rotated image had swapped dimensions
     cv::Mat rotatedMask;
     cv::resize(mask, rotatedMask, cv::Size(height, width), 0, 0,
-               cv::INTER_LINEAR); // Note: swapped w/h
-
-    // Rotate mask back to original frame orientation (inverse of what we did to
-    // the image)
+               cv::INTER_LINEAR);
     int inverseRotateCode = (rotation == 90) ? cv::ROTATE_90_COUNTERCLOCKWISE
                                              : cv::ROTATE_90_CLOCKWISE;
     cv::rotate(rotatedMask, fullMask, inverseRotateCode);
@@ -375,29 +285,10 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     cv::resize(mask, fullMask, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
     cv::rotate(fullMask, fullMask, cv::ROTATE_180);
   } else {
-    // No rotation
     cv::resize(mask, fullMask, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
   }
 
-  // Debug: log mask statistics after resize (rate-limited)
-  {
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                   std::chrono::system_clock::now().time_since_epoch())
-                   .count();
-    static long long lastMaskLogTime = 0;
-    if (now - lastMaskLogTime > 1000) {
-      double minVal, maxVal;
-      cv::minMaxLoc(fullMask, &minVal, &maxVal);
-      cv::Scalar meanVal = cv::mean(fullMask);
-      LOGD("Resized mask stats: size=%dx%d, min=%.4f, max=%.4f, mean=%.4f",
-           fullMask.cols, fullMask.rows, minVal, maxVal, meanVal[0]);
-      lastMaskLogTime = now;
-    }
-  }
-
-  // Apply smoothstep to mask using OpenCV (vectorized/SIMD optimized)
-  // smoothstep: values < 0.3 → 0, values > 0.7 → 1, smooth transition in
-  // between
+  // Apply smoothstep to mask
   const float lowThresh = 0.3f;
   const float highThresh = 0.7f;
   cv::Mat t;
@@ -405,7 +296,6 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   cv::multiply(t, 1.0f / (highThresh - lowThresh), t);
   cv::min(t, 1.0f, t);
   cv::max(t, 0.0f, t);
-  // smoothstep: t*t*(3 - 2*t)
   cv::Mat t2, smoothMask;
   cv::multiply(t, t, t2);
   cv::multiply(t, -2.0f, smoothMask);
@@ -422,12 +312,12 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   }
 
   // Create blurred Y using downscale-blur-upscale for performance
-  // Downscale 3x, stack blur (O(1) fast blur), upscale back
+  // 4x downscale for speed, stackBlur is O(1)
   cv::Mat ySmall, yBlurredSmall, yBlurred;
-  int smallW = width / 3;
-  int smallH = height / 3;
+  int smallW = width / 4;
+  int smallH = height / 4;
   cv::resize(yMat, ySmall, cv::Size(smallW, smallH), 0, 0, cv::INTER_AREA);
-  cv::stackBlur(ySmall, yBlurredSmall, cv::Size(25, 25)); // O(1) fast blur
+  cv::stackBlur(ySmall, yBlurredSmall, cv::Size(21, 21));
   cv::resize(yBlurredSmall, yBlurred, cv::Size(width, height), 0, 0,
              cv::INTER_LINEAR);
 
@@ -442,12 +332,9 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
 
     for (int col = 0; col < width; col++) {
       float prob = maskRow[col];
-      // prob=1: foreground (person) = original
-      // prob=0: background = blurred
       dstY[col] =
           static_cast<uint8_t>(blurY[col] * (1.0f - prob) + srcY[col] * prob);
     }
-    // Copy stride padding if any
     if (actualYStride > width) {
       memcpy(dstY + width, ySrc + row * actualYStride + width,
              actualYStride - width);
@@ -464,7 +351,7 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   return outYData;
 }
 
-// Keep old method for compatibility but mark deprecated
+// Keep old method for compatibility
 JNIEXPORT jfloatArray JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
     JNIEnv *env, jobject thiz, jbyteArray rgbData, jint width, jint height) {

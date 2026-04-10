@@ -4,18 +4,6 @@ project(react-native-executorch-webrtc)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
-# Resolve React Native directory
-if(NOT DEFINED REACT_NATIVE_DIR)
-    # Try to find it via node
-    execute_process(
-        COMMAND node --print "require.resolve('react-native/package.json')"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE REACT_NATIVE_PACKAGE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    get_filename_component(REACT_NATIVE_DIR "${REACT_NATIVE_PACKAGE}" DIRECTORY)
-endif()
-
 # Paths to react-native-executorch
 set(RN_EXECUTORCH_DIR "${CMAKE_SOURCE_DIR}/../../react-native-executorch")
 set(RN_EXECUTORCH_THIRD_PARTY "${RN_EXECUTORCH_DIR}/third-party/include")
@@ -29,24 +17,22 @@ add_library(
   ${SOURCES}
 )
 
+# Find packages - ReactAndroid provides JSI headers
+find_package(ReactAndroid REQUIRED CONFIG)
+find_package(fbjni REQUIRED CONFIG)
+find_package(react-native-executorch REQUIRED CONFIG)
+
 # Include headers
 target_include_directories(
   ${CMAKE_PROJECT_NAME}
   PRIVATE
   "${RN_EXECUTORCH_DIR}/common"
   "${RN_EXECUTORCH_THIRD_PARTY}"
-  "${REACT_NATIVE_DIR}/ReactCommon"
-  "${REACT_NATIVE_DIR}/ReactCommon/jsi"
-  "${REACT_NATIVE_DIR}/ReactCommon/callinvoker"
-  "${REACT_NATIVE_DIR}/ReactAndroid/src/main/jni/react/turbomodule"
 )
 
 # Find prebuilt libraries
 find_library(LOG_LIB log)
 find_library(ANDROID_LIB android)
-
-# Find packages
-find_package(react-native-executorch REQUIRED CONFIG)
 
 # Import ExecuTorch library
 set(LIBS_DIR "${RN_EXECUTORCH_DIR}/third-party/android/libs")
@@ -76,6 +62,9 @@ target_link_libraries(
   ${CMAKE_PROJECT_NAME}
   ${LOG_LIB}
   ${ANDROID_LIB}
+  ReactAndroid::jsi
+  ReactAndroid::reactnative
+  fbjni::fbjni
   react-native-executorch::react-native-executorch
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}

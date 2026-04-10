@@ -13,7 +13,9 @@
   "files": [
     "lib",
     "android",
+    "ios",
     "react-native.config.js",
+    "react-native-executorch-webrtc.podspec",
     "README.md"
   ],
   "license": "MIT",

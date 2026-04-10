@@ -7,9 +7,7 @@ module.exports = {
           'import com.executorch.webrtc.ExecutorchWebRTCPackage;',
         packageInstance: 'new ExecutorchWebRTCPackage()',
       },
-      ios: {
-        // iOS support coming soon
-      },
+      ios: {},
     },
   },
 };

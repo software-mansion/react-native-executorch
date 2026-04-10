@@ -9,7 +9,7 @@ import com.oney.WebRTCModule.videoEffects.ProcessorProvider
  */
 object ExecutorchWebRTC {
   private const val TAG = "ExecutorchWebRTC"
-  private const val PROCESSOR_NAME = "executorch"
+  private const val PROCESSOR_NAME = "executorchBackgroundBlur"
 
   // Configuration for background removal
   var modelPath: String? = null

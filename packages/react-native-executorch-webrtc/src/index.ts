@@ -11,7 +11,7 @@ import { NativeModules, Platform } from 'react-native';
 
 // Auto-initialize the native module to register the processor
 // This happens when the package is first imported
-if (Platform.OS === 'android') {
+if (Platform.OS === 'android' || Platform.OS === 'ios') {
   const { ExecutorchWebRTC } = NativeModules;
   if (ExecutorchWebRTC) {
     try {
@@ -31,9 +31,9 @@ if (Platform.OS === 'android') {
  * @param modelPath Path to the selfie segmentation model (.pte file)
  */
 export function configureBackgroundRemoval(modelPath: string): void {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     console.warn(
-      'configureBackgroundRemoval: Currently only supported on Android'
+      'configureBackgroundRemoval: Only supported on Android and iOS'
     );
     return;
   }

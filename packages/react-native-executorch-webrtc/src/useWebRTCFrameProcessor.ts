@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Platform, DeviceEventEmitter } from 'react-native';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 
-const PROCESSOR_NAME = 'executorch';
+const PROCESSOR_NAME = 'executorchBackgroundBlur';
 
 /**
  * Result from frame processing
@@ -49,14 +49,6 @@ export function useWebRTCFrameProcessor(
   const { enabled = true, onResults } = options;
   useEffect(() => {
     if (!stream || !enabled) {
-      return;
-    }
-
-    // Only supported on Android for now
-    if (Platform.OS !== 'android') {
-      console.warn(
-        'useWebRTCFrameProcessor: Currently only supported on Android'
-      );
       return;
     }
 

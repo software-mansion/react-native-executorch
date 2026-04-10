@@ -32,7 +32,9 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
   init {
     Log.d(TAG, "ExecutorchFrameProcessor created - background removal enabled")
     tryLoadModel()
+    tryLoadModel()
   }
+
 
   /**
    * Try to load the model if not already loaded and path is available.
@@ -85,7 +87,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     uvStride: Int,
     rotation: Int,
   ): ByteArray?
-
 
   override fun process(
     frame: VideoFrame,
