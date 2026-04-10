@@ -9,6 +9,7 @@
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
+#include <set>
 
 namespace rnexecutorch::models::instance_segmentation {
 
@@ -21,14 +22,10 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
 }
 
 cv::Size BaseInstanceSegmentation::modelInputSize() const {
-  if (currentlyLoadedMethod_.empty()) {
-    return VisionModel::modelInputSize();
-  }
-  try {
+  if (!currentlyLoadedMethod_.empty()) {
     return getModelInputSize(currentlyLoadedMethod_);
-  } catch (...) {
-    return VisionModel::modelInputSize();
   }
+  return VisionModel::modelInputSize();
 }
 
 TensorPtr BaseInstanceSegmentation::buildInputTensor(const cv::Mat &image) {
@@ -88,7 +85,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
     std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
     std::string methodName) {
 
-  auto [rotated, orient] = loadFrameRotated(runtime, frameData);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   auto instances =
       runInference(rotated, confidenceThreshold, iouThreshold, maxInstances,
                    classIndices, returnMaskAtOriginalResolution, methodName);
@@ -240,8 +237,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::collectInstances(
       static_cast<float>(originalSize.width) / modelInputSize.width;
   float heightRatio =
       static_cast<float>(originalSize.height) / modelInputSize.height;
-  auto allowedClasses =
-      utils::computer_vision::prepareAllowedClasses(classIndices);
+  std::set<int32_t> allowedClasses(classIndices.begin(), classIndices.end());
 
   // CONTRACT
   auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]

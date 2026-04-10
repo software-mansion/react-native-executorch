@@ -67,7 +67,7 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  auto [rotated, orient, originalSize] = loadFrameRotatedWithSize(runtime, frameData);
+  auto [rotated, orient, originalSize] = loadFrameRotated(runtime, frameData);
   // Always run inference without resize — rotate first, then resize.
   auto result = runInference(rotated, rotated.size(), classesOfInterest, false);
 

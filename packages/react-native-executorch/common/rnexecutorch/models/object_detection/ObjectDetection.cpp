@@ -9,6 +9,7 @@
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
+#include <set>
 
 namespace rnexecutorch::models::object_detection {
 
@@ -39,8 +40,7 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
       static_cast<float>(originalSize.height) / inputSize.height;
 
   // Prepare allowed classes set for filtering
-  auto allowedClasses =
-      utils::computer_vision::prepareAllowedClasses(classIndices);
+  std::set<int32_t> allowedClasses(classIndices.begin(), classIndices.end());
 
   std::vector<types::Detection> detections;
   auto bboxTensor = tensors.at(0).toTensor();
@@ -134,7 +134,7 @@ std::vector<types::Detection> ObjectDetection::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     double detectionThreshold, double iouThreshold,
     std::vector<int32_t> classIndices, std::string methodName) {
-  auto [rotated, orient] = loadFrameRotated(runtime, frameData);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   auto detections = runInference(rotated, detectionThreshold, iouThreshold,
                                  classIndices, methodName);
 

@@ -205,27 +205,9 @@ void BaseModel::ensureMethodLoaded(const std::string &methodName) {
   currentlyLoadedMethod_ = methodName;
 }
 
-cv::Size BaseModel::getModelInputSize(const std::string &methodName) const {
-  std::string method = methodName.empty() ? currentlyLoadedMethod_ : methodName;
-  if (method.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "No method specified and no method currently loaded");
-  }
-
-  auto inputShapes = getAllInputShapes(method);
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Could not determine input shape for method: " +
-                                method);
-  }
-
-  const auto &shape = inputShapes[0];
-  return cv::Size(shape[shape.size() - 1], shape[shape.size() - 2]);
-}
-
 std::vector<int32_t>
 BaseModel::validateAndGetInputShape(const std::string &methodName,
-                                   size_t minDimensions) const {
+                                    size_t minDimensions) const {
   auto inputShapes = getAllInputShapes(methodName);
 
   if (inputShapes.empty()) {
@@ -238,8 +220,8 @@ BaseModel::validateAndGetInputShape(const std::string &methodName,
     throw RnExecutorchError(
         RnExecutorchErrorCode::WrongDimensions,
         "Unexpected model input size, expected at least " +
-            std::to_string(minDimensions) + " dimensions but got: " +
-            std::to_string(shape.size()) + ".");
+            std::to_string(minDimensions) +
+            " dimensions but got: " + std::to_string(shape.size()) + ".");
   }
 
   return shape;

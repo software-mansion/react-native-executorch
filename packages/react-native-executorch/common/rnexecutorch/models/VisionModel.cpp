@@ -1,7 +1,7 @@
 #include "VisionModel.h"
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
-#include <rnexecutorch/Logger.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
@@ -25,6 +25,25 @@ cv::Size VisionModel::modelInputSize() const {
   }
   return cv::Size(modelInputShape_[modelInputShape_.size() - 1],
                   modelInputShape_[modelInputShape_.size() - 2]);
+}
+
+cv::Size VisionModel::getModelInputSize(const std::string &methodName) const {
+  std::string method = methodName.empty() ? currentlyLoadedMethod_ : methodName;
+  if (method.empty()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "No method specified and no method currently loaded");
+  }
+
+  auto inputShapes = getAllInputShapes(method);
+  if (inputShapes.empty() || inputShapes[0].size() < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Could not determine input shape for method: " +
+                                method);
+  }
+
+  const auto &shape = inputShapes[0];
+  return cv::Size(shape[shape.size() - 1], shape[shape.size() - 2]);
 }
 
 cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
@@ -54,7 +73,7 @@ cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {
 }
 
 void VisionModel::initNormalization(const std::vector<float> &normMean,
-                                   const std::vector<float> &normStd) {
+                                    const std::vector<float> &normStd) {
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
@@ -72,9 +91,8 @@ void VisionModel::initNormalization(const std::vector<float> &normMean,
 
 TensorPtr VisionModel::createInputTensor(const cv::Mat &preprocessed) const {
   return (normMean_ && normStd_)
-             ? image_processing::getTensorFromMatrix(modelInputShape_,
-                                                     preprocessed, *normMean_,
-                                                     *normStd_)
+             ? image_processing::getTensorFromMatrix(
+                   modelInputShape_, preprocessed, *normMean_, *normStd_)
              : image_processing::getTensorFromMatrix(modelInputShape_,
                                                      preprocessed);
 }
@@ -86,18 +104,9 @@ cv::Mat VisionModel::loadImageToRGB(const std::string &imageSource) const {
   return imageRGB;
 }
 
-std::pair<cv::Mat, utils::FrameOrientation>
+std::tuple<cv::Mat, utils::FrameOrientation, cv::Size>
 VisionModel::loadFrameRotated(jsi::Runtime &runtime,
                               const jsi::Value &frameData) const {
-  auto orient = utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
-  return {rotated, orient};
-}
-
-std::tuple<cv::Mat, utils::FrameOrientation, cv::Size>
-VisionModel::loadFrameRotatedWithSize(jsi::Runtime &runtime,
-                                     const jsi::Value &frameData) const {
   auto orient = utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Size originalSize = frame.size();

@@ -333,6 +333,7 @@ add_rn_test(OCRTests integration/OCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
@@ -350,6 +351,7 @@ add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp

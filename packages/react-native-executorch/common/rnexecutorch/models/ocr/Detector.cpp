@@ -10,7 +10,7 @@
 namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   // Validate all supported input widths
   for (auto input_size : constants::kDetectorInputWidths) {
     std::string methodName = "forward_" + std::to_string(input_size);

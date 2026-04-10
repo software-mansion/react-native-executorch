@@ -20,15 +20,6 @@ float computeIoU(const BBox &a, const BBox &b) {
   return (unionArea > 0.0f) ? (intersectionArea / unionArea) : 0.0f;
 }
 
-std::set<int32_t>
-prepareAllowedClasses(const std::vector<int32_t> &classIndices) {
-  std::set<int32_t> allowedClasses;
-  if (!classIndices.empty()) {
-    allowedClasses.insert(classIndices.begin(), classIndices.end());
-  }
-  return allowedClasses;
-}
-
 void validateThreshold(double value, const std::string &name) {
   if (value < 0.0 || value > 1.0) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,

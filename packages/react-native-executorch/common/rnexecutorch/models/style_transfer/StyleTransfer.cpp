@@ -64,7 +64,7 @@ StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
 
 PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
-  auto [rotated, orient] = loadFrameRotated(runtime, frameData);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   cv::Mat output = runInference(rotated, modelInputSize());
   cv::Mat oriented = utils::inverseRotateMat(output, orient);
   return toPixelDataResult(oriented);

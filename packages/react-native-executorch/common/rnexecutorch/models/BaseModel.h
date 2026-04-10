@@ -6,7 +6,6 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
-#include <opencv2/core/types.hpp>
 #include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
@@ -69,18 +68,6 @@ protected:
   void ensureMethodLoaded(const std::string &methodName);
 
   /**
-   * @brief Get model input spatial dimensions for a specific method.
-   *
-   * Useful for multi-method models with different input sizes per method.
-   * Returns the last two dimensions of the input shape as cv::Size.
-   *
-   * @param methodName Method to query (uses currentlyLoadedMethod_ if empty)
-   * @return Size (width, height) of the model input for the specified method
-   * @throws RnExecutorchError if method metadata cannot be retrieved
-   */
-  cv::Size getModelInputSize(const std::string &methodName = "") const;
-
-  /**
    * @brief Validate and get input shape for model
    *
    * Validates that the model has at least one input tensor and that the first
@@ -94,7 +81,7 @@ protected:
    */
   std::vector<int32_t>
   validateAndGetInputShape(const std::string &methodName = "forward",
-                          size_t minDimensions = 2) const;
+                           size_t minDimensions = 2) const;
 
   /// Name of the currently loaded method (for multi-method models).
   std::string currentlyLoadedMethod_;

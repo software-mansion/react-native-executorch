@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
 namespace rnexecutorch::models::ocr {
@@ -17,13 +17,13 @@ namespace rnexecutorch::models::ocr {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class Detector : public BaseModel {
+class Detector : public models::VisionModel {
 public:
   explicit Detector(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  [[nodiscard("Registered non-void function")]] 
-  virtual std::vector<types::DetectorBBox> 
-  generate(const cv::Mat &inputImage, int32_t inputWidth);
+  [[nodiscard("Registered non-void function")]]
+  virtual std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
+                                                    int32_t inputWidth);
 
   cv::Size calculateModelImageSize(int32_t methodInputWidth);
 
