@@ -20,16 +20,12 @@ ImageEmbeddings::runInference(cv::Mat image) {
   cv::Mat preprocessed = preprocess(image);
   auto inputTensor = createInputTensor(preprocessed);
 
-  auto forwardResult = BaseModel::forward(inputTensor);
+  auto outputs = forwardOrThrow(
+      inputTensor,
+      "The model's forward function did not succeed. Ensure the model input "
+      "is correct.");
 
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(
-        forwardResult.error(),
-        "The model's forward function did not succeed. Ensure the model input "
-        "is correct.");
-  }
-
-  auto forwardResultTensor = forwardResult->at(0).toTensor();
+  auto forwardResultTensor = outputs.at(0).toTensor();
   return std::make_shared<OwningArrayBuffer>(
       forwardResultTensor.const_data_ptr(), forwardResultTensor.nbytes());
 }
