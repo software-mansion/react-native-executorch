@@ -34,10 +34,10 @@
   "devDependencies": {
     "@dr.pogodin/react-native-fs": "^2.36.2",
     "@kesha-antonov/react-native-background-downloader": "^4.4.5",
-    "@types/react": "~19.1.10",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "@types/react": "~19.2.14",
+    "react": "19.2.5",
+    "react-native": "0.85.0",
     "react-native-executorch": "workspace:*",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.2"
   }
 }

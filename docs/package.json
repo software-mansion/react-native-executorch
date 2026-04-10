@@ -18,17 +18,17 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docsearch/core": "^4.4.0",
+    "@docsearch/core": "^4.6.2",
     "@docsearch/css": "^4.6.0",
     "@docsearch/sidepanel": "^4.6.0",
-    "@docusaurus/core": "^3.9.2",
-    "@docusaurus/plugin-google-tag-manager": "^3.9.2",
-    "@docusaurus/plugin-sitemap": "^3.9.2",
-    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/plugin-google-tag-manager": "^3.10.0",
+    "@docusaurus/plugin-sitemap": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mdx-js/react": "^3.0.0",
-    "@mui/material": "^7.3.7",
+    "@mui/material": "^9.0.0",
     "@signalwire/docusaurus-plugin-llms-txt": "2.0.0-alpha.7",
     "@signalwire/docusaurus-theme-llms-txt": "1.0.0-alpha.9",
     "@swmansion/t-rex-ui": "^1.3.2",
@@ -40,12 +40,12 @@
     "swiper": "^12.1.2"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.9.2",
-    "@docusaurus/tsconfig": "^3.9.2",
+    "@docusaurus/module-type-aliases": "^3.10.0",
+    "@docusaurus/tsconfig": "^3.10.0",
     "docusaurus-plugin-typedoc": "^1.4.2",
     "typedoc": "^0.28.17",
-    "typedoc-plugin-markdown": "^4.10.0",
-    "typescript": "^5.9.3"
+    "typedoc-plugin-markdown": "^4.11.0",
+    "typescript": "^6.0.2"
   },
   "browserslist": {
     "production": [

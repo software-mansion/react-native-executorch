@@ -73,13 +73,13 @@
   "devDependencies": {
     "@react-native-community/cli": "latest",
     "@types/jest": "^30.0.0",
-    "@types/react": "~19.1.10",
+    "@types/react": "~19.2.14",
     "jest": "^30.2.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-builder-bob": "^0.40.12",
-    "typescript": "~5.9.2"
+    "react": "19.2.5",
+    "react-native": "0.85.0",
+    "react-native-builder-bob": "^0.41.0",
+    "typescript": "~6.0.2"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
