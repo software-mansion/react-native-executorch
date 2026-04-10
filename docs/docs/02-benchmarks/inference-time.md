@@ -106,14 +106,44 @@ The values below represent the averages across all runs for the benchmark image.
 
 ## LLMs
 
-| Model                 | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone 13 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |
-| --------------------- | :--------------------------------: | :--------------------------------: | :------------------------------: | :-------------------------------------: | :-----------------------------: |
-| LLAMA3_2_1B           |                16.1                |                11.4                |                ❌                |                  15.6                   |              19.3               |
-| LLAMA3_2_1B_SPINQUANT |                40.6                |                16.7                |               16.5               |                  40.3                   |              48.2               |
-| LLAMA3_2_1B_QLORA     |                31.8                |                11.4                |               11.2               |                  37.3                   |              44.4               |
-| LLAMA3_2_3B           |                 ❌                 |                 ❌                 |                ❌                |                   ❌                    |               7.1               |
-| LLAMA3_2_3B_SPINQUANT |                17.2                |                8.2                 |                ❌                |                  16.2                   |              19.4               |
-| LLAMA3_2_3B_QLORA     |                14.5                |                 ❌                 |                ❌                |                  14.8                   |              18.1               |
+| Model                          | Google Pixel 10 (XNNPACK) [tokens/s] | iPhone 17 Pro (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] |
+| ------------------------------ | :----------------------------------: | :--------------------------------: | :-----------------------------: | :------------------------------: |
+| LLAMA3_2_1B                    |                  8                   |                 8                  |               15                |               N/A                |
+| LLAMA3_2_1B_QLORA              |                  22                  |                 22                 |               45                |                19                |
+| LLAMA3_2_1B_SPINQUANT          |                  24                  |                 36                 |               48                |                17                |
+| LLAMA3_2_3B                    |                  2                   |                 3                  |                6                |               N/A                |
+| LLAMA3_2_3B_QLORA              |                  8                   |                 7                  |               17                |               N/A                |
+| LLAMA3_2_3B_SPINQUANT          |                  11                  |                 12                 |               18                |               N/A                |
+| QWEN3_0_6B                     |                  7                   |                 9                  |               15                |                9                 |
+| QWEN3_0_6B_QUANTIZED           |                  20                  |                 27                 |               37                |                35                |
+| QWEN3_1_7B                     |                  3                   |                 5                  |                8                |               N/A                |
+| QWEN3_1_7B_QUANTIZED           |                  10                  |                 14                 |               20                |                13                |
+| QWEN3_4B                       |                  2                   |                N/A                 |                4                |               N/A                |
+| QWEN3_4B_QUANTIZED             |                  5                   |                 7                  |               10                |               N/A                |
+| HAMMER2_1_0_5B                 |                  13                  |                 13                 |               25                |                16                |
+| HAMMER2_1_0_5B_QUANTIZED       |                  34                  |                 97                 |               72                |                56                |
+| HAMMER2_1_1_5B                 |                  5                   |                 5                  |               10                |               N/A                |
+| HAMMER2_1_1_5B_QUANTIZED       |                  14                  |                 16                 |               36                |                22                |
+| HAMMER2_1_3B                   |                  2                   |                 3                  |                5                |               N/A                |
+| HAMMER2_1_3B_QUANTIZED         |                  9                   |                 10                 |               20                |               N/A                |
+| SMOLLM2_1_135M                 |                  25                  |                 24                 |               33                |                42                |
+| SMOLLM2_1_135M_QUANTIZED       |                  20                  |                 32                 |               64                |                47                |
+| SMOLLM2_1_360M                 |                  12                  |                 13                 |               20                |                15                |
+| SMOLLM2_1_360M_QUANTIZED       |                  12                  |                 15                 |               29                |                18                |
+| SMOLLM2_1_1_7B                 |                  3                   |                 5                  |                7                |               N/A                |
+| SMOLLM2_1_1_7B_QUANTIZED       |                  12                  |                 14                 |               27                |                23                |
+| QWEN2_5_0_5B                   |                  12                  |                 12                 |               21                |                15                |
+| QWEN2_5_0_5B_QUANTIZED         |                  33                  |                 31                 |               55                |                48                |
+| QWEN2_5_1_5B                   |                  5                   |                 5                  |                9                |               N/A                |
+| QWEN2_5_1_5B_QUANTIZED         |                  15                  |                 15                 |               28                |                16                |
+| QWEN2_5_3B                     |                  2                   |                 3                  |                5                |               N/A                |
+| QWEN2_5_3B_QUANTIZED           |                  9                   |                 10                 |               18                |               N/A                |
+| PHI_4_MINI_4B                  |                  2                   |                 3                  |                4                |               N/A                |
+| PHI_4_MINI_4B_QUANTIZED        |                  4                   |                 7                  |               10                |               N/A                |
+| LFM2_5_350M                    |                  16                  |                 26                 |               34                |                21                |
+| LFM2_5_350M_QUANTIZED          |                  58                  |                 67                 |               103               |                51                |
+| LFM2_5_1_2B_INSTRUCT           |                  6                   |                 10                 |               13                |               N/A                |
+| LFM2_5_1_2B_INSTRUCT_QUANTIZED |                  8                   |                 26                 |               47                |                24                |
 
 ❌ - Insufficient RAM.
 

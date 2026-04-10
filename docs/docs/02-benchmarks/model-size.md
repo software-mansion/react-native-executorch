@@ -60,14 +60,44 @@ title: Model Size
 
 ## LLMs
 
-| Model                 | XNNPACK [GB] |
-| --------------------- | :----------: |
-| LLAMA3_2_1B           |     2.47     |
-| LLAMA3_2_1B_SPINQUANT |     1.14     |
-| LLAMA3_2_1B_QLORA     |     1.18     |
-| LLAMA3_2_3B           |     6.43     |
-| LLAMA3_2_3B_SPINQUANT |     2.55     |
-| LLAMA3_2_3B_QLORA     |     2.65     |
+| Model                          | XNNPACK [GB] |
+| ------------------------------ | :----------: |
+| LLAMA3_2_1B                    |     2.47     |
+| LLAMA3_2_1B_SPINQUANT          |     1.14     |
+| LLAMA3_2_1B_QLORA              |     1.18     |
+| LLAMA3_2_3B                    |     6.43     |
+| LLAMA3_2_3B_SPINQUANT          |     2.55     |
+| LLAMA3_2_3B_QLORA              |     2.65     |
+| QWEN3_0.6B                     |     1.11     |
+| QWEN3_0.6B_QUANTIZED           |     0.47     |
+| QWEN3_1.7B                     |     3.21     |
+| QWEN3_1.7B_QUANTIZED           |     1.21     |
+| QWEN3_4B                       |     7.49     |
+| QWEN3_4B_QUANTIZED             |     2.50     |
+| QWEN2_5_0.5B                   |     0.92     |
+| QWEN2_5_0.5B_QUANTIZED         |     0.39     |
+| QWEN2_5_1.5B                   |     2.88     |
+| QWEN2_5_1.5B_QUANTIZED         |     1.06     |
+| QWEN2_5_3B                     |     5.75     |
+| QWEN2_5_3B_QUANTIZED           |     1.95     |
+| HAMMER2_1_0.5B                 |     0.92     |
+| HAMMER2_1_0.5B_QUANTIZED       |     0.39     |
+| HAMMER2_1_1.5B                 |     2.88     |
+| HAMMER2_1_1.5B_QUANTIZED       |     1.06     |
+| HAMMER2_1_3B                   |     5.75     |
+| HAMMER2_1_3B_QUANTIZED         |     1.91     |
+| PHI4_MINI                      |     7.15     |
+| PHI4_MINI_QUANTIZED            |     2.62     |
+| SMOLLM2_135M                   |     0.25     |
+| SMOLLM2_135M_QUANTIZED         |     0.52     |
+| SMOLLM2_360M                   |     0.67     |
+| SMOLLM2_360M_QUANTIZED         |     1.27     |
+| SMOLLM2_1.7B                   |     3.19     |
+| SMOLLM2_1.7B_QUANTIZED         |     0.95     |
+| LFM2_5_1.2B_INSTRUCT           |     2.43     |
+| LFM2_5_1.2B_INSTRUCT_QUANTIZED |     0.74     |
+| LFM2_5_350M_FP16               |     0.79     |
+| LFM2_5_350M_QUANTIZED          |     0.26     |
 
 ## Speech to text
 
