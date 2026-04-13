@@ -8,13 +8,13 @@
 
 #pragma once
 
-#include <c10/util/irange.h>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 
 #include <c10/util/irange.h>
 #include <executorch/runtime/core/error.h>
+#include <executorch/runtime/core/exec_aten/util/tensor_dimension_limit.h>
 #include <executorch/runtime/platform/assert.h>
 #include <executorch/runtime/platform/compiler.h>
 
@@ -24,10 +24,22 @@ namespace runtime {
 namespace {
 template <typename DimOrderType>
 bool validate_dim_order(const DimOrderType *dim_order, const size_t dims) {
+  static_assert(
+      kTensorDimensionLimit <= 16,
+      "Bitmask-based validation requires kTensorDimensionLimit <= 16");
+  if (dims > kTensorDimensionLimit) {
+    return false;
+  }
+  uint16_t seen = 0;
   for (const auto i : c10::irange(dims)) {
     if (dim_order[i] >= static_cast<DimOrderType>(dims)) {
       return false;
     }
+    const uint16_t mask = 1u << dim_order[i];
+    if (seen & mask) {
+      return false;
+    }
+    seen |= mask;
   }
   return true;
 }
@@ -142,10 +154,9 @@ dim_order_to_stride(const SizesType *sizes, const DimOrderType *dim_order,
   if (dims == 0) {
     return Error::Ok;
   }
-  ET_CHECK_OR_RETURN_ERROR(validate_dim_order(dim_order, dims), InvalidArgument,
-                           "Invalid dim order. One of the value is larger than "
-                           "the number of dims %zu",
-                           dims);
+  ET_CHECK_OR_RETURN_ERROR(
+      validate_dim_order(dim_order, dims), InvalidArgument,
+      "Invalid dim order: values must be a permutation of [0, %zu)", dims);
 
   dim_order_to_stride_nocheck(sizes, dim_order, dims, strides);
   return Error::Ok;

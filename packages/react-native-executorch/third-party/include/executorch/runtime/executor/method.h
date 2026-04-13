@@ -14,6 +14,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#include <executorch/runtime/backend/backend_options_map.h>
 #include <executorch/runtime/core/evalue.h>
 #include <executorch/runtime/core/event_tracer.h>
 #include <executorch/runtime/core/exec_aten/exec_aten.h>
@@ -335,7 +336,8 @@ private:
   ET_NODISCARD static Result<Method>
   load(executorch_flatbuffer::ExecutionPlan *s_plan, const Program *program,
        MemoryManager *memory_manager, EventTracer *event_tracer,
-       const NamedDataMap *named_data_map);
+       const NamedDataMap *named_data_map,
+       const LoadBackendOptionsMap *backend_options = nullptr);
 
   /**
    * Initialize the method from its serialized representation.
@@ -343,7 +345,8 @@ private:
    * @returns Error::Ok on success, non-Ok on failure.
    */
   ET_NODISCARD Error init(executorch_flatbuffer::ExecutionPlan *s_plan,
-                          const NamedDataMap *named_data_map);
+                          const NamedDataMap *named_data_map,
+                          const LoadBackendOptionsMap *backend_options);
 
   /// Returns true if the Method was successfully initialized.
   inline bool initialized() const {
