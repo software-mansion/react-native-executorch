@@ -4,26 +4,18 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Post-processes segmentation masks for better visual quality and temporal stability.
- * Applies morphological cleaning, EMA temporal smoothing, and Gaussian blur.
- *
- * Adapted from fishjam's implementation but works with byte[] input (0-255)
- * from ExecuTorch instead of float[] from ML Kit.
+ * Post-processes segmentation masks for temporal stability.
+ * Applies morphological cleaning and EMA temporal smoothing.
+ * Gaussian blur is handled on GPU for better performance.
  */
 public class MaskPostProcessor {
 
     private static final float BINARIZE_THRESHOLD = 0.5f;
     private static final float EMA_ALPHA = 0.5f;  // 50% history for responsive mask
 
-    // Larger Gaussian blur for smoother edges (no visible sheath)
-    private static final float GAUSSIAN_SIGMA = 5.0f;
-    private static final int GAUSSIAN_RADIUS = 8;
-
     private float[] smoothedMask;
     private float[] tempA;
-    private float[] tempB;
     private float[] rawFloatMask;
-    private final float[] gaussianKernel;
     private int maskWidth;
     private int maskHeight;
     private boolean hasHistory;
@@ -32,12 +24,12 @@ public class MaskPostProcessor {
     private int outputBufferCapacity;
 
     public MaskPostProcessor() {
-        gaussianKernel = computeGaussianKernel(GAUSSIAN_SIGMA, GAUSSIAN_RADIUS);
     }
 
     /**
      * Process a byte mask (0-255) from ExecuTorch segmentation.
      * Returns processed mask as ByteBuffer ready for GPU upload.
+     * Note: Gaussian blur is done on GPU after upload for better performance.
      */
     public ByteBuffer process(byte[] rawMask, int w, int h) {
         ensureBuffers(w, h);
@@ -54,12 +46,8 @@ public class MaskPostProcessor {
         // Apply EMA temporal smoothing (keeps soft values, no hard threshold)
         applyEmaSmoothing(tempA, len);
 
-        // Apply larger Gaussian blur for smooth, natural edges
-        gaussianBlurHorizontal(smoothedMask, tempA, w, h);
-        gaussianBlurVertical(tempA, tempB, w, h);
-
-        // Convert to bytes for GPU upload
-        convertMaskToBytes(tempB, len);
+        // Convert to bytes for GPU upload (blur will be done on GPU)
+        convertMaskToBytes(smoothedMask, len);
 
         return outputBuffer;
     }
@@ -73,7 +61,6 @@ public class MaskPostProcessor {
             int len = w * h;
             smoothedMask = new float[len];
             tempA = new float[len];
-            tempB = new float[len];
             rawFloatMask = new float[len];
             maskWidth = w;
             maskHeight = h;
@@ -162,50 +149,6 @@ public class MaskPostProcessor {
             }
         }
         // No hard threshold - keep soft values for natural gradient edges
-    }
-
-    private void gaussianBlurHorizontal(float[] src, float[] dst, int w, int h) {
-        int r = GAUSSIAN_RADIUS;
-        for (int y = 0; y < h; y++) {
-            int rowOffset = y * w;
-            for (int x = 0; x < w; x++) {
-                float sum = 0;
-                for (int k = -r; k <= r; k++) {
-                    int sx = Math.min(Math.max(x + k, 0), w - 1);
-                    sum += src[rowOffset + sx] * gaussianKernel[k + r];
-                }
-                dst[rowOffset + x] = sum;
-            }
-        }
-    }
-
-    private void gaussianBlurVertical(float[] src, float[] dst, int w, int h) {
-        int r = GAUSSIAN_RADIUS;
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                float sum = 0;
-                for (int k = -r; k <= r; k++) {
-                    int sy = Math.min(Math.max(y + k, 0), h - 1);
-                    sum += src[sy * w + x] * gaussianKernel[k + r];
-                }
-                dst[y * w + x] = sum;
-            }
-        }
-    }
-
-    private static float[] computeGaussianKernel(float sigma, int radius) {
-        int size = 2 * radius + 1;
-        float[] kernel = new float[size];
-        float sum = 0;
-        for (int i = 0; i < size; i++) {
-            int d = i - radius;
-            kernel[i] = (float) Math.exp(-(d * d) / (2.0 * sigma * sigma));
-            sum += kernel[i];
-        }
-        for (int i = 0; i < size; i++) {
-            kernel[i] /= sum;
-        }
-        return kernel;
     }
 
     private void convertMaskToBytes(float[] source, int length) {
