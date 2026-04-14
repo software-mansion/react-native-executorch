@@ -19,7 +19,10 @@ Pod::Spec.new do |s|
   phonemis_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/phonemis', __dir__)
 
   s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
+    "HEADER_SEARCH_PATHS" =>
+      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool"',
 
     "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)',
@@ -45,6 +48,8 @@ Pod::Spec.new do |s|
       '"$(PODS_TARGET_SRCROOT)/ios" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" '+
       '"$(PODS_TARGET_SRCROOT)/common" ',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
