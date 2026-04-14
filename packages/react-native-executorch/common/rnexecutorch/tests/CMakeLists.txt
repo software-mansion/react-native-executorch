@@ -115,6 +115,8 @@ target_include_directories(rntests_core PUBLIC
     ${RNEXECUTORCH_DIR}
     ${COMMON_DIR}
     ${PACKAGE_ROOT}/third-party/include
+    ${PACKAGE_ROOT}/third-party/include/cpuinfo
+    ${PACKAGE_ROOT}/third-party/include/pthreadpool
     ${REACT_NATIVE_DIR}/ReactCommon
     ${REACT_NATIVE_DIR}/ReactCommon/jsi
     ${REACT_NATIVE_DIR}/ReactCommon/callinvoker
