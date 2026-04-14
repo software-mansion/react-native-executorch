@@ -53,84 +53,24 @@ protected:
 
   std::size_t memorySizeLowerBound{0};
 
-  /**
-   * @brief Ensures the specified method is loaded, unloading any previous
-   * method if necessary.
-   *
-   * This helper is useful for models that support multiple methods with
-   * different input sizes (e.g., "forward_384", "forward_512", "forward_640").
-   *
-   * @param methodName Name of the method to load (e.g., "forward",
-   * "forward_384").
-   * @throws RnExecutorchError if the method cannot be loaded or if methodName
-   * is empty.
-   */
+  /// Loads methodName, unloading any previously loaded method first.
+  /// Useful for multi-method models (e.g., "forward_384", "forward_640").
   void ensureMethodLoaded(const std::string &methodName);
 
-  /**
-   * @brief Validate and get input shape for model
-   *
-   * Validates that the model has at least one input tensor and that the first
-   * input has the minimum required dimensions.
-   *
-   * @param methodName Method to get shapes for (default: "forward")
-   * @param minDimensions Minimum expected dimensions (default: 2)
-   * @throws RnExecutorchError if validation fails (no inputs or insufficient
-   * dimensions)
-   * @return The first input shape vector
-   */
   std::vector<int32_t>
   validateAndGetInputShape(const std::string &methodName = "forward",
                            size_t minDimensions = 2) const;
 
-  /**
-   * @brief Execute forward and throw on error
-   *
-   * Convenience helper that calls forward() and throws RnExecutorchError if
-   * the result is not ok. Reduces error-checking boilerplate in model
-   * implementations.
-   *
-   * @param input Single input value for the forward method
-   * @param contextMessage Custom error message (default: generic message)
-   * @return std::vector<EValue> The successful forward result
-   * @throws RnExecutorchError if forward fails
-   */
   std::vector<EValue>
   forwardOrThrow(const EValue &input,
                  const std::string &contextMessage =
                      "Model forward failed. Ensure input is correct.") const;
 
-  /**
-   * @brief Execute forward with multiple inputs and throw on error
-   *
-   * Convenience helper that calls forward() and throws RnExecutorchError if
-   * the result is not ok. Reduces error-checking boilerplate in model
-   * implementations.
-   *
-   * @param inputs Vector of input values for the forward method
-   * @param contextMessage Custom error message (default: generic message)
-   * @return std::vector<EValue> The successful forward result
-   * @throws RnExecutorchError if forward fails
-   */
   std::vector<EValue>
   forwardOrThrow(const std::vector<EValue> &inputs,
                  const std::string &contextMessage =
                      "Model forward failed. Ensure input is correct.") const;
 
-  /**
-   * @brief Execute named method and throw on error
-   *
-   * Convenience helper that calls execute() and throws RnExecutorchError if
-   * the result is not ok. Reduces error-checking boilerplate in model
-   * implementations.
-   *
-   * @param methodName Name of the method to execute
-   * @param inputs Vector of input values for the method
-   * @param contextMessage Custom error message (default: auto-generated from
-   * method name)
-   * @return std::vector<EValue> The successful execution result
-   * @throws RnExecutorchError if execution fails
-   */
   std::vector<EValue>
   executeOrThrow(const std::string &methodName,
                  const std::vector<EValue> &inputs,

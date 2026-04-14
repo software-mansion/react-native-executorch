@@ -171,6 +171,13 @@ add_rn_test(FrameTransformTests unit/FrameTransformTest.cpp
     LIBS opencv_deps
 )
 
+add_rn_test(TensorHelpersTest unit/TensorHelpersTest.cpp)
+
+add_rn_test(ComputerVisionProcessingTest unit/ComputerVisionProcessingTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 
 add_rn_test(VisionModelTests integration/VisionModelTest.cpp

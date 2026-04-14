@@ -345,3 +345,68 @@ TEST(InverseRotatePoints, Down_CCW) {
   EXPECT_FLOAT_EQ(pts[3].x, 80);
   EXPECT_FLOAT_EQ(pts[3].y, 570);
 }
+
+// ============================================================================
+// inverseRotateBboxes — batch inverse rotation for containers with .bbox
+// ============================================================================
+
+struct Detection {
+  BBox bbox;
+  float score;
+};
+
+// Test batch rotation of multiple detections
+TEST(InverseRotateBboxes, BatchRotation_Up) {
+  std::vector<Detection> detections = {{{10, 20, 100, 200}, 0.9f},
+                                       {{150, 50, 200, 150}, 0.8f},
+                                       {{250, 100, 300, 250}, 0.7f}};
+
+  inverseRotateBboxes(detections, makeOrient("up", false), {640, 480});
+
+  // First detection: (10,20)-(100,200) → CW
+  EXPECT_FLOAT_EQ(detections[0].bbox.x1, 280);
+  EXPECT_FLOAT_EQ(detections[0].bbox.y1, 10);
+  EXPECT_FLOAT_EQ(detections[0].bbox.x2, 460);
+  EXPECT_FLOAT_EQ(detections[0].bbox.y2, 100);
+
+  // Second detection: (150,50)-(200,150) → CW
+  EXPECT_FLOAT_EQ(detections[1].bbox.x1, 330);
+  EXPECT_FLOAT_EQ(detections[1].bbox.y1, 150);
+  EXPECT_FLOAT_EQ(detections[1].bbox.x2, 430);
+  EXPECT_FLOAT_EQ(detections[1].bbox.y2, 200);
+
+  // Third detection: (250,100)-(300,250) → CW
+  EXPECT_FLOAT_EQ(detections[2].bbox.x1, 230);
+  EXPECT_FLOAT_EQ(detections[2].bbox.y1, 250);
+  EXPECT_FLOAT_EQ(detections[2].bbox.x2, 380);
+  EXPECT_FLOAT_EQ(detections[2].bbox.y2, 300);
+}
+
+// Test with empty container
+TEST(InverseRotateBboxes, EmptyContainer) {
+  std::vector<Detection> detections;
+  inverseRotateBboxes(detections, makeOrient("up", false), {640, 480});
+  EXPECT_EQ(detections.size(), 0);
+}
+
+// Test with single detection
+TEST(InverseRotateBboxes, SingleDetection) {
+  std::vector<Detection> detections = {{{10, 20, 100, 200}, 0.9f}};
+  inverseRotateBboxes(detections, makeOrient("left", false), {640, 480});
+
+  // "left" → no-op
+  EXPECT_FLOAT_EQ(detections[0].bbox.x1, 10);
+  EXPECT_FLOAT_EQ(detections[0].bbox.y1, 20);
+  EXPECT_FLOAT_EQ(detections[0].bbox.x2, 100);
+  EXPECT_FLOAT_EQ(detections[0].bbox.y2, 200);
+  EXPECT_FLOAT_EQ(detections[0].score, 0.9f);
+}
+
+// Test that other fields are preserved
+TEST(InverseRotateBboxes, PreservesOtherFields) {
+  std::vector<Detection> detections = {{{10, 20, 100, 200}, 0.95f}};
+  inverseRotateBboxes(detections, makeOrient("down", false), {640, 480});
+
+  // Score should be unchanged
+  EXPECT_FLOAT_EQ(detections[0].score, 0.95f);
+}

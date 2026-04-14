@@ -85,16 +85,11 @@ protected:
   /// Set once by each subclass constructor to avoid per-frame metadata lookups.
   std::vector<int32_t> modelInputShape_;
 
-  /// Normalization mean values (RGB channels).
-  /// Optional: set via initNormalization() for models expecting normalized
-  /// inputs (e.g., ImageNet preprocessing). Leave as nullopt for models with
-  /// built-in normalization or raw pixel input expectations.
+  /// Per-channel normalization mean (RGB). nullopt = no normalization applied.
   std::optional<cv::Scalar> normMean_;
 
-  /// Normalization standard deviation values (RGB channels).
-  /// Optional: set via initNormalization() for models expecting normalized
-  /// inputs (e.g., ImageNet preprocessing). Leave as nullopt for models with
-  /// built-in normalization or raw pixel input expectations.
+  /// Per-channel normalization std-dev (RGB). nullopt = no normalization
+  /// applied.
   std::optional<cv::Scalar> normStd_;
 
   /**
@@ -135,57 +130,30 @@ protected:
   virtual cv::Size modelInputSize() const;
 
   /**
-   * @brief Get model input spatial dimensions for a specific method.
+   * @brief Get input size for a specific method (last two shape dims).
    *
    * Useful for multi-method models with different input sizes per method.
-   * Returns the last two dimensions of the input shape as cv::Size.
-   *
-   * @param methodName Method to query (uses currentlyLoadedMethod_ if empty)
-   * @return Size (width, height) of the model input for the specified method
-   * @throws RnExecutorchError if method metadata cannot be retrieved
+   * Falls back to currentlyLoadedMethod_ when methodName is empty.
    */
   cv::Size getModelInputSize(const std::string &methodName = "") const;
 
   /**
-   * @brief Initialize normalization parameters from vectors
+   * @brief Set normMean_/normStd_ from float vectors.
    *
-   * Validates size == 3 and converts to cv::Scalar.
-   * Logs warning if invalid but non-empty. Sets nullopt if empty/invalid.
-   *
-   * @param normMean Mean values for RGB channels (expected size: 3)
-   * @param normStd Standard deviation values for RGB channels (expected size:
-   * 3)
+   * Expects size == 3. Logs a warning and ignores if non-empty but wrong size.
    */
   void initNormalization(const std::vector<float> &normMean,
                          const std::vector<float> &normStd);
 
-  /**
-   * @brief Create input tensor from preprocessed image
-   *
-   * Applies normalization if normMean_ and normStd_ are set.
-   *
-   * @param preprocessed Preprocessed image (resized, RGB format)
-   * @return TensorPtr ready for model input
-   */
+  /// Builds input tensor from a preprocessed image.
+  /// Applies normalization if normMean_/normStd_ are set, skips it otherwise.
   TensorPtr createInputTensor(const cv::Mat &preprocessed) const;
 
-  /**
-   * @brief Load and convert image from path to RGB format
-   *
-   * Common preprocessing: readImage (BGR) → convert to RGB
-   *
-   * @param imageSource Path to the image file
-   * @return cv::Mat in RGB format
-   */
+  /// Reads image from path and converts BGR → RGB.
   cv::Mat loadImageToRGB(const std::string &imageSource) const;
 
-  /**
-   * @brief Process camera frame with rotation support
-   *
-   * @param runtime JSI runtime
-   * @param frameData JSI value containing frame data from VisionCamera
-   * @return Tuple of {rotated RGB frame, orientation info, original size}
-   */
+  /// Extracts a camera frame, applies rotation, and returns
+  /// {rotated frame, orientation, original size}.
   std::tuple<cv::Mat, utils::FrameOrientation, cv::Size>
   loadFrameRotated(jsi::Runtime &runtime, const jsi::Value &frameData) const;
 
