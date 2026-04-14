@@ -76,4 +76,7 @@ export {
   useWebRTCFrameProcessor,
   enableFrameProcessor,
   disableFrameProcessor,
+  PROCESSOR_NAMES,
+  type ProcessorName,
+  type WebRTCFrameProcessorOptions,
 } from './useWebRTCFrameProcessor';

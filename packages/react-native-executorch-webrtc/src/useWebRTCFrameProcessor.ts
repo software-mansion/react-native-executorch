@@ -2,7 +2,13 @@ import { useEffect } from 'react';
 import { Platform, DeviceEventEmitter } from 'react-native';
 import type { MediaStream, MediaStreamTrack } from 'react-native-webrtc';
 
-const PROCESSOR_NAME = 'executorchBackgroundBlur';
+export const PROCESSOR_NAMES = {
+  default: 'executorchBackgroundBlur',
+  experimental: 'executorchBackgroundBlurNew',
+} as const;
+
+export type ProcessorName =
+  (typeof PROCESSOR_NAMES)[keyof typeof PROCESSOR_NAMES];
 
 /**
  * Result from frame processing
@@ -20,10 +26,8 @@ export interface FrameProcessingResult {
 export interface WebRTCFrameProcessorOptions {
   enabled?: boolean;
   onResults?: (results: FrameProcessingResult) => void;
-  // Future options:
-  // modelPath?: string;
-  // modelType?: 'object_detection' | 'segmentation' | 'classification';
-  // threshold?: number;
+  /** Which processor to use. Defaults to 'executorchBackgroundBlur' */
+  processorName?: ProcessorName | string;
 }
 
 /**
@@ -46,7 +50,11 @@ export function useWebRTCFrameProcessor(
   stream: MediaStream | null | undefined,
   options: WebRTCFrameProcessorOptions = {}
 ): void {
-  const { enabled = true, onResults } = options;
+  const {
+    enabled = true,
+    onResults,
+    processorName = PROCESSOR_NAMES.default,
+  } = options;
   useEffect(() => {
     if (!stream || !enabled) {
       return;
@@ -76,9 +84,9 @@ export function useWebRTCFrameProcessor(
     try {
       const track = videoTrack as any;
       if (typeof track._setVideoEffects === 'function') {
-        track._setVideoEffects([PROCESSOR_NAME]);
+        track._setVideoEffects([processorName]);
         console.log(
-          `✅ ExecuTorch frame processor enabled on track ${videoTrack.id}`
+          `✅ ExecuTorch frame processor "${processorName}" enabled on track ${videoTrack.id}`
         );
       } else {
         console.warn('useWebRTCFrameProcessor: _setVideoEffects not available');
@@ -109,22 +117,28 @@ export function useWebRTCFrameProcessor(
         );
       }
     };
-  }, [stream, enabled, onResults]);
+  }, [stream, enabled, onResults, processorName]);
 }
 
 /**
  * Manually enable ExecuTorch frame processing on a video track.
  *
  * @param videoTrack - The video track to process
+ * @param processorName - Which processor to use (default: 'executorchBackgroundBlur')
  *
  * @example
  * ```tsx
  * const stream = await mediaDevices.getUserMedia({ video: true });
  * const track = stream.getVideoTracks()[0];
  * enableFrameProcessor(track);
+ * // or use experimental:
+ * enableFrameProcessor(track, PROCESSOR_NAMES.experimental);
  * ```
  */
-export function enableFrameProcessor(videoTrack: MediaStreamTrack): void {
+export function enableFrameProcessor(
+  videoTrack: MediaStreamTrack,
+  processorName: ProcessorName | string = PROCESSOR_NAMES.default
+): void {
   if (Platform.OS !== 'android') {
     console.warn('enableFrameProcessor: Currently only supported on Android');
     return;
@@ -133,9 +147,9 @@ export function enableFrameProcessor(videoTrack: MediaStreamTrack): void {
   try {
     const track = videoTrack as any;
     if (typeof track._setVideoEffects === 'function') {
-      track._setVideoEffects([PROCESSOR_NAME]);
+      track._setVideoEffects([processorName]);
       console.log(
-        `✅ ExecuTorch frame processor enabled on track ${videoTrack.id}`
+        `✅ ExecuTorch frame processor "${processorName}" enabled on track ${videoTrack.id}`
       );
     }
   } catch (error) {

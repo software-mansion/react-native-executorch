@@ -9,21 +9,30 @@ import com.oney.WebRTCModule.videoEffects.ProcessorProvider
  */
 object ExecutorchWebRTC {
   private const val TAG = "ExecutorchWebRTC"
-  private const val PROCESSOR_NAME = "executorchBackgroundBlur"
+  const val PROCESSOR_NAME = "executorchBackgroundBlur"
+  const val PROCESSOR_NAME_NEW = "executorchBackgroundBlurNew"
 
   // Configuration for background removal
   var modelPath: String? = null
 
   /**
-   * Registers the ExecuTorch frame processor with react-native-webrtc.
-   * Call this in your Application.onCreate() method.
+   * Registers both frame processors with react-native-webrtc.
+   * - "executorchBackgroundBlur" -> existing GL-based processor
+   * - "executorchBackgroundBlurNew" -> new experimental processor
    */
   fun registerProcessors() {
     try {
       ProcessorProvider.addProcessor(PROCESSOR_NAME, ExecutorchFrameProcessorFactory())
-      Log.d(TAG, "✅ ExecuTorch frame processor registered successfully")
+      Log.d(TAG, "✅ Registered processor: $PROCESSOR_NAME")
     } catch (e: Exception) {
-      Log.e(TAG, "❌ Failed to register ExecuTorch processor", e)
+      Log.e(TAG, "❌ Failed to register $PROCESSOR_NAME", e)
+    }
+
+    try {
+      ProcessorProvider.addProcessor(PROCESSOR_NAME_NEW, NewExecutorchFrameProcessorFactory())
+      Log.d(TAG, "✅ Registered processor: $PROCESSOR_NAME_NEW")
+    } catch (e: Exception) {
+      Log.e(TAG, "❌ Failed to register $PROCESSOR_NAME_NEW", e)
     }
   }
 

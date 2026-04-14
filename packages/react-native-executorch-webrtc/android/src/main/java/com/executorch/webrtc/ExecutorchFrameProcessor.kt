@@ -1,248 +1,224 @@
 package com.executorch.webrtc
 
+import android.graphics.Matrix
 import android.util.Log
+import com.executorch.webrtc.gl.GlBlurRenderer
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor
 import org.webrtc.SurfaceTextureHelper
+import org.webrtc.TextureBufferImpl
 import org.webrtc.VideoFrame
+import org.webrtc.YuvConverter
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
- * WebRTC frame processor that applies background blur using ExecuTorch segmentation.
+ * WebRTC frame processor that applies background blur using GPU shaders + ExecuTorch segmentation.
+ * Uses OpenGL for blur (fast) and JNI for segmentation.
  */
 class ExecutorchFrameProcessor : VideoFrameProcessor {
   private var frameCount = 0
   private var lastLogTime = System.currentTimeMillis()
-  private var lastProcessTime = System.currentTimeMillis()
   private val TAG = "ExecutorchFrameProcessor"
 
-  // Model state
   private var modelLoaded = false
   private var loadedModelPath: String? = null
 
-  companion object {
-    init {
-      try {
-        System.loadLibrary("react-native-executorch-webrtc")
-      } catch (e: Exception) {
-        Log.e("ExecutorchFrameProcessor", "Failed to load native library", e)
-      }
-    }
-  }
+  // GL-based blur renderer
+  private var renderer: GlBlurRenderer? = null
+  private var yuvConverter: YuvConverter? = null
+
+  // Reusable buffers
+  private var maskByteBuffer: ByteBuffer? = null
+  private var rgbaBuffer: ByteArray? = null
 
   init {
-    Log.d(TAG, "ExecutorchFrameProcessor created - background removal enabled")
-    tryLoadModel()
+    Log.d(TAG, "ExecutorchFrameProcessor created - GL blur pipeline")
     tryLoadModel()
   }
 
-
-  /**
-   * Try to load the model if not already loaded and path is available.
-   * Called from init and on each frame to handle late model configuration.
-   */
   private fun tryLoadModel() {
-    val configuredPath = ExecutorchWebRTC.modelPath
-
-    // Skip if no path configured or already loaded this path
-    if (configuredPath == null) {
-      return
-    }
-
-    if (modelLoaded && loadedModelPath == configuredPath) {
-      return
-    }
+    val configuredPath = ExecutorchWebRTC.modelPath ?: return
+    if (modelLoaded && loadedModelPath == configuredPath) return
 
     try {
-      Log.d(TAG, "Loading segmentation model from: $configuredPath")
+      Log.d(TAG, "Loading segmentation model: $configuredPath")
       val success = loadModel(configuredPath)
       if (success) {
         modelLoaded = true
         loadedModelPath = configuredPath
-        Log.d(TAG, "✅ Segmentation model loaded successfully!")
-      } else {
-        Log.e(TAG, "❌ loadModel returned false")
+        Log.d(TAG, "Model loaded successfully!")
       }
     } catch (e: Exception) {
-      Log.e(TAG, "❌ Failed to load model: $configuredPath", e)
+      Log.e(TAG, "Failed to load model", e)
     }
   }
 
-  /**
-   * Load the segmentation model
-   */
+  // JNI: Load the segmentation model
   private external fun loadModel(modelPath: String): Boolean
 
-  /**
-   * Process I420 frame directly in native code - much faster than the old path.
-   * Does segmentation and mask application in one JNI call.
-   * @return Modified Y plane with background blacked out
-   */
-  private external fun processI420Frame(
-    yData: ByteArray,
-    uData: ByteArray,
-    vData: ByteArray,
+  // JNI: Run segmentation on RGBA pixels, returns grayscale mask
+  private external fun runSegmentation(
+    rgbaData: ByteArray,
     width: Int,
     height: Int,
-    yStride: Int,
-    uvStride: Int,
-    rotation: Int,
+    rotation: Int
   ): ByteArray?
 
-  override fun process(
-    frame: VideoFrame,
-    helper: SurfaceTextureHelper,
-  ): VideoFrame {
+  override fun process(frame: VideoFrame, helper: SurfaceTextureHelper): VideoFrame {
     frameCount++
+    if (!modelLoaded) tryLoadModel()
 
-    // Try to load model if not loaded yet (handles late configuration)
-    if (!modelLoaded) {
-      tryLoadModel()
-    }
-
-    // Log frame info every second
+    // Log stats every second
     val now = System.currentTimeMillis()
     if (now - lastLogTime >= 1000) {
-      val buffer = frame.buffer
-      Log.d(
-        TAG,
-        """
-        ========== FRAME INFO ==========
-        Frame count: $frameCount
-        Size: ${buffer.width}x${buffer.height}
-        Rotation: ${frame.rotation} degrees
-        Buffer type: ${buffer.javaClass.simpleName}
-        FPS: ${frameCount / ((now - lastLogTime) / 1000.0)}
-        Background Blur: ACTIVE
-        ================================
-        """.trimIndent(),
-      )
-
+      Log.d(TAG, "FPS: ${frameCount}, buffer: ${frame.buffer.javaClass.simpleName}")
       lastLogTime = now
       frameCount = 0
     }
 
-    // Apply background blur
-    val blurredFrame = processWithModel(frame)
-
-    if (blurredFrame != null) {
-      lastProcessTime = now
-      if (frameCount % 30 == 0) {
-        Log.d(TAG, "Returning PROCESSED frame (rotation=${blurredFrame.rotation}, timestamp=${blurredFrame.timestampNs})")
-      }
-      // Return the blurred frame
-      return blurredFrame
+    val buffer = frame.buffer
+    if (buffer !is VideoFrame.TextureBuffer) {
+      // Not a texture buffer, return original
+      frame.retain()
+      return frame
     }
 
-    // Fallback: return original frame if processing failed
-    if (frameCount % 30 == 0) {
-      Log.w(TAG, "Returning ORIGINAL frame (processing returned null)")
+    return try {
+      processWithGl(frame, buffer, helper)
+    } catch (e: Exception) {
+      Log.e(TAG, "GL processing failed: ${e.message}")
+      frame.retain()
+      frame
     }
-    frame.retain()
-    return frame
   }
 
-  private fun processWithModel(frame: VideoFrame): VideoFrame? {
-    val i420Buffer = frame.buffer.toI420()
-    if (i420Buffer == null) {
-      Log.e(TAG, "Failed to convert frame buffer to I420!")
-      return null
+  private fun processWithGl(
+    frame: VideoFrame,
+    textureBuffer: VideoFrame.TextureBuffer,
+    helper: SurfaceTextureHelper
+  ): VideoFrame {
+    val width = textureBuffer.width
+    val height = textureBuffer.height
+
+    // Initialize renderer if needed
+    if (renderer == null) {
+      renderer = GlBlurRenderer()
+    }
+    renderer!!.ensureSetup(width, height)
+
+    if (yuvConverter == null) {
+      yuvConverter = YuvConverter()
     }
 
-    try {
-      val width = i420Buffer.width
-      val height = i420Buffer.height
+    // Convert transform matrix for GL
+    val transformMatrix = convertToGlMatrix(textureBuffer.transformMatrix)
+    val isOes = textureBuffer.type == VideoFrame.TextureBuffer.Type.OES
 
-      // Extract Y, U, V planes as byte arrays
-      val yPlane = i420Buffer.dataY
-      val uPlane = i420Buffer.dataU
-      val vPlane = i420Buffer.dataV
-      val yStride = i420Buffer.strideY
-      val uStride = i420Buffer.strideU
-      val vStride = i420Buffer.strideV
+    // 1. Render input texture to RGBA FBO
+    renderer!!.renderToRgbaFbo(textureBuffer.textureId, transformMatrix, isOes)
 
-      // Calculate sizes - use minimum of calculated size and available bytes
-      val uvHeight = height / 2
-      val yCalcSize = yStride * height
-      val uCalcSize = uStride * uvHeight
-      val vCalcSize = vStride * uvHeight
+    // 2. Render downscaled for segmentation
+    renderer!!.renderDownscaled()
 
-      val yAvail = yPlane.remaining()
-      val uAvail = uPlane.remaining()
-      val vAvail = vPlane.remaining()
+    // 3. Read pixels for segmentation
+    val segPixels = renderer!!.readSegmentationPixels()
+    val segW = renderer!!.segmentationWidth
+    val segH = renderer!!.segmentationHeight
 
-      val ySize = minOf(yCalcSize, yAvail)
-      val uSize = minOf(uCalcSize, uAvail)
-      val vSize = minOf(vCalcSize, vAvail)
+    // 4. Run segmentation (via JNI)
+    val mask = runSegmentationOnPixels(segPixels, segW, segH, frame.rotation)
 
-      // Log buffer info occasionally for debugging
-      if (frameCount % 60 == 0) {
-        Log.d(
-          TAG,
-          "Buffer info: Y=$ySize/$yAvail (stride=$yStride), U=$uSize/$uAvail (stride=$uStride), V=$vSize/$vAvail (stride=$vStride), ${width}x$height",
-        )
-      }
-
-      val yData = ByteArray(ySize)
-      val uData = ByteArray(uSize)
-      val vData = ByteArray(vSize)
-
-      yPlane.get(yData)
-      uPlane.get(uData)
-      vPlane.get(vData)
-
-      // Process in native - returns modified Y plane
-      // Pass rotation so native code can rotate image before model inference
-      val processedY = processI420Frame(yData, uData, vData, width, height, yStride, uStride, frame.rotation)
-
-      if (processedY == null) {
-        Log.e(TAG, "processI420Frame returned null!")
-        i420Buffer.release()
-        return null
-      }
-
-      // Calculate actual Y stride from returned data
-      val actualYStride = processedY.size / height
-
-      // Log success occasionally
-      if (frameCount % 30 == 0) {
-        Log.d(TAG, "Frame processed: ${width}x$height, processedY=${processedY.size}, actualYStride=$actualYStride")
-      }
-
-      // Create output buffers
-      // For Y: use processed data with calculated stride
-      // For U/V: keep original data and strides (we don't modify chroma)
-      val outYPlane = ByteBuffer.allocateDirect(processedY.size)
-      val outUPlane = ByteBuffer.allocateDirect(uSize)
-      val outVPlane = ByteBuffer.allocateDirect(vSize)
-
-      outYPlane.put(processedY)
-      outUPlane.put(uData)
-      outVPlane.put(vData)
-
-      outYPlane.rewind()
-      outUPlane.rewind()
-      outVPlane.rewind()
-
-      // Use original U/V strides since we're passing through the original chroma data
-      val resultBuffer =
-        org.webrtc.JavaI420Buffer.wrap(
-          width,
-          height,
-          outYPlane,
-          actualYStride,
-          outUPlane,
-          uStride,
-          outVPlane,
-          vStride,
-          null,
-        )
-
-      i420Buffer.release()
-      return VideoFrame(resultBuffer, frame.rotation, frame.timestampNs)
-    } catch (e: Exception) {
-      Log.e(TAG, "Exception in processWithModel: ${e.message}", e)
-      i420Buffer.release()
-      return null
+    // 5. Upload mask to GPU
+    if (mask != null) {
+      ensureMaskBuffer(mask.size)
+      maskByteBuffer!!.clear()
+      maskByteBuffer!!.put(mask)
+      maskByteBuffer!!.rewind()
+      renderer!!.uploadMask(maskByteBuffer!!, segW, segH)
     }
+
+    // 6. Render blur (two-pass Gaussian)
+    renderer!!.renderBlur()
+
+    // 7. Render composite (blend original + blurred using mask)
+    renderer!!.renderComposite()
+
+    // 8. Create output TextureBuffer
+    val outputBuffer = TextureBufferImpl(
+      width, height,
+      VideoFrame.TextureBuffer.Type.RGB,
+      renderer!!.outputTextureId,
+      Matrix(),
+      helper.handler,
+      yuvConverter,
+      null
+    )
+
+    return VideoFrame(outputBuffer, frame.rotation, frame.timestampNs)
+  }
+
+  private fun runSegmentationOnPixels(pixels: ByteBuffer, width: Int, height: Int, rotation: Int): ByteArray? {
+    if (!modelLoaded) {
+      // Return placeholder ellipse mask if model not loaded
+      return createEllipseMask(width, height)
+    }
+
+    // Convert ByteBuffer to ByteArray for JNI
+    val size = width * height * 4
+    if (rgbaBuffer == null || rgbaBuffer!!.size < size) {
+      rgbaBuffer = ByteArray(size)
+    }
+    pixels.rewind()
+    pixels.get(rgbaBuffer!!, 0, size)
+
+    return runSegmentation(rgbaBuffer!!, width, height, rotation)
+  }
+
+  private fun createEllipseMask(width: Int, height: Int): ByteArray {
+    val mask = ByteArray(width * height)
+    val centerX = width / 2f
+    val centerY = height / 2f
+    val radiusX = width * 0.4f
+    val radiusY = height * 0.45f
+
+    for (y in 0 until height) {
+      for (x in 0 until width) {
+        val dx = (x - centerX) / radiusX
+        val dy = (y - centerY) / radiusY
+        val dist = dx * dx + dy * dy
+        val value = when {
+          dist < 1.0f -> 255
+          dist < 1.3f -> ((1.0f - (dist - 1.0f) / 0.3f) * 255).toInt()
+          else -> 0
+        }
+        mask[y * width + x] = value.toByte()
+      }
+    }
+    return mask
+  }
+
+  private fun ensureMaskBuffer(size: Int) {
+    if (maskByteBuffer == null || maskByteBuffer!!.capacity() < size) {
+      maskByteBuffer = ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder())
+    }
+  }
+
+  private fun convertToGlMatrix(androidMatrix: android.graphics.Matrix): FloatArray {
+    val values = FloatArray(9)
+    androidMatrix.getValues(values)
+    // Convert 3x3 to 4x4 matrix for GL
+    return floatArrayOf(
+      values[0], values[3], 0f, values[6],
+      values[1], values[4], 0f, values[7],
+      0f, 0f, 1f, 0f,
+      values[2], values[5], 0f, values[8]
+    )
+  }
+
+  fun release() {
+    renderer?.release()
+    renderer = null
+    yuvConverter?.release()
+    yuvConverter = null
   }
 }

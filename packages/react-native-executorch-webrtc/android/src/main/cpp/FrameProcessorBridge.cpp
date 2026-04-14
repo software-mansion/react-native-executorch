@@ -104,9 +104,10 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
  * @param yStride Y plane stride
  * @param uvStride U/V plane stride
  * @param rotation Frame rotation in degrees (0, 90, 180, 270)
- * @return Modified Y plane with background blurred (or null on error)
+ * @return Array of 3 byte arrays [Y, U, V] with background blurred (or null on
+ * error)
  */
-JNIEXPORT jbyteArray JNICALL
+JNIEXPORT jobjectArray JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     JNIEnv *env, jobject thiz, jbyteArray yData, jbyteArray uData,
     jbyteArray vData, jint width, jint height, jint yStride, jint uvStride,
@@ -123,6 +124,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
 
   if (!yPtr || !uPtr || !vPtr) {
     LOGE("Failed to get buffer pointers");
+    // I'm not sure why we're releasing this here, I mean this is still used in
+    // the C++ for regular frames, no? Or we are copying?
     if (yPtr)
       env->ReleaseByteArrayElements(yData, yPtr, JNI_ABORT);
     if (uPtr)
@@ -133,6 +136,7 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   }
 
   // Determine actual stride based on buffer sizes
+  // what the fuck is stride?
   int actualYStride = (yDataSize >= yStride * height) ? yStride : width;
   int actualUVStride =
       (uDataSize >= uvStride * (height / 2)) ? uvStride : (width / 2);
@@ -148,9 +152,11 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     lastBufferLogTime = now;
   }
 
-  // Create output Y buffer with actual stride
+  // Create output buffers for Y, U, V
   jbyteArray outYData = env->NewByteArray(actualYStride * height);
-  if (!outYData) {
+  jbyteArray outUData = env->NewByteArray(actualUVStride * (height / 2));
+  jbyteArray outVData = env->NewByteArray(actualUVStride * (height / 2));
+  if (!outYData || !outUData || !outVData) {
     env->ReleaseByteArrayElements(yData, yPtr, JNI_ABORT);
     env->ReleaseByteArrayElements(uData, uPtr, JNI_ABORT);
     env->ReleaseByteArrayElements(vData, vPtr, JNI_ABORT);
@@ -184,6 +190,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   // Convert to RGB
   cv::Mat rgbFull;
   cv::cvtColor(i420, rgbFull, cv::COLOR_YUV2RGB_I420);
+  // Im not sure why we need all the copying, cant we just do sumn like this?
+  // cv::cvtColor(i420, rgbFull, cv::COLOR_YUV2RGB);
 
   // Rotate image to upright for model inference
   cv::Mat rgbRotated;
@@ -321,7 +329,35 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
   cv::resize(yBlurredSmall, yBlurred, cv::Size(width, height), 0, 0,
              cv::INTER_LINEAR);
 
-  // Blend: foreground (mask=1) uses original, background (mask=0) uses blurred
+  // Create U and V mats from input (packed, no stride padding)
+  cv::Mat uMat(uvHeight, uvWidth, CV_8UC1);
+  cv::Mat vMat(uvHeight, uvWidth, CV_8UC1);
+  for (int row = 0; row < uvHeight; row++) {
+    memcpy(uMat.ptr(row), uSrc + row * actualUVStride, uvWidth);
+    memcpy(vMat.ptr(row), vSrc + row * actualUVStride, uvWidth);
+  }
+
+  // Blur U and V using same downscale-blur-upscale approach for performance
+  // U/V are already at half res, so 2x downscale = quarter res
+  cv::Mat uSmall, vSmall, uBlurredSmall, vBlurredSmall, uBlurred, vBlurred;
+  int uvSmallW = uvWidth / 2;
+  int uvSmallH = uvHeight / 2;
+  cv::resize(uMat, uSmall, cv::Size(uvSmallW, uvSmallH), 0, 0, cv::INTER_AREA);
+  cv::resize(vMat, vSmall, cv::Size(uvSmallW, uvSmallH), 0, 0, cv::INTER_AREA);
+  cv::stackBlur(uSmall, uBlurredSmall, cv::Size(11, 11));
+  cv::stackBlur(vSmall, vBlurredSmall, cv::Size(11, 11));
+  cv::resize(uBlurredSmall, uBlurred, cv::Size(uvWidth, uvHeight), 0, 0,
+             cv::INTER_LINEAR);
+  cv::resize(vBlurredSmall, vBlurred, cv::Size(uvWidth, uvHeight), 0, 0,
+             cv::INTER_LINEAR);
+
+  // Downscale mask for UV blending (UV is half resolution)
+  cv::Mat uvMask;
+  cv::resize(fullMask, uvMask, cv::Size(uvWidth, uvHeight), 0, 0,
+             cv::INTER_LINEAR);
+
+  // Blend Y: foreground (mask=1) uses original, background (mask=0) uses
+  // blurred
   std::vector<uint8_t> outY(actualYStride * height);
 
   for (int row = 0; row < height; row++) {
@@ -341,30 +377,166 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_processI420Frame(
     }
   }
 
+  // Blend U plane
+  std::vector<uint8_t> outU(actualUVStride * uvHeight);
+  for (int row = 0; row < uvHeight; row++) {
+    const uint8_t *srcU = uMat.ptr<uint8_t>(row);
+    const uint8_t *blurU = uBlurred.ptr<uint8_t>(row);
+    const float *maskRow = uvMask.ptr<float>(row);
+    uint8_t *dstU = outU.data() + row * actualUVStride;
+
+    for (int col = 0; col < uvWidth; col++) {
+      float prob = maskRow[col];
+      dstU[col] =
+          static_cast<uint8_t>(blurU[col] * (1.0f - prob) + srcU[col] * prob);
+    }
+    if (actualUVStride > uvWidth) {
+      memcpy(dstU + uvWidth, uSrc + row * actualUVStride + uvWidth,
+             actualUVStride - uvWidth);
+    }
+  }
+
+  // Blend V plane
+  std::vector<uint8_t> outV(actualUVStride * uvHeight);
+  for (int row = 0; row < uvHeight; row++) {
+    const uint8_t *srcV = vMat.ptr<uint8_t>(row);
+    const uint8_t *blurV = vBlurred.ptr<uint8_t>(row);
+    const float *maskRow = uvMask.ptr<float>(row);
+    uint8_t *dstV = outV.data() + row * actualUVStride;
+
+    for (int col = 0; col < uvWidth; col++) {
+      float prob = maskRow[col];
+      dstV[col] =
+          static_cast<uint8_t>(blurV[col] * (1.0f - prob) + srcV[col] * prob);
+    }
+    if (actualUVStride > uvWidth) {
+      memcpy(dstV + uvWidth, vSrc + row * actualUVStride + uvWidth,
+             actualUVStride - uvWidth);
+    }
+  }
+
+  // Copy data to output arrays
   env->SetByteArrayRegion(outYData, 0, actualYStride * height,
                           reinterpret_cast<jbyte *>(outY.data()));
+  env->SetByteArrayRegion(outUData, 0, actualUVStride * uvHeight,
+                          reinterpret_cast<jbyte *>(outU.data()));
+  env->SetByteArrayRegion(outVData, 0, actualUVStride * uvHeight,
+                          reinterpret_cast<jbyte *>(outV.data()));
 
   env->ReleaseByteArrayElements(yData, yPtr, JNI_ABORT);
   env->ReleaseByteArrayElements(uData, uPtr, JNI_ABORT);
   env->ReleaseByteArrayElements(vData, vPtr, JNI_ABORT);
 
-  return outYData;
-}
+  // Create result array of 3 byte arrays [Y, U, V]
+  jclass byteArrayClass = env->FindClass("[B");
+  jobjectArray result = env->NewObjectArray(3, byteArrayClass, nullptr);
+  env->SetObjectArrayElement(result, 0, outYData);
+  env->SetObjectArrayElement(result, 1, outUData);
+  env->SetObjectArrayElement(result, 2, outVData);
 
-// Keep old method for compatibility
-JNIEXPORT jfloatArray JNICALL
-Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
-    JNIEnv *env, jobject thiz, jbyteArray rgbData, jint width, jint height) {
-  LOGD("runSegmentation called (deprecated path): %dx%d", width, height);
-
-  const int maskSize = width * height;
-  jfloatArray result = env->NewFloatArray(maskSize);
-  if (!result)
-    return nullptr;
-
-  std::vector<float> mask(maskSize, 0.5f);
-  env->SetFloatArrayRegion(result, 0, maskSize, mask.data());
   return result;
 }
 
+/**
+ * Run segmentation on RGBA pixels, returns grayscale mask (0-255 bytes).
+ * Used by GL-based blur pipeline.
+ */
+JNIEXPORT jbyteArray JNICALL
+Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
+    JNIEnv *env, jobject thiz, jbyteArray rgbaData, jint width, jint height,
+    jint rotation) {
+
+  if (!g_modelLoaded || !g_segmentation) {
+    LOGE("Model not loaded, cannot run segmentation");
+    return nullptr;
+  }
+
+  jbyte *rgbaPtr = env->GetByteArrayElements(rgbaData, nullptr);
+  if (!rgbaPtr) {
+    LOGE("Failed to get RGBA data pointer");
+    return nullptr;
+  }
+
+  try {
+    // Convert RGBA to RGB (OpenCV expects BGR, but we'll convert to RGB for
+    // model)
+    cv::Mat rgba(height, width, CV_8UC4, reinterpret_cast<uint8_t *>(rgbaPtr));
+    cv::Mat rgb;
+    cv::cvtColor(rgba, rgb, cv::COLOR_RGBA2RGB);
+
+    // Apply rotation for model inference
+    cv::Mat rgbRotated;
+    if (rotation == 90) {
+      cv::rotate(rgb, rgbRotated, cv::ROTATE_90_CLOCKWISE);
+    } else if (rotation == 180) {
+      cv::rotate(rgb, rgbRotated, cv::ROTATE_180);
+    } else if (rotation == 270) {
+      cv::rotate(rgb, rgbRotated, cv::ROTATE_90_COUNTERCLOCKWISE);
+    } else {
+      rgbRotated = rgb;
+    }
+
+    // Run segmentation model
+    JSTensorViewIn pixelData;
+    pixelData.dataPtr = rgbRotated.data;
+    pixelData.sizes = {rgbRotated.rows, rgbRotated.cols, 3};
+    pixelData.scalarType = executorch::aten::ScalarType::Byte;
+
+    std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
+    auto result =
+        g_segmentation->generateFromPixels(pixelData, classesOfInterest, false);
+
+    // Extract mask
+    cv::Mat mask;
+    if (result.classBuffers && result.classBuffers->count("foreground")) {
+      auto &fgBuffer = result.classBuffers->at("foreground");
+      auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
+      mask = cv::Mat(g_modelHeight, g_modelWidth, CV_32FC1, fgData).clone();
+    } else {
+      LOGE("No foreground mask in result");
+      env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
+      return nullptr;
+    }
+
+    // Rotate mask back to original orientation
+    cv::Mat maskRotated;
+    if (rotation == 90) {
+      cv::rotate(mask, maskRotated, cv::ROTATE_90_COUNTERCLOCKWISE);
+    } else if (rotation == 180) {
+      cv::rotate(mask, maskRotated, cv::ROTATE_180);
+    } else if (rotation == 270) {
+      cv::rotate(mask, maskRotated, cv::ROTATE_90_CLOCKWISE);
+    } else {
+      maskRotated = mask;
+    }
+
+    // Resize mask to input dimensions
+    cv::Mat maskResized;
+    cv::resize(maskRotated, maskResized, cv::Size(width, height), 0, 0,
+               cv::INTER_LINEAR);
+
+    // Convert float mask (0-1) to bytes (0-255)
+    cv::Mat maskBytes;
+    maskResized.convertTo(maskBytes, CV_8UC1, 255.0);
+
+    // Create output array
+    const int maskSize = width * height;
+    jbyteArray output = env->NewByteArray(maskSize);
+    if (!output) {
+      env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
+      return nullptr;
+    }
+
+    env->SetByteArrayRegion(output, 0, maskSize,
+                            reinterpret_cast<jbyte *>(maskBytes.data));
+
+    env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
+    return output;
+
+  } catch (const std::exception &e) {
+    LOGE("Segmentation failed: %s", e.what());
+    env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
+    return nullptr;
+  }
+}
 } // extern "C"

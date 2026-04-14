@@ -16,9 +16,15 @@ class ExecutorchWebRTCModule(
   reactContext: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(reactContext) {
   companion object {
+    init {
+      System.loadLibrary("executorch")
+      System.loadLibrary("react-native-executorch-webrtc")
+
+    }
     const val NAME = "ExecutorchWebRTC"
     private var initialized = false
     private var moduleContext: ReactApplicationContext? = null
+
 
     /**
      * Send event to JavaScript
@@ -70,5 +76,15 @@ class ExecutorchWebRTCModule(
     blurIntensity: Int,
   ) {
     ExecutorchWebRTC.configureModel(modelPath)
+  }
+
+  /**
+   * Get available processor names for use with videoTrack._setVideoEffects()
+   */
+  override fun getConstants(): MutableMap<String, Any> {
+    return mutableMapOf(
+      "PROCESSOR_NAME" to ExecutorchWebRTC.PROCESSOR_NAME,
+      "PROCESSOR_NAME_NEW" to ExecutorchWebRTC.PROCESSOR_NAME_NEW
+    )
   }
 }
