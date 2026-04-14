@@ -9,7 +9,6 @@ import java.nio.ByteOrder;
 /**
  * OpenGL-based blur renderer for WebRTC video frames.
  * Handles texture conversion, downscaling for segmentation, Gaussian blur, and compositing.
- *
  * Simplified version matching fishjam's implementation - temporal smoothing is now
  * handled by MaskPostProcessor on CPU instead of GPU shaders.
  */
@@ -83,7 +82,7 @@ public class GlBlurRenderer {
 
     private static final int SEGMENTATION_WIDTH = 256;
     private static final int SEGMENTATION_HEIGHT = 144;
-    private static final int BLUR_DOWNSCALE = 2;
+    private static final int BLUR_DOWNSCALE = 1;  // Full resolution for better quality
 
     private final FullscreenQuad quad = new FullscreenQuad();
 
@@ -185,6 +184,12 @@ public class GlBlurRenderer {
         int blurWidth = blurFramebufferA.getWidth();
         int blurHeight = blurFramebufferA.getHeight();
         drawTexture(passthroughProgram, rgbaFramebuffer.getTextureId(), blurFramebufferA);
+
+        // First blur pass (horizontal + vertical)
+        renderBlurPass(blurFramebufferA.getTextureId(), blurFramebufferB, 1.0f / blurWidth, 0.0f);
+        renderBlurPass(blurFramebufferB.getTextureId(), blurFramebufferA, 0.0f, 1.0f / blurHeight);
+
+        // Second blur pass for stronger effect
         renderBlurPass(blurFramebufferA.getTextureId(), blurFramebufferB, 1.0f / blurWidth, 0.0f);
         renderBlurPass(blurFramebufferB.getTextureId(), blurFramebufferA, 0.0f, 1.0f / blurHeight);
     }

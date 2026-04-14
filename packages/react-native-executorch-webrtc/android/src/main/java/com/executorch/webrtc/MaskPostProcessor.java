@@ -13,13 +13,15 @@ import java.nio.ByteOrder;
 public class MaskPostProcessor {
 
     private static final float BINARIZE_THRESHOLD = 0.5f;
-    private static final float EMA_ALPHA = 0.85f;
-    private static final float THRESHOLD = EMA_ALPHA + 0.05f;
-    private static final float GAUSSIAN_SIGMA = 2.0f;
-    private static final int GAUSSIAN_RADIUS = 3;
+    private static final float EMA_ALPHA = 0.5f;  // 50% history for responsive mask
+
+    // Larger Gaussian blur for smoother edges (no visible sheath)
+    private static final float GAUSSIAN_SIGMA = 5.0f;
+    private static final int GAUSSIAN_RADIUS = 8;
 
     private float[] smoothedMask;
     private float[] tempA;
+    private float[] tempB;
     private float[] rawFloatMask;
     private final float[] gaussianKernel;
     private int maskWidth;
@@ -46,18 +48,18 @@ public class MaskPostProcessor {
             rawFloatMask[i] = (rawMask[i] & 0xFF) / 255.0f;
         }
 
-        // Apply morphological cleaning (erode + dilate)
+        // Apply morphological cleaning (binarize + erode + dilate) to remove noise
         morphologicalClean(rawFloatMask, tempA, w, h);
 
-        // Apply EMA temporal smoothing and threshold
-        applyEmaAndThreshold(tempA, rawFloatMask, len);
+        // Apply EMA temporal smoothing (keeps soft values, no hard threshold)
+        applyEmaSmoothing(tempA, len);
 
-        // Apply Gaussian blur for smooth edges
-        gaussianBlurHorizontal(rawFloatMask, tempA, w, h);
-        gaussianBlurVertical(tempA, rawFloatMask, w, h);
+        // Apply larger Gaussian blur for smooth, natural edges
+        gaussianBlurHorizontal(smoothedMask, tempA, w, h);
+        gaussianBlurVertical(tempA, tempB, w, h);
 
-        // Convert back to bytes for GPU upload
-        convertMaskToBytes(rawFloatMask, len);
+        // Convert to bytes for GPU upload
+        convertMaskToBytes(tempB, len);
 
         return outputBuffer;
     }
@@ -71,6 +73,7 @@ public class MaskPostProcessor {
             int len = w * h;
             smoothedMask = new float[len];
             tempA = new float[len];
+            tempB = new float[len];
             rawFloatMask = new float[len];
             maskWidth = w;
             maskHeight = h;
@@ -145,7 +148,10 @@ public class MaskPostProcessor {
         }
     }
 
-    private void applyEmaAndThreshold(float[] current, float[] dst, int len) {
+    /**
+     * Apply EMA smoothing without hard threshold - keeps soft gradient values
+     */
+    private void applyEmaSmoothing(float[] current, int len) {
         float oneMinusAlpha = 1.0f - EMA_ALPHA;
         if (!hasHistory) {
             System.arraycopy(current, 0, smoothedMask, 0, len);
@@ -155,9 +161,7 @@ public class MaskPostProcessor {
                 smoothedMask[i] = EMA_ALPHA * smoothedMask[i] + oneMinusAlpha * current[i];
             }
         }
-        for (int i = 0; i < len; i++) {
-            dst[i] = smoothedMask[i] > THRESHOLD ? 1.0f : 0.0f;
-        }
+        // No hard threshold - keep soft values for natural gradient edges
     }
 
     private void gaussianBlurHorizontal(float[] src, float[] dst, int w, int h) {

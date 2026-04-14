@@ -125,10 +125,7 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     textureBuffer: VideoFrame.TextureBuffer,
     helper: SurfaceTextureHelper,
   ): VideoFrame {
-    val totalStartTime = System.nanoTime()
-
     applyPendingBlurRadius()
-
     if (!modelLoaded) tryLoadModel()
 
     val width = textureBuffer.width
@@ -143,8 +140,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     val transformMatrix = convertToGlMatrix(textureBuffer.transformMatrix)
     val isOes = textureBuffer.type == VideoFrame.TextureBuffer.Type.OES
 
-    val gpuStartTime = System.nanoTime()
-
     // 1. Render input texture to RGBA FBO
     renderer.renderToRgbaFbo(textureBuffer.textureId, transformMatrix, isOes)
 
@@ -157,9 +152,7 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     val segH = renderer.segmentationHeight
 
     // 4. Run segmentation (via JNI)
-    val inferenceStartTime = System.nanoTime()
     val rawMask = runSegmentationOnPixels(segPixels, segW, segH, frame.rotation)
-    val inferenceEndTime = System.nanoTime()
 
     if (rawMask != null) {
       // 5. Post-process mask (morphology + EMA + Gaussian blur)
@@ -178,8 +171,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     // 8. Render composite (blend original + blurred using mask)
     renderer.renderComposite()
 
-    val gpuEndTime = System.nanoTime()
-
     // 9. Create output TextureBuffer
     val outputBuffer =
       TextureBufferImpl(
@@ -193,42 +184,7 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
         null,
       )
 
-    val totalEndTime = System.nanoTime()
-
-    // Accumulate timing measurements
-    totalTimeAccumulator += (totalEndTime - totalStartTime)
-    inferenceTimeAccumulator += (inferenceEndTime - inferenceStartTime)
-    gpuTimeAccumulator += (gpuEndTime - gpuStartTime) - (inferenceEndTime - inferenceStartTime)
     frameCount++
-
-    // Log averages every LOG_INTERVAL_FRAMES frames
-    if (frameCount >= LOG_INTERVAL_FRAMES) {
-      val avgTotalMs = (totalTimeAccumulator / frameCount) / 1_000_000.0
-      val avgInferenceMs = (inferenceTimeAccumulator / frameCount) / 1_000_000.0
-      val avgMaskPostProcessMs = (maskPostProcessTimeAccumulator / frameCount) / 1_000_000.0
-      val avgGpuMs = (gpuTimeAccumulator / frameCount) / 1_000_000.0
-      val fps = 1000.0 / avgTotalMs
-
-      Log.d(
-        TAG,
-        String.format(
-          "Avg over %d frames: Total=%.2fms (%.1f FPS) | Inference=%.2fms | MaskPostProcess=%.2fms | GPU=%.2fms",
-          frameCount,
-          avgTotalMs,
-          fps,
-          avgInferenceMs,
-          avgMaskPostProcessMs,
-          avgGpuMs,
-        ),
-      )
-
-      // Reset accumulators
-      frameCount = 0
-      totalTimeAccumulator = 0L
-      inferenceTimeAccumulator = 0L
-      maskPostProcessTimeAccumulator = 0L
-      gpuTimeAccumulator = 0L
-    }
 
     return VideoFrame(outputBuffer, frame.rotation, frame.timestampNs)
   }
