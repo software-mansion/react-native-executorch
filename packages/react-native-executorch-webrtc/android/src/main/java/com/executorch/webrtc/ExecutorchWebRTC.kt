@@ -5,34 +5,24 @@ import com.oney.WebRTCModule.videoEffects.ProcessorProvider
 
 /**
  * Main entry point for ExecuTorch WebRTC integration.
- * Call registerProcessors() from your Application.onCreate()
+ * Registers the background blur processor with react-native-webrtc.
  */
 object ExecutorchWebRTC {
   private const val TAG = "ExecutorchWebRTC"
   const val PROCESSOR_NAME = "executorchBackgroundBlur"
-  const val PROCESSOR_NAME_NEW = "executorchBackgroundBlurNew"
 
   // Configuration for background removal
   var modelPath: String? = null
 
   /**
-   * Registers both frame processors with react-native-webrtc.
-   * - "executorchBackgroundBlur" -> existing GL-based processor
-   * - "executorchBackgroundBlurNew" -> new experimental processor
+   * Registers the frame processor with react-native-webrtc.
    */
   fun registerProcessors() {
     try {
       ProcessorProvider.addProcessor(PROCESSOR_NAME, ExecutorchFrameProcessorFactory())
-      Log.d(TAG, "✅ Registered processor: $PROCESSOR_NAME")
+      Log.d(TAG, "Registered processor: $PROCESSOR_NAME")
     } catch (e: Exception) {
-      Log.e(TAG, "❌ Failed to register $PROCESSOR_NAME", e)
-    }
-
-    try {
-      ProcessorProvider.addProcessor(PROCESSOR_NAME_NEW, NewExecutorchFrameProcessorFactory())
-      Log.d(TAG, "✅ Registered processor: $PROCESSOR_NAME_NEW")
-    } catch (e: Exception) {
-      Log.e(TAG, "❌ Failed to register $PROCESSOR_NAME_NEW", e)
+      Log.e(TAG, "Failed to register $PROCESSOR_NAME", e)
     }
   }
 
@@ -40,9 +30,16 @@ object ExecutorchWebRTC {
    * Configure the segmentation model for background removal
    */
   fun configureModel(path: String) {
-    Log.d(TAG, "📥 configureModel called with path: $path")
+    Log.d(TAG, "configureModel called with path: $path")
     modelPath = path
-    Log.d(TAG, "✅ Model path configured - processors will load model on next frame")
+    Log.d(TAG, "Model path configured - processor will load model on next frame")
+  }
+
+  /**
+   * Set the blur radius dynamically
+   */
+  fun setBlurRadius(radius: Float) {
+    ExecutorchFrameProcessor.setBlurRadius(radius)
   }
 
   /**

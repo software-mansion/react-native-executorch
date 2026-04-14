@@ -9,30 +9,49 @@ import org.webrtc.TextureBufferImpl
 import org.webrtc.VideoFrame
 import org.webrtc.YuvConverter
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * WebRTC frame processor that applies background blur using GPU shaders + ExecuTorch segmentation.
- * Uses OpenGL for blur (fast) and JNI for segmentation.
+ * Uses MaskPostProcessor for temporal smoothing (EMA) and edge refinement.
+ *
+ * Architecture matches fishjam's BackgroundBlurProcessor but uses ExecuTorch for mask generation
+ * instead of ML Kit.
  */
 class ExecutorchFrameProcessor : VideoFrameProcessor {
-  private var frameCount = 0
-  private var lastLogTime = System.currentTimeMillis()
-  private val TAG = "ExecutorchFrameProcessor"
+  companion object {
+    private const val TAG = "ExecutorchFrameProcessor"
+    private const val LOG_INTERVAL_FRAMES = 30
+
+    @Volatile
+    private var pendingBlurRadius: Float = -1f
+
+    @JvmStatic
+    fun setBlurRadius(radius: Float) {
+      pendingBlurRadius = radius
+    }
+  }
+
+  private val renderer = GlBlurRenderer()
+  private val maskPostProcessor = MaskPostProcessor()
+
+  @Volatile
+  private var isProcessing = false
+  private var lastProcessedFrame: VideoFrame? = null
+  private var yuvConverter: YuvConverter? = null
 
   private var modelLoaded = false
   private var loadedModelPath: String? = null
-
-  // GL-based blur renderer
-  private var renderer: GlBlurRenderer? = null
-  private var yuvConverter: YuvConverter? = null
-
-  // Reusable buffers
-  private var maskByteBuffer: ByteBuffer? = null
   private var rgbaBuffer: ByteArray? = null
 
+  // Timing measurements
+  private var frameCount = 0
+  private var totalTimeAccumulator = 0L
+  private var inferenceTimeAccumulator = 0L
+  private var maskPostProcessTimeAccumulator = 0L
+  private var gpuTimeAccumulator = 0L
+
   init {
-    Log.d(TAG, "ExecutorchFrameProcessor created - GL blur pipeline")
+    Log.d(TAG, "ExecutorchFrameProcessor created")
     tryLoadModel()
   }
 
@@ -61,51 +80,61 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     rgbaData: ByteArray,
     width: Int,
     height: Int,
-    rotation: Int
+    rotation: Int,
   ): ByteArray?
 
-  override fun process(frame: VideoFrame, helper: SurfaceTextureHelper): VideoFrame {
-    frameCount++
-    if (!modelLoaded) tryLoadModel()
-
-    // Log stats every second
-    val now = System.currentTimeMillis()
-    if (now - lastLogTime >= 1000) {
-      Log.d(TAG, "FPS: ${frameCount}, buffer: ${frame.buffer.javaClass.simpleName}")
-      lastLogTime = now
-      frameCount = 0
-    }
-
-    val buffer = frame.buffer
-    if (buffer !is VideoFrame.TextureBuffer) {
-      // Not a texture buffer, return original
+  override fun process(
+    frame: VideoFrame,
+    helper: SurfaceTextureHelper,
+  ): VideoFrame {
+    // Return cached frame if busy
+    if (isProcessing) {
+      if (lastProcessedFrame != null) {
+        lastProcessedFrame!!.retain()
+        return lastProcessedFrame!!
+      }
       frame.retain()
       return frame
     }
 
+    val buffer = frame.buffer
+    if (buffer !is VideoFrame.TextureBuffer) {
+      frame.retain()
+      return frame
+    }
+
+    isProcessing = true
     return try {
-      processWithGl(frame, buffer, helper)
+      val result = processFrame(frame, buffer, helper)
+      // Cache processed frame
+      lastProcessedFrame?.release()
+      result.retain()
+      lastProcessedFrame = result
+      result
     } catch (e: Exception) {
-      Log.e(TAG, "GL processing failed: ${e.message}")
+      Log.e(TAG, "Error processing frame", e)
       frame.retain()
       frame
+    } finally {
+      isProcessing = false
     }
   }
 
-  private fun processWithGl(
+  private fun processFrame(
     frame: VideoFrame,
     textureBuffer: VideoFrame.TextureBuffer,
-    helper: SurfaceTextureHelper
+    helper: SurfaceTextureHelper,
   ): VideoFrame {
+    val totalStartTime = System.nanoTime()
+
+    applyPendingBlurRadius()
+
+    if (!modelLoaded) tryLoadModel()
+
     val width = textureBuffer.width
     val height = textureBuffer.height
 
-    // Initialize renderer if needed
-    if (renderer == null) {
-      renderer = GlBlurRenderer()
-    }
-    renderer!!.ensureSetup(width, height)
-
+    renderer.ensureSetup(width, height)
     if (yuvConverter == null) {
       yuvConverter = YuvConverter()
     }
@@ -114,53 +143,113 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     val transformMatrix = convertToGlMatrix(textureBuffer.transformMatrix)
     val isOes = textureBuffer.type == VideoFrame.TextureBuffer.Type.OES
 
+    val gpuStartTime = System.nanoTime()
+
     // 1. Render input texture to RGBA FBO
-    renderer!!.renderToRgbaFbo(textureBuffer.textureId, transformMatrix, isOes)
+    renderer.renderToRgbaFbo(textureBuffer.textureId, transformMatrix, isOes)
 
     // 2. Render downscaled for segmentation
-    renderer!!.renderDownscaled()
+    renderer.renderDownscaled()
 
     // 3. Read pixels for segmentation
-    val segPixels = renderer!!.readSegmentationPixels()
-    val segW = renderer!!.segmentationWidth
-    val segH = renderer!!.segmentationHeight
+    val segPixels = renderer.readSegmentationPixels()
+    val segW = renderer.segmentationWidth
+    val segH = renderer.segmentationHeight
 
     // 4. Run segmentation (via JNI)
-    val mask = runSegmentationOnPixels(segPixels, segW, segH, frame.rotation)
+    val inferenceStartTime = System.nanoTime()
+    val rawMask = runSegmentationOnPixels(segPixels, segW, segH, frame.rotation)
+    val inferenceEndTime = System.nanoTime()
 
-    // 5. Upload mask to GPU
-    if (mask != null) {
-      ensureMaskBuffer(mask.size)
-      maskByteBuffer!!.clear()
-      maskByteBuffer!!.put(mask)
-      maskByteBuffer!!.rewind()
-      renderer!!.uploadMask(maskByteBuffer!!, segW, segH)
+    if (rawMask != null) {
+      // 5. Post-process mask (morphology + EMA + Gaussian blur)
+      val maskPostProcessStartTime = System.nanoTime()
+      val processedMask = maskPostProcessor.process(rawMask, segW, segH)
+      val maskPostProcessEndTime = System.nanoTime()
+      maskPostProcessTimeAccumulator += (maskPostProcessEndTime - maskPostProcessStartTime)
+
+      // 6. Upload processed mask to GPU
+      renderer.uploadMask(processedMask, segW, segH)
     }
 
-    // 6. Render blur (two-pass Gaussian)
-    renderer!!.renderBlur()
+    // 7. Render blur
+    renderer.renderBlur()
 
-    // 7. Render composite (blend original + blurred using mask)
-    renderer!!.renderComposite()
+    // 8. Render composite (blend original + blurred using mask)
+    renderer.renderComposite()
 
-    // 8. Create output TextureBuffer
-    val outputBuffer = TextureBufferImpl(
-      width, height,
-      VideoFrame.TextureBuffer.Type.RGB,
-      renderer!!.outputTextureId,
-      Matrix(),
-      helper.handler,
-      yuvConverter,
-      null
-    )
+    val gpuEndTime = System.nanoTime()
+
+    // 9. Create output TextureBuffer
+    val outputBuffer =
+      TextureBufferImpl(
+        width,
+        height,
+        VideoFrame.TextureBuffer.Type.RGB,
+        renderer.outputTextureId,
+        Matrix(),
+        helper.handler,
+        yuvConverter,
+        null,
+      )
+
+    val totalEndTime = System.nanoTime()
+
+    // Accumulate timing measurements
+    totalTimeAccumulator += (totalEndTime - totalStartTime)
+    inferenceTimeAccumulator += (inferenceEndTime - inferenceStartTime)
+    gpuTimeAccumulator += (gpuEndTime - gpuStartTime) - (inferenceEndTime - inferenceStartTime)
+    frameCount++
+
+    // Log averages every LOG_INTERVAL_FRAMES frames
+    if (frameCount >= LOG_INTERVAL_FRAMES) {
+      val avgTotalMs = (totalTimeAccumulator / frameCount) / 1_000_000.0
+      val avgInferenceMs = (inferenceTimeAccumulator / frameCount) / 1_000_000.0
+      val avgMaskPostProcessMs = (maskPostProcessTimeAccumulator / frameCount) / 1_000_000.0
+      val avgGpuMs = (gpuTimeAccumulator / frameCount) / 1_000_000.0
+      val fps = 1000.0 / avgTotalMs
+
+      Log.d(
+        TAG,
+        String.format(
+          "Avg over %d frames: Total=%.2fms (%.1f FPS) | Inference=%.2fms | MaskPostProcess=%.2fms | GPU=%.2fms",
+          frameCount,
+          avgTotalMs,
+          fps,
+          avgInferenceMs,
+          avgMaskPostProcessMs,
+          avgGpuMs,
+        ),
+      )
+
+      // Reset accumulators
+      frameCount = 0
+      totalTimeAccumulator = 0L
+      inferenceTimeAccumulator = 0L
+      maskPostProcessTimeAccumulator = 0L
+      gpuTimeAccumulator = 0L
+    }
 
     return VideoFrame(outputBuffer, frame.rotation, frame.timestampNs)
   }
 
-  private fun runSegmentationOnPixels(pixels: ByteBuffer, width: Int, height: Int, rotation: Int): ByteArray? {
+  private fun applyPendingBlurRadius() {
+    val radius = pendingBlurRadius
+    if (radius < 0f) return
+    pendingBlurRadius = -1f
+    renderer.setBlurRadius(radius)
+  }
+
+  private fun runSegmentationOnPixels(
+    pixels: ByteBuffer,
+    width: Int,
+    height: Int,
+    rotation: Int,
+  ): ByteArray? {
     if (!modelLoaded) {
-      // Return placeholder ellipse mask if model not loaded
-      return createEllipseMask(width, height)
+      val result = ByteArray(width * height)
+      result.fill(0)
+      return result
     }
 
     // Convert ByteBuffer to ByteArray for JNI
@@ -174,7 +263,10 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     return runSegmentation(rgbaBuffer!!, width, height, rotation)
   }
 
-  private fun createEllipseMask(width: Int, height: Int): ByteArray {
+  private fun createEllipseMask(
+    width: Int,
+    height: Int,
+  ): ByteArray {
     val mask = ByteArray(width * height)
     val centerX = width / 2f
     val centerY = height / 2f
@@ -186,21 +278,16 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
         val dx = (x - centerX) / radiusX
         val dy = (y - centerY) / radiusY
         val dist = dx * dx + dy * dy
-        val value = when {
-          dist < 1.0f -> 255
-          dist < 1.3f -> ((1.0f - (dist - 1.0f) / 0.3f) * 255).toInt()
-          else -> 0
-        }
+        val value =
+          when {
+            dist < 1.0f -> 255
+            dist < 1.3f -> ((1.0f - (dist - 1.0f) / 0.3f) * 255).toInt()
+            else -> 0
+          }
         mask[y * width + x] = value.toByte()
       }
     }
     return mask
-  }
-
-  private fun ensureMaskBuffer(size: Int) {
-    if (maskByteBuffer == null || maskByteBuffer!!.capacity() < size) {
-      maskByteBuffer = ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder())
-    }
   }
 
   private fun convertToGlMatrix(androidMatrix: android.graphics.Matrix): FloatArray {
@@ -208,17 +295,30 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     androidMatrix.getValues(values)
     // Convert 3x3 to 4x4 matrix for GL
     return floatArrayOf(
-      values[0], values[3], 0f, values[6],
-      values[1], values[4], 0f, values[7],
-      0f, 0f, 1f, 0f,
-      values[2], values[5], 0f, values[8]
+      values[0],
+      values[3],
+      0f,
+      values[6],
+      values[1],
+      values[4],
+      0f,
+      values[7],
+      0f,
+      0f,
+      1f,
+      0f,
+      values[2],
+      values[5],
+      0f,
+      values[8],
     )
   }
 
   fun release() {
-    renderer?.release()
-    renderer = null
+    renderer.release()
     yuvConverter?.release()
     yuvConverter = null
+    lastProcessedFrame?.release()
+    lastProcessedFrame = null
   }
 }

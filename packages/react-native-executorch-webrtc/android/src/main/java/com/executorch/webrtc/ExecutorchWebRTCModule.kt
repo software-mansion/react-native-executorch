@@ -3,9 +3,7 @@ package com.executorch.webrtc
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.modules.core.DeviceEventManagerModule
 
 /**
  * Native module that auto-registers the frame processor when loaded.
@@ -19,29 +17,13 @@ class ExecutorchWebRTCModule(
     init {
       System.loadLibrary("executorch")
       System.loadLibrary("react-native-executorch-webrtc")
-
     }
+
     const val NAME = "ExecutorchWebRTC"
     private var initialized = false
-    private var moduleContext: ReactApplicationContext? = null
-
-
-    /**
-     * Send event to JavaScript
-     */
-    fun sendEvent(
-      eventName: String,
-      params: WritableMap?,
-    ) {
-      moduleContext
-        ?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        ?.emit(eventName, params)
-    }
   }
 
   init {
-    moduleContext = reactContext
-
     // Auto-register the processor when the module is loaded
     if (!initialized) {
       ExecutorchWebRTC.registerProcessors()
@@ -69,22 +51,34 @@ class ExecutorchWebRTCModule(
     ExecutorchWebRTC.configureModel(modelPath)
   }
 
-  // Legacy alias
+  /**
+   * Configure the segmentation model and blur intensity
+   * @param modelPath Path to the .pte model file
+   * @param blurIntensity Blur sigma value (default 12.0)
+   */
   @ReactMethod
   fun configureBackgroundBlur(
     modelPath: String,
     blurIntensity: Int,
   ) {
     ExecutorchWebRTC.configureModel(modelPath)
+    ExecutorchWebRTC.setBlurRadius(blurIntensity.toFloat())
+  }
+
+  /**
+   * Set the blur radius dynamically
+   * @param radius Blur sigma value
+   */
+  @ReactMethod
+  fun setBlurRadius(radius: Double) {
+    ExecutorchWebRTC.setBlurRadius(radius.toFloat())
   }
 
   /**
    * Get available processor names for use with videoTrack._setVideoEffects()
    */
-  override fun getConstants(): MutableMap<String, Any> {
-    return mutableMapOf(
+  override fun getConstants(): MutableMap<String, Any> =
+    mutableMapOf(
       "PROCESSOR_NAME" to ExecutorchWebRTC.PROCESSOR_NAME,
-      "PROCESSOR_NAME_NEW" to ExecutorchWebRTC.PROCESSOR_NAME_NEW
     )
-  }
 }
