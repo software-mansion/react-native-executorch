@@ -68,9 +68,9 @@ Installation is pretty straightforward, use your package manager of choice to in
     ```bash
     yarn add react-native-executorch
     # For Expo projects
-    yarn install react-native-executorch-expo-resource-fetcher
+    yarn add react-native-executorch-expo-resource-fetcher
     # For bare React Native projects
-    yarn install react-native-executorch-bare-resource-fetcher
+    yarn add react-native-executorch-bare-resource-fetcher
     ```
 
   </TabItem>
