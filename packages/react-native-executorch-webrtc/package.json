@@ -31,17 +31,18 @@
     "clean": "del-cli lib"
   },
   "peerDependencies": {
+    "@fishjam-cloud/react-native-client": "*",
+    "@fishjam-cloud/react-native-webrtc": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-executorch": "*",
-    "react-native-webrtc": ">=121.0.0"
+    "react-native-executorch": "*"
   },
   "devDependencies": {
+    "@fishjam-cloud/react-native-webrtc": "^0.25.8",
     "@types/react": "~19.1.10",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-executorch": "workspace:*",
-    "react-native-webrtc": "^124.0.7",
     "typescript": "~5.9.2"
   }
 }

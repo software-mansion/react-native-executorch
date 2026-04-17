@@ -135,9 +135,6 @@ public class MaskPostProcessor {
         }
     }
 
-    /**
-     * Apply EMA smoothing without hard threshold - keeps soft gradient values
-     */
     private void applyEmaSmoothing(float[] current, int len) {
         float oneMinusAlpha = 1.0f - EMA_ALPHA;
         if (!hasHistory) {
@@ -148,7 +145,6 @@ public class MaskPostProcessor {
                 smoothedMask[i] = EMA_ALPHA * smoothedMask[i] + oneMinusAlpha * current[i];
             }
         }
-        // No hard threshold - keep soft values for natural gradient edges
     }
 
     private void convertMaskToBytes(float[] source, int length) {

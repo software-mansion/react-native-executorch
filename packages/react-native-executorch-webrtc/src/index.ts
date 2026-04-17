@@ -1,82 +1,24 @@
 /**
- * ExecuTorch WebRTC integration
+ * ExecuTorch WebRTC Background Blur
  *
- * This package provides frame processing integration between
- * react-native-executorch and react-native-webrtc.
+ * This package provides background blur/removal for WebRTC video calls
+ * using ExecuTorch segmentation models. API is compatible with
+ * @fishjam-cloud/react-native-webrtc-background-blur.
  *
  * @packageDocumentation
  */
 
-import { NativeModules, Platform } from 'react-native';
-
-// Auto-initialize the native module to register the processor
-// This happens when the package is first imported
-if (Platform.OS === 'android' || Platform.OS === 'ios') {
-  const { ExecutorchWebRTC } = NativeModules;
-  if (ExecutorchWebRTC) {
-    try {
-      ExecutorchWebRTC.setup();
-    } catch (error) {
-      console.warn('Failed to initialize ExecutorchWebRTC:', error);
-    }
-  } else {
-    console.warn(
-      'ExecutorchWebRTC native module not found - is the package properly linked?'
-    );
-  }
-}
-
-/**
- * Configure background removal using semantic segmentation
- * @param modelPath Path to the selfie segmentation model (.pte file)
- */
-export function configureBackgroundRemoval(modelPath: string): void {
-  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
-    console.warn(
-      'configureBackgroundRemoval: Only supported on Android and iOS'
-    );
-    return;
-  }
-
-  const { ExecutorchWebRTC } = NativeModules;
-  if (ExecutorchWebRTC) {
-    console.log(
-      '[ExecutorchWebRTC] Calling configureBackgroundRemoval:',
-      modelPath
-    );
-    ExecutorchWebRTC.configureBackgroundRemoval(modelPath);
-    console.log('[ExecutorchWebRTC] configureBackgroundRemoval call completed');
-  } else {
-    console.error(
-      '[ExecutorchWebRTC] Native module not found! Is the package linked?'
-    );
-  }
-}
-
-/**
- * Get the current frame processing FPS
- * @returns Promise resolving to current FPS (0 if not processing)
- */
-export async function getFps(): Promise<number> {
-  if (Platform.OS !== 'android') {
-    return 0;
-  }
-
-  const { ExecutorchWebRTC } = NativeModules;
-  if (ExecutorchWebRTC) {
-    return ExecutorchWebRTC.getFps();
-  }
-  return 0;
-}
-
-// Legacy alias
-export const configureBackgroundBlur = configureBackgroundRemoval;
+export { useBackgroundBlur } from './useBackgroundBlur';
+export type {
+  UseBackgroundBlurOptions,
+  TrackMiddleware,
+} from './useBackgroundBlur';
 
 export {
-  useWebRTCFrameProcessor,
-  enableFrameProcessor,
-  disableFrameProcessor,
-  PROCESSOR_NAMES,
-  type ProcessorName,
-  type WebRTCFrameProcessorOptions,
-} from './useWebRTCFrameProcessor';
+  initializeBackgroundBlur,
+  deinitializeBackgroundBlur,
+  isBackgroundBlurInitialized,
+} from './BackgroundBlur';
+
+export type { Spec as BackgroundBlurSpec } from './NativeBackgroundBlur';
+export { default as NativeBackgroundBlur } from './NativeBackgroundBlur';

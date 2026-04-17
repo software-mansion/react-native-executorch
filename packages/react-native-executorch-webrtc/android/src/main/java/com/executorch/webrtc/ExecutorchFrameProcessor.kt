@@ -167,7 +167,7 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       val maskPostProcessEndTime = System.nanoTime()
       maskPostProcessTimeAccumulator += (maskPostProcessEndTime - maskPostProcessStartTime)
 
-      // 6. Upload processed mask to GPU (includes GPU blur)
+      // 6. Upload processed mask to GPU
       renderer.uploadMask(processedMask, segW, segH)
     }
 
@@ -260,33 +260,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     pixels.get(rgbaBuffer!!, 0, size)
 
     return runSegmentation(rgbaBuffer!!, width, height, rotation)
-  }
-
-  private fun createEllipseMask(
-    width: Int,
-    height: Int,
-  ): ByteArray {
-    val mask = ByteArray(width * height)
-    val centerX = width / 2f
-    val centerY = height / 2f
-    val radiusX = width * 0.4f
-    val radiusY = height * 0.45f
-
-    for (y in 0 until height) {
-      for (x in 0 until width) {
-        val dx = (x - centerX) / radiusX
-        val dy = (y - centerY) / radiusY
-        val dist = dx * dx + dy * dy
-        val value =
-          when {
-            dist < 1.0f -> 255
-            dist < 1.3f -> ((1.0f - (dist - 1.0f) / 0.3f) * 255).toInt()
-            else -> 0
-          }
-        mask[y * width + x] = value.toByte()
-      }
-    }
-    return mask
   }
 
   private fun convertToGlMatrix(androidMatrix: android.graphics.Matrix): FloatArray {

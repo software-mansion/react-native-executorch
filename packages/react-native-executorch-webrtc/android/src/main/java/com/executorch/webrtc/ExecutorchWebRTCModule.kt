@@ -6,8 +6,8 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.module.annotations.ReactModule
 
 /**
- * Native module that auto-registers the frame processor when loaded.
- * This allows the package to work without manual native code setup.
+ * Native module for ExecuTorch WebRTC background blur.
+ * API compatible with @fishjam-cloud/react-native-webrtc-background-blur.
  */
 @ReactModule(name = ExecutorchWebRTCModule.NAME)
 class ExecutorchWebRTCModule(
@@ -20,54 +20,40 @@ class ExecutorchWebRTCModule(
     }
 
     const val NAME = "ExecutorchWebRTC"
-    private var initialized = false
+    private var processorsRegistered = false
   }
 
   init {
     // Auto-register the processor when the module is loaded
-    if (!initialized) {
+    if (!processorsRegistered) {
       ExecutorchWebRTC.registerProcessors()
-      initialized = true
+      processorsRegistered = true
     }
   }
 
   override fun getName(): String = NAME
 
   /**
-   * No-op method just to ensure the module is loaded.
-   * Called from JS to trigger initialization.
-   */
-  @ReactMethod
-  fun setup() {
-    // Module init happens in constructor, this is just a trigger
-  }
-
-  /**
-   * Configure the segmentation model for background removal
+   * Initialize background blur with the segmentation model.
    * @param modelPath Path to the .pte model file
    */
   @ReactMethod
-  fun configureBackgroundRemoval(modelPath: String) {
+  fun initialize(modelPath: String) {
     ExecutorchWebRTC.configureModel(modelPath)
   }
 
   /**
-   * Configure the segmentation model and blur intensity
-   * @param modelPath Path to the .pte model file
-   * @param blurIntensity Blur sigma value (default 12.0)
+   * Deinitialize and release resources.
    */
   @ReactMethod
-  fun configureBackgroundBlur(
-    modelPath: String,
-    blurIntensity: Int,
-  ) {
-    ExecutorchWebRTC.configureModel(modelPath)
-    ExecutorchWebRTC.setBlurRadius(blurIntensity.toFloat())
+  fun deinitialize() {
+    // Currently no-op, resources are managed per-frame
+    // Could be extended to unload the model if needed
   }
 
   /**
-   * Set the blur radius dynamically
-   * @param radius Blur sigma value
+   * Set the blur radius/intensity.
+   * @param radius Blur sigma value (default 12.0)
    */
   @ReactMethod
   fun setBlurRadius(radius: Double) {
@@ -75,10 +61,16 @@ class ExecutorchWebRTCModule(
   }
 
   /**
-   * Get available processor names for use with videoTrack._setVideoEffects()
+   * Check if background blur is available on this device.
    */
-  override fun getConstants(): MutableMap<String, Any> =
-    mutableMapOf(
-      "PROCESSOR_NAME" to ExecutorchWebRTC.PROCESSOR_NAME,
-    )
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  fun isAvailable(): Boolean {
+    return true // Always available on Android with ExecuTorch
+  }
+
+  /**
+   * Get the processor name for use with _setVideoEffect().
+   */
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  fun getProcessorName(): String = ExecutorchWebRTC.PROCESSOR_NAME
 }
