@@ -118,14 +118,6 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
-          name="webrtc_test/index"
-          options={{
-            drawerLabel: 'WebRTC Test',
-            title: 'WebRTC Camera Test',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
-        />
-        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',
