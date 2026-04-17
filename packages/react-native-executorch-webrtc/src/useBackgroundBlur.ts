@@ -40,10 +40,8 @@ const PROCESSOR_NAME = 'executorchBackgroundBlur';
 /**
  * Hook to enable background blur on WebRTC video tracks.
  * Compatible with Fishjam SDK's TrackMiddleware interface.
- *
  * @param options Configuration options including model path and blur radius
  * @returns Object containing blurMiddleware for use with Fishjam SDK
- *
  * @example
  * ```tsx
  * import { useBackgroundBlur } from '@executorch/react-native-executorch-webrtc';

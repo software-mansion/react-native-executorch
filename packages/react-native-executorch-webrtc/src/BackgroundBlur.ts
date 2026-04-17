@@ -5,9 +5,7 @@ let initialized = false;
 /**
  * Initialize the background blur processor with ExecuTorch segmentation model.
  * Must be called before using the blur middleware.
- *
  * @param modelPath Path to the .pte segmentation model file
- *
  * @example
  * ```ts
  * import { initializeBackgroundBlur } from '@executorch/react-native-executorch-webrtc';
@@ -35,7 +33,6 @@ export const initializeBackgroundBlur = (modelPath: string): void => {
 
 /**
  * Deinitialize and release background blur resources.
- *
  * @example
  * ```ts
  * import { deinitializeBackgroundBlur } from '@executorch/react-native-executorch-webrtc';

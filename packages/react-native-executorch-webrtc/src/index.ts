@@ -4,7 +4,6 @@
  * This package provides background blur/removal for WebRTC video calls
  * using ExecuTorch segmentation models. API is compatible with
  * @fishjam-cloud/react-native-webrtc-background-blur.
- *
  * @packageDocumentation
  */
 
