@@ -83,6 +83,9 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     rotation: Int,
   ): ByteArray?
 
+  // JNI: Unload model and release native resources
+  private external fun unloadModel()
+
   override fun process(
     frame: VideoFrame,
     helper: SurfaceTextureHelper,
@@ -287,10 +290,27 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
   }
 
   fun release() {
+    Log.d(TAG, "Releasing ExecutorchFrameProcessor resources")
+
+    // Release GPU resources
     renderer.release()
     yuvConverter?.release()
     yuvConverter = null
+
+    // Release cached frame
     lastProcessedFrame?.release()
     lastProcessedFrame = null
+
+    // Unload native model and buffers
+    if (modelLoaded) {
+      unloadModel()
+      modelLoaded = false
+      loadedModelPath = null
+    }
+
+    // Clear buffers
+    rgbaBuffer = null
+
+    Log.d(TAG, "ExecutorchFrameProcessor resources released")
   }
 }

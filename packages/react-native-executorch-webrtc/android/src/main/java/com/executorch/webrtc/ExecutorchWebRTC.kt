@@ -43,6 +43,16 @@ object ExecutorchWebRTC {
   }
 
   /**
+   * Deinitialize and release all resources
+   */
+  fun deinitialize() {
+    Log.d(TAG, "Deinitializing ExecutorchWebRTC")
+    modelPath = null
+    ExecutorchFrameProcessorFactory.releaseAll()
+    Log.d(TAG, "ExecutorchWebRTC deinitialized")
+  }
+
+  /**
    * Gets the processor name to use in JavaScript.
    * Use this when calling videoTrack._setVideoEffects(['...'])
    */

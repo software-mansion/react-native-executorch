@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import NativeBackgroundBlur from './NativeBackgroundBlur';
-import { initializeBackgroundBlur } from './BackgroundBlur';
+import {
+  initializeBackgroundBlur,
+  deinitializeBackgroundBlur,
+} from './BackgroundBlur';
 
 /**
  * Extended MediaStreamTrack with WebRTC video effects API
@@ -83,7 +86,8 @@ export function useBackgroundBlur(options: UseBackgroundBlurOptions): {
     }
 
     return () => {
-      // TODO: unload native module?
+      deinitializeBackgroundBlur();
+      initializedRef.current = false;
     };
   }, [modelUri]);
 

@@ -539,4 +539,22 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
     return nullptr;
   }
 }
+
+/**
+ * Unload the segmentation model and release all buffers
+ */
+JNIEXPORT void JNICALL
+Java_com_executorch_webrtc_ExecutorchFrameProcessor_unloadModel(JNIEnv *env,
+                                                                jobject thiz) {
+  LOGD("Unloading segmentation model and releasing resources");
+
+  g_segmentation.reset();
+  g_modelLoaded = false;
+  g_modelPath.clear();
+
+  // Release pre-allocated buffers
+  g_resizedRgb.release();
+
+  LOGD("Model unloaded and resources released");
+}
 } // extern "C"

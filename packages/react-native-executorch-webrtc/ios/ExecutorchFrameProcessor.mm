@@ -114,6 +114,19 @@ using namespace rnexecutorch::models::semantic_segmentation;
   _modelLoaded = NO;
   _ready = NO;
   _previousMask.release();
+
+  // Release cached frame
+  _lastProcessedFrame = nil;
+
+  // Release pixel buffer pool
+  if (_outputPool) {
+    CVPixelBufferPoolRelease(_outputPool);
+    _outputPool = NULL;
+    _poolWidth = 0;
+    _poolHeight = 0;
+  }
+
+  NSLog(@"[ExecutorchFrameProcessor] Model unloaded and resources released");
 }
 
 - (BOOL)isAvailable {

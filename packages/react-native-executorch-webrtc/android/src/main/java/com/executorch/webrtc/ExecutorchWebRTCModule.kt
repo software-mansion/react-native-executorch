@@ -47,8 +47,7 @@ class ExecutorchWebRTCModule(
    */
   @ReactMethod
   fun deinitialize() {
-    // Currently no-op, resources are managed per-frame
-    // Could be extended to unload the model if needed
+    ExecutorchWebRTC.deinitialize()
   }
 
   /**
