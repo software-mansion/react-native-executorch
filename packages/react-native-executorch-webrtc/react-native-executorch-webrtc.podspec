@@ -16,18 +16,20 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm}"
 
   # react-native-executorch exposes rnexecutorch/* headers via its header_dir.
-  # However, executorch SDK headers (executorch/*) from third-party/include
-  # don't propagate to dependent pods, so we need to add them here.
-  rne_pod_root = '"$(PODS_ROOT)/react-native-executorch"'
+  # However, executorch SDK headers and internal headers don't propagate to
+  # dependent pods, so we need to add them here.
+  rne_path = '${PODS_ROOT}/../../node_modules/react-native-executorch'
 
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
-    "HEADER_SEARCH_PATHS" => "#{rne_pod_root}/third-party/include"
+    "HEADER_SEARCH_PATHS" => "\"#{rne_path}/third-party/include\" \"#{rne_path}/common\""
   }
 
   s.dependency "React-Core"
   s.dependency "react-native-executorch"
-  s.dependency "react-native-webrtc"
   s.dependency "opencv-rne", "~> 4.11.0"
+  s.dependency 'FishjamReactNativeWebrtc'
+
+  install_modules_dependencies(s)
 end

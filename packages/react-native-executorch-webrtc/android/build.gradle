@@ -66,12 +66,7 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
 
     // WebRTC classes - provided by app via autolinking
-    if (findProject(':react-native-webrtc') != null) {
-        compileOnly project(':react-native-webrtc')
-    }
-
+    compileOnly project(':fishjam-cloud_react-native-webrtc')
     // ExecuTorch for vision model processing
-    if (findProject(':react-native-executorch') != null) {
-        implementation project(':react-native-executorch')
-    }
+    compileOnly project(':react-native-executorch')
 }

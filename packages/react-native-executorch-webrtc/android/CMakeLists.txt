@@ -57,6 +57,9 @@ else()
   set(OPENCV_THIRD_PARTY_LIBS "")
 endif()
 
+# OpenMP for OpenCV parallel operations
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fopenmp -static-openmp)
+
 # Link against libraries
 target_link_libraries(
   ${CMAKE_PROJECT_NAME}
@@ -70,3 +73,6 @@ target_link_libraries(
   ${OPENCV_THIRD_PARTY_LIBS}
   executorch
 )
+
+# Ensure react-native-executorch symbols are exported (needed for BaseModel/BaseSemanticSegmentation)
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--no-as-needed)
