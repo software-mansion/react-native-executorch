@@ -3403,6 +3403,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fishjam-cloud/react-native-webrtc@npm:^0.25.8":
+  version: 0.25.8
+  resolution: "@fishjam-cloud/react-native-webrtc@npm:0.25.8"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/e88ad3b8355191f83d35fa2f51208d38f0dda7e90aad1e2f3a02036726a3ed922008422c1051e7a6f45c8027eeefa8dbf0be75cb65ccdd980b80a55a251fbcee
+  languageName: node
+  linkType: hard
+
 "@fishjam-cloud/ts-client@npm:0.26.2":
   version: 0.26.2
   resolution: "@fishjam-cloud/ts-client@npm:0.26.2"
@@ -9508,13 +9520,6 @@ __metadata:
   version: 1.8.1
   resolution: "etag@npm:1.8.1"
   checksum: 10/571aeb3dbe0f2bbd4e4fadbdb44f325fc75335cd5f6f6b6a091e6a06a9f25ed5392f0863c5442acb0646787446e816f13cbfc6edce5b07658541dff573cab1ff
-  languageName: node
-  linkType: hard
-
-"event-target-shim@npm:6.0.2":
-  version: 6.0.2
-  resolution: "event-target-shim@npm:6.0.2"
-  checksum: 10/aa69fc4193cad3f1e4dc0c2d3f2689ea2d477f5ff2fbee8b65f866035b15658e1985932b06ba2190c3d2cc9cc6802c26facd6c60487590c1a05f44545ec24f42
   languageName: node
   linkType: hard
 
@@ -15787,17 +15792,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "react-native-executorch-webrtc@workspace:packages/react-native-executorch-webrtc"
   dependencies:
+    "@fishjam-cloud/react-native-webrtc": "npm:^0.25.8"
     "@types/react": "npm:~19.1.10"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-native-executorch: "workspace:*"
-    react-native-webrtc: "npm:^124.0.7"
     typescript: "npm:~5.9.2"
   peerDependencies:
+    "@fishjam-cloud/react-native-client": "*"
+    "@fishjam-cloud/react-native-webrtc": "*"
     react: "*"
     react-native: "*"
     react-native-executorch: "*"
-    react-native-webrtc: ">=121.0.0"
   languageName: unknown
   linkType: soft
 
@@ -16073,19 +16079,6 @@ __metadata:
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
   checksum: 10/03a3e853ad4771dca7e6fff03c858b0eab80d07ef200f42431f9176671b5c63acbb40c9b795899cf99a07d71df0ffd90121f7b7c80f305c772121bdb51752db9
-  languageName: node
-  linkType: hard
-
-"react-native-webrtc@npm:^124.0.7":
-  version: 124.0.7
-  resolution: "react-native-webrtc@npm:124.0.7"
-  dependencies:
-    base64-js: "npm:1.5.1"
-    debug: "npm:4.3.4"
-    event-target-shim: "npm:6.0.2"
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 10/eeeb390aaa51d42dac36c846aa2aa143e49d8fb3f4d349f776fdc47e9a4f66b310097f9dd84c17f6fc9f7e563fddc95766e676f74e2333a4f127dbfa43b59ee4
   languageName: node
   linkType: hard
 
