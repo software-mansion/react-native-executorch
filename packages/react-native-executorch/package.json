@@ -81,9 +81,6 @@
     "react-native-builder-bob": "^0.40.12",
     "typescript": "~5.9.2"
   },
-  "resolutions": {
-    "@types/react": "^18.2.44"
-  },
   "workspaces": [
     "example"
   ],
