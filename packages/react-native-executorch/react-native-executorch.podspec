@@ -16,7 +16,6 @@ Pod::Spec.new do |s|
 
   pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
   cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
-  phonemis_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/phonemis', __dir__)
 
   s.user_target_xcconfig = {
     "HEADER_SEARCH_PATHS" =>
@@ -28,7 +27,6 @@ Pod::Spec.new do |s|
       '$(inherited)',
       "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
       "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-      "\"#{phonemis_binaries_path}/physical-arm64-release/libphonemis.a\"",
 
     ].join(' '),
 
@@ -36,7 +34,6 @@ Pod::Spec.new do |s|
       '$(inherited)',
       "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
       "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-      "\"#{phonemis_binaries_path}/simulator-arm64-debug/libphonemis.a\"",
     ].join(' '),
 
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
@@ -50,7 +47,9 @@ Pod::Spec.new do |s|
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" '+
-      '"$(PODS_TARGET_SRCROOT)/common" ',
+      '"$(PODS_TARGET_SRCROOT)/common" ' +
+      '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ',
+    "GCC_PREPROCESSOR_DEFINITIONS" => '$(inherited) ET_ON=1',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
@@ -58,6 +57,7 @@ Pod::Spec.new do |s|
   s.source_files = [
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
+    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
   ]
 
   s.libraries = "z"
@@ -71,7 +71,8 @@ Pod::Spec.new do |s|
   # then made available by HEADER_SEARCH_PATHS.
   s.exclude_files = [
     "common/rnexecutorch/tests/**/*.{cpp}",
-    "common/rnexecutorch/jsi/*.{h,hpp}"
+    "common/rnexecutorch/jsi/*.{h,hpp}",
+    "third-party/common/phonemis/src/phonemis/main.cpp" # Exclude the phonemis runner
   ]
   s.header_mappings_dir = "common/rnexecutorch"
   s.header_dir = "rnexecutorch"
