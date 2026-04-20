@@ -69,13 +69,7 @@ function VoiceChatScreen() {
     useState<STTModelSources>(WHISPER_TINY_EN);
   const [error, setError] = useState<string | null>(null);
 
-  const [recorder] = useState(
-    () =>
-      new AudioRecorder({
-        sampleRate: 16000,
-        bufferLengthInSamples: 1600,
-      })
-  );
+  const [recorder] = useState(() => new AudioRecorder());
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -92,7 +86,7 @@ function VoiceChatScreen() {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
       iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+      iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
     });
     AudioManager.requestRecordingPermissions();
   }, []);
@@ -106,9 +100,17 @@ function VoiceChatScreen() {
       setIsRecording(true);
       setLiveTranscription('');
 
-      recorder.onAudioReady(({ buffer }) => {
-        speechToText.streamInsert(buffer.getChannelData(0));
-      });
+      const sampleRate = 16000;
+      recorder.onAudioReady(
+        {
+          sampleRate,
+          bufferLength: 0.1 * sampleRate,
+          channelCount: 1,
+        },
+        ({ buffer }) => {
+          speechToText.streamInsert(buffer.getChannelData(0));
+        }
+      );
       recorder.start();
 
       let finalResult = '';
