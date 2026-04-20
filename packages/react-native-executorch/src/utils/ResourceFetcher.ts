@@ -134,10 +134,12 @@ export class ResourceFetcher {
     );
     for (let i = 0; i < sources.length; i++) {
       if (typeof sources[i] === 'string' && wasDownloaded[i]) {
-        ResourceFetcherUtils.triggerDownloadEvent(sources[i] as string);
-        ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(
-          sources[i] as string
-        );
+        const source = sources[i] as string;
+        // Only trigger download events for model files (.pte), not tokenizers/configs
+        if (source.endsWith('.pte')) {
+          ResourceFetcherUtils.triggerDownloadEvent(source);
+          ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
+        }
       }
     }
     return paths;
