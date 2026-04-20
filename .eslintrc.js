@@ -106,7 +106,7 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: ['node_modules/', 'lib/'],
+  ignorePatterns: ['node_modules/', 'lib/', '**/build/'],
   settings: {
     jsdoc: {
       tagNamePreference: {
