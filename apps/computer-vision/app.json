@@ -18,7 +18,7 @@
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
         "NSCameraUsageDescription": "Process photo from camera",
-        "NSMicrophoneUsageDescription": "Required for WebRTC (not currently used)"
+        "NSMicrophoneUsageDescription": "Required for audio processing"
       }
     },
     "android": {
