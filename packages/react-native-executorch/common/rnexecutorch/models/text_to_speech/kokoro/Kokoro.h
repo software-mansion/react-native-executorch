@@ -11,7 +11,7 @@
 #include "Partitioner.h"
 #include "Synthesizer.h"
 #include "Types.h"
-#include <phonemis/pipeline.h>
+#include <phonemis/base/pipeline.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 namespace rnexecutorch {
