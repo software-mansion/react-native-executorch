@@ -11793,6 +11793,7 @@ __metadata:
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-brightness: "npm:~14.0.8"
+    expo-build-properties: "npm:~1.0.10"
     expo-calendar: "npm:~15.0.8"
     expo-constants: "npm:~18.0.11"
     expo-document-picker: "npm:~13.0.3"
@@ -11803,7 +11804,7 @@ __metadata:
     metro-config: "npm:^0.81.5"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
-    react-native-audio-api: "npm:^0.8.2"
+    react-native-audio-api: "npm:0.12.0"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
@@ -14360,15 +14361,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:^0.8.2":
-  version: 0.8.4
-  resolution: "react-native-audio-api@npm:0.8.4"
+"react-native-audio-api@npm:0.12.0":
+  version: 0.12.0
+  resolution: "react-native-audio-api@npm:0.12.0"
+  dependencies:
+    semver: "npm:^7.7.3"
   peerDependencies:
     react: "*"
     react-native: "*"
   bin:
     setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/35cae9ba8509c90ef625c448b5fbc40d9c8b80c3dd470f5bff9c298b2784132cec8d7370c8f2f69d1a8d586d5b91f2c4eb7b8e412bfd008729ceaf27f44550be
+  checksum: 10/3328a36649c30ea24a6c957f89c8f97969f06f530a72147eb2c59d7332b8ce5b1a2a34dd95f2a6cd2f8b279505161e1117d1329bfd5101167971c0189e5ab5f3
   languageName: node
   linkType: hard
 
@@ -14483,6 +14486,7 @@ __metadata:
     eslint-plugin-jsdoc: "npm:^62.7.1"
     eslint-plugin-markdown: "npm:^5.1.0"
     eslint-plugin-prettier: "npm:^5.0.1"
+    expo-router: "npm:~6.0.17"
     prettier: "npm:^3.3.3"
     prettier-plugin-jsdoc: "npm:^1.3.0"
     typescript: "npm:~5.9.2"
@@ -15690,6 +15694,7 @@ __metadata:
     "@types/react": "npm:~19.1.10"
     buffer: "npm:^6.0.3"
     expo: "npm:^54.0.27"
+    expo-build-properties: "npm:~1.0.10"
     expo-font: "npm:~14.0.10"
     expo-status-bar: "npm:~3.0.9"
     metro-config: "npm:^0.81.5"
@@ -16145,6 +16150,7 @@ __metadata:
     "@react-navigation/native": "npm:^7.1.28"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
+    expo-build-properties: "npm:~1.0.10"
     expo-constants: "npm:~18.0.11"
     expo-linking: "npm:~8.0.10"
     expo-router: "npm:~6.0.17"

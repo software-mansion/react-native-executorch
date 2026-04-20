@@ -38,6 +38,14 @@
           "androidForegroundService": true,
           "androidFSTypes": ["mediaPlayback"]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
       ]
     ],
     "newArchEnabled": true,
