@@ -55,6 +55,7 @@ export const deinitializeBackgroundBlur = (): void => {
 
 /**
  * Check if background blur has been initialized
+ * @returns Whether background blur is initialized
  */
 export const isBackgroundBlurInitialized = (): boolean => {
   return initialized;

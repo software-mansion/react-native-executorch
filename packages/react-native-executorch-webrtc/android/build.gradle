@@ -54,6 +54,13 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
+    packaging {
+        jniLibs {
+            // Don't bundle react-native-executorch.so - the app gets it from the main package
+            excludes += ['**/libreact-native-executorch.so']
+        }
+    }
 }
 
 repositories {

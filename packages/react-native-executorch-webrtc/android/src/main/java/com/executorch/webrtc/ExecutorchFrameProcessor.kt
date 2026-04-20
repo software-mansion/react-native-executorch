@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 
 /**
  * WebRTC frame processor that applies background blur using GPU shaders + ExecuTorch segmentation.
- * Uses MaskPostProcessor for temporal smoothing (EMA) and edge refinement.
+ * Morphological cleaning and EMA temporal smoothing are done in native C++ for better performance.
  *
  * Architecture matches fishjam's BackgroundBlurProcessor but uses ExecuTorch for mask generation
  * instead of ML Kit.
@@ -32,7 +32,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
   }
 
   private val renderer = GlBlurRenderer()
-  private val maskPostProcessor = MaskPostProcessor()
 
   @Volatile
   private var isProcessing = false
@@ -42,12 +41,12 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
   private var modelLoaded = false
   private var loadedModelPath: String? = null
   private var rgbaBuffer: ByteArray? = null
+  private var maskBuffer: ByteBuffer? = null
 
   // Timing measurements
   private var frameCount = 0
   private var totalTimeAccumulator = 0L
   private var inferenceTimeAccumulator = 0L
-  private var maskPostProcessTimeAccumulator = 0L
   private var gpuTimeAccumulator = 0L
 
   init {
@@ -164,14 +163,14 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     val inferenceEndTime = System.nanoTime()
 
     if (rawMask != null) {
-      // 5. Post-process mask (morphology + EMA) - blur now on GPU
-      val maskPostProcessStartTime = System.nanoTime()
-      val processedMask = maskPostProcessor.process(rawMask, segW, segH)
-      val maskPostProcessEndTime = System.nanoTime()
-      maskPostProcessTimeAccumulator += (maskPostProcessEndTime - maskPostProcessStartTime)
-
-      // 6. Upload processed mask to GPU
-      renderer.uploadMask(processedMask, segW, segH)
+      // 5. Upload processed mask to GPU (morphology + EMA done in native C++)
+      if (maskBuffer == null || maskBuffer!!.capacity() < rawMask.size) {
+        maskBuffer = ByteBuffer.allocateDirect(rawMask.size)
+      }
+      maskBuffer!!.clear()
+      maskBuffer!!.put(rawMask)
+      maskBuffer!!.rewind()
+      renderer.uploadMask(maskBuffer, segW, segH)
     }
 
     // 7. Render blur
@@ -207,19 +206,17 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     if (frameCount >= LOG_INTERVAL_FRAMES) {
       val avgTotalMs = (totalTimeAccumulator / frameCount) / 1_000_000.0
       val avgInferenceMs = (inferenceTimeAccumulator / frameCount) / 1_000_000.0
-      val avgMaskPostProcessMs = (maskPostProcessTimeAccumulator / frameCount) / 1_000_000.0
       val avgGpuMs = (gpuTimeAccumulator / frameCount) / 1_000_000.0
       val fps = 1000.0 / avgTotalMs
 
       Log.d(
         TAG,
         String.format(
-          "Avg over %d frames: Total=%.2fms (%.1f FPS) | Inference=%.2fms | MaskCPU=%.2fms | GPU=%.2fms",
+          "Avg over %d frames: Total=%.2fms (%.1f FPS) | Inference=%.2fms | GPU=%.2fms",
           frameCount,
           avgTotalMs,
           fps,
           avgInferenceMs,
-          avgMaskPostProcessMs,
           avgGpuMs,
         ),
       )
@@ -228,7 +225,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       frameCount = 0
       totalTimeAccumulator = 0L
       inferenceTimeAccumulator = 0L
-      maskPostProcessTimeAccumulator = 0L
       gpuTimeAccumulator = 0L
     }
 
@@ -310,6 +306,7 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
 
     // Clear buffers
     rgbaBuffer = null
+    maskBuffer = null
 
     Log.d(TAG, "ExecutorchFrameProcessor resources released")
   }

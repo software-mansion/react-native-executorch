@@ -1,6 +1,4 @@
 #include <android/log.h>
-#include <chrono>
-#include <cmath>
 #include <jni.h>
 #include <memory>
 #include <opencv2/opencv.hpp>
@@ -29,11 +27,10 @@ static std::string g_modelPath;
 static int g_modelHeight = 256;
 static int g_modelWidth = 256;
 
-// Pre-allocated buffers
-static cv::Mat g_resizedRgb;
-
-// Debug logging rate limiter
-static long long g_lastDebugLogTime = 0;
+// Mask post-processing state (EMA temporal smoothing)
+static cv::Mat g_previousMask;
+static bool g_hasHistory = false;
+static constexpr float EMA_ALPHA = 0.5f;
 
 extern "C" {
 
@@ -77,9 +74,6 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     }
 
     LOGD("Model input size: %dx%d", g_modelWidth, g_modelHeight);
-
-    // Pre-allocate buffers
-    g_resizedRgb = cv::Mat(g_modelHeight, g_modelWidth, CV_8UC3);
 
     g_modelLoaded = true;
     LOGD("Segmentation model loaded successfully via "
@@ -154,6 +148,22 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
       return nullptr;
     }
 
+    // Post-process mask: binarize + morphological cleaning + EMA smoothing
+    cv::threshold(mask, mask, 0.5, 1.0, cv::THRESH_BINARY);
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+    cv::erode(mask, mask, kernel);
+    cv::dilate(mask, mask, kernel);
+
+    // EMA temporal smoothing
+    if (!g_hasHistory || g_previousMask.size() != mask.size()) {
+      g_previousMask = mask.clone();
+      g_hasHistory = true;
+    } else {
+      cv::addWeighted(g_previousMask, EMA_ALPHA, mask, 1.0f - EMA_ALPHA, 0,
+                      g_previousMask);
+      mask = g_previousMask.clone();
+    }
+
     // Rotate mask back to original orientation
     cv::Mat maskRotated;
     if (rotation == 90) {
@@ -208,8 +218,9 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_unloadModel(JNIEnv *env,
   g_modelLoaded = false;
   g_modelPath.clear();
 
-  // Release pre-allocated buffers
-  g_resizedRgb.release();
+  // Reset EMA state
+  g_previousMask.release();
+  g_hasHistory = false;
 
   LOGD("Model unloaded and resources released");
 }
