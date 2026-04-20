@@ -26,5 +26,7 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../third-party/include")
 
 # Treat third-party headers as system headers to suppress deprecation warnings
 include_directories(SYSTEM "${INCLUDE_DIR}")
+include_directories(SYSTEM "${INCLUDE_DIR}/cpuinfo")
+include_directories(SYSTEM "${INCLUDE_DIR}/pthreadpool")
 
 add_subdirectory("${ANDROID_CPP_DIR}")

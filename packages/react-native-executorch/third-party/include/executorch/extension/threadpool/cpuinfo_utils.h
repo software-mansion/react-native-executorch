@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <cpuinfo/cpuinfo.h>
+#include <cpuinfo.h>
 
 namespace executorch::extension::cpuinfo {
 

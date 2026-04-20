@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <c10/util/safe_numerics.h>
 #include <cstring>
 #include <executorch/runtime/core/data_loader.h>
 #include <executorch/runtime/core/error.h>
@@ -33,7 +34,9 @@ public:
   executorch::runtime::Result<executorch::runtime::FreeableBuffer>
   load(size_t offset, size_t size,
        ET_UNUSED const DataLoader::SegmentInfo &segment_info) const override {
-    ET_CHECK_OR_RETURN_ERROR(offset + size <= size_, InvalidArgument,
+    size_t total_size;
+    bool overflow = c10::add_overflows(offset, size, &total_size);
+    ET_CHECK_OR_RETURN_ERROR(!overflow && total_size <= size_, InvalidArgument,
                              "offset %zu + size %zu > size_ %zu", offset, size,
                              size_);
     return executorch::runtime::FreeableBuffer(data_ + offset, size,
