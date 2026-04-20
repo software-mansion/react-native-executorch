@@ -82,11 +82,11 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     g_resizedRgb = cv::Mat(g_modelHeight, g_modelWidth, CV_8UC3);
 
     g_modelLoaded = true;
-    LOGD("✅ Segmentation model loaded successfully via "
+    LOGD("Segmentation model loaded successfully via "
          "BaseSemanticSegmentation!");
     return JNI_TRUE;
   } catch (const std::exception &e) {
-    LOGE("❌ Failed to load model: %s", e.what());
+    LOGE("Failed to load model: %s", e.what());
     g_modelLoaded = false;
     g_segmentation.reset();
     return JNI_FALSE;
