@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include <phonemis/utilities/string_utils.h>
+#include <phonemis/utils/conversions.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
@@ -18,10 +18,13 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
                const std::string &voiceSource,
                std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)),
-      phonemizer_(lang == "en-us"   ? phonemis::Lang::EN_US
-                  : lang == "en-gb" ? phonemis::Lang::EN_GB
-                                    : phonemis::Lang::DEFAULT,
-                  taggerDataSource, phonemizerDataSource),
+      phonemizer_(
+          {.lang = lang,
+           .tagger =
+               phonemis::tagger::Config{.data_filepath = taggerDataSource},
+           .phonemizer =
+               phonemis::phonemizer::Config{
+                   .lang = lang, .lexicon_filepath = phonemizerDataSource}}),
       partitioner_(context_),
       durationPredictor_(durationPredictorSource, context_, callInvoker_),
       synthesizer_(synthesizerSource, context_, callInvoker_) {
@@ -175,7 +178,7 @@ std::vector<float> Kokoro::generateFromPhonemes(std::string phonemes,
   }
 
   return generateFromPhonemesImpl(
-      phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed);
+      phonemis::utils::conversions::utf8_to_u32(phonemes), speed);
 }
 
 void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
@@ -249,9 +252,8 @@ void Kokoro::streamFromPhonemes(std::string phonemes, float speed,
   }
 
   isStreaming_ = true;
-  streamFromPhonemesImpl(
-      phonemis::utilities::string_utils::utf8_to_u32string(phonemes), speed,
-      callback);
+  streamFromPhonemesImpl(phonemis::utils::conversions::utf8_to_u32(phonemes),
+                         speed, callback);
   isStreaming_ = false;
 }
 

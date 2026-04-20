@@ -88,9 +88,15 @@ endif()
 
 # ------- phonemis -------
 
-set(PHONEMIS_LIBS
-  "${LIBS_DIR}/phonemis/${ANDROID_ABI}/libphonemis.a"
-)
+set(PHONEMIS_DIR "${COMMON_THIRD_PARTY_DIR}/phonemis")
+
+set(BUILD_RUNNER OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${PHONEMIS_DIR} ${CMAKE_BINARY_DIR}/phonemis)
+
+target_compile_definitions(phonemis PRIVATE ET_ON)  # Phonemis uses ET_ON flag to detect available ExecuTorch build (NeuralPhonemizer)
+target_include_directories(phonemis PRIVATE "${INCLUDE_DIR}")  # ExecuTorch headers
+target_include_directories(react-native-executorch PUBLIC "${PHONEMIS_DIR}/src")
 
 # --------------
 
@@ -102,7 +108,7 @@ target_link_libraries(
   ${RN_VERSION_LINK_LIBRARIES}
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}
-  ${PHONEMIS_LIBS}
+  phonemis
   executorch
   ${EXECUTORCH_LIBS}
   z
