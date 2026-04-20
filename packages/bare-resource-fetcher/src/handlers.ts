@@ -31,6 +31,17 @@ export interface ActiveDownload {
   jobId?: number;
 }
 
+interface DownloadContext {
+  uri: string;
+  source: ResourceSource;
+  fileUri: string;
+  cacheFileUri: string;
+  progressCallback: (progress: number) => void;
+  downloads: Map<ResourceSource, ActiveDownload>;
+  resolve: (path: string) => void;
+  reject: (error: unknown) => void;
+}
+
 export async function handleObject(source: object): Promise<string> {
   const jsonString = JSON.stringify(source);
   const digest = ResourceFetcherUtils.hashObject(jsonString);
@@ -79,6 +90,144 @@ export async function handleAsset(
   return ResourceFetcherUtils.removeFilePrefix(fileUri);
 }
 
+function startAndroidDownload(ctx: DownloadContext): void {
+  const {
+    uri,
+    source,
+    fileUri,
+    cacheFileUri,
+    progressCallback,
+    downloads,
+    resolve,
+    reject,
+  } = ctx;
+
+  const rnfsDownload = RNFS.downloadFile({
+    fromUrl: uri,
+    toFile: cacheFileUri,
+    progress: (res: { bytesWritten: number; contentLength: number }) => {
+      if (res.contentLength > 0) {
+        progressCallback(res.bytesWritten / res.contentLength);
+      }
+    },
+    progressInterval: 500,
+  });
+
+  downloads.set(source, {
+    status: DownloadStatus.ONGOING,
+    uri,
+    fileUri,
+    cacheFileUri,
+    resolve,
+    reject,
+    jobId: rnfsDownload.jobId,
+  });
+
+  rnfsDownload.promise
+    .then(async (result: { statusCode: number }) => {
+      if (!downloads.has(source)) return; // canceled externally via cancel()
+
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        downloads.delete(source);
+        reject(
+          new RnExecutorchError(
+            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+            `Failed to fetch resource from '${uri}', status: ${result.statusCode}`
+          )
+        );
+        return;
+      }
+
+      try {
+        await RNFS.moveFile(cacheFileUri, fileUri);
+      } catch (error) {
+        downloads.delete(source);
+        reject(error);
+        return;
+      }
+
+      downloads.delete(source);
+      resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
+    })
+    .catch((error: unknown) => {
+      if (!downloads.has(source)) return; // canceled externally
+      downloads.delete(source);
+      reject(
+        new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          `Failed to fetch resource from '${uri}', context: ${error}`
+        )
+      );
+    });
+}
+
+function startIOSDownload(ctx: DownloadContext): void {
+  const {
+    uri,
+    source,
+    fileUri,
+    cacheFileUri,
+    progressCallback,
+    downloads,
+    resolve,
+    reject,
+  } = ctx;
+  const filename = cacheFileUri.split('/').pop()!;
+
+  const task = createDownloadTask({
+    id: filename,
+    url: uri,
+    destination: cacheFileUri,
+  })
+    .begin((_: BeginHandlerParams) => progressCallback(0))
+    .progress((progress: ProgressHandlerParams) => {
+      progressCallback(progress.bytesDownloaded / progress.bytesTotal);
+    })
+    .done(async () => {
+      const downloadHandle = downloads.get(source);
+      // If paused or canceled, resolve/reject will be called externally — do nothing here.
+      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
+        return;
+
+      try {
+        await RNFS.moveFile(cacheFileUri, fileUri);
+        // Required by the background downloader library to signal iOS that the
+        // background download session is complete.
+        const fn = fileUri.split('/').pop();
+        if (fn) completeHandler(fn);
+      } catch (error) {
+        downloads.delete(source);
+        reject(error);
+        return;
+      }
+
+      downloads.delete(source);
+      resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
+    })
+    .error((error: any) => {
+      if (!downloads.has(source)) return; // canceled externally
+      downloads.delete(source);
+      reject(
+        new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          `Failed to fetch resource from '${uri}', context: ${error}`
+        )
+      );
+    });
+
+  task.start();
+
+  downloads.set(source, {
+    status: DownloadStatus.ONGOING,
+    uri,
+    fileUri,
+    cacheFileUri,
+    resolve,
+    reject,
+    task,
+  });
+}
+
 // uri and source are separate parameters because for asset sources (dev mode),
 // source is the require() number the user holds (used as the downloads map key),
 // while uri is the resolved HTTP URL needed for the actual download.
@@ -119,117 +268,21 @@ export async function handleRemote(
     reject = rej;
   });
 
+  const ctx: DownloadContext = {
+    uri,
+    source,
+    fileUri,
+    cacheFileUri,
+    progressCallback,
+    downloads,
+    resolve,
+    reject,
+  };
+
   if (Platform.OS === 'android') {
-    const rnfsDownload = RNFS.downloadFile({
-      fromUrl: uri,
-      toFile: cacheFileUri,
-      progress: (res: { bytesWritten: number; contentLength: number }) => {
-        if (res.contentLength > 0) {
-          progressCallback(res.bytesWritten / res.contentLength);
-        }
-      },
-      progressInterval: 500,
-    });
-
-    downloads.set(source, {
-      status: DownloadStatus.ONGOING,
-      uri,
-      fileUri,
-      cacheFileUri,
-      resolve,
-      reject,
-      jobId: rnfsDownload.jobId,
-    });
-
-    rnfsDownload.promise
-      .then(async (result: { statusCode: number }) => {
-        if (!downloads.has(source)) return; // canceled externally via cancel()
-
-        if (result.statusCode < 200 || result.statusCode >= 300) {
-          downloads.delete(source);
-          reject(
-            new RnExecutorchError(
-              RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-              `Failed to fetch resource from '${uri}', status: ${result.statusCode}`
-            )
-          );
-          return;
-        }
-
-        try {
-          await RNFS.moveFile(cacheFileUri, fileUri);
-        } catch (error) {
-          downloads.delete(source);
-          reject(error);
-          return;
-        }
-
-        downloads.delete(source);
-        resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
-      })
-      .catch((error: unknown) => {
-        if (!downloads.has(source)) return; // canceled externally
-        downloads.delete(source);
-        reject(
-          new RnExecutorchError(
-            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-            `Failed to fetch resource from '${uri}', context: ${error}`
-          )
-        );
-      });
+    startAndroidDownload(ctx);
   } else {
-    const task = createDownloadTask({
-      id: filename,
-      url: uri,
-      destination: cacheFileUri,
-    })
-      .begin((_: BeginHandlerParams) => progressCallback(0))
-      .progress((progress: ProgressHandlerParams) => {
-        progressCallback(progress.bytesDownloaded / progress.bytesTotal);
-      })
-      .done(async () => {
-        const downloadHandle = downloads.get(source);
-        // If paused or canceled, resolve/reject will be called externally — do nothing here.
-        if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
-          return;
-
-        try {
-          await RNFS.moveFile(cacheFileUri, fileUri);
-          // Required by the background downloader library to signal iOS that the
-          // background download session is complete.
-          const fn = fileUri.split('/').pop();
-          if (fn) completeHandler(fn);
-        } catch (error) {
-          downloads.delete(source);
-          reject(error);
-          return;
-        }
-
-        downloads.delete(source);
-        resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
-      })
-      .error((error: any) => {
-        if (!downloads.has(source)) return; // canceled externally
-        downloads.delete(source);
-        reject(
-          new RnExecutorchError(
-            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-            `Failed to fetch resource from '${uri}', context: ${error}`
-          )
-        );
-      });
-
-    task.start();
-
-    downloads.set(source, {
-      status: DownloadStatus.ONGOING,
-      uri,
-      fileUri,
-      cacheFileUri,
-      resolve,
-      reject,
-      task,
-    });
+    startIOSDownload(ctx);
   }
 
   return promise.then((path) => ({ path, wasDownloaded: true }));
