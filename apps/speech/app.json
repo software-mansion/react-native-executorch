@@ -54,6 +54,14 @@
           "androidForegroundService": true,
           "androidFSTypes": ["mediaPlayback", "microphone"]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
       ]
     ]
   }
