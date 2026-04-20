@@ -11804,7 +11804,7 @@ __metadata:
     metro-config: "npm:^0.81.5"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
-    react-native-audio-api: "npm:^0.8.2"
+    react-native-audio-api: "patch:react-native-audio-api@npm%3A0.8.4#~/.yarn/patches/react-native-audio-api-npm-0.8.4-d126439e20.patch"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
@@ -14361,7 +14361,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:^0.8.2":
+"react-native-audio-api@npm:0.8.4":
   version: 0.8.4
   resolution: "react-native-audio-api@npm:0.8.4"
   peerDependencies:
@@ -14370,6 +14370,18 @@ __metadata:
   bin:
     setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
   checksum: 10/35cae9ba8509c90ef625c448b5fbc40d9c8b80c3dd470f5bff9c298b2784132cec8d7370c8f2f69d1a8d586d5b91f2c4eb7b8e412bfd008729ceaf27f44550be
+  languageName: node
+  linkType: hard
+
+"react-native-audio-api@patch:react-native-audio-api@npm%3A0.8.4#~/.yarn/patches/react-native-audio-api-npm-0.8.4-d126439e20.patch":
+  version: 0.8.4
+  resolution: "react-native-audio-api@patch:react-native-audio-api@npm%3A0.8.4#~/.yarn/patches/react-native-audio-api-npm-0.8.4-d126439e20.patch::version=0.8.4&hash=d80325"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/2878be7f4b72a257201d56dd9266def0edefce2ef9c421e01921eb38fd46573e7412ab4a3f6e4b8fb40ca31483c62c57f2310d0c3af6afa367a5dca7c3c00b25
   languageName: node
   linkType: hard
 

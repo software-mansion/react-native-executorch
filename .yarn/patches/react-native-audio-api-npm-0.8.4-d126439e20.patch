@@ -1,0 +1,12 @@
+diff --git a/common/cpp/audioapi/core/Constants.h b/common/cpp/audioapi/core/Constants.h
+index 4d82dcab22fc7d5fee186c36f876c892f1499da9..e2b17feb05847e7ec56a1187163cff797291abce 100644
+--- a/common/cpp/audioapi/core/Constants.h
++++ b/common/cpp/audioapi/core/Constants.h
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <cmath>
++#include <cstddef>
+ #include <limits>
+ 
+ // https://webaudio.github.io/web-audio-api/
