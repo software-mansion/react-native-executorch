@@ -150,6 +150,7 @@ export namespace ResourceFetcherUtils {
   /**
    * Checks whether the given URL conforms to the huggingface.co/software-mansion schema.
    * @param url - the URL to the remote file
+   * @returns {boolean} Boolean specifying whether the given URL conforms to our HF repo schema
    */
   export function isUrlHfRepo(url: URL): boolean {
     return (
