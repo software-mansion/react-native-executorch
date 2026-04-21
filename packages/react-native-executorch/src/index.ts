@@ -191,6 +191,7 @@ export * from './modules/general/ExecutorchModule';
 // utils
 export * from './utils/ResourceFetcher';
 export * from './utils/ResourceFetcherUtils';
+export * from './utils/BaseResourceFetcherClass';
 export * from './utils/llm';
 export * from './common/Logger';
 export * from './utils/llms/context_strategy';

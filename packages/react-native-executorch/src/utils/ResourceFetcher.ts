@@ -33,6 +33,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { ResourceFetcherUtils } from './ResourceFetcherUtils';
 import { Logger } from '../common/Logger';
+import { getModelNameForUrl } from '../constants/modelUrls';
 
 /**
  * Adapter interface for resource fetching operations.
@@ -57,7 +58,7 @@ export interface ResourceFetcherAdapter {
   fetch(
     callback: (downloadProgress: number) => void,
     ...sources: ResourceSource[]
-  ): Promise<string[] | null>;
+  ): Promise<{ paths: string[]; wasDownloaded: boolean[] }>;
 
   /**
    * Read file contents as a string.
@@ -76,7 +77,6 @@ export interface ResourceFetcherAdapter {
  */
 export class ResourceFetcher {
   private static adapter: ResourceFetcherAdapter | null = null;
-  private static reportedUrls = new Set<string>();
 
   /**
    * Sets a custom resource fetcher adapter for resource operations.
@@ -128,22 +128,24 @@ export class ResourceFetcher {
   static async fetch(
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
-  ) {
-    const result = await this.getAdapter().fetch(callback, ...sources);
-    if (result) {
-      for (const source of sources) {
-        if (typeof source === 'string' && !this.reportedUrls.has(source)) {
-          this.reportedUrls.add(source);
-          try {
-            ResourceFetcherUtils.triggerDownloadEvent(source);
-            ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
-          } catch (error) {
-            throw error;
-          }
+  ): Promise<string[]> {
+    const { paths, wasDownloaded } = await this.getAdapter().fetch(
+      callback,
+      ...sources
+    );
+    const triggeredModels = new Set<string>();
+    for (let i = 0; i < sources.length; i++) {
+      if (typeof sources[i] === 'string' && wasDownloaded[i]) {
+        const source = sources[i] as string;
+        const modelName = getModelNameForUrl(source);
+        if (modelName && !triggeredModels.has(modelName)) {
+          triggeredModels.add(modelName);
+          ResourceFetcherUtils.triggerDownloadEvent(source);
+          ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
         }
       }
     }
-    return result;
+    return paths;
   }
 
   /**

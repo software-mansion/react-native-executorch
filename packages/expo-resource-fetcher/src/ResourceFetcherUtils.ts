@@ -6,7 +6,6 @@ import {
   HTTP_CODE,
   DownloadStatus,
   SourceType,
-  ResourceSourceExtended,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
@@ -15,19 +14,9 @@ import { Asset } from 'expo-asset';
 /**
  * @internal
  */
-import {
-  getInfoAsync,
-  makeDirectoryAsync,
-  type DownloadResumable,
-} from 'expo-file-system/legacy';
+import { getInfoAsync, makeDirectoryAsync } from 'expo-file-system/legacy';
 
-export { HTTP_CODE, DownloadStatus, SourceType, ResourceSourceExtended };
-
-export interface DownloadResource {
-  downloadResumable: DownloadResumable;
-  status: DownloadStatus;
-  extendedInfo: ResourceSourceExtended;
-}
+export { HTTP_CODE, DownloadStatus, SourceType };
 
 /**
  * Utility functions for fetching and managing resources.
@@ -67,12 +56,13 @@ export namespace ResourceFetcherUtils {
       previousFilesTotalLength: number;
     }> = [];
     let totalLength = 0;
-    let previousFilesTotalLength = 0;
+
     for (const source of sources) {
       const type = ResourceFetcherUtils.getType(source);
       let length = 0;
-      try {
-        if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
+
+      if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
+        try {
           const response = await fetch(source, { method: 'HEAD' });
           if (!response.ok) {
             Logger.warn(
@@ -87,16 +77,17 @@ export namespace ResourceFetcherUtils {
           }
 
           length = contentLength ? parseInt(contentLength, 10) : 0;
-          previousFilesTotalLength = totalLength;
-          totalLength += length;
+        } catch (error) {
+          Logger.warn(`Error fetching HEAD for ${source}:`, error);
+          continue;
         }
-      } catch (error) {
-        Logger.warn(`Error fetching HEAD for ${source}:`, error);
-        continue;
-      } finally {
-        results.push({ source, type, length, previousFilesTotalLength });
       }
+
+      const previousFilesTotalLength = totalLength;
+      totalLength += length;
+      results.push({ source, type, length, previousFilesTotalLength });
     }
+
     return { results, totalLength };
   }
 

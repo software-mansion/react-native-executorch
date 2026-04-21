@@ -6,7 +6,6 @@ import {
   HTTP_CODE,
   DownloadStatus,
   SourceType,
-  ResourceSourceExtended,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
@@ -14,7 +13,6 @@ import { Image } from 'react-native';
 import * as RNFS from '@dr.pogodin/react-native-fs';
 
 export { HTTP_CODE, DownloadStatus, SourceType };
-export type { ResourceSourceExtended };
 
 /**
  * Utility functions for fetching and managing resources.
