@@ -33,6 +33,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { ResourceFetcherUtils } from './ResourceFetcherUtils';
 import { Logger } from '../common/Logger';
+import { getModelNameForUrl } from '../constants/modelUrls';
 
 /**
  * Adapter interface for resource fetching operations.
@@ -132,11 +133,13 @@ export class ResourceFetcher {
       callback,
       ...sources
     );
+    const triggeredModels = new Set<string>();
     for (let i = 0; i < sources.length; i++) {
       if (typeof sources[i] === 'string' && wasDownloaded[i]) {
         const source = sources[i] as string;
-        // Only trigger download events for model files (.pte), not tokenizers/configs
-        if (source.endsWith('.pte')) {
+        const modelName = getModelNameForUrl(source);
+        if (modelName && !triggeredModels.has(modelName)) {
+          triggeredModels.add(modelName);
           ResourceFetcherUtils.triggerDownloadEvent(source);
           ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
         }

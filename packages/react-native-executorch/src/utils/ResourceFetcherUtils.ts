@@ -141,13 +141,21 @@ export namespace ResourceFetcherUtils {
    */
   export async function triggerHuggingFaceDownloadCounter(uri: string) {
     const url = new URL(uri);
-    if (
-      url.host === 'huggingface.co' &&
-      url.pathname.startsWith('/software-mansion/')
-    ) {
+    if (isUrlHfRepo(url)) {
       const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
       fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
     }
+  }
+
+  /**
+   * Checks whether the given URL conforms to the huggingface.co/software-mansion schema.
+   * @param url - the URL to the remote file
+   */
+  export function isUrlHfRepo(url: URL): boolean {
+    return (
+      url.host === 'huggingface.co' &&
+      url.pathname.startsWith('/software-mansion')
+    );
   }
 
   function getCountryCode(): string {
