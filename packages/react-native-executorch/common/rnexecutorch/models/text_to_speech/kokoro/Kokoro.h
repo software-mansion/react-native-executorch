@@ -20,7 +20,7 @@ namespace models::text_to_speech::kokoro {
 class Kokoro {
 public:
   Kokoro(const std::string &lang, const std::string &taggerDataSource,
-         const std::string &phonemizerDataSource,
+         const std::string &lexiconSource, const std::string &neuralModelSource,
          const std::string &durationPredictorSource,
          const std::string &synthesizerSource, const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
@@ -31,13 +31,6 @@ public:
   std::vector<float> generate(std::string text, float speed = 1.F);
 
   /**
-   * Similar to generate(), but accepts pre-computed phonemes (as a UTF-8 IPA
-   * string) and synthesizes audio, bypassing the built-in phonemizer.
-   */
-  std::vector<float> generateFromPhonemes(std::string phonemes,
-                                          float speed = 1.F);
-
-  /**
    * Processes text from inputTextBuffer_ in chunks, sending each chunk
    * individualy to the JS side with asynchronous callbacks.
    *
@@ -45,10 +38,6 @@ public:
    */
   void stream(float speed, bool stopOnEmptyBuffer,
               std::shared_ptr<jsi::Function> callback);
-
-  // Streaming variant that accepts pre-computed phonemes instead of text.
-  void streamFromPhonemes(std::string phonemes, float speed,
-                          std::shared_ptr<jsi::Function> callback);
 
   /**
    * Updates the input streaming buffer by adding more text to be processed.
@@ -110,5 +99,6 @@ private:
 
 REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
                      std::string, std::string, std::string, std::string,
-                     std::string, std::shared_ptr<react::CallInvoker>);
+                     std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

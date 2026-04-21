@@ -2,10 +2,21 @@ import { ResourceSource } from './common';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
+ * Per-model config for {@link TextToSpeechModule.fromModelName}.
+ * Each model name maps to its required fields.
+ * @category Types
+ */
+export type TextToSpeechModelSources = {
+  modelName: 'kokoro';
+  durationPredictorSource: ResourceSource;
+  synthesizerSource: ResourceSource;
+};
+
+/**
  * Union of all built-in Text to Speech model names.
  * @category Types
  */
-export type TextToSpeechModelName = 'kokoro-small' | 'kokoro-medium';
+export type TextToSpeechModelName = TextToSpeechModelSources['modelName'];
 
 /**
  * List all the languages available in TTS models (as lang shorthands)
@@ -13,67 +24,65 @@ export type TextToSpeechModelName = 'kokoro-small' | 'kokoro-medium';
  */
 export type TextToSpeechLanguage =
   | 'en-us' // American English
-  | 'en-gb'; // British English
+  | 'en-gb' // British English
+  | 'fr'; // French
 
 /**
- * Voice configuration
- *
- * So far in Kokoro, each voice is directly associated with a language.
+ * Configuration for the Phonemizer used in Text-to-Speech models.
+ * Phonemization is the process of converting text into phonetic representations.
  * @category Types
- * @property {TextToSpeechLanguage} lang - speaker's language
- * @property {ResourceSource} voiceSource - a source to a binary file with voice embedding
- * @property {KokoroVoiceExtras} [extra] - an optional extra sources or properties related to specific voice
  */
-export interface VoiceConfig {
+export interface TextToSpeechPhonemizerConfig {
+  /**
+   * The language code for phonemization (e.g., 'en-us').
+   */
   lang: TextToSpeechLanguage;
+
+  /**
+   * Optional resource for the part-of-speech tagger.
+   * Utilized by more challenging languages, such as english.
+   */
+  taggerSource?: ResourceSource;
+
+  /**
+   * Optional resource for the pronunciation lexicon.
+   * If provided, it wil be a primary phonemization mechanism.
+   */
+  lexiconSource?: ResourceSource;
+
+  /**
+   * Optional neural model resource for Grapheme-to-Phoneme conversion.
+   * Serves as a fallback for lexicon or a primary phonemization mechanism if lexicon
+   * is not defined.
+   */
+  neuralModelSource?: ResourceSource;
+}
+
+/**
+ * Configuration for a specific voice in a Text-to-Speech model.
+ * Maps a voice data file to its corresponding phonemizer settings.
+ * @category Types
+ * @property {ResourceSource} voiceSource - The resource containing the voice-specific tensor stored in a binary format.
+ * @property {TextToSpeechPhonemizerConfig} phonemizerConfig - The phonemizer configuration to be used with this voice.
+ */
+export interface TextToSpeechVoiceConfig {
   voiceSource: ResourceSource;
-  extra?: KokoroVoiceExtras; // ... add more possible types
+  phonemizerConfig: TextToSpeechPhonemizerConfig;
 }
 
 /**
- * Kokoro-specific voice extra props
+ * Properties for initializing a Text-to-Speech model component or hook.
  * @category Types
- * @property {ResourceSource} taggerSource - source to Kokoro's tagger model binary
- * @property {ResourceSource} lexiconSource - source to Kokoro's lexicon binary
+ * @template C - The specific model source configuration type.
+ * @property {C} model - The model sources and identifiers.
+ * @property {boolean} [preventLoad] - If true, prevents the model from loading automatically on initialization.
  */
-export interface KokoroVoiceExtras {
-  taggerSource: ResourceSource;
-  lexiconSource: ResourceSource;
-}
-
-/**
- * Kokoro model configuration.
- * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
- * @category Types
- * @property {TextToSpeechModelName} modelName - model name identifier
- * @property {ResourceSource} durationPredictorSource - source to Kokoro's duration predictor model binary
- * @property {ResourceSource} synthesizerSource - source to Kokoro's synthesizer model binary
- */
-export interface KokoroConfig {
-  modelName: TextToSpeechModelName;
-  durationPredictorSource: ResourceSource;
-  synthesizerSource: ResourceSource;
-}
-
-/**
- * General Text to Speech module configuration
- * @category Types
- * @property {KokoroConfig} model - a selected T2S model
- * @property {VoiceConfig} voice - a selected speaker's voice
- * @property {KokoroOptions} [options] - a completely optional model-specific configuration
- */
-export interface TextToSpeechConfig {
-  model: KokoroConfig; // ... add other model types in the future
-  voice: VoiceConfig;
-}
-
-/**
- * Props for the useTextToSpeech hook.
- * @category Types
- * @augments TextToSpeechConfig
- * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- */
-export interface TextToSpeechProps extends TextToSpeechConfig {
+export interface TextToSpeechModelProps<
+  M extends TextToSpeechModelSources,
+  V extends TextToSpeechVoiceConfig,
+> {
+  model: M;
+  voice: V;
   preventLoad?: boolean;
 }
 
@@ -85,20 +94,6 @@ export interface TextToSpeechProps extends TextToSpeechConfig {
  */
 export interface TextToSpeechInput {
   text?: string;
-  speed?: number;
-}
-
-/**
- * Text to Speech module input for pre-computed phonemes.
- * Use this when you have your own phonemizer (e.g. the Python `phonemizer`
- * library, espeak-ng, or any custom G2P system) and want to bypass the
- * built-in phonemizer pipeline.
- * @category Types
- * @property {string} phonemes - pre-computed IPA phoneme string
- * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
- */
-export interface TextToSpeechPhonemeInput {
-  phonemes: string;
   speed?: number;
 }
 
@@ -137,17 +132,6 @@ export interface TextToSpeechType {
   forward: (input: TextToSpeechInput) => Promise<Float32Array>;
 
   /**
-   * Synthesizes pre-computed phonemes into speech audio in a single pass.
-   * Bypasses the built-in phonemizer, allowing use of external G2P systems.
-   * @param input - The `TextToSpeechPhonemeInput` object containing pre-computed `phonemes` and optional `speed`.
-   * @returns A Promise that resolves with the generated audio data.
-   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
-   */
-  forwardFromPhonemes: (
-    input: TextToSpeechPhonemeInput
-  ) => Promise<Float32Array>;
-
-  /**
    * Streams the generated audio data incrementally.
    * This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
    * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
@@ -155,16 +139,6 @@ export interface TextToSpeechType {
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
    */
   stream: (input: TextToSpeechStreamingInput) => Promise<void>;
-
-  /**
-   * Streams pre-computed phonemes incrementally, bypassing the built-in phonemizer.
-   * @param input - The streaming input with pre-computed `phonemes` instead of `text`.
-   * @returns A Promise that resolves when the streaming process is complete.
-   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
-   */
-  streamFromPhonemes: (
-    input: TextToSpeechStreamingPhonemeInput
-  ) => Promise<void>;
 
   /**
    * Inserts new text chunk into the buffer to be processed in streaming mode.
@@ -209,11 +183,3 @@ export interface TextToSpeechStreamingInput
   extends TextToSpeechInput, TextToSpeechStreamingCallbacks {
   stopAutomatically?: boolean;
 }
-
-/**
- * Streaming input definition for pre-computed phonemes.
- * Same as `TextToSpeechStreamingInput` but accepts `phonemes` instead of `text`.
- * @category Types
- */
-export interface TextToSpeechStreamingPhonemeInput
-  extends TextToSpeechPhonemeInput, TextToSpeechStreamingCallbacks {}
