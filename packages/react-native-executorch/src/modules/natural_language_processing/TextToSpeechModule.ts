@@ -1,12 +1,11 @@
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { ResourceSource } from '../../types/common';
 import {
-  KokoroConfig,
-  TextToSpeechConfig,
+  TextToSpeechModelSources,
   TextToSpeechStreamingInput,
-  TextToSpeechStreamingPhonemeInput,
-  VoiceConfig,
+  TextToSpeechVoiceConfig,
 } from '../../types/tts';
 import { Logger } from '../../common/Logger';
 
@@ -25,19 +24,11 @@ export class TextToSpeechModule {
   /**
    * Creates a Text to Speech instance.
    * @param config - Configuration object containing `model` and `voice`.
-   *   Pass one of the built-in constants (e.g. `{ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART }`), or use require() to pass them.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `TextToSpeechModule` instance.
-   * @example
-   * ```ts
-   * import { TextToSpeechModule, KOKORO_MEDIUM, KOKORO_VOICE_AF_HEART } from 'react-native-executorch';
-   * const tts = await TextToSpeechModule.fromModelName(
-   *   { model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART },
-   * );
-   * ```
    */
   static async fromModelName(
-    config: TextToSpeechConfig,
+    config: { model: TextToSpeechModelSources; voice: TextToSpeechVoiceConfig },
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextToSpeechModule> {
     try {
@@ -54,48 +45,49 @@ export class TextToSpeechModule {
   }
 
   private static async loadKokoro(
-    model: KokoroConfig,
-    voice: VoiceConfig,
+    model: Extract<TextToSpeechModelSources, { modelName: 'kokoro' }>,
+    voice: TextToSpeechVoiceConfig,
     onDownloadProgressCallback: (progress: number) => void
   ): Promise<unknown> {
-    if (
-      !voice.extra ||
-      !voice.extra.taggerSource ||
-      !voice.extra.lexiconSource
-    ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
-        'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
-      );
-    }
+    const { phonemizerConfig } = voice;
 
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
+    const sources: ResourceSource[] = [
       model.durationPredictorSource,
       model.synthesizerSource,
       voice.voiceSource,
-      voice.extra.taggerSource,
-      voice.extra.lexiconSource
+    ];
+
+    // Since each of these args is optional, we need to handle the sources array in a dynamic way.
+    const taggerIdx = phonemizerConfig.taggerSource
+      ? sources.push(phonemizerConfig.taggerSource) - 1
+      : -1;
+    const lexiconIdx = phonemizerConfig.lexiconSource
+      ? sources.push(phonemizerConfig.lexiconSource) - 1
+      : -1;
+    const neuralModelIdx = phonemizerConfig.neuralModelSource
+      ? sources.push(phonemizerConfig.neuralModelSource) - 1
+      : -1;
+
+    const paths = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      ...sources
     );
 
-    if (paths === null || paths.length !== 5) {
+    if (paths === null || paths.length !== sources.length) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'Download interrupted or missing resource.'
       );
     }
 
-    const modelPaths = paths.slice(0, 2) as [string, string];
-    const voiceDataPath = paths[2] as string;
-    const phonemizerPaths = paths.slice(3, 5) as [string, string];
-
     return await global.loadTextToSpeechKokoro(
-      voice.lang,
-      phonemizerPaths[0],
-      phonemizerPaths[1],
-      modelPaths[0],
-      modelPaths[1],
-      voiceDataPath
+      phonemizerConfig.lang,
+      taggerIdx >= 0 ? (paths[taggerIdx] as string) : '',
+      lexiconIdx >= 0 ? (paths[lexiconIdx] as string) : '',
+      neuralModelIdx >= 0 ? (paths[neuralModelIdx] as string) : '',
+      paths[0] as string, // DurationPredictor source
+      paths[1] as string, // Synthesizer source
+      paths[2] as string // Voice source
     );
   }
 
@@ -123,24 +115,8 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Synthesizes pre-computed phonemes into speech, bypassing the built-in phonemizer.
-   * This allows using an external G2P system (e.g. the Python `phonemizer` library,
-   * espeak-ng, or any custom phonemizer).
-   * @param phonemes The pre-computed IPA phoneme string.
-   * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
-   * @returns A promise resolving to the synthesized audio waveform.
-   */
-  public async forwardFromPhonemes(
-    phonemes: string,
-    speed: number = 1.0
-  ): Promise<Float32Array> {
-    this.ensureLoaded('forwardFromPhonemes');
-    return await this.nativeModule.generateFromPhonemes(phonemes, speed);
-  }
-
-  /**
    * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   * @param input - Input object containing text and optional speed.
+   * @param input - Input object containing optional speed and stopAutomatically flag.
    * @yields An audio chunk generated during synthesis.
    * @returns An async generator yielding Float32Array audio chunks.
    */
@@ -148,7 +124,6 @@ export class TextToSpeechModule {
     speed,
     stopAutomatically,
   }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
-    // Stores computed audio segments
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
@@ -167,60 +142,6 @@ export class TextToSpeechModule {
         await this.nativeModule.stream(
           speed,
           stopAutomatically,
-          (audio: number[]) => {
-            queue.push(new Float32Array(audio));
-            wake();
-          }
-        );
-        nativeStreamFinished = true;
-        wake();
-      } catch (e) {
-        error = e;
-        nativeStreamFinished = true;
-        wake();
-      }
-    })();
-
-    while (this.isStreaming) {
-      if (queue.length > 0) {
-        yield queue.shift()!;
-        if (nativeStreamFinished && queue.length === 0) {
-          return;
-        }
-        continue;
-      }
-      if (error) throw error;
-      await new Promise<void>((r) => (waiter = r));
-    }
-  }
-
-  /**
-   * Starts a streaming synthesis session from pre-computed phonemes.
-   * Bypasses the built-in phonemizer, allowing use of external G2P systems.
-   * @param input - Input object containing phonemes and optional speed.
-   * @yields An audio chunk generated during synthesis.
-   * @returns An async generator yielding Float32Array audio chunks.
-   */
-  public async *streamFromPhonemes({
-    phonemes,
-    speed,
-  }: TextToSpeechStreamingPhonemeInput): AsyncGenerator<Float32Array> {
-    const queue: Float32Array[] = [];
-
-    let waiter: (() => void) | null = null;
-    let error: unknown;
-    let nativeStreamFinished = false;
-
-    const wake = () => {
-      waiter?.();
-      waiter = null;
-    };
-
-    (async () => {
-      try {
-        await this.nativeModule.streamFromPhonemes(
-          phonemes,
-          speed,
           (audio: number[]) => {
             queue.push(new Float32Array(audio));
             wake();

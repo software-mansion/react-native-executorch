@@ -18,8 +18,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AM_SANTA,
+  KOKORO,
+  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
   useTextToSpeech,
 } from 'react-native-executorch';
 import {
@@ -61,8 +61,8 @@ const createAudioBufferFromVector = (
 export const Quiz = ({ onBack }: { onBack: () => void }) => {
   // --- Hooks & State ---
   const model = useTextToSpeech({
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AM_SANTA,
+    model: KOKORO,
+    voice: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
   });
 
   const [shuffledQuestions] = useState(() => shuffleArray(QUESTIONS));

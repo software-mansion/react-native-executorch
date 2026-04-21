@@ -1,28 +1,14 @@
-import { URL_PREFIX, VERSION_TAG } from '../versions';
+import { NEXT_VERSION_TAG, URL_PREFIX } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
-const KOKORO_EN_MODELS_ROOT = `${URL_PREFIX}-kokoro/${VERSION_TAG}/xnnpack`;
-const KOKORO_EN_SMALL_MODELS_ROOT = `${KOKORO_EN_MODELS_ROOT}/small`;
-const KOKORO_EN_MEDIUM_MODELS_ROOT = `${KOKORO_EN_MODELS_ROOT}/medium`;
-
-/**
- * A Kokoro model instance which processes the text in batches of maximum 64 tokens.
- * Uses significant less memory than the medium model, but could produce
- * a lower quality speech due to forced, aggressive text splitting.
- * @category Models - Text to Speech
- */
-export const KOKORO_SMALL = {
-  modelName: 'kokoro-small' as const,
-  durationPredictorSource: `${KOKORO_EN_SMALL_MODELS_ROOT}/duration_predictor.pte`,
-  synthesizerSource: `${KOKORO_EN_SMALL_MODELS_ROOT}/synthesizer.pte`,
-};
+const KOKORO_MODEL_ROOT = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack`;
 
 /**
  * A standard Kokoro instance which processes the text in batches of maximum 128 tokens.
  * @category Models - Text to Speech
  */
-export const KOKORO_MEDIUM = {
-  modelName: 'kokoro-medium' as const,
-  durationPredictorSource: `${KOKORO_EN_MEDIUM_MODELS_ROOT}/duration_predictor.pte`,
-  synthesizerSource: `${KOKORO_EN_MEDIUM_MODELS_ROOT}/synthesizer.pte`,
+export const KOKORO = {
+  modelName: 'kokoro' as const,
+  durationPredictorSource: `${KOKORO_MODEL_ROOT}/duration_predictor.pte`,
+  synthesizerSource: `${KOKORO_MODEL_ROOT}/synthesizer.pte`,
 };

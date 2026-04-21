@@ -1,84 +1,135 @@
-import { KokoroVoiceExtras, VoiceConfig } from '../../types/tts';
-import { URL_PREFIX, VERSION_TAG } from '../versions';
+import { TextToSpeechVoiceConfig } from '../../types/tts';
+import { NEXT_VERSION_TAG, URL_PREFIX } from '../versions';
 
-// Kokoro voices - phonemizers
-const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/phonemizer`;
-const KOKORO_PHONEMIZER_TAGGER_DATA = `${KOKORO_PHONEMIZER_PREFIX}/tags.json`;
-const KOKORO_PHONEMIZER_LEXICON_EN_US_DATA = `${KOKORO_PHONEMIZER_PREFIX}/us_merged.json`;
-const KOKORO_PHONEMIZER_LEXICON_EN_GB_DATA = `${KOKORO_PHONEMIZER_PREFIX}/gb_merged.json`;
+// Common prefixes - voices & phonemization data
+const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
+const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/phonemizer`;
 
-const EN_US_RESOURCES = {
-  taggerSource: KOKORO_PHONEMIZER_TAGGER_DATA,
-  lexiconSource: KOKORO_PHONEMIZER_LEXICON_EN_US_DATA,
-} as KokoroVoiceExtras;
-const EN_GB_RESOURCES = {
-  taggerSource: KOKORO_PHONEMIZER_TAGGER_DATA,
-  lexiconSource: KOKORO_PHONEMIZER_LEXICON_EN_GB_DATA,
-} as KokoroVoiceExtras;
+const KOKORO_PHONEMIZER_EN_US_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/en-us`;
+const KOKORO_PHONEMIZER_EN_US_TAGGER = `${KOKORO_PHONEMIZER_EN_US_PREFIX}/tags.json`;
+const KOKORO_PHONEMIZER_EN_US_LEXICON = `${KOKORO_PHONEMIZER_EN_US_PREFIX}/lexicon.json`;
+const KOKORO_PHONEMIZER_EN_US_MODEL = `${KOKORO_PHONEMIZER_EN_US_PREFIX}/phonemizer_en_us.pte`;
+
+const KOKORO_PHONEMIZER_EN_GB_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/en-gb`;
+const KOKORO_PHONEMIZER_EN_GB_TAGGER = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/tags.json`;
+const KOKORO_PHONEMIZER_EN_GB_LEXICON = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/lexicon.json`;
+// const KOKORO_PHONEMIZER_EN_GB_MODEL = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/phonemizer_en_gb.pte`
+
+const KOKORO_PHONEMIZER_FR_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/fr`;
+const KOKORO_PHONEMIZER_FR_MODEL = `${KOKORO_PHONEMIZER_FR_PREFIX}/phonemizer_fr.pte`;
 
 // Kokoro voices
-const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/voices`;
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AF_HEART = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AF_RIVER = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AF_SARAH = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AM_ADAM = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AM_MICHAEL = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AM_SANTA = {
-  lang: 'en-us' as const,
+export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
-  extra: EN_US_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_US_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
+    neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_BF_EMMA = {
-  lang: 'en-gb' as const,
+export const KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
-  extra: EN_GB_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_GB_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_GB_LEXICON,
+    // neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL
+  },
+} as TextToSpeechVoiceConfig;
+
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_BM_DANIEL = {
-  lang: 'en-gb' as const,
+export const KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL = {
   voiceSource: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,
-  extra: EN_GB_RESOURCES,
-} as VoiceConfig;
+  phonemizerConfig: {
+    lang: 'en-us' as const,
+    taggerSource: KOKORO_PHONEMIZER_EN_GB_TAGGER,
+    lexiconSource: KOKORO_PHONEMIZER_EN_GB_LEXICON,
+    // neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL
+  },
+} as TextToSpeechVoiceConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_VOICE_FRENCH_FEMALE_SIWIS = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/ff_siwis.bin`,
+  phonemizerConfig: {
+    lang: 'fr' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_FR_MODEL,
+  },
+};

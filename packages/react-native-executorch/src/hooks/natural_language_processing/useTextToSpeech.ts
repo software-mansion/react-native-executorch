@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
-  TextToSpeechProps,
   TextToSpeechInput,
-  TextToSpeechPhonemeInput,
-  TextToSpeechType,
+  TextToSpeechModelProps,
+  TextToSpeechModelSources,
   TextToSpeechStreamingInput,
-  TextToSpeechStreamingPhonemeInput,
+  TextToSpeechType,
+  TextToSpeechVoiceConfig,
 } from '../../types/tts';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -14,14 +14,17 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 /**
  * React hook for managing Text to Speech instance.
  * @category Hooks
- * @param TextToSpeechProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @param TextToSpeechModelProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
  * @returns Ready to use Text to Speech model.
  */
 export const useTextToSpeech = ({
   model,
   voice,
   preventLoad = false,
-}: TextToSpeechProps): TextToSpeechType => {
+}: TextToSpeechModelProps<
+  TextToSpeechModelSources,
+  TextToSpeechVoiceConfig
+>): TextToSpeechType => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,12 +69,11 @@ export const useTextToSpeech = ({
     model.modelName,
     model.durationPredictorSource,
     model.synthesizerSource,
-    voice?.voiceSource,
-    voice?.extra,
+    voice.voiceSource,
+    voice.phonemizerConfig,
     preventLoad,
   ]);
 
-  // Shared guard for all generation methods
   const guardReady = useCallback(
     (methodName: string): TextToSpeechModule => {
       if (!isReady || !moduleInstance)
@@ -99,27 +101,12 @@ export const useTextToSpeech = ({
     }
   };
 
-  const forwardFromPhonemes = async (input: TextToSpeechPhonemeInput) => {
-    const instance = guardReady('forwardFromPhonemes');
-    try {
-      setIsGenerating(true);
-      return await instance.forwardFromPhonemes(
-        input.phonemes ?? '',
-        input.speed ?? 1.0
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
       const instance = guardReady('stream');
       setIsGenerating(true);
       try {
         if (input.text) {
-          // If the initial text does not end with an end of sentence character,
-          // we add an artificial dot to improve output's quality.
           instance.streamInsert(
             input.text +
               ('.?!;'.includes(input.text.trim().slice(-1)) ? '' : '.')
@@ -130,28 +117,6 @@ export const useTextToSpeech = ({
         for await (const audio of instance.stream({
           speed: input.speed ?? 1.0,
           stopAutomatically: input.stopAutomatically ?? true,
-        })) {
-          if (input.onNext) {
-            await input.onNext(audio);
-          }
-        }
-      } finally {
-        await input.onEnd?.();
-        setIsGenerating(false);
-      }
-    },
-    [guardReady]
-  );
-
-  const streamFromPhonemes = useCallback(
-    async (input: TextToSpeechStreamingPhonemeInput) => {
-      const instance = guardReady('streamFromPhonemes');
-      setIsGenerating(true);
-      try {
-        await input.onBegin?.();
-        for await (const audio of instance.streamFromPhonemes({
-          phonemes: input.phonemes ?? '',
-          speed: input.speed ?? 1.0,
         })) {
           if (input.onNext) {
             await input.onNext(audio);
@@ -188,9 +153,7 @@ export const useTextToSpeech = ({
     isReady,
     isGenerating,
     forward,
-    forwardFromPhonemes,
     stream,
-    streamFromPhonemes,
     streamInsert,
     streamStop,
     downloadProgress,

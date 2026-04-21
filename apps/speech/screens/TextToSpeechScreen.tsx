@@ -10,36 +10,34 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_SMALL,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-  KOKORO_VOICE_AF_RIVER,
-  KOKORO_VOICE_AF_SARAH,
-  KOKORO_VOICE_AM_ADAM,
-  KOKORO_VOICE_AM_MICHAEL,
-  KOKORO_VOICE_AM_SANTA,
-  KOKORO_VOICE_BF_EMMA,
-  KOKORO_VOICE_BM_DANIEL,
+  KOKORO,
+  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART,
+  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER,
+  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH,
+  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM,
+  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL,
+  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
+  KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA,
+  KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL,
   useTextToSpeech,
-  KokoroConfig,
-  VoiceConfig,
+  TextToSpeechModelSources,
+  TextToSpeechVoiceConfig,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
-const TTS_MODELS: ModelOption<KokoroConfig>[] = [
-  { label: 'Kokoro Small', value: KOKORO_SMALL },
-  { label: 'Kokoro Medium', value: KOKORO_MEDIUM },
+const TTS_MODELS: ModelOption<TextToSpeechModelSources>[] = [
+  { label: 'Kokoro', value: KOKORO },
 ];
 
-const VOICES: ModelOption<VoiceConfig>[] = [
-  { label: 'AF Heart', value: KOKORO_VOICE_AF_HEART },
-  { label: 'AF River', value: KOKORO_VOICE_AF_RIVER },
-  { label: 'AF Sarah', value: KOKORO_VOICE_AF_SARAH },
-  { label: 'AM Adam', value: KOKORO_VOICE_AM_ADAM },
-  { label: 'AM Michael', value: KOKORO_VOICE_AM_MICHAEL },
-  { label: 'AM Santa', value: KOKORO_VOICE_AM_SANTA },
-  { label: 'BF Emma', value: KOKORO_VOICE_BF_EMMA },
-  { label: 'BM Daniel', value: KOKORO_VOICE_BM_DANIEL },
+const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
+  { label: 'AF Heart', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART },
+  { label: 'AF River', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER },
+  { label: 'AF Sarah', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH },
+  { label: 'AM Adam', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM },
+  { label: 'AM Michael', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL },
+  { label: 'AM Santa', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA },
+  { label: 'BF Emma', value: KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA },
+  { label: 'BM Daniel', value: KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL },
 ];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -78,9 +76,9 @@ const createAudioBufferFromVector = (
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] =
-    useState<KokoroConfig>(KOKORO_MEDIUM);
-  const [selectedVoice, setSelectedVoice] = useState<VoiceConfig>(
-    KOKORO_VOICE_AF_HEART
+    useState<TextToSpeechModelSources>(KOKORO);
+  const [selectedVoice, setSelectedVoice] = useState<TextToSpeechVoiceConfig>(
+    KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART
   );
 
   const model = useTextToSpeech({

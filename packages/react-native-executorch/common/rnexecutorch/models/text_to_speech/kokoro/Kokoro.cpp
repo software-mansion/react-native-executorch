@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <phonemis/utils/conversions.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
@@ -12,19 +11,29 @@
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
-               const std::string &phonemizerDataSource,
+               const std::string &lexiconSource,
+               const std::string &neuralModelSource,
                const std::string &durationPredictorSource,
                const std::string &synthesizerSource,
                const std::string &voiceSource,
                std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)),
-      phonemizer_(
-          {.lang = lang,
-           .tagger =
-               phonemis::tagger::Config{.data_filepath = taggerDataSource},
-           .phonemizer =
-               phonemis::phonemizer::Config{
-                   .lang = lang, .lexicon_filepath = phonemizerDataSource}}),
+      phonemizer_(phonemis::Config{
+          .lang = lang,
+          .tagger = taggerDataSource.empty()
+                        ? std::optional<phonemis::tagger::Config>{}
+                        : std::make_optional(phonemis::tagger::Config{
+                              .data_filepath = taggerDataSource}),
+          .phonemizer =
+              phonemis::phonemizer::Config{
+                  .lang = lang,
+                  .lexicon_filepath = lexiconSource.empty()
+                                          ? std::nullopt
+                                          : std::make_optional(lexiconSource),
+                  .nn_model_filepath =
+                      neuralModelSource.empty()
+                          ? std::nullopt
+                          : std::make_optional(neuralModelSource)}}),
       partitioner_(context_),
       durationPredictor_(durationPredictorSource, context_, callInvoker_),
       synthesizer_(synthesizerSource, context_, callInvoker_) {
@@ -171,16 +180,6 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   return generateFromPhonemesImpl(phonemes, speed);
 }
 
-std::vector<float> Kokoro::generateFromPhonemes(std::string phonemes,
-                                                float speed) {
-  if (phonemes.empty()) {
-    return {};
-  }
-
-  return generateFromPhonemesImpl(
-      phonemis::utils::conversions::utf8_to_u32(phonemes), speed);
-}
-
 void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
                     std::shared_ptr<jsi::Function> callback) {
   isStreaming_ = true;
@@ -242,19 +241,6 @@ void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
     isStreaming_ = false;
     streamSkippedIterations = 0;
   }
-}
-
-void Kokoro::streamFromPhonemes(std::string phonemes, float speed,
-                                std::shared_ptr<jsi::Function> callback) {
-  if (phonemes.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: phoneme string must not be empty");
-  }
-
-  isStreaming_ = true;
-  streamFromPhonemesImpl(phonemis::utils::conversions::utf8_to_u32(phonemes),
-                         speed, callback);
-  isStreaming_ = false;
 }
 
 void Kokoro::streamInsert(std::string textChunk) noexcept {
