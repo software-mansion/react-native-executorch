@@ -270,6 +270,8 @@ export interface Message {
   /**
    * Optional local file path to media (image, audio, etc.).
    * Only valid on `user` messages.
+   * Either `file:///absolute/path` or `/absolute/path` is accepted; the
+   * controller normalizes the path before passing it to native code.
    */
   mediaPath?: string;
 }
