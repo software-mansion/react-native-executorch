@@ -7278,7 +7278,8 @@ __metadata:
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:5.0.0-beta.7"
+    react-native-vision-camera: "npm:^5.0.4"
+    react-native-vision-camera-worklets: "npm:^5.0.4"
     react-native-worklets: "npm:0.7.4"
   languageName: unknown
   linkType: soft
@@ -14722,16 +14723,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:5.0.0-beta.7":
-  version: 5.0.0-beta.7
-  resolution: "react-native-vision-camera@npm:5.0.0-beta.7"
+"react-native-vision-camera-worklets@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "react-native-vision-camera-worklets@npm:5.0.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: "*"
+    react-native-vision-camera: "*"
+    react-native-worklets: "*"
+  checksum: 10/80e312837f86bddc70f97998447ca4b93d3636dffcdacb9dfa6bf7f9f02f146e8a54605f6cb01a0aa9e5a46cd8034d82e5f4eb1d07b1f5064162fe4df3d17812
+  languageName: node
+  linkType: hard
+
+"react-native-vision-camera@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "react-native-vision-camera@npm:5.0.4"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
-    react-native-worklets: "*"
-  checksum: 10/da627aa3c5f5be836ca36f12c98852efc07e82fccbec336da2cffef05fcad9e368c4f20e812fa55229d63f1f2b457f511e96b8debdc17fa2cea4b4205973e1ac
+  checksum: 10/fb4cb24e4d1a6c991fb07c75bdf3bd375d3eba96821e9196eb2337a9cb8e3721002bf6cb888002e754b21414555dff5a897dad8851ffb8cc20a50703975e4ef4
   languageName: node
   linkType: hard
 
