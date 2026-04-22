@@ -254,7 +254,7 @@ export class LLMController {
         imagePaths && imagePaths.length > 0
           ? await this.nativeModule.generateMultimodal(
               input,
-              imagePaths,
+              imagePaths.map(normalizeImagePath),
               this.getImageToken(),
               this.onToken
             )
@@ -455,4 +455,16 @@ export class LLMController {
     });
     return result;
   }
+}
+
+/**
+ * The native multimodal pipeline expects image paths to be `file://` URIs.
+ * `ResourceFetcher.fetch` and most platform file APIs return raw filesystem
+ * paths without that prefix, so callers routinely pass either form. Accept
+ * both and normalize to the prefixed form here.
+ * @param path - Local image path, either with or without the `file://` prefix.
+ * @returns The same path with a `file://` prefix.
+ */
+function normalizeImagePath(path: string): string {
+  return path.startsWith('file://') ? path : `file://${path}`;
 }
