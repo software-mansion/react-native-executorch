@@ -354,18 +354,6 @@ export class LLMController {
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
-    const historyForTemplate = updatedHistory.map((m) =>
-      m.mediaPath
-        ? {
-            ...m,
-            content: [
-              { type: 'image' },
-              { type: 'text', text: m.content },
-            ] as any,
-          }
-        : m
-    );
-
     const visualTokenCount = this.nativeModule.getVisualTokenCount();
     const countTokensCallback = (messages: Message[]) => {
       const rendered = this.applyChatTemplate(
@@ -383,7 +371,7 @@ export class LLMController {
     const messageHistoryWithPrompt =
       this.chatConfig.contextStrategy.buildContext(
         this.chatConfig.systemPrompt,
-        historyForTemplate,
+        updatedHistory,
         maxContextLength,
         countTokensCallback
       );
@@ -448,7 +436,7 @@ export class LLMController {
     );
 
     const result = template.render({
-      messages,
+      messages: messagesForChatTemplate(messages),
       tools,
       ...templateFlags,
       ...specialTokens,
@@ -467,4 +455,25 @@ export class LLMController {
  */
 function normalizeImagePath(path: string): string {
   return path.startsWith('file://') ? path : `file://${path}`;
+}
+
+/**
+ * Multimodal chat templates expect message content for image-bearing turns
+ * to be an array of content parts with an `image` part as a placeholder.
+ * Callers of `LLMController.generate` and `LLMController.sendMessage` pass
+ * messages with a plain string `content` plus an optional `mediaPath`; this
+ * helper rewrites them into the structured form that the template engine
+ * understands.
+ * @param messages - Messages to prepare for the chat template engine.
+ * @returns Messages with image-bearing turns rewritten to structured content.
+ */
+function messagesForChatTemplate(messages: Message[]): any[] {
+  return messages.map((m) =>
+    m.mediaPath && typeof m.content === 'string'
+      ? {
+          ...m,
+          content: [{ type: 'image' }, { type: 'text', text: m.content }],
+        }
+      : m
+  );
 }
