@@ -1,31 +1,27 @@
 /**
  * Resource Fetcher
  *
- * Provides an interface for downloading files (via `ResourceFetcher.fetch()`)
+ * Static entry point that delegates resource operations to a configured
+ * `ResourceFetcherAdapter`. The adapter is registered for you when you call
+ * `initExecutorch({ resourceFetcher })` from one of the platform packages:
  *
- * Key functionality:
- * - Download control: pause, resume, and cancel operations through:
- *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
- * - Downloaded file management:
- *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteResources()`
+ * - `react-native-executorch-expo-resource-fetcher` (Expo apps)
+ * - `react-native-executorch-bare-resource-fetcher` (bare React Native)
  *
- * Remark: The pausing/resuming/canceling works only for fetching remote resources.
+ * Methods on this class:
+ * - `setAdapter` / `resetAdapter` / `getAdapter` — adapter lifecycle. Usually
+ *   handled by `initExecutorch`, not called directly by application code.
+ * - `fetch(callback, ...sources)` — delegates to the adapter's `fetch` and
+ *   additionally fires HuggingFace download counters for known model URLs.
+ * - `fs.readAsString(path)` — delegates to the adapter for reading config
+ *   files as text.
  *
- * Most exported functions accept:
- * - Multiple `ResourceSource` arguments, (union type of string, number or object)
- *
- * Method `.fetch()` takes argument as callback that reports download progress.
- * Method`.fetch()` returns array of paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
- *
- * Technical Implementation:
- * - Maintains a `downloads` Map instance that tracks:
- *   - Currently downloading resources
- *   - Paused downloads
- * - Successful downloads are automatically removed from the `downloads` Map
- * - Uses the `ResourceSourceExtended` interface to enable pause/resume functionality:
- *   - Wraps user-provided `ResourceSource` elements
- *   - Implements linked list behavior via the `.next` attribute
- *   - Automatically processes subsequent downloads when `.next` contains a valid resource
+ * Storage-management utilities such as `pauseFetching`, `resumeFetching`,
+ * `cancelFetching`, `getFilesTotalSize`, `listDownloadedFiles`,
+ * `listDownloadedModels`, and `deleteResources` are NOT methods on this
+ * class. They live on the concrete adapter implementations
+ * (`ExpoResourceFetcher`, `BareResourceFetcher`); use the adapter directly
+ * if you need them.
  */
 
 import { ResourceSource } from '../types/common';
@@ -71,8 +67,14 @@ export interface ResourceFetcherAdapter {
 }
 
 /**
- * This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
- * These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
+ * Static entry point that delegates resource operations to the configured
+ * `ResourceFetcherAdapter` (registered via `initExecutorch({ resourceFetcher })`).
+ *
+ * For storage-management utilities — deleting downloaded models, listing
+ * downloaded files, getting their total size, and pausing/resuming/cancelling
+ * downloads — use the adapter implementation directly. See `ExpoResourceFetcher`
+ * (in `react-native-executorch-expo-resource-fetcher`) or `BareResourceFetcher`
+ * (in `react-native-executorch-bare-resource-fetcher`).
  * @category Utilities - General
  */
 export class ResourceFetcher {
