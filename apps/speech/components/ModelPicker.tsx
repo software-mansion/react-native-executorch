@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -21,7 +23,7 @@ type Props<T> = {
   disabled?: boolean;
 };
 
-const DROPDOWN_MAX_HEIGHT = 200;
+const DROPDOWN_MAX_HEIGHT = 300;
 
 export function ModelPicker<T>({
   models,
@@ -31,8 +33,11 @@ export function ModelPicker<T>({
   disabled,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
-  const [triggerHeight, setTriggerHeight] = useState(0);
-  const [expandUp, setExpandUp] = useState(false);
+  const [dropdownLayout, setDropdownLayout] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+  });
   const triggerRef = useRef<React.ComponentRef<typeof TouchableOpacity>>(null);
   const selected = models.find((m) => m.value === selectedModel);
 
@@ -50,22 +55,21 @@ export function ModelPicker<T>({
       (
         _x: number,
         _y: number,
-        _width: number,
+        width: number,
         height: number,
-        _pageX: number,
+        pageX: number,
         pageY: number
       ) => {
-        setTriggerHeight(height);
         const spaceBelow = Dimensions.get('window').height - (pageY + height);
-        setExpandUp(spaceBelow < DROPDOWN_MAX_HEIGHT);
+        const y =
+          spaceBelow >= DROPDOWN_MAX_HEIGHT
+            ? pageY + height + 2
+            : pageY - Math.min(DROPDOWN_MAX_HEIGHT, models.length * 42) - 2;
+        setDropdownLayout({ x: pageX, y, width });
         setOpen(true);
       }
     );
   };
-
-  const dropdownPosition = expandUp
-    ? { bottom: triggerHeight + 2 }
-    : { top: triggerHeight + 2 };
 
   return (
     <View style={styles.container}>
@@ -80,36 +84,52 @@ export function ModelPicker<T>({
         <Text style={styles.chevron}>{open ? '▲' : '▼'}</Text>
       </TouchableOpacity>
 
-      {open && (
-        <ScrollView
-          style={[styles.dropdown, dropdownPosition]}
-          nestedScrollEnabled
-          keyboardShouldPersistTaps="handled"
-        >
-          {models.map((item) => {
-            const isSelected = item.value === selectedModel;
-            return (
-              <TouchableOpacity
-                key={item.label}
-                style={[styles.option, isSelected && styles.optionSelected]}
-                onPress={() => {
-                  onSelect(item.value);
-                  setOpen(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.optionText,
-                    isSelected && styles.optionTextSelected,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      )}
+      <Modal
+        visible={open}
+        transparent
+        animationType="none"
+        onRequestClose={() => setOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setOpen(false)}>
+          <View style={StyleSheet.absoluteFill}>
+            <ScrollView
+              style={[
+                styles.dropdown,
+                {
+                  position: 'absolute',
+                  top: dropdownLayout.y,
+                  left: dropdownLayout.x,
+                  width: dropdownLayout.width,
+                },
+              ]}
+              keyboardShouldPersistTaps="handled"
+            >
+              {models.map((item) => {
+                const isSelected = item.value === selectedModel;
+                return (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={[styles.option, isSelected && styles.optionSelected]}
+                    onPress={() => {
+                      onSelect(item.value);
+                      setOpen(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isSelected && styles.optionTextSelected,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -119,7 +139,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginVertical: 4,
     alignSelf: 'stretch',
-    zIndex: 100,
   },
   trigger: {
     flexDirection: 'row',
@@ -151,19 +170,15 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   dropdown: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     borderWidth: 1,
     borderColor: '#C1C6E5',
     borderRadius: 8,
     backgroundColor: '#fff',
     maxHeight: DROPDOWN_MAX_HEIGHT,
-    zIndex: 100,
-    elevation: 4,
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
   },
   option: {

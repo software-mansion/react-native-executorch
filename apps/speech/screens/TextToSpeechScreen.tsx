@@ -22,6 +22,7 @@ import {
   useTextToSpeech,
   TextToSpeechModelSources,
   TextToSpeechVoiceConfig,
+  KOKORO_VOICE_FRENCH_FEMALE_SIWIS,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
@@ -30,15 +31,17 @@ const TTS_MODELS: ModelOption<TextToSpeechModelSources>[] = [
 ];
 
 const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
-  { label: 'AF Heart', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART },
-  { label: 'AF River', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER },
-  { label: 'AF Sarah', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH },
-  { label: 'AM Adam', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM },
-  { label: 'AM Michael', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL },
-  { label: 'AM Santa', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA },
-  { label: 'BF Emma', value: KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA },
-  { label: 'BM Daniel', value: KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL },
+  { label: '🇺🇸 AF Heart', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART },
+  { label: '🇺🇸 AF River', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER },
+  { label: '🇺🇸 AF Sarah', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH },
+  { label: '🇺🇸 AM Adam', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM },
+  { label: '🇺🇸 AM Michael', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL },
+  { label: '🇺🇸 AM Santa', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA },
+  { label: '🇬🇧 BF Emma', value: KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA },
+  { label: '🇬🇧 BM Daniel', value: KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL },
+  { label: '🇫🇷 FF Siwis', value: KOKORO_VOICE_FRENCH_FEMALE_SIWIS },
 ];
+
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
