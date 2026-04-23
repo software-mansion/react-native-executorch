@@ -8,6 +8,10 @@
     ".": {
       "import": "./lib/index.js",
       "types": "./lib/index.d.ts"
+    },
+    "./auto": {
+      "import": "./lib/auto.js",
+      "types": "./lib/auto.d.ts"
     }
   },
   "files": [
