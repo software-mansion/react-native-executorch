@@ -1,6 +1,7 @@
 // common/runner/text_runner.cpp
 #include "text_runner.h"
 #include "constants.h"
+#include "rnexecutorch/Log.h"
 #include "util.h"
 #include <cstdint>
 #include <rnexecutorch/Error.h>
@@ -76,6 +77,14 @@ Error TextRunner::generate_internal(
         "Unexpected issue occurred while encoding: " +
             std::to_string(static_cast<int32_t>(encodeResult.error())));
   }
+  // // TEMP: hardcoded gemma4 prompt tokens for testing without a tokenizer.
+  // std::vector<uint64_t> prompt_tokens = {
+  //     2,     105,    2364, 107,   155122, 506, 4954, 1534, 51054,
+  //     532,   99057,  236761, 106, 107,    105, 4368, 107};
+  // (void)prompt;
+  // rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Using hardcoded prompt
+  // tokens (tokenizer encode bypassed)",
+  //        prompt_tokens.size());
   std::vector<uint64_t> prompt_tokens = encodeResult.get();
   int num_prompt_tokens = prompt_tokens.size();
 

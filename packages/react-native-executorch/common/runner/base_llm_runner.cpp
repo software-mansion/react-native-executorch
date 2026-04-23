@@ -18,8 +18,8 @@ BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
       metadata_({
           {kEnableDynamicShape, false},
-          {kMaxSeqLen, 128},
-          {kMaxContextLen, 128},
+          {kMaxSeqLen, 2048},
+          {kMaxContextLen, 2048},
           {kUseKVCache, true},
       }) {}
 
@@ -69,6 +69,7 @@ Error BaseLLMRunner::load() {
       eos_ids_->emplace(static_cast<uint64_t>(eos_id.toScalar().to<int64_t>()));
     }
   }
+  eos_ids_->emplace(static_cast<uint64_t>(1));
   if (eos_ids_->empty()) {
     throw rnexecutorch::RnExecutorchError(
         rnexecutorch::RnExecutorchErrorCode::InvalidModelOutput,

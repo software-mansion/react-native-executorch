@@ -98,9 +98,14 @@ export const QWEN3_0_6B = {
  */
 export const QWEN3_0_6B_QUANTIZED = {
   modelName: 'qwen3-0.6b-quantized',
-  modelSource: QWEN3_0_6B_QUANTIZED_MODEL,
-  tokenizerSource: QWEN3_TOKENIZER,
-  tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  modelSource:
+    'http://localhost:9001/experiments/outputs/exp94_mm_vision_sdpa_s16k.pte',
+  // tokenizerSource: "https://huggingface.co/google/gemma-4-E2B-it/resolve/main/tokenizer.json",
+  // tokenizerConfigSource: "https://huggingface.co/google/gemma-4-E2B-it/resolve/main/tokenizer_config.json",
+  tokenizerSource: 'http://localhost:9001/gemma4_e2b/tokenizer.json',
+  tokenizerConfigSource:
+    'http://localhost:9001/gemma4_e2b/gemma4_tokenizer_config.json',
+  capabilities: ['vision'],
 } as const;
 
 /**

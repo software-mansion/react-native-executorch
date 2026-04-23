@@ -19,6 +19,9 @@ MultimodalRunner::MultimodalRunner(
 
 int32_t MultimodalRunner::get_visual_token_count() const {
   auto it = encoders_.find(MultimodalType::Image);
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "MultimodalRunner::get_visual_token_count");
+
   if (it == encoders_.end()) {
     return 0;
   }
@@ -78,14 +81,15 @@ Error MultimodalRunner::generate_internal(
   }
 
   stats_.inference_start_ms = time_in_ms();
+  const long t_gen_begin = stats_.inference_start_ms;
 
-  uint64_t prefill_next_token = 0;
-  for (const auto &input : inputs) {
-    auto prefill_result = mm_prefiller_->prefill(input, pos_);
-    if (!prefill_result.ok())
-      return prefill_result.error();
-    prefill_next_token = prefill_result.get();
-  }
+  auto prefill_result = mm_prefiller_->prefill(inputs, pos_);
+  if (!prefill_result.ok())
+    return prefill_result.error();
+  uint64_t prefill_next_token = prefill_result.get();
+  const long t_prefill_done = time_in_ms();
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "prefill result",
+                    prefill_next_token);
 
   stats_.first_token_ms = time_in_ms();
   stats_.prompt_eval_end_ms = time_in_ms();
@@ -96,13 +100,25 @@ Error MultimodalRunner::generate_internal(
       config_.max_context_length, config_.max_new_tokens);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
+  bool first_cb_fired = false;
+  long t_first_cb = 0;
   auto wrapped_callback = [&](const std::string &piece) {
+    if (!first_cb_fired) {
+      t_first_cb = time_in_ms();
+      first_cb_fired = true;
+      rnexecutorch::log(
+          rnexecutorch::LOG_LEVEL::Info,
+          "TTFT splits ms: gen_entry->prefill_done=",
+          t_prefill_done - t_gen_begin,
+          " prefill_done->first_token_cb=", t_first_cb - t_prefill_done,
+          " total=", t_first_cb - t_gen_begin);
+    }
     safe_printf(piece.c_str());
     fflush(stdout);
     if (token_callback)
       token_callback(piece);
   };
-
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "seed_tokens", seed_tokens);
   auto generate_result = mm_token_generator_->generate(
       seed_tokens, pos_,
       static_cast<uint64_t>(std::max(0, resolved_max_new - 1)),

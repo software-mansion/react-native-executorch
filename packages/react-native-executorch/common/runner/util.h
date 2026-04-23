@@ -107,25 +107,27 @@ size_t inline get_rss_bytes() {
 // (when the method_name [`text_decoder` or `forward`] expects a tensor with
 // size 1 because model will populate the cache position tensor underneath), or
 // a populated tensor for cache position, for the given start_pos and seq_len.
-inline runtime::Result<TensorPtr>
-populate_start_pos_or_cache_position(Module *module, int64_t &start_pos,
-                                     std::vector<int64_t> &cache_positions_vec,
-                                     int seq_len,
-                                     const char *method_name = "forward") {
-  // Get expected shape of cache position tensor, which should be the second
-  // argument
+//
+// `pos_input_index` tells the helper which input slot holds the cache-position
+// tensor. Defaults to 1 for legacy `forward(tokens, cache_positions)` and
+// `text_decoder(embeddings, cache_positions)` signatures. The multimodal
+// `text_decoder(inputs_embeds, ple_tok, input_pos)` layout passes 2.
+inline runtime::Result<TensorPtr> populate_start_pos_or_cache_position(
+    Module *module, int64_t &start_pos,
+    std::vector<int64_t> &cache_positions_vec, int seq_len,
+    const char *method_name = "forward", size_t pos_input_index = 1) {
   auto method_meta_result = module->method_meta(method_name);
   if (!method_meta_result.ok()) {
     return method_meta_result.error();
   }
   auto method_meta = std::move(*method_meta_result);
-  auto second_input_info_result = method_meta.input_tensor_meta(1);
-  if (!second_input_info_result.ok()) {
-    return second_input_info_result.error();
+  auto pos_input_info_result = method_meta.input_tensor_meta(pos_input_index);
+  if (!pos_input_info_result.ok()) {
+    return pos_input_info_result.error();
   }
-  auto second_input_info = std::move(*second_input_info_result);
-  auto second_input_sizes = second_input_info.sizes();
-  auto numel = second_input_sizes[0];
+  auto pos_input_info = std::move(*pos_input_info_result);
+  auto pos_input_sizes = pos_input_info.sizes();
+  auto numel = pos_input_sizes[0];
 
   TensorPtr start_pos_tensor;
   if (numel > 1) {

@@ -41,6 +41,8 @@ bool VisionEncoder::is_loaded() const noexcept {
 }
 
 int32_t VisionEncoder::encoderTokenCount() const {
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "VisionEncoder::encoderTokenCount");
   if (!is_loaded()) {
     return 0;
   }
@@ -94,6 +96,8 @@ VisionEncoder::preprocessImage(const std::string &path,
 }
 
 Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "VisionEncoder::encode start");
   if (!is_loaded()) {
     return Error::InvalidState;
   }
@@ -120,9 +124,14 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
   auto image_tensor = ::executorch::extension::from_blob(
       chw.data(), sizes, ::executorch::aten::ScalarType::Float);
 
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "VisionEncoder::encode start1");
   auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "VisionEncoder::encode end1");
   auto embedding = result[0];
   embedding_cache_.emplace(path, embedding);
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "VisionEncoder::encode end");
   return embedding;
 }
 

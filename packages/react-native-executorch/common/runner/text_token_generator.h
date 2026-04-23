@@ -9,6 +9,7 @@
 // Generate tokens in a loop.
 #pragma once
 
+#include "rnexecutorch/Log.h"
 #include "stats.h"
 #include "text_decoder_runner.h"
 #include "util.h"
@@ -97,6 +98,9 @@ public:
       cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
                                                         temperature, topp);
       stats_->on_sampling_end();
+
+      // rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Generated token id:",
+      //        static_cast<unsigned long long>(cur_token));
 
       pos++;
 
