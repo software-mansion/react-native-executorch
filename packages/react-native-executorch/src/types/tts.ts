@@ -26,7 +26,8 @@ export type TextToSpeechLanguage =
   | 'en-us' // American English
   | 'en-gb' // British English
   | 'fr' // French
-  | 'es'; // Spanish
+  | 'es' // Spanish
+  | 'it'; // Italian
 
 /**
  * Configuration for the Phonemizer used in Text-to-Speech models.

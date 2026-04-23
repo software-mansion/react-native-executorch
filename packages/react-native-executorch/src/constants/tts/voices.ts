@@ -23,6 +23,10 @@ const KOKORO_PHONEMIZER_FR_MODEL = `${KOKORO_PHONEMIZER_FR_PREFIX}/phonemizer_fr
 const KOKORO_PHONEMIZER_ES_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/es`;
 const KOKORO_PHONEMIZER_ES_MODEL = `${KOKORO_PHONEMIZER_ES_PREFIX}/phonemizer_es.pte`;
 
+// Italian
+const KOKORO_PHONEMIZER_IT_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/it`;
+const KOKORO_PHONEMIZER_IT_MODEL = `${KOKORO_PHONEMIZER_IT_PREFIX}/phonemizer_it.pte`;
+
 // Kokoro voices
 /**
  * @category TTS Supported Voices
@@ -158,5 +162,27 @@ export const KOKORO_VOICE_SPANISH_MALE_ALEX = {
   phonemizerConfig: {
     lang: 'es' as const,
     neuralModelSource: KOKORO_PHONEMIZER_ES_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_VOICE_ITALIAN_FEMALE_SARA = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/if_sara.bin`,
+  phonemizerConfig: {
+    lang: 'it' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_IT_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_VOICE_ITALIAN_MALE_NICOLA = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/im_nicola.bin`,
+  phonemizerConfig: {
+    lang: 'it' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_IT_MODEL,
   },
 } as TextToSpeechVoiceConfig;
