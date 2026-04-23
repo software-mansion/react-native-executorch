@@ -27,6 +27,12 @@ import {
   KOKORO_VOICE_SPANISH_MALE_ALEX,
   KOKORO_VOICE_ITALIAN_FEMALE_SARA,
   KOKORO_VOICE_ITALIAN_MALE_NICOLA,
+  KOKORO_VOICE_PORTUGUESE_FEMALE_DORA,
+  KOKORO_VOICE_PORTUGUESE_MALE_SANTA,
+  KOKORO_VOICE_POLISH_MALE_STASZEK,
+  KOKORO_VOICE_HINDI_FEMALE_ALPHA,
+  KOKORO_VOICE_HINDI_MALE_OMEGA,
+  KOKORO_VOICE_HINDI_MALE_PSI,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
@@ -48,6 +54,12 @@ const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
   { label: '🇪🇸 EM Alex', value: KOKORO_VOICE_SPANISH_MALE_ALEX },
   { label: '🇮🇹 IF Sara', value: KOKORO_VOICE_ITALIAN_FEMALE_SARA },
   { label: '🇮🇹 IM Nicola', value: KOKORO_VOICE_ITALIAN_MALE_NICOLA },
+  { label: '🇵🇹 PF Dora', value: KOKORO_VOICE_PORTUGUESE_FEMALE_DORA },
+  { label: '🇵🇹 PM Santa', value: KOKORO_VOICE_PORTUGUESE_MALE_SANTA },
+  { label: '🇵🇱 PM Staszek', value: KOKORO_VOICE_POLISH_MALE_STASZEK },
+  { label: '🇮🇳 HF Alpha', value: KOKORO_VOICE_HINDI_FEMALE_ALPHA },
+  { label: '🇮🇳 HM Omega', value: KOKORO_VOICE_HINDI_MALE_OMEGA },
+  { label: '🇮🇳 HM Psi', value: KOKORO_VOICE_HINDI_MALE_PSI },
 ];
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';

@@ -27,7 +27,10 @@ export type TextToSpeechLanguage =
   | 'en-gb' // British English
   | 'fr' // French
   | 'es' // Spanish
-  | 'it'; // Italian
+  | 'it' // Italian
+  | 'pt' // Portugese
+  | 'pl' // Polish
+  | 'hi'; // Hindi
 
 /**
  * Configuration for the Phonemizer used in Text-to-Speech models.
