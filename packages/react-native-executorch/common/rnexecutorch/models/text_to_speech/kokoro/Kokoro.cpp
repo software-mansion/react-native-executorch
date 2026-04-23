@@ -175,7 +175,7 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   }
 
   // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_.process(text);
+  auto phonemes = phonemizer_(text);
 
   return generateFromPhonemesImpl(phonemes, speed);
 }
@@ -224,7 +224,7 @@ void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
 
     if (!text.empty()) {
       // Now we proceed with a standard streaming logic for fixed-size input.
-      auto phonemes = phonemizer_.process(text);
+      auto phonemes = phonemizer_(text);
       streamFromPhonemesImpl(phonemes, speed, callback);
     }
 
