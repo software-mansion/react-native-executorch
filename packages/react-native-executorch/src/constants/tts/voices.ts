@@ -15,8 +15,13 @@ const KOKORO_PHONEMIZER_EN_GB_TAGGER = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/tags.j
 const KOKORO_PHONEMIZER_EN_GB_LEXICON = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/lexicon.json`;
 // const KOKORO_PHONEMIZER_EN_GB_MODEL = `${KOKORO_PHONEMIZER_EN_GB_PREFIX}/phonemizer_en_gb.pte`
 
+// French
 const KOKORO_PHONEMIZER_FR_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/fr`;
 const KOKORO_PHONEMIZER_FR_MODEL = `${KOKORO_PHONEMIZER_FR_PREFIX}/phonemizer_fr.pte`;
+
+// Spanish
+const KOKORO_PHONEMIZER_ES_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/es`;
+const KOKORO_PHONEMIZER_ES_MODEL = `${KOKORO_PHONEMIZER_ES_PREFIX}/phonemizer_es.pte`;
 
 // Kokoro voices
 /**
@@ -133,3 +138,25 @@ export const KOKORO_VOICE_FRENCH_FEMALE_SIWIS = {
     neuralModelSource: KOKORO_PHONEMIZER_FR_MODEL,
   },
 };
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_VOICE_SPANISH_FEMALE_DORA = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/ef_dora.bin`,
+  phonemizerConfig: {
+    lang: 'es' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_ES_MODEL,
+  },
+} as TextToSpeechVoiceConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_VOICE_SPANISH_MALE_ALEX = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/em_alex.bin`,
+  phonemizerConfig: {
+    lang: 'es' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_ES_MODEL,
+  },
+} as TextToSpeechVoiceConfig;

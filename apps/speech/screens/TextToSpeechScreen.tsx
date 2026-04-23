@@ -23,6 +23,8 @@ import {
   TextToSpeechModelSources,
   TextToSpeechVoiceConfig,
   KOKORO_VOICE_FRENCH_FEMALE_SIWIS,
+  KOKORO_VOICE_SPANISH_FEMALE_DORA,
+  KOKORO_VOICE_SPANISH_MALE_ALEX,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
@@ -40,6 +42,8 @@ const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
   { label: '🇬🇧 BF Emma', value: KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA },
   { label: '🇬🇧 BM Daniel', value: KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL },
   { label: '🇫🇷 FF Siwis', value: KOKORO_VOICE_FRENCH_FEMALE_SIWIS },
+  { label: '🇪🇸 EF Dora', value: KOKORO_VOICE_SPANISH_FEMALE_DORA },
+  { label: '🇪🇸 EM Alex', value: KOKORO_VOICE_SPANISH_MALE_ALEX },
 ];
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';

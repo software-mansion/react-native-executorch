@@ -25,7 +25,8 @@ export type TextToSpeechModelName = TextToSpeechModelSources['modelName'];
 export type TextToSpeechLanguage =
   | 'en-us' // American English
   | 'en-gb' // British English
-  | 'fr'; // French
+  | 'fr' // French
+  | 'es'; // Spanish
 
 /**
  * Configuration for the Phonemizer used in Text-to-Speech models.
