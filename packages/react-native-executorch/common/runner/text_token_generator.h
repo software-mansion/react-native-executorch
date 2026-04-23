@@ -10,6 +10,7 @@
 #pragma once
 
 #include "irunner.h"
+#include "rnexecutorch/Log.h"
 #include "stats.h"
 #include "text_decoder_runner.h"
 #include "util.h"
@@ -100,9 +101,12 @@ public:
       prev_token = cur_token;
 
       stats_->on_sampling_begin();
-      cur_token =
-          text_decoder_runner_->logits_to_token(logits_tensor, generated_tokens);
+      cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
+                                                        generated_tokens);
       stats_->on_sampling_end();
+
+      // rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Generated token id:",
+      //        static_cast<unsigned long long>(cur_token));
 
       pos++;
       generated_tokens.push_back(cur_token);

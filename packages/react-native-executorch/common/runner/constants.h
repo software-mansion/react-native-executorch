@@ -17,6 +17,11 @@ inline constexpr auto kMaxSeqLen = "get_max_seq_len";
 inline constexpr auto kMaxContextLen = "get_max_context_len";
 inline constexpr auto kVocabSize = "get_vocab_size";
 inline constexpr auto kUseKVCache = "use_kv_cache";
+// PLE models only: token id that marks image placeholder slots in input_ids.
+// token_embedding run on this id produces the per-layer PLE signal for image
+// positions; the inputs_embeds output for those positions is discarded (the
+// vision encoder output replaces it).
+inline constexpr auto kImagePlaceholderId = "image_placeholder_id";
 
 // Multimodal method name conventions
 inline constexpr auto kVisionEncoderMethod = "vision_encoder";
