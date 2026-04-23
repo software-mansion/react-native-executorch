@@ -1,3 +1,4 @@
+import 'react-native-executorch-expo-resource-fetcher/auto';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
@@ -6,12 +7,6 @@ import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
 import { TextToSpeechLLMScreen } from './screens/TextToSpeechLLMScreen';
-import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-
-initExecutorch({
-  resourceFetcher: ExpoResourceFetcher,
-});
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<

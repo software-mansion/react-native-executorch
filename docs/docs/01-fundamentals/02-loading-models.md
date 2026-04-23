@@ -15,7 +15,13 @@ yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 ```
 
-and then add the following code in your React Native app:
+and then add a single side-effect import at the entry point of your React Native app:
+
+```typescript
+import 'react-native-executorch-expo-resource-fetcher/auto';
+```
+
+If you need more control — registering a custom adapter, swapping adapters at runtime, or ordering registration relative to other side effects — call `initExecutorch` directly instead:
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
@@ -36,8 +42,14 @@ yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-down
 and
 
 ```typescript
+import 'react-native-executorch-bare-resource-fetcher/auto';
+```
+
+The same `initExecutorch(...)` escape hatch applies for the bare adapter:
+
+```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { BareResourceFetcher } from '@react-native-executorch/bare-adapter';
+import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: BareResourceFetcher,

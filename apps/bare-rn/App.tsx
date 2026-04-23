@@ -1,3 +1,4 @@
+import 'react-native-executorch-bare-resource-fetcher/auto';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,12 +14,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import {
-  initExecutorch,
-  useLLM,
-  LLAMA3_2_1B_SPINQUANT,
-} from 'react-native-executorch';
-import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
+import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
 import { setConfig } from '@kesha-antonov/react-native-background-downloader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,11 +24,6 @@ setConfig({
   logCallback: log => {
     console.log('[BackgroundDownloader]', log);
   },
-});
-
-// Initialize Executorch with bare adapter
-initExecutorch({
-  resourceFetcher: BareResourceFetcher,
 });
 
 const ColorPalette = {

@@ -77,12 +77,20 @@ Installation is pretty straightforward, use your package manager of choice to in
 </Tabs>
 
 :::warning
-Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
+Before using any other API, you must register a resource fetcher adapter at the entry point of your app. The simplest way is a side-effect import:
+
+```js
+// For Expo projects:
+import 'react-native-executorch-expo-resource-fetcher/auto';
+// Or, for bare React Native projects:
+import 'react-native-executorch-bare-resource-fetcher/auto';
+```
+
+If you need more control — registering a custom adapter, swapping adapters at runtime, or ordering registration relative to other side effects — call `initExecutorch` directly instead:
 
 ```js
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-// or BareResourceFetcher for Expo projects
 
 initExecutorch({ resourceFetcher: ExpoResourceFetcher });
 ```
