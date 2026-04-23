@@ -107,7 +107,7 @@ export class ResourceFetcher {
   static getAdapter(): ResourceFetcherAdapter {
     if (!this.adapter) {
       const errorMessage =
-        'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from react-native-executorch-expo-resource-fetcher or react-native-executorch-bare-resource-fetcher. For more details please refer to: https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/loading-models';
+        "ResourceFetcher adapter is not initialized. The simplest fix is a side-effect import at your app entry point: `import 'react-native-executorch-expo-resource-fetcher/auto'` (Expo) or `import 'react-native-executorch-bare-resource-fetcher/auto'` (bare React Native). For full control over registration, call `initExecutorch({ resourceFetcher: ... })` directly. See: https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/loading-models";
       // for sanity :)
       Logger.error(errorMessage);
       throw new RnExecutorchError(
