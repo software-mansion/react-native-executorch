@@ -6,7 +6,7 @@ import { SlidingWindowContextStrategy } from '../utils/llms/context_strategy';
  * @category Utilities - LLM
  */
 export const DEFAULT_SYSTEM_PROMPT =
-  'You are an image-captioning assistant. Describe images accurately and in detail.';
+  'You are an audio-transcribing assistant. Describe recordings accurately and in detail.';
 
 /**
  * Generates a default structured output prompt based on the provided JSON schema.

@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
+import { useLLM, QWEN3_0_6B_QUANTIZED } from 'react-native-executorch';
 import { ModelPicker } from '../../components/ModelPicker';
 import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
@@ -42,9 +42,8 @@ function LLMScreen() {
   const { bottom } = useSafeAreaInsets();
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
-    LLAMA3_2_1B_SPINQUANT
-  );
+  const [selectedModel, setSelectedModel] =
+    useState<LLMModelSources>(QWEN3_0_6B_QUANTIZED);
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 

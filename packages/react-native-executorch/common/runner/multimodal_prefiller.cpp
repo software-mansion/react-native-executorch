@@ -32,9 +32,11 @@ using ::executorch::runtime::Result;
 
 MultimodalPrefiller::MultimodalPrefiller(
     Module &module, MultimodalDecoderRunner &decoder_runner,
-    tokenizers::HFTokenizer &tokenizer, IEncoder *image_encoder)
+    tokenizers::HFTokenizer &tokenizer, IEncoder *image_encoder,
+    IEncoder *audio_encoder)
     : module_(&module), decoder_runner_(&decoder_runner),
-      tokenizer_(&tokenizer), image_encoder_(image_encoder) {}
+      tokenizer_(&tokenizer), image_encoder_(image_encoder),
+      audio_encoder_(audio_encoder) {}
 
 Result<uint64_t>
 MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
@@ -52,6 +54,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   if (max_seq_len_result.error() == Error::Ok) {
     max_seq_len = max_seq_len_result->toScalar().to<int64_t>();
   }
+  max_seq_len = kMaxPrefillLen;
 
   // ------------------------------------------------------------
   // Pass 1: build a fused input_ids buffer spanning all inputs.
@@ -68,10 +71,20 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     int64_t slot_start;
     int64_t num_visual;
   };
+  // Audio tokens are dynamic per clip, so we encode first and remember the
+  // resulting tensor + count; pass 2 just splices the cached output.
+  struct AudioSlot {
+    EValue encoded; // owns the encoded [1, N, hidden] tensor for this clip
+    int64_t slot_start;
+    int64_t num_audio;
+  };
 
   std::vector<int64_t> ids;
   ids.reserve(static_cast<size_t>(max_seq_len > 0 ? max_seq_len : 512));
   std::vector<ImageSlot> image_slots;
+  std::vector<AudioSlot> audio_slots;
+  long audio_encode_ms = 0;
+  int audio_calls = 0;
 
   for (const auto &input : inputs) {
     if (input.is_image()) {
@@ -83,6 +96,21 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
       image_slots.push_back(ImageSlot{&input, static_cast<int64_t>(ids.size()),
                                       static_cast<int64_t>(num_visual)});
       ids.insert(ids.end(), static_cast<size_t>(num_visual), 0);
+    } else if (input.is_audio()) {
+      ET_CHECK_OR_RETURN_ERROR(audio_encoder_ != nullptr, InvalidState,
+                               "No audio encoder registered");
+      const long t_aud_begin = time_in_ms();
+      auto enc = audio_encoder_->encode(input);
+      ET_CHECK_OK_OR_RETURN_ERROR(enc.error(), "Audio encoding failed");
+      audio_encode_ms += time_in_ms() - t_aud_begin;
+      audio_calls += 1;
+      const int32_t num_audio = audio_encoder_->encoderTokenCount();
+      ET_CHECK_OR_RETURN_ERROR(num_audio > 0, InvalidState,
+                               "Audio encoder produced 0 tokens");
+      audio_slots.push_back(AudioSlot{std::move(*enc),
+                                      static_cast<int64_t>(ids.size()),
+                                      static_cast<int64_t>(num_audio)});
+      ids.insert(ids.end(), static_cast<size_t>(num_audio), 0);
     } else if (input.is_text() || input.is_tokens()) {
       std::vector<uint64_t> tokens;
       if (input.is_text()) {
@@ -111,7 +139,8 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
 
   if (max_seq_len > 0) {
     ET_CHECK_OR_RETURN_ERROR(
-        total_len <= max_seq_len, InvalidArgument,
+        total_len <= max_seq_len && total_len <= kMaxPrefillLen,
+        InvalidArgument,
         "Prefill length %lld exceeds token_embedding MAX_SEQ_LEN (%lld)",
         static_cast<long long>(total_len), static_cast<long long>(max_seq_len));
     ids.resize(static_cast<size_t>(max_seq_len),
@@ -144,10 +173,20 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
 
   // Own the embeds for the live prefix — subsequent vision_encoder.execute
   // calls may reuse the token_embedding output buffer in the runtime.
-  std::vector<float> embeds_buf(static_cast<size_t>(total_len) *
-                                static_cast<size_t>(hidden));
-  std::memcpy(embeds_buf.data(), full_embed.mutable_data_ptr<float>(),
-              embeds_buf.size() * sizeof(float));
+  // Dtype is whatever the exporter chose (fp32 baseline, fp16
+  // s16k_jitmask_fp16); copy bytes through nbytes/numel so we don't assume the
+  // scalar type.
+  const ::executorch::aten::ScalarType embeds_dtype = full_embed.scalar_type();
+  const size_t embeds_total_numel = static_cast<size_t>(full_embed.numel());
+  ET_CHECK_OR_RETURN_ERROR(embeds_total_numel > 0, InvalidState,
+                           "token_embedding returned zero elements");
+  const size_t embeds_elem_size = full_embed.nbytes() / embeds_total_numel;
+  const size_t embeds_prefix_bytes = static_cast<size_t>(total_len) *
+                                     static_cast<size_t>(hidden) *
+                                     embeds_elem_size;
+  std::vector<uint8_t> embeds_buf(embeds_prefix_bytes);
+  std::memcpy(embeds_buf.data(), full_embed.mutable_data_ptr(),
+              embeds_prefix_bytes);
 
   // Own the ple_tok prefix similarly. Dtype is whatever the exporter chose
   // (commonly bf16/int8); we copy bytes through nbytes/numel without
@@ -199,12 +238,86 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
         static_cast<long long>(vision_tensor.size(2)),
         static_cast<long long>(hidden));
 
-    const float *src = vision_tensor.const_data_ptr<float>();
-    float *dst = embeds_buf.data() + static_cast<size_t>(slot.slot_start) *
-                                         static_cast<size_t>(hidden);
-    std::memcpy(dst, src,
-                static_cast<size_t>(slot.num_visual) *
-                    static_cast<size_t>(hidden) * sizeof(float));
+    const auto vision_dtype = vision_tensor.scalar_type();
+    const size_t visual_elems =
+        static_cast<size_t>(slot.num_visual) * static_cast<size_t>(hidden);
+    uint8_t *dst = embeds_buf.data() + static_cast<size_t>(slot.slot_start) *
+                                           static_cast<size_t>(hidden) *
+                                           embeds_elem_size;
+    if (vision_dtype == embeds_dtype) {
+      const uint8_t *src =
+          static_cast<const uint8_t *>(vision_tensor.const_data_ptr());
+      std::memcpy(dst, src, visual_elems * embeds_elem_size);
+    } else if (vision_dtype == ::executorch::aten::ScalarType::Float &&
+               embeds_dtype == ::executorch::aten::ScalarType::Half) {
+      const float *src = vision_tensor.const_data_ptr<float>();
+      auto *dst_h = reinterpret_cast<::executorch::aten::Half *>(dst);
+      for (size_t i = 0; i < visual_elems; ++i) {
+        dst_h[i] = ::executorch::aten::Half(src[i]);
+      }
+    } else if (vision_dtype == ::executorch::aten::ScalarType::Half &&
+               embeds_dtype == ::executorch::aten::ScalarType::Float) {
+      const auto *src =
+          vision_tensor.const_data_ptr<::executorch::aten::Half>();
+      auto *dst_f = reinterpret_cast<float *>(dst);
+      for (size_t i = 0; i < visual_elems; ++i) {
+        dst_f[i] = static_cast<float>(src[i]);
+      }
+    } else {
+      ET_CHECK_OR_RETURN_ERROR(
+          false, InvalidState,
+          "unsupported vision/text dtype pair: vision=%hhd text=%hhd",
+          static_cast<int8_t>(vision_dtype), static_cast<int8_t>(embeds_dtype));
+    }
+  }
+
+  // ------------------------------------------------------------
+  // Pass 2b: splice encoded audio tokens into embeds_buf. Reuses the same
+  // dtype conversion matrix as vision (fp32<->fp16 handled inline).
+  // ------------------------------------------------------------
+  for (auto &slot : audio_slots) {
+    auto audio_tensor = slot.encoded.toTensor();
+    ET_CHECK_OR_RETURN_ERROR(
+        static_cast<int64_t>(audio_tensor.size(1)) == slot.num_audio,
+        InvalidState, "audio encoder returned %lld tokens, expected %lld",
+        static_cast<long long>(audio_tensor.size(1)),
+        static_cast<long long>(slot.num_audio));
+    ET_CHECK_OR_RETURN_ERROR(
+        static_cast<int64_t>(audio_tensor.size(2)) ==
+            static_cast<int64_t>(hidden),
+        InvalidState, "audio encoder hidden %lld != text_embed hidden %lld",
+        static_cast<long long>(audio_tensor.size(2)),
+        static_cast<long long>(hidden));
+
+    const auto audio_dtype = audio_tensor.scalar_type();
+    const size_t audio_elems =
+        static_cast<size_t>(slot.num_audio) * static_cast<size_t>(hidden);
+    uint8_t *dst = embeds_buf.data() + static_cast<size_t>(slot.slot_start) *
+                                           static_cast<size_t>(hidden) *
+                                           embeds_elem_size;
+    if (audio_dtype == embeds_dtype) {
+      std::memcpy(dst, audio_tensor.const_data_ptr(),
+                  audio_elems * embeds_elem_size);
+    } else if (audio_dtype == ::executorch::aten::ScalarType::Float &&
+               embeds_dtype == ::executorch::aten::ScalarType::Half) {
+      const float *src = audio_tensor.const_data_ptr<float>();
+      auto *dst_h = reinterpret_cast<::executorch::aten::Half *>(dst);
+      for (size_t i = 0; i < audio_elems; ++i) {
+        dst_h[i] = ::executorch::aten::Half(src[i]);
+      }
+    } else if (audio_dtype == ::executorch::aten::ScalarType::Half &&
+               embeds_dtype == ::executorch::aten::ScalarType::Float) {
+      const auto *src = audio_tensor.const_data_ptr<::executorch::aten::Half>();
+      auto *dst_f = reinterpret_cast<float *>(dst);
+      for (size_t i = 0; i < audio_elems; ++i) {
+        dst_f[i] = static_cast<float>(src[i]);
+      }
+    } else {
+      ET_CHECK_OR_RETURN_ERROR(
+          false, InvalidState,
+          "unsupported audio/text dtype pair: audio=%hhd text=%hhd",
+          static_cast<int8_t>(audio_dtype), static_cast<int8_t>(embeds_dtype));
+    }
   }
 
   // ------------------------------------------------------------
@@ -212,7 +325,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   // ------------------------------------------------------------
   auto embeds_tensor = ::executorch::extension::from_blob(
       embeds_buf.data(), {1, static_cast<SizesType>(total_len), hidden},
-      ::executorch::aten::ScalarType::Float);
+      embeds_dtype);
 
   TensorPtr ple_tok_tensor;
   if (uses_ple) {
@@ -256,12 +369,12 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   const long sample_ms = t_logits_end - t_textdec_end;
   const long overhead_ms =
       prefill_total - tokembed_ms - vision_total_ms - textdec_ms - sample_ms;
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "prefill splits ms: total=", prefill_total,
-                    " token_embed=", tokembed_ms, " vision(x", vision_calls,
-                    ")=", vision_total_ms, " text_decoder=", textdec_ms,
-                    " logits->token=", sample_ms, " overhead=", overhead_ms,
-                    " total_len=", total_len);
+  rnexecutorch::log(
+      rnexecutorch::LOG_LEVEL::Info, "prefill splits ms: total=", prefill_total,
+      " token_embed=", tokembed_ms, " vision(x", vision_calls,
+      ")=", vision_total_ms, " audio(x", audio_calls, ")=", audio_encode_ms,
+      " text_decoder=", textdec_ms, " logits->token=", sample_ms,
+      " overhead=", overhead_ms, " total_len=", total_len);
 
   return static_cast<uint64_t>(decoder_runner_->logits_to_token(logits));
 }
@@ -281,6 +394,9 @@ Error MultimodalPrefiller::load() {
   if (methods.find(kVisionEncoderMethod) != methods.end()) {
     ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method(kVisionEncoderMethod));
   }
+  if (methods.find(kAudioEncoderMethod) != methods.end()) {
+    ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method(kAudioEncoderMethod));
+  }
   return Error::Ok;
 }
 
@@ -294,8 +410,13 @@ bool MultimodalPrefiller::is_method_loaded() {
     return false;
   }
   const auto &methods = *methods_res;
-  if (methods.find(kVisionEncoderMethod) != methods.end()) {
-    return module_->is_method_loaded(kVisionEncoderMethod);
+  if (methods.find(kVisionEncoderMethod) != methods.end() &&
+      !module_->is_method_loaded(kVisionEncoderMethod)) {
+    return false;
+  }
+  if (methods.find(kAudioEncoderMethod) != methods.end() &&
+      !module_->is_method_loaded(kAudioEncoderMethod)) {
+    return false;
   }
   return true;
 }

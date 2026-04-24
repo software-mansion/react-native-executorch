@@ -106,7 +106,10 @@ export function useLLM({
   );
 
   const sendMessage = useCallback(
-    (message: string, media?: { imagePath?: string }) => {
+    (
+      message: string,
+      media?: { imagePath?: string; audioBuffer?: Float32Array }
+    ) => {
       setResponse('');
       return controllerInstance.sendMessage(message, media);
     },

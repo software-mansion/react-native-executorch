@@ -57,6 +57,7 @@ export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
   { label: 'Qwen3 0.6B', value: QWEN3_0_6B },
   { label: 'Qwen3 0.6B Quantized', value: QWEN3_0_6B_QUANTIZED },
   { label: 'Qwen3 1.7B', value: QWEN3_1_7B },
+  { label: 'Gemma4 e2b Quantized', value: GEMMA4_E2B_QUANTIZED },
   { label: 'Qwen3 1.7B Quantized', value: QWEN3_1_7B_QUANTIZED },
   { label: 'Qwen3 4B', value: QWEN3_4B },
   { label: 'Qwen3 4B Quantized', value: QWEN3_4B_QUANTIZED },

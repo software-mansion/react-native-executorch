@@ -168,6 +168,11 @@ public:
 
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
+          promiseHostFunction<&Model::generateMultimodalWithAudio>,
+          "generateMultimodalWithAudio"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
           synchronousHostFunction<&Model::getVisualTokenCount>,
           "getVisualTokenCount"));
     }

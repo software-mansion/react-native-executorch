@@ -12,6 +12,11 @@ import {
   View,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import {
+  AudioManager,
+  AudioRecorder,
+  AudioContext,
+} from 'react-native-audio-api';
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
@@ -46,7 +51,15 @@ function MultimodalLLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  // Added error state
+  const [audioBuffer, setAudioBuffer] = useState<Float32Array | null>(null);
+  const [audioLabel, setAudioLabel] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState('');
+  const [isFetchingAudio, setIsFetchingAudio] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [hasMicPermission, setHasMicPermission] = useState(false);
+  const recorder = useRef(new AudioRecorder());
+  const recordChunks = useRef<Float32Array[]>([]);
+
   const [error, setError] = useState<string | null>(null);
 
   const vlm = useLLM({
@@ -68,6 +81,87 @@ function MultimodalLLMScreen() {
     if (vlm.error) setError(String(vlm.error));
   }, [vlm.error]);
 
+  useEffect(() => {
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
+    });
+    (async () => {
+      const status = await AudioManager.requestRecordingPermissions();
+      setHasMicPermission(status === 'Granted');
+    })();
+  }, []);
+
+  const loadAudioFromUrl = async () => {
+    const url = audioUrl.trim();
+    if (!url) return;
+    setIsFetchingAudio(true);
+    try {
+      const ctx = new AudioContext({ sampleRate: 16000 });
+      const decoded = await ctx.decodeAudioData(url);
+      const pcm = decoded.getChannelData(0);
+      const name = url.split('/').pop() || 'audio';
+      setAudioBuffer(pcm);
+      setAudioLabel(`${name} · ${(pcm.length / 16000).toFixed(1)}s`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setIsFetchingAudio(false);
+    }
+  };
+
+  const startRecording = async () => {
+    if (!hasMicPermission) {
+      setError('Microphone permission denied. Please enable it in Settings.');
+      return;
+    }
+    recordChunks.current = [];
+    const sampleRate = 16000;
+    recorder.current.onAudioReady(
+      { sampleRate, bufferLength: 0.1 * sampleRate, channelCount: 1 },
+      ({ buffer }) => {
+        recordChunks.current.push(new Float32Array(buffer.getChannelData(0)));
+      }
+    );
+    try {
+      const ok = await AudioManager.setAudioSessionActivity(true);
+      if (!ok) {
+        setError('Cannot start audio session');
+        return;
+      }
+      const result = recorder.current.start();
+      if (result.status === 'error') {
+        setError(`Recording problems: ${result.message}`);
+        return;
+      }
+      setIsRecording(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const stopRecording = () => {
+    recorder.current.stop();
+    setIsRecording(false);
+    const total = recordChunks.current.reduce((n, c) => n + c.length, 0);
+    if (total === 0) return;
+    const pcm = new Float32Array(total);
+    let off = 0;
+    for (const c of recordChunks.current) {
+      pcm.set(c, off);
+      off += c.length;
+    }
+    recordChunks.current = [];
+    setAudioBuffer(pcm);
+    setAudioLabel(`Recording · ${(pcm.length / 16000).toFixed(1)}s`);
+  };
+
+  const clearAudio = () => {
+    setAudioBuffer(null);
+    setAudioLabel(null);
+  };
+
   const pickImage = async () => {
     try {
       const result = await launchImageLibrary({ mediaType: 'photo' });
@@ -88,12 +182,19 @@ function MultimodalLLMScreen() {
     textInputRef.current?.clear();
     Keyboard.dismiss();
     const currentImageUri = imageUri;
+    const currentAudio = audioBuffer;
     setImageUri(null);
+    setAudioBuffer(null);
+    setAudioLabel(null);
     try {
-      await vlm.sendMessage(
-        text,
-        currentImageUri ? { imagePath: currentImageUri } : undefined
-      );
+      const media =
+        currentImageUri || currentAudio
+          ? {
+              ...(currentImageUri ? { imagePath: currentImageUri } : {}),
+              ...(currentAudio ? { audioBuffer: currentAudio } : {}),
+            }
+          : undefined;
+      await vlm.sendMessage(text, media);
     } catch (e) {
       // Updated to set UI error instead of just console.error
       setError(e instanceof Error ? e.message : String(e));
@@ -159,6 +260,42 @@ function MultimodalLLMScreen() {
             </TouchableOpacity>
           )}
 
+          {/* Audio URL input */}
+          <View style={styles.audioUrlRow}>
+            <TextInput
+              placeholder="Audio URL (mp3/wav/…)"
+              placeholderTextColor="#C1C6E5"
+              style={styles.audioUrlInput}
+              value={audioUrl}
+              onChangeText={setAudioUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={[
+                styles.audioUrlButton,
+                (!audioUrl.trim() || isFetchingAudio || vlm.isGenerating) &&
+                  styles.disabled,
+              ]}
+              onPress={loadAudioFromUrl}
+              disabled={!audioUrl.trim() || isFetchingAudio || vlm.isGenerating}
+            >
+              <Text style={styles.audioUrlButtonText}>
+                {isFetchingAudio ? '…' : 'Load'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Audio attachment strip */}
+          {audioLabel && (
+            <View style={styles.audioAttachmentContainer}>
+              <Text style={styles.audioAttachmentText}>🎵 {audioLabel}</Text>
+              <TouchableOpacity onPress={clearAudio}>
+                <Text style={styles.audioAttachmentClear}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <StatsBar stats={stats} />
           <View
             style={[
@@ -176,6 +313,17 @@ function MultimodalLLMScreen() {
               disabled={vlm.isGenerating}
             >
               <Text style={styles.imageButtonText}>📷</Text>
+            </TouchableOpacity>
+
+            {/* Mic record / stop button */}
+            <TouchableOpacity
+              style={styles.imageButton}
+              onPress={isRecording ? stopRecording : startRecording}
+              disabled={vlm.isGenerating}
+            >
+              <Text style={styles.imageButtonText}>
+                {isRecording ? '⏹️' : '🎤'}
+              </Text>
             </TouchableOpacity>
 
             <TextInput
@@ -318,6 +466,64 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'regular',
     color: ColorPalette.blueDark,
+  },
+  audioAttachmentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginHorizontal: 16,
+    marginBottom: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: ColorPalette.blueLight,
+    backgroundColor: '#fafbff',
+  },
+  audioAttachmentText: {
+    fontSize: 13,
+    fontFamily: 'regular',
+    color: ColorPalette.blueDark,
+  },
+  audioAttachmentClear: {
+    fontSize: 16,
+    color: ColorPalette.blueDark,
+    paddingHorizontal: 8,
+  },
+  audioUrlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 4,
+  },
+  audioUrlInput: {
+    flex: 1,
+    padding: 10,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderWidth: 1,
+    borderColor: ColorPalette.blueLight,
+    borderRightWidth: 0,
+    fontFamily: 'regular',
+    fontSize: 13,
+    color: ColorPalette.primary,
+  },
+  audioUrlButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: ColorPalette.strongPrimary,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  audioUrlButtonText: {
+    color: '#fff',
+    fontFamily: 'medium',
+    fontSize: 13,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   bottomContainer: {
     height: 100,

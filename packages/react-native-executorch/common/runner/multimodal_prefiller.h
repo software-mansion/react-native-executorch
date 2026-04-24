@@ -23,7 +23,8 @@ public:
   explicit MultimodalPrefiller(Module &module,
                                MultimodalDecoderRunner &decoder_runner,
                                tokenizers::HFTokenizer &tokenizer,
-                               IEncoder *image_encoder = nullptr);
+                               IEncoder *image_encoder = nullptr,
+                               IEncoder *audio_encoder = nullptr);
 
   // Single-shot prefill: fuses all inputs into one token_embedding call and
   // one text_decoder call. Image slots are filled with pad_token_id=0 (HF
@@ -41,6 +42,7 @@ private:
   MultimodalDecoderRunner *decoder_runner_;
   tokenizers::HFTokenizer *tokenizer_;
   IEncoder *image_encoder_;
+  IEncoder *audio_encoder_;
 };
 
 } // namespace executorch::extension::llm

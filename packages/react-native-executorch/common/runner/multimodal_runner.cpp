@@ -57,8 +57,13 @@ Error MultimodalRunner::load_subcomponents() {
   if (enc_it != encoders_.end()) {
     image_encoder = enc_it->second.get();
   }
+  IEncoder *audio_encoder = nullptr;
+  auto aud_it = encoders_.find(MultimodalType::Audio);
+  if (aud_it != encoders_.end()) {
+    audio_encoder = aud_it->second.get();
+  }
   mm_prefiller_ = std::make_unique<MultimodalPrefiller>(
-      *module_, *mm_decoder_runner_, *tokenizer_, image_encoder);
+      *module_, *mm_decoder_runner_, *tokenizer_, image_encoder, audio_encoder);
   mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids_), stats_ptr, config_);
