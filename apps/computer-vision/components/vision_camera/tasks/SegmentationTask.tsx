@@ -21,7 +21,7 @@ import {
   SkImage,
 } from '@shopify/react-native-skia';
 import { CLASS_COLORS } from '../../utils/colors';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type SegModelId =
   | 'segmentationDeeplabResnet50'
@@ -142,6 +142,7 @@ export default function SegmentationTask({
   const colors = CLASS_COLORS;
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,

@@ -12,7 +12,7 @@ import {
 } from 'react-native-executorch';
 import { Canvas, Image as SkiaImage } from '@shopify/react-native-skia';
 import { labelColor, labelColorBg } from '../../utils/colors';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 import {
   buildDisplayInstances,
   DisplayInstance,
@@ -99,6 +99,7 @@ export default function InstanceSegmentationTask({
   );
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,
