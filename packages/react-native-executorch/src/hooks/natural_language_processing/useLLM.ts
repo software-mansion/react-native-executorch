@@ -62,6 +62,7 @@ export function useLLM({
           tokenizerSource: model.tokenizerSource,
           tokenizerConfigSource: model.tokenizerConfigSource!,
           capabilities: model.capabilities,
+          defaultGenerationConfig: model.generationConfig,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {

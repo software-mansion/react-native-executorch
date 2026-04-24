@@ -87,6 +87,13 @@ export interface LLMProps {
      * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
      */
     capabilities?: readonly LLMCapability[];
+    /**
+     * Recommended default generation settings, typically copied from the
+     * upstream `generation_config.json` or the model card. Applied automatically
+     * after the native module loads and before any user `configure()` call,
+     * so callers only need to override the values they want to change.
+     */
+    generationConfig?: GenerationConfig;
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

@@ -76,12 +76,14 @@ export class LLMController {
     tokenizerSource,
     tokenizerConfigSource,
     capabilities,
+    defaultGenerationConfig,
     onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
     capabilities?: readonly LLMCapability[];
+    defaultGenerationConfig?: GenerationConfig;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -130,6 +132,12 @@ export class LLMController {
         tokenizerPath,
         capabilities ?? []
       );
+      if (defaultGenerationConfig) {
+        // Apply model-specific recommended sampling defaults before flipping
+        // isReady so callers that react to it see the right config on first
+        // send. User-provided `configure()` calls still override these.
+        this.applyGenerationConfig(defaultGenerationConfig);
+      }
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -166,16 +174,26 @@ export class LLMController {
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
     this.toolsConfig = toolsConfig;
 
-    if (generationConfig?.outputTokenBatchSize) {
+    if (generationConfig) {
+      this.applyGenerationConfig(generationConfig);
+    }
+
+    // reset inner state when loading new configuration
+    this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
+    this.isGeneratingCallback(false);
+  }
+
+  private applyGenerationConfig(generationConfig: GenerationConfig) {
+    if (generationConfig.outputTokenBatchSize) {
       this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
     }
-    if (generationConfig?.batchTimeInterval) {
+    if (generationConfig.batchTimeInterval) {
       this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
     }
-    if (generationConfig?.temperature) {
+    if (generationConfig.temperature !== undefined) {
       this.nativeModule.setTemperature(generationConfig.temperature);
     }
-    if (generationConfig?.topp) {
+    if (generationConfig.topp !== undefined) {
       if (generationConfig.topp < 0 || generationConfig.topp > 1) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.InvalidConfig,
@@ -184,10 +202,26 @@ export class LLMController {
       }
       this.nativeModule.setTopp(generationConfig.topp);
     }
-
-    // reset inner state when loading new configuration
-    this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
-    this.isGeneratingCallback(false);
+    if (generationConfig.minP !== undefined) {
+      if (generationConfig.minP < 0 || generationConfig.minP > 1) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Min P has to be in range [0, 1]'
+        );
+      }
+      this.nativeModule.setMinP(generationConfig.minP);
+    }
+    if (generationConfig.repetitionPenalty !== undefined) {
+      if (generationConfig.repetitionPenalty < 0) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Repetition penalty must be non-negative'
+        );
+      }
+      this.nativeModule.setRepetitionPenalty(
+        generationConfig.repetitionPenalty
+      );
+    }
   }
 
   private getImageToken(): string {
