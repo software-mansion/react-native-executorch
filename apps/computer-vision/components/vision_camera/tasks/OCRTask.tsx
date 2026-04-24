@@ -4,7 +4,7 @@ import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
 import Svg, { Polygon, Text as SvgText } from 'react-native-svg';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type Props = Omit<TaskProps, 'activeModel'>;
 
@@ -55,6 +55,7 @@ export default function OCRTask({
   );
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,

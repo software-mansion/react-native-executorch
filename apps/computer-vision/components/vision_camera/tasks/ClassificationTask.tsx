@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import { EFFICIENTNET_V2_S, useClassification } from 'react-native-executorch';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type Props = Omit<
   TaskProps,
@@ -53,6 +53,7 @@ export default function ClassificationTask({
   );
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,

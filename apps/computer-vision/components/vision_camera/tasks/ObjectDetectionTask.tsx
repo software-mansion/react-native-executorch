@@ -12,7 +12,7 @@ import {
   CocoLabelYolo,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type ObjModelId =
   | 'objectDetectionSsdlite'
@@ -101,6 +101,7 @@ export default function ObjectDetectionTask({
   );
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,

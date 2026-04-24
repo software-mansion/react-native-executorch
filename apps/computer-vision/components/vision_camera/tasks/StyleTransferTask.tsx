@@ -15,7 +15,7 @@ import {
   Skia,
   SkImage,
 } from '@shopify/react-native-skia';
-import { TaskProps } from './types';
+import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type StyleModelId = 'styleTransferCandy' | 'styleTransferMosaic';
 
@@ -96,6 +96,7 @@ export default function StyleTransferTask({
   );
 
   const frameOutput = useFrameOutput({
+    targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     enablePreviewSizedOutputBuffers: true,

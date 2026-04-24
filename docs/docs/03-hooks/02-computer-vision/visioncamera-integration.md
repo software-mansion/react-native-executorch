@@ -2,13 +2,13 @@
 title: VisionCamera Integration
 ---
 
-React Native ExecuTorch vision models support real-time frame processing via [VisionCamera v5](https://react-native-vision-camera-v5-docs.vercel.app) using the `runOnFrame` worklet. This page explains how to set it up and what to watch out for.
+React Native ExecuTorch vision models support real-time frame processing via [VisionCamera v5](https://visioncamera.margelo.com) using the `runOnFrame` worklet. This page explains how to set it up and what to watch out for.
 
 ## Prerequisites
 
 Make sure you have the following packages installed:
 
-- [`react-native-vision-camera`](https://react-native-vision-camera-v5-docs.vercel.app) v5
+- [`react-native-vision-camera`](https://visioncamera.margelo.com) v5
 - [`react-native-worklets`](https://docs.swmansion.com/react-native-worklets/)
 
 ## Which models support runOnFrame?
@@ -37,14 +37,14 @@ Use `runOnFrame` when you need to process every camera frame. Use `forward` for 
 
 ## How it works
 
-VisionCamera v5 delivers frames via [`useFrameOutput`](https://react-native-vision-camera-v5-docs.vercel.app/docs/frame-output). Inside the `onFrame` worklet you call `runOnFrame(frame, isFrontCamera)` synchronously, then use `scheduleOnRN` from `react-native-worklets` to post the result back to React state on the main thread.
+VisionCamera v5 delivers frames via [`useFrameOutput`](https://visioncamera.margelo.com/docs/frame-output). Inside the `onFrame` worklet you call `runOnFrame(frame, isFrontCamera)` synchronously, then use `scheduleOnRN` from `react-native-worklets` to post the result back to React state on the main thread.
 
 The `isFrontCamera` parameter tells the native side whether the front camera is active so it can correctly mirror the results. The library handles all device orientation rotation internally — results are always returned in screen-space coordinates regardless of how the user holds their device.
 
 :::warning
 
 - You **must** set `pixelFormat: 'rgb'` in `useFrameOutput`. Our extraction pipeline expects RGB pixel data — any other format (e.g. the default `yuv`) will produce incorrect results.
-- `runOnFrame` is synchronous and runs on the JS worklet thread. For models with longer inference times, use `dropFramesWhileBusy: true` to skip frames and avoid blocking the camera pipeline. For more control, see VisionCamera's [async frame processing guide](https://react-native-vision-camera-v5-docs.vercel.app/docs/async-frame-processing).
+- `runOnFrame` is synchronous and runs on the JS worklet thread. For models with longer inference times, use `dropFramesWhileBusy: true` to skip frames and avoid blocking the camera pipeline. For more control, see VisionCamera's [async frame processing guide](https://visioncamera.margelo.com/docs/async-frame-processing).
 - Always call `frame.dispose()` after processing to release the frame buffer. Wrap your inference in a `try/finally` to ensure it's always called even if `runOnFrame` throws.
   :::
 
@@ -304,7 +304,7 @@ You are not passing `isFrontCamera: true` when using the front camera. See [Hand
 
 #### App freezes or camera drops frames
 
-Your model's inference time exceeds the frame interval. Enable `dropFramesWhileBusy: true` in `useFrameOutput`, or move inference off the worklet thread using VisionCamera's [async frame processing](https://react-native-vision-camera-v5-docs.vercel.app/docs/async-frame-processing).
+Your model's inference time exceeds the frame interval. Enable `dropFramesWhileBusy: true` in `useFrameOutput`, or move inference off the worklet thread using VisionCamera's [async frame processing](https://visioncamera.margelo.com/docs/async-frame-processing).
 
 #### Memory leak / crash after many frames
 
