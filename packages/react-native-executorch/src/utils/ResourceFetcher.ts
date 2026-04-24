@@ -1,29 +1,3 @@
-/**
- * Resource Fetcher
- *
- * Static entry point that delegates resource operations to a configured
- * `ResourceFetcherAdapter`. The adapter is registered for you when you call
- * `initExecutorch({ resourceFetcher })` from one of the platform packages:
- *
- * - `react-native-executorch-expo-resource-fetcher` (Expo apps)
- * - `react-native-executorch-bare-resource-fetcher` (bare React Native)
- *
- * Methods on this class:
- * - `setAdapter` / `resetAdapter` / `getAdapter` — adapter lifecycle. Usually
- *   handled by `initExecutorch`, not called directly by application code.
- * - `fetch(callback, ...sources)` — delegates to the adapter's `fetch` and
- *   additionally fires HuggingFace download counters for known model URLs.
- * - `fs.readAsString(path)` — delegates to the adapter for reading config
- *   files as text.
- *
- * Storage-management utilities such as `pauseFetching`, `resumeFetching`,
- * `cancelFetching`, `getFilesTotalSize`, `listDownloadedFiles`,
- * `listDownloadedModels`, and `deleteResources` are NOT methods on this
- * class. They live on the concrete adapter implementations
- * (`ExpoResourceFetcher`, `BareResourceFetcher`); use the adapter directly
- * if you need them.
- */
-
 import { ResourceSource } from '../types/common';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
