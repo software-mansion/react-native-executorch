@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -11,6 +17,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import {
   Camera,
+  getCameraFormat,
+  Templates,
   useCameraDevices,
   useCameraPermission,
   useFrameOutput,
@@ -139,6 +147,15 @@ export default function VisionCameraScreen() {
   const devices = useCameraDevices();
   const device =
     devices.find((d) => d.position === cameraPosition) ?? devices[0];
+  const format = useMemo(() => {
+    if (device == null) return undefined;
+    try {
+      return getCameraFormat(device, { ...Templates.FrameProcessing });
+    } catch {
+      return undefined;
+    }
+  }, [device]);
+
   useEffect(() => {
     frameKillSwitch.setBlocking(true);
     setError(null);
@@ -221,6 +238,7 @@ export default function VisionCameraScreen() {
         device={device}
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
+        format={format}
         orientationSource="device"
       />
 
