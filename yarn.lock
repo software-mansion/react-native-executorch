@@ -850,7 +850,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-class-properties@npm:^7.25.4, @babel/plugin-transform-class-properties@npm:^7.28.6":
+"@babel/plugin-transform-class-properties@npm:^7.25.4, @babel/plugin-transform-class-properties@npm:^7.27.1, @babel/plugin-transform-class-properties@npm:^7.28.6":
   version: 7.28.6
   resolution: "@babel/plugin-transform-class-properties@npm:7.28.6"
   dependencies:
@@ -890,7 +890,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-classes@npm:^7.0.0, @babel/plugin-transform-classes@npm:^7.25.4, @babel/plugin-transform-classes@npm:^7.28.6":
+"@babel/plugin-transform-classes@npm:^7.0.0, @babel/plugin-transform-classes@npm:^7.25.4, @babel/plugin-transform-classes@npm:^7.28.4, @babel/plugin-transform-classes@npm:^7.28.6":
   version: 7.28.6
   resolution: "@babel/plugin-transform-classes@npm:7.28.6"
   dependencies:
@@ -1175,7 +1175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/plugin-transform-nullish-coalescing-operator@npm:^7.24.7, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.28.6":
+"@babel/plugin-transform-nullish-coalescing-operator@npm:^7.24.7, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.27.1, @babel/plugin-transform-nullish-coalescing-operator@npm:^7.28.6":
   version: 7.28.6
   resolution: "@babel/plugin-transform-nullish-coalescing-operator@npm:7.28.6"
   dependencies:
@@ -1680,7 +1680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.24.7":
+"@babel/preset-typescript@npm:^7.23.0, @babel/preset-typescript@npm:^7.24.7, @babel/preset-typescript@npm:^7.27.1":
   version: 7.28.5
   resolution: "@babel/preset-typescript@npm:7.28.5"
   dependencies:
@@ -7271,16 +7271,16 @@ __metadata:
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-image-picker: "npm:^7.2.2"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
-    react-native-nitro-image: "npm:0.13.0"
-    react-native-nitro-modules: "npm:0.35.2"
-    react-native-reanimated: "npm:~4.2.2"
+    react-native-nitro-image: "npm:0.13.1"
+    react-native-nitro-modules: "npm:0.35.4"
+    react-native-reanimated: "npm:4.3.0"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:^5.0.4"
-    react-native-vision-camera-worklets: "npm:^5.0.4"
-    react-native-worklets: "npm:0.7.4"
+    react-native-vision-camera: "npm:^5.0.6"
+    react-native-vision-camera-worklets: "npm:^5.0.6"
+    react-native-worklets: "npm:0.8.1"
   languageName: unknown
   linkType: soft
 
@@ -14578,6 +14578,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-is-edge-to-edge@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "react-native-is-edge-to-edge@npm:1.3.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/dc82d54e0bf8f89208a538bb0d14e4891af6efae27ed5b7b21be683a72c38c5219ab9be1ea9bd40aa1c905d481174e649d0b71aeceaa9946e6c707f251568282
+  languageName: node
+  linkType: hard
+
 "react-native-loading-spinner-overlay@npm:^3.0.1":
   version: 3.0.1
   resolution: "react-native-loading-spinner-overlay@npm:3.0.1"
@@ -14613,24 +14623,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-image@npm:0.13.0":
-  version: 0.13.0
-  resolution: "react-native-nitro-image@npm:0.13.0"
+"react-native-nitro-image@npm:0.13.1":
+  version: 0.13.1
+  resolution: "react-native-nitro-image@npm:0.13.1"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/77f04e0c262fed839aa16276a31cce6d6969788d2aada55594fd083959dec9e00bd75f7bd8333cc59f3768bf329592736da60688e827a8d25d18de8bbda9b2d7
+  checksum: 10/1b922566a01a59f164c061875edd9751e3e6694e621424c512f8776b40c3463c4e4fe4121932f9b1f610d20ac2cea51c07a8884a2b2ba4d33c3ea7b595c586e1
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:0.35.2":
-  version: 0.35.2
-  resolution: "react-native-nitro-modules@npm:0.35.2"
+"react-native-nitro-modules@npm:0.35.4":
+  version: 0.35.4
+  resolution: "react-native-nitro-modules@npm:0.35.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/22977e5e22c63fb91526c90fa59fcfe5c7f97978c583400f433a1d3ef8ee32fbceb0ad1b009b5bf0d1794e94a11716ad752fd7702c2d67fc808a0256c6e35488
+  checksum: 10/2672ab29e8b7abb38ccf799b96b54dd9fa112b398a112c272f5a67adbf0415908e4565bc7782571ce06cf5fdd4a6d04f49a127d66acae4cedc5f41d385323ede
+  languageName: node
+  linkType: hard
+
+"react-native-reanimated@npm:4.3.0":
+  version: 4.3.0
+  resolution: "react-native-reanimated@npm:4.3.0"
+  dependencies:
+    react-native-is-edge-to-edge: "npm:^1.3.1"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: 0.81 - 0.85
+    react-native-worklets: 0.8.x
+  checksum: 10/f65cdf9d89e140cf66a8a8acca8c43903ea0f1a8a67761481b4a96dffd9571a4adc0a4b0f53c16343907b1036e6276c386e2ec8d23324e1b05d53031f34b23b3
   languageName: node
   linkType: hard
 
@@ -14726,28 +14750,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera-worklets@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "react-native-vision-camera-worklets@npm:5.0.4"
+"react-native-vision-camera-worklets@npm:^5.0.6":
+  version: 5.0.6
+  resolution: "react-native-vision-camera-worklets@npm:5.0.6"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: "*"
     react-native-vision-camera: "*"
     react-native-worklets: "*"
-  checksum: 10/80e312837f86bddc70f97998447ca4b93d3636dffcdacb9dfa6bf7f9f02f146e8a54605f6cb01a0aa9e5a46cd8034d82e5f4eb1d07b1f5064162fe4df3d17812
+  checksum: 10/d418740db5ea0a8a50969a04f31d9049bfcab71cda642db0e7629370adc226f76f9283ef4cfd4dd6965231570905751336acf5c793a5793b46a7e4ffcf8f28ed
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "react-native-vision-camera@npm:5.0.4"
+"react-native-vision-camera@npm:^5.0.6":
+  version: 5.0.6
+  resolution: "react-native-vision-camera@npm:5.0.6"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/fb4cb24e4d1a6c991fb07c75bdf3bd375d3eba96821e9196eb2337a9cb8e3721002bf6cb888002e754b21414555dff5a897dad8851ffb8cc20a50703975e4ef4
+  checksum: 10/03a3e853ad4771dca7e6fff03c858b0eab80d07ef200f42431f9176671b5c63acbb40c9b795899cf99a07d71df0ffd90121f7b7c80f305c772121bdb51752db9
   languageName: node
   linkType: hard
 
@@ -14771,6 +14795,30 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/922b209940e298d21313d22f8a6eb87ad603442850c7ff8bc9cfef694cb211d7ec9903e24ee20b6bcf6164f8e7c165b65307dcca3d67465fdffda1c45fe05d1d
+  languageName: node
+  linkType: hard
+
+"react-native-worklets@npm:0.8.1":
+  version: 0.8.1
+  resolution: "react-native-worklets@npm:0.8.1"
+  dependencies:
+    "@babel/plugin-transform-arrow-functions": "npm:^7.27.1"
+    "@babel/plugin-transform-class-properties": "npm:^7.27.1"
+    "@babel/plugin-transform-classes": "npm:^7.28.4"
+    "@babel/plugin-transform-nullish-coalescing-operator": "npm:^7.27.1"
+    "@babel/plugin-transform-optional-chaining": "npm:^7.27.1"
+    "@babel/plugin-transform-shorthand-properties": "npm:^7.27.1"
+    "@babel/plugin-transform-template-literals": "npm:^7.27.1"
+    "@babel/plugin-transform-unicode-regex": "npm:^7.27.1"
+    "@babel/preset-typescript": "npm:^7.27.1"
+    convert-source-map: "npm:^2.0.0"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    "@babel/core": "*"
+    "@react-native/metro-config": "*"
+    react: "*"
+    react-native: 0.81 - 0.85
+  checksum: 10/4d01fc18a51c68cae24a928604c2bed62eef3b9521d21a7cbcadf92b141c4f73730917782824acd80e62e86e4bbfe5c850362b8c154103abe2c2f2ab6d2416b4
   languageName: node
   linkType: hard
 
