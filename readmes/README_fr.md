@@ -45,7 +45,7 @@ React Native ExecuTorch comble le fossé entre React Native et les capacités na
 
 - [Versions supportées](#versions-support%C3%A9es)
 - [Exemple du monde réel](#exemple-du-monde-r%C3%A9el)
-- [Démarrage rapide - Exécution de Llama](#d%C3%A9marrage-rapide---ex%C3%A9cution-de-llama)
+- [Démarrage rapide - Exécution de LFM2.5](#d%C3%A9marrage-rapide---ex%C3%A9cution-de-lfm25)
 - [Applications de démonstration](#applications-de-d%C3%A9monstration)
 - [Modèles prêts à l'emploi](#mod%C3%A8les-pr%C3%AAts-%C3%A0-lemploi)
 - [Documentation](#documentation)
@@ -71,7 +71,7 @@ React Native ExecuTorch alimente [Private Mind](https://privatemind.swmansion.co
 
 <img width="2720" height="1085" alt="Promo Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## Démarrage rapide - Exécution de Llama
+## Démarrage rapide - Exécution de LFM2.5
 
 **Commencez avec la génération de texte AI en 3 étapes faciles !**
 
@@ -100,7 +100,7 @@ Ajoutez ceci à votre fichier de composant :
 ```tsx
 import {
   useLLM,
-  LLAMA3_2_1B,
+  LFM2_5_1_2B_INSTRUCT,
   Message,
   initExecutorch,
 } from 'react-native-executorch';
@@ -112,7 +112,7 @@ initExecutorch({
 
 function MyComponent() {
   // Initialisez le modèle 🚀
-  const llm = useLLM({ model: LLAMA3_2_1B });
+  const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
   // ... reste de votre composant
 }
 ```
@@ -128,7 +128,7 @@ const handleGenerate = async () => {
 
   // Complétion de chat
   await llm.generate(chat);
-  console.log('Llama dit :', llm.response);
+  console.log('LFM2.5 dit :', llm.response);
 };
 ```
 

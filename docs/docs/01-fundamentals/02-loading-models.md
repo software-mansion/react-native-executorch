@@ -50,7 +50,7 @@ initExecutorch({
 
 ```typescript
 useExecutorchModule({
-  modelSource: require('../assets/llama3_2.pte'),
+  modelSource: require('../assets/lfm2_5.pte'),
 });
 ```
 
@@ -60,7 +60,7 @@ For files larger than 512MB or when you want to keep size of the app smaller, yo
 
 ```typescript
 useExecutorchModule({
-  modelSource: 'https://.../llama3_2.pte',
+  modelSource: 'https://.../lfm2_5.pte',
 });
 ```
 
@@ -70,7 +70,7 @@ If you prefer to delegate the process of obtaining and loading model and tokeniz
 
 ```typescript
 useExecutorchModule({
-  modelSource: 'file:///var/mobile/.../llama3_2.pte',
+  modelSource: 'file:///var/mobile/.../lfm2_5.pte',
 });
 ```
 
@@ -87,7 +87,7 @@ Our library offers out-of-the-box support for multiple models. To make things ea
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:
 
 ```typescript
-import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
+import { useLLM, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
 
-const llama = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 ```

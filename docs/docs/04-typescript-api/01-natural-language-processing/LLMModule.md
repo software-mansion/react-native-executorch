@@ -13,11 +13,11 @@ TypeScript API implementation of the [useLLM](../../03-hooks/01-natural-language
 ## High Level Overview
 
 ```typescript
-import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
+import { LLMModule, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
 
 // Creating an instance and loading the model
 const llm = await LLMModule.fromModelName(
-  LLAMA3_2_1B_QLORA,
+  LFM2_5_1_2B_INSTRUCT,
   (progress) => console.log(progress),
   (token) => console.log(token),
   (messages) => console.log(messages)
@@ -44,14 +44,14 @@ Use the static [`fromModelName`](../../06-api-reference/classes/LLMModule.md#fro
 
 ```typescript
 const llm = await LLMModule.fromModelName(
-  LLAMA3_2_3B, // model config constant
+  LFM2_5_1_2B_INSTRUCT, // model config constant
   onDownloadProgress, // optional, progress 0–1
   tokenCallback, // optional, called on every token
   messageHistoryCallback // optional, called when generation finishes
 );
 ```
 
-The model config object contains `modelSource`, `tokenizerSource`, `tokenizerConfigSource`, and optional `capabilities`. Pass one of the built-in constants (e.g. `LLAMA3_2_3B`) or construct it manually.
+The model config object contains `modelSource`, `tokenizerSource`, `tokenizerConfigSource`, and optional `capabilities`. Pass one of the built-in constants (e.g. `LFM2_5_1_2B_INSTRUCT`) or construct it manually.
 
 This method returns a promise resolving to an `LLMModule` instance.
 

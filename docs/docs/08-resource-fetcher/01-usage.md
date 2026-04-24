@@ -25,8 +25,8 @@ import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetch
 
 const uris = await ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 ```
 
@@ -61,15 +61,15 @@ import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetch
 
 const uris = ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 ).then((uris) => {
   console.log('URI resolved to: ', uris); // null, since we paused
 });
 
 await ExpoResourceFetcher.pauseFetching(
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 ```
 
@@ -96,20 +96,20 @@ import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetch
 
 const uris = ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 ).then((uris) => {
   console.log('URI resolved as: ', uris); // null, since we paused
 });
 
 await ExpoResourceFetcher.pauseFetching(
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 
 const resolvedUris = await ExpoResourceFetcher.resumeFetching(
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 // resolvedUris resolves to file paths, unless paused/cancelled again
 ```
@@ -140,15 +140,15 @@ import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetch
 
 const uris = ExpoResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 ).then((uris) => {
   console.log('URI resolved as: ', uris); // null, since we cancelled
 });
 
 await ExpoResourceFetcher.cancelFetching(
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 ```
 
@@ -169,7 +169,7 @@ Deletes downloaded resources from the local filesystem.
 ```typescript
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
-await ExpoResourceFetcher.deleteResources('https://.../llama3_2.pte');
+await ExpoResourceFetcher.deleteResources('https://.../lfm2_5.pte');
 ```
 
 ### Parameters
@@ -190,8 +190,8 @@ Fetches the combined size of remote files. Works only for remote URLs.
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
 const totalSize = await ExpoResourceFetcher.getFilesTotalSize(
-  'https://.../llama3_2.pte',
-  'https://.../qwen3.pte'
+  'https://.../lfm2_5.pte',
+  'https://.../tokenizer.json'
 );
 ```
 

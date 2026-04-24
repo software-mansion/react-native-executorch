@@ -45,7 +45,7 @@ React Native ExecuTorch faz a ponte entre React Native e as capacidades das plat
 
 - [Versões Suportadas](#vers%C3%B5es-suportadas)
 - [Exemplo do Mundo Real](#exemplo-do-mundo-real)
-- [Guia Rápido - Executando Llama](#guia-r%C3%A1pido---executando-llama)
+- [Guia Rápido - Executando LFM2.5](#guia-r%C3%A1pido---executando-lfm25)
 - [Apps de Demonstração](#apps-de-demonstra%C3%A7%C3%A3o)
 - [Modelos Prontos para Uso](#modelos-prontos-para-uso)
 - [Documentação](#documenta%C3%A7%C3%A3o)
@@ -71,7 +71,7 @@ React Native ExecuTorch está impulsionando o [Private Mind](https://privatemind
 
 <img width="2720" height="1085" alt="Promoção do Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## Guia Rápido - Executando Llama
+## Guia Rápido - Executando LFM2.5
 
 **Comece com geração de texto com IA em 3 passos simples!**
 
@@ -100,7 +100,7 @@ Adicione isso ao seu arquivo de componente:
 ```tsx
 import {
   useLLM,
-  LLAMA3_2_1B,
+  LFM2_5_1_2B_INSTRUCT,
   Message,
   initExecutorch,
 } from 'react-native-executorch';
@@ -112,7 +112,7 @@ initExecutorch({
 
 function MyComponent() {
   // Inicialize o modelo 🚀
-  const llm = useLLM({ model: LLAMA3_2_1B });
+  const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
   // ... restante do seu componente
 }
 ```
@@ -128,7 +128,7 @@ const handleGenerate = async () => {
 
   // Conclusão de chat
   await llm.generate(chat);
-  console.log('Llama diz:', llm.response);
+  console.log('LFM2.5 diz:', llm.response);
 };
 ```
 
