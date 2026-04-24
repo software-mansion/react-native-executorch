@@ -361,6 +361,30 @@ inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
   return {runtime, array};
 }
 
+inline jsi::Value
+getJsiValue(const std::vector<std::pair<int32_t, int32_t>> &keypoints,
+            jsi::Runtime &runtime) {
+  jsi::Array array(runtime, keypoints.size());
+  for (size_t i = 0; i < keypoints.size(); ++i) {
+    jsi::Object point(runtime);
+    point.setProperty(runtime, "x", keypoints[i].first);
+    point.setProperty(runtime, "y", keypoints[i].second);
+    array.setValueAtIndex(runtime, i, point);
+  }
+  return array;
+}
+
+// Pose estimation: all detected people (vector of person keypoints)
+inline jsi::Value getJsiValue(
+    const std::vector<std::vector<std::pair<int32_t, int32_t>>> &detections,
+    jsi::Runtime &runtime) {
+  jsi::Array array(runtime, detections.size());
+  for (size_t i = 0; i < detections.size(); ++i) {
+    array.setValueAtIndex(runtime, i, getJsiValue(detections[i], runtime));
+  }
+  return array;
+}
+
 // Conditional as on android, size_t and uint64_t reduce to the same type,
 // introducing ambiguity
 template <typename T,
