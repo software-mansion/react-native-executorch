@@ -23,7 +23,7 @@ inline constexpr auto kVisionEncoderMethod = "vision_encoder";
 inline constexpr auto kAudioEncoderMethod = "audio_encoder";
 inline constexpr auto kTokenEmbeddingMethod = "token_embedding";
 inline constexpr auto kTextModelMethod = "text_decoder";
-
+inline constexpr auto kMaxPrefillLen = 1024;
 inline constexpr auto numOfAddedBoSTokens = 0;
 inline constexpr auto numOfAddedEoSTokens = 0;
 

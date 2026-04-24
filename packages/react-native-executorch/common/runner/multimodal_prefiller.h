@@ -23,7 +23,8 @@ public:
   explicit MultimodalPrefiller(Module &module,
                                MultimodalDecoderRunner &decoder_runner,
                                tokenizers::HFTokenizer &tokenizer,
-                               IEncoder *image_encoder = nullptr);
+                               IEncoder *image_encoder = nullptr,
+                               IEncoder *audio_encoder = nullptr);
 
   // Prefill one input segment. Updates start_pos in-place.
   // Returns the first predicted token after this segment.
@@ -38,6 +39,7 @@ private:
   MultimodalDecoderRunner *decoder_runner_;
   tokenizers::HFTokenizer *tokenizer_;
   IEncoder *image_encoder_;
+  IEncoder *audio_encoder_;
 };
 
 } // namespace executorch::extension::llm

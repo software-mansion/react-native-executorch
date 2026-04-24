@@ -3,6 +3,7 @@ import {
   LLAMA3_2_1B_QLORA,
   LLAMA3_2_3B_QLORA,
   LLMProps,
+  GEMMA4_E2B_QUANTIZED,
 } from 'react-native-executorch';
 import { ModelOption } from './ModelPicker';
 const llm = models.llm;
@@ -10,6 +11,8 @@ const llm = models.llm;
 export type LLMModelSources = LLMProps['model'];
 
 export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
+  // Gemma4
+  { label: 'Gemma4 e2b Quantized', value: GEMMA4_E2B_QUANTIZED },
   // Llama 3.2
   {
     label: 'Llama 3.2 1B',

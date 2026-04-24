@@ -126,6 +126,19 @@ export const QWEN3_0_6B_QUANTIZED = {
 } as const;
 
 /**
+ * @category Models - VLM
+ */
+export const GEMMA4_E2B_QUANTIZED = {
+  modelName: 'gemma4-e2b-quantized',
+  modelSource:
+    'http://localhost:9001/experiments/outputs/exp107f_mm_s4048_noqkvo_wav.pte',
+  tokenizerSource: 'http://localhost:9001/gemma4_e2b/tokenizer.json',
+  tokenizerConfigSource:
+    'http://localhost:9001/gemma4_e2b/gemma4_tokenizer_config.json',
+  capabilities: ['vision', 'audio'],
+} as const;
+
+/**
  * @category Models - LLM
  */
 export const QWEN3_1_7B = {
