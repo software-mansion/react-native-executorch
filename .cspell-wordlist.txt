@@ -53,6 +53,9 @@ Lexend
 finetuned
 MINILM
 MPNET
+DISTILUSE
+distiluse
+Distil
 QINT
 FNUZ
 wordlist
