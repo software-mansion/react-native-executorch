@@ -9,6 +9,7 @@
 // Generate tokens in a loop.
 #pragma once
 
+#include "irunner.h"
 #include "stats.h"
 #include "text_decoder_runner.h"
 #include "util.h"
@@ -22,13 +23,18 @@ namespace llm {
 
 class TextTokenGenerator {
 public:
+  // Holds a const reference to the owning runner's GenerationConfig and
+  // reads `output_token_batch_size` / `batch_time_interval_ms` from it on
+  // every iteration of the generation loop, so external updates take effect
+  // mid-stream without any sync setter on this class.
   TextTokenGenerator(tokenizers::HFTokenizer *tokenizer,
                      TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
                      std::unique_ptr<std::unordered_set<uint64_t>> &&eos_ids,
-                     Stats *stats)
+                     Stats *stats, const GenerationConfig &config)
       : tokenizer_(tokenizer), text_decoder_runner_(text_decoder_runner),
         eos_ids_(std::move(eos_ids)), use_kv_cache_(use_kv_cache),
-        timestamp_(std::chrono::high_resolution_clock::now()), stats_(stats) {}
+        timestamp_(std::chrono::high_resolution_clock::now()), stats_(stats),
+        config_(config) {}
 
   virtual ~TextTokenGenerator() = default;
 
@@ -48,7 +54,6 @@ public:
    */
   inline ::executorch::runtime::Result<int64_t> generate(
       std::vector<uint64_t> tokens, int64_t start_pos, uint64_t max_new_tokens,
-      float temperature, float topp,
       const std::function<void(const std::string &)> &token_callback = {}) {
     ET_CHECK_MSG(!tokens.empty(),
                  "Token generation loop shouldn't take empty tokens");
@@ -80,6 +85,7 @@ public:
     auto tokens_managed = from_blob(token_data.data(), token_shape,
                                     executorch::aten::ScalarType::Long);
 
+    std::vector<uint64_t> generated_tokens(tokens.begin(), tokens.end());
     should_stop_ = false;
     timestamp_ = std::chrono::high_resolution_clock::now();
 
@@ -94,11 +100,12 @@ public:
       prev_token = cur_token;
 
       stats_->on_sampling_begin();
-      cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
-                                                        temperature, topp);
+      cur_token =
+          text_decoder_runner_->logits_to_token(logits_tensor, generated_tokens);
       stats_->on_sampling_end();
 
       pos++;
+      generated_tokens.push_back(cur_token);
 
       if (use_kv_cache_) {
         // update the token tensor. token_data will not be empty.
@@ -128,9 +135,10 @@ public:
       std::string cache_decoded = decodeResult.get();
       const auto timeIntervalElapsed =
           std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::high_resolution_clock::now() - timestamp_) >
-          time_interval_;
-      const auto countIntervalElapsed = token_cache.size() > count_interval_;
+              std::chrono::high_resolution_clock::now() - timestamp_)
+              .count() > static_cast<int64_t>(config_.batch_time_interval_ms);
+      const auto countIntervalElapsed =
+          token_cache.size() > config_.output_token_batch_size;
       const auto eos_reached = eos_ids_->contains(cur_token);
 
       if (!cache_decoded.ends_with("�") &&
@@ -177,14 +185,6 @@ public:
     return text_decoder_runner_->is_method_loaded();
   }
 
-  void set_count_interval(size_t count_interval) {
-    count_interval_ = count_interval;
-  }
-
-  void set_time_interval(size_t time_interval) {
-    time_interval_ = std::chrono::milliseconds(time_interval);
-  }
-
 private:
   /**
    * Note: TextTokenGenerator does not own the tokenizer_ and
@@ -199,12 +199,14 @@ private:
 
   // state machine
   bool should_stop_ = false;
-  size_t count_interval_{10};
-  std::chrono::milliseconds time_interval_{120};
   std::chrono::high_resolution_clock::time_point timestamp_;
 
   // stats
   Stats *stats_;
+
+  // Reference to the owning runner's GenerationConfig. Token-batching
+  // intervals are read fresh on every iteration.
+  const GenerationConfig &config_;
 };
 
 } // namespace llm

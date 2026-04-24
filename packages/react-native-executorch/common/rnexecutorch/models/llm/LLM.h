@@ -38,6 +38,8 @@ public:
   void setCountInterval(size_t countInterval);
   void setTemperature(float temperature);
   void setTopp(float topp);
+  void setMinP(float minP);
+  void setRepetitionPenalty(float repetitionPenalty);
   void setTimeInterval(size_t timeInterval);
   int32_t getMaxContextLength() const;
 

@@ -10,6 +10,7 @@
 
 #include "text_decoder_runner.h"
 #include "arange_util.h"
+#include "irunner.h"
 #include "stats.h"
 
 #include <ctime>
@@ -22,9 +23,8 @@ namespace llm {
 // and a ~5% improvement on Galaxy S22 by switching to
 // FileDataLoader instead of MmapDataLoader + UseMlockIgnoreErrors.
 TextDecoderRunner::TextDecoderRunner(Module &module, IOManager *io_manager,
-                                     float temperature, float topp)
-    : module_(&module), io_manager_(io_manager), temperature_(temperature),
-      topp_(topp) {}
+                                     const GenerationConfig &config)
+    : module_(&module), io_manager_(io_manager), config_(config) {}
 
 // This function is functional, meaning it shouldn't modify any state of the
 // input. It should be safe to call multiple times with the same inputs. The
@@ -80,6 +80,34 @@ TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
     // Return the logits tensor
     return outputs_res.get()[0].toTensor();
   }
+}
+
+int32_t TextDecoderRunner::logits_to_token(
+    const executorch::aten::Tensor &logits_tensor,
+    const std::vector<uint64_t> &recent_tokens) {
+  int32_t result = 0;
+
+  struct {
+    [[noreturn]] void fail(torch::executor::Error) {
+      ET_CHECK_MSG(false, "Unsupported dtype in logits_to_token");
+    }
+  } ctx;
+
+  ET_SWITCH_FOUR_TYPES(
+      Float, Half, BFloat16, UInt16, logits_tensor.scalar_type(), ctx,
+      "logits_to_token", CTYPE, [&]() {
+        auto *logits = logits_tensor.mutable_data_ptr<CTYPE>();
+        ssize_t vocab_size = logits_tensor.size(logits_tensor.dim() - 1);
+        if (logits_tensor.dim() == 3) {
+          auto num_tokens = logits_tensor.size(1);
+          logits += (num_tokens - 1) * vocab_size;
+        }
+        Sampler sampler(vocab_size, config_.temperature, config_.topp,
+                        static_cast<unsigned long long>(std::time(nullptr)),
+                        config_.min_p, config_.repetition_penalty);
+        result = sampler.sample(logits, recent_tokens);
+      });
+  return result;
 }
 
 } // namespace llm

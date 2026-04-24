@@ -58,6 +58,21 @@ struct GenerationConfig {
   // = more deterministic, higher = more diverse generations.
   float topp = -1.F;
 
+  // Minimum probability threshold: tokens with prob < min_p * max_prob are
+  // excluded. 0.0 disables min_p filtering.
+  float min_p = 0.0f;
+
+  // Multiplicative penalty applied to logits of recently generated tokens.
+  // Values > 1.0 discourage repetition. 1.0 disables the penalty.
+  float repetition_penalty = 1.0f;
+
+  // Token-batching parameters for the streaming token callback. The
+  // generator flushes a batch when either `output_token_batch_size` tokens
+  // have accumulated or `batch_time_interval_ms` milliseconds have elapsed
+  // since the last flush, whichever comes first.
+  size_t output_token_batch_size = 10;
+  size_t batch_time_interval_ms = 120;
+
   // Enable dynamic input shapes (if implemented) or not
   // Impacts the prefill phase and causes TextPrefiller to pass all the tokens
   // at once if set to true.

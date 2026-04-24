@@ -53,6 +53,8 @@ public:
 
   void set_temperature(float temperature) noexcept;
   void set_topp(float topp) noexcept;
+  void set_min_p(float min_p) noexcept;
+  void set_repetition_penalty(float repetition_penalty) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
 
@@ -65,10 +67,12 @@ public:
 protected:
   virtual ::executorch::runtime::Error load_subcomponents() = 0;
   virtual void stop_impl() = 0;
-  virtual void set_temperature_impl(float temperature) = 0;
-  virtual void set_topp_impl(float topp) = 0;
-  virtual void set_count_interval_impl(size_t count_interval) = 0;
-  virtual void set_time_interval_impl(size_t time_interval) = 0;
+  // Sampling values and token-batching intervals live entirely in `config_`.
+  // The TextDecoderRunner / TextTokenGenerator shared by both TextRunner and
+  // MultimodalRunner are constructed with a const reference to `config_`
+  // and read those fields on every iteration, so writes via the public
+  // set_* methods on BaseLLMRunner take effect immediately with no virtual
+  // dispatch needed.
 
   int32_t resolve_max_new_tokens(int32_t num_prompt_tokens, int32_t max_seq_len,
                                  int32_t max_context_len,

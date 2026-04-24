@@ -47,8 +47,8 @@ Error MultimodalRunner::load_subcomponents() {
 
   Stats *stats_ptr = &stats_;
 
-  mm_decoder_runner_ =
-      std::make_unique<MultimodalDecoderRunner>(*module_, io_manager_.get());
+  mm_decoder_runner_ = std::make_unique<MultimodalDecoderRunner>(
+      *module_, io_manager_.get(), config_);
   IEncoder *image_encoder = nullptr;
   auto enc_it = encoders_.find(MultimodalType::Image);
   if (enc_it != encoders_.end()) {
@@ -58,7 +58,7 @@ Error MultimodalRunner::load_subcomponents() {
       *module_, *mm_decoder_runner_, *tokenizer_, image_encoder);
   mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
-      std::move(eos_ids_), stats_ptr);
+      std::move(eos_ids_), stats_ptr, config_);
 
   ET_CHECK_OK_OR_RETURN_ERROR(mm_prefiller_->load());
   ET_CHECK_OK_OR_RETURN_ERROR(mm_token_generator_->load());
@@ -106,7 +106,7 @@ Error MultimodalRunner::generate_internal(
   auto generate_result = mm_token_generator_->generate(
       seed_tokens, pos_,
       static_cast<uint64_t>(std::max(0, resolved_max_new - 1)),
-      config_.temperature, config_.topp, wrapped_callback);
+      wrapped_callback);
 
   if (!generate_result.ok())
     return generate_result.error();
@@ -122,18 +122,6 @@ Error MultimodalRunner::generate_internal(
 void MultimodalRunner::stop_impl() {
   if (mm_token_generator_) {
     mm_token_generator_->stop();
-  }
-}
-
-void MultimodalRunner::set_count_interval_impl(size_t count_interval) {
-  if (mm_token_generator_) {
-    mm_token_generator_->set_count_interval(count_interval);
-  }
-}
-
-void MultimodalRunner::set_time_interval_impl(size_t time_interval) {
-  if (mm_token_generator_) {
-    mm_token_generator_->set_time_interval(time_interval);
   }
 }
 
