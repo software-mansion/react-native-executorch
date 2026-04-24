@@ -236,6 +236,17 @@ export class LLMController {
     return token;
   }
 
+  private getAudioToken(): string {
+    const token = this.tokenizerConfig.audio_token;
+    if (!token) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config is missing 'audio_token'. Audio-capable models require tokenizerConfigSource with an 'audio_token' field."
+      );
+    }
+    return token;
+  }
+
   private filterSpecialTokens(text: string): string {
     let filtered = text;
     if (
@@ -269,25 +280,42 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string, imagePaths?: string[]): Promise<string> {
+  public async forward(
+    input: string,
+    imagePaths?: string[],
+    audioWaveforms?: Float32Array[]
+  ): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this._isGenerating) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
+    const hasImages = !!imagePaths && imagePaths.length > 0;
+    const hasAudio = !!audioWaveforms && audioWaveforms.length > 0;
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response =
-        imagePaths && imagePaths.length > 0
-          ? await this.nativeModule.generateMultimodal(
-              input,
-              imagePaths.map(normalizeImagePath),
-              this.getImageToken(),
-              this.onToken
-            )
-          : await this.nativeModule.generate(input, this.onToken);
+      let response: string;
+      if (hasAudio) {
+        response = await this.nativeModule.generateMultimodalWithAudio(
+          input,
+          hasImages ? imagePaths!.map(normalizeImagePath) : [],
+          hasImages ? this.getImageToken() : '',
+          audioWaveforms,
+          this.getAudioToken(),
+          this.onToken
+        );
+      } else if (hasImages) {
+        response = await this.nativeModule.generateMultimodal(
+          input,
+          imagePaths!.map(normalizeImagePath),
+          this.getImageToken(),
+          this.onToken
+        );
+      } else {
+        response = await this.nativeModule.generate(input, this.onToken);
+      }
       return this.filterSpecialTokens(response);
     } catch (e) {
       throw parseUnknownError(e);
@@ -355,6 +383,9 @@ export class LLMController {
     const imagePaths = messages
       .filter((m) => m.mediaPath)
       .map((m) => m.mediaPath!);
+    const audioWaveforms = messages
+      .filter((m) => m.audioWaveform)
+      .map((m) => m.audioWaveform!);
 
     const renderedChat: string = this.applyChatTemplate(
       messages,
@@ -365,19 +396,22 @@ export class LLMController {
 
     return await this.forward(
       renderedChat,
-      imagePaths.length > 0 ? imagePaths : undefined
+      imagePaths.length > 0 ? imagePaths : undefined,
+      audioWaveforms.length > 0 ? audioWaveforms : undefined
     );
   }
 
   public async sendMessage(
     message: string,
-    media?: { imagePath?: string }
+    media?: { imagePath?: string; audioBuffer?: Float32Array }
   ): Promise<string> {
     const mediaPath = media?.imagePath;
+    const audioBuffer = media?.audioBuffer;
     const newMessage: Message = {
       content: message,
       role: 'user',
       ...(mediaPath ? { mediaPath } : {}),
+      ...(audioBuffer ? { audioWaveform: audioBuffer } : {}),
     };
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
@@ -497,12 +531,15 @@ function normalizeImagePath(path: string): string {
  * @returns Messages with image-bearing turns rewritten to structured content.
  */
 function messagesForChatTemplate(messages: Message[]): any[] {
-  return messages.map((m) =>
-    m.mediaPath && typeof m.content === 'string'
-      ? {
-          ...m,
-          content: [{ type: 'image' }, { type: 'text', text: m.content }],
-        }
-      : m
-  );
+  return messages.map((m) => {
+    if (typeof m.content !== 'string') return m;
+    const hasImage = !!m.mediaPath;
+    const hasAudio = !!m.audioWaveform;
+    if (!hasImage && !hasAudio) return m;
+    const parts: any[] = [];
+    if (hasImage) parts.push({ type: 'image' });
+    if (hasAudio) parts.push({ type: 'audio' });
+    parts.push({ type: 'text', text: m.content });
+    return { ...m, content: parts };
+  });
 }
