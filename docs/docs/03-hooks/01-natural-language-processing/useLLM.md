@@ -44,9 +44,9 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 In order to load a model into the app, you need to run the following code:
 
 ```typescript
-import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
+import { useLLM, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
 
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 ```
 
 <br/>
@@ -92,7 +92,7 @@ You can use functions returned from this hooks in two manners:
 To perform chat completion you can use the [`generate`](../../06-api-reference/interfaces/LLMType.md#generate) function. The [`response`](../../06-api-reference/interfaces/LLMType.md#response) value is updated with each token as it's generated, and the function returns a promise that resolves to the complete response when generation finishes.
 
 ```tsx
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 
 const handleGenerate = async () => {
   const chat: Message[] = [
@@ -222,7 +222,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   ToolCall,
   useLLM,
-  LLAMA3_2_1B_SPINQUANT,
+  LFM2_5_1_2B_INSTRUCT,
 } from 'react-native-executorch';
 
 const TOOL_DEFINITIONS: LLMTool[] = [
@@ -258,7 +258,7 @@ const executeTool: (call: ToolCall) => Promise<string | null> = async (
   }
 };
 
-const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 
 const { configure } = llm;
 useEffect(() => {
@@ -293,7 +293,7 @@ useEffect(() => {
 In order to send a message to the model, one can use the following code:
 
 ```tsx
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 
 const send = () => {
   const message = 'Hi, who are you?';

@@ -46,7 +46,7 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 
 - [Supported Versions](#supported-versions)
 - [Real-world Example](#real-world-example)
-- [Quickstart - Running Llama](#quickstart---running-llama)
+- [Quickstart - Running LFM2.5](#quickstart---running-lfm25)
   - [:one: Installation](#one-installation)
   - [:two: Setup \& Initialization](#two-setup--initialization)
   - [:three: Run the Model!](#three-run-the-model)
@@ -75,7 +75,7 @@ React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
-## Quickstart - Running Llama
+## Quickstart - Running LFM2.5
 
 **Get started with AI-powered text generation in 3 easy steps!**
 
@@ -89,7 +89,7 @@ yarn add react-native-executorch
 yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
-#if you use bare React Native project use these packages:
+# If you use bare React Native project use these packages:
 yarn add react-native-executorch-bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
@@ -104,7 +104,7 @@ Add this to your component file:
 ```tsx
 import {
   useLLM,
-  LLAMA3_2_1B,
+  LFM2_5_1_2B_INSTRUCT,
   Message,
   initExecutorch,
 } from 'react-native-executorch';
@@ -116,7 +116,7 @@ initExecutorch({
 
 function MyComponent() {
   // Initialize the model 🚀
-  const llm = useLLM({ model: LLAMA3_2_1B });
+  const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
   // ... rest of your component
 }
 ```
@@ -132,7 +132,7 @@ const handleGenerate = async () => {
 
   // Chat completion
   await llm.generate(chat);
-  console.log('Llama says:', llm.response);
+  console.log('LFM2.5 says:', llm.response);
 };
 ```
 

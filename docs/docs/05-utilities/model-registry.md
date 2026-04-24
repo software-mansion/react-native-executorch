@@ -7,7 +7,7 @@ The [Model Registry](/react-native-executorch/docs/next/api-reference/variables/
 ## Usage
 
 ```typescript
-import { MODEL_REGISTRY, LLAMA3_2_1B } from 'react-native-executorch';
+import { MODEL_REGISTRY, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
 ```
 
 ### Accessing a model directly
@@ -15,9 +15,9 @@ import { MODEL_REGISTRY, LLAMA3_2_1B } from 'react-native-executorch';
 Every model config is exported as a standalone constant:
 
 ```typescript
-import { LLAMA3_2_1B } from 'react-native-executorch';
+import { LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
 
-const llm = useLLM({ model: LLAMA3_2_1B });
+const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
 ```
 
 ### Listing all models
