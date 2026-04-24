@@ -19,6 +19,9 @@ import {
   MULTI_QA_MINILM_L6_COS_V1,
   MULTI_QA_MPNET_BASE_DOT_V1,
   DISTILUSE_BASE_MULTILINGUAL_CASED_V2,
+  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32,
+  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
 
@@ -32,6 +35,18 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
   {
     label: 'Multilingual DistilUSE',
     value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2,
+  },
+  {
+    label: 'Multilingual DistilUSE (8da4w)',
+    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+  },
+  {
+    label: 'Multilingual DistilUSE (CoreML fp32)',
+    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32,
+  },
+  {
+    label: 'Multilingual DistilUSE (CoreML fp16)',
+    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
   },
 ];
 import { useIsFocused } from '@react-navigation/native';

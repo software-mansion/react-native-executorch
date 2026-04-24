@@ -117,3 +117,16 @@ function App() {
 :::note
 For the supported models, the returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
 :::
+
+### distiluse-base-multilingual-cased-v2 variants
+
+`distiluse-base-multilingual-cased-v2` ships in four flavours so you can trade size, latency, and platform. All share the same tokenizer and embedding dimension — only the `.pte` differs.
+
+| Constant                                           | Backend | Precision | Size   | Platforms              |
+| -------------------------------------------------- | ------- | --------- | ------ | ---------------------- |
+| `DISTILUSE_BASE_MULTILINGUAL_CASED_V2`             | XNNPACK | fp32      | 516 MB | iOS, Android (default) |
+| `DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W`       | XNNPACK | 8da4w     | 375 MB | iOS, Android           |
+| `DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32` | CoreML  | fp32      | 516 MB | iOS / macOS only       |
+| `DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16` | CoreML  | fp16      | 258 MB | iOS / macOS only       |
+
+`8da4w` is Int8 dynamic activation + Int4 weight (torchao), group_size 32 — only `nn.Linear` layers are quantized, embeddings stay fp32. CoreML variants only load on Apple platforms; pick the XNNPACK baseline if you need a single artifact that runs everywhere.
