@@ -89,13 +89,17 @@ title: Model Size
 
 ## Text Embeddings
 
-| Model                      | XNNPACK [MB] |
-| -------------------------- | :----------: |
-| ALL_MINILM_L6_V2           |      91      |
-| ALL_MPNET_BASE_V2          |     438      |
-| MULTI_QA_MINILM_L6_COS_V1  |      91      |
-| MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
-| CLIP_VIT_BASE_PATCH32_TEXT |     254      |
+| Model                                            |   Size [MB]   |
+| ------------------------------------------------ | :-----------: |
+| ALL_MINILM_L6_V2                                 |      91       |
+| ALL_MPNET_BASE_V2                                |      438      |
+| MULTI_QA_MINILM_L6_COS_V1                        |      91       |
+| MULTI_QA_MPNET_BASE_DOT_V1                       |      438      |
+| CLIP_VIT_BASE_PATCH32_TEXT                       |      254      |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2             |      541      |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W       |      393      |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32 |      541      |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16 |      271      |
 
 ## Image Embeddings
 
