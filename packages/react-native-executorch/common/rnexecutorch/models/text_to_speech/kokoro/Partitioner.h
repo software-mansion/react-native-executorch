@@ -1,58 +1,87 @@
 #pragma once
 
+#include "Types.h"
+
 #include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
-#include "Types.h"
-
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 class Partitioner {
 public:
-  Partitioner(const Context &modelContext) : context_(modelContext) {}
-
-  // Partition strategy
-  // Defines how to divide phoneme string into substrings, by minimizing
-  // one of the selected properties.
-  enum class Strategy {
-    TOTAL_TIME = 0, // Only minimizes the estimated total time of processing
-    LATENCY, // Minimizes the streaming latency by dividing into small and
-             // similar length parts
+  /**
+   * Partitioning strategy.
+   * Affects the cost function choice, which changes the way input text is
+   * divided.
+   */
+  enum class Mode {
+    MIN_LATENCY = 0,
   };
 
-  // Cost definition
-  using Cost = int64_t;
+  /**
+   * Represents the logical separator types.
+   */
+  enum class Separator {
+    EOS = 1, // End of sentence marker (e.g., '.', '!', '?').
+    PAUSE,   // Mid-sentence pause (e.g., ',', ';', ':').
+    WHITE,   // Whitespace or other weak separators.
 
-  // Partition function
-  // Performs a division of the input phoneme string according to
-  // given strategy.
-  template <Strategy strategy>
-  std::vector<std::u32string> divide(const std::u32string &phonemes);
+    NO_SEP // No separation
+  };
+
+  /**
+   * Represents a heuristic evaluation of given partition.
+   * The lower it is, the better partition is.
+   */
+  using Cost = uint32_t;
+
+  /**
+   * A cost function type to evaluate given partition.
+   *
+   * @param acc Total cost accumulated from previous segments.
+   * @param beg Start index of the current range.
+   * @param prevBp Previous breakpoint index - useful for calculating some
+   * formulas.
+   * @param bp Breakpoint index (the split point, and the last character of the
+   * left-most subrange). -1 if there are no bps.
+   * @param end End index of the current range (inclusive).
+   * @param sep The type of the breakpoint.
+   */
+  using CostFn = std::function<Cost(Cost acc, size_t beg, int64_t prevBp,
+                                    int64_t bp, size_t end, Separator sep)>;
+
+  /**
+   * Holds the result of text partitioning.
+   * The content is stored as logical views to avoid copying. Breakpoints
+   * defines indices where the content should be split into smaller segments.
+   */
+  struct Partition {
+    std::u32string_view content;
+    std::vector<int64_t>
+        breakpoints; // Indices where content is split (e.g., {5, 16} for
+                     // "Hello. What's up? Are you OK?").
+  };
+
+  /**
+   * Partitions the input text into segments according to the specified
+   * strategy.
+   *
+   * @param input The source text to be partitioned.
+   * @param limit The maximum available size of a single segment.
+   * @param mode The partitioning strategy to use (defaults to MIN_LATENCY).
+   * @return A Partition object containing the original content view and
+   * breakpoints.
+   */
+  Partition partition(std::u32string_view input, size_t limit,
+                      Mode mode = Mode::MIN_LATENCY) const;
 
 private:
-  /**
-   * Helper function - partitioning
-   *
-   * @param phonemes phoneme string to be partitioned
-   * @param costFn a custom cost function which takes:
-   *               1. starting cost (cost of the previous range or 0 if not
-   * present)
-   *               2. range begin
-   *               3. previous breakpoint (-1 if not present)
-   *               4. current breakpoint (-1 if not present)
-   *               5. range end (exclusive)
-   */
-  std::vector<std::u32string>
-  divide(const std::u32string &phonemes,
-         const std::function<Cost(Cost, int32_t, int32_t, int32_t, int32_t)>
-             &costFn);
-
-  // Shared model context
-  // A const reference to singleton in Kokoro.
-  const Context &context_;
+  // Internal partition implementation that uses a specific cost function.
+  Partition partition(std::u32string_view input, size_t limit,
+                      CostFn costFn) const;
 };
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro

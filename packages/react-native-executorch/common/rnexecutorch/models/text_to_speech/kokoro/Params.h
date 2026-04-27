@@ -67,30 +67,11 @@ inline constexpr float kAudioSilenceThreshold = 0.01F;
 // Partitioning related hyperparameters
 namespace partitioning {
 /**
- * A penalty for dividing text on end of sentence character (like . or !).
- */
-inline constexpr int64_t kEosPenalty = 5;
-
-/**
- * A penalty for dividing text on pause character (like , or -).
- */
-inline constexpr int64_t kPausePenalty = 18;
-
-/**
- * A penalty for dividing text in the middle of sentence -
- * in other words, on white character.
- *
- * We want to avoid splitting the text between two words with no pause
- * as much as possible, since it kills the naturalness of the speech.
- */
-inline constexpr int64_t kWhitePenalty = 1000;
-
-/**
  * Used in latency-focused partitioning variant. Decides on
  * how much more are big latencies in the beginning phase of
  * an input text penalized.
  */
-inline constexpr int32_t kTokenDiscountFactor = 1;
+inline constexpr int64_t kTokenDiscountFactor = 1;
 
 /**
  * Used in latency-focused partitioning variant. Decides on
@@ -99,7 +80,7 @@ inline constexpr int32_t kTokenDiscountFactor = 1;
  * For example, using kTokenDiscountRange = 128 means that after reaching
  * 128 tokens, the latency is completely omited and not penalized.
  */
-inline constexpr int32_t kTokenDiscountRange = 128;
+inline constexpr int64_t kTokenDiscountRange = 128;
 } // namespace partitioning
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro::params
