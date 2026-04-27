@@ -14,7 +14,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { LFM2_5_VL_1_6B_QUANTIZED, useLLM } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
@@ -48,7 +48,7 @@ function MultimodalLLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
   const [selectedModel, setSelectedModel] = useState<VLMModelSources>(
-    QWEN3_5_VL_2B_QUANTIZED
+    LFM2_5_VL_1_6B_QUANTIZED
   );
 
   // Added error state
