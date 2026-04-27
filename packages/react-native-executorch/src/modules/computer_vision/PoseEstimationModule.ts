@@ -12,6 +12,7 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 import { VisionModule } from './VisionModule';
 import { fetchModelPath } from './VisionLabeledModule';
 import { CocoKeypoint } from '../../constants/poseEstimation';
+import { ResolveConfigOrType } from '../../types/computerVision';
 
 const YOLO_POSE_CONFIG = {
   keypointMap: CocoKeypoint,
@@ -43,18 +44,8 @@ export type PoseEstimationKeypoints<M extends PoseEstimationModelName> =
 type ModelNameOf<C extends PoseEstimationModelSources> = C['modelName'];
 
 /** @internal */
-type ResolveKeypointsFor<
-  T,
-  Configs extends Record<string, { keypointMap: KeypointEnum }>,
-> = T extends keyof Configs
-  ? Configs[T]['keypointMap']
-  : T extends KeypointEnum
-    ? T
-    : never;
-
-/** @internal */
 type ResolveKeypoints<T extends PoseEstimationModelName | KeypointEnum> =
-  ResolveKeypointsFor<T, ModelConfigsType>;
+  ResolveConfigOrType<T, ModelConfigsType, 'keypointMap'>;
 
 /**
  * Pose estimation module for detecting human body keypoints.
