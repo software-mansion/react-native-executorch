@@ -193,14 +193,18 @@ export class LLMController {
     if (generationConfig.temperature !== undefined) {
       this.nativeModule.setTemperature(generationConfig.temperature);
     }
-    if (generationConfig.topp !== undefined) {
-      if (generationConfig.topp < 0 || generationConfig.topp > 1) {
+    // `topp` is the legacy spelling kept for backwards compatibility — `topP`
+    // wins when both are set so callers migrating to the new name don't get
+    // surprised by stale values. Reading the deprecated alias is intentional.
+    const topP = generationConfig.topP ?? generationConfig.topp;
+    if (topP !== undefined) {
+      if (topP < 0 || topP > 1) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.InvalidConfig,
           'Top P has to be in range [0, 1]'
         );
       }
-      this.nativeModule.setTopp(generationConfig.topp);
+      this.nativeModule.setTopp(topP);
     }
     if (generationConfig.minP !== undefined) {
       if (generationConfig.minP < 0 || generationConfig.minP > 1) {

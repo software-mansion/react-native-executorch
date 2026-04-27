@@ -336,7 +336,8 @@ export interface ToolsConfig {
  * Object configuring generation settings.
  * @category Types
  * @property {number} [temperature] - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
- * @property {number} [topp] - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+ * @property {number} [topP] - Only samples from the smallest set of tokens whose cumulative probability exceeds topP.
+ * @property {number} [topp] - **Deprecated.** Use `topP` instead.
  * @property {number} [minP] - Minimum probability threshold: tokens with prob < minP * max_prob are excluded. 0 disables filtering.
  * @property {number} [repetitionPenalty] - Multiplicative penalty applied to logits of recently generated tokens. Values > 1 discourage repetition. 1 disables the penalty.
  * @property {number} [outputTokenBatchSize] - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
@@ -344,6 +345,8 @@ export interface ToolsConfig {
  */
 export interface GenerationConfig {
   temperature?: number;
+  topP?: number;
+  /** @deprecated Use `topP` instead. */
   topp?: number;
   minP?: number;
   repetitionPenalty?: number;

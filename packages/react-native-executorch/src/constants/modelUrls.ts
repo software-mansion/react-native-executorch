@@ -88,7 +88,7 @@ const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer_co
 // reasonable out of the box; users can override via `configure()`.
 const QWEN3_GENERATION_CONFIG = {
   temperature: 0.6,
-  topp: 0.95,
+  topP: 0.95,
 } as const;
 
 /**

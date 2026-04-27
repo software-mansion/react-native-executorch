@@ -107,9 +107,9 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-  - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
+  - [`topP`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topP. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
 
-  - [`minP`](../../06-api-reference/interfaces/GenerationConfig.md#minp) - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topp` when both are set.
+  - [`minP`](../../06-api-reference/interfaces/GenerationConfig.md#minp) - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topP` when both are set.
 
   - [`repetitionPenalty`](../../06-api-reference/interfaces/GenerationConfig.md#repetitionpenalty) - Multiplicative penalty applied to logits of tokens that already appeared in the prompt or the generated text. Values greater than `1` discourage repetition; default `1` disables the penalty.
 
