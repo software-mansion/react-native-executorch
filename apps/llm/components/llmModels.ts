@@ -36,6 +36,10 @@ import {
   LFM2_5_1_2B_INSTRUCT,
   LFM2_5_1_2B_INSTRUCT_QUANTIZED,
   LLMProps,
+  QWEN3_5_0_8B_QUANTIZED,
+  QWEN3_5_2B_QUANTIZED,
+  BIELIK_V3_0_1_5B_QUANTIZED,
+  BIELIK_V3_0_1_5B,
 } from 'react-native-executorch';
 import { ModelOption } from './ModelPicker';
 
@@ -77,6 +81,9 @@ export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
   { label: 'Qwen2.5 1.5B Quantized', value: QWEN2_5_1_5B_QUANTIZED },
   { label: 'Qwen2.5 3B', value: QWEN2_5_3B },
   { label: 'Qwen2.5 3B Quantized', value: QWEN2_5_3B_QUANTIZED },
+  // Qwen3.5
+  { label: 'Qwen3.5 0.8B Quantized', value: QWEN3_5_0_8B_QUANTIZED },
+  { label: 'Qwen3.5 2B Quantized', value: QWEN3_5_2B_QUANTIZED },
   // Phi-4
   { label: 'Phi-4 Mini 4B', value: PHI_4_MINI_4B },
   { label: 'Phi-4 Mini 4B Quantized', value: PHI_4_MINI_4B_QUANTIZED },
@@ -88,4 +95,7 @@ export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
     label: 'LFM2.5 1.2B Instruct Quantized',
     value: LFM2_5_1_2B_INSTRUCT_QUANTIZED,
   },
+  // Bielik v3.0
+  { label: 'Bielik v3.0 1.5B', value: BIELIK_V3_0_1_5B },
+  { label: 'Bielik v3.0 1.5B Quantized', value: BIELIK_V3_0_1_5B_QUANTIZED },
 ];
