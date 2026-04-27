@@ -229,7 +229,9 @@ export class LLMController {
   }
 
   private getImageToken(): string {
-    const token = this.tokenizerConfig.image_token;
+    const token =
+      this.tokenizerConfig.image_token ||
+      this.tokenizerConfig.extra_special_tokens.image_token;
     if (!token) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.InvalidConfig,
