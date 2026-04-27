@@ -501,9 +501,9 @@ Some models support multimodal input — text and images together. To use them, 
 ### Loading a VLM
 
 ```tsx
-import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 ```
 
 The `capabilities` field is already set on the model constant. You can also construct the model object explicitly:
@@ -524,7 +524,7 @@ Passing `capabilities` unlocks the typed `media` argument on `sendMessage`.
 ### Sending a message with an image
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const send = () => {
   llm.sendMessage('What is in this image?', {
@@ -547,7 +547,7 @@ The `imagePath` should be a local file path on the device.
 You can also use `generate` directly by setting `mediaPath` on user messages:
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const handleGenerate = async () => {
   const chat: Message[] = [

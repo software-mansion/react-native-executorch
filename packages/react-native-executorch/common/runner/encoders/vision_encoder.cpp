@@ -77,7 +77,7 @@ Result<VisionEncoder::ImageShape> VisionEncoder::getInputShape() const {
 std::vector<float>
 VisionEncoder::preprocessImage(const std::string &path,
                                const ImageShape &targetShape) const {
-  // The bundled vision-encoder PTEs (e.g. LFM2-VL) bake rescale + normalize
+  // The bundled vision-encoder PTEs (e.g. LFM2.5-VL) bake rescale + normalize
   // into the exported graph, so we hand raw 0-255 float pixel values to the
   // module. Adding rescale / normalize here would double-apply the transform
   // and destroy the input distribution. We reuse `resizePadded` for the

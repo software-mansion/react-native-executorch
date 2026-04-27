@@ -460,32 +460,49 @@ const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2
  */
 // LiquidAI's LFM2-VL model card recommends the following sampling settings.
 // Without them the model often produces generic / repetitive responses.
-const LFM2_VL_GENERATION_CONFIG = {
+const LFM2_5_VL_GENERATION_CONFIG = {
   temperature: 0.1,
   minP: 0.15,
   repetitionPenalty: 1.05,
 } as const;
 
-export const LFM2_VL_1_6B_QUANTIZED = {
+/**
+ * @category Models - VLM
+ */
+export const LFM2_5_VL_1_6B_QUANTIZED = {
   modelName: 'lfm2.5-vl-1.6b-quantized',
   capabilities: ['vision'],
   modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_1_6B_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_1_6B_TOKENIZER_CONFIG,
-  generationConfig: LFM2_VL_GENERATION_CONFIG,
+  generationConfig: LFM2_5_VL_GENERATION_CONFIG,
 } as const;
 
 /**
  * @category Models - VLM
  */
-export const LFM2_VL_450M_QUANTIZED = {
+export const LFM2_5_VL_450M_QUANTIZED = {
   modelName: 'lfm2.5-vl-450m-quantized',
   capabilities: ['vision'],
   modelSource: LFM2_VL_450M_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_450M_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_450M_TOKENIZER_CONFIG,
-  generationConfig: LFM2_VL_GENERATION_CONFIG,
+  generationConfig: LFM2_5_VL_GENERATION_CONFIG,
 } as const;
+
+/**
+ * @deprecated Use `LFM2_5_VL_1_6B_QUANTIZED` instead — the model is from the
+ * LFM2.5 family. This alias will be removed in a future major release.
+ * @category Models - VLM
+ */
+export const LFM2_VL_1_6B_QUANTIZED = LFM2_5_VL_1_6B_QUANTIZED;
+
+/**
+ * @deprecated Use `LFM2_5_VL_450M_QUANTIZED` instead — the model is from the
+ * LFM2.5 family. This alias will be removed in a future major release.
+ * @category Models - VLM
+ */
+export const LFM2_VL_450M_QUANTIZED = LFM2_5_VL_450M_QUANTIZED;
 
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
@@ -1151,8 +1168,8 @@ export const MODEL_REGISTRY = {
     LFM2_5_350M_QUANTIZED,
     LFM2_5_1_2B_INSTRUCT,
     LFM2_5_1_2B_INSTRUCT_QUANTIZED,
-    LFM2_VL_1_6B_QUANTIZED,
-    LFM2_VL_450M_QUANTIZED,
+    LFM2_5_VL_1_6B_QUANTIZED,
+    LFM2_5_VL_450M_QUANTIZED,
     EFFICIENTNET_V2_S,
     EFFICIENTNET_V2_S_QUANTIZED,
     SSDLITE_320_MOBILENET_V3_LARGE,

@@ -122,10 +122,10 @@ Model presets expose an optional `generationConfig` that `LLMModule.fromModelNam
 Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](../../06-api-reference/classes/LLMModule.md#frommodelname):
 
 ```typescript
-import { LLMModule, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { LLMModule, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 
 const llm = await LLMModule.fromModelName(
-  LFM2_VL_1_6B_QUANTIZED,
+  LFM2_5_VL_1_6B_QUANTIZED,
   undefined,
   (token) => console.log(token)
 );
