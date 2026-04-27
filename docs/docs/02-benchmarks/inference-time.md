@@ -150,13 +150,17 @@ Average time to synthesize speech from an input text of approximately 60 tokens,
 Benchmark times for text embeddings are highly dependent on the sentence length. The numbers below are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
 :::
 
-| Model                      | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| -------------------------- | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2           |              7               |            21             |
-| ALL_MPNET_BASE_V2          |              24              |            90             |
-| MULTI_QA_MINILM_L6_COS_V1  |              7               |            19             |
-| MULTI_QA_MPNET_BASE_DOT_V1 |              24              |            88             |
-| CLIP_VIT_BASE_PATCH32_TEXT |              14              |            39             |
+| Model / Device                                       | iPhone 17 Pro [ms] | OnePlus 12 [ms] |
+| ---------------------------------------------------- | :----------------: | :-------------: |
+| ALL_MINILM_L6_V2 (XNNPACK)                           |         7          |       21        |
+| ALL_MPNET_BASE_V2 (XNNPACK)                          |         24         |       90        |
+| MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)                  |         7          |       19        |
+| MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK)                 |         24         |       88        |
+| CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK)                 |         14         |       39        |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK FP32)  |         47         |       41        |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK 8da4w) |         16         |       15        |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP32)  |         15         |        -        |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP16)  |         19         |        -        |
 
 ## Image Embeddings
 
