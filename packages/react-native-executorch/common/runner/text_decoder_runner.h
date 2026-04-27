@@ -20,17 +20,10 @@ namespace llm {
 // Forward declaration to avoid the include chain
 // irunner.h -> stats.h -> util.h -> text_prefiller.h -> text_decoder_runner.h
 // which would re-enter this header before TextDecoderRunner is defined.
-// The full GenerationConfig definition is required at use sites in
-// logits_to_token (header-inline) and the constructor (.cpp), both of which
-// transitively include irunner.h via base_llm_runner.h.
 struct GenerationConfig;
 
 class TextDecoderRunner {
 public:
-  // The runner reads sampling parameters from `config` on every call to
-  // `logits_to_token`, so updating `config.temperature` (etc.) on the owning
-  // BaseLLMRunner takes effect immediately without any sync setter on this
-  // class.
   explicit TextDecoderRunner(Module &module, IOManager *io_manager,
                              const GenerationConfig &config);
 
@@ -78,10 +71,6 @@ protected:
   Module *module_;
   IOManager *io_manager_;
   bool should_stop_{false};
-  // Reference to the owning runner's GenerationConfig. Sampling parameters
-  // (temperature/topp/min_p/repetition_penalty) are read fresh on every
-  // logits_to_token call, so writes to BaseLLMRunner::config_ take effect
-  // immediately with no sync setter.
   const GenerationConfig &config_;
 };
 
