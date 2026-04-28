@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -35,6 +36,7 @@ import {
   KOKORO_VOICE_HINDI_MALE_PSI,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
+import translate from 'translate';
 
 const TTS_MODELS: ModelOption<TextToSpeechModelSources>[] = [
   { label: 'Kokoro', value: KOKORO },
@@ -112,6 +114,8 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
+  const [isTranslationEnabled, setIsTranslationEnabled] = useState(true);
+  const [translatedText, setTranslatedText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -152,6 +156,26 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
         await audioContext.resume();
       }
 
+      let textToSynthesize = inputText;
+      setTranslatedText('');
+
+      if (isTranslationEnabled) {
+        try {
+          const lang = selectedVoice.phonemizerConfig?.lang;
+          const targetLang = lang ? lang.split('-')[0] : 'en';
+
+          if (targetLang !== 'en') {
+            textToSynthesize = await translate(inputText, {
+              from: 'en',
+              to: targetLang,
+            });
+            setTranslatedText(textToSynthesize);
+          }
+        } catch (err) {
+          console.warn('Translation failed:', err);
+        }
+      }
+
       const onNext = async (audioVec: Float32Array) => {
         return new Promise<void>((resolve) => {
           const audioBuffer = createAudioBufferFromVector(
@@ -177,7 +201,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       };
 
       await model.stream({
-        text: inputText,
+        text: textToSynthesize,
         onNext,
         onEnd,
       });
@@ -233,6 +257,16 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
             onSelect={(m) => setSelectedVoice(m)}
           />
 
+          <View style={styles.switchContainer}>
+            <Text style={styles.switchLabel}>Translate to voice language</Text>
+            <Switch
+              value={isTranslationEnabled}
+              onValueChange={setIsTranslationEnabled}
+              trackColor={{ false: '#d3d3d3', true: '#c1c4f5' }}
+              thumbColor={isTranslationEnabled ? '#0f186e' : '#f4f3f4'}
+            />
+          </View>
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Enter text to synthesize</Text>
             <TextInput
@@ -245,6 +279,13 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
               textAlignVertical="top"
             />
           </View>
+
+          {isTranslationEnabled && translatedText ? (
+            <View style={styles.translatedTextContainer}>
+              <Text style={styles.inputLabel}>Translated text</Text>
+              <Text style={styles.translatedText}>{translatedText}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -291,6 +332,19 @@ const styles = StyleSheet.create({
     padding: 10,
     zIndex: 1,
   },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 12,
+    marginTop: 16,
+  },
+  switchLabel: {
+    color: '#0f186e',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   headerText: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -317,6 +371,20 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 120,
     fontSize: 16,
+  },
+  translatedTextContainer: {
+    width: '100%',
+    marginTop: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#c1c4f5',
+    backgroundColor: '#f8f9ff',
+    borderRadius: 12,
+  },
+  translatedText: {
+    fontSize: 16,
+    color: '#0f186e',
+    marginTop: 4,
   },
   buttonContainer: {
     marginTop: 24,

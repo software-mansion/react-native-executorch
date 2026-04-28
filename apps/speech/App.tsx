@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
 import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
+import { SpeechToSpeechScreen } from './screens/SpeechToSpeechScreen';
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
@@ -15,7 +16,12 @@ initExecutorch({
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<
-    'menu' | 'speech-to-text' | 'text-to-speech' | 'quiz' | 'text-to-speech-llm'
+    | 'menu'
+    | 'speech-to-text'
+    | 'text-to-speech'
+    | 'quiz'
+    | 'text-to-speech-llm'
+    | 'speech-to-speech'
   >('menu');
 
   const goToMenu = () => setCurrentScreen('menu');
@@ -26,6 +32,10 @@ export default function App() {
 
   if (currentScreen === 'speech-to-text') {
     return <SpeechToTextScreen onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'speech-to-speech') {
+    return <SpeechToSpeechScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'quiz') {
@@ -64,6 +74,14 @@ export default function App() {
           onPress={() => setCurrentScreen('text-to-speech-llm')}
         >
           <Text style={styles.buttonText}>Text to Speech - LLM Streaming</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('speech-to-speech')}
+        >
+          <Text style={styles.buttonText}>
+            Speech to Speech (Voice Assistant)
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

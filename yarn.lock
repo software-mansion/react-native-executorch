@@ -5270,6 +5270,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/http-errors@npm:^1.8.2":
+  version: 1.8.2
+  resolution: "@types/http-errors@npm:1.8.2"
+  checksum: 10/ecc365eea98d7eca650d593e742571acc3003742f0dd0fbbb15b8fce286e0f7421644b4140fb9bf701bbb7f1b744aea3967ebe025f0f0811aa5ab2c3d40fe111
+  languageName: node
+  linkType: hard
+
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1, @types/istanbul-lib-coverage@npm:^2.0.6":
   version: 2.0.6
   resolution: "@types/istanbul-lib-coverage@npm:2.0.6"
@@ -5785,6 +5792,17 @@ __metadata:
   peerDependencies:
     "@urql/core": ^5.0.0
   checksum: 10/766b8866735188f42d7371d73babd40ec166fb0adb1e9c133f6ab419f3b9e4d2aa4df4660992e12f8ccda803584e46b0104e108079e204d7d49d82dfcc93cdae
+  languageName: node
+  linkType: hard
+
+"@vitalets/google-translate-api@npm:^9.2.1":
+  version: 9.2.1
+  resolution: "@vitalets/google-translate-api@npm:9.2.1"
+  dependencies:
+    "@types/http-errors": "npm:^1.8.2"
+    http-errors: "npm:^2.0.0"
+    node-fetch: "npm:^2.6.7"
+  checksum: 10/7b92228f190e129daf6565e89bae92612f1c5675f721693ea9b253d1eed3603921734405ebf8cc0583363e21c1f47f5d6bbd234ab9acc309ba7c8fa0b23383a8
   languageName: node
   linkType: hard
 
@@ -13387,6 +13405,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-fetch@npm:^2.6.7":
+  version: 2.7.0
+  resolution: "node-fetch@npm:2.7.0"
+  dependencies:
+    whatwg-url: "npm:^5.0.0"
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 10/b24f8a3dc937f388192e59bcf9d0857d7b6940a2496f328381641cb616efccc9866e89ec43f2ec956bbd6c3d3ee05524ce77fe7b29ccd34692b3a16f237d6676
+  languageName: node
+  linkType: hard
+
 "node-forge@npm:^1.3.3":
   version: 1.4.0
   resolution: "node-forge@npm:1.4.0"
@@ -15687,6 +15719,7 @@ __metadata:
     "@babel/core": "npm:^7.29.0"
     "@react-native/metro-config": "npm:^0.84.0"
     "@types/react": "npm:~19.1.10"
+    "@vitalets/google-translate-api": "npm:^9.2.1"
     buffer: "npm:^6.0.3"
     expo: "npm:^54.0.27"
     expo-font: "npm:~14.0.10"
@@ -15703,6 +15736,7 @@ __metadata:
     react-native-svg: "npm:15.15.3"
     react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.7.4"
+    translate: "npm:^3.0.1"
   languageName: unknown
   linkType: soft
 
@@ -16234,6 +16268,20 @@ __metadata:
   version: 1.0.1
   resolution: "toidentifier@npm:1.0.1"
   checksum: 10/952c29e2a85d7123239b5cfdd889a0dde47ab0497f0913d70588f19c53f7e0b5327c95f4651e413c74b785147f9637b17410ac8c846d5d4a20a5a33eb6dc3a45
+  languageName: node
+  linkType: hard
+
+"tr46@npm:~0.0.3":
+  version: 0.0.3
+  resolution: "tr46@npm:0.0.3"
+  checksum: 10/8f1f5aa6cb232f9e1bdc86f485f916b7aa38caee8a778b378ffec0b70d9307873f253f5cbadbe2955ece2ac5c83d0dc14a77513166ccd0a0c7fe197e21396695
+  languageName: node
+  linkType: hard
+
+"translate@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "translate@npm:3.0.1"
+  checksum: 10/3a2650c52acbe953da35c5aee1e7dfa2a80fbe242a53b0229cc0d8e6c815a2d4906b57c182417a1ea2f66e1c7bea2774341ceb683a689b25a8ec96c05d12ebc6
   languageName: node
   linkType: hard
 
@@ -16782,6 +16830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"webidl-conversions@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "webidl-conversions@npm:3.0.1"
+  checksum: 10/b65b9f8d6854572a84a5c69615152b63371395f0c5dcd6729c45789052296df54314db2bc3e977df41705eacb8bc79c247cee139a63fa695192f95816ed528ad
+  languageName: node
+  linkType: hard
+
 "webidl-conversions@npm:^5.0.0":
   version: 5.0.0
   resolution: "webidl-conversions@npm:5.0.0"
@@ -16804,6 +16859,16 @@ __metadata:
     punycode: "npm:^2.1.1"
     webidl-conversions: "npm:^5.0.0"
   checksum: 10/aa588b54b75304335c5e189f8572626f989364c2ac5be5a1643ac687c2501f044405e1eb5761d65a826f570befade5fe51a723d917e9ab7672bb65d14065e82f
+  languageName: node
+  linkType: hard
+
+"whatwg-url@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "whatwg-url@npm:5.0.0"
+  dependencies:
+    tr46: "npm:~0.0.3"
+    webidl-conversions: "npm:^3.0.0"
+  checksum: 10/f95adbc1e80820828b45cc671d97da7cd5e4ef9deb426c31bcd5ab00dc7103042291613b3ef3caec0a2335ed09e0d5ed026c940755dbb6d404e2b27f940fdf07
   languageName: node
   linkType: hard
 
