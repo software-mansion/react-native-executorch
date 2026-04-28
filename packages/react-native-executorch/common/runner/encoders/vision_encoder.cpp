@@ -77,15 +77,23 @@ Result<VisionEncoder::ImageShape> VisionEncoder::getInputShape() const {
 std::vector<float>
 VisionEncoder::preprocessImage(const std::string &path,
                                const ImageShape &targetShape) const {
-  cv::Mat mat = rnexecutorch::image_processing::readImage(path);
-  cv::resize(mat, mat, cv::Size(targetShape.width, targetShape.height));
-  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
+  // The bundled vision-encoder PTEs (e.g. LFM2.5-VL) bake rescale + normalize
+  // into the exported graph, so we hand raw 0-255 float pixel values to the
+  // module. Adding rescale / normalize here would double-apply the transform
+  // and destroy the input distribution. We reuse `resizePadded` for the
+  // aspect-ratio-preserving letterbox (it picks the pad colour from the
+  // source image corners, which blends better than a flat gray), then
+  // convert BGR->RGB and repack the raw pixels into CHW float.
+  cv::Mat src = rnexecutorch::image_processing::readImage(path);
+  cv::Mat canvas = rnexecutorch::image_processing::resizePadded(
+      src, cv::Size(targetShape.width, targetShape.height));
+  cv::cvtColor(canvas, canvas, cv::COLOR_BGR2RGB);
 
   const int32_t pixelCount = targetShape.height * targetShape.width;
   std::vector<float> chw(targetShape.channels * pixelCount);
   for (int32_t i = 0; i < pixelCount; ++i) {
     cv::Vec3b px =
-        mat.at<cv::Vec3b>(i / targetShape.width, i % targetShape.width);
+        canvas.at<cv::Vec3b>(i / targetShape.width, i % targetShape.width);
     for (int32_t c = 0; c < targetShape.channels; ++c) {
       chw[c * pixelCount + i] = static_cast<float>(px[c]);
     }

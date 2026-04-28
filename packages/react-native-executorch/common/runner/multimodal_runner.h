@@ -30,10 +30,6 @@ public:
 protected:
   ::executorch::runtime::Error load_subcomponents() override;
   void stop_impl() override;
-  void set_temperature_impl(float) override {}
-  void set_topp_impl(float) override {}
-  void set_count_interval_impl(size_t count_interval) override;
-  void set_time_interval_impl(size_t time_interval) override;
 
 private:
   std::map<MultimodalType, std::unique_ptr<IEncoder>> encoders_;

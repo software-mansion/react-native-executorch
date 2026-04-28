@@ -250,6 +250,30 @@ void LLM::setTopp(float topp) {
   runner_->set_topp(topp);
 }
 
+void LLM::setMinP(float minP) {
+  if (!runner_ || !runner_->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't configure a model that's not loaded");
+  }
+  if (minP < 0.0f || minP > 1.0f) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Min-p must be between 0.0 and 1.0");
+  }
+  runner_->set_min_p(minP);
+}
+
+void LLM::setRepetitionPenalty(float repetitionPenalty) {
+  if (!runner_ || !runner_->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't configure a model that's not loaded");
+  }
+  if (repetitionPenalty < 0.0f) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Repetition penalty must be non-negative");
+  }
+  runner_->set_repetition_penalty(repetitionPenalty);
+}
+
 int32_t LLM::getMaxContextLength() const {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(

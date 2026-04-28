@@ -16,8 +16,9 @@
 namespace executorch::extension::llm {
 class MultimodalDecoderRunner : public TextDecoderRunner {
 public:
-  explicit MultimodalDecoderRunner(Module &module, IOManager *io_manager)
-      : TextDecoderRunner(module, io_manager) {}
+  explicit MultimodalDecoderRunner(Module &module, IOManager *io_manager,
+                                   const GenerationConfig &config)
+      : TextDecoderRunner(module, io_manager, config) {}
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   step(TensorPtr &tokens, int64_t start_pos) override {

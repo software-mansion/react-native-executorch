@@ -14,7 +14,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
@@ -50,7 +50,7 @@ function MultimodalLLMScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const vlm = useLLM({
-    model: LFM2_VL_1_6B_QUANTIZED,
+    model: LFM2_5_VL_1_6B_QUANTIZED,
   });
   const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(

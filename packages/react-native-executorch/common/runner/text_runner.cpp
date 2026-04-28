@@ -27,13 +27,13 @@ Error TextRunner::load_subcomponents() {
   Stats *stats_ptr = &stats_;
 
   text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
-      *module_, io_manager_.get(), config_.temperature, config_.topp);
+      *module_, io_manager_.get(), config_);
   text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);
   text_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
-      std::move(eos_ids_), stats_ptr);
+      std::move(eos_ids_), stats_ptr, config_);
 
   return Error::Ok;
 }
@@ -112,8 +112,7 @@ Error TextRunner::generate_internal(
 
   prompt_tokens.push_back(cur_token);
   int64_t num_generated = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens, pos_, max_new_tokens - 1, config_.temperature,
-      config_.topp, wrapped_callback));
+      prompt_tokens, pos_, max_new_tokens - 1, wrapped_callback));
 
   pos_ += num_generated;
   stats_.inference_end_ms = time_in_ms();
@@ -126,28 +125,6 @@ Error TextRunner::generate_internal(
 void TextRunner::stop_impl() {
   if (text_token_generator_)
     text_token_generator_->stop();
-}
-
-void TextRunner::set_temperature_impl(float temperature) {
-  if (text_decoder_runner_)
-    text_decoder_runner_->set_temperature(temperature);
-}
-
-void TextRunner::set_topp_impl(float topp) {
-  if (text_decoder_runner_)
-    text_decoder_runner_->set_topp(topp);
-}
-
-void TextRunner::set_count_interval_impl(size_t count_interval) {
-  if (text_token_generator_) {
-    text_token_generator_->set_count_interval(count_interval);
-  }
-}
-
-void TextRunner::set_time_interval_impl(size_t time_interval) {
-  if (text_token_generator_) {
-    text_token_generator_->set_time_interval(time_interval);
-  }
 }
 
 } // namespace executorch::extension::llm
