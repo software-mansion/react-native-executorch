@@ -81,7 +81,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
       int32_t scaledX = static_cast<int32_t>(std::round(x * scaleX));
       int32_t scaledY = static_cast<int32_t>(std::round(y * scaleY));
 
-      keypoints.emplace_back(scaledX, scaledY);
+      keypoints.push_back({scaledX, scaledY});
     }
 
     allDetections.push_back(std::move(keypoints));
@@ -154,7 +154,12 @@ PoseDetections PoseEstimation::generateFromFrame(
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
-  return runInference(rotated, detectionThreshold, iouThreshold, methodName);
+  auto detections =
+      runInference(rotated, detectionThreshold, iouThreshold, methodName);
+  for (auto &person : detections) {
+    ::rnexecutorch::utils::inverseRotatePoints(person, orient, rotated.size());
+  }
+  return detections;
 }
 
 PoseDetections PoseEstimation::generateFromPixels(

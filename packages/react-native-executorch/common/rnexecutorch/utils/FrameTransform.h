@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/utils/computer_vision/Types.h>
 #include <string>
+#include <type_traits>
 
 namespace rnexecutorch::utils {
 
@@ -61,37 +61,53 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
 cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient);
 
 /**
- * @brief Map 4-point bbox from rotated-frame space back to screen space.
+ * @brief A 2D point with mutable arithmetic `x` and `y` members.
  *
- * Inverse of rotateFrameForModel for 4-point bboxes.
- * rotatedSize is the rotated frame size (rotated.size()).
- * Templated on point type — requires P to have float x and y members.
+ * Satisfied by e.g. `cv::Point2f`, `cv::Point`, and any user-defined struct
+ * shaped `{ T x; T y; }` where `T` is arithmetic.
  */
 template <typename P>
-void inverseRotatePoints(std::array<P, 4> &points,
-                         const FrameOrientation &orient, cv::Size rotatedSize) {
+concept Point2D = requires(P &p) {
+  requires std::is_arithmetic_v<std::remove_reference_t<decltype(p.x)>>;
+  requires std::is_arithmetic_v<std::remove_reference_t<decltype(p.y)>>;
+};
+
+/**
+ * @brief Map a sequence of points from rotated-frame space back to screen
+ * space. Inverse of rotateFrameForModel for a collection of points.
+ *
+ * Works on any iterable whose elements satisfy {@link Point2D}
+ * (e.g. `std::array<P, 4>`, `std::vector<P>`).
+ * rotatedSize is the rotated frame size (rotated.size()).
+ */
+template <typename Points>
+  requires Point2D<typename Points::value_type>
+void inverseRotatePoints(Points &points, const FrameOrientation &orient,
+                         cv::Size rotatedSize) {
   const float w = static_cast<float>(rotatedSize.width);
   const float h = static_cast<float>(rotatedSize.height);
 
+  using Coord = decltype(std::declval<Points>().begin()->x);
+
   for (auto &p : points) {
-    float x = p.x;
-    float y = p.y;
+    float x = static_cast<float>(p.x);
+    float y = static_cast<float>(p.y);
 
     switch (orient.orientation) {
     case Orientation::Up:
       // landscape-left → portrait: nx = h-y, ny = x
-      p.x = h - y;
-      p.y = x;
+      p.x = static_cast<Coord>(h - y);
+      p.y = static_cast<Coord>(x);
       break;
     case Orientation::Right:
       // upside-down portrait → portrait: nx = w-x, ny = h-y
-      p.x = w - x;
-      p.y = h - y;
+      p.x = static_cast<Coord>(w - x);
+      p.y = static_cast<Coord>(h - y);
       break;
     case Orientation::Down:
       // landscape-right → portrait: nx = y, ny = w-x
-      p.x = y;
-      p.y = w - x;
+      p.x = static_cast<Coord>(y);
+      p.y = static_cast<Coord>(w - x);
       break;
     case Orientation::Left:
       break;
@@ -105,8 +121,8 @@ void inverseRotatePoints(std::array<P, 4> &points,
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
     for (auto &p : points) {
-      p.x = sw - p.x;
-      p.y = sh - p.y;
+      p.x = static_cast<Coord>(sw - static_cast<float>(p.x));
+      p.y = static_cast<Coord>(sh - static_cast<float>(p.y));
     }
   }
 #endif

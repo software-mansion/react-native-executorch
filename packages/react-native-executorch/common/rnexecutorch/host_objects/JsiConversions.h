@@ -20,6 +20,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/pose_estimation/Types.h>
 #include <rnexecutorch/models/privacy_filter/Types.h>
 #include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
@@ -361,14 +362,14 @@ inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
   return {runtime, array};
 }
 
-inline jsi::Value
-getJsiValue(const std::vector<std::pair<int32_t, int32_t>> &keypoints,
-            jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(
+    const rnexecutorch::models::pose_estimation::PersonKeypoints &keypoints,
+    jsi::Runtime &runtime) {
   jsi::Array array(runtime, keypoints.size());
   for (size_t i = 0; i < keypoints.size(); ++i) {
     jsi::Object point(runtime);
-    point.setProperty(runtime, "x", keypoints[i].first);
-    point.setProperty(runtime, "y", keypoints[i].second);
+    point.setProperty(runtime, "x", keypoints[i].x);
+    point.setProperty(runtime, "y", keypoints[i].y);
     array.setValueAtIndex(runtime, i, point);
   }
   return array;
@@ -376,7 +377,7 @@ getJsiValue(const std::vector<std::pair<int32_t, int32_t>> &keypoints,
 
 // Pose estimation: all detected people (vector of person keypoints)
 inline jsi::Value getJsiValue(
-    const std::vector<std::vector<std::pair<int32_t, int32_t>>> &detections,
+    const rnexecutorch::models::pose_estimation::PoseDetections &detections,
     jsi::Runtime &runtime) {
   jsi::Array array(runtime, detections.size());
   for (size_t i = 0; i < detections.size(); ++i) {

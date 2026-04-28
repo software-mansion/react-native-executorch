@@ -2,20 +2,12 @@
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include "rnexecutorch/models/VisionModel.h"
+#include "rnexecutorch/models/pose_estimation/Types.h"
 #include <executorch/runtime/core/evalue.h>
 #include <optional>
 
 namespace rnexecutorch {
 namespace models::pose_estimation {
-
-// Single keypoint (x, y)
-using Keypoint = std::pair<int32_t, int32_t>;
-
-// N keypoints for one person, depending on the model in question
-using PersonKeypoints = std::vector<Keypoint>;
-
-// N people for each image
-using PoseDetections = std::vector<PersonKeypoints>;
 
 class PoseEstimation : public VisionModel {
 public:

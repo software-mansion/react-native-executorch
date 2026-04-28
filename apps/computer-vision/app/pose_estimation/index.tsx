@@ -51,6 +51,7 @@ export default function PoseEstimationScreen() {
     height: number;
   }>();
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
+  const [layout, setLayout] = useState({ width: 0, height: 0 });
 
   const model = usePoseEstimation({ model: YOLO_POSE_MODEL });
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -122,54 +123,84 @@ export default function PoseEstimationScreen() {
       <View style={styles.imageContainer}>
         <View style={styles.image}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
-            <View style={styles.imageWrapper}>
+            <View
+              style={styles.imageWrapper}
+              onLayout={(e) =>
+                setLayout({
+                  width: e.nativeEvent.layout.width,
+                  height: e.nativeEvent.layout.height,
+                })
+              }
+            >
               <Image
                 source={{ uri: imageUri }}
                 style={styles.fullSizeImage}
                 resizeMode="contain"
               />
-              {results.length > 0 && (
-                <Svg style={StyleSheet.absoluteFill}>
-                  {/* Draw skeleton and keypoints for each detected person */}
-                  {results.map((personKeypoints, personIdx) => {
-                    const color =
-                      PERSON_COLORS[personIdx % PERSON_COLORS.length];
-                    return (
-                      <React.Fragment key={`person-${personIdx}`}>
-                        {/* Draw skeleton lines for this person */}
-                        {COCO_SKELETON_CONNECTIONS.map(
-                          ([from, to], lineIdx) => {
-                            const kp1 = personKeypoints[from];
-                            const kp2 = personKeypoints[to];
-                            if (!kp1 || !kp2) return null;
-                            return (
-                              <Line
-                                key={`person-${personIdx}-line-${lineIdx}`}
-                                x1={`${(kp1.x / imageDimensions.width) * 100}%`}
-                                y1={`${(kp1.y / imageDimensions.height) * 100}%`}
-                                x2={`${(kp2.x / imageDimensions.width) * 100}%`}
-                                y2={`${(kp2.y / imageDimensions.height) * 100}%`}
-                                stroke={color}
-                                strokeWidth="2"
-                              />
-                            );
-                          }
-                        )}
-                        {/* Draw keypoints for this person */}
-                        {Object.entries(personKeypoints).map(([name, kp]) => (
-                          <Circle
-                            key={`person-${personIdx}-kp-${name}`}
-                            cx={`${(kp.x / imageDimensions.width) * 100}%`}
-                            cy={`${(kp.y / imageDimensions.height) * 100}%`}
-                            r="4"
-                            fill="red"
-                          />
-                        ))}
-                      </React.Fragment>
-                    );
-                  })}
-                </Svg>
-              )}
+              {results.length > 0 &&
+                layout.width > 0 &&
+                layout.height > 0 &&
+                (() => {
+                  // Account for resizeMode="contain" letterboxing: the image's
+                  // displayed area is smaller than the container in one axis.
+                  const imageRatio =
+                    imageDimensions.width / imageDimensions.height;
+                  const layoutRatio = layout.width / layout.height;
+                  let scaleX: number, scaleY: number;
+                  if (imageRatio > layoutRatio) {
+                    scaleX = layout.width / imageDimensions.width;
+                    scaleY = layout.width / imageRatio / imageDimensions.height;
+                  } else {
+                    scaleY = layout.height / imageDimensions.height;
+                    scaleX =
+                      (layout.height * imageRatio) / imageDimensions.width;
+                  }
+                  const offsetX =
+                    (layout.width - imageDimensions.width * scaleX) / 2;
+                  const offsetY =
+                    (layout.height - imageDimensions.height * scaleY) / 2;
+                  return (
+                    <Svg style={StyleSheet.absoluteFill}>
+                      {results.map((personKeypoints, personIdx) => {
+                        const color =
+                          PERSON_COLORS[personIdx % PERSON_COLORS.length];
+                        return (
+                          <React.Fragment key={`person-${personIdx}`}>
+                            {COCO_SKELETON_CONNECTIONS.map(
+                              ([from, to], lineIdx) => {
+                                const kp1 = personKeypoints[from];
+                                const kp2 = personKeypoints[to];
+                                if (!kp1 || !kp2) return null;
+                                return (
+                                  <Line
+                                    key={`person-${personIdx}-line-${lineIdx}`}
+                                    x1={kp1.x * scaleX + offsetX}
+                                    y1={kp1.y * scaleY + offsetY}
+                                    x2={kp2.x * scaleX + offsetX}
+                                    y2={kp2.y * scaleY + offsetY}
+                                    stroke={color}
+                                    strokeWidth="2"
+                                  />
+                                );
+                              }
+                            )}
+                            {Object.entries(personKeypoints).map(
+                              ([name, kp]) => (
+                                <Circle
+                                  key={`person-${personIdx}-kp-${name}`}
+                                  cx={kp.x * scaleX + offsetX}
+                                  cy={kp.y * scaleY + offsetY}
+                                  r="4"
+                                  fill="red"
+                                />
+                              )
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </Svg>
+                  );
+                })()}
             </View>
           ) : (
             <Image
