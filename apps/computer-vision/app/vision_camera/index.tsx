@@ -28,6 +28,7 @@ import SegmentationTask from '../../components/vision_camera/tasks/SegmentationT
 import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
 import OCRTask from '../../components/vision_camera/tasks/OCRTask';
 import StyleTransferTask from '../../components/vision_camera/tasks/StyleTransferTask';
+import PoseEstimationTask from '../../components/vision_camera/tasks/PoseEstimationTask';
 // 1. Import ErrorBanner
 import ErrorBanner from '../../components/ErrorBanner';
 
@@ -36,6 +37,7 @@ type TaskId =
   | 'objectDetection'
   | 'segmentation'
   | 'instanceSegmentation'
+  | 'poseEstimation'
   | 'ocr'
   | 'styleTransfer';
 type ModelId =
@@ -52,6 +54,7 @@ type ModelId =
   | 'segmentationSelfie'
   | 'instanceSegmentationYolo26n'
   | 'instanceSegmentationRfdetr'
+  | 'poseEstimationYolo26n'
   | 'ocr'
   | 'styleTransferCandy'
   | 'styleTransferMosaic';
@@ -85,6 +88,11 @@ const TASKS: Task[] = [
       { id: 'instanceSegmentationYolo26n', label: 'YOLO26N Seg' },
       { id: 'instanceSegmentationRfdetr', label: 'RF-DETR Nano Seg' },
     ],
+  },
+  {
+    id: 'poseEstimation',
+    label: 'Pose',
+    variants: [{ id: 'poseEstimationYolo26n', label: 'YOLO26N Pose' }],
   },
   {
     id: 'objectDetection',
@@ -223,6 +231,12 @@ export default function VisionCameraScreen() {
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         orientationSource="device"
+        onError={(e) => {
+          console.warn('[Camera] onError', e);
+          setError(e.message);
+        }}
+        onStarted={() => console.log('[Camera] session started')}
+        onPreviewStarted={() => console.log('[Camera] preview got first frame')}
       />
 
       <View
@@ -271,6 +285,12 @@ export default function VisionCameraScreen() {
               | 'instanceSegmentationYolo26n'
               | 'instanceSegmentationRfdetr'
           }
+        />
+      )}
+      {activeTask === 'poseEstimation' && (
+        <PoseEstimationTask
+          {...taskProps}
+          activeModel={activeModel as 'poseEstimationYolo26n'}
         />
       )}
       {activeTask === 'ocr' && <OCRTask {...taskProps} />}
