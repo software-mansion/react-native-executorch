@@ -15,11 +15,27 @@ constexpr Partitioner::Cost INF = 1e7;
 
 Partitioner::Partition Partitioner::partition(std::u32string_view input,
                                               size_t limit, Mode mode) const {
+  if (mode == Mode::MIN_BREAKS) {
+    return partition(input, limit,
+                     [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp,
+                             size_t end, Separator sep) -> Cost {
+                       if (end - bp > limit) {
+                         return INF;
+                       }
+
+                       Cost sepPenalty = sep == Separator::EOS     ? 1
+                                         : sep == Separator::PAUSE ? 3
+                                         : sep == Separator::WHITE ? 1000
+                                                                   : 0;
+
+                       return acc + sepPenalty + static_cast<Cost>(end - bp);
+                     });
+  }
   if (mode == Mode::MIN_LATENCY) {
     return partition(
         input, limit,
-        [this, limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp,
-                      size_t end, Separator sep) -> Cost {
+        [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp, size_t end,
+                Separator sep) -> Cost {
           if (end - bp > limit) {
             return INF;
           }
@@ -32,10 +48,11 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
           int64_t rightmostRangeLength = end - bp;
           int64_t prevRangeLength = bp - prevBp;
 
-          int64_t latency =
-              std::max(0LL, rightmostRangeLength - prevRangeLength);
-          int32_t discount = kTokenDiscountFactor *
-                             std::max(0LL, kTokenDiscountRange - bp - 1);
+          int64_t latency = std::max(static_cast<int64_t>(0),
+                                     rightmostRangeLength - prevRangeLength);
+          int64_t discount =
+              kTokenDiscountFactor *
+              std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
 
           return acc +
                  static_cast<Cost>(latency * discount / kTokenDiscountRange) +

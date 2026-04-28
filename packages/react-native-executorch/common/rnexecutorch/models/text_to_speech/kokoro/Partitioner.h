@@ -18,7 +18,9 @@ public:
    * divided.
    */
   enum class Mode {
-    MIN_LATENCY = 0,
+    MIN_BREAKS = 0, // Minimizes number of substrings (best quality)
+    MIN_LATENCY =
+        1, // Minimizes the processing latency (best speed - streaming mode)
   };
 
   /**

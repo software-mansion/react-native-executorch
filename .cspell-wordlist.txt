@@ -206,3 +206,5 @@ Deinitialize
 fastsam
 promptable
 topk
+phonemize
+phonemization
