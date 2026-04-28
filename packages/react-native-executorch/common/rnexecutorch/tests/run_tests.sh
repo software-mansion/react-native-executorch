@@ -189,6 +189,44 @@ run_test() {
   return 0
 }
 
+# Returns a space-separated list of model/asset filenames (in $MODELS_DIR) that
+# the given test executable loads at runtime. Tests not listed here have no
+# model dependencies. Adding a new test? Add its filenames below.
+models_for_test() {
+  case "$1" in
+    BaseModelTests) echo "style_transfer_candy_xnnpack_fp32.pte" ;;
+    ClassificationTests) echo "efficientnet_v2_s_xnnpack.pte test_image.jpg" ;;
+    ObjectDetectionTests) echo "ssdlite320-mobilenetv3-large.pte test_image.jpg" ;;
+    ImageEmbeddingsTests) echo "clip-vit-base-patch32-vision_xnnpack.pte test_image.jpg" ;;
+    TextEmbeddingsTests) echo "all-MiniLM-L6-v2_xnnpack.pte tokenizer.json" ;;
+    StyleTransferTests) echo "style_transfer_candy_xnnpack_fp32.pte test_image.jpg" ;;
+    VADTests) echo "fsmn-vad_xnnpack.pte" ;;
+    TokenizerModuleTests) echo "tokenizer.json" ;;
+    SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json" ;;
+    TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json" ;;
+    LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
+    TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
+    InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;
+    SemanticSegmentationTests) echo "deeplabV3_xnnpack_fp32.pte test_image.jpg" ;;
+    OCRTests | VerticalOCRTests) echo "xnnpack_craft_quantized.pte xnnpack_crnn_english.pte" ;;
+    *) echo "" ;;
+  esac
+}
+
+push_test_models() {
+  local models="$1"
+  for filename in $models; do
+    push_file "$MODELS_DIR/$filename" "$DEVICE_TEST_DIR/"
+  done
+}
+
+cleanup_test_models() {
+  local models="$1"
+  for filename in $models; do
+    adb shell "rm -f $DEVICE_TEST_DIR/$filename" >/dev/null 2>&1 || true
+  done
+}
+
 # ============================================================================
 # Parse arguments
 # ============================================================================
@@ -290,15 +328,9 @@ for entry in "${MODELS[@]}"; do
   download_if_needed "$url" "$filename"
 done
 
-# ============================================================================
-# Push models
-# ============================================================================
-log "Pushing models to device..."
-for model in "$MODELS_DIR"/*; do
-  if [ -f "$model" ]; then
-    push_file "$model" "$DEVICE_TEST_DIR/"
-  fi
-done
+# Models are pushed per-test in the run loop below to keep peak device disk
+# usage low (the full set is ~6GB, far more than `/data/local/tmp` on a typical
+# emulator). See `models_for_test` for the test → models mapping.
 
 # ============================================================================
 # Push libraries
@@ -327,8 +359,19 @@ done
 log "Running tests on device..."
 FAILED=0
 for test_exe in "${TEST_EXECUTABLES[@]}"; do
+  models=$(models_for_test "$test_exe")
+
+  if [ -n "$models" ]; then
+    log "Pushing models for $test_exe..."
+    push_test_models "$models"
+  fi
+
   if ! run_test "$test_exe"; then
     FAILED=1
+  fi
+
+  if [ -n "$models" ]; then
+    cleanup_test_models "$models"
   fi
 done
 
