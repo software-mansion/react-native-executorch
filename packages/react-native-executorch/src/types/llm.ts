@@ -56,7 +56,11 @@ export type LLMModelName =
   | 'lfm2.5-1.2b-instruct'
   | 'lfm2.5-1.2b-instruct-quantized'
   | 'lfm2.5-vl-1.6b-quantized'
-  | 'lfm2.5-vl-450m-quantized';
+  | 'lfm2.5-vl-450m-quantized'
+  | 'qwen3.5-0.8b-quantized'
+  | 'qwen3.5-2b-quantized'
+  | 'bielik-v3.0-1.5b'
+  | 'bielik-v3.0-1.5b-quantized';
 
 /**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.

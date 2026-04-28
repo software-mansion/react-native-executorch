@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { URL_PREFIX, VERSION_TAG } from './versions';
+import { URL_PREFIX, VERSION_TAG, NEXT_VERSION_TAG } from './versions';
 
 // LLMs
 
@@ -367,6 +367,36 @@ export const QWEN2_5_3B_QUANTIZED = {
   tokenizerConfigSource: QWEN2_5_TOKENIZER_CONFIG,
 } as const;
 
+// QWEN3.5-0.8B
+const QWEN3_5_0_8B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/qwen3_5_0_8b_xnnpack_8da4w.pte`;
+const QWEN3_5_0_8B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer.json`;
+const QWEN3_5_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer_config.json`;
+
+/**
+ * @category Models - LLM
+ */
+export const QWEN3_5_0_8B_QUANTIZED = {
+  modelName: 'qwen3.5-0.8b-quantized',
+  modelSource: QWEN3_5_0_8B_QUANTIZED_MODEL,
+  tokenizerSource: QWEN3_5_0_8B_TOKENIZER,
+  tokenizerConfigSource: QWEN3_5_0_8B_TOKENIZER_CONFIG,
+} as const;
+
+// QWEN3.5-2B
+const QWEN3_5_2B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/qwen3_5_2b_xnnpack_8da4w.pte`;
+const QWEN3_5_2B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer.json`;
+const QWEN3_5_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer_config.json`;
+
+/**
+ * @category Models - LLM
+ */
+export const QWEN3_5_2B_QUANTIZED = {
+  modelName: 'qwen3.5-2b-quantized',
+  modelSource: QWEN3_5_2B_QUANTIZED_MODEL,
+  tokenizerSource: QWEN3_5_2B_TOKENIZER,
+  tokenizerConfigSource: QWEN3_5_2B_TOKENIZER_CONFIG,
+} as const;
+
 // PHI 4
 const PHI_4_MINI_4B_MODEL = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/original/phi-4-mini_bf16.pte`;
 const PHI_4_MINI_4B_QUANTIZED_MODEL = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/quantized/phi-4-mini_8da4w.pte`;
@@ -443,6 +473,32 @@ export const LFM2_5_350M_QUANTIZED = {
   modelSource: LFM2_5_350M_QUANTIZED_MODEL,
   tokenizerSource: LFM2_5_350M_TOKENIZER,
   tokenizerConfigSource: LFM2_5_350M_TOKENIZER_CONFIG,
+} as const;
+
+// Bielik-v3.0
+const BIELIK_V3_0_1_5B_MODEL = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/bielik-v3.0-1.5B/original/bielik_1_5b_v3_0_instruct_xnnpack_fp16.pte`;
+const BIELIK_V3_0_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/bielik-v3.0-1.5B/quantized/bielik_1_5b_v3_0_instruct_xnnpack_8da4w.pte`;
+const BIELIK_V3_0_TOKENIZER = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/tokenizer.json`;
+const BIELIK_V3_0_TOKENIZER_CONFIG = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/tokenizer_config.json`;
+
+/**
+ * @category Models - LLM
+ */
+export const BIELIK_V3_0_1_5B = {
+  modelName: 'bielik-v3.0-1.5b',
+  modelSource: BIELIK_V3_0_1_5B_MODEL,
+  tokenizerSource: BIELIK_V3_0_TOKENIZER,
+  tokenizerConfigSource: BIELIK_V3_0_TOKENIZER_CONFIG,
+} as const;
+
+/**
+ * @category Models - LLM
+ */
+export const BIELIK_V3_0_1_5B_QUANTIZED = {
+  modelName: 'bielik-v3.0-1.5b-quantized',
+  modelSource: BIELIK_V3_0_1_5B_QUANTIZED_MODEL,
+  tokenizerSource: BIELIK_V3_0_TOKENIZER,
+  tokenizerConfigSource: BIELIK_V3_0_TOKENIZER_CONFIG,
 } as const;
 
 // LFM2.5-VL-1.6B
@@ -1144,6 +1200,8 @@ export const MODEL_REGISTRY = {
     QWEN3_1_7B_QUANTIZED,
     QWEN3_4B,
     QWEN3_4B_QUANTIZED,
+    QWEN3_5_0_8B_QUANTIZED,
+    QWEN3_5_2B_QUANTIZED,
     HAMMER2_1_0_5B,
     HAMMER2_1_0_5B_QUANTIZED,
     HAMMER2_1_1_5B,
@@ -1170,6 +1228,10 @@ export const MODEL_REGISTRY = {
     LFM2_5_1_2B_INSTRUCT_QUANTIZED,
     LFM2_5_VL_1_6B_QUANTIZED,
     LFM2_5_VL_450M_QUANTIZED,
+    LFM2_VL_1_6B_QUANTIZED,
+    LFM2_VL_450M_QUANTIZED,
+    BIELIK_V3_0_1_5B,
+    BIELIK_V3_0_1_5B_QUANTIZED,
     EFFICIENTNET_V2_S,
     EFFICIENTNET_V2_S_QUANTIZED,
     SSDLITE_320_MOBILENET_V3_LARGE,
