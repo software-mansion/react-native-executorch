@@ -25,7 +25,7 @@ function HamburgerIcon({ tintColor }: { tintColor?: string }) {
   return (
     <TouchableOpacity
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
-      style={{ marginLeft: 12 }}
+      style={styles.hamburger}
     >
       <Svg width={24} height={24} viewBox="0 0 24 24">
         <Rect
@@ -187,6 +187,9 @@ export default function _layout() {
 }
 
 const styles = StyleSheet.create({
+  hamburger: {
+    marginLeft: 12,
+  },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
