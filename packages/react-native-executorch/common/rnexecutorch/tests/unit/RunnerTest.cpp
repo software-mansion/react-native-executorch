@@ -62,11 +62,10 @@ TEST(MultimodalInputTest, EmptyStringIsStillText) {
 // BaseLLMRunner via StubRunner
 // ============================================================================
 
-TEST(BaseLLMRunnerTest, SetTemperatureUpdatesConfigAndCallsImpl) {
+TEST(BaseLLMRunnerTest, SetTemperatureUpdatesConfig) {
   StubRunner runner(nullptr, "dummy");
   runner.set_temperature(0.42f);
   EXPECT_FLOAT_EQ(runner.config_.temperature, 0.42f);
-  EXPECT_FLOAT_EQ(runner.last_temp_, 0.42f);
 }
 
 TEST(BaseLLMRunnerTest, SetToppUpdatesConfig) {
@@ -88,4 +87,16 @@ TEST(BaseLLMRunnerTest, GenerateEmptyStringReturnsError) {
   StubRunner runner(nullptr, "dummy");
   auto err = runner.generate("", {}, {}, {});
   EXPECT_NE(err, ::executorch::runtime::Error::Ok);
+}
+
+TEST(BaseLLMRunnerTest, SetMinPUpdatesConfig) {
+  StubRunner runner(nullptr, "dummy");
+  runner.set_min_p(0.15f);
+  EXPECT_FLOAT_EQ(runner.config_.min_p, 0.15f);
+}
+
+TEST(BaseLLMRunnerTest, SetRepetitionPenaltyUpdatesConfig) {
+  StubRunner runner(nullptr, "dummy");
+  runner.set_repetition_penalty(1.05f);
+  EXPECT_FLOAT_EQ(runner.config_.repetition_penalty, 1.05f);
 }

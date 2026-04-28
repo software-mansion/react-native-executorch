@@ -140,6 +140,15 @@ public:
                                        synchronousHostFunction<&Model::setTopp>,
                                        "setTopp"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setMinP>,
+                                       "setMinP"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::setRepetitionPenalty>,
+          "setRepetitionPenalty"));
+
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
           synchronousHostFunction<&Model::getMaxContextLength>,

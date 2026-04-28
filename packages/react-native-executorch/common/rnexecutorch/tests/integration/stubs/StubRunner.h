@@ -18,10 +18,6 @@ public:
     return ::executorch::runtime::Error::Ok;
   }
   void stop_impl() override {}
-  void set_temperature_impl(float t) override { last_temp_ = t; }
-  void set_topp_impl(float) override {}
-  void set_count_interval_impl(size_t) override {}
-  void set_time_interval_impl(size_t) override {}
 
   int32_t resolve_max(int32_t prompt, int32_t seq_len, int32_t ctx_len,
                       int32_t max_new = -1) const {
@@ -29,5 +25,4 @@ public:
   }
 
   bool loaded_ = false;
-  float last_temp_ = -1.f;
 };

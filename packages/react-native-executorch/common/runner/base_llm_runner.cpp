@@ -139,20 +139,22 @@ int32_t BaseLLMRunner::get_max_context_length() const {
 
 void BaseLLMRunner::set_temperature(float temperature) noexcept {
   config_.temperature = temperature;
-  set_temperature_impl(temperature);
 }
 
-void BaseLLMRunner::set_topp(float topp) noexcept {
-  config_.topp = topp;
-  set_topp_impl(topp);
+void BaseLLMRunner::set_topp(float topp) noexcept { config_.topp = topp; }
+
+void BaseLLMRunner::set_min_p(float min_p) noexcept { config_.min_p = min_p; }
+
+void BaseLLMRunner::set_repetition_penalty(float repetition_penalty) noexcept {
+  config_.repetition_penalty = repetition_penalty;
 }
 
 void BaseLLMRunner::set_count_interval(size_t count_interval) {
-  set_count_interval_impl(count_interval);
+  config_.output_token_batch_size = count_interval;
 }
 
 void BaseLLMRunner::set_time_interval(size_t time_interval) {
-  set_time_interval_impl(time_interval);
+  config_.batch_time_interval_ms = time_interval;
 }
 
 int32_t BaseLLMRunner::resolve_max_new_tokens(int32_t num_prompt_tokens,
