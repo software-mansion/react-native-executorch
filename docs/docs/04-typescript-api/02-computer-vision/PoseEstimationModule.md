@@ -94,7 +94,7 @@ detections[0].THUMB_TIP; // { x, y }
 
 The `.pte` binary must expose a `forward` method (or per-input-size methods such as `forward_384`, `forward_512`, `forward_640` for multi-resolution models) with the following interface:
 
-**Input:** one `float32` tensor of shape `[1, 3, H, W]` — a single RGB image, values in `[0, 1]` after optional per-channel normalization `(pixel − mean) / std`. H and W are read from the model's declared input shape at load time.
+**Input:** one `float32` tensor of shape `[1, 3, H, W]` — a single RGB image, values in `[0, 1]` after optional per-channel normalization `(pixel − mean) / std`. H and W are read from the model's declared input shape at load time. The mean and std vectors are supplied via `preprocessorConfig.normMean` and `preprocessorConfig.normStd` on the [`PoseEstimationConfig`](../../06-api-reference/interfaces/PoseEstimationConfig.md) you pass to `fromCustomModel`; if omitted, the runtime feeds the resized image without normalization.
 
 **Outputs:** exactly three `float32` tensors, in this order:
 
