@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <fstream>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
 
@@ -108,11 +107,6 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-
-    rnexecutorch::log(
-        LOG_LEVEL::Debug, "[Kokoro::generate] subsentence:", subsentence.size(),
-        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
-
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
@@ -164,11 +158,6 @@ void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
-
-    rnexecutorch::log(
-        LOG_LEVEL::Debug, "[Kokoro::stream] subsentence:", subsentence.size(),
-        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
-
     audioPart.resize(
         audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
