@@ -23,6 +23,7 @@ The following hooks expose `runOnFrame`:
 - [`useInstanceSegmentation`](./useInstanceSegmentation.md)
 - [`useSemanticSegmentation`](./useSemanticSegmentation.md)
 - [`useStyleTransfer`](./useStyleTransfer.md)
+- [`usePoseEstimation`](./usePoseEstimation.md)
 
 ## runOnFrame vs forward
 
