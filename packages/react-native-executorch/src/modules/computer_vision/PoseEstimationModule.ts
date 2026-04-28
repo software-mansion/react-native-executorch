@@ -137,7 +137,7 @@ export class PoseEstimationModule<
 
   /**
    * Get the keypoint map for this model.
-   * @returns Map of keypoints for model being used, e.g {NOSE:1, ...}
+   * @returns Map of keypoint names to indices, e.g. `{ NOSE: 0, LEFT_EYE: 1, ... }`.
    */
   getKeypointMap(): ResolveKeypoints<T> {
     return this.keypointMap;
