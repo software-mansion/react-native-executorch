@@ -42,15 +42,22 @@
     "postpack": "rm ./README.md"
   },
   "keywords": [
+    "text-to-speech",
+    "ocr",
+    "computer-vision",
+    "segmentation",
+    "object-detection",
+    "speech-to-text",
+    "vlm",
+    "image-embeddings",
+    "on-device-ai",
+    "text-embeddings",
+    "llm",
+    "ai",
     "react-native",
     "ios",
     "android",
-    "executorch",
-    "ai",
-    "llm",
-    "coreml",
-    "xnnpack",
-    "llama"
+    "executorch"
   ],
   "repository": {
     "type": "git",
