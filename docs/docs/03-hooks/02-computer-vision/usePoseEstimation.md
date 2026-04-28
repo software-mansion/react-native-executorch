@@ -5,7 +5,7 @@ title: usePoseEstimation
 Pose estimation is a computer vision technique that detects human bodies in an image and locates a fixed set of keypoints (e.g. nose, shoulders, knees) for each detected person. Unlike object detection, which produces a class label and a bounding box, pose estimation produces a structured set of named keypoints per person. React Native ExecuTorch offers a dedicated hook `usePoseEstimation` for this task.
 
 :::info
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/pose-estimation-68d0ea936cd0906843cbba7d). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## API Reference
@@ -16,13 +16,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { usePoseEstimation } from 'react-native-executorch';
+import { usePoseEstimation, YOLO26N_POSE } from 'react-native-executorch';
 
 const model = usePoseEstimation({
-  model: {
-    modelName: 'yolo26n-pose',
-    modelSource: require('./assets/yolo26n-pose_xnnpack.pte'),
-  },
+  model: YOLO26N_POSE,
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -93,14 +90,11 @@ The keypoint names available on each person are determined by the model's keypoi
 ## Example
 
 ```typescript
-import { usePoseEstimation } from 'react-native-executorch';
+import { usePoseEstimation, YOLO26N_POSE } from 'react-native-executorch';
 
 function App() {
   const model = usePoseEstimation({
-    model: {
-      modelName: 'yolo26n-pose',
-      modelSource: require('./assets/yolo26n-pose_xnnpack.pte'),
-    },
+    model: YOLO26N_POSE,
   });
 
   const handleDetect = async () => {
@@ -135,7 +129,6 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 | Model                                                                                       | Number of keypoints | Keypoint list                                               | Multi-size Support |
 | ------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------- | ------------------ |
-| [YOLO11N-Pose](https://huggingface.co/software-mansion/react-native-executorch-yolo11-pose) | 17                  | [COCO](../../06-api-reference/enumerations/CocoKeypoint.md) | Yes (384/512/640)  |
 | [YOLO26N-Pose](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose) | 17                  | [COCO](../../06-api-reference/enumerations/CocoKeypoint.md) | Yes (384/512/640)  |
 
 :::tip
