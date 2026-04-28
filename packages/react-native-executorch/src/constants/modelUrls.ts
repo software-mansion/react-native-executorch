@@ -1043,6 +1043,9 @@ const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1
 const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
 const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
 const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse-base-multilingual-cased-v2_xnnpack_8da4w.pte`;
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse-base-multilingual-cased-v2_coreml_fp32.pte`;
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
 const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
 const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
 
@@ -1080,6 +1083,24 @@ export const MULTI_QA_MPNET_BASE_DOT_V1 = {
   modelName: 'multi-qa-mpnet-base-dot-v1',
   modelSource: MULTI_QA_MPNET_BASE_DOT_V1_MODEL,
   tokenizerSource: MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER,
+} as const;
+
+/**
+ * @category Models - Text Embeddings
+ */
+export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W = {
+  modelName: 'distiluse-base-multilingual-cased-v2-8da4w',
+  modelSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL,
+  tokenizerSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER,
+} as const;
+
+/**
+ * @category Models - Text Embeddings
+ */
+export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML = {
+  modelName: 'distiluse-base-multilingual-cased-v2-coreml',
+  modelSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_MODEL,
+  tokenizerSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER,
 } as const;
 
 /**
@@ -1235,6 +1256,8 @@ export const MODEL_REGISTRY = {
     ALL_MPNET_BASE_V2,
     MULTI_QA_MINILM_L6_COS_V1,
     MULTI_QA_MPNET_BASE_DOT_V1,
+    DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+    DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
     CLIP_VIT_BASE_PATCH32_TEXT,
     BK_SDM_TINY_VPRED_512,
     BK_SDM_TINY_VPRED_256,

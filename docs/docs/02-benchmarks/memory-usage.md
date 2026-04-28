@@ -98,13 +98,15 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 
 ## Text Embeddings
 
-| Model / Device                       | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
-| ------------------------------------ | :----------------: | :-------------: |
-| ALL_MINILM_L6_V2 (XNNPACK)           |        110         |       95        |
-| ALL_MPNET_BASE_V2 (XNNPACK)          |        455         |       405       |
-| MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)  |        140         |       120       |
-| MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK) |        455         |       435       |
-| CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK) |        280         |       200       |
+| Model / Device                                       | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ---------------------------------------------------- | :----------------: | :-------------: |
+| ALL_MINILM_L6_V2 (XNNPACK)                           |        110         |       95        |
+| ALL_MPNET_BASE_V2 (XNNPACK)                          |        455         |       405       |
+| MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)                  |        140         |       120       |
+| MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK)                 |        455         |       435       |
+| CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK)                 |        280         |       200       |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK 8da4w) |         36         |       44        |
+| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP32)  |         55         |        -        |
 
 ## Image Embeddings
 
@@ -120,8 +122,8 @@ output. When resize is enabled, expect higher memory usage and inference time
 with higher resolutions.
 :::
 
-| Model / Device              | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
-| --------------------------- | :----------------: | :-------------: |
+| Model / Device               | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
+| ---------------------------- | :----------------: | :-------------: |
 | DEEPLABV3_RESNET50 (XNNPACK) |        660         |       930       |
 
 ## Instance Segmentation

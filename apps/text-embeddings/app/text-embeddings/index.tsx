@@ -18,6 +18,8 @@ import {
   ALL_MPNET_BASE_V2,
   MULTI_QA_MINILM_L6_COS_V1,
   MULTI_QA_MPNET_BASE_DOT_V1,
+  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
 
@@ -28,6 +30,14 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
   { label: 'MPNet Base', value: ALL_MPNET_BASE_V2 },
   { label: 'MultiQA MiniLM', value: MULTI_QA_MINILM_L6_COS_V1 },
   { label: 'MultiQA MPNet', value: MULTI_QA_MPNET_BASE_DOT_V1 },
+  {
+    label: 'Multilingual DistilUSE (8da4w)',
+    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+  },
+  {
+    label: 'Multilingual DistilUSE (CoreML)',
+    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
+  },
 ];
 import { useIsFocused } from '@react-navigation/native';
 import { dotProduct } from '../../utils/math';
