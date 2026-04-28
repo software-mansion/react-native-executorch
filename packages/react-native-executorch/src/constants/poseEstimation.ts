@@ -1,7 +1,7 @@
 /**
  * Standard COCO keypoint enum (17 keypoints).
  * Use for type-safe keypoint access: `keypoints[CocoKeypoint.NOSE]`
- * @category Models - Pose Estimation
+ * @category Types
  */
 export const CocoKeypoint = {
   NOSE: 0,
