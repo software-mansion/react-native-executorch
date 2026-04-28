@@ -69,7 +69,7 @@ private:
                               std::shared_ptr<jsi::Function> callback);
 
   // Helper function - generate specialization for given input size
-  std::vector<float> synthesize(const std::u32string &phonemes, float speed,
+  std::vector<float> synthesize(std::u32string_view phonemes, float speed,
                                 size_t paddingMs = 50);
 
   // JS callback handle

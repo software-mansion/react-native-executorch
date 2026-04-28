@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
 
@@ -34,7 +35,6 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
                       neuralModelSource.empty()
                           ? std::nullopt
                           : std::make_optional(neuralModelSource)}}),
-      partitioner_(context_),
       durationPredictor_(durationPredictorSource, context_, callInvoker_),
       synthesizer_(synthesizerSource, context_, callInvoker_) {
   // Populate the voice array by reading given file
@@ -93,11 +93,13 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
   // Divide the phonemes string into substrings.
   // Affects the further calculations only in case of string size
   // exceeding the biggest model's input.
-  auto subsentences =
-      partitioner_.divide<Partitioner::Strategy::TOTAL_TIME>(phonemes);
+  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
+                                          Partitioner::Mode::MIN_LATENCY);
 
   std::vector<float> audio = {};
-  for (const auto &subsentence : subsentences) {
+  for (const auto &[offset, length] : partition.segments) {
+    auto subsentence = partition.content.substr(offset, length);
+
     // Generate an audio vector with the Kokoro model
     auto audioPart = synthesize(subsentence, speed);
 
@@ -106,6 +108,11 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
+
+    rnexecutorch::log(
+        LOG_LEVEL::Debug, "[Kokoro::generate] subsentence:", subsentence.size(),
+        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
+
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
@@ -129,15 +136,16 @@ void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
   };
 
   // Use LATENCY strategy to minimize the time-to-first-audio for streaming
-  auto subsentences =
-      partitioner_.divide<Partitioner::Strategy::LATENCY>(phonemes);
+  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
+                                          Partitioner::Mode::MIN_LATENCY);
 
-  for (size_t i = 0; i < subsentences.size(); i++) {
+  for (size_t i = 0; i < partition.segments.size(); i++) {
     if (!isStreaming_) {
       break;
     }
 
-    const auto &subsentence = subsentences[i];
+    const auto &[offset, length] = partition.segments[i];
+    const auto subsentence = partition.content.substr(offset, length);
 
     // Determine the silent padding duration to be stripped from the edges of
     // the generated audio. If a chunk ends with a space or follows one that
@@ -145,7 +153,7 @@ void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
     // to ensure natural speech flow. Otherwise, we use 50ms for standard
     // pauses.
     bool endsWithSpace = (subsentence.back() == U' ');
-    bool prevEndsWithSpace = (i > 0 && subsentences[i - 1].back() == U' ');
+    bool prevEndsWithSpace = (i > 0 && partition.content[offset - 1] == U' ');
     size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
 
     // Generate an audio vector with the Kokoro model
@@ -156,6 +164,11 @@ void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
     size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
+
+    rnexecutorch::log(
+        LOG_LEVEL::Debug, "[Kokoro::stream] subsentence:", subsentence.size(),
+        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
+
     audioPart.resize(
         audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
@@ -256,8 +269,8 @@ void Kokoro::streamStop(bool instant) noexcept {
   }
 }
 
-std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
-                                      float speed, size_t paddingMs) {
+std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
+                                      size_t paddingMs) {
   if (phonemes.empty()) {
     return {};
   }

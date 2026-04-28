@@ -55,14 +55,13 @@ public:
 
   /**
    * Holds the result of text partitioning.
-   * The content is stored as logical views to avoid copying. Breakpoints
-   * defines indices where the content should be split into smaller segments.
+   * The content is stored as logical views to avoid copying. Segments
+   * defines ranges of the content views for smaller segments.
    */
   struct Partition {
     std::u32string_view content;
-    std::vector<int64_t>
-        breakpoints; // Indices where content is split (e.g., {5, 16} for
-                     // "Hello. What's up? Are you OK?").
+    std::vector<std::pair<size_t, size_t>>
+        segments; // Pairs of {offset, length} for each segment.
   };
 
   /**
