@@ -989,7 +989,7 @@ const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-
 const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse-base-multilingual-cased-v2_xnnpack_fp32.pte`;
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse-base-multilingual-cased-v2_xnnpack_8da4w.pte`;
-const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse-base-multilingual-cased-v2_coreml_fp32.pte`;
+const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse-base-multilingual-cased-v2_coreml_fp32.pte`;
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse-base-multilingual-cased-v2_coreml_fp16.pte`;
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
 const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
@@ -1052,9 +1052,9 @@ export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W = {
 /**
  * @category Models - Text Embeddings
  */
-export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32 = {
-  modelName: 'distiluse-base-multilingual-cased-v2-coreml-fp32',
-  modelSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32_MODEL,
+export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML = {
+  modelName: 'distiluse-base-multilingual-cased-v2-coreml',
+  modelSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_MODEL,
   tokenizerSource: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER,
 } as const;
 
@@ -1218,7 +1218,7 @@ export const MODEL_REGISTRY = {
     MULTI_QA_MPNET_BASE_DOT_V1,
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2,
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
-    DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP32,
+    DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
     CLIP_VIT_BASE_PATCH32_TEXT,
     BK_SDM_TINY_VPRED_512,

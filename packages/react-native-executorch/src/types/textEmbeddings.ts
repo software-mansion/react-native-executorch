@@ -12,7 +12,7 @@ export type TextEmbeddingsModelName =
   | 'multi-qa-mpnet-base-dot-v1'
   | 'distiluse-base-multilingual-cased-v2'
   | 'distiluse-base-multilingual-cased-v2-8da4w'
-  | 'distiluse-base-multilingual-cased-v2-coreml-fp32'
+  | 'distiluse-base-multilingual-cased-v2-coreml'
   | 'distiluse-base-multilingual-cased-v2-coreml-fp16'
   | 'clip-vit-base-patch32-text';
 
