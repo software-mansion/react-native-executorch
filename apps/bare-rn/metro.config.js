@@ -10,6 +10,12 @@ const config = {
     workspaceRoot, // Watch the entire monorepo
   ],
   resolver: {
+    // Workspace packages (react-native-executorch, bare-resource-fetcher) declare
+    // their own `react` devDependency, so yarn installs a second React copy at
+    // packages/*/node_modules/react. Without disabling hierarchical lookup, Metro
+    // resolves `react` per-file and the bundle ends up with two React instances —
+    // useState's dispatcher comes back null at runtime.
+    disableHierarchicalLookup: true,
     nodeModulesPaths: [
       path.resolve(projectRoot, 'node_modules'),
       path.resolve(workspaceRoot, 'node_modules'),

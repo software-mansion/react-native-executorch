@@ -1,10 +1,11 @@
-pluginManagement { includeBuild("../../../node_modules/@react-native/gradle-plugin") }
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex ->
-    // node_modules are hoisted to the repo root in this yarn workspace
-    def cliFile = new File(settings.rootDir, "../../../node_modules/@react-native-community/cli/build/bin.js").absolutePath
+    // bare-rn pins its own React Native via installConfig.hoistingLimits in package.json,
+    // so its deps live in apps/bare-rn/node_modules/ rather than the workspace root.
+    def cliFile = new File(settings.rootDir, "../node_modules/@react-native-community/cli/build/bin.js").absolutePath
     ex.autolinkLibrariesFromCommand(["node", cliFile, "config"], new File(settings.rootDir, "../"))
 }
 rootProject.name = 'bare_rn'
 include ':app'
-includeBuild('../../../node_modules/@react-native/gradle-plugin')
+includeBuild('../node_modules/@react-native/gradle-plugin')
