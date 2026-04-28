@@ -105,10 +105,8 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 | MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)                  |        140         |       120       |
 | MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK)                 |        455         |       435       |
 | CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK)                 |        280         |       200       |
-| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK FP32)  |        175         |       196       |
 | DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK 8da4w) |         36         |       44        |
 | DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP32)  |         55         |        -        |
-| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP16)  |        143         |        -        |
 
 ## Image Embeddings
 

@@ -10,10 +10,8 @@ export type TextEmbeddingsModelName =
   | 'all-mpnet-base-v2'
   | 'multi-qa-minilm-l6-cos-v1'
   | 'multi-qa-mpnet-base-dot-v1'
-  | 'distiluse-base-multilingual-cased-v2'
   | 'distiluse-base-multilingual-cased-v2-8da4w'
   | 'distiluse-base-multilingual-cased-v2-coreml'
-  | 'distiluse-base-multilingual-cased-v2-coreml-fp16'
   | 'clip-vit-base-patch32-text';
 
 /**

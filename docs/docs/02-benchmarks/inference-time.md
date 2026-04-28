@@ -157,10 +157,8 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 | MULTI_QA_MINILM_L6_COS_V1 (XNNPACK)                  |         7          |       19        |
 | MULTI_QA_MPNET_BASE_DOT_V1 (XNNPACK)                 |         24         |       88        |
 | CLIP_VIT_BASE_PATCH32_TEXT (XNNPACK)                 |         14         |       39        |
-| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK FP32)  |         47         |       41        |
 | DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (XNNPACK 8da4w) |         16         |       15        |
 | DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP32)  |         15         |        -        |
-| DISTILUSE_BASE_MULTILINGUAL_CASED_V2 (Core ML FP16)  |         19         |        -        |
 
 ## Image Embeddings
 
