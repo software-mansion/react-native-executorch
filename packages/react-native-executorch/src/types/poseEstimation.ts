@@ -21,12 +21,17 @@ export interface Keypoint {
 }
 
 /**
- * Keypoints for a single detected person.
- * Access keypoints using the enum: `person[CocoKeypoint.NOSE]`
+ * Keypoints for a single detected person, keyed by name from the keypoint map.
+ * @typeParam K - The {@link KeypointEnum} for this model.
  * @category Types
+ * @example
+ * ```ts
+ * person.NOSE; // { x, y }
+ * ```
  */
-export type PersonKeypoints<K extends KeypointEnum = typeof CocoKeypoint> =
-  Keypoint[] & { readonly __keypointEnum?: K };
+export type PersonKeypoints<K extends KeypointEnum = typeof CocoKeypoint> = {
+  readonly [Name in keyof K]: Keypoint;
+};
 
 /**
  * Pose estimation result containing all detected people.

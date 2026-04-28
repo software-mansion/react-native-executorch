@@ -14,10 +14,8 @@ namespace rnexecutorch::models::pose_estimation {
 PoseEstimation::PoseEstimation(const std::string &modelSource,
                                std::vector<float> normMean,
                                std::vector<float> normStd,
-                               std::vector<std::string> keypointNames,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : VisionModel(modelSource, callInvoker),
-      keypointNames_(std::move(keypointNames)) {
+    : VisionModel(modelSource, callInvoker) {
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
@@ -39,7 +37,6 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
   //   0: boxes     (Q, 4)    - xyxy bbox in model input pixel space
   //   1: scores    (Q,)      - person confidence [0, 1]
   //   2: keypoints (Q, K, 3) - per-detection keypoints (x, y, visibility)
-  // Where Q = number of detections, K = number of keypoints (from labelNames)
 
   if (tensors.size() < 3) {
     // TODO: maybe create a ContractNotMet error or something like this, this
@@ -47,16 +44,10 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
     return {};
   }
 
-  // Number of keypoints is determined by labelNames provided at construction
-  const int32_t numKeypoints = static_cast<int32_t>(keypointNames_.size());
-  if (numKeypoints == 0) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "No keypoint names provided. Please specify keypointNames in config.");
-  }
-
   auto scoresTensor = tensors[1].toTensor();
   auto keypointsTensor = tensors[2].toTensor();
+
+  const int32_t numKeypoints = static_cast<int32_t>(keypointsTensor.size(1));
 
   const float *scores = scoresTensor.const_data_ptr<float>();
   const float *kpData = keypointsTensor.const_data_ptr<float>();

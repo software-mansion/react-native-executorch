@@ -21,7 +21,6 @@ class PoseEstimation : public VisionModel {
 public:
   PoseEstimation(const std::string &modelSource, std::vector<float> normMean,
                  std::vector<float> normStd,
-                 std::vector<std::string> keypointNames,
                  std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] PoseDetections
@@ -37,7 +36,6 @@ public:
                      std::string methodName);
 
 private:
-  std::vector<std::string> keypointNames_;
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
 
@@ -55,6 +53,5 @@ private:
 
 REGISTER_CONSTRUCTOR(models::pose_estimation::PoseEstimation, std::string,
                      std::vector<float>, std::vector<float>,
-                     std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

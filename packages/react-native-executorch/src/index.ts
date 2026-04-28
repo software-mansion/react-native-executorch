@@ -61,8 +61,7 @@ declare global {
   var loadPoseEstimation: (
     source: string,
     normMean: Triple<number> | [],
-    normStd: Triple<number> | [],
-    labelNames: string[]
+    normStd: Triple<number> | []
   ) => Promise<any>;
   var loadExecutorchModule: (source: string) => Promise<any>;
   var loadTokenizerModule: (source: string) => Promise<any>;

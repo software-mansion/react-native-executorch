@@ -1,5 +1,7 @@
 import { Frame, PixelData, ResourceSource } from '../../types/common';
 import {
+  Keypoint,
+  PersonKeypoints,
   PoseDetections,
   PoseEstimationOptions,
   PoseEstimationModelSources,
@@ -88,15 +90,11 @@ export class PoseEstimationModule<
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
 
-    // Derive keypoint names from the enum
-    const keypointNames = Object.keys(keypointMap);
-
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadPoseEstimation(
       modelPath,
       normMean,
-      normStd,
-      keypointNames
+      normStd
     );
 
     return new PoseEstimationModule<ModelNameOf<C>>(
@@ -123,14 +121,11 @@ export class PoseEstimationModule<
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
 
-    const keypointNames = Object.keys(keypointMap);
-
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadPoseEstimation(
       modelPath,
       normMean,
-      normStd,
-      keypointNames
+      normStd
     );
 
     return new PoseEstimationModule<K>(
@@ -142,6 +137,7 @@ export class PoseEstimationModule<
 
   /**
    * Get the keypoint map for this model.
+   * @returns Map of keypoints for model being used, e.g {NOSE:1, ...}
    */
   getKeypointMap(): ResolveKeypoints<T> {
     return this.keypointMap;
@@ -149,6 +145,7 @@ export class PoseEstimationModule<
 
   /**
    * Returns the available input sizes for this model, or undefined if the model accepts any size.
+   * @returns a readonly number[] specifying what input sizes the model supports.
    */
   getAvailableInputSizes(): readonly number[] | undefined {
     return this.modelConfig.availableInputSizes;
@@ -156,6 +153,7 @@ export class PoseEstimationModule<
 
   /**
    * Override runOnFrame to provide an options-based API for VisionCamera integration.
+   * @returns A worklet function for frame processing.
    */
   override get runOnFrame(): (
     frame: Frame,
@@ -175,6 +173,10 @@ export class PoseEstimationModule<
     const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.5;
     const defaultInputSize = this.modelConfig.defaultInputSize;
     const availableInputSizes = this.modelConfig.availableInputSizes;
+    const keypointEntries = Object.entries(this.keypointMap) as [
+      string,
+      number,
+    ][];
 
     return (
       frame: Frame,
@@ -210,13 +212,20 @@ export class PoseEstimationModule<
           orientation: frame.orientation,
           isMirrored: isFrontCamera,
         };
-        return nativeGenerateFromFrame(
+        const raw: Keypoint[][] = nativeGenerateFromFrame(
           frameData,
           detectionThreshold,
           iouThreshold,
           [],
           methodName
         );
+        const out: PersonKeypoints<ResolveKeypoints<T>>[] = [];
+        for (const person of raw) {
+          const named: Record<string, Keypoint> = {};
+          for (const [name, idx] of keypointEntries) named[name] = person[idx]!;
+          out.push(named as PersonKeypoints<ResolveKeypoints<T>>);
+        }
+        return out;
       } finally {
         if (nativeBuffer?.release) {
           nativeBuffer.release();
@@ -265,19 +274,27 @@ export class PoseEstimationModule<
     const methodName =
       inputSize !== undefined ? `forward_${inputSize}` : 'forward';
 
-    return typeof input === 'string'
-      ? await this.nativeModule.generateFromString(
-          input,
-          detectionThreshold,
-          iouThreshold,
-          methodName
-        )
-      : await this.nativeModule.generateFromPixels(
-          input,
-          detectionThreshold,
-          iouThreshold,
-          [],
-          methodName
-        );
+    const raw: Keypoint[][] =
+      typeof input === 'string'
+        ? await this.nativeModule.generateFromString(
+            input,
+            detectionThreshold,
+            iouThreshold,
+            methodName
+          )
+        : await this.nativeModule.generateFromPixels(
+            input,
+            detectionThreshold,
+            iouThreshold,
+            [],
+            methodName
+          );
+
+    const entries = Object.entries(this.keypointMap) as [string, number][];
+    return raw.map((person) => {
+      const named: Record<string, Keypoint> = {};
+      for (const [name, idx] of entries) named[name] = person[idx]!;
+      return named as PersonKeypoints<ResolveKeypoints<T>>;
+    });
   }
 }
