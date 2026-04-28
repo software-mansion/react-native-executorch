@@ -331,6 +331,17 @@ add_rn_test(InstanceSegmentationTests integration/InstanceSegmentationTest.cpp
     LIBS opencv_deps android
 )
 
+add_rn_test(PoseEstimationTests integration/PoseEstimationTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/pose_estimation/PoseEstimation.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps android
+)
+
 add_rn_test(OCRTests integration/OCRTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/ocr/OCR.cpp

@@ -34,6 +34,7 @@ TEST_EXECUTABLES=(
   "LLMTests"
   "TextToImageTests"
   "InstanceSegmentationTests"
+  "PoseEstimationTests"
   "SemanticSegmentationTests"
   "OCRTests"
   "VerticalOCRTests"
@@ -81,6 +82,7 @@ MODELS=(
   "lfm2_vl_tokenizer_config.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json"
   "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
   "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
+  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte"
 )
 
 # ============================================================================
