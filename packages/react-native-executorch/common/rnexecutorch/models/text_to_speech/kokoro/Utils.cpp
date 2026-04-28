@@ -61,7 +61,7 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
   return audio.subspan(lbound, rbound >= lbound ? rbound - lbound + 1 : 0);
 }
 
-std::vector<Token> tokenize(const std::u32string &phonemes,
+std::vector<Token> tokenize(std::u32string_view phonemes,
                             std::optional<size_t> expectedSize) {
   if (expectedSize.has_value() && expectedSize.value() < 2) {
     throw rnexecutorch::RnExecutorchError(

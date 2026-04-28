@@ -91,15 +91,22 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
     }
   }
 
-  std::vector<int64_t> breakpoints;
-  int64_t curr = dp[n - 1].second;
-  while (curr != -1) {
-    breakpoints.push_back(static_cast<int64_t>(curr));
-    curr = dp[curr].second;
-  }
-  std::reverse(breakpoints.begin(), breakpoints.end());
+  std::vector<std::pair<size_t, size_t>> segments;
+  int64_t currBp = dp[n - 1].second;
+  size_t lastIdx = n;
 
-  return {input, std::move(breakpoints)};
+  while (currBp != -1) {
+    size_t start = static_cast<size_t>(currBp + 1);
+    segments.emplace_back(start, lastIdx - start);
+    lastIdx = static_cast<size_t>(currBp + 1);
+    currBp = dp[currBp].second;
+  }
+  // Add the first segment
+  segments.emplace_back(0, lastIdx);
+
+  std::reverse(segments.begin(), segments.end());
+
+  return {input, std::move(segments)};
 }
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro

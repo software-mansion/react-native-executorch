@@ -20,7 +20,7 @@ std::span<const float> stripAudio(std::span<const float> audio,
 // tokens added at both ends.
 // If extecped number of tokens is provided, eventually expands the token vector
 // with pad tokens to match the given length.
-std::vector<Token> tokenize(const std::u32string &phonemes,
+std::vector<Token> tokenize(std::u32string_view phonemes,
                             std::optional<size_t> expectedSize = std::nullopt);
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro::utils

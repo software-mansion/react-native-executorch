@@ -39,8 +39,8 @@ inline constexpr int32_t kStreamPause = 200;
  * (ms).
  */
 inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
-    {U'.', 250}, {U'?', 350}, {U'!', 180}, {U';', 300},
-    {U'…', 500}, {U',', 125}, {U':', 175}, {U'-', 175}}; // [ms]
+    {U'.', 375}, {U'?', 500}, {U'!', 250}, {U';', 400},
+    {U'…', 600}, {U',', 130}, {U':', 250}, {U'-', 200}}; // [ms]
 
 /**
  * A default pause applied after a sentence finished with a character other
