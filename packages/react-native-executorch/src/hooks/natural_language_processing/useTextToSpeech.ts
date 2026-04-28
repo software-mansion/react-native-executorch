@@ -95,7 +95,11 @@ export const useTextToSpeech = ({
     const instance = guardReady('forward');
     try {
       setIsGenerating(true);
-      return await instance.forward(input.text ?? '', input.speed ?? 1.0);
+      return await instance.forward(
+        input.text ?? '',
+        input.speed ?? 1.0,
+        input.phonemize ?? true
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -116,6 +120,7 @@ export const useTextToSpeech = ({
         await input.onBegin?.();
         for await (const audio of instance.stream({
           speed: input.speed ?? 1.0,
+          phonemize: input.phonemize ?? true,
           stopAutomatically: input.stopAutomatically ?? true,
         })) {
           if (input.onNext) {

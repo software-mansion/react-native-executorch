@@ -104,25 +104,28 @@ export class TextToSpeechModule {
    * Returns a promise that resolves to the full audio waveform as a `Float32Array`.
    * @param text The input text to be synthesized.
    * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
+   * @param phonemize If true (default), converts text to phonemes. If false, input is treated as raw phonemes.
    * @returns A promise resolving to the synthesized audio waveform.
    */
   public async forward(
     text: string,
-    speed: number = 1.0
+    speed: number = 1.0,
+    phonemize: boolean = true
   ): Promise<Float32Array> {
     this.ensureLoaded('forward');
-    return await this.nativeModule.generate(text, speed);
+    return await this.nativeModule.generate(text, speed, phonemize);
   }
 
   /**
    * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   * @param input - Input object containing optional speed and stopAutomatically flag.
+   * @param input - Input object containing optional speed, phonemize flag and stopAutomatically flag.
    * @yields An audio chunk generated during synthesis.
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *stream({
-    speed,
-    stopAutomatically,
+    speed = 1.0,
+    phonemize = true,
+    stopAutomatically = true,
   }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
     const queue: Float32Array[] = [];
 
@@ -140,12 +143,13 @@ export class TextToSpeechModule {
     (async () => {
       try {
         await this.nativeModule.stream(
-          speed,
-          stopAutomatically,
           (audio: number[]) => {
             queue.push(new Float32Array(audio));
             wake();
-          }
+          },
+          speed,
+          phonemize,
+          stopAutomatically
         );
         nativeStreamFinished = true;
         wake();

@@ -28,7 +28,7 @@ export type TextToSpeechLanguage =
   | 'fr' // French
   | 'es' // Spanish
   | 'it' // Italian
-  | 'pt' // Portugese
+  | 'pt' // Portuguese
   | 'pl' // Polish
   | 'hi'; // Hindi
 
@@ -96,10 +96,13 @@ export interface TextToSpeechModelProps<
  * @category Types
  * @property {string} text - a text to be spoken
  * @property {number} [speed] - optional speed argument - the higher it is, the faster the speech becomes
+ * @property {boolean} [phonemize] - if true (default), the input is treated as text and converted to phonemes.
+ *                                   If false, the input should already be in IPA phonemes.
  */
 export interface TextToSpeechInput {
   text?: string;
   speed?: number;
+  phonemize?: boolean;
 }
 
 /**

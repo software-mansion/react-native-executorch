@@ -183,3 +183,5 @@ Synchronizable
 stringifying
 hɛloʊ
 wɜːld
+phonemize
+phonemization

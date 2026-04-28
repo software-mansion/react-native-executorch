@@ -26,32 +26,45 @@ public:
          std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
-   * Processes the entire text at once, before sending back to the JS side.
+   * Generates complete audio for the provided text.
+   *
+   * @param text The input to be synthesized - either a raw text or IPA
+   * phonemes.
+   * @param speed Playback speed multiplier (default: 1.0).
+   * @param phonemize Optional, if set to false disables the phonemization and
+   * operates on raw input.
+   * @return A vector of PCM float samples representing the synthesized speech.
    */
-  std::vector<float> generate(std::string text, float speed = 1.F);
+  std::vector<float> generate(std::u32string input, float speed = 1.F,
+                              bool phonemize = true);
 
   /**
-   * Processes text from inputTextBuffer_ in chunks, sending each chunk
-   * individualy to the JS side with asynchronous callbacks.
+   * Starts an asynchronous streaming process that processes text in chunks.
+   * The internal buffer can be expanded during streaming using `streamInsert`.
    *
-   * Allows an incrementally expanded input by using an input text buffer.
+   * @param callback A JSI function called with each generated audio chunk
+   * (std::vector<float>).
+   * @param speed Playback speed multiplier.
+   * @param phonemize Optional, if set to false disables the phonemization and
+   * operates on raw input.
+   * @param stopOnEmptyBuffer If true, streaming terminates automatically when
+   * the buffer is exhausted.
    */
-  void stream(float speed, bool stopOnEmptyBuffer,
-              std::shared_ptr<jsi::Function> callback);
+  void stream(std::shared_ptr<jsi::Function> callback, float speed = 1.F,
+              bool phonemize = true, bool stopOnEmptyBuffer = false);
 
   /**
-   * Updates the input streaming buffer by adding more text to be processed.
+   * Appends new text to the streaming input buffer.
    *
-   * @param text A new chunk of text, appended to the end of the input buffer.
+   * @param textChunk The text to add to the end of the current buffer.
    */
   void streamInsert(std::string textChunk) noexcept;
 
   /**
-   * Stops the streaming process.
+   * Signals the streaming process to stop.
    *
-   * @param instant If true, stops the streaming as soon as possible by
-   * switching the isStreaming_ flag. Otherwise allows to process the rest of
-   * the buffer first, by switching the stopOnEmptyBuffer_ flag.
+   * @param instant If true, stops immediately, discarding remaining buffered
+   * text. If false, finishes processing the current buffer before stopping.
    */
   void streamStop(bool instant) noexcept;
 
@@ -61,12 +74,6 @@ public:
 private:
   // Helper function - loading voice array
   void loadVoice(const std::string &voiceSource);
-
-  // Helper function - shared synthesis pipeline (partition + synthesize)
-  std::vector<float> generateFromPhonemesImpl(const std::u32string &phonemes,
-                                              float speed);
-  void streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
-                              std::shared_ptr<jsi::Function> callback);
 
   // Helper function - generate specialization for given input size
   std::vector<float> synthesize(std::u32string_view phonemes, float speed,
@@ -101,4 +108,5 @@ REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
                      std::string, std::string, std::string, std::string,
                      std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
+
 } // namespace rnexecutorch

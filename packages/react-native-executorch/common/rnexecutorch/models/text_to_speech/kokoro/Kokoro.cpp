@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <phonemis/utils/conversions.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
@@ -88,13 +89,24 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   }
 }
 
-std::vector<float>
-Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
-  // Divide the phonemes string into substrings.
-  // Affects the further calculations only in case of string size
-  // exceeding the biggest model's input.
+std::vector<float> Kokoro::generate(std::u32string input, float speed,
+                                    bool phonemize) {
+  if (input.size() > params::kMaxTextSize) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: maximum input text size exceeded");
+  }
+
+  if (input.empty()) {
+    return {};
+  }
+
+  // G2P (Grapheme to Phoneme) conversion
+  auto phonemes = phonemize ? phonemizer_(input) : input;
+
+  // Divide the phonemes string into substrings, minimizing the amount of
+  // breaks.
   auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
-                                          Partitioner::Mode::MIN_LATENCY);
+                                          Partitioner::Mode::MIN_BREAKS);
 
   std::vector<float> audio = {};
   for (const auto &[offset, length] : partition.segments) {
@@ -109,10 +121,6 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
                          ? params::kPauseValues.at(lastPhoneme)
                          : params::kDefaultPause;
 
-    rnexecutorch::log(
-        LOG_LEVEL::Debug, "[Kokoro::generate] subsentence:", subsentence.size(),
-        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
-
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
@@ -123,8 +131,9 @@ Kokoro::generateFromPhonemesImpl(const std::u32string &phonemes, float speed) {
   return audio;
 }
 
-void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
-                                    std::shared_ptr<jsi::Function> callback) {
+void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
+                    bool phonemize, bool stopOnEmptyBuffer) {
+  // Create a callback
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
       this->callInvoker_->invokeAsync(
@@ -135,66 +144,6 @@ void Kokoro::streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
     }
   };
 
-  // Use LATENCY strategy to minimize the time-to-first-audio for streaming
-  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
-                                          Partitioner::Mode::MIN_LATENCY);
-
-  for (size_t i = 0; i < partition.segments.size(); i++) {
-    if (!isStreaming_) {
-      break;
-    }
-
-    const auto &[offset, length] = partition.segments[i];
-    const auto subsentence = partition.content.substr(offset, length);
-
-    // Determine the silent padding duration to be stripped from the edges of
-    // the generated audio. If a chunk ends with a space or follows one that
-    // did, it indicates a word boundary split – we use a shorter padding
-    // to ensure natural speech flow. Otherwise, we use 50ms for standard
-    // pauses.
-    bool endsWithSpace = (subsentence.back() == U' ');
-    bool prevEndsWithSpace = (i > 0 && partition.content[offset - 1] == U' ');
-    size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
-
-    // Generate an audio vector with the Kokoro model
-    auto audioPart = synthesize(subsentence, speed, paddingMs);
-
-    // Calculate and append a pause between the sentences
-    char32_t lastPhoneme = subsentence.back();
-    size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
-                         ? params::kPauseValues.at(lastPhoneme)
-                         : params::kDefaultPause;
-
-    rnexecutorch::log(
-        LOG_LEVEL::Debug, "[Kokoro::stream] subsentence:", subsentence.size(),
-        "chars, last:", (uint32_t)lastPhoneme, "pause:", pauseMs, "ms");
-
-    audioPart.resize(
-        audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
-
-    // Push the audio right away to the JS side
-    nativeCallback(std::move(audioPart));
-  }
-}
-
-std::vector<float> Kokoro::generate(std::string text, float speed) {
-  if (text.size() > params::kMaxTextSize) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "Kokoro: maximum input text size exceeded");
-  }
-
-  if (text.empty()) {
-    return {};
-  }
-
-  // G2P (Grapheme to Phoneme) conversion
-  auto phonemes = phonemizer_(text);
-
-  return generateFromPhonemesImpl(phonemes, speed);
-}
-
-void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
-                    std::shared_ptr<jsi::Function> callback) {
   isStreaming_ = true;
   stopOnEmptyBuffer_ = stopOnEmptyBuffer;
 
@@ -237,8 +186,46 @@ void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
 
     if (!text.empty()) {
       // Now we proceed with a standard streaming logic for fixed-size input.
-      auto phonemes = phonemizer_(text);
-      streamFromPhonemesImpl(phonemes, speed, callback);
+      auto phonemes = phonemize
+                          ? phonemizer_(text)
+                          : phonemis::utils::conversions::utf8_to_u32(text);
+
+      auto partition = partitioner_.partition(
+          phonemes, context_.inputTokensLimit, Partitioner::Mode::MIN_LATENCY);
+
+      for (size_t i = 0; i < partition.segments.size(); i++) {
+        if (!isStreaming_) {
+          break;
+        }
+
+        const auto &[offset, length] = partition.segments[i];
+        const auto subsentence = partition.content.substr(offset, length);
+
+        // Determine the silent padding duration to be stripped from the edges
+        // of the generated audio. If a chunk ends with a space or follows one
+        // that did, it indicates a word boundary split – we use a shorter
+        // padding to ensure natural speech flow. Otherwise, we use 50ms for
+        // standard pauses.
+        bool endsWithSpace = (subsentence.back() == U' ');
+        bool prevEndsWithSpace =
+            (i > 0 && partition.content[offset - 1] == U' ');
+        size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
+
+        // Generate an audio vector with the Kokoro model
+        auto audioPart = synthesize(subsentence, speed, paddingMs);
+
+        // Calculate and append a pause between the sentences
+        char32_t lastPhoneme = subsentence.back();
+        size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
+                             ? params::kPauseValues.at(lastPhoneme)
+                             : params::kDefaultPause;
+
+        audioPart.resize(
+            audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
+
+        // Push the audio right away to the JS side
+        nativeCallback(std::move(audioPart));
+      }
     }
 
     // A little bit of pause to not overload the thread.
@@ -253,19 +240,6 @@ void Kokoro::stream(float speed, bool stopOnEmptyBuffer,
     inputTextBuffer_.clear();
     isStreaming_ = false;
     streamSkippedIterations = 0;
-  }
-}
-
-void Kokoro::streamInsert(std::string textChunk) noexcept {
-  std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
-  inputTextBuffer_.append(textChunk);
-}
-
-void Kokoro::streamStop(bool instant) noexcept {
-  if (instant) {
-    isStreaming_ = false;
-  } else {
-    stopOnEmptyBuffer_ = true;
   }
 }
 
@@ -322,6 +296,19 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
       utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
   return {croppedAudio.begin(), croppedAudio.end()};
+}
+
+void Kokoro::streamInsert(std::string textChunk) noexcept {
+  std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
+  inputTextBuffer_.append(textChunk);
+}
+
+void Kokoro::streamStop(bool instant) noexcept {
+  if (instant) {
+    isStreaming_ = false;
+  } else {
+    stopOnEmptyBuffer_ = true;
+  }
 }
 
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
