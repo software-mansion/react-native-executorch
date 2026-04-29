@@ -10,6 +10,18 @@ const crypto = require('crypto');
 const yaml = require('js-yaml');
 const picomatch = require('picomatch');
 
+// Files that the per-app filters reference for trigger purposes but that
+// should not invalidate cached build markers. The workflow file itself sits in
+// core-shared so editing it triggers CI on every app, but the vast majority of
+// edits are orchestration (filter paths, matrix shape, concurrency, triggers)
+// and don't change build behavior. Excluding it from the hash means workflow
+// edits re-run the matrix but each cell hits its existing marker and skips.
+//
+// Caveat: workflow edits that DO change build behavior — `with:` inputs to a
+// composite, `runs-on:`, an `env:` var, an action's pinned version — won't be
+// caught here. Force-clear caches via the GitHub Actions UI when you make one.
+const HASH_EXCLUDE = new Set(['.github/workflows/build-apps.yml']);
+
 const filterName = process.argv[2];
 if (!filterName) {
   console.error('Usage: compute-app-hash.js <filter-name>');
@@ -44,7 +56,9 @@ const lines = cp
   .split('\n')
   .filter((line) => {
     const tabIdx = line.indexOf('\t');
-    return tabIdx !== -1 && matchAny(line.slice(tabIdx + 1));
+    if (tabIdx === -1) return false;
+    const path = line.slice(tabIdx + 1);
+    return !HASH_EXCLUDE.has(path) && matchAny(path);
   })
   .sort();
 

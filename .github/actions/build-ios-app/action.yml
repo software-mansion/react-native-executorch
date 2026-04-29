@@ -67,6 +67,17 @@ runs:
         rm -rf ios
         npx expo prebuild --platform ios --no-install
 
+    - name: Cache CocoaPods
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/CocoaPods
+          ${{ inputs.app-path }}/ios/Pods
+        key: ${{ runner.os }}-pods-${{ inputs.filter-name }}-${{ hashFiles(format('{0}/ios/Podfile.lock', inputs.app-path)) }}
+        restore-keys: |
+          ${{ runner.os }}-pods-${{ inputs.filter-name }}-
+
     - name: Install CocoaPods dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       working-directory: ${{ inputs.app-path }}/ios

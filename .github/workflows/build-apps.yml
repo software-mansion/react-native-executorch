@@ -172,6 +172,12 @@ jobs:
       - name: Skip notice
         if: steps.cache.outputs.cache-hit == 'true'
         run: echo "Skipping bundle — bundle-${{ matrix.platform }}-${{ matrix.app }} already passed at this content hash."
+      - name: Build workspace packages
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.app == 'bare-rn'
+        run: yarn workspaces foreach --all --topological-dev run prepare
+      - name: Build workspace packages
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.app == 'bare-rn'
+        run: yarn workspaces foreach --all --topological-dev run prepare
       - name: Bundle JS for ${{ matrix.platform }}
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: apps/${{ matrix.app }}
