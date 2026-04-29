@@ -9,6 +9,7 @@
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
