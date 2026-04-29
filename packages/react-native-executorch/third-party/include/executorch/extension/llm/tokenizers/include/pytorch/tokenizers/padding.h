@@ -43,14 +43,13 @@ struct PaddingParams {
 };
 
 class Padding {
-public:
-  /** Shared pointer type */
-  typedef std::shared_ptr<Padding> Ptr;
+ public:
+  using Ptr = std::unique_ptr<Padding>;
 
   /**
    * @param params: The padding parameters
    */
-  explicit Padding(const PaddingParams &params);
+  explicit Padding(const PaddingParams& params);
 
   /**
    * Pad the tokens according to the configuration
@@ -61,24 +60,25 @@ public:
    * Generate attention mask for the padded tokens.
    * 1 for real tokens, 0 for padded tokens.
    */
-  std::vector<uint32_t> generate_mask(const std::vector<uint64_t> &tokens,
-                                      size_t padded_size) const;
+  std::vector<uint32_t> generate_mask(
+      const std::vector<uint64_t>& tokens,
+      size_t padded_size) const;
 
-private:
+ private:
   PaddingParams params_;
 };
 
 // -- Factory ------------------------------------------------------------------
 
 // Helper macro to standardize addition of config member fields
-#define PADDING_CONFIG_MEMBER(type, name)                                      \
-  PaddingConfig &set_##name(type arg) {                                        \
-    this->params.name = std::move(arg);                                        \
-    return *this;                                                              \
+#define PADDING_CONFIG_MEMBER(type, name)  \
+  PaddingConfig& set_##name(type arg) {    \
+    this->params.name = std::move(arg);    \
+    return *this;                          \
   }
 
 class PaddingConfig {
-public:
+ public:
   explicit PaddingConfig(std::string strategy = "");
 
   /**
@@ -89,15 +89,15 @@ public:
   /**
    * Populate from a json config file
    */
-  PaddingConfig &parse_json(const nlohmann::json &json_config);
+  PaddingConfig& parse_json(const nlohmann::json& json_config);
 
   // Configuration members
   PaddingParams params;
 
   PADDING_CONFIG_MEMBER(PaddingStrategy, strategy)
   PADDING_CONFIG_MEMBER(PaddingDirection, direction)
-
-  PaddingConfig &set_fixed_size(std::optional<size_t> arg) {
+  
+  PaddingConfig& set_fixed_size(std::optional<size_t> arg) {
     this->params.fixed_size = std::move(arg);
     this->params.strategy = PaddingStrategy::Fixed;
     return *this;

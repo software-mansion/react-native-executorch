@@ -41,40 +41,41 @@ struct TruncationParams {
 };
 
 class Truncation {
-public:
-  /** Shared pointer type */
-  typedef std::shared_ptr<Truncation> Ptr;
+ public:
+  using Ptr = std::unique_ptr<Truncation>;
 
   /**
    * @param params: The truncation parameters
    */
-  explicit Truncation(const TruncationParams &params);
+  explicit Truncation(const TruncationParams& params);
 
   /**
    * Truncate the tokens according to the configuration.
-   *
+   * 
    * @param tokens The tokens to truncate.
-   * @param num_tokens_to_add The number of special tokens that will be added
-   * later. These are subtracted from max_length during truncation calculation.
+   * @param num_tokens_to_add The number of special tokens that will be added later.
+   *                          These are subtracted from max_length during truncation calculation.
    */
-  std::vector<uint64_t> truncate(std::vector<uint64_t> tokens,
-                                 size_t num_tokens_to_add = 0) const;
+  std::vector<uint64_t> truncate(
+      std::vector<uint64_t> tokens,
+      size_t num_tokens_to_add = 0) const;
 
   /**
    * Truncate a pair of sequences according to the configuration.
    */
-  std::pair<std::vector<uint64_t>, std::vector<uint64_t>>
-  truncate_pair(std::vector<uint64_t> a, std::vector<uint64_t> b,
-                size_t num_tokens_to_add = 0) const;
+  std::pair<std::vector<uint64_t>, std::vector<uint64_t>> truncate_pair(
+      std::vector<uint64_t> a,
+      std::vector<uint64_t> b,
+      size_t num_tokens_to_add = 0) const;
 
-private:
+ private:
   TruncationParams params_;
 };
 
 // -- Factory ------------------------------------------------------------------
 
 class TruncationConfig {
-public:
+ public:
   /**
    * Construct the truncation instance from the member data
    */
@@ -83,7 +84,7 @@ public:
   /**
    * Populate from a json config file
    */
-  TruncationConfig &parse_json(const nlohmann::json &json_config);
+  TruncationConfig& parse_json(const nlohmann::json& json_config);
 
   // Configuration members
   TruncationParams params;

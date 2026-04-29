@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <pytorch/tokenizers/map_utils.h>
@@ -24,47 +25,66 @@
 namespace tokenizers {
 
 class BPEModel : public Model {
-public:
-  explicit BPEModel(detail::TokenMap token_map,
-                    detail::TokenMap special_token_map,
-                    std::optional<detail::TokenMap> merge_ranks,
-                    std::unique_ptr<IRegex> special_token_regex,
-                    bool byte_fallback, std::optional<uint64_t> unk_token_id,
-                    std::optional<uint64_t> bos_token_id,
-                    std::optional<uint64_t> eos_token_id);
+ public:
+  explicit BPEModel(
+      detail::TokenMap token_map,
+      detail::TokenMap special_token_map,
+      std::optional<detail::TokenMap> merge_ranks,
+      std::unique_ptr<IRegex> special_token_regex,
+      bool byte_fallback,
+      std::optional<uint64_t> unk_token_id,
+      std::optional<uint64_t> bos_token_id,
+      std::optional<uint64_t> eos_token_id,
+      std::unordered_set<std::string> rstrip_tokens = {},
+      std::unordered_set<std::string> lstrip_tokens = {});
 
   ~BPEModel() override = default;
 
-  Result<std::vector<uint64_t>>
-  tokenize(const std::string &piece) const override;
+  Result<std::vector<uint64_t>> tokenize(
+      const std::string& piece) const override;
 
   Result<std::string> id_to_piece(uint64_t token) const override;
-  Result<uint64_t> piece_to_id(const std::string &token) const override;
+  Result<uint64_t> piece_to_id(const std::string& token) const override;
 
-  int32_t vocab_size() const override { return vocab_size_; }
+  int32_t vocab_size() const override {
+    return vocab_size_;
+  }
 
   bool is_special_token(uint64_t token) const override;
 
-  bool is_loaded() const override { return initialized_; }
+  bool is_loaded() const override {
+    return initialized_;
+  }
 
   std::pair<std::optional<std::string>, std::string>
-  split_with_allowed_special_token(const std::string &input,
-                                   size_t offset) const override;
+  split_with_allowed_special_token(const std::string& input, size_t offset)
+      const override;
 
-  uint64_t bos_token_id() const override { return bos_token_id_.value_or(0); }
+  bool special_token_has_rstrip(const std::string& token) const override {
+    return rstrip_tokens_.count(token) > 0;
+  }
+  bool special_token_has_lstrip(const std::string& token) const override {
+    return lstrip_tokens_.count(token) > 0;
+  }
 
-  uint64_t eos_token_id() const override { return eos_token_id_.value_or(0); }
+  uint64_t bos_token_id() const override {
+    return bos_token_id_.value_or(0);
+  }
 
-private:
-  Result<std::pair<std::vector<uint64_t>, uint64_t>>
-  encode_with_special_token(const std::string &text) const;
+  uint64_t eos_token_id() const override {
+    return eos_token_id_.value_or(0);
+  }
 
-  Result<std::vector<uint64_t>>
-  byte_pair_encode(const std::string &piece) const;
+ private:
+  Result<std::pair<std::vector<uint64_t>, uint64_t>> encode_with_special_token(
+      const std::string& text) const;
 
-  std::vector<uint64_t>
-  byte_pair_merge(const std::string &piece, const detail::TokenMap &ranks,
-                  std::function<uint64_t(uint64_t, uint64_t)> func) const;
+  Result<std::vector<uint64_t>> byte_pair_encode(const std::string& piece) const;
+
+  std::vector<uint64_t> byte_pair_merge(
+      const std::string& piece,
+      const detail::TokenMap& ranks,
+      std::function<uint64_t(uint64_t, uint64_t)> func) const;
 
   // Real state
   detail::TokenMap token_map_;
@@ -76,6 +96,8 @@ private:
   std::optional<uint64_t> unk_token_id_;
   std::optional<uint64_t> bos_token_id_;
   std::optional<uint64_t> eos_token_id_;
+  std::unordered_set<std::string> rstrip_tokens_;
+  std::unordered_set<std::string> lstrip_tokens_;
 
   bool initialized_ = false;
   int32_t vocab_size_ = 0;

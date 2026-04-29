@@ -26,263 +26,238 @@ namespace tokenizers {
 
 // -- Base ---------------------------------------------------------------------
 
-/**
- * Base class for all pre-tokenizers with a single virtual method to split the
- * input string piece
- */
 class PreTokenizer {
-public:
-  /** Shared pointer type */
-  typedef std::shared_ptr<PreTokenizer> Ptr;
+ public:
+  using Ptr = std::unique_ptr<PreTokenizer>;
 
-  /** Split the input string piece into sub-pieces
-   *
-   * This pre-tokenization may result in sub-pieces that are not contained
-   * within the original input, therefore the resulting pieces will be owned by
-   * the caller.
-   *
-   * NOTE: Pass by value per best practice
-   *  https://abseil.io/docs/cpp/guides/strings#string_view
-   */
-  virtual std::vector<std::string>
-  pre_tokenize(const std::string &input) const = 0;
+  virtual std::vector<std::string> pre_tokenize(
+      const std::string& input) const = 0;
 
   virtual ~PreTokenizer() = default;
-}; // end class PreTokenizer
+};
 
 // -- Factory ------------------------------------------------------------------
 
-// Helper macro to standardize addition of config member fields
-#define PRETOKENIZER_CONFIG_MEMBER(type, name)                                 \
-  std::optional<type> name;                                                    \
-  PreTokenizerConfig &set_##name(type arg) {                                   \
-    this->name = std::move(arg);                                               \
-    return *this;                                                              \
+#define PRETOKENIZER_CONFIG_MEMBER(type, name) \
+  std::optional<type> name;                    \
+  PreTokenizerConfig& set_##name(type arg) {   \
+    this->name = std::move(arg);               \
+    return *this;                              \
   }
 
-/**
- * Factory and config class for creating a new PreTokenizer
- *
- * This class is the central method for instantiating a PreTokenizer instance.
- * It contains the common construction logic and config parameter names for all
- * pre tokenizer constructor args.
- *
- * NOTE: When adding a new pre tokenizer, you must ensure its arguments are
- *  added to this class and it's constructor is added in the implementation!
- *
- * Usage Example:
- *
- * const auto pre_tokenizer = PreTokenizerConfig("Sequence").set_pretokenizers(
- *   {PreTokenizerConfig("Digits"), PreTokenizerConfig("ByteLevel")}
- * );
- * const auto pre_tokenized = pre_tokenizer->pre_tokenize("Hello World!");
- */
 class PreTokenizerConfig {
-public:
-  /*------------------------*/
-  /* Public mutable members */
-  /*------------------------*/
-
-  /**
-   * The Type name string matching from tokenizers
-   * https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/mod.rs#L73
-   */
+ public:
   std::string type;
 
-  /**
-   * Used by: RegexPreTokenizer, ByteLevelPreTokenizer
-   */
+  // Split / RegexPreTokenizer
   PRETOKENIZER_CONFIG_MEMBER(std::string, pattern)
-
-  /**
-   * Used by: DigitsPreTokenizer
-   */
-  PRETOKENIZER_CONFIG_MEMBER(bool, individual_digits)
-
-  /**
-   * Used by: ByteLevelPreTokenizer
-   */
-  PRETOKENIZER_CONFIG_MEMBER(bool, add_prefix_space)
-
-  /**
-   * Used by: ByteLevelPreTokenizer
-   */
-  PRETOKENIZER_CONFIG_MEMBER(bool, use_regex)
-
-  /**
-   * Used by RegexPreTokenizer
-   */
   PRETOKENIZER_CONFIG_MEMBER(bool, is_delimiter)
-
-  /**
-   * Used by RegexPreTokenizer - Split behavior
-   */
   PRETOKENIZER_CONFIG_MEMBER(std::string, behavior)
-
-  /**
-   * Used by RegexPreTokenizer - Split invert flag
-   */
   PRETOKENIZER_CONFIG_MEMBER(bool, invert)
 
-  /**
-   * Used by: SequencePreTokenizer
-   */
+  // Digits
+  PRETOKENIZER_CONFIG_MEMBER(bool, individual_digits)
+
+  // ByteLevel
+  PRETOKENIZER_CONFIG_MEMBER(bool, add_prefix_space)
+  PRETOKENIZER_CONFIG_MEMBER(bool, use_regex)
+
+  // Metaspace
+  PRETOKENIZER_CONFIG_MEMBER(std::string, replacement)
+  PRETOKENIZER_CONFIG_MEMBER(std::string, prepend_scheme)
+  PRETOKENIZER_CONFIG_MEMBER(bool, split)
+
+  // CharDelimiterSplit
+  PRETOKENIZER_CONFIG_MEMBER(std::string, delimiter)
+
+  // Punctuation — reuses `behavior`
+
+  // FixedLength
+  PRETOKENIZER_CONFIG_MEMBER(size_t, length)
+
+  // Sequence
   using Configs = std::vector<PreTokenizerConfig>;
   PRETOKENIZER_CONFIG_MEMBER(Configs, pretokenizers)
 
-  /*----------------*/
-  /* Public methods */
-  /*----------------*/
-
-  /**
-   * Construct with the type
-   */
   explicit PreTokenizerConfig(std::string type = "");
-
-  /**
-   * Construct the pre tokenizer instance from the member data
-   */
   PreTokenizer::Ptr create() const;
+  PreTokenizerConfig& parse_json(const nlohmann::json& json_config);
+};
 
-  /**
-   * Populate from a json config file
-   */
-  PreTokenizerConfig &parse_json(const nlohmann::json &json_config);
-
-}; // end class PreTokenizerConfig
-
-// -- Regex --------------------------------------------------------------------
-// Used for general-purpose single-regex pre tokenization
-// CITE:
-// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/split.rs
-//
-// TODO: Support for "behavior" and "invert" options
-//  https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/tokenizer/normalizer.rs#L82
-//  https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/tokenizer/pattern.rs#L128
+// -- Split (Regex) ------------------------------------------------------------
 
 class RegexPreTokenizer : public PreTokenizer {
-public:
-  /**
-   * @param pattern: The regex pattern to use for token splitting
-   * @param is_delimiter: Whether treat `pattern` as delimiter characters, or
-   * use `pattern` as a regex pattern.
-   * @param behavior: Split behavior ("MergedWithPrevious" or "Isolated"
-   * supported) For example: "pre_tokenizer": { "type": "Split", "pattern": {
-   *     "String": " "
-   *   },
-   *   "behavior": "Isolated",
-   *   "invert": false
-   * },
-   *
-   * Behavior options:
-   * - "MergedWithPrevious": Include delimiter with previous token
-   *   Example: "the-final--countdown" -> ["the-", "final-", "-", "countdown"]
-   * - "Isolated": Keep delimiters as separate tokens
-   *   Example: "the-final--countdown" -> ["the", "-", "final", "-", "-",
-   * "countdown"]
-   *
-   * Notice that the `invert` option is not supported.
-   */
-  explicit RegexPreTokenizer(const std::string &pattern,
-                             bool is_delimiter = false,
-                             const std::string &behavior = "Removed")
+ public:
+  explicit RegexPreTokenizer(
+      const std::string& pattern,
+      bool is_delimiter = false,
+      const std::string& behavior = "Removed")
       : regex_(RegexPreTokenizer::create_regex_(pattern)),
-        is_delimiter_(is_delimiter), behavior_(behavior) {
-    if (behavior_.empty() ||
-        (behavior_ != "Removed" && behavior_ != "MergedWithPrevious" &&
-         behavior_ != "Isolated")) {
-      throw std::runtime_error("Unsupported behavior: " + behavior_);
-    }
-  }
+        is_delimiter_(is_delimiter),
+        behavior_(behavior) {}
 
-  /** Pre-tokenize with the stored regex */
-  std::vector<std::string> pre_tokenize(const std::string &input) const;
+  std::vector<std::string> pre_tokenize(const std::string& input) const;
 
-protected:
-  static std::unique_ptr<IRegex> create_regex_(const std::string &pattern);
+ protected:
+  static std::unique_ptr<IRegex> create_regex_(const std::string& pattern);
 
   std::unique_ptr<IRegex> regex_;
   const bool is_delimiter_;
   const std::string behavior_;
-
-}; // end class RegexPreTokenizer
+};
 
 // -- Digits -------------------------------------------------------------------
-// Used by tokenizers
-// CITE:
-// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/digits.rs
 
 class DigitsPreTokenizer : public RegexPreTokenizer {
-public:
+ public:
   explicit DigitsPreTokenizer(bool individual_digits = false)
-      : RegexPreTokenizer(individual_digits ? R"([^\p{N}]+|\p{N})"
-                                            : R"([^\p{N}]+|[\p{N}]+)") {}
-}; // end class DigitsPreTokenizer
+      : RegexPreTokenizer(
+            individual_digits ? R"([^\p{N}]+|\p{N})"
+                              : R"([^\p{N}]+|[\p{N}]+)") {}
+};
 
 // -- ByteLevel ----------------------------------------------------------------
-// Used by tokenizers
-// CITE:
-// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/byte_level.rs
 
 class ByteLevelPreTokenizer : public PreTokenizer {
-public:
-  /**
-   * @param add_prefix_space: Whether to add a leading space to the first word
-   * @param pattern: A user-supplied regex to use for token splitting. If not
-   *    provided, it use the standard GPT2 pattern.
-   * @param use_regex: Whether to use regex for splitting. If false, only apply
-   *    byte encoding without splitting.
-   */
-  ByteLevelPreTokenizer(bool add_prefix_space = true,
-                        const std::string &pattern = "", bool use_regex = true);
-  explicit ByteLevelPreTokenizer(const std::string &pattern)
+ public:
+  ByteLevelPreTokenizer(
+      bool add_prefix_space = true,
+      const std::string& pattern = "",
+      bool use_regex = true);
+  explicit ByteLevelPreTokenizer(const std::string& pattern)
       : ByteLevelPreTokenizer(true, pattern, true) {}
 
-  /** Perform pre-tokenization */
-  std::vector<std::string>
-  pre_tokenize(const std::string &input) const override;
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
 
-private:
+ private:
   const std::string pattern_;
   const bool add_prefix_space_;
   const bool use_regex_;
-
-}; // end class ByteLevelPreTokenizer
+};
 
 // -- Sequence -----------------------------------------------------------------
-// Used by tokenizers
-// CITE:
-// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/sequence.rs
 
 class SequencePreTokenizer : public PreTokenizer {
-public:
-  /**
-   * @param pre_tokenizers: The sequence of owned pre-tokenizer objects to use
-   */
+ public:
   explicit SequencePreTokenizer(std::vector<PreTokenizer::Ptr> pre_tokenizers);
 
-  /** Perform pre-tokenization */
-  std::vector<std::string>
-  pre_tokenize(const std::string &input) const override;
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
 
-private:
+ private:
   const std::vector<PreTokenizer::Ptr> pre_tokenizers_;
-
-}; // end class SequencePreTokenizer
+};
 
 // -- Bert ---------------------------------------------------------------------
-// Used for BERT-style pre-tokenization (splitting on whitespace and
-// punctuation) CITE:
-// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/bert.rs
 
 class BertPreTokenizer : public PreTokenizer {
-public:
+ public:
   BertPreTokenizer() = default;
 
-  /** Perform BERT pre-tokenization */
-  std::vector<std::string>
-  pre_tokenize(const std::string &input) const override;
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+};
 
-}; // end class BertPreTokenizer
+// -- Metaspace ----------------------------------------------------------------
+// Replaces spaces with a replacement char (default ▁) and optionally splits.
+// Used by SentencePiece-based HF tokenizers (T5, ALBERT, XLNet, etc.)
+
+class MetaspacePreTokenizer : public PreTokenizer {
+ public:
+  enum class PrependScheme { Always, First, Never };
+
+  explicit MetaspacePreTokenizer(
+      const std::string& replacement = "\xe2\x96\x81",
+      PrependScheme prepend_scheme = PrependScheme::Always,
+      bool split = true)
+      : replacement_(replacement),
+        prepend_scheme_(prepend_scheme),
+        split_(split) {}
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+
+ private:
+  const std::string replacement_;
+  const PrependScheme prepend_scheme_;
+  const bool split_;
+};
+
+// -- Whitespace ---------------------------------------------------------------
+// Matches word chars and non-whitespace-non-word chars: \w+|[^\w\s]+
+
+class WhitespacePreTokenizer : public RegexPreTokenizer {
+ public:
+  WhitespacePreTokenizer()
+      : RegexPreTokenizer(R"(\w+|[^\w\s]+)") {}
+};
+
+// -- WhitespaceSplit ----------------------------------------------------------
+// Splits on any whitespace character (removes whitespace).
+
+class WhitespaceSplitPreTokenizer : public PreTokenizer {
+ public:
+  WhitespaceSplitPreTokenizer() = default;
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+};
+
+// -- Punctuation --------------------------------------------------------------
+// Splits on punctuation characters with configurable behavior (default
+// Isolated).
+
+class PunctuationPreTokenizer : public PreTokenizer {
+ public:
+  explicit PunctuationPreTokenizer(const std::string& behavior = "Isolated")
+      : behavior_(behavior) {}
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+
+ private:
+  const std::string behavior_;
+};
+
+// -- CharDelimiterSplit -------------------------------------------------------
+// Splits on a single delimiter character (Removed behavior).
+
+class CharDelimiterSplitPreTokenizer : public PreTokenizer {
+ public:
+  explicit CharDelimiterSplitPreTokenizer(const std::string& delimiter)
+      : delimiter_(delimiter) {}
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+
+ private:
+  const std::string delimiter_;
+};
+
+// -- UnicodeScripts -----------------------------------------------------------
+// Splits on Unicode script boundaries.
+
+class UnicodeScriptsPreTokenizer : public PreTokenizer {
+ public:
+  UnicodeScriptsPreTokenizer() = default;
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+};
+
+// -- FixedLength --------------------------------------------------------------
+// Splits into chunks of a fixed number of characters.
+
+class FixedLengthPreTokenizer : public PreTokenizer {
+ public:
+  explicit FixedLengthPreTokenizer(size_t length = 5) : length_(length) {}
+
+  std::vector<std::string> pre_tokenize(
+      const std::string& input) const override;
+
+ private:
+  const size_t length_;
+};
 
 } // namespace tokenizers

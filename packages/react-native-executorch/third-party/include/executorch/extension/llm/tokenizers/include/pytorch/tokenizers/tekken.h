@@ -27,7 +27,7 @@
 namespace tokenizers {
 
 class Tekken : public detail::BPETokenizerBase {
-public:
+ public:
   struct TekkenConfig {
     std::string pattern;
     size_t num_vocab_tokens;
@@ -52,35 +52,39 @@ public:
   ~Tekken() override = default;
 
   // Load from tekken.json file
-  Error load(const std::string &tokenizer_path) override;
+  Error load(const std::string& tokenizer_path) override;
 
   // Support loading with explicit special tokens
-  Error
-  load_with_special_tokens(const std::string &tokenizer_path,
-                           const std::vector<SpecialTokenInfo> &special_tokens);
+  Error load_with_special_tokens(
+      const std::string& tokenizer_path,
+      const std::vector<SpecialTokenInfo>& special_tokens);
 
   // Get the version string
-  const std::string &get_version() const { return _version; }
+  const std::string& get_version() const {
+    return _version;
+  }
 
-protected:
+ protected:
   // Virtual methods from BPETokenizerBase
-  Error _encode(const std::string &input, std::vector<uint64_t> &ret,
-                uint64_t &last_piece_token_len) const override;
+  Error _encode(
+      const std::string& input,
+      std::vector<uint64_t>& ret,
+      uint64_t& last_piece_token_len) const override;
 
-  void _decode(const std::string &input, std::string &ret) const override;
+  void _decode(const std::string& input, std::string& ret) const override;
 
-private:
+ private:
   // Parse the JSON configuration
-  Result<TekkenConfig> _parse_config(const nlohmann::json &j) const;
+  Result<TekkenConfig> _parse_config(const nlohmann::json& j) const;
 
   // Build token map from JSON vocab
-  Result<detail::TokenMap>
-  _load_vocab_from_json(const nlohmann::json &vocab_json,
-                        size_t max_vocab) const;
+  Result<detail::TokenMap> _load_vocab_from_json(
+      const nlohmann::json& vocab_json,
+      size_t max_vocab) const;
 
   // Initialize special tokens (fills up to num_special_tokens slots)
   std::vector<SpecialTokenInfo> _initialize_special_tokens(
-      const std::vector<SpecialTokenInfo> &defined_tokens,
+      const std::vector<SpecialTokenInfo>& defined_tokens,
       size_t num_special_tokens) const;
 
   // Default Tekken pattern

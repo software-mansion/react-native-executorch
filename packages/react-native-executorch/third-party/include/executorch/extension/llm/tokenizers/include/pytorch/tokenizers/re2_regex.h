@@ -21,7 +21,7 @@ namespace tokenizers {
  * @brief RE2-based implementation of IRegex.
  */
 class Re2Regex : public IRegex {
-public:
+ public:
   /**
    * @brief Construct a RE2 regex.
    */
@@ -32,14 +32,14 @@ public:
    * @param pattern The regex pattern to compile.
    * @return An Error object indicating success or failure of the compilation.
    */
-  virtual Error compile(const std::string &pattern) override;
+  virtual Error compile(const std::string& pattern) override;
 
   /**
    * @brief Return all non-overlapping matches found in the input string.
    */
-  virtual std::vector<Match> find_all(const std::string &text) const override;
+  virtual std::vector<Match> find_all(const std::string& text) const override;
 
-private:
+ private:
   std::unique_ptr<re2::RE2> regex_;
 };
 

@@ -23,7 +23,7 @@ namespace tokenizers {
  * @brief PCRE2-based implementation of IRegex.
  */
 class Pcre2Regex : public IRegex {
-public:
+ public:
   /**
    * @brief Construct a PCRE2 regex.
    */
@@ -34,7 +34,7 @@ public:
    * @param pattern The regex pattern to compile.
    * @return An Error object indicating success or failure of the compilation.
    */
-  virtual Error compile(const std::string &pattern) override;
+  virtual Error compile(const std::string& pattern) override;
 
   /**
    * @brief Destructor to clean up PCRE2 resources.
@@ -44,11 +44,11 @@ public:
   /**
    * @brief Return all non-overlapping matches found in the input string.
    */
-  virtual std::vector<Match> find_all(const std::string &text) const override;
+  virtual std::vector<Match> find_all(const std::string& text) const override;
 
-private:
-  pcre2_code *regex_;
-  pcre2_match_data *match_data_;
+ private:
+  pcre2_code* regex_;
+  pcre2_match_data* match_data_;
 };
 
 } // namespace tokenizers

@@ -18,7 +18,7 @@ namespace tokenizers {
  * @param cpts Input codepoint sequence
  * @return NFD-normalized codepoint sequence
  */
-std::vector<uint32_t> unicode_normalize_nfd(const std::vector<uint32_t> &cpts);
+std::vector<uint32_t> unicode_normalize_nfd(const std::vector<uint32_t>& cpts);
 
 /**
  * Normalize a sequence of codepoints to NFC (Canonical Decomposition +
@@ -27,7 +27,7 @@ std::vector<uint32_t> unicode_normalize_nfd(const std::vector<uint32_t> &cpts);
  * @param cpts Input codepoint sequence
  * @return NFC-normalized codepoint sequence
  */
-std::vector<uint32_t> unicode_normalize_nfc(const std::vector<uint32_t> &cpts);
+std::vector<uint32_t> unicode_normalize_nfc(const std::vector<uint32_t>& cpts);
 
 /**
  * Normalize a UTF-8 string to NFD
@@ -35,7 +35,7 @@ std::vector<uint32_t> unicode_normalize_nfc(const std::vector<uint32_t> &cpts);
  * @param utf8 Input UTF-8 string
  * @return NFD-normalized UTF-8 string
  */
-std::string unicode_normalize_nfd_utf8(const std::string &utf8);
+std::string unicode_normalize_nfd_utf8(const std::string& utf8);
 
 /**
  * Normalize a UTF-8 string to NFC
@@ -43,6 +43,6 @@ std::string unicode_normalize_nfd_utf8(const std::string &utf8);
  * @param utf8 Input UTF-8 string
  * @return NFC-normalized UTF-8 string
  */
-std::string unicode_normalize_nfc_utf8(const std::string &utf8);
+std::string unicode_normalize_nfc_utf8(const std::string& utf8);
 
 } // namespace tokenizers

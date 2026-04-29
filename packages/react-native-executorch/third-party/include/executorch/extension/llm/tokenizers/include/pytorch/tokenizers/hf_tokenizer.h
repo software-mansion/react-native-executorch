@@ -13,14 +13,16 @@
 #pragma once
 
 // Standard
-#include <memory>
 #include <string>
+#include <memory>
 #include <vector>
 
 // Local
 #include <nlohmann/json.hpp>
 #include <pytorch/tokenizers/error.h>
+#include <pytorch/tokenizers/map_utils.h>
 #include <pytorch/tokenizers/model.h>
+#include <pytorch/tokenizers/regex.h>
 #include <pytorch/tokenizers/normalizer.h>
 #include <pytorch/tokenizers/padding.h>
 #include <pytorch/tokenizers/post_processor.h>
@@ -33,7 +35,7 @@
 namespace tokenizers {
 
 class HFTokenizer : public Tokenizer {
-public:
+ public:
   /*-- Public Interface --*/
 
   /**
@@ -45,39 +47,58 @@ public:
   /**
    * Load the model data into the
    */
-  Error load(const std::string &tokenizer_path) override;
+  Error load(const std::string& tokenizer_path) override;
 
-  Result<std::vector<uint64_t>> encode(const std::string &input, int8_t bos = 0,
-                                       int8_t eos = 0) const override;
+  Result<std::vector<uint64_t>> encode(
+      const std::string& input,
+      int8_t bos = 0,
+      int8_t eos = 0) const override;
 
   Result<std::string> id_to_piece(uint64_t token) const override;
-  Result<uint64_t> piece_to_id(const std::string &text) const override;
+  Result<uint64_t> piece_to_id(const std::string& text) const override;
 
-  Result<std::string> decode(uint64_t prev_token, uint64_t token,
-                             bool skip_special_tokens = false) const override;
+  Result<std::string> decode(
+      uint64_t prev_token,
+      uint64_t token,
+      bool skip_special_tokens = false) const override;
 
-  Result<std::string> decode(const std::vector<uint64_t> &tokens,
-                             bool skip_special_tokens = false) const;
+  Result<std::string> decode(
+      const std::vector<uint64_t>& tokens,
+      bool skip_special_tokens = false) const;
 
-private:
-  Error setup_normalizer(const nlohmann::json &parsed_json);
-  Error setup_pretokenizer(const nlohmann::json &parsed_json);
-  Error setup_postprocessor(const nlohmann::json &parsed_json);
-  Error setup_decoder(const nlohmann::json &parsed_json);
-  Error setup_truncation(const nlohmann::json &parsed_json);
-  Error setup_padding(const nlohmann::json &parsed_json);
-  Error setup_model(const nlohmann::json &parsed_json,
-                    const std::string &model_config_path,
-                    const std::string &special_tokens_map_path);
+ private:
+  Error setup_normalizer(const nlohmann::json& parsed_json);
+  Error setup_pretokenizer(const nlohmann::json& parsed_json);
+  Error setup_postprocessor(const nlohmann::json& parsed_json);
+  Error setup_decoder(const nlohmann::json& parsed_json);
+  Error setup_truncation(const nlohmann::json& parsed_json);
+  Error setup_padding(const nlohmann::json& parsed_json);
+  Error setup_model(
+      const nlohmann::json& parsed_json,
+      const std::string& model_config_path,
+      const std::string& special_tokens_map_path);
 
-  Normalizer::Ptr _normalizer;
-  PreTokenizer::Ptr _pretokenizer;
-  PostProcessor::Ptr _postprocessor;
-  TokenDecoder::Ptr _decoder;
-  Truncation::Ptr _truncation;
-  Padding::Ptr _padding;
+  /// Split input around the first added_token match. Returns (matched token,
+  /// text before match). Uses _added_token_regex if available, otherwise
+  /// falls back to the model's special-only regex.
+  std::pair<std::optional<std::string>, std::string>
+  split_added_token(const std::string& input, size_t offset) const;
 
-  Model::Ptr _model;
+  Normalizer::Ptr normalizer_;
+  PreTokenizer::Ptr pretokenizer_;
+  PostProcessor::Ptr postprocessor_;
+  TokenDecoder::Ptr decoder_;
+  Truncation::Ptr truncation_;
+  Padding::Ptr padding_;
+
+  Model::Ptr model_;
+
+  // Regex matching ALL added_tokens (both special and non-special).
+  // HF matches every added_token as a never-split unit during encoding.
+  // This is separate from the model's special_token_regex which only
+  // contains special=true tokens (for standalone model.tokenize()).
+  std::unique_ptr<IRegex> added_token_regex_;
+  std::unique_ptr<detail::TokenMap> added_token_map_;
 };
 
 } // namespace tokenizers
