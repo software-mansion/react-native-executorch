@@ -157,7 +157,23 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup
         uses: ./.github/actions/setup
+      - name: Compute bundle hash
+        id: hash
+        run: |
+          h=$(node scripts/compute-app-hash.js "${{ matrix.app }}-app")
+          echo "key=bundle-${{ matrix.platform }}-${{ matrix.app }}-$h" >> "$GITHUB_OUTPUT"
+      - name: Lookup pass marker
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ci-marker
+          key: ${{ steps.hash.outputs.key }}
+          lookup-only: true
+      - name: Skip notice
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: echo "Skipping bundle — bundle-${{ matrix.platform }}-${{ matrix.app }} already passed at this content hash."
       - name: Bundle JS for ${{ matrix.platform }}
+        if: steps.cache.outputs.cache-hit != 'true'
         working-directory: apps/${{ matrix.app }}
         run: |
           if [ "${{ matrix.app }}" = "bare-rn" ]; then
@@ -171,6 +187,17 @@ jobs:
               --platform ${{ matrix.platform }} \
               --output-dir /tmp/expo-export
           fi
+      - name: Save pass marker
+        if: steps.cache.outputs.cache-hit != 'true' && success()
+        run: |
+          mkdir -p "${{ runner.temp }}/ci-marker"
+          touch "${{ runner.temp }}/ci-marker/passed"
+      - name: Cache pass marker
+        if: steps.cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ci-marker
+          key: ${{ steps.hash.outputs.key }}
 
   build-android:
     needs: detect-changes
@@ -193,6 +220,7 @@ jobs:
         with:
           app-path: apps/${{ matrix.app }}
           expo-prebuild: ${{ matrix.app == 'bare-rn' && 'false' || 'true' }}
+          filter-name: ${{ matrix.app }}-android
 
   build-ios:
     needs: detect-changes
@@ -215,3 +243,4 @@ jobs:
         with:
           app-path: apps/${{ matrix.app }}
           expo-prebuild: ${{ matrix.app == 'bare-rn' && 'false' || 'true' }}
+          filter-name: ${{ matrix.app }}-ios
