@@ -194,7 +194,15 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   * [`temperature`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-  * [`topp`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  * `topP` - Only samples from the smallest set of tokens whose cumulative probability exceeds topP. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
+
+  * `minP` - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topP` when both are set.
+
+  * `repetitionPenalty` - Multiplicative penalty applied to logits of tokens that already appeared in the prompt or the generated text. Values greater than `1` discourage repetition; default `1` disables the penalty.
+
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Built-in models ship with sampling defaults
+
+Model presets expose an optional [`generationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMProps) on the `model` prop. Whenever the upstream model card publishes recommended values (currently Qwen3 and LFM2-VL) the preset carries them and `useLLM` applies them automatically before `isReady` flips — you don't need to call `configure` just to get sensible defaults. Any fields you then pass to `configure` still override on a per-field basis.
 
 ### Model configuration example[​](#model-configuration-example "Direct link to Model configuration example")
 
@@ -265,7 +273,9 @@ useEffect(() => {
       outputTokenBatchSize: 15,
       batchTimeInterval: 100,
       temperature: 0.7,
-      topp: 0.9,
+      topP: 0.9,
+      minP: 0.05,
+      repetitionPenalty: 1.05,
     },
   });
 }, [configure]);
@@ -479,9 +489,9 @@ Some models support multimodal input — text and images together. To use them, 
 ### Loading a VLM[​](#loading-a-vlm "Direct link to Loading a VLM")
 
 ```tsx
-import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 ```
 
@@ -504,7 +514,7 @@ Passing `capabilities` unlocks the typed `media` argument on `sendMessage`.
 ### Sending a message with an image[​](#sending-a-message-with-an-image "Direct link to Sending a message with an image")
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const send = () => {
   llm.sendMessage('What is in this image?', {
@@ -528,7 +538,7 @@ The `imagePath` should be a local file path on the device.
 You can also use `generate` directly by setting `mediaPath` on user messages:
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const handleGenerate = async () => {
   const chat: Message[] = [
