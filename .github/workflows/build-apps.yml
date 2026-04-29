@@ -14,6 +14,7 @@ jobs:
     outputs:
       android_apps: ${{ steps.matrix.outputs.android_apps }}
       ios_apps: ${{ steps.matrix.outputs.ios_apps }}
+      bundle_apps: ${{ steps.matrix.outputs.bundle_apps }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -122,12 +123,47 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "android_apps=$all" >> "$GITHUB_OUTPUT"
             echo "ios_apps=$all" >> "$GITHUB_OUTPUT"
+            echo "bundle_apps=$all" >> "$GITHUB_OUTPUT"
           else
             changes='${{ steps.filter.outputs.changes }}'
             android_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-android")) | sub("-android$"; "")]')
             ios_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-ios")) | sub("-ios$"; "")]')
+            bundle_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-app")) | sub("-app$"; "")]')
             echo "android_apps=$android_apps" >> "$GITHUB_OUTPUT"
             echo "ios_apps=$ios_apps" >> "$GITHUB_OUTPUT"
+            echo "bundle_apps=$bundle_apps" >> "$GITHUB_OUTPUT"
+          fi
+
+  bundle:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.bundle_apps != '[]' && needs.detect-changes.outputs.bundle_apps != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.detect-changes.outputs.bundle_apps) }}
+        platform: [android, ios]
+    concurrency:
+      group: bundle-${{ matrix.platform }}-${{ matrix.app }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Bundle JS for ${{ matrix.platform }}
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          if [ "${{ matrix.app }}" = "bare-rn" ]; then
+            npx react-native bundle \
+              --platform ${{ matrix.platform }} \
+              --entry-file index.js \
+              --bundle-output /tmp/bundle.js \
+              --dev false
+          else
+            npx expo export \
+              --platform ${{ matrix.platform }} \
+              --output-dir /tmp/expo-export
           fi
 
   build-android:
