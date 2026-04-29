@@ -54,11 +54,11 @@ public:
               bool phonemize = true, bool stopOnEmptyBuffer = false);
 
   /**
-   * Appends new text to the streaming input buffer.
+   * Appends new input data (either text or phonemes) to the buffer.
    *
-   * @param textChunk The text to add to the end of the current buffer.
+   * @param chunk A text/phonemes chunk to be added to the streaming buffer.
    */
-  void streamInsert(std::string textChunk) noexcept;
+  void streamInsert(std::u32string chunk) noexcept;
 
   /**
    * Signals the streaming process to stop.
@@ -72,32 +72,32 @@ public:
   void unload() noexcept;
 
 private:
-  // Helper function - loading voice array
+  // --- Initialization & Core Inference ---
   void loadVoice(const std::string &voiceSource);
-
-  // Helper function - generate specialization for given input size
   std::vector<float> synthesize(std::u32string_view phonemes, float speed,
                                 size_t paddingMs = 50);
 
-  // JS callback handle
+  // --- External Dependencies ---
   std::shared_ptr<react::CallInvoker> callInvoker_;
 
-  // Shared model context
+  // --- Model context ---
   Context context_;
 
-  // Submodules - arranged in order of their appearence in the model's pipeline
+  // --- Model Components ---
+  // Arranged in order of appearance in the generation pipeline
   phonemis::Pipeline phonemizer_;
   Partitioner partitioner_;
   DurationPredictor durationPredictor_;
   Synthesizer synthesizer_;
 
-  // Voice array — dynamically sized to match the voice file.
-  // Each row is a style vector for a given input token count.
+  // --- Data Buffers ---
+  // Voice embeddings: Each row is a style vector for a given input token count
   std::vector<std::array<float, constants::kVoiceRefSize>> voice_;
-
-  // Streaming state control variables
-  std::string inputTextBuffer_;
+  // Streaming buffer
+  std::u32string inputTextBuffer_;
   mutable std::mutex inputTextBufferMutex_;
+
+  // --- Streaming control State ---
   std::atomic<bool> isStreaming_{false};
   std::atomic<bool> stopOnEmptyBuffer_{true};
   int32_t streamSkippedIterations = 0;

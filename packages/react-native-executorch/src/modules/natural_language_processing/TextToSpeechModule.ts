@@ -100,20 +100,20 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Synthesizes the provided text into speech.
-   * Returns a promise that resolves to the full audio waveform as a `Float32Array`.
-   * @param text The input text to be synthesized.
-   * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
-   * @param phonemize If true (default), converts text to phonemes. If false, input is treated as raw phonemes.
-   * @returns A promise resolving to the synthesized audio waveform.
+   * Synthesizes the provided input (text or IPA phonemes) into speech.
+   * @param input - The input text or phonemes to be synthesized.
+   * @param speed - Playback speed multiplier (default: 1.0).
+   * @param phonemize - If true (default), treats input as text and converts it to phonemes.
+   *                    If false, input is treated as phonemes.
+   * @returns A promise resolving to the full audio waveform as a `Float32Array`.
    */
   public async forward(
-    text: string,
+    input: string,
     speed: number = 1.0,
     phonemize: boolean = true
   ): Promise<Float32Array> {
     this.ensureLoaded('forward');
-    return await this.nativeModule.generate(text, speed, phonemize);
+    return await this.nativeModule.generate(input, speed, phonemize);
   }
 
   /**
@@ -174,11 +174,11 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Inserts new text chunk into the buffer to be processed in streaming mode.
-   * @param textChunk - The text fragment to append to the streaming buffer.
+   * Inserts new content (text or IPA phonemes) into the buffer to be processed in streaming mode.
+   * @param input - The text or phoneme fragment to append to the streaming buffer.
    */
-  public streamInsert(textChunk: string): void {
-    this.nativeModule.streamInsert(textChunk);
+  public streamInsert(input: string): void {
+    this.nativeModule.streamInsert(input);
   }
 
   /**
