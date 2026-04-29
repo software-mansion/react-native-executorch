@@ -21,11 +21,10 @@ public:
   [[nodiscard("Registered non-void function")]] PoseDetections
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                     double detectionThreshold, double iouThreshold,
-                    std::vector<int32_t> classIndices, std::string methodName);
+                    std::string methodName);
   [[nodiscard("Registered non-void function")]] PoseDetections
   generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold,
-                     double iouThreshold, std::vector<int32_t> classIndices,
-                     std::string methodName);
+                     double iouThreshold, std::string methodName);
 
 private:
   std::optional<cv::Scalar> normMean_;

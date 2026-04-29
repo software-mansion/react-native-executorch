@@ -6,6 +6,7 @@ import {
   PoseDetections,
   RnExecutorchError,
   RnExecutorchErrorCode,
+  YOLO26N_POSE,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
@@ -14,11 +15,6 @@ import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
 import Svg, { Circle, Line } from 'react-native-svg';
 import ErrorBanner from '../../components/ErrorBanner';
-
-const YOLO_POSE_MODEL = {
-  modelName: 'yolo26n-pose',
-  modelSource: require('../../assets/yolo26n-pose_xnnpack.pte'),
-} as const;
 
 // Colors for different people
 const PERSON_COLORS = ['lime', 'cyan', 'magenta', 'yellow', 'orange', 'pink'];
@@ -53,7 +49,7 @@ export default function PoseEstimationScreen() {
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
   const [layout, setLayout] = useState({ width: 0, height: 0 });
 
-  const model = usePoseEstimation({ model: YOLO_POSE_MODEL });
+  const model = usePoseEstimation({ model: YOLO26N_POSE });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {

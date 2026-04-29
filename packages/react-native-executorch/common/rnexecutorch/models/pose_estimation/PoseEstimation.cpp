@@ -81,7 +81,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
       int32_t scaledX = static_cast<int32_t>(std::round(x * scaleX));
       int32_t scaledY = static_cast<int32_t>(std::round(y * scaleY));
 
-      keypoints.push_back({scaledX, scaledY});
+      keypoints.emplace_back(scaledX, scaledY);
     }
 
     allDetections.push_back(std::move(keypoints));
@@ -146,11 +146,11 @@ PoseDetections PoseEstimation::generateFromString(std::string imageSource,
                       methodName);
 }
 
-PoseDetections PoseEstimation::generateFromFrame(
-    jsi::Runtime &runtime, const jsi::Value &frameData,
-    double detectionThreshold, double iouThreshold,
-    std::vector<int32_t> classIndices, std::string methodName) {
-  (void)classIndices; // Not used for pose estimation
+PoseDetections PoseEstimation::generateFromFrame(jsi::Runtime &runtime,
+                                                 const jsi::Value &frameData,
+                                                 double detectionThreshold,
+                                                 double iouThreshold,
+                                                 std::string methodName) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
@@ -162,10 +162,10 @@ PoseDetections PoseEstimation::generateFromFrame(
   return detections;
 }
 
-PoseDetections PoseEstimation::generateFromPixels(
-    JSTensorViewIn pixelData, double detectionThreshold, double iouThreshold,
-    std::vector<int32_t> classIndices, std::string methodName) {
-  (void)classIndices; // Not used for pose estimation
+PoseDetections PoseEstimation::generateFromPixels(JSTensorViewIn pixelData,
+                                                  double detectionThreshold,
+                                                  double iouThreshold,
+                                                  std::string methodName) {
   cv::Mat image = extractFromPixels(pixelData);
   return runInference(image, detectionThreshold, iouThreshold, methodName);
 }

@@ -216,7 +216,6 @@ export class PoseEstimationModule<
           frameData,
           detectionThreshold,
           iouThreshold,
-          [],
           methodName
         );
         const out: PersonKeypoints<ResolveKeypoints<T>>[] = [];
@@ -286,7 +285,6 @@ export class PoseEstimationModule<
             input,
             detectionThreshold,
             iouThreshold,
-            [],
             methodName
           );
 

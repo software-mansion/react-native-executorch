@@ -157,8 +157,7 @@ TEST(PoseEstimationPixelTests, ValidPixelDataReturnsResults) {
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
                             executorch::aten::ScalarType::Byte};
-  auto results =
-      model.generateFromPixels(tensorView, 0.3, 0.5, {}, kMethodName);
+  auto results = model.generateFromPixels(tensorView, 0.3, 0.5, kMethodName);
   EXPECT_GE(results.size(), 0u);
 }
 
@@ -170,7 +169,7 @@ TEST(PoseEstimationPixelTests, NegativeThresholdThrows) {
                             {height, width, channels},
                             executorch::aten::ScalarType::Byte};
   EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, -0.1, 0.5, {}, kMethodName),
+      (void)model.generateFromPixels(tensorView, -0.1, 0.5, kMethodName),
       RnExecutorchError);
 }
 
@@ -182,7 +181,7 @@ TEST(PoseEstimationPixelTests, ThresholdAboveOneThrows) {
                             {height, width, channels},
                             executorch::aten::ScalarType::Byte};
   EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, 1.1, 0.5, {}, kMethodName),
+      (void)model.generateFromPixels(tensorView, 1.1, 0.5, kMethodName),
       RnExecutorchError);
 }
 
