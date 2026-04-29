@@ -10,13 +10,14 @@ on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'docs/**'
       - '.github/workflows/docs-build-check.yml'
   workflow_dispatch:
 jobs:
   check:
-    if: github.repository == 'software-mansion/react-native-executorch'
+    if: github.repository == 'software-mansion/react-native-executorch' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     concurrency:
       group: docs-check-${{ github.ref }}

@@ -1,0 +1,67 @@
+name: Build iOS app
+description: Build an iOS demo app from this monorepo (with optional Expo prebuild)
+
+inputs:
+  app-path:
+    description: Path to the app workspace, relative to the repo root (e.g. apps/llm)
+    required: true
+  expo-prebuild:
+    description: Whether to run `expo prebuild --platform ios` before pod install
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+        cache: "yarn"
+
+    - name: Install root dependencies
+      shell: bash
+      run: yarn install --immutable
+
+    - name: Install Expo CLI
+      if: inputs.expo-prebuild == 'true'
+      shell: bash
+      run: |
+        npm install -g @expo/cli
+        echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
+
+    - name: Generate native iOS project
+      if: inputs.expo-prebuild == 'true'
+      working-directory: ${{ inputs.app-path }}
+      shell: bash
+      run: |
+        rm -rf ios
+        npx expo prebuild --platform ios --no-install
+
+    - name: Install CocoaPods dependencies
+      working-directory: ${{ inputs.app-path }}/ios
+      shell: bash
+      run: pod install
+
+    - name: Build app
+      working-directory: ${{ inputs.app-path }}/ios
+      shell: bash
+      run: |
+        WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
+        SCHEME="${WORKSPACE%.xcworkspace}"
+        set -o pipefail && xcodebuild \
+          -workspace "$WORKSPACE" \
+          -scheme "$SCHEME" \
+          -sdk iphonesimulator \
+          -configuration Debug \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+          build \
+          CODE_SIGNING_ALLOWED=NO \
+          -jobs $(sysctl -n hw.ncpu) \
+          COMPILER_INDEX_STORE_ENABLE=NO \
+          ONLY_ACTIVE_ARCH=YES | xcbeautify
