@@ -24,8 +24,8 @@ static bool g_modelLoaded = false;
 static std::string g_modelPath;
 
 // Model input dimensions (dynamically read from model)
-static int g_modelHeight = 256;
-static int g_modelWidth = 256;
+static int32_t g_modelHeight = 256;
+static int32_t g_modelWidth = 256;
 
 // Mask post-processing state (EMA temporal smoothing)
 static cv::Mat g_previousMask;
