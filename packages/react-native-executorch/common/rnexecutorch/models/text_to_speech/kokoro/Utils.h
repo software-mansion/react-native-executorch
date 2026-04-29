@@ -8,18 +8,19 @@
 
 namespace rnexecutorch::models::text_to_speech::kokoro::utils {
 
-// Removes silence from the beginning and the end of an audio (with some
-// margin).
-// Returns a [l - m, r + m] range of audio samples, where m is the margin,
-// l and r correspond to lower and upper audio bound respectively.
+/**
+ * Strips silence from audio edges using a sliding window.
+ * @param audio The input audio samples.
+ * @param margin Number of silence samples to preserve at each edge.
+ */
 std::span<const float> stripAudio(std::span<const float> audio,
                                   size_t margin = 0);
 
-// Tokenizes given phoneme string.
-// Each phoneme corresponds to exactly one token, with 2 additional pad
-// tokens added at both ends.
-// If extecped number of tokens is provided, eventually expands the token vector
-// with pad tokens to match the given length.
+/**
+ * Maps phonemes to vocabulary tokens with start/end padding.
+ * @param phonemes UTF-32 phoneme sequence.
+ * @param expectedSize If set, pads the output to this exact length.
+ */
 std::vector<Token> tokenize(std::u32string_view phonemes,
                             std::optional<size_t> expectedSize = std::nullopt);
 

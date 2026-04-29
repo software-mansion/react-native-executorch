@@ -31,6 +31,7 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
                        return acc + sepPenalty + static_cast<Cost>(end - bp);
                      });
   }
+
   if (mode == Mode::MIN_LATENCY) {
     return partition(
         input, limit,
