@@ -15,7 +15,7 @@ import { useModuleFactory } from '../useModuleFactory';
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.
  * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`), a typed `forward` function, `getAvailableInputSizes` helper, and a `runOnFrame` worklet for VisionCamera integration.
  * @example
- * ```ts
+ * ```tsx
  * const { isReady, isGenerating, forward, error, downloadProgress, getAvailableInputSizes, runOnFrame } =
  *   useInstanceSegmentation({
  *     model: {

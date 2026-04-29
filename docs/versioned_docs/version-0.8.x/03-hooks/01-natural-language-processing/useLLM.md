@@ -211,7 +211,15 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-  - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  - `topP` - Only samples from the smallest set of tokens whose cumulative probability exceeds topP. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
+
+  - `minP` - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topP` when both are set.
+
+  - `repetitionPenalty` - Multiplicative penalty applied to logits of tokens that already appeared in the prompt or the generated text. Values greater than `1` discourage repetition; default `1` disables the penalty.
+
+:::info[Built-in models ship with sampling defaults]
+Model presets expose an optional [`generationConfig`](../../06-api-reference/interfaces/LLMProps.md) on the `model` prop. Whenever the upstream model card publishes recommended values (currently Qwen3 and LFM2-VL) the preset carries them and `useLLM` applies them automatically before `isReady` flips — you don't need to call `configure` just to get sensible defaults. Any fields you then pass to `configure` still override on a per-field basis.
+:::
 
 ### Model configuration example
 
@@ -282,7 +290,9 @@ useEffect(() => {
       outputTokenBatchSize: 15,
       batchTimeInterval: 100,
       temperature: 0.7,
-      topp: 0.9,
+      topP: 0.9,
+      minP: 0.05,
+      repetitionPenalty: 1.05,
     },
   });
 }, [configure]);
@@ -491,9 +501,9 @@ Some models support multimodal input — text and images together. To use them, 
 ### Loading a VLM
 
 ```tsx
-import { useLLM, LFM2_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
 
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 ```
 
 The `capabilities` field is already set on the model constant. You can also construct the model object explicitly:
@@ -514,7 +524,7 @@ Passing `capabilities` unlocks the typed `media` argument on `sendMessage`.
 ### Sending a message with an image
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const send = () => {
   llm.sendMessage('What is in this image?', {
@@ -537,7 +547,7 @@ The `imagePath` should be a local file path on the device.
 You can also use `generate` directly by setting `mediaPath` on user messages:
 
 ```tsx
-const llm = useLLM({ model: LFM2_VL_1_6B_QUANTIZED });
+const llm = useLLM({ model: LFM2_5_VL_1_6B_QUANTIZED });
 
 const handleGenerate = async () => {
   const chat: Message[] = [
