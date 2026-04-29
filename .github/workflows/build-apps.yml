@@ -1,4 +1,4 @@
-name: iOS example apps build check
+name: Example apps build check
 on:
   push:
     branches:
@@ -12,7 +12,8 @@ jobs:
     if: github.repository == 'software-mansion/react-native-executorch' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     outputs:
-      apps: ${{ steps.matrix.outputs.apps }}
+      android_apps: ${{ steps.matrix.outputs.android_apps }}
+      ios_apps: ${{ steps.matrix.outputs.ios_apps }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -23,11 +24,11 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            shared: &shared
-              - .github/workflows/build-ios.yml
-              - .github/actions/build-ios-app/**
-              - packages/react-native-executorch/{ios,scripts,third-party}/**
-              - packages/react-native-executorch/{package.json,tsconfig.json,react-native-executorch.podspec}
+            # Cross-platform shared infrastructure
+            core-shared: &core-shared
+              - .github/workflows/build-apps.yml
+              - packages/react-native-executorch/{scripts,third-party}/**
+              - packages/react-native-executorch/{package.json,tsconfig.json}
               - packages/react-native-executorch/common/{ada,runner}/**
               - packages/react-native-executorch/common/rnexecutorch/{Error,ErrorCodes,Log}.h
               - packages/react-native-executorch/common/rnexecutorch/RnExecutorchInstaller.{cpp,h}
@@ -38,66 +39,127 @@ jobs:
               - packages/react-native-executorch/src/modules/{BaseModule.ts,general/**}
               - packages/react-native-executorch/src/hooks/{general/**,useModule.ts,useModuleFactory.ts}
               - "{package.json,yarn.lock}"
-            expo-shared: &expo-shared
-              - *shared
+            # Platform-specific shared
+            android-shared: &android-shared
+              - .github/actions/build-android-app/**
+              - packages/react-native-executorch/android/**
+            ios-shared: &ios-shared
+              - .github/actions/build-ios-app/**
+              - packages/react-native-executorch/ios/**
+              - packages/react-native-executorch/react-native-executorch.podspec
+            # Resource fetchers
+            expo-fetcher: &expo-fetcher
               - packages/expo-resource-fetcher/**
+            bare-fetcher: &bare-fetcher
+              - packages/bare-resource-fetcher/**
+            # Per-app package paths (TS modules + C++ models for the app's domain)
             llm-pkg: &llm-pkg
               - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/llm/**
               - packages/react-native-executorch/src/modules/natural_language_processing/{LLMModule,TokenizerModule}.ts
               - packages/react-native-executorch/src/hooks/natural_language_processing/{useLLM,useTokenizer}.ts
               - packages/react-native-executorch/src/controllers/LLMController.ts
-            llm:
-              - *expo-shared
-              - *llm-pkg
-              - apps/llm/**
-            computer-vision:
-              - *expo-shared
+            cv-pkg: &cv-pkg
               - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/{classification,instance_segmentation,object_detection,ocr,semantic_segmentation,style_transfer,text_to_image,vertical_ocr}/**
               - packages/react-native-executorch/src/{modules,hooks}/computer_vision/**
               - packages/react-native-executorch/src/controllers/{BaseOCRController,OCRController,VerticalOCRController}.ts
-              - apps/computer-vision/**
-            speech:
-              - *expo-shared
+            speech-pkg: &speech-pkg
               - packages/react-native-executorch/common/pfft/**
               - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/{speech_to_text,text_to_speech,voice_activity_detection}/**
               - packages/react-native-executorch/src/modules/natural_language_processing/{SpeechToTextModule,TextToSpeechModule,VADModule,TokenizerModule}.ts
               - packages/react-native-executorch/src/hooks/natural_language_processing/{useSpeechToText,useTextToSpeech,useVAD,useTokenizer}.ts
-              - apps/speech/**
-            text-embeddings:
-              - *expo-shared
+            text-embeddings-pkg: &text-embeddings-pkg
               - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/embeddings/**
               - packages/react-native-executorch/src/modules/natural_language_processing/{TextEmbeddingsModule,TokenizerModule}.ts
               - packages/react-native-executorch/src/modules/computer_vision/ImageEmbeddingsModule.ts
               - packages/react-native-executorch/src/hooks/natural_language_processing/{useTextEmbeddings,useTokenizer}.ts
               - packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts
-              - apps/text-embeddings/**
-            bare-rn:
-              - *shared
+            # Per-app bundle: core + fetcher + pkg + app dir
+            llm-app: &llm-app
+              - *core-shared
+              - *expo-fetcher
               - *llm-pkg
-              - packages/bare-resource-fetcher/**
+              - apps/llm/**
+            computer-vision-app: &computer-vision-app
+              - *core-shared
+              - *expo-fetcher
+              - *cv-pkg
+              - apps/computer-vision/**
+            speech-app: &speech-app
+              - *core-shared
+              - *expo-fetcher
+              - *speech-pkg
+              - apps/speech/**
+            text-embeddings-app: &text-embeddings-app
+              - *core-shared
+              - *expo-fetcher
+              - *text-embeddings-pkg
+              - apps/text-embeddings/**
+            bare-rn-app: &bare-rn-app
+              - *core-shared
+              - *bare-fetcher
+              - *llm-pkg
               - apps/bare-rn/**
+            # Final per-platform per-app filters (the only ones the matrix consumes)
+            llm-android: [*llm-app, *android-shared]
+            llm-ios: [*llm-app, *ios-shared]
+            computer-vision-android: [*computer-vision-app, *android-shared]
+            computer-vision-ios: [*computer-vision-app, *ios-shared]
+            speech-android: [*speech-app, *android-shared]
+            speech-ios: [*speech-app, *ios-shared]
+            text-embeddings-android: [*text-embeddings-app, *android-shared]
+            text-embeddings-ios: [*text-embeddings-app, *ios-shared]
+            bare-rn-android: [*bare-rn-app, *android-shared]
+            bare-rn-ios: [*bare-rn-app, *ios-shared]
 
-      - name: Compute matrix
+      - name: Compute matrices
         id: matrix
         run: |
+          all='["llm","computer-vision","speech","text-embeddings","bare-rn"]'
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo 'apps=["llm","computer-vision","speech","text-embeddings","bare-rn"]' >> "$GITHUB_OUTPUT"
+            echo "android_apps=$all" >> "$GITHUB_OUTPUT"
+            echo "ios_apps=$all" >> "$GITHUB_OUTPUT"
           else
-            echo "apps=${{ steps.filter.outputs.changes }}" >> "$GITHUB_OUTPUT"
+            changes='${{ steps.filter.outputs.changes }}'
+            android_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-android")) | sub("-android$"; "")]')
+            ios_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-ios")) | sub("-ios$"; "")]')
+            echo "android_apps=$android_apps" >> "$GITHUB_OUTPUT"
+            echo "ios_apps=$ios_apps" >> "$GITHUB_OUTPUT"
           fi
 
-  build:
+  build-android:
     needs: detect-changes
-    if: needs.detect-changes.outputs.apps != '[]' && needs.detect-changes.outputs.apps != ''
+    if: needs.detect-changes.outputs.android_apps != '[]' && needs.detect-changes.outputs.android_apps != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.detect-changes.outputs.android_apps) }}
+    concurrency:
+      group: android-${{ matrix.app }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Build Android app
+        uses: ./.github/actions/build-android-app
+        with:
+          app-path: apps/${{ matrix.app }}
+          expo-prebuild: ${{ matrix.app == 'bare-rn' && 'false' || 'true' }}
+
+  build-ios:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ios_apps != '[]' && needs.detect-changes.outputs.ios_apps != ''
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        app: ${{ fromJSON(needs.detect-changes.outputs.apps) }}
+        app: ${{ fromJSON(needs.detect-changes.outputs.ios_apps) }}
     concurrency:
       group: ios-${{ matrix.app }}-${{ github.ref }}
       cancel-in-progress: true
