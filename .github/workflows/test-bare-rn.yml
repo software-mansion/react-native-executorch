@@ -39,5 +39,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Build workspace packages
+        run: yarn workspaces foreach --all --topological-dev run prepare
+
       - name: Run Jest
         run: yarn workspace bare-rn test
