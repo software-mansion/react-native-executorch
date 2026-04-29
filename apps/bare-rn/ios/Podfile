@@ -30,5 +30,22 @@ target 'bare-rn' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Workaround for Xcode 26.4 + Apple clang 21's stricter consteval
+    # enforcement breaking fmt 9.x (vendored by RCT-Folly in RN 0.81.x).
+    # See facebook/react-native#55601, fmtlib/fmt#4740. Forcing the fmt and
+    # RCT-Folly pod targets to C++17 makes fmt's `__cplusplus >= 202002L`
+    # gate fail, so `FMT_CONSTEVAL` resolves to empty inside fmt's cached
+    # clang module — consumers (Yoga, React-performancetimeline, etc.) then
+    # import a non-consteval module and the basic_format_string call site
+    # compiles. Applies to fmt/RCT-Folly only; remove once upstream lands.
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt' || target.name == 'RCT-Folly'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'FMT_USE_CONSTEVAL=0'
+      end
+    end
   end
 end

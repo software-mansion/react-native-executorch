@@ -110,12 +110,13 @@ const TASKS: Task[] = [
   },
 ];
 
-const frameKillSwitch = createSynchronizable(false);
-const cameraPositionSync = createSynchronizable<'front' | 'back'>('back');
-
 export default function VisionCameraScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [frameKillSwitch] = useState(() => createSynchronizable(false));
+  const [cameraPositionSync] = useState(() =>
+    createSynchronizable<'front' | 'back'>('back')
+  );
   const [activeTask, setActiveTask] = useState<TaskId>('classification');
   const [activeModel, setActiveModel] = useState<ModelId>('classification');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
@@ -146,11 +147,11 @@ export default function VisionCameraScreen() {
       frameKillSwitch.setBlocking(false);
     }, 300);
     return () => clearTimeout(id);
-  }, [activeModel]);
+  }, [activeModel, frameKillSwitch]);
 
   useEffect(() => {
     cameraPositionSync.setBlocking(cameraPosition);
-  }, [cameraPosition]);
+  }, [cameraPosition, cameraPositionSync]);
 
   const handleFpsChange = useCallback((newFps: number, newMs: number) => {
     setFps(newFps);
