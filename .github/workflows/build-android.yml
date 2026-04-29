@@ -23,57 +23,29 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            workflow: &workflow
+            shared: &shared
               - .github/workflows/build-android.yml
               - .github/actions/build-android-app/**
-            shared: &shared
-              - *workflow
-              - packages/react-native-executorch/android/**
-              - packages/react-native-executorch/scripts/**
-              - packages/react-native-executorch/third-party/**
-              - packages/react-native-executorch/package.json
-              - packages/react-native-executorch/tsconfig.json
-              - packages/react-native-executorch/common/ada/**
-              - packages/react-native-executorch/common/runner/**
-              - packages/react-native-executorch/common/rnexecutorch/Error.h
-              - packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h
-              - packages/react-native-executorch/common/rnexecutorch/Log.h
-              - packages/react-native-executorch/common/rnexecutorch/RnExecutorchInstaller.cpp
-              - packages/react-native-executorch/common/rnexecutorch/RnExecutorchInstaller.h
-              - packages/react-native-executorch/common/rnexecutorch/data_processing/**
-              - packages/react-native-executorch/common/rnexecutorch/host_objects/**
-              - packages/react-native-executorch/common/rnexecutorch/jsi/**
-              - packages/react-native-executorch/common/rnexecutorch/metaprogramming/**
-              - packages/react-native-executorch/common/rnexecutorch/tests/**
-              - packages/react-native-executorch/common/rnexecutorch/threads/**
-              - packages/react-native-executorch/common/rnexecutorch/utils/**
-              - packages/react-native-executorch/common/rnexecutorch/models/BaseModel.cpp
-              - packages/react-native-executorch/common/rnexecutorch/models/BaseModel.h
+              - packages/react-native-executorch/{android,scripts,third-party}/**
+              - packages/react-native-executorch/{package.json,tsconfig.json}
+              - packages/react-native-executorch/common/{ada,runner}/**
+              - packages/react-native-executorch/common/rnexecutorch/{Error,ErrorCodes,Log}.h
+              - packages/react-native-executorch/common/rnexecutorch/RnExecutorchInstaller.{cpp,h}
+              - packages/react-native-executorch/common/rnexecutorch/{data_processing,host_objects,jsi,metaprogramming,tests,threads,utils}/**
+              - packages/react-native-executorch/common/rnexecutorch/models/BaseModel.{cpp,h}
+              - packages/react-native-executorch/src/{common,constants,errors,native,types,utils}/**
               - packages/react-native-executorch/src/index.ts
-              - packages/react-native-executorch/src/common/**
-              - packages/react-native-executorch/src/constants/**
-              - packages/react-native-executorch/src/errors/**
-              - packages/react-native-executorch/src/native/**
-              - packages/react-native-executorch/src/types/**
-              - packages/react-native-executorch/src/utils/**
-              - packages/react-native-executorch/src/modules/BaseModule.ts
-              - packages/react-native-executorch/src/modules/general/**
-              - packages/react-native-executorch/src/hooks/general/**
-              - packages/react-native-executorch/src/hooks/useModule.ts
-              - packages/react-native-executorch/src/hooks/useModuleFactory.ts
-              - package.json
-              - yarn.lock
+              - packages/react-native-executorch/src/modules/{BaseModule.ts,general/**}
+              - packages/react-native-executorch/src/hooks/{general/**,useModule.ts,useModuleFactory.ts}
+              - "{package.json,yarn.lock}"
             expo-shared: &expo-shared
               - *shared
               - packages/expo-resource-fetcher/**
             llm-pkg: &llm-pkg
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.cpp
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.h
+              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/llm/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts
-              - packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts
+              - packages/react-native-executorch/src/modules/natural_language_processing/{LLMModule,TokenizerModule}.ts
+              - packages/react-native-executorch/src/hooks/natural_language_processing/{useLLM,useTokenizer}.ts
               - packages/react-native-executorch/src/controllers/LLMController.ts
             llm:
               - *expo-shared
@@ -81,49 +53,26 @@ jobs:
               - apps/llm/**
             computer-vision:
               - *expo-shared
-              - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.cpp
-              - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.h
-              - packages/react-native-executorch/common/rnexecutorch/models/classification/**
-              - packages/react-native-executorch/common/rnexecutorch/models/instance_segmentation/**
-              - packages/react-native-executorch/common/rnexecutorch/models/object_detection/**
-              - packages/react-native-executorch/common/rnexecutorch/models/ocr/**
-              - packages/react-native-executorch/common/rnexecutorch/models/semantic_segmentation/**
-              - packages/react-native-executorch/common/rnexecutorch/models/style_transfer/**
-              - packages/react-native-executorch/common/rnexecutorch/models/text_to_image/**
-              - packages/react-native-executorch/common/rnexecutorch/models/vertical_ocr/**
-              - packages/react-native-executorch/src/modules/computer_vision/**
-              - packages/react-native-executorch/src/hooks/computer_vision/**
-              - packages/react-native-executorch/src/controllers/BaseOCRController.ts
-              - packages/react-native-executorch/src/controllers/OCRController.ts
-              - packages/react-native-executorch/src/controllers/VerticalOCRController.ts
+              - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.{cpp,h}
+              - packages/react-native-executorch/common/rnexecutorch/models/{classification,instance_segmentation,object_detection,ocr,semantic_segmentation,style_transfer,text_to_image,vertical_ocr}/**
+              - packages/react-native-executorch/src/{modules,hooks}/computer_vision/**
+              - packages/react-native-executorch/src/controllers/{BaseOCRController,OCRController,VerticalOCRController}.ts
               - apps/computer-vision/**
             speech:
               - *expo-shared
               - packages/react-native-executorch/common/pfft/**
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.cpp
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.h
-              - packages/react-native-executorch/common/rnexecutorch/models/speech_to_text/**
-              - packages/react-native-executorch/common/rnexecutorch/models/text_to_speech/**
-              - packages/react-native-executorch/common/rnexecutorch/models/voice_activity_detection/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts
-              - packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts
-              - packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts
-              - packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useSpeechToText.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useVAD.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts
+              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
+              - packages/react-native-executorch/common/rnexecutorch/models/{speech_to_text,text_to_speech,voice_activity_detection}/**
+              - packages/react-native-executorch/src/modules/natural_language_processing/{SpeechToTextModule,TextToSpeechModule,VADModule,TokenizerModule}.ts
+              - packages/react-native-executorch/src/hooks/natural_language_processing/{useSpeechToText,useTextToSpeech,useVAD,useTokenizer}.ts
               - apps/speech/**
             text-embeddings:
               - *expo-shared
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.cpp
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.h
+              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/embeddings/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts
-              - packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts
+              - packages/react-native-executorch/src/modules/natural_language_processing/{TextEmbeddingsModule,TokenizerModule}.ts
               - packages/react-native-executorch/src/modules/computer_vision/ImageEmbeddingsModule.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts
+              - packages/react-native-executorch/src/hooks/natural_language_processing/{useTextEmbeddings,useTokenizer}.ts
               - packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts
               - apps/text-embeddings/**
             bare-rn:
