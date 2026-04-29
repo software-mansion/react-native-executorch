@@ -266,14 +266,6 @@ public:
       errorData.setProperty(runtime, "message",
                             jsi::String::createFromUtf8(runtime, e.what()));
       throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
-    } catch (const std::runtime_error &e) {
-      // This catch should be merged with the next one
-      // (std::runtime_error inherits from std::exception) HOWEVER react
-      // native has broken RTTI which breaks proper exception type
-      // checking. Remove when the following change is present in our
-      // version:
-      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-      throw jsi::JSError(runtime, e.what());
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -344,14 +336,6 @@ public:
       errorData.setProperty(runtime, "message",
                             jsi::String::createFromUtf8(runtime, e.what()));
       throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
-    } catch (const std::runtime_error &e) {
-      // This catch should be merged with the next one
-      // (std::runtime_error inherits from std::exception) HOWEVER react
-      // native has broken RTTI which breaks proper exception type
-      // checking. Remove when the following change is present in our
-      // version:
-      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-      throw jsi::JSError(runtime, e.what());
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -426,22 +410,6 @@ public:
                   promise->reject(jsi::Value(runtime, std::move(errorData)));
                 });
                 return;
-              } catch (const std::runtime_error &e) {
-                // This catch should be merged with the next two
-                // (std::runtime_error and jsi::JSError inherits from
-                // std::exception) HOWEVER react native has broken RTTI
-                // which breaks proper exception type checking. Remove when
-                // the following change is present in our version:
-                // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(std::string(e.what()));
-                });
-                return;
-              } catch (const jsi::JSError &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(std::string(e.what()));
-                });
-                return;
               } catch (const std::exception &e) {
                 callInvoker->invokeAsync([e = std::move(e), promise]() {
                   promise->reject(std::string(e.what()));
@@ -473,14 +441,6 @@ public:
       errorData.setProperty(runtime, "message",
                             jsi::String::createFromUtf8(runtime, e.what()));
       throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
-    } catch (const std::runtime_error &e) {
-      // This catch should be merged with the next one
-      // (std::runtime_error inherits from std::exception) HOWEVER react
-      // native has broken RTTI which breaks proper exception type
-      // checking. Remove when the following change is present in our
-      // version:
-      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-      throw jsi::JSError(runtime, e.what());
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
