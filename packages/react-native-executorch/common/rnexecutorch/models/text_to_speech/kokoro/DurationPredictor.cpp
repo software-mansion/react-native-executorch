@@ -50,8 +50,8 @@ DurationPredictor::DurationPredictor(
 
 std::tuple<Tensor, std::vector<int64_t>, int32_t>
 DurationPredictor::generate(std::span<const Token> tokens,
-                            std::span<bool> textMask, std::span<float> ref_hs,
-                            float speed) {
+                            std::span<const bool> textMask,
+                            std::span<const float> ref_hs, float speed) {
   size_t inputSize = tokens.size();
 
   // Perform input shape checks
@@ -78,11 +78,15 @@ DurationPredictor::generate(std::span<const Token> tokens,
   auto tokensTensor =
       make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
                       const_cast<Token *>(tokens.data()), ScalarType::Long);
+
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
-                      textMask.data(), ScalarType::Bool);
-  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
-                                        ref_hs.data(), ScalarType::Float);
+                      const_cast<bool *>(textMask.data()), ScalarType::Bool);
+
+  auto voiceRefTensor =
+      make_tensor_ptr({1, constants::kVoiceRefHalfSize},
+                      const_cast<float *>(ref_hs.data()), ScalarType::Float);
+
   auto speedTensor = make_tensor_ptr({1}, &speed, ScalarType::Float);
 
   // Execute the appropriate "forward_xyz" method, based on given method name
@@ -175,7 +179,7 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
         shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
 
     durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled)
-                                                      : std::floor(scaled));
+                                                     : std::floor(scaled));
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders

@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include "Constants.h"
 #include "Params.h"
+
 #include <algorithm>
 #include <cmath>
 #include <rnexecutorch/Error.h>
@@ -9,86 +10,95 @@ namespace rnexecutorch::models::text_to_speech::kokoro::utils {
 
 using namespace params::cropping;
 
-// Helper functions
 namespace {
-// Normalizes an audio sample
+
 float normalize(float sample) {
-  float v = std::abs(sample);
-  return v >= kAudioSilenceThreshold ? v : 0.F;
+  return std::max(0.0F, std::abs(sample) - kAudioSilenceThreshold);
 }
 
-// Returns an index corresponding to the first (or last - if reverse=true)
-// non-quiet part of an audio.
-// Utilizes a moving average controled by hyperparameters from Constants.h.
 template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
   if (audio.empty()) {
     return 0;
   }
 
-  size_t length = audio.size();
+  const size_t length = audio.size();
+  float windowSum = 0.0F;
+  size_t processedCount = 0;
+  size_t currentIndex = reverse ? length - 1 : 0;
 
-  float sum = 0.F;
-  size_t count = 0;
-  size_t i = reverse ? length - 1 : 0;
+  while (processedCount < length) {
+    processedCount++;
+    windowSum += normalize(audio[currentIndex]);
 
-  while (count < length) {
-    count++;
-    sum += normalize(audio[i]);
-    if (count > kAudioCroppingSteps) {
-      sum -= normalize(
-          audio[reverse ? i + kAudioCroppingSteps : i - kAudioCroppingSteps]);
+    // Maintain the sliding window sum
+    if (processedCount > kAudioCroppingSteps) {
+      const size_t oldIndex = reverse ? currentIndex + kAudioCroppingSteps
+                                      : currentIndex - kAudioCroppingSteps;
+      windowSum -= normalize(audio[oldIndex]);
     }
 
-    if (count >= kAudioCroppingSteps &&
-        sum / kAudioCroppingSteps >= kAudioSilenceThreshold) {
-      return i;
+    // Check if moving average exceeds threshold
+    if (processedCount >= kAudioCroppingSteps &&
+        (windowSum / kAudioCroppingSteps) >= kAudioSilenceThreshold) {
+      return currentIndex;
     }
 
-    i = reverse ? i - 1 : i + 1;
+    currentIndex = reverse ? currentIndex - 1 : currentIndex + 1;
   }
 
   return reverse ? 0 : length - 1;
 }
+
 } // namespace
 
 std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
-  auto lbound = findAudioBound<false>(audio);
-  auto rbound = findAudioBound<true>(audio);
+  if (audio.empty()) {
+    return {};
+  }
 
-  lbound = lbound > margin ? lbound - margin : 0;
-  rbound = std::min(rbound + margin, audio.size() > 0 ? audio.size() - 1 : 0);
+  size_t lbound = findAudioBound<false>(audio);
+  size_t rbound = findAudioBound<true>(audio);
 
-  return audio.subspan(lbound, rbound >= lbound ? rbound - lbound + 1 : 0);
+  // Apply margins
+  lbound = (lbound > margin) ? lbound - margin : 0;
+  rbound = std::min(rbound + margin, audio.size() - 1);
+
+  const size_t strippedLength = (rbound >= lbound) ? (rbound - lbound + 1) : 0;
+  return audio.subspan(lbound, strippedLength);
 }
 
 std::vector<Token> tokenize(std::u32string_view phonemes,
                             std::optional<size_t> expectedSize) {
   if (expectedSize.has_value() && expectedSize.value() < 2) {
-    throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::InvalidUserInput,
-        "expected number of tokens cannot be lower than 2");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "[Kokoro::Utils] Expected tokens must be >= 2");
   }
 
-  // Number of tokens to populate, with and without edge pad tokens
-  size_t lengthWithPadding =
-      expectedSize.has_value() ? expectedSize.value() : phonemes.size() + 2;
-  size_t lengthWithoutPadding = lengthWithPadding - 2;
-  size_t effNoTokens = std::min(lengthWithoutPadding, phonemes.size());
+  // 1. Determine lengths (2 tokens reserved for start/end padding)
+  const size_t totalLength = expectedSize.value_or(phonemes.size() + 2);
+  const size_t maxPhonemes = totalLength - 2;
+  const size_t effectivePhonemeCount = std::min(maxPhonemes, phonemes.size());
 
-  // Note that we populate tokens[1:noTokens - 1], since first and last tokens
-  // are zeros (padding). Input could still contain unrecognized tokens, and
-  // that's why we use partition() at the end.
-  std::vector<Token> tokens(lengthWithPadding, constants::kPadToken);
-  std::transform(phonemes.begin(), phonemes.begin() + effNoTokens,
+  // 2. Initialize with pad tokens
+  std::vector<Token> tokens(totalLength, constants::kPadToken);
+
+  // 3. Map phonemes to vocabulary tokens
+  // Starting from index 1 to leave index 0 as start-padding
+  std::transform(phonemes.begin(), phonemes.begin() + effectivePhonemeCount,
                  tokens.begin() + 1, [](char32_t p) -> Token {
                    return constants::kVocab.contains(p)
                               ? constants::kVocab.at(p)
                               : constants::kInvalidToken;
                  });
-  auto validSeqEnd = std::stable_partition(
-      tokens.begin() + 1, tokens.begin() + effNoTokens + 1,
-      [](Token t) -> bool { return t != constants::kInvalidToken; });
-  std::fill(validSeqEnd, tokens.begin() + effNoTokens + 1,
+
+  // 4. Remove invalid tokens while preserving order (bubbling them to the end
+  // of the content segment)
+  auto validEnd = std::stable_partition(
+      tokens.begin() + 1, tokens.begin() + effectivePhonemeCount + 1,
+      [](Token t) { return t != constants::kInvalidToken; });
+
+  // 5. Fill any gaps created by partitioning or sizing with pad tokens
+  std::fill(validEnd, tokens.begin() + effectivePhonemeCount + 1,
             constants::kPadToken);
 
   return tokens;

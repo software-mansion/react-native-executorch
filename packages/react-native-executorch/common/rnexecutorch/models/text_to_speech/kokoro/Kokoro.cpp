@@ -249,50 +249,54 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
     return {};
   }
 
-  // Clamp the input to not go beyond number of input token limits
-  // Note that 2 tokens are always reserved for pre- and post-fix padding,
-  // so we effectively take at most (maxNoInputTokens_ - 2) tokens.
-  size_t noTokens = std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
-                               context_.inputTokensLimit);
-
-  // Map phonemes to tokens
+  // 1. Prepare input tokens.
+  // Clamp input to avoid exceeding model limits (2 tokens reserved for pre/post
+  // padding).
+  const size_t noTokens =
+      std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
+                 context_.inputTokensLimit);
   const auto tokens = utils::tokenize(phonemes, {noTokens});
 
-  // Select the appropriate voice vector
-  size_t voiceID =
+  // 2. Select the appropriate voice vector.
+  // Each number of input tokens corresponds to a different voice embedding
+  // vector.
+  const size_t voiceID =
       std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
-  auto &voice = voice_[voiceID];
+  const auto &voice = voice_[voiceID];
 
-  // Initialize text mask
-  // Exclude all the paddings apart from first and last one.
-  size_t realInputLength = std::min(phonemes.size() + 2, noTokens);
+  // 3. Initialize text mask.
+  // Exclude all paddings except the first and last ones.
+  // We use uint8_t instead of bool to avoid boolean span issues.
   std::vector<uint8_t> textMask(noTokens, false);
-  std::fill(textMask.begin(), textMask.begin() + realInputLength, true);
+  std::fill(textMask.begin(),
+            textMask.begin() + std::min(phonemes.size() + 2, noTokens), true);
 
-  // Inference 1 - DurationPredictor
-  // The resulting duration vector is already scalled at this point
+  // 4. Inference Phase 1: DurationPredictor (submodule).
+  // Results in 'd' (durations), 'indices', and 'effectiveDuration'.
   auto [d, indices, effectiveDuration] = durationPredictor_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(voice).last(constants::kVoiceRefHalfSize), speed);
 
-  // Inference 2 - Synthesizer
+  // 5. Inference Phase 2: Synthesizer.
+  // Note that we reduce the size of the duration tensor to match the number of
+  // tokens.
   auto decoding = synthesizer_.generate(
       std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(indices),
-      // Note that we reduce the size of d tensor to match the initial number of
-      // input tokens
       std::span<float>(d.mutable_data_ptr<float>(),
                        noTokens * d.sizes().back()),
       std::span(voice));
-  auto audioTensor = decoding->at(0).toTensor();
 
-  // Cut the resulting audio vector according to the effective duration
-  int32_t effLength = constants::kTicksPerDuration * effectiveDuration;
-  auto audio =
-      std::span<const float>(audioTensor.const_data_ptr<float>(), effLength);
-  auto croppedAudio =
+  // 6. Post-processing: Finalize audio.
+  const auto audioTensor = decoding->at(0).toTensor();
+  const int32_t audioLength = constants::kTicksPerDuration * effectiveDuration;
+
+  const auto audio =
+      std::span<const float>(audioTensor.const_data_ptr<float>(), audioLength);
+
+  const auto croppedAudio =
       utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
   return {croppedAudio.begin(), croppedAudio.end()};
