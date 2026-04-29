@@ -4,9 +4,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include <phonemis/utils/conversions.h>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
 
@@ -151,7 +149,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
   // The extracted text is then passed to the inner loop, which performs a
   // standard streaming on a fixed amount of input text.
   while (isStreaming_) {
-    std::string text;
+    std::u32string input;
 
     // Extract the code relying on input buffer for a separate mutex lock
     // section.
@@ -176,7 +174,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
       // chunks which end in the middle of a sentence.
       if (chunkSize > 0 ||
           streamSkippedIterations >= params::kStreamMaxSkippedIterations) {
-        text = inputTextBuffer_.substr(0, chunkSize);
+        input = inputTextBuffer_.substr(0, chunkSize);
         inputTextBuffer_.erase(0, chunkSize);
         streamSkippedIterations = 0;
       } else {
@@ -184,47 +182,92 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
       }
     }
 
-    if (!text.empty()) {
+    if (!input.empty()) {
       // Now we proceed with a standard streaming logic for fixed-size input.
-      auto phonemes = phonemize
-                          ? phonemizer_(text)
-                          : phonemis::utils::conversions::utf8_to_u32(text);
+      // Start with preprocessing the input once.
+      std::u32string buffer = phonemizer_.preprocess(input);
 
-      auto partition = partitioner_.partition(
-          phonemes, context_.inputTokensLimit, Partitioner::Mode::MIN_LATENCY);
+      // A variable to keep the information about phonemized (but not
+      // synthesized) tokens from the previous iteration.
+      size_t phonemizedTokens = 0;
 
-      for (size_t i = 0; i < partition.segments.size(); i++) {
-        if (!isStreaming_) {
-          break;
+      while (!buffer.empty() && isStreaming_) {
+        // Since we do not phonemize the entire input before partitioning, there
+        // is a possibility that some segment might exceed the token limit after
+        // phonemization. This is being handled later.
+        auto partition = partitioner_.partition(
+            buffer, context_.inputTokensLimit, Partitioner::Mode::MIN_LATENCY);
+
+        for (size_t i = 0; i < partition.segments.size(); i++) {
+          if (!isStreaming_) {
+            break;
+          }
+
+          const auto &[offset, length] = partition.segments[i];
+          const auto subsentence = partition.content.substr(0, length);
+
+          std::u32string phonemes;
+
+          if (phonemize) {
+            size_t unchangedLength = std::min(length, phonemizedTokens);
+            // Include trailing space if it was already phonemized
+            if (unchangedLength < length &&
+                subsentence[unchangedLength] == U' ' &&
+                phonemizedTokens > unchangedLength) {
+              unchangedLength++;
+            }
+
+            // We phonemize on the fly - meaning there is no time waste
+            // phonemizing the entire input if we only need one segment at the
+            // time.`
+            phonemes = subsentence.substr(0, unchangedLength);
+            if (unchangedLength < length) {
+              // Phonemize without preprocessing (since we already did that).
+              phonemes +=
+                  phonemizer_(subsentence.substr(unchangedLength), false);
+            }
+          } else {
+            // Simple case - no phonemization, no risk of exceeding the token
+            // limit.
+            phonemes = subsentence;
+          }
+
+          if (phonemes.size() <= context_.inputTokensLimit - 2) {
+            // Determine the silent padding duration
+            bool endsWithSpace = (subsentence.back() == U' ');
+            bool prevEndsWithSpace =
+                (offset > 0 && partition.content[offset - 1] == U' ');
+            size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50;
+
+            // Generate and push audio
+            auto audioPart = synthesize(phonemes, speed, paddingMs);
+
+            size_t pauseMs = params::kPauseValues.contains(phonemes.back())
+                                 ? params::kPauseValues.at(phonemes.back())
+                                 : params::kDefaultPause;
+
+            audioPart.resize(audioPart.size() +
+                                 pauseMs * constants::kSamplesPerMilisecond,
+                             0.F);
+
+            nativeCallback(std::move(audioPart));
+
+            // Remove processed segment from buffer.
+            // Since we process it from left to right, we expect the segment to
+            // be at the beginning of the buffer.
+            buffer.erase(0, length);
+            phonemizedTokens = std::max(phonemizedTokens, length) - length;
+          } else {
+            // Length exceeds limit. Replace the sentence in buffer with its
+            // phonemization.
+            if (phonemize) {
+              buffer.replace(0, length, phonemes);
+            }
+            phonemizedTokens = phonemes.size();
+
+            break;
+          }
         }
-
-        const auto &[offset, length] = partition.segments[i];
-        const auto subsentence = partition.content.substr(offset, length);
-
-        // Determine the silent padding duration to be stripped from the edges
-        // of the generated audio. If a chunk ends with a space or follows one
-        // that did, it indicates a word boundary split – we use a shorter
-        // padding to ensure natural speech flow. Otherwise, we use 50ms for
-        // standard pauses.
-        bool endsWithSpace = (subsentence.back() == U' ');
-        bool prevEndsWithSpace =
-            (i > 0 && partition.content[offset - 1] == U' ');
-        size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
-
-        // Generate an audio vector with the Kokoro model
-        auto audioPart = synthesize(subsentence, speed, paddingMs);
-
-        // Calculate and append a pause between the sentences
-        char32_t lastPhoneme = subsentence.back();
-        size_t pauseMs = params::kPauseValues.contains(lastPhoneme)
-                             ? params::kPauseValues.at(lastPhoneme)
-                             : params::kDefaultPause;
-
-        audioPart.resize(
-            audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
-
-        // Push the audio right away to the JS side
-        nativeCallback(std::move(audioPart));
       }
     }
 
@@ -249,6 +292,11 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
     return {};
   }
 
+  // Remove leading whitespace if exists.
+  if (phonemes.front() == U' ') {
+    phonemes = phonemes.substr(1);
+  }
+
   // 1. Prepare input tokens.
   // Clamp input to avoid exceeding model limits (2 tokens reserved for pre/post
   // padding).
@@ -257,19 +305,19 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
                  context_.inputTokensLimit);
   const auto tokens = utils::tokenize(phonemes, {noTokens});
 
-  // 2. Select the appropriate voice vector.
-  // Each number of input tokens corresponds to a different voice embedding
-  // vector.
-  const size_t voiceID =
-      std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
-  const auto &voice = voice_[voiceID];
-
-  // 3. Initialize text mask.
+  // 2. Initialize text mask.
   // Exclude all paddings except the first and last ones.
   // We use uint8_t instead of bool to avoid boolean span issues.
   std::vector<uint8_t> textMask(noTokens, false);
   std::fill(textMask.begin(),
             textMask.begin() + std::min(phonemes.size() + 2, noTokens), true);
+
+  // 3. Select the appropriate voice vector.
+  // Each number of input tokens corresponds to a different voice embedding
+  // vector.
+  const size_t voiceID =
+      std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
+  const auto &voice = voice_[voiceID];
 
   // 4. Inference Phase 1: DurationPredictor (submodule).
   // Results in 'd' (durations), 'indices', and 'effectiveDuration'.
@@ -302,9 +350,9 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   return {croppedAudio.begin(), croppedAudio.end()};
 }
 
-void Kokoro::streamInsert(std::string textChunk) noexcept {
+void Kokoro::streamInsert(std::u32string chunk) noexcept {
   std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
-  inputTextBuffer_.append(textChunk);
+  inputTextBuffer_.append(chunk);
 }
 
 void Kokoro::streamStop(bool instant) noexcept {
