@@ -32,6 +32,20 @@ static cv::Mat g_previousMask;
 static bool g_hasHistory = false;
 static constexpr float EMA_ALPHA = 0.5f;
 
+static cv::Mat rotateMat(const cv::Mat &src, int rotation) {
+  cv::Mat dst;
+  if (rotation == 90) {
+    cv::rotate(src, dst, cv::ROTATE_90_CLOCKWISE);
+  } else if (rotation == 180) {
+    cv::rotate(src, dst, cv::ROTATE_180);
+  } else if (rotation == 270) {
+    cv::rotate(src, dst, cv::ROTATE_90_COUNTERCLOCKWISE);
+  } else {
+    dst = src;
+  }
+  return dst;
+}
+
 extern "C" {
 
 /**
@@ -108,23 +122,11 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
   }
 
   try {
-    // Convert RGBA to RGB (OpenCV expects BGR, but we'll convert to RGB for
-    // model)
     cv::Mat rgba(height, width, CV_8UC4, reinterpret_cast<uint8_t *>(rgbaPtr));
     cv::Mat rgb;
     cv::cvtColor(rgba, rgb, cv::COLOR_RGBA2RGB);
 
-    // Apply rotation for model inference
-    cv::Mat rgbRotated;
-    if (rotation == 90) {
-      cv::rotate(rgb, rgbRotated, cv::ROTATE_90_CLOCKWISE);
-    } else if (rotation == 180) {
-      cv::rotate(rgb, rgbRotated, cv::ROTATE_180);
-    } else if (rotation == 270) {
-      cv::rotate(rgb, rgbRotated, cv::ROTATE_90_COUNTERCLOCKWISE);
-    } else {
-      rgbRotated = rgb;
-    }
+    cv::Mat rgbRotated = rotateMat(rgb, rotation);
 
     // Run segmentation model
     JSTensorViewIn pixelData;
