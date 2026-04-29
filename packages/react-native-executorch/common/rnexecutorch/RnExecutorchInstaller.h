@@ -101,11 +101,6 @@ private:
                           rt, "message", jsi::String::createFromUtf8(rt, msg));
                       promise->reject(jsi::Value(rt, std::move(errorData)));
                     });
-                  } catch (const std::runtime_error &e) {
-                    jsCallInvoker->invokeAsync(
-                        [promise, msg = std::string(e.what())]() {
-                          promise->reject(msg);
-                        });
                   } catch (const std::exception &e) {
                     jsCallInvoker->invokeAsync(
                         [promise, msg = std::string(e.what())]() {
