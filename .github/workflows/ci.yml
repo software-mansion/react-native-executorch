@@ -33,6 +33,9 @@ jobs:
       - name: Lint files
         run: yarn lint
 
+      - name: Check CI filter coverage
+        run: node scripts/check-ci-filter-coverage.js
+
       - name: Typecheck files
         run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 

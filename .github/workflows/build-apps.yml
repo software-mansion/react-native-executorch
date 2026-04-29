@@ -1,3 +1,9 @@
+# Per-app build matrix gated by `dorny/paths-filter`. Adding a new model
+# directory, controller, or top-level module under packages/react-native-executorch/
+# probably means updating the filter block below — `core-shared` if it affects every
+# app, or one of the per-app `<app>-pkg` anchors otherwise. CI runs
+# `scripts/check-ci-filter-coverage.js` (in ci.yml's lint job) to flag uncovered
+# files so this stays accurate.
 name: Example apps build check
 on:
   push:
