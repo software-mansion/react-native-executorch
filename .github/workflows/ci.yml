@@ -3,15 +3,25 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - docs/**
+      - readmes/**
+      - "**.md"
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - docs/**
+      - readmes/**
+      - "**.md"
   merge_group:
     types:
       - checks_requested
   workflow_dispatch:
 jobs:
   lint:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,6 +37,7 @@ jobs:
         run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
   build-library:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
