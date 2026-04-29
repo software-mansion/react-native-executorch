@@ -110,6 +110,31 @@ TEST_F(LLMTest, SetToppInvalidThrows) {
   EXPECT_THROW(model.setTopp(1.1f), RnExecutorchError);
 }
 
+TEST_F(LLMTest, SetMinP) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_NO_THROW(model.setMinP(0.0f));
+  EXPECT_NO_THROW(model.setMinP(0.15f));
+  EXPECT_NO_THROW(model.setMinP(1.0f));
+}
+
+TEST_F(LLMTest, SetMinPInvalidThrows) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_THROW(model.setMinP(-0.1f), RnExecutorchError);
+  EXPECT_THROW(model.setMinP(1.1f), RnExecutorchError);
+}
+
+TEST_F(LLMTest, SetRepetitionPenalty) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_NO_THROW(model.setRepetitionPenalty(1.0f));
+  EXPECT_NO_THROW(model.setRepetitionPenalty(1.05f));
+  EXPECT_NO_THROW(model.setRepetitionPenalty(2.0f));
+}
+
+TEST_F(LLMTest, SetRepetitionPenaltyInvalidThrows) {
+  LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
+  EXPECT_THROW(model.setRepetitionPenalty(-0.1f), RnExecutorchError);
+}
+
 TEST_F(LLMTest, SetCountInterval) {
   LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
   EXPECT_NO_THROW(model.setCountInterval(5));

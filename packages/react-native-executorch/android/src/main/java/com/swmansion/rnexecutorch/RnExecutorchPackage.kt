@@ -15,7 +15,18 @@ class RnExecutorchPackage : TurboReactPackage() {
     reactContext: ReactApplicationContext,
   ): NativeModule? =
     if (name == ETInstaller.NAME) {
-      ETInstaller(reactContext)
+      try {
+        ETInstaller(reactContext)
+      } catch (e: RuntimeException) {
+        if (e.cause is UnsatisfiedLinkError) {
+          // Native library not available (e.g. 32-bit device without arm64-v8a .so).
+          // Return a fallback module whose install() returns false so JS can
+          // distinguish "unsupported ABI" from "package not linked."
+          ETInstallerUnavailable(reactContext)
+        } else {
+          throw e
+        }
+      }
     } else {
       null
     }

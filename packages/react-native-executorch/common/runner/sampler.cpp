@@ -35,6 +35,7 @@
 #include "sampler.h"
 #include <algorithm>
 #include <ctime>
+#include <vector>
 
 namespace executorch {
 namespace extension {
@@ -119,16 +120,16 @@ int32_t Sampler::sample_topp(T *probabilities, float coin) {
   return probindex[last_idx].index; // in case of rounding errors
 }
 
-Sampler::Sampler(int vocab_size, float temperature, float topp,
-                 unsigned long long rng_seed)
+Sampler::Sampler(int32_t vocab_size, float temperature, float topp,
+                 unsigned long long rng_seed, float min_p,
+                 float repetition_penalty)
     : vocab_size_(vocab_size),
       inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
-      topp_(topp), rng_state_(rng_seed) {}
+      topp_(topp), min_p_(min_p), repetition_penalty_(repetition_penalty),
+      rng_state_(rng_seed) {}
 
 Sampler::Sampler(int vocab_size, float temperature, float topp)
-    : vocab_size_(vocab_size),
-      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
-      topp_(topp), rng_state_(std::time(nullptr)) {}
+    : Sampler(vocab_size, temperature, topp, std::time(nullptr), 0.0f, 1.0f) {}
 
 template <typename T> static void softmax(T *x, int size) {
   // find max value (for numerical stability)
@@ -162,22 +163,25 @@ static float random_f32(unsigned long long *state) { // random float32 in [0,1)
   return (random_u32(state) >> 8) / 16777216.0f;
 }
 
-template <typename T> int32_t Sampler::sample(T *logits) {
+template <typename T>
+int32_t Sampler::sample(T *logits, const std::vector<uint64_t> &recent_tokens) {
   // sample the token given the logits and some hyperparameters
   int next;
   if (inv_temperature_ == 0.0f) {
     // greedy argmax sampling: take the token with the highest probability
     next = sample_argmax(logits);
   } else {
-    // apply the temperature to the logits
-    for (int q = 0; q < vocab_size_; q++) {
-      logits[q] *= inv_temperature_;
-    }
-    // apply softmax to the logits to get the probabilities for next token
+    // 1. apply repetition penalty to raw logits (pre-softmax)
+    apply_repetition_penalty(logits, vocab_size_, recent_tokens);
+    // 2. apply the temperature to the logits
+    apply_temperature(logits, vocab_size_);
+    // 3. apply softmax to the logits to get the probabilities for next token
     softmax(logits, vocab_size_);
+    // 4. apply min_p truncation
+    apply_min_p(logits, vocab_size_);
     // flip a (float) coin (this is our source of entropy for sampling)
     float coin = random_f32(&rng_state_);
-    // we sample from this distribution to get the next token
+    // 5. we sample from this distribution to get the next token
     if (topp_ <= 0 || topp_ >= 1) {
       // simply sample from the predicted probability distribution
       next = sample_mult(logits, coin);
@@ -189,12 +193,27 @@ template <typename T> int32_t Sampler::sample(T *logits) {
   return next;
 }
 
+template <typename T> int32_t Sampler::sample(T *logits) {
+  return sample(logits, {});
+}
+
 template int32_t Sampler::sample<float>(float *logits);
 template int32_t Sampler::sample<uint16_t>(uint16_t *logits);
 template int32_t
 Sampler::sample<executorch::aten::Half>(executorch::aten::Half *logits);
 template int32_t
 Sampler::sample<executorch::aten::BFloat16>(executorch::aten::BFloat16 *logits);
+
+template int32_t Sampler::sample<float>(float *logits,
+                                        const std::vector<uint64_t> &);
+template int32_t Sampler::sample<uint16_t>(uint16_t *logits,
+                                           const std::vector<uint64_t> &);
+template int32_t
+Sampler::sample<executorch::aten::Half>(executorch::aten::Half *logits,
+                                        const std::vector<uint64_t> &);
+template int32_t
+Sampler::sample<executorch::aten::BFloat16>(executorch::aten::BFloat16 *logits,
+                                            const std::vector<uint64_t> &);
 
 } // namespace llm
 } // namespace extension

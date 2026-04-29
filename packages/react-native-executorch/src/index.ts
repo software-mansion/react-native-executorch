@@ -134,8 +134,19 @@ if (
       `Failed to install react-native-executorch: The native module could not be found.`
     );
   }
+  // install() returns false when the native library is intentionally unavailable
+  // (e.g. ETInstallerUnavailable on unsupported ABIs). In that case, JSI
+  // bindings are not injected and globals remain unset.
   ETInstallerNativeModule.install();
 }
+
+/**
+ * Whether the native ExecuTorch runtime is available on this device.
+ * Returns `false` when native libraries cannot be loaded (e.g. 32-bit Android
+ * devices where only arm64-v8a binaries are shipped).
+ * @category Utilities - General
+ */
+export const isAvailable = typeof global.loadExecutorchModule === 'function';
 
 // hooks
 export * from './hooks/computer_vision/useClassification';

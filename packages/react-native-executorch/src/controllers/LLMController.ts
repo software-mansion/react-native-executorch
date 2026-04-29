@@ -76,12 +76,14 @@ export class LLMController {
     tokenizerSource,
     tokenizerConfigSource,
     capabilities,
+    defaultGenerationConfig,
     onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
     capabilities?: readonly LLMCapability[];
+    defaultGenerationConfig?: GenerationConfig;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -130,6 +132,12 @@ export class LLMController {
         tokenizerPath,
         capabilities ?? []
       );
+      if (defaultGenerationConfig) {
+        // Apply model-specific recommended sampling defaults before flipping
+        // isReady so callers that react to it see the right config on first
+        // send. User-provided `configure()` calls still override these.
+        this.applyGenerationConfig(defaultGenerationConfig);
+      }
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -166,28 +174,58 @@ export class LLMController {
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
     this.toolsConfig = toolsConfig;
 
-    if (generationConfig?.outputTokenBatchSize) {
-      this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
-    }
-    if (generationConfig?.batchTimeInterval) {
-      this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
-    }
-    if (generationConfig?.temperature) {
-      this.nativeModule.setTemperature(generationConfig.temperature);
-    }
-    if (generationConfig?.topp) {
-      if (generationConfig.topp < 0 || generationConfig.topp > 1) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.InvalidConfig,
-          'Top P has to be in range [0, 1]'
-        );
-      }
-      this.nativeModule.setTopp(generationConfig.topp);
+    if (generationConfig) {
+      this.applyGenerationConfig(generationConfig);
     }
 
     // reset inner state when loading new configuration
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
+  }
+
+  private applyGenerationConfig(generationConfig: GenerationConfig) {
+    if (generationConfig.outputTokenBatchSize) {
+      this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
+    }
+    if (generationConfig.batchTimeInterval) {
+      this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
+    }
+    if (generationConfig.temperature !== undefined) {
+      this.nativeModule.setTemperature(generationConfig.temperature);
+    }
+    // `topp` is the legacy spelling kept for backwards compatibility — `topP`
+    // wins when both are set so callers migrating to the new name don't get
+    // surprised by stale values. Reading the deprecated alias is intentional.
+    const topP = generationConfig.topP ?? generationConfig.topp;
+    if (topP !== undefined) {
+      if (topP < 0 || topP > 1) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Top P has to be in range [0, 1]'
+        );
+      }
+      this.nativeModule.setTopp(topP);
+    }
+    if (generationConfig.minP !== undefined) {
+      if (generationConfig.minP < 0 || generationConfig.minP > 1) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Min P has to be in range [0, 1]'
+        );
+      }
+      this.nativeModule.setMinP(generationConfig.minP);
+    }
+    if (generationConfig.repetitionPenalty !== undefined) {
+      if (generationConfig.repetitionPenalty < 0) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Repetition penalty must be non-negative'
+        );
+      }
+      this.nativeModule.setRepetitionPenalty(
+        generationConfig.repetitionPenalty
+      );
+    }
   }
 
   private getImageToken(): string {
@@ -254,7 +292,7 @@ export class LLMController {
         imagePaths && imagePaths.length > 0
           ? await this.nativeModule.generateMultimodal(
               input,
-              imagePaths,
+              imagePaths.map(normalizeImagePath),
               this.getImageToken(),
               this.onToken
             )
@@ -354,18 +392,6 @@ export class LLMController {
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
-    const historyForTemplate = updatedHistory.map((m) =>
-      m.mediaPath
-        ? {
-            ...m,
-            content: [
-              { type: 'image' },
-              { type: 'text', text: m.content },
-            ] as any,
-          }
-        : m
-    );
-
     const visualTokenCount = this.nativeModule.getVisualTokenCount();
     const countTokensCallback = (messages: Message[]) => {
       const rendered = this.applyChatTemplate(
@@ -383,7 +409,7 @@ export class LLMController {
     const messageHistoryWithPrompt =
       this.chatConfig.contextStrategy.buildContext(
         this.chatConfig.systemPrompt,
-        historyForTemplate,
+        updatedHistory,
         maxContextLength,
         countTokensCallback
       );
@@ -448,11 +474,44 @@ export class LLMController {
     );
 
     const result = template.render({
-      messages,
+      messages: messagesForChatTemplate(messages),
       tools,
       ...templateFlags,
       ...specialTokens,
     });
     return result;
   }
+}
+
+/**
+ * The native multimodal pipeline expects image paths to be `file://` URIs.
+ * `ResourceFetcher.fetch` and most platform file APIs return raw filesystem
+ * paths without that prefix, so callers routinely pass either form. Accept
+ * both and normalize to the prefixed form here.
+ * @param path - Local image path, either with or without the `file://` prefix.
+ * @returns The same path with a `file://` prefix.
+ */
+function normalizeImagePath(path: string): string {
+  return path.startsWith('file://') ? path : `file://${path}`;
+}
+
+/**
+ * Multimodal chat templates expect message content for image-bearing turns
+ * to be an array of content parts with an `image` part as a placeholder.
+ * Callers of `LLMController.generate` and `LLMController.sendMessage` pass
+ * messages with a plain string `content` plus an optional `mediaPath`; this
+ * helper rewrites them into the structured form that the template engine
+ * understands.
+ * @param messages - Messages to prepare for the chat template engine.
+ * @returns Messages with image-bearing turns rewritten to structured content.
+ */
+function messagesForChatTemplate(messages: Message[]): any[] {
+  return messages.map((m) =>
+    m.mediaPath && typeof m.content === 'string'
+      ? {
+          ...m,
+          content: [{ type: 'image' }, { type: 'text', text: m.content }],
+        }
+      : m
+  );
 }

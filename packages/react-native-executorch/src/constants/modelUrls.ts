@@ -83,6 +83,14 @@ const QWEN3_4B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/qwen-3-4B/
 const QWEN3_TOKENIZER = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer.json`;
 const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer_config.json`;
 
+// Qwen3's published generation_config.json recommends temperature=0.6 and
+// top_p=0.95. We propagate those to every Qwen3 preset so model quality is
+// reasonable out of the box; users can override via `configure()`.
+const QWEN3_GENERATION_CONFIG = {
+  temperature: 0.6,
+  topP: 0.95,
+} as const;
+
 /**
  * @category Models - LLM
  */
@@ -91,6 +99,7 @@ export const QWEN3_0_6B = {
   modelSource: QWEN3_0_6B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 /**
@@ -101,6 +110,7 @@ export const QWEN3_0_6B_QUANTIZED = {
   modelSource: QWEN3_0_6B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 /**
@@ -111,6 +121,7 @@ export const QWEN3_1_7B = {
   modelSource: QWEN3_1_7B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 /**
@@ -121,6 +132,7 @@ export const QWEN3_1_7B_QUANTIZED = {
   modelSource: QWEN3_1_7B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 /**
@@ -131,6 +143,7 @@ export const QWEN3_4B = {
   modelSource: QWEN3_4B_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 /**
@@ -141,6 +154,7 @@ export const QWEN3_4B_QUANTIZED = {
   modelSource: QWEN3_4B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
 // HAMMER 2.1
@@ -444,24 +458,51 @@ const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/lfm2
 /**
  * @category Models - VLM
  */
-export const LFM2_VL_1_6B_QUANTIZED = {
-  modelName: 'lfm2.5-vl-1.6b-quantized',
-  capabilities: ['vision'],
-  modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
-  tokenizerSource: LFM2_VL_1_6B_TOKENIZER,
-  tokenizerConfigSource: LFM2_VL_1_6B_TOKENIZER_CONFIG,
+// LiquidAI's LFM2-VL model card recommends the following sampling settings.
+// Without them the model often produces generic / repetitive responses.
+const LFM2_5_VL_GENERATION_CONFIG = {
+  temperature: 0.1,
+  minP: 0.15,
+  repetitionPenalty: 1.05,
 } as const;
 
 /**
  * @category Models - VLM
  */
-export const LFM2_VL_450M_QUANTIZED = {
+export const LFM2_5_VL_1_6B_QUANTIZED = {
+  modelName: 'lfm2.5-vl-1.6b-quantized',
+  capabilities: ['vision'],
+  modelSource: LFM2_VL_1_6B_QUANTIZED_MODEL,
+  tokenizerSource: LFM2_VL_1_6B_TOKENIZER,
+  tokenizerConfigSource: LFM2_VL_1_6B_TOKENIZER_CONFIG,
+  generationConfig: LFM2_5_VL_GENERATION_CONFIG,
+} as const;
+
+/**
+ * @category Models - VLM
+ */
+export const LFM2_5_VL_450M_QUANTIZED = {
   modelName: 'lfm2.5-vl-450m-quantized',
   capabilities: ['vision'],
   modelSource: LFM2_VL_450M_QUANTIZED_MODEL,
   tokenizerSource: LFM2_VL_450M_TOKENIZER,
   tokenizerConfigSource: LFM2_VL_450M_TOKENIZER_CONFIG,
+  generationConfig: LFM2_5_VL_GENERATION_CONFIG,
 } as const;
+
+/**
+ * @deprecated Use `LFM2_5_VL_1_6B_QUANTIZED` instead — the model is from the
+ * LFM2.5 family. This alias will be removed in a future major release.
+ * @category Models - VLM
+ */
+export const LFM2_VL_1_6B_QUANTIZED = LFM2_5_VL_1_6B_QUANTIZED;
+
+/**
+ * @deprecated Use `LFM2_5_VL_450M_QUANTIZED` instead — the model is from the
+ * LFM2.5 family. This alias will be removed in a future major release.
+ * @category Models - VLM
+ */
+export const LFM2_VL_450M_QUANTIZED = LFM2_5_VL_450M_QUANTIZED;
 
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
@@ -1121,6 +1162,8 @@ export const MODEL_REGISTRY = {
     LFM2_5_350M_QUANTIZED,
     LFM2_5_1_2B_INSTRUCT,
     LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+    LFM2_5_VL_1_6B_QUANTIZED,
+    LFM2_5_VL_450M_QUANTIZED,
     LFM2_VL_1_6B_QUANTIZED,
     LFM2_VL_450M_QUANTIZED,
     EFFICIENTNET_V2_S,
