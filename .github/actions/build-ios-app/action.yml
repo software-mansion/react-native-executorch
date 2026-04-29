@@ -59,7 +59,7 @@ runs:
           -scheme "$SCHEME" \
           -sdk iphonesimulator \
           -configuration Debug \
-          -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+          -destination 'generic/platform=iOS Simulator' \
           build \
           CODE_SIGNING_ALLOWED=NO \
           -jobs $(sysctl -n hw.ncpu) \
