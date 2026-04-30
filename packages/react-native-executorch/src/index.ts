@@ -71,6 +71,12 @@ declare global {
     tokenizerSource: string,
     capabilities: readonly LLMCapability[]
   ) => Promise<any>;
+  var loadPrivacyFilter: (
+    modelSource: string,
+    tokenizerSource: string,
+    labelNames: readonly string[],
+    viterbiBiases: readonly number[]
+  ) => Promise<any>;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,
@@ -123,6 +129,7 @@ if (
   global.loadImageEmbeddings == null ||
   global.loadVAD == null ||
   global.loadLLM == null ||
+  global.loadPrivacyFilter == null ||
   global.loadSpeechToText == null ||
   global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
@@ -162,6 +169,7 @@ export * from './hooks/computer_vision/useTextToImage';
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextToSpeech';
+export * from './hooks/natural_language_processing/usePrivacyFilter';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 export * from './hooks/natural_language_processing/useVAD';
@@ -182,6 +190,7 @@ export * from './modules/computer_vision/TextToImageModule';
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextToSpeechModule';
+export * from './modules/natural_language_processing/PrivacyFilterModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
 export * from './modules/natural_language_processing/VADModule';
@@ -206,6 +215,7 @@ export * from './types/vad';
 export * from './types/common';
 export * from './types/stt';
 export * from './types/textEmbeddings';
+export * from './types/privacyFilter';
 export * from './types/tts';
 export * from './types/tokenizer';
 export * from './types/executorchModule';

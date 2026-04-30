@@ -20,6 +20,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/privacy_filter/Types.h>
 #include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
 #include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
@@ -533,6 +534,24 @@ getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
     jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
   }
   return jsiSegments;
+}
+
+inline jsi::Value getJsiValue(
+    const std::vector<models::privacy_filter::types::PiiEntity> &entities,
+    jsi::Runtime &runtime) {
+  auto jsiEntities = jsi::Array(runtime, entities.size());
+  for (size_t i = 0; i < entities.size(); i++) {
+    const auto &e = entities[i];
+    auto obj = jsi::Object(runtime);
+    obj.setProperty(runtime, "label",
+                    jsi::String::createFromUtf8(runtime, e.label));
+    obj.setProperty(runtime, "text",
+                    jsi::String::createFromUtf8(runtime, e.text));
+    obj.setProperty(runtime, "startToken", e.startToken);
+    obj.setProperty(runtime, "endToken", e.endToken);
+    jsiEntities.setValueAtIndex(runtime, i, obj);
+  }
+  return jsiEntities;
 }
 
 inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {

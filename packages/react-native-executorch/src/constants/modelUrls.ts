@@ -1,4 +1,8 @@
 import { Platform } from 'react-native';
+import {
+  PRIVACY_FILTER_NEMOTRON_LABELS,
+  PRIVACY_FILTER_OPENAI_LABELS,
+} from './privacyFilterLabels';
 import { URL_PREFIX, VERSION_TAG, NEXT_VERSION_TAG } from './versions';
 
 // LLMs
@@ -1153,6 +1157,39 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
 } as const;
 
+// Privacy Filter (PII detection)
+//
+// Both supported variants share the same architecture (8-layer MoE,
+// 128-token banded attention) and tokenizer (o200k, pad/eos id 199999).
+// They differ only in the BIOES label space; the runner expects the
+// matching `labelNames` array to be passed at load time.
+
+/**
+ * openai/privacy-filter — base PII detector with 8 entity types
+ * (account_number, private_address, private_date, private_email,
+ * private_person, private_phone, private_url, secret).
+ * @category Models - Privacy Filter
+ */
+export const PRIVACY_FILTER_OPENAI = {
+  modelName: 'privacy-filter-openai',
+  modelSource: `${URL_PREFIX}-privacy-filter-openai/${NEXT_VERSION_TAG}/xnnpack/privacy-filter_xnnpack_8da4w.pte`,
+  tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${NEXT_VERSION_TAG}/tokenizer.json`,
+  labelNames: PRIVACY_FILTER_OPENAI_LABELS,
+} as const;
+
+/**
+ * OpenMed/privacy-filter-nemotron — extended PII detector with 55 entity
+ * types (adds medical, financial, identity, technical, demographic, etc.).
+ * Same base architecture as the OpenAI model, larger label space.
+ * @category Models - Privacy Filter
+ */
+export const PRIVACY_FILTER_NEMOTRON = {
+  modelName: 'privacy-filter-nemotron',
+  modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${NEXT_VERSION_TAG}/xnnpack/privacy-filter-nemotron_xnnpack_8da4w.pte`,
+  tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${NEXT_VERSION_TAG}/tokenizer.json`,
+  labelNames: PRIVACY_FILTER_NEMOTRON_LABELS,
+} as const;
+
 // Image generation
 
 /**
@@ -1305,6 +1342,8 @@ export const MODEL_REGISTRY = {
     BK_SDM_TINY_VPRED_512,
     BK_SDM_TINY_VPRED_256,
     FSMN_VAD,
+    PRIVACY_FILTER_OPENAI,
+    PRIVACY_FILTER_NEMOTRON,
   },
 } as const;
 

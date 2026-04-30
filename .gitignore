@@ -103,3 +103,7 @@ packages/react-native-executorch/common/rnexecutorch/tests/integration/assets/mo
 Makefile
 *.pte
 
+.agents
+.claude
+skills-lock.json
+
