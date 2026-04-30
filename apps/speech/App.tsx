@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
 import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
 import { SpeechToSpeechScreen } from './screens/SpeechToSpeechScreen';
+import { SpeechBlobScreen } from './screens/SpeechBlobScreen';
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
@@ -22,6 +23,7 @@ export default function App() {
     | 'quiz'
     | 'text-to-speech-llm'
     | 'speech-to-speech'
+    | 'speech-blob'
   >('menu');
 
   const goToMenu = () => setCurrentScreen('menu');
@@ -36,6 +38,10 @@ export default function App() {
 
   if (currentScreen === 'speech-to-speech') {
     return <SpeechToSpeechScreen onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'speech-blob') {
+    return <SpeechBlobScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'quiz') {
@@ -82,6 +88,12 @@ export default function App() {
           <Text style={styles.buttonText}>
             Speech to Speech (Voice Assistant)
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('speech-blob')}
+        >
+          <Text style={styles.buttonText}>Speech Blob Visualizer</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -11,12 +11,16 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@gorhom/bottom-sheet": "^5.1.8",
+    "@react-native-community/slider": "5.0.1",
     "@react-native/metro-config": "^0.84.0",
     "@vitalets/google-translate-api": "^9.2.1",
     "buffer": "^6.0.3",
     "expo": "^54.0.27",
     "expo-font": "~14.0.10",
+    "expo-image": "~3.0.11",
     "expo-status-bar": "~3.0.9",
+    "lucide-react-native": "^0.533.0",
     "metro-config": "^0.81.5",
     "react": "19.1.0",
     "react-native": "0.81.5",
@@ -24,16 +28,22 @@
     "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
     "react-native-executorch-expo-resource-fetcher": "workspace:*",
+    "react-native-gesture-handler": "~2.28.0",
     "react-native-reanimated": "~4.2.2",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.3",
     "react-native-svg-transformer": "^1.5.3",
+    "react-native-switch-toggle": "^2.2.1",
+    "react-native-wgpu": "^0.2.0",
     "react-native-worklets": "0.7.4",
-    "translate": "^3.0.1"
+    "translate": "^3.0.1",
+    "typegpu": "^0.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@types/react": "~19.1.10"
+    "@types/react": "~19.1.10",
+    "@webgpu/types": "^0.1.64",
+    "unplugin-typegpu": "^0.2.0"
   },
   "private": true
 }
