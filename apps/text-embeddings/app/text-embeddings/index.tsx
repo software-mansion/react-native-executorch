@@ -20,6 +20,8 @@ import {
   MULTI_QA_MPNET_BASE_DOT_V1,
   DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
   DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
+  PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_8DA4W,
+  PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
 
@@ -37,6 +39,14 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
   {
     label: 'Multilingual DistilUSE (CoreML)',
     value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
+  },
+  {
+    label: 'Multilingual Paraphrase (8da4w)',
+    value: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_8DA4W,
+  },
+  {
+    label: 'Multilingual Paraphrase (CoreML)',
+    value: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_COREML,
   },
 ];
 import { useIsFocused } from '@react-navigation/native';
