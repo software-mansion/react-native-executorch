@@ -69,9 +69,10 @@ export type PoseEstimationConfig<K extends KeypointEnum> = {
  * Each model name maps to its required fields.
  * @category Types
  */
-export type PoseEstimationModelSources =
-  | { modelName: 'yolo11n-pose'; modelSource: ResourceSource }
-  | { modelName: 'yolo26n-pose'; modelSource: ResourceSource };
+export type PoseEstimationModelSources = {
+  modelName: 'yolo26n-pose';
+  modelSource: ResourceSource;
+};
 
 /**
  * Union of all built-in pose estimation model names.

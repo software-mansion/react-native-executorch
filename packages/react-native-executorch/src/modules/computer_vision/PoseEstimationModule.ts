@@ -26,7 +26,6 @@ const YOLO_POSE_CONFIG = {
 } satisfies PoseEstimationConfig<typeof CocoKeypoint>;
 
 const ModelConfigs = {
-  'yolo11n-pose': YOLO_POSE_CONFIG,
   'yolo26n-pose': YOLO_POSE_CONFIG,
 } as const satisfies Record<
   PoseEstimationModelName,
@@ -51,7 +50,7 @@ type ResolveKeypoints<T extends PoseEstimationModelName | KeypointEnum> =
 
 /**
  * Pose estimation module for detecting human body keypoints.
- * @typeParam T - Either a built-in model name (e.g. `'yolo11n-pose'`)
+ * @typeParam T - Either a built-in model name (e.g. `'yolo26n-pose'`)
  *   or a custom {@link KeypointEnum} keypoint map.
  * @category Typescript API
  */
