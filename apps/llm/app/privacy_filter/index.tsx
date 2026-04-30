@@ -24,6 +24,7 @@ import {
   matchEntities,
 } from '../../utils/piiMatching';
 
+/* cspell:disable */
 // Sample tuned for the OpenAI base model — exercises the 8 entity types it
 // recognizes (person, email, phone, account_number, address, date, url,
 // secret).
@@ -42,6 +43,7 @@ Reach her at maria.lopez@example.com or +1 (415) 555-0142. Mailing address: 84 C
 Payment for last visit: Visa ending 4992-1133-7820-4419, expires 11/28, CVV 884. Bank routing 021000089, SWIFT BIC CHASUS33. Employer EIN tax ID 47-3320118. Customer ID CUST-553201, employee ID EMP-A0093.
 
 Workstation MAC 3C:22:FB:8E:01:9A, IPv4 10.0.42.118, device IMEI 359888061234560. Service account API key sk-live-Tn8x3pLm2NvBqR7dYwZ4QF, password Hunter2!Spring. Session cookie sid=eyJ1c2VyIjoiOTk0MjIxMCJ9.`;
+/* cspell:enable */
 
 const MODEL_OPTIONS: ModelOption<PrivacyFilterModelSources>[] = [
   { label: 'OpenAI Privacy Filter (8 entities)', value: PRIVACY_FILTER_OPENAI },
