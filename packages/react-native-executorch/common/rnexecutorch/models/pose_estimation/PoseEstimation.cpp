@@ -52,7 +52,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
   const float *scores = scoresTensor.const_data_ptr<float>();
   const float *kpData = keypointsTensor.const_data_ptr<float>();
 
-  int32_t numDetections = static_cast<int32_t>(scoresTensor.size(0));
+  auto numDetections = scoresTensor.size(0);
 
   const auto &shape = modelInputShape_;
   cv::Size modelInputSize(static_cast<int32_t>(shape[shape.size() - 1]),
