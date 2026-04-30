@@ -33,10 +33,8 @@ public:
 private:
   ::executorch::extension::Module *module_;
   int32_t last_token_count_ = 0;
-  // Scratch state lives between encode() calls to back the fp32 waveform
-  // tensor and the 0-d int64 num_valid_samples tensor handed to the PTE.
   std::vector<float> padded_wav_;
-  int64_t num_valid_scalar_ = 0;
+  std::vector<uint8_t> padded_mask_;
 };
 
 } // namespace executorch::extension::llm

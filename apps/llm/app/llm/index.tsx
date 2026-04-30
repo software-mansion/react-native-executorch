@@ -75,6 +75,7 @@ function LLMScreen() {
     }
   };
 
+  console.log(llm.messageHistory)
   return !llm.isReady && !llm.error ? (
     <Spinner
       visible={true}

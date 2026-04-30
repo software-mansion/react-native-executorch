@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <map>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 #include <runner/encoders/audio_encoder.h>
 #include <runner/encoders/vision_encoder.h>
@@ -22,7 +21,6 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::vector<std::string> capabilities,
          std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::Mmap) {
-
   if (capabilities.empty()) {
     runner_ =
         std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
@@ -72,96 +70,19 @@ std::string LLM::generate(std::string input,
 
   auto config = llm::GenerationConfig{.echo = false, .warming = false};
   auto error = runner_->generate(input, config, nativeCallback, {});
+  // No-op unless built with ET_EVENT_TRACER_ENABLED. Writes etdump.bin
+  // alongside the model after the generation finishes.
+  dumpEventTracer();
   if (error != Error::Ok) {
     throw RnExecutorchError(error, "Failed to generate text");
   }
   return output;
 }
 
-std::string LLM::generateMultimodal(std::string prompt,
-                                    std::vector<std::string> imagePaths,
-                                    std::string imageToken,
-                                    std::shared_ptr<jsi::Function> callback) {
-  if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Runner is not loaded");
-  }
-  if (!runner_->is_multimodal()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "This model does not support multimodal input. Use generate(prompt, "
-        "callback) for text-only generation.");
-  }
-  if (imageToken.empty()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "imageToken must not be empty. Pass the model's image token (e.g. "
-        "from tokenizer_config.json).");
-  }
-
-  const size_t kImageTokenLen = imageToken.size();
-
-  std::vector<llm::MultimodalInput> inputs;
-  size_t imageIdx = 0;
-  size_t searchPos = 0;
-
-  while (true) {
-    size_t found = prompt.find(imageToken, searchPos);
-    if (found == std::string::npos) {
-      if (searchPos < prompt.size()) {
-        inputs.push_back(llm::make_text_input(prompt.substr(searchPos)));
-      }
-      break;
-    }
-    // Text segment before this placeholder
-    if (found > searchPos) {
-      inputs.push_back(
-          llm::make_text_input(prompt.substr(searchPos, found - searchPos)));
-    }
-    // Image at this position
-    if (imageIdx >= imagePaths.size()) {
-      throw RnExecutorchError(
-          RnExecutorchErrorCode::InvalidUserInput,
-          "More '" + imageToken +
-              "' placeholders in prompt than image paths provided");
-    }
-    inputs.push_back(llm::make_image_input(imagePaths[imageIdx++]));
-    searchPos = found + kImageTokenLen;
-  }
-
-  if (imageIdx < imagePaths.size()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "More image paths provided than '" + imageToken +
-                                "' placeholders in prompt");
-  }
-
-  if (inputs.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "No inputs to generate from");
-  }
-
-  std::string output;
-  auto nativeCallback = [this, callback, &output](const std::string &token) {
-    output += token;
-    if (callback && callInvoker) {
-      callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
-        callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
-      });
-    }
-  };
-
-  auto error = runner_->generate(inputs, nativeCallback);
-  if (error != Error::Ok) {
-    throw RnExecutorchError(error, "Failed to generate multimodal response");
-  }
-
-  return output;
-}
-
-std::string LLM::generateMultimodalWithAudio(
-    std::string prompt, std::vector<std::string> imagePaths,
-    std::string imageToken, std::vector<std::vector<float>> audioWaveforms,
-    std::string audioToken, std::shared_ptr<jsi::Function> callback) {
+std::string LLM::generateMultimodal(
+    std::string prompt, std::shared_ptr<jsi::Function> callback,
+    std::vector<std::string> imagePaths, std::string imageToken,
+    std::vector<std::vector<float>> audioWaveforms, std::string audioToken) {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
@@ -234,6 +155,7 @@ std::string LLM::generateMultimodalWithAudio(
       });
     }
   };
+
   auto error = runner_->generate(inputs, nativeCallback);
   if (error != Error::Ok) {
     throw RnExecutorchError(error, "Failed to generate multimodal response");

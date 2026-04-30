@@ -35,6 +35,7 @@
 #include "sampler.h"
 #include <algorithm>
 #include <ctime>
+#include <limits>
 #include <vector>
 
 namespace executorch {
@@ -69,55 +70,24 @@ int32_t Sampler::sample_mult(T *probabilities, float coin) {
   return vocab_size_ - 1; // in case of rounding errors
 }
 
-template <typename T>
-int32_t Sampler::sample_topp(T *probabilities, float coin) {
-  // top-p sampling (or "nucleus sampling") samples from the smallest set of
-  // tokens that exceed probability topp. This way we never sample tokens that
-  // have very low probabilities and are less likely to go "off the rails".
-  // coin is a random number in [0, 1), usually from random_f32()
-  int n = vocab_size_;
-  int n0 = 0;
-  // quicksort indices in descending order of probabilities
-  // values smaller than (1 - topp) / (n - 1) cannot be part of the result
-  // so for efficiency we crop these out as candidates before sorting
-  std::unique_ptr<ProbIndex<T>[]> probindex =
-      std::make_unique<ProbIndex<T>[]>(vocab_size_);
-
-  const float cutoff = (1.0f - topp_) / (n - 1);
-  for (int i = 0; i < n; i++) {
-    if (probabilities[i] >= cutoff) {
-      probindex[n0].index = i;
-      probindex[n0].prob = probabilities[i];
-      n0++;
+// Mask logits outside the top-k by rank to -inf. Ties at the k-th boundary
+// are kept (matches HuggingFace TopKLogitsWarper).
+template <typename T> void Sampler::mask_topk(T *logits) {
+  if (topk_ <= 0 || topk_ >= vocab_size_) {
+    return;
+  }
+  // Partial-select the (topk_-th largest) threshold using nth_element on a
+  // copy of logits; O(n) average.
+  std::vector<T> scratch(logits, logits + vocab_size_);
+  std::nth_element(scratch.begin(), scratch.begin() + (topk_ - 1),
+                   scratch.end(), std::greater<T>());
+  const T threshold = scratch[topk_ - 1];
+  const T neg_inf = std::numeric_limits<T>::lowest();
+  for (int i = 0; i < vocab_size_; i++) {
+    if (logits[i] < threshold) {
+      logits[i] = neg_inf;
     }
   }
-
-  auto compare = [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
-    return a.prob > b.prob;
-  };
-  std::sort(probindex.get(), probindex.get() + n0, compare);
-
-  // truncate the list where cumulative probability exceeds topp
-  T cumulative_prob = 0;
-  int last_idx = n0 - 1; // in case of rounding errors consider all elements
-  for (int i = 0; i < n0; i++) {
-    cumulative_prob += probindex[i].prob;
-    if (cumulative_prob > topp_) {
-      last_idx = i;
-      break; // we've exceeded topp by including last_idx
-    }
-  }
-
-  // sample from the truncated list
-  const T &r = coin * cumulative_prob;
-  T cdf = 0;
-  for (int i = 0; i <= last_idx; i++) {
-    cdf += probindex[i].prob;
-    if (r < cdf) {
-      return probindex[i].index;
-    }
-  }
-  return probindex[last_idx].index; // in case of rounding errors
 }
 
 Sampler::Sampler(int32_t vocab_size, float temperature, float topp,
@@ -130,6 +100,80 @@ Sampler::Sampler(int32_t vocab_size, float temperature, float topp,
 
 Sampler::Sampler(int vocab_size, float temperature, float topp)
     : Sampler(vocab_size, temperature, topp, std::time(nullptr), 0.0f, 1.0f) {}
+
+// Mask logits whose softmax-prob falls outside the top-p nucleus to -inf.
+// Keeps the token that crosses the threshold (HuggingFace convention).
+template <typename T> void Sampler::mask_topp(T *logits) {
+  if (topp_ <= 0.0f || topp_ >= 1.0f) {
+    return;
+  }
+  // Softmax into a scratch probs[] (do not mutate logits yet).
+  T max_val = logits[0];
+  for (int i = 1; i < vocab_size_; i++) {
+    if (logits[i] > max_val) {
+      max_val = logits[i];
+    }
+  }
+  std::unique_ptr<ProbIndex<T>[]> probindex =
+      std::make_unique<ProbIndex<T>[]>(vocab_size_);
+  T sum = 0;
+  for (int i = 0; i < vocab_size_; i++) {
+    T e = static_cast<T>(expf(static_cast<float>(logits[i] - max_val)));
+    probindex[i].prob = e;
+    probindex[i].index = i;
+    sum += e;
+  }
+  if (sum <= T(0)) {
+    return;
+  }
+  for (int i = 0; i < vocab_size_; i++) {
+    probindex[i].prob = probindex[i].prob / sum;
+  }
+  std::sort(probindex.get(), probindex.get() + vocab_size_,
+            [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
+              return a.prob > b.prob;
+            });
+
+  // Find the smallest prefix whose cumulative probability >= topp_.
+  T cumulative = 0;
+  int last_idx = vocab_size_ - 1;
+  for (int i = 0; i < vocab_size_; i++) {
+    cumulative += probindex[i].prob;
+    if (static_cast<float>(cumulative) >= topp_) {
+      last_idx = i;
+      break;
+    }
+  }
+  // Mark kept indices, then -inf the rest.
+  std::vector<bool> keep(vocab_size_, false);
+  for (int i = 0; i <= last_idx; i++) {
+    keep[probindex[i].index] = true;
+  }
+  const T neg_inf = std::numeric_limits<T>::lowest();
+  for (int i = 0; i < vocab_size_; i++) {
+    if (!keep[i]) {
+      logits[i] = neg_inf;
+    }
+  }
+}
+
+Sampler::Sampler(int vocab_size, float temperature, float topp, int32_t topk,
+                 unsigned long long rng_seed)
+    : vocab_size_(vocab_size),
+      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
+      topp_(topp), topk_(topk), rng_state_(rng_seed) {}
+
+Sampler::Sampler(int vocab_size, float temperature, float topp, int32_t topk)
+    : vocab_size_(vocab_size),
+      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
+      topp_(topp), topk_(topk), rng_state_(std::time(nullptr)) {}
+
+Sampler::Sampler(int vocab_size, float temperature, float topp,
+                 unsigned long long rng_seed)
+    : Sampler(vocab_size, temperature, topp, 0, rng_seed) {}
+
+Sampler::Sampler(int vocab_size, float temperature, float topp)
+    : Sampler(vocab_size, temperature, topp, 0) {}
 
 template <typename T> static void softmax(T *x, int size) {
   // find max value (for numerical stability)
@@ -191,6 +235,22 @@ int32_t Sampler::sample(T *logits, const std::vector<uint64_t> &recent_tokens) {
     }
   }
   return next;
+}
+
+template <typename T> int32_t Sampler::sample(T *logits) {
+  // Pipeline: temperature -> top-k mask -> top-p mask -> softmax -> multinomial.
+  // Greedy bypasses everything when temperature == 0.
+  if (inv_temperature_ == 0.0f) {
+    return sample_argmax(logits);
+  }
+  for (int q = 0; q < vocab_size_; q++) {
+    logits[q] = static_cast<T>(static_cast<float>(logits[q]) * inv_temperature_);
+  }
+  mask_topk(logits);
+  mask_topp(logits);
+  softmax(logits, vocab_size_);
+  float coin = random_f32(&rng_state_);
+  return sample_mult(logits, coin);
 }
 
 template <typename T> int32_t Sampler::sample(T *logits) {

@@ -40,7 +40,6 @@ public:
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   step(TensorPtr &tokens, int64_t start_pos) override {
     auto embed_result = module_->execute(kTokenEmbeddingMethod, tokens);
-
     if (!embed_result.ok()) {
       return embed_result.error();
     }
@@ -111,7 +110,7 @@ public:
   }
 
 private:
-  bool uses_ple_ = true;
+  bool uses_ple_ = false;
 };
 
 } // namespace executorch::extension::llm

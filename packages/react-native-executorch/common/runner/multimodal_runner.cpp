@@ -87,7 +87,7 @@ Error MultimodalRunner::generate_internal(
 
   stats_.inference_start_ms = time_in_ms();
   const long t_gen_begin = stats_.inference_start_ms;
-
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "inputs count", inputs.size());
   auto prefill_result = mm_prefiller_->prefill(inputs, pos_);
   if (!prefill_result.ok())
     return prefill_result.error();
