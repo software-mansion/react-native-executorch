@@ -115,21 +115,7 @@ function PrivacyFilterScreen() {
       setInferenceMs(elapsed);
       setEntities(result);
     } catch (e) {
-      let msg: string;
-      if (e instanceof Error) {
-        msg = e.message;
-      } else if (e && typeof e === 'object' && 'message' in e) {
-        const code =
-          'code' in e ? ` (code ${(e as { code: unknown }).code})` : '';
-        msg = `${(e as { message: string }).message}${code}`;
-      } else {
-        try {
-          msg = JSON.stringify(e);
-        } catch {
-          msg = String(e);
-        }
-      }
-      setRunError(msg);
+      setRunError(e instanceof Error ? e.message : String(e));
     }
   };
 

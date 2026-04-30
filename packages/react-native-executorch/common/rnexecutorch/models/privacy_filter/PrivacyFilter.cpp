@@ -35,11 +35,16 @@ PrivacyFilter::PrivacyFilter(const std::string &modelSource,
       tokenizer_(
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
       labelNames_(std::move(labelNames)), seqLen_(0) {
-  if (labelNames_.empty()) {
+  if (labelNames_.empty() || labelNames_[0] != "O") {
     throw RnExecutorchError(
         RnExecutorchErrorCode::UnknownError,
         "PrivacyFilter requires a non-empty labelNames vector "
         "(must include 'O' at index 0).");
+  }
+  if (!viterbiBiases.empty() && viterbiBiases.size() != 6) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                            "PrivacyFilter viterbiBiases must be empty or "
+                            "contain exactly 6 floats.");
   }
   if (viterbiBiases.size() == 6) {
     biases_.backgroundStay = viterbiBiases[0];
@@ -50,10 +55,11 @@ PrivacyFilter::PrivacyFilter(const std::string &modelSource,
     biases_.insideToEnd = viterbiBiases[5];
   }
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::WrongDimensions,
-        "PrivacyFilter: expected forward input shape [1, seq_len].");
+  if (inputShapes.empty() || inputShapes[0].size() < 2 ||
+      inputShapes[0][1] < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
+                            "PrivacyFilter: expected forward input shape "
+                            "[1, seq_len] with seq_len >= 2.");
   }
   seqLen_ = inputShapes[0][1];
   grammar_ = viterbi::buildGrammar(labelNames_, biases_);

@@ -104,6 +104,8 @@ std::vector<int32_t> decode(const float *logits, int32_t validLen,
   const size_t N = grammar.numLabels;
   std::vector<float> dp(N, kNegInf);
   std::vector<float> dpNext(N, kNegInf);
+  // Allocate bp as [validLen, N] for indexing convenience; row 0 is unused
+  // (traceback starts at t = 1 and consults bp[t * N + j]).
   std::vector<int32_t> bp(static_cast<size_t>(validLen) * N, 0);
 
   {

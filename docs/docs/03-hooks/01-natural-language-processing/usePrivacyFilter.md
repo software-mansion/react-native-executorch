@@ -74,7 +74,7 @@ You need more details? Check the following resources:
 
 To run the model, call the [`generate`](../../06-api-reference/interfaces/PrivacyFilterType.md#generate) method with the text you want to scan. The method returns a promise that resolves to an array of [`PiiEntity`](../../06-api-reference/interfaces/PiiEntity.md) objects, each describing one detected span (`label`, decoded `text`, and inclusive `startToken` / exclusive `endToken` indices into the tokenized input).
 
-Inputs are processed in sliding 256-token windows with 50% overlap, so there is no length limit — long documents are scanned end-to-end without truncation.
+Inputs are processed in sliding windows with 50% overlap (the window size matches the model's exported `forward` input shape), so there is no length limit — long documents are scanned end-to-end without truncation.
 
 :::note
 Token indices in returned entities are positions in the tokenizer's output (the unpadded `encode()` stream), not character offsets in the original string. Use the entity's decoded `text` field if you want to display or redact spans verbatim.

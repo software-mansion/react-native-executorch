@@ -50,7 +50,7 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-To run the model, call the [`generate`](../../06-api-reference/classes/PrivacyFilterModule.md#generate) method on the module object with the text you want to scan. The method returns a promise that resolves to an array of detected PII entity spans. Long inputs are processed in sliding 256-token windows with 128-token overlap; no truncation.
+To run the model, call the [`generate`](../../06-api-reference/classes/PrivacyFilterModule.md#generate) method on the module object with the text you want to scan. The method returns a promise that resolves to an array of detected PII entity spans. Long inputs are processed in sliding windows with 50% overlap (window size derived from the model's exported `forward` input shape); no truncation.
 
 ## Managing memory
 

@@ -95,7 +95,8 @@ export interface PrivacyFilterType {
   downloadProgress: number;
   /**
    * Run PII detection over the given text. Long inputs are processed in
-   * sliding 256-token windows with 128-token overlap; no truncation.
+   * sliding windows with 50% overlap; no truncation. The window size is
+   * determined by the model's exported `forward` input shape.
    * @param text Input text.
    * @returns A promise resolving to detected entity spans.
    */
