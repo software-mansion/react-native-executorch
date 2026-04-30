@@ -1,5 +1,9 @@
 #include "Viterbi.h"
 
+#include <algorithm>
+#include <iterator>
+#include <ranges>
+
 namespace rnexecutorch::models::privacy_filter::viterbi {
 
 namespace {
@@ -131,14 +135,8 @@ std::vector<int32_t> decode(const float *logits, int32_t validLen,
     std::swap(dp, dpNext);
   }
 
-  size_t bestEnd = 0;
-  float bestScore = kNegInf;
-  for (size_t j = 0; j < N; ++j) {
-    if (dp[j] > bestScore) {
-      bestScore = dp[j];
-      bestEnd = j;
-    }
-  }
+  auto it = std::ranges::max_element(dp);
+  size_t bestEnd = std::distance(dp.begin(), it);
 
   std::vector<int32_t> path(static_cast<size_t>(validLen), 0);
   path[static_cast<size_t>(validLen) - 1] = static_cast<int32_t>(bestEnd);

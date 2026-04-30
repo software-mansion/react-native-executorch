@@ -31,9 +31,9 @@ public:
   void unload() noexcept;
 
 private:
-  void runWindow(const std::vector<int64_t> &paddedInputIds,
-                 const std::vector<int64_t> &paddedAttentionMask,
-                 int32_t absStart, int32_t validLen, int32_t writeFromOffset,
+  void runWindow(std::vector<int64_t> &paddedInputIds,
+                 std::vector<int64_t> &paddedAttentionMask, int32_t absStart,
+                 int32_t validLen, int32_t writeFromOffset,
                  int32_t writeToOffset, std::vector<int32_t> &outLabels);
 
   std::string labelEntityType(int32_t labelId) const;

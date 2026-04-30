@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <ranges>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
@@ -58,7 +60,7 @@ PrivacyFilter::PrivacyFilter(const std::string &modelSource,
 }
 
 std::string PrivacyFilter::labelEntityType(int32_t labelId) const {
-  if (labelId <= 0 || labelId >= static_cast<int32_t>(labelNames_.size())) {
+  if (labelId <= 0 || std::cmp_greater_equal(labelId, labelNames_.size())) {
     return "";
   }
   const auto &name = labelNames_[static_cast<size_t>(labelId)];
@@ -74,17 +76,20 @@ void PrivacyFilter::unload() noexcept {
   BaseModel::unload();
 }
 
-void PrivacyFilter::runWindow(const std::vector<int64_t> &paddedInputIds,
-                              const std::vector<int64_t> &paddedAttentionMask,
+void PrivacyFilter::runWindow(std::vector<int64_t> &paddedInputIds,
+                              std::vector<int64_t> &paddedAttentionMask,
                               int32_t absStart, int32_t validLen,
                               int32_t writeFromOffset, int32_t writeToOffset,
                               std::vector<int32_t> &outLabels) {
+  if (validLen <= 0) {
+    return;
+  }
+
   std::vector<int32_t> idsShape = {1, seqLen_};
-  auto inputIdsTensor = make_tensor_ptr(
-      idsShape, const_cast<int64_t *>(paddedInputIds.data()), ScalarType::Long);
-  auto attentionMaskTensor = make_tensor_ptr(
-      idsShape, const_cast<int64_t *>(paddedAttentionMask.data()),
-      ScalarType::Long);
+  auto inputIdsTensor =
+      make_tensor_ptr(idsShape, paddedInputIds.data(), ScalarType::Long);
+  auto attentionMaskTensor =
+      make_tensor_ptr(idsShape, paddedAttentionMask.data(), ScalarType::Long);
 
   auto forwardResult =
       BaseModel::forward({*inputIdsTensor, *attentionMaskTensor});
@@ -98,21 +103,15 @@ void PrivacyFilter::runWindow(const std::vector<int64_t> &paddedInputIds,
     throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
                             "PrivacyFilter: forward returned no outputs");
   }
-  if (validLen <= 0) {
-    return;
-  }
 
   const auto &logitsTensor = out[0].toTensor();
   const float *logits = logitsTensor.const_data_ptr<float>();
 
   auto path = viterbi::decode(logits, validLen, grammar_);
 
-  for (int32_t t = writeFromOffset; t < writeToOffset; ++t) {
-    if (t >= validLen) {
-      break;
-    }
-    outLabels[static_cast<size_t>(absStart + t)] = path[static_cast<size_t>(t)];
-  }
+  const int32_t end = std::min(writeToOffset, validLen);
+  std::copy(path.begin() + writeFromOffset, path.begin() + end,
+            outLabels.begin() + absStart + writeFromOffset);
 }
 
 std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
@@ -143,8 +142,8 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
       paddedAttentionMask[static_cast<size_t>(i)] = 1;
     }
 
-    const bool isFirst = (windowStart == 0);
-    const bool isLast = (windowStart + seqLen_ >= totalTokens);
+    const bool isFirst = windowStart == 0;
+    const bool isLast = windowStart + seqLen_ >= totalTokens;
     int32_t writeFrom = isFirst ? 0 : edgeMargin;
     int32_t writeTo = isLast ? validLen : seqLen_ - edgeMargin;
 
@@ -175,7 +174,7 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
            labelEntityType(predictedLabels[static_cast<size_t>(j)]) == entity) {
       ++j;
     }
-    spans.push_back({i, j, entity});
+    spans.emplace_back(i, j, entity);
     i = j;
   }
 
@@ -191,19 +190,19 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
     try {
       decoded = tokenizer_->decode(slice, /*skipSpecialTokens=*/true);
     } catch (...) {
-      decoded = "";
     }
-    const auto notSpace = [](unsigned char c) { return !std::isspace(c); };
-    auto left = std::find_if(decoded.begin(), decoded.end(), notSpace);
+    constexpr auto notSpace = [](unsigned char c) { return !std::isspace(c); };
+    auto left = std::ranges::find_if(decoded, notSpace);
     auto right =
-        std::find_if(decoded.rbegin(), decoded.rend(), notSpace).base();
+        std::ranges::find_if(decoded.rbegin(), decoded.rend(), notSpace).base();
     if (left < right) {
-      decoded = std::string(left, right);
+      decoded.assign(left, right);
     } else {
       decoded.clear();
     }
 
-    entities.push_back({span.entity, std::move(decoded), span.start, span.end});
+    entities.emplace_back(span.entity, std::move(decoded), span.start,
+                          span.end);
   }
   return entities;
 }
