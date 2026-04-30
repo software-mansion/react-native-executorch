@@ -1,4 +1,9 @@
-import { Frame, PixelData, ResourceSource } from '../../types/common';
+import {
+  Frame,
+  LabelEnum,
+  PixelData,
+  ResourceSource,
+} from '../../types/common';
 import {
   Keypoint,
   PersonKeypoints,
@@ -7,7 +12,6 @@ import {
   PoseEstimationModelSources,
   PoseEstimationModelName,
   PoseEstimationConfig,
-  KeypointEnum,
 } from '../../types/poseEstimation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
@@ -29,13 +33,13 @@ const ModelConfigs = {
   'yolo26n-pose': YOLO_POSE_CONFIG,
 } as const satisfies Record<
   PoseEstimationModelName,
-  PoseEstimationConfig<KeypointEnum>
+  PoseEstimationConfig<LabelEnum>
 >;
 
 type ModelConfigsType = typeof ModelConfigs;
 
 /**
- * Resolves the {@link KeypointEnum} for a given built-in pose estimation model name.
+ * Resolves the {@link LabelEnum} for a given built-in pose estimation model name.
  * @typeParam M - A built-in model name from {@link PoseEstimationModelName}.
  * @category Types
  */
@@ -45,10 +49,10 @@ export type PoseEstimationKeypoints<M extends PoseEstimationModelName> =
 type ModelNameOf<C extends PoseEstimationModelSources> = C['modelName'];
 
 /** @internal */
-type ResolveKeypoints<T extends PoseEstimationModelName | KeypointEnum> =
+type ResolveKeypoints<T extends PoseEstimationModelName | LabelEnum> =
   ResolveConfigOrType<T, ModelConfigsType, 'keypointMap'>;
 
-function mapPersonKeypoints<K extends KeypointEnum>(
+function mapPersonKeypoints<K extends LabelEnum>(
   raw: Keypoint[][],
   entries: [string, number][],
   maxIndex: number
@@ -71,26 +75,33 @@ function mapPersonKeypoints<K extends KeypointEnum>(
 /**
  * Pose estimation module for detecting human body keypoints.
  * @typeParam T - Either a built-in model name (e.g. `'yolo26n-pose'`)
- *   or a custom {@link KeypointEnum} keypoint map.
+ *   or a custom {@link LabelEnum} keypoint map.
  * @category Typescript API
  */
 export class PoseEstimationModule<
-  T extends PoseEstimationModelName | KeypointEnum,
+  T extends PoseEstimationModelName | LabelEnum,
 > extends VisionModule<PoseDetections<ResolveKeypoints<T>>> {
   private readonly keypointMap: ResolveKeypoints<T>;
-  private readonly modelConfig: PoseEstimationConfig<KeypointEnum>;
+  private readonly modelConfig: PoseEstimationConfig<LabelEnum>;
+  // Numeric TS enums double-list
+  // their keys at runtime (value → name); we keep only the (name, index) pairs
+  private readonly keypointEntries: [string, number][];
   private readonly maxKeypointIndex: number;
 
   private constructor(
     keypointMap: ResolveKeypoints<T>,
-    modelConfig: PoseEstimationConfig<KeypointEnum>,
+    modelConfig: PoseEstimationConfig<LabelEnum>,
     nativeModule: unknown
   ) {
     super();
     this.keypointMap = keypointMap;
     this.modelConfig = modelConfig;
     this.nativeModule = nativeModule;
-    this.maxKeypointIndex = Math.max(...Object.values(keypointMap));
+    this.keypointEntries = [];
+    for (const [name, value] of Object.entries(keypointMap)) {
+      if (typeof value === 'number') this.keypointEntries.push([name, value]);
+    }
+    this.maxKeypointIndex = Math.max(...this.keypointEntries.map(([, v]) => v));
   }
 
   /**
@@ -106,7 +117,7 @@ export class PoseEstimationModule<
     const { modelSource } = namedSources;
     const modelConfig = ModelConfigs[
       namedSources.modelName
-    ] as PoseEstimationConfig<KeypointEnum>;
+    ] as PoseEstimationConfig<LabelEnum>;
     const { keypointMap, preprocessorConfig } = modelConfig;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
@@ -133,7 +144,7 @@ export class PoseEstimationModule<
    * @param onDownloadProgress - Optional callback to monitor download progress (0-1).
    * @returns A Promise resolving to a `PoseEstimationModule` instance typed to the provided keypoint map.
    */
-  static async fromCustomModel<K extends KeypointEnum>(
+  static async fromCustomModel<K extends LabelEnum>(
     modelSource: ResourceSource,
     config: PoseEstimationConfig<K>,
     onDownloadProgress: (progress: number) => void = () => {}
@@ -195,7 +206,7 @@ export class PoseEstimationModule<
       this.modelConfig.defaultKeypointThreshold ?? 0.5;
     const defaultInputSize = this.modelConfig.defaultInputSize;
     const availableInputSizes = this.modelConfig.availableInputSizes;
-    const keypointEntries = Object.entries(this.keypointMap);
+    const keypointEntries = this.keypointEntries;
     const maxKeypointIndex = this.maxKeypointIndex;
     return (
       frame: Frame,
@@ -308,10 +319,9 @@ export class PoseEstimationModule<
             methodName
           );
 
-    const entries = Object.entries(this.keypointMap);
     return mapPersonKeypoints<ResolveKeypoints<T>>(
       raw,
-      entries,
+      this.keypointEntries,
       this.maxKeypointIndex
     );
   }

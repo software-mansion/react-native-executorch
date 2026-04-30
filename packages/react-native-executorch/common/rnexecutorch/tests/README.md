@@ -69,5 +69,8 @@ To add new test you need to:
         LIBS opencv_deps
     )
     ```
-* Lastly, add the test executable name to the run_tests script along with all the needed URL and assets.
+* In `run_tests.sh`:
+  * Add the test executable name to `TEST_EXECUTABLES`.
+  * Add any models/files the test downloads at runtime to `MODELS` (filename + URL), **and** register every downloaded file the test loads in the `models_for_test()` case statement. The runner pushes only the files listed there from `$MODELS_DIR` to the device for that test, runs it, and removes them afterwards — anything missing won't be on the device when the test runs. Tests with no model dependencies don't need an entry.
+  * Repo-bundled fixtures (small images, audio, etc.) go in `TEST_ASSETS` instead. Those are pushed once up front and stay on the device; do not list them in `models_for_test()`.
 

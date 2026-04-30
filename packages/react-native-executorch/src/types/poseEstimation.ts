@@ -1,15 +1,8 @@
-import { Frame, PixelData, ResourceSource } from './common';
+import { Frame, LabelEnum, PixelData, ResourceSource } from './common';
 import { CocoKeypoint } from '../constants/poseEstimation';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 export { CocoKeypoint };
-
-/**
- * A keypoint enum maps keypoint names to their indices.
- * Similar to LabelEnum but specifically for pose keypoints.
- * @category Types
- */
-export type KeypointEnum = Readonly<Record<string, number>>;
 
 /**
  * A single keypoint with x, y coordinates
@@ -22,14 +15,14 @@ export interface Keypoint {
 
 /**
  * Keypoints for a single detected person, keyed by name from the keypoint map.
- * @typeParam K - The {@link KeypointEnum} for this model.
+ * @typeParam K - The {@link LabelEnum} for this model.
  * @category Types
  * @example
  * ```ts
  * person.NOSE; // { x, y }
  * ```
  */
-export type PersonKeypoints<K extends KeypointEnum = typeof CocoKeypoint> = {
+export type PersonKeypoints<K extends LabelEnum = typeof CocoKeypoint> = {
   readonly [Name in keyof K]: Keypoint;
 };
 
@@ -37,7 +30,7 @@ export type PersonKeypoints<K extends KeypointEnum = typeof CocoKeypoint> = {
  * Pose estimation result containing all detected people.
  * @category Types
  */
-export type PoseDetections<K extends KeypointEnum = typeof CocoKeypoint> =
+export type PoseDetections<K extends LabelEnum = typeof CocoKeypoint> =
   PersonKeypoints<K>[];
 
 /**
@@ -45,7 +38,7 @@ export type PoseDetections<K extends KeypointEnum = typeof CocoKeypoint> =
  * @category Types
  * @typeParam K - The keypoint enum type for this model.
  */
-export type PoseEstimationConfig<K extends KeypointEnum> = {
+export type PoseEstimationConfig<K extends LabelEnum> = {
   keypointMap: K;
   preprocessorConfig?: {
     normMean?: readonly [number, number, number];
@@ -112,10 +105,10 @@ export interface PoseEstimationOptions {
 
 /**
  * Return type of usePoseEstimation hook.
- * @typeParam K - The {@link KeypointEnum} representing the model's keypoint schema.
+ * @typeParam K - The {@link LabelEnum} representing the model's keypoint schema.
  * @category Types
  */
-export interface PoseEstimationType<K extends KeypointEnum> {
+export interface PoseEstimationType<K extends LabelEnum> {
   /**
    * Contains the error object if the model failed to load or encountered a runtime error.
    */

@@ -209,6 +209,7 @@ models_for_test() {
     LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
     TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
     InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;
+    PoseEstimationTests) echo "yolo26n-pose.pte" ;;
     SemanticSegmentationTests) echo "deeplabV3_xnnpack_fp32.pte test_image.jpg" ;;
     OCRTests | VerticalOCRTests) echo "xnnpack_craft_quantized.pte xnnpack_crnn_english.pte" ;;
     *) echo "" ;;
