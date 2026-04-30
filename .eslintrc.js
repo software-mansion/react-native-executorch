@@ -13,6 +13,7 @@ const VALID_CATEGORIES = [
   'Models - Semantic Segmentation',
   'Models - Speech To Text',
   'Models - Style Transfer',
+  'Models - Privacy Filter',
   'Models - Text Embeddings',
   'Models - Text to Speech',
   'Models - VLM',

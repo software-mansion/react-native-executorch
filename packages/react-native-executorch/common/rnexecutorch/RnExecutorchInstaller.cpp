@@ -9,6 +9,7 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
+#include <rnexecutorch/models/privacy_filter/PrivacyFilter.h>
 #include <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
@@ -97,6 +98,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadLLM",
       RnExecutorchInstaller::loadModel<models::llm::LLM>(
           jsiRuntime, jsCallInvoker, "loadLLM"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadPrivacyFilter",
+      RnExecutorchInstaller::loadModel<models::privacy_filter::PrivacyFilter>(
+          jsiRuntime, jsCallInvoker, "loadPrivacyFilter"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadOCR",

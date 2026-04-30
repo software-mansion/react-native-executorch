@@ -146,6 +146,14 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="privacy_filter/index"
+          options={{
+            drawerLabel: 'Privacy Filter (PII)',
+            title: 'Privacy Filter',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );

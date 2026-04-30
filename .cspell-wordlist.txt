@@ -188,3 +188,8 @@ stringifying
 hɛloʊ
 wɜːld
 bielik
+nemotron
+BIOES
+viterbi
+argmaxes
+unpadded

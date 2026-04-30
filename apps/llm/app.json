@@ -63,7 +63,8 @@
       },
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
-      }
+      },
+      "appleTeamId": "J5FM626PE2"
     },
     "android": {
       "adaptiveIcon": {
