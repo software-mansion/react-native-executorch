@@ -68,13 +68,17 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/PoseEsti
 - `input` (required) - The image to process. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - `options` (optional) - A [`PoseEstimationOptions`](../../06-api-reference/interfaces/PoseEstimationOptions.md) object with the following properties:
   - `detectionThreshold` (optional) - A number between 0 and 1 representing the minimum confidence score for a detected person. Defaults to model-specific value (typically `0.5`).
-  - `iouThreshold` (optional) - IoU threshold for non-maximum suppression (0-1). Defaults to model-specific value (typically `0.5`).
+  - `keypointThreshold` (optional) - Per-keypoint visibility threshold (0-1). Keypoints whose model-reported visibility falls below this are emitted as `(-1, -1)` so consumers can skip them. Defaults to model-specific value.
   - `inputSize` (optional) - For multi-method models like YOLO, specify the input resolution (`384`, `512`, or `640`). Defaults to `384` for YOLO models.
 
 `forward` returns a promise resolving to an array of [`PersonKeypoints`](../../06-api-reference/type-aliases/PersonKeypoints.md) — one entry per detected person. Each entry is an object keyed by the model's keypoint names (typed against the model's keypoint map), where each value is a [`Keypoint`](../../06-api-reference/interfaces/Keypoint.md) with:
 
 - `x` - The x coordinate in the original image's pixel space.
 - `y` - The y coordinate in the original image's pixel space.
+
+:::info
+Keypoints whose visibility falls below `keypointThreshold` (or that the model considers off-image) are returned as `{ x: -1, y: -1 }`. Filter them out before drawing — e.g. `if (kp.x < 0 || kp.y < 0) skip;`.
+:::
 
 For example, with a COCO-keypoint model:
 

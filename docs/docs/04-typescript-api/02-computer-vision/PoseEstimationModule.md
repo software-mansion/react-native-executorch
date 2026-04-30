@@ -42,10 +42,14 @@ To run the model, use the [`forward`](../../06-api-reference/classes/PoseEstimat
 - `input` (required) - The image to process. Can be a remote URL, a local file URI, a base64-encoded image (whole URI or only raw base64), or a [`PixelData`](../../06-api-reference/interfaces/PixelData.md) object (raw RGB pixel buffer).
 - `options` (optional) - A [`PoseEstimationOptions`](../../06-api-reference/interfaces/PoseEstimationOptions.md) object with:
   - `detectionThreshold` (optional) - Minimum confidence score for a detected person (0-1). Defaults to model-specific value.
-  - `iouThreshold` (optional) - IoU threshold for NMS (0-1). Defaults to model-specific value.
+  - `keypointThreshold` (optional) - Per-keypoint visibility threshold (0-1). Keypoints whose model-reported visibility falls below this are reported as `(-1, -1)` so consumers can skip them. Defaults to model-specific value.
   - `inputSize` (optional) - For YOLO models: `384`, `512`, or `640`. Defaults to `384`.
 
 The method returns a promise resolving to an array of [`PersonKeypoints`](../../06-api-reference/type-aliases/PersonKeypoints.md). Each entry is an object keyed by the model's keypoint names (e.g. `NOSE`, `LEFT_SHOULDER`), where each value is a [`Keypoint`](../../06-api-reference/interfaces/Keypoint.md) with `x` and `y` coordinates in the original image's pixel space.
+
+:::info
+Keypoints whose visibility falls below `keypointThreshold` (or that the model considers off-image) are returned as `{ x: -1, y: -1 }`. Filter them out before drawing — e.g. `if (kp.x < 0 || kp.y < 0) skip;`.
+:::
 
 For real-time frame processing, use [`runOnFrame`](../../03-hooks/02-computer-vision/visioncamera-integration.md) instead.
 
