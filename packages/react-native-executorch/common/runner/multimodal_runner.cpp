@@ -83,14 +83,15 @@ Error MultimodalRunner::generate_internal(
   }
 
   stats_.inference_start_ms = time_in_ms();
-
-  uint64_t prefill_next_token = 0;
-  for (const auto &input : inputs) {
-    auto prefill_result = mm_prefiller_->prefill(input, pos_);
-    if (!prefill_result.ok())
-      return prefill_result.error();
-    prefill_next_token = prefill_result.get();
-  }
+  const long t_gen_begin = stats_.inference_start_ms;
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "inputs count", inputs.size());
+  auto prefill_result = mm_prefiller_->prefill(inputs, pos_);
+  if (!prefill_result.ok())
+    return prefill_result.error();
+  uint64_t prefill_next_token = prefill_result.get();
+  const long t_prefill_done = time_in_ms();
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "prefill result",
+                    prefill_next_token);
 
   stats_.first_token_ms = time_in_ms();
   stats_.prompt_eval_end_ms = time_in_ms();

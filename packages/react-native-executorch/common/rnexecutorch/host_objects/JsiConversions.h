@@ -223,8 +223,6 @@ inline std::vector<float> getValue<std::vector<float>>(const jsi::Value &val,
   return getArrayAsVector<float>(val, runtime);
 }
 
-// JS side passes an Array<Float32Array> (one clip per element). Each inner
-// element is read as a typed-array span and copied into a std::vector<float>.
 template <>
 inline std::vector<std::vector<float>>
 getValue<std::vector<std::vector<float>>>(const jsi::Value &val,

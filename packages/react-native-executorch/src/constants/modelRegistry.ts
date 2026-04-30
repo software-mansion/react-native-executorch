@@ -500,6 +500,7 @@ export const models = {
     // pick a model by capability ("LLM") rather than by modality.
     lfm2_5_vl_1_6b: base(M.LFM2_5_VL_1_6B_QUANTIZED),
     lfm2_5_vl_450m: base(M.LFM2_5_VL_450M_QUANTIZED),
+    gemma4_e2b: base(M.GEMMA4_E2B_QUANTIZED)
   },
   classification: {
     efficientnet_v2_s: variant(EFFICIENTNET_V2_S_VARIANTS),

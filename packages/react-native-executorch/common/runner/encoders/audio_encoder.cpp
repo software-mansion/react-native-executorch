@@ -1,21 +1,4 @@
 // common/runner/encoders/audio_encoder.cpp
-//
-// Pattern mirrors models/speech_to_text/whisper/ASR.cpp::encode — the PTE has
-// the log-mel frontend baked in, so this encoder hands the raw waveform
-// straight to the `audio_encoder` method. Mel extraction, STFT, filterbank,
-// normalization all live inside the exported module.
-//
-// PTE contract (exp107f onward):
-//   inputs:
-//     waveform[1, N_padded]  fp32  (N_padded = kSamplesPerBlock * k, k>=1)
-//     num_valid_samples[]    int64 (real PCM length before zero-padding)
-//   output:
-//     embeds[1, 12*k, hidden] fp32
-// Caller right-pads the raw waveform up to the next multiple of
-// kSamplesPerBlock with silence; num_valid_samples tells MelFrontend which
-// mel frames correspond to real audio so padded-silence frames are masked
-// out and don't dilute the encoding.
-
 #include "audio_encoder.h"
 
 #include <rnexecutorch/Error.h>
@@ -24,8 +7,10 @@
 
 #include <executorch/extension/tensor/tensor.h>
 
+#include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <vector>
 
 namespace executorch::extension::llm {
@@ -36,9 +21,14 @@ using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
 namespace {
-// Matches AUDIO_SAMPLES_PER_BLOCK in gemma_export/experiments/exp107f_*.py.
+// Matches AUDIO_SAMPLES_PER_BLOCK in gemma_export/experiments_vulkan/
+// op_bisect/iter201_mm_4method_dynaudio_prefill2048_export.py.
 // The PTE's audio_samples dim was exported as `7680 * audio_blocks`.
 constexpr int32_t kSamplesPerBlock = 7680;
+// k ∈ [kAudioBlockKMin, kAudioBlockKMax] from MODEL_INTERFACE.md §6.
+// k=62 == 29.76 s @ 16 kHz is the SDPA mask + rel-shift bake point.
+constexpr int64_t kAudioBlockKMin = 1;
+constexpr int64_t kAudioBlockKMax = 62;
 } // namespace
 
 AudioEncoder::AudioEncoder(::executorch::extension::Module &module)
@@ -84,26 +74,40 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
 
   const int64_t n_valid = static_cast<int64_t>(wav.samples.size());
   const int64_t k_blocks = (n_valid + kSamplesPerBlock - 1) / kSamplesPerBlock;
+  ET_CHECK_OR_RETURN_ERROR(
+      k_blocks >= kAudioBlockKMin && k_blocks <= kAudioBlockKMax,
+      InvalidArgument,
+      "AudioEncoder: waveform of %lld samples needs k_blocks=%lld; "
+      "audio_encoder accepts k in [%lld, %lld] (block=%d samples; max %.2f s "
+      "@ 16 kHz)",
+      static_cast<long long>(n_valid), static_cast<long long>(k_blocks),
+      static_cast<long long>(kAudioBlockKMin),
+      static_cast<long long>(kAudioBlockKMax),
+      static_cast<int>(kSamplesPerBlock),
+      static_cast<double>(kSamplesPerBlock) *
+          static_cast<double>(kAudioBlockKMax) / 16000.0);
   const int64_t n_padded = k_blocks * kSamplesPerBlock;
 
-  // Owns the padded buffer for the lifetime of this call; from_blob below
-  // borrows it without copying.
+  // Own the padded waveform for the lifetime of this call; from_blob below
+  // borrows without copying. The current export takes
+  //   forward(waveform[1, 7680*k] fp32, num_blocks: int64 scalar)
+  // — input 1 is a rank-0 Long telling the encoder how many of the K_MAX
+  // blocks contain real PCM. Passing a 2-d mask here trips "Attempted to
+  // change tensor rank: old=0, new=2".
   padded_wav_.assign(static_cast<size_t>(n_padded), 0.0f);
   std::memcpy(padded_wav_.data(), wav.samples.data(),
               static_cast<size_t>(n_valid) * sizeof(float));
+
+  num_blocks_scalar_ = k_blocks;
 
   auto wav_tensor = ::executorch::extension::from_blob(
       padded_wav_.data(), {1, static_cast<SizesType>(n_padded)},
       ::executorch::aten::ScalarType::Float);
 
-  // 0-d int64 scalar. The PTE was exported with
-  //   sample_num_valid = torch.tensor(..., dtype=torch.long)
-  // which traces to a 0-rank Long tensor.
-  num_valid_scalar_ = n_valid;
-  auto num_valid_tensor = ::executorch::extension::from_blob(
-      &num_valid_scalar_, {}, ::executorch::aten::ScalarType::Long);
+  auto num_blocks_tensor = ::executorch::extension::from_blob(
+      &num_blocks_scalar_, {}, ::executorch::aten::ScalarType::Long);
 
-  std::vector<EValue> args = {EValue(*wav_tensor), EValue(*num_valid_tensor)};
+  std::vector<EValue> args = {EValue(*wav_tensor), EValue(*num_blocks_tensor)};
   auto exec_result = ET_UNWRAP(module_->execute(kAudioEncoderMethod, args));
   ET_CHECK_OR_RETURN_ERROR(!exec_result.empty(), InvalidState,
                            "audio_encoder returned no outputs");
