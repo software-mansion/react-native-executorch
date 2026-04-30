@@ -294,7 +294,7 @@ export interface Message {
   /**
    * Optional fp32 mono 16 kHz PCM buffer. Only valid on `user` messages for
    * models with the `'audio'` capability. The controller forwards it to the
-   * native `generateMultimodalWithAudio` path.
+   * native `generateMultimodal` path.
    */
   audioWaveform?: Float32Array;
 }
@@ -394,6 +394,7 @@ export interface ContextStrategy {
 export const SPECIAL_TOKENS = {
   BOS_TOKEN: 'bos_token',
   EOS_TOKEN: 'eos_token',
+  EOT_TOKEN: 'eot_token',
   UNK_TOKEN: 'unk_token',
   SEP_TOKEN: 'sep_token',
   PAD_TOKEN: 'pad_token',

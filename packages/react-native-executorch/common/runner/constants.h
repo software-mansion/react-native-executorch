@@ -23,7 +23,11 @@ inline constexpr auto kVisionEncoderMethod = "vision_encoder";
 inline constexpr auto kAudioEncoderMethod = "audio_encoder";
 inline constexpr auto kTokenEmbeddingMethod = "token_embedding";
 inline constexpr auto kTextModelMethod = "text_decoder";
-inline constexpr auto kMaxPrefillLen = 1024;
+// Absolute ceiling on prefill length (in tokens) and the fallback value used
+// when a PTE doesn't bake `get_max_seq_len`. 2048 matches Gemma4 iter201's
+// PREFILL_LEN / get_max_context_len; legacy PTEs (e.g. LFM2-VL) typically
+// bake their own get_max_seq_len so this ceiling does not affect them.
+inline constexpr auto kMaxPrefillLen = 2048;
 inline constexpr auto numOfAddedBoSTokens = 0;
 inline constexpr auto numOfAddedEoSTokens = 0;
 

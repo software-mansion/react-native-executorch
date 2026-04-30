@@ -16,6 +16,13 @@ import { Logger } from '../common/Logger';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
+// Audio soft-token expansion constants for Gemma4's audio_encoder.
+// Mirrors AUDIO_SAMPLES_PER_BLOCK (kSamplesPerBlock=7680) and the per-block
+// soft-token rate in audio_encoder.cpp; used to size the context budget so
+// long audio doesn't silently overflow get_max_seq_len during prefill.
+const AUDIO_SAMPLES_PER_BLOCK = 7680;
+const AUDIO_TOKENS_PER_BLOCK = 12;
+
 export class LLMController {
   private nativeModule: any;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
@@ -256,6 +263,12 @@ export class LLMController {
       filtered = filtered.replaceAll(this.tokenizerConfig.eos_token, '');
     }
     if (
+      SPECIAL_TOKENS.EOT_TOKEN in this.tokenizerConfig &&
+      this.tokenizerConfig.eot_token
+    ) {
+      filtered = filtered.replaceAll(this.tokenizerConfig.eot_token, '');
+    }
+    if (
       SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
       this.tokenizerConfig.pad_token
     ) {
@@ -297,21 +310,14 @@ export class LLMController {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
       let response: string;
-      if (hasAudio) {
-        response = await this.nativeModule.generateMultimodalWithAudio(
-          input,
-          hasImages ? imagePaths!.map(normalizeImagePath) : [],
-          hasImages ? this.getImageToken() : '',
-          audioWaveforms,
-          this.getAudioToken(),
-          this.onToken
-        );
-      } else if (hasImages) {
+      if (hasImages || hasAudio) {
         response = await this.nativeModule.generateMultimodal(
           input,
-          imagePaths!.map(normalizeImagePath),
-          this.getImageToken(),
-          this.onToken
+          this.onToken,
+          hasImages ? imagePaths!.map(normalizeImagePath) : [],
+          hasImages ? this.getImageToken() : '',
+          hasAudio ? audioWaveforms! : [],
+          hasAudio ? this.getAudioToken() : ''
         );
       } else {
         response = await this.nativeModule.generate(input, this.onToken);
@@ -426,7 +432,22 @@ export class LLMController {
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);
       const imageCount = messages.filter((m) => m.mediaPath).length;
-      return textTokens + imageCount * (visualTokenCount - 1);
+      // Audio soft-token expansion: Gemma4's audio_encoder pads samples to
+      // multiples of AUDIO_SAMPLES_PER_BLOCK (7680 @ 16 kHz) and emits
+      // AUDIO_TOKENS_PER_BLOCK (~12) soft tokens per padded block. The
+      // rendered template only contributes 1 token for the audio placeholder,
+      // so add (expansion - 1) per audio message to match prefill consumption.
+      const audioTokenExpansion = messages.reduce((acc, m) => {
+        if (!m.audioWaveform) return acc;
+        const kBlocks = Math.max(
+          1,
+          Math.ceil(m.audioWaveform.length / AUDIO_SAMPLES_PER_BLOCK)
+        );
+        return acc + (AUDIO_TOKENS_PER_BLOCK * kBlocks - 1);
+      }, 0);
+      return (
+        textTokens + imageCount * (visualTokenCount - 1) + audioTokenExpansion
+      );
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =

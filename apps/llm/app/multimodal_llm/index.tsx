@@ -34,6 +34,7 @@ const SUGGESTED_PROMPTS = [
   'Describe this scene in detail',
   'What objects can you see?',
   'What text appears in this image?',
+  'Transcribe the audio?',
 ];
 import { useLLMStats } from '../../hooks/useLLMStats';
 import { StatsBar } from '../../components/StatsBar';
@@ -63,7 +64,7 @@ function MultimodalLLMScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const vlm = useLLM({
-    model: models.llm.lfm2_5_vl_1_6b(),
+    model: models.llm.gemma4_e2b(),
   });
   const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(
@@ -175,7 +176,8 @@ function MultimodalLLMScreen() {
   };
 
   const sendMessage = async () => {
-    if (!userInput.trim() || vlm.isGenerating) return;
+    if (!(imageUri || audioBuffer || userInput.trim()) || vlm.isGenerating)
+      return;
     onMessageSend();
     const text = userInput.trim();
     setUserInput('');
@@ -346,14 +348,15 @@ function MultimodalLLMScreen() {
               onChangeText={setUserInput}
             />
 
-            {userInput.trim() && !vlm.isGenerating && (
-              <TouchableOpacity
-                style={styles.sendChatTouchable}
-                onPress={sendMessage}
-              >
-                <SendIcon height={24} width={24} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
+            {(imageUri || audioBuffer || userInput.trim()) &&
+              !vlm.isGenerating && (
+                <TouchableOpacity
+                  style={styles.sendChatTouchable}
+                  onPress={sendMessage}
+                >
+                  <SendIcon height={24} width={24} padding={4} margin={8} />
+                </TouchableOpacity>
+              )}
             {vlm.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}

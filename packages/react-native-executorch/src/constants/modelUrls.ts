@@ -56,9 +56,11 @@ export const LLAMA3_2_3B_SPINQUANT = {
  */
 export const LLAMA3_2_1B = {
   modelName: 'llama-3.2-1b',
-  modelSource: LLAMA3_2_1B_MODEL,
-  tokenizerSource: LLAMA3_2_TOKENIZER,
-  tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  modelSource:
+    'http://localhost:9001/Llama3.2-1B-Instruct_vulkan_8da4w_g64_c2048.pte',
+  tokenizerSource: 'http://localhost:9001/gemma4_e2b/llama_tokenizer.json',
+  tokenizerConfigSource:
+    'http://localhost:9001/gemma4_e2b/llama_tokenizer_config.json',
 } as const;
 
 /**
@@ -131,7 +133,8 @@ export const QWEN3_0_6B_QUANTIZED = {
 export const GEMMA4_E2B_QUANTIZED = {
   modelName: 'gemma4-e2b-quantized',
   modelSource:
-    'http://localhost:9001/experiments/outputs/exp107f_mm_s4048_noqkvo_wav.pte',
+    // 'http://localhost:9001/ptes/iter206_xnnpack_audio_rsqrt_baked_mask_relshift_idx_prefill2048.pte',
+    'http://localhost:9001/experiments/outputs/exp115_mm_s4048_levers.pte',
   tokenizerSource: 'http://localhost:9001/gemma4_e2b/tokenizer.json',
   tokenizerConfigSource:
     'http://localhost:9001/gemma4_e2b/gemma4_tokenizer_config.json',

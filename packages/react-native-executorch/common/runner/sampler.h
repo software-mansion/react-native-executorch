@@ -41,7 +41,18 @@ public:
   Sampler(int32_t vocab_size, float temperature, float topp,
           unsigned long long rng_seed, float min_p = 0.0f,
           float repetition_penalty = 1.0f);
+  // topk <= 0 disables top-k filtering. topp <= 0 || topp >= 1 disables top-p.
+  // Pipeline when temperature != 0: temperature -> top-k mask -> top-p mask
+  // -> softmax -> multinomial. Note: topk == 1 with temperature != 0 collapses
+  // to greedy; pass topk = 0 to keep full-vocab temperature sampling.
+  Sampler(int32_t vocab_size, float temperature, float topp, int32_t topk,
+          unsigned long long rng_seed);
 
+  Sampler(int32_t vocab_size, float temperature, float topp, int32_t topk);
+
+  // Back-compat overloads (topk = 0 => disabled).
+  Sampler(int32_t vocab_size, float temperature, float topp,
+          unsigned long long rng_seed);
   Sampler(int32_t vocab_size, float temperature, float topp);
 
   template <typename T> int32_t sample(T *logits);
@@ -53,6 +64,9 @@ private:
   template <typename T> int32_t sample_topp(T *probabilities, float coin);
   template <typename T> int32_t sample_mult(T *probabilities, float coin);
   template <typename T> int32_t sample_argmax(T *probabilities);
+  // In-place logit warpers: set excluded indices to -inf.
+  template <typename T> void mask_topk(T *logits);
+  template <typename T> void mask_topp(T *logits);
 
   template <typename T>
   inline void apply_temperature(T *logits, int32_t vocab_size) {
@@ -110,6 +124,7 @@ private:
   float topp_;
   float min_p_;
   float repetition_penalty_;
+  int32_t topk_;
   unsigned long long rng_state_;
 };
 
