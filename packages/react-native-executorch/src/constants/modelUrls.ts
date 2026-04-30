@@ -587,6 +587,7 @@ const QWEN3_5_VL_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_
 const QWEN3_5_VL_0_8B_GENERATION_CONFIG = {
   temperature: 0.6,
   topP: 0.95,
+  repetitionPenalty: 1.2,
 } as const;
 
 /**
@@ -608,6 +609,7 @@ const QWEN3_5_VL_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TA
 const QWEN3_5_VL_2B_GENERATION_CONFIG = {
   temperature: 0.6,
   topP: 0.95,
+  repetitionPenalty: 1.2,
 } as const;
 
 /**
