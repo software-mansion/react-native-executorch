@@ -22,7 +22,7 @@ const YOLO_POSE_CONFIG = {
   availableInputSizes: [384, 512, 640] as const,
   defaultInputSize: 384,
   defaultDetectionThreshold: 0.5,
-  defaultIouThreshold: 0.5,
+  defaultKeypointThreshold: 0.5,
 } satisfies PoseEstimationConfig<typeof CocoKeypoint>;
 
 const ModelConfigs = {
@@ -48,6 +48,26 @@ type ModelNameOf<C extends PoseEstimationModelSources> = C['modelName'];
 type ResolveKeypoints<T extends PoseEstimationModelName | KeypointEnum> =
   ResolveConfigOrType<T, ModelConfigsType, 'keypointMap'>;
 
+function mapPersonKeypoints<K extends KeypointEnum>(
+  raw: Keypoint[][],
+  entries: [string, number][],
+  maxIndex: number
+): PersonKeypoints<K>[] {
+  'worklet';
+  if (raw.length > 0 && raw[0]!.length <= maxIndex) {
+    throw new Error(
+      `Keypoint map references index ${maxIndex} but model returned ${raw[0]!.length} keypoints per person — keypointMap is incompatible with this model.`
+    );
+  }
+  const out: PersonKeypoints<K>[] = [];
+  for (const person of raw) {
+    const named: Record<string, Keypoint> = {};
+    for (const [name, idx] of entries) named[name] = person[idx]!;
+    out.push(named as PersonKeypoints<K>);
+  }
+  return out;
+}
+
 /**
  * Pose estimation module for detecting human body keypoints.
  * @typeParam T - Either a built-in model name (e.g. `'yolo26n-pose'`)
@@ -59,6 +79,7 @@ export class PoseEstimationModule<
 > extends VisionModule<PoseDetections<ResolveKeypoints<T>>> {
   private readonly keypointMap: ResolveKeypoints<T>;
   private readonly modelConfig: PoseEstimationConfig<KeypointEnum>;
+  private readonly maxKeypointIndex: number;
 
   private constructor(
     keypointMap: ResolveKeypoints<T>,
@@ -69,6 +90,7 @@ export class PoseEstimationModule<
     this.keypointMap = keypointMap;
     this.modelConfig = modelConfig;
     this.nativeModule = nativeModule;
+    this.maxKeypointIndex = Math.max(...Object.values(keypointMap));
   }
 
   /**
@@ -169,14 +191,12 @@ export class PoseEstimationModule<
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
     const defaultDetectionThreshold =
       this.modelConfig.defaultDetectionThreshold ?? 0.5;
-    const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.5;
+    const defaultKeypointThreshold =
+      this.modelConfig.defaultKeypointThreshold ?? 0.5;
     const defaultInputSize = this.modelConfig.defaultInputSize;
     const availableInputSizes = this.modelConfig.availableInputSizes;
-    const keypointEntries = Object.entries(this.keypointMap) as [
-      string,
-      number,
-    ][];
-
+    const keypointEntries = Object.entries(this.keypointMap);
+    const maxKeypointIndex = this.maxKeypointIndex;
     return (
       frame: Frame,
       isFrontCamera: boolean,
@@ -186,7 +206,8 @@ export class PoseEstimationModule<
 
       const detectionThreshold =
         options?.detectionThreshold ?? defaultDetectionThreshold;
-      const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
+      const keypointThreshold =
+        options?.keypointThreshold ?? defaultKeypointThreshold;
       const inputSize = options?.inputSize ?? defaultInputSize;
 
       // Validate inputSize
@@ -214,16 +235,14 @@ export class PoseEstimationModule<
         const raw: Keypoint[][] = nativeGenerateFromFrame(
           frameData,
           detectionThreshold,
-          iouThreshold,
+          keypointThreshold,
           methodName
         );
-        const out: PersonKeypoints<ResolveKeypoints<T>>[] = [];
-        for (const person of raw) {
-          const named: Record<string, Keypoint> = {};
-          for (const [name, idx] of keypointEntries) named[name] = person[idx]!;
-          out.push(named as PersonKeypoints<ResolveKeypoints<T>>);
-        }
-        return out;
+        return mapPersonKeypoints<ResolveKeypoints<T>>(
+          raw,
+          keypointEntries,
+          maxKeypointIndex
+        );
       } finally {
         if (nativeBuffer?.release) {
           nativeBuffer.release();
@@ -253,8 +272,10 @@ export class PoseEstimationModule<
       options?.detectionThreshold ??
       this.modelConfig.defaultDetectionThreshold ??
       0.5;
-    const iouThreshold =
-      options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.5;
+    const keypointThreshold =
+      options?.keypointThreshold ??
+      this.modelConfig.defaultKeypointThreshold ??
+      0.5;
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
 
     // Validate inputSize against availableInputSizes
@@ -277,21 +298,21 @@ export class PoseEstimationModule<
         ? await this.nativeModule.generateFromString(
             input,
             detectionThreshold,
-            iouThreshold,
+            keypointThreshold,
             methodName
           )
         : await this.nativeModule.generateFromPixels(
             input,
             detectionThreshold,
-            iouThreshold,
+            keypointThreshold,
             methodName
           );
 
-    const entries = Object.entries(this.keypointMap) as [string, number][];
-    return raw.map((person) => {
-      const named: Record<string, Keypoint> = {};
-      for (const [name, idx] of entries) named[name] = person[idx]!;
-      return named as PersonKeypoints<ResolveKeypoints<T>>;
-    });
+    const entries = Object.entries(this.keypointMap);
+    return mapPersonKeypoints<ResolveKeypoints<T>>(
+      raw,
+      entries,
+      this.maxKeypointIndex
+    );
   }
 }

@@ -155,6 +155,11 @@ export default function PoseEstimationScreen() {
                     (layout.width - imageDimensions.width * scaleX) / 2;
                   const offsetY =
                     (layout.height - imageDimensions.height * scaleY) / 2;
+                  const isInBounds = (kp: { x: number; y: number }) =>
+                    kp.x >= 0 &&
+                    kp.y >= 0 &&
+                    kp.x <= imageDimensions.width &&
+                    kp.y <= imageDimensions.height;
                   return (
                     <Svg style={StyleSheet.absoluteFill}>
                       {results.map((personKeypoints, personIdx) => {
@@ -167,6 +172,8 @@ export default function PoseEstimationScreen() {
                                 const kp1 = personKeypoints[from];
                                 const kp2 = personKeypoints[to];
                                 if (!kp1 || !kp2) return null;
+                                if (!isInBounds(kp1) || !isInBounds(kp2))
+                                  return null;
                                 return (
                                   <Line
                                     key={`person-${personIdx}-line-${lineIdx}`}
@@ -180,8 +187,9 @@ export default function PoseEstimationScreen() {
                                 );
                               }
                             )}
-                            {Object.entries(personKeypoints).map(
-                              ([name, kp]) => (
+                            {Object.entries(personKeypoints)
+                              .filter(([, kp]) => isInBounds(kp))
+                              .map(([name, kp]) => (
                                 <Circle
                                   key={`person-${personIdx}-kp-${name}`}
                                   cx={kp.x * scaleX + offsetX}
@@ -189,8 +197,7 @@ export default function PoseEstimationScreen() {
                                   r="4"
                                   fill="red"
                                 />
-                              )
-                            )}
+                              ))}
                           </React.Fragment>
                         );
                       })}

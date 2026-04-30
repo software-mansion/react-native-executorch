@@ -142,6 +142,8 @@ export default function PoseEstimationTask({
       <Svg style={StyleSheet.absoluteFill}>
         {detections.map((personKeypoints, personIdx) => {
           const color = PERSON_COLORS[personIdx % PERSON_COLORS.length];
+          const isVisible = (kp: { x: number; y: number }) =>
+            kp.x >= 0 && kp.y >= 0;
           return (
             <React.Fragment key={`person-${personIdx}`}>
               {/* Draw skeleton lines */}
@@ -149,6 +151,7 @@ export default function PoseEstimationTask({
                 const kp1 = personKeypoints[from];
                 const kp2 = personKeypoints[to];
                 if (!kp1 || !kp2) return null;
+                if (!isVisible(kp1) || !isVisible(kp2)) return null;
                 const x1 = kp1.x * scale + offsetX;
                 const y1 = kp1.y * scale + offsetY;
                 const x2 = kp2.x * scale + offsetX;
@@ -166,19 +169,21 @@ export default function PoseEstimationTask({
                 );
               })}
               {/* Draw keypoints */}
-              {Object.entries(personKeypoints).map(([name, kp]) => {
-                const cx = kp.x * scale + offsetX;
-                const cy = kp.y * scale + offsetY;
-                return (
-                  <Circle
-                    key={`person-${personIdx}-kp-${name}`}
-                    cx={cx}
-                    cy={cy}
-                    r={5}
-                    fill="red"
-                  />
-                );
-              })}
+              {Object.entries(personKeypoints)
+                .filter(([, kp]) => isVisible(kp))
+                .map(([name, kp]) => {
+                  const cx = kp.x * scale + offsetX;
+                  const cy = kp.y * scale + offsetY;
+                  return (
+                    <Circle
+                      key={`person-${personIdx}-kp-${name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={5}
+                      fill="red"
+                    />
+                  );
+                })}
             </React.Fragment>
           );
         })}

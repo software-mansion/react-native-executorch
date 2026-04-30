@@ -52,7 +52,7 @@ export type PoseEstimationConfig<K extends KeypointEnum> = {
     normStd?: readonly [number, number, number];
   };
   defaultDetectionThreshold?: number;
-  defaultIouThreshold?: number;
+  defaultKeypointThreshold?: number;
 } & (
   | {
       availableInputSizes: readonly number[];
@@ -96,7 +96,12 @@ export interface PoseEstimationProps<C extends PoseEstimationModelSources> {
  */
 export interface PoseEstimationOptions {
   detectionThreshold?: number;
-  iouThreshold?: number;
+  /**
+   * Per-keypoint visibility threshold (0-1). Keypoints whose visibility
+   * score is below this are emitted as (-1, -1) so consumers can skip them.
+   * Defaults to the model config's `defaultKeypointThreshold` (typically 0.5).
+   */
+  keypointThreshold?: number;
   /**
    * Input size for multi-method models.
    * For YOLO models, valid values are typically 384, 512, or 640.

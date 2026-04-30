@@ -82,14 +82,14 @@ TEST(PoseEstimationGenerateTests, DetectionThresholdAboveOneThrows) {
                RnExecutorchError);
 }
 
-TEST(PoseEstimationGenerateTests, NegativeIouThresholdThrows) {
+TEST(PoseEstimationGenerateTests, NegativeKeypointThresholdThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
   EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, -0.1,
                                               kMethodName),
                RnExecutorchError);
 }
 
-TEST(PoseEstimationGenerateTests, IouThresholdAboveOneThrows) {
+TEST(PoseEstimationGenerateTests, KeypointThresholdAboveOneThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
   EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 1.1,
                                               kMethodName),

@@ -17,14 +17,14 @@ public:
 
   [[nodiscard("Registered non-void function")]] PoseDetections
   generateFromString(std::string imageSource, double detectionThreshold,
-                     double iouThreshold, std::string methodName);
+                     double keypointThreshold, std::string methodName);
   [[nodiscard("Registered non-void function")]] PoseDetections
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
-                    double detectionThreshold, double iouThreshold,
+                    double detectionThreshold, double keypointThreshold,
                     std::string methodName);
   [[nodiscard("Registered non-void function")]] PoseDetections
   generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold,
-                     double iouThreshold, std::string methodName);
+                     double keypointThreshold, std::string methodName);
 
 private:
   std::optional<cv::Scalar> normMean_;
@@ -32,12 +32,13 @@ private:
 
   [[nodiscard("Registered non-void function")]]
   PoseDetections runInference(cv::Mat image, double detectionThreshold,
-                              double iouThreshold,
+                              double keypointThreshold,
                               const std::string &modelName);
 
   [[nodiscard("Registered non-void function")]]
   PoseDetections postprocess(const std::vector<EValue> &evl,
-                             cv::Size originalSize, double detectionThreshold);
+                             cv::Size originalSize, double detectionThreshold,
+                             double keypointThreshold);
 };
 
 } // namespace models::pose_estimation

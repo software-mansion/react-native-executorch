@@ -32,7 +32,8 @@ PoseEstimation::PoseEstimation(const std::string &modelSource,
 
 PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
                                            cv::Size originalSize,
-                                           double detectionThreshold) {
+                                           double detectionThreshold,
+                                           double keypointThreshold) {
   // Output tensors (batch dim squeezed):
   //   0: boxes     (Q, 4)    - xyxy bbox in model input pixel space
   //   1: scores    (Q,)      - person confidence [0, 1]
@@ -75,6 +76,11 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
     const float *detectionKps = kpData + i * numKeypoints * 3;
 
     for (size_t k = 0; k < numKeypoints; ++k) {
+      float visibility = detectionKps[k * 3 + 2];
+      if (visibility < keypointThreshold) {
+        keypoints.emplace_back(-1, -1);
+        continue;
+      }
       float x = detectionKps[k * 3];
       float y = detectionKps[k * 3 + 1];
 
@@ -92,7 +98,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
 
 PoseDetections PoseEstimation::runInference(cv::Mat image,
                                             double detectionThreshold,
-                                            double iouThreshold,
+                                            double keypointThreshold,
                                             const std::string &methodName) {
 
   log(LOG_LEVEL::Debug, "Running inference with model name: " + methodName);
@@ -101,9 +107,9 @@ PoseDetections PoseEstimation::runInference(cv::Mat image,
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "detectionThreshold must be in range [0, 1]");
   }
-  if (iouThreshold < 0.0 || iouThreshold > 1.0) {
+  if (keypointThreshold < 0.0 || keypointThreshold > 1.0) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "iouThreshold must be in range [0, 1]");
+                            "keypointThreshold must be in range [0, 1]");
   }
 
   std::scoped_lock lock(inference_mutex_);
@@ -132,30 +138,31 @@ PoseDetections PoseEstimation::runInference(cv::Mat image,
                                 "Ensure the model input is correct.");
   }
 
-  return postprocess(executeResult.get(), originalSize, detectionThreshold);
+  return postprocess(executeResult.get(), originalSize, detectionThreshold,
+                     keypointThreshold);
 }
 
 PoseDetections PoseEstimation::generateFromString(std::string imageSource,
                                                   double detectionThreshold,
-                                                  double iouThreshold,
+                                                  double keypointThreshold,
                                                   std::string methodName) {
   cv::Mat imageBGR = image_processing::readImage(imageSource);
   cv::Mat imageRGB;
   cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-  return runInference(std::move(imageRGB), detectionThreshold, iouThreshold,
-                      methodName);
+  return runInference(std::move(imageRGB), detectionThreshold,
+                      keypointThreshold, methodName);
 }
 
 PoseDetections PoseEstimation::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData,
                                                  double detectionThreshold,
-                                                 double iouThreshold,
+                                                 double keypointThreshold,
                                                  std::string methodName) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
   auto detections =
-      runInference(rotated, detectionThreshold, iouThreshold, methodName);
+      runInference(rotated, detectionThreshold, keypointThreshold, methodName);
   for (auto &person : detections) {
     ::rnexecutorch::utils::inverseRotatePoints(person, orient, rotated.size());
   }
@@ -164,10 +171,10 @@ PoseDetections PoseEstimation::generateFromFrame(jsi::Runtime &runtime,
 
 PoseDetections PoseEstimation::generateFromPixels(JSTensorViewIn pixelData,
                                                   double detectionThreshold,
-                                                  double iouThreshold,
+                                                  double keypointThreshold,
                                                   std::string methodName) {
   cv::Mat image = extractFromPixels(pixelData);
-  return runInference(image, detectionThreshold, iouThreshold, methodName);
+  return runInference(image, detectionThreshold, keypointThreshold, methodName);
 }
 
 } // namespace rnexecutorch::models::pose_estimation
