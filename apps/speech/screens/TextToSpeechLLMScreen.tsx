@@ -12,7 +12,7 @@ import SWMIcon from '../assets/swm_icon.svg';
 import {
   useLLM,
   useTextToSpeech,
-  KOKORO,
+  KOKORO_STANDARD,
   KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART,
   LLAMA3_2_1B_QLORA,
 } from 'react-native-executorch';
@@ -55,7 +55,7 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
   const [isTtsStreaming, setIsTtsStreaming] = useState(false);
   const llm = useLLM({ model: LLAMA3_2_1B_QLORA });
   const tts = useTextToSpeech({
-    model: KOKORO,
+    model: KOKORO_STANDARD,
     voice: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART,
   });
 

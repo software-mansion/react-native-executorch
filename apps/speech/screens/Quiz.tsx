@@ -18,7 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO,
+  KOKORO_STANDARD,
   KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
   useTextToSpeech,
 } from 'react-native-executorch';
@@ -61,7 +61,7 @@ const createAudioBufferFromVector = (
 export const Quiz = ({ onBack }: { onBack: () => void }) => {
   // --- Hooks & State ---
   const model = useTextToSpeech({
-    model: KOKORO,
+    model: KOKORO_STANDARD,
     voice: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
   });
 
