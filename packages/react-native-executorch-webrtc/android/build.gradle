@@ -74,6 +74,9 @@ dependencies {
 
     // WebRTC classes - provided by app via autolinking
     compileOnly project(':fishjam-cloud_react-native-webrtc')
-    // ExecuTorch for vision model processing
-    compileOnly project(':react-native-executorch')
+    // ExecuTorch for vision model processing.
+    // Must be `implementation` (not compileOnly) so AGP exposes the producer's
+    // prefab .so to our CMake link step. The packaging.jniLibs.excludes block
+    // above prevents double-bundling — the app gets the .so from the main pkg.
+    implementation project(':react-native-executorch')
 }

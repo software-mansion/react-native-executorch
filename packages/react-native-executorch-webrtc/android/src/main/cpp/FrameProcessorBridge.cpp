@@ -1,6 +1,7 @@
 #include <android/log.h>
 #include <jni.h>
 #include <memory>
+#include <mutex>
 #include <opencv2/opencv.hpp>
 #include <set>
 #include <string>
@@ -17,22 +18,33 @@
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::semantic_segmentation;
 
-// Global segmentation model instance (reuses react-native-executorch's
-// implementation)
-static std::unique_ptr<BaseSemanticSegmentation> g_segmentation = nullptr;
-static bool g_modelLoaded = false;
-static std::string g_modelPath;
+namespace {
 
-// Model input dimensions (dynamically read from model)
-static int32_t g_modelHeight = 256;
-static int32_t g_modelWidth = 256;
+// Bundles the segmentation instance with the dims read from it. Held by
+// shared_ptr so an in-flight runSegmentation keeps the model alive even if
+// unloadModel runs concurrently on another thread (no UAF), and load->run
+// publication is via the mutex (no torn reads / null-deref races).
+struct LoadedModel {
+  std::unique_ptr<BaseSemanticSegmentation> segmentation;
+  int32_t modelWidth = 256;
+  int32_t modelHeight = 256;
+};
 
-// Mask post-processing state (EMA temporal smoothing)
-static cv::Mat g_previousMask;
-static bool g_hasHistory = false;
-static constexpr float EMA_ALPHA = 0.5f;
+std::mutex g_modelMutex;
+std::shared_ptr<LoadedModel> g_model; // null when unloaded
 
-static cv::Mat rotateMat(const cv::Mat &src, int rotation) {
+std::shared_ptr<LoadedModel> snapshotModel() {
+  std::lock_guard<std::mutex> lock(g_modelMutex);
+  return g_model;
+}
+
+// Mask post-processing state (EMA temporal smoothing). Touched only on the
+// capture thread; unload resets it.
+cv::Mat g_previousMask;
+bool g_hasHistory = false;
+constexpr float EMA_ALPHA = 0.5f;
+
+cv::Mat rotateMat(const cv::Mat &src, int rotation) {
   cv::Mat dst;
   if (rotation == 90) {
     cv::rotate(src, dst, cv::ROTATE_90_CLOCKWISE);
@@ -46,11 +58,10 @@ static cv::Mat rotateMat(const cv::Mat &src, int rotation) {
   return dst;
 }
 
+} // namespace
+
 extern "C" {
 
-/**
- * Load the segmentation model using BaseSemanticSegmentation
- */
 JNIEXPORT jboolean JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     JNIEnv *env, jobject thiz, jstring modelPath) {
@@ -59,58 +70,48 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     LOGE("Failed to get model path string");
     return JNI_FALSE;
   }
-
-  g_modelPath = std::string(pathChars);
+  std::string path(pathChars);
   env->ReleaseStringUTFChars(modelPath, pathChars);
 
-  LOGD("Loading segmentation model via BaseSemanticSegmentation: %s",
-       g_modelPath.c_str());
+  LOGD("Loading segmentation model: %s", path.c_str());
 
   try {
-    // Create BaseSemanticSegmentation with:
-    // - modelSource: path to .pte file
-    // - normMean: empty (uses default 0, which means /255.0 normalization)
-    // - normStd: empty (uses default 1)
-    // - allClasses: ["foreground", "background"] for binary segmentation
-    // - callInvoker: nullptr (we don't need JSI operations)
-    std::vector<float> normMean = {}; // Default normalization
+    std::vector<float> normMean = {};
     std::vector<float> normStd = {};
     std::vector<std::string> allClasses = {"foreground", "background"};
 
-    g_segmentation = std::make_unique<BaseSemanticSegmentation>(
-        g_modelPath, normMean, normStd, allClasses, nullptr);
+    auto loaded = std::make_shared<LoadedModel>();
+    loaded->segmentation = std::make_unique<BaseSemanticSegmentation>(
+        path, normMean, normStd, allClasses, nullptr);
 
-    // Get model input size from shape [N, C, H, W]
-    auto inputShapes = g_segmentation->getAllInputShapes();
+    auto inputShapes = loaded->segmentation->getAllInputShapes();
     if (!inputShapes.empty() && inputShapes[0].size() >= 4) {
-      g_modelHeight = inputShapes[0][inputShapes[0].size() - 2];
-      g_modelWidth = inputShapes[0][inputShapes[0].size() - 1];
+      loaded->modelHeight = inputShapes[0][inputShapes[0].size() - 2];
+      loaded->modelWidth = inputShapes[0][inputShapes[0].size() - 1];
+    }
+    LOGD("Model input size: %dx%d", loaded->modelWidth, loaded->modelHeight);
+
+    {
+      std::lock_guard<std::mutex> lock(g_modelMutex);
+      g_model = std::move(loaded);
     }
 
-    LOGD("Model input size: %dx%d", g_modelWidth, g_modelHeight);
-
-    g_modelLoaded = true;
-    LOGD("Segmentation model loaded successfully via "
-         "BaseSemanticSegmentation!");
+    LOGD("Segmentation model loaded successfully!");
     return JNI_TRUE;
   } catch (const std::exception &e) {
     LOGE("Failed to load model: %s", e.what());
-    g_modelLoaded = false;
-    g_segmentation.reset();
     return JNI_FALSE;
   }
 }
 
-/**
- * Run segmentation on RGBA pixels, returns grayscale mask (0-255 bytes).
- * Used by GL-based blur pipeline.
- */
 JNIEXPORT jbyteArray JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
     JNIEnv *env, jobject thiz, jbyteArray rgbaData, jint width, jint height,
     jint rotation) {
-
-  if (!g_modelLoaded || !g_segmentation) {
+  // Snapshot under the mutex so a concurrent unloadModel can't free the model
+  // out from under us — the local shared_ptr keeps it alive for this call.
+  auto model = snapshotModel();
+  if (!model) {
     LOGE("Model not loaded, cannot run segmentation");
     return nullptr;
   }
@@ -128,35 +129,32 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
 
     cv::Mat rgbRotated = rotateMat(rgb, rotation);
 
-    // Run segmentation model
     JSTensorViewIn pixelData;
     pixelData.dataPtr = rgbRotated.data;
     pixelData.sizes = {rgbRotated.rows, rgbRotated.cols, 3};
     pixelData.scalarType = executorch::aten::ScalarType::Byte;
 
     std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
-    auto result =
-        g_segmentation->generateFromPixels(pixelData, classesOfInterest, false);
+    auto result = model->segmentation->generateFromPixels(
+        pixelData, classesOfInterest, false);
 
-    // Extract mask
     cv::Mat mask;
     if (result.classBuffers && result.classBuffers->count("foreground")) {
       auto &fgBuffer = result.classBuffers->at("foreground");
       auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
-      mask = cv::Mat(g_modelHeight, g_modelWidth, CV_32FC1, fgData).clone();
+      mask = cv::Mat(model->modelHeight, model->modelWidth, CV_32FC1, fgData)
+                 .clone();
     } else {
       LOGE("No foreground mask in result");
       env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
       return nullptr;
     }
 
-    // Post-process mask: binarize + morphological cleaning + EMA smoothing
     cv::threshold(mask, mask, 0.5, 1.0, cv::THRESH_BINARY);
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
     cv::erode(mask, mask, kernel);
     cv::dilate(mask, mask, kernel);
 
-    // EMA temporal smoothing
     if (!g_hasHistory || g_previousMask.size() != mask.size()) {
       g_previousMask = mask.clone();
       g_hasHistory = true;
@@ -166,7 +164,6 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
       mask = g_previousMask.clone();
     }
 
-    // Rotate mask back to original orientation
     cv::Mat maskRotated;
     if (rotation == 90) {
       cv::rotate(mask, maskRotated, cv::ROTATE_90_COUNTERCLOCKWISE);
@@ -178,26 +175,21 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
       maskRotated = mask;
     }
 
-    // Resize mask to input dimensions
     cv::Mat maskResized;
     cv::resize(maskRotated, maskResized, cv::Size(width, height), 0, 0,
                cv::INTER_LINEAR);
 
-    // Convert float mask (0-1) to bytes (0-255)
     cv::Mat maskBytes;
     maskResized.convertTo(maskBytes, CV_8UC1, 255.0);
 
-    // Create output array
     const int maskSize = width * height;
     jbyteArray output = env->NewByteArray(maskSize);
     if (!output) {
       env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
       return nullptr;
     }
-
     env->SetByteArrayRegion(output, 0, maskSize,
                             reinterpret_cast<jbyte *>(maskBytes.data));
-
     env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
     return output;
 
@@ -208,22 +200,23 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
   }
 }
 
-/**
- * Unload the segmentation model and release all buffers
- */
 JNIEXPORT void JNICALL
 Java_com_executorch_webrtc_ExecutorchFrameProcessor_unloadModel(JNIEnv *env,
                                                                 jobject thiz) {
-  LOGD("Unloading segmentation model and releasing resources");
+  LOGD("Unloading segmentation model");
 
-  g_segmentation.reset();
-  g_modelLoaded = false;
-  g_modelPath.clear();
+  // Drop the publication ref. Any in-flight runSegmentation holds its own
+  // shared_ptr and will keep the underlying segmentation alive until it
+  // returns, then release it.
+  {
+    std::lock_guard<std::mutex> lock(g_modelMutex);
+    g_model.reset();
+  }
 
-  // Reset EMA state
   g_previousMask.release();
   g_hasHistory = false;
 
-  LOGD("Model unloaded and resources released");
+  LOGD("Model unloaded");
 }
+
 } // extern "C"

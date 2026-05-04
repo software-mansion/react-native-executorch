@@ -9,15 +9,32 @@
 #import <rnexecutorch/host_objects/JSTensorViewIn.h>
 #import <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
 
+#include <memory>
+#include <mutex>
+
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::semantic_segmentation;
 
+namespace {
+// Bundles the segmentation instance with the dims read from it. Held by
+// shared_ptr so an in-flight processFrame keeps the model alive even if
+// unloadModel runs concurrently — load happens on a background queue (see
+// configureWithModelPath), processing happens on the capture queue, and
+// unloadModel is reachable from the public API. The mutex publishes
+// load->process atomically; the shared_ptr snapshot pins lifetime across the
+// long generateFromPixels call.
+struct LoadedModel {
+  std::unique_ptr<BaseSemanticSegmentation> segmentation;
+  int modelWidth = 256;
+  int modelHeight = 256;
+};
+} // namespace
+
 @implementation ExecutorchFrameProcessor {
-  // ExecuTorch model
-  std::unique_ptr<BaseSemanticSegmentation> _segmentation;
-  BOOL _modelLoaded;
-  int _modelWidth;
-  int _modelHeight;
+  // ExecuTorch model — null when not loaded. Always read/written under
+  // _modelMutex; readers snapshot to a local shared_ptr to pin lifetime.
+  std::shared_ptr<LoadedModel> _loadedModel;
+  std::mutex _modelMutex;
 
   // Core Image context for GPU-accelerated processing
   CIContext *_ciContext;
@@ -31,7 +48,6 @@ using namespace rnexecutorch::models::semantic_segmentation;
   // Frame dropping
   RTCVideoFrame *_lastProcessedFrame;
   BOOL _isProcessing;
-  BOOL _ready;
 
   // Temporal smoothing (EMA)
   cv::Mat _previousMask;
@@ -55,12 +71,8 @@ using namespace rnexecutorch::models::semantic_segmentation;
 - (instancetype)init {
   self = [super init];
   if (self) {
-    _modelLoaded = NO;
-    _modelWidth = 256;
-    _modelHeight = 256;
     _blurRadius = 12.0f;
     _isProcessing = NO;
-    _ready = NO;
     _emaAlpha = 0.5f;
     _frameCount = 0;
     _lastLogTime = 0;
@@ -83,24 +95,25 @@ using namespace rnexecutorch::models::semantic_segmentation;
       std::vector<float> normStd = {};
       std::vector<std::string> allClasses = {"foreground", "background"};
 
-      self->_segmentation = std::make_unique<BaseSemanticSegmentation>(
+      auto loaded = std::make_shared<LoadedModel>();
+      loaded->segmentation = std::make_unique<BaseSemanticSegmentation>(
           std::string([modelPath UTF8String]), normMean, normStd, allClasses,
           nullptr);
 
-      auto inputShapes = self->_segmentation->getAllInputShapes();
+      auto inputShapes = loaded->segmentation->getAllInputShapes();
       if (!inputShapes.empty() && inputShapes[0].size() >= 4) {
-        self->_modelHeight = inputShapes[0][inputShapes[0].size() - 2];
-        self->_modelWidth = inputShapes[0][inputShapes[0].size() - 1];
+        loaded->modelHeight = inputShapes[0][inputShapes[0].size() - 2];
+        loaded->modelWidth = inputShapes[0][inputShapes[0].size() - 1];
       }
 
-      self->_modelLoaded = YES;
-      self->_ready = YES;
-      NSLog(@"[ExecutorchFrameProcessor] Model loaded! Size: %dx%d",
-            self->_modelWidth, self->_modelHeight);
+      {
+        std::lock_guard<std::mutex> lock(self->_modelMutex);
+        self->_loadedModel = std::move(loaded);
+      }
+      NSLog(@"[ExecutorchFrameProcessor] Model loaded!");
     } @catch (NSException *exception) {
       NSLog(@"[ExecutorchFrameProcessor] Failed to load model: %@",
             exception.reason);
-      self->_modelLoaded = NO;
     }
   });
 }
@@ -110,9 +123,13 @@ using namespace rnexecutorch::models::semantic_segmentation;
 }
 
 - (void)unloadModel {
-  _segmentation.reset();
-  _modelLoaded = NO;
-  _ready = NO;
+  // Drop the publication ref. Any in-flight processFrame holds its own
+  // shared_ptr snapshot and will keep the segmentation alive until it
+  // returns, then release it.
+  {
+    std::lock_guard<std::mutex> lock(_modelMutex);
+    _loadedModel.reset();
+  }
   _previousMask.release();
 
   // Release cached frame
@@ -137,8 +154,11 @@ using namespace rnexecutorch::models::semantic_segmentation;
 
 - (RTCVideoFrame *)capturer:(RTCVideoCapturer *)capturer
        didCaptureVideoFrame:(RTCVideoFrame *)frame {
-  if (!_ready || !_modelLoaded) {
-    return frame;
+  {
+    std::lock_guard<std::mutex> lock(_modelMutex);
+    if (!_loadedModel) {
+      return frame;
+    }
   }
 
   // Frame dropping when busy
@@ -147,9 +167,18 @@ using namespace rnexecutorch::models::semantic_segmentation;
   }
 
   _isProcessing = YES;
-  RTCVideoFrame *result = [self processFrame:frame];
-  _lastProcessedFrame = result;
+  RTCVideoFrame *result = nil;
+  @try {
+    result = [self processFrame:frame];
+  } @catch (NSException *e) {
+    // Swallow so _isProcessing always resets below; one bad frame won't lock
+    // the pipeline.
+  }
   _isProcessing = NO;
+  if (!result) {
+    return _lastProcessedFrame ?: frame;
+  }
+  _lastProcessedFrame = result;
   return result;
 }
 
@@ -263,7 +292,14 @@ using namespace rnexecutorch::models::semantic_segmentation;
 
 - (CIImage *)generateMaskForPixelBuffer:(CVPixelBufferRef)pixelBuffer
                                rotation:(RTCVideoRotation)rotation {
-  if (!_modelLoaded || !_segmentation) {
+  // Snapshot under the mutex so unloadModel can't free the segmentation
+  // mid-call — the local shared_ptr pins lifetime through generateFromPixels.
+  std::shared_ptr<LoadedModel> model;
+  {
+    std::lock_guard<std::mutex> lock(_modelMutex);
+    model = _loadedModel;
+  }
+  if (!model) {
     return nil;
   }
 
@@ -332,13 +368,14 @@ using namespace rnexecutorch::models::semantic_segmentation;
     pixelData.scalarType = executorch::aten::ScalarType::Byte;
 
     std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
-    auto result =
-        _segmentation->generateFromPixels(pixelData, classesOfInterest, false);
+    auto result = model->segmentation->generateFromPixels(
+        pixelData, classesOfInterest, false);
 
     if (result.classBuffers && result.classBuffers->count("foreground")) {
       auto &fgBuffer = result.classBuffers->at("foreground");
       auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
-      mask = cv::Mat(_modelHeight, _modelWidth, CV_32FC1, fgData).clone();
+      mask = cv::Mat(model->modelHeight, model->modelWidth, CV_32FC1, fgData)
+                 .clone();
     } else {
       return nil;
     }
@@ -375,8 +412,10 @@ using namespace rnexecutorch::models::semantic_segmentation;
   cv::erode(maskRotated, maskRotated, kernel, cv::Point(-1, -1), 1);
   cv::dilate(maskRotated, maskRotated, kernel, cv::Point(-1, -1), 1);
 
-  // Blur mask edges for smooth transition (match Android: sigma=5.0)
-  cv::GaussianBlur(maskRotated, maskRotated, cv::Size(0, 0), 5.0);
+  // Match Android's mask softness — Android applies two GPU mask-blur passes
+  // at sigma 5 (effective sigma ~ 5*sqrt(2)). One OpenCV pass at sigma 7 gets
+  // close enough on iOS without an extra round trip.
+  cv::GaussianBlur(maskRotated, maskRotated, cv::Size(0, 0), 7.0);
 
   // Convert to 8-bit grayscale
   cv::Mat mask8u;

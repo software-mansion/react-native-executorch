@@ -133,7 +133,7 @@ public class GlBlurRenderer {
     private ByteBuffer segPixelBuffer;
 
     public GlBlurRenderer() {
-        computeGaussianKernel(12.0f, blurWeights, blurOffsets);
+        setBlurRadius(12.0f);
         computeGaussianKernel(MASK_BLUR_SIGMA, maskBlurWeights, maskBlurOffsets);
     }
 
@@ -310,16 +310,26 @@ public class GlBlurRenderer {
         GlFramebuffer.unbind();
     }
 
-    public void setBlurRadius(float sigma) {
-        computeGaussianKernel(sigma, blurWeights, blurOffsets);
+    public void setBlurRadius(float radius) {
+        // renderBlur applies two H+V Gaussian passes in series, which composes
+        // to sigma*sqrt(2). Per-pass sigma is scaled so the final effective
+        // sigma matches `radius` — same semantics as iOS CIGaussianBlur where
+        // the radius parameter is the Gaussian sigma.
+        float perPassSigma = (float) (Math.max(radius, 0.0f) / Math.sqrt(2.0));
+        computeGaussianKernel(perPassSigma, blurWeights, blurOffsets);
     }
 
     private void computeGaussianKernel(float sigma, float[] weights, float[] offsets) {
+        // Stride taps to span ~±3σ. With unit stride and only 9 taps, anything
+        // beyond sigma ~ 2.7 truncates the Gaussian and the blur looks weak.
+        float effectiveSigma = Math.max(sigma, 1e-4f);
+        float step = Math.max(1.0f, effectiveSigma * 3.0f / 8.0f);
+        float twoSigmaSq = 2.0f * effectiveSigma * effectiveSigma;
         float sum = 0;
         for (int i = 0; i < 9; i++) {
-            offsets[i] = (float) i;
-            weights[i] = (float) (Math.exp(-(i * i) / (2.0 * sigma * sigma))
-                    / (Math.sqrt(2.0 * Math.PI) * sigma));
+            float x = i * step;
+            offsets[i] = x;
+            weights[i] = (float) Math.exp(-(x * x) / twoSigmaSq);
             sum += (i == 0) ? weights[i] : 2.0f * weights[i];
         }
         for (int i = 0; i < 9; i++) {
