@@ -224,8 +224,8 @@ export const KOKORO_VOICE_PORTUGUESE_MALE_SANTA = {
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_POLISH_MALE_STASZEK = {
-  voiceSource: `${KOKORO_VOICE_PREFIX}/jm_kumo.bin`,
+export const KOKORO_VOICE_POLISH_MALE_MATEUSZ = {
+  voiceSource: `${KOKORO_VOICE_PREFIX}/pm_mateusz.bin`,
   phonemizerConfig: {
     lang: 'pl' as const,
     neuralModelSource: KOKORO_PHONEMIZER_PL_MODEL,

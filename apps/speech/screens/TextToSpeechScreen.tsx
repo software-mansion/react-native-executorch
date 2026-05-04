@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO,
+  KOKORO_STANDARD,
+  KOKORO_POLISH,
   KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART,
   KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER,
   KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH,
@@ -29,7 +30,7 @@ import {
   KOKORO_VOICE_ITALIAN_MALE_NICOLA,
   KOKORO_VOICE_PORTUGUESE_FEMALE_DORA,
   KOKORO_VOICE_PORTUGUESE_MALE_SANTA,
-  KOKORO_VOICE_POLISH_MALE_STASZEK,
+  KOKORO_VOICE_POLISH_MALE_MATEUSZ,
   KOKORO_VOICE_HINDI_FEMALE_ALPHA,
   KOKORO_VOICE_HINDI_MALE_OMEGA,
   KOKORO_VOICE_HINDI_MALE_PSI,
@@ -37,7 +38,8 @@ import {
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
 const TTS_MODELS: ModelOption<TextToSpeechModelSources>[] = [
-  { label: 'Kokoro', value: KOKORO },
+  { label: 'Kokoro Standard', value: KOKORO_STANDARD },
+  { label: 'Kokoro Polish', value: KOKORO_POLISH },
 ];
 
 const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
@@ -56,7 +58,7 @@ const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
   { label: '🇮🇹 IM Nicola', value: KOKORO_VOICE_ITALIAN_MALE_NICOLA },
   { label: '🇵🇹 PF Dora', value: KOKORO_VOICE_PORTUGUESE_FEMALE_DORA },
   { label: '🇵🇹 PM Santa', value: KOKORO_VOICE_PORTUGUESE_MALE_SANTA },
-  { label: '🇵🇱 PM Staszek', value: KOKORO_VOICE_POLISH_MALE_STASZEK },
+  { label: '🇵🇱 PM Mateusz', value: KOKORO_VOICE_POLISH_MALE_MATEUSZ },
   { label: '🇮🇳 HF Alpha', value: KOKORO_VOICE_HINDI_FEMALE_ALPHA },
   { label: '🇮🇳 HM Omega', value: KOKORO_VOICE_HINDI_MALE_OMEGA },
   { label: '🇮🇳 HM Psi', value: KOKORO_VOICE_HINDI_MALE_PSI },
@@ -99,7 +101,7 @@ const createAudioBufferFromVector = (
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] =
-    useState<TextToSpeechModelSources>(KOKORO);
+    useState<TextToSpeechModelSources>(KOKORO_POLISH);
   const [selectedVoice, setSelectedVoice] = useState<TextToSpeechVoiceConfig>(
     KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART
   );
@@ -178,6 +180,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
 
       await model.stream({
         text: inputText,
+        phonemize: true,
         onNext,
         onEnd,
       });
