@@ -118,17 +118,6 @@ export enum CocoLabel {
  * @see {@link CocoLabel} for the RF-DETR / SSDLite variant
  * @category Types
  */
-/**
- * Class label for FastSAM models.
- *
- * FastSAM is class-agnostic and produces a single "object" class for every
- * detected region. Use this enum when working with `fastsam-s` or `fastsam-x`.
- * @category Types
- */
-export enum FastSAMLabel {
-  OBJECT = 0,
-}
-
 export enum CocoLabelYolo {
   PERSON = 0,
   BICYCLE = 1,
@@ -210,4 +199,15 @@ export enum CocoLabelYolo {
   TEDDY_BEAR = 77,
   HAIR_DRIER = 78,
   TOOTHBRUSH = 79,
+}
+
+/**
+ * Class label for FastSAM models.
+ *
+ * FastSAM is class-agnostic and produces a single "object" class for every
+ * detected region. Use this enum when working with `fastsam-s` or `fastsam-x`.
+ * @category Types
+ */
+export enum FastSAMLabel {
+  OBJECT = 0,
 }
