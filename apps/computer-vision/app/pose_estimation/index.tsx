@@ -15,28 +15,10 @@ import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
 import Svg, { Circle, Line } from 'react-native-svg';
 import ErrorBanner from '../../components/ErrorBanner';
+import { COCO_SKELETON_CONNECTIONS } from '../../components/utils/cocoSkeleton';
 
 // Colors for different people
 const PERSON_COLORS = ['lime', 'cyan', 'magenta', 'yellow', 'orange', 'pink'];
-
-const COCO_SKELETON_CONNECTIONS = [
-  ['NOSE', 'LEFT_EYE'],
-  ['NOSE', 'RIGHT_EYE'],
-  ['LEFT_EYE', 'LEFT_EAR'],
-  ['RIGHT_EYE', 'RIGHT_EAR'],
-  ['LEFT_SHOULDER', 'RIGHT_SHOULDER'],
-  ['LEFT_SHOULDER', 'LEFT_ELBOW'],
-  ['LEFT_ELBOW', 'LEFT_WRIST'],
-  ['RIGHT_SHOULDER', 'RIGHT_ELBOW'],
-  ['RIGHT_ELBOW', 'RIGHT_WRIST'],
-  ['LEFT_SHOULDER', 'LEFT_HIP'],
-  ['RIGHT_SHOULDER', 'RIGHT_HIP'],
-  ['LEFT_HIP', 'RIGHT_HIP'],
-  ['LEFT_HIP', 'LEFT_KNEE'],
-  ['LEFT_KNEE', 'LEFT_ANKLE'],
-  ['RIGHT_HIP', 'RIGHT_KNEE'],
-  ['RIGHT_KNEE', 'RIGHT_ANKLE'],
-] as const;
 
 export default function PoseEstimationScreen() {
   const [imageUri, setImageUri] = useState('');

@@ -9,30 +9,12 @@ import {
   YOLO26N_POSE,
 } from 'react-native-executorch';
 import { TaskProps } from './types';
+import { COCO_SKELETON_CONNECTIONS } from '../../utils/cocoSkeleton';
 
 type Props = TaskProps & { activeModel: 'poseEstimationYolo26n' };
 
 // Colors for different people
 const PERSON_COLORS = ['lime', 'cyan', 'magenta', 'yellow', 'orange', 'pink'];
-
-const COCO_SKELETON_CONNECTIONS = [
-  ['NOSE', 'LEFT_EYE'],
-  ['NOSE', 'RIGHT_EYE'],
-  ['LEFT_EYE', 'LEFT_EAR'],
-  ['RIGHT_EYE', 'RIGHT_EAR'],
-  ['LEFT_SHOULDER', 'RIGHT_SHOULDER'],
-  ['LEFT_SHOULDER', 'LEFT_ELBOW'],
-  ['LEFT_ELBOW', 'LEFT_WRIST'],
-  ['RIGHT_SHOULDER', 'RIGHT_ELBOW'],
-  ['RIGHT_ELBOW', 'RIGHT_WRIST'],
-  ['LEFT_SHOULDER', 'LEFT_HIP'],
-  ['RIGHT_SHOULDER', 'RIGHT_HIP'],
-  ['LEFT_HIP', 'RIGHT_HIP'],
-  ['LEFT_HIP', 'LEFT_KNEE'],
-  ['LEFT_KNEE', 'LEFT_ANKLE'],
-  ['RIGHT_HIP', 'RIGHT_KNEE'],
-  ['RIGHT_KNEE', 'RIGHT_ANKLE'],
-] as const;
 
 export default function PoseEstimationTask({
   activeModel,
@@ -143,7 +125,10 @@ export default function PoseEstimationTask({
         {detections.map((personKeypoints, personIdx) => {
           const color = PERSON_COLORS[personIdx % PERSON_COLORS.length];
           const isVisible = (kp: { x: number; y: number }) =>
-            kp.x >= 0 && kp.y >= 0;
+            kp.x >= 0 &&
+            kp.y >= 0 &&
+            kp.x <= imageSize.width &&
+            kp.y <= imageSize.height;
           return (
             <React.Fragment key={`person-${personIdx}`}>
               {/* Draw skeleton lines */}

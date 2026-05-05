@@ -100,9 +100,13 @@ void inverseRotatePoints(Points &points, const FrameOrientation &orient,
       p.y = static_cast<Coord>(x);
       break;
     case Orientation::Right:
-      // upside-down portrait → portrait: nx = w-x, ny = h-y
+#if defined(__APPLE__)
+      // iOS upside-down portrait → portrait: nx = w-x, ny = h-y
       p.x = static_cast<Coord>(w - x);
       p.y = static_cast<Coord>(h - y);
+#endif
+      // Android front-cam upright portrait: rotated frame already in
+      // screen space (mirror-selfie portrait), no inverse needed.
       break;
     case Orientation::Down:
       // landscape-right → portrait: nx = y, ny = w-x

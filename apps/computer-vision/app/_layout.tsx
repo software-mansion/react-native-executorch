@@ -150,6 +150,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="pose_estimation/index"
+          options={{
+            drawerLabel: 'Pose Estimation',
+            title: 'Pose Estimation',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="ocr/index"
           options={{
             drawerLabel: 'OCR',
