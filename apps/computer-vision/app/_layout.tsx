@@ -189,6 +189,14 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="fast_sam/index"
+          options={{
+            drawerLabel: 'FastSAM',
+            title: 'FastSAM',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );

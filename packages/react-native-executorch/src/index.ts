@@ -212,6 +212,7 @@ export * from './utils/BaseResourceFetcherClass';
 export * from './utils/llm';
 export * from './common/Logger';
 export * from './utils/llms/context_strategy';
+export * from './utils/fastSAMPrompts';
 
 // types
 export * from './types/objectDetection';
