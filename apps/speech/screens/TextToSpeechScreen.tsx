@@ -117,6 +117,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [error, setError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<any>(null);
   const sourceRef = useRef<AudioBufferSourceNode>(null);
 
   useEffect(() => {
@@ -126,12 +127,20 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-    audioContextRef.current.suspend();
+    const context = new AudioContext({ sampleRate: 24000 });
+    audioContextRef.current = context;
+    context.suspend();
+
+    // Increase the audio volume
+    const gainNode = context.createGain();
+    gainNode.gain.value = 2.0; // Increase volume by 2x
+    gainNode.connect(context.destination);
+    gainNodeRef.current = gainNode;
 
     return () => {
       audioContextRef.current?.close();
       audioContextRef.current = null;
+      gainNodeRef.current = null;
     };
   }, []);
 
@@ -165,7 +174,12 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           const source = (sourceRef.current =
             audioContext.createBufferSource());
           source.buffer = audioBuffer;
-          source.connect(audioContext.destination);
+
+          if (gainNodeRef.current) {
+            source.connect(gainNodeRef.current);
+          } else {
+            source.connect(audioContext.destination);
+          }
 
           source.onEnded = () => resolve();
 
