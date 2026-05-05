@@ -58,6 +58,11 @@ declare global {
     normStd: Triple<number> | [],
     labelNames: string[]
   ) => Promise<any>;
+  var loadPoseEstimation: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
+  ) => Promise<any>;
   var loadExecutorchModule: (source: string) => Promise<any>;
   var loadTokenizerModule: (source: string) => Promise<any>;
   var loadImageEmbeddings: (source: string) => Promise<any>;
@@ -124,6 +129,7 @@ if (
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
   global.loadObjectDetection == null ||
+  global.loadPoseEstimation == null ||
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
@@ -165,6 +171,7 @@ export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
 export * from './hooks/computer_vision/useTextToImage';
+export * from './hooks/computer_vision/usePoseEstimation';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
@@ -186,6 +193,7 @@ export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
 export * from './modules/computer_vision/TextToImageModule';
+export * from './modules/computer_vision/PoseEstimationModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
@@ -223,6 +231,7 @@ export * from './types/classification';
 export * from './types/imageEmbeddings';
 export * from './types/styleTransfer';
 export * from './types/tti';
+export * from './types/poseEstimation';
 
 // constants
 export * from './constants/commonVision';
@@ -232,6 +241,7 @@ export * from './constants/ocr/models';
 export * from './constants/tts/models';
 export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
+export * from './constants/poseEstimation';
 
 export { RnExecutorchError } from './errors/errorUtils';
 export { RnExecutorchErrorCode } from './errors/ErrorCodes';

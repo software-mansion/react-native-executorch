@@ -21,7 +21,14 @@ cv::Mat rotateFrameForModel(const cv::Mat &mat,
     cv::rotate(result, result, cv::ROTATE_90_CLOCKWISE);
     break;
   case Orientation::Right:
+#if defined(__APPLE__)
     cv::rotate(result, result, cv::ROTATE_90_COUNTERCLOCKWISE);
+#else
+    // Android front-cam in upright portrait reports orient=Right with
+    // isMirrored=true; the sensor mount needs CW (same as back-cam Left)
+    // to land upright for the model after the horizontal flip above.
+    cv::rotate(result, result, cv::ROTATE_90_CLOCKWISE);
+#endif
     break;
   case Orientation::Down:
     cv::rotate(result, result, cv::ROTATE_180);
@@ -50,13 +57,17 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
     break;
   }
   case Orientation::Right: {
-    // upside-down portrait → portrait: nx = w - x, ny = h - y
+#if defined(__APPLE__)
+    // iOS upside-down portrait → portrait: nx = w - x, ny = h - y
     float nx1 = w - bbox.x2, ny1 = h - bbox.y2;
     float nx2 = w - bbox.x1, ny2 = h - bbox.y1;
     bbox.x1 = nx1;
     bbox.y1 = ny1;
     bbox.x2 = nx2;
     bbox.y2 = ny2;
+#endif
+    // Android front-cam upright portrait: rotated frame already in screen
+    // space, no inverse needed.
     break;
   }
   case Orientation::Down: {
@@ -99,7 +110,12 @@ cv::Mat inverseRotateMat(const cv::Mat &mat, const FrameOrientation &orient) {
     cv::rotate(mat, result, cv::ROTATE_90_CLOCKWISE);
     break;
   case Orientation::Right:
+#if defined(__APPLE__)
     cv::rotate(mat, result, cv::ROTATE_180);
+#else
+    // Android front-cam upright portrait: mask already in screen space.
+    result = mat;
+#endif
     break;
   case Orientation::Down:
     cv::rotate(mat, result, cv::ROTATE_90_COUNTERCLOCKWISE);

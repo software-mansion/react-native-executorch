@@ -10,6 +10,7 @@ const VALID_CATEGORIES = [
   'Models - LLM',
   'Models - Object Detection',
   'Models - Instance Segmentation',
+  'Models - Pose Estimation',
   'Models - Semantic Segmentation',
   'Models - Speech To Text',
   'Models - Style Transfer',

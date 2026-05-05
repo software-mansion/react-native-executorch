@@ -34,6 +34,7 @@ TEST_EXECUTABLES=(
   "LLMTests"
   "TextToImageTests"
   "InstanceSegmentationTests"
+  "PoseEstimationTests"
   "SemanticSegmentationTests"
   "OCRTests"
   "VerticalOCRTests"
@@ -55,7 +56,7 @@ MODELS=(
   "style_transfer_candy_xnnpack_fp32.pte|https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/main/xnnpack/style_transfer_candy_xnnpack_fp32.pte"
   "efficientnet_v2_s_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.6.0/xnnpack/efficientnet_v2_s_xnnpack.pte"
   "ssdlite320-mobilenetv3-large.pte|https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.6.0/ssdlite320-mobilenetv3-large.pte"
-  "test_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/1200px-Cat_November_2010-1a.jpg"
+  "test_image.jpg|https://upload.wikimedia.org/wikipedia/commons/f/f8/Cat_in_tree03.jpg"
   "clip-vit-base-patch32-vision_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.6.0/clip-vit-base-patch32-vision_xnnpack.pte"
   "all-MiniLM-L6-v2_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte"
   "tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json"
@@ -81,6 +82,7 @@ MODELS=(
   "lfm2_vl_tokenizer_config.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json"
   "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
   "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
+  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte"
 )
 
 # ============================================================================
@@ -194,22 +196,23 @@ run_test() {
 # model dependencies. Adding a new test? Add its filenames below.
 models_for_test() {
   case "$1" in
-    BaseModelTests) echo "style_transfer_candy_xnnpack_fp32.pte" ;;
-    ClassificationTests) echo "efficientnet_v2_s_xnnpack.pte test_image.jpg" ;;
-    ObjectDetectionTests) echo "ssdlite320-mobilenetv3-large.pte test_image.jpg" ;;
-    ImageEmbeddingsTests) echo "clip-vit-base-patch32-vision_xnnpack.pte test_image.jpg" ;;
-    TextEmbeddingsTests) echo "all-MiniLM-L6-v2_xnnpack.pte tokenizer.json" ;;
-    StyleTransferTests) echo "style_transfer_candy_xnnpack_fp32.pte test_image.jpg" ;;
-    VADTests) echo "fsmn-vad_xnnpack.pte" ;;
-    TokenizerModuleTests) echo "tokenizer.json" ;;
-    SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json" ;;
-    TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json" ;;
-    LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
-    TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
-    InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;
-    SemanticSegmentationTests) echo "deeplabV3_xnnpack_fp32.pte test_image.jpg" ;;
-    OCRTests | VerticalOCRTests) echo "xnnpack_craft_quantized.pte xnnpack_crnn_english.pte" ;;
-    *) echo "" ;;
+  BaseModelTests) echo "style_transfer_candy_xnnpack_fp32.pte" ;;
+  ClassificationTests) echo "efficientnet_v2_s_xnnpack.pte test_image.jpg" ;;
+  ObjectDetectionTests) echo "ssdlite320-mobilenetv3-large.pte test_image.jpg" ;;
+  ImageEmbeddingsTests) echo "clip-vit-base-patch32-vision_xnnpack.pte test_image.jpg" ;;
+  TextEmbeddingsTests) echo "all-MiniLM-L6-v2_xnnpack.pte tokenizer.json" ;;
+  StyleTransferTests) echo "style_transfer_candy_xnnpack_fp32.pte test_image.jpg" ;;
+  VADTests) echo "fsmn-vad_xnnpack.pte" ;;
+  TokenizerModuleTests) echo "tokenizer.json" ;;
+  SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json" ;;
+  TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json" ;;
+  LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
+  TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
+  InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;
+  PoseEstimationTests) echo "yolo26n-pose.pte" ;;
+  SemanticSegmentationTests) echo "deeplabV3_xnnpack_fp32.pte test_image.jpg" ;;
+  OCRTests | VerticalOCRTests) echo "xnnpack_craft_quantized.pte xnnpack_crnn_english.pte" ;;
+  *) echo "" ;;
   esac
 }
 

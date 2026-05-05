@@ -9,6 +9,7 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
+#include <rnexecutorch/models/pose_estimation/PoseEstimation.h>
 #include <rnexecutorch/models/privacy_filter/PrivacyFilter.h>
 #include <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -73,6 +74,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<
           models::object_detection::ObjectDetection>(jsiRuntime, jsCallInvoker,
                                                      "loadObjectDetection"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadPoseEstimation",
+      RnExecutorchInstaller::loadModel<models::pose_estimation::PoseEstimation>(
+          jsiRuntime, jsCallInvoker, "loadPoseEstimation"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",

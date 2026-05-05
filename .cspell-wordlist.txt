@@ -193,3 +193,8 @@ BIOES
 viterbi
 argmaxes
 unpadded
+keypoint
+keypoints
+Keypoint
+Keypoints
+letterboxing

@@ -20,6 +20,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/pose_estimation/Types.h>
 #include <rnexecutorch/models/privacy_filter/Types.h>
 #include <rnexecutorch/models/semantic_segmentation/Types.h>
 #include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
@@ -359,6 +360,30 @@ inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
     array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
   }
   return {runtime, array};
+}
+
+inline jsi::Value getJsiValue(
+    const rnexecutorch::models::pose_estimation::PersonKeypoints &keypoints,
+    jsi::Runtime &runtime) {
+  jsi::Array array(runtime, keypoints.size());
+  for (size_t i = 0; i < keypoints.size(); ++i) {
+    jsi::Object point(runtime);
+    point.setProperty(runtime, "x", keypoints[i].x);
+    point.setProperty(runtime, "y", keypoints[i].y);
+    array.setValueAtIndex(runtime, i, point);
+  }
+  return array;
+}
+
+// Pose estimation: all detected people (vector of person keypoints)
+inline jsi::Value getJsiValue(
+    const rnexecutorch::models::pose_estimation::PoseDetections &detections,
+    jsi::Runtime &runtime) {
+  jsi::Array array(runtime, detections.size());
+  for (size_t i = 0; i < detections.size(); ++i) {
+    array.setValueAtIndex(runtime, i, getJsiValue(detections[i], runtime));
+  }
+  return array;
 }
 
 // Conditional as on android, size_t and uint64_t reduce to the same type,

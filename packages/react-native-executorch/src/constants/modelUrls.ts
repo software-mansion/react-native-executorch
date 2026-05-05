@@ -663,6 +663,17 @@ export const YOLO26X = {
   modelSource: YOLO26X_DETECTION_MODEL,
 } as const;
 
+// YOLO26 Pose Estimation
+const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${NEXT_VERSION_TAG}/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte`;
+
+/**
+ * @category Models - Pose Estimation
+ */
+export const YOLO26N_POSE = {
+  modelName: 'yolo26n-pose',
+  modelSource: YOLO26N_POSE_MODEL,
+} as const;
+
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =
   Platform.OS === `ios`
