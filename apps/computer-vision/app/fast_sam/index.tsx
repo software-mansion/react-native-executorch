@@ -107,11 +107,13 @@ export default function FastSAMScreen() {
       e.nativeEvent.locationY
     );
     if (!coords) return;
+    const t0 = Date.now();
     const match = selectByPoint(
       rawInstancesRef.current,
       Math.round(coords.x),
       Math.round(coords.y)
     );
+    console.log(`[FastSAM] selectByPoint(): ${Date.now() - t0}ms`);
     setSelection(match ?? null);
   }
 
@@ -170,7 +172,10 @@ export default function FastSAMScreen() {
       x2: Math.max(s.x, coords.x),
       y2: Math.max(s.y, coords.y),
     };
-    setSelection(selectByBox(rawInstancesRef.current, box) ?? null);
+    const t0 = Date.now();
+    const match = selectByBox(rawInstancesRef.current, box);
+    console.log(`[FastSAM] selectByBox(): ${Date.now() - t0}ms`);
+    setSelection(match ?? null);
   }
 
   // -------------------------------------------------------------------------
@@ -190,14 +195,18 @@ export default function FastSAMScreen() {
   const runForward = async () => {
     if (!imageUri) return;
     try {
-      const start = Date.now();
+      const t0 = Date.now();
       const output = await forward(imageUri, {
         confidenceThreshold: 0.4,
         iouThreshold: 0.9,
-        maxInstances: 100,
+        maxInstances: 50,
         returnMaskAtOriginalResolution: true,
       });
-      setInferenceTime(Date.now() - start);
+      const inferenceMs = Date.now() - t0;
+      console.log(
+        `[FastSAM] forward(): ${inferenceMs}ms, instances: ${output.length}`
+      );
+      setInferenceTime(inferenceMs);
       rawInstancesRef.current = output;
       setSelection(null);
     } catch (e) {
@@ -213,7 +222,8 @@ export default function FastSAMScreen() {
 
   const alphaMask = useMemo(() => {
     if (!selection) return null;
-    return buildAlphaMask(
+    const t0 = Date.now();
+    const mask = buildAlphaMask(
       selection.mask,
       selection.maskWidth,
       selection.maskHeight,
@@ -222,6 +232,8 @@ export default function FastSAMScreen() {
       imageSize.width,
       imageSize.height
     );
+    console.log(`[FastSAM] buildAlphaMask(): ${Date.now() - t0}ms`);
+    return mask;
   }, [selection, imageSize]);
 
   const { width: cw, height: ch } = cutoutLayout;
@@ -434,7 +446,7 @@ function buildAlphaMask(
   imgW: number,
   imgH: number
 ) {
-  const MAX_DIM = 512;
+  const MAX_DIM = 256;
   const ds = Math.min(1, MAX_DIM / Math.max(imgW, imgH));
   const dstW = Math.max(1, Math.round(imgW * ds));
   const dstH = Math.max(1, Math.round(imgH * ds));

@@ -6,8 +6,7 @@ import { SegmentedInstance } from '../types/instanceSegmentation';
  * Selects the best matching instance for a given point prompt.
  *
  * Finds all instances whose mask covers the point (x, y), then returns the one
- * with the smallest mask area (ties broken by box area, then confidence). This
- * matches the behavior of FastSAM's point-prompt selection.
+ * with the smallest bounding box area (ties broken by highest confidence).
  * @param instances - Array of segmented instances returned by `forward()`.
  * @param x - X coordinate in original image space.
  * @param y - Y coordinate in original image space.
@@ -33,10 +32,6 @@ export function selectByPoint<L extends LabelEnum>(
   if (matches.length === 0) return null;
 
   return matches.reduce((best, inst) => {
-    const maskArea = countMaskPixels(inst.mask);
-    const bestMaskArea = countMaskPixels(best.mask);
-    if (maskArea !== bestMaskArea) return maskArea < bestMaskArea ? inst : best;
-
     const boxArea = bboxArea(inst.bbox);
     const bestBoxArea = bboxArea(best.bbox);
     if (boxArea !== bestBoxArea) return boxArea < bestBoxArea ? inst : best;
@@ -49,9 +44,7 @@ export function selectByPoint<L extends LabelEnum>(
  * Selects the best matching instance for a given box prompt.
  *
  * Finds all instances that overlap with the prompt box, then returns the one
- * with the highest IoU with that box (ties broken by smallest mask area, then
- * highest confidence). This matches the behavior of FastSAM's box-prompt
- * selection.
+ * with the highest IoU with that box (ties broken by highest confidence).
  * @param instances - Array of segmented instances returned by `forward()`.
  * @param box - The prompt bounding box in image coordinates.
  * @returns The best matching instance, or `null` if no instance overlaps.
@@ -65,7 +58,6 @@ export function selectByBox<L extends LabelEnum>(
 
   type Match = {
     iou: number;
-    maskArea: number;
     score: number;
     inst: SegmentedInstance<L>;
   };
@@ -83,27 +75,17 @@ export function selectByBox<L extends LabelEnum>(
 
     const detArea = bboxArea(inst.bbox);
     const iou = interArea / (promptArea + detArea - interArea + 1e-7);
-    const maskArea = countMaskPixels(inst.mask);
 
     if (
       best === null ||
       iou > best.iou ||
-      (iou === best.iou && maskArea < best.maskArea) ||
-      (iou === best.iou &&
-        maskArea === best.maskArea &&
-        inst.score > best.score)
+      (iou === best.iou && inst.score > best.score)
     ) {
-      best = { iou, maskArea, score: inst.score, inst };
+      best = { iou, score: inst.score, inst };
     }
   }
 
   return best?.inst ?? null;
-}
-
-function countMaskPixels(mask: Uint8Array): number {
-  let count = 0;
-  for (let i = 0; i < mask.length; i++) count += mask[i]!;
-  return count;
 }
 
 function bboxArea(bbox: Bbox): number {
