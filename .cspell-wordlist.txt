@@ -198,3 +198,4 @@ keypoints
 Keypoint
 Keypoints
 letterboxing
+fastsam

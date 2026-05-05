@@ -11,6 +11,8 @@ import {
   YOLO26X_SEG,
   RF_DETR_NANO_SEG,
   InstanceSegmentationModelSources,
+  FASTSAM_S,
+  FASTSAM_X,
 } from 'react-native-executorch';
 import {
   View,
@@ -35,6 +37,8 @@ const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
   { label: 'Yolo26L', value: YOLO26L_SEG },
   { label: 'Yolo26X', value: YOLO26X_SEG },
   { label: 'RF-DeTR Nano', value: RF_DETR_NANO_SEG },
+  { label: 'FastSAM-S', value: FASTSAM_S },
+  { label: 'FastSAM-X', value: FASTSAM_X },
 ];
 
 export default function InstanceSegmentationScreen() {

@@ -49,6 +49,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('fast_sam/')}
+        >
+          <Text style={styles.buttonText}>FastSAM</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('ocr/')}
         >
           <Text style={styles.buttonText}>OCR</Text>
