@@ -48,7 +48,7 @@ DurationPredictor::DurationPredictor(
       [](const auto &a, const auto &b) { return a.second < b.second; });
 }
 
-std::tuple<Tensor, std::vector<int64_t>, int32_t>
+std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
 DurationPredictor::generate(std::span<const Token> tokens,
                             std::span<const bool> textMask,
                             std::span<const float> ref_hs, float speed) {
@@ -130,6 +130,10 @@ DurationPredictor::generate(std::span<const Token> tokens,
       indices.begin(),
       std::lower_bound(indices.begin(), indices.end(), originalLength));
 
+  // Calculate timestamps - based on predicted durations.
+  std::vector<Timestamp> timestamps =
+      calculateTimestamps(predDurPtr, inputSize);
+
   /**
    * Returns:
    *   - d: tensor containing the predicted durations for each token.
@@ -137,11 +141,28 @@ DurationPredictor::generate(std::span<const Token> tokens,
    *   - effDuration: an effective duration after post-processing.
    */
   return std::make_tuple(std::move(dTensor), std::move(indices),
-                         std::move(effDuration));
+                         std::move(effDuration), std::move(timestamps));
 }
 
 size_t DurationPredictor::getTokensLimit() const {
   return forwardMethods_.empty() ? 0 : forwardMethods_.back().second;
+}
+
+std::vector<Timestamp>
+DurationPredictor::calculateTimestamps(const int64_t *predDurPtr,
+                                       size_t inputSize) const {
+  std::vector<Timestamp> timestamps;
+  timestamps.reserve(inputSize);
+
+  size_t accDur = 0;
+  for (size_t i = 0; i < inputSize; i++) {
+    int64_t dur = predDurPtr[i] *
+                  constants::kTicksPerDuration; // Convert to audio samples
+    timestamps.emplace_back(accDur, accDur + dur);
+    accDur += dur;
+  }
+
+  return timestamps;
 }
 
 void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,

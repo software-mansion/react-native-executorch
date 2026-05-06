@@ -18,4 +18,14 @@ struct Context {
   size_t inputDurationLimit = 0;
 };
 
+/**
+ * Type definition - token timestamp.
+ *
+ * Values correspond to the amount of waveform samples.
+ */
+struct Timestamp {
+  size_t begin = 0;
+  size_t end = 0;
+};
+
 } // namespace rnexecutorch::models::text_to_speech::kokoro

@@ -35,9 +35,10 @@ public:
    *                    d - Tensor: predicted durations for each token,
    *                    indices  - std::vector<int64_t>: repeated token indices,
    *                    effDuration  - int32_t: effective duration after
-   *                    post-processing.
+   *                                            post-processing.
+   *                    timestamps - timestamp marks for each token (phoneme)
    */
-  std::tuple<Tensor, std::vector<int64_t>, int32_t>
+  std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
   generate(std::span<const Token> tokens, std::span<const bool> textMask,
            std::span<const float> ref_hs, float speed = 1.F);
 
@@ -45,13 +46,18 @@ public:
   size_t getTokensLimit() const;
 
 private:
+  // Helper function - calculating timestamps based on predicted durations
+  std::vector<Timestamp> calculateTimestamps(const int64_t *predDurPtr,
+                                             size_t inputSize) const;
+
   // Helper function - duration scalling
   // Performs integer scaling on the durations tensor to ensure the sum of
   // durations matches the given target duration
-  void scaleDurations(Tensor &durations, size_t nTokens,
-                      int32_t targetDuration) const;
+  void scaleDurations(
+      Tensor &durations, size_t nTokens,
+      int32_t targetDuration) const; // Helper function - calculating effective
+                                     // duration based on duration tensor
 
-  // Helper function - calculating effective duration based on duration tensor
   // Since we apply padding to the input, the effective duration is
   // usually a little bit lower than the max duration defined by static input
   // size.

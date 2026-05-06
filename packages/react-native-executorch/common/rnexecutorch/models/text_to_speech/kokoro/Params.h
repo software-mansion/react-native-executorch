@@ -54,14 +54,14 @@ namespace cropping {
  * The audio cropping algorithm is a moving average variant.
  * This value controls the number of steps in moving average.
  */
-inline constexpr uint32_t kAudioCroppingSteps = 20;
+inline constexpr uint32_t kAudioCroppingSteps = 10;
 
 /**
  * Determines silent audio fragments in audio cropping algorithm.
  * The audio fragment is considered as a silence, if the moving average with K
  * steps does not exceed this threshold.
  */
-inline constexpr float kAudioSilenceThreshold = 0.01F;
+inline constexpr float kAudioSilenceThreshold = 0.005F;
 } // namespace cropping
 
 // Partitioning related hyperparameters

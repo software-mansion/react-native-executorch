@@ -60,6 +60,7 @@ export const useTextToSpeech = ({
     return () => {
       active = false;
       setModuleInstance((prev) => {
+        prev?.streamStop(true);
         prev?.delete();
         return null;
       });
@@ -127,6 +128,9 @@ export const useTextToSpeech = ({
             await input.onNext(audio);
           }
         }
+      } catch (e) {
+        instance.streamStop(true);
+        throw e;
       } finally {
         await input.onEnd?.();
         setIsGenerating(false);
