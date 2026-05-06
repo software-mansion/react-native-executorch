@@ -49,7 +49,7 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('fast_sam/')}
+          onPress={() => router.navigate('segment_anything/')}
         >
           <Text style={styles.buttonText}>Segment Anything</Text>
         </TouchableOpacity>
