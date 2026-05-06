@@ -46,7 +46,8 @@
             "deploymentTarget": "17.0"
           }
         }
-      ]
+      ],
+      "@rnrepo/expo-config-plugin"
     ],
     "newArchEnabled": true,
     "splash": {

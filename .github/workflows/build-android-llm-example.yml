@@ -69,7 +69,7 @@ jobs:
       - name: Build app
         working-directory: ${{ env.WORKING_DIRECTORY }}/android
         run: |
-          ./gradlew assembleDebug \
+          ./gradlew :app:assembleDebug \
             --build-cache \
             --parallel \
             --daemon \

@@ -2540,6 +2540,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/config-plugins@npm:*":
+  version: 56.0.0
+  resolution: "@expo/config-plugins@npm:56.0.0"
+  dependencies:
+    "@expo/config-types": "npm:56.0.0"
+    "@expo/json-file": "npm:10.1.0"
+    "@expo/plist": "npm:0.6.0"
+    "@expo/sdk-runtime-versions": "npm:^1.0.0"
+    chalk: "npm:^4.1.2"
+    debug: "npm:^4.3.5"
+    getenv: "npm:^2.0.0"
+    glob: "npm:^13.0.0"
+    resolve-from: "npm:^5.0.0"
+    semver: "npm:^7.5.4"
+    slugify: "npm:^1.6.6"
+    xcode: "npm:^3.0.1"
+    xml2js: "npm:0.6.0"
+  checksum: 10/5f53034b3c1289635c9cdf093889d0d52f158d0ec03bcc8d81952f36ca92eb5c5b0527784f6e89a2c3fce8e342b89a0d0ec1951f2c8e849381da11a8e482f60f
+  languageName: node
+  linkType: hard
+
 "@expo/config-plugins@npm:~54.0.4":
   version: 54.0.4
   resolution: "@expo/config-plugins@npm:54.0.4"
@@ -2580,6 +2601,13 @@ __metadata:
     xcode: "npm:^3.0.1"
     xml2js: "npm:0.6.0"
   checksum: 10/41ad533f83a01ffec8ca580fcf282a5aa61cd0494a8e29ce68ba11d929091c96dfeac49521e03144e2eb8551525096065e8c2e36bebd2bb2d1fddf89380312c4
+  languageName: node
+  linkType: hard
+
+"@expo/config-types@npm:*, @expo/config-types@npm:56.0.0":
+  version: 56.0.0
+  resolution: "@expo/config-types@npm:56.0.0"
+  checksum: 10/f76287cdbedd519ada10bf4c8a744b2e4567bfc6ac9f37dd0bbee4494746f8f96d6ef0b81650fa24b922675c2517da8817d0d7a7b271fd29288e6463ba627f42
   languageName: node
   linkType: hard
 
@@ -2784,6 +2812,16 @@ __metadata:
     resolve-from: "npm:^5.0.0"
     semver: "npm:^7.6.0"
   checksum: 10/fb474558bb4009f39c640fb028a57cfae721e52dae0085bb2505390c6968d30cdc82eb195c15de82f30879c710104c08e60120de8f49613183437701f19dd363
+  languageName: node
+  linkType: hard
+
+"@expo/json-file@npm:10.1.0":
+  version: 10.1.0
+  resolution: "@expo/json-file@npm:10.1.0"
+  dependencies:
+    "@babel/code-frame": "npm:^7.20.0"
+    json5: "npm:^2.2.3"
+  checksum: 10/39baf32f519b08094485765dd6cef170e1d113a1a1d95c6965d7c6bd2225f6ad390517481a67062140d2476ee547f9965c79ecd34e0779bdadb9e715be008728
   languageName: node
   linkType: hard
 
@@ -3018,6 +3056,17 @@ __metadata:
     ora: "npm:^3.4.0"
     resolve-workspace-root: "npm:^2.0.0"
   checksum: 10/cac9008ec362af0b54ebf55cb64514e3f4258423f0be9a0d1adb2815380e912783be78750c898e393f7bebe7a1b8288d449052b0ce9f790400d185a29b8274bd
+  languageName: node
+  linkType: hard
+
+"@expo/plist@npm:0.6.0":
+  version: 0.6.0
+  resolution: "@expo/plist@npm:0.6.0"
+  dependencies:
+    "@xmldom/xmldom": "npm:^0.8.8"
+    base64-js: "npm:^1.5.1"
+    xmlbuilder: "npm:^15.1.1"
+  checksum: 10/af9b16acfe3d9718c3e8073704c934bb79ac4fdda441cb383a65a8724e443acfcffca138a2891bf2a0c4e79401b607df9609122808adc75f0824968bb67b0a0f
   languageName: node
   linkType: hard
 
@@ -5560,6 +5609,28 @@ __metadata:
   dependencies:
     nanoid: "npm:^3.3.11"
   checksum: 10/8b02cf4c9acd7d1ccb0771ebfbf18fa27aa8db4e5653403d9d78a08d1792b9f22654cb36ce3a1150181b141d8cf694d7665007ef005c041bce404d33f44acc73
+  languageName: node
+  linkType: hard
+
+"@rnrepo/build-tools@npm:0.1.3-beta.0":
+  version: 0.1.3-beta.0
+  resolution: "@rnrepo/build-tools@npm:0.1.3-beta.0"
+  checksum: 10/5942500623f98a16e29e1053774b7724d2cf0177444c62a431260492a552f53c614039df8e404d2a3b80f04cbd452c398c6e092fc0015ea2ae8c2001745a6671
+  languageName: node
+  linkType: hard
+
+"@rnrepo/expo-config-plugin@npm:0.3.0-beta.3":
+  version: 0.3.0-beta.3
+  resolution: "@rnrepo/expo-config-plugin@npm:0.3.0-beta.3"
+  dependencies:
+    "@expo/config-plugins": "npm:*"
+    "@expo/config-types": "npm:*"
+    "@rnrepo/build-tools": "npm:0.1.3-beta.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/29b62d3aade7b13dc24551b0caaf4996e060623bd16b0e4b226fa3500e0fa0d868263aae25ee5b61d8adcb85b667d6bbd5171402eda4f5aac353b9232906800f
   languageName: node
   linkType: hard
 
@@ -12679,6 +12750,7 @@ __metadata:
     "@react-native/metro-config": "npm:^0.83.0"
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
+    "@rnrepo/expo-config-plugin": "npm:0.3.0-beta.3"
     "@types/react": "npm:~19.2.14"
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
