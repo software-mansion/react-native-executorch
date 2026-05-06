@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "regex.h"
 #include <memory>
 #include <regex>
 #include <string>
+#include "regex.h"
 
 namespace tokenizers {
 
@@ -19,7 +19,7 @@ namespace tokenizers {
  * @brief std::regex-based implementation of IRegex.
  */
 class StdRegex : public IRegex {
-public:
+ public:
   /**
    * @brief Construct a std::regex wrapper.
    */
@@ -30,14 +30,14 @@ public:
    * @param pattern The regex pattern to compile.
    * @return An Error object indicating success or failure of the compilation.
    */
-  virtual Error compile(const std::string &pattern) override;
+  virtual Error compile(const std::string& pattern) override;
 
   /**
    * @brief Find all non-overlapping matches in the input string.
    */
-  virtual std::vector<Match> find_all(const std::string &text) const override;
+  virtual std::vector<Match> find_all(const std::string& text) const override;
 
-private:
+ private:
   std::regex regex_;
 };
 

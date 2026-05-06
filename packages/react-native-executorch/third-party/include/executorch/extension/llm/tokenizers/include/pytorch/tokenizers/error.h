@@ -73,12 +73,12 @@ enum class Error : error_code_t {
  * @param[in] message__ Format string for the log error message.
  * @param[in] ... Optional additional arguments for the format string.
  */
-#define TK_CHECK_OR_RETURN_ERROR(cond__, error__, message__, ...)              \
-  {                                                                            \
-    if (!(cond__)) {                                                           \
-      TK_LOG(Error, message__, ##__VA_ARGS__);                                 \
-      return ::tokenizers::Error::error__;                                     \
-    }                                                                          \
+#define TK_CHECK_OR_RETURN_ERROR(cond__, error__, message__, ...) \
+  {                                                               \
+    if (!(cond__)) {                                              \
+      TK_LOG(Error, message__, ##__VA_ARGS__);                    \
+      return ::tokenizers::Error::error__;                        \
+    }                                                             \
   }
 
 /**
@@ -86,10 +86,10 @@ enum class Error : error_code_t {
  * @param[in] error__ Error enum value to return without the `Error::` prefix,
  * like `Base64DecodeFailure`.
  */
-#define TK_CHECK_OK_OR_RETURN_ERROR(error__)                                   \
-  do {                                                                         \
-    const auto et_error__ = (error__);                                         \
-    if (et_error__ != ::tokenizers::Error::Ok) {                               \
-      return et_error__;                                                       \
-    }                                                                          \
+#define TK_CHECK_OK_OR_RETURN_ERROR(error__)     \
+  do {                                           \
+    const auto et_error__ = (error__);           \
+    if (et_error__ != ::tokenizers::Error::Ok) { \
+      return et_error__;                         \
+    }                                            \
   } while (0)

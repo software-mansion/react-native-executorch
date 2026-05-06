@@ -21,16 +21,16 @@
 namespace tokenizers {
 
 struct TokenIndex {
-  const char *str;
+  const char* str;
   int32_t id;
 };
 
 class Tokenizer {
-public:
+ public:
   explicit Tokenizer() {}
   virtual ~Tokenizer() {}
 
-  virtual Error load(const std::string &tokenizer_path) = 0;
+  virtual Error load(const std::string& tokenizer_path) = 0;
 
   /**
    * Returns the raw vocabulary piece for a given token id.
@@ -60,7 +60,7 @@ public:
    * @return Result containing the token id, or an error if the piece is not
    * found in the vocabulary or the tokenizer is not initialized
    */
-  virtual Result<uint64_t> piece_to_id(const std::string &text) const = 0;
+  virtual Result<uint64_t> piece_to_id(const std::string& text) const = 0;
 
   /**
    * Encode the input string into a vector of token IDs.
@@ -74,22 +74,31 @@ public:
    * fails
    */
   virtual Result<std::vector<uint64_t>>
-  encode(const std::string &input, int8_t bos = 0, int8_t eos = 0) const = 0;
+  encode(const std::string& input, int8_t bos = 0, int8_t eos = 0) const = 0;
 
-  virtual Result<std::string>
-  decode(uint64_t prev_token, uint64_t token,
-         bool skip_special_tokens = false) const = 0;
+  virtual Result<std::string> decode(
+      uint64_t prev_token,
+      uint64_t token,
+      bool skip_special_tokens = false) const = 0;
 
   // getters
-  int32_t vocab_size() const { return vocab_size_; }
+  int32_t vocab_size() const {
+    return vocab_size_;
+  }
 
-  uint64_t bos_tok() const { return bos_tok_; }
+  uint64_t bos_tok() const {
+    return bos_tok_;
+  }
 
-  uint64_t eos_tok() const { return eos_tok_; }
+  uint64_t eos_tok() const {
+    return eos_tok_;
+  }
 
-  virtual bool is_loaded() const { return initialized_; }
+  virtual bool is_loaded() const {
+    return initialized_;
+  }
 
-protected:
+ protected:
   bool initialized_ = false;
   int32_t vocab_size_ = 0;
   uint64_t bos_tok_ = 0, eos_tok_ = 0, unk_tok_ = 0;

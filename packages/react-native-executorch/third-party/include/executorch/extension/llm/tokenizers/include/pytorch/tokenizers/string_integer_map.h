@@ -35,11 +35,12 @@ namespace detail {
  * data being stored. Custom hash functions are supported, with a stateful hash
  * functor being optionally provided at construction time.
  */
-template <typename TStringHash = std::hash<std::string_view>,
-          typename TIntegerHash = std::hash<std::uint64_t>,
-          typename TAllocator = std::allocator<std::uint8_t>>
+template <
+    typename TStringHash = std::hash<std::string_view>,
+    typename TIntegerHash = std::hash<std::uint64_t>,
+    typename TAllocator = std::allocator<std::uint8_t>>
 class StringIntegerMap {
-public:
+ public:
   /// @name Constructors
   /// @{
 
@@ -52,7 +53,8 @@ public:
    * string and integer in the map must be unique.
    * @param map map of strings to integers
    */
-  template <typename TMap> explicit StringIntegerMap(const TMap &map);
+  template <typename TMap>
+  explicit StringIntegerMap(const TMap& map);
 
   /**
    * Construct a StringIntegerMap from a map of strings to integers, explicitly
@@ -61,8 +63,10 @@ public:
    * @param map map of strings to integers
    */
   template <typename TMap>
-  StringIntegerMap(const TMap &map, TStringHash string_hasher,
-                   TIntegerHash integer_hasher);
+  StringIntegerMap(
+      const TMap& map,
+      TStringHash string_hasher,
+      TIntegerHash integer_hasher);
 
   /// @}
   /// @name Accessors
@@ -94,14 +98,15 @@ public:
    * Retrieves the element in the map at the given index.
    * @return A pair containing the string and integer at the given index.
    */
-  std::pair<std::string_view, std::uint64_t>
-  getElement(std::size_t index) const;
+  std::pair<std::string_view, std::uint64_t> getElement(
+      std::size_t index) const;
 
   /// @}
 
-private:
-  template <typename TLogical> class VariableSizedInteger {
-  public:
+ private:
+  template <typename TLogical>
+  class VariableSizedInteger {
+   public:
     VariableSizedInteger() = default;
 
     explicit VariableSizedInteger(TLogical max_value) {
@@ -113,29 +118,33 @@ private:
       mask_ = (TLogical(1) << (byte_count_ * 8)) - TLogical(1);
     }
 
-    std::size_t getByteCount() const { return byte_count_; }
+    std::size_t getByteCount() const {
+      return byte_count_;
+    }
 
-    TLogical getMask() const { return mask_; }
+    TLogical getMask() const {
+      return mask_;
+    }
 
-    std::uint8_t *write(std::uint8_t *target, TLogical value) const {
+    std::uint8_t* write(std::uint8_t* target, TLogical value) const {
       std::memcpy(target, &value, byte_count_);
       return target + byte_count_;
     }
 
-    TLogical read(const std::uint8_t *source) const {
+    TLogical read(const std::uint8_t* source) const {
       TLogical value;
       std::memcpy(&value, source, sizeof(TLogical));
       return value & mask_;
     }
 
-  private:
+   private:
     std::size_t byte_count_ = 0;
     TLogical mask_ = 0;
   };
 
-  bool tryGetInteger(std::string_view str, std::uint64_t &result) const;
+  bool tryGetInteger(std::string_view str, std::uint64_t& result) const;
 
-  bool tryGetString(std::uint64_t integer, std::string_view &result) const;
+  bool tryGetString(std::uint64_t integer, std::string_view& result) const;
 
   std::size_t getBucketIndex(std::string_view value) const;
 
@@ -197,13 +206,15 @@ private:
 template <typename TStringHash, typename TIntegerHash, typename TAllocator>
 template <typename TMap>
 StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
-    const TMap &map)
+    const TMap& map)
     : StringIntegerMap(map, TStringHash(), TIntegerHash()) {}
 
 template <typename TStringHash, typename TIntegerHash, typename TAllocator>
 template <typename TMap>
 StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
-    const TMap &map, TStringHash string_hasher, TIntegerHash integer_hasher)
+    const TMap& map,
+    TStringHash string_hasher,
+    TIntegerHash integer_hasher)
     : string_hasher_(string_hasher), integer_hasher_(integer_hasher) {
   assert(map.size() <= std::numeric_limits<std::uint32_t>::max());
   bucket_count_ = size_ = map.size();
@@ -226,7 +237,7 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
   std::uint64_t largest_integer = 0;
   std::size_t total_string_size = 0;
 
-  for (const auto &[str, integer] : map) {
+  for (const auto& [str, integer] : map) {
     total_string_size += str.size();
     largest_string_size = std::max(largest_string_size, str.size());
     largest_integer = std::max(largest_integer, integer);
@@ -237,15 +248,19 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
 
   integer_ = VariableSizedInteger<std::uint64_t>(largest_integer);
   string_size_ = VariableSizedInteger<std::size_t>(largest_string_size);
-  string_offset_ = VariableSizedInteger<std::size_t>(total_string_size);
 
   const auto string_element_data_size =
       ((integer_.getByteCount() + string_size_.getByteCount() + 1) *
        map.size()) +
       total_string_size;
+
+  // string_offset_ stores byte offsets into string_element_data_, which
+  // includes per-element headers (integer + string_size + small_hash bytes)
+  // on top of the raw string data. Must be sized against the full buffer,
+  // not just total_string_size, to avoid truncating offsets > 255.
+  string_offset_ = VariableSizedInteger<std::size_t>(string_element_data_size);
   const auto integer_element_size = integer_.getByteCount() +
-                                    string_offset_.getByteCount() +
-                                    string_size_.getByteCount();
+      string_offset_.getByteCount() + string_size_.getByteCount();
   const auto integer_element_data_size = integer_element_size * map.size();
 
   element_offset_ = VariableSizedInteger<std::size_t>(
@@ -262,41 +277,45 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
   // Set up terminal bucket indices.
   //
 
-  element_offset_.write(string_bucket_data_.data() +
-                            (bucket_count_ * element_offset_.getByteCount()),
-                        string_element_data_size);
-  element_offset_.write(integer_bucket_data_.data() +
-                            (bucket_count_ * element_offset_.getByteCount()),
-                        integer_element_data_size);
+  element_offset_.write(
+      string_bucket_data_.data() +
+          (bucket_count_ * element_offset_.getByteCount()),
+      string_element_data_size);
+  element_offset_.write(
+      integer_bucket_data_.data() +
+          (bucket_count_ * element_offset_.getByteCount()),
+      integer_element_data_size);
   //
   // Sort the builder elements.
   //
 
-  std::sort(std::begin(builder_string_elements),
-            std::end(builder_string_elements),
-            [this](const BuilderElement &first, const BuilderElement &second) {
-              const auto first_bucket = first.hash % bucket_count_;
-              const auto second_bucket = second.hash % bucket_count_;
-              if (first_bucket == second_bucket) {
-                const auto first_small_hash = getSmallHash(first.hash);
-                const auto second_small_hash = getSmallHash(second.hash);
-                return first_small_hash < second_small_hash;
-              }
+  std::sort(
+      std::begin(builder_string_elements),
+      std::end(builder_string_elements),
+      [this](const BuilderElement& first, const BuilderElement& second) {
+        const auto first_bucket = first.hash % bucket_count_;
+        const auto second_bucket = second.hash % bucket_count_;
+        if (first_bucket == second_bucket) {
+          const auto first_small_hash = getSmallHash(first.hash);
+          const auto second_small_hash = getSmallHash(second.hash);
+          return first_small_hash < second_small_hash;
+        }
 
-              return first_bucket < second_bucket;
-            });
+        return first_bucket < second_bucket;
+      });
 
-  std::sort(std::begin(builder_integer_elements),
-            std::end(builder_integer_elements),
-            [this](const BuilderElement &first, const BuilderElement &second) {
-              const auto first_bucket = first.hash % bucket_count_;
-              const auto second_bucket = second.hash % bucket_count_;
-              if (first_bucket == second_bucket) {
-                return first.integer < second.integer;
-              }
+  std::sort(
+      std::begin(builder_integer_elements),
+      std::end(builder_integer_elements),
+      [this](const BuilderElement& first, const BuilderElement& second) {
+        const auto first_bucket = first.hash % bucket_count_;
+        const auto second_bucket = second.hash % bucket_count_;
+        if (first_bucket == second_bucket) {
+          return first.integer < second.integer;
+        }
 
-              return first_bucket < second_bucket;
-            });
+        return first_bucket < second_bucket;
+      });
 
   //
   // Lay out the string elements and record their positions.
@@ -305,8 +324,8 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
   std::unordered_map<std::string_view, std::size_t>
       string_element_byte_index_map;
   string_element_data_.resize(string_element_data_size + sizeof(std::uint64_t));
-  auto *string_element = string_element_data_.data();
-  for (auto &builder_element : builder_string_elements) {
+  auto* string_element = string_element_data_.data();
+  for (auto& builder_element : builder_string_elements) {
     builder_element.element_offset =
         string_element - string_element_data_.data();
 
@@ -320,36 +339,41 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
         string_size_.write(string_element, builder_element.string.size());
     *string_element = getSmallHash(builder_element.hash);
     string_element++;
-    std::memcpy(string_element, builder_element.string.data(),
-                builder_element.string.size());
+    std::memcpy(
+        string_element,
+        builder_element.string.data(),
+        builder_element.string.size());
     string_element += builder_element.string.size();
-    assert(string_element >= string_element_data_.data() &&
-           string_element <=
-               string_element_data_.data() + string_element_data_size);
+    assert(
+        string_element >= string_element_data_.data() &&
+        string_element <=
+            string_element_data_.data() + string_element_data_size);
   }
 
   //
   // Lay out the integer elements.
   //
 
-  integer_element_data_.resize(integer_element_data_size +
-                               sizeof(std::uint64_t));
-  auto *integer_element = integer_element_data_.data();
-  for (auto &builder_element : builder_integer_elements) {
+  integer_element_data_.resize(
+      integer_element_data_size + sizeof(std::uint64_t));
+  auto* integer_element = integer_element_data_.data();
+  for (auto& builder_element : builder_integer_elements) {
     builder_element.element_offset =
         integer_element - integer_element_data_.data();
     auto string_element_byte_index_iter =
         string_element_byte_index_map.find(builder_element.string);
-    assert(string_element_byte_index_iter !=
-           std::end(string_element_byte_index_map));
+    assert(
+        string_element_byte_index_iter !=
+        std::end(string_element_byte_index_map));
     integer_element = integer_.write(integer_element, builder_element.integer);
     integer_element =
         string_size_.write(integer_element, builder_element.string.size());
     integer_element = string_offset_.write(
         integer_element, string_element_byte_index_iter->second);
-    assert(integer_element >= integer_element_data_.data() &&
-           integer_element <=
-               integer_element_data_.data() + integer_element_data_size);
+    assert(
+        integer_element >= integer_element_data_.data() &&
+        integer_element <=
+            integer_element_data_.data() + integer_element_data_size);
   }
 
   //
@@ -362,20 +386,20 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::StringIntegerMap(
   auto builder_integer_elements_iter = std::begin(builder_integer_elements);
 
   for (std::size_t bucket_idx = 0; bucket_idx < bucket_count_; ++bucket_idx) {
-    auto *string_bucket = string_bucket_data_.data() +
-                          (bucket_idx * element_offset_.getByteCount());
+    auto* string_bucket = string_bucket_data_.data() +
+        (bucket_idx * element_offset_.getByteCount());
     if (builder_string_elements_iter != std::end(builder_string_elements)) {
-      element_offset_.write(string_bucket,
-                            builder_string_elements_iter->element_offset);
+      element_offset_.write(
+          string_bucket, builder_string_elements_iter->element_offset);
     } else {
       element_offset_.write(string_bucket, string_element_data_size);
     }
 
-    auto *integer_bucket = integer_bucket_data_.data() +
-                           (bucket_idx * element_offset_.getByteCount());
+    auto* integer_bucket = integer_bucket_data_.data() +
+        (bucket_idx * element_offset_.getByteCount());
     if (builder_integer_elements_iter != std::end(builder_integer_elements)) {
-      element_offset_.write(integer_bucket,
-                            builder_integer_elements_iter->element_offset);
+      element_offset_.write(
+          integer_bucket, builder_integer_elements_iter->element_offset);
     } else {
       element_offset_.write(integer_bucket, integer_element_data_size);
     }
@@ -414,7 +438,8 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetInteger(
 
 template <typename TStringHash, typename TIntegerHash, typename TAllocator>
 bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetInteger(
-    std::string_view str, std::uint64_t &result) const {
+    std::string_view str,
+    std::uint64_t& result) const {
   if (size_ == 0) {
     return false;
   }
@@ -423,8 +448,8 @@ bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetInteger(
   const auto bucket_index = hash % bucket_count_;
   const auto small_hash = getSmallHash(hash);
 
-  const auto *bucket_data = string_bucket_data_.data() +
-                            (bucket_index * element_offset_.getByteCount());
+  const auto* bucket_data = string_bucket_data_.data() +
+      (bucket_index * element_offset_.getByteCount());
   const auto lower_element_offset = element_offset_.read(bucket_data);
   const auto upper_element_offset =
       element_offset_.read(bucket_data + element_offset_.getByteCount());
@@ -433,9 +458,10 @@ bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetInteger(
   const auto string_size_size = string_size_.getByteCount();
 
   std::size_t element_size = 0;
-  auto *element_data_end = string_element_data_.data() + upper_element_offset;
-  for (auto *element_data = string_element_data_.data() + lower_element_offset;
-       element_data < element_data_end; element_data += element_size) {
+  auto* element_data_end = string_element_data_.data() + upper_element_offset;
+  for (auto* element_data = string_element_data_.data() + lower_element_offset;
+       element_data < element_data_end;
+       element_data += element_size) {
     //
     // Read the string length.
     //
@@ -461,8 +487,8 @@ bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetInteger(
     //
 
     std::string_view element_string(
-        reinterpret_cast<const char *>(element_data + integer_size +
-                                       string_size_size + 1),
+        reinterpret_cast<const char*>(
+            element_data + integer_size + string_size_size + 1),
         element_string_length);
     if (str == element_string) {
       result = integer_.read(element_data);
@@ -484,34 +510,35 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetString(
 
 template <typename TStringHash, typename TIntegerHash, typename TAllocator>
 bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetString(
-    std::uint64_t integer, std::string_view &result) const {
+    std::uint64_t integer,
+    std::string_view& result) const {
   if (size_ == 0) {
     return false;
   }
 
   const auto bucket_index = getBucketIndex(integer);
 
-  const auto *bucket_data = integer_bucket_data_.data() +
-                            (bucket_index * element_offset_.getByteCount());
+  const auto* bucket_data = integer_bucket_data_.data() +
+      (bucket_index * element_offset_.getByteCount());
   const auto lower_element_offset = element_offset_.read(bucket_data);
   const auto upper_element_offset =
       element_offset_.read(bucket_data + element_offset_.getByteCount());
 
   const auto integer_element_size = integer_.getByteCount() +
-                                    string_offset_.getByteCount() +
-                                    string_size_.getByteCount();
-  auto *element_data_end = integer_element_data_.data() + upper_element_offset;
-  for (auto *element_data = integer_element_data_.data() + lower_element_offset;
-       element_data < element_data_end; element_data += integer_element_size) {
+      string_offset_.getByteCount() + string_size_.getByteCount();
+  auto* element_data_end = integer_element_data_.data() + upper_element_offset;
+  for (auto* element_data = integer_element_data_.data() + lower_element_offset;
+       element_data < element_data_end;
+       element_data += integer_element_size) {
     const auto element_integer = integer_.read(element_data);
     if (element_integer == integer) {
       const auto element_string_size =
           string_size_.read(element_data + integer_.getByteCount());
       const auto element_string_offset = string_offset_.read(
           element_data + integer_.getByteCount() + string_size_.getByteCount());
-      const auto *string_element =
+      const auto* string_element =
           string_element_data_.data() + element_string_offset;
-      const auto *string_data = reinterpret_cast<const char *>(
+      const auto* string_data = reinterpret_cast<const char*>(
           string_element + integer_.getByteCount() +
           string_size_.getByteCount() + 1);
       result = std::string_view(string_data, element_string_size);
@@ -525,8 +552,8 @@ bool StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::tryGetString(
 }
 
 template <typename TStringHash, typename TIntegerHash, typename TAllocator>
-std::size_t
-StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::size() const {
+std::size_t StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::size()
+    const {
   return size_;
 }
 
@@ -541,19 +568,19 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::getElement(
   const auto string_size_size = string_size_.getByteCount();
   const auto element_size =
       integer_size + string_offset_size + string_size_size;
-  const auto *element_data = &integer_element_data_[index * element_size];
+  const auto* element_data = &integer_element_data_[index * element_size];
 
   const auto integer = integer_.read(element_data);
   element_data += integer_size;
   const auto string_size = string_size_.read(element_data);
   element_data += string_size_size;
   const auto string_offset = string_offset_.read(element_data);
-  const auto *string_data = &string_element_data_[string_offset + integer_size +
-                                                  string_size_size + 1];
+  const auto* string_data =
+      &string_element_data_
+          [string_offset + integer_size + string_size_size + 1];
 
   return std::make_pair(
-      std::string_view(reinterpret_cast<const char *>(string_data),
-                       string_size),
+      std::string_view(reinterpret_cast<const char*>(string_data), string_size),
       integer);
 }
 
@@ -579,9 +606,10 @@ StringIntegerMap<TStringHash, TIntegerHash, TAllocator>::getSmallHash(
   return static_cast<std::uint8_t>(hash >> shift);
 }
 
-template <typename TStringHash = std::hash<std::string_view>,
-          typename TIntegerHash = std::hash<std::uint64_t>,
-          typename TAllocator = std::allocator<std::uint8_t>>
+template <
+    typename TStringHash = std::hash<std::string_view>,
+    typename TIntegerHash = std::hash<std::uint64_t>,
+    typename TAllocator = std::allocator<std::uint8_t>>
 struct StringIntegerMapTypeBuilder {
   using Map = StringIntegerMap<TStringHash, TIntegerHash, TAllocator>;
 
