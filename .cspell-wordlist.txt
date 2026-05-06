@@ -204,3 +204,4 @@ Fishjam
 deinitialize
 Deinitialize
 fastsam
+promptable
