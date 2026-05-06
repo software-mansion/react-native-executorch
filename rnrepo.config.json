@@ -1,0 +1,6 @@
+{
+  "denyList": {
+    "android": ["react-native-worklets"],
+    "ios": ["react-native-worklets"]
+  }
+}
