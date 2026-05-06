@@ -190,7 +190,7 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
-          name="fast_sam/index"
+          name="segment_anything/index"
           options={{
             drawerLabel: 'Segment Anything',
             title: 'Segment Anything',

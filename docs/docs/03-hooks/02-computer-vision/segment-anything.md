@@ -140,4 +140,4 @@ Embedding all instances is the slow part of text prompts (one CLIP forward per i
 
 ## Example app
 
-The [`computer-vision`](https://github.com/software-mansion/react-native-executorch/tree/main/apps/computer-vision/app/fast_sam) example contains a working "Segment Anything" screen with all three prompt modes wired up.
+The [`computer-vision`](https://github.com/software-mansion/react-native-executorch/tree/main/apps/computer-vision/app/segment_anything) example contains a working "Segment Anything" screen with all three prompt modes wired up.
