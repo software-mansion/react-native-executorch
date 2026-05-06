@@ -132,3 +132,9 @@ YOLO models use the [`CocoLabelYolo`](../../06-api-reference/enumerations/CocoLa
 | yolo26l-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
 | yolo26x-seg     | 80                | [COCO (YOLO)](../../06-api-reference/enumerations/CocoLabelYolo.md) | 384, 512, 640         |
 | rfdetr-nano-seg | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md)            | 312 (fixed)           |
+| fastsam-s       | 1                 | [FastSAMLabel](../../06-api-reference/enumerations/FastSAMLabel.md) | 640 (fixed)           |
+| fastsam-x       | 1                 | [FastSAMLabel](../../06-api-reference/enumerations/FastSAMLabel.md) | 640 (fixed)           |
+
+:::tip
+FastSAM models are class-agnostic — they segment every instance without classifying. To pick a specific instance from the output, use the [point/box/text selectors](./segment-anything.md).
+:::

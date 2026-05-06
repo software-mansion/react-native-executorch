@@ -199,3 +199,4 @@ Keypoint
 Keypoints
 letterboxing
 fastsam
+promptable
