@@ -375,6 +375,10 @@ export const QWEN2_5_3B_QUANTIZED = {
 const QWEN3_5_0_8B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/qwen3_5_0_8b_xnnpack_8da4w.pte`;
 const QWEN3_5_0_8B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer.json`;
 const QWEN3_5_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer_config.json`;
+const QWEN3_5_0_8B_GENERATION_CONFIG = {
+  temperature: 0.6,
+  topP: 0.95,
+} as const;
 
 /**
  * @category Models - LLM
@@ -384,12 +388,17 @@ export const QWEN3_5_0_8B_QUANTIZED = {
   modelSource: QWEN3_5_0_8B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_5_0_8B_TOKENIZER,
   tokenizerConfigSource: QWEN3_5_0_8B_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_5_0_8B_GENERATION_CONFIG,
 } as const;
 
 // QWEN3.5-2B
 const QWEN3_5_2B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/qwen3_5_2b_xnnpack_8da4w.pte`;
 const QWEN3_5_2B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer.json`;
 const QWEN3_5_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer_config.json`;
+const QWEN3_5_2B_GENERATION_CONFIG = {
+  temperature: 0.6,
+  topP: 0.95,
+} as const;
 
 /**
  * @category Models - LLM
@@ -399,6 +408,7 @@ export const QWEN3_5_2B_QUANTIZED = {
   modelSource: QWEN3_5_2B_QUANTIZED_MODEL,
   tokenizerSource: QWEN3_5_2B_TOKENIZER,
   tokenizerConfigSource: QWEN3_5_2B_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_5_2B_GENERATION_CONFIG,
 } as const;
 
 // PHI 4
@@ -573,6 +583,50 @@ const EFFICIENTNET_V2_S_QUANTIZED_MODEL =
   Platform.OS === `ios`
     ? `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`
     : `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
+
+// Qwen3.5-VL-0.8B
+const QWEN3_5_VL_0_8B_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/qwen3_5_vl_0_8b_xnnpack_8da4w.pte`;
+const QWEN3_5_VL_0_8B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer.json`;
+const QWEN3_5_VL_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-0.8B/tokenizer_config.json`;
+const QWEN3_5_VL_0_8B_GENERATION_CONFIG = {
+  temperature: 0.6,
+  topP: 0.95,
+  repetitionPenalty: 1.2,
+} as const;
+
+/**
+ * @category Models - VLM
+ */
+export const QWEN3_5_VL_0_8B_QUANTIZED = {
+  modelName: 'qwen3.5-vl-0.8b-quantized',
+  capabilities: ['vision'],
+  modelSource: QWEN3_5_VL_0_8B_MODEL,
+  tokenizerSource: QWEN3_5_VL_0_8B_TOKENIZER,
+  tokenizerConfigSource: QWEN3_5_VL_0_8B_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_5_VL_0_8B_GENERATION_CONFIG,
+} as const;
+
+// Qwen3.5-VL-2B
+const QWEN3_5_VL_2B_MODEL = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/qwen3_5_vl_2b_xnnpack_8da4w.pte`;
+const QWEN3_5_VL_2B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer.json`;
+const QWEN3_5_VL_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${NEXT_VERSION_TAG}/Qwen3.5-2B/tokenizer_config.json`;
+const QWEN3_5_VL_2B_GENERATION_CONFIG = {
+  temperature: 0.6,
+  topP: 0.95,
+  repetitionPenalty: 1.2,
+} as const;
+
+/**
+ * @category Models - VLM
+ */
+export const QWEN3_5_VL_2B_QUANTIZED = {
+  modelName: 'qwen3.5-vl-2b-quantized',
+  capabilities: ['vision'],
+  modelSource: QWEN3_5_VL_2B_MODEL,
+  tokenizerSource: QWEN3_5_VL_2B_TOKENIZER,
+  tokenizerConfigSource: QWEN3_5_VL_2B_TOKENIZER_CONFIG,
+  generationConfig: QWEN3_5_VL_2B_GENERATION_CONFIG,
+} as const;
 
 /**
  * @category Models - Classification

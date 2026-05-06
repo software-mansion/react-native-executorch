@@ -13,6 +13,7 @@
 #include "constants.h"
 #include "util.h"
 #include <algorithm>
+#include <rnexecutorch/Log.h>
 
 namespace executorch::extension::llm {
 
@@ -32,6 +33,8 @@ Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
   EValue encoder_output;
   std::vector<int64_t> padded_tokens_storage;
   TensorPtr sliced_embed_storage;
+
+  std::vector<float> embed_buffer;
 
   if (input.is_image()) {
     ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
@@ -56,60 +59,156 @@ Result<uint64_t> MultimodalPrefiller::prefill(const MultimodalInput &input,
 
     const auto actual_seq_len = static_cast<SizesType>(tokens.size());
 
-    // The token_embedding PTE has a fixed MAX_SEQ_LEN input buffer.
-    // Pad with zeros, run embedding, then slice output back to actual length.
-    int64_t max_seq_len = actual_seq_len; // fallback: no padding needed
-    auto max_seq_len_result = module_->get(kMaxSeqLen);
-    if (max_seq_len_result.error() == Error::Ok) {
-      max_seq_len = max_seq_len_result->toScalar().to<int64_t>();
+    // Check if token_embedding supports multiple tokens
+    bool supports_parallel_embedding = false;
+    int64_t expected_embed_seq_len = 1;
+    auto embed_meta_result = module_->method_meta(kTokenEmbeddingMethod);
+
+    if (embed_meta_result.ok()) {
+      auto input_meta = embed_meta_result->input_tensor_meta(0);
+      if (input_meta.ok() && input_meta->sizes().size() >= 2) {
+        expected_embed_seq_len = input_meta->sizes()[1];
+        if (expected_embed_seq_len > 1 || expected_embed_seq_len < 0) {
+          supports_parallel_embedding = true;
+        }
+      }
     }
 
-    padded_tokens_storage.assign(max_seq_len, 0);
-    std::ranges::copy(tokens, padded_tokens_storage.begin());
+    if (supports_parallel_embedding) {
+      int64_t embed_seq_len = actual_seq_len;
+      if (expected_embed_seq_len > 1) {
+        embed_seq_len = expected_embed_seq_len;
+      }
 
-    auto text_tensor = ::executorch::extension::from_blob(
-        padded_tokens_storage.data(), {1, static_cast<SizesType>(max_seq_len)},
-        ::executorch::aten::ScalarType::Long);
+      padded_tokens_storage.assign(embed_seq_len, 0);
+      std::ranges::copy(tokens, padded_tokens_storage.begin());
 
-    auto embed_result = module_->execute(kTokenEmbeddingMethod, text_tensor);
-    ET_CHECK_OK_OR_RETURN_ERROR(embed_result.error());
+      auto text_tensor = ::executorch::extension::from_blob(
+          padded_tokens_storage.data(),
+          {1, static_cast<SizesType>(embed_seq_len)},
+          ::executorch::aten::ScalarType::Long);
 
-    auto full_embed = (*embed_result)[0].toTensor();
-    const auto embed_dim = static_cast<SizesType>(full_embed.size(2));
-    sliced_embed_storage = ::executorch::extension::from_blob(
-        full_embed.mutable_data_ptr(), {1, actual_seq_len, embed_dim},
-        ::executorch::aten::ScalarType::Float);
-    encoder_output = EValue(*sliced_embed_storage);
+      auto embed_result = module_->execute(kTokenEmbeddingMethod, text_tensor);
+      ET_CHECK_OK_OR_RETURN_ERROR(embed_result.error());
 
+      auto full_embed = (*embed_result)[0].toTensor();
+      const auto embed_dim = static_cast<SizesType>(full_embed.size(2));
+
+      sliced_embed_storage = ::executorch::extension::from_blob(
+          full_embed.mutable_data_ptr(), {1, actual_seq_len, embed_dim},
+          ::executorch::aten::ScalarType::Float);
+
+      encoder_output = EValue(*sliced_embed_storage);
+
+    } else {
+      SizesType embed_dim = 0;
+      for (size_t i = 0; i < actual_seq_len; ++i) {
+        int64_t token_val = static_cast<int64_t>(tokens[i]);
+        auto text_tensor = ::executorch::extension::from_blob(
+            &token_val, {1, 1}, ::executorch::aten::ScalarType::Long);
+
+        auto embed_result =
+            module_->execute(kTokenEmbeddingMethod, text_tensor);
+        ET_CHECK_OK_OR_RETURN_ERROR(embed_result.error());
+
+        auto single_embed = (*embed_result)[0].toTensor();
+        if (embed_dim == 0) {
+          embed_dim = static_cast<SizesType>(single_embed.size(2));
+          embed_buffer.reserve(actual_seq_len * embed_dim);
+        }
+
+        const float *data_ptr = single_embed.const_data_ptr<float>();
+        embed_buffer.insert(embed_buffer.end(), data_ptr, data_ptr + embed_dim);
+      }
+
+      sliced_embed_storage = ::executorch::extension::from_blob(
+          embed_buffer.data(), {1, actual_seq_len, embed_dim},
+          ::executorch::aten::ScalarType::Float);
+
+      encoder_output = EValue(*sliced_embed_storage);
+    }
   } else {
     ET_LOG(Error, "Unsupported MultimodalInput type");
     return Error::NotSupported;
   }
 
   // Run text_decoder for prefill.
-  int64_t seq_len = encoder_output.toTensor().size(1);
+  auto encoder_tensor = encoder_output.toTensor();
+  int64_t seq_len = encoder_tensor.size(1);
   if (seq_len == 0) {
     ET_LOG(Error, "Encoder returned empty output");
     return Error::InvalidState;
   }
 
-  std::vector<int64_t> cache_positions;
-  auto cache_pos_result = populate_start_pos_or_cache_position(
-      module_, start_pos, cache_positions, seq_len, kTextModelMethod);
-  ET_CHECK_OK_OR_RETURN_ERROR(cache_pos_result.error());
+  // Check if the model takes input of more than 1 element
+  bool supports_parallel = false;
+  auto meta_result = module_->method_meta(kTextModelMethod);
+  if (meta_result.ok()) {
+    auto input_meta = meta_result->input_tensor_meta(0);
+    if (input_meta.ok() && input_meta->sizes().size() >= 2) {
+      auto expected_seq_len = input_meta->sizes()[1];
+      // If expected sequence length is dynamic (-1) or greater than 1
+      if (expected_seq_len > 1 || expected_seq_len < 0) {
+        supports_parallel = true;
+      }
+    }
+  }
 
-  auto prefill_result =
-      module_->execute(kTextModelMethod, {encoder_output, *cache_pos_result});
-  ET_CHECK_OK_OR_RETURN_ERROR(prefill_result.error());
+  uint64_t next_token = 0;
 
-  auto &prefill_outputs = *prefill_result;
-  ET_CHECK_OR_RETURN_ERROR(!prefill_outputs.empty(), InvalidState,
-                           "text_decoder returned no outputs during prefill");
+  if (supports_parallel) {
+    std::vector<int64_t> cache_positions;
+    auto cache_pos_result = populate_start_pos_or_cache_position(
+        module_, start_pos, cache_positions, seq_len, kTextModelMethod);
+    ET_CHECK_OK_OR_RETURN_ERROR(cache_pos_result.error());
 
-  auto logits = prefill_outputs[0].toTensor();
-  start_pos += seq_len;
+    auto prefill_result =
+        module_->execute(kTextModelMethod, {encoder_output, *cache_pos_result});
 
-  return static_cast<uint64_t>(decoder_runner_->logits_to_token(logits));
+    ET_CHECK_OK_OR_RETURN_ERROR(prefill_result.error());
+    ET_CHECK_OR_RETURN_ERROR(
+        !prefill_result->empty(), InvalidState,
+        "text_decoder returned no outputs during parallel prefill");
+
+    auto logits = (*prefill_result)[0].toTensor();
+    next_token = decoder_runner_->logits_to_token(logits);
+    start_pos += seq_len;
+
+  } else {
+    ET_LOG(Info, "Model expects seq_len=1, falling back to sequential prefill");
+
+    const auto embed_dim = encoder_tensor.size(2);
+    uint8_t *data_ptr =
+        static_cast<uint8_t *>(encoder_tensor.mutable_data_ptr());
+    size_t element_size = encoder_tensor.nbytes() / encoder_tensor.numel();
+
+    for (int64_t pos = 0; pos < seq_len; ++pos) {
+      void *step_data_ptr = data_ptr + (pos * embed_dim * element_size);
+
+      auto step_tensor = ::executorch::extension::from_blob(
+          step_data_ptr, {1, 1, static_cast<SizesType>(embed_dim)},
+          encoder_tensor.scalar_type());
+
+      std::vector<int64_t> step_cache_positions;
+      auto step_cache_pos_result = populate_start_pos_or_cache_position(
+          module_, start_pos, step_cache_positions, 1, kTextModelMethod);
+      ET_CHECK_OK_OR_RETURN_ERROR(step_cache_pos_result.error());
+
+      auto step_result = module_->execute(
+          kTextModelMethod, {EValue(*step_tensor), *step_cache_pos_result});
+
+      ET_CHECK_OK_OR_RETURN_ERROR(step_result.error());
+      ET_CHECK_OR_RETURN_ERROR(
+          !step_result->empty(), InvalidState,
+          "text_decoder returned no outputs during sequential prefill");
+
+      auto logits = (*step_result)[0].toTensor();
+      next_token = decoder_runner_->logits_to_token(logits);
+      start_pos++;
+    }
+  }
+
+  return next_token;
 }
 
 Error MultimodalPrefiller::load() {

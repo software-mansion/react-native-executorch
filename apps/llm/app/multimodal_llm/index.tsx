@@ -14,7 +14,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLLM, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
+import { LFM2_5_VL_1_6B_QUANTIZED, useLLM } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
@@ -23,6 +23,8 @@ import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
 import ErrorBanner from '../../components/ErrorBanner';
+import { ModelPicker } from '../../components/ModelPicker';
+import { VLM_MODELS, VLMModelSources } from '../../components/vlmModels';
 
 const SUGGESTED_PROMPTS = [
   "What's in this image?",
@@ -45,12 +47,15 @@ function MultimodalLLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
+  const [selectedModel, setSelectedModel] = useState<VLMModelSources>(
+    LFM2_5_VL_1_6B_QUANTIZED
+  );
 
   // Added error state
   const [error, setError] = useState<string | null>(null);
 
   const vlm = useLLM({
-    model: LFM2_5_VL_1_6B_QUANTIZED,
+    model: selectedModel,
   });
   const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(
@@ -159,6 +164,12 @@ function MultimodalLLMScreen() {
             </TouchableOpacity>
           )}
 
+          <ModelPicker
+            models={VLM_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+            disabled={vlm.isGenerating}
+          />
           <StatsBar stats={stats} />
           <View
             style={[
