@@ -169,6 +169,7 @@ export class TextToSpeechModule {
         continue;
       }
       if (error) throw error;
+      if (nativeStreamFinished && queue.length === 0) return;
       await new Promise<void>((r) => (waiter = r));
     }
   }

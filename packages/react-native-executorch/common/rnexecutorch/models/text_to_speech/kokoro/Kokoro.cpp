@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <fstream>
+#include <phonemis/utils/strings.h>
+#include <phonemis/utils/unicode.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
 
@@ -154,6 +157,11 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
     // Extract the code relying on input buffer for a separate mutex lock
     // section.
     {
+      // Trim to remove trailing whitespace characters
+      inputTextBuffer_ =
+          phonemis::utils::strings::strip<std::u32string, char32_t>(
+              inputTextBuffer_);
+
       std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
       if (inputTextBuffer_.empty() && stopOnEmptyBuffer_) {
         break;
@@ -320,11 +328,11 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   const auto &voice = voice_[voiceID];
 
   // 4. Inference Phase 1: DurationPredictor (submodule).
-  // Results in 'd' (durations), 'indices', and 'effectiveDuration'.
-  auto [d, indices, effectiveDuration] = durationPredictor_.generate(
-      std::span(tokens),
-      std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
-      std::span(voice).last(constants::kVoiceRefHalfSize), speed);
+  auto [d, indices, effectiveDuration, timestamps] =
+      durationPredictor_.generate(
+          std::span(tokens),
+          std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
+          std::span(voice).last(constants::kVoiceRefHalfSize), speed);
 
   // 5. Inference Phase 2: Synthesizer.
   // Note that we reduce the size of the duration tensor to match the number of
@@ -341,16 +349,32 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   const auto audioTensor = decoding->at(0).toTensor();
   const int32_t audioLength = constants::kTicksPerDuration * effectiveDuration;
 
-  const auto audio =
+  auto audio =
       std::span<const float>(audioTensor.const_data_ptr<float>(), audioLength);
 
-  const auto croppedAudio =
+  // To counter any potential trailing voice artifacts (which can occur due to
+  // slight mismatch of .pte model results) we cut it according to the predicted
+  // duration ticks.
+  if (noTokens > 2) {
+    // We want to skip both the last PAD token, as well as any potential EOS
+    // token just before it.
+    auto lastTokenTimestamp =
+        !phonemis::utils::unicode::isalpha(phonemes.back())
+            ? timestamps[noTokens - 3].end
+            : timestamps[noTokens - 2].end;
+
+    audio = audio.subspan(0, lastTokenTimestamp);
+  }
+
+  // Now additional stripping of a (hopefully) pure silence.
+  audio =
       utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
-  return {croppedAudio.begin(), croppedAudio.end()};
+  return {audio.begin(), audio.end()};
 }
 
 void Kokoro::streamInsert(std::u32string chunk) noexcept {
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Inserting data");
   std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
   inputTextBuffer_.append(chunk);
 }
