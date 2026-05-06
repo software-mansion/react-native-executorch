@@ -91,3 +91,55 @@ export function selectByBox<L extends LabelEnum>(
 function bboxArea(bbox: Bbox): number {
   return Math.max(bbox.x2 - bbox.x1, 0) * Math.max(bbox.y2 - bbox.y1, 0);
 }
+
+/**
+ * Selects the best matching instance for a text prompt.
+ *
+ * Returns the instance whose image embedding has the highest cosine similarity
+ * with the text embedding. The caller is responsible for producing the
+ * embeddings (e.g. with CLIP) and passing them in the same order as
+ * `instances`; embeddings do not need to be pre-normalized.
+ * @param instances - Array of segmented instances returned by `forward()`.
+ * @param instanceEmbeddings - Image embedding for each instance, in the same order as `instances`.
+ * @param textEmbedding - Embedding of the text prompt.
+ * @returns The best matching instance, or `null` if `instances` is empty.
+ */
+export function selectByText<L extends LabelEnum>(
+  instances: SegmentedInstance<L>[],
+  instanceEmbeddings: Float32Array[],
+  textEmbedding: Float32Array
+): SegmentedInstance<L> | null {
+  if (instances.length === 0) return null;
+  if (instances.length !== instanceEmbeddings.length) {
+    throw new Error(
+      `selectByText: instances (${instances.length}) and instanceEmbeddings (${instanceEmbeddings.length}) must have the same length`
+    );
+  }
+
+  let textNormSq = 0;
+  for (let i = 0; i < textEmbedding.length; i++) {
+    const v = textEmbedding[i]!;
+    textNormSq += v * v;
+  }
+  const textNorm = Math.sqrt(textNormSq);
+
+  let bestIdx = 0;
+  let bestScore = -Infinity;
+  for (let i = 0; i < instances.length; i++) {
+    const emb = instanceEmbeddings[i]!;
+    const n = Math.min(emb.length, textEmbedding.length);
+    let dot = 0;
+    let embNormSq = 0;
+    for (let j = 0; j < n; j++) {
+      const a = emb[j]!;
+      dot += a * textEmbedding[j]!;
+      embNormSq += a * a;
+    }
+    const score = dot / (Math.sqrt(embNormSq) * textNorm + 1e-7);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIdx = i;
+    }
+  }
+  return instances[bestIdx]!;
+}
