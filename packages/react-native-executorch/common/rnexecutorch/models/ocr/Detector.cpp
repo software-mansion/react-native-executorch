@@ -10,19 +10,11 @@
 namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-
+    : VisionModel(modelSource, callInvoker) {
+  // Validate all supported input widths
   for (auto input_size : constants::kDetectorInputWidths) {
     std::string methodName = "forward_" + std::to_string(input_size);
-    auto inputShapes = getAllInputShapes(methodName);
-    if (inputShapes[0].size() < 2) {
-      std::string errorMessage =
-          "Unexpected detector model input size for method: " + methodName +
-          "expected at least 2 dimensions but got: ." +
-          std::to_string(inputShapes[0].size());
-      throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                              errorMessage);
-    }
+    validateAndGetInputShape(methodName, 2);
   }
 }
 
@@ -61,17 +53,10 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
 }
 
 cv::Size Detector::calculateModelImageSize(int32_t methodInputWidth) {
-
   utils::validateInputWidth(methodInputWidth, constants::kDetectorInputWidths,
                             "Detector");
   std::string methodName = "forward_" + std::to_string(methodInputWidth);
-
-  auto inputShapes = getAllInputShapes(methodName);
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  cv::Size modelInputSize =
-      cv::Size(modelInputShape[modelInputShape.size() - 1],
-               modelInputShape[modelInputShape.size() - 2]);
-  return modelInputSize;
+  return getModelInputSize(methodName);
 }
 
 std::vector<types::DetectorBBox>

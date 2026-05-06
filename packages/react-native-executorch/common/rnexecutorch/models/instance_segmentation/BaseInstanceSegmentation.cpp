@@ -9,6 +9,7 @@
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
+#include <set>
 
 namespace rnexecutorch::models::instance_segmentation {
 
@@ -17,41 +18,19 @@ BaseInstanceSegmentation::BaseInstanceSegmentation(
     std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker), applyNMS_(applyNMS) {
-
-  if (normMean.size() == 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
-  }
-  if (normStd.size() == 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
-  }
+  initNormalization(normMean, normStd);
 }
 
 cv::Size BaseInstanceSegmentation::modelInputSize() const {
-  if (currentlyLoadedMethod_.empty()) {
-    return VisionModel::modelInputSize();
+  if (!currentlyLoadedMethod_.empty()) {
+    return getModelInputSize(currentlyLoadedMethod_);
   }
-  auto inputShapes = getAllInputShapes(currentlyLoadedMethod_);
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    return VisionModel::modelInputSize();
-  }
-  const auto &shape = inputShapes[0];
-  return {shape[shape.size() - 2], shape[shape.size() - 1]};
+  return VisionModel::modelInputSize();
 }
 
 TensorPtr BaseInstanceSegmentation::buildInputTensor(const cv::Mat &image) {
   cv::Mat preprocessed = preprocess(image);
-  return (normMean_.has_value() && normStd_.has_value())
-             ? image_processing::getTensorFromMatrix(
-                   modelInputShape_, preprocessed, normMean_.value(),
-                   normStd_.value())
-             : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                     preprocessed);
+  return createInputTensor(preprocessed);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::runInference(
@@ -63,35 +42,26 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
 
   ensureMethodLoaded(methodName);
 
-  auto inputShapes = getAllInputShapes(methodName);
-  if (inputShapes.empty() || inputShapes[0].empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Method '" + methodName +
-                                "' has invalid input tensor shape.");
-  }
-
-  modelInputShape_ = inputShapes[0];
+  modelInputShape_ = validateAndGetInputShape(methodName, 2);
   const auto &shape = modelInputShape_;
   cv::Size modelInputSize(shape[shape.size() - 2], shape[shape.size() - 1]);
   cv::Size originalSize(image.cols, image.rows);
 
-  validateThresholds(confidenceThreshold, iouThreshold);
+  utils::computer_vision::validateThreshold(confidenceThreshold,
+                                            "confidenceThreshold");
+  utils::computer_vision::validateThreshold(iouThreshold, "iouThreshold");
 
-  auto forwardResult =
-      BaseModel::execute(methodName, {buildInputTensor(image)});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(
-        forwardResult.error(),
-        "The model's forward function did not succeed. "
-        "Ensure the model input is correct and method name '" +
-            methodName + "' is valid.");
-  }
+  auto outputs =
+      executeOrThrow(methodName, {buildInputTensor(image)},
+                     "The model's forward function did not succeed. "
+                     "Ensure the model input is correct and method name '" +
+                         methodName + "' is valid.");
 
-  validateOutputTensors(forwardResult.get());
+  validateOutputTensors(outputs);
 
-  auto instances = collectInstances(
-      forwardResult.get(), originalSize, modelInputSize, confidenceThreshold,
-      classIndices, returnMaskAtOriginalResolution);
+  auto instances = collectInstances(outputs, originalSize, modelInputSize,
+                                    confidenceThreshold, classIndices,
+                                    returnMaskAtOriginalResolution);
   return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
 }
 
@@ -100,10 +70,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromString(
     int32_t maxInstances, std::vector<int32_t> classIndices,
     bool returnMaskAtOriginalResolution, std::string methodName) {
 
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
   return runInference(imageRGB, confidenceThreshold, iouThreshold, maxInstances,
                       classIndices, returnMaskAtOriginalResolution, methodName);
 }
@@ -114,15 +81,16 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
     std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
     std::string methodName) {
 
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   auto instances =
       runInference(rotated, confidenceThreshold, iouThreshold, maxInstances,
                    classIndices, returnMaskAtOriginalResolution, methodName);
+
+  // Inverse-rotate bboxes for all instances
+  utils::inverseRotateBboxes(instances, orient, rotated.size());
+
+  // Inverse-rotate masks (instance-specific logic)
   for (auto &inst : instances) {
-    utils::inverseRotateBbox(inst.bbox, orient, rotated.size());
-    // Inverse-rotate the mask to match the screen orientation
     cv::Mat maskMat(inst.maskHeight, inst.maskWidth, CV_8UC1,
                     inst.mask->data());
     cv::Mat invMask = utils::inverseRotateMat(maskMat, orient);
@@ -142,19 +110,6 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(
   cv::Mat image = extractFromPixels(tensorView);
   return runInference(image, confidenceThreshold, iouThreshold, maxInstances,
                       classIndices, returnMaskAtOriginalResolution, methodName);
-}
-
-std::tuple<utils::computer_vision::BBox, float, int32_t>
-BaseInstanceSegmentation::extractDetectionData(const float *bboxData,
-                                               const float *scoresData,
-                                               int32_t index) {
-  utils::computer_vision::BBox bbox{
-      bboxData[index * 4], bboxData[index * 4 + 1], bboxData[index * 4 + 2],
-      bboxData[index * 4 + 3]};
-  float score = scoresData[index * 2];
-  int32_t label = static_cast<int32_t>(scoresData[index * 2 + 1]);
-
-  return {bbox, score, label};
 }
 
 cv::Rect BaseInstanceSegmentation::computeMaskCropRect(
@@ -232,22 +187,6 @@ cv::Mat BaseInstanceSegmentation::processMaskFromLogits(
   return thresholdToBinary(probMat);
 }
 
-void BaseInstanceSegmentation::validateThresholds(double confidenceThreshold,
-                                                  double iouThreshold) const {
-  if (confidenceThreshold < 0 || confidenceThreshold > 1) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "Confidence threshold must be greater or equal to 0 "
-        "and less than or equal to 1.");
-  }
-
-  if (iouThreshold < 0 || iouThreshold > 1) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "IoU threshold must be greater or equal to 0 "
-                            "and less than or equal to 1.");
-  }
-}
-
 void BaseInstanceSegmentation::validateOutputTensors(
     const std::vector<EValue> &tensors) const {
   if (tensors.size() != 3) {
@@ -256,48 +195,6 @@ void BaseInstanceSegmentation::validateOutputTensors(
                             "[1,N,H,W]), got " +
                                 std::to_string(tensors.size()));
   }
-}
-
-std::set<int32_t> BaseInstanceSegmentation::prepareAllowedClasses(
-    const std::vector<int32_t> &classIndices) const {
-  std::set<int32_t> allowedClasses;
-  if (!classIndices.empty()) {
-    allowedClasses.insert(classIndices.begin(), classIndices.end());
-  }
-  return allowedClasses;
-}
-
-void BaseInstanceSegmentation::ensureMethodLoaded(
-    const std::string &methodName) {
-  if (methodName.empty()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "Method name cannot be empty. Use 'forward' for single-method models "
-        "or 'forward_{inputSize}' for multi-method models.");
-  }
-
-  if (currentlyLoadedMethod_ == methodName) {
-    return;
-  }
-
-  if (!module_) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Model not loaded. Cannot load method '" +
-                                methodName + "'.");
-  }
-
-  if (!currentlyLoadedMethod_.empty()) {
-    module_->unload_method(currentlyLoadedMethod_);
-  }
-
-  auto loadResult = module_->load_method(methodName);
-  if (loadResult != executorch::runtime::Error::Ok) {
-    throw RnExecutorchError(
-        loadResult, "Failed to load method '" + methodName +
-                        "'. Ensure the method exists in the exported model.");
-  }
-
-  currentlyLoadedMethod_ = methodName;
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
@@ -326,7 +223,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::collectInstances(
       static_cast<float>(originalSize.width) / modelInputSize.width;
   float heightRatio =
       static_cast<float>(originalSize.height) / modelInputSize.height;
-  auto allowedClasses = prepareAllowedClasses(classIndices);
+  std::set<int32_t> allowedClasses(classIndices.begin(), classIndices.end());
 
   // CONTRACT
   auto bboxTensor = tensors[0].toTensor();   // [1, N, 4]
@@ -351,7 +248,7 @@ std::vector<types::Instance> BaseInstanceSegmentation::collectInstances(
 
   for (int32_t i = 0; i < numInstances; ++i) {
     auto [bboxModel, score, labelIdx] =
-        extractDetectionData(bboxData, scoresData, i);
+        utils::computer_vision::extractDetectionData(bboxData, scoresData, i);
 
     if (!isValidDetection(score, labelIdx)) {
       continue;

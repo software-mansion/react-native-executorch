@@ -1,5 +1,6 @@
 #pragma once
 
+#include <executorch/extension/tensor/tensor_ptr.h>
 #include <jsi/jsi.h>
 #include <mutex>
 #include <opencv2/opencv.hpp>
@@ -9,6 +10,8 @@
 
 namespace rnexecutorch {
 namespace models {
+
+using executorch::extension::TensorPtr;
 
 /**
  * @brief Base class for computer vision models that support real-time camera
@@ -21,16 +24,35 @@ namespace models {
  * Thread Safety:
  * - All inference operations are protected by a mutex via scoped_lock
  *
+ * Normalization:
+ * Subclasses should call initNormalization() with ImageNet mean/std when the
+ * model expects ImageNet-normalized inputs (e.g., Classification, Detection,
+ * Segmentation). Skip initNormalization() when the model:
+ * - Has built-in normalization layers (e.g., some embeddings models)
+ * - Expects raw pixel values [0, 255] (e.g., StyleTransfer)
+ * - Uses non-ImageNet normalization (handle in custom preprocess())
+ *
+ * The createInputTensor() method safely handles both cases via std::optional.
+ *
  * Usage:
  * Subclasses should:
  * 1. Inherit from VisionModel instead of BaseModel
- * 2. Optionally override preprocess() for model-specific preprocessing
- * 3. Implement runInference() which acquires the lock internally
+ * 2. Call initNormalization() if model expects normalized inputs
+ * 3. Optionally override preprocess() for model-specific preprocessing
+ * 4. Implement runInference() which acquires the lock internally
  *
  * Example:
  * @code
  * class Classification : public VisionModel {
  * public:
+ *   Classification(const std::string& modelSource,
+ *                  std::shared_ptr<react::CallInvoker> callInvoker,
+ *                  const std::vector<float>& normMean,
+ *                  const std::vector<float>& normStd)
+ *       : VisionModel(modelSource, callInvoker) {
+ *     initNormalization(normMean, normStd);  // ImageNet normalization
+ *   }
+ *
  *   std::unordered_map<std::string_view, float>
  *   generateFromFrame(jsi::Runtime& runtime, const jsi::Value& frameValue) {
  *     auto frameObject = frameValue.asObject(runtime);
@@ -62,6 +84,13 @@ protected:
   /// Cached input tensor shape (getAllInputShapes()[0]).
   /// Set once by each subclass constructor to avoid per-frame metadata lookups.
   std::vector<int32_t> modelInputShape_;
+
+  /// Per-channel normalization mean (RGB). nullopt = no normalization applied.
+  std::optional<cv::Scalar> normMean_;
+
+  /// Per-channel normalization std-dev (RGB). nullopt = no normalization
+  /// applied.
+  std::optional<cv::Scalar> normStd_;
 
   /**
    * @brief Mutex to ensure thread-safe inference
@@ -99,6 +128,35 @@ protected:
    * sizes.
    */
   virtual cv::Size modelInputSize() const;
+
+  /**
+   * @brief Get input size for a specific method (last two shape dims).
+   *
+   * Useful for multi-method models with different input sizes per method.
+   * Falls back to currentlyLoadedMethod_ when methodName is empty.
+   */
+  cv::Size getModelInputSize(const std::string &methodName = "") const;
+
+  /**
+   * @brief Set normMean_/normStd_ from float vectors.
+   *
+   * Expects size == 3. Logs a warning and ignores if non-empty but wrong size.
+   */
+  void initNormalization(const std::vector<float> &normMean,
+                         const std::vector<float> &normStd);
+
+  /// Builds input tensor from a preprocessed image.
+  /// Applies normalization if normMean_/normStd_ are set, skips it otherwise.
+  TensorPtr createInputTensor(const cv::Mat &preprocessed) const;
+
+  /// Reads image from path and converts BGR → RGB.
+  cv::Mat loadImageToRGB(const std::string &imageSource) const;
+
+  /// Extracts a camera frame, applies rotation, and returns
+  /// {rotated frame, orientation, original size}.
+  std::tuple<cv::Mat, utils::FrameOrientation, cv::Size>
+  loadFrameRotated(jsi::Runtime &runtime, const jsi::Value &frameData) const;
+
   /**
    * @brief Extract an RGB cv::Mat from a VisionCamera frame
    *

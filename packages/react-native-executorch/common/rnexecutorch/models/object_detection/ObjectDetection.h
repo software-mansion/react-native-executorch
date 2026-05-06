@@ -125,36 +125,8 @@ private:
               double detectionThreshold, double iouThreshold,
               const std::vector<int32_t> &classIndices);
 
-  /**
-   * @brief Ensures the specified method is loaded, unloading any previous
-   * method if necessary.
-   *
-   * @param methodName Name of the method to load (e.g., "forward",
-   * "forward_384").
-   * @throws RnExecutorchError if the method cannot be loaded.
-   */
-  void ensureMethodLoaded(const std::string &methodName);
-
-  /**
-   * @brief Prepares a set of allowed class indices for filtering detections.
-   *
-   * @param classIndices Vector of class indices to allow.
-   * @return A set containing the allowed class indices.
-   */
-  std::set<int32_t>
-  prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
-
-  /// Optional per-channel mean for input normalisation (set in constructor).
-  std::optional<cv::Scalar> normMean_;
-
-  /// Optional per-channel standard deviation for input normalisation.
-  std::optional<cv::Scalar> normStd_;
-
   /// Ordered label strings mapping class indices to human-readable names.
   std::vector<std::string> labelNames_;
-
-  /// Name of the currently loaded method (for multi-method models).
-  std::string currentlyLoadedMethod_;
 };
 } // namespace models::object_detection
 

@@ -16,40 +16,21 @@ using executorch::extension::TensorPtr;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker) {
-  auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Model seems to not take any input tensors");
-  }
-  modelInputShape_ = inputShapes[0];
-  if (modelInputShape_.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimensions "
-                  "but got: %zu.",
-                  modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            errorMessage);
-  }
+  modelInputShape_ = validateAndGetInputShape();
 }
 
 cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
+  auto inputTensor = createInputTensor(preprocessed);
 
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto outputs = forwardOrThrow(inputTensor,
+                                "The model's forward function did not succeed. "
+                                "Ensure the model input is correct.");
 
-  auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
-
-  cv::Mat mat = image_processing::getMatrixFromTensor(
-      modelInputSize(), forwardResult->at(0).toTensor());
+  cv::Mat mat = image_processing::getMatrixFromTensor(modelInputSize(),
+                                                      outputs.at(0).toTensor());
   if (mat.size() != outputSize) {
     cv::resize(mat, mat, outputSize);
   }
@@ -68,11 +49,8 @@ PixelDataResult toPixelDataResult(const cv::Mat &bgrMat) {
 
 StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
                                                       bool saveToFile) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-  cv::Size originalSize = imageBGR.size();
-
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
+  cv::Size originalSize = imageRGB.size();
 
   cv::Mat result = runInference(imageRGB, originalSize);
   if (saveToFile) {
@@ -83,9 +61,7 @@ StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
 
 PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
                                                  const jsi::Value &frameData) {
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   cv::Mat output = runInference(rotated, modelInputSize());
   cv::Mat oriented = utils::inverseRotateMat(output, orient);
   return toPixelDataResult(oriented);

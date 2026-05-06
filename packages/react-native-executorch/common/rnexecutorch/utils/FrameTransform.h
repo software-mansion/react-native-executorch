@@ -132,4 +132,20 @@ void inverseRotatePoints(Points &points, const FrameOrientation &orient,
 #endif
 }
 
+/**
+ * @brief Inverse-rotate all bboxes in a container of detections/instances.
+ *
+ * Items must expose a .bbox member of type computer_vision::BBox.
+ */
+template <typename Container>
+  requires requires(Container c) {
+    { c.begin()->bbox } -> std::convertible_to<computer_vision::BBox &>;
+  }
+void inverseRotateBboxes(Container &items, const FrameOrientation &orient,
+                         cv::Size rotatedSize) {
+  for (auto &item : items) {
+    inverseRotateBbox(item.bbox, orient, rotatedSize);
+  }
+}
+
 } // namespace rnexecutorch::utils

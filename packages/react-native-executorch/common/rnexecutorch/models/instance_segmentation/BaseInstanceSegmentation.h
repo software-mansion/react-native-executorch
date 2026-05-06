@@ -61,19 +61,7 @@ private:
                    const std::vector<int32_t> &classIndices,
                    bool returnMaskAtOriginalResolution);
 
-  void validateThresholds(double confidenceThreshold,
-                          double iouThreshold) const;
   void validateOutputTensors(const std::vector<EValue> &tensors) const;
-
-  std::set<int32_t>
-  prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
-
-  // Model loading and input helpers
-  void ensureMethodLoaded(const std::string &methodName);
-
-  std::tuple<utils::computer_vision::BBox, float, int32_t>
-  extractDetectionData(const float *bboxData, const float *scoresData,
-                       int32_t index);
 
   cv::Rect computeMaskCropRect(const utils::computer_vision::BBox &bboxModel,
                                cv::Size modelInputSize, cv::Size maskSize);
@@ -96,10 +84,7 @@ private:
       const utils::computer_vision::BBox &bboxOriginal, cv::Size modelInputSize,
       cv::Size originalSize, bool warpToOriginal);
 
-  std::optional<cv::Scalar> normMean_;
-  std::optional<cv::Scalar> normStd_;
   bool applyNMS_;
-  std::string currentlyLoadedMethod_;
 };
 } // namespace models::instance_segmentation
 

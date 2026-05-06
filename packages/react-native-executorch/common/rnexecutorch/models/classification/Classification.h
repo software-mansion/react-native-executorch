@@ -40,8 +40,6 @@ private:
   std::unordered_map<std::string_view, float> postprocess(const Tensor &tensor);
 
   std::vector<std::string> labelNames_;
-  std::optional<cv::Scalar> normMean_;
-  std::optional<cv::Scalar> normStd_;
 };
 } // namespace models::classification
 

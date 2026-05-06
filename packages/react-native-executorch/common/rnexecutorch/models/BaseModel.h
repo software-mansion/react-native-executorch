@@ -53,6 +53,32 @@ protected:
 
   std::size_t memorySizeLowerBound{0};
 
+  /// Loads methodName, unloading any previously loaded method first.
+  /// Useful for multi-method models (e.g., "forward_384", "forward_640").
+  void ensureMethodLoaded(const std::string &methodName);
+
+  std::vector<int32_t>
+  validateAndGetInputShape(const std::string &methodName = "forward",
+                           size_t minDimensions = 2) const;
+
+  std::vector<EValue>
+  forwardOrThrow(const EValue &input,
+                 const std::string &contextMessage =
+                     "Model forward failed. Ensure input is correct.") const;
+
+  std::vector<EValue>
+  forwardOrThrow(const std::vector<EValue> &inputs,
+                 const std::string &contextMessage =
+                     "Model forward failed. Ensure input is correct.") const;
+
+  std::vector<EValue>
+  executeOrThrow(const std::string &methodName,
+                 const std::vector<EValue> &inputs,
+                 const std::string &contextMessage = "") const;
+
+  /// Name of the currently loaded method (for multi-method models).
+  std::string currentlyLoadedMethod_;
+
 private:
   std::vector<int32_t>
   getTensorShape(const executorch::aten::Tensor &tensor) const;
