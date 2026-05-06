@@ -51,7 +51,7 @@ export default function Home() {
           style={styles.button}
           onPress={() => router.navigate('fast_sam/')}
         >
-          <Text style={styles.buttonText}>FastSAM</Text>
+          <Text style={styles.buttonText}>Segment Anything</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}

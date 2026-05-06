@@ -1,31 +1,33 @@
-import React, { useContext, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   GestureResponderEvent,
-  Image,
 } from 'react-native';
 import {
   Canvas,
-  Image as SkiaImage,
   Rect,
-  Group,
-  useImage,
   Skia,
-  AlphaType,
-  ColorType,
+  useImage,
+  type SkImage,
 } from '@shopify/react-native-skia';
 import {
   useInstanceSegmentation,
+  useImageEmbeddings,
+  useTextEmbeddings,
   FASTSAM_S,
   FASTSAM_X,
+  CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  CLIP_VIT_BASE_PATCH32_TEXT,
   InstanceSegmentationModelSources,
   SegmentedInstance,
   FastSAMLabel,
   selectByPoint,
   selectByBox,
+  selectByText,
   Bbox,
 } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
@@ -34,17 +36,21 @@ import { BottomBar } from '../../components/BottomBar';
 import { StatsBar } from '../../components/StatsBar';
 import Spinner from '../../components/Spinner';
 import ScreenWrapper from '../../ScreenWrapper';
+import ImageWithMasks, {
+  buildDisplayInstances,
+  DisplayInstance,
+} from '../../components/ImageWithMasks';
 import { getImage } from '../../utils';
 import ColorPalette from '../../colors';
 
-type PromptMode = 'point' | 'box';
+type PromptMode = 'point' | 'box' | 'text';
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
-  { label: 'FastSAM-s', value: FASTSAM_S },
-  { label: 'FastSAM-x', value: FASTSAM_X },
+  { label: 'FastSAM-S', value: FASTSAM_S },
+  { label: 'FastSAM-X', value: FASTSAM_X },
 ];
 
-export default function FastSAMScreen() {
+export default function SegmentAnythingScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const [selectedModel, setSelectedModel] =
@@ -56,131 +62,149 @@ export default function FastSAMScreen() {
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   const rawInstancesRef = useRef<SegmentedInstance<typeof FastSAMLabel>[]>([]);
-  const [selection, setSelection] = useState<SegmentedInstance<
-    typeof FastSAMLabel
-  > | null>(null);
+  const [selection, setSelection] = useState<DisplayInstance[]>([]);
 
-  const [draftBox, setDraftBox] = useState<{
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-  } | null>(null);
+  const [draftBox, setDraftBox] = useState<Bbox | null>(null);
   const boxStartRef = useRef<{ x: number; y: number } | null>(null);
-
-  const sourceLayoutRef = useRef({ width: 0, height: 0 });
-  const cutoutLayoutRef = useRef({ width: 0, height: 0 });
-  const [cutoutLayout, setCutoutLayout] = useState({ width: 0, height: 0 });
+  const layoutRef = useRef({ width: 0, height: 0 });
 
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({ model: selectedModel });
 
-  React.useEffect(() => {
+  const clipImage = useImageEmbeddings({
+    model: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+  });
+  const clipText = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
+  const skiaSource = useImage(imageUri || null);
+
+  const [textPrompt, setTextPrompt] = useState('');
+  const [textBusy, setTextBusy] = useState(false);
+  const [embeddingProgress, setEmbeddingProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
+  const instanceEmbeddingsRef = useRef<Float32Array[] | null>(null);
+
+  useEffect(() => {
     setGlobalGenerating(isGenerating);
   }, [isGenerating, setGlobalGenerating]);
 
-  // -------------------------------------------------------------------------
-  // Coordinate conversion (source image box)
-  // -------------------------------------------------------------------------
+  function applyMatch(
+    match: SegmentedInstance<typeof FastSAMLabel> | null
+  ): void {
+    setSelection(match ? buildDisplayInstances([match]) : []);
+  }
 
   function touchToImageCoords(touchX: number, touchY: number) {
-    const { width: cw, height: ch } = sourceLayoutRef.current;
+    const { width: cw, height: ch } = layoutRef.current;
     const { width: iw, height: ih } = imageSize;
     if (iw === 0 || ih === 0) return null;
     const scale = Math.min(cw / iw, ch / ih);
-    const offsetX = (cw - iw * scale) / 2;
-    const offsetY = (ch - ih * scale) / 2;
     return {
-      x: (touchX - offsetX) / scale,
-      y: (touchY - offsetY) / scale,
+      x: (touchX - (cw - iw * scale) / 2) / scale,
+      y: (touchY - (ch - ih * scale) / 2) / scale,
     };
   }
 
-  // -------------------------------------------------------------------------
-  // Point prompt
-  // -------------------------------------------------------------------------
-
   function handleTap(e: GestureResponderEvent) {
     if (mode !== 'point' || rawInstancesRef.current.length === 0) return;
-    const coords = touchToImageCoords(
+    const c = touchToImageCoords(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY
     );
-    if (!coords) return;
-    const t0 = Date.now();
-    const match = selectByPoint(
-      rawInstancesRef.current,
-      Math.round(coords.x),
-      Math.round(coords.y)
+    if (!c) return;
+    applyMatch(
+      selectByPoint(rawInstancesRef.current, Math.round(c.x), Math.round(c.y))
     );
-    console.log(`[FastSAM] selectByPoint(): ${Date.now() - t0}ms`);
-    setSelection(match ?? null);
   }
-
-  // -------------------------------------------------------------------------
-  // Box prompt
-  // -------------------------------------------------------------------------
 
   function handleBoxStart(e: GestureResponderEvent) {
     if (mode !== 'box') return;
-    const coords = touchToImageCoords(
+    const c = touchToImageCoords(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY
     );
-    if (!coords) return;
-    boxStartRef.current = coords;
-    setDraftBox({ x1: coords.x, y1: coords.y, x2: coords.x, y2: coords.y });
+    if (!c) return;
+    boxStartRef.current = c;
+    setDraftBox({ x1: c.x, y1: c.y, x2: c.x, y2: c.y });
   }
 
   function handleBoxMove(e: GestureResponderEvent) {
     if (mode !== 'box' || !boxStartRef.current) return;
-    const coords = touchToImageCoords(
+    const c = touchToImageCoords(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY
     );
-    if (!coords) return;
+    if (!c) return;
     const s = boxStartRef.current;
     setDraftBox({
-      x1: Math.min(s.x, coords.x),
-      y1: Math.min(s.y, coords.y),
-      x2: Math.max(s.x, coords.x),
-      y2: Math.max(s.y, coords.y),
+      x1: Math.min(s.x, c.x),
+      y1: Math.min(s.y, c.y),
+      x2: Math.max(s.x, c.x),
+      y2: Math.max(s.y, c.y),
     });
   }
 
   function handleBoxEnd(e: GestureResponderEvent) {
-    if (
-      mode !== 'box' ||
-      !boxStartRef.current ||
-      rawInstancesRef.current.length === 0
-    ) {
-      boxStartRef.current = null;
-      setDraftBox(null);
-      return;
-    }
-    const coords = touchToImageCoords(
+    if (mode !== 'box' || !boxStartRef.current) return;
+    const c = touchToImageCoords(
       e.nativeEvent.locationX,
       e.nativeEvent.locationY
     );
     const s = boxStartRef.current;
     boxStartRef.current = null;
     setDraftBox(null);
-    if (!coords) return;
-    const box: Bbox = {
-      x1: Math.min(s.x, coords.x),
-      y1: Math.min(s.y, coords.y),
-      x2: Math.max(s.x, coords.x),
-      y2: Math.max(s.y, coords.y),
-    };
-    const t0 = Date.now();
-    const match = selectByBox(rawInstancesRef.current, box);
-    console.log(`[FastSAM] selectByBox(): ${Date.now() - t0}ms`);
-    setSelection(match ?? null);
+    if (!c || rawInstancesRef.current.length === 0) return;
+    applyMatch(
+      selectByBox(rawInstancesRef.current, {
+        x1: Math.min(s.x, c.x),
+        y1: Math.min(s.y, c.y),
+        x2: Math.max(s.x, c.x),
+        y2: Math.max(s.y, c.y),
+      })
+    );
   }
 
-  // -------------------------------------------------------------------------
-  // Image loading & inference
-  // -------------------------------------------------------------------------
+  async function runTextPrompt() {
+    const instances = rawInstancesRef.current;
+    if (
+      !textPrompt.trim() ||
+      instances.length === 0 ||
+      !skiaSource ||
+      !clipImage.isReady ||
+      !clipText.isReady ||
+      textBusy
+    ) {
+      return;
+    }
+    setTextBusy(true);
+    try {
+      if (!instanceEmbeddingsRef.current) {
+        setEmbeddingProgress({ done: 0, total: instances.length });
+        const embeddings: Float32Array[] = [];
+        for (let i = 0; i < instances.length; i++) {
+          embeddings.push(
+            await cropAndEmbed(
+              skiaSource,
+              instances[i]!.bbox,
+              clipImage.forward
+            )
+          );
+          setEmbeddingProgress({ done: i + 1, total: instances.length });
+        }
+        instanceEmbeddingsRef.current = embeddings;
+        setEmbeddingProgress(null);
+      }
+      const textEmb = await clipText.forward(textPrompt);
+      applyMatch(
+        selectByText(instances, instanceEmbeddingsRef.current, textEmb)
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTextBusy(false);
+    }
+  }
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -188,70 +212,29 @@ export default function FastSAMScreen() {
     setImageUri(image.uri);
     setImageSize({ width: image.width ?? 0, height: image.height ?? 0 });
     rawInstancesRef.current = [];
-    setSelection(null);
+    instanceEmbeddingsRef.current = null;
+    setSelection([]);
     setInferenceTime(null);
   };
 
   const runForward = async () => {
     if (!imageUri) return;
     try {
-      const t0 = Date.now();
+      const start = Date.now();
       const output = await forward(imageUri, {
         confidenceThreshold: 0.4,
         iouThreshold: 0.9,
         maxInstances: 50,
         returnMaskAtOriginalResolution: true,
       });
-      const inferenceMs = Date.now() - t0;
-      console.log(
-        `[FastSAM] forward(): ${inferenceMs}ms, instances: ${output.length}`
-      );
-      setInferenceTime(inferenceMs);
+      setInferenceTime(Date.now() - start);
       rawInstancesRef.current = output;
-      setSelection(null);
+      instanceEmbeddingsRef.current = null;
+      setSelection([]);
     } catch (e) {
       console.error(e);
     }
   };
-
-  // -------------------------------------------------------------------------
-  // Cutout rendering
-  // -------------------------------------------------------------------------
-
-  const skiaSource = useImage(imageUri || null);
-
-  const alphaMask = useMemo(() => {
-    if (!selection) return null;
-    const t0 = Date.now();
-    const mask = buildAlphaMask(
-      selection.mask,
-      selection.maskWidth,
-      selection.maskHeight,
-      selection.bbox.x1,
-      selection.bbox.y1,
-      imageSize.width,
-      imageSize.height
-    );
-    console.log(`[FastSAM] buildAlphaMask(): ${Date.now() - t0}ms`);
-    return mask;
-  }, [selection, imageSize]);
-
-  const { width: cw, height: ch } = cutoutLayout;
-  const { width: iw, height: ih } = imageSize;
-  const cutoutScale =
-    cw > 0 && ch > 0 && iw > 0 && ih > 0 ? Math.min(cw / iw, ch / ih) : 1;
-  const cutoutOffsetX = (cw - iw * cutoutScale) / 2;
-  const cutoutOffsetY = (ch - ih * cutoutScale) / 2;
-
-  // Draft box overlay coords (source box)
-  const { width: scw, height: sch } = sourceLayoutRef.current;
-  const srcScale = iw > 0 && ih > 0 ? Math.min(scw / iw, sch / ih) : 1;
-  const srcOffsetX = (scw - iw * srcScale) / 2;
-  const srcOffsetY = (sch - ih * srcScale) / 2;
-
-  // -------------------------------------------------------------------------
-  // Error / loading
-  // -------------------------------------------------------------------------
 
   if (!isReady && error) {
     return (
@@ -268,137 +251,141 @@ export default function FastSAMScreen() {
     return (
       <Spinner
         visible
-        textContent={`Loading model ${(downloadProgress * 100).toFixed(0)}%`}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
 
+  const { width: cw, height: ch } = layoutRef.current;
+  const { width: iw, height: ih } = imageSize;
+  const drawScale = iw > 0 && ih > 0 ? Math.min(cw / iw, ch / ih) : 1;
+  const offsetX = (cw - iw * drawScale) / 2;
+  const offsetY = (ch - ih * drawScale) / 2;
+
+  const stepHint = !imageUri
+    ? null
+    : inferenceTime === null
+      ? 'Tap Run to detect instances'
+      : rawInstancesRef.current.length === 0
+        ? 'No instances detected — try another image'
+        : selection.length === 0
+          ? 'Tap a point, draw a box, or describe an object'
+          : null;
+
   return (
     <ScreenWrapper>
-      {/* ---- Source image box ---- */}
-      <View
-        style={styles.imageBox}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          sourceLayoutRef.current = { width, height };
-        }}
-        onTouchStart={(e) => {
-          if (mode === 'point') handleTap(e);
-          else handleBoxStart(e);
-        }}
-        onTouchMove={(e) => {
-          if (mode === 'box') handleBoxMove(e);
-        }}
-        onTouchEnd={(e) => {
-          if (mode === 'box') handleBoxEnd(e);
-        }}
-      >
-        <Image
-          style={styles.image}
-          resizeMode="contain"
-          source={
-            imageUri
-              ? { uri: imageUri }
-              : require('../../assets/icons/executorch_logo.png')
-          }
-        />
-        {!imageUri && (
-          <View style={styles.hint}>
-            <Text style={styles.hintText}>Load an image to get started</Text>
-          </View>
-        )}
-        {/* Draft box */}
-        {draftBox && iw > 0 && (
-          <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-            <Rect
-              x={draftBox.x1 * srcScale + srcOffsetX}
-              y={draftBox.y1 * srcScale + srcOffsetY}
-              width={(draftBox.x2 - draftBox.x1) * srcScale}
-              height={(draftBox.y2 - draftBox.y1) * srcScale}
-              style="stroke"
-              strokeWidth={2}
-              color="rgba(0,200,255,1)"
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <View
+            style={styles.imageTouchArea}
+            onLayout={(e) => {
+              layoutRef.current = {
+                width: e.nativeEvent.layout.width,
+                height: e.nativeEvent.layout.height,
+              };
+            }}
+            onTouchStart={(e) => {
+              if (mode === 'point') handleTap(e);
+              else if (mode === 'box') handleBoxStart(e);
+            }}
+            onTouchMove={handleBoxMove}
+            onTouchEnd={handleBoxEnd}
+          >
+            <ImageWithMasks
+              imageUri={imageUri}
+              instances={selection}
+              imageWidth={imageSize.width}
+              imageHeight={imageSize.height}
             />
-          </Canvas>
-        )}
-      </View>
-
-      {/* ---- Cutout box ---- */}
-      <View
-        style={styles.imageBox}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          cutoutLayoutRef.current = { width, height };
-          setCutoutLayout({ width, height });
-        }}
-      >
-        {selection && skiaSource && alphaMask ? (
-          <Canvas style={StyleSheet.absoluteFill}>
-            <Rect x={0} y={0} width={cw} height={ch} color="black" />
-            <Group layer>
-              <SkiaImage
-                image={skiaSource}
-                x={cutoutOffsetX}
-                y={cutoutOffsetY}
-                width={iw * cutoutScale}
-                height={ih * cutoutScale}
-                fit="fill"
-              />
-              <SkiaImage
-                image={alphaMask}
-                x={cutoutOffsetX}
-                y={cutoutOffsetY}
-                width={iw * cutoutScale}
-                height={ih * cutoutScale}
-                fit="fill"
-                blendMode="dstIn"
-              />
-            </Group>
-          </Canvas>
-        ) : (
-          <View style={styles.hint}>
-            <Text style={styles.hintText}>
-              {rawInstancesRef.current.length > 0
-                ? 'Tap or draw a box on the image above'
-                : imageUri
-                  ? 'Run inference first'
-                  : ''}
-            </Text>
+            {draftBox && iw > 0 && (
+              <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+                <Rect
+                  x={draftBox.x1 * drawScale + offsetX}
+                  y={draftBox.y1 * drawScale + offsetY}
+                  width={(draftBox.x2 - draftBox.x1) * drawScale}
+                  height={(draftBox.y2 - draftBox.y1) * drawScale}
+                  style="stroke"
+                  strokeWidth={2}
+                  color="rgba(0,200,255,1)"
+                />
+              </Canvas>
+            )}
           </View>
-        )}
-      </View>
-
-      {/* ---- Controls ---- */}
-      <View style={styles.controls}>
-        <View style={styles.modeToggle}>
-          <TouchableOpacity
-            style={[styles.modeBtn, mode === 'point' && styles.modeBtnActive]}
-            onPress={() => setMode('point')}
-          >
-            <Text
-              style={[
-                styles.modeBtnText,
-                mode === 'point' && styles.modeBtnTextActive,
-              ]}
-            >
-              Point
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modeBtn, mode === 'box' && styles.modeBtnActive]}
-            onPress={() => setMode('box')}
-          >
-            <Text
-              style={[
-                styles.modeBtnText,
-                mode === 'box' && styles.modeBtnTextActive,
-              ]}
-            >
-              Box
-            </Text>
-          </TouchableOpacity>
+          {!imageUri && (
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoTitle}>Segment Anything</Text>
+              <Text style={styles.infoText}>
+                Segment any object in an image. (1) Pick an image, (2) tap Run
+                to detect instances, (3) tap a point, draw a box, or describe an
+                object to segment it.
+              </Text>
+            </View>
+          )}
         </View>
       </View>
+
+      {stepHint && <Text style={styles.stepHint}>{stepHint}</Text>}
+
+      <View style={styles.modeRow}>
+        {(['point', 'box', 'text'] as PromptMode[]).map((m) => {
+          const promptDisabled = rawInstancesRef.current.length === 0;
+          return (
+            <TouchableOpacity
+              key={m}
+              style={[
+                styles.modeBtn,
+                mode === m && styles.modeBtnActive,
+                promptDisabled && styles.modeBtnDisabled,
+              ]}
+              onPress={() => setMode(m)}
+              disabled={promptDisabled}
+            >
+              <Text
+                style={[
+                  styles.modeBtnText,
+                  mode === m && styles.modeBtnTextActive,
+                  promptDisabled && styles.modeBtnTextDisabled,
+                ]}
+              >
+                {m[0]!.toUpperCase() + m.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {mode === 'text' && (
+        <View style={styles.textRow}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Describe an object…"
+            value={textPrompt}
+            onChangeText={setTextPrompt}
+            onSubmitEditing={runTextPrompt}
+            returnKeyType="search"
+            editable={!textBusy}
+          />
+          <TouchableOpacity
+            style={[styles.textBtn, textBusy && styles.textBtnDisabled]}
+            onPress={runTextPrompt}
+            disabled={
+              !textPrompt.trim() ||
+              textBusy ||
+              rawInstancesRef.current.length === 0 ||
+              !clipImage.isReady ||
+              !clipText.isReady
+            }
+          >
+            <Text style={styles.textBtnLabel}>{textBusy ? '…' : 'Find'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {mode === 'text' && embeddingProgress && (
+        <Text style={styles.statusLine}>
+          Embedding instances {embeddingProgress.done}/{embeddingProgress.total}{' '}
+          (subsequent text queries are instant)
+        </Text>
+      )}
 
       <ModelPicker
         models={MODELS}
@@ -407,7 +394,8 @@ export default function FastSAMScreen() {
         onSelect={(m) => {
           setSelectedModel(m);
           rawInstancesRef.current = [];
-          setSelection(null);
+          instanceEmbeddingsRef.current = null;
+          setSelection([]);
           setInferenceTime(null);
         }}
       />
@@ -431,127 +419,100 @@ export default function FastSAMScreen() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-// Builds a full-image alpha mask. `mask` is bbox-relative (maskWidth × maskHeight),
-// positioned at (bboxX1, bboxY1) within an image of size (imgW × imgH).
-function buildAlphaMask(
-  mask: Uint8Array,
-  maskWidth: number,
-  maskHeight: number,
-  bboxX1: number,
-  bboxY1: number,
-  imgW: number,
-  imgH: number
-) {
-  const MAX_DIM = 256;
-  const ds = Math.min(1, MAX_DIM / Math.max(imgW, imgH));
-  const dstW = Math.max(1, Math.round(imgW * ds));
-  const dstH = Math.max(1, Math.round(imgH * ds));
-
-  const pixels = new Uint8Array(dstW * dstH * 4);
-
-  // Place the bbox-relative mask into the full-image canvas
-  const offX = Math.round(bboxX1 * ds);
-  const offY = Math.round(bboxY1 * ds);
-  const scaledMaskW = Math.max(1, Math.round(maskWidth * ds));
-  const scaledMaskH = Math.max(1, Math.round(maskHeight * ds));
-
-  for (let dy = 0; dy < scaledMaskH; dy++) {
-    const sy = Math.min(
-      Math.floor((dy / scaledMaskH) * maskHeight),
-      maskHeight - 1
-    );
-    for (let dx = 0; dx < scaledMaskW; dx++) {
-      const sx = Math.min(
-        Math.floor((dx / scaledMaskW) * maskWidth),
-        maskWidth - 1
-      );
-      if (mask[sy * maskWidth + sx] > 0) {
-        const imgX = offX + dx;
-        const imgY = offY + dy;
-        if (imgX >= 0 && imgX < dstW && imgY >= 0 && imgY < dstH) {
-          const i = (imgY * dstW + imgX) * 4;
-          pixels[i] = 255;
-          pixels[i + 1] = 255;
-          pixels[i + 2] = 255;
-          pixels[i + 3] = 255;
-        }
-      }
-    }
-  }
-
-  const data = Skia.Data.fromBytes(pixels);
-  const img = Skia.Image.MakeImage(
+async function cropAndEmbed(
+  image: SkImage,
+  bbox: Bbox,
+  forward: (input: string) => Promise<Float32Array>
+): Promise<Float32Array> {
+  const w = Math.max(1, Math.round(bbox.x2 - bbox.x1));
+  const h = Math.max(1, Math.round(bbox.y2 - bbox.y1));
+  const surface = Skia.Surface.MakeOffscreen(w, h);
+  if (!surface) throw new Error('Failed to create offscreen Skia surface');
+  surface.getCanvas().drawImageRect(
+    image,
     {
-      width: dstW,
-      height: dstH,
-      alphaType: AlphaType.Premul,
-      colorType: ColorType.RGBA_8888,
+      x: bbox.x1,
+      y: bbox.y1,
+      width: bbox.x2 - bbox.x1,
+      height: bbox.y2 - bbox.y1,
     },
-    data,
-    dstW * 4
+    { x: 0, y: 0, width: w, height: h },
+    Skia.Paint()
   );
-  data.dispose();
-  return img;
+  const base64 = surface.makeImageSnapshot().encodeToBase64();
+  return forward(`data:image/png;base64,${base64}`);
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
 const styles = StyleSheet.create({
-  imageBox: {
-    flex: 1,
-    width: '100%',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  hint: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hintText: {
+  container: { flex: 6, width: '100%' },
+  imageContainer: { flex: 1, width: '100%', padding: 16 },
+  imageTouchArea: { flex: 1, position: 'relative' },
+  infoContainer: { alignItems: 'center', padding: 16, gap: 8 },
+  infoTitle: { fontSize: 18, fontWeight: '600', color: 'navy' },
+  infoText: {
     fontSize: 14,
-    color: '#aaa',
+    color: '#555',
+    textAlign: 'center',
+    lineHeight: 20,
   },
-  controls: {
+  modeRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    gap: 8,
+  },
+  modeBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: ColorPalette.primary,
+    backgroundColor: '#fff',
+  },
+  modeBtnActive: { backgroundColor: ColorPalette.primary },
+  modeBtnDisabled: { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
+  modeBtnText: { fontSize: 14, fontWeight: '600', color: ColorPalette.primary },
+  modeBtnTextActive: { color: '#fff' },
+  modeBtnTextDisabled: { color: '#cbd5e1' },
+  textRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    paddingBottom: 8,
+    gap: 8,
   },
-  modeToggle: {
-    flexDirection: 'row',
-    borderRadius: 8,
-    overflow: 'hidden',
+  textInput: {
+    flex: 1,
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: ColorPalette.primary,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#0f172a',
   },
-  modeBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-  },
-  modeBtnActive: {
+  textBtn: {
     backgroundColor: ColorPalette.primary,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
-  modeBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
+  textBtnDisabled: { backgroundColor: '#cbd5e1' },
+  textBtnLabel: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  statusLine: {
+    paddingHorizontal: 16,
+    paddingBottom: 6,
+    fontSize: 12,
+    color: '#64748b',
+  },
+  stepHint: {
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    fontSize: 13,
+    fontWeight: '500',
     color: ColorPalette.primary,
-  },
-  modeBtnTextActive: {
-    color: '#fff',
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
@@ -565,9 +526,5 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     marginBottom: 12,
   },
-  errorText: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
-  },
+  errorText: { fontSize: 14, color: '#555', textAlign: 'center' },
 });

@@ -192,8 +192,8 @@ export default function _layout() {
         <Drawer.Screen
           name="fast_sam/index"
           options={{
-            drawerLabel: 'FastSAM',
-            title: 'FastSAM',
+            drawerLabel: 'Segment Anything',
+            title: 'Segment Anything',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
