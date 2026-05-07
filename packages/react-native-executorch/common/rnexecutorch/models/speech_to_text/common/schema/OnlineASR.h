@@ -36,7 +36,7 @@ public:
 
   virtual ProcessResult process(const DecodingOptions &options) = 0;
 
-  virtual std::vector<Word> finish() = 0;
+  virtual std::vector<Word> finish(const DecodingOptions &options) = 0;
 
   virtual void reset() = 0;
 };

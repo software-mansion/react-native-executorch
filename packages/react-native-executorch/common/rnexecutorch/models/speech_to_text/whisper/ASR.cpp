@@ -138,8 +138,9 @@ executorch::aten::Tensor ASR::decode(std::span<uint64_t> tokens,
       positionShape, cachePositions.data(), ScalarType::Long);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
-  std::vector<int32_t> encShape = {1, constants::kNumFrames,
-                                   encoderOutputSize / constants::kNumFrames};
+  std::vector<int32_t> encShape = {
+      1, static_cast<int32_t>(constants::kNumFrames),
+      encoderOutputSize / static_cast<int32_t>(constants::kNumFrames)};
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), const_cast<float *>(encoderOutput.data()),
       ScalarType::Float);
@@ -437,7 +438,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
     const float wEnd = wStart + timePerChar * wSize;
     prevCharCount += wSize;
 
-    // We store punctations separately to other characters.
+    // Detect and extract trailing punctuations.
     std::string puncts = "";
     while (!w.empty() && constants::kPunctations.contains(w.back())) {
       puncts += w.back();
@@ -445,7 +446,14 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
     }
     std::reverse(puncts.begin(), puncts.end());
 
-    wordObjs.emplace_back(std::move(w), wStart, wEnd, std::move(puncts));
+    // Add the core word.
+    wordObjs.emplace_back(std::move(w), wStart, wEnd);
+
+    // If punctuation was present, add it as a separate "word" with an
+    // instantaneous timestamp at the end of the original word.
+    if (!puncts.empty()) {
+      wordObjs.emplace_back(std::move(puncts), wEnd, wEnd);
+    }
   }
 
   return wordObjs;

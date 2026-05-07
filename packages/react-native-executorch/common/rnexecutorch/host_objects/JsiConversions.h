@@ -599,8 +599,7 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
     jsi::Object wordObj(runtime);
     wordObj.setProperty(
         runtime, "word",
-        jsi::String::createFromUtf8(runtime, seg.words[i].content +
-                                                 seg.words[i].punctations));
+        jsi::String::createFromUtf8(runtime, seg.words[i].content));
     wordObj.setProperty(runtime, "start",
                         static_cast<double>(seg.words[i].start));
     wordObj.setProperty(runtime, "end", static_cast<double>(seg.words[i].end));
