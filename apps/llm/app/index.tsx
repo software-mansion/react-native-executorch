@@ -31,12 +31,6 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('voice_chat/')}
-        >
-          <Text style={styles.buttonText}>Voice Chat</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
           onPress={() => router.navigate('multimodal_llm/')}
         >
           <Text style={styles.buttonText}>Multimodal LLM (VLM)</Text>
