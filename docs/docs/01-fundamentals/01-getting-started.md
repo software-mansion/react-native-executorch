@@ -76,6 +76,42 @@ Installation is pretty straightforward, use your package manager of choice to in
   </TabItem>
 </Tabs>
 
+### Configuring backends and extras
+
+On install, `react-native-executorch` runs a `postinstall` script that downloads prebuilt native libraries from the matching GitHub Release and unpacks them under `third-party/`. By default every optional feature is included — which keeps the app binary large. You can opt out of anything you don't need by adding an `extras` array to your app's `package.json`:
+
+```json
+{
+  "react-native-executorch": {
+    "extras": ["xnnpack", "coreml", "vulkan", "opencv", "phonemizer"]
+  }
+}
+```
+
+If the `extras` key is omitted, all five features are enabled. To disable a feature, drop its name from the array.
+
+| Extra        | iOS                                                                         | Android                                                                                       | What it enables                                               |
+| ------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `opencv`     | ✅ (via the `opencv-rne` CocoaPod)                                          | ✅                                                                                            | Computer-vision models (classification, detection, OCR, etc.) |
+| `phonemizer` | ✅                                                                          | ✅                                                                                            | Text-to-speech models                                         |
+| `xnnpack`    | ✅ — `XnnpackBackend.xcframework` force-loaded into the app                 | always on — XNNPACK is baked into `libexecutorch.so`; the flag has no effect on Android       | XNNPACK CPU backend (required for most quantized models)      |
+| `coreml`     | ✅ — `CoreMLBackend.xcframework` force-loaded into the app                  | n/a (CoreML is iOS-only)                                                                      | Core ML backend (Apple Neural Engine / GPU acceleration)      |
+| `vulkan`     | n/a (Vulkan is Android-only)                                                | ✅ — separately-loaded `libvulkan_executorch_backend.so`                                      | Vulkan GPU backend                                            |
+
+Source files and native libraries are excluded from compilation when an extra is disabled, so builds that only need LLMs can skip OpenCV and cut tens of megabytes off the final binary.
+
+The postinstall step honors a few environment variables:
+
+| Variable               | Purpose                                                                   |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `RNET_SKIP_DOWNLOAD=1` | Skip the download entirely (for CI with pre-cached libraries).            |
+| `RNET_LIBS_CACHE_DIR`  | Custom cache directory (default: `~/.cache/react-native-executorch/<v>`). |
+| `RNET_TARGET`          | Force a specific target, e.g. `android-arm64-v8a` or `ios`.               |
+| `RNET_NO_X86_64=1`     | Skip the Android x86_64 tarball (handy when only building for a device).  |
+| `GITHUB_TOKEN`         | Required to access draft releases while iterating on a new version.       |
+
+After changing `extras`, re-run `yarn install` (or the equivalent) so the postinstall script regenerates `rne-build-config.json` and re-extracts the right tarballs, then rebuild the native project.
+
 :::warning
 Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
 
