@@ -23,6 +23,7 @@ import {
 import {
   CocoLabel,
   CocoLabelYolo,
+  FastSAMLabel,
   IMAGENET1K_MEAN,
   IMAGENET1K_STD,
 } from '../../constants/commonVision';
@@ -38,6 +39,18 @@ const YOLO_SEG_CONFIG = {
     applyNMS: false,
   },
 } satisfies InstanceSegmentationConfig<typeof CocoLabelYolo>;
+
+const FASTSAM_CONFIG = {
+  preprocessorConfig: undefined,
+  labelMap: FastSAMLabel,
+  availableInputSizes: undefined,
+  defaultInputSize: undefined,
+  defaultConfidenceThreshold: 0.5,
+  defaultIouThreshold: 0.9,
+  postprocessorConfig: {
+    applyNMS: true,
+  },
+} satisfies InstanceSegmentationConfig<typeof FastSAMLabel>;
 
 const RF_DETR_NANO_SEG_CONFIG = {
   preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
@@ -81,10 +94,13 @@ const ModelConfigs = {
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
   'rfdetr-nano-seg': RF_DETR_NANO_SEG_CONFIG,
+  'fastsam-s': FASTSAM_CONFIG,
+  'fastsam-x': FASTSAM_CONFIG,
 } as const satisfies Record<
   InstanceSegmentationModelName,
   | InstanceSegmentationConfig<typeof CocoLabel>
   | InstanceSegmentationConfig<typeof CocoLabelYolo>
+  | InstanceSegmentationConfig<typeof FastSAMLabel>
 >;
 
 /** @internal */

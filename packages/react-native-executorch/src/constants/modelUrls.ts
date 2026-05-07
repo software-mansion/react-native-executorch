@@ -1010,6 +1010,26 @@ export const SELFIE_SEGMENTATION = {
   modelSource: SELFIE_SEGMENTATION_MODEL,
 } as const;
 
+// FastSAM Instance Segmentation
+const FASTSAM_S_SEG_MODEL = `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-s/xnnpack/fastsam_s_xnnpack_fp32.pte`;
+const FASTSAM_X_SEG_MODEL = `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-x/xnnpack/fastsam_x_xnnpack_fp32.pte`;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const FASTSAM_S = {
+  modelName: 'fastsam-s',
+  modelSource: FASTSAM_S_SEG_MODEL,
+} as const;
+
+/**
+ * @category Models - Instance Segmentation
+ */
+export const FASTSAM_X = {
+  modelName: 'fastsam-x',
+  modelSource: FASTSAM_X_SEG_MODEL,
+} as const;
+
 /**
  * @category Models - Instance Segmentation
  */
@@ -1341,6 +1361,8 @@ export const MODEL_REGISTRY = {
     YOLO26L_SEG,
     YOLO26X_SEG,
     RF_DETR_NANO_SEG,
+    FASTSAM_S,
+    FASTSAM_X,
     CLIP_VIT_BASE_PATCH32_IMAGE,
     CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
     ALL_MINILM_L6_V2,
