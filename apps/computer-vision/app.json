@@ -17,8 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
-        "NSCameraUsageDescription": "Process photo from camera",
-        "NSMicrophoneUsageDescription": "Required for audio processing"
+        "NSCameraUsageDescription": "Process photo from camera"
       }
     },
     "android": {
