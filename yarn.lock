@@ -15367,6 +15367,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"react-native-executorch-webrtc@workspace:packages/react-native-executorch-webrtc":
+  version: 0.0.0-use.local
+  resolution: "react-native-executorch-webrtc@workspace:packages/react-native-executorch-webrtc"
+  dependencies:
+    "@types/react": "npm:~19.1.10"
+    react: "npm:19.1.0"
+    react-native: "npm:0.81.5"
+    react-native-executorch: "workspace:*"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    "@fishjam-cloud/react-native-client": "*"
+    "@fishjam-cloud/react-native-webrtc": "*"
+    react: "*"
+    react-native: "*"
+    react-native-executorch: "*"
+  languageName: unknown
+  linkType: soft
+
 "react-native-executorch@workspace:*, react-native-executorch@workspace:packages/react-native-executorch":
   version: 0.0.0-use.local
   resolution: "react-native-executorch@workspace:packages/react-native-executorch"
