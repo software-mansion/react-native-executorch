@@ -122,7 +122,7 @@ constexpr float EMA_ALPHA = 0.5f;
 
 - (RTCVideoFrame *)capturer:(RTCVideoCapturer *)capturer
        didCaptureVideoFrame:(RTCVideoFrame *)frame {
-  std::lock_guard<std::mutex> lock(_mutex);
+  std::scoped_lock lock(_mutex);
   if (!_segmentation) {
     _lastProcessedFrame = nil;
     return frame;
