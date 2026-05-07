@@ -148,7 +148,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.current.onAudioReady(
       {
         sampleRate,
-        bufferLength: 0.1 * sampleRate,
+        bufferLength: 0.1 * sampleRate, // 100 ms
         channelCount: 1,
       },
       ({ buffer }) => {
