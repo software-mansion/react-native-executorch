@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@expo/log-box": "~55.0.10",
-    "@react-native/metro-config": "^0.83.0",
+    "@react-native/metro-config": "^0.85.2",
     "@react-navigation/drawer": "^7.9.4",
     "@react-navigation/native": "^7.2.2",
     "expo": "^55.0.13",
@@ -22,7 +22,7 @@
     "expo-router": "~55.0.11",
     "expo-status-bar": "~55.0.5",
     "react": "19.2.5",
-    "react-native": "0.83.4",
+    "react-native": "0.85.2",
     "react-native-executorch": "workspace:*",
     "react-native-executorch-expo-resource-fetcher": "workspace:*",
     "react-native-gesture-handler": "~2.31.1",
