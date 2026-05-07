@@ -161,10 +161,10 @@ cv::Rect BaseInstanceSegmentation::computeMaskCropRect(
     const utils::computer_vision::BBox &bboxModel, cv::Size modelInputSize,
     cv::Size maskSize) {
 
-  float mx1F = bboxModel.x1 * maskSize.width / modelInputSize.width;
-  float my1F = bboxModel.y1 * maskSize.height / modelInputSize.height;
-  float mx2F = bboxModel.x2 * maskSize.width / modelInputSize.width;
-  float my2F = bboxModel.y2 * maskSize.height / modelInputSize.height;
+  float mx1F = bboxModel.p1.x * maskSize.width / modelInputSize.width;
+  float my1F = bboxModel.p1.y * maskSize.height / modelInputSize.height;
+  float mx2F = bboxModel.p2.x * maskSize.width / modelInputSize.width;
+  float my2F = bboxModel.p2.y * maskSize.height / modelInputSize.height;
 
   int32_t mx1 = std::max(0, static_cast<int32_t>(std::floor(mx1F)));
   int32_t my1 = std::max(0, static_cast<int32_t>(std::floor(my1F)));
@@ -193,8 +193,8 @@ cv::Mat BaseInstanceSegmentation::warpToOriginalResolution(
   float scaleY = static_cast<float>(originalSize.height) / maskSize.height;
 
   cv::Mat M = (cv::Mat_<float>(2, 3) << scaleX, 0,
-               (maskRect.x * scaleX - bboxOriginal.x1), 0, scaleY,
-               (maskRect.y * scaleY - bboxOriginal.y1));
+               (maskRect.x * scaleX - bboxOriginal.p1.x), 0, scaleY,
+               (maskRect.y * scaleY - bboxOriginal.p1.y));
 
   cv::Size bboxSize(static_cast<int32_t>(std::round(bboxOriginal.width())),
                     static_cast<int32_t>(std::round(bboxOriginal.height())));

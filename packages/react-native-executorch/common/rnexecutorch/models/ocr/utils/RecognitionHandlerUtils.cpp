@@ -42,12 +42,12 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
 
 cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
                   int32_t modelHeight) {
-  // Convert custom points to cv::Point2f
-  std::array<cv::Point2f, 4> points;
-#pragma unroll
-  for (std::size_t i = 0; i < points.size(); ++i) {
-    points[i] = cv::Point2f(box.bbox[i].x, box.bbox[i].y);
-  }
+  const std::array<cv::Point2f, 4> points = {{
+      {box.bbox.p1.x, box.bbox.p1.y},
+      {box.bbox.p2.x, box.bbox.p1.y},
+      {box.bbox.p2.x, box.bbox.p2.y},
+      {box.bbox.p1.x, box.bbox.p2.y},
+  }};
 
   cv::RotatedRect rotatedRect = cv::minAreaRect(points);
   cv::Point2f rectPoints[4];

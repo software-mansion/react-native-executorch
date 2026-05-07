@@ -1,14 +1,12 @@
 #pragma once
 
 #include <array>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 #include <string>
 #include <vector>
 
 namespace rnexecutorch::models::ocr::types {
-struct Point {
-  float x;
-  float y;
-};
+using namespace rnexecutorch::utils::computer_vision;
 
 struct ValuesAndIndices {
   std::vector<float> values;
@@ -16,7 +14,7 @@ struct ValuesAndIndices {
 };
 
 struct DetectorBBox {
-  std::array<Point, 4> bbox;
+  BBox bbox;
   float angle;
 };
 

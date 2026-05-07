@@ -48,23 +48,19 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
   switch (orient.orientation) {
   case Orientation::Up: {
     // landscape-left → portrait: nx = h - y, ny = x
-    float nx1 = h - bbox.y2, ny1 = bbox.x1;
-    float nx2 = h - bbox.y1, ny2 = bbox.x2;
-    bbox.x1 = nx1;
-    bbox.y1 = ny1;
-    bbox.x2 = nx2;
-    bbox.y2 = ny2;
+    float nx1 = h - bbox.p2.y, ny1 = bbox.p1.x;
+    float nx2 = h - bbox.p1.y, ny2 = bbox.p2.x;
+    bbox.p1 = {nx1, ny1};
+    bbox.p2 = {nx2, ny2};
     break;
   }
   case Orientation::Right: {
 #if defined(__APPLE__)
     // iOS upside-down portrait → portrait: nx = w - x, ny = h - y
-    float nx1 = w - bbox.x2, ny1 = h - bbox.y2;
-    float nx2 = w - bbox.x1, ny2 = h - bbox.y1;
-    bbox.x1 = nx1;
-    bbox.y1 = ny1;
-    bbox.x2 = nx2;
-    bbox.y2 = ny2;
+    float nx1 = w - bbox.p2.x, ny1 = h - bbox.p2.y;
+    float nx2 = w - bbox.p1.x, ny2 = h - bbox.p1.y;
+    bbox.p1 = {nx1, ny1};
+    bbox.p2 = {nx2, ny2};
 #endif
     // Android front-cam upright portrait: rotated frame already in screen
     // space, no inverse needed.
@@ -72,12 +68,10 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
   }
   case Orientation::Down: {
     // landscape-right → portrait: nx = y, ny = w - x
-    float nx1 = bbox.y1, ny1 = w - bbox.x2;
-    float nx2 = bbox.y2, ny2 = w - bbox.x1;
-    bbox.x1 = nx1;
-    bbox.y1 = ny1;
-    bbox.x2 = nx2;
-    bbox.y2 = ny2;
+    float nx1 = bbox.p1.y, ny1 = w - bbox.p2.x;
+    float nx2 = bbox.p2.y, ny2 = w - bbox.p1.x;
+    bbox.p1 = {nx1, ny1};
+    bbox.p2 = {nx2, ny2};
     break;
   }
   case Orientation::Left:
@@ -93,12 +87,10 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
                     orient.orientation == Orientation::Down);
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
-    float nx1 = sw - bbox.x2, ny1 = sh - bbox.y2;
-    float nx2 = sw - bbox.x1, ny2 = sh - bbox.y1;
-    bbox.x1 = nx1;
-    bbox.y1 = ny1;
-    bbox.x2 = nx2;
-    bbox.y2 = ny2;
+    float nx1 = sw - bbox.p2.x, ny1 = sh - bbox.p2.y;
+    float nx2 = sw - bbox.p1.x, ny2 = sh - bbox.p1.y;
+    bbox.p1 = {nx1, ny1};
+    bbox.p2 = {nx2, ny2};
   }
 #endif
 }
