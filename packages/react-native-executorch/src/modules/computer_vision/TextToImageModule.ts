@@ -136,8 +136,8 @@ export class TextToImageModule extends BaseModule {
       );
     }
 
-    const response = await fetch('file://' + schedulerPath);
-    const schedulerConfig = await response.json();
+    const schedulerJson = await ResourceFetcher.fs.readAsString(schedulerPath);
+    const schedulerConfig = JSON.parse(schedulerJson);
 
     return global.loadTextToImage(
       tokenizerPath,
