@@ -117,8 +117,7 @@ export function selectByText<L extends LabelEnum>(
   }
 
   let textNormSq = 0;
-  for (let i = 0; i < textEmbedding.length; i++) {
-    const v = textEmbedding[i]!;
+  for (const v of textEmbedding) {
     textNormSq += v * v;
   }
   const textNorm = Math.sqrt(textNormSq);
