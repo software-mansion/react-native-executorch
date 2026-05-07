@@ -94,7 +94,7 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 
   std::string fullText;
   for (const auto &w : words) {
-    fullText += w.content + w.punctations;
+    fullText += w.content;
   }
   res.text = fullText;
 
@@ -161,7 +161,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
-  std::vector<Word> finalWords = streamer_->finish();
+  std::vector<Word> finalWords = streamer_->finish(options);
   TranscriptionResult finalRes =
       wordsToResult(finalWords, languageOption, verbose);
 
