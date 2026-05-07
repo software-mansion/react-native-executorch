@@ -1,0 +1,46 @@
+name: bare-rn Jest tests
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/test-bare-rn.yml
+      - apps/bare-rn/**
+      - packages/bare-resource-fetcher/**
+      - packages/react-native-executorch/src/**
+      - packages/react-native-executorch/package.json
+      - packages/react-native-executorch/tsconfig.json
+      - package.json
+      - yarn.lock
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - .github/workflows/test-bare-rn.yml
+      - apps/bare-rn/**
+      - packages/bare-resource-fetcher/**
+      - packages/react-native-executorch/src/**
+      - packages/react-native-executorch/package.json
+      - packages/react-native-executorch/tsconfig.json
+      - package.json
+      - yarn.lock
+  workflow_dispatch:
+
+jobs:
+  test:
+    if: github.repository == 'software-mansion/react-native-executorch' && github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    concurrency:
+      group: test-bare-rn-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build workspace packages
+        run: yarn workspaces foreach --all --topological-dev run prepare
+
+      - name: Run Jest
+        run: yarn workspace bare-rn test
