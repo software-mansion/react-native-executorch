@@ -27,12 +27,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.computervision",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.INTERNET",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.ACCESS_NETWORK_STATE"
-      ]
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
