@@ -263,11 +263,21 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
   std::vector<float> scores;
 
   uint64_t startPos = 0;
-  while (std::cmp_less_equal(startPos + sequenceIds.size(),
-                             constants::kMaxDecodeLength)) {
-    executorch::aten::Tensor logitsTensor =
-        this->decode(sequenceIds, encoderFeatures, startPos);
 
+  // Prefill: feed each initial token individually so decode() always sees 1
+  // token
+  std::span<uint64_t> firstToken(sequenceIds.data(), 1);
+  executorch::aten::Tensor logitsTensor =
+      this->decode(firstToken, encoderFeatures, startPos);
+  ++startPos;
+  for (size_t i = 1; i < sequenceIds.size(); ++i) {
+    std::span<uint64_t> single(sequenceIds.data() + i, 1);
+    logitsTensor = this->decode(single, encoderFeatures, startPos);
+    ++startPos;
+  }
+
+  // Autoregressive decoding: always 1 token at a time
+  while (std::cmp_less(startPos, constants::kMaxDecodeLength)) {
     const size_t logitsInnerDim = logitsTensor.size(1);
     const size_t logitsDictSize = logitsTensor.size(2);
     const float *logitsData = logitsTensor.const_data_ptr<float>() +
@@ -303,15 +313,16 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
       nextProb = probs[nextId];
     }
 
-    // Move the startPos pointer by the amount of tokens we processed
-    startPos += sequenceIds.size();
-    sequenceIds = {nextId};
     cachedTokens.push_back(nextId);
     scores.push_back(nextProb);
 
     if (nextId == endOfTranscriptionToken_) {
       break;
     }
+
+    std::span<uint64_t> single(&cachedTokens.back(), 1);
+    logitsTensor = this->decode(single, encoderFeatures, startPos);
+    ++startPos;
   }
 
   return {.tokens = std::vector<uint64_t>(cachedTokens.cbegin() +
