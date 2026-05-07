@@ -363,21 +363,23 @@ export default function SegmentAnythingScreen() {
             onChangeText={setTextPrompt}
             onSubmitEditing={runTextPrompt}
             returnKeyType="search"
-            editable={!textBusy}
           />
-          <TouchableOpacity
-            style={[styles.textBtn, textBusy && styles.textBtnDisabled]}
-            onPress={runTextPrompt}
-            disabled={
+          {(() => {
+            const findInactive =
               !textPrompt.trim() ||
-              textBusy ||
               rawInstancesRef.current.length === 0 ||
               !clipImage.isReady ||
-              !clipText.isReady
-            }
-          >
-            <Text style={styles.textBtnLabel}>{textBusy ? '…' : 'Find'}</Text>
-          </TouchableOpacity>
+              !clipText.isReady;
+            return (
+              <TouchableOpacity
+                style={[styles.textBtn, findInactive && styles.textBtnDisabled]}
+                onPress={runTextPrompt}
+                disabled={findInactive || textBusy}
+              >
+                <Text style={styles.textBtnLabel}>Find</Text>
+              </TouchableOpacity>
+            );
+          })()}
         </View>
       )}
       {mode === 'text' && embeddingProgress && (
@@ -392,6 +394,7 @@ export default function SegmentAnythingScreen() {
         selectedModel={selectedModel}
         disabled={isGenerating}
         onSelect={(m) => {
+          if (m.modelName === selectedModel.modelName) return;
           setSelectedModel(m);
           rawInstancesRef.current = [];
           instanceEmbeddingsRef.current = null;
@@ -495,8 +498,9 @@ const styles = StyleSheet.create({
   textBtn: {
     backgroundColor: ColorPalette.primary,
     borderRadius: 12,
-    paddingHorizontal: 20,
     paddingVertical: 14,
+    width: 80,
+    alignItems: 'center',
   },
   textBtnDisabled: { backgroundColor: '#cbd5e1' },
   textBtnLabel: { color: '#fff', fontWeight: '700', fontSize: 16 },
