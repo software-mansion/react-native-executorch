@@ -8,23 +8,8 @@
 #include <unordered_set>
 
 namespace rnexecutorch::models::ocr::utils {
-std::array<cv::Point2f, 4>
-cvPointsFromPoints(const std::array<types::Point, 4> &points) {
-  std::array<cv::Point2f, 4> cvPoints;
-#pragma unroll
-  for (std::size_t i = 0; i < cvPoints.size(); ++i) {
-    cvPoints[i] = cv::Point2f(points[i].x, points[i].y);
-  }
-  return cvPoints;
-}
-
-std::array<types::Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
-  std::array<types::Point, 4> points;
-#pragma unroll
-  for (std::size_t i = 0; i < points.size(); ++i) {
-    points[i] = {.x = cvPoints[i].x, .y = cvPoints[i].y};
-  }
-  return points;
+static std::array<types::Point, 4> bboxToCorners(const types::BBox &bbox) {
+  return {bbox.p1, {bbox.p2.x, bbox.p1.y}, bbox.p2, {bbox.p1.x, bbox.p2.y}};
 }
 
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
@@ -99,8 +84,16 @@ extractMinAreaBBoxFromContour(const std::vector<cv::Point> contour) {
   std::array<cv::Point2f, 4> vertices;
   minRect.points(vertices.data());
 
-  std::array<types::Point, 4> points = pointsFromCvPoints(vertices.data());
-  return {.bbox = points, .angle = minRect.angle};
+  float minX =
+      std::min({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
+  float minY =
+      std::min({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
+  float maxX =
+      std::max({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
+  float maxY =
+      std::max({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
+  types::BBox bbox = {{minX, minY}, {maxX, maxY}};
+  return {.bbox = bbox, .angle = minRect.angle};
 }
 
 void getBoxFromContour(cv::Mat &segMap,
@@ -296,10 +289,7 @@ float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize) {
 void restoreBboxRatio(std::vector<types::DetectorBBox> &boxes,
                       float restoreRatio) {
   for (auto &box : boxes) {
-    for (auto &point : box.bbox) {
-      point.x *= restoreRatio;
-      point.y *= restoreRatio;
-    }
+    box.bbox = box.bbox.scale(restoreRatio, restoreRatio);
   }
 }
 
@@ -318,36 +308,16 @@ types::Point midpointBetweenPoint(const types::Point &p1,
   return {.x = std::midpoint(p1.x, p2.x), .y = std::midpoint(p1.y, p2.y)};
 }
 
-types::Point centerOfBox(const std::array<types::Point, 4> &box) {
-  return midpointBetweenPoint(box[0], box[2]);
+types::Point centerOfBox(const types::BBox &box) {
+  return midpointBetweenPoint(box.p1, box.p2);
 }
 
-// function for both; finding maximal side length and minimal side length
-template <typename Compare>
-float findExtremeSideLength(const std::array<types::Point, 4> &points,
-                            Compare comp) {
-  float extremeLength = distanceFromPoint(points[0], points[1]);
-
-#pragma unroll
-  for (std::size_t i = 1; i < points.size(); i++) {
-    const auto &currentPoint = points[i];
-    const auto &nextPoint = points[(i + 1) % points.size()];
-    const float sideLength = distanceFromPoint(currentPoint, nextPoint);
-
-    if (comp(sideLength, extremeLength)) {
-      extremeLength = sideLength;
-    }
-  }
-
-  return extremeLength;
+float minSideLength(const types::BBox &bbox) {
+  return std::min(bbox.width(), bbox.height());
 }
 
-float minSideLength(const std::array<types::Point, 4> &points) {
-  return findExtremeSideLength(points, std::less<float>{});
-}
-
-float maxSideLength(const std::array<types::Point, 4> &points) {
-  return findExtremeSideLength(points, std::greater<float>{});
+float maxSideLength(const types::BBox &bbox) {
+  return std::max(bbox.width(), bbox.height());
 }
 
 /**
@@ -366,8 +336,8 @@ float maxSideLength(const std::array<types::Point, 4> &points) {
  *   - a bool indicating whether the line is
  * considered vertical.
  */
-std::tuple<float, float, bool>
-fitLineToShortestSides(const std::array<types::Point, 4> &points) {
+std::tuple<float, float, bool> fitLineToShortestSides(const types::BBox &bbox) {
+  const std::array<types::Point, 4> points = bboxToCorners(bbox);
   std::array<std::pair<float, float>, 4> sides;
   std::array<types::Point, 4> midpoints;
 #pragma unroll
@@ -414,37 +384,35 @@ fitLineToShortestSides(const std::array<types::Point, 4> &points) {
   return {m, c, isVertical};
 }
 
-std::array<types::Point, 4> rotateBox(const std::array<types::Point, 4> &box,
-                                      float angle) {
-  const types::Point center = centerOfBox(box);
-
+types::BBox rotateBox(const types::BBox &bbox, float angle) {
+  const types::Point center = centerOfBox(bbox);
   const float radians = angle * M_PI / 180.0f;
 
-  std::array<types::Point, 4> rotatedPoints;
-  for (std::size_t i = 0; i < box.size(); ++i) {
-    const types::Point &point = box[i];
-    const float translatedX = point.x - center.x;
-    const float translatedY = point.y - center.y;
+  float minX = std::numeric_limits<float>::max();
+  float minY = std::numeric_limits<float>::max();
+  float maxX = std::numeric_limits<float>::lowest();
+  float maxY = std::numeric_limits<float>::lowest();
 
-    const float rotatedX =
-        translatedX * std::cos(radians) - translatedY * std::sin(radians);
-    const float rotatedY =
-        translatedX * std::sin(radians) + translatedY * std::cos(radians);
-
-    rotatedPoints[i] = {.x = rotatedX + center.x, .y = rotatedY + center.y};
+  for (const auto &p : bboxToCorners(bbox)) {
+    const float tx = p.x - center.x;
+    const float ty = p.y - center.y;
+    const float rx = tx * std::cos(radians) - ty * std::sin(radians) + center.x;
+    const float ry = tx * std::sin(radians) + ty * std::cos(radians) + center.y;
+    minX = std::min(minX, rx);
+    minY = std::min(minY, ry);
+    maxX = std::max(maxX, rx);
+    maxY = std::max(maxY, ry);
   }
 
-  return rotatedPoints;
+  return {{minX, minY}, {maxX, maxY}};
 }
 
-float calculateMinimalDistanceBetweenBox(
-    const std::array<types::Point, 4> &box1,
-    const std::array<types::Point, 4> &box2) {
+float calculateMinimalDistanceBetweenBox(const types::BBox &box1,
+                                         const types::BBox &box2) {
   float minDistance = std::numeric_limits<float>::max();
-  for (const types::Point &corner1 : box1) {
-    for (const types::Point &corner2 : box2) {
-      const float distance = distanceFromPoint(corner1, corner2);
-      minDistance = std::min(distance, minDistance);
+  for (const auto &c1 : bboxToCorners(box1)) {
+    for (const auto &c2 : bboxToCorners(box2)) {
+      minDistance = std::min(minDistance, distanceFromPoint(c1, c2));
     }
   }
   return minDistance;
@@ -466,66 +434,15 @@ float calculateMinimalDistanceBetweenBox(
  * 4. The points are ordered starting from the top-left in a clockwise manner:
  * top-left, top-right, bottom-right, bottom-left.
  */
-std::array<types::Point, 4>
-orderPointsClockwise(const std::array<types::Point, 4> &points) {
-  types::Point topLeft, topRight, bottomRight, bottomLeft;
-  float minSum = std::numeric_limits<float>::max();
-  float maxSum = std::numeric_limits<float>::lowest();
-  float minDiff = std::numeric_limits<float>::max();
-  float maxDiff = std::numeric_limits<float>::lowest();
-
-  for (const auto &pt : points) {
-    const float sum = pt.x + pt.y;
-    const float diff = pt.y - pt.x;
-
-    if (sum < minSum) {
-      minSum = sum;
-      topLeft = pt;
-    }
-    if (sum > maxSum) {
-      maxSum = sum;
-      bottomRight = pt;
-    }
-    if (diff < minDiff) {
-      minDiff = diff;
-      topRight = pt;
-    }
-    if (diff > maxDiff) {
-      maxDiff = diff;
-      bottomLeft = pt;
-    }
-  }
-
-  return {topLeft, topRight, bottomRight, bottomLeft};
+types::BBox orderPointsClockwise(const types::BBox &bbox) {
+  return {{std::min(bbox.p1.x, bbox.p2.x), std::min(bbox.p1.y, bbox.p2.y)},
+          {std::max(bbox.p1.x, bbox.p2.x), std::max(bbox.p1.y, bbox.p2.y)}};
 }
 
-std::array<types::Point, 4>
-mergeRotatedBoxes(std::array<types::Point, 4> &box1,
-                  std::array<types::Point, 4> &box2) {
-  box1 = orderPointsClockwise(box1);
-  box2 = orderPointsClockwise(box2);
-
-  auto points1 = cvPointsFromPoints(box1);
-  auto points2 = cvPointsFromPoints(box2);
-
-  std::array<cv::Point2f, points1.size() + points2.size()> allPoints;
-  std::copy(points1.begin(), points1.end(), allPoints.begin());
-  std::copy(points2.begin(), points2.end(), allPoints.begin() + points1.size());
-
-  std::vector<int32_t> hullIndices;
-  cv::convexHull(allPoints, hullIndices, false);
-
-  std::vector<cv::Point2f> hullPoints;
-  for (int32_t idx : hullIndices) {
-    hullPoints.push_back(allPoints[idx]);
-  }
-
-  cv::RotatedRect minAreaRect = cv::minAreaRect(hullPoints);
-
-  std::array<cv::Point2f, 4> rectPoints;
-  minAreaRect.points(rectPoints.data());
-
-  return pointsFromCvPoints(rectPoints.data());
+types::BBox mergeRotatedBoxes(const types::BBox &box1,
+                              const types::BBox &box2) {
+  return {{std::min(box1.p1.x, box2.p1.x), std::min(box1.p1.y, box2.p1.y)},
+          {std::max(box1.p2.x, box2.p2.x), std::max(box1.p2.y, box2.p2.y)}};
 }
 
 /**
@@ -555,8 +472,8 @@ mergeRotatedBoxes(std::array<types::Point, 4> &box1,
 std::optional<std::pair<std::size_t, float>>
 findClosestBox(const std::vector<types::DetectorBBox> &boxes,
                const std::unordered_set<std::size_t> &ignoredIdxs,
-               const std::array<types::Point, 4> &currentBox, bool isVertical,
-               float m, float c, float centerThreshold) {
+               const types::BBox &currentBox, bool isVertical, float m, float c,
+               float centerThreshold) {
   float smallestDistance = std::numeric_limits<float>::max();
   ssize_t idx = -1;
   float boxHeight = 0.0f;
@@ -566,7 +483,7 @@ findClosestBox(const std::vector<types::DetectorBBox> &boxes,
     if (ignoredIdxs.contains(i)) {
       continue;
     }
-    std::array<types::Point, 4> bbox = boxes[i].bbox;
+    const types::BBox &bbox = boxes[i].bbox;
     const types::Point centerOfProcessedBox = centerOfBox(bbox);
     const float distanceBetweenCenters =
         distanceFromPoint(centerOfCurrentBox, centerOfProcessedBox);
@@ -616,11 +533,7 @@ removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes,
   return filteredBoxes;
 }
 
-static float minimumYFromBox(const std::array<types::Point, 4> &box) {
-  return std::ranges::min_element(
-             box, [](types::Point a, types::Point b) { return a.y < b.y; })
-      ->y;
-}
+static float minimumYFromBox(const types::BBox &bbox) { return bbox.p1.y; }
 
 std::vector<types::DetectorBBox>
 groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,

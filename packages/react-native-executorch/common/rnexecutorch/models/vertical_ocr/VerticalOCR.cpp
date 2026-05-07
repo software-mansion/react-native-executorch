@@ -187,10 +187,8 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
   float confidenceScore = 0.0;
   if (!characterBoxes.empty()) {
     // Prepare information useful for proper boxes shifting and image cropping.
-    const int32_t boxWidth =
-        static_cast<int32_t>(box.bbox[2].x - box.bbox[0].x);
-    const int32_t boxHeight =
-        static_cast<int32_t>(box.bbox[2].y - box.bbox[0].y);
+    const int32_t boxWidth = static_cast<int32_t>(box.bbox.width());
+    const int32_t boxHeight = static_cast<int32_t>(box.bbox.height());
     cv::Size narrowRecognizerSize =
         detector.calculateModelImageSize(constants::kSmallDetectorWidth);
     types::PaddingInfo paddingsBox = utils::calculateResizeRatioAndPaddings(
@@ -205,13 +203,18 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
                                      paddingsBox, imagePaddings);
   }
   // Modify the returned boxes to match the original image size
-  std::array<types::Point, 4> finalBbox;
-  for (size_t i = 0; i < box.bbox.size(); ++i) {
-    finalBbox[i].x =
-        (box.bbox[i].x - imagePaddings.left) * imagePaddings.resizeRatio;
-    finalBbox[i].y =
-        (box.bbox[i].y - imagePaddings.top) * imagePaddings.resizeRatio;
-  }
+  const float ratio = imagePaddings.resizeRatio;
+  const float padLeft = static_cast<float>(imagePaddings.left);
+  const float padTop = static_cast<float>(imagePaddings.top);
+  auto tx = [&](types::Point p) -> types::Point {
+    return {(p.x - padLeft) * ratio, (p.y - padTop) * ratio};
+  };
+  std::array<types::Point, 4> finalBbox = {
+      tx(box.bbox.p1),
+      tx({box.bbox.p2.x, box.bbox.p1.y}),
+      tx(box.bbox.p2),
+      tx({box.bbox.p1.x, box.bbox.p2.y}),
+  };
 
   return {finalBbox, text, confidenceScore};
 }

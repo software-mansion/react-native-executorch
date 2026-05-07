@@ -57,12 +57,20 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
     we want to return the boxes shifted and rescaled to match the original
     image dimensions.
   */
-  for (auto &point : box.bbox) {
-    point.x = (point.x - ratioAndPadding.left) * ratioAndPadding.resizeRatio;
-    point.y = (point.y - ratioAndPadding.top) * ratioAndPadding.resizeRatio;
-  }
+  const float ratio = ratioAndPadding.resizeRatio;
+  const float padLeft = static_cast<float>(ratioAndPadding.left);
+  const float padTop = static_cast<float>(ratioAndPadding.top);
+  auto tx = [&](types::Point p) -> types::Point {
+    return {(p.x - padLeft) * ratio, (p.y - padTop) * ratio};
+  };
+  std::array<types::Point, 4> corners = {
+      tx(box.bbox.p1),
+      tx({box.bbox.p2.x, box.bbox.p1.y}),
+      tx(box.bbox.p2),
+      tx({box.bbox.p1.x, box.bbox.p2.y}),
+  };
   boxList.emplace_back(
-      box.bbox,
+      corners,
       converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
       confidenceScore);
 }

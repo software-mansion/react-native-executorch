@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -21,7 +20,7 @@ cv::Mat softmax(const cv::Mat &inputs);
 types::ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat);
 std::vector<float> sumProbabilityRows(const cv::Mat &matrix);
 void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums);
-cv::Rect extractBoundingBox(std::array<types::Point, 4> &points);
+cv::Rect extractBoundingBox(const types::BBox &bbox);
 
 /**
  * @brief Computes confidence score for given values and indices vectors.
@@ -43,12 +42,10 @@ cv::Mat characterBitMask(const cv::Mat &img);
  * with internal bounding box and padding.
  * It does so to preserve the best possible image quality.
  */
-cv::Mat
-cropImageWithBoundingBox(const cv::Mat &img,
-                         const std::array<types::Point, 4> &bbox,
-                         const std::array<types::Point, 4> &originalBbox,
-                         const types::PaddingInfo &paddings,
-                         const types::PaddingInfo &originalPaddings);
+cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const types::BBox &bbox,
+                                 const types::BBox &originalBbox,
+                                 const types::PaddingInfo &paddings,
+                                 const types::PaddingInfo &originalPaddings);
 
 /**
  * @brief Perform cropping, resizing and convert to grayscale to prepare image
@@ -62,10 +59,9 @@ cropImageWithBoundingBox(const cv::Mat &img,
  *
  * @details it utilizes cropImageWithBoundingBox to perform specific cropping.
  */
-
 cv::Mat prepareForRecognition(const cv::Mat &originalImage,
-                              const std::array<types::Point, 4> &bbox,
-                              const std::array<types::Point, 4> &originalBbox,
+                              const types::BBox &bbox,
+                              const types::BBox &originalBbox,
                               const types::PaddingInfo &paddings,
                               const types::PaddingInfo &originalPaddings);
 } // namespace rnexecutorch::models::ocr::utils

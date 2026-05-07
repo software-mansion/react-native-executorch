@@ -462,10 +462,10 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
 inline jsi::Value getJsiValue(const utils::computer_vision::BBox &bbox,
                               jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
-  obj.setProperty(runtime, "x1", bbox.x1);
-  obj.setProperty(runtime, "y1", bbox.y1);
-  obj.setProperty(runtime, "x2", bbox.x2);
-  obj.setProperty(runtime, "y2", bbox.y2);
+  obj.setProperty(runtime, "x1", bbox.p1.x);
+  obj.setProperty(runtime, "y1", bbox.p1.y);
+  obj.setProperty(runtime, "x2", bbox.p2.x);
+  obj.setProperty(runtime, "y2", bbox.p2.y);
   return obj;
 }
 
