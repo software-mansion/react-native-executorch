@@ -100,12 +100,12 @@ TEST(OCRGenerateTests, DetectionsHaveValidBoundingBoxes) {
   auto results = model.generateFromString(kValidTestImagePath);
 
   for (const auto &detection : results) {
-    // Each bbox should have 4 points
-    EXPECT_EQ(detection.bbox.size(), 4u);
-    for (const auto &point : detection.bbox) {
-      EXPECT_GE(point.x, 0.0f);
-      EXPECT_GE(point.y, 0.0f);
-    }
+    // Each bbox has 2 points: top-left [0] and bottom-right [1]
+    EXPECT_EQ(detection.bbox.size(), 2u);
+    EXPECT_GE(detection.bbox[0].x, 0.0f);
+    EXPECT_GE(detection.bbox[0].y, 0.0f);
+    EXPECT_GE(detection.bbox[1].x, detection.bbox[0].x);
+    EXPECT_GE(detection.bbox[1].y, detection.bbox[0].y);
   }
 }
 

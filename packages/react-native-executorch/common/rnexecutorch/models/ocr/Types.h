@@ -25,7 +25,7 @@ struct PaddingInfo {
 };
 
 struct OCRDetection {
-  std::array<types::Point, 4> bbox;
+  std::array<types::Point, 2> bbox;
   std::string text;
   float score;
 };

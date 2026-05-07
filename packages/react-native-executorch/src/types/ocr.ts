@@ -6,12 +6,13 @@ import { Frame, PixelData, ResourceSource } from './common';
  * OCRDetection represents a single detected text instance in an image,
  * including its bounding box, recognized text, and confidence score.
  * @category Types
- * @property {Point[]} bbox - An array of points defining the bounding box around the detected text.
+ * @property {[Point, Point]} bbox - A tuple of two points defining the axis-aligned bounding box
+ *   around the detected text: `bbox[0]` is the top-left corner and `bbox[1]` is the bottom-right corner.
  * @property {string} text - The recognized text within the bounding box.
  * @property {number} score - The confidence score of the OCR detection, ranging from 0 to 1.
  */
 export interface OCRDetection {
-  bbox: Point[];
+  bbox: [Point, Point];
   text: string;
   score: number;
 }

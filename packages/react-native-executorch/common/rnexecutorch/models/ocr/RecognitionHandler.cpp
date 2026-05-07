@@ -55,22 +55,17 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
   /*
     Since the boxes were corresponding to the image resized to 1280x1280,
     we want to return the boxes shifted and rescaled to match the original
-    image dimensions.
+    image dimensions. Compute the axis-aligned bounding box (AABB) from the
+    four rotated corners and store only the top-left and bottom-right points.
   */
   const float ratio = ratioAndPadding.resizeRatio;
   const float padLeft = static_cast<float>(ratioAndPadding.left);
   const float padTop = static_cast<float>(ratioAndPadding.top);
-  auto tx = [&](types::Point p) -> types::Point {
-    return {(p.x - padLeft) * ratio, (p.y - padTop) * ratio};
-  };
-  std::array<types::Point, 4> corners = {
-      tx(box.bbox.p1),
-      tx({box.bbox.p2.x, box.bbox.p1.y}),
-      tx(box.bbox.p2),
-      tx({box.bbox.p1.x, box.bbox.p2.y}),
-  };
+  types::BBox transformedBbox{
+      {(box.bbox.p1.x - padLeft) * ratio, (box.bbox.p1.y - padTop) * ratio},
+      {(box.bbox.p2.x - padLeft) * ratio, (box.bbox.p2.y - padTop) * ratio}};
   boxList.emplace_back(
-      corners,
+      transformedBbox,
       converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
       confidenceScore);
 }
