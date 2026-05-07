@@ -18,8 +18,10 @@
     "*.podspec",
     "third-party/include",
     "third-party",
+    "!third-party/android/libs",
     "!third-party/ios/ExecutorchLib",
-    "!third-party/ios/libs/executorch",
+    "!third-party/ios/ExecutorchLib.xcframework",
+    "!third-party/ios/libs",
     "!ios/*.xcodeproj",
     "!ios/build",
     "!android/build",
@@ -39,7 +41,8 @@
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "prepack": "cp ../../README.md ./README.md",
-    "postpack": "rm ./README.md"
+    "postpack": "rm ./README.md",
+    "postinstall": "node scripts/download-libs.js"
   },
   "keywords": [
     "text-to-speech",

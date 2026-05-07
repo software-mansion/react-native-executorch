@@ -121,27 +121,22 @@ declare global {
 }
 // eslint-disable no-var
 
-if (
-  global.loadStyleTransfer == null ||
-  global.loadSemanticSegmentation == null ||
-  global.loadInstanceSegmentation == null ||
-  global.loadTextToImage == null ||
-  global.loadExecutorchModule == null ||
-  global.loadClassification == null ||
-  global.loadObjectDetection == null ||
-  global.loadPoseEstimation == null ||
-  global.loadTokenizerModule == null ||
-  global.loadTextEmbeddings == null ||
-  global.loadImageEmbeddings == null ||
-  global.loadVAD == null ||
-  global.loadLLM == null ||
-  global.loadPrivacyFilter == null ||
-  global.loadSpeechToText == null ||
-  global.loadTextToSpeechKokoro == null ||
-  global.loadOCR == null ||
-  global.loadVerticalOCR == null ||
-  global.__rne_isEmulator == null
-) {
+// Core globals are always installed regardless of which extras are enabled.
+// Optional globals (opencv/phonemizer) may be absent if the library was built
+// without those features — calling them at that point throws a runtime error
+// from the native side with a clear message.
+const CORE_GLOBALS = [
+  'loadExecutorchModule',
+  'loadTokenizerModule',
+  'loadLLM',
+  'loadSpeechToText',
+  'loadTextEmbeddings',
+  'loadPrivacyFilter',
+  'loadVAD',
+  '__rne_isEmulator',
+] as const;
+
+if (CORE_GLOBALS.some((name) => global[name] == null)) {
   if (!ETInstallerNativeModule) {
     throw new Error(
       `Failed to install react-native-executorch: The native module could not be found.`

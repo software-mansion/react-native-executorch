@@ -49,6 +49,10 @@ class ETInstaller(
 
   init {
     try {
+      // XNNPACK is baked into libexecutorch.so. Vulkan, when enabled via the
+      // `vulkan` extra, ships as libvulkan_executorch_backend.so and is pulled
+      // in automatically by the dynamic linker as a dependency of
+      // libreact-native-executorch.so.
       System.loadLibrary("executorch")
       System.loadLibrary("react-native-executorch")
       val jsCallInvokerHolder = reactContext.jsCallInvokerHolder as CallInvokerHolderImpl

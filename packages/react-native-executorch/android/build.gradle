@@ -1,5 +1,22 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
+// Read the generated build config written by the postinstall script.
+// Falls back to enabling everything if the file doesn't exist (e.g. during CI
+// when libs are pre-cached and the postinstall script skipped writing config).
+def getRneBuildConfig() {
+  def configFile = new File("${project.projectDir}/../rne-build-config.json")
+  if (configFile.exists()) {
+    try {
+      return new groovy.json.JsonSlurper().parse(configFile)
+    } catch (e) {
+      logger.warn("[RnExecutorch] Failed to parse rne-build-config.json: ${e.message}. Defaulting to all features enabled.")
+    }
+  }
+  return [enableOpencv: true, enablePhonemizer: true, enableXnnpack: true, enableCoreml: true, enableVulkan: true]
+}
+
+def rneBuildConfig = getRneBuildConfig()
+
 buildscript {
   ext {
     agp_version = '8.4.2'
@@ -122,7 +139,10 @@ android {
                     "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
                     "-DBUILD_DIR=${project.buildDir}",
                     "-DANDROID_TOOLCHAIN=clang",
-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                    "-DRNE_ENABLE_OPENCV=${rneBuildConfig.enableOpencv ? 'ON' : 'OFF'}",
+                    "-DRNE_ENABLE_PHONEMIZER=${rneBuildConfig.enablePhonemizer ? 'ON' : 'OFF'}",
+                    "-DRNE_ENABLE_VULKAN=${rneBuildConfig.enableVulkan ? 'ON' : 'OFF'}"
       }
     }
   }

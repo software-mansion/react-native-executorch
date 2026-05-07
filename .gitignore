@@ -98,6 +98,15 @@ docs/docs/06-api-reference/
 # integration test model assets
 packages/react-native-executorch/common/rnexecutorch/tests/integration/assets/models/
 
+# release artifact staging dir (produced by scripts/package-release-artifacts.sh)
+packages/react-native-executorch/dist-artifacts/
+
+# on-demand native libs (downloaded at postinstall time, not committed)
+packages/react-native-executorch/third-party/android/libs/
+packages/react-native-executorch/third-party/ios/ExecutorchLib.xcframework/
+packages/react-native-executorch/third-party/ios/libs/
+packages/react-native-executorch/rne-build-config.json
+
 # custom
 *.tgz
 Makefile
