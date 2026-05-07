@@ -54,6 +54,8 @@ type ModelId =
   | 'segmentationSelfie'
   | 'instanceSegmentationYolo26n'
   | 'instanceSegmentationRfdetr'
+  | 'instanceSegmentationFastsamS'
+  | 'instanceSegmentationFastsamX'
   | 'poseEstimationYolo26n'
   | 'ocr'
   | 'styleTransferCandy'
@@ -87,6 +89,8 @@ const TASKS: Task[] = [
     variants: [
       { id: 'instanceSegmentationYolo26n', label: 'YOLO26N Seg' },
       { id: 'instanceSegmentationRfdetr', label: 'RF-DETR Nano Seg' },
+      { id: 'instanceSegmentationFastsamS', label: 'FastSAM-S' },
+      { id: 'instanceSegmentationFastsamX', label: 'FastSAM-X' },
     ],
   },
   {
@@ -284,6 +288,8 @@ export default function VisionCameraScreen() {
             activeModel as
               | 'instanceSegmentationYolo26n'
               | 'instanceSegmentationRfdetr'
+              | 'instanceSegmentationFastsamS'
+              | 'instanceSegmentationFastsamX'
           }
         />
       )}
