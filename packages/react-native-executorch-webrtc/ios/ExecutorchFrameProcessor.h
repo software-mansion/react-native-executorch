@@ -9,11 +9,8 @@
 
 @interface ExecutorchFrameProcessor : NSObject <VideoFrameProcessorDelegate>
 
-+ (instancetype)sharedInstance;
-
 - (void)configureWithModelPath:(NSString *)modelPath;
 - (void)setBlurRadius:(float)blurRadius;
 - (void)unloadModel;
-- (BOOL)isAvailable;
 
 @end

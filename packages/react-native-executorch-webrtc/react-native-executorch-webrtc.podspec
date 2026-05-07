@@ -15,10 +15,12 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm}"
 
-  # react-native-executorch exposes rnexecutorch/* headers via its header_dir.
-  # However, executorch SDK headers and internal headers don't propagate to
-  # dependent pods, so we need to add them here.
-  rne_path = '${PODS_ROOT}/../../node_modules/react-native-executorch'
+  # react-native-executorch exposes rnexecutorch/* headers via its header_dir,
+  # but executorch SDK headers and internal headers don't propagate to dependent
+  # pods, so we add them here. Resolve via Node from the podspec dir so it works
+  # under any layout (hoisted, monorepo, or app-local node_modules).
+  rne_pkg = `node --print "require.resolve('react-native-executorch/package.json', { paths: ['#{__dir__}'] })"`.strip
+  rne_path = File.dirname(rne_pkg)
 
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",

@@ -6,47 +6,41 @@
 
 RCT_EXPORT_MODULE()
 
-static BOOL _processorRegistered = NO;
+static ExecutorchFrameProcessor *_processor = nil;
+static dispatch_once_t _registerOnce;
 static NSString *const PROCESSOR_NAME = @"executorchBackgroundBlur";
 
-+ (void)registerProcessorIfNeeded {
-  if (!_processorRegistered) {
-    _processorRegistered = YES;
-    ExecutorchFrameProcessor *processor =
-        [ExecutorchFrameProcessor sharedInstance];
-    [ProcessorProvider addProcessor:processor forName:PROCESSOR_NAME];
++ (void)ensureRegistered {
+  dispatch_once(&_registerOnce, ^{
+    _processor = [[ExecutorchFrameProcessor alloc] init];
+    [ProcessorProvider addProcessor:_processor forName:PROCESSOR_NAME];
     NSLog(@"[ExecutorchWebRTC] Registered %@ processor", PROCESSOR_NAME);
-  }
+  });
 }
 
 #pragma mark - Fishjam-compatible API
 
 RCT_EXPORT_METHOD(initialize : (NSString *)modelPath) {
   NSLog(@"[ExecutorchWebRTC] initialize: %@", modelPath);
+  [ExecutorchWebRTC ensureRegistered];
 
-  [ExecutorchWebRTC registerProcessorIfNeeded];
-
-  // Remove file:// prefix if present
   NSString *cleanPath = modelPath;
   if ([modelPath hasPrefix:@"file://"]) {
     cleanPath = [modelPath substringFromIndex:7];
   }
-
-  [[ExecutorchFrameProcessor sharedInstance] configureWithModelPath:cleanPath];
+  [_processor configureWithModelPath:cleanPath];
 }
 
 RCT_EXPORT_METHOD(deinitialize) {
   NSLog(@"[ExecutorchWebRTC] deinitialize");
-  [[ExecutorchFrameProcessor sharedInstance] unloadModel];
+  [_processor unloadModel];
 }
 
 RCT_EXPORT_METHOD(setBlurRadius : (double)radius) {
-  [[ExecutorchFrameProcessor sharedInstance] setBlurRadius:(float)radius];
+  [_processor setBlurRadius:(float)radius];
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isAvailable) {
-  return @([[ExecutorchFrameProcessor sharedInstance] isAvailable]);
-}
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isAvailable) { return @YES; }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getProcessorName) {
   return PROCESSOR_NAME;
@@ -54,7 +48,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getProcessorName) {
 
 #pragma mark - Legacy API (for backward compatibility)
 
-RCT_EXPORT_METHOD(setup) { [ExecutorchWebRTC registerProcessorIfNeeded]; }
+RCT_EXPORT_METHOD(setup) { [ExecutorchWebRTC ensureRegistered]; }
 
 RCT_EXPORT_METHOD(configureBackgroundRemoval : (NSString *)modelPath) {
   [self initialize:modelPath];

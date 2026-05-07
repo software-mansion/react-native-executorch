@@ -11,12 +11,22 @@ object ExecutorchWebRTC {
   private const val TAG = "ExecutorchWebRTC"
   const val PROCESSOR_NAME = "executorchBackgroundBlur"
 
-  // Configuration for background removal
+  // Read on the capture thread (in ExecutorchFrameProcessor.ensureHandleLocked),
+  // written on the JS thread. @Volatile makes the write visible.
+  @Volatile
   var modelPath: String? = null
 
-  /**
-   * Registers the frame processor with react-native-webrtc.
-   */
+  // Live processor instances. setBlurRadius / deinitialize forward to them.
+  private val processors = mutableSetOf<ExecutorchFrameProcessor>()
+
+  fun registerProcessor(p: ExecutorchFrameProcessor) {
+    synchronized(processors) { processors.add(p) }
+  }
+
+  fun unregisterProcessor(p: ExecutorchFrameProcessor) {
+    synchronized(processors) { processors.remove(p) }
+  }
+
   fun registerProcessors() {
     try {
       ProcessorProvider.addProcessor(PROCESSOR_NAME, ExecutorchFrameProcessorFactory())
@@ -26,35 +36,28 @@ object ExecutorchWebRTC {
     }
   }
 
-  /**
-   * Configure the segmentation model for background removal
-   */
   fun configureModel(path: String) {
     Log.d(TAG, "configureModel called with path: $path")
     modelPath = path
-    Log.d(TAG, "Model path configured - processor will load model on next frame")
   }
 
-  /**
-   * Set the blur radius dynamically
-   */
   fun setBlurRadius(radius: Float) {
-    ExecutorchFrameProcessor.setBlurRadius(radius)
+    val snapshot = synchronized(processors) { processors.toList() }
+    snapshot.forEach { it.setBlurRadius(radius) }
   }
 
-  /**
-   * Deinitialize and release all resources
-   */
   fun deinitialize() {
     Log.d(TAG, "Deinitializing ExecutorchWebRTC")
     modelPath = null
-    ExecutorchFrameProcessorFactory.releaseAll()
+    val toRelease =
+      synchronized(processors) {
+        val copy = processors.toList()
+        processors.clear()
+        copy
+      }
+    toRelease.forEach { it.release() }
     Log.d(TAG, "ExecutorchWebRTC deinitialized")
   }
 
-  /**
-   * Gets the processor name to use in JavaScript.
-   * Use this when calling videoTrack._setVideoEffects(['...'])
-   */
   fun getProcessorName(): String = PROCESSOR_NAME
 }

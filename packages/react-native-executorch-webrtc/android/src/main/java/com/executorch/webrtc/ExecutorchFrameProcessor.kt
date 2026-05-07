@@ -1,6 +1,7 @@
 package com.executorch.webrtc
 
 import android.graphics.Matrix
+import android.os.Handler
 import android.util.Log
 import com.executorch.webrtc.gl.GlBlurRenderer
 import com.oney.WebRTCModule.videoEffects.VideoFrameProcessor
@@ -11,39 +12,41 @@ import org.webrtc.YuvConverter
 import java.nio.ByteBuffer
 
 /**
- * WebRTC frame processor that applies background blur using GPU shaders + ExecuTorch segmentation.
- * Morphological cleaning and EMA temporal smoothing are done in native C++ for better performance.
+ * WebRTC frame processor that applies background blur using GPU shaders +
+ * ExecuTorch segmentation.
  *
- * Architecture matches fishjam's BackgroundBlurProcessor but uses ExecuTorch for mask generation
- * instead of ML Kit.
+ * Threading model
+ * ---------------
+ * One lock guards every mutable field. It is held for the entire process()
+ * call and for the synchronous portion of setBlurRadius() and release(). The
+ * WebRTC capturer delivers frames on a single thread per source, so this
+ * lock essentially never contends with itself; cross-thread JS calls wait
+ * at most one frame's processing time.
+ *
+ * GL teardown is the one operation that must run on a specific thread (the
+ * one that owns the GL context), so release() posts that work to the
+ * capturer's handler and returns immediately. Everything else is direct.
  */
 class ExecutorchFrameProcessor : VideoFrameProcessor {
   companion object {
     private const val TAG = "ExecutorchFrameProcessor"
     private const val LOG_INTERVAL_FRAMES = 30
-
-    @Volatile
-    private var pendingBlurRadius: Float = -1f
-
-    @JvmStatic
-    fun setBlurRadius(radius: Float) {
-      pendingBlurRadius = radius
-    }
   }
 
-  private val renderer = GlBlurRenderer()
+  private val lock = Any()
 
-  @Volatile
-  private var isProcessing = false
+  // All fields below are guarded by `lock`.
+  private val renderer = GlBlurRenderer()
+  private var modelHandle: Long = 0
+  private var loadedModelPath: String? = null
   private var lastProcessedFrame: VideoFrame? = null
   private var yuvConverter: YuvConverter? = null
-
-  private var modelLoaded = false
-  private var loadedModelPath: String? = null
   private var rgbaBuffer: ByteArray? = null
   private var maskBuffer: ByteBuffer? = null
+  private var glHandler: Handler? = null
+  private var released = false
 
-  // Timing measurements
+  // Stats — touched only inside process() under lock.
   private var frameCount = 0
   private var totalTimeAccumulator = 0L
   private var inferenceTimeAccumulator = 0L
@@ -51,86 +54,110 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
 
   init {
     Log.d(TAG, "ExecutorchFrameProcessor created")
-    tryLoadModel()
   }
 
-  private fun tryLoadModel() {
-    val configuredPath = ExecutorchWebRTC.modelPath ?: return
-    if (modelLoaded && loadedModelPath == configuredPath) return
+  // JNI: Load the segmentation model. Returns 0 on failure, otherwise an
+  // opaque handle that owns the model and EMA state for this instance.
+  private external fun loadModel(modelPath: String): Long
 
-    try {
-      Log.d(TAG, "Loading segmentation model: $configuredPath")
-      val success = loadModel(configuredPath)
-      if (success) {
-        modelLoaded = true
-        loadedModelPath = configuredPath
-        Log.d(TAG, "Model loaded successfully!")
-      }
-    } catch (e: Exception) {
-      Log.e(TAG, "Failed to load model", e)
-    }
-  }
-
-  // JNI: Load the segmentation model
-  private external fun loadModel(modelPath: String): Boolean
-
-  // JNI: Run segmentation on RGBA pixels, returns grayscale mask
+  // JNI: Run segmentation on RGBA pixels. Returns the mask as a byte array.
   private external fun runSegmentation(
+    handle: Long,
     rgbaData: ByteArray,
     width: Int,
     height: Int,
     rotation: Int,
   ): ByteArray?
 
-  // JNI: Unload model and release native resources
-  private external fun unloadModel()
+  // JNI: Drop the model and free the native handle. Caller must guarantee
+  // no concurrent runSegmentation on the same handle (Kotlin's lock does).
+  private external fun unloadModel(handle: Long)
 
   override fun process(
     frame: VideoFrame,
     helper: SurfaceTextureHelper,
   ): VideoFrame {
-    // Return cached frame if busy
-    if (isProcessing) {
-      if (lastProcessedFrame != null) {
-        lastProcessedFrame!!.retain()
-        return lastProcessedFrame!!
+    synchronized(lock) {
+      if (released) {
+        frame.retain()
+        return frame
       }
-      frame.retain()
-      return frame
-    }
+      glHandler = helper.handler
 
-    val buffer = frame.buffer
-    if (buffer !is VideoFrame.TextureBuffer) {
-      frame.retain()
-      return frame
-    }
+      val buffer = frame.buffer
+      if (buffer !is VideoFrame.TextureBuffer) {
+        frame.retain()
+        return frame
+      }
 
-    isProcessing = true
-    return try {
-      val result = processFrame(frame, buffer, helper)
-      // Cache processed frame
-      lastProcessedFrame?.release()
-      result.retain()
-      lastProcessedFrame = result
-      result
-    } catch (e: Exception) {
-      Log.e(TAG, "Error processing frame", e)
-      frame.retain()
-      frame
-    } finally {
-      isProcessing = false
+      return try {
+        val result = processFrameLocked(frame, buffer, helper)
+        lastProcessedFrame?.release()
+        result.retain()
+        lastProcessedFrame = result
+        result
+      } catch (e: Exception) {
+        Log.e(TAG, "process failed", e)
+        val cached = lastProcessedFrame
+        if (cached != null) {
+          cached.retain()
+          cached
+        } else {
+          frame.retain()
+          frame
+        }
+      }
     }
   }
 
-  private fun processFrame(
+  fun setBlurRadius(radius: Float) {
+    synchronized(lock) {
+      if (released) return
+      renderer.setBlurRadius(radius)
+    }
+  }
+
+  fun release() {
+    val handler: Handler?
+    val frameToDrop: VideoFrame?
+    synchronized(lock) {
+      if (released) return
+      released = true
+      if (modelHandle != 0L) {
+        unloadModel(modelHandle)
+        modelHandle = 0L
+        loadedModelPath = null
+      }
+      frameToDrop = lastProcessedFrame
+      lastProcessedFrame = null
+      handler = glHandler
+    }
+    frameToDrop?.release()
+
+    if (handler == null) {
+      // Never received a frame, so no GL state to tear down.
+      return
+    }
+
+    // GL teardown must run on the thread that owns the GL context.
+    handler.post {
+      synchronized(lock) {
+        renderer.release()
+        yuvConverter?.release()
+        yuvConverter = null
+        rgbaBuffer = null
+        maskBuffer = null
+      }
+      Log.d(TAG, "ExecutorchFrameProcessor GL resources released")
+    }
+  }
+
+  private fun processFrameLocked(
     frame: VideoFrame,
     textureBuffer: VideoFrame.TextureBuffer,
     helper: SurfaceTextureHelper,
   ): VideoFrame {
     val totalStartTime = System.nanoTime()
-
-    applyPendingBlurRadius()
-    if (!modelLoaded) tryLoadModel()
 
     val width = textureBuffer.width
     val height = textureBuffer.height
@@ -140,30 +167,23 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       yuvConverter = YuvConverter()
     }
 
-    // Convert transform matrix for GL
     val transformMatrix = convertToGlMatrix(textureBuffer.transformMatrix)
     val isOes = textureBuffer.type == VideoFrame.TextureBuffer.Type.OES
 
     val gpuStartTime = System.nanoTime()
 
-    // 1. Render input texture to RGBA FBO
     renderer.renderToRgbaFbo(textureBuffer.textureId, transformMatrix, isOes)
-
-    // 2. Render downscaled for segmentation
     renderer.renderDownscaled()
 
-    // 3. Read pixels for segmentation
     val segPixels = renderer.readSegmentationPixels()
     val segW = renderer.segmentationWidth
     val segH = renderer.segmentationHeight
 
-    // 4. Run segmentation (via JNI)
     val inferenceStartTime = System.nanoTime()
-    val rawMask = runSegmentationOnPixels(segPixels, segW, segH, frame.rotation)
+    val rawMask = runSegmentationLocked(segPixels, segW, segH, frame.rotation)
     val inferenceEndTime = System.nanoTime()
 
     if (rawMask != null) {
-      // 5. Upload processed mask to GPU (morphology + EMA done in native C++)
       if (maskBuffer == null || maskBuffer!!.capacity() < rawMask.size) {
         maskBuffer = ByteBuffer.allocateDirect(rawMask.size)
       }
@@ -173,15 +193,11 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       renderer.uploadMask(maskBuffer, segW, segH)
     }
 
-    // 7. Render blur
     renderer.renderBlur()
-
-    // 8. Render composite (blend original + blurred using mask)
     renderer.renderComposite()
 
     val gpuEndTime = System.nanoTime()
 
-    // 9. Create output TextureBuffer
     val outputBuffer =
       TextureBufferImpl(
         width,
@@ -195,20 +211,16 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       )
 
     val totalEndTime = System.nanoTime()
-
-    // Accumulate timing measurements
     totalTimeAccumulator += (totalEndTime - totalStartTime)
     inferenceTimeAccumulator += (inferenceEndTime - inferenceStartTime)
     gpuTimeAccumulator += (gpuEndTime - gpuStartTime) - (inferenceEndTime - inferenceStartTime)
     frameCount++
 
-    // Log averages every LOG_INTERVAL_FRAMES frames
     if (frameCount >= LOG_INTERVAL_FRAMES) {
       val avgTotalMs = (totalTimeAccumulator / frameCount) / 1_000_000.0
       val avgInferenceMs = (inferenceTimeAccumulator / frameCount) / 1_000_000.0
       val avgGpuMs = (gpuTimeAccumulator / frameCount) / 1_000_000.0
       val fps = 1000.0 / avgTotalMs
-
       Log.d(
         TAG,
         String.format(
@@ -220,8 +232,6 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
           avgGpuMs,
         ),
       )
-
-      // Reset accumulators
       frameCount = 0
       totalTimeAccumulator = 0L
       inferenceTimeAccumulator = 0L
@@ -231,26 +241,19 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     return VideoFrame(outputBuffer, frame.rotation, frame.timestampNs)
   }
 
-  private fun applyPendingBlurRadius() {
-    val radius = pendingBlurRadius
-    if (radius < 0f) return
-    pendingBlurRadius = -1f
-    renderer.setBlurRadius(radius)
-  }
-
-  private fun runSegmentationOnPixels(
+  private fun runSegmentationLocked(
     pixels: ByteBuffer,
     width: Int,
     height: Int,
     rotation: Int,
   ): ByteArray? {
-    if (!modelLoaded) {
-      val result = ByteArray(width * height)
-      result.fill(0)
-      return result
+    val handle = ensureHandleLocked()
+    if (handle == null) {
+      // No model configured yet — return a zero mask so the GPU pipeline
+      // still produces an all-blurred frame.
+      return ByteArray(width * height)
     }
 
-    // Convert ByteBuffer to ByteArray for JNI
     val size = width * height * 4
     if (rgbaBuffer == null || rgbaBuffer!!.size < size) {
       rgbaBuffer = ByteArray(size)
@@ -258,13 +261,39 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
     pixels.rewind()
     pixels.get(rgbaBuffer!!, 0, size)
 
-    return runSegmentation(rgbaBuffer!!, width, height, rotation)
+    return runSegmentation(handle, rgbaBuffer!!, width, height, rotation)
+  }
+
+  private fun ensureHandleLocked(): Long? {
+    val configuredPath = ExecutorchWebRTC.modelPath ?: return null
+    if (modelHandle != 0L && loadedModelPath == configuredPath) {
+      return modelHandle
+    }
+    if (modelHandle != 0L) {
+      unloadModel(modelHandle)
+      modelHandle = 0L
+      loadedModelPath = null
+    }
+    return try {
+      Log.d(TAG, "Loading segmentation model: $configuredPath")
+      val handle = loadModel(configuredPath)
+      if (handle != 0L) {
+        modelHandle = handle
+        loadedModelPath = configuredPath
+        Log.d(TAG, "Model loaded successfully!")
+        handle
+      } else {
+        null
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to load model", e)
+      null
+    }
   }
 
   private fun convertToGlMatrix(androidMatrix: android.graphics.Matrix): FloatArray {
     val values = FloatArray(9)
     androidMatrix.getValues(values)
-    // Convert 3x3 to 4x4 matrix for GL
     return floatArrayOf(
       values[0],
       values[3],
@@ -283,31 +312,5 @@ class ExecutorchFrameProcessor : VideoFrameProcessor {
       0f,
       values[8],
     )
-  }
-
-  fun release() {
-    Log.d(TAG, "Releasing ExecutorchFrameProcessor resources")
-
-    // Release GPU resources
-    renderer.release()
-    yuvConverter?.release()
-    yuvConverter = null
-
-    // Release cached frame
-    lastProcessedFrame?.release()
-    lastProcessedFrame = null
-
-    // Unload native model and buffers
-    if (modelLoaded) {
-      unloadModel()
-      modelLoaded = false
-      loadedModelPath = null
-    }
-
-    // Clear buffers
-    rgbaBuffer = null
-    maskBuffer = null
-
-    Log.d(TAG, "ExecutorchFrameProcessor resources released")
   }
 }

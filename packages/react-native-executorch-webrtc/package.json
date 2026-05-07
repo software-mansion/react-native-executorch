@@ -4,12 +4,7 @@
   "description": "ExecuTorch WebRTC frame processor integration for react-native-webrtc",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./lib/index.js",
-      "types": "./lib/index.d.ts"
-    }
-  },
+  "source": "src/index.ts",
   "files": [
     "lib",
     "android",
@@ -38,7 +33,6 @@
     "react-native-executorch": "*"
   },
   "devDependencies": {
-    "@fishjam-cloud/react-native-webrtc": "^0.25.8",
     "@types/react": "~19.1.10",
     "react": "19.1.0",
     "react-native": "0.81.5",
