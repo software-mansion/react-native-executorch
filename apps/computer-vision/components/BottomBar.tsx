@@ -1,8 +1,9 @@
 import ColorPalette from '../colors';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import Constants from 'expo-constants';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DeviceInfo from 'react-native-device-info';
 
 export const BottomBar = ({
   handleCameraPress,
@@ -18,6 +19,8 @@ export const BottomBar = ({
   const { bottom } = useSafeAreaInsets();
   const disabled = !hasImage || isGenerating;
 
+  const isDevice = useRef(!DeviceInfo.isEmulatorSync());
+
   return (
     <View style={[styles.bottomContainer, { paddingBottom: bottom || 16 }]}>
       <View style={styles.bottomIconsContainer}>
@@ -25,12 +28,12 @@ export const BottomBar = ({
           <FontAwesome name="photo" size={24} color={ColorPalette.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => Constants.isDevice && handleCameraPress(true)}
+          onPress={() => isDevice.current && handleCameraPress(true)}
         >
           <FontAwesome
             name="camera"
             size={24}
-            color={Constants.isDevice ? ColorPalette.primary : '#888'}
+            color={isDevice.current ? ColorPalette.primary : '#888'}
           />
         </TouchableOpacity>
       </View>
