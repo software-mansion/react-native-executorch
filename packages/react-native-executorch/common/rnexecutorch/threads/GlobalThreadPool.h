@@ -4,7 +4,9 @@
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <memory>
 #include <mutex>
+#ifdef RNE_ENABLE_OPENCV
 #include <opencv2/opencv.hpp>
+#endif
 #include <optional>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/HighPerformanceThreadPool.h>
@@ -41,7 +43,9 @@ public:
                                                              config);
       // Disable OpenCV's internal threading to prevent it from overriding our
       // thread pool configuration, which would cause degraded performance
+#ifdef RNE_ENABLE_OPENCV
       cv::setNumThreads(0);
+#endif
     });
   }
 

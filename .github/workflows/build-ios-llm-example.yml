@@ -22,6 +22,9 @@ jobs:
     concurrency:
       group: ios-${{ github.ref }}
       cancel-in-progress: true
+    env:
+      # TODO: drop once v0.9.0 is cut and tarballs are attached to the matching Release.
+      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.9.0-libs-test
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:

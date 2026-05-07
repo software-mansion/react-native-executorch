@@ -49,6 +49,10 @@ class ETInstaller(
 
   init {
     try {
+      // Each backend (XNNPACK, Vulkan) ships as its own .so. When an extra is
+      // enabled, libreact-native-executorch.so links against the matching .so,
+      // so the dynamic linker loads it automatically here and its load-time
+      // constructor registers the backend with libexecutorch.so's registry.
       System.loadLibrary("executorch")
       System.loadLibrary("react-native-executorch")
       val jsCallInvokerHolder = reactContext.jsCallInvokerHolder as CallInvokerHolderImpl

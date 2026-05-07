@@ -10,6 +10,9 @@ on:
     types:
       - checks_requested
   workflow_dispatch:
+env:
+  # TODO: drop once v0.9.0 is cut and tarballs are attached to the matching Release.
+  RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.9.0-libs-test
 jobs:
   lint:
     runs-on: ubuntu-latest
