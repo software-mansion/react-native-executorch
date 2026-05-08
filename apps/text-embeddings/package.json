@@ -17,7 +17,7 @@
     "@react-navigation/native": "^7.2.2",
     "expo": "^55.0.13",
     "expo-build-properties": "~55.0.13",
-    "expo-constants": "~55.0.13",
+    "expo-constants": "^55.0.16",
     "expo-linking": "~55.0.12",
     "expo-router": "~55.0.11",
     "expo-status-bar": "~55.0.5",
@@ -36,7 +36,9 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@types/react": "~19.2.14",
-    "babel-preset-expo": "~55.0.16"
+    "@types/react-refresh": "^0",
+    "babel-preset-expo": "~55.0.16",
+    "react-refresh": "^0.18.0"
   },
   "private": true
 }

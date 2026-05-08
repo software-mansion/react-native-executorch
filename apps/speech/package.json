@@ -33,7 +33,9 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@types/react": "~19.2.14",
-    "babel-preset-expo": "~55.0.16"
+    "@types/react-refresh": "^0",
+    "babel-preset-expo": "~55.0.16",
+    "react-refresh": "^0.18.0"
   },
   "private": true
 }
