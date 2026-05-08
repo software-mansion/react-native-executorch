@@ -2715,6 +2715,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/env@npm:~2.1.2":
+  version: 2.1.2
+  resolution: "@expo/env@npm:2.1.2"
+  dependencies:
+    chalk: "npm:^4.0.0"
+    debug: "npm:^4.3.4"
+    getenv: "npm:^2.0.0"
+  checksum: 10/e127ae2449de94afc52e41c8a4254b21eb6df047ba24da8b0a3baa245840338dc1eb00c8447fed6059ead13dae8dddef4ce8ce44c44f4154a886007967f473af
+  languageName: node
+  linkType: hard
+
 "@expo/fingerprint@npm:0.15.4":
   version: 0.15.4
   resolution: "@expo/fingerprint@npm:0.15.4"
@@ -5809,7 +5820,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/babel__core@npm:^7.1.14, @types/babel__core@npm:^7.20.5":
+"@types/babel__core@npm:*, @types/babel__core@npm:^7.1.14, @types/babel__core@npm:^7.20.5":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
   dependencies:
@@ -5974,6 +5985,16 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/132fce25817d47a784ed48aa678332521b0f7e6edbaa76f3fa4e9ca1228078788ae712f99ad4d1a324d9ba0b14829958677eabf3ebef1fb6e120816f433f0cd8
+  languageName: node
+  linkType: hard
+
+"@types/react-refresh@npm:^0":
+  version: 0.14.7
+  resolution: "@types/react-refresh@npm:0.14.7"
+  dependencies:
+    "@types/babel__core": "npm:*"
+    csstype: "npm:^3.2.2"
+  checksum: 10/c4eca39a4e6991ad637044294045824784a048cbf84c8972361c686af7c17a32ffb11e3a24be519f7961a6690fce4a92a8007e2a060197dca43b0b66eff56bc6
   languageName: node
   linkType: hard
 
@@ -7883,9 +7904,11 @@ __metadata:
     "@shopify/react-native-skia": "npm:2.6.2"
     "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.2.0"
+    "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-build-properties: "npm:~55.0.13"
+    expo-constants: "npm:^55.0.16"
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
@@ -7909,6 +7932,7 @@ __metadata:
     react-native-vision-camera: "npm:^5.0.6"
     react-native-vision-camera-worklets: "npm:^5.0.6"
     react-native-worklets: "npm:0.8.1"
+    react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
 
@@ -9433,6 +9457,18 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 10/c12a173e3f3c5c77f124927890b48bdf07a35fa268c3a6c4659e7b2c46a58c292f8518f0ae85b4b2f5b231dda0f4128a8b8bd0c1c6d65e66f0457714dade1ff2
+  languageName: node
+  linkType: hard
+
+"expo-constants@npm:^55.0.16":
+  version: 55.0.16
+  resolution: "expo-constants@npm:55.0.16"
+  dependencies:
+    "@expo/env": "npm:~2.1.2"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 10/80caf27dc74972b4a0245e2268be51748eb403622f30b9129c6838fa80740a88f31e4941f2f9c493fdd1cd0c8512b440dfc9cf78a26eb7ca92826c54cd4641b2
   languageName: node
   linkType: hard
 
@@ -12680,11 +12716,13 @@ __metadata:
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
     "@types/react": "npm:~19.2.14"
+    "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-brightness: "npm:~55.0.13"
     expo-build-properties: "npm:~55.0.13"
     expo-calendar: "npm:~55.0.14"
+    expo-constants: "npm:^55.0.16"
     expo-document-picker: "npm:~55.0.13"
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
@@ -12707,6 +12745,7 @@ __metadata:
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.8.1"
+    react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
 
@@ -15762,6 +15801,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-refresh@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "react-refresh@npm:0.18.0"
+  checksum: 10/504c331c19776bf8320c23bad7f80b3a28de03301ed7523b0dd21d3f02bf2b53bbdd5aa52469b187bc90f358614b2ba303c088a0765c95f4f0a68c43a7d67b1d
+  languageName: node
+  linkType: hard
+
 "react-refresh@npm:^0.4.0":
   version: 0.4.3
   resolution: "react-refresh@npm:0.4.3"
@@ -16617,6 +16663,7 @@ __metadata:
     "@babel/core": "npm:^7.29.0"
     "@react-native/metro-config": "npm:^0.83.0"
     "@types/react": "npm:~19.2.14"
+    "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~55.0.16"
     buffer: "npm:^6.0.3"
     expo: "npm:^55.0.13"
@@ -16635,6 +16682,7 @@ __metadata:
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.8.1"
+    react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
 
@@ -17077,9 +17125,11 @@ __metadata:
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
     "@types/react": "npm:~19.2.14"
+    "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-build-properties: "npm:~55.0.13"
+    expo-constants: "npm:^55.0.16"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
     expo-status-bar: "npm:~55.0.5"
@@ -17094,6 +17144,7 @@ __metadata:
     react-native-screens: "npm:~4.24.0"
     react-native-svg: "npm:15.15.4"
     react-native-worklets: "npm:0.8.1"
+    react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
 

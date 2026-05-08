@@ -18,6 +18,7 @@
     "@shopify/react-native-skia": "2.6.2",
     "expo": "^55.0.13",
     "expo-build-properties": "~55.0.13",
+    "expo-constants": "^55.0.16",
     "expo-font": "~55.0.6",
     "expo-linking": "~55.0.12",
     "expo-router": "~55.0.11",
@@ -46,7 +47,9 @@
     "@babel/core": "^7.29.0",
     "@types/pngjs": "^6.0.5",
     "@types/react": "~19.2.0",
-    "babel-preset-expo": "~55.0.16"
+    "@types/react-refresh": "^0",
+    "babel-preset-expo": "~55.0.16",
+    "react-refresh": "^0.18.0"
   },
   "private": true
 }
