@@ -98,7 +98,7 @@ function bboxArea(bbox: Bbox): number {
  * Returns the instance whose image embedding has the highest cosine similarity
  * with the text embedding. The caller is responsible for producing the
  * embeddings (e.g. with CLIP) and passing them in the same order as
- * `instances`; embeddings do not need to be pre-normalized.
+ * `instances`.
  * @param instances - Array of segmented instances returned by `forward()`.
  * @param instanceEmbeddings - Image embedding for each instance, in the same order as `instances`.
  * @param textEmbedding - Embedding of the text prompt.
@@ -116,29 +116,27 @@ export function selectByText<L extends LabelEnum>(
     );
   }
 
-  let textNormSq = 0;
-  for (const v of textEmbedding) {
-    textNormSq += v * v;
-  }
-  const textNorm = Math.sqrt(textNormSq);
-
+  const scores = calculateDotProducts(instanceEmbeddings, textEmbedding);
   let bestIdx = 0;
   let bestScore = -Infinity;
-  for (let i = 0; i < instances.length; i++) {
-    const emb = instanceEmbeddings[i]!;
-    const n = Math.min(emb.length, textEmbedding.length);
-    let dot = 0;
-    let embNormSq = 0;
-    for (let j = 0; j < n; j++) {
-      const a = emb[j]!;
-      dot += a * textEmbedding[j]!;
-      embNormSq += a * a;
-    }
-    const score = dot / (Math.sqrt(embNormSq) * textNorm + 1e-7);
-    if (score > bestScore) {
-      bestScore = score;
+  for (let i = 0; i < scores.length; i++) {
+    if (scores[i]! > bestScore) {
+      bestScore = scores[i]!;
       bestIdx = i;
     }
   }
   return instances[bestIdx]!;
+}
+
+function calculateDotProducts(
+  instanceEmbeddings: Float32Array[],
+  textEmbedding: Float32Array
+): number[] {
+  return instanceEmbeddings.map((emb) => {
+    let dot = 0;
+    for (let j = 0; j < emb.length; j++) {
+      dot += emb[j]! * textEmbedding[j]!;
+    }
+    return dot;
+  });
 }

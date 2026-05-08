@@ -17,6 +17,8 @@ import {
   Skia,
   useImage,
   type SkImage,
+  ColorType,
+  AlphaType,
 } from '@shopify/react-native-skia';
 import {
   useInstanceSegmentation,
@@ -188,10 +190,14 @@ export default function SegmentAnythingScreen() {
         setEmbeddingProgress({ done: 0, total: instances.length });
         const embeddings: Float32Array[] = [];
         for (let i = 0; i < instances.length; i++) {
+          const inst = instances[i]!;
           embeddings.push(
             await cropAndEmbed(
               skiaSource,
-              instances[i]!.bbox,
+              inst.bbox,
+              inst.mask,
+              inst.maskWidth,
+              inst.maskHeight,
               clipImage.forward
             )
           );
@@ -201,9 +207,12 @@ export default function SegmentAnythingScreen() {
         setEmbeddingProgress(null);
       }
       const textEmb = await clipText.forward(textPrompt);
-      applyMatch(
-        selectByText(instances, instanceEmbeddingsRef.current, textEmb)
+      const match = selectByText(
+        instances,
+        instanceEmbeddingsRef.current,
+        textEmb
       );
+      applyMatch(match);
     } catch (e) {
       console.error(e);
     } finally {
@@ -449,24 +458,76 @@ export default function SegmentAnythingScreen() {
 async function cropAndEmbed(
   image: SkImage,
   bbox: Bbox,
+  mask: Uint8Array,
+  maskWidth: number,
+  maskHeight: number,
   forward: (input: string) => Promise<Float32Array>
 ): Promise<Float32Array> {
-  const w = Math.max(1, Math.round(bbox.x2 - bbox.x1));
-  const h = Math.max(1, Math.round(bbox.y2 - bbox.y1));
-  const surface = Skia.Surface.MakeOffscreen(w, h);
+  // FastSAM-style full-image white canvas, but with the mask applied:
+  // inside the bbox we keep image pixels where mask=1 and overwrite the
+  // rest with white. CLIP then sees a uniform white scene with only the
+  // segmented object visible at its original position/size.
+  const imgW = image.width();
+  const imgH = image.height();
+  const surface = Skia.Surface.MakeOffscreen(imgW, imgH);
   if (!surface) throw new Error('Failed to create offscreen Skia surface');
-  surface.getCanvas().drawImageRect(
-    image,
+  const canvas = surface.getCanvas();
+  canvas.clear(Skia.Color('white'));
+
+  const x1 = Math.max(0, Math.round(bbox.x1));
+  const y1 = Math.max(0, Math.round(bbox.y1));
+  const x2 = Math.min(imgW, Math.round(bbox.x2));
+  const y2 = Math.min(imgH, Math.round(bbox.y2));
+  const w = x2 - x1;
+  const h = y2 - y1;
+  if (w > 0 && h > 0) {
+    canvas.drawImageRect(
+      image,
+      { x: x1, y: y1, width: w, height: h },
+      { x: x1, y: y1, width: w, height: h },
+      Skia.Paint()
+    );
+  }
+
+  // Inverse mask: opaque white where mask=0, transparent where mask=1.
+  // Drawn on top within the bbox, it overpaints non-mask pixels with white
+  // and leaves the segmented object intact.
+  const inversePixels = new Uint8Array(mask.length * 4);
+  for (let i = 0; i < mask.length; i++) {
+    const outside = mask[i]! === 0;
+    const idx = i * 4;
+    inversePixels[idx] = outside ? 255 : 0;
+    inversePixels[idx + 1] = outside ? 255 : 0;
+    inversePixels[idx + 2] = outside ? 255 : 0;
+    inversePixels[idx + 3] = outside ? 255 : 0;
+  }
+  const inverseData = Skia.Data.fromBytes(inversePixels);
+  const inverseMaskImg = Skia.Image.MakeImage(
     {
-      x: bbox.x1,
-      y: bbox.y1,
-      width: bbox.x2 - bbox.x1,
-      height: bbox.y2 - bbox.y1,
+      width: maskWidth,
+      height: maskHeight,
+      colorType: ColorType.RGBA_8888,
+      alphaType: AlphaType.Premul,
     },
-    { x: 0, y: 0, width: w, height: h },
-    Skia.Paint()
+    inverseData,
+    maskWidth * 4
   );
+  if (inverseMaskImg) {
+    canvas.drawImageRect(
+      inverseMaskImg,
+      { x: 0, y: 0, width: maskWidth, height: maskHeight },
+      {
+        x: bbox.x1,
+        y: bbox.y1,
+        width: bbox.x2 - bbox.x1,
+        height: bbox.y2 - bbox.y1,
+      },
+      Skia.Paint()
+    );
+  }
+
   const base64 = surface.makeImageSnapshot().encodeToBase64();
+  inverseData.dispose();
   return forward(`data:image/png;base64,${base64}`);
 }
 
