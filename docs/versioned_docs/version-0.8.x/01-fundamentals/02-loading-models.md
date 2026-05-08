@@ -37,7 +37,7 @@ and
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { BareResourceFetcher } from '@react-native-executorch/bare-adapter';
+import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 
 initExecutorch({
   resourceFetcher: BareResourceFetcher,
