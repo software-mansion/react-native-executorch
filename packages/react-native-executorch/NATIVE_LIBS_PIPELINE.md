@@ -103,18 +103,44 @@ Result: each Android backend ships as its own opt-in tarball, mirroring the iOS 
 
 ## Building artifacts from the ExecuTorch fork
 
-Patched sources live in a separate repo (see `executorch/` in the maintainer's machine, typically checked out next to `react-native-executorch/`). The fork branch is [`msluszniak/executorch@ms/separate-backends`](https://github.com/msluszniak/executorch/tree/@ms/separate-backends), and the artifacts attached to the matching GitHub Release are produced from the pinned commit [`1a5c0f2670bed1c17c71928d142cbbaee5be4160`](https://github.com/msluszniak/executorch/commit/1a5c0f2670bed1c17c71928d142cbbaee5be4160). Bumping the `react-native-executorch` package version requires re-rolling the Release artifacts from a (possibly newer) pinned commit and updating this SHA. The branch carries:
+Patched sources live in a separate repo (see `executorch/` in the maintainer's machine, typically checked out next to `react-native-executorch/`). The fork branch is [`msluszniak/executorch@ms/separate-backends`](https://github.com/msluszniak/executorch/tree/@ms/separate-backends), based on the upstream `release/1.2` tag, and the artifacts attached to the matching GitHub Release are produced from the pinned commit [`bd24ac7681a574aceb3224460e8fc313794bdabb`](https://github.com/msluszniak/executorch/commit/bd24ac7681a574aceb3224460e8fc313794bdabb). Bumping the `react-native-executorch` package version requires re-rolling the Release artifacts from a (possibly newer) pinned commit and updating this SHA. The branch carries (oldest → newest):
 
 - **chore: remove version script from `executorch_jni`** — reverts the Feb 2026 symbol-hiding change so RNE's C++ layer can resolve `Module`, `threadpool`, etc. directly.
 - **feat: build `vulkan_backend` as a separate shared library on Android** — adds the `EXECUTORCH_BUILD_VULKAN_BACKEND_SHARED` CMake option. When ON, `libvulkan_executorch_backend.so` is produced alongside `libexecutorch_jni.so` instead of vulkan_backend being whole-archive-linked into the latter. Mirrors the QNN backend pattern.
-- **feat: build `xnnpack_backend` as a separate shared library on Android** — same idea for XNNPACK via `EXECUTORCH_BUILD_XNNPACK_BACKEND_SHARED`. Also patches `extension/llm/custom_ops/CMakeLists.txt` to drop the (transitive) `xnnpack_backend` link when the switch is ON, so XNNPACK code does not leak into `libexecutorch_jni.so` via `custom_ops`.
 - **build: disable `-Werror` for `flatcc_ep` on host clang** — Apple clang 21+ flags warnings flatcc has not yet cleaned up; needed to build on Xcode 26.4+.
+- **feat: build `xnnpack_backend` as a separate shared library on Android** — same idea for XNNPACK via `EXECUTORCH_BUILD_XNNPACK_BACKEND_SHARED`. Also patches `extension/llm/custom_ops/CMakeLists.txt` to drop the (transitive) `xnnpack_backend` link when the switch is ON, so XNNPACK code does not leak into `libexecutorch_jni.so` via `custom_ops`.
+- **chore: point tokenizers submodule at `software-mansion-labs/pytorch-tokenizers@build`** — replaces the old `meta-pytorch/tokenizers` pin with the SWM-internal build branch (`56a30afb…`). That branch carries support for new tokenizer types (Unigram, WordLevel) plus more normalizers / pre-tokenizers / decoders / post-processors. Headers in `third-party/include/executorch/extension/llm/tokenizers/` must match this commit; otherwise `HFTokenizer::setup_padding` / `setup_truncation` SIGSEGV when loading a real tokenizer.json.
+- **build(android): forward `BACKEND_SHARED` env vars to cmake** — `build_android_library.sh` declared the `EXECUTORCH_BUILD_*_BACKEND_SHARED` env vars in surrounding docs but never passed them to cmake configure, so a fresh CMake configure produced backends baked into `libexecutorch_jni.so` even when the env vars were set.
+- **fix(xnnpack): tolerate null ptr in `XNNWeightsCache::look_up_or_insert`** — `memcmp(ptr=NULL, saved_ptr, size)` crashed when XNNPACK re-checked the cache. Guard with `if (ptr == nullptr) ptr = saved_ptr;` before the compare.
+- **build(android): pass `-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON`** — required for Android 16 KB-page devices (Pixel 9 / upcoming releases); without it the `.so` fails to map on those targets.
+- **build(ios): keep merged intermediate `.a` files after `create_frameworks.sh`** — comments out the cleanup loop at the end of `create_frameworks.sh`. RNE's `third-party/ios/ExecutorchLib/build.sh` repackages those `.a` files into its own xcframeworks (with consistent slice library names that CocoaPods requires), so we need them to survive long enough to be repackaged.
+- **build(ios): disable `XNNPACK_ENABLE_ARM_SME{,2}` on macOS / iOS presets** — the Apple SME backends in upstream XNNPACK fail to compile under Xcode 26's clang. Disable both for the `macos` / `ios` / `ios-simulator` presets in `CMakePresets.json` so the iOS build succeeds.
 
 ### iOS
 
-From inside `packages/react-native-executorch/third-party/ios/ExecutorchLib/`:
+Two-stage: the fork produces the bare `.a` files; RNE's `build.sh` repackages them into xcframeworks.
+
+**1. Build `.a` files in the fork**
 
 ```bash
+# from the executorch fork (with @ms/separate-backends checked out)
+python3 -m venv .venv && source .venv/bin/activate
+./install_executorch.sh
+./scripts/create_frameworks.sh
+```
+
+This drives Buck2 + cmake for the `ios`, `ios-simulator`, and `macos` presets. The patched `create_frameworks.sh` keeps the merged intermediate `.a` files in `cmake-out/ios/`, `cmake-out/simulator/` (and `cmake-out/macos/` — ignore these, RNE doesn't ship a macOS slice).
+
+**2. Stage `.a` files into RNE**
+
+Replace everything in `packages/react-native-executorch/third-party/ios/libs/executorch/` with the `.a` files produced by step 1. Take only the iOS device + simulator slices — skip the `*_macos*` files and anything under a `debug/` directory.
+
+**3. Build xcframeworks**
+
+```bash
+# from RNE
+rm -rf packages/react-native-executorch/third-party/ios/ExecutorchLib.xcframework
+cd packages/react-native-executorch/third-party/ios/ExecutorchLib
 ./build.sh
 ```
 
@@ -124,7 +150,7 @@ The script drives Xcode to archive the Obj-C++ wrapper for device and simulator,
 - `output/XnnpackBackend.xcframework` — repackaged from `third-party/ios/libs/executorch/libbackend_xnnpack_{ios,simulator}.a`.
 - `output/CoreMLBackend.xcframework` — repackaged from `libbackend_coreml_{ios,simulator}.a`.
 
-Producing the underlying `.a` files (executorch + backend static libs for both slices) is a separate step inside the ExecuTorch fork, outside the scope of this script — run the fork's iOS build instructions with XNNPACK and Core ML enabled, then drop the resulting `.a` files into `third-party/ios/libs/executorch/` before invoking `build.sh`.
+Move each `.xcframework` from `output/` up one level into `third-party/ios/`, then delete `output/`.
 
 CocoaPods constraint: inside an xcframework, the library file name must be identical across slices, which is why `build.sh` copies each slice into a temp directory and renames before calling `-create-xcframework`. Do not skip this step.
 

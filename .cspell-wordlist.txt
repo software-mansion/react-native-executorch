@@ -226,3 +226,9 @@ xcframework
 xcframeworks
 EEXIST
 RNET
+Unigram
+SIGSEGV
+memcmp
+nullptr
+DANDROID
+venv
