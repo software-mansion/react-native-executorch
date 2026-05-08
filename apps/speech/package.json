@@ -20,7 +20,7 @@
     "metro-config": "^0.83.0",
     "react": "19.2.5",
     "react-native": "0.83.4",
-    "react-native-audio-api": "0.12.0",
+    "react-native-audio-api": "0.11.5",
     "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
     "react-native-executorch-expo-resource-fetcher": "workspace:*",
