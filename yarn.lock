@@ -7886,7 +7886,6 @@ __metadata:
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-build-properties: "npm:~55.0.13"
-    expo-constants: "npm:~55.0.13"
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
@@ -9450,7 +9449,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-constants@npm:~55.0.13, expo-constants@npm:~55.0.15":
+"expo-constants@npm:~55.0.15":
   version: 55.0.15
   resolution: "expo-constants@npm:55.0.15"
   dependencies:
@@ -12686,7 +12685,6 @@ __metadata:
     expo-brightness: "npm:~55.0.13"
     expo-build-properties: "npm:~55.0.13"
     expo-calendar: "npm:~55.0.14"
-    expo-constants: "npm:~55.0.13"
     expo-document-picker: "npm:~55.0.13"
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
@@ -17082,7 +17080,6 @@ __metadata:
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-build-properties: "npm:~55.0.13"
-    expo-constants: "npm:~55.0.13"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
     expo-status-bar: "npm:~55.0.5"

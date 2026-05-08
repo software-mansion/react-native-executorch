@@ -17,7 +17,6 @@
     "@react-navigation/native": "^7.2.2",
     "expo": "^55.0.13",
     "expo-build-properties": "~55.0.13",
-    "expo-constants": "~55.0.13",
     "expo-linking": "~55.0.12",
     "expo-router": "~55.0.11",
     "expo-status-bar": "~55.0.5",
