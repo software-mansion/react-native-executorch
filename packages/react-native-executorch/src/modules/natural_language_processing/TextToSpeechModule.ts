@@ -3,9 +3,9 @@ import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import {
+  TextToSpeechModelConfig,
   TextToSpeechModelSources,
   TextToSpeechStreamingInput,
-  TextToSpeechVoiceConfig,
 } from '../../types/tts';
 import { Logger } from '../../common/Logger';
 
@@ -23,18 +23,17 @@ export class TextToSpeechModule {
 
   /**
    * Creates a Text to Speech instance.
-   * @param config - Configuration object containing `model` and `voice`.
+   * @param config - Configuration object containing model and voice sources.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `TextToSpeechModule` instance.
    */
   static async fromModelName(
-    config: { model: TextToSpeechModelSources; voice: TextToSpeechVoiceConfig },
+    config: TextToSpeechModelConfig,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextToSpeechModule> {
     try {
       const nativeModule = await TextToSpeechModule.loadKokoro(
-        config.model,
-        config.voice,
+        config,
         onDownloadProgress
       );
       return new TextToSpeechModule(nativeModule);
@@ -45,16 +44,19 @@ export class TextToSpeechModule {
   }
 
   private static async loadKokoro(
-    model: Extract<TextToSpeechModelSources, { modelName: 'kokoro' }>,
-    voice: TextToSpeechVoiceConfig,
+    config: TextToSpeechModelConfig,
     onDownloadProgressCallback: (progress: number) => void
   ): Promise<unknown> {
-    const { phonemizerConfig } = voice;
+    const { model, voiceSource, phonemizerConfig } = config;
+    const kokoroModel = model as Extract<
+      TextToSpeechModelSources,
+      { modelName: 'kokoro' }
+    >;
 
     const sources: ResourceSource[] = [
-      model.durationPredictorSource,
-      model.synthesizerSource,
-      voice.voiceSource,
+      kokoroModel.durationPredictorSource,
+      kokoroModel.synthesizerSource,
+      voiceSource,
     ];
 
     // Since each of these args is optional, we need to handle the sources array in a dynamic way.

@@ -64,31 +64,16 @@ export interface TextToSpeechPhonemizerConfig {
 }
 
 /**
- * Configuration for a specific voice in a Text-to-Speech model.
- * Maps a voice data file to its corresponding phonemizer settings.
+ * Configuration for a specific model and voice in a Text-to-Speech module.
  * @category Types
+ * @property {TextToSpeechModelSources} model - The model sources and identifiers.
  * @property {ResourceSource} voiceSource - The resource containing the voice-specific tensor stored in a binary format.
  * @property {TextToSpeechPhonemizerConfig} phonemizerConfig - The phonemizer configuration to be used with this voice.
  */
-export interface TextToSpeechVoiceConfig {
+export interface TextToSpeechModelConfig {
+  model: TextToSpeechModelSources;
   voiceSource: ResourceSource;
   phonemizerConfig: TextToSpeechPhonemizerConfig;
-}
-
-/**
- * Properties for initializing a Text-to-Speech model component or hook.
- * @category Types
- * @template C - The specific model source configuration type.
- * @property {C} model - The model sources and identifiers.
- * @property {boolean} [preventLoad] - If true, prevents the model from loading automatically on initialization.
- */
-export interface TextToSpeechModelProps<
-  M extends TextToSpeechModelSources,
-  V extends TextToSpeechVoiceConfig,
-> {
-  model: M;
-  voice: V;
-  preventLoad?: boolean;
 }
 
 /**

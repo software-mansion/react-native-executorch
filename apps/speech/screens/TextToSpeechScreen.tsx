@@ -10,58 +10,50 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_STANDARD,
-  KOKORO_POLISH,
-  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART,
-  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER,
-  KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH,
-  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM,
-  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL,
-  KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA,
-  KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA,
-  KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL,
   useTextToSpeech,
-  TextToSpeechModelSources,
-  TextToSpeechVoiceConfig,
-  KOKORO_VOICE_FRENCH_FEMALE_SIWIS,
-  KOKORO_VOICE_SPANISH_FEMALE_DORA,
-  KOKORO_VOICE_SPANISH_MALE_ALEX,
-  KOKORO_VOICE_ITALIAN_FEMALE_SARA,
-  KOKORO_VOICE_ITALIAN_MALE_NICOLA,
-  KOKORO_VOICE_PORTUGUESE_FEMALE_DORA,
-  KOKORO_VOICE_PORTUGUESE_MALE_SANTA,
-  KOKORO_VOICE_POLISH_MALE_MATEUSZ,
-  KOKORO_VOICE_HINDI_FEMALE_ALPHA,
-  KOKORO_VOICE_HINDI_MALE_OMEGA,
-  KOKORO_VOICE_HINDI_MALE_PSI,
+  TextToSpeechModelConfig,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH,
+  KOKORO_AMERICAN_ENGLISH_MALE_ADAM,
+  KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL,
+  KOKORO_AMERICAN_ENGLISH_MALE_SANTA,
+  KOKORO_BRITISH_ENGLISH_FEMALE_EMMA,
+  KOKORO_BRITISH_ENGLISH_MALE_DANIEL,
+  KOKORO_FRENCH_FEMALE_SIWIS,
+  KOKORO_SPANISH_FEMALE_DORA,
+  KOKORO_SPANISH_MALE_ALEX,
+  KOKORO_ITALIAN_FEMALE_SARA,
+  KOKORO_ITALIAN_MALE_NICOLA,
+  KOKORO_PORTUGUESE_FEMALE_DORA,
+  KOKORO_PORTUGUESE_MALE_SANTA,
+  KOKORO_POLISH_MALE_MATEUSZ,
+  KOKORO_HINDI_FEMALE_ALPHA,
+  KOKORO_HINDI_MALE_OMEGA,
+  KOKORO_HINDI_MALE_PSI,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
-const TTS_MODELS: ModelOption<TextToSpeechModelSources>[] = [
-  { label: 'Kokoro Standard', value: KOKORO_STANDARD },
-  { label: 'Kokoro Polish', value: KOKORO_POLISH },
-];
-
-const VOICES: ModelOption<TextToSpeechVoiceConfig>[] = [
-  { label: '🇺🇸 AF Heart', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART },
-  { label: '🇺🇸 AF River', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER },
-  { label: '🇺🇸 AF Sarah', value: KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH },
-  { label: '🇺🇸 AM Adam', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM },
-  { label: '🇺🇸 AM Michael', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL },
-  { label: '🇺🇸 AM Santa', value: KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA },
-  { label: '🇬🇧 BF Emma', value: KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA },
-  { label: '🇬🇧 BM Daniel', value: KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL },
-  { label: '🇫🇷 FF Siwis', value: KOKORO_VOICE_FRENCH_FEMALE_SIWIS },
-  { label: '🇪🇸 EF Dora', value: KOKORO_VOICE_SPANISH_FEMALE_DORA },
-  { label: '🇪🇸 EM Alex', value: KOKORO_VOICE_SPANISH_MALE_ALEX },
-  { label: '🇮🇹 IF Sara', value: KOKORO_VOICE_ITALIAN_FEMALE_SARA },
-  { label: '🇮🇹 IM Nicola', value: KOKORO_VOICE_ITALIAN_MALE_NICOLA },
-  { label: '🇵🇹 PF Dora', value: KOKORO_VOICE_PORTUGUESE_FEMALE_DORA },
-  { label: '🇵🇹 PM Santa', value: KOKORO_VOICE_PORTUGUESE_MALE_SANTA },
-  { label: '🇵🇱 PM Mateusz', value: KOKORO_VOICE_POLISH_MALE_MATEUSZ },
-  { label: '🇮🇳 HF Alpha', value: KOKORO_VOICE_HINDI_FEMALE_ALPHA },
-  { label: '🇮🇳 HM Omega', value: KOKORO_VOICE_HINDI_MALE_OMEGA },
-  { label: '🇮🇳 HM Psi', value: KOKORO_VOICE_HINDI_MALE_PSI },
+const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
+  { label: '🇺🇸 AF Heart', value: KOKORO_AMERICAN_ENGLISH_FEMALE_HEART },
+  { label: '🇺🇸 AF River', value: KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER },
+  { label: '🇺🇸 AF Sarah', value: KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH },
+  { label: '🇺🇸 AM Adam', value: KOKORO_AMERICAN_ENGLISH_MALE_ADAM },
+  { label: '🇺🇸 AM Michael', value: KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL },
+  { label: '🇺🇸 AM Santa', value: KOKORO_AMERICAN_ENGLISH_MALE_SANTA },
+  { label: '🇬🇧 BF Emma', value: KOKORO_BRITISH_ENGLISH_FEMALE_EMMA },
+  { label: '🇬🇧 BM Daniel', value: KOKORO_BRITISH_ENGLISH_MALE_DANIEL },
+  { label: '🇫🇷 FF Siwis', value: KOKORO_FRENCH_FEMALE_SIWIS },
+  { label: '🇪🇸 EF Dora', value: KOKORO_SPANISH_FEMALE_DORA },
+  { label: '🇪🇸 EM Alex', value: KOKORO_SPANISH_MALE_ALEX },
+  { label: '🇮🇹 IF Sara', value: KOKORO_ITALIAN_FEMALE_SARA },
+  { label: '🇮🇹 IM Nicola', value: KOKORO_ITALIAN_MALE_NICOLA },
+  { label: '🇵🇹 PF Dora', value: KOKORO_PORTUGUESE_FEMALE_DORA },
+  { label: '🇵🇹 PM Santa', value: KOKORO_PORTUGUESE_MALE_SANTA },
+  { label: '🇵🇱 PM Mateusz', value: KOKORO_POLISH_MALE_MATEUSZ },
+  { label: '🇮🇳 HF Alpha', value: KOKORO_HINDI_FEMALE_ALPHA },
+  { label: '🇮🇳 HM Omega', value: KOKORO_HINDI_MALE_OMEGA },
+  { label: '🇮🇳 HM Psi', value: KOKORO_HINDI_MALE_PSI },
 ];
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -100,16 +92,11 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedModel, setSelectedModel] =
-    useState<TextToSpeechModelSources>(KOKORO_POLISH);
-  const [selectedVoice, setSelectedVoice] = useState<TextToSpeechVoiceConfig>(
-    KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART
+  const [selectedVoice, setSelectedVoice] = useState<TextToSpeechModelConfig>(
+    KOKORO_AMERICAN_ENGLISH_FEMALE_HEART
   );
 
-  const model = useTextToSpeech({
-    model: selectedModel,
-    voice: selectedVoice,
-  });
+  const model = useTextToSpeech(selectedVoice);
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -235,13 +222,6 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           </View>
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
-          <ModelPicker
-            label="Model"
-            models={TTS_MODELS}
-            selectedModel={selectedModel}
-            disabled={model.isGenerating}
-            onSelect={(m) => setSelectedModel(m)}
-          />
           <ModelPicker
             label="Voice"
             models={VOICES}

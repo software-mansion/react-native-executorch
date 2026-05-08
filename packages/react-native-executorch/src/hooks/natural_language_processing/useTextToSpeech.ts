@@ -2,11 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
   TextToSpeechInput,
-  TextToSpeechModelProps,
-  TextToSpeechModelSources,
+  TextToSpeechModelConfig,
   TextToSpeechStreamingInput,
   TextToSpeechType,
-  TextToSpeechVoiceConfig,
 } from '../../types/tts';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -14,17 +12,15 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 /**
  * React hook for managing Text to Speech instance.
  * @category Hooks
- * @param TextToSpeechModelProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @param model - Configuration object containing model config.
+ * @param options - Additional options for the hook.
+ * @param options.preventLoad - If true, prevents the model from loading automatically on initialization.
  * @returns Ready to use Text to Speech model.
  */
-export const useTextToSpeech = ({
-  model,
-  voice,
-  preventLoad = false,
-}: TextToSpeechModelProps<
-  TextToSpeechModelSources,
-  TextToSpeechVoiceConfig
->): TextToSpeechType => {
+export const useTextToSpeech = (
+  model: TextToSpeechModelConfig,
+  { preventLoad = false }: { preventLoad?: boolean } = {}
+): TextToSpeechType => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -41,7 +37,7 @@ export const useTextToSpeech = ({
     setError(null);
     setIsReady(false);
 
-    TextToSpeechModule.fromModelName({ model, voice }, setDownloadProgress)
+    TextToSpeechModule.fromModelName(model, setDownloadProgress)
       .then((mod) => {
         if (!active) {
           mod.delete();
@@ -67,11 +63,11 @@ export const useTextToSpeech = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    model.modelName,
-    model.durationPredictorSource,
-    model.synthesizerSource,
-    voice.voiceSource,
-    voice.phonemizerConfig,
+    model.model.modelName,
+    model.model.durationPredictorSource,
+    model.model.synthesizerSource,
+    model.voiceSource,
+    model.phonemizerConfig,
     preventLoad,
   ]);
 

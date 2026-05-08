@@ -1,5 +1,6 @@
-import { TextToSpeechVoiceConfig } from '../../types/tts';
+import { TextToSpeechModelConfig } from '../../types/tts';
 import { VERSION_TAG, URL_PREFIX } from '../versions';
+import { KOKORO_STANDARD, KOKORO_POLISH } from './models';
 
 // Common prefixes - voices & phonemization data
 const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/voices`;
@@ -43,7 +44,8 @@ const KOKORO_PHONEMIZER_HI_MODEL = `${KOKORO_PHONEMIZER_HI_PREFIX}/phonemizer_hi
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART = {
+export const KOKORO_AMERICAN_ENGLISH_FEMALE_HEART = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -51,12 +53,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_HEART = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER = {
+export const KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -64,12 +67,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_RIVER = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH = {
+export const KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -77,12 +81,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_FEMALE_SARAH = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM = {
+export const KOKORO_AMERICAN_ENGLISH_MALE_ADAM = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -90,12 +95,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_ADAM = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL = {
+export const KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -103,12 +109,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_MICHAEL = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA = {
+export const KOKORO_AMERICAN_ENGLISH_MALE_SANTA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
   phonemizerConfig: {
     lang: 'en-us' as const,
@@ -116,12 +123,13 @@ export const KOKORO_VOICE_AMERICAN_ENGLISH_MALE_SANTA = {
     lexiconSource: KOKORO_PHONEMIZER_EN_US_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_US_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA = {
+export const KOKORO_BRITISH_ENGLISH_FEMALE_EMMA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
   phonemizerConfig: {
     lang: 'en-gb' as const,
@@ -129,12 +137,13 @@ export const KOKORO_VOICE_BRITISH_ENGLISH_FEMALE_EMMA = {
     lexiconSource: KOKORO_PHONEMIZER_EN_GB_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_GB_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL = {
+export const KOKORO_BRITISH_ENGLISH_MALE_DANIEL = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,
   phonemizerConfig: {
     lang: 'en-gb' as const,
@@ -142,125 +151,136 @@ export const KOKORO_VOICE_BRITISH_ENGLISH_MALE_DANIEL = {
     lexiconSource: KOKORO_PHONEMIZER_EN_GB_LEXICON,
     neuralModelSource: KOKORO_PHONEMIZER_EN_GB_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_FRENCH_FEMALE_SIWIS = {
+export const KOKORO_FRENCH_FEMALE_SIWIS = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/ff_siwis.bin`,
   phonemizerConfig: {
     lang: 'fr' as const,
     neuralModelSource: KOKORO_PHONEMIZER_FR_MODEL,
   },
-};
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_SPANISH_FEMALE_DORA = {
+export const KOKORO_SPANISH_FEMALE_DORA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/ef_dora.bin`,
   phonemizerConfig: {
     lang: 'es' as const,
     neuralModelSource: KOKORO_PHONEMIZER_ES_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_SPANISH_MALE_ALEX = {
+export const KOKORO_SPANISH_MALE_ALEX = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/em_alex.bin`,
   phonemizerConfig: {
     lang: 'es' as const,
     neuralModelSource: KOKORO_PHONEMIZER_ES_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_ITALIAN_FEMALE_SARA = {
+export const KOKORO_ITALIAN_FEMALE_SARA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/if_sara.bin`,
   phonemizerConfig: {
     lang: 'it' as const,
     neuralModelSource: KOKORO_PHONEMIZER_IT_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_ITALIAN_MALE_NICOLA = {
+export const KOKORO_ITALIAN_MALE_NICOLA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/im_nicola.bin`,
   phonemizerConfig: {
     lang: 'it' as const,
     neuralModelSource: KOKORO_PHONEMIZER_IT_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_PORTUGUESE_FEMALE_DORA = {
+export const KOKORO_PORTUGUESE_FEMALE_DORA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/pf_dora.bin`,
   phonemizerConfig: {
     lang: 'pt' as const,
     neuralModelSource: KOKORO_PHONEMIZER_PT_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_PORTUGUESE_MALE_SANTA = {
+export const KOKORO_PORTUGUESE_MALE_SANTA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/pm_santa.bin`,
   phonemizerConfig: {
     lang: 'pt' as const,
     neuralModelSource: KOKORO_PHONEMIZER_PT_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_POLISH_MALE_MATEUSZ = {
-  voiceSource: `${KOKORO_VOICE_PREFIX}/pm_mateusz.bin`,
-  phonemizerConfig: {
-    lang: 'pl' as const,
-    neuralModelSource: KOKORO_PHONEMIZER_PL_MODEL,
-  },
-} as TextToSpeechVoiceConfig;
-
-/**
- * @category TTS Supported Voices
- */
-export const KOKORO_VOICE_HINDI_FEMALE_ALPHA = {
+export const KOKORO_HINDI_FEMALE_ALPHA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/hf_alpha.bin`,
   phonemizerConfig: {
     lang: 'hi' as const,
     neuralModelSource: KOKORO_PHONEMIZER_HI_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_HINDI_MALE_OMEGA = {
+export const KOKORO_HINDI_MALE_OMEGA = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/hm_omega.bin`,
   phonemizerConfig: {
     lang: 'hi' as const,
     neuralModelSource: KOKORO_PHONEMIZER_HI_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
 
 /**
  * @category TTS Supported Voices
  */
-export const KOKORO_VOICE_HINDI_MALE_PSI = {
+export const KOKORO_HINDI_MALE_PSI = {
+  model: KOKORO_STANDARD,
   voiceSource: `${KOKORO_VOICE_PREFIX}/hm_psi.bin`,
   phonemizerConfig: {
     lang: 'hi' as const,
     neuralModelSource: KOKORO_PHONEMIZER_HI_MODEL,
   },
-} as TextToSpeechVoiceConfig;
+} as TextToSpeechModelConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_POLISH_MALE_MATEUSZ = {
+  model: KOKORO_POLISH,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/pm_mateusz.bin`,
+  phonemizerConfig: {
+    lang: 'pl' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_PL_MODEL,
+  },
+} as TextToSpeechModelConfig;
