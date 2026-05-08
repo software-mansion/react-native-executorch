@@ -61,19 +61,21 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 The detection object is specified as follows:
 
 ```typescript
-interface Point {
-  x: number;
-  y: number;
+interface Bbox {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
 }
 
 interface OCRDetection {
-  bbox: Point[];
+  bbox: Bbox;
   text: string;
   score: number;
 }
 ```
 
-The `bbox` property contains information about the bounding box of detected text regions. It is represented as four points, which are corners of detected bounding box.
+The `bbox` property contains the axis-aligned bounding box of the detected text region. `x1`/`y1` is the top-left corner and `x2`/`y2` is the bottom-right corner.
 The `text` property contains the text recognized within detected text region. The `score` represents the confidence score of the recognized text.
 
 ## Example

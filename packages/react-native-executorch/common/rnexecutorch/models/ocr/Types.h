@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <rnexecutorch/utils/computer_vision/Types.h>
 #include <string>
 #include <vector>
@@ -25,7 +24,7 @@ struct PaddingInfo {
 };
 
 struct OCRDetection {
-  std::array<types::Point, 2> bbox;
+  BBox bbox;
   std::string text;
   float score;
 };

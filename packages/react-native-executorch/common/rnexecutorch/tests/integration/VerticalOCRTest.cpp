@@ -117,12 +117,10 @@ TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveValidBBoxes) {
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
-    // Each bbox has 2 points: top-left [0] and bottom-right [1]
-    EXPECT_EQ(detection.bbox.size(), 2u);
-    EXPECT_GE(detection.bbox[0].x, 0.0f);
-    EXPECT_GE(detection.bbox[0].y, 0.0f);
-    EXPECT_GE(detection.bbox[1].x, detection.bbox[0].x);
-    EXPECT_GE(detection.bbox[1].y, detection.bbox[0].y);
+    EXPECT_GE(detection.bbox.p1.x, 0.0f);
+    EXPECT_GE(detection.bbox.p1.y, 0.0f);
+    EXPECT_GE(detection.bbox.p2.x, detection.bbox.p1.x);
+    EXPECT_GE(detection.bbox.p2.y, detection.bbox.p1.y);
   }
 }
 
@@ -181,12 +179,10 @@ TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveValidBBoxes) {
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
-    // Each bbox has 2 points: top-left [0] and bottom-right [1]
-    EXPECT_EQ(detection.bbox.size(), 2u);
-    EXPECT_GE(detection.bbox[0].x, 0.0f);
-    EXPECT_GE(detection.bbox[0].y, 0.0f);
-    EXPECT_GE(detection.bbox[1].x, detection.bbox[0].x);
-    EXPECT_GE(detection.bbox[1].y, detection.bbox[0].y);
+    EXPECT_GE(detection.bbox.p1.x, 0.0f);
+    EXPECT_GE(detection.bbox.p1.y, 0.0f);
+    EXPECT_GE(detection.bbox.p2.x, detection.bbox.p1.x);
+    EXPECT_GE(detection.bbox.p2.y, detection.bbox.p1.y);
   }
 }
 

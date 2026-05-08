@@ -526,16 +526,8 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
 
     auto jsiDetectionObject = jsi::Object(runtime);
 
-    auto jsiBboxArray = jsi::Array(runtime, 2);
-#pragma unroll
-    for (size_t j = 0; j < 2u; ++j) {
-      auto jsiPointObject = jsi::Object(runtime);
-      jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);
-      jsiPointObject.setProperty(runtime, "y", detection.bbox[j].y);
-      jsiBboxArray.setValueAtIndex(runtime, j, jsiPointObject);
-    }
-
-    jsiDetectionObject.setProperty(runtime, "bbox", jsiBboxArray);
+    jsiDetectionObject.setProperty(runtime, "bbox",
+                                   getJsiValue(detection.bbox, runtime));
     jsiDetectionObject.setProperty(
         runtime, "text", jsi::String::createFromUtf8(runtime, detection.text));
     jsiDetectionObject.setProperty(runtime, "score", detection.score);

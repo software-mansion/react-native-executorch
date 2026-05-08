@@ -68,15 +68,12 @@ OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
   auto detections = runInference(rotated);
   for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
-                                               rotated.size());
-    // Re-normalize to a proper AABB after the coordinate rotation.
-    float minX = std::min(det.bbox[0].x, det.bbox[1].x);
-    float minY = std::min(det.bbox[0].y, det.bbox[1].y);
-    float maxX = std::max(det.bbox[0].x, det.bbox[1].x);
-    float maxY = std::max(det.bbox[0].y, det.bbox[1].y);
-    det.bbox[0] = {minX, minY};
-    det.bbox[1] = {maxX, maxY};
+    std::array<types::Point, 2> corners = {det.bbox.p1, det.bbox.p2};
+    ::rnexecutorch::utils::inverseRotatePoints(corners, orient, rotated.size());
+    det.bbox = {{std::min(corners[0].x, corners[1].x),
+                 std::min(corners[0].y, corners[1].y)},
+                {std::max(corners[0].x, corners[1].x),
+                 std::max(corners[0].y, corners[1].y)}};
   }
   return detections;
 }
