@@ -1,0 +1,82 @@
+buildscript {
+    ext.kotlin_version = '1.9.0'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace 'com.executorch.webrtc'
+    compileSdkVersion 34
+
+    buildFeatures {
+        prefab true
+    }
+
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 34
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++20"
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+
+        ndk {
+            // Only build for architectures where OpenCV/ExecuTorch libraries exist
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    packaging {
+        jniLibs {
+            // Don't bundle react-native-executorch.so - the app gets it from the main package
+            excludes += ['**/libreact-native-executorch.so']
+        }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.facebook.react:react-native:+'
+
+    // WebRTC classes - provided by app via autolinking
+    compileOnly project(':fishjam-cloud_react-native-webrtc')
+    // ExecuTorch for vision model processing.
+    // Must be `implementation` (not compileOnly) so AGP exposes the producer's
+    // prefab .so to our CMake link step. The packaging.jniLibs.excludes block
+    // above prevents double-bundling — the app gets the .so from the main pkg.
+    implementation project(':react-native-executorch')
+}
