@@ -5,7 +5,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   GestureResponderEvent,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {
   Canvas,
@@ -166,6 +170,7 @@ export default function SegmentAnythingScreen() {
   }
 
   async function runTextPrompt() {
+    Keyboard.dismiss();
     const instances = rawInstancesRef.current;
     if (
       !textPrompt.trim() ||
@@ -207,6 +212,7 @@ export default function SegmentAnythingScreen() {
   }
 
   const handleCameraPress = async (isCamera: boolean) => {
+    Keyboard.dismiss();
     const image = await getImage(isCamera);
     if (!image?.uri) return;
     setImageUri(image.uri);
@@ -218,6 +224,7 @@ export default function SegmentAnythingScreen() {
   };
 
   const runForward = async () => {
+    Keyboard.dismiss();
     if (!imageUri) return;
     try {
       const start = Date.now();
@@ -274,150 +281,167 @@ export default function SegmentAnythingScreen() {
 
   return (
     <ScreenWrapper>
-      <View style={styles.container}>
-        <View style={styles.imageContainer}>
-          <View
-            style={styles.imageTouchArea}
-            onLayout={(e) => {
-              layoutRef.current = {
-                width: e.nativeEvent.layout.width,
-                height: e.nativeEvent.layout.height,
-              };
-            }}
-            onTouchStart={(e) => {
-              if (mode === 'point') handleTap(e);
-              else if (mode === 'box') handleBoxStart(e);
-            }}
-            onTouchMove={handleBoxMove}
-            onTouchEnd={handleBoxEnd}
-          >
-            <ImageWithMasks
-              imageUri={imageUri}
-              instances={selection}
-              imageWidth={imageSize.width}
-              imageHeight={imageSize.height}
-            />
-            {draftBox && iw > 0 && (
-              <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-                <Rect
-                  x={draftBox.x1 * drawScale + offsetX}
-                  y={draftBox.y1 * drawScale + offsetY}
-                  width={(draftBox.x2 - draftBox.x1) * drawScale}
-                  height={(draftBox.y2 - draftBox.y1) * drawScale}
-                  style="stroke"
-                  strokeWidth={2}
-                  color="rgba(0,200,255,1)"
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          contentContainerStyle={styles.flex}
+          collapsable={false}
+          behavior={Platform.OS === 'ios' ? 'position' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
+        >
+          <View style={styles.container}>
+            <View style={styles.imageContainer}>
+              <View
+                style={styles.imageTouchArea}
+                onLayout={(e) => {
+                  layoutRef.current = {
+                    width: e.nativeEvent.layout.width,
+                    height: e.nativeEvent.layout.height,
+                  };
+                }}
+                onTouchStart={(e) => {
+                  Keyboard.dismiss();
+                  if (mode === 'point') handleTap(e);
+                  else if (mode === 'box') handleBoxStart(e);
+                }}
+                onTouchMove={handleBoxMove}
+                onTouchEnd={handleBoxEnd}
+              >
+                <ImageWithMasks
+                  imageUri={imageUri}
+                  instances={selection}
+                  imageWidth={imageSize.width}
+                  imageHeight={imageSize.height}
                 />
-              </Canvas>
-            )}
+                {draftBox && iw > 0 && (
+                  <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+                    <Rect
+                      x={draftBox.x1 * drawScale + offsetX}
+                      y={draftBox.y1 * drawScale + offsetY}
+                      width={(draftBox.x2 - draftBox.x1) * drawScale}
+                      height={(draftBox.y2 - draftBox.y1) * drawScale}
+                      style="stroke"
+                      strokeWidth={2}
+                      color="rgba(0,200,255,1)"
+                    />
+                  </Canvas>
+                )}
+              </View>
+              {!imageUri && (
+                <View style={styles.infoContainer}>
+                  <Text style={styles.infoTitle}>Segment Anything</Text>
+                  <Text style={styles.infoText}>
+                    Segment any object in an image. (1) Pick an image, (2) tap
+                    Run to detect instances, (3) tap a point, draw a box, or
+                    describe an object to segment it.
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-          {!imageUri && (
-            <View style={styles.infoContainer}>
-              <Text style={styles.infoTitle}>Segment Anything</Text>
-              <Text style={styles.infoText}>
-                Segment any object in an image. (1) Pick an image, (2) tap Run
-                to detect instances, (3) tap a point, draw a box, or describe an
-                object to segment it.
-              </Text>
+
+          {stepHint && <Text style={styles.stepHint}>{stepHint}</Text>}
+
+          <View style={styles.modeRow}>
+            {(['point', 'box', 'text'] as PromptMode[]).map((m) => {
+              const promptDisabled = rawInstancesRef.current.length === 0;
+              return (
+                <TouchableOpacity
+                  key={m}
+                  style={[
+                    styles.modeBtn,
+                    mode === m && styles.modeBtnActive,
+                    promptDisabled && styles.modeBtnDisabled,
+                  ]}
+                  onPress={() => {
+                    if (m !== 'text') Keyboard.dismiss();
+                    setMode(m);
+                  }}
+                  disabled={promptDisabled}
+                >
+                  <Text
+                    style={[
+                      styles.modeBtnText,
+                      mode === m && styles.modeBtnTextActive,
+                      promptDisabled && styles.modeBtnTextDisabled,
+                    ]}
+                  >
+                    {m[0]!.toUpperCase() + m.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {mode === 'text' && (
+            <View style={styles.textRow}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Describe an object…"
+                value={textPrompt}
+                onChangeText={setTextPrompt}
+                onSubmitEditing={runTextPrompt}
+                returnKeyType="search"
+              />
+              {(() => {
+                const findInactive =
+                  !textPrompt.trim() ||
+                  rawInstancesRef.current.length === 0 ||
+                  !clipImage.isReady ||
+                  !clipText.isReady;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.textBtn,
+                      findInactive && styles.textBtnDisabled,
+                    ]}
+                    onPress={runTextPrompt}
+                    disabled={findInactive || textBusy}
+                  >
+                    <Text style={styles.textBtnLabel}>Find</Text>
+                  </TouchableOpacity>
+                );
+              })()}
             </View>
           )}
-        </View>
-      </View>
+          {mode === 'text' && embeddingProgress && (
+            <Text style={styles.statusLine}>
+              Embedding instances {embeddingProgress.done}/
+              {embeddingProgress.total} (subsequent text queries are instant)
+            </Text>
+          )}
 
-      {stepHint && <Text style={styles.stepHint}>{stepHint}</Text>}
-
-      <View style={styles.modeRow}>
-        {(['point', 'box', 'text'] as PromptMode[]).map((m) => {
-          const promptDisabled = rawInstancesRef.current.length === 0;
-          return (
-            <TouchableOpacity
-              key={m}
-              style={[
-                styles.modeBtn,
-                mode === m && styles.modeBtnActive,
-                promptDisabled && styles.modeBtnDisabled,
-              ]}
-              onPress={() => setMode(m)}
-              disabled={promptDisabled}
-            >
-              <Text
-                style={[
-                  styles.modeBtnText,
-                  mode === m && styles.modeBtnTextActive,
-                  promptDisabled && styles.modeBtnTextDisabled,
-                ]}
-              >
-                {m[0]!.toUpperCase() + m.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {mode === 'text' && (
-        <View style={styles.textRow}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Describe an object…"
-            value={textPrompt}
-            onChangeText={setTextPrompt}
-            onSubmitEditing={runTextPrompt}
-            returnKeyType="search"
+          <ModelPicker
+            models={MODELS}
+            selectedModel={selectedModel}
+            disabled={isGenerating}
+            onSelect={(m) => {
+              if (m.modelName === selectedModel.modelName) return;
+              setSelectedModel(m);
+              rawInstancesRef.current = [];
+              instanceEmbeddingsRef.current = null;
+              setSelection([]);
+              setInferenceTime(null);
+            }}
           />
-          {(() => {
-            const findInactive =
-              !textPrompt.trim() ||
-              rawInstancesRef.current.length === 0 ||
-              !clipImage.isReady ||
-              !clipText.isReady;
-            return (
-              <TouchableOpacity
-                style={[styles.textBtn, findInactive && styles.textBtnDisabled]}
-                onPress={runTextPrompt}
-                disabled={findInactive || textBusy}
-              >
-                <Text style={styles.textBtnLabel}>Find</Text>
-              </TouchableOpacity>
-            );
-          })()}
-        </View>
-      )}
-      {mode === 'text' && embeddingProgress && (
-        <Text style={styles.statusLine}>
-          Embedding instances {embeddingProgress.done}/{embeddingProgress.total}{' '}
-          (subsequent text queries are instant)
-        </Text>
-      )}
 
-      <ModelPicker
-        models={MODELS}
-        selectedModel={selectedModel}
-        disabled={isGenerating}
-        onSelect={(m) => {
-          if (m.modelName === selectedModel.modelName) return;
-          setSelectedModel(m);
-          rawInstancesRef.current = [];
-          instanceEmbeddingsRef.current = null;
-          setSelection([]);
-          setInferenceTime(null);
-        }}
-      />
+          <StatsBar
+            inferenceTime={inferenceTime}
+            detectionCount={
+              rawInstancesRef.current.length > 0
+                ? rawInstancesRef.current.length
+                : null
+            }
+          />
 
-      <StatsBar
-        inferenceTime={inferenceTime}
-        detectionCount={
-          rawInstancesRef.current.length > 0
-            ? rawInstancesRef.current.length
-            : null
-        }
-      />
-
-      <BottomBar
-        handleCameraPress={handleCameraPress}
-        runForward={runForward}
-        hasImage={!!imageUri}
-        isGenerating={isGenerating}
-      />
+          <BottomBar
+            handleCameraPress={handleCameraPress}
+            runForward={runForward}
+            hasImage={!!imageUri}
+            isGenerating={isGenerating}
+          />
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </ScreenWrapper>
   );
 }
@@ -447,6 +471,7 @@ async function cropAndEmbed(
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   container: { flex: 6, width: '100%' },
   imageContainer: { flex: 1, width: '100%', padding: 16 },
   imageTouchArea: { flex: 1, position: 'relative' },
