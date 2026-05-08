@@ -1,6 +1,7 @@
 import { LabelEnum } from '../types/common';
 import { Bbox } from '../types/objectDetection';
 import { SegmentedInstance } from '../types/instanceSegmentation';
+import { bboxArea } from './commonVision';
 
 /**
  * Selects the best matching instance for a given point prompt.
@@ -54,7 +55,7 @@ export function selectByBox<L extends LabelEnum>(
   box: Bbox
 ): SegmentedInstance<L> | null {
   const { x1: px1, y1: py1, x2: px2, y2: py2 } = box;
-  const promptArea = Math.max(px2 - px1, 0) * Math.max(py2 - py1, 0);
+  const promptArea = bboxArea(box);
 
   type Match = {
     iou: number;
@@ -88,10 +89,6 @@ export function selectByBox<L extends LabelEnum>(
   return best?.inst ?? null;
 }
 
-function bboxArea(bbox: Bbox): number {
-  return Math.max(bbox.x2 - bbox.x1, 0) * Math.max(bbox.y2 - bbox.y1, 0);
-}
-
 /**
  * Selects the best matching instance for a text prompt.
  *
@@ -112,11 +109,20 @@ export function selectByText<L extends LabelEnum>(
   if (instances.length === 0) return null;
   if (instances.length !== instanceEmbeddings.length) {
     throw new Error(
-      `selectByText: instances (${instances.length}) and instanceEmbeddings (${instanceEmbeddings.length}) must have the same length`
+      `selectByText: instances (${instances.length})` +
+        `and instanceEmbeddings (${instanceEmbeddings.length})` +
+        `must have the same length`
     );
   }
 
-  const scores = calculateDotProducts(instanceEmbeddings, textEmbedding);
+  const scores = instanceEmbeddings.map((emb) => {
+    let dot = 0;
+    for (let j = 0; j < emb.length; j++) {
+      dot += emb[j]! * textEmbedding[j]!;
+    }
+    return dot;
+  });
+
   let bestIdx = 0;
   let bestScore = -Infinity;
   for (let i = 0; i < scores.length; i++) {
@@ -126,17 +132,4 @@ export function selectByText<L extends LabelEnum>(
     }
   }
   return instances[bestIdx]!;
-}
-
-function calculateDotProducts(
-  instanceEmbeddings: Float32Array[],
-  textEmbedding: Float32Array
-): number[] {
-  return instanceEmbeddings.map((emb) => {
-    let dot = 0;
-    for (let j = 0; j < emb.length; j++) {
-      dot += emb[j]! * textEmbedding[j]!;
-    }
-    return dot;
-  });
 }
