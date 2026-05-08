@@ -58,14 +58,12 @@ export default function InstanceSegmentationTask({
     preventLoad: activeModel !== 'instanceSegmentationFastsamX',
   });
 
-  const active =
-    activeModel === 'instanceSegmentationYolo26n'
-      ? yolo26n
-      : activeModel === 'instanceSegmentationRfdetr'
-        ? rfdetr
-        : activeModel === 'instanceSegmentationFastsamS'
-          ? fastsamS
-          : fastsamX;
+  const active = {
+    instanceSegmentationYolo26n: yolo26n,
+    instanceSegmentationRfdetr: rfdetr,
+    instanceSegmentationFastsamS: fastsamS,
+    instanceSegmentationFastsamX: fastsamX,
+  }[activeModel];
 
   const [instances, setInstances] = useState<DisplayInstance[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
