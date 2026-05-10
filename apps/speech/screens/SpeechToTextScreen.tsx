@@ -185,6 +185,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const streamIter = model.stream({
         verbose: enableTimestamps,
+        timeout: 100,
       });
 
       for await (const { committed, nonCommitted } of streamIter) {

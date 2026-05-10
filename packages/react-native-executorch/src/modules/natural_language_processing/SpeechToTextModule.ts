@@ -2,6 +2,7 @@ import {
   DecodingOptions,
   SpeechToTextModelConfig,
   SpeechToTextModelName,
+  StreamingOptions,
   TranscriptionResult,
 } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
@@ -174,7 +175,7 @@ export class SpeechToTextModule {
    * @yields An object containing `committed` and `nonCommitted` transcription results.
    * @returns An async generator yielding transcription updates.
    */
-  public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
+  public async *stream(options: StreamingOptions = {}): AsyncGenerator<{
     committed: TranscriptionResult;
     nonCommitted: TranscriptionResult;
   }> {
@@ -182,6 +183,7 @@ export class SpeechToTextModule {
 
     const verbose = !!options.verbose;
     const language = options.language || '';
+    const timeout = options.timeout || 100;
 
     const queue: {
       committed: TranscriptionResult;
@@ -216,7 +218,8 @@ export class SpeechToTextModule {
             wake();
           },
           language,
-          verbose
+          verbose,
+          timeout
         );
 
         finished = true;
