@@ -8,60 +8,30 @@
 #include <array>
 #include <functional>
 #include <numeric>
+#include <thread>
 #include <vector>
 
 namespace rnexecutorch::models::voice_activity_detection {
-using namespace constants;
+
 namespace ranges = std::ranges;
+using namespace constants;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
 VoiceActivityDetection::VoiceActivityDetection(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {}
-
-std::vector<std::array<float, kPaddedWindowSize>>
-VoiceActivityDetection::preprocess(std::span<float> waveform) const {
-  auto kHammingWindowArray = dsp::hannWindow(kWindowSize);
-
-  const size_t numFrames = (waveform.size() - kWindowSize) / kHopLength;
-
-  std::vector<std::array<float, kPaddedWindowSize>> frameBuffer(
-      numFrames, std::array<float, kPaddedWindowSize>{});
-
-  constexpr size_t totalPadding = kPaddedWindowSize - kWindowSize;
-  constexpr size_t leftPadding = totalPadding / 2;
-  for (size_t i = 0; i < numFrames; i++) {
-
-    auto windowView = waveform.subspan(i * kHopLength, kWindowSize);
-    ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
-    auto frameView =
-        std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
-    const float sum = std::reduce(frameView.begin(), frameView.end(), 0.0f);
-    const float mean = sum / kWindowSize;
-    ranges::transform(frameView, frameView.begin(),
-                      [mean](float value) { return value - mean; });
-
-    // apply pre-emphasis filter
-    for (auto j = frameView.size() - 1; j > 0; --j) {
-      frameView[j] -= kPreemphasisCoeff * frameView[j - 1];
-    }
-    // apply hamming window to reduce spectral leakage
-    ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
-                      std::multiplies{});
-  }
-  return frameBuffer;
-}
-
-void VoiceActivityDetection::unload() noexcept {
-  std::scoped_lock lock(inference_mutex_);
-  BaseModel::unload();
+    : BaseModel(modelSource, callInvoker), callInvoker_(callInvoker) {
+  // Important - preallocate memory for the buffer to avoid any reallocations.
+  audioBuffer_.reserve(2 * constants::kStreamBufferMaxSize);
 }
 
 std::vector<types::Segment>
 VoiceActivityDetection::generate(std::span<float> waveform) const {
-  std::scoped_lock lock(inference_mutex_);
+  // Guard against small buffers to prevent underflow in preprocess
+  if (waveform.size() < kWindowSize) {
+    return {};
+  }
 
   auto windowedInput = preprocess(waveform);
   auto [chunksNumber, remainder] = std::div(
@@ -101,6 +71,112 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),
                                                   remainder, scores, startIdx);
   return postprocess(scores, kSpeechThreshold);
+}
+
+void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
+                                    uint32_t timeout,
+                                    uint32_t detectionMargin) {
+  if (isStreaming_) {
+    throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
+                            "Streaming is already in progress!");
+  }
+
+  // Build a native callback which simply sends a boolean signal,
+  // where true corresponds to detected ongoing speech, and false corresponds to
+  // silence.
+  auto nativeCallback = [this, callback](bool speaking) {
+    callInvoker_->invokeAsync([callback, speaking](jsi::Runtime &rt) {
+      callback->call(rt, jsi::Value(speaking));
+    });
+  };
+
+  isStreaming_ = true;
+
+  while (isStreaming_) {
+    // Make sure that audio buffer does not exceed it's max size
+    // BEFORE infering the model, such that potentially save 1 unnecessary
+    // iteration.
+    if (audioBuffer_.size() > constants::kStreamBufferMaxSize) {
+      // Keep the most recent audio samples in.
+      size_t cut = audioBuffer_.size() - constants::kStreamBufferMinReserve;
+
+      std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+      audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+    }
+
+    std::span<float> input;
+    {
+      // Since the buffer does not reallocate it's memory, this is perfectly
+      // safe, and copying buffer's data is not necessary.
+      std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+      input = std::span(audioBuffer_);
+    }
+
+    std::vector<types::Segment> detection = generate(input);
+
+    bool speaking = false;
+
+    // Get the last detected speech segment (if any exists) and
+    // check if it is recent enough to consider the speech as ongoing.
+    if (!detection.empty()) {
+      auto lastSegment = detection.back();
+      auto speechEnd = lastSegment.end;
+
+      uint32_t diffMs = (audioBuffer_.size() - speechEnd) * 1000 /
+                        constants::kSampleRate; // [ms]
+
+      speaking = diffMs <= detectionMargin;
+    }
+
+    // Send result to the JS side.
+    nativeCallback(speaking);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+  }
+
+  // Reset the streaming state
+  isStreaming_ = false;
+  audioBuffer_.clear();
+}
+
+void VoiceActivityDetection::streamStop() { isStreaming_ = false; }
+
+void VoiceActivityDetection::streamInsert(std::span<float> audio) {
+  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+  audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
+}
+
+std::vector<std::array<float, kPaddedWindowSize>>
+VoiceActivityDetection::preprocess(std::span<float> waveform) const {
+  auto kHammingWindowArray = dsp::hannWindow(kWindowSize);
+
+  const size_t numFrames = (waveform.size() - kWindowSize) / kHopLength;
+
+  std::vector<std::array<float, kPaddedWindowSize>> frameBuffer(
+      numFrames, std::array<float, kPaddedWindowSize>{});
+
+  constexpr size_t totalPadding = kPaddedWindowSize - kWindowSize;
+  constexpr size_t leftPadding = totalPadding / 2;
+  for (size_t i = 0; i < numFrames; i++) {
+
+    auto windowView = waveform.subspan(i * kHopLength, kWindowSize);
+    ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
+    auto frameView =
+        std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
+    const float sum = std::reduce(frameView.begin(), frameView.end(), 0.0f);
+    const float mean = sum / kWindowSize;
+    ranges::transform(frameView, frameView.begin(),
+                      [mean](float value) { return value - mean; });
+
+    // apply pre-emphasis filter
+    for (auto j = frameView.size() - 1; j > 0; --j) {
+      frameView[j] -= kPreemphasisCoeff * frameView[j - 1];
+    }
+    // apply hamming window to reduce spectral leakage
+    ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
+                      std::multiplies{});
+  }
+  return frameBuffer;
 }
 
 std::vector<types::Segment>
