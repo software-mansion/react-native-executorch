@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
 import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
+import { VoiceActivityDetectionScreen } from './screens/VoiceActivityDetectionScreen';
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
@@ -15,7 +16,12 @@ initExecutorch({
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<
-    'menu' | 'speech-to-text' | 'text-to-speech' | 'quiz' | 'text-to-speech-llm'
+    | 'menu'
+    | 'speech-to-text'
+    | 'text-to-speech'
+    | 'quiz'
+    | 'text-to-speech-llm'
+    | 'vad'
   >('menu');
 
   const goToMenu = () => setCurrentScreen('menu');
@@ -26,6 +32,10 @@ export default function App() {
 
   if (currentScreen === 'speech-to-text') {
     return <SpeechToTextScreen onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'vad') {
+    return <VoiceActivityDetectionScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'quiz') {
@@ -46,6 +56,12 @@ export default function App() {
           onPress={() => setCurrentScreen('speech-to-text')}
         >
           <Text style={styles.buttonText}>Speech to Text</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('vad')}
+        >
+          <Text style={styles.buttonText}>Voice Activity Detection</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
