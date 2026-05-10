@@ -51,23 +51,35 @@ public:
   void reset() override;
 
 private:
+  // Cleans up the buffer and returns committed words based on given transcript.
+  std::vector<Word> commitAndClean(std::vector<Word> &transcript);
+
   // ASR module connection for transcribing the audio
   const ASR *asr_;
 
   // Audio buffer (input) - accumulates obtained audio samples.
   std::vector<float> audioBuffer_ = {};
-  mutable std::mutex audioBufferMutex_;
+  mutable std::mutex streamingMutex; // Covers both buffer & memory
 
-  // State management helper.
-  struct EOSEntry {
-    size_t position; // An absolute position (index) in the transcription (word
-                     // sequence).
-    std::string preceeding; // A preceeding word in the transcription
-    float tmstpend;         // Ending timestamp of the sentence.
-  };
-  // Stores saved EOS entries in most recent transcription
-  // and allows to clear the buffer in a smart, non invasive way.
-  std::vector<EOSEntry> eos_;
+  // Streaming memory.
+  // In general, helps to navigate continous streaming state and improve buffer
+  // handling algorithms.
+  struct Memory {
+    // State management helper.
+    struct EOSEntry {
+      size_t position; // An absolute position (index) in the transcription
+                       // (word sequence).
+      std::string preceeding; // A preceeding word in the transcription
+      float tmstpend;         // Ending timestamp of the sentence.
+    };
+
+    std::vector<Word>
+        transcript; // The most recent transcription result (uncommitted only!).
+    std::vector<EOSEntry>
+        eos; // End of sentence points from the most recent transcription.
+    std::vector<Word> toCommit; // Words to be committed in the next iteration
+                                // (next process() call).
+  } memory_;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream
