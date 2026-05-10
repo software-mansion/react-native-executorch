@@ -5,6 +5,7 @@ import {
   SpeechToTextType,
   SpeechToTextProps,
   TranscriptionResult,
+  StreamingOptions,
 } from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -104,7 +105,7 @@ export const useSpeechToText = ({
   );
 
   const stream = useCallback(
-    async function* (options: DecodingOptions = {}): AsyncGenerator<
+    async function* (options: StreamingOptions = {}): AsyncGenerator<
       {
         committed: TranscriptionResult;
         nonCommitted: TranscriptionResult;

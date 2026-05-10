@@ -42,7 +42,8 @@ public:
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption, bool enableTimestamps);
+              std::string languageOption, bool enableTimestamps,
+              uint32_t timeout);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 

@@ -115,7 +115,8 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 } // namespace
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
-                          std::string languageOption, bool verbose) {
+                          std::string languageOption, bool verbose,
+                          uint32_t timeout) {
   if (isStreaming_) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
@@ -158,7 +159,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     // running transcriptions too rapidly (before the audio buffer is filled
     // with significant amount of new data) can cause streamer to commit wrong
     // phrases.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
   }
 
   std::vector<Word> finalWords = streamer_->finish(options);

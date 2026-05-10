@@ -94,7 +94,7 @@ export interface SpeechToTextType {
    * @returns Asynchronous generator that returns `committed` and `nonCommitted` transcription.
    * Both `committed` and `nonCommitted` are of type `TranscriptionResult`
    */
-  stream(options?: DecodingOptions | undefined): AsyncGenerator<
+  stream(options?: StreamingOptions | undefined): AsyncGenerator<
     {
       committed: TranscriptionResult;
       nonCommitted: TranscriptionResult;
@@ -206,6 +206,15 @@ export type SpeechToTextLanguage =
 export interface DecodingOptions {
   language?: SpeechToTextLanguage;
   verbose?: boolean;
+}
+
+/**
+ * Configuration options for the speech-to-text streaming process.
+ * @category Types
+ * @property {number} [timeout] - Specifies (in milliseconds) how much does streamer wait between model inferences.
+ */
+export interface StreamingOptions extends DecodingOptions {
+  timeout?: number;
 }
 
 /**

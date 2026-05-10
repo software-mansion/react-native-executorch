@@ -24,7 +24,7 @@ constexpr inline float kStreamMaxDuration =
  * The minimum amount of recent audio always kept in the buffer when a blind
  * cut is performed. Acts as the lower bound on what survives a cleanup.
  */
-constexpr inline float kStreamSafetyThreshold = 2.F; // [s]
+constexpr inline float kStreamSafetyThreshold = 3.F; // [s]
 
 /**
  * Forced-cleanup threshold. Once the buffer grows past this duration we run
