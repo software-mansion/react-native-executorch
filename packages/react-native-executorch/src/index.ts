@@ -95,7 +95,8 @@ declare global {
   var loadSpeechToText: (
     modelName: string,
     modelSource: string,
-    tokenizerSource: string
+    tokenizerSource: string,
+    vadSource: string
   ) => Promise<any>;
   var loadTextToSpeechKokoro: (
     lang: string,

@@ -12,14 +12,20 @@ namespace rnexecutorch::models::speech_to_text {
 SpeechToText::SpeechToText(const std::string &modelName,
                            const std::string &modelSource,
                            const std::string &tokenizerSource,
+                           const std::string &vadSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)) {
   // Switch between the ASR implementations based on model name
   if (modelName == "whisper") {
+    if (!vadSource.empty()) {
+      vad_ = std::make_unique<VoiceActivityDetection>(vadSource, callInvoker_);
+    }
+
     transcriber_ = std::make_unique<whisper::ASR>(modelSource, tokenizerSource,
                                                   callInvoker_);
     streamer_ = std::make_unique<whisper::stream::OnlineASR>(
-        static_cast<const whisper::ASR *>(transcriber_.get()));
+        static_cast<const whisper::ASR *>(transcriber_.get()),
+        static_cast<const VoiceActivityDetection *>(vad_.get()));
   } else {
     throw rnexecutorch::RnExecutorchError(
         rnexecutorch::RnExecutorchErrorCode::InvalidConfig,
@@ -116,10 +122,17 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption, bool verbose,
-                          uint32_t timeout) {
+                          uint32_t timeout, bool useVAD,
+                          uint32_t vadDetectionMargin) {
   if (isStreaming_) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
+  }
+
+  // VAD must be initialized for this option to work.
+  if (useVAD && !vad_) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Attempting to use VAD but it's not initialized!");
   }
 
   auto nativeCallback =
@@ -139,18 +152,24 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
       };
 
   isStreaming_ = true;
-  DecodingOptions options(languageOption, verbose);
+  StreamingOptions options(languageOption, verbose, useVAD, vadDetectionMargin);
 
   while (isStreaming_) {
     if (readyToProcess_ && streamer_->isReady()) {
       ProcessResult res = streamer_->process(options);
 
-      TranscriptionResult committedRes =
-          wordsToResult(res.committed, languageOption, verbose);
-      TranscriptionResult nonCommittedRes =
-          wordsToResult(res.nonCommitted, languageOption, verbose);
+      // This is not only about optimization, but also about ensuring
+      // correctness when VAD is used. Otherwise we run into the vanishing text
+      // issue.
+      if (!res.committed.empty() || !res.nonCommitted.empty()) {
+        TranscriptionResult committedRes =
+            wordsToResult(res.committed, languageOption, verbose);
+        TranscriptionResult nonCommittedRes =
+            wordsToResult(res.nonCommitted, languageOption, verbose);
 
-      nativeCallback(committedRes, nonCommittedRes, false);
+        nativeCallback(committedRes, nonCommittedRes, false);
+      }
+
       readyToProcess_ = false;
     }
 
@@ -165,6 +184,9 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     streamCv_.wait_for(lock, std::chrono::milliseconds(timeout),
                        [this] { return !isStreaming_.load(); });
   }
+
+  // Do not use VAD on final processing to flush and commit everything properly.
+  options.useVAD = false;
 
   std::vector<Word> finalWords = streamer_->finish(options);
   TranscriptionResult finalRes =

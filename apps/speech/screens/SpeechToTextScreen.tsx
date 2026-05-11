@@ -21,6 +21,7 @@ import {
   WHISPER_SMALL_EN_COREML,
   TranscriptionResult,
   SpeechToTextProps,
+  FSMN_VAD,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
@@ -58,6 +59,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const model = useSpeechToText({
     model: selectedModel,
+    vad: FSMN_VAD,
   });
 
   const [transcription, setTranscription] =
@@ -72,6 +74,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   } | null>(null);
 
   const [enableTimestamps, setEnableTimestamps] = useState(false);
+  const [useVAD, setUseVAD] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [audioURL, setAudioURL] = useState('');
   const [hasMicPermission, setHasMicPermission] = useState(false);
@@ -185,7 +188,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const streamIter = model.stream({
         verbose: enableTimestamps,
-        timeout: 100,
+        timeout: 200,
+        useVAD: useVAD,
+        vadDetectionMargin: 1200,
       });
 
       for await (const { committed, nonCommitted } of streamIter) {
@@ -359,22 +364,60 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 <Text style={styles.buttonText}> Stop Live Transcription</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity
-                disabled={recordingButtonDisabled}
-                onPress={handleStartTranscribeFromMicrophone}
-                style={[
-                  styles.liveTranscriptionButton,
-                  styles.backgroundBlue,
-                  recordingButtonDisabled && styles.disabled,
-                ]}
-              >
-                <FontAwesome name="microphone" size={20} color="white" />
-                <Text style={styles.buttonText}>
-                  {isSimulator
-                    ? 'Recording is not available on Simulator'
-                    : 'Start Live Transcription'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  disabled={recordingButtonDisabled}
+                  onPress={handleStartTranscribeFromMicrophone}
+                  style={[
+                    styles.liveTranscriptionButton,
+                    styles.backgroundBlue,
+                    styles.flex1,
+                    recordingButtonDisabled && styles.disabled,
+                  ]}
+                >
+                  <FontAwesome name="microphone" size={20} color="white" />
+                  <Text style={styles.buttonText}>
+                    {isSimulator ? 'No Mic' : 'Start Live'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setUseVAD(!useVAD)}
+                  activeOpacity={0.7}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: useVAD }}
+                  accessibilityLabel={`Voice Activity Detection ${useVAD ? 'on' : 'off'}`}
+                  style={[
+                    styles.vadButton,
+                    useVAD ? styles.vadActive : styles.vadInactive,
+                    recordingButtonDisabled && styles.disabled,
+                  ]}
+                >
+                  <FontAwesome
+                    name={useVAD ? 'check-circle' : 'circle-o'}
+                    size={18}
+                    color={useVAD ? '#ffffff' : '#94a3b8'}
+                  />
+                  <View style={styles.vadTextContainer}>
+                    <Text
+                      style={[
+                        styles.vadButtonLabel,
+                        { color: useVAD ? 'white' : '#64748b' },
+                      ]}
+                    >
+                      VAD
+                    </Text>
+                    <Text
+                      style={[
+                        styles.vadButtonState,
+                        { color: useVAD ? '#bbf7d0' : '#94a3b8' },
+                      ]}
+                    >
+                      {useVAD ? 'ON' : 'OFF'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </KeyboardAvoidingView>
@@ -497,6 +540,42 @@ const styles = StyleSheet.create({
   },
   backgroundBlue: {
     backgroundColor: '#0f186e',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  flex1: {
+    flex: 1,
+    marginTop: 0,
+  },
+  vadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    gap: 10,
+  },
+  vadActive: {
+    backgroundColor: '#0f186e',
+  },
+  vadInactive: {
+    backgroundColor: '#f1f5f9',
+  },
+  vadTextContainer: {
+    alignItems: 'flex-start',
+  },
+  vadButtonLabel: {
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: 0.5,
+  },
+  vadButtonState: {
+    fontWeight: '700',
+    fontSize: 10,
+    letterSpacing: 1,
   },
   disabled: {
     opacity: 0.5,
