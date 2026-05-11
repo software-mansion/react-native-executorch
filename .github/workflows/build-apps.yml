@@ -63,12 +63,13 @@ jobs:
             llm-pkg: &llm-pkg
               - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
               - packages/react-native-executorch/common/rnexecutorch/models/llm/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/{LLMModule,TokenizerModule}.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/{useLLM,useTokenizer}.ts
+              - packages/react-native-executorch/common/rnexecutorch/models/privacy_filter/**
+              - packages/react-native-executorch/src/modules/natural_language_processing/{LLMModule,PrivacyFilterModule,TokenizerModule}.ts
+              - packages/react-native-executorch/src/hooks/natural_language_processing/{useLLM,usePrivacyFilter,useTokenizer}.ts
               - packages/react-native-executorch/src/controllers/LLMController.ts
             cv-pkg: &cv-pkg
               - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/models/{classification,instance_segmentation,object_detection,ocr,semantic_segmentation,style_transfer,text_to_image,vertical_ocr}/**
+              - packages/react-native-executorch/common/rnexecutorch/models/{classification,instance_segmentation,object_detection,ocr,pose_estimation,semantic_segmentation,style_transfer,text_to_image,vertical_ocr}/**
               - packages/react-native-executorch/src/{modules,hooks}/computer_vision/**
               - packages/react-native-executorch/src/controllers/{BaseOCRController,OCRController,VerticalOCRController}.ts
             speech-pkg: &speech-pkg
