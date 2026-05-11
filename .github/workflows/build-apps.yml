@@ -2,7 +2,7 @@
 # directory, controller, or top-level module under packages/react-native-executorch/
 # probably means updating the filter block below — `core-shared` if it affects every
 # app, or one of the per-app `<app>-pkg` anchors otherwise. CI runs
-# `scripts/check-ci-filter-coverage.js` (in ci.yml's lint job) to flag uncovered
+# `scripts/check-ci-filter-coverage.ts` (in ci.yml's lint job) to flag uncovered
 # files so this stays accurate.
 name: Example apps build check
 on:
@@ -160,7 +160,7 @@ jobs:
       - name: Compute bundle hash
         id: hash
         run: |
-          h=$(node scripts/compute-app-hash.js "${{ matrix.app }}-app")
+          h=$(npx ts-node scripts/compute-app-hash.ts "${{ matrix.app }}-app")
           echo "key=bundle-${{ matrix.platform }}-${{ matrix.app }}-$h" >> "$GITHUB_OUTPUT"
       - name: Lookup pass marker
         id: cache

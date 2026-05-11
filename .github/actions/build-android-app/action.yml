@@ -30,7 +30,7 @@ runs:
       id: hash
       shell: bash
       run: |
-        h=$(node scripts/compute-app-hash.js "${{ inputs.filter-name }}")
+        h=$(npx ts-node scripts/compute-app-hash.ts "${{ inputs.filter-name }}")
         echo "key=build-${{ inputs.filter-name }}-$h" >> "$GITHUB_OUTPUT"
 
     - name: Lookup pass marker

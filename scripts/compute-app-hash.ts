@@ -1,12 +1,13 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 // Computes a stable content hash of every tracked file matched by a given
 // filter in .github/workflows/build-apps.yml. Used as a cache key in the
 // build-apps matrix so a previously-passing app/platform cell can be skipped
 // when nothing relevant has changed since.
 
-const fs = require('fs');
-const cp = require('child_process');
-const crypto = require('crypto');
+import * as fs from 'fs';
+import * as cp from 'child_process';
+import * as crypto from 'crypto';
+
 const yaml = require('js-yaml');
 const picomatch = require('picomatch');
 
@@ -20,32 +21,36 @@ const picomatch = require('picomatch');
 // Caveat: workflow edits that DO change build behavior — `with:` inputs to a
 // composite, `runs-on:`, an `env:` var, an action's pinned version — won't be
 // caught here. Force-clear caches via the GitHub Actions UI when you make one.
-const HASH_EXCLUDE = new Set(['.github/workflows/build-apps.yml']);
+const HASH_EXCLUDE = new Set<string>(['.github/workflows/build-apps.yml']);
 
 const filterName = process.argv[2];
 if (!filterName) {
-  console.error('Usage: compute-app-hash.js <filter-name>');
+  console.error('Usage: compute-app-hash.ts <filter-name>');
   process.exit(1);
 }
+
+type FilterValue = string | FilterValue[];
 
 const wf = yaml.load(
   fs.readFileSync('.github/workflows/build-apps.yml', 'utf8')
 );
 const filtersStr = wf.jobs['detect-changes'].steps.find(
-  (s) => s.id === 'filter'
+  (s: { id?: string }) => s.id === 'filter'
 ).with.filters;
-const filters = yaml.load(filtersStr);
+const filters = yaml.load(filtersStr) as Record<string, FilterValue>;
 
-const flatten = (x) => (Array.isArray(x) ? x.flatMap(flatten) : [x]);
+const flatten = (x: FilterValue): string[] =>
+  Array.isArray(x) ? x.flatMap(flatten) : [x];
 const patterns = flatten(filters[filterName]).filter(
-  (p) => typeof p === 'string'
+  (p): p is string => typeof p === 'string'
 );
 if (patterns.length === 0) {
   console.error(`Unknown filter: ${filterName}`);
   process.exit(1);
 }
 const matchers = patterns.map((p) => picomatch(p, { dot: true }));
-const matchAny = (file) => matchers.some((m) => m(file));
+const matchAny = (file: string): boolean =>
+  matchers.some((m: (f: string) => boolean) => m(file));
 
 // `git ls-files -s` outputs: <mode> <hash> <stage>\t<path>
 // The hash is a content-addressable git blob hash, so the same content always
