@@ -178,3 +178,9 @@ try {
   console.error(error);
 }
 ```
+
+:::tip
+Use FastSAM-S for faster performance on simple images with non-overlapping
+instances and FastSAM-X for better accuracy on complex scenes with many
+overlapping objects.
+:::

@@ -230,17 +230,23 @@ slower for very large images, which can increase total time.
 ## Instance Segmentation
 
 :::note
-Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano Seg uses a fixed resolution of 312×312.
+Times presented in the tables are measured for YOLO models with input size equal
+to 512. Other input sizes may yield slower or faster inference times. RF-DETR
+Nano Seg uses a fixed resolution of 312×312.
 :::
 
-| Model            | Samsung Galaxy S24 (XNNPACK) [ms] | Iphone 17 pro (XNNPACK) [ms] |
-| ---------------- | --------------------------------- | ---------------------------- |
-| YOLO26N_SEG      | 92                                | 90                           |
-| YOLO26S_SEG      | 220                               | 188                          |
-| YOLO26M_SEG      | 570                               | 550                          |
-| YOLO26L_SEG      | 680                               | 608                          |
-| YOLO26X_SEG      | 1410                              | 1338                         |
-| RF_DETR_NANO_SEG | 549                               | 330                          |
+| Model                      | Samsung Galaxy S24 [ms] | Iphone 17 pro [ms] | Pixel 10 [ms] |
+| :------------------------- | :---------------------: | :----------------: | :-----------: |
+| YOLO26N_SEG (XNNPACK)      |           92            |         90         |      93       |
+| YOLO26S_SEG (XNNPACK)      |           220           |        188         |      193      |
+| YOLO26M_SEG (XNNPACK)      |           570           |        550         |      481      |
+| YOLO26L_SEG (XNNPACK)      |           680           |        608         |      582      |
+| YOLO26X_SEG (XNNPACK)      |          1410           |        1338        |     1191      |
+| RF_DETR_NANO_SEG (XNNPACK) |           549           |        330         |      428      |
+| FASTSAM_S (XNNPACK)        |            -            |         30         |      286      |
+| FASTSAM_X (XNNPACK)        |            -            |        2520        |     1993      |
+| FASTSAM_S (Core ML)        |            -            |         51         |       -       |
+| FASTSAM_X (Core ML)        |            -            |         72         |       -       |
 
 ## Text to image
 
