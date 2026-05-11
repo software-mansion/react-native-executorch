@@ -90,27 +90,41 @@ export function selectByBox<L extends LabelEnum>(
 }
 
 /**
- * Selects the best matching instance for a text prompt.
+ * Selects the best matching instance(s) for a text prompt.
  *
- * Returns the instance whose image embedding has the highest cosine similarity
+ * Returns the instance(s) whose image embedding has the highest cosine similarity
  * with the text embedding. The caller is responsible for producing the
  * embeddings (e.g. with CLIP) and passing them in the same order as
  * `instances`.
  * @param instances - Array of segmented instances returned by `forward()`.
  * @param instanceEmbeddings - Image embedding for each instance, in the same order as `instances`.
  * @param textEmbedding - Embedding of the text prompt.
- * @returns The best matching instance, or `null` if `instances` is empty.
+ * @param topk - Number of top matches to return (defaults to 1).
+ * @returns The best matching instance (or null) if topk is 1, otherwise an array of the topk matching instances.
  */
 export function selectByText<L extends LabelEnum>(
   instances: SegmentedInstance<L>[],
   instanceEmbeddings: Float32Array[],
-  textEmbedding: Float32Array
-): SegmentedInstance<L> | null {
-  if (instances.length === 0) return null;
+  textEmbedding: Float32Array,
+  topk?: 1
+): SegmentedInstance<L> | null;
+export function selectByText<L extends LabelEnum>(
+  instances: SegmentedInstance<L>[],
+  instanceEmbeddings: Float32Array[],
+  textEmbedding: Float32Array,
+  topk: number
+): SegmentedInstance<L>[];
+export function selectByText<L extends LabelEnum>(
+  instances: SegmentedInstance<L>[],
+  instanceEmbeddings: Float32Array[],
+  textEmbedding: Float32Array,
+  topk = 1
+): SegmentedInstance<L> | null | SegmentedInstance<L>[] {
+  if (instances.length === 0) return topk === 1 ? null : [];
   if (instances.length !== instanceEmbeddings.length) {
     throw new Error(
-      `selectByText: instances (${instances.length})` +
-        `and instanceEmbeddings (${instanceEmbeddings.length})` +
+      `selectByText: instances (${instances.length}) ` +
+        `and instanceEmbeddings (${instanceEmbeddings.length}) ` +
         `must have the same length`
     );
   }
@@ -123,13 +137,21 @@ export function selectByText<L extends LabelEnum>(
     return dot;
   });
 
-  let bestIdx = 0;
-  let bestScore = -Infinity;
-  for (let i = 0; i < scores.length; i++) {
-    if (scores[i]! > bestScore) {
-      bestScore = scores[i]!;
-      bestIdx = i;
+  if (topk === 1) {
+    let bestIdx = 0;
+    let bestScore = -Infinity;
+    for (let i = 0; i < scores.length; i++) {
+      if (scores[i]! > bestScore) {
+        bestScore = scores[i]!;
+        bestIdx = i;
+      }
     }
+    return instances[bestIdx]!;
   }
-  return instances[bestIdx]!;
+
+  return instances
+    .map((instance, index) => ({ instance, score: scores[index]! }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topk)
+    .map((item) => item.instance);
 }

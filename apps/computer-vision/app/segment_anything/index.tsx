@@ -463,10 +463,6 @@ async function cropAndEmbed(
   maskHeight: number,
   forward: (input: string) => Promise<Float32Array>
 ): Promise<Float32Array> {
-  // FastSAM-style full-image white canvas, but with the mask applied:
-  // inside the bbox we keep image pixels where mask=1 and overwrite the
-  // rest with white. CLIP then sees a uniform white scene with only the
-  // segmented object visible at its original position/size.
   const imgW = image.width();
   const imgH = image.height();
   const surface = Skia.Surface.MakeOffscreen(imgW, imgH);
@@ -489,9 +485,6 @@ async function cropAndEmbed(
     );
   }
 
-  // Inverse mask: opaque white where mask=0, transparent where mask=1.
-  // Drawn on top within the bbox, it overpaints non-mask pixels with white
-  // and leaves the segmented object intact.
   const inversePixels = new Uint8Array(mask.length * 4);
   for (let i = 0; i < mask.length; i++) {
     const outside = mask[i]! === 0;
