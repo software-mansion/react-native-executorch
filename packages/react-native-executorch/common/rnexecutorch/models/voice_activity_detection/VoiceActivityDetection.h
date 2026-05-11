@@ -25,7 +25,7 @@ public:
                          std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::Segment>
-  generate(std::span<float> waveform) const;
+  generate(std::span<float> waveform, uint32_t mergeGap = 0) const;
 
   /**
    * Initializes the streaming procedure, which performs
@@ -54,7 +54,8 @@ private:
   std::vector<std::array<float, constants::kPaddedWindowSize>>
   preprocess(std::span<float> waveform) const;
   std::vector<types::Segment> postprocess(const std::vector<float> &scores,
-                                          float threshold) const;
+                                          float threshold,
+                                          uint32_t mergeGap) const;
 
   std::shared_ptr<react::CallInvoker> callInvoker_;
 

@@ -8,6 +8,17 @@ import { RnExecutorchError } from '../errors/errorUtils';
 export type VADModelName = 'fsmn-vad';
 
 /**
+ * Configuration for the VAD model.
+ * @category Types
+ * @property {VADModelName} modelName - Unique name identifying the model.
+ * @property {ResourceSource} modelSource - The source of the VAD model binary.
+ */
+export interface VADConfig {
+  modelName: VADModelName;
+  modelSource: ResourceSource;
+}
+
+/**
  * Props for the useVAD hook.
  * @category Types
  * @property {object} model - An object containing the model configuration.
@@ -16,7 +27,7 @@ export type VADModelName = 'fsmn-vad';
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface VADProps {
-  model: { modelName: VADModelName; modelSource: ResourceSource };
+  model: VADConfig;
   preventLoad?: boolean;
 }
 

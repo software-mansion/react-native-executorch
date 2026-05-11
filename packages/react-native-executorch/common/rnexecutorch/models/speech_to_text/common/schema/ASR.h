@@ -4,7 +4,7 @@
 #include <span>
 #include <vector>
 
-#include "../types/DecodingOptions.h"
+#include "../types/Options.h"
 #include "../types/Segment.h"
 #include <rnexecutorch/models/BaseModel.h>
 
