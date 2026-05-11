@@ -156,7 +156,7 @@ export default function ImageWithMasks({
       />
 
       {instances.length > 0 && (
-        <View style={styles.overlay}>
+        <View style={styles.overlay} pointerEvents="none">
           <Canvas style={styles.canvas}>
             {instances.map((inst, idx) => {
               const mx = inst.bbox.x1 * scale + offsetX;
