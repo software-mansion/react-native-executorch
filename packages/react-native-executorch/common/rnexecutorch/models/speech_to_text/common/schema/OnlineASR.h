@@ -3,7 +3,7 @@
 #include <span>
 #include <vector>
 
-#include "../types/DecodingOptions.h"
+#include "../types/Options.h"
 #include "../types/ProcessResult.h"
 #include "../types/Word.h"
 
@@ -34,9 +34,9 @@ public:
 
   virtual bool isReady() const = 0;
 
-  virtual ProcessResult process(const DecodingOptions &options) = 0;
+  virtual ProcessResult process(const StreamingOptions &options) = 0;
 
-  virtual std::vector<Word> finish(const DecodingOptions &options) = 0;
+  virtual std::vector<Word> finish(const StreamingOptions &options) = 0;
 
   virtual void reset() = 0;
 };

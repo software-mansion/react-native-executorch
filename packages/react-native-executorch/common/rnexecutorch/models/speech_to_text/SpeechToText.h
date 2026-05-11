@@ -10,15 +10,18 @@
 #include "common/schema/ASR.h"
 #include "common/schema/OnlineASR.h"
 #include "common/types/TranscriptionResult.h"
+#include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 
 namespace rnexecutorch {
 
 namespace models::speech_to_text {
 
+using voice_activity_detection::VoiceActivityDetection;
+
 class SpeechToText {
 public:
   SpeechToText(const std::string &modelName, const std::string &modelSource,
-               const std::string &tokenizerSource,
+               const std::string &tokenizerSource, const std::string &vadSource,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
   // Required because of std::atomic usage
@@ -40,7 +43,8 @@ public:
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption, bool verbose, uint32_t timeout);
+              std::string languageOption, bool verbose,
+              uint32_t timeout, bool useVAD, uint32_t vadDetectionMargin);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 
@@ -61,12 +65,15 @@ private:
   // waiting for the next throttling interval to expire.
   std::mutex streamCvMutex_;
   std::condition_variable streamCv_;
+
+  // VAD submodule
+  std::unique_ptr<VoiceActivityDetection> vad_ = nullptr;
 };
 
 } // namespace models::speech_to_text
 
 REGISTER_CONSTRUCTOR(models::speech_to_text::SpeechToText, std::string,
-                     std::string, std::string,
+                     std::string, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 
 } // namespace rnexecutorch

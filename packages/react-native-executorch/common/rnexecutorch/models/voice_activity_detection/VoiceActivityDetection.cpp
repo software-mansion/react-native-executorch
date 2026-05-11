@@ -27,7 +27,8 @@ VoiceActivityDetection::VoiceActivityDetection(
 }
 
 std::vector<types::Segment>
-VoiceActivityDetection::generate(std::span<float> waveform) const {
+VoiceActivityDetection::generate(std::span<float> waveform,
+                                 uint32_t mergeGap) const {
   // Guard against small buffers to prevent underflow in preprocess
   if (waveform.size() < kWindowSize) {
     return {};
@@ -70,7 +71,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   auto tensor = forwardResult->at(0).toTensor();
   startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),
                                                   remainder, scores, startIdx);
-  return postprocess(scores, kSpeechThreshold);
+  return postprocess(scores, kSpeechThreshold, mergeGap);
 }
 
 void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
@@ -122,8 +123,8 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
       auto lastSegment = detection.back();
       auto speechEnd = lastSegment.end;
 
-      uint32_t diffMs = (audioBuffer_.size() - speechEnd) * 1000 /
-                        constants::kSampleRate; // [ms]
+      uint32_t diffMs = (audioBuffer_.size() - speechEnd) /
+                        constants::kSampleRateMiliseconds; // [ms]
 
       speaking = diffMs <= detectionMargin;
     }
@@ -181,7 +182,7 @@ VoiceActivityDetection::preprocess(std::span<float> waveform) const {
 
 std::vector<types::Segment>
 VoiceActivityDetection::postprocess(const std::vector<float> &scores,
-                                    float threshold) const {
+                                    float threshold, uint32_t mergeGap) const {
   bool triggered = false;
   std::vector<types::Segment> speechSegments{};
   ssize_t startSegment = -1;
@@ -230,7 +231,9 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
     end = std::min(end + kSpeechPad, scores.size()) * kHopLength;
   }
 
-  return speechSegments;
+  // Merge tightly placed segments according to the max allowed gap parameter.
+  size_t maxMergeGap = mergeGap * constants::kSampleRateMiliseconds;
+  return utils::mergeSegments(speechSegments, maxMergeGap);
 }
 
 } // namespace rnexecutorch::models::voice_activity_detection
