@@ -8,6 +8,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
+#include <rnexecutorch/utils/TensorHelpers.h>
 
 namespace rnexecutorch::models::semantic_segmentation {
 
@@ -18,33 +19,11 @@ BaseSemanticSegmentation::BaseSemanticSegmentation(
     : VisionModel(modelSource, callInvoker),
       allClasses_(std::move(allClasses)) {
   initModelImageSize();
-  if (normMean.size() == 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
-  }
-  if (normStd.size() == 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
-  }
+  initNormalization(normMean, normStd);
 }
 
 void BaseSemanticSegmentation::initModelImageSize() {
-  auto inputShapes = getAllInputShapes();
-  if (inputShapes.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Model seems to not take any input tensors.");
-  }
-  modelInputShape_ = inputShapes[0];
-  if (modelInputShape_.size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            "Unexpected model input size, expected at least 2 "
-                            "dimensions but got: " +
-                                std::to_string(modelInputShape_.size()) + ".");
-  }
+  modelInputShape_ = validateAndGetInputShape();
   numModelPixels = modelInputSize().area();
 }
 
@@ -55,33 +34,22 @@ BaseSemanticSegmentation::runInference(
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = VisionModel::preprocess(image);
-  auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, preprocessed, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  preprocessed);
+  auto inputTensor = createInputTensor(preprocessed);
 
-  auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  auto outputs = forwardOrThrow(inputTensor,
+                                "The model's forward function did not succeed. "
+                                "Ensure the model input is correct.");
 
-  return computeResult(forwardResult->at(0).toTensor(), originalSize,
-                       allClasses_, classesOfInterest, resize);
+  return computeResult(outputs.at(0).toTensor(), originalSize, allClasses_,
+                       classesOfInterest, resize);
 }
 
 semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromString(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-  cv::Size originalSize = imageBGR.size();
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
+  cv::Size originalSize = imageRGB.size();
   return runInference(imageRGB, originalSize, classesOfInterest, resize);
 }
 
@@ -97,15 +65,13 @@ semantic_segmentation::SegmentationResult
 BaseSemanticSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient, originalSize] = loadFrameRotated(runtime, frameData);
   // Always run inference without resize — rotate first, then resize.
   auto result = runInference(rotated, rotated.size(), classesOfInterest, false);
 
   const cv::Size outputSize = modelInputSize();
   // JS reads maskW=frame.height, maskH=frame.width (sensor-native swap).
-  const cv::Size frameSize = frame.size();
+  const cv::Size frameSize = originalSize;
 
   auto inverseAndResize = [&orient, &frameSize, &outputSize,
                            resize](std::shared_ptr<OwningArrayBuffer> &buf,
@@ -139,8 +105,7 @@ BaseSemanticSegmentation::computeResult(
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
 
-  const auto *dataPtr = tensor.const_data_ptr<float>();
-  auto resultData = std::span(dataPtr, tensor.numel());
+  auto resultData = utils::tensor::toSpan<float>(tensor);
 
   // Read output dimensions directly from tensor shape
   std::size_t numChannels =

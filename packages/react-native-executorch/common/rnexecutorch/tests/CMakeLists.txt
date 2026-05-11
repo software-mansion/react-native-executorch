@@ -179,6 +179,13 @@ add_rn_test(FrameTransformTests unit/FrameTransformTest.cpp
     LIBS opencv_deps
 )
 
+add_rn_test(TensorHelpersTest unit/TensorHelpersTest.cpp)
+
+add_rn_test(ComputerVisionProcessingTest unit/ComputerVisionProcessingTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/utils/computer_vision/Processing.cpp
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 
 add_rn_test(VisionModelTests integration/VisionModelTest.cpp
@@ -352,6 +359,7 @@ add_rn_test(OCRTests integration/OCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp
@@ -369,6 +377,7 @@ add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameTransform.cpp

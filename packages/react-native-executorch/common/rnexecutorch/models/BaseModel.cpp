@@ -181,6 +181,87 @@ std::size_t BaseModel::getMemoryLowerBound() const noexcept {
 
 void BaseModel::unload() noexcept { module_.reset(nullptr); }
 
+void BaseModel::ensureMethodLoaded(const std::string &methodName) {
+  if (methodName.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "methodName cannot be empty");
+  }
+  if (currentlyLoadedMethod_ == methodName) {
+    return;
+  }
+  if (!module_) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Model module is not loaded");
+  }
+  if (!currentlyLoadedMethod_.empty()) {
+    module_->unload_method(currentlyLoadedMethod_);
+  }
+  auto loadResult = module_->load_method(methodName);
+  if (loadResult != executorch::runtime::Error::Ok) {
+    throw RnExecutorchError(
+        loadResult, "Failed to load method '" + methodName +
+                        "'. Ensure the method exists in the exported model.");
+  }
+  currentlyLoadedMethod_ = methodName;
+}
+
+std::vector<int32_t>
+BaseModel::validateAndGetInputShape(const std::string &methodName,
+                                    size_t minDimensions) const {
+  auto inputShapes = getAllInputShapes(methodName);
+
+  if (inputShapes.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Model seems to not take any input tensors.");
+  }
+
+  const auto &shape = inputShapes[0];
+  if (shape.size() < minDimensions) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::WrongDimensions,
+        "Unexpected model input size, expected at least " +
+            std::to_string(minDimensions) +
+            " dimensions but got: " + std::to_string(shape.size()) + ".");
+  }
+
+  return shape;
+}
+
+std::vector<EValue>
+BaseModel::forwardOrThrow(const EValue &input,
+                          const std::string &contextMessage) const {
+  auto result = forward(input);
+  if (!result.ok()) {
+    throw RnExecutorchError(result.error(), contextMessage);
+  }
+  return std::move(result.get());
+}
+
+std::vector<EValue>
+BaseModel::forwardOrThrow(const std::vector<EValue> &inputs,
+                          const std::string &contextMessage) const {
+  auto result = forward(inputs);
+  if (!result.ok()) {
+    throw RnExecutorchError(result.error(), contextMessage);
+  }
+  return std::move(result.get());
+}
+
+std::vector<EValue>
+BaseModel::executeOrThrow(const std::string &methodName,
+                          const std::vector<EValue> &inputs,
+                          const std::string &contextMessage) const {
+  auto result = execute(methodName, inputs);
+  if (!result.ok()) {
+    std::string message =
+        contextMessage.empty()
+            ? "Model " + methodName + " method failed. Ensure input is correct."
+            : contextMessage;
+    throw RnExecutorchError(result.error(), message);
+  }
+  return std::move(result.get());
+}
+
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();

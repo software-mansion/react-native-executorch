@@ -47,8 +47,6 @@ protected:
                 std::set<std::string, std::less<>> &classesOfInterest,
                 bool resize);
   std::size_t numModelPixels;
-  std::optional<cv::Scalar> normMean_;
-  std::optional<cv::Scalar> normStd_;
   std::vector<std::string> allClasses_;
 
 private:

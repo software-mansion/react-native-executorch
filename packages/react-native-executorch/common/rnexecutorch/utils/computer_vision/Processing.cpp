@@ -1,6 +1,8 @@
 #include "Processing.h"
 #include <algorithm>
 #include <cmath>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::utils::computer_vision {
 
@@ -16,6 +18,23 @@ float computeIoU(const BBox &a, const BBox &b) {
   float unionArea = areaA + areaB - intersectionArea;
 
   return (unionArea > 0.0f) ? (intersectionArea / unionArea) : 0.0f;
+}
+
+void validateThreshold(double value, const std::string &name) {
+  if (value < 0.0 || value > 1.0) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            name + " must be in range [0, 1]");
+  }
+}
+
+std::tuple<BBox, float, int32_t> extractDetectionData(const float *bboxData,
+                                                      const float *scoresData,
+                                                      int32_t index) {
+  BBox bbox{bboxData[index * 4], bboxData[index * 4 + 1],
+            bboxData[index * 4 + 2], bboxData[index * 4 + 3]};
+  float score = scoresData[index * 2];
+  int32_t label = static_cast<int32_t>(scoresData[index * 2 + 1]);
+  return {bbox, score, label};
 }
 
 } // namespace rnexecutorch::utils::computer_vision

@@ -1,8 +1,6 @@
 #include "ObjectDetection.h"
 #include "Constants.h"
 
-#include <set>
-
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
@@ -10,7 +8,9 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 #include <rnexecutorch/utils/FrameTransform.h>
+#include <rnexecutorch/utils/TensorHelpers.h>
 #include <rnexecutorch/utils/computer_vision/Processing.h>
+#include <set>
 
 namespace rnexecutorch::models::object_detection {
 
@@ -20,66 +20,14 @@ ObjectDetection::ObjectDetection(
     std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker),
       labelNames_(std::move(labelNames)) {
-  if (normMean.size() == 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
-  } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
-  }
-  if (normStd.size() == 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
-  } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
-  }
+  initNormalization(normMean, normStd);
 }
 
 cv::Size ObjectDetection::modelInputSize() const {
   if (currentlyLoadedMethod_.empty()) {
     return VisionModel::modelInputSize();
   }
-  auto inputShapes = getAllInputShapes(currentlyLoadedMethod_);
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Could not determine input shape for method: " +
-                                currentlyLoadedMethod_);
-  }
-  const auto &shape = inputShapes[0];
-  return {static_cast<int32_t>(shape[shape.size() - 2]),
-          static_cast<int32_t>(shape[shape.size() - 1])};
-}
-
-void ObjectDetection::ensureMethodLoaded(const std::string &methodName) {
-  if (methodName.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "methodName cannot be empty");
-  }
-  if (currentlyLoadedMethod_ == methodName) {
-    return;
-  }
-  if (!module_) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Model module is not loaded");
-  }
-  if (!currentlyLoadedMethod_.empty()) {
-    module_->unload_method(currentlyLoadedMethod_);
-  }
-  auto loadResult = module_->load_method(methodName);
-  if (loadResult != executorch::runtime::Error::Ok) {
-    throw RnExecutorchError(
-        loadResult, "Failed to load method '" + methodName +
-                        "'. Ensure the method exists in the exported model.");
-  }
-  currentlyLoadedMethod_ = methodName;
-}
-
-std::set<int32_t> ObjectDetection::prepareAllowedClasses(
-    const std::vector<int32_t> &classIndices) const {
-  std::set<int32_t> allowedClasses;
-  if (!classIndices.empty()) {
-    allowedClasses.insert(classIndices.begin(), classIndices.end());
-  }
-  return allowedClasses;
+  return getModelInputSize(currentlyLoadedMethod_);
 }
 
 std::vector<types::Detection>
@@ -93,23 +41,12 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
       static_cast<float>(originalSize.height) / inputSize.height;
 
   // Prepare allowed classes set for filtering
-  auto allowedClasses = prepareAllowedClasses(classIndices);
+  std::set<int32_t> allowedClasses(classIndices.begin(), classIndices.end());
 
   std::vector<types::Detection> detections;
-  auto bboxTensor = tensors.at(0).toTensor();
-  std::span<const float> bboxes(
-      static_cast<const float *>(bboxTensor.const_data_ptr()),
-      bboxTensor.numel());
-
-  auto scoreTensor = tensors.at(1).toTensor();
-  std::span<const float> scores(
-      static_cast<const float *>(scoreTensor.const_data_ptr()),
-      scoreTensor.numel());
-
-  auto labelTensor = tensors.at(2).toTensor();
-  std::span<const float> labels(
-      static_cast<const float *>(labelTensor.const_data_ptr()),
-      labelTensor.numel());
+  auto bboxes = utils::tensor::toSpan<float>(tensors.at(0));
+  auto scores = utils::tensor::toSpan<float>(tensors.at(1));
+  auto labels = utils::tensor::toSpan<float>(tensors.at(2));
 
   for (std::size_t i = 0; i < scores.size(); ++i) {
     if (scores[i] < detectionThreshold) {
@@ -146,14 +83,9 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 std::vector<types::Detection> ObjectDetection::runInference(
     cv::Mat image, double detectionThreshold, double iouThreshold,
     const std::vector<int32_t> &classIndices, const std::string &methodName) {
-  if (detectionThreshold < 0.0 || detectionThreshold > 1.0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "detectionThreshold must be in range [0, 1]");
-  }
-  if (iouThreshold < 0.0 || iouThreshold > 1.0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "iouThreshold must be in range [0, 1]");
-  }
+  utils::computer_vision::validateThreshold(detectionThreshold,
+                                            "detectionThreshold");
+  utils::computer_vision::validateThreshold(iouThreshold, "iouThreshold");
 
   std::scoped_lock lock(inference_mutex_);
 
@@ -162,44 +94,25 @@ std::vector<types::Detection> ObjectDetection::runInference(
 
   cv::Size originalSize = image.size();
 
-  // Query input shapes for the currently loaded method
-  auto inputShapes = getAllInputShapes(methodName);
-  if (inputShapes.empty() || inputShapes[0].size() < 2) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Could not determine input shape for method: " +
-                                methodName);
-  }
-  modelInputShape_ = inputShapes[0];
+  // Query and validate input shapes for the currently loaded method
+  modelInputShape_ = validateAndGetInputShape(methodName, 2);
 
   cv::Mat preprocessed = preprocess(image);
+  auto inputTensor = createInputTensor(preprocessed);
 
-  auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, preprocessed, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  preprocessed);
+  auto outputs = executeOrThrow(methodName, {inputTensor},
+                                "The model's " + methodName +
+                                    " method did not succeed. "
+                                    "Ensure the model input is correct.");
 
-  auto executeResult = execute(methodName, {inputTensor});
-  if (!executeResult.ok()) {
-    throw RnExecutorchError(executeResult.error(),
-                            "The model's " + methodName +
-                                " method did not succeed. "
-                                "Ensure the model input is correct.");
-  }
-
-  return postprocess(executeResult.get(), originalSize, detectionThreshold,
-                     iouThreshold, classIndices);
+  return postprocess(outputs, originalSize, detectionThreshold, iouThreshold,
+                     classIndices);
 }
 
 std::vector<types::Detection> ObjectDetection::generateFromString(
     std::string imageSource, double detectionThreshold, double iouThreshold,
     std::vector<int32_t> classIndices, std::string methodName) {
-  cv::Mat imageBGR = image_processing::readImage(imageSource);
-
-  cv::Mat imageRGB;
-  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-
+  cv::Mat imageRGB = loadImageToRGB(imageSource);
   return runInference(imageRGB, detectionThreshold, iouThreshold, classIndices,
                       methodName);
 }
@@ -208,15 +121,11 @@ std::vector<types::Detection> ObjectDetection::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     double detectionThreshold, double iouThreshold,
     std::vector<int32_t> classIndices, std::string methodName) {
-  auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
-  cv::Mat frame = extractFromFrame(runtime, frameData);
-  cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
+  auto [rotated, orient, _] = loadFrameRotated(runtime, frameData);
   auto detections = runInference(rotated, detectionThreshold, iouThreshold,
                                  classIndices, methodName);
 
-  for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotateBbox(det.bbox, orient, rotated.size());
-  }
+  utils::inverseRotateBboxes(detections, orient, rotated.size());
   return detections;
 }
 

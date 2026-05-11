@@ -2,11 +2,24 @@
 
 #include "Types.h"
 #include <algorithm>
+#include <cstdint>
+#include <set>
+#include <string>
+#include <tuple>
 #include <vector>
 
 namespace rnexecutorch::utils::computer_vision {
 
 float computeIoU(const BBox &a, const BBox &b);
+
+/// Extracts {bbox, score, label} at index from raw model output buffers.
+/// bboxData layout: [x1, y1, x2, y2] per detection.
+/// scoresData layout: [score, label] per detection.
+std::tuple<BBox, float, int32_t> extractDetectionData(const float *bboxData,
+                                                      const float *scoresData,
+                                                      int32_t index);
+
+void validateThreshold(double value, const std::string &name);
 
 template <HasBBoxAndScore T>
 std::vector<T> nonMaxSuppression(std::vector<T> items, double iouThreshold) {
