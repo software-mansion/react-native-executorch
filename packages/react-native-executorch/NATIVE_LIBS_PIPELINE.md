@@ -103,54 +103,92 @@ Result: each Android backend ships as its own opt-in tarball, mirroring the iOS 
 
 ## Building artifacts from the ExecuTorch fork
 
-Patched sources live in a separate repo (see `executorch/` in the maintainer's machine, typically checked out next to `react-native-executorch/`). The fork branch is [`msluszniak/executorch@ms/separate-backends`](https://github.com/msluszniak/executorch/tree/@ms/separate-backends), based on the upstream `release/1.2` tag, and the artifacts attached to the matching GitHub Release are produced from the pinned commit [`bd24ac7681a574aceb3224460e8fc313794bdabb`](https://github.com/msluszniak/executorch/commit/bd24ac7681a574aceb3224460e8fc313794bdabb). Bumping the `react-native-executorch` package version requires re-rolling the Release artifacts from a (possibly newer) pinned commit and updating this SHA. The branch carries (oldest → newest):
+Patched sources live in a separate repo (see `executorch/` in the maintainer's machine, typically checked out next to `react-native-executorch/`). The fork branch is [`msluszniak/executorch@ms/separate-backends`](https://github.com/msluszniak/executorch/tree/@ms/separate-backends), based on the upstream `release/1.2` tag, and the artifacts attached to the matching GitHub Release are produced from the pinned commit [`3ce953dbde73035e733442f99c082f5b6fedff5b`](https://github.com/msluszniak/executorch/commit/3ce953dbde73035e733442f99c082f5b6fedff5b). Bumping the `react-native-executorch` package version requires re-rolling the Release artifacts from a (possibly newer) pinned commit and updating this SHA. The branch carries (oldest → newest):
 
 - **chore: remove version script from `executorch_jni`** — reverts the Feb 2026 symbol-hiding change so RNE's C++ layer can resolve `Module`, `threadpool`, etc. directly.
 - **feat: build `vulkan_backend` as a separate shared library on Android** — adds the `EXECUTORCH_BUILD_VULKAN_BACKEND_SHARED` CMake option. When ON, `libvulkan_executorch_backend.so` is produced alongside `libexecutorch_jni.so` instead of vulkan_backend being whole-archive-linked into the latter. Mirrors the QNN backend pattern.
-- **build: disable `-Werror` for `flatcc_ep` on host clang** — Apple clang 21+ flags warnings flatcc has not yet cleaned up; needed to build on Xcode 26.4+.
+- **build: disable `-Werror` for `flatcc_ep` on host clang** — Apple clang 21+ flags warnings flatcc has not yet cleaned up; needed to build on Xcode 26.4+. Adds `-DFLATCC_ALLOW_WERROR=OFF` to the host-side `flatcc_ep` ExternalProject_Add in `third-party/CMakeLists.txt`.
 - **feat: build `xnnpack_backend` as a separate shared library on Android** — same idea for XNNPACK via `EXECUTORCH_BUILD_XNNPACK_BACKEND_SHARED`. Also patches `extension/llm/custom_ops/CMakeLists.txt` to drop the (transitive) `xnnpack_backend` link when the switch is ON, so XNNPACK code does not leak into `libexecutorch_jni.so` via `custom_ops`.
 - **chore: point tokenizers submodule at `software-mansion-labs/pytorch-tokenizers@build`** — replaces the old `meta-pytorch/tokenizers` pin with the SWM-internal build branch (`56a30afb…`). That branch carries support for new tokenizer types (Unigram, WordLevel) plus more normalizers / pre-tokenizers / decoders / post-processors. Headers in `third-party/include/executorch/extension/llm/tokenizers/` must match this commit; otherwise `HFTokenizer::setup_padding` / `setup_truncation` SIGSEGV when loading a real tokenizer.json.
 - **build(android): forward `BACKEND_SHARED` env vars to cmake** — `build_android_library.sh` declared the `EXECUTORCH_BUILD_*_BACKEND_SHARED` env vars in surrounding docs but never passed them to cmake configure, so a fresh CMake configure produced backends baked into `libexecutorch_jni.so` even when the env vars were set.
 - **fix(xnnpack): tolerate null ptr in `XNNWeightsCache::look_up_or_insert`** — `memcmp(ptr=NULL, saved_ptr, size)` crashed when XNNPACK re-checked the cache. Guard with `if (ptr == nullptr) ptr = saved_ptr;` before the compare.
 - **build(android): pass `-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON`** — required for Android 16 KB-page devices (Pixel 9 / upcoming releases); without it the `.so` fails to map on those targets.
-- **build(ios): keep merged intermediate `.a` files after `create_frameworks.sh`** — comments out the cleanup loop at the end of `create_frameworks.sh`. RNE's `third-party/ios/ExecutorchLib/build.sh` repackages those `.a` files into its own xcframeworks (with consistent slice library names that CocoaPods requires), so we need them to survive long enough to be repackaged.
+- **build(ios): keep merged intermediate `.a` files after `create_frameworks.sh`** — comments out the cleanup loop at the end of `create_frameworks.sh`. `build_apple_frameworks.sh` calls `create_frameworks.sh` to merge per-target archives via `libtool`, then deletes them by default. RNE's `third-party/ios/ExecutorchLib/build.sh` repackages those `.a` files into its own xcframeworks (with consistent slice library names that CocoaPods requires), so we need them to survive long enough to be repackaged.
 - **build(ios): disable `XNNPACK_ENABLE_ARM_SME{,2}` on macOS / iOS presets** — the Apple SME backends in upstream XNNPACK fail to compile under Xcode 26's clang. Disable both for the `macos` / `ios` / `ios-simulator` presets in `CMakePresets.json` so the iOS build succeeds.
+- **build(ios): disable `FLATCC_ALLOW_WERROR` on iOS / macOS presets** — the host-side `flatcc_ep` patch only affects the generator binary. Inside the iOS / macOS builds, flatcc's runtime (`flatccrt`) is rebuilt as a regular cmake target via `add_subdirectory(third-party/flatcc)`, which honors a separate cache variable. Pin `FLATCC_ALLOW_WERROR=OFF` for each Apple preset in `CMakePresets.json` so the runtime build also escapes Apple clang 21's stricter warnings (`-Wimplicit-int-conversion-on-negation`, `-Wunterminated-string-initialization`).
 
 ### iOS
 
-Two-stage: the fork produces the bare `.a` files; RNE's `build.sh` repackages them into xcframeworks.
+Two-stage: the fork produces the merged per-slice `.a` files; RNE's `build.sh` repackages them into xcframeworks. Requires Xcode 26.x + Python 3.10.
 
-**1. Build `.a` files in the fork**
+> **iOS 26.4 simulator caveat.** Apps linked against the iOS 26.4 SDK fail `URLSessionConfiguration.background` downloads in the 26.4 simulator with `NSURLErrorUnknown`. Older SDK builds (e.g. 26.2) are unaffected, and physical devices behave normally. This is an Apple regression — there's no fix on our end. Either use an iOS 26.2 sim for `ExpoResourceFetcher`-driven testing, fall back to `FOREGROUND` session type temporarily, or test on a real device.
+
+**1. Set up the Python env in the fork**
 
 ```bash
 # from the executorch fork (with @ms/separate-backends checked out)
 python3 -m venv .venv && source .venv/bin/activate
-./install_executorch.sh
-./scripts/create_frameworks.sh
+pip install certifi zstd                 # for tools/cmake/resolve_buck.py
+pip install torch==2.11.0                # cmake's find_package_torch_headers needs the torch wheel
+pip install -r requirements-dev.txt      # pyyaml, cmake, lintrunner, click — for codegen scripts
 ```
 
-This drives Buck2 + cmake for the `ios`, `ios-simulator`, and `macos` presets. The patched `create_frameworks.sh` keeps the merged intermediate `.a` files in `cmake-out/ios/`, `cmake-out/simulator/` (and `cmake-out/macos/` — ignore these, RNE doesn't ship a macOS slice).
+`install_executorch.sh` is **not** used: `torch_pin.py` pins a torch nightly (`2.11.0.dev20260215`) that's been pruned from the PyTorch nightly index, and the iOS build only needs the wheel installed for `find_package_torch_headers`. Pinning the matching stable `torch==2.11.0` is enough.
 
-**2. Stage `.a` files into RNE**
+**2. Build merged `.a` files**
 
-Replace everything in `packages/react-native-executorch/third-party/ios/libs/executorch/` with the `.a` files produced by step 1. Take only the iOS device + simulator slices — skip the `*_macos*` files and anything under a `debug/` directory.
+```bash
+rm -rf cmake-out      # always start clean — partial builds cache stale CMake options
+./scripts/build_apple_frameworks.sh --Release
+```
 
-**3. Build xcframeworks**
+This drives Buck2 + cmake for the `ios`, `ios-simulator`, and `macos` presets, then calls the patched `create_frameworks.sh` with the right `--directory` / `--framework` flags to merge per-target archives via `libtool`. Outputs land in `cmake-out/`:
+
+- `cmake-out/libexecutorch_{ios,simulator,macos}.a`, `libexecutorch_llm_*`, `libkernels_*`, `libbackend_{xnnpack,coreml,mps}_*`, `libthreadpool_*` — the merged static archives the patched cleanup loop keeps around.
+- `cmake-out/<framework>.xcframework` — produced by `xcodebuild -create-xcframework`, **not** what RNE consumes (RNE builds its own slimmer set via `ExecutorchLib/build.sh`).
+
+> The Swift Package generation step at the very end of the script prints
+> `error: local binary target '<name>_debug' at 'cmake-out/<name>_debug.xcframework' does not contain a binary artifact` for each framework. That's harmless — it only fires when `--Debug` artifacts are missing — and `--Release` exits 0 anyway. The `.a` files are produced before this step runs.
+
+**3. Stage `.a` files into RNE**
+
+Copy only the `_ios` and `_simulator` slices into `packages/react-native-executorch/third-party/ios/libs/executorch/`. Skip the `_macos` files (RNE doesn't ship a macOS slice). Per-slice list to copy:
+
+```
+libbackend_coreml_{ios,simulator}.a
+libbackend_mps_{ios,simulator}.a
+libbackend_xnnpack_{ios,simulator}.a
+libexecutorch_{ios,simulator}.a
+libexecutorch_llm_{ios,simulator}.a
+libkernels_llm_{ios,simulator}.a
+libkernels_optimized_{ios,simulator}.a
+libkernels_quantized_{ios,simulator}.a
+libkernels_torchao_{ios,simulator}.a
+libthreadpool_{ios,simulator}.a
+```
+
+Keep the existing `libkleidiai_{ios,simulator}.a` — kleidiai is merged into `libexecutorch_llm_*.a` by upstream's framework definitions, but RNE's `ExecutorchLib.xcodeproj` still references the standalone libs explicitly. They're stable and don't need rebuilding.
+
+The non-executorch prebuilts (`libs/cpuinfo/libcpuinfo.a`, `libs/pthreadpool/{physical-arm64-release,simulator-arm64-debug}/libpthreadpool.a`, `libs/phonemis/*/libphonemis.a`) live in their existing directories and are not produced by the executorch fork build — they ship as-is from prior tarballs.
+
+**4. Build xcframeworks**
 
 ```bash
 # from RNE
 rm -rf packages/react-native-executorch/third-party/ios/ExecutorchLib.xcframework
+rm -rf packages/react-native-executorch/third-party/ios/CoreMLBackend.xcframework
+rm -rf packages/react-native-executorch/third-party/ios/XnnpackBackend.xcframework
 cd packages/react-native-executorch/third-party/ios/ExecutorchLib
 ./build.sh
 ```
 
 The script drives Xcode to archive the Obj-C++ wrapper for device and simulator, then uses `xcodebuild -create-xcframework` to produce:
 
-- `output/ExecutorchLib.xcframework` — the high-level wrapper + ExecuTorch core + baked-in CPU ops.
+- `output/ExecutorchLib.xcframework` — the high-level wrapper + ExecuTorch core + kernels + threadpool + MPS backend. Does **not** contain XNNPACK or CoreML code (those live in their own xcframeworks).
 - `output/XnnpackBackend.xcframework` — repackaged from `third-party/ios/libs/executorch/libbackend_xnnpack_{ios,simulator}.a`.
 - `output/CoreMLBackend.xcframework` — repackaged from `libbackend_coreml_{ios,simulator}.a`.
 
-Move each `.xcframework` from `output/` up one level into `third-party/ios/`, then delete `output/`.
+Move each `.xcframework` from `output/` up one level into `third-party/ios/`, then delete `output/` and `build/`.
 
 CocoaPods constraint: inside an xcframework, the library file name must be identical across slices, which is why `build.sh` copies each slice into a temp directory and renames before calling `-create-xcframework`. Do not skip this step.
 
