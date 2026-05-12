@@ -44,9 +44,13 @@ Installation is pretty straightforward, use your package manager of choice to in
   <TabItem value="npm" label="NPM">
 
     ```bash
+    # Compulsory one needs to be installed
     npm install react-native-executorch
+
+    # Additional necessary installation 
     # For Expo projects
     npm install react-native-executorch-expo-resource-fetcher
+    
     # For bare React Native projects
     npm install react-native-executorch-bare-resource-fetcher
     ```
@@ -55,9 +59,13 @@ Installation is pretty straightforward, use your package manager of choice to in
   <TabItem value="pnpm" label="PNPM">
 
     ```bash
+    # Compulsory one needs to be installed
     pnpm install react-native-executorch
+
+    # Additional necessary installation 
     # For Expo projects
     pnpm install react-native-executorch-expo-resource-fetcher
+    
     # For bare React Native projects
     pnpm install react-native-executorch-bare-resource-fetcher
     ```
@@ -66,9 +74,13 @@ Installation is pretty straightforward, use your package manager of choice to in
   <TabItem value="yarn" label="YARN">
 
     ```bash
+    # Compulsory one needs to be installed
     yarn add react-native-executorch
+
+    # Additional necessary installation 
     # For Expo projects
     yarn add react-native-executorch-expo-resource-fetcher
+    
     # For bare React Native projects
     yarn add react-native-executorch-bare-resource-fetcher
     ```
@@ -82,7 +94,7 @@ Before using any other API, you must call `initExecutorch` with a resource fetch
 ```js
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-// or BareResourceFetcher for Expo projects
+// or BareResourceFetcher for bare react-native projects
 
 initExecutorch({ resourceFetcher: ExpoResourceFetcher });
 ```
