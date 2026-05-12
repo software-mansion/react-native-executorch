@@ -6503,18 +6503,6 @@
       "main"
     ]
   },
-  "/react-native-executorch/docs/next/api-reference/interfaces/Point": {
-    "shouldDisplay": true,
-    "hasMarkdown": false,
-    "contentSelectors": [
-      ".theme-doc-markdown",
-      "main .container .col",
-      "main .theme-doc-wrapper",
-      "article",
-      "main .container",
-      "main"
-    ]
-  },
   "/react-native-executorch/docs/next/api-reference/interfaces/PoseEstimationOptions": {
     "shouldDisplay": true,
     "hasMarkdown": false,
