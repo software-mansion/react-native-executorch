@@ -1,10 +1,6 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
 
@@ -35,10 +31,7 @@ export class TokenizerModule {
       );
       const path = paths?.[0];
       if (!path) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       this.nativeModule = await global.loadTokenizerModule(path);
     } catch (error) {

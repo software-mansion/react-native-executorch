@@ -3,11 +3,7 @@ import { BaseModule } from '../BaseModule';
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -31,10 +27,7 @@ export class ExecutorchModule extends BaseModule {
         modelSource
       );
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       this.nativeModule = await global.loadExecutorchModule(paths[0]);
     } catch (error) {

@@ -7,11 +7,7 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  RnExecutorchError,
-  parseUnknownError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -104,10 +100,7 @@ export class SpeechToTextModule {
       modelPromise,
     ]);
     if (!modelSources?.[0] || !tokenizerSources?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        DOWNLOAD_INTERRUPTED_MESSAGE
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
     // Currently only Whisper architecture is supported
     return await global.loadSpeechToText(

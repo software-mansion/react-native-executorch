@@ -1,11 +1,7 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { StyleTransferModelName } from '../../types/styleTransfer';
 import { ResourceSource, PixelData } from '../../types/common';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
 import { VisionModule } from './VisionModule';
@@ -39,10 +35,7 @@ export class StyleTransferModule extends VisionModule<PixelData | string> {
       );
 
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
 
       return new StyleTransferModule(await global.loadStyleTransfer(paths[0]));

@@ -3,11 +3,7 @@ import { ResourceSource } from '../../types/common';
 import { Segment, VADModelName } from '../../types/vad';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -36,10 +32,7 @@ export class VADModule extends BaseModule {
         namedSources.modelSource
       );
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       return new VADModule(await global.loadVAD(paths[0]));
     } catch (error) {
@@ -74,10 +67,7 @@ export class VADModule extends BaseModule {
    */
   async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     return await this.nativeModule.generate(waveform);
   }
 }

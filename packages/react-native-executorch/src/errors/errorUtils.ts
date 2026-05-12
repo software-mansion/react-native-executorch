@@ -1,6 +1,20 @@
 import { RnExecutorchErrorCode } from './ErrorCodes';
 
 /**
+ * Default user-facing message for error codes that are thrown verbatim from
+ * multiple call sites. When a code is listed here, the `message` argument to
+ * {@link RnExecutorchError} can be omitted.
+ */
+const DefaultErrorMessages: Partial<Record<RnExecutorchErrorCode, string>> = {
+  [RnExecutorchErrorCode.DownloadInterrupted]:
+    'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.',
+  [RnExecutorchErrorCode.ModelGenerating]:
+    'The model is currently generating. Please wait until previous model run is complete.',
+  [RnExecutorchErrorCode.ModuleNotLoaded]:
+    'The model is currently not loaded. Please load the model before calling forward().',
+};
+
+/**
  * Custom error class for React Native ExecuTorch errors.
  */
 export class RnExecutorchError extends Error {
@@ -14,21 +28,14 @@ export class RnExecutorchError extends Error {
    */
   public cause?: unknown;
 
-  constructor(code: number, message: string, cause?: unknown) {
-    super(message);
-    /**
-     * The error code representing the type of error.
-     */
+  constructor(code: RnExecutorchErrorCode, message?: string, cause?: unknown) {
+    const resolved =
+      message ??
+      DefaultErrorMessages[code] ??
+      `RnExecutorch error (code ${code})`;
+    super(resolved);
     this.code = code;
-
-    /**
-     * The message describing the error.
-     */
-    this.message = message;
-
-    /**
-     * The original cause of the error, if any.
-     */
+    this.message = resolved;
     this.cause = cause;
   }
 }
@@ -64,6 +71,3 @@ export function parseUnknownError(e: unknown): RnExecutorchError {
 
   return new RnExecutorchError(RnExecutorchErrorCode.Internal, String(e));
 }
-
-export const DOWNLOAD_INTERRUPTED_MESSAGE =
-  'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.';

@@ -2,11 +2,7 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ImageEmbeddingsModelName } from '../../types/imageEmbeddings';
 import { ResourceSource, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 import { VisionModule } from './VisionModule';
 
@@ -39,10 +35,7 @@ export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
       );
 
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
 
       return new ImageEmbeddingsModule(

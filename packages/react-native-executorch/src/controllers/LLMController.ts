@@ -13,11 +13,7 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
-import {
-  RnExecutorchError,
-  parseUnknownError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../errors/errorUtils';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export class LLMController {
@@ -117,10 +113,7 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
 
       this.tokenizerConfig = JSON.parse(
@@ -278,16 +271,10 @@ export class LLMController {
 
   public async forward(input: string, imagePaths?: string[]): Promise<string> {
     if (!this._isReady) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this._isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
     try {
       this.isGeneratingCallback(true);

@@ -7,11 +7,7 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -66,10 +62,7 @@ export class PrivacyFilterModule extends BaseModule {
       const modelPath = modelResult?.[0];
       const tokenizerPath = tokenizerResult?.[0];
       if (!modelPath || !tokenizerPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       const labels = Array.from(namedSources.labelNames);
       const biases = packViterbiBiases(namedSources.viterbiBiases);

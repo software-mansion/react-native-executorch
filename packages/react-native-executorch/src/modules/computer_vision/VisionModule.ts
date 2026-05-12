@@ -131,10 +131,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    */
   async forward(input: string | PixelData, ...args: any[]): Promise<TOutput> {
     if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     // Type detection and routing
     if (typeof input === 'string') {
       return await this.nativeModule.generateFromString(input, ...args);

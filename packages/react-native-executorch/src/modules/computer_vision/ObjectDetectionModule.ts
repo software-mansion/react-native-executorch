@@ -244,10 +244,7 @@ export class ObjectDetectionModule<
     options?: ObjectDetectionOptions<ResolveLabels<T>>
   ): Promise<Detection<ResolveLabels<T>>[]> {
     if (this.nativeModule == null) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
 
     // Extract parameters with defaults from config

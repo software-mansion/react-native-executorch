@@ -1,11 +1,7 @@
 import { Logger } from '../common/Logger';
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
-import {
-  RnExecutorchError,
-  parseUnknownError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../errors/errorUtils';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { isPixelData } from '../modules/computer_vision/VisionModule';
 import { Frame, PixelData, ResourceSource } from '../types/common';
 import { OCRLanguage, OCRDetection } from '../types/ocr';
@@ -63,10 +59,7 @@ export abstract class BaseOCRController {
         recognizerSource
       );
       if (paths === null || paths.length < 2) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       this.nativeModule = await this.loadNativeModule(
         paths[0]!,
@@ -128,16 +121,10 @@ export abstract class BaseOCRController {
     input: string | PixelData
   ): Promise<OCRDetection[]> => {
     if (!this.isReady) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this.isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
 
     try {
@@ -164,10 +151,7 @@ export abstract class BaseOCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
     if (this.nativeModule) {
       this.nativeModule.unload();

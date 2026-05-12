@@ -5,11 +5,7 @@ import { BaseModule } from '../BaseModule';
 
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -119,10 +115,7 @@ export class TextToImageModule extends BaseModule {
       model.decoderSource
     );
     if (!results || results.length !== 5) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        DOWNLOAD_INTERRUPTED_MESSAGE
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
     const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
       results;
@@ -134,10 +127,7 @@ export class TextToImageModule extends BaseModule {
       !unetPath ||
       !decoderPath
     ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        DOWNLOAD_INTERRUPTED_MESSAGE
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
 
     const schedulerJson = await ResourceFetcher.fs.readAsString(schedulerPath);

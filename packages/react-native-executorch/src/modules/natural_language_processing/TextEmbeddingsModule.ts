@@ -3,11 +3,7 @@ import { TextEmbeddingsModelName } from '../../types/textEmbeddings';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import {
-  parseUnknownError,
-  RnExecutorchError,
-  DOWNLOAD_INTERRUPTED_MESSAGE,
-} from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -42,10 +38,7 @@ export class TextEmbeddingsModule extends BaseModule {
       const modelPath = modelResult?.[0];
       const tokenizerPath = tokenizerResult?.[0];
       if (!modelPath || !tokenizerPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          DOWNLOAD_INTERRUPTED_MESSAGE
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       return new TextEmbeddingsModule(
         await global.loadTextEmbeddings(modelPath, tokenizerPath)
@@ -88,10 +81,7 @@ export class TextEmbeddingsModule extends BaseModule {
    */
   async forward(input: string): Promise<Float32Array> {
     if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     return new Float32Array(await this.nativeModule.generate(input));
   }
 }
