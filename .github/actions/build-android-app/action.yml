@@ -46,6 +46,10 @@ runs:
       shell: bash
       run: echo "Skipping build — ${{ inputs.filter-name }} already passed at this content hash."
 
+    # ubuntu-latest ships with ~14 GB free, but a full Android build for any of
+    # the demo apps (Gradle cache + ExecuTorch native build + node_modules +
+    # third-party libs) regularly exceeds that and fails with "no space left on
+    # device". Reclaim ~10 GB by removing toolchains we don't use here.
     - name: Free disk space
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
