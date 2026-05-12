@@ -1,7 +1,11 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { useVerticalOCR, OCR_ENGLISH } from 'react-native-executorch';
+import {
+  useVerticalOCR,
+  OCR_ENGLISH,
+  OCRDetection,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -12,7 +16,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 
 export default function VerticalOCRScreen() {
   const [imageUri, setImageUri] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<OCRDetection[]>([]);
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
     height: number;
@@ -53,6 +57,7 @@ export default function VerticalOCRScreen() {
     try {
       const start = Date.now();
       const output = await model.forward(imageUri);
+      output.sort((a, b) => b.score - a.score);
       setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {

@@ -12,6 +12,7 @@ import {
   OCR_JAPANESE,
   OCR_KOREAN,
   OCRProps,
+  OCRDetection,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
@@ -35,7 +36,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 
 export default function OCRScreen() {
   const [imageUri, setImageUri] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<OCRDetection[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
@@ -74,6 +75,7 @@ export default function OCRScreen() {
     try {
       const start = Date.now();
       const output = await model.forward(imageUri);
+      output.sort((a, b) => b.score - a.score);
       setInferenceTime(Date.now() - start);
       setResults(output);
     } catch (e) {
