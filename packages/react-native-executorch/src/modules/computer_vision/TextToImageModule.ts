@@ -5,7 +5,11 @@ import { BaseModule } from '../BaseModule';
 
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import {
+  parseUnknownError,
+  RnExecutorchError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -117,7 +121,7 @@ export class TextToImageModule extends BaseModule {
     if (!results || results.length !== 5) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        DOWNLOAD_INTERRUPTED_MESSAGE
       );
     }
     const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
@@ -132,7 +136,7 @@ export class TextToImageModule extends BaseModule {
     ) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        DOWNLOAD_INTERRUPTED_MESSAGE
       );
     }
 

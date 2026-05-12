@@ -13,7 +13,11 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
-import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import {
+  RnExecutorchError,
+  parseUnknownError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export class LLMController {
@@ -115,7 +119,7 @@ export class LLMController {
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          DOWNLOAD_INTERRUPTED_MESSAGE
         );
       }
 
@@ -260,7 +264,7 @@ export class LLMController {
     if (this._isGenerating) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModelGenerating,
-        'You cannot delete the model now. You need ot interrupt it first.'
+        'You cannot delete the model now. You need to interrupt it first.'
       );
     }
 

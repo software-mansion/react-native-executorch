@@ -7,7 +7,11 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import {
+  RnExecutorchError,
+  parseUnknownError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -102,7 +106,7 @@ export class SpeechToTextModule {
     if (!modelSources?.[0] || !tokenizerSources?.[0]) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        DOWNLOAD_INTERRUPTED_MESSAGE
       );
     }
     // Currently only Whisper architecture is supported
@@ -263,13 +267,13 @@ export class SpeechToTextModule {
   private validateOptions(options: DecodingOptions) {
     if (!this.modelConfig.isMultilingual && options.language) {
       throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
+        RnExecutorchErrorCode.MultilingualConfiguration,
         'Model is not multilingual, cannot set language'
       );
     }
     if (this.modelConfig.isMultilingual && !options.language) {
       throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
+        RnExecutorchErrorCode.MultilingualConfiguration,
         'Model is multilingual, provide a language'
       );
     }

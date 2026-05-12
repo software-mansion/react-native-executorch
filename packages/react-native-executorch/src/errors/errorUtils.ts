@@ -64,3 +64,6 @@ export function parseUnknownError(e: unknown): RnExecutorchError {
 
   return new RnExecutorchError(RnExecutorchErrorCode.Internal, String(e));
 }
+
+export const DOWNLOAD_INTERRUPTED_MESSAGE =
+  'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.';

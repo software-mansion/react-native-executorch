@@ -1,7 +1,11 @@
 import { Logger } from '../common/Logger';
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
-import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import {
+  RnExecutorchError,
+  parseUnknownError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../errors/errorUtils';
 import { isPixelData } from '../modules/computer_vision/VisionModule';
 import { Frame, PixelData, ResourceSource } from '../types/common';
 import { OCRLanguage, OCRDetection } from '../types/ocr';
@@ -61,7 +65,7 @@ export abstract class BaseOCRController {
       if (paths === null || paths.length < 2) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          DOWNLOAD_INTERRUPTED_MESSAGE
         );
       }
       this.nativeModule = await this.loadNativeModule(

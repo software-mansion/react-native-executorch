@@ -3,7 +3,11 @@ import { TextEmbeddingsModelName } from '../../types/textEmbeddings';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import {
+  parseUnknownError,
+  RnExecutorchError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -40,7 +44,7 @@ export class TextEmbeddingsModule extends BaseModule {
       if (!modelPath || !tokenizerPath) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          DOWNLOAD_INTERRUPTED_MESSAGE
         );
       }
       return new TextEmbeddingsModule(

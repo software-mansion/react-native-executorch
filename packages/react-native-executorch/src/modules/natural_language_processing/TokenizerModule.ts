@@ -1,6 +1,10 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import {
+  parseUnknownError,
+  RnExecutorchError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
 
@@ -33,7 +37,7 @@ export class TokenizerModule {
       if (!path) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          DOWNLOAD_INTERRUPTED_MESSAGE
         );
       }
       this.nativeModule = await global.loadTokenizerModule(path);

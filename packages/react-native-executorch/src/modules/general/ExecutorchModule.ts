@@ -3,7 +3,11 @@ import { BaseModule } from '../BaseModule';
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import {
+  parseUnknownError,
+  RnExecutorchError,
+  DOWNLOAD_INTERRUPTED_MESSAGE,
+} from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -29,7 +33,7 @@ export class ExecutorchModule extends BaseModule {
       if (!paths?.[0]) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          DOWNLOAD_INTERRUPTED_MESSAGE
         );
       }
       this.nativeModule = await global.loadExecutorchModule(paths[0]);
