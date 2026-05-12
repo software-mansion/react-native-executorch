@@ -38,8 +38,7 @@ export const errorDefinitions = {
    */
   FileReadFailed: 0x72,
   /*
-   * Thrown when the size of model output is unexpected.
-   */
+   * Thrown when the size of model output is unexpected. If you're using your custom model with any of the pre-defined modeules, please verify docs or source code for the expected model I/O contract.
   InvalidModelOutput: 0x73,
   /*
    * Thrown when the dimensions of input tensors don't match the model's expected dimensions.
@@ -62,7 +61,7 @@ export const errorDefinitions = {
    */
   InvalidModelSource: 0x78,
   /*
-   * Thrown when the number of passed inputs to the model is different than the model metadata specifies.
+   * Thrown when the number of passed inputs to the model is different than the model metadata specifies. If you're using your custom model with any of the pre-defined modeules, please verify docs or source code for the expected model I/O contract.
    */
   UnexpectedNumInputs: 0x79,
   /*

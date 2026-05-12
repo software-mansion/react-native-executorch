@@ -51,11 +51,7 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
       constants::kNormalizationVariance);
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
 
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   return postprocess(forwardResult->at(0).toTensor(), modelInputSize);
 }

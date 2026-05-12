@@ -89,11 +89,7 @@ DurationPredictor::generate(std::span<const Token> tokens,
   auto results = execute(selectedMethod, {tokensTensor, textMaskTensor,
                                           voiceRefTensor, speedTensor});
 
-  if (!results.ok()) {
-    throw RnExecutorchError(results.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(results);
 
   // Unpack the result
   auto predDurTensor = results->at(0).toTensor();
@@ -175,7 +171,7 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
         shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
 
     durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled)
-                                                      : std::floor(scaled));
+                                                     : std::floor(scaled));
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders
