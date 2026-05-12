@@ -15,7 +15,7 @@ struct BBox {
   float area() const { return width() * height(); }
 
   bool isValid() const {
-    return p2.x > p1.x && p2.y > p1.y && p1.x >= 0.0f && p1.y;
+    return p2.x > p1.x && p2.y > p1.y && p1.x >= 0.0f && p1.y >= 0.0f;
   }
 
   BBox scale(float widthRatio, float heightRatio) const {
