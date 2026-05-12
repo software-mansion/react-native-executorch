@@ -206,3 +206,4 @@ Deinitialize
 fastsam
 promptable
 topk
+dtype
