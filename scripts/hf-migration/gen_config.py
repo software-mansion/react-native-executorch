@@ -59,6 +59,69 @@ _spec.loader.exec_module(_gm)  # type: ignore[union-attr]
 REPO_META: dict[str, dict[str, str]] = _gm.REPO_META
 BACKENDS: tuple[str, ...] = _gm.BACKENDS
 
+# Per-repo license tokens (SPDX identifier or upstream model card slug).
+# Best-effort based on each model's published license. Audit against the
+# upstream HF model card if uncertain — these get baked into config.json
+# downloaded by every consumer.
+REPO_LICENSE: dict[str, str] = {
+    # LLMs
+    "llama-3.2":                                    "llama-3.2-community",
+    "qwen-2.5":                                     "apache-2.0",
+    "qwen-3":                                       "apache-2.0",
+    "qwen-3.5":                                     "apache-2.0",
+    "smolLm-2":                                     "apache-2.0",
+    "hammer-2.1":                                   "apache-2.0",
+    "phi-4-mini":                                   "mit",
+    "lfm-2.5":                                      "lfm-1.0",
+    "bielik-v3.0":                                  "apache-2.0",
+    # Vision
+    "efficientnet-v2-s":                            "bsd-3-clause",
+    "ssdlite320-mobilenet-v3-large":                "bsd-3-clause",
+    "rfdetr-nano-detector":                         "apache-2.0",
+    "rfdetr-nano-segmentation":                     "apache-2.0",
+    "yolo26":                                       "agpl-3.0",
+    "yolo26-seg":                                   "agpl-3.0",
+    "yolo26-pose":                                  "agpl-3.0",
+    "fast-sam":                                     "apache-2.0",
+    # Style transfer
+    "style-transfer-candy":                         "bsd-3-clause",
+    "style-transfer-mosaic":                        "bsd-3-clause",
+    "style-transfer-rain-princess":                 "bsd-3-clause",
+    "style-transfer-udnie":                         "bsd-3-clause",
+    # Speech to text
+    "whisper-tiny":                                 "apache-2.0",
+    "whisper-base":                                 "apache-2.0",
+    "whisper-small":                                "apache-2.0",
+    "whisper-tiny.en":                              "apache-2.0",
+    "whisper-base.en":                              "apache-2.0",
+    "whisper-small.en":                             "apache-2.0",
+    # Segmentation
+    "deeplab-v3":                                   "bsd-3-clause",
+    "lraspp":                                       "bsd-3-clause",
+    "fcn":                                          "bsd-3-clause",
+    "selfie-segmentation":                          "apache-2.0",
+    # Embeddings
+    "all-MiniLM-L6-v2":                             "apache-2.0",
+    "all-mpnet-base-v2":                            "apache-2.0",
+    "multi-qa-MiniLM-L6-cos-v1":                    "apache-2.0",
+    "multi-qa-mpnet-base-dot-v1":                   "apache-2.0",
+    "distiluse-base-multilingual-cased-v2":         "apache-2.0",
+    "paraphrase-multilingual-MiniLM-L12-v2":        "apache-2.0",
+    "clip-vit-base-patch32":                        "mit",
+    # Image generation
+    "bk-sdm-tiny":                                  "creativeml-openrail-m",
+    # VAD
+    "fsmn-vad":                                     "apache-2.0",
+    # Privacy filter
+    "privacy-filter-nemotron":                      "apache-2.0",
+    "privacy-filter-openai":                        "apache-2.0",
+    # OCR
+    "detector-craft":                               "mit",
+    "recognizer-crnn.en":                           "apache-2.0",
+    # TTS
+    "kokoro":                                       "apache-2.0",
+}
+
 # Family → capabilities. Multi-modal models list more than one.
 FAMILY_CAPABILITIES: dict[str, list[str]] = {
     "llama": ["text-generation"],
@@ -84,6 +147,9 @@ FAMILY_CAPABILITIES: dict[str, list[str]] = {
     "bk_sdm": ["image-generation"],
     "fsmn": ["voice-activity-detection"],
     "privacy_filter": ["classification"],
+    "craft": ["text-detection"],
+    "crnn": ["text-recognition"],
+    "kokoro": ["text-to-speech"],
 }
 
 # Family-level default-quantized preference. Within the quantized variants
@@ -170,13 +236,15 @@ def build_config(repo_short: str, backend: str, files: list[dict]) -> dict[str, 
             size = match.group(1) if match else None
             if size:
                 sizes_seen.add(size)
+        # `methods` is intentionally omitted; it requires .pte introspection
+        # via the executorch Python package and is a separate follow-up. The
+        # schema marks it optional.
         variants.append(
             {
                 "file": filename,
                 "precision": precision,
                 "quantized": quantized,
                 "default": False,
-                "methods": {"TODO_methods": "introspect .pte to fill"},
             }
         )
 
@@ -198,13 +266,14 @@ def build_config(repo_short: str, backend: str, files: list[dict]) -> dict[str, 
     if quant_default is not None:
         variants[quant_default]["default"] = True
 
+    license_token = REPO_LICENSE.get(suffix, "TODO_license")
     config: dict[str, Any] = {
         "$schema": SPEC_SCHEMA_URL,
         "model": model,
         "family": family,
         "capabilities": capabilities,
         "backend": backend,
-        "license": "TODO_license",
+        "license": license_token,
         "variants": variants,
     }
     if size_field is not None:
