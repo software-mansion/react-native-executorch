@@ -1,36 +1,13 @@
 #pragma once
 
 #include <executorch/runtime/core/error.h>
+#include <source_location>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <variant>
 
 #include <rnexecutorch/ErrorCodes.h>
-
-namespace rnexecutorch::detail {
-constexpr const char *basename(const char *path) noexcept {
-  const char *base = path;
-  while (*path) {
-    if (*path++ == '/')
-      base = path;
-  }
-  return base;
-}
-} // namespace rnexecutorch::detail
-
-// clang-format off
-#define CHECK_OK_OR_THROW_FORWARD_ERROR(result) \
-  if (!(result).ok()) \
-    throw RnExecutorchError( \
-        (result).error(), std::string("[") + ::rnexecutorch::detail::basename(__FILE__) + \
-        "] Forward pass failed (in: " + __func__ + "). Ensure the model input is correct.")
-
-#define THROW_NOT_LOADED_ERROR() \
-  throw RnExecutorchError( \
-      RnExecutorchErrorCode::ModuleNotLoaded, \
-      std::string("[") + ::rnexecutorch::detail::basename(__FILE__) + \
-      "] Model not loaded (in: " + __func__ + ")")
-// clang-format on
 
 namespace rnexecutorch {
 
@@ -59,4 +36,40 @@ public:
   }
 };
 
+namespace detail {
+
+// npos + 1 wraps to 0, so the no-slash case returns the whole path.
+constexpr std::string_view basename(std::string_view path) noexcept {
+  return path.substr(path.find_last_of('/') + 1);
+}
+
+inline std::string locationPrefix(const std::source_location &loc) {
+  return "[" + std::string(basename(loc.file_name())) + "] ";
+}
+
+[[noreturn]] inline void
+throwNotLoaded(std::source_location loc = std::source_location::current()) {
+  throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                          locationPrefix(loc) + "Model not loaded (in: " +
+                              loc.function_name() + ")");
+}
+
+template <typename Result>
+inline void checkOkOrThrowForwardError(
+    const Result &result,
+    std::source_location loc = std::source_location::current()) {
+  if (!result.ok()) {
+    throw RnExecutorchError(
+        result.error(), locationPrefix(loc) +
+                            "Forward pass failed (in: " + loc.function_name() +
+                            "). Ensure the model input is correct.");
+  }
+}
+
+} // namespace detail
 } // namespace rnexecutorch
+
+#define CHECK_OK_OR_THROW_FORWARD_ERROR(result)                                \
+  ::rnexecutorch::detail::checkOkOrThrowForwardError(result)
+
+#define THROW_NOT_LOADED_ERROR() ::rnexecutorch::detail::throwNotLoaded()

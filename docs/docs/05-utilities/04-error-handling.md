@@ -68,7 +68,9 @@ llm.delete();
 
 ## Reference
 
-All errors in React Native ExecuTorch inherit from `RnExecutorchError` and include a `code` property from the `RnExecutorchErrorCode` enum. Below is a comprehensive list of all possible errors, organized by category.
+All errors in React Native ExecuTorch inherit from `RnExecutorchError` and include a `code` property. The code is typed as `RnExecutorchErrorCode | number`: in practice you'll almost always see a member of the enum, but the codes are generated from a shared config into both the C++ and TS sources, and if those generated files drift the raw numeric value flows through unchanged. When switching on `err.code`, always include a `default` branch.
+
+Below is a comprehensive list of all possible errors, organized by category.
 
 ### Module State Errors
 

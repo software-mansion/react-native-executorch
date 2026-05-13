@@ -48,7 +48,9 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   FileReadFailed = 114,
   /**
-   * Thrown when the size of model output is unexpected.
+   * Thrown when the size of model output is unexpected. If you're using your
+   * custom model with any of the pre-defined modules, please verify docs or
+   * source code for the expected model I/O contract.
    */
   InvalidModelOutput = 115,
   /**
@@ -77,7 +79,9 @@ enum class RnExecutorchErrorCode : int32_t {
   InvalidModelSource = 120,
   /**
    * Thrown when the number of passed inputs to the model is different than the
-   * model metadata specifies.
+   * model metadata specifies. If you're using your custom model with any of the
+   * pre-defined modules, please verify docs or source code for the expected
+   * model I/O contract.
    */
   UnexpectedNumInputs = 121,
   /**
