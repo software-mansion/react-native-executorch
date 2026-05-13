@@ -1013,12 +1013,12 @@ export const SELFIE_SEGMENTATION = {
 // FastSAM Instance Segmentation
 const FASTSAM_S_SEG_MODEL =
   Platform.OS === 'ios'
-    ? `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-s/coreml/fastsam_s_coreml_fp16.pte`
-    : `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-s/xnnpack/fastsam_s_xnnpack_fp32.pte`;
+    ? `${URL_PREFIX}-fast-sam/${VERSION_TAG}/fastsam-s/coreml/fastsam_s_coreml_fp16.pte`
+    : `${URL_PREFIX}-fast-sam/${VERSION_TAG}/fastsam-s/xnnpack/fastsam_s_xnnpack_fp32.pte`;
 const FASTSAM_X_SEG_MODEL =
   Platform.OS === 'ios'
-    ? `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-x/coreml/fastsam_x_coreml_fp16.pte`
-    : `${URL_PREFIX}-fast-sam/${NEXT_VERSION_TAG}/fastsam-x/xnnpack/fastsam_x_xnnpack_fp32.pte`;
+    ? `${URL_PREFIX}-fast-sam/${VERSION_TAG}/fastsam-x/coreml/fastsam_x_coreml_fp16.pte`
+    : `${URL_PREFIX}-fast-sam/${VERSION_TAG}/fastsam-x/xnnpack/fastsam_x_xnnpack_fp32.pte`;
 
 /**
  * @category Models - Instance Segmentation
