@@ -6,28 +6,55 @@
 # files so this stays accurate.
 name: Example apps build check
 on:
+  # `push` is the primary trigger so caches are saved against `refs/heads/<branch>`
+  # and survive PR close/reopen. `pull_request` only catches transitions where no
+  # commit was pushed (PR opened/reopened from an existing branch, draft→ready).
+  # `synchronize` is intentionally absent — push already covers every commit.
   push:
-    branches:
-      - main
+    branches: ['**']
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review]
   workflow_dispatch:
+
+# Per-(event, branch) concurrency. Push and pull_request live in separate groups
+# so opening a PR from an already-pushed branch doesn't cancel the push run that
+# saves the durable, branch-scoped cache.
+concurrency:
+  group: build-apps-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   detect-changes:
-    if: github.repository == 'software-mansion/react-native-executorch' && github.event.pull_request.draft != true
+    if: github.repository == 'software-mansion/react-native-executorch'
     runs-on: ubuntu-latest
     outputs:
       android_apps: ${{ steps.matrix.outputs.android_apps }}
       ios_apps: ${{ steps.matrix.outputs.ios_apps }}
       bundle_apps: ${{ steps.matrix.outputs.bundle_apps }}
     steps:
+      - name: Resolve draft status
+        id: draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            is_draft="${{ github.event.pull_request.draft }}"
+          else
+            ref_name="${GITHUB_REF#refs/heads/}"
+            is_draft=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$ref_name" --state open --json isDraft --jq '.[0].isDraft // false')
+          fi
+          echo "is_draft=$is_draft" >> "$GITHUB_OUTPUT"
+          if [ "$is_draft" = "true" ]; then
+            echo "Branch's open PR is draft — skipping matrix."
+          fi
+
       - name: Checkout
+        if: steps.draft.outputs.is_draft != 'true'
         uses: actions/checkout@v6
 
       - name: Detect changed apps
         id: filter
-        if: github.event_name != 'workflow_dispatch'
+        if: steps.draft.outputs.is_draft != 'true' && github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -125,6 +152,7 @@ jobs:
 
       - name: Compute matrices
         id: matrix
+        if: steps.draft.outputs.is_draft != 'true'
         run: |
           all='["llm","computer-vision","speech","text-embeddings","bare-rn"]'
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
