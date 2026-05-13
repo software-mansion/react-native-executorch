@@ -22,14 +22,16 @@ title: Model Size
 
 ## Instance Segmentation
 
-| Model            | XNNPACK [MB] |
-| ---------------- | :----------: |
-| YOLO26N_SEG      |     11.6     |
-| YOLO26S_SEG      |     42.3     |
-| YOLO26M_SEG      |     95.4     |
-| YOLO26L_SEG      |     113      |
-| YOLO26X_SEG      |     252      |
-| RF_DETR_NANO_SEG |     124      |
+| Model            | XNNPACK [MB] | Core ML FP32 [MB] | Core ML FP16 [MB] |
+| ---------------- | :----------: | :---------------: | :---------------: |
+| YOLO26N_SEG      |     11.6     |         -         |         -         |
+| YOLO26S_SEG      |     42.3     |         -         |         -         |
+| YOLO26M_SEG      |     95.4     |         -         |         -         |
+| YOLO26L_SEG      |     113      |         -         |         -         |
+| YOLO26X_SEG      |     252      |         -         |         -         |
+| RF_DETR_NANO_SEG |     124      |         -         |         -         |
+| FASTSAM_S        |     47.3     |       47.8        |       24.2        |
+| FASTSAM_X        |     289      |        290        |        145        |
 
 ## Style Transfer
 

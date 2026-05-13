@@ -1,4 +1,5 @@
 #include "VerticalOCR.h"
+#include <algorithm>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
@@ -71,8 +72,12 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
   auto detections = runInference(rotated);
   for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
-                                               rotated.size());
+    std::array<types::Point, 2> corners = {det.bbox.p1, det.bbox.p2};
+    ::rnexecutorch::utils::inverseRotatePoints(corners, orient, rotated.size());
+    det.bbox = {{std::min(corners[0].x, corners[1].x),
+                 std::min(corners[0].y, corners[1].y)},
+                {std::max(corners[0].x, corners[1].x),
+                 std::max(corners[0].y, corners[1].y)}};
   }
   return detections;
 }
@@ -187,10 +192,8 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
   float confidenceScore = 0.0;
   if (!characterBoxes.empty()) {
     // Prepare information useful for proper boxes shifting and image cropping.
-    const int32_t boxWidth =
-        static_cast<int32_t>(box.bbox[2].x - box.bbox[0].x);
-    const int32_t boxHeight =
-        static_cast<int32_t>(box.bbox[2].y - box.bbox[0].y);
+    const int32_t boxWidth = static_cast<int32_t>(box.bbox.width());
+    const int32_t boxHeight = static_cast<int32_t>(box.bbox.height());
     cv::Size narrowRecognizerSize =
         detector.calculateModelImageSize(constants::kSmallDetectorWidth);
     types::PaddingInfo paddingsBox = utils::calculateResizeRatioAndPaddings(
@@ -204,16 +207,15 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
             : _handleJointCharacters(box, originalImage, characterBoxes,
                                      paddingsBox, imagePaddings);
   }
-  // Modify the returned boxes to match the original image size
-  std::array<types::Point, 4> finalBbox;
-  for (size_t i = 0; i < box.bbox.size(); ++i) {
-    finalBbox[i].x =
-        (box.bbox[i].x - imagePaddings.left) * imagePaddings.resizeRatio;
-    finalBbox[i].y =
-        (box.bbox[i].y - imagePaddings.top) * imagePaddings.resizeRatio;
-  }
+  // Modify the returned boxes to match the original image size.
+  const float ratio = imagePaddings.resizeRatio;
+  const float padLeft = static_cast<float>(imagePaddings.left);
+  const float padTop = static_cast<float>(imagePaddings.top);
+  types::BBox transformedBbox{
+      {(box.bbox.p1.x - padLeft) * ratio, (box.bbox.p1.y - padTop) * ratio},
+      {(box.bbox.p2.x - padLeft) * ratio, (box.bbox.p2.y - padTop) * ratio}};
 
-  return {finalBbox, text, confidenceScore};
+  return {transformedBbox, text, confidenceScore};
 }
 
 void VerticalOCR::unload() noexcept {

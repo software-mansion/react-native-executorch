@@ -49,6 +49,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('segment_anything/')}
+        >
+          <Text style={styles.buttonText}>Segment Anything</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('ocr/')}
         >
           <Text style={styles.buttonText}>OCR</Text>

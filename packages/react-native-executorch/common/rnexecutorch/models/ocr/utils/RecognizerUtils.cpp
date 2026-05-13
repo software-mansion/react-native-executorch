@@ -1,8 +1,11 @@
 #include "RecognizerUtils.h"
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/utils/computer_vision/Types.h>
 
 namespace rnexecutorch::models::ocr::utils {
+using namespace rnexecutorch::utils::computer_vision;
+
 cv::Mat softmax(const cv::Mat &inputs) {
   cv::Mat maxVal;
   cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
@@ -80,9 +83,10 @@ float confidenceScore(const std::vector<float> &values,
   return std::pow(product, exponent);
 }
 
-cv::Rect extractBoundingBox(std::array<types::Point, 4> &points) {
-  cv::Mat pointsMat(4, 1, CV_32FC2, points.data());
-  return cv::boundingRect(pointsMat);
+cv::Rect extractBoundingBox(const BBox &bbox) {
+  return cv::Rect(static_cast<int>(bbox.p1.x), static_cast<int>(bbox.p1.y),
+                  static_cast<int>(bbox.width()),
+                  static_cast<int>(bbox.height()));
 }
 
 cv::Mat characterBitMask(const cv::Mat &img) {
@@ -157,22 +161,22 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   return resultImage;
 }
 
-cv::Mat
-cropImageWithBoundingBox(const cv::Mat &img,
-                         const std::array<types::Point, 4> &bbox,
-                         const std::array<types::Point, 4> &originalBbox,
-                         const types::PaddingInfo &paddings,
-                         const types::PaddingInfo &originalPaddings) {
-  if (originalBbox.empty()) {
+cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const BBox &bbox,
+                                 const BBox &originalBbox,
+                                 const types::PaddingInfo &paddings,
+                                 const types::PaddingInfo &originalPaddings) {
+  if (!originalBbox.isValid()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
                             "Original bounding box cannot be empty.");
   }
-  const types::Point topLeft = originalBbox[0];
+  const types::Point topLeft = originalBbox.p1;
 
+  const std::array<Point, 4> bboxCorners = {
+      bbox.p1, {bbox.p2.x, bbox.p1.y}, bbox.p2, {bbox.p1.x, bbox.p2.y}};
   std::vector<cv::Point2f> points;
-  points.reserve(bbox.size());
+  points.reserve(4);
 
-  for (const auto &point : bbox) {
+  for (const auto &point : bboxCorners) {
     types::Point transformedPoint = point;
 
     transformedPoint.x -= paddings.left;
@@ -202,9 +206,8 @@ cropImageWithBoundingBox(const cv::Mat &img,
   return croppedImage;
 }
 
-cv::Mat prepareForRecognition(const cv::Mat &originalImage,
-                              const std::array<types::Point, 4> &bbox,
-                              const std::array<types::Point, 4> &originalBbox,
+cv::Mat prepareForRecognition(const cv::Mat &originalImage, const BBox &bbox,
+                              const BBox &originalBbox,
                               const types::PaddingInfo &paddings,
                               const types::PaddingInfo &originalPaddings) {
   auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,

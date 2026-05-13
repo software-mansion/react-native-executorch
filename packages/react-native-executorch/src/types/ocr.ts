@@ -1,30 +1,20 @@
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { Frame, PixelData, ResourceSource } from './common';
+import { Bbox } from './objectDetection';
 
 /**
  * OCRDetection represents a single detected text instance in an image,
  * including its bounding box, recognized text, and confidence score.
  * @category Types
- * @property {Point[]} bbox - An array of points defining the bounding box around the detected text.
+ * @property {Bbox} bbox - The axis-aligned bounding box around the detected text, with `x1`/`y1` as the top-left corner and `x2`/`y2` as the bottom-right corner.
  * @property {string} text - The recognized text within the bounding box.
  * @property {number} score - The confidence score of the OCR detection, ranging from 0 to 1.
  */
 export interface OCRDetection {
-  bbox: Point[];
+  bbox: Bbox;
   text: string;
   score: number;
-}
-
-/**
- * Point represents a coordinate in 2D space.
- * @category Types
- * @property {number} x - The x-coordinate of the point.
- * @property {number} y - The y-coordinate of the point.
- */
-export interface Point {
-  x: number;
-  y: number;
 }
 
 /**

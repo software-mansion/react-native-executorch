@@ -203,3 +203,6 @@ fishjam
 Fishjam
 deinitialize
 Deinitialize
+fastsam
+promptable
+topk

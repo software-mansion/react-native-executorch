@@ -110,11 +110,17 @@ export default function OCRTask({
         style={StyleSheet.absoluteFill}
       >
         {detections.map((det, i) => {
-          const pts = det.bbox
-            .map((p) => `${p.x * scale + offsetX},${p.y * scale + offsetY}`)
+          const { x1, y1, x2, y2 } = det.bbox;
+          const pts = [
+            [x1, y1],
+            [x2, y1],
+            [x2, y2],
+            [x1, y2],
+          ]
+            .map(([x, y]) => `${x * scale + offsetX},${y * scale + offsetY}`)
             .join(' ');
-          const labelX = det.bbox[0]!.x * scale + offsetX;
-          const labelY = det.bbox[0]!.y * scale + offsetY - 4;
+          const labelX = x1 * scale + offsetX;
+          const labelY = y1 * scale + offsetY - 4;
           return (
             <React.Fragment key={i}>
               <Polygon points={pts} fill="none" stroke="cyan" strokeWidth={2} />

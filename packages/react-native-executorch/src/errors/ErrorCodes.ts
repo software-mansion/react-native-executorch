@@ -27,14 +27,6 @@ export enum RnExecutorchErrorCode {
    */
   InvalidConfig = 112,
   /**
-   * Thrown when the type of model source passed by the user is invalid.
-   */
-  InvalidModelSource = 255,
-  /**
-   * Thrown when the number of passed inputs to the model is different than the model metadata specifies.
-   */
-  UnexpectedNumInputs = 97,
-  /**
    * Thrown when React Native ExecuTorch threadpool problem occurs.
    */
   ThreadPoolError = 113,
@@ -63,9 +55,17 @@ export enum RnExecutorchErrorCode {
    */
   PlatformNotSupported = 119,
   /**
+   * Thrown when the type of model source passed by the user is invalid.
+   */
+  InvalidModelSource = 120,
+  /**
+   * Thrown when the number of passed inputs to the model is different than the model metadata specifies.
+   */
+  UnexpectedNumInputs = 121,
+  /**
    * Thrown when an error occurs with the tokenizer or tokenization process.
    */
-  TokenizerError = 167,
+  TokenizerError = 122,
   /**
    * Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
    */
@@ -130,6 +130,10 @@ export enum RnExecutorchErrorCode {
    * Status indicating there are no more steps of execution to run
    */
   EndOfMethod = 3,
+  /**
+   * Status indicating a resource has already been loaded.
+   */
+  AlreadyLoaded = 4,
   /**
    * Operation is not supported in the current context.
    */

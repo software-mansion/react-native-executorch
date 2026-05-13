@@ -45,10 +45,12 @@ Installation is pretty straightforward, use your package manager of choice to in
 
     ```bash
     npm install react-native-executorch
-    # For Expo projects
+    # For Expo projects, you need to install expo resource fetcher
     npm install react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
+    npm install expo-file-system expo-asset
+    # For bare React Native projects, you need to install bare resource fetcher
     npm install react-native-executorch-bare-resource-fetcher
+    npm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
     ```
 
   </TabItem>
@@ -56,10 +58,12 @@ Installation is pretty straightforward, use your package manager of choice to in
 
     ```bash
     pnpm install react-native-executorch
-    # For Expo projects
+    # For Expo projects, you need to install expo resource fetcher
     pnpm install react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
+    pnpm install expo-file-system expo-asset
+    # For bare React Native projects, you need to install bare resource fetcher
     pnpm install react-native-executorch-bare-resource-fetcher
+    pnpm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
     ```
 
   </TabItem>
@@ -67,10 +71,12 @@ Installation is pretty straightforward, use your package manager of choice to in
 
     ```bash
     yarn add react-native-executorch
-    # For Expo projects
+    # For Expo projects, you need to install expo resource fetcher
     yarn add react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
+    yarn add expo-file-system expo-asset
+    # For bare React Native projects, you need to install bare resource fetcher
     yarn add react-native-executorch-bare-resource-fetcher
+    yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
     ```
 
   </TabItem>
@@ -82,7 +88,7 @@ Before using any other API, you must call `initExecutorch` with a resource fetch
 ```js
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-// or BareResourceFetcher for Expo projects
+// or BareResourceFetcher for bare react-native projects
 
 initExecutorch({ resourceFetcher: ExpoResourceFetcher });
 ```

@@ -462,10 +462,10 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
 inline jsi::Value getJsiValue(const utils::computer_vision::BBox &bbox,
                               jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
-  obj.setProperty(runtime, "x1", bbox.x1);
-  obj.setProperty(runtime, "y1", bbox.y1);
-  obj.setProperty(runtime, "x2", bbox.x2);
-  obj.setProperty(runtime, "y2", bbox.y2);
+  obj.setProperty(runtime, "x1", bbox.p1.x);
+  obj.setProperty(runtime, "y1", bbox.p1.y);
+  obj.setProperty(runtime, "x2", bbox.p2.x);
+  obj.setProperty(runtime, "y2", bbox.p2.y);
   return obj;
 }
 
@@ -526,16 +526,8 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
 
     auto jsiDetectionObject = jsi::Object(runtime);
 
-    auto jsiBboxArray = jsi::Array(runtime, 4);
-#pragma unroll
-    for (size_t j = 0; j < 4u; ++j) {
-      auto jsiPointObject = jsi::Object(runtime);
-      jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);
-      jsiPointObject.setProperty(runtime, "y", detection.bbox[j].y);
-      jsiBboxArray.setValueAtIndex(runtime, j, jsiPointObject);
-    }
-
-    jsiDetectionObject.setProperty(runtime, "bbox", jsiBboxArray);
+    jsiDetectionObject.setProperty(runtime, "bbox",
+                                   getJsiValue(detection.bbox, runtime));
     jsiDetectionObject.setProperty(
         runtime, "text", jsi::String::createFromUtf8(runtime, detection.text));
     jsiDetectionObject.setProperty(runtime, "score", detection.score);

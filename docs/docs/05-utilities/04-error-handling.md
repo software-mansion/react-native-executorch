@@ -146,12 +146,13 @@ These errors are mapped directly from the ExecuTorch runtime. They typically ind
 
 #### System Errors
 
-| Error Code     | Description                         |
-| -------------- | ----------------------------------- |
-| `Ok`           | Operation successful (not an error) |
-| `Internal`     | Internal ExecuTorch error           |
-| `InvalidState` | Operation called in invalid state   |
-| `EndOfMethod`  | End of method reached               |
+| Error Code      | Description                         |
+| --------------- | ----------------------------------- |
+| `Ok`            | Operation successful (not an error) |
+| `Internal`      | Internal ExecuTorch error           |
+| `InvalidState`  | Operation called in invalid state   |
+| `EndOfMethod`   | End of method reached               |
+| `AlreadyLoaded` | Resource has already been loaded    |
 
 #### Logical Errors
 

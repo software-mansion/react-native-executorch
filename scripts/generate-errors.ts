@@ -37,6 +37,7 @@ function generateCppEnum() {
     'Internal',
     'InvalidState',
     'EndOfMethod',
+    'AlreadyLoaded',
     'NotSupported',
     'NotImplemented',
     'InvalidArgument',

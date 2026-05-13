@@ -2,7 +2,9 @@
 // Run `yarn codegen:errors` to generate C++ and TypeScript enums
 
 export const errorDefinitions = {
-  // React-native-ExecuTorch errors
+  // =========================================================================
+  // General React Native ExecuTorch errors (0x60–0x7f)
+  // =========================================================================
   /**
    * An umbrella-error that is thrown usually when something unexpected happens, for example a 3rd-party library error.
    */
@@ -27,14 +29,6 @@ export const errorDefinitions = {
    * Thrown when config parameters passed to a model are invalid. For example, when LLM's topp is outside of range [0, 1].
    */
   InvalidConfig: 0x70,
-  /*
-   * Thrown when the type of model source passed by the user is invalid.
-   */
-  InvalidModelSource: 0xff,
-  /*
-   * Thrown when the number of passed inputs to the model is different than the model metadata specifies.
-   */
-  UnexpectedNumInputs: 0x61,
   /*
    * Thrown when React Native ExecuTorch threadpool problem occurs.
    */
@@ -63,12 +57,22 @@ export const errorDefinitions = {
    * Thrown when a feature or platform is not supported in the current environment.
    */
   PlatformNotSupported: 0x77,
-
+  /*
+   * Thrown when the type of model source passed by the user is invalid.
+   */
+  InvalidModelSource: 0x78,
+  /*
+   * Thrown when the number of passed inputs to the model is different than the model metadata specifies.
+   */
+  UnexpectedNumInputs: 0x79,
   /*
    * Thrown when an error occurs with the tokenizer or tokenization process.
    */
-  TokenizerError: 0xa7,
-  // INFO: SpeechToText errors
+  TokenizerError: 0x7a,
+
+  // =========================================================================
+  // Speech to Text errors (0xa0–0xaf)
+  // =========================================================================
   /*
    * Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
    */
@@ -86,7 +90,9 @@ export const errorDefinitions = {
    */
   StreamingInProgress: 0xa3,
 
-  // INFO: Resource Fetcher Errors
+  // =========================================================================
+  // Resource Fetcher errors (0xb0–0xbf)
+  // =========================================================================
   /**
    * Thrown when a resource fails to download. This could be due to invalid URL, or for example a network problem.
    */
@@ -120,10 +126,12 @@ export const errorDefinitions = {
    */
   ResourceFetcherPlatformNotSupported: 0xbb,
 
-  // ExecuTorch mapped errors
+  // =========================================================================
+  // ExecuTorch mapped errors (0x00–0x3f)
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h
+  // =========================================================================
 
-  // System errors
+  // System errors (0x00–0x0f)
   /**
    * Status indicating a successful operation.
    */
@@ -140,8 +148,12 @@ export const errorDefinitions = {
    * Status indicating there are no more steps of execution to run
    */
   EndOfMethod: 0x03,
+  /**
+   * Status indicating a resource has already been loaded.
+   */
+  AlreadyLoaded: 0x04,
 
-  // Logical errors
+  // Logical errors (0x10–0x1f)
   /**
    * Operation is not supported in the current context.
    */
@@ -163,7 +175,7 @@ export const errorDefinitions = {
    */
   OperatorMissing: 0x14,
 
-  // Resource errors
+  // Resource errors (0x20–0x2f)
   /**
    * Requested resource could not be found.
    */
@@ -189,7 +201,7 @@ export const errorDefinitions = {
    */
   OutOfResources: 0x25,
 
-  // Delegate errors
+  // Delegate errors (0x30–0x3f)
   /**
    * Init stage: Backend receives an incompatible delegate version.
    */
