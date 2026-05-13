@@ -207,3 +207,4 @@ fastsam
 promptable
 topk
 dtype
+modelurls

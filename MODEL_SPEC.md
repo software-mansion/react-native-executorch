@@ -22,7 +22,12 @@ apps. It resolves
 ## 2. Hugging Face repo layout
 
 Every model repository under `software-mansion/react-native-executorch-*`
-follows the same shape:
+follows the same shape. Single-size repos (one size of one model) hold
+backend directories at the root. Multi-size repos (e.g. Llama with `1b`
+and `3b`) interpose a `<size>/` directory between the root and the backend
+directories.
+
+### Single-size or no-size models
 
 ```
 react-native-executorch-<model>/
@@ -31,27 +36,47 @@ react-native-executorch-<model>/
 ├── tokenizer_config.json       # optional, when the model has one
 ├── xnnpack/
 │   ├── config.json
-│   ├── <model>_<size>_xnnpack_<precision>.pte
-│   └── <model>_<size>_xnnpack_<other_precision>.pte
-├── coreml/
-│   ├── config.json
-│   ├── <model>_<size>_coreml_<precision>.pte
-│   └── ...
-└── <other_backend>/
-    └── ...
+│   ├── <model>_<size?>_xnnpack_<precision>.pte
+│   └── <model>_<size?>_xnnpack_<other_precision>.pte
+└── coreml/
+    ├── config.json
+    └── <model>_<size?>_coreml_<precision>.pte
+```
+
+### Multi-size models
+
+```
+react-native-executorch-<model>/
+├── README.md
+├── <size_a>/
+│   ├── tokenizer.json          # optional, scoped to this size
+│   ├── tokenizer_config.json
+│   ├── xnnpack/
+│   │   ├── config.json
+│   │   ├── <model>_<size_a>_xnnpack_<precision>.pte
+│   │   └── ...
+│   └── coreml/
+│       └── ...
+├── <size_b>/
+│   └── ... (same shape)
+└── ...
 ```
 
 Rules:
 
 - One subdirectory per backend the model has been exported to (`xnnpack`,
   `coreml`, `vulkan`, `qnn`, ...).
-- Tokenizer files (`tokenizer.json`, `tokenizer_config.json`) live at the
-  repo root when shared across backends. A backend-specific tokenizer goes
-  inside the backend directory.
-- Each backend directory contains a `config.json` describing the variants
-  inside it. See [§4](#4-configjson-schema).
-- Repo names are not renamed in this migration. Repo-name cleanup is out of
-  scope; only the contents are restructured. (See
+- A repo is "multi-size" iff it publishes more than one size of the same
+  model under the new layout. Today that is every LLM family except
+  `phi-4-mini` and `bielik-v3.0`, plus `yolo26`, `yolo26-seg`,
+  `deeplab-v3`, and `fcn`.
+- Tokenizer files live next to the backend directories they apply to —
+  at the repo root for single-size repos, inside `<size>/` for
+  multi-size repos.
+- Each backend directory contains a `config.json` describing the
+  `(model, size, backend)` triple. See [§4](#4-configjson-schema).
+- Repo names are not renamed in this migration. Repo-name cleanup is out
+  of scope; only the contents are restructured. (See
   [§7](#7-execution-and-rollout).)
 
 ## 3. File naming convention
