@@ -47,7 +47,7 @@ Installation is pretty straightforward, use your package manager of choice to in
     # Compulsory one needs to be installed
     npm install react-native-executorch
 
-    # Additional necessary installation 
+    # Install for Resource Fetcher
     # For Expo projects
     npm install react-native-executorch-expo-resource-fetcher
     
@@ -62,7 +62,7 @@ Installation is pretty straightforward, use your package manager of choice to in
     # Compulsory one needs to be installed
     pnpm install react-native-executorch
 
-    # Additional necessary installation 
+    # Install for Resource Fetcher 
     # For Expo projects
     pnpm install react-native-executorch-expo-resource-fetcher
     
@@ -77,7 +77,7 @@ Installation is pretty straightforward, use your package manager of choice to in
     # Compulsory one needs to be installed
     yarn add react-native-executorch
 
-    # Additional necessary installation 
+    # Install for Resource Fetcher
     # For Expo projects
     yarn add react-native-executorch-expo-resource-fetcher
     
