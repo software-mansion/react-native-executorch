@@ -103,12 +103,17 @@ yarn < ios | android >
   
   ```bash
   npm install react-native-executorch
+
   # For Expo projects, you need to install expo resource fetcher
   npm install react-native-executorch-expo-resource-fetcher
   npm install expo-file-system expo-asset
+
   # For bare React Native projects, you need to install bare resource fetcher
   npm install react-native-executorch-bare-resource-fetcher
   npm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
+  # Depending on the platform, choose either iOS or Android
+  npm < ios | android >
   ```
 </details>
 <br>
@@ -117,12 +122,17 @@ yarn < ios | android >
   
   ```bash
   pnpm install react-native-executorch
+
   # For Expo projects, you need to install expo resource fetcher
   pnpm install react-native-executorch-expo-resource-fetcher
   pnpm install expo-file-system expo-asset
+
   # For bare React Native projects, you need to install bare resource fetcher
   pnpm install react-native-executorch-bare-resource-fetcher
   pnpm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
+  # Depending on the platform, choose either iOS or Android
+  pnpm < ios | android >
   ```
 </details>
 <br>
