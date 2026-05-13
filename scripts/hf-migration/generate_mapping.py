@@ -111,6 +111,11 @@ REPO_META: dict[str, dict[str, str]] = {
     "fsmn-vad":                                     {"model": "fsmn_vad", "family": "fsmn", "default_backend": "xnnpack", "default_precision": "fp32"},
     "privacy-filter-nemotron":                      {"model": "privacy_filter_nemotron", "family": "privacy_filter", "default_backend": "xnnpack", "default_precision": "fp32"},
     "privacy-filter-openai":                        {"model": "privacy_filter_openai", "family": "privacy_filter", "default_backend": "xnnpack", "default_precision": "fp32"},
+    # OCR
+    "detector-craft":                               {"model": "craft", "family": "craft", "default_backend": "xnnpack"},
+    "recognizer-crnn.en":                           {"model": "crnn", "family": "crnn", "default_backend": "xnnpack", "default_precision": "fp32"},
+    # TTS
+    "kokoro":                                       {"model": "kokoro", "family": "kokoro", "default_backend": "xnnpack", "default_precision": "fp32", "multi_component": "true"},
 }
 
 # Top-level dir (in current HF layout) → component token (in new filename).
@@ -169,6 +174,53 @@ def is_tokenizer(path: str) -> bool:
     return base in {"tokenizer.json", "tokenizer_config.json", "scheduler_config.json"}
 
 
+# Top-level directories whose contents are runtime-loaded assets (voices,
+# phonemizer data, etc.) and stay in place across the migration.
+KEPT_ASSET_PREFIXES = ("voices/", "phonemizer/", "scheduler/", "tokenizer/")
+
+
+def propose_kokoro(path: str) -> tuple[Optional[str], str]:
+    # Asset directories (phonemizer/, voices/, etc.) stay in place.
+    if any(path.startswith(p) for p in KEPT_ASSET_PREFIXES):
+        return path, "kokoro shared asset — kept at repo root"
+    # .pte path is `xnnpack/<size>/<component>.pte`. Return FLAT target;
+    # main()'s multi-size rewrite prepends `<size>/`.
+    parts = path.split("/")
+    if len(parts) == 3 and parts[0] == "xnnpack" and parts[2].endswith(".pte"):
+        size = parts[1]
+        component = parts[2].removesuffix(".pte")
+        new_name = f"kokoro_{size}_{component}_xnnpack_fp32.pte"
+        return f"xnnpack/{new_name}", "kokoro multi-size + multi-component"
+    return f"TODO_kokoro_unknown:{path}", "unrecognised kokoro path shape"
+
+
+def propose_recognizer_crnn(path: str) -> tuple[Optional[str], str]:
+    # Source: `xnnpack/<lang>/xnnpack_crnn_<lang>.pte`. Return FLAT target;
+    # main()'s multi-size rewrite prepends `<lang>/`.
+    parts = path.split("/")
+    if len(parts) == 3 and parts[0] == "xnnpack" and parts[2].endswith(".pte"):
+        lang = parts[1]
+        new_name = f"crnn_{lang}_xnnpack_fp32.pte"
+        return f"xnnpack/{new_name}", f"recognizer-crnn language={lang}"
+    return f"TODO_crnn_unknown:{path}", "unrecognised crnn path shape"
+
+
+def propose_detector_craft(path: str) -> tuple[Optional[str], str]:
+    # Source: `xnnpack_quantized/xnnpack_craft_quantized.pte`
+    if path.endswith(".pte"):
+        # The library only references the quantized variant. Precision token
+        # is `int8` per the model's published quantization scheme (PTQ int8).
+        return "xnnpack/craft_xnnpack_int8.pte", "detector-craft quantized"
+    return f"TODO_craft_unknown:{path}", "unrecognised craft path shape"
+
+
+SPECIAL_CASE_HANDLERS = {
+    "kokoro": propose_kokoro,
+    "recognizer-crnn.en": propose_recognizer_crnn,
+    "detector-craft": propose_detector_craft,
+}
+
+
 def propose_target(repo: str, path: str) -> tuple[Optional[str], str]:
     """Return (target_path_in_target_repo, reason). target=None means drop."""
     for marker in DROP_PATTERNS:
@@ -180,6 +232,9 @@ def propose_target(repo: str, path: str) -> tuple[Optional[str], str]:
         return path, "tokenizer/config — kept at repo root unchanged"
 
     suffix = repo_suffix(repo)
+    if suffix in SPECIAL_CASE_HANDLERS:
+        return SPECIAL_CASE_HANDLERS[suffix](path)
+
     meta = REPO_META.get(suffix)
     if meta is None:
         return f"TODO_unknown_repo:{path}", f"no REPO_META entry for {suffix!r}"
@@ -274,6 +329,20 @@ def parse_size_from_target(target: Optional[str], repo_suffix: str) -> Optional[
         return None
     meta = REPO_META.get(repo_suffix)
     if not meta:
+        return None
+    if repo_suffix == "kokoro":
+        # Filename: kokoro_<size>_<component>_xnnpack_<precision>.pte
+        filename = target.rsplit("/", 1)[-1].removesuffix(".pte")
+        parts = filename.split("_")
+        if len(parts) >= 4 and parts[0] == "kokoro" and parts[1] in {"small", "medium"}:
+            return parts[1]
+        return None
+    if repo_suffix == "recognizer-crnn.en":
+        # Filename: crnn_<lang>_xnnpack_<precision>.pte
+        filename = target.rsplit("/", 1)[-1].removesuffix(".pte")
+        parts = filename.split("_")
+        if len(parts) >= 4 and parts[0] == "crnn" and parts[-2] == "xnnpack":
+            return "_".join(parts[1:-2])
         return None
     if meta.get("multi_component"):
         # The token between model and backend is a component, not a size.
