@@ -49,6 +49,8 @@ export type LLMModelName =
   | 'qwen2.5-1.5b-quantized'
   | 'qwen2.5-3b'
   | 'qwen2.5-3b-quantized'
+  | 'qwen3.5-vl-0.8b-quantized'
+  | 'qwen3.5-vl-2b-quantized'
   | 'phi-4-mini-4b'
   | 'phi-4-mini-4b-quantized'
   | 'lfm2.5-350m'
