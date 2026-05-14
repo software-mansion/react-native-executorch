@@ -81,7 +81,6 @@ React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion
 
 ### :one: Installation
 
-
 ```bash
 # Install the package
 yarn add react-native-executorch
@@ -97,49 +96,13 @@ yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-down
 # Depending on the platform, choose either iOS or Android
 yarn < ios | android >
 ```
-<br>
-<details>
-  <summary><strong>Check for NPM Installation</strong></summary>
-  
-  ```bash
-  npm install react-native-executorch
 
-  # For Expo projects, you need to install expo resource fetcher
-  npm install react-native-executorch-expo-resource-fetcher
-  npm install expo-file-system expo-asset
-
-  # For bare React Native projects, you need to install bare resource fetcher
-  npm install react-native-executorch-bare-resource-fetcher
-  npm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-
-  # Depending on the platform, choose either iOS or Android
-  npm < ios | android >
-  ```
-</details>
-<br>
-<details>
-  <summary><strong>Check for PNPM Installation</strong></summary>
-  
-  ```bash
-  pnpm install react-native-executorch
-
-  # For Expo projects, you need to install expo resource fetcher
-  pnpm install react-native-executorch-expo-resource-fetcher
-  pnpm install expo-file-system expo-asset
-
-  # For bare React Native projects, you need to install bare resource fetcher
-  pnpm install react-native-executorch-bare-resource-fetcher
-  pnpm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-
-  # Depending on the platform, choose either iOS or Android
-  pnpm < ios | android >
-  ```
-</details>
-<br>
+> npm and pnpm work too — use `npm install` or `pnpm add` for the packages, and `npm run <ios|android>` / `pnpm <ios|android>` for the run step.
 
 ### :two: Setup & Initialization
 
 Add this to your component file:
+
 ```tsx
 import {
   useLLM,
