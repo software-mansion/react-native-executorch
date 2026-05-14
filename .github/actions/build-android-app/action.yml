@@ -65,7 +65,6 @@ runs:
       with:
         distribution: "zulu"
         java-version: 17
-        cache: "gradle"
 
     - name: Install Expo CLI
       if: steps.cache.outputs.cache-hit != 'true' && inputs.expo-prebuild == 'true'
@@ -82,18 +81,10 @@ runs:
         rm -rf android
         npx expo prebuild --platform android --no-install
 
-    - name: Cache Gradle
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          ${{ inputs.app-path }}/android/.gradle
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
+    # Note: not caching ~/.gradle or apps/<app>/android/.gradle on purpose.
+    # A full Gradle cache for this monorepo runs ~3 GB and competes with the
+    # 10 GB repo cache quota against the much smaller (~250 B) build markers.
+    # Markers gating entire build cells beat ~5-10 min of Gradle warm-up.
     - name: Build app
       if: steps.cache.outputs.cache-hit != 'true'
       working-directory: ${{ inputs.app-path }}/android

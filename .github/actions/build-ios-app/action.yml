@@ -67,17 +67,10 @@ runs:
         rm -rf ios
         npx expo prebuild --platform ios --no-install
 
-    - name: Cache CocoaPods
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/cache@v5
-      with:
-        path: |
-          ~/Library/Caches/CocoaPods
-          ${{ inputs.app-path }}/ios/Pods
-        key: ${{ runner.os }}-pods-${{ inputs.filter-name }}-${{ hashFiles(format('{0}/ios/Podfile.lock', inputs.app-path)) }}
-        restore-keys: |
-          ${{ runner.os }}-pods-${{ inputs.filter-name }}-
-
+    # Note: not caching CocoaPods on purpose. A populated Pods/ runs ~500 MB
+    # per app — ~2.5 GB across the 5 iOS cells — and competes with the 10 GB
+    # repo cache quota against the much smaller (~250 B) build markers.
+    # Markers gating entire build cells beat ~3-5 min of pod-install warm-up.
     - name: Install CocoaPods dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       working-directory: ${{ inputs.app-path }}/ios

@@ -30,6 +30,12 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         uses: dorny/paths-filter@v3
         with:
+          # Diff against the previous commit (synchronize/push) or the PR base
+          # (opened/reopened/ready_for_review). Without this, dorny defaults to
+          # the PR base on every push, so each commit re-evaluates the
+          # cumulative PR diff and pulls every app whose filter ever matched
+          # into the matrix — even when the latest push only touched one app.
+          base: ${{ github.event.before || github.event.pull_request.base.sha }}
           filters: |
             # Cross-platform shared infrastructure
             core-shared: &core-shared
