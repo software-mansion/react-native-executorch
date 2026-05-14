@@ -93,6 +93,8 @@ yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-down
 yarn < ios | android >
 ```
 
+> npm y pnpm también funcionan — usa `npm install` o `pnpm add` para los paquetes, y `npm run <ios|android>` / `pnpm <ios|android>` para el paso de ejecución.
+
 ### :two: Configuración e inicialización
 
 Agrega esto a tu archivo de componente:

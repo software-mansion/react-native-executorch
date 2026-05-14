@@ -93,6 +93,8 @@ yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-down
 yarn < ios | android >
 ```
 
+> npm 和 pnpm 同样适用 — 使用 `npm install` 或 `pnpm add` 安装包，使用 `npm run <ios|android>` / `pnpm <ios|android>` 运行应用。
+
 ### :two: 设置和初始化
 
 将此添加到您的组件文件中：
