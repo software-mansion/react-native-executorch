@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 // Verifies every source file under packages/react-native-executorch/ is matched by
-// at least one filter in .github/workflows/build-apps.yml. Prevents new files (e.g.
+// at least one filter in scripts/build-app-filters.yml. Prevents new files (e.g.
 // a new model directory or controller) from silently slipping past CI's per-app
 // path triggers.
 
@@ -10,7 +10,7 @@ import * as cp from 'child_process';
 const yaml = require('js-yaml');
 const picomatch = require('picomatch');
 
-const WORKFLOW = '.github/workflows/build-apps.yml';
+const FILTERS_FILE = 'scripts/build-app-filters.yml';
 const PACKAGE_ROOT = 'packages/react-native-executorch/';
 
 // Files that legitimately don't belong to any per-app or shared filter.
@@ -25,11 +25,9 @@ type FilterValue = string | FilterValue[];
 const flatten = (x: FilterValue): string[] =>
   Array.isArray(x) ? x.flatMap(flatten) : [x];
 
-const wf = yaml.load(fs.readFileSync(WORKFLOW, 'utf8'));
-const filtersStr = wf.jobs['detect-changes'].steps.find(
-  (s: { id?: string }) => s.id === 'filter'
-).with.filters;
-const filters = yaml.load(filtersStr) as Record<string, FilterValue>;
+const filters = yaml.load(
+  fs.readFileSync(FILTERS_FILE, 'utf8')
+) as Record<string, FilterValue>;
 
 const patterns = new Set<string>();
 for (const v of Object.values(filters)) {
@@ -52,7 +50,7 @@ const orphans = tracked
 
 if (orphans.length > 0) {
   console.error(
-    `\n${WORKFLOW} does not cover ${orphans.length} file(s) under ${PACKAGE_ROOT}:\n`
+    `\n${FILTERS_FILE} does not cover ${orphans.length} file(s) under ${PACKAGE_ROOT}:\n`
   );
   orphans.forEach((f) => console.error('  ' + f));
   console.error(
@@ -64,5 +62,5 @@ if (orphans.length > 0) {
 }
 
 console.log(
-  `OK: every file under ${PACKAGE_ROOT} is covered by build-apps.yml.`
+  `OK: every file under ${PACKAGE_ROOT} is covered by ${FILTERS_FILE}.`
 );
