@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.h"
 #include <cstddef>
 #include <executorch/extension/tensor/tensor.h>
 #include <vector>
