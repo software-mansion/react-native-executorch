@@ -774,28 +774,28 @@ export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
 
 // S2T
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack.pte`;
-const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/coreml/whisper_tiny_en_coreml.pte`;
+const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
+const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp32.pte`;
 
 const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack.pte`;
-const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/coreml/whisper_base_en_coreml.pte`;
+const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
+const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/coreml/whisper_base_en_coreml_fp32.pte`;
 
 const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack.pte`;
-const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/coreml/whisper_small_en_coreml.pte`;
+const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
+const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/coreml/whisper_small_en_coreml_fp32.pte`;
 
 const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack.pte`;
-const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/coreml/whisper_tiny_coreml.pte`;
+const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
+const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/coreml/whisper_tiny_coreml_fp32.pte`;
 
 const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_xnnpack.pte`;
-const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/coreml/whisper_base_coreml.pte`;
+const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
+const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/coreml/whisper_base_coreml_fp32.pte`;
 
 const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_xnnpack.pte`;
-const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/coreml/whisper_small_coreml.pte`;
+const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
+const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/coreml/whisper_small_coreml_fp32.pte`;
 
 /**
  * @category Models - Speech To Text
