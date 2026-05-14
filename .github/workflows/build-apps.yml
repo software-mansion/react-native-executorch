@@ -1,6 +1,8 @@
-# Per-app build matrix gated by `dorny/paths-filter`. Adding a new model
-# directory, controller, or top-level module under packages/react-native-executorch/
-# probably means updating the filter block below — `core-shared` if it affects every
+# Per-app build matrix. Filter definitions live in scripts/build-app-filters.yml
+# and are evaluated by scripts/detect-changed-filters.ts against the diff of the
+# current push (not the cumulative PR diff). Adding a new model directory,
+# controller, or top-level module under packages/react-native-executorch/
+# probably means updating that filter file — `core-shared` if it affects every
 # app, or one of the per-app `<app>-pkg` anchors otherwise. CI runs
 # `scripts/check-ci-filter-coverage.ts` (in ci.yml's lint job) to flag uncovered
 # files so this stays accurate.
@@ -24,110 +26,49 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Enough history for `git diff $before..$head` against the previous
+          # push. PR series rarely exceed this; if they do, the script falls
+          # back to fetching the missing SHA on demand.
+          fetch-depth: 100
+
+      - name: Setup
+        if: github.event_name != 'workflow_dispatch'
+        uses: ./.github/actions/setup
 
       - name: Detect changed apps
         id: filter
         if: github.event_name != 'workflow_dispatch'
-        uses: dorny/paths-filter@v3
-        with:
-          # Diff against the previous commit (synchronize/push) or the PR base
-          # (opened/reopened/ready_for_review). Without this, dorny defaults to
-          # the PR base on every push, so each commit re-evaluates the
-          # cumulative PR diff and pulls every app whose filter ever matched
-          # into the matrix — even when the latest push only touched one app.
-          base: ${{ github.event.before || github.event.pull_request.base.sha }}
-          filters: |
-            # Cross-platform shared infrastructure
-            core-shared: &core-shared
-              - .github/workflows/build-apps.yml
-              - packages/react-native-executorch/{scripts,third-party}/**
-              - packages/react-native-executorch/{package.json,tsconfig.json}
-              - packages/react-native-executorch/common/{ada,runner}/**
-              - packages/react-native-executorch/common/rnexecutorch/{Error,ErrorCodes,Log}.h
-              - packages/react-native-executorch/common/rnexecutorch/RnExecutorchInstaller.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/{data_processing,host_objects,jsi,metaprogramming,tests,threads,utils}/**
-              - packages/react-native-executorch/common/rnexecutorch/models/BaseModel.{cpp,h}
-              - packages/react-native-executorch/src/{common,constants,errors,native,types,utils}/**
-              - packages/react-native-executorch/src/index.ts
-              - packages/react-native-executorch/src/modules/{BaseModule.ts,general/**}
-              - packages/react-native-executorch/src/hooks/{general/**,useModule.ts,useModuleFactory.ts}
-              - "{package.json,yarn.lock}"
-            # Platform-specific shared
-            android-shared: &android-shared
-              - .github/actions/build-android-app/**
-              - packages/react-native-executorch/android/**
-            ios-shared: &ios-shared
-              - .github/actions/build-ios-app/**
-              - packages/react-native-executorch/ios/**
-              - packages/react-native-executorch/react-native-executorch.podspec
-            # Resource fetchers
-            expo-fetcher: &expo-fetcher
-              - packages/expo-resource-fetcher/**
-            bare-fetcher: &bare-fetcher
-              - packages/bare-resource-fetcher/**
-            # Per-app package paths (TS modules + C++ models for the app's domain)
-            llm-pkg: &llm-pkg
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/models/llm/**
-              - packages/react-native-executorch/common/rnexecutorch/models/privacy_filter/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/{LLMModule,PrivacyFilterModule,TokenizerModule}.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/{useLLM,usePrivacyFilter,useTokenizer}.ts
-              - packages/react-native-executorch/src/controllers/LLMController.ts
-            cv-pkg: &cv-pkg
-              - packages/react-native-executorch/common/rnexecutorch/models/VisionModel.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/models/{classification,instance_segmentation,object_detection,ocr,pose_estimation,semantic_segmentation,style_transfer,text_to_image,vertical_ocr}/**
-              - packages/react-native-executorch/src/{modules,hooks}/computer_vision/**
-              - packages/react-native-executorch/src/controllers/{BaseOCRController,OCRController,VerticalOCRController}.ts
-            speech-pkg: &speech-pkg
-              - packages/react-native-executorch/common/pfft/**
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/models/{speech_to_text,text_to_speech,voice_activity_detection}/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/{SpeechToTextModule,TextToSpeechModule,VADModule,TokenizerModule}.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/{useSpeechToText,useTextToSpeech,useVAD,useTokenizer}.ts
-            text-embeddings-pkg: &text-embeddings-pkg
-              - packages/react-native-executorch/common/rnexecutorch/TokenizerModule.{cpp,h}
-              - packages/react-native-executorch/common/rnexecutorch/models/embeddings/**
-              - packages/react-native-executorch/src/modules/natural_language_processing/{TextEmbeddingsModule,TokenizerModule}.ts
-              - packages/react-native-executorch/src/modules/computer_vision/ImageEmbeddingsModule.ts
-              - packages/react-native-executorch/src/hooks/natural_language_processing/{useTextEmbeddings,useTokenizer}.ts
-              - packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts
-            # Per-app bundle: core + fetcher + pkg + app dir
-            llm-app: &llm-app
-              - *core-shared
-              - *expo-fetcher
-              - *llm-pkg
-              - apps/llm/**
-            computer-vision-app: &computer-vision-app
-              - *core-shared
-              - *expo-fetcher
-              - *cv-pkg
-              - apps/computer-vision/**
-            speech-app: &speech-app
-              - *core-shared
-              - *expo-fetcher
-              - *speech-pkg
-              - apps/speech/**
-            text-embeddings-app: &text-embeddings-app
-              - *core-shared
-              - *expo-fetcher
-              - *text-embeddings-pkg
-              - apps/text-embeddings/**
-            bare-rn-app: &bare-rn-app
-              - *core-shared
-              - *bare-fetcher
-              - *llm-pkg
-              - apps/bare-rn/**
-            # Final per-platform per-app filters (the only ones the matrix consumes)
-            llm-android: [*llm-app, *android-shared]
-            llm-ios: [*llm-app, *ios-shared]
-            computer-vision-android: [*computer-vision-app, *android-shared]
-            computer-vision-ios: [*computer-vision-app, *ios-shared]
-            speech-android: [*speech-app, *android-shared]
-            speech-ios: [*speech-app, *ios-shared]
-            text-embeddings-android: [*text-embeddings-app, *android-shared]
-            text-embeddings-ios: [*text-embeddings-app, *ios-shared]
-            bare-rn-android: [*bare-rn-app, *android-shared]
-            bare-rn-ios: [*bare-rn-app, *ios-shared]
+        run: |
+          set -e
+          ZERO=0000000000000000000000000000000000000000
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BEFORE="${{ github.event.before }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "$ZERO" ]; then
+              BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            else
+              BASE_SHA="$BEFORE"
+            fi
+          else
+            BEFORE="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "$ZERO" ]; then
+              BASE_SHA="$(git rev-parse origin/main^ 2>/dev/null || git rev-parse HEAD^)"
+            else
+              BASE_SHA="$BEFORE"
+            fi
+          fi
+          echo "Diffing $BASE_SHA..$HEAD_SHA"
+          # Ensure both SHAs are reachable; fetch deeper if shallow clone is missing one.
+          if ! git cat-file -e "$BASE_SHA" 2>/dev/null || ! git cat-file -e "$HEAD_SHA" 2>/dev/null; then
+            git fetch --no-tags --depth=500 origin "$BASE_SHA" "$HEAD_SHA" 2>/dev/null \
+              || git fetch --no-tags --unshallow origin 2>/dev/null \
+              || true
+          fi
+          CHANGES=$(npx ts-node scripts/detect-changed-filters.ts "$BASE_SHA" "$HEAD_SHA")
+          echo "Matched filters: $CHANGES"
+          echo "changes=$CHANGES" >> "$GITHUB_OUTPUT"
 
       - name: Compute matrices
         id: matrix

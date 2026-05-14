@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 // Computes a stable content hash of every tracked file matched by a given
-// filter in .github/workflows/build-apps.yml. Used as a cache key in the
+// filter in scripts/build-app-filters.yml. Used as a cache key in the
 // build-apps matrix so a previously-passing app/platform cell can be skipped
 // when nothing relevant has changed since.
 
@@ -12,16 +12,21 @@ const yaml = require('js-yaml');
 const picomatch = require('picomatch');
 
 // Files that the per-app filters reference for trigger purposes but that
-// should not invalidate cached build markers. The workflow file itself sits in
-// core-shared so editing it triggers CI on every app, but the vast majority of
-// edits are orchestration (filter paths, matrix shape, concurrency, triggers)
-// and don't change build behavior. Excluding it from the hash means workflow
-// edits re-run the matrix but each cell hits its existing marker and skips.
+// should not invalidate cached build markers. The workflow file, the filter
+// file, and the detection script all sit in core-shared so editing them
+// triggers CI on every app, but the vast majority of edits are orchestration
+// (filter paths, matrix shape, concurrency, triggers) and don't change build
+// behavior. Excluding them from the hash means orchestration edits re-run the
+// matrix but each cell hits its existing marker and skips.
 //
 // Caveat: workflow edits that DO change build behavior — `with:` inputs to a
 // composite, `runs-on:`, an `env:` var, an action's pinned version — won't be
 // caught here. Force-clear caches via the GitHub Actions UI when you make one.
-const HASH_EXCLUDE = new Set<string>(['.github/workflows/build-apps.yml']);
+const HASH_EXCLUDE = new Set<string>([
+  '.github/workflows/build-apps.yml',
+  'scripts/build-app-filters.yml',
+  'scripts/detect-changed-filters.ts',
+]);
 
 const filterName = process.argv[2];
 if (!filterName) {
@@ -31,13 +36,9 @@ if (!filterName) {
 
 type FilterValue = string | FilterValue[];
 
-const wf = yaml.load(
-  fs.readFileSync('.github/workflows/build-apps.yml', 'utf8')
-);
-const filtersStr = wf.jobs['detect-changes'].steps.find(
-  (s: { id?: string }) => s.id === 'filter'
-).with.filters;
-const filters = yaml.load(filtersStr) as Record<string, FilterValue>;
+const filters = yaml.load(
+  fs.readFileSync('scripts/build-app-filters.yml', 'utf8')
+) as Record<string, FilterValue>;
 
 const flatten = (x: FilterValue): string[] =>
   Array.isArray(x) ? x.flatMap(flatten) : [x];
