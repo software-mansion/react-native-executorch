@@ -6,6 +6,8 @@ import { VoiceActivityDetectionScreen } from './screens/VoiceActivityDetectionSc
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
+import { Crossword } from './screens/Crossword';
+import { Semantle } from './screens/Semantle';
 import { TextToSpeechLLMScreen } from './screens/TextToSpeechLLMScreen';
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
@@ -20,6 +22,8 @@ export default function App() {
     | 'speech-to-text'
     | 'text-to-speech'
     | 'quiz'
+    | 'crossword'
+    | 'semantle'
     | 'text-to-speech-llm'
     | 'vad'
   >('menu');
@@ -40,6 +44,14 @@ export default function App() {
 
   if (currentScreen === 'quiz') {
     return <Quiz onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'crossword') {
+    return <Crossword onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'semantle') {
+    return <Semantle onBack={goToMenu} />;
   }
 
   if (currentScreen === 'text-to-speech-llm') {
@@ -74,6 +86,18 @@ export default function App() {
           onPress={() => setCurrentScreen('quiz')}
         >
           <Text style={styles.buttonText}>Text to Speech - Quiz</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('crossword')}
+        >
+          <Text style={styles.buttonText}>Crossword</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('semantle')}
+        >
+          <Text style={styles.buttonText}>Semantle</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
