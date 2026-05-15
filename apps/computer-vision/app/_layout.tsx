@@ -118,6 +118,15 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="vlm_camera/index"
+          options={{
+            drawerLabel: 'Ask Camera',
+            title: 'Ask Camera',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',

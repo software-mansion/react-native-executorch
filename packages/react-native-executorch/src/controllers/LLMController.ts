@@ -479,11 +479,21 @@ export class LLMController {
  * `ResourceFetcher.fetch` and most platform file APIs return raw filesystem
  * paths without that prefix, so callers routinely pass either form. Accept
  * both and normalize to the prefixed form here.
- * @param path - Local image path, either with or without the `file://` prefix.
- * @returns The same path with a `file://` prefix.
+ * @param path - Local image path (with or without `file://` prefix), an
+ *               http(s) URL, or a `data:image/...;base64,...` data URI.
+ * @returns The same path with a `file://` prefix when it's a local path,
+ *          otherwise the input unchanged.
  */
 function normalizeImagePath(path: string): string {
-  return path.startsWith('file://') ? path : `file://${path}`;
+  if (
+    path.startsWith('file://') ||
+    path.startsWith('data:') ||
+    path.startsWith('http://') ||
+    path.startsWith('https://')
+  ) {
+    return path;
+  }
+  return `file://${path}`;
 }
 
 /**

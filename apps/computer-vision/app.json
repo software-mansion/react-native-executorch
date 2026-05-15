@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
-        "NSCameraUsageDescription": "Process photo from camera"
+        "NSCameraUsageDescription": "Process photo from camera",
+        "NSMicrophoneUsageDescription": "Used to record your spoken question for the on-device VLM."
       }
     },
     "android": {
@@ -26,7 +27,10 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.computervision",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"

@@ -19,6 +19,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('vlm_camera/')}
+        >
+          <Text style={styles.buttonText}>Ask Camera</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('classification/')}
         >
           <Text style={styles.buttonText}>Classification</Text>

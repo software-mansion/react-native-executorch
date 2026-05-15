@@ -7922,6 +7922,7 @@ __metadata:
     metro-config: "npm:^0.83.0"
     react: "npm:19.2.5"
     react-native: "npm:0.83.4"
+    react-native-audio-api: "npm:0.12.0"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
