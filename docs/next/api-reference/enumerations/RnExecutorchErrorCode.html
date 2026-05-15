@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.3cf1b7bf.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.9afc5b28.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.cc0f476d.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.1b7afed1.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -119,7 +119,7 @@
 <p><strong>InvalidModelOutput</strong>: <code>115</code></p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L40" target="_blank" rel="noopener noreferrer" class="">errors/ErrorCodes.ts:40</a></p>
-<p>Thrown when the size of model output is unexpected.</p>
+<p>Thrown when the size of model output is unexpected. If you&#x27;re using your custom model with any of the pre-defined modules, please verify docs or source code for the expected model I/O contract.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="invalidmodelsource">InvalidModelSource<a href="#invalidmodelsource" class="hash-link" aria-label="Direct link to InvalidModelSource" title="Direct link to InvalidModelSource" translate="no">​</a></h3>
 <blockquote>
@@ -336,7 +336,7 @@
 <p><strong>UnexpectedNumInputs</strong>: <code>121</code></p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/errors/ErrorCodes.ts#L64" target="_blank" rel="noopener noreferrer" class="">errors/ErrorCodes.ts:64</a></p>
-<p>Thrown when the number of passed inputs to the model is different than the model metadata specifies.</p>
+<p>Thrown when the number of passed inputs to the model is different than the model metadata specifies. If you&#x27;re using your custom model with any of the pre-defined modules, please verify docs or source code for the expected model I/O contract.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="unknownerror">UnknownError<a href="#unknownerror" class="hash-link" aria-label="Direct link to UnknownError" title="Direct link to UnknownError" translate="no">​</a></h3>
 <blockquote>

@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.3cf1b7bf.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.9afc5b28.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.cc0f476d.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.1b7afed1.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -42,7 +42,7 @@
 <blockquote>
 <p><strong>decode</strong>(<code>tokens</code>, <code>skipSpecialTokens?</code>): <code>Promise</code>&lt;<code>string</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L61" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:61</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L58" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:58</a></p>
 <p>Converts an array of token IDs into a string.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokens">tokens<a href="#tokens" class="hash-link" aria-label="Direct link to tokens" title="Direct link to tokens" translate="no">​</a></h5>
@@ -59,7 +59,7 @@
 <blockquote>
 <p><strong>encode</strong>(<code>input</code>): <code>Promise</code>&lt;<code>number</code>[]&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L51" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:51</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L48" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:48</a></p>
 <p>Converts a string into an array of token IDs.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="input">input<a href="#input" class="hash-link" aria-label="Direct link to input" title="Direct link to input" translate="no">​</a></h5>
@@ -73,7 +73,7 @@
 <blockquote>
 <p><strong>getVocabSize</strong>(): <code>Promise</code>&lt;<code>number</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L75" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:75</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L72" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:72</a></p>
 <p>Returns the size of the tokenizer&#x27;s vocabulary.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>Promise</code>&lt;<code>number</code>&gt;</p>
@@ -83,7 +83,7 @@
 <blockquote>
 <p><strong>idToToken</strong>(<code>tokenId</code>): <code>Promise</code>&lt;<code>string</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L84" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:84</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L81" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:81</a></p>
 <p>Returns the token associated to the ID.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokenid">tokenId<a href="#tokenid" class="hash-link" aria-label="Direct link to tokenId" title="Direct link to tokenId" translate="no">​</a></h5>
@@ -115,7 +115,7 @@
 <blockquote>
 <p><strong>tokenToId</strong>(<code>token</code>): <code>Promise</code>&lt;<code>number</code>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L93" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:93</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L90" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TokenizerModule.ts:90</a></p>
 <p>Returns the ID associated to the token.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-4">Parameters<a href="#parameters-4" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="token">token<a href="#token" class="hash-link" aria-label="Direct link to token" title="Direct link to token" translate="no">​</a></h5>

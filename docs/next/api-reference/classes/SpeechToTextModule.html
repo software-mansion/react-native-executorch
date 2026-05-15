@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.60245c1f.css">
-<script src="/react-native-executorch/assets/js/runtime~main.3cf1b7bf.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.9afc5b28.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.cc0f476d.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.1b7afed1.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -28,7 +28,7 @@
 <blockquote>
 <p><strong>decode</strong>(<code>tokens</code>, <code>encoderOutput</code>): <code>Promise</code>&lt;<code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L140" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:140</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L137" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:137</a></p>
 <p>Runs the decoder of the model.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokens">tokens<a href="#tokens" class="hash-link" aria-label="Direct link to tokens" title="Direct link to tokens" translate="no">​</a></h5>
@@ -45,7 +45,7 @@
 <blockquote>
 <p><strong>delete</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L119" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:119</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L116" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:116</a></p>
 <p>Unloads the model from memory.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>void</code></p>
@@ -54,7 +54,7 @@
 <blockquote>
 <p><strong>encode</strong>(<code>waveform</code>): <code>Promise</code>&lt;<code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L129" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:129</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L126" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:126</a></p>
 <p>Runs the encoding part of the model on the provided waveform.
 Returns the encoded waveform as a Float32Array.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
@@ -69,7 +69,7 @@ Returns the encoded waveform as a Float32Array.</p>
 <blockquote>
 <p><strong>stream</strong>(<code>options?</code>): <code>AsyncGenerator</code>&lt;{ <code>committed</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; <code>nonCommitted</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; }&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L180" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:180</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L177" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:177</a></p>
 <p>Starts a streaming transcription session.
 Yields objects with <code>committed</code> and <code>nonCommitted</code> transcriptions.
 Committed transcription contains the part of the transcription that is finalized and will not change.
@@ -91,7 +91,7 @@ Use with <code>streamInsert</code> and <code>streamStop</code> to control the st
 <blockquote>
 <p><strong>streamInsert</strong>(<code>waveform</code>): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L252" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:252</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L249" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:249</a></p>
 <p>Inserts a new audio chunk into the streaming transcription session.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="waveform-1">waveform<a href="#waveform-1" class="hash-link" aria-label="Direct link to waveform" title="Direct link to waveform" translate="no">​</a></h5>
@@ -104,7 +104,7 @@ Use with <code>streamInsert</code> and <code>streamStop</code> to control the st
 <blockquote>
 <p><strong>streamStop</strong>(): <code>void</code></p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L259" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:259</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L256" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:256</a></p>
 <p>Stops the current streaming transcription session.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
 <p><code>void</code></p>
@@ -113,7 +113,7 @@ Use with <code>streamInsert</code> and <code>streamStop</code> to control the st
 <blockquote>
 <p><strong>transcribe</strong>(<code>waveform</code>, <code>options?</code>): <code>Promise</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>&gt;</p>
 </blockquote>
-<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L156" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:156</a></p>
+<p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L153" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:153</a></p>
 <p>Starts a transcription process for a given input array (16kHz waveform).
 For multilingual models, specify the language in <code>options</code>.
 Returns the transcription as a string. Passing <code>number[]</code> is deprecated.</p>
