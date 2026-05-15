@@ -46,10 +46,7 @@ export const useTokenizer = ({
           'The model is currently not loaded. Please load the model before calling this function.'
         );
       if (isGenerating)
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
       try {
         setIsGenerating(true);
         return fn.apply(tokenizerInstance, args);

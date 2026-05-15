@@ -31,10 +31,7 @@ export class TokenizerModule {
       );
       const path = paths?.[0];
       if (!path) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       this.nativeModule = await global.loadTokenizerModule(path);
     } catch (error) {

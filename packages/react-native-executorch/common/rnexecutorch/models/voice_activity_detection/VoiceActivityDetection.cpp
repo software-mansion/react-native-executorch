@@ -84,11 +84,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
         chunk.data(), {kModelInputMax, kPaddedWindowSize},
         executorch::aten::ScalarType::Float);
     auto forwardResult = BaseModel::forward(inputTensor);
-    if (!forwardResult.ok()) {
-      throw RnExecutorchError(forwardResult.error(),
-                              "The model's forward function did not succeed. "
-                              "Ensure the model input is correct.");
-    }
+    CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
     auto tensor = forwardResult->at(0).toTensor();
     startIdx = utils::getNonSpeechClassProbabilites(
         tensor, tensor.size(2), tensor.size(1), scores, startIdx);
@@ -100,11 +96,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
       lastChunk.data(), {lastChunkSize, kPaddedWindowSize},
       executorch::aten::ScalarType::Float);
   auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
   auto tensor = forwardResult->at(0).toTensor();
   startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),
                                                   remainder, scores, startIdx);

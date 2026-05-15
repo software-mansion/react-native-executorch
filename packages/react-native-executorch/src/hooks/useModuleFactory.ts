@@ -76,16 +76,10 @@ export function useModuleFactory<M extends Deletable, Config>({
 
   const runForward = async <R>(fn: (instance: M) => Promise<R>): Promise<R> => {
     if (!isReady || !instance) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
     try {
       setIsGenerating(true);

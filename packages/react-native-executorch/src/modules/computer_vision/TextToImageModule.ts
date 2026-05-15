@@ -115,10 +115,7 @@ export class TextToImageModule extends BaseModule {
       model.decoderSource
     );
     if (!results || results.length !== 5) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
     const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
       results;
@@ -130,10 +127,7 @@ export class TextToImageModule extends BaseModule {
       !unetPath ||
       !decoderPath
     ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
 
     const schedulerJson = await ResourceFetcher.fs.readAsString(schedulerPath);

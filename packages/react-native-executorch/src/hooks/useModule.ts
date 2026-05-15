@@ -86,15 +86,9 @@ export const useModule = <
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     if (isGenerating)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     try {
       setIsGenerating(true);
       return await moduleInstance.forward(...input);
