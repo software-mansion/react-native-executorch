@@ -47,20 +47,6 @@ type ScreenState =
 
 const SAMPLE_RATE = 16000;
 
-// Per-turn logging anchor. Reset at the start of each recording so all
-// downstream logs report (absolute time + ms-since-turn-start).
-let __turnStart = 0;
-function tlog(msg: string, extra?: unknown) {
-  const now = Date.now();
-  const delta = __turnStart ? now - __turnStart : 0;
-  const ts = new Date(now).toISOString().slice(11, 23);
-  if (extra !== undefined) {
-    console.log(`[vlm_camera] ${ts} +${delta}ms ${msg}`, extra);
-  } else {
-    console.log(`[vlm_camera] ${ts} +${delta}ms ${msg}`);
-  }
-}
-
 export default function VLMCameraScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -104,33 +90,40 @@ export default function VLMCameraScreen() {
     });
   }, []);
 
-  const [sttPreventLoad, setSttPreventLoad] = useState(false);
-
   const llm = useLLM({
     model: { ...LFM2_5_VL_450M_QUANTIZED, capabilities: ['vision'] as const },
   });
-  const stt = useSpeechToText({
-    model: WHISPER_TINY_EN,
-    preventLoad: sttPreventLoad,
-  });
+  const stt = useSpeechToText({ model: WHISPER_TINY_EN });
   const tts = useTextToSpeech({
     model: KOKORO_SMALL,
     voice: KOKORO_VOICE_AF_HEART,
   });
 
-  const sttEverReady = useRef(false);
-  if (stt.isReady) sttEverReady.current = true;
-  const allReady = llm.isReady && sttEverReady.current && tts.isReady;
+  const allReady = llm.isReady && stt.isReady && tts.isReady;
   const avgProgress =
-    (llm.downloadProgress +
-      (sttEverReady.current ? 1 : stt.downloadProgress) +
-      tts.downloadProgress) /
-    3;
+    (llm.downloadProgress + stt.downloadProgress + tts.downloadProgress) / 3;
 
   useEffect(() => {
     const firstError = llm.error ?? stt.error ?? tts.error;
     if (firstError) setError(String(firstError));
   }, [llm.error, stt.error, tts.error]);
+
+  // TTS warm-up: tts.forward synthesizes a one-shot vocoder pass, paging
+  // in weights and JIT'ing the audio pipeline. Independent of camera, so
+  // it can fire as soon as TTS is ready.
+  const ttsWarmedRef = useRef(false);
+  useEffect(() => {
+    if (!tts.isReady || ttsWarmedRef.current) return;
+    ttsWarmedRef.current = true;
+    (async () => {
+      try {
+        await tts.forward({ text: '.' });
+      } catch (e) {
+        console.warn('[vlm_camera] tts warm-up failed', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tts.isReady]);
 
   // One photo output for on-demand still capture. No frame processor, no
   // worklet — we only need a single frame per prompt. Force JPEG
@@ -191,8 +184,6 @@ export default function VLMCameraScreen() {
     }
     ttsStreamingRef.current = true;
     processedLenRef.current = 0;
-    sawFirstTokenRef.current = false;
-    sawFirstTTSInsertRef.current = false;
     let firstChunk = true;
     const consume = async () => {
       try {
@@ -208,7 +199,6 @@ export default function VLMCameraScreen() {
             src.start();
             if (firstChunk) {
               firstChunk = false;
-              tlog('tts first audio playing');
               setScreenState((prev) =>
                 prev === 'thinking' ? 'speaking' : prev
               );
@@ -225,25 +215,16 @@ export default function VLMCameraScreen() {
     ttsConsumerPromiseRef.current = consume();
   }, [tts]);
 
-  // Token producer.
-  const sawFirstTokenRef = useRef(false);
-  const sawFirstTTSInsertRef = useRef(false);
+  // Token producer: as the LLM emits tokens, push the new suffix into
+  // Kokoro for synthesis.
   useEffect(() => {
     if (!ttsStreamingRef.current) return;
     if (!llm.response) return;
-    if (!sawFirstTokenRef.current) {
-      sawFirstTokenRef.current = true;
-      tlog('vlm first tokens');
-    }
     const prev = processedLenRef.current;
     if (llm.response.length > prev) {
       const chunk = llm.response.slice(prev);
       try {
         tts.streamInsert(chunk);
-        if (!sawFirstTTSInsertRef.current) {
-          sawFirstTTSInsertRef.current = true;
-          tlog('tts first streamInsert');
-        }
       } catch {
         // ignore
       }
@@ -311,8 +292,6 @@ export default function VLMCameraScreen() {
     }
     isRecordingRef.current = true;
     setScreenState('recording');
-    __turnStart = Date.now();
-    tlog('stt recording started');
 
     transcriptRef.current = '';
     setTranscript('');
@@ -334,13 +313,11 @@ export default function VLMCameraScreen() {
 
   const onMicPress = async () => {
     if (screenState === 'idle') {
-      if (sttPreventLoad) setSttPreventLoad(false);
       await startRecording();
       return;
     }
     if (screenState === 'recording') {
       setScreenState('transcribing');
-      tlog('stt stop signalled');
       try {
         isRecordingRef.current = false;
         try {
@@ -353,23 +330,15 @@ export default function VLMCameraScreen() {
         } catch {
           // not streaming
         }
+        // Drain the streaming generator in the background so the VLM
+        // can launch immediately on the live transcript snapshot.
         const draining = sttStreamPromiseRef.current;
         sttStreamPromiseRef.current = null;
-        if (draining) {
-          draining
-            .catch(() => {
-              /* ignored */
-            })
-            .then(() => {
-              tlog('stt drained (background), unloading whisper');
-              setSttPreventLoad(true);
-            });
-        } else {
-          setSttPreventLoad(true);
-        }
+        draining?.catch(() => {
+          /* ignored */
+        });
 
         const finalText = transcriptRef.current.trim();
-        tlog('stt final transcript:', finalText);
         if (!finalText) {
           setError("Didn't catch that, try again");
           setScreenState('idle');
@@ -379,11 +348,8 @@ export default function VLMCameraScreen() {
         // One-shot capture: write the JPEG to a temp file and hand the
         // file:// path to the LLM. Skips JS-thread base64 encoding (was
         // ~400ms) in favor of a tiny native disk write (~50ms).
-        tlog('capturePhoto start');
         const photo = await photoOutput.capturePhoto({}, {});
-        tlog('capturePhoto done');
         const tempPath = await photo.saveToTemporaryFileAsync();
-        tlog('photo saved to temp file', tempPath);
         photo.dispose();
         const dataUri = tempPath.startsWith('file://')
           ? tempPath
@@ -391,7 +357,6 @@ export default function VLMCameraScreen() {
 
         setScreenState('thinking');
         startTTSConsumer();
-        tlog('vlm submit (sendMessage)');
         // Clear conversation history each turn so previous image tokens
         // don't leak (the JS-side state isn't strictly load-bearing
         // because the native runner resets every call, but a tidy
