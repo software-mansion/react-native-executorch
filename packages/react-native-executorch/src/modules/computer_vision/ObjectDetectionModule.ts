@@ -13,6 +13,7 @@ import {
 } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
+import { buildLabelArray } from '../../utils/labelUtils';
 import {
   CocoLabel,
   CocoLabelYolo,
@@ -114,13 +115,7 @@ export class ObjectDetectionModule<
     const { labelMap, preprocessorConfig } = modelConfig;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
-    const allLabelNames: string[] = [];
-    for (const [name, value] of Object.entries(labelMap)) {
-      if (typeof value === 'number') allLabelNames[value] = name;
-    }
-    for (let i = 0; i < allLabelNames.length; i++) {
-      if (allLabelNames[i] == null) allLabelNames[i] = '';
-    }
+    const allLabelNames = buildLabelArray(labelMap);
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadObjectDetection(
       modelPath,
@@ -249,10 +244,7 @@ export class ObjectDetectionModule<
     options?: ObjectDetectionOptions<ResolveLabels<T>>
   ): Promise<Detection<ResolveLabels<T>>[]> {
     if (this.nativeModule == null) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
 
     // Extract parameters with defaults from config
@@ -344,13 +336,7 @@ export class ObjectDetectionModule<
   ): Promise<ObjectDetectionModule<L>> {
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
-    const allLabelNames: string[] = [];
-    for (const [name, value] of Object.entries(config.labelMap)) {
-      if (typeof value === 'number') allLabelNames[value] = name;
-    }
-    for (let i = 0; i < allLabelNames.length; i++) {
-      if (allLabelNames[i] == null) allLabelNames[i] = '';
-    }
+    const allLabelNames = buildLabelArray(config.labelMap);
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadObjectDetection(
       modelPath,

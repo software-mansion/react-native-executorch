@@ -1,5 +1,6 @@
 #include "OCR.h"
 #include "Constants.h"
+#include <algorithm>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
@@ -67,8 +68,12 @@ OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
   auto detections = runInference(rotated);
   for (auto &det : detections) {
-    ::rnexecutorch::utils::inverseRotatePoints(det.bbox, orient,
-                                               rotated.size());
+    std::array<types::Point, 2> corners = {det.bbox.p1, det.bbox.p2};
+    ::rnexecutorch::utils::inverseRotatePoints(corners, orient, rotated.size());
+    det.bbox = {{std::min(corners[0].x, corners[1].x),
+                 std::min(corners[0].y, corners[1].y)},
+                {std::max(corners[0].x, corners[1].x),
+                 std::max(corners[0].y, corners[1].y)}};
   }
   return detections;
 }

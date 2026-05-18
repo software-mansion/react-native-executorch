@@ -18,24 +18,18 @@ TokenizerModule::TokenizerModule(
   auto status = tokenizer->load(source);
 
   if (status != tokenizers::Error::Ok) {
-    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
-                            "Unexpected issue occured while loading tokenizer");
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occurred while loading tokenizer");
   };
   std::filesystem::path modelPath{source};
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
-void TokenizerModule::ensureTokenizerLoaded(
-    const std::string &methodName) const {
-  if (!tokenizer) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::ModuleNotLoaded,
-        methodName + " function was called on an uninitialized tokenizer!");
-  }
-}
-
 std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
-  ensureTokenizerLoaded("encode");
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
 
   // If the used tokenizer.json has defined post_processor field,
   // setting any of bos or eos arguments to value other than provided constant
@@ -44,9 +38,9 @@ std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   auto encodeResult =
       tokenizer->encode(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
   if (!encodeResult.ok()) {
-    throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occured while encoding: " +
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occurred while encoding: " +
             std::to_string(static_cast<int32_t>(encodeResult.error())));
   }
   return encodeResult.get();
@@ -54,13 +48,15 @@ std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
 
 std::string TokenizerModule::decode(std::vector<uint64_t> vec,
                                     bool skipSpecialTokens) const {
-  ensureTokenizerLoaded("decode");
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
 
   auto decodeResult = tokenizer->decode(vec, skipSpecialTokens);
   if (!decodeResult.ok()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occured while decoding: " +
+        "Unexpected issue occurred while decoding: " +
             std::to_string(static_cast<int32_t>(decodeResult.error())));
   }
 
@@ -68,30 +64,36 @@ std::string TokenizerModule::decode(std::vector<uint64_t> vec,
 }
 
 size_t TokenizerModule::getVocabSize() const {
-  ensureTokenizerLoaded("getVocabSize");
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
   return static_cast<size_t>(tokenizer->vocab_size());
 }
 
 std::string TokenizerModule::idToToken(uint64_t tokenId) const {
-  ensureTokenizerLoaded("idToToken");
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
   auto result = tokenizer->id_to_piece(tokenId);
   if (!result.ok()) {
-    throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occured while trying to convert id to token: " +
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occurred while converting id to token: " +
             std::to_string(static_cast<int32_t>(result.error())));
   }
   return result.get();
 }
 
 uint64_t TokenizerModule::tokenToId(std::string token) const {
-  ensureTokenizerLoaded("tokenToId");
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
 
   auto result = tokenizer->piece_to_id(token);
   if (!result.ok()) {
-    throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occured while trying to convert token to id: " +
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occurred while converting token to id: " +
             std::to_string(static_cast<int32_t>(result.error())));
   }
   return result.get();

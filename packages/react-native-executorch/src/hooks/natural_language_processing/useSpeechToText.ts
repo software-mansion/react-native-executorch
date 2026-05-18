@@ -87,10 +87,7 @@ export const useSpeechToText = ({
         );
       }
       if (isGenerating) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
       }
 
       setIsGenerating(true);
@@ -119,10 +116,7 @@ export const useSpeechToText = ({
         );
       }
       if (isGenerating) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
       }
 
       setIsGenerating(true);

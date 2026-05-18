@@ -152,7 +152,7 @@ export class TextToSpeechModule {
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
-    let error: unknown;
+    let error: RnExecutorchError | undefined;
     let nativeStreamFinished = false;
 
     this.isStreaming = true;
@@ -175,7 +175,7 @@ export class TextToSpeechModule {
         nativeStreamFinished = true;
         wake();
       } catch (e) {
-        error = e;
+        error = parseUnknownError(e);
         nativeStreamFinished = true;
         wake();
       }
@@ -208,7 +208,7 @@ export class TextToSpeechModule {
     const queue: Float32Array[] = [];
 
     let waiter: (() => void) | null = null;
-    let error: unknown;
+    let error: RnExecutorchError | undefined;
     let nativeStreamFinished = false;
 
     const wake = () => {
@@ -229,7 +229,7 @@ export class TextToSpeechModule {
         nativeStreamFinished = true;
         wake();
       } catch (e) {
-        error = e;
+        error = parseUnknownError(e);
         nativeStreamFinished = true;
         wake();
       }

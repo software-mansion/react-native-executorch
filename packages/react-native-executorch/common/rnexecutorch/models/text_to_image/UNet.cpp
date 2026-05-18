@@ -27,11 +27,7 @@ std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
 
   auto forwardResult =
       BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();
   const auto *dataPtr = forwardResultTensor.const_data_ptr<float>();

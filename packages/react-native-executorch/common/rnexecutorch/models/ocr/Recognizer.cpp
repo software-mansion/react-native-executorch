@@ -39,11 +39,7 @@ Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
   TensorPtr inputTensor =
       image_processing::getTensorFromMatrixGray(tensorDims, grayImage);
   auto forwardResult = BaseModel::execute(method_name, {inputTensor});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   return postprocess(forwardResult->at(0).toTensor());
 }

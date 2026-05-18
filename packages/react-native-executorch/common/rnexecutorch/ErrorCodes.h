@@ -39,15 +39,6 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   InvalidConfig = 112,
   /**
-   * Thrown when the type of model source passed by the user is invalid.
-   */
-  InvalidModelSource = 255,
-  /**
-   * Thrown when the number of passed inputs to the model is different than the
-   * model metadata specifies.
-   */
-  UnexpectedNumInputs = 97,
-  /**
    * Thrown when React Native ExecuTorch threadpool problem occurs.
    */
   ThreadPoolError = 113,
@@ -57,7 +48,9 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   FileReadFailed = 114,
   /**
-   * Thrown when the size of model output is unexpected.
+   * Thrown when the size of model output is unexpected. If you're using your
+   * custom model with any of the pre-defined modules, please verify docs or
+   * source code for the expected model I/O contract.
    */
   InvalidModelOutput = 115,
   /**
@@ -81,9 +74,20 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   PlatformNotSupported = 119,
   /**
+   * Thrown when the type of model source passed by the user is invalid.
+   */
+  InvalidModelSource = 120,
+  /**
+   * Thrown when the number of passed inputs to the model is different than the
+   * model metadata specifies. If you're using your custom model with any of the
+   * pre-defined modules, please verify docs or source code for the expected
+   * model I/O contract.
+   */
+  UnexpectedNumInputs = 121,
+  /**
    * Thrown when an error occurs with the tokenizer or tokenization process.
    */
-  TokenizerError = 167,
+  TokenizerError = 122,
   /**
    * Thrown when there's a configuration mismatch between multilingual and
    * language settings in Speech-to-Text models.

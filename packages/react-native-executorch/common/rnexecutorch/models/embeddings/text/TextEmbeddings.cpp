@@ -56,12 +56,7 @@ TextEmbeddings::generate(const std::string input) {
       attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(
-        forwardResult.error(),
-        "The model's forward function did not succeed. Ensure the model input "
-        "is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   return BaseEmbeddings::postprocess(forwardResult);
 }

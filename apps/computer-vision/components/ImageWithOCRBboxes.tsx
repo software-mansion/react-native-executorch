@@ -59,13 +59,14 @@ export default function ImageWithOCRBboxes({
         {detections.map((detection, index) => {
           const { scaleX, scaleY, offsetX, offsetY } =
             calculateAdjustedDimensions();
-          const points = detection.bbox.map((point) => ({
-            x: point.x * scaleX + offsetX,
-            y: point.y * scaleY + offsetY,
-          }));
-
-          const pointsString = points
-            .map((point) => `${point.x},${point.y}`)
+          const { x1, y1, x2, y2 } = detection.bbox;
+          const pointsString = [
+            [x1, y1],
+            [x2, y1],
+            [x2, y2],
+            [x1, y2],
+          ]
+            .map(([x, y]) => `${x * scaleX + offsetX},${y * scaleY + offsetY}`)
             .join(' ');
 
           return (

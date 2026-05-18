@@ -100,10 +100,7 @@ export class SpeechToTextModule {
       modelPromise,
     ]);
     if (!modelSources?.[0] || !tokenizerSources?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
     }
     // Currently only Whisper architecture is supported
     return await global.loadSpeechToText(
@@ -263,13 +260,13 @@ export class SpeechToTextModule {
   private validateOptions(options: DecodingOptions) {
     if (!this.modelConfig.isMultilingual && options.language) {
       throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
+        RnExecutorchErrorCode.MultilingualConfiguration,
         'Model is not multilingual, cannot set language'
       );
     }
     if (this.modelConfig.isMultilingual && !options.language) {
       throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
+        RnExecutorchErrorCode.MultilingualConfiguration,
         'Model is multilingual, provide a language'
       );
     }

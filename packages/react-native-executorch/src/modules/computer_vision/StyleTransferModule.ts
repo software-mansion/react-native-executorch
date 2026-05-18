@@ -35,10 +35,7 @@ export class StyleTransferModule extends VisionModule<PixelData | string> {
       );
 
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
 
       return new StyleTransferModule(await global.loadStyleTransfer(paths[0]));

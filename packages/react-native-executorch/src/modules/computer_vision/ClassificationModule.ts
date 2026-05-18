@@ -10,6 +10,7 @@ import {
   ResolveLabels as ResolveLabelsFor,
   VisionLabeledModule,
 } from './VisionLabeledModule';
+import { buildLabelArray } from '../../utils/labelUtils';
 
 const ModelConfigs = {
   'efficientnet-v2-s': {
@@ -71,13 +72,7 @@ export class ClassificationModule<
     ] as ClassificationConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
-    const allLabelNames: string[] = [];
-    for (const [name, value] of Object.entries(labelMap)) {
-      if (typeof value === 'number') allLabelNames[value] = name;
-    }
-    for (let i = 0; i < allLabelNames.length; i++) {
-      if (allLabelNames[i] == null) allLabelNames[i] = '';
-    }
+    const allLabelNames = buildLabelArray(labelMap);
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadClassification(
       modelPath,
@@ -117,13 +112,7 @@ export class ClassificationModule<
   ): Promise<ClassificationModule<L>> {
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
-    const allLabelNames: string[] = [];
-    for (const [name, value] of Object.entries(config.labelMap)) {
-      if (typeof value === 'number') allLabelNames[value] = name;
-    }
-    for (let i = 0; i < allLabelNames.length; i++) {
-      if (allLabelNames[i] == null) allLabelNames[i] = '';
-    }
+    const allLabelNames = buildLabelArray(config.labelMap);
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = await global.loadClassification(
       modelPath,

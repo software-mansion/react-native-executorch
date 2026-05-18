@@ -42,11 +42,7 @@ cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
       image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   cv::Mat mat = image_processing::getMatrixFromTensor(
       modelInputSize(), forwardResult->at(0).toTensor());

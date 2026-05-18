@@ -63,11 +63,7 @@ BaseSemanticSegmentation::runInference(
                                                   preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   return computeResult(forwardResult->at(0).toTensor(), originalSize,
                        allClasses_, classesOfInterest, resize);

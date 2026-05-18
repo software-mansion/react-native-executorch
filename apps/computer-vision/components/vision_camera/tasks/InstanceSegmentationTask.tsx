@@ -6,9 +6,12 @@ import {
   SegmentedInstance,
   YOLO26N_SEG,
   RF_DETR_NANO_SEG,
+  FASTSAM_S,
+  FASTSAM_X,
   useInstanceSegmentation,
   CocoLabel,
   CocoLabelYolo,
+  FastSAMLabel,
 } from 'react-native-executorch';
 import { Canvas, Image as SkiaImage } from '@shopify/react-native-skia';
 import { labelColor, labelColorBg } from '../../utils/colors';
@@ -20,7 +23,9 @@ import {
 
 type InstSegModelId =
   | 'instanceSegmentationYolo26n'
-  | 'instanceSegmentationRfdetr';
+  | 'instanceSegmentationRfdetr'
+  | 'instanceSegmentationFastsamS'
+  | 'instanceSegmentationFastsamX';
 
 type Props = TaskProps & { activeModel: InstSegModelId };
 
@@ -44,9 +49,21 @@ export default function InstanceSegmentationTask({
     model: RF_DETR_NANO_SEG,
     preventLoad: activeModel !== 'instanceSegmentationRfdetr',
   });
+  const fastsamS = useInstanceSegmentation({
+    model: FASTSAM_S,
+    preventLoad: activeModel !== 'instanceSegmentationFastsamS',
+  });
+  const fastsamX = useInstanceSegmentation({
+    model: FASTSAM_X,
+    preventLoad: activeModel !== 'instanceSegmentationFastsamX',
+  });
 
-  const active =
-    activeModel === 'instanceSegmentationYolo26n' ? yolo26n : rfdetr;
+  const active = {
+    instanceSegmentationYolo26n: yolo26n,
+    instanceSegmentationRfdetr: rfdetr,
+    instanceSegmentationFastsamS: fastsamS,
+    instanceSegmentationFastsamX: fastsamX,
+  }[activeModel];
 
   const [instances, setInstances] = useState<DisplayInstance[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
@@ -74,7 +91,8 @@ export default function InstanceSegmentationTask({
     (p: {
       results:
         | SegmentedInstance<typeof CocoLabel>[]
-        | SegmentedInstance<typeof CocoLabelYolo>[];
+        | SegmentedInstance<typeof CocoLabelYolo>[]
+        | SegmentedInstance<typeof FastSAMLabel>[];
       imageWidth: number;
       imageHeight: number;
     }) => {

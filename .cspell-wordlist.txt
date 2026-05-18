@@ -249,3 +249,6 @@ NSURL
 certifi
 zstd
 lintrunner
+fastsam
+promptable
+topk

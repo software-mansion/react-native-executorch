@@ -59,10 +59,7 @@ export abstract class BaseOCRController {
         recognizerSource
       );
       if (paths === null || paths.length < 2) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       this.nativeModule = await this.loadNativeModule(
         paths[0]!,
@@ -124,16 +121,10 @@ export abstract class BaseOCRController {
     input: string | PixelData
   ): Promise<OCRDetection[]> => {
     if (!this.isReady) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this.isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
 
     try {
@@ -160,10 +151,7 @@ export abstract class BaseOCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
     if (this.nativeModule) {
       this.nativeModule.unload();

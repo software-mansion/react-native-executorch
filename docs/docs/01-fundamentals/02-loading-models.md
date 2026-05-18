@@ -2,6 +2,9 @@
 title: Loading Models
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 There are three different methods available for loading model files, depending on their size and location.
 
 ## Prerequisites
@@ -10,10 +13,29 @@ In our library, you can use two different resource fetching mechanisms. One is i
 
 To use the Expo adapter, please add these libraries:
 
-```bash
-yarn add react-native-executorch-expo-resource-fetcher
-yarn add expo-file-system expo-asset
-```
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
+
+    ```bash
+    npm install react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+    ```bash
+    pnpm add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+    ```bash
+    yarn add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+</Tabs>
 
 and then add the following code in your React Native app:
 
@@ -28,10 +50,29 @@ initExecutorch({
 
 If you cannot use Expo in your project, proceed with the following steps:
 
-```bash
-yarn add react-native-executorch-bare-resource-fetcher
-yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-```
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
+
+    ```bash
+    npm install react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+    ```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+    ```bash
+    pnpm add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+    ```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+    ```bash
+    yarn add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+    ```
+
+  </TabItem>
+</Tabs>
 
 and
 

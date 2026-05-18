@@ -38,39 +38,85 @@ For supported React Native and Expo versions, see the [Compatibility table](../0
 
 ## Installation
 
-Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document](../08-resource-fetcher/02-custom-adapter.md).
+Installation takes two steps: install the core package, then install a resource fetcher adapter that matches your project type. If you want to implement your own model fetching logic instead, see [this document](../08-resource-fetcher/02-custom-adapter.md).
 
-<Tabs>
-  <TabItem value="npm" label="NPM">
+### 1. Install the core package
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
 
     ```bash
     npm install react-native-executorch
-    # For Expo projects
-    npm install react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
-    npm install react-native-executorch-bare-resource-fetcher
     ```
 
   </TabItem>
-  <TabItem value="pnpm" label="PNPM">
+  <TabItem value="pnpm" label="pnpm">
 
     ```bash
-    pnpm install react-native-executorch
-    # For Expo projects
-    pnpm install react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
-    pnpm install react-native-executorch-bare-resource-fetcher
+    pnpm add react-native-executorch
     ```
 
   </TabItem>
-  <TabItem value="yarn" label="YARN">
+  <TabItem value="yarn" label="yarn">
 
     ```bash
     yarn add react-native-executorch
-    # For Expo projects
-    yarn add react-native-executorch-expo-resource-fetcher
-    # For bare React Native projects
-    yarn add react-native-executorch-bare-resource-fetcher
+    ```
+
+  </TabItem>
+</Tabs>
+
+### 2. Install a resource fetcher
+
+Pick the adapter that matches your project. We recommend the Expo adapter when your app uses Expo; use the bare adapter for projects without Expo.
+
+#### Expo projects
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
+
+    ```bash
+    npm install react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+    ```bash
+    pnpm add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+    ```bash
+    yarn add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### Bare React Native projects
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
+
+    ```bash
+    npm install react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+    ```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+    ```bash
+    pnpm add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+    ```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+    ```bash
+    yarn add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
     ```
 
   </TabItem>
@@ -90,13 +136,13 @@ On install, `react-native-executorch` runs a `postinstall` script that downloads
 
 If the `extras` key is omitted, all five features are enabled. To disable a feature, drop its name from the array.
 
-| Extra        | iOS                                                                         | Android                                                                                       | What it enables                                               |
-| ------------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `opencv`     | ✅ (via the `opencv-rne` CocoaPod)                                          | ✅                                                                                            | Computer-vision models (classification, detection, OCR, etc.) |
-| `phonemizer` | ✅                                                                          | ✅                                                                                            | Text-to-speech models                                         |
-| `xnnpack`    | ✅ — `XnnpackBackend.xcframework` force-loaded into the app                 | ✅ — separately-loaded `libxnnpack_executorch_backend.so`                                     | XNNPACK CPU backend (required for most quantized models)      |
-| `coreml`     | ✅ — `CoreMLBackend.xcframework` force-loaded into the app                  | n/a (CoreML is iOS-only)                                                                      | Core ML backend (Apple Neural Engine / GPU acceleration)      |
-| `vulkan`     | n/a (Vulkan is Android-only)                                                | ✅ — separately-loaded `libvulkan_executorch_backend.so`                                      | Vulkan GPU backend                                            |
+| Extra        | iOS                                                         | Android                                                   | What it enables                                               |
+| ------------ | ----------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| `opencv`     | ✅ (via the `opencv-rne` CocoaPod)                          | ✅                                                        | Computer-vision models (classification, detection, OCR, etc.) |
+| `phonemizer` | ✅                                                          | ✅                                                        | Text-to-speech models                                         |
+| `xnnpack`    | ✅ — `XnnpackBackend.xcframework` force-loaded into the app | ✅ — separately-loaded `libxnnpack_executorch_backend.so` | XNNPACK CPU backend (required for most quantized models)      |
+| `coreml`     | ✅ — `CoreMLBackend.xcframework` force-loaded into the app  | n/a (CoreML is iOS-only)                                  | Core ML backend (Apple Neural Engine / GPU acceleration)      |
+| `vulkan`     | n/a (Vulkan is Android-only)                                | ✅ — separately-loaded `libvulkan_executorch_backend.so`  | Vulkan GPU backend                                            |
 
 Source files and native libraries are excluded from compilation when an extra is disabled, so builds that only need LLMs can skip OpenCV and cut tens of megabytes off the final binary.
 
@@ -118,7 +164,7 @@ Before using any other API, you must call `initExecutorch` with a resource fetch
 ```js
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
-// or BareResourceFetcher for Expo projects
+// or BareResourceFetcher for bare react-native projects
 
 initExecutorch({ resourceFetcher: ExpoResourceFetcher });
 ```
@@ -150,9 +196,29 @@ Because we are using ExecuTorch under the hood, you won't be able to build iOS a
 
 Running the app with the library:
 
-```bash
-yarn <ios | android> -d
-```
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm">
+
+    ```bash
+    npm run <ios | android> -- -d
+    ```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+    ```bash
+    pnpm <ios | android> -d
+    ```
+
+  </TabItem>
+  <TabItem value="yarn" label="yarn">
+
+    ```bash
+    yarn <ios | android> -d
+    ```
+
+  </TabItem>
+</Tabs>
 
 ## Supporting new models in React Native ExecuTorch
 

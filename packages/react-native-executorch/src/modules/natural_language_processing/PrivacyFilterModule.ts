@@ -62,10 +62,7 @@ export class PrivacyFilterModule extends BaseModule {
       const modelPath = modelResult?.[0];
       const tokenizerPath = tokenizerResult?.[0];
       if (!modelPath || !tokenizerPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       const labels = Array.from(namedSources.labelNames);
       const biases = packViterbiBiases(namedSources.viterbiBiases);

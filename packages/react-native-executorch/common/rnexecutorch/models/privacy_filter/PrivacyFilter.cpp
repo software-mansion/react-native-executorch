@@ -99,11 +99,7 @@ void PrivacyFilter::runWindow(std::vector<int64_t> &paddedInputIds,
 
   auto forwardResult =
       BaseModel::forward({*inputIdsTensor, *attentionMaskTensor});
-  if (!forwardResult.ok()) {
-    throw RnExecutorchError(forwardResult.error(),
-                            "The model's forward function did not succeed. "
-                            "Ensure the model input is correct.");
-  }
+  CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
   auto &out = forwardResult.get();
   if (out.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,

@@ -32,10 +32,7 @@ export class VADModule extends BaseModule {
         namedSources.modelSource
       );
       if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       return new VADModule(await global.loadVAD(paths[0]));
     } catch (error) {
@@ -70,10 +67,7 @@ export class VADModule extends BaseModule {
    */
   async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     return await this.nativeModule.generate(waveform);
   }
 }

@@ -189,6 +189,14 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="segment_anything/index"
+          options={{
+            drawerLabel: 'Segment Anything',
+            title: 'Segment Anything',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );
