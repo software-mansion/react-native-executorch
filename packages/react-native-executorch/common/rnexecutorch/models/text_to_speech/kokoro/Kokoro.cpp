@@ -7,7 +7,6 @@
 #include <phonemis/utils/strings.h>
 #include <phonemis/utils/unicode.h>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <thread>
 
@@ -374,7 +373,6 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
 }
 
 void Kokoro::streamInsert(std::u32string chunk) noexcept {
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Inserting data");
   std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
   inputTextBuffer_.append(chunk);
 }

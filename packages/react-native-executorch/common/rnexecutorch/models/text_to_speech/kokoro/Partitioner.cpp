@@ -103,9 +103,9 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
     }
 
     char32_t c = input[i];
-    if (constants::kEndOfSentencePhonemes.contains(c)) {
+    if (constants::kEndOfSentenceCharacters.contains(c)) {
       eosPoints.push_back(i);
-    } else if (constants::kPausePhonemes.contains(c)) {
+    } else if (constants::kPauseCharacters.contains(c)) {
       pausePoints.push_back(i);
     } else if (c < 256 && std::isspace(static_cast<char>(c))) {
       whitePoints.push_back(i);
