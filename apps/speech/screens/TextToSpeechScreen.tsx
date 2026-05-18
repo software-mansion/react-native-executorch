@@ -27,6 +27,7 @@ import {
   KOKORO_ITALIAN_MALE_NICOLA,
   KOKORO_PORTUGUESE_FEMALE_DORA,
   KOKORO_PORTUGUESE_MALE_SANTA,
+  KOKORO_GERMAN_FEMALE_ANNA,
   KOKORO_POLISH_MALE_MATEUSZ,
   KOKORO_HINDI_FEMALE_ALPHA,
   KOKORO_HINDI_MALE_OMEGA,
@@ -50,6 +51,7 @@ const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
   { label: '🇮🇹 IM Nicola', value: KOKORO_ITALIAN_MALE_NICOLA },
   { label: '🇵🇹 PF Dora', value: KOKORO_PORTUGUESE_FEMALE_DORA },
   { label: '🇵🇹 PM Santa', value: KOKORO_PORTUGUESE_MALE_SANTA },
+  { label: '🇩🇪 DF Anna', value: KOKORO_GERMAN_FEMALE_ANNA },
   { label: '🇵🇱 PM Mateusz', value: KOKORO_POLISH_MALE_MATEUSZ },
   { label: '🇮🇳 HF Alpha', value: KOKORO_HINDI_FEMALE_ALPHA },
   { label: '🇮🇳 HM Omega', value: KOKORO_HINDI_MALE_OMEGA },
@@ -181,6 +183,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
 
       await model.stream({
         text: inputText,
+        speed: 0.9,
         phonemize: true,
         onNext,
         onEnd,

@@ -29,6 +29,7 @@ export type TextToSpeechLanguage =
   | 'es' // Spanish
   | 'it' // Italian
   | 'pt' // Portuguese
+  | 'de' // German
   | 'pl' // Polish
   | 'hi'; // Hindi
 

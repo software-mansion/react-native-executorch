@@ -1,6 +1,6 @@
 import { TextToSpeechModelConfig } from '../../types/tts';
 import { VERSION_TAG, URL_PREFIX } from '../versions';
-import { KOKORO_STANDARD, KOKORO_POLISH } from './models';
+import { KOKORO_STANDARD, KOKORO_POLISH, KOKORO_GERMAN } from './models';
 
 // Common prefixes - voices & phonemization data
 const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/voices`;
@@ -32,13 +32,17 @@ const KOKORO_PHONEMIZER_IT_MODEL = `${KOKORO_PHONEMIZER_IT_PREFIX}/phonemizer_it
 const KOKORO_PHONEMIZER_PT_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/pt`;
 const KOKORO_PHONEMIZER_PT_MODEL = `${KOKORO_PHONEMIZER_PT_PREFIX}/phonemizer_pt.pte`;
 
-// Polish
-const KOKORO_PHONEMIZER_PL_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/pl`;
-const KOKORO_PHONEMIZER_PL_MODEL = `${KOKORO_PHONEMIZER_PL_PREFIX}/phonemizer_pl.pte`;
-
 // Hindi
 const KOKORO_PHONEMIZER_HI_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/hi`;
 const KOKORO_PHONEMIZER_HI_MODEL = `${KOKORO_PHONEMIZER_HI_PREFIX}/phonemizer_hi.pte`;
+
+// German
+const KOKORO_PHONEMIZER_DE_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/de`;
+const KOKORO_PHONEMIZER_DE_MODEL = `${KOKORO_PHONEMIZER_DE_PREFIX}/phonemizer_de.pte`;
+
+// Polish
+const KOKORO_PHONEMIZER_PL_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/pl`;
+const KOKORO_PHONEMIZER_PL_MODEL = `${KOKORO_PHONEMIZER_PL_PREFIX}/phonemizer_pl.pte`;
 
 // Kokoro voices
 /**
@@ -282,5 +286,17 @@ export const KOKORO_POLISH_MALE_MATEUSZ = {
   phonemizerConfig: {
     lang: 'pl' as const,
     neuralModelSource: KOKORO_PHONEMIZER_PL_MODEL,
+  },
+} as TextToSpeechModelConfig;
+
+/**
+ * @category TTS Supported Voices
+ */
+export const KOKORO_GERMAN_FEMALE_ANNA = {
+  model: KOKORO_GERMAN,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/df_anna.bin`,
+  phonemizerConfig: {
+    lang: 'de' as const,
+    neuralModelSource: KOKORO_PHONEMIZER_DE_MODEL,
   },
 } as TextToSpeechModelConfig;
