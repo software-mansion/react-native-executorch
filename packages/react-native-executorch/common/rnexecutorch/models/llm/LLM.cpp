@@ -6,9 +6,11 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
+#include <runner/text_runner.h>
+#ifdef RNE_ENABLE_OPENCV
 #include <runner/encoders/vision_encoder.h>
 #include <runner/multimodal_runner.h>
-#include <runner/text_runner.h>
+#endif
 
 namespace rnexecutorch::models::llm {
 namespace llm = ::executorch::extension::llm;
@@ -22,10 +24,8 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::Mmap) {
 
-  if (capabilities.empty()) {
-    runner_ =
-        std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
-  } else {
+#ifdef RNE_ENABLE_OPENCV
+  if (!capabilities.empty()) {
     std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
@@ -35,7 +35,13 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     }
     runner_ = std::make_unique<llm::MultimodalRunner>(
         std::move(module_), tokenizerSource, std::move(encoders));
+  } else {
+#endif
+    runner_ =
+        std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
+#ifdef RNE_ENABLE_OPENCV
   }
+#endif
 
   auto loadResult = runner_->load();
   if (loadResult != Error::Ok) {
