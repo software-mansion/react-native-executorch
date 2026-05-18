@@ -39,8 +39,8 @@ public:
    *                    timestamps - timestamp marks for each token (phoneme)
    */
   std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
-  generate(std::span<const Token> tokens, std::span<const bool> textMask,
-           std::span<const float> ref_hs, float speed = 1.F);
+  generate(std::span<Token> tokens, std::span<bool> textMask,
+           std::span<float> ref_hs, float speed = 1.F);
 
   // Returns maximum supported amount of input tokens.
   size_t getTokensLimit() const;

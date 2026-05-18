@@ -8,7 +8,7 @@ const KOKORO_GERMAN_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/german`;
 
 /**
  * A standard Kokoro instance which processes the text in batches of maximum 128 tokens.
- * Works well with built-in languages: english, spanish, french, italian, portugese and hindi.
+ * Works well with built-in languages: english, spanish, french, italian, portuguese and hindi.
  * @category Models - Text to Speech
  */
 export const KOKORO_STANDARD = {

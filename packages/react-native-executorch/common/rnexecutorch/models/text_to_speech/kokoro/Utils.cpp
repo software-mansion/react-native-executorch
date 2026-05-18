@@ -1,10 +1,10 @@
 #include "Utils.h"
 #include "Constants.h"
 #include "Params.h"
+#include <rnexecutorch/Error.h>
 
 #include <algorithm>
 #include <cmath>
-#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro::utils {
 
@@ -43,7 +43,7 @@ template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
       return currentIndex;
     }
 
-    currentIndex = reverse ? currentIndex - 1 : currentIndex + 1;
+    currentIndex += reverse ? -1 : 1;
   }
 
   return reverse ? 0 : length - 1;

@@ -1,11 +1,13 @@
 #include "DurationPredictor.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/data_processing/Sequential.h>
+#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
+
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <queue>
-#include <rnexecutorch/Error.h>
-#include <rnexecutorch/data_processing/Sequential.h>
-#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
+#include <ranges>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -49,9 +51,8 @@ DurationPredictor::DurationPredictor(
 }
 
 std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
-DurationPredictor::generate(std::span<const Token> tokens,
-                            std::span<const bool> textMask,
-                            std::span<const float> ref_hs, float speed) {
+DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
+                            std::span<float> ref_hs, float speed) {
   size_t inputSize = tokens.size();
 
   // Perform input shape checks
@@ -75,17 +76,15 @@ DurationPredictor::generate(std::span<const Token> tokens,
   auto selectedMethod = it->first;
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                      const_cast<Token *>(tokens.data()), ScalarType::Long);
+  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                                      tokens.data(), ScalarType::Long);
 
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
-                      const_cast<bool *>(textMask.data()), ScalarType::Bool);
+                      textMask.data(), ScalarType::Bool);
 
-  auto voiceRefTensor =
-      make_tensor_ptr({1, constants::kVoiceRefHalfSize},
-                      const_cast<float *>(ref_hs.data()), ScalarType::Float);
+  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
+                                        ref_hs.data(), ScalarType::Float);
 
   auto speedTensor = make_tensor_ptr({1}, &speed, ScalarType::Float);
 

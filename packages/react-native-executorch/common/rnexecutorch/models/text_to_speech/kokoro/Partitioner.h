@@ -38,7 +38,7 @@ public:
    * Represents a heuristic evaluation of given partition.
    * The lower it is, the better partition is.
    */
-  using Cost = uint32_t;
+  using Cost = uint64_t;
 
   /**
    * A cost function type to evaluate given partition.

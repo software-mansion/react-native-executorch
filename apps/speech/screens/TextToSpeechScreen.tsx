@@ -94,11 +94,10 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedVoice, setSelectedVoice] = useState<TextToSpeechModelConfig>(
-    KOKORO_AMERICAN_ENGLISH_FEMALE_HEART
-  );
+  const [selectedSpeaker, setSelectedSpeaker] =
+    useState<TextToSpeechModelConfig>(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
 
-  const model = useTextToSpeech(selectedVoice);
+  const model = useTextToSpeech(selectedSpeaker);
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -228,9 +227,9 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <ModelPicker
             label="Voice"
             models={VOICES}
-            selectedModel={selectedVoice}
+            selectedModel={selectedSpeaker}
             disabled={model.isGenerating}
-            onSelect={(m) => setSelectedVoice(m)}
+            onSelect={(m) => setSelectedSpeaker(m)}
           />
 
           <View style={styles.inputContainer}>

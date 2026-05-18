@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <deque>
 #include <limits>
+#include <ranges>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -16,49 +17,51 @@ constexpr Partitioner::Cost INF = 1e7;
 Partitioner::Partition Partitioner::partition(std::u32string_view input,
                                               size_t limit, Mode mode) const {
   if (mode == Mode::MIN_BREAKS) {
-    return partition(input, limit,
-                     [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp,
-                             size_t end, Separator sep) -> Cost {
-                       if (end - bp > limit) {
-                         return INF;
-                       }
+    auto minBreakCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
+                                  int64_t bp, size_t end,
+                                  Separator sep) -> Cost {
+      if (end - bp > limit) {
+        return INF;
+      }
 
-                       Cost sepPenalty = sep == Separator::EOS     ? 1
-                                         : sep == Separator::PAUSE ? 3
-                                         : sep == Separator::WHITE ? 1000
-                                                                   : 0;
+      Cost sepPenalty = sep == Separator::EOS     ? kEosMinBreaksCost
+                        : sep == Separator::PAUSE ? kPauseMinBreaksCost
+                        : sep == Separator::WHITE ? kWhiteMinBreaksCost
+                                                  : 0;
 
-                       return acc + sepPenalty + static_cast<Cost>(end - bp);
-                     });
+      return acc + sepPenalty + static_cast<Cost>(end - bp);
+    };
+
+    return partition(input, limit, minBreakCostFn);
   }
 
   if (mode == Mode::MIN_LATENCY) {
-    return partition(
-        input, limit,
-        [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp, size_t end,
-                Separator sep) -> Cost {
-          if (end - bp > limit) {
-            return INF;
-          }
+    auto minLatencyCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
+                                    int64_t bp, size_t end,
+                                    Separator sep) -> Cost {
+      if (end - bp > limit) {
+        return INF;
+      }
 
-          Cost sepPenalty = sep == Separator::EOS     ? 5
-                            : sep == Separator::PAUSE ? 18
-                            : sep == Separator::WHITE ? 1000
-                                                      : 0;
+      Cost sepPenalty = sep == Separator::EOS     ? kEosMinLatencyCost
+                        : sep == Separator::PAUSE ? kPauseMinLatencyCost
+                        : sep == Separator::WHITE ? kWhiteMinLatencyCost
+                                                  : 0;
 
-          int64_t rightmostRangeLength = end - bp;
-          int64_t prevRangeLength = bp - prevBp;
+      int64_t rightmostRangeLength = end - bp;
+      int64_t prevRangeLength = bp - prevBp;
 
-          int64_t latency = std::max(static_cast<int64_t>(0),
-                                     rightmostRangeLength - prevRangeLength);
-          int64_t discount =
-              kTokenDiscountFactor *
-              std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
+      int64_t latency = std::max(static_cast<int64_t>(0),
+                                 rightmostRangeLength - prevRangeLength);
+      int64_t discount =
+          kTokenDiscountFactor *
+          std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
 
-          return acc +
-                 static_cast<Cost>(latency * discount / kTokenDiscountRange) +
-                 sepPenalty;
-        });
+      return acc + static_cast<Cost>(latency * discount / kTokenDiscountRange) +
+             sepPenalty;
+    };
+
+    return partition(input, limit, minLatencyCostFn);
   }
 
   return {input, {}};
@@ -90,7 +93,7 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
                       : q == &pausePoints ? Separator::PAUSE
                                           : Separator::WHITE;
       for (size_t breakIdx : (*q)) {
-        Cost cost = costFn(dp[breakIdx].first, 0, dp[breakIdx].second, breakIdx,
+        auto cost = costFn(dp[breakIdx].first, 0, dp[breakIdx].second, breakIdx,
                            i, sep);
         if (cost < bestCost && breakIdx > 0) {
           bestCost = cost;
@@ -110,19 +113,19 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
   }
 
   std::vector<std::pair<size_t, size_t>> segments;
-  int64_t currBp = dp[n - 1].second;
+  int64_t currBp = dp.back().second;
   size_t lastIdx = n;
 
   while (currBp != -1) {
     size_t start = static_cast<size_t>(currBp + 1);
     segments.emplace_back(start, lastIdx - start);
-    lastIdx = static_cast<size_t>(currBp + 1);
+    lastIdx = currBp + 1;
     currBp = dp[currBp].second;
   }
   // Add the first segment
   segments.emplace_back(0, lastIdx);
 
-  std::reverse(segments.begin(), segments.end());
+  std::ranges::reverse(segments);
 
   return {input, std::move(segments)};
 }

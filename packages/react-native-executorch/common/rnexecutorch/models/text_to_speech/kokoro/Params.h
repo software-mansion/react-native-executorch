@@ -81,6 +81,19 @@ inline constexpr int64_t kTokenDiscountFactor = 1;
  * 128 tokens, the latency is completely omited and not penalized.
  */
 inline constexpr int64_t kTokenDiscountRange = 128;
+
+/**
+ * A set of weights used by partition algorithm to penalize dividing sentences
+ * on different breakpoints.
+ */
+inline constexpr uint64_t kEosMinBreaksCost = 1;
+inline constexpr uint64_t kPauseMinBreaksCost = 3;
+inline constexpr uint64_t kWhiteMinBreaksCost = 1000;
+
+inline constexpr uint64_t kEosMinLatencyCost = 5;
+inline constexpr uint64_t kPauseMinLatencyCost = 18;
+inline constexpr uint64_t kWhiteMinLatencyCost = 1000;
+
 } // namespace partitioning
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro::params

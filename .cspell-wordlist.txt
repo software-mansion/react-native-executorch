@@ -208,3 +208,7 @@ promptable
 topk
 phonemize
 phonemization
+Siwis
+SIWIS
+Mateusz
+MATEUSZ

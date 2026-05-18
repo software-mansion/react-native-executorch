@@ -311,7 +311,7 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   const size_t noTokens =
       std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
                  context_.inputTokensLimit);
-  const auto tokens = utils::tokenize(phonemes, {noTokens});
+  auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // 2. Initialize text mask.
   // Exclude all paddings except the first and last ones.
@@ -325,7 +325,7 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   // vector.
   const size_t voiceID =
       std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
-  const auto &voice = voice_[voiceID];
+  auto &voice = voice_[voiceID];
 
   // 4. Inference Phase 1: DurationPredictor (submodule).
   auto [d, indices, effectiveDuration, timestamps] =
@@ -346,7 +346,7 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
       std::span(voice));
 
   // 6. Post-processing: Finalize audio.
-  const auto audioTensor = decoding->at(0).toTensor();
+  auto audioTensor = decoding->at(0).toTensor();
   const int32_t audioLength = constants::kTicksPerDuration * effectiveDuration;
 
   auto audio =

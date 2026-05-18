@@ -3,6 +3,10 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
+#include <algorithm>
+#include <ranges>
+#include <utility>
+
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 using ::executorch::aten::ScalarType;
@@ -28,9 +32,9 @@ Synthesizer::Synthesizer(const std::string &modelSource,
         forwardMethods_.emplace_back(name, inputSize);
       }
     }
-    std::stable_sort(
-        forwardMethods_.begin(), forwardMethods_.end(),
-        [](const auto &a, const auto &b) { return a.second < b.second; });
+    std::ranges::stable_sort(forwardMethods_, [](const auto &a, const auto &b) {
+      return a.second < b.second;
+    });
   }
 
   // Fallback: if no methods discovered, validate "forward" directly
@@ -44,10 +48,11 @@ Synthesizer::Synthesizer(const std::string &modelSource,
   }
 }
 
-Result<std::vector<EValue>> Synthesizer::generate(
-    std::span<const Token> tokens, std::span<const bool> textMask,
-    std::span<const int64_t> indices, std::span<const float> dur,
-    std::span<const float> ref_s) {
+Result<std::vector<EValue>> Synthesizer::generate(std::span<Token> tokens,
+                                                  std::span<bool> textMask,
+                                                  std::span<int64_t> indices,
+                                                  std::span<float> dur,
+                                                  std::span<float> ref_s) {
   // Perform input shape checks
   // Both F0 and N vectors should be twice as long as duration
   CHECK_SIZE(tokens, textMask.size());
@@ -57,24 +62,22 @@ Result<std::vector<EValue>> Synthesizer::generate(
   int32_t duration = indices.size();
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                      const_cast<Token *>(tokens.data()), ScalarType::Long);
+  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                                      tokens.data(), ScalarType::Long);
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
-                      const_cast<bool *>(textMask.data()), ScalarType::Bool);
-  auto indicesTensor = make_tensor_ptr(
-      {duration}, const_cast<int64_t *>(indices.data()), ScalarType::Long);
-  auto durTensor = make_tensor_ptr(
-      {1, noTokens, 640}, const_cast<float *>(dur.data()), ScalarType::Float);
-  auto voiceRefTensor =
-      make_tensor_ptr({1, constants::kVoiceRefSize},
-                      const_cast<float *>(ref_s.data()), ScalarType::Float);
+                      textMask.data(), ScalarType::Bool);
+  auto indicesTensor =
+      make_tensor_ptr({duration}, indices.data(), ScalarType::Long);
+  auto durTensor =
+      make_tensor_ptr({1, noTokens, 640}, dur.data(), ScalarType::Float);
+  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefSize},
+                                        ref_s.data(), ScalarType::Float);
 
   // Select appropriate forward method based on token count
   auto it =
       std::ranges::find_if(forwardMethods_, [noTokens](const auto &entry) {
-        return static_cast<int32_t>(entry.second) >= noTokens;
+        return std::cmp_greater_equal(entry.second, noTokens);
       });
   std::string selectedMethod =
       (it != forwardMethods_.end()) ? it->first : forwardMethods_.back().first;

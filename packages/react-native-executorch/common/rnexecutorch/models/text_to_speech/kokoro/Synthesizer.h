@@ -39,11 +39,11 @@ public:
    * @param dur duration values, obtained from DurationPredictor module
    * @param ref_s a full voice array for given duration
    */
-  Result<std::vector<EValue>> generate(std::span<const Token> tokens,
-                                       std::span<const bool> textMask,
-                                       std::span<const int64_t> indices,
-                                       std::span<const float> dur,
-                                       std::span<const float> ref_s);
+  Result<std::vector<EValue>> generate(std::span<Token> tokens,
+                                       std::span<bool> textMask,
+                                       std::span<int64_t> indices,
+                                       std::span<float> dur,
+                                       std::span<float> ref_s);
 
   // Model limits getters
   size_t getTokensLimit() const;

@@ -96,7 +96,6 @@ export function ModelPicker<T>({
               style={[
                 styles.dropdown,
                 {
-                  position: 'absolute',
                   top: dropdownLayout.y,
                   left: dropdownLayout.x,
                   width: dropdownLayout.width,
@@ -170,6 +169,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   dropdown: {
+    position: 'absolute',
     borderWidth: 1,
     borderColor: '#C1C6E5',
     borderRadius: 8,
