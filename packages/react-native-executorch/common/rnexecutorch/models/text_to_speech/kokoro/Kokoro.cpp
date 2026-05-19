@@ -346,6 +346,11 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
 
   // 6. Post-processing: Finalize audio.
   auto audioTensor = decoding->at(0).toTensor();
+
+  if (audioTensor.numel() == 0) {
+    return {};
+  }
+
   const int32_t audioLength = constants::kTicksPerDuration * effectiveDuration;
 
   auto audio =
@@ -362,7 +367,7 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
             ? timestamps[noTokens - 3].end
             : timestamps[noTokens - 2].end;
 
-    audio = audio.subspan(0, lastTokenTimestamp);
+    audio = audio.subspan(0, std::min(lastTokenTimestamp, audio.size()));
   }
 
   // Now additional stripping of a (hopefully) pure silence.
