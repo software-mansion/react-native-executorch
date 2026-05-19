@@ -7911,6 +7911,7 @@ __metadata:
     expo-clipboard: "npm:~55.0.13"
     expo-constants: "npm:^55.0.16"
     expo-font: "npm:~55.0.6"
+    expo-linear-gradient: "npm:~55.0.14"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
     expo-status-bar: "npm:~55.0.5"
@@ -9609,6 +9610,17 @@ __metadata:
     expo: "*"
     react: "*"
   checksum: 10/f4d52bf8c5499c7c8df4398b0ebe78c835361d15b488350340b410c57ac9794c2781cda605ce6cce968e37adab126fec455ceb3b5b97128186cc7e18571c414c
+  languageName: node
+  linkType: hard
+
+"expo-linear-gradient@npm:~55.0.14":
+  version: 55.0.14
+  resolution: "expo-linear-gradient@npm:55.0.14"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/c658eb2ad4d09c2f3c001df8399ff438cc913fec5e0e7c63c3f58904f123900b258373c3a666bc1a28309aed0ddfa2de75d7c49e53d6526c51d324791bd7b982
   languageName: node
   linkType: hard
 
