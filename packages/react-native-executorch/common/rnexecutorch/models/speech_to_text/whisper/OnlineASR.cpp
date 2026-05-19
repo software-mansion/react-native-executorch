@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <ranges>
 #include <utility>
 
 #include "Constants.h"
@@ -11,18 +12,17 @@
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
 OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
-  // Reserve an expected amount of memory for audio buffer.
   audioBuffer_.reserve((constants::kChunkSize + 1) * constants::kSamplingRate);
 }
 
 bool OnlineASR::isReady() const {
-  std::scoped_lock<std::mutex> lock(streamingMutex);
+  std::scoped_lock lock(streamingMutex);
 
   return audioBuffer_.size() >= constants::kMinChunkSamples;
 }
 
 void OnlineASR::insertAudioChunk(std::span<const float> audio) {
-  std::scoped_lock<std::mutex> lock(streamingMutex);
+  std::scoped_lock lock(streamingMutex);
 
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
 
@@ -41,12 +41,15 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
 }
 
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
+  constexpr float kStreamSafeBufferMaxSamples =
+      params::kStreamSafeBufferDuration * constants::kSamplingRate;
+
   std::vector<float> audioCopy;
 
   // Copy the audio buffer to avoid keeping the lock during the entire
   // transcription process.
   {
-    std::scoped_lock<std::mutex> lock(streamingMutex);
+    std::scoped_lock lock(streamingMutex);
     audioCopy = audioBuffer_;
   }
 
@@ -60,25 +63,23 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   std::vector<Segment> transcriptions = asr_->transcribe(input, options);
 
   // Flatten segments into a single word sequence.
-  // This is basically our 'nonCommitted' part for now.
+  // This is our 'nonCommitted' part for now.
   std::vector<Word> words;
   for (auto &segment : transcriptions) {
-    std::move(segment.words.begin(), segment.words.end(),
-              std::back_inserter(words));
+    std::ranges::move(segment.words, std::back_inserter(words));
   }
 
   // Aquire lock for the rest of the method (extensive usage of audioBuffer_).
-  std::scoped_lock<std::mutex> lock(streamingMutex);
+  std::scoped_lock lock(streamingMutex);
 
   // Step 1: examine all previously saved EOS points.
   // The idea is to remove entries which have changed or no longer exist
   // due to model correcting it's output.
-  for (size_t i = 0; i < memory_.eos.size(); i++) {
-    const auto &eos = memory_.eos[i];
-    if (eos.position >= words.size() || !utils::isEos(words[eos.position]) ||
-        (eos.position > 0 &&
-         eos.preceeding != words[eos.position - 1].content)) {
-      memory_.eos.erase(memory_.eos.begin() + i, memory_.eos.end());
+  for (auto it = memory_.eos.begin(); it != memory_.eos.end(); it++) {
+    if (it->position >= words.size() || !utils::isEos(words[it->position]) ||
+        (it->position > 0 &&
+         it->preceeding != words[it->position - 1].content)) {
+      memory_.eos.erase(it, memory_.eos.end());
       break;
     }
   }
@@ -92,7 +93,6 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
     // Because of step 1, we know that if the last EOS exist in eos_,
     // then it must be the last entry.
     if (memory_.eos.empty() || memory_.eos.back().position != lastEosIndex) {
-      // Register last EOS entry
       std::string preceeding =
           lastEosIndex > 0 ? words[lastEosIndex - 1].content : "";
       memory_.eos.emplace_back(lastEosIndex, preceeding, lastEosIt->end);
@@ -115,8 +115,8 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   // in a 'good' spot - where it will remove a significant audio chunk, yet
   // won't affect most recent, unfinished speech samples.
   size_t bufferSize = audioBuffer_.size();
-  if (bufferSize > static_cast<size_t>(params::kStreamSafeBufferDuration *
-                                       constants::kSamplingRate)) {
+  if (std::cmp_greater<size_t, size_t>(bufferSize,
+                                       kStreamSafeBufferMaxSamples)) {
     auto newCommitted = commitAndClean(words);
 
     committed.insert(committed.end(),
@@ -139,7 +139,7 @@ std::vector<Word> OnlineASR::finish(const DecodingOptions &options) {
 
   // Last-tick committed delta + whatever never made it past the commit
   // threshold.
-  std::vector<Word> residual = std::move(result.committed);
+  std::vector<Word> residual{std::move(result.committed)};
   residual.insert(residual.end(),
                   std::make_move_iterator(result.nonCommitted.begin()),
                   std::make_move_iterator(result.nonCommitted.end()));
@@ -150,7 +150,7 @@ std::vector<Word> OnlineASR::finish(const DecodingOptions &options) {
 }
 
 void OnlineASR::reset() {
-  std::scoped_lock<std::mutex> lock(streamingMutex);
+  std::scoped_lock lock(streamingMutex);
 
   audioBuffer_.clear();
 
@@ -161,8 +161,16 @@ void OnlineASR::reset() {
 }
 
 std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
+  constexpr float kMidpointAnchorTime = params::kStreamMaxDuration / 2.0F;
+  constexpr size_t kMidpointAnchorSamples =
+      static_cast<size_t>(kMidpointAnchorTime * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
+      params::kStreamSafetyThreshold * constants::kSamplingRate);
+  constexpr float kMaxSafeEosTime =
+      params::kStreamSafeBufferDuration - params::kStreamSafetyThreshold;
+  constexpr float kMinDurationToCalculateDensity = 0.1F;
+
   const size_t bufferSize = audioBuffer_.size();
-  const float midBufferThreshold = params::kStreamMaxDuration / 2.0F;
 
   std::vector<Word> committed;
 
@@ -184,35 +192,30 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
     const float eosTimestamp = memory_.eos[0].tmstpend;
 
     const float upperHalfDuration =
-        std::max(0.0F, eosTimestamp - midBufferThreshold);
+        std::max(0.0F, eosTimestamp - kMidpointAnchorTime);
     const float wordsPerSecond =
-        upperHalfDuration > 0.1F
+        upperHalfDuration > kMinDurationToCalculateDensity
             ? static_cast<float>(transcript.size()) / upperHalfDuration
             : 0.0F;
 
     // The EOS sits early enough that cutting up to the safety margin won't
     // touch the ongoing (post-EOS) speech.
-    const bool eosSafe = eosTimestamp < params::kStreamSafeBufferDuration -
-                                            params::kStreamSafetyThreshold;
+    const bool eosSafe = eosTimestamp < kMaxSafeEosTime;
 
     if (!eosSafe && wordsPerSecond < params::kWordsPerSecondLow) {
       // EOS lies past the midpoint, but a low word density implies the spoken
       // audio is concentrated in the upper half. Drop the lower half and
       // shift the EOS accordingly.
       audioBuffer_.erase(audioBuffer_.begin(),
-                         audioBuffer_.begin() +
-                             static_cast<size_t>(midBufferThreshold *
-                                                 constants::kSamplingRate));
-      memory_.eos[0].tmstpend -= midBufferThreshold;
+                         audioBuffer_.begin() + kMidpointAnchorSamples);
+      memory_.eos[0].tmstpend -= kMidpointAnchorTime;
     } else {
       // Cut everything up to and including the sentence — either by the
       // safety margin (when EOS is early) or (more aggresively) right at the
       // EOS boundary — and commit its words.
       const size_t cut =
           eosSafe
-              ? bufferSize -
-                    static_cast<size_t>(params::kStreamSafetyThreshold *
-                                        constants::kSamplingRate)
+              ? bufferSize - kSafetyMarginSamples
               : static_cast<size_t>(eosTimestamp * constants::kSamplingRate);
 
       audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
@@ -237,8 +240,6 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
 
     audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
 
-    // Move all words up to the last committed position (inclusive) to the
-    // committed buffer.
     committed.insert(
         committed.end(), std::make_move_iterator(transcript.begin()),
         std::make_move_iterator(transcript.begin() + lastCommittedPos + 1));

@@ -265,15 +265,11 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
   uint64_t startPos = 0;
 
   // Prefill: feed each initial token individually so decode() always sees 1
-  // token
-  std::span<uint64_t> firstToken(sequenceIds.data(), 1);
-  executorch::aten::Tensor logitsTensor =
-      this->decode(firstToken, encoderFeatures, startPos);
-  ++startPos;
-  for (size_t i = 1; i < sequenceIds.size(); ++i) {
+  // token.
+  executorch::aten::Tensor logitsTensor{nullptr};
+  for (size_t i = 0; i < sequenceIds.size(); i++, startPos++) {
     std::span<uint64_t> single(sequenceIds.data() + i, 1);
     logitsTensor = this->decode(single, encoderFeatures, startPos);
-    ++startPos;
   }
 
   // Autoregressive decoding: always 1 token at a time

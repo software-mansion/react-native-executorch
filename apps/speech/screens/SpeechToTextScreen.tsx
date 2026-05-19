@@ -18,9 +18,9 @@ import {
   WHISPER_BASE_EN,
   WHISPER_BASE_EN_COREML,
   WHISPER_SMALL_EN,
+  WHISPER_SMALL_EN_COREML,
   TranscriptionResult,
   SpeechToTextProps,
-  WHISPER_SMALL_EN_COREML,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 

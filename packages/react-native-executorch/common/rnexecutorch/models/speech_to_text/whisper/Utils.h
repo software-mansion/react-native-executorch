@@ -14,7 +14,7 @@ namespace rnexecutorch::models::speech_to_text::whisper::utils {
  *
  * @param word The word to check.
  */
-constexpr inline bool isEos(const Word &word) {
+inline bool isEos(const Word &word) {
   return word.content.size() == 1 &&
          constants::kEosPunctations.contains(word.content[0]);
 }

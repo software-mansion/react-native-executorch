@@ -5,7 +5,7 @@
 namespace rnexecutorch::models::speech_to_text {
 
 /**
- * Basically a different representation of token,
+ * Different representation of a token,
  * with timestamps calculated.
  */
 struct Word {
