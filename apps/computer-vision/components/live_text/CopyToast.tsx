@@ -24,11 +24,12 @@ export default function CopyToast({ message }: Props) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
+    if (!message) return;
     progress.value = withSequence(
       withTiming(1, { duration: 180 }),
       withDelay(1200, withTiming(0, { duration: 320 }))
     );
-  }, [progress]);
+  }, [message, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
