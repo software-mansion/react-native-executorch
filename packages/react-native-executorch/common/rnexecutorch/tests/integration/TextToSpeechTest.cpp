@@ -15,7 +15,8 @@ GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CommonModelTest);
 
 constexpr auto kValidLang = "en-us";
 constexpr auto kValidTaggerPath = "kokoro_en_tagger.json";
-constexpr auto kValidPhonemizerPath = "kokoro_us_lexicon.json";
+constexpr auto kValidLexiconPath = "kokoro_us_lexicon.json";
+constexpr auto kValidPhonemizerPath = "kokoro_us_phonemizer.pte";
 constexpr auto kValidDurationPath = "kokoro_duration_predictor.pte";
 constexpr auto kValidSynthesizerPath = "kokoro_synthesizer.pte";
 constexpr auto kValidVoicePath = "kokoro_af_heart.bin";
@@ -64,7 +65,7 @@ protected:
   void SetUp() override {
     try {
       model_ = std::make_unique<Kokoro>(
-          kValidLang, kValidTaggerPath, kValidPhonemizerPath,
+          kValidLang, kValidTaggerPath, kValidLexiconPath, kValidPhonemizerPath,
           kValidDurationPath, kValidSynthesizerPath, kValidVoicePath, nullptr);
     } catch (...) {
       model_ = nullptr;
@@ -76,9 +77,9 @@ protected:
 } // namespace
 
 TEST(TTSCtorTests, InvalidVoicePathThrows) {
-  EXPECT_THROW(Kokoro(kValidLang, kValidTaggerPath, kValidPhonemizerPath,
-                      kValidDurationPath, kValidSynthesizerPath,
-                      "nonexistent_voice.bin", nullptr),
+  EXPECT_THROW(Kokoro(kValidLang, kValidTaggerPath, kValidLexiconPath,
+                      kValidPhonemizerPath, kValidDurationPath,
+                      kValidSynthesizerPath, "nonexistent_voice.bin", nullptr),
                RnExecutorchError);
 }
 
@@ -86,7 +87,7 @@ TEST_F(KokoroTest, MaxTextSizeExceededThrows) {
   if (!model_) {
     GTEST_SKIP() << "Model assets not available, skipping test.";
   }
-  std::string hugeText(10000, 'A'); // beyond params::kMaxTextSize
+  std::u32string hugeText(10000, U'A'); // beyond params::kMaxTextSize
   EXPECT_THROW(model_->generate(hugeText, 1.0f), RnExecutorchError);
 }
 
@@ -94,7 +95,7 @@ TEST_F(KokoroTest, EmptyStringReturnsEmptyVector) {
   if (!model_) {
     GTEST_SKIP() << "Model assets not available, skipping test.";
   }
-  auto result = model_->generate("", 1.0f);
+  auto result = model_->generate(U"", 1.0f);
   EXPECT_TRUE(result.empty());
 }
 
@@ -102,7 +103,7 @@ TEST_F(KokoroTest, GenerateReturnsValidAudio) {
   if (!model_) {
     GTEST_SKIP() << "Model assets not available, skipping test.";
   }
-  auto result = model_->generate("Hello world! How are you doing?", 1.0f);
+  auto result = model_->generate(U"Hello world! How are you doing?", 1.0f);
   auto reference = test_utils::loadAudioFromFile("test_speech.raw");
 
   ASSERT_FALSE(reference.empty())
@@ -117,7 +118,7 @@ TEST_F(KokoroTest, GenerateSpeedAdjustsAudioLength) {
   if (!model_) {
     GTEST_SKIP() << "Model assets not available, skipping test.";
   }
-  std::string text = "This is a sentence to test the speed modifications.";
+  std::u32string text = U"This is a sentence to test the speed modifications.";
   auto resultNormal = model_->generate(text, 1.0f);
   auto resultFast = model_->generate(text, 1.5f);
 
