@@ -24,11 +24,13 @@ export default function LiveTextOverlay({
   const offsetX = (canvasSize.width - imageSize.width * scale) / 2;
   const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
 
-  if (!detections.length) return null;
+  if (!detections.length || imageSize.width <= 0 || imageSize.height <= 0) {
+    return null;
+  }
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      {detections.map((det, i) => {
+      {detections.map((det) => {
         const { x1, y1, x2, y2 } = det.bbox;
         const left = x1 * scale + offsetX;
         const top = y1 * scale + offsetY;
@@ -36,7 +38,7 @@ export default function LiveTextOverlay({
         const height = (y2 - y1) * scale;
         return (
           <Pressable
-            key={i}
+            key={`${det.bbox.x1},${det.bbox.y1},${det.text}`}
             onPress={() => onCopy(det.text)}
             style={({ pressed }) => [
               styles.box,
