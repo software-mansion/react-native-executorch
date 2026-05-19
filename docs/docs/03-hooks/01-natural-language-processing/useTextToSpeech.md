@@ -61,8 +61,8 @@ const handleSpeech = async (text: string) => {
 
 `useTextToSpeech` takes [`TextToSpeechModelConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md) that consists of:
 
-- `model` of type [`TextToSpeechModelSources`](../../06-api-reference/interfaces/TextToSpeechModelSources.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/TextToSpeechModelSources.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/TextToSpeechModelSources.md#synthesizersource), and [`modelName`](../../06-api-reference/interfaces/TextToSpeechModelSources.md#modelname).
-- [`voiceSource`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#voicesource) of type [`ResourceSource`](../../06-api-reference/interfaces/ResourceSource.md) - configuration of specific voice used in TTS.
+- `model` of type [`TextToSpeechModelSources`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md) containing the [`durationPredictorSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#synthesizersource), and [`modelName`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#modelname).
+- [`voiceSource`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#voicesource) of type [`ResourceSource`](../../06-api-reference/type-aliases/ResourceSource.md) - configuration of specific voice used in TTS.
 - [`phonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#phonemizerconfig) of type [`TextToSpeechPhonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechPhonemizerConfig.md) - configuration of the phonemizer.
 
 `useTextToSpeech`'s second optional argument is an object with:
