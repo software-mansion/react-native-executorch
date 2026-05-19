@@ -129,10 +129,10 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
       model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
 
   for (const auto &detection : results) {
-    EXPECT_LE(detection.bbox.x1, detection.bbox.x2);
-    EXPECT_LE(detection.bbox.y1, detection.bbox.y2);
-    EXPECT_GE(detection.bbox.x1, 0.0f);
-    EXPECT_GE(detection.bbox.y1, 0.0f);
+    EXPECT_LE(detection.bbox.p1.x, detection.bbox.p2.x);
+    EXPECT_LE(detection.bbox.p1.y, detection.bbox.p2.y);
+    EXPECT_GE(detection.bbox.p1.x, 0.0f);
+    EXPECT_GE(detection.bbox.p1.y, 0.0f);
   }
 }
 

@@ -134,14 +134,14 @@ TEST(PoseEstimationGenerateTests, KeypointsHaveValidStructure) {
   auto results =
       model.generateFromString(kValidTestImagePath, 0.3, 0.5, kMethodName);
   // Each detection must contain a non-zero number of keypoints, and each
-  // keypoint must be aggregate-initializable as { x, y } ints (compile-time).
+  // keypoint must be aggregate-initializable as { x, y } floats (compile-time).
   for (const auto &person : results) {
     EXPECT_GT(person.size(), 0u);
     for (const auto &kp : person) {
       // No range constraint here — out-of-bounds coords are valid model
       // output for low-visibility keypoints; consumers filter on visibility.
-      static_assert(std::is_same_v<decltype(kp.x), int32_t>);
-      static_assert(std::is_same_v<decltype(kp.y), int32_t>);
+      static_assert(std::is_same_v<decltype(kp.x), float>);
+      static_assert(std::is_same_v<decltype(kp.y), float>);
       (void)kp;
     }
   }

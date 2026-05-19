@@ -60,7 +60,7 @@ MODELS=(
   "clip-vit-base-patch32-vision_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.6.0/clip-vit-base-patch32-vision_xnnpack.pte"
   "all-MiniLM-L6-v2_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte"
   "tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json"
-  "fsmn-vad_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn-vad_xnnpack.pte"
+  "fsmn-vad_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn_vad_xnnpack_fp32.pte"
   "whisper_tiny_en_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.8.0/xnnpack/whisper_tiny_en_xnnpack.pte"
   "whisper_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.8.0/tokenizer.json"
   "kokoro_duration_predictor.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/xnnpack/standard/duration_predictor_std.pte"
@@ -83,7 +83,7 @@ MODELS=(
   "lfm2_vl_tokenizer_config.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json"
   "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
   "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
-  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte"
+  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/xnnpack/yolo26_pose_n_xnnpack_fp32.pte"
 )
 
 # ============================================================================
