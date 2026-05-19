@@ -52,7 +52,7 @@ try {
 
 `useTokenizer` takes [`TokenizerProps`](../../06-api-reference/interfaces/TokenizerProps.md) that consists of:
 
-- `tokenizer` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
+- `tokenizer` of type [`TokenizerProps`](../../06-api-reference/interfaces/TokenizerProps.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/TokenizerProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
