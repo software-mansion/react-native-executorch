@@ -174,6 +174,15 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="live_text/index"
+          options={{
+            drawerLabel: 'Live Text',
+            title: 'Live Text',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="style_transfer/index"
           options={{
             drawerLabel: 'Style Transfer',

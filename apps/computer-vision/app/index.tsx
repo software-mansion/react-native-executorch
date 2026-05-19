@@ -67,6 +67,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('live_text/')}
+        >
+          <Text style={styles.buttonText}>Live Text</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('style_transfer/')}
         >
           <Text style={styles.buttonText}>Style Transfer</Text>
