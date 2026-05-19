@@ -7908,6 +7908,7 @@ __metadata:
     babel-preset-expo: "npm:~55.0.16"
     expo: "npm:^55.0.13"
     expo-build-properties: "npm:~55.0.13"
+    expo-clipboard: "npm:~55.0.13"
     expo-constants: "npm:^55.0.16"
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
@@ -9457,6 +9458,17 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 10/c12a173e3f3c5c77f124927890b48bdf07a35fa268c3a6c4659e7b2c46a58c292f8518f0ae85b4b2f5b231dda0f4128a8b8bd0c1c6d65e66f0457714dade1ff2
+  languageName: node
+  linkType: hard
+
+"expo-clipboard@npm:~55.0.13":
+  version: 55.0.13
+  resolution: "expo-clipboard@npm:55.0.13"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/d95bbc961d4018b554418a1a961a74ae907417351e51dd7943f3b83a7df2aefa9b105144f5f6768a6e1afb7d16b13799a57c283fa3e7f84514629005d9c5ae68
   languageName: node
   linkType: hard
 
