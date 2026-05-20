@@ -214,7 +214,9 @@ std::vector<Segment> ASR::generate(std::span<const float> waveform,
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
-    const float avgLogProb = cumLogProb / static_cast<float>(tokens.size() + 1);
+    // Match whisper.cpp: divide by the number of summed log-probs.
+    const float avgLogProb =
+        cumLogProb / static_cast<float>(std::max<size_t>(1, scores.size()));
     const std::string text = tokenizer_->decode(tokens, true);
     const float compressionRatio = this->calculateCompressionRatio(text);
 
