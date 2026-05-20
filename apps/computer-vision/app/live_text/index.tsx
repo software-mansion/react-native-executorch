@@ -139,6 +139,16 @@ export default function LiveTextScreen() {
     setPhase('live');
   }, []);
 
+  const handleOcrError = useCallback((msg: string) => {
+    console.warn('[LiveText] OCR worklet error:', msg);
+    sweepDoneRef.current = false;
+    ocrDoneRef.current = false;
+    setError(msg);
+    setDetections([]);
+    setInferenceMs(0);
+    setPhase('live');
+  }, []);
+
   const frameOutput = useFrameOutput({
     targetResolution: FRAME_TARGET_RESOLUTION,
     pixelFormat: 'rgb',
@@ -166,13 +176,22 @@ export default function LiveTextScreen() {
               ms,
             });
           }
-        } catch {
-          // Frame may be disposed before processing completes — transient.
+        } catch (e) {
+          // Frame may be disposed before processing completes — transient. But if
+          // ocrRof itself threw, scanRequested was already consumed; we must
+          // surface the error to the JS thread so the UI can recover.
+          scheduleOnRN(handleOcrError, String(e));
         } finally {
           frame.dispose();
         }
       },
-      [cameraPositionSync, handleOcrResult, ocrRof, scanRequested]
+      [
+        cameraPositionSync,
+        handleOcrError,
+        handleOcrResult,
+        ocrRof,
+        scanRequested,
+      ]
     ),
   });
 
