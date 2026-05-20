@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -35,13 +35,20 @@ export default function ScanLine({ height, onSweepDone }: Props) {
   const y = useSharedValue(0);
   const pulse = useSharedValue(1);
 
+  const onSweepDoneRef = useRef(onSweepDone);
   useEffect(() => {
+    onSweepDoneRef.current = onSweepDone;
+  });
+
+  useEffect(() => {
+    const fireSweepDone = () => onSweepDoneRef.current();
     y.value = withTiming(
       height,
       { duration: SWEEP_MS, easing: Easing.inOut(Easing.ease) },
       (finished) => {
+        'worklet';
         if (finished) {
-          runOnJS(onSweepDone)();
+          runOnJS(fireSweepDone)();
         }
       }
     );
@@ -49,7 +56,7 @@ export default function ScanLine({ height, onSweepDone }: Props) {
       SWEEP_MS,
       withRepeat(withTiming(0.35, { duration: 650 }), -1, true)
     );
-  }, [height, onSweepDone, y, pulse]);
+  }, [height, y, pulse]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: y.value }],
