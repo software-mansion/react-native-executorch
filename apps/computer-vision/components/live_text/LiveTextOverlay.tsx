@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -29,7 +29,6 @@ type RevealBoxProps = {
 
 function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
   const progress = useSharedValue(revealActive ? 0 : 1);
-  const [highlighted, setHighlighted] = useState(false);
 
   useEffect(() => {
     if (!revealActive) return;
@@ -56,6 +55,7 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
     <Animated.View
       style={[
         styles.boxPosition,
+        styles.box,
         {
           left: rect.left,
           top: rect.top,
@@ -65,27 +65,20 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
         boxStyle,
       ]}
     >
-      <Pressable
-        onLongPress={() => setHighlighted((v) => !v)}
-        delayLongPress={250}
-        style={[styles.box, highlighted && styles.boxHighlighted]}
-      >
-        <Animated.View style={[styles.labelWrap, labelStyle]}>
-          <Text
-            style={[
-              styles.boxText,
-              highlighted && styles.boxTextHighlighted,
-              { fontSize, lineHeight: fontSize * 1.05 },
-            ]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.5}
-            allowFontScaling={false}
-          >
-            {text}
-          </Text>
-        </Animated.View>
-      </Pressable>
+      <Animated.View style={[styles.labelWrap, labelStyle]}>
+        <Text
+          // selectable + long-press surfaces the OS text-selection UI
+          // (handles + Copy / Look Up / Share menu) on iOS and Android.
+          selectable
+          style={[styles.boxText, { fontSize, lineHeight: fontSize * 1.05 }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+          allowFontScaling={false}
+        >
+          {text}
+        </Text>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -137,7 +130,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   box: {
-    flex: 1,
     borderWidth: 1.5,
     borderColor: ACCENT,
     borderRadius: 5,
@@ -146,10 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(8,10,18,0.94)',
     justifyContent: 'center',
     overflow: 'hidden',
-  },
-  boxHighlighted: {
-    backgroundColor: ACCENT,
-    borderColor: ACCENT,
   },
   labelWrap: {
     flex: 1,
@@ -163,8 +151,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     textAlign: 'center',
     includeFontPadding: false,
-  },
-  boxTextHighlighted: {
-    color: '#080A12',
   },
 });
