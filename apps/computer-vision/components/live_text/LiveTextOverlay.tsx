@@ -76,6 +76,7 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
           value={text}
           onChangeText={() => {}}
           showSoftInputOnFocus={false}
+          selectTextOnFocus
           multiline={false}
           scrollEnabled={false}
           caretHidden
