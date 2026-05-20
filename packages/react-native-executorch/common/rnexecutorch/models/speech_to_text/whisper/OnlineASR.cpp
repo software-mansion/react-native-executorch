@@ -46,6 +46,8 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
 ProcessResult OnlineASR::process(const StreamingOptions &options) {
   constexpr size_t kStreamSafeBufferMaxSamples = static_cast<size_t>(
       params::kStreamSafeBufferDuration * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
+      params::kStreamSafetyThreshold * constants::kSamplingRate);
 
   std::vector<float> audioCopy;
 
@@ -69,9 +71,9 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
     if (speechSegments.empty()) {
       // Extra cleanup to speed-up future processing by removing silence.
       if (audioCopy.size() > params::kVadDeadSamplesRemovalSamples) {
-        std::scoped_lock<std::mutex> lock(streamingMutex);
+        std::scoped_lock lock(streamingMutex);
         size_t cut = std::min(params::kVadDeadSamplesRemovalSamples -
-                                  params::kStreamSafetyThresholdSamples,
+                                  kSafetyMarginSamples,
                               audioBuffer_.size());
         audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
       }
@@ -94,7 +96,7 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
     } else {
       // Speech ended beyond margin. Commit existing transcript and clear
       // buffer.
-      std::scoped_lock<std::mutex> lock(streamingMutex);
+      std::scoped_lock lock(streamingMutex);
       std::vector<Word> committed = std::move(memory_.transcript);
       memory_.transcript.clear();
       memory_.eos.clear();
@@ -227,7 +229,7 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
   // recorded any speech. In this case we can safely cut the maximum amount of
   // audio data.
   if (memory_.eos.empty()) {
-    size_t cut = bufferSize - params::kStreamSafetyThresholdSamples;
+    size_t cut = bufferSize - kSafetyMarginSamples;
 
     audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
   }

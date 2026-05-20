@@ -25,8 +25,6 @@ constexpr inline float kStreamMaxDuration =
  * cut is performed. Acts as the lower bound on what survives a cleanup.
  */
 constexpr inline float kStreamSafetyThreshold = 3.F; // [s]
-constexpr inline size_t kStreamSafetyThresholdSamples =
-    kStreamSafetyThreshold * constants::kSamplingRate;
 
 /**
  * Forced-cleanup threshold. Once the buffer grows past this duration we run
@@ -34,9 +32,6 @@ constexpr inline size_t kStreamSafetyThresholdSamples =
  */
 constexpr inline float kStreamSafeBufferDuration =
     kStreamMaxDuration - kStreamSafetyThreshold; // [s]
-constexpr inline size_t kStreamSafeBufferSamples =
-    kStreamSafeBufferDuration * constants::kSamplingRate;
-
 /**
  * An estimate of the number of words spoken per second.
  * Used for estimating transcription progress and buffer management heuristics.
