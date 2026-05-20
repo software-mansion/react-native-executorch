@@ -17,7 +17,6 @@ import {
 } from 'react-native-vision-camera';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
-import Svg, { Path, Polygon } from 'react-native-svg';
 import ColorPalette from '../../colors';
 import Spinner from '../../components/Spinner';
 import ErrorBanner from '../../components/ErrorBanner';
@@ -42,10 +41,6 @@ export default function LiveTextScreen() {
   const [cameraPositionSync] = useState(() =>
     createSynchronizable<'front' | 'back'>('back')
   );
-  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
-    'back'
-  );
-
   const [phase, setPhase] = useState<Phase>('live');
   const [detections, setDetections] = useState<OCRDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
@@ -59,8 +54,7 @@ export default function LiveTextScreen() {
   const model = useOCR({ model: OCR_ENGLISH });
   const ocrRof = model.runOnFrame;
 
-  const device =
-    devices.find((d) => d.position === cameraPosition) ?? devices[0];
+  const device = devices.find((d) => d.position === 'back') ?? devices[0];
 
   // Keep the camera active during `scanning` so the worklet receives at least
   // one frame to run OCR on. The ScanLine covers the preview visually.
@@ -69,10 +63,6 @@ export default function LiveTextScreen() {
   useEffect(() => {
     setError(model.error ? String(model.error) : null);
   }, [model.error]);
-
-  useEffect(() => {
-    cameraPositionSync.setBlocking(cameraPosition);
-  }, [cameraPosition, cameraPositionSync]);
 
   const tryAdvanceToReveal = useCallback(() => {
     if (!sweepDoneRef.current || !ocrDoneRef.current) return;
@@ -260,32 +250,7 @@ export default function LiveTextScreen() {
         pointerEvents="box-none"
       >
         {phase === 'live' && (
-          <View style={styles.bottomRow}>
-            <ShutterButton variant="shutter" onPress={startScan} />
-            <TouchableOpacity
-              style={styles.flipButton}
-              onPress={() =>
-                setCameraPosition((p) => (p === 'back' ? 'front' : 'back'))
-              }
-            >
-              <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <Path
-                  d="M9 13.5a3 3 0 1 0 3-3"
-                  stroke="white"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                />
-                <Polygon points="8,11 9,13.5 11,12" fill="white" />
-              </Svg>
-            </TouchableOpacity>
-          </View>
+          <ShutterButton variant="shutter" onPress={startScan} />
         )}
         {phase === 'result' && (
           <ShutterButton variant="again" onPress={resetToLive} />
@@ -333,20 +298,5 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 5,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 28,
-  },
-  flipButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
   },
 });
