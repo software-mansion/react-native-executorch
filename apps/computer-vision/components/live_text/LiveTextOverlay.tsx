@@ -67,13 +67,15 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
     >
       <Animated.View style={[styles.labelWrap, labelStyle]}>
         {/*
-          A non-editable TextInput is UITextView-backed on iOS, so long-press
-          shows the standard blue selection rectangle + handles + Copy menu —
-          something <Text selectable> doesn't render. Read-only, no caret.
+          A UITextView-backed TextInput renders iOS's standard blue selection
+          rectangle on long-press. It must be `editable` for selection to
+          work; we keep it effectively read-only by ignoring any change
+          (the soft keyboard is suppressed via showSoftInputOnFocus).
         */}
         <TextInput
           value={text}
-          editable={false}
+          onChangeText={() => {}}
+          showSoftInputOnFocus={false}
           multiline={false}
           scrollEnabled={false}
           caretHidden
