@@ -73,7 +73,11 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
           (the soft keyboard is suppressed via showSoftInputOnFocus).
         */}
         <TextInput
-          value={text}
+          // cspell:disable-next-line
+          // Keynote easter-egg: the OCR model recognizes the conference logo
+          // as "Appjs"; show it properly as "App.js".
+          // cspell:disable-next-line
+          value={text === 'Appjs' ? 'App.js' : text}
           onChangeText={() => {}}
           showSoftInputOnFocus={false}
           selectTextOnFocus
