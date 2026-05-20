@@ -47,6 +47,10 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
     opacity: withTiming(progress.value, { duration: 120 }),
   }));
 
+  // Size the recognized text to fill the box vertically so it reads as an
+  // in-place overlay of the original characters.
+  const fontSize = Math.max(10, Math.round(rect.height * 0.72));
+
   return (
     <Animated.View
       style={[
@@ -61,8 +65,14 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
       ]}
       pointerEvents="none"
     >
-      <Animated.View style={labelStyle}>
-        <Text style={styles.boxText} numberOfLines={1}>
+      <Animated.View style={[styles.labelWrap, labelStyle]}>
+        <Text
+          style={[styles.boxText, { fontSize, lineHeight: fontSize * 1.05 }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+          allowFontScaling={false}
+        >
           {text}
         </Text>
       </Animated.View>
@@ -118,17 +128,22 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: ACCENT,
     borderRadius: 5,
-    backgroundColor: 'rgba(255,214,10,0.22)',
+    // Near-opaque dark fill so the original text behind the box is hidden
+    // and only the recognized text reads through.
+    backgroundColor: 'rgba(8,10,18,0.94)',
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  labelWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
   boxText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-    paddingHorizontal: 3,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    color: ACCENT,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textAlign: 'left',
+    includeFontPadding: false,
   },
 });

@@ -26,7 +26,6 @@ import ErrorBanner from '../../components/ErrorBanner';
 import ScanFrame from '../../components/live_text/ScanFrame';
 import ScanLine from '../../components/live_text/ScanLine';
 import LiveTextOverlay from '../../components/live_text/LiveTextOverlay';
-import ResultBadge from '../../components/live_text/ResultBadge';
 import ShutterButton from '../../components/live_text/ShutterButton';
 import { FRAME_TARGET_RESOLUTION } from '../../components/vision_camera/tasks/types';
 
@@ -34,13 +33,6 @@ type Phase = 'live' | 'scanning' | 'revealing' | 'result';
 
 const REVEAL_STAGGER_MS = 70;
 const REVEAL_TAIL_MS = 500;
-
-function countWords(detections: OCRDetection[]) {
-  return detections.reduce((sum, det) => {
-    const words = det.text.trim().split(/\s+/).filter(Boolean);
-    return sum + words.length;
-  }, 0);
-}
 
 export default function LiveTextScreen() {
   const insets = useSafeAreaInsets();
@@ -61,7 +53,6 @@ export default function LiveTextScreen() {
   const [detections, setDetections] = useState<OCRDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
-  const [inferenceMs, setInferenceMs] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const sweepDoneRef = useRef(false);
@@ -92,16 +83,10 @@ export default function LiveTextScreen() {
   }, []);
 
   const handleOcrResult = useCallback(
-    (p: {
-      results: OCRDetection[];
-      frameW: number;
-      frameH: number;
-      ms: number;
-    }) => {
+    (p: { results: OCRDetection[]; frameW: number; frameH: number }) => {
       lastResultsRef.current = p.results;
       setDetections(p.results);
       setImageSize({ width: p.frameW, height: p.frameH });
-      setInferenceMs(p.ms);
       ocrDoneRef.current = true;
       tryAdvanceToReveal();
     },
@@ -134,7 +119,6 @@ export default function LiveTextScreen() {
 
   const resetToLive = useCallback(() => {
     setDetections([]);
-    setInferenceMs(0);
     setError(null);
     setPhase('live');
   }, []);
@@ -145,7 +129,6 @@ export default function LiveTextScreen() {
     ocrDoneRef.current = false;
     setError(msg);
     setDetections([]);
-    setInferenceMs(0);
     setPhase('live');
   }, []);
 
@@ -163,9 +146,7 @@ export default function LiveTextScreen() {
           // Consume the scan request so OCR runs exactly once per tap.
           scanRequested.setBlocking(false);
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
-          const start = Date.now();
           const result = ocrRof(frame, isFrontCamera);
-          const ms = Date.now() - start;
           if (result) {
             // Sensor frames are landscape-native, so width/height are
             // swapped relative to portrait screen orientation.
@@ -173,7 +154,6 @@ export default function LiveTextScreen() {
               results: result,
               frameW: frame.height,
               frameH: frame.width,
-              ms,
             });
           }
         } catch (e) {
@@ -216,8 +196,6 @@ export default function LiveTextScreen() {
       </View>
     );
   }
-
-  const wordCount = countWords(detections);
 
   return (
     <View style={styles.container}>
@@ -294,19 +272,6 @@ export default function LiveTextScreen() {
           <Text style={styles.title}>Live Text</Text>
         </View>
       </View>
-
-      {phase === 'result' && (
-        <View
-          style={[styles.badgeWrap, { top: insets.top + 64 }]}
-          pointerEvents="none"
-        >
-          <ResultBadge
-            wordCount={wordCount}
-            inferenceMs={inferenceMs}
-            empty={detections.length === 0}
-          />
-        </View>
-      )}
 
       <View
         style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}
@@ -396,12 +361,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.7)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
-  },
-  badgeWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 50,
   },
   bottomOverlay: {
     position: 'absolute',
