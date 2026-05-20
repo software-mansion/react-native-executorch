@@ -235,6 +235,7 @@ export default function VisionCameraScreen() {
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         orientationSource="device"
+        constraints={[{ fps: 60 }]}
         onError={(e) => {
           console.warn('[Camera] onError', e);
           setError(e.message);
