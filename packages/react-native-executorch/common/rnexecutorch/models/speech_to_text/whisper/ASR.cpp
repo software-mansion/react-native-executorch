@@ -275,6 +275,9 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
     logitsTensor = this->decode(single, encoderFeatures, startPos);
   }
 
+  // Seed once per generate() call rather than per sampled token.
+  std::mt19937 gen(std::random_device{}());
+
   // Autoregressive decoding: always 1 token at a time
   while (std::cmp_less(startPos, constants::kMaxDecodeLength)) {
     const size_t logitsInnerDim = logitsTensor.size(1);
@@ -307,7 +310,6 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
       nextProb = *maxIt;
     } else {
       std::discrete_distribution<> dist(probs.begin(), probs.end());
-      std::mt19937 gen((std::random_device{}()));
       nextId = dist(gen);
       nextProb = probs[nextId];
     }
