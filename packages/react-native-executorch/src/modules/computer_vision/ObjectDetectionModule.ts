@@ -15,6 +15,7 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { buildLabelArray } from '../../utils/labelUtils';
 import {
+  BlazeFaceLabel,
   CocoLabel,
   CocoLabelYolo,
   IMAGENET1K_MEAN,
@@ -25,6 +26,8 @@ import {
   ResolveLabels as ResolveLabelsFor,
   VisionLabeledModule,
 } from './VisionLabeledModule';
+
+const BLAZEFACE_NORM: readonly [number, number, number] = [0.5, 0.5, 0.5];
 
 const YOLO_DETECTION_CONFIG = {
   labelMap: CocoLabelYolo,
@@ -57,6 +60,16 @@ const ModelConfigs = {
   'yolo26m': YOLO_DETECTION_CONFIG,
   'yolo26l': YOLO_DETECTION_CONFIG,
   'yolo26x': YOLO_DETECTION_CONFIG,
+  'blazeface': {
+    labelMap: BlazeFaceLabel,
+    preprocessorConfig: { normMean: BLAZEFACE_NORM, normStd: BLAZEFACE_NORM },
+    availableInputSizes: undefined,
+    defaultInputSize: undefined,
+    defaultDetectionThreshold: 0.5,
+    defaultIouThreshold: 0.3,
+    defaultUseWeightedNms: true,
+    defaultUseLetterbox: true,
+  },
 } as const satisfies Record<
   ObjectDetectionModelName,
   ObjectDetectionConfig<LabelEnum>
@@ -173,6 +186,9 @@ export class ObjectDetectionModule<
     const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.55;
     const defaultInputSize = this.modelConfig.defaultInputSize;
     const availableInputSizes = this.modelConfig.availableInputSizes;
+    const defaultUseWeightedNms =
+      this.modelConfig.defaultUseWeightedNms ?? false;
+    const defaultUseLetterbox = this.modelConfig.defaultUseLetterbox ?? false;
 
     return (
       frame: any,
@@ -185,6 +201,8 @@ export class ObjectDetectionModule<
         options?.detectionThreshold ?? defaultDetectionThreshold;
       const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
       const inputSize = options?.inputSize ?? defaultInputSize;
+      const useWeightedNms = options?.useWeightedNms ?? defaultUseWeightedNms;
+      const useLetterbox = options?.useLetterbox ?? defaultUseLetterbox;
 
       if (
         availableInputSizes &&
@@ -215,7 +233,9 @@ export class ObjectDetectionModule<
         detectionThreshold,
         iouThreshold,
         classIndices,
-        methodName
+        methodName,
+        useWeightedNms,
+        useLetterbox
       );
     };
   }
@@ -255,6 +275,12 @@ export class ObjectDetectionModule<
     const iouThreshold =
       options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.55;
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
+    const useWeightedNms =
+      options?.useWeightedNms ??
+      this.modelConfig.defaultUseWeightedNms ??
+      false;
+    const useLetterbox =
+      options?.useLetterbox ?? this.modelConfig.defaultUseLetterbox ?? false;
 
     // Validate inputSize against availableInputSizes
     if (
@@ -290,14 +316,18 @@ export class ObjectDetectionModule<
           detectionThreshold,
           iouThreshold,
           classIndices,
-          methodName
+          methodName,
+          useWeightedNms,
+          useLetterbox
         )
       : await this.nativeModule.generateFromPixels(
           input,
           detectionThreshold,
           iouThreshold,
           classIndices,
-          methodName
+          methodName,
+          useWeightedNms,
+          useLetterbox
         );
   }
 

@@ -8,6 +8,11 @@ import {
   useObjectDetection,
   ObjectDetectionModelSources,
 } from 'react-native-executorch';
+
+const BLAZEFACE: ObjectDetectionModelSources = {
+  modelName: 'blazeface',
+  modelSource: require('../../assets/blazeface.pte'),
+};
 import { View, StyleSheet, Image, Text } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -30,6 +35,7 @@ const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'YOLO26M', value: objectDetection.yolo26m() },
   { label: 'YOLO26L', value: objectDetection.yolo26l() },
   { label: 'YOLO26X', value: objectDetection.yolo26x() },
+  { label: 'BlazeFace', value: BLAZEFACE },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 

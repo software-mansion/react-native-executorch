@@ -82,16 +82,10 @@ std::set<int32_t> ObjectDetection::prepareAllowedClasses(
   return allowedClasses;
 }
 
-std::vector<types::Detection>
-ObjectDetection::postprocess(const std::vector<EValue> &tensors,
-                             cv::Size originalSize, double detectionThreshold,
-                             double iouThreshold,
-                             const std::vector<int32_t> &classIndices) {
-  const cv::Size inputSize = modelInputSize();
-  float widthRatio = static_cast<float>(originalSize.width) / inputSize.width;
-  float heightRatio =
-      static_cast<float>(originalSize.height) / inputSize.height;
-
+std::vector<types::Detection> ObjectDetection::postprocess(
+    const std::vector<EValue> &tensors, const BoxTransform &transform,
+    double detectionThreshold, double iouThreshold,
+    const std::vector<int32_t> &classIndices, bool useWeightedNms) {
   // Prepare allowed classes set for filtering
   auto allowedClasses = prepareAllowedClasses(classIndices);
 
@@ -124,10 +118,13 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
       continue;
     }
 
-    float x1 = bboxes[i * 4] * widthRatio;
-    float y1 = bboxes[i * 4 + 1] * heightRatio;
-    float x2 = bboxes[i * 4 + 2] * widthRatio;
-    float y2 = bboxes[i * 4 + 3] * heightRatio;
+    // Map model-input pixel coords back to source-image coords. The same
+    // affine `x_src = x_model * scale + offset` works for stretch and
+    // letterbox preprocessing — offsets are zero in the stretch case.
+    float x1 = bboxes[i * 4] * transform.scaleX + transform.offsetX;
+    float y1 = bboxes[i * 4 + 1] * transform.scaleY + transform.offsetY;
+    float x2 = bboxes[i * 4 + 2] * transform.scaleX + transform.offsetX;
+    float y2 = bboxes[i * 4 + 3] * transform.scaleY + transform.offsetY;
 
     if (std::cmp_greater_equal(labelIdx, labelNames_.size())) {
       throw RnExecutorchError(
@@ -140,12 +137,17 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                             labelNames_[labelIdx], labelIdx, scores[i]);
   }
 
-  return utils::computer_vision::nonMaxSuppression(detections, iouThreshold);
+  return useWeightedNms
+             ? utils::computer_vision::weightedNonMaxSuppression(detections,
+                                                                 iouThreshold)
+             : utils::computer_vision::nonMaxSuppression(detections,
+                                                         iouThreshold);
 }
 
 std::vector<types::Detection> ObjectDetection::runInference(
     cv::Mat image, double detectionThreshold, double iouThreshold,
-    const std::vector<int32_t> &classIndices, const std::string &methodName) {
+    const std::vector<int32_t> &classIndices, const std::string &methodName,
+    bool useWeightedNms, bool useLetterbox) {
   if (detectionThreshold < 0.0 || detectionThreshold > 1.0) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "detectionThreshold must be in range [0, 1]");
@@ -171,7 +173,38 @@ std::vector<types::Detection> ObjectDetection::runInference(
   }
   modelInputShape_ = inputShapes[0];
 
-  cv::Mat preprocessed = preprocess(image);
+  const cv::Size inputSize = modelInputSize();
+  cv::Mat preprocessed;
+  BoxTransform transform;
+  if (useLetterbox) {
+    // Aspect-preserving fit + center-pad with black bars. Models trained on
+    // natural-aspect crops (BlazeFace) need this — plain cv::resize stretches
+    // the face and shifts where anchors fire.
+    const float fitScale =
+        std::min(static_cast<float>(inputSize.width) / originalSize.width,
+                 static_cast<float>(inputSize.height) / originalSize.height);
+    const int newW =
+        static_cast<int>(std::round(originalSize.width * fitScale));
+    const int newH =
+        static_cast<int>(std::round(originalSize.height * fitScale));
+    const int padX = (inputSize.width - newW) / 2;
+    const int padY = (inputSize.height - newH) / 2;
+
+    cv::Mat resized;
+    cv::resize(image, resized, cv::Size(newW, newH), 0, 0, cv::INTER_AREA);
+    cv::copyMakeBorder(resized, preprocessed, padY,
+                       inputSize.height - newH - padY, padX,
+                       inputSize.width - newW - padX, cv::BORDER_CONSTANT,
+                       cv::Scalar(0, 0, 0));
+
+    const float inv = 1.0f / fitScale;
+    transform = {inv, inv, -padX * inv, -padY * inv};
+  } else {
+    preprocessed = preprocess(image);
+    transform = {static_cast<float>(originalSize.width) / inputSize.width,
+                 static_cast<float>(originalSize.height) / inputSize.height,
+                 0.0f, 0.0f};
+  }
 
   auto inputTensor =
       (normMean_ && normStd_)
@@ -188,31 +221,34 @@ std::vector<types::Detection> ObjectDetection::runInference(
                                 "Ensure the model input is correct.");
   }
 
-  return postprocess(executeResult.get(), originalSize, detectionThreshold,
-                     iouThreshold, classIndices);
+  return postprocess(executeResult.get(), transform, detectionThreshold,
+                     iouThreshold, classIndices, useWeightedNms);
 }
 
 std::vector<types::Detection> ObjectDetection::generateFromString(
     std::string imageSource, double detectionThreshold, double iouThreshold,
-    std::vector<int32_t> classIndices, std::string methodName) {
+    std::vector<int32_t> classIndices, std::string methodName,
+    bool useWeightedNms, bool useLetterbox) {
   cv::Mat imageBGR = image_processing::readImage(imageSource);
 
   cv::Mat imageRGB;
   cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
 
   return runInference(imageRGB, detectionThreshold, iouThreshold, classIndices,
-                      methodName);
+                      methodName, useWeightedNms, useLetterbox);
 }
 
 std::vector<types::Detection> ObjectDetection::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     double detectionThreshold, double iouThreshold,
-    std::vector<int32_t> classIndices, std::string methodName) {
+    std::vector<int32_t> classIndices, std::string methodName,
+    bool useWeightedNms, bool useLetterbox) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
-  auto detections = runInference(rotated, detectionThreshold, iouThreshold,
-                                 classIndices, methodName);
+  auto detections =
+      runInference(rotated, detectionThreshold, iouThreshold, classIndices,
+                   methodName, useWeightedNms, useLetterbox);
 
   for (auto &det : detections) {
     ::rnexecutorch::utils::inverseRotateBbox(det.bbox, orient, rotated.size());
@@ -222,10 +258,11 @@ std::vector<types::Detection> ObjectDetection::generateFromFrame(
 
 std::vector<types::Detection> ObjectDetection::generateFromPixels(
     JSTensorViewIn pixelData, double detectionThreshold, double iouThreshold,
-    std::vector<int32_t> classIndices, std::string methodName) {
+    std::vector<int32_t> classIndices, std::string methodName,
+    bool useWeightedNms, bool useLetterbox) {
   cv::Mat image = extractFromPixels(pixelData);
 
   return runInference(image, detectionThreshold, iouThreshold, classIndices,
-                      methodName);
+                      methodName, useWeightedNms, useLetterbox);
 }
 } // namespace rnexecutorch::models::object_detection

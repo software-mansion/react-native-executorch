@@ -46,6 +46,22 @@ export interface ObjectDetectionOptions<L extends LabelEnum> {
   iouThreshold?: number;
   inputSize?: number;
   classesOfInterest?: (keyof L)[];
+  /**
+   * If true, use weighted (blending) NMS instead of greedy NMS. Score-weighted
+   * averaging of overlapping boxes — required for BlazeFace-style models
+   * where individual anchors aren't trained to be accurate on their own.
+   * Defaults to the model preset's `defaultUseWeightedNms` (false unless the
+   * preset opts in, e.g. `blazeface`).
+   */
+  useWeightedNms?: boolean;
+  /**
+   * If true, preprocess by aspect-preserving fit + center-pad (letterbox)
+   * instead of a plain stretch resize to the model's input size. Required
+   * for models trained on natural-aspect crops (e.g. BlazeFace) — a stretched
+   * portrait frame shifts anchor positions and predicts a too-narrow box.
+   * Defaults to the model preset's `defaultUseLetterbox`.
+   */
+  useLetterbox?: boolean;
 }
 
 /**
@@ -60,7 +76,8 @@ export type ObjectDetectionModelSources =
   | { modelName: 'yolo26s'; modelSource: ResourceSource }
   | { modelName: 'yolo26m'; modelSource: ResourceSource }
   | { modelName: 'yolo26l'; modelSource: ResourceSource }
-  | { modelName: 'yolo26x'; modelSource: ResourceSource };
+  | { modelName: 'yolo26x'; modelSource: ResourceSource }
+  | { modelName: 'blazeface'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in object detection model names.
@@ -84,6 +101,10 @@ export type ObjectDetectionConfig<T extends LabelEnum> = {
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
   defaultDetectionThreshold?: number;
   defaultIouThreshold?: number;
+  /** Default NMS mode for this model. Overridable per-call via `useWeightedNms`. */
+  defaultUseWeightedNms?: boolean;
+  /** Default preprocessing for this model. Overridable per-call via `useLetterbox`. */
+  defaultUseLetterbox?: boolean;
 } & (
   | {
       availableInputSizes: readonly number[];
