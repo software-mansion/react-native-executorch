@@ -16,8 +16,6 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
 import Svg, { Path, Polygon } from 'react-native-svg';
 import ColorPalette from '../../colors';
@@ -36,7 +34,6 @@ const REVEAL_TAIL_MS = 500;
 
 export default function LiveTextScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const isFocused = useIsFocused();
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
@@ -259,21 +256,6 @@ export default function LiveTextScreen() {
       )}
 
       <View
-        style={[styles.topOverlay, { paddingTop: insets.top + 8 }]}
-        pointerEvents="box-none"
-      >
-        <TouchableOpacity
-          style={[styles.backButton, { top: insets.top + 8 }]}
-          onPress={() => router.navigate('/')}
-        >
-          <Ionicons name="chevron-back" size={24} color="white" />
-        </TouchableOpacity>
-        <View style={styles.titleRow} pointerEvents="none">
-          <Text style={styles.title}>Live Text</Text>
-        </View>
-      </View>
-
-      <View
         style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}
         pointerEvents="box-none"
       >
@@ -344,24 +326,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
-  topOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    gap: 8,
-    zIndex: 5,
-  },
-  titleRow: { alignItems: 'center', paddingHorizontal: 16 },
-  title: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: '700',
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
   bottomOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -384,18 +348,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.4)',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-    zIndex: 10,
   },
 });

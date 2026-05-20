@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -29,6 +29,7 @@ type RevealBoxProps = {
 
 function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
   const progress = useSharedValue(revealActive ? 0 : 1);
+  const [highlighted, setHighlighted] = useState(false);
 
   useEffect(() => {
     if (!revealActive) return;
@@ -54,7 +55,7 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
   return (
     <Animated.View
       style={[
-        styles.box,
+        styles.boxPosition,
         {
           left: rect.left,
           top: rect.top,
@@ -63,19 +64,28 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
         },
         boxStyle,
       ]}
-      pointerEvents="none"
     >
-      <Animated.View style={[styles.labelWrap, labelStyle]}>
-        <Text
-          style={[styles.boxText, { fontSize, lineHeight: fontSize * 1.05 }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
-          allowFontScaling={false}
-        >
-          {text}
-        </Text>
-      </Animated.View>
+      <Pressable
+        onLongPress={() => setHighlighted((v) => !v)}
+        delayLongPress={250}
+        style={[styles.box, highlighted && styles.boxHighlighted]}
+      >
+        <Animated.View style={[styles.labelWrap, labelStyle]}>
+          <Text
+            style={[
+              styles.boxText,
+              highlighted && styles.boxTextHighlighted,
+              { fontSize, lineHeight: fontSize * 1.05 },
+            ]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}
+            allowFontScaling={false}
+          >
+            {text}
+          </Text>
+        </Animated.View>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -100,7 +110,7 @@ export default function LiveTextOverlay({
   const ordered = [...detections].sort((a, b) => a.bbox.y1 - b.bbox.y1);
 
   return (
-    <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <Animated.View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {ordered.map((det, index) => {
         const { x1, y1, x2, y2 } = det.bbox;
         return (
@@ -123,8 +133,11 @@ export default function LiveTextOverlay({
 }
 
 const styles = StyleSheet.create({
-  box: {
+  boxPosition: {
     position: 'absolute',
+  },
+  box: {
+    flex: 1,
     borderWidth: 1.5,
     borderColor: ACCENT,
     borderRadius: 5,
@@ -134,16 +147,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  boxHighlighted: {
+    backgroundColor: ACCENT,
+    borderColor: ACCENT,
+  },
   labelWrap: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 6,
   },
   boxText: {
     color: ACCENT,
     fontWeight: '700',
     letterSpacing: 0.3,
-    textAlign: 'left',
+    textAlign: 'center',
     includeFontPadding: false,
+  },
+  boxTextHighlighted: {
+    color: '#080A12',
   },
 });
