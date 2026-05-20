@@ -1,21 +1,80 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withDelay,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 import { OCRDetection } from 'react-native-executorch';
 
 const ACCENT = '#FFD60A';
+const STAGGER_MS = 70;
 
 type Props = {
   detections: OCRDetection[];
   imageSize: { width: number; height: number };
   canvasSize: { width: number; height: number };
-  onCopy: (text: string) => void;
+  /** When true, boxes run their staggered spring-in on mount. */
+  revealActive: boolean;
 };
+
+type RevealBoxProps = {
+  rect: { left: number; top: number; width: number; height: number };
+  text: string;
+  delayMs: number;
+  revealActive: boolean;
+};
+
+function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
+  const progress = useSharedValue(revealActive ? 0 : 1);
+
+  useEffect(() => {
+    if (!revealActive) return;
+    progress.value = withDelay(
+      delayMs,
+      withSpring(1, { damping: 13, stiffness: 150 })
+    );
+  }, [delayMs, revealActive, progress]);
+
+  const boxStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ scale: 0.85 + progress.value * 0.15 }],
+  }));
+
+  const labelStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(progress.value, { duration: 120 }),
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.box,
+        {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        },
+        boxStyle,
+      ]}
+      pointerEvents="none"
+    >
+      <Animated.View style={labelStyle}>
+        <Text style={styles.boxText} numberOfLines={1}>
+          {text}
+        </Text>
+      </Animated.View>
+    </Animated.View>
+  );
+}
 
 export default function LiveTextOverlay({
   detections,
   imageSize,
   canvasSize,
-  onCopy,
+  revealActive,
 }: Props) {
   const scale = Math.max(
     canvasSize.width / imageSize.width,
@@ -28,31 +87,28 @@ export default function LiveTextOverlay({
     return null;
   }
 
+  const ordered = [...detections].sort((a, b) => a.bbox.y1 - b.bbox.y1);
+
   return (
-    <View style={StyleSheet.absoluteFill}>
-      {detections.map((det) => {
+    <Animated.View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {ordered.map((det, index) => {
         const { x1, y1, x2, y2 } = det.bbox;
-        const left = x1 * scale + offsetX;
-        const top = y1 * scale + offsetY;
-        const width = (x2 - x1) * scale;
-        const height = (y2 - y1) * scale;
         return (
-          <Pressable
+          <RevealBox
             key={`${det.bbox.x1},${det.bbox.y1},${det.text}`}
-            onPress={() => onCopy(det.text)}
-            style={({ pressed }) => [
-              styles.box,
-              { left, top, width, height },
-              pressed && styles.boxPressed,
-            ]}
-          >
-            <Text style={styles.boxText} numberOfLines={1}>
-              {det.text}
-            </Text>
-          </Pressable>
+            rect={{
+              left: x1 * scale + offsetX,
+              top: y1 * scale + offsetY,
+              width: (x2 - x1) * scale,
+              height: (y2 - y1) * scale,
+            }}
+            text={det.text}
+            delayMs={index * STAGGER_MS}
+            revealActive={revealActive}
+          />
         );
       })}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -65,9 +121,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,214,10,0.22)',
     justifyContent: 'center',
     overflow: 'hidden',
-  },
-  boxPressed: {
-    backgroundColor: 'rgba(255,214,10,0.45)',
   },
   boxText: {
     color: 'white',

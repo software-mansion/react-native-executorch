@@ -18,16 +18,29 @@ import {
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as Clipboard from 'expo-clipboard';
 import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
 import Svg, { Path, Polygon } from 'react-native-svg';
 import ColorPalette from '../../colors';
 import Spinner from '../../components/Spinner';
 import ErrorBanner from '../../components/ErrorBanner';
 import ScanFrame from '../../components/live_text/ScanFrame';
+import ScanLine from '../../components/live_text/ScanLine';
 import LiveTextOverlay from '../../components/live_text/LiveTextOverlay';
-import CopyToast from '../../components/live_text/CopyToast';
+import ResultBadge from '../../components/live_text/ResultBadge';
+import ShutterButton from '../../components/live_text/ShutterButton';
 import { FRAME_TARGET_RESOLUTION } from '../../components/vision_camera/tasks/types';
+
+type Phase = 'live' | 'scanning' | 'revealing' | 'result';
+
+const REVEAL_STAGGER_MS = 70;
+const REVEAL_TAIL_MS = 500;
+
+function countWords(detections: OCRDetection[]) {
+  return detections.reduce((sum, det) => {
+    const words = det.text.trim().split(/\s+/).filter(Boolean);
+    return sum + words.length;
+  }, 0);
+}
 
 export default function LiveTextScreen() {
   const insets = useSafeAreaInsets();
@@ -36,7 +49,7 @@ export default function LiveTextScreen() {
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
 
-  const [frameKillSwitch] = useState(() => createSynchronizable(false));
+  const [scanRequested] = useState(() => createSynchronizable(false));
   const [cameraPositionSync] = useState(() =>
     createSynchronizable<'front' | 'back'>('back')
   );
@@ -44,23 +57,24 @@ export default function LiveTextScreen() {
     'back'
   );
 
+  const [phase, setPhase] = useState<Phase>('live');
   const [detections, setDetections] = useState<OCRDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
-  const [fps, setFps] = useState(0);
-  const [frameMs, setFrameMs] = useState(0);
+  const [inferenceMs, setInferenceMs] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; id: number }>({
-    message: '',
-    id: 0,
-  });
-  const lastFrameTimeRef = useRef(Date.now());
+
+  const sweepDoneRef = useRef(false);
+  const ocrDoneRef = useRef(false);
 
   const model = useOCR({ model: OCR_ENGLISH });
   const ocrRof = model.runOnFrame;
 
   const device =
     devices.find((d) => d.position === cameraPosition) ?? devices[0];
+
+  // Camera is live only in the `live` phase; pausing it freezes the preview.
+  const cameraActive = isFocused && phase === 'live';
 
   useEffect(() => {
     setError(model.error ? String(model.error) : null);
@@ -70,33 +84,62 @@ export default function LiveTextScreen() {
     cameraPositionSync.setBlocking(cameraPosition);
   }, [cameraPosition, cameraPositionSync]);
 
-  useEffect(() => {
-    frameKillSwitch.setBlocking(true);
-    const id = setTimeout(() => frameKillSwitch.setBlocking(false), 300);
-    return () => clearTimeout(id);
-  }, [frameKillSwitch]);
+  const tryAdvanceToReveal = useCallback(() => {
+    if (!sweepDoneRef.current || !ocrDoneRef.current) return;
+    setDetections((current) => {
+      if (current.length === 0) {
+        setPhase('result');
+      } else {
+        setPhase('revealing');
+      }
+      return current;
+    });
+  }, []);
 
-  const updateDetections = useCallback(
-    (p: { results: OCRDetection[]; frameW: number; frameH: number }) => {
+  const handleOcrResult = useCallback(
+    (p: {
+      results: OCRDetection[];
+      frameW: number;
+      frameH: number;
+      ms: number;
+    }) => {
       setDetections(p.results);
       setImageSize({ width: p.frameW, height: p.frameH });
-      const now = Date.now();
-      const diff = now - lastFrameTimeRef.current;
-      if (diff > 0) {
-        setFps(Math.round(1000 / diff));
-        setFrameMs(diff);
-      }
-      lastFrameTimeRef.current = now;
+      setInferenceMs(p.ms);
+      ocrDoneRef.current = true;
+      tryAdvanceToReveal();
     },
-    []
+    [tryAdvanceToReveal]
   );
 
-  const handleCopy = useCallback((text: string) => {
-    Clipboard.setStringAsync(text)
-      .then(() => setToast({ message: text, id: Date.now() }))
-      .catch(() => {
-        // Best-effort copy — stay silent on failure.
-      });
+  const handleSweepDone = useCallback(() => {
+    sweepDoneRef.current = true;
+    tryAdvanceToReveal();
+  }, [tryAdvanceToReveal]);
+
+  // revealing -> result after the staggered boxes finish springing in.
+  useEffect(() => {
+    if (phase !== 'revealing') return;
+    const tail = detections.length * REVEAL_STAGGER_MS + REVEAL_TAIL_MS;
+    const id = setTimeout(() => setPhase('result'), tail);
+    return () => clearTimeout(id);
+  }, [phase, detections.length]);
+
+  const startScan = useCallback(() => {
+    if (!ocrRof) return;
+    sweepDoneRef.current = false;
+    ocrDoneRef.current = false;
+    setDetections([]);
+    setError(null);
+    setPhase('scanning');
+    scanRequested.setBlocking(true);
+  }, [ocrRof, scanRequested]);
+
+  const resetToLive = useCallback(() => {
+    setDetections([]);
+    setInferenceMs(0);
+    setError(null);
+    setPhase('live');
   }, []);
 
   const frameOutput = useFrameOutput({
@@ -107,21 +150,23 @@ export default function LiveTextScreen() {
     onFrame: useCallback(
       (frame: Frame) => {
         'worklet';
-        if (frameKillSwitch.getDirty()) {
-          frame.dispose();
-          return;
-        }
         try {
           if (!ocrRof) return;
+          if (!scanRequested.getDirty()) return;
+          // Consume the scan request so OCR runs exactly once per tap.
+          scanRequested.setBlocking(false);
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
+          const start = Date.now();
           const result = ocrRof(frame, isFrontCamera);
+          const ms = Date.now() - start;
           if (result) {
             // Sensor frames are landscape-native, so width/height are
             // swapped relative to portrait screen orientation.
-            scheduleOnRN(updateDetections, {
+            scheduleOnRN(handleOcrResult, {
               results: result,
               frameW: frame.height,
               frameH: frame.width,
+              ms,
             });
           }
         } catch {
@@ -130,7 +175,7 @@ export default function LiveTextScreen() {
           frame.dispose();
         }
       },
-      [cameraPositionSync, frameKillSwitch, ocrRof, updateDetections]
+      [cameraPositionSync, handleOcrResult, ocrRof, scanRequested]
     ),
   });
 
@@ -156,19 +201,27 @@ export default function LiveTextScreen() {
     );
   }
 
+  const wordCount = countWords(detections);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
 
       <View style={[styles.errorOverlay, { paddingTop: insets.top }]}>
-        <ErrorBanner message={error} onDismiss={() => setError(null)} />
+        <ErrorBanner
+          message={error}
+          onDismiss={() => {
+            setError(null);
+            resetToLive();
+          }}
+        />
       </View>
 
       <Camera
         style={StyleSheet.absoluteFill}
         device={device}
         outputs={frameOutput ? [frameOutput] : []}
-        isActive={isFocused}
+        isActive={cameraActive}
         orientationSource="device"
         onError={(e) => {
           console.warn('[Camera] onError', e);
@@ -187,14 +240,20 @@ export default function LiveTextScreen() {
         }
       />
 
-      <LiveTextOverlay
-        detections={detections}
-        imageSize={imageSize}
-        canvasSize={canvasSize}
-        onCopy={handleCopy}
-      />
+      {(phase === 'revealing' || phase === 'result') && (
+        <LiveTextOverlay
+          detections={detections}
+          imageSize={imageSize}
+          canvasSize={canvasSize}
+          revealActive={phase === 'revealing'}
+        />
+      )}
 
-      <ScanFrame />
+      {phase === 'live' && <ScanFrame />}
+
+      {phase === 'scanning' && (
+        <ScanLine height={canvasSize.height} onSweepDone={handleSweepDone} />
+      )}
 
       {!model.isReady && !error && (
         <View style={styles.loadingOverlay}>
@@ -217,46 +276,57 @@ export default function LiveTextScreen() {
         </TouchableOpacity>
         <View style={styles.titleRow} pointerEvents="none">
           <Text style={styles.title}>Live Text</Text>
-          <Text style={styles.fpsText}>
-            {fps} FPS – {frameMs.toFixed(0)} ms
-          </Text>
         </View>
       </View>
 
-      <View
-        style={[styles.toastWrap, { top: insets.top + 92 }]}
-        pointerEvents="none"
-      >
-        <CopyToast key={toast.id} message={toast.message} />
-      </View>
+      {phase === 'result' && (
+        <View
+          style={[styles.badgeWrap, { top: insets.top + 64 }]}
+          pointerEvents="none"
+        >
+          <ResultBadge
+            wordCount={wordCount}
+            inferenceMs={inferenceMs}
+            empty={detections.length === 0}
+          />
+        </View>
+      )}
 
       <View
-        style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 16 }]}
+        style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}
         pointerEvents="box-none"
       >
-        <TouchableOpacity
-          style={styles.flipButton}
-          onPress={() =>
-            setCameraPosition((p) => (p === 'back' ? 'front' : 'back'))
-          }
-        >
-          <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-              stroke="white"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <Path
-              d="M9 13.5a3 3 0 1 0 3-3"
-              stroke="white"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-            />
-            <Polygon points="8,11 9,13.5 11,12" fill="white" />
-          </Svg>
-        </TouchableOpacity>
+        {phase === 'live' && (
+          <View style={styles.bottomRow}>
+            <ShutterButton variant="shutter" onPress={startScan} />
+            <TouchableOpacity
+              style={styles.flipButton}
+              onPress={() =>
+                setCameraPosition((p) => (p === 'back' ? 'front' : 'back'))
+              }
+            >
+              <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <Path
+                  d="M9 13.5a3 3 0 1 0 3-3"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                />
+                <Polygon points="8,11 9,13.5 11,12" fill="white" />
+              </Svg>
+            </TouchableOpacity>
+          </View>
+        )}
+        {phase === 'result' && (
+          <ShutterButton variant="again" onPress={resetToLive} />
+        )}
       </View>
     </View>
   );
@@ -311,16 +381,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-  fpsText: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  toastWrap: {
+  badgeWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
@@ -334,10 +395,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 5,
   },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 28,
+  },
   flipButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
