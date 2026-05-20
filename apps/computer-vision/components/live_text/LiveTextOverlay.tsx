@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -66,18 +66,21 @@ function RevealBox({ rect, text, delayMs, revealActive }: RevealBoxProps) {
       ]}
     >
       <Animated.View style={[styles.labelWrap, labelStyle]}>
-        <Text
-          // selectable + long-press surfaces the OS text-selection UI
-          // (handles + Copy / Look Up / Share menu) on iOS and Android.
-          selectable
+        {/*
+          A non-editable TextInput is UITextView-backed on iOS, so long-press
+          shows the standard blue selection rectangle + handles + Copy menu —
+          something <Text selectable> doesn't render. Read-only, no caret.
+        */}
+        <TextInput
+          value={text}
+          editable={false}
+          multiline={false}
+          scrollEnabled={false}
+          caretHidden
+          contextMenuHidden={false}
           style={[styles.boxText, { fontSize, lineHeight: fontSize * 1.05 }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.5}
           allowFontScaling={false}
-        >
-          {text}
-        </Text>
+        />
       </Animated.View>
     </Animated.View>
   );
