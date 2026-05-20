@@ -1,13 +1,12 @@
 #include "OnlineASR.h"
+#include "Constants.h"
+#include "Params.h"
+#include "Utils.h"
 
 #include <algorithm>
 #include <iterator>
 #include <ranges>
 #include <utility>
-
-#include "Constants.h"
-#include "Params.h"
-#include "Utils.h"
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
@@ -41,8 +40,8 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
 }
 
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
-  constexpr float kStreamSafeBufferMaxSamples =
-      params::kStreamSafeBufferDuration * constants::kSamplingRate;
+  constexpr size_t kStreamSafeBufferMaxSamples = static_cast<size_t>(
+      params::kStreamSafeBufferDuration * constants::kSamplingRate);
 
   std::vector<float> audioCopy;
 
@@ -115,8 +114,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   // in a 'good' spot - where it will remove a significant audio chunk, yet
   // won't affect most recent, unfinished speech samples.
   size_t bufferSize = audioBuffer_.size();
-  if (std::cmp_greater<size_t, size_t>(bufferSize,
-                                       kStreamSafeBufferMaxSamples)) {
+  if (bufferSize > kStreamSafeBufferMaxSamples) {
     auto newCommitted = commitAndClean(words);
 
     committed.insert(committed.end(),

@@ -1,8 +1,3 @@
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <random>
-
 #include "ASR.h"
 #include "Constants.h"
 #include "Params.h"
@@ -10,6 +5,12 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/data_processing/gzip.h>
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <random>
+#include <ranges>
 
 namespace rnexecutorch::models::speech_to_text::whisper {
 
@@ -451,7 +452,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
       puncts += w.back();
       w.pop_back();
     }
-    std::reverse(puncts.begin(), puncts.end());
+    std::ranges::reverse(puncts);
 
     // Add the core word.
     wordObjs.emplace_back(std::move(w), wStart, wEnd);
