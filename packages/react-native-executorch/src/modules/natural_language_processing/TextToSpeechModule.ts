@@ -75,21 +75,28 @@ export class TextToSpeechModule {
       ...sources
     );
 
-    if (paths === null || paths.length !== sources.length) {
+    // Required fields
+    const [duration, synth, voice] = paths;
+    if (!duration || !synth || !voice) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
-        'Download interrupted or missing resource.'
+        'Kokoro: missing required model paths.'
       );
     }
 
+    // Optional fields
+    const tagger = paths[taggerIdx] ?? '';
+    const lexicon = paths[lexiconIdx] ?? '';
+    const neural = paths[neuralModelIdx] ?? '';
+
     return await global.loadTextToSpeechKokoro(
       phonemizerConfig.lang,
-      taggerIdx >= 0 ? (paths[taggerIdx] as string) : '',
-      lexiconIdx >= 0 ? (paths[lexiconIdx] as string) : '',
-      neuralModelIdx >= 0 ? (paths[neuralModelIdx] as string) : '',
-      paths[0] as string, // DurationPredictor source
-      paths[1] as string, // Synthesizer source
-      paths[2] as string // Voice source
+      tagger,
+      lexicon,
+      neural,
+      duration,
+      synth,
+      voice
     );
   }
 

@@ -20,6 +20,8 @@ inline constexpr size_t kMinDurationTicks =
 inline constexpr size_t kMaxDurationTicks =
     296; // Corresponds to DurationPredictor output and one of Synthesizer's
          // input shapes
+inline constexpr float kMinValidSpeed = 0.1F;
+inline constexpr float kMaxValidSpeed = 3.0F;
 
 // Model input sizes - voice reference vector
 inline constexpr int32_t kVoiceRefSize =

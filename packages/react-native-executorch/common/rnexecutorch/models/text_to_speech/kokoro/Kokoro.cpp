@@ -96,6 +96,20 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
                             "Kokoro: maximum input text size exceeded");
   }
 
+  if (speed < constants::kMinValidSpeed) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: speed value too low (min " +
+                                std::to_string(constants::kMinValidSpeed) +
+                                ")");
+  }
+
+  if (speed > constants::kMaxValidSpeed) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: speed value too high (max " +
+                                std::to_string(constants::kMaxValidSpeed) +
+                                ")");
+  }
+
   if (input.empty()) {
     return {};
   }
@@ -133,6 +147,20 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
 
 void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
                     bool phonemize, bool stopOnEmptyBuffer) {
+  if (speed < constants::kMinValidSpeed) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: speed value too low (min " +
+                                std::to_string(constants::kMinValidSpeed) +
+                                ")");
+  }
+
+  if (speed > constants::kMaxValidSpeed) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: speed value too high (max " +
+                                std::to_string(constants::kMaxValidSpeed) +
+                                ")");
+  }
+
   // Create a callback
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
