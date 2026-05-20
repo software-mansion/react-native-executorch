@@ -100,7 +100,8 @@ declare global {
   var loadTextToSpeechKokoro: (
     lang: string,
     taggerData: string,
-    phonemizerData: string,
+    lexiconData: string,
+    neuralPhonemizerData: string,
     durationPredictorSource: string,
     synthesizerSource: string,
     voice: string

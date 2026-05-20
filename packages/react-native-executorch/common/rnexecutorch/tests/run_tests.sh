@@ -60,14 +60,15 @@ MODELS=(
   "clip-vit-base-patch32-vision_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.6.0/clip-vit-base-patch32-vision_xnnpack.pte"
   "all-MiniLM-L6-v2_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte"
   "tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json"
-  "fsmn-vad_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn-vad_xnnpack.pte"
+  "fsmn-vad_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn_vad_xnnpack_fp32.pte"
   "whisper_tiny_en_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.8.0/xnnpack/whisper_tiny_en_xnnpack.pte"
   "whisper_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.8.0/tokenizer.json"
-  "kokoro_duration_predictor.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/xnnpack/medium/duration_predictor.pte"
-  "kokoro_synthesizer.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/xnnpack/medium/synthesizer.pte"
-  "kokoro_af_heart.bin|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/voices/af_heart.bin"
-  "kokoro_us_lexicon.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/phonemizer/us_merged.json"
-  "kokoro_en_tagger.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/main/phonemizer/tags.json"
+  "kokoro_duration_predictor.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/xnnpack/standard/duration_predictor_std.pte"
+  "kokoro_synthesizer.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/xnnpack/standard/synthesizer_std.pte"
+  "kokoro_af_heart.bin|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/voices/af_heart.bin"
+  "kokoro_us_lexicon.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/phonemizer/en-us/lexicon.json"
+  "kokoro_en_tagger.json|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/phonemizer/en-us/tags.json"
+  "kokoro_us_phonemizer.pte|https://huggingface.co/software-mansion/react-native-executorch-kokoro/resolve/v0.9.0/phonemizer/en-us/phonemizer_en_us.pte"
   "smolLm2_135M_8da4w.pte|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte"
   "smollm_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json"
   "deeplabV3_xnnpack_fp32.pte|https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.6.0/xnnpack/deeplabV3_xnnpack_fp32.pte"
@@ -82,7 +83,7 @@ MODELS=(
   "lfm2_vl_tokenizer_config.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json"
   "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
   "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
-  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte"
+  "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/xnnpack/yolo26_pose_n_xnnpack_fp32.pte"
 )
 
 # ============================================================================
@@ -205,7 +206,7 @@ models_for_test() {
   VADTests) echo "fsmn-vad_xnnpack.pte" ;;
   TokenizerModuleTests) echo "tokenizer.json" ;;
   SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json" ;;
-  TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json" ;;
+  TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json kokoro_us_phonemizer.pte" ;;
   LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
   TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
   InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;

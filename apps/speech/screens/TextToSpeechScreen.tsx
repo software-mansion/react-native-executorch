@@ -10,37 +10,54 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_SMALL,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-  KOKORO_VOICE_AF_RIVER,
-  KOKORO_VOICE_AF_SARAH,
-  KOKORO_VOICE_AM_ADAM,
-  KOKORO_VOICE_AM_MICHAEL,
-  KOKORO_VOICE_AM_SANTA,
-  KOKORO_VOICE_BF_EMMA,
-  KOKORO_VOICE_BM_DANIEL,
   useTextToSpeech,
-  KokoroConfig,
-  VoiceConfig,
+  TextToSpeechModelConfig,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH,
+  KOKORO_AMERICAN_ENGLISH_MALE_ADAM,
+  KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL,
+  KOKORO_AMERICAN_ENGLISH_MALE_SANTA,
+  KOKORO_BRITISH_ENGLISH_FEMALE_EMMA,
+  KOKORO_BRITISH_ENGLISH_MALE_DANIEL,
+  KOKORO_FRENCH_FEMALE_SIWIS,
+  KOKORO_SPANISH_FEMALE_DORA,
+  KOKORO_SPANISH_MALE_ALEX,
+  KOKORO_ITALIAN_FEMALE_SARA,
+  KOKORO_ITALIAN_MALE_NICOLA,
+  KOKORO_PORTUGUESE_FEMALE_DORA,
+  KOKORO_PORTUGUESE_MALE_SANTA,
+  KOKORO_GERMAN_FEMALE_ANNA,
+  KOKORO_POLISH_MALE_MATEUSZ,
+  KOKORO_HINDI_FEMALE_ALPHA,
+  KOKORO_HINDI_MALE_OMEGA,
+  KOKORO_HINDI_MALE_PSI,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
-const TTS_MODELS: ModelOption<KokoroConfig>[] = [
-  { label: 'Kokoro Small', value: KOKORO_SMALL },
-  { label: 'Kokoro Medium', value: KOKORO_MEDIUM },
+const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
+  { label: '🇺🇸 AF Heart', value: KOKORO_AMERICAN_ENGLISH_FEMALE_HEART },
+  { label: '🇺🇸 AF River', value: KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER },
+  { label: '🇺🇸 AF Sarah', value: KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH },
+  { label: '🇺🇸 AM Adam', value: KOKORO_AMERICAN_ENGLISH_MALE_ADAM },
+  { label: '🇺🇸 AM Michael', value: KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL },
+  { label: '🇺🇸 AM Santa', value: KOKORO_AMERICAN_ENGLISH_MALE_SANTA },
+  { label: '🇬🇧 BF Emma', value: KOKORO_BRITISH_ENGLISH_FEMALE_EMMA },
+  { label: '🇬🇧 BM Daniel', value: KOKORO_BRITISH_ENGLISH_MALE_DANIEL },
+  { label: '🇫🇷 FF Siwis', value: KOKORO_FRENCH_FEMALE_SIWIS },
+  { label: '🇪🇸 EF Dora', value: KOKORO_SPANISH_FEMALE_DORA },
+  { label: '🇪🇸 EM Alex', value: KOKORO_SPANISH_MALE_ALEX },
+  { label: '🇮🇹 IF Sara', value: KOKORO_ITALIAN_FEMALE_SARA },
+  { label: '🇮🇹 IM Nicola', value: KOKORO_ITALIAN_MALE_NICOLA },
+  { label: '🇵🇹 PF Dora', value: KOKORO_PORTUGUESE_FEMALE_DORA },
+  { label: '🇵🇹 PM Santa', value: KOKORO_PORTUGUESE_MALE_SANTA },
+  { label: '🇩🇪 DF Anna', value: KOKORO_GERMAN_FEMALE_ANNA },
+  { label: '🇵🇱 PM Mateusz', value: KOKORO_POLISH_MALE_MATEUSZ },
+  { label: '🇮🇳 HF Alpha', value: KOKORO_HINDI_FEMALE_ALPHA },
+  { label: '🇮🇳 HM Omega', value: KOKORO_HINDI_MALE_OMEGA },
+  { label: '🇮🇳 HM Psi', value: KOKORO_HINDI_MALE_PSI },
 ];
 
-const VOICES: ModelOption<VoiceConfig>[] = [
-  { label: 'AF Heart', value: KOKORO_VOICE_AF_HEART },
-  { label: 'AF River', value: KOKORO_VOICE_AF_RIVER },
-  { label: 'AF Sarah', value: KOKORO_VOICE_AF_SARAH },
-  { label: 'AM Adam', value: KOKORO_VOICE_AM_ADAM },
-  { label: 'AM Michael', value: KOKORO_VOICE_AM_MICHAEL },
-  { label: 'AM Santa', value: KOKORO_VOICE_AM_SANTA },
-  { label: 'BF Emma', value: KOKORO_VOICE_BF_EMMA },
-  { label: 'BM Daniel', value: KOKORO_VOICE_BM_DANIEL },
-];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -77,16 +94,10 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedModel, setSelectedModel] =
-    useState<KokoroConfig>(KOKORO_MEDIUM);
-  const [selectedVoice, setSelectedVoice] = useState<VoiceConfig>(
-    KOKORO_VOICE_AF_HEART
-  );
+  const [selectedSpeaker, setSelectedSpeaker] =
+    useState<TextToSpeechModelConfig>(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
 
-  const model = useTextToSpeech({
-    model: selectedModel,
-    voice: selectedVoice,
-  });
+  const model = useTextToSpeech(selectedSpeaker);
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -94,6 +105,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [error, setError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<any>(null);
   const sourceRef = useRef<AudioBufferSourceNode>(null);
 
   useEffect(() => {
@@ -103,12 +115,20 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-    audioContextRef.current.suspend();
+    const context = new AudioContext({ sampleRate: 24000 });
+    audioContextRef.current = context;
+    context.suspend();
+
+    // Increase the audio volume
+    const gainNode = context.createGain();
+    gainNode.gain.value = 2.0; // Increase volume by 2x
+    gainNode.connect(context.destination);
+    gainNodeRef.current = gainNode;
 
     return () => {
       audioContextRef.current?.close();
       audioContextRef.current = null;
+      gainNodeRef.current = null;
     };
   }, []);
 
@@ -142,7 +162,12 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           const source = (sourceRef.current =
             audioContext.createBufferSource());
           source.buffer = audioBuffer;
-          source.connect(audioContext.destination);
+
+          if (gainNodeRef.current) {
+            source.connect(gainNodeRef.current);
+          } else {
+            source.connect(audioContext.destination);
+          }
 
           source.onEnded = () => resolve();
 
@@ -157,6 +182,8 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
 
       await model.stream({
         text: inputText,
+        speed: 0.9,
+        phonemize: true,
         onNext,
         onEnd,
       });
@@ -198,18 +225,11 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <ModelPicker
-            label="Model"
-            models={TTS_MODELS}
-            selectedModel={selectedModel}
-            disabled={model.isGenerating}
-            onSelect={(m) => setSelectedModel(m)}
-          />
-          <ModelPicker
             label="Voice"
             models={VOICES}
-            selectedModel={selectedVoice}
+            selectedModel={selectedSpeaker}
             disabled={model.isGenerating}
-            onSelect={(m) => setSelectedVoice(m)}
+            onSelect={(m) => setSelectedSpeaker(m)}
           />
 
           <View style={styles.inputContainer}>

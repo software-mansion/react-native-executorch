@@ -84,11 +84,11 @@ target_link_options(opencv_deps INTERFACE -fopenmp -static-openmp)
 add_library(tokenizers_deps INTERFACE)
 target_include_directories(tokenizers_deps INTERFACE "${TOKENIZERS_DIR}")
 
-# Phonemis
-add_library(phonemis STATIC IMPORTED)
-  set_target_properties(phonemis PROPERTIES
-      IMPORTED_LOCATION "${ANDROID_THIRD_PARTY}/phonemis/${ANDROID_ABI}/libphonemis.a"
-  )
+# Phonemis (built from source — mirrors android/src/main/cpp/CMakeLists.txt)
+set(PHONEMIS_DIR "${PACKAGE_ROOT}/third-party/common/phonemis")
+add_subdirectory(${PHONEMIS_DIR} ${PROJECT_BINARY_DIR}/phonemis)
+target_compile_definitions(phonemis PRIVATE ET_ON)
+target_include_directories(phonemis PRIVATE "${PACKAGE_ROOT}/third-party/include")
 
 # Source Definitions
 set(CORE_SOURCES
@@ -117,6 +117,7 @@ target_include_directories(rntests_core PUBLIC
     ${PACKAGE_ROOT}/third-party/include
     ${PACKAGE_ROOT}/third-party/include/cpuinfo
     ${PACKAGE_ROOT}/third-party/include/pthreadpool
+    ${PHONEMIS_DIR}/src
     ${REACT_NATIVE_DIR}/ReactCommon
     ${REACT_NATIVE_DIR}/ReactCommon/jsi
     ${REACT_NATIVE_DIR}/ReactCommon/callinvoker

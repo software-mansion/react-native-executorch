@@ -1,11 +1,13 @@
 #include "DurationPredictor.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/data_processing/Sequential.h>
+#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
+
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <queue>
-#include <rnexecutorch/Error.h>
-#include <rnexecutorch/data_processing/Sequential.h>
-#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
+#include <ranges>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -48,10 +50,9 @@ DurationPredictor::DurationPredictor(
       [](const auto &a, const auto &b) { return a.second < b.second; });
 }
 
-std::tuple<Tensor, std::vector<int64_t>, int32_t>
-DurationPredictor::generate(std::span<const Token> tokens,
-                            std::span<bool> textMask, std::span<float> ref_hs,
-                            float speed) {
+std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
+DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
+                            std::span<float> ref_hs, float speed) {
   size_t inputSize = tokens.size();
 
   // Perform input shape checks
@@ -75,14 +76,16 @@ DurationPredictor::generate(std::span<const Token> tokens,
   auto selectedMethod = it->first;
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                      const_cast<Token *>(tokens.data()), ScalarType::Long);
+  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                                      tokens.data(), ScalarType::Long);
+
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
                       textMask.data(), ScalarType::Bool);
+
   auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
                                         ref_hs.data(), ScalarType::Float);
+
   auto speedTensor = make_tensor_ptr({1}, &speed, ScalarType::Float);
 
   // Execute the appropriate "forward_xyz" method, based on given method name
@@ -122,6 +125,10 @@ DurationPredictor::generate(std::span<const Token> tokens,
       indices.begin(),
       std::lower_bound(indices.begin(), indices.end(), originalLength));
 
+  // Calculate timestamps - based on predicted durations.
+  std::vector<Timestamp> timestamps =
+      calculateTimestamps(predDurPtr, inputSize);
+
   /**
    * Returns:
    *   - d: tensor containing the predicted durations for each token.
@@ -129,11 +136,28 @@ DurationPredictor::generate(std::span<const Token> tokens,
    *   - effDuration: an effective duration after post-processing.
    */
   return std::make_tuple(std::move(dTensor), std::move(indices),
-                         std::move(effDuration));
+                         std::move(effDuration), std::move(timestamps));
 }
 
 size_t DurationPredictor::getTokensLimit() const {
   return forwardMethods_.empty() ? 0 : forwardMethods_.back().second;
+}
+
+std::vector<Timestamp>
+DurationPredictor::calculateTimestamps(const int64_t *predDurPtr,
+                                       size_t inputSize) const {
+  std::vector<Timestamp> timestamps;
+  timestamps.reserve(inputSize);
+
+  size_t accDur = 0;
+  for (size_t i = 0; i < inputSize; i++) {
+    int64_t dur = predDurPtr[i] *
+                  constants::kTicksPerDuration; // Convert to audio samples
+    timestamps.emplace_back(accDur, accDur + dur);
+    accDur += dur;
+  }
+
+  return timestamps;
 }
 
 void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,

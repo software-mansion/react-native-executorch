@@ -15297,6 +15297,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-audio-api@npm:0.12.2":
+  version: 0.12.2
+  resolution: "react-native-audio-api@npm:0.12.2"
+  dependencies:
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-worklets: ">= 0.6.0"
+  peerDependenciesMeta:
+    react-native-worklets:
+      optional: true
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/ed495058382188c8beb51ce89f2ef14d846dc0c0a07c65a7b4c71aa106fb7ea14aa8660b05fb33941c038d1a7ab2ba4ab3eb039fe481841938c45396903c6060
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.40.12":
   version: 0.40.18
   resolution: "react-native-builder-bob@npm:0.40.18"
@@ -16701,7 +16719,7 @@ __metadata:
     metro-config: "npm:^0.83.0"
     react: "npm:19.2.5"
     react-native: "npm:0.83.4"
-    react-native-audio-api: "npm:0.12.0"
+    react-native-audio-api: "npm:0.12.2"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"

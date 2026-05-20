@@ -3,6 +3,10 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
+#include <algorithm>
+#include <ranges>
+#include <utility>
+
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 using ::executorch::aten::ScalarType;
@@ -28,8 +32,9 @@ Synthesizer::Synthesizer(const std::string &modelSource,
         forwardMethods_.emplace_back(name, inputSize);
       }
     }
-    std::stable_sort(forwardMethods_.begin(), forwardMethods_.end(),
-                     [](const auto &a, const auto &b) { return a.second < b.second; });
+    std::ranges::stable_sort(forwardMethods_, [](const auto &a, const auto &b) {
+      return a.second < b.second;
+    });
   }
 
   // Fallback: if no methods discovered, validate "forward" directly
@@ -43,7 +48,7 @@ Synthesizer::Synthesizer(const std::string &modelSource,
   }
 }
 
-Result<std::vector<EValue>> Synthesizer::generate(std::span<const Token> tokens,
+Result<std::vector<EValue>> Synthesizer::generate(std::span<Token> tokens,
                                                   std::span<bool> textMask,
                                                   std::span<int64_t> indices,
                                                   std::span<float> dur,
@@ -57,9 +62,8 @@ Result<std::vector<EValue>> Synthesizer::generate(std::span<const Token> tokens,
   int32_t duration = indices.size();
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                      const_cast<Token *>(tokens.data()), ScalarType::Long);
+  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                                      tokens.data(), ScalarType::Long);
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
                       textMask.data(), ScalarType::Bool);
@@ -71,19 +75,23 @@ Result<std::vector<EValue>> Synthesizer::generate(std::span<const Token> tokens,
                                         ref_s.data(), ScalarType::Float);
 
   // Select appropriate forward method based on token count
-  auto it = std::ranges::find_if(forwardMethods_,
-      [noTokens](const auto &entry) { return static_cast<int32_t>(entry.second) >= noTokens; });
-  std::string selectedMethod = (it != forwardMethods_.end()) ? it->first : forwardMethods_.back().first;
+  auto it =
+      std::ranges::find_if(forwardMethods_, [noTokens](const auto &entry) {
+        return std::cmp_greater_equal(entry.second, noTokens);
+      });
+  std::string selectedMethod =
+      (it != forwardMethods_.end()) ? it->first : forwardMethods_.back().first;
 
   // Execute the selected forward method
-  auto results = execute(selectedMethod,
-      {tokensTensor, textMaskTensor, indicesTensor, durTensor, voiceRefTensor});
+  auto results =
+      execute(selectedMethod, {tokensTensor, textMaskTensor, indicesTensor,
+                               durTensor, voiceRefTensor});
 
   if (!results.ok()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidModelOutput,
         "[Kokoro::Synthesizer] Failed to execute method " + selectedMethod +
-        ", error: " +
+            ", error: " +
             std::to_string(static_cast<uint32_t>(results.error())));
   }
 
@@ -97,7 +105,8 @@ size_t Synthesizer::getTokensLimit() const {
 }
 
 size_t Synthesizer::getDurationLimit() const {
-  if (forwardMethods_.empty()) return 0;
+  if (forwardMethods_.empty())
+    return 0;
   return getInputShape(forwardMethods_.back().first, 2)[0];
 }
 

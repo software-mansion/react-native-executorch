@@ -39,7 +39,7 @@ public:
    * @param dur duration values, obtained from DurationPredictor module
    * @param ref_s a full voice array for given duration
    */
-  Result<std::vector<EValue>> generate(std::span<const Token> tokens,
+  Result<std::vector<EValue>> generate(std::span<Token> tokens,
                                        std::span<bool> textMask,
                                        std::span<int64_t> indices,
                                        std::span<float> dur,
@@ -50,7 +50,8 @@ public:
   size_t getDurationLimit() const;
 
 private:
-  // Forward methods discovered at construction (e.g. forward_8, forward_64, forward_128)
+  // Forward methods discovered at construction (e.g. forward_8, forward_64,
+  // forward_128)
   std::vector<std::pair<std::string, size_t>> forwardMethods_;
   // Shared model context
   // A const reference to singleton in Kokoro.

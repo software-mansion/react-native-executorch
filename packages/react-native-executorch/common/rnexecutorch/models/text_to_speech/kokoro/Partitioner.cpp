@@ -1,10 +1,11 @@
 #include "Partitioner.h"
 #include "Constants.h"
 #include "Params.h"
+
 #include <algorithm>
-#include <functional>
-#include <queue>
-#include <rnexecutorch/Error.h>
+#include <deque>
+#include <limits>
+#include <ranges>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -13,117 +14,120 @@ using namespace params::partitioning;
 // Custom infinity definition
 constexpr Partitioner::Cost INF = 1e7;
 
-template <>
-std::vector<std::u32string>
-Partitioner::divide<Partitioner::Strategy::TOTAL_TIME>(
-    const std::u32string &phonemes) {
-  return divide(phonemes,
-                [this](Cost prevCost, int32_t rangeBegin, int32_t prevBp,
-                       int32_t currBp, int32_t rangeEnd) {
-                  if (rangeEnd - currBp - 1 > context_.inputTokensLimit)
-                    return INF;
+Partitioner::Partition Partitioner::partition(std::u32string_view input,
+                                              size_t limit, Mode mode) const {
+  if (mode == Mode::MIN_BREAKS) {
+    auto minBreakCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
+                                  int64_t bp, size_t end,
+                                  Separator sep) -> Cost {
+      if (end - bp > limit) {
+        return INF;
+      }
 
-                  // Simply cumulate the costs for both subranges
-                  return prevCost + static_cast<Cost>(rangeEnd - currBp - 1);
-                });
+      Cost sepPenalty = sep == Separator::EOS     ? kEosMinBreaksCost
+                        : sep == Separator::PAUSE ? kPauseMinBreaksCost
+                        : sep == Separator::WHITE ? kWhiteMinBreaksCost
+                                                  : 0;
+
+      return acc + sepPenalty + static_cast<Cost>(end - bp);
+    };
+
+    return partition(input, limit, minBreakCostFn);
+  }
+
+  if (mode == Mode::MIN_LATENCY) {
+    auto minLatencyCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
+                                    int64_t bp, size_t end,
+                                    Separator sep) -> Cost {
+      if (end - bp > limit) {
+        return INF;
+      }
+
+      Cost sepPenalty = sep == Separator::EOS     ? kEosMinLatencyCost
+                        : sep == Separator::PAUSE ? kPauseMinLatencyCost
+                        : sep == Separator::WHITE ? kWhiteMinLatencyCost
+                                                  : 0;
+
+      int64_t rightmostRangeLength = end - bp;
+      int64_t prevRangeLength = bp - prevBp;
+
+      int64_t latency = std::max(static_cast<int64_t>(0),
+                                 rightmostRangeLength - prevRangeLength);
+      int64_t discount =
+          kTokenDiscountFactor *
+          std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
+
+      return acc + static_cast<Cost>(latency * discount / kTokenDiscountRange) +
+             sepPenalty;
+    };
+
+    return partition(input, limit, minLatencyCostFn);
+  }
+
+  return {input, {}};
 }
 
-template <>
-std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
-    const std::u32string &phonemes) {
-  return divide(phonemes, [this](Cost prevCost, int32_t rangeBegin,
-                                 int32_t prevBp, int32_t currBp,
-                                 int32_t rangeEnd) {
-    if (rangeEnd - currBp - 1 > context_.inputTokensLimit)
-      return INF;
+Partitioner::Partition Partitioner::partition(std::u32string_view input,
+                                              size_t limit,
+                                              CostFn costFn) const {
+  if (input.empty()) {
+    return {input, {}};
+  }
 
-    // Estimate the latency (simple linear difference between the rightmost
-    // subranges)
-    int32_t latency = std::max(0, (rangeEnd - currBp) - (currBp - prevBp));
+  size_t n = input.size();
+  std::vector<std::pair<Cost, int64_t>> dp(n, {INF, -1});
 
-    // Estimate the discount factor (the further we go, the less we care about
-    // the latency)
-    int32_t discount =
-        kTokenDiscountFactor * std::max(0, kTokenDiscountRange - currBp - 1);
+  std::deque<size_t> eosPoints, pausePoints, whitePoints;
 
-    return prevCost +
-           static_cast<Cost>(latency * discount / kTokenDiscountRange);
-  });
-}
+  for (size_t i = 0; i < n; ++i) {
+    auto &[bestCost, prevBpIdx] = dp[i];
 
-// Helper function - partitioning
-// A template which is controled by concrete operator instead of
-// an abstract Strategy argument.
-// Utilizes dynamic programming approach for finding the
-// optimal solution.
-std::vector<std::u32string> Partitioner::divide(
-    const std::u32string &phonemes,
-    const std::function<Cost(Cost, int32_t, int32_t, int32_t, int32_t)>
-        &costFn) {
-  // DP array
-  // (cost, prev_breakpoint_idx) pairs
-  std::vector<std::pair<Cost, int32_t>> mem(phonemes.size(), {INF, -1});
+    bestCost = costFn(0, 0, -1, -1, i + 1, Separator::NO_SEP);
 
-  // Keep the potential break point indices to speed up the calculation.
-  std::deque<int32_t> eosPoints, pausePoints, whitePoints;
-
-  for (int32_t i = 0; i < phonemes.size(); i++) {
-    auto &[estimation, prevBreakIdx] = mem[i];
-
-    // We assume that phonemes[i] is the last character of currently analyzed
-    // substring. First, estimate for the entire substring without further
-    // division.
-    estimation = costFn(0, 0, -1, -1, i + 1);
-
-    // Now, try to divide into 2 substring and utilize already calculated values
-    // for left-side substring.
     for (auto *q : {&eosPoints, &pausePoints, &whitePoints}) {
-      // First, clear the queus from useless entries (out of even largest model
-      // bounds).
-      while (!q->empty() && q->front() + context_.inputTokensLimit < i) {
+      while (!q->empty() && q->front() + limit < i) {
         q->pop_front();
       }
 
-      // Now iterate through the reimaining positions.
-      Cost penalty = q == &eosPoints     ? kEosPenalty
-                     : q == &pausePoints ? kPausePenalty
-                                         : kWhitePenalty;
-      for (int32_t breakIdx : (*q)) {
-        Cost newEstimation = costFn(mem[breakIdx].first, 0,
-                                    mem[breakIdx].second, breakIdx, i + 1) +
-                             penalty;
-        if (newEstimation < estimation && breakIdx > 0) {
-          estimation = newEstimation;
-          prevBreakIdx = breakIdx;
+      Separator sep = q == &eosPoints     ? Separator::EOS
+                      : q == &pausePoints ? Separator::PAUSE
+                                          : Separator::WHITE;
+      for (size_t breakIdx : (*q)) {
+        auto cost = costFn(dp[breakIdx].first, 0, dp[breakIdx].second, breakIdx,
+                           i, sep);
+        if (cost < bestCost && breakIdx > 0) {
+          bestCost = cost;
+          prevBpIdx = breakIdx;
         }
       }
     }
 
-    // Add current phoneme to the appropriate queue.
-    char32_t phoneme = phonemes[i];
-    if (constants::kEndOfSentencePhonemes.contains(phoneme)) {
+    char32_t c = input[i];
+    if (constants::kEndOfSentenceCharacters.contains(c)) {
       eosPoints.push_back(i);
-    } else if (constants::kPausePhonemes.contains(phoneme)) {
+    } else if (constants::kPauseCharacters.contains(c)) {
       pausePoints.push_back(i);
-    } else if (phoneme < 256 && std::isspace(static_cast<char>(phoneme))) {
+    } else if (c < 256 && std::isspace(static_cast<char>(c))) {
       whitePoints.push_back(i);
     }
   }
 
-  std::vector<std::u32string> result = {};
+  std::vector<std::pair<size_t, size_t>> segments;
+  int64_t currBp = dp.back().second;
+  size_t lastIdx = n;
 
-  // Perform backtracking to obtain all the substrings.
-  // Note that because of backtracking, the order is reversed.
-  int32_t end = phonemes.size() - 1;
-  while (end != -1) {
-    int32_t begin = mem[end].second + 1;
-    result.push_back(phonemes.substr(begin, end - begin + 1));
-    end = mem[end].second;
+  while (currBp != -1) {
+    size_t start = static_cast<size_t>(currBp + 1);
+    segments.emplace_back(start, lastIdx - start);
+    lastIdx = currBp + 1;
+    currBp = dp[currBp].second;
   }
+  // Add the first segment
+  segments.emplace_back(0, lastIdx);
 
-  std::ranges::reverse(result);
+  std::ranges::reverse(segments);
 
-  return result;
+  return {input, std::move(segments)};
 }
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro

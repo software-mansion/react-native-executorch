@@ -20,6 +20,8 @@ inline constexpr size_t kMinDurationTicks =
 inline constexpr size_t kMaxDurationTicks =
     296; // Corresponds to DurationPredictor output and one of Synthesizer's
          // input shapes
+inline constexpr float kMinValidSpeed = 0.1F;
+inline constexpr float kMaxValidSpeed = 3.0F;
 
 // Model input sizes - voice reference vector
 inline constexpr int32_t kVoiceRefSize =
@@ -35,13 +37,22 @@ inline constexpr int32_t kSamplingRate =
 inline constexpr int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
 // Special text characters
-inline const std::unordered_set<char> kEndOfSentenceCharacters = {'.', '?', '!',
-                                                                  ';'};
+inline const std::unordered_set<char32_t> kEndOfSentenceCharacters = {
+    U'.', U'?', U'!', U';',
+    U'…', // Ellipsis
+    U'|', // ASCII Pipe (often used as Hindi Purna Viram)
+    U'।', // Hindi Purna Viram (U+0964)
+    U'॥', // Hindi Deergh Viram (U+0965)
+    U'¿', // Spanish Inverted Question Mark (U+00BF)
+    U'¡', // Spanish Inverted Exclamation Mark (U+00A1)
+};
 
-// Special phonemes
-inline const std::unordered_set<char32_t> kEndOfSentencePhonemes = {
-    U'.', U'?', U'!', U';', U'…'};
-inline const std::unordered_set<char32_t> kPausePhonemes = {U',', U':', U'-'};
+inline const std::unordered_set<char32_t> kPauseCharacters = {
+    U',', U':', U'-',
+    U'—', // Em Dash (U+2014)
+    U'«', // Left Guillemet (U+00AB)
+    U'»', // Right Guillemet (U+00BB)
+};
 
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;
