@@ -66,6 +66,7 @@ export default function LiveTextScreen() {
 
   const sweepDoneRef = useRef(false);
   const ocrDoneRef = useRef(false);
+  const lastResultsRef = useRef<OCRDetection[]>([]);
 
   const model = useOCR({ model: OCR_ENGLISH });
   const ocrRof = model.runOnFrame;
@@ -73,8 +74,9 @@ export default function LiveTextScreen() {
   const device =
     devices.find((d) => d.position === cameraPosition) ?? devices[0];
 
-  // Camera is live only in the `live` phase; pausing it freezes the preview.
-  const cameraActive = isFocused && phase === 'live';
+  // Keep the camera active during `scanning` so the worklet receives at least
+  // one frame to run OCR on. The ScanLine covers the preview visually.
+  const cameraActive = isFocused && (phase === 'live' || phase === 'scanning');
 
   useEffect(() => {
     setError(model.error ? String(model.error) : null);
@@ -86,14 +88,7 @@ export default function LiveTextScreen() {
 
   const tryAdvanceToReveal = useCallback(() => {
     if (!sweepDoneRef.current || !ocrDoneRef.current) return;
-    setDetections((current) => {
-      if (current.length === 0) {
-        setPhase('result');
-      } else {
-        setPhase('revealing');
-      }
-      return current;
-    });
+    setPhase(lastResultsRef.current.length === 0 ? 'result' : 'revealing');
   }, []);
 
   const handleOcrResult = useCallback(
@@ -103,6 +98,7 @@ export default function LiveTextScreen() {
       frameH: number;
       ms: number;
     }) => {
+      lastResultsRef.current = p.results;
       setDetections(p.results);
       setImageSize({ width: p.frameW, height: p.frameH });
       setInferenceMs(p.ms);
@@ -129,6 +125,7 @@ export default function LiveTextScreen() {
     if (!ocrRof) return;
     sweepDoneRef.current = false;
     ocrDoneRef.current = false;
+    lastResultsRef.current = [];
     setDetections([]);
     setError(null);
     setPhase('scanning');
