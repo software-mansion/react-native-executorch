@@ -158,8 +158,12 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     // The reasoning is very simple: with the current liberal threshold values,
     // running transcriptions too rapidly (before the audio buffer is filled
     // with significant amount of new data) can cause streamer to commit wrong
-    // phrases.
-    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    // phrases. We wait on a condition_variable so streamStop() can break the
+    // pause immediately — inserts intentionally do not wake us, to preserve
+    // the throttle.
+    std::unique_lock<std::mutex> lock(streamCvMutex_);
+    streamCv_.wait_for(lock, std::chrono::milliseconds(timeout),
+                       [this] { return !isStreaming_.load(); });
   }
 
   std::vector<Word> finalWords = streamer_->finish(options);
@@ -170,7 +174,10 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   resetStreamState();
 }
 
-void SpeechToText::streamStop() { isStreaming_ = false; }
+void SpeechToText::streamStop() {
+  isStreaming_ = false;
+  streamCv_.notify_all();
+}
 
 void SpeechToText::streamInsert(std::span<float> waveform) {
   streamer_->insertAudioChunk(waveform);
