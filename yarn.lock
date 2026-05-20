@@ -12734,7 +12734,7 @@ __metadata:
     metro-config: "npm:^0.83.0"
     react: "npm:19.2.5"
     react-native: "npm:0.83.4"
-    react-native-audio-api: "npm:0.12.0"
+    react-native-audio-api: "npm:0.12.2"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
@@ -15280,34 +15280,6 @@ __metadata:
   version: 19.2.4
   resolution: "react-is@npm:19.2.4"
   checksum: 10/3360fc50a38c23299c5003a709949f2439b2901e77962eea78d892f526f710d05a7777b600b302f853583d1861979b00d7a0a071c89c6562eac5740ac29b9665
-  languageName: node
-  linkType: hard
-
-"react-native-audio-api@npm:0.11.5":
-  version: 0.11.5
-  resolution: "react-native-audio-api@npm:0.11.5"
-  dependencies:
-    semver: "npm:^7.7.3"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  bin:
-    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/f8a388954c42cfd390b9adbfe6781f9d8049d43ea6ab83a8b229a0d0082df3489d9b48072d7166403ae95a33e8d741aab86ba2307d1bd4ff949fdb72e14ef42d
-  languageName: node
-  linkType: hard
-
-"react-native-audio-api@npm:0.12.0":
-  version: 0.12.0
-  resolution: "react-native-audio-api@npm:0.12.0"
-  dependencies:
-    semver: "npm:^7.7.3"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  bin:
-    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/3328a36649c30ea24a6c957f89c8f97969f06f530a72147eb2c59d7332b8ce5b1a2a34dd95f2a6cd2f8b279505161e1117d1329bfd5101167971c0189e5ab5f3
   languageName: node
   linkType: hard
 
