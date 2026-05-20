@@ -34,10 +34,6 @@ public:
                                  std::string languageOption,
                                  bool verbose) const;
 
-  [[nodiscard("Registered non-void function")]]
-  std::vector<char> transcribeStringOnly(std::span<float> waveform,
-                                         std::string languageOption) const;
-
   size_t getMemoryLowerBound() const noexcept;
 
   // Stream
