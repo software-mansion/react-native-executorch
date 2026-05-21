@@ -10,12 +10,13 @@ import {
 import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  models,
   PiiEntity,
-  PRIVACY_FILTER_NEMOTRON,
-  PRIVACY_FILTER_OPENAI,
   PrivacyFilterModelSources,
   usePrivacyFilter,
 } from 'react-native-executorch';
+
+const privacyFilter = models.privacy_filter;
 import ColorPalette from '../../colors';
 import { ModelOption, ModelPicker } from '../../components/ModelPicker';
 import {
@@ -46,16 +47,19 @@ Workstation MAC 3C:22:FB:8E:01:9A, IPv4 10.0.42.118, device IMEI 359888061234560
 /* cspell:enable */
 
 const MODEL_OPTIONS: ModelOption<PrivacyFilterModelSources>[] = [
-  { label: 'OpenAI Privacy Filter (8 entities)', value: PRIVACY_FILTER_OPENAI },
+  {
+    label: 'OpenAI Privacy Filter (8 entities)',
+    value: privacyFilter.openai(),
+  },
   {
     label: 'OpenMed Nemotron (55 entities)',
-    value: PRIVACY_FILTER_NEMOTRON,
+    value: privacyFilter.nemotron(),
   },
 ];
 
 // Pick the right sample to display/run based on the active model.
 function sampleFor(model: PrivacyFilterModelSources): string {
-  return model.modelName === PRIVACY_FILTER_NEMOTRON.modelName
+  return model.modelName === privacyFilter.nemotron().modelName
     ? NEMOTRON_SAMPLE
     : OPENAI_SAMPLE;
 }
@@ -98,7 +102,7 @@ function PrivacyFilterScreen() {
   const [runError, setRunError] = useState<string | null>(null);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState<PrivacyFilterModelSources>(
-    PRIVACY_FILTER_OPENAI
+    privacyFilter.openai()
   );
 
   const filter = usePrivacyFilter({ model: selectedModel });

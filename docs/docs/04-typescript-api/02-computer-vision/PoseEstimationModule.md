@@ -12,13 +12,13 @@ TypeScript API implementation of the [usePoseEstimation](../../03-hooks/02-compu
 ## High Level Overview
 
 ```typescript
-import { PoseEstimationModule, YOLO26N_POSE } from 'react-native-executorch';
-
+import { models, PoseEstimationModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance and loading the model
-const poseEstimationModule =
-  await PoseEstimationModule.fromModelName(YOLO26N_POSE);
+const poseEstimationModule = await PoseEstimationModule.fromModelName(
+  models.pose_estimation.yolo26n()
+);
 
 // Running the model
 const detections = await poseEstimationModule.forward(imageUri);
@@ -72,7 +72,6 @@ Use [`fromCustomModel`](../../06-api-reference/classes/PoseEstimationModule.md#f
 
 ```typescript
 import { PoseEstimationModule } from 'react-native-executorch';
-
 const HandKeypoints = {
   WRIST: 0,
   THUMB_TIP: 1,

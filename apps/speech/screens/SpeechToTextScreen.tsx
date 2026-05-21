@@ -12,27 +12,20 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
+  models,
   useSpeechToText,
-  WHISPER_TINY_EN,
-  WHISPER_TINY_EN_COREML,
-  WHISPER_BASE_EN,
-  WHISPER_BASE_EN_COREML,
-  WHISPER_SMALL_EN,
-  WHISPER_SMALL_EN_COREML,
   TranscriptionResult,
   SpeechToTextProps,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
+const speechToText = models.speech_to_text;
 
 type STTModelSources = SpeechToTextProps['model'];
 
 const MODELS: ModelOption<STTModelSources>[] = [
-  { label: 'Whisper Tiny EN (XNNPACK)', value: WHISPER_TINY_EN },
-  { label: 'Whisper Tiny EN (CoreML)', value: WHISPER_TINY_EN_COREML },
-  { label: 'Whisper Base EN (XNNPACK)', value: WHISPER_BASE_EN },
-  { label: 'Whisper Base EN (CoreML)', value: WHISPER_BASE_EN_COREML },
-  { label: 'Whisper Small EN (XNNPACK)', value: WHISPER_SMALL_EN },
-  { label: 'Whisper Small EN (CoreML)', value: WHISPER_SMALL_EN_COREML },
+  { label: 'Whisper Tiny EN', value: speechToText.whisper_tiny_en() },
+  { label: 'Whisper Base EN', value: speechToText.whisper_base_en() },
+  { label: 'Whisper Small EN', value: speechToText.whisper_small_en() },
 ];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -49,12 +42,12 @@ import ErrorBanner from '../components/ErrorBanner';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
-const DEFAULT_MODEL =
-  Platform.OS === 'ios' ? WHISPER_BASE_EN_COREML : WHISPER_TINY_EN;
-
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedModel, setSelectedModel] =
-    useState<STTModelSources>(DEFAULT_MODEL);
+  const [selectedModel, setSelectedModel] = useState<STTModelSources>(
+    Platform.OS === 'ios'
+      ? speechToText.whisper_base_en()
+      : speechToText.whisper_tiny_en()
+  );
 
   const model = useSpeechToText({
     model: selectedModel,
@@ -116,14 +109,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       return;
     }
 
-    const uri = await getAudioFile(audioURL);
     // Reset previous states
     setTranscription(null);
     setLiveResult(null);
 
-    const audioContext = new AudioContext({ sampleRate: 16000 });
-
     try {
+      const uri = await getAudioFile(audioURL);
+      const audioContext = new AudioContext({ sampleRate: 16000 });
       const decodedAudioData = await audioContext.decodeAudioData(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
       const start = Date.now();
@@ -334,6 +326,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
             <View style={styles.urlTranscriptionContainer}>
               <TextInput
                 placeholder="Audio file URL to transcribe"
+                placeholderTextColor="#aaa"
                 style={styles.urlTranscriptionInput}
                 value={audioURL}
                 onChangeText={setAudioURL}
@@ -468,6 +461,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0f186e',
     borderRightWidth: 0,
+    color: '#0f186e',
   },
   urlTranscriptionButton: {
     backgroundColor: '#0f186e',

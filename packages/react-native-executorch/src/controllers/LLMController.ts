@@ -113,7 +113,10 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
 
       this.tokenizerConfig = JSON.parse(
@@ -257,7 +260,7 @@ export class LLMController {
     if (this._isGenerating) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModelGenerating,
-        'You cannot delete the model now. You need to interrupt it first.'
+        'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
 
@@ -271,10 +274,16 @@ export class LLMController {
 
   public async forward(input: string, imagePaths?: string[]): Promise<string> {
     if (!this._isReady) {
-      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this._isGenerating) {
-      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
     try {
       this.isGeneratingCallback(true);
@@ -360,7 +369,6 @@ export class LLMController {
       messages,
       this.tokenizerConfig,
       tools,
-      // eslint-disable-next-line camelcase
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
@@ -389,7 +397,6 @@ export class LLMController {
         messages,
         this.tokenizerConfig,
         this.toolsConfig?.tools,
-        // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);

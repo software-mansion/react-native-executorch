@@ -17,11 +17,7 @@ import SWMIcon from '../../assets/icons/swm_icon.svg';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from '../../components/Spinner';
 import ErrorBanner from '../../components/ErrorBanner';
-import {
-  useLLM,
-  DEFAULT_SYSTEM_PROMPT,
-  HAMMER2_1_1_5B_QUANTIZED,
-} from 'react-native-executorch';
+import { models, useLLM, DEFAULT_SYSTEM_PROMPT } from 'react-native-executorch';
 import { ModelPicker } from '../../components/ModelPicker';
 import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
@@ -55,7 +51,7 @@ function LLMToolCallingScreen() {
   const [hasCalendarPermission, setHasCalendarPermission] = useState(true);
   const [hasBrightnessPermission, setHasBrightnessPermission] = useState(true);
   const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
-    HAMMER2_1_1_5B_QUANTIZED
+    models.llm.hammer2_1_1_5b()
   );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);

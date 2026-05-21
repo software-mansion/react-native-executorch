@@ -11,13 +11,12 @@ TypeScript API implementation of the [useTokenizer](../../03-hooks/01-natural-la
 ## High Level Overview
 
 ```typescript
-import { TokenizerModule, ALL_MINILM_L6_V2 } from 'react-native-executorch';
-
+import { models, TokenizerModule } from 'react-native-executorch';
 // Creating an instance
 const tokenizerModule = new TokenizerModule();
 
 // Load the tokenizer
-await tokenizerModule.load(ALL_MINILM_L6_V2);
+await tokenizerModule.load(models.text_embedding.all_minilm_l6_v2());
 console.log('Tokenizer loaded');
 
 // Get tokenizers vocabulary size

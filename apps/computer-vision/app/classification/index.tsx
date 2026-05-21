@@ -1,16 +1,22 @@
 import Spinner from '../../components/Spinner';
 import { getImage } from '../../utils';
 import {
+  models,
   useClassification,
-  EFFICIENTNET_V2_S,
-  EFFICIENTNET_V2_S_QUANTIZED,
   ClassificationModelSources,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
+const classification = models.classification;
 
 const MODELS: ModelOption<ClassificationModelSources>[] = [
-  { label: 'EfficientNet V2 S Quantized', value: EFFICIENTNET_V2_S_QUANTIZED },
-  { label: 'EfficientNet V2 S', value: EFFICIENTNET_V2_S },
+  {
+    label: 'EfficientNet V2 S Quantized',
+    value: classification.efficientnet_v2_s(),
+  },
+  {
+    label: 'EfficientNet V2 S',
+    value: classification.efficientnet_v2_s({ quant: false }),
+  },
 ];
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { BottomBar } from '../../components/BottomBar';
@@ -22,7 +28,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 
 export default function ClassificationScreen() {
   const [selectedModel, setSelectedModel] =
-    useState<ClassificationModelSources>(EFFICIENTNET_V2_S_QUANTIZED);
+    useState<ClassificationModelSources>(classification.efficientnet_v2_s());
   const [results, setResults] = useState<{ label: string; score: number }[]>(
     []
   );

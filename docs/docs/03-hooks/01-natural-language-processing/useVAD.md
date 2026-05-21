@@ -18,12 +18,12 @@ It is recommended to use models provided by us, which are available at our [Hugg
 You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
 
 ```typescript
-import { useVAD, FSMN_VAD } from 'react-native-executorch';
+import { models, useVAD } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
 const model = useVAD({
-  model: FSMN_VAD,
+  model: models.vad.fsmn_vad(),
 });
 
 const { uri } = await FileSystem.downloadAsync(
@@ -76,13 +76,13 @@ Timestamps in returned speech segments, correspond to indices of input array (wa
 ```tsx
 import React from 'react';
 import { Button, Text, SafeAreaView } from 'react-native';
-import { useVAD, FSMN_VAD } from 'react-native-executorch';
+import { models, useVAD } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
 export default function App() {
   const model = useVAD({
-    model: FSMN_VAD,
+    model: models.vad.fsmn_vad(),
   });
 
   const audioURL = 'https://some-audio-url.com/file.mp3';

@@ -12,9 +12,8 @@ TypeScript API implementation of the [useVAD](../../03-hooks/01-natural-language
 ## High Level Overview
 
 ```typescript
-import { VADModule, FSMN_VAD } from 'react-native-executorch';
-
-const model = await VADModule.fromModelName(FSMN_VAD, (progress) =>
+import { models, VADModule } from 'react-native-executorch';
+const model = await VADModule.fromModelName(models.vad.fsmn_vad(), (progress) =>
   console.log(progress)
 );
 

@@ -14,9 +14,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spinner from '../../components/Spinner';
 import {
+  models,
   useTextToImage,
-  BK_SDM_TINY_VPRED_256,
-  BK_SDM_TINY_VPRED_512,
   TextToImageProps,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
@@ -26,12 +25,19 @@ import ProgressBar from '../../components/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
 import { StatsBar } from '../../components/StatsBar';
 import ErrorBanner from '../../components/ErrorBanner';
+const imageGeneration = models.image_generation;
 
 type TextToImageModelSources = TextToImageProps['model'];
 
 const MODELS: ModelOption<TextToImageModelSources>[] = [
-  { label: 'BK-SDM 256', value: BK_SDM_TINY_VPRED_256 },
-  { label: 'BK-SDM 512', value: BK_SDM_TINY_VPRED_512 },
+  {
+    label: 'BK-SDM 256',
+    value: imageGeneration.bk_sdm_tiny_vpred_256(),
+  },
+  {
+    label: 'BK-SDM 512',
+    value: imageGeneration.bk_sdm_tiny_vpred_512(),
+  },
 ];
 
 export default function TextToImageScreen() {
@@ -42,7 +48,7 @@ export default function TextToImageScreen() {
 
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<TextToImageModelSources>(
-    BK_SDM_TINY_VPRED_256
+    imageGeneration.bk_sdm_tiny_vpred_256()
   );
   const [generationTime, setGenerationTime] = useState<number | null>(null);
 

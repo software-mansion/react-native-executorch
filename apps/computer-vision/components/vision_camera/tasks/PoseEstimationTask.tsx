@@ -4,9 +4,9 @@ import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import Svg, { Circle, Line } from 'react-native-svg';
 import {
+  models,
   usePoseEstimation,
   PoseDetections,
-  YOLO26N_POSE,
 } from 'react-native-executorch';
 import { TaskProps } from './types';
 import { COCO_SKELETON_CONNECTIONS } from '../../utils/cocoSkeleton';
@@ -29,7 +29,7 @@ export default function PoseEstimationTask({
   onErrorChange,
 }: Props) {
   const poseModel = usePoseEstimation({
-    model: YOLO26N_POSE,
+    model: models.pose_estimation.yolo26n(),
     preventLoad: activeModel !== 'poseEstimationYolo26n',
   });
 

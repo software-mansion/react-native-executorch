@@ -20,11 +20,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```tsx
-import { useVerticalOCR, OCR_ENGLISH } from 'react-native-executorch';
-
+import { models, useVerticalOCR } from 'react-native-executorch';
 function App() {
   const model = useVerticalOCR({
-    model: OCR_ENGLISH,
+    model: models.ocr.craft({ language: 'en' }),
     independentCharacters: true,
   });
 
@@ -89,11 +88,10 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import { useVerticalOCR, OCR_ENGLISH } from 'react-native-executorch';
-
+import { models, useVerticalOCR } from 'react-native-executorch';
 function App() {
   const model = useVerticalOCR({
-    model: OCR_ENGLISH,
+    model: models.ocr.craft({ language: 'en' }),
     independentCharacters: true,
   });
 

@@ -129,7 +129,6 @@ title: Model Size
 | MULTI_QA_MPNET_BASE_DOT_V1                      |    438    |
 | CLIP_VIT_BASE_PATCH32_TEXT                      |    254    |
 | DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W      |    393    |
-| DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML     |    541    |
 | PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED |    397    |
 
 ## Image Embeddings

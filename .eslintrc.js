@@ -63,7 +63,11 @@ module.exports = {
         customWordListFile: path.resolve(__dirname, '.cspell-wordlist.txt'),
       },
     ],
-    'camelcase': 'error',
+    // `properties: 'never'` lets the lowercase snake_case keys in `models`
+    // (e.g. `models.text_to_speech.kokoro_small`, mirroring the underlying
+    // `.pte` filenames) pass while still requiring camelCase for variable
+    // and function declarations.
+    'camelcase': ['error', { properties: 'never' }],
     'jsdoc/require-jsdoc': 'off',
     'jsdoc/require-param': ['error', { checkDestructured: false }],
     'jsdoc/check-param-names': ['error', { checkDestructured: false }],

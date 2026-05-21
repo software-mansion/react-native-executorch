@@ -16,13 +16,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import {
-  useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-} from 'react-native-executorch';
-
+import { models, useObjectDetection } from 'react-native-executorch';
 const model = useObjectDetection({
-  model: SSDLITE_320_MOBILENET_V3_LARGE,
+  model: models.object_detection.ssdlite_320_mobilenet_v3_large(),
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -84,11 +80,10 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/ObjectDe
 ## Example
 
 ```typescript
-import { useObjectDetection, YOLO26N } from 'react-native-executorch';
-
+import { models, useObjectDetection } from 'react-native-executorch';
 function App() {
   const model = useObjectDetection({
-    model: YOLO26N,
+    model: models.object_detection.yolo26n(),
   });
 
   const handleDetect = async () => {

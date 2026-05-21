@@ -16,13 +16,9 @@ It is recommended to use models provided by us which are available at our [Huggi
 ## High Level Overview
 
 ```typescript
-import {
-  useSemanticSegmentation,
-  DEEPLAB_V3_RESNET50,
-} from 'react-native-executorch';
-
+import { models, useSemanticSegmentation } from 'react-native-executorch';
 const model = useSemanticSegmentation({
-  model: DEEPLAB_V3_RESNET50,
+  model: models.semantic_segmentation.deeplab_v3_resnet50(),
 });
 
 const imageUri = 'file::///Users/.../cute_cat.png';
@@ -85,14 +81,13 @@ The return type is fully typed — TypeScript narrows it based on the labels you
 
 ```typescript
 import {
+  models,
   useSemanticSegmentation,
-  DEEPLAB_V3_RESNET50,
   DeeplabLabel,
 } from 'react-native-executorch';
-
 function App() {
   const model = useSemanticSegmentation({
-    model: DEEPLAB_V3_RESNET50,
+    model: models.semantic_segmentation.deeplab_v3_resnet50(),
   });
 
   const handleSegment = async () => {

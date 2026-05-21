@@ -24,10 +24,10 @@ import { useLLMStats } from '../../hooks/useLLMStats';
 import { StatsBar } from '../../components/StatsBar';
 import ErrorBanner from '../../components/ErrorBanner';
 import {
+  models,
   useLLM,
   fixAndValidateStructuredOutput,
   getStructuredOutputPrompt,
-  QWEN3_1_7B_QUANTIZED,
 } from 'react-native-executorch';
 import { ModelPicker } from '../../components/ModelPicker';
 import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
@@ -83,8 +83,9 @@ export default function LLMScreenWrapper() {
 function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const [selectedModel, setSelectedModel] =
-    useState<LLMModelSources>(QWEN3_1_7B_QUANTIZED);
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    models.llm.qwen3_1_7b()
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 

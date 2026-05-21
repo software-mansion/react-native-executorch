@@ -3,11 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  models,
   SegmentedInstance,
-  YOLO26N_SEG,
-  RF_DETR_NANO_SEG,
-  FASTSAM_S,
-  FASTSAM_X,
   useInstanceSegmentation,
   CocoLabel,
   CocoLabelYolo,
@@ -20,6 +17,8 @@ import {
   buildDisplayInstances,
   DisplayInstance,
 } from '../../../components/ImageWithMasks';
+const instanceSegmentation = models.instance_segmentation;
+const objectDetection = models.object_detection;
 
 type InstSegModelId =
   | 'instanceSegmentationYolo26n'
@@ -42,19 +41,19 @@ export default function InstanceSegmentationTask({
   onErrorChange,
 }: Props) {
   const yolo26n = useInstanceSegmentation({
-    model: YOLO26N_SEG,
+    model: instanceSegmentation.yolo26n_seg(),
     preventLoad: activeModel !== 'instanceSegmentationYolo26n',
   });
   const rfdetr = useInstanceSegmentation({
-    model: RF_DETR_NANO_SEG,
+    model: instanceSegmentation.rf_detr_nano_seg(),
     preventLoad: activeModel !== 'instanceSegmentationRfdetr',
   });
   const fastsamS = useInstanceSegmentation({
-    model: FASTSAM_S,
+    model: objectDetection.fastsam_s(),
     preventLoad: activeModel !== 'instanceSegmentationFastsamS',
   });
   const fastsamX = useInstanceSegmentation({
-    model: FASTSAM_X,
+    model: objectDetection.fastsam_x(),
     preventLoad: activeModel !== 'instanceSegmentationFastsamX',
   });
 

@@ -12,13 +12,9 @@ TypeScript API implementation of the [usePrivacyFilter](../../03-hooks/01-natura
 ## High Level Overview
 
 ```typescript
-import {
-  PrivacyFilterModule,
-  PRIVACY_FILTER_OPENAI,
-} from 'react-native-executorch';
-
+import { models, PrivacyFilterModule } from 'react-native-executorch';
 const model = await PrivacyFilterModule.fromModelName(
-  PRIVACY_FILTER_OPENAI,
+  models.privacy_filter.openai(),
   (progress) => console.log(progress)
 );
 

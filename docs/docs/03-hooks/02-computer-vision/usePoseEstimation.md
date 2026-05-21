@@ -16,10 +16,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { usePoseEstimation, YOLO26N_POSE } from 'react-native-executorch';
-
+import { models, usePoseEstimation } from 'react-native-executorch';
 const model = usePoseEstimation({
-  model: YOLO26N_POSE,
+  model: models.pose_estimation.yolo26n(),
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -94,11 +93,10 @@ The keypoint names available on each person are determined by the model's keypoi
 ## Example
 
 ```typescript
-import { usePoseEstimation, YOLO26N_POSE } from 'react-native-executorch';
-
+import { models, usePoseEstimation } from 'react-native-executorch';
 function App() {
   const model = usePoseEstimation({
-    model: YOLO26N_POSE,
+    model: models.pose_estimation.yolo26n(),
   });
 
   const handleDetect = async () => {

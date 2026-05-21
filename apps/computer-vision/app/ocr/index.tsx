@@ -2,17 +2,7 @@ import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
-import {
-  useOCR,
-  OCR_ENGLISH,
-  OCR_GERMAN,
-  OCR_FRENCH,
-  OCR_SPANISH,
-  OCR_ITALIAN,
-  OCR_JAPANESE,
-  OCR_KOREAN,
-  OCRProps,
-} from 'react-native-executorch';
+import { models, useOCR, OCRProps } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -22,14 +12,16 @@ import { StatsBar } from '../../components/StatsBar';
 
 type OCRModelSources = OCRProps['model'];
 
+const ocr = models.ocr.craft;
+
 const MODELS: ModelOption<OCRModelSources>[] = [
-  { label: 'English', value: OCR_ENGLISH },
-  { label: 'German', value: OCR_GERMAN },
-  { label: 'French', value: OCR_FRENCH },
-  { label: 'Spanish', value: OCR_SPANISH },
-  { label: 'Italian', value: OCR_ITALIAN },
-  { label: 'Japanese', value: OCR_JAPANESE },
-  { label: 'Korean', value: OCR_KOREAN },
+  { label: 'English', value: ocr({ language: 'en' }) },
+  { label: 'German', value: ocr({ language: 'de' }) },
+  { label: 'French', value: ocr({ language: 'fr' }) },
+  { label: 'Spanish', value: ocr({ language: 'es' }) },
+  { label: 'Italian', value: ocr({ language: 'it' }) },
+  { label: 'Japanese', value: ocr({ language: 'ja' }) },
+  { label: 'Korean', value: ocr({ language: 'ko' }) },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 
@@ -41,8 +33,9 @@ export default function OCRScreen() {
     width: number;
     height: number;
   }>();
-  const [selectedModel, setSelectedModel] =
-    useState<OCRModelSources>(OCR_ENGLISH);
+  const [selectedModel, setSelectedModel] = useState<OCRModelSources>(
+    ocr({ language: 'en' })
+  );
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const model = useOCR({

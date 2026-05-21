@@ -44,12 +44,12 @@ In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/re
 ### Example
 
 ```typescript
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
 const model = useSpeechToText({
-  model: WHISPER_TINY_EN,
+  model: models.speech_to_text.whisper_tiny_en(),
 });
 
 // 1. Get audio file
@@ -96,11 +96,13 @@ The `stream()` function accepts several optional parameters:
 ```tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { Text, Button, View, SafeAreaView } from 'react-native';
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
 export default function LiveTranscriber() {
-  const model = useSpeechToText({ model: WHISPER_TINY_EN });
+  const model = useSpeechToText({
+    model: models.speech_to_text.whisper_tiny_en(),
+  });
   const [text, setText] = useState('');
   const isRecordingRef = useRef(false);
   const [recorder] = useState(() => new AudioRecorder());
@@ -157,7 +159,7 @@ export default function LiveTranscriber() {
 
 ### Multilingual Transcription
 
-To transcribe languages other than English, use a multilingual model (e.g., `WHISPER_TINY`) and specify the corresponding language code:
+To transcribe languages other than English, use a multilingual model (e.g., `models.speech_to_text.whisper_tiny()`) and specify the corresponding language code:
 
 ```typescript
 // Transcribe in Spanish

@@ -15,10 +15,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
-
+import { models, useInstanceSegmentation } from 'react-native-executorch';
 const model = useInstanceSegmentation({
-  model: YOLO26N_SEG,
+  model: models.instance_segmentation.yolo26n_seg(),
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -81,11 +80,10 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Instance
 ## Example
 
 ```typescript
-import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
-
+import { models, useInstanceSegmentation } from 'react-native-executorch';
 function App() {
   const model = useInstanceSegmentation({
-    model: YOLO26N_SEG,
+    model: models.instance_segmentation.yolo26n_seg(),
   });
 
   const handleSegment = async () => {
@@ -150,14 +148,15 @@ Instance segmentation models return a list of segmented instances. After `forwar
 
 ```typescript
 import {
+  models,
   useInstanceSegmentation,
   selectByPoint,
   selectByBox,
   selectByText,
-  FASTSAM_X,
 } from 'react-native-executorch';
-
-const model = useInstanceSegmentation({ model: FASTSAM_X });
+const model = useInstanceSegmentation({
+  model: models.object_detection.fastsam_x(),
+});
 
 try {
   const instances = await model.forward(imageUri);
@@ -178,12 +177,6 @@ try {
   console.error(error);
 }
 ```
-
-For detailed API Reference for `selectByPoint`, `selectByBox`, and `selectByText` see their respective documentation pages:
-
-- [`selectByPoint` API Reference](../../06-api-reference/functions/selectByPoint.md)
-- [`selectByBox` API Reference](../../06-api-reference/functions/selectByBox.md)
-- [`selectByText` API Reference](../../06-api-reference/functions/selectByText.md)
 
 :::tip
 Use FastSAM-S for faster performance on simple images with non-overlapping

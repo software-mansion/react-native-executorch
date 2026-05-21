@@ -12,16 +12,13 @@ TypeScript API implementation of the [useClassification](../../03-hooks/02-compu
 ## High Level Overview
 
 ```typescript
-import {
-  ClassificationModule,
-  EFFICIENTNET_V2_S,
-} from 'react-native-executorch';
-
+import { models, ClassificationModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
-const classificationModule =
-  await ClassificationModule.fromModelName(EFFICIENTNET_V2_S);
+const classificationModule = await ClassificationModule.fromModelName(
+  models.classification.efficientnet_v2_s()
+);
 
 // Running the model
 const classesWithProbabilities = await classificationModule.forward(imageUri);
@@ -49,7 +46,6 @@ Use [`fromCustomModel`](../../06-api-reference/classes/ClassificationModule.md#f
 
 ```typescript
 import { ClassificationModule } from 'react-native-executorch';
-
 const MyLabels = { CAT: 0, DOG: 1, BIRD: 2 } as const;
 
 const classifier = await ClassificationModule.fromCustomModel(

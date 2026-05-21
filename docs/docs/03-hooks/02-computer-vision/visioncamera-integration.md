@@ -78,17 +78,14 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Detection,
-  useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-} from 'react-native-executorch';
-
+import { models, Detection, useObjectDetection } from 'react-native-executorch';
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const devices = useCameraDevices();
   const device = devices.find((d) => d.position === 'back');
-  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const model = useObjectDetection({
+    model: models.object_detection.ssdlite_320_mobilenet_v3_large(),
+  });
   const [detections, setDetections] = useState<Detection[]>([]);
 
   const detRof = model.runOnFrame;
@@ -211,11 +208,7 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  ClassificationModule,
-  EFFICIENTNET_V2_S,
-} from 'react-native-executorch';
-
+import { models, ClassificationModule } from 'react-native-executorch';
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice('back');
@@ -227,7 +220,9 @@ export default function App() {
   }, [hasPermission, requestPermission]);
 
   useEffect(() => {
-    ClassificationModule.fromModelName(EFFICIENTNET_V2_S).then((module) => {
+    ClassificationModule.fromModelName(
+      models.classification.efficientnet_v2_s()
+    ).then((module) => {
       // () => module.runOnFrame is required — passing module.runOnFrame directly
       // would cause React to call it as a state initializer function
       setRunOnFrame(() => module.runOnFrame);

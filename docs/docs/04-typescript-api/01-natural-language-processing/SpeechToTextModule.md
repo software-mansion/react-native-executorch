@@ -14,11 +14,11 @@ The `SpeechToTextModule` class provides a direct interface to the library's spee
 You can transcribe audio in two ways: **one-shot** (for files/short clips) and **streaming** (for live microphone input).
 
 ```typescript
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, SpeechToTextModule } from 'react-native-executorch';
 
 // Initialize the model
 const model = await SpeechToTextModule.fromModelName(
-  WHISPER_TINY_EN,
+  models.speech_to_text.whisper_tiny_en(),
   (progress) => {
     console.log(`Loading: ${progress * 100}%`);
   }
@@ -107,10 +107,12 @@ The `stream()` function accepts several optional parameters:
 In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to feed live audio into the model.
 
 ```tsx
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, SpeechToTextModule } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-const model = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN);
+const model = await SpeechToTextModule.fromModelName(
+  models.speech_to_text.whisper_tiny_en()
+);
 
 // 1. Configure audio session & permissions
 AudioManager.setAudioSessionOptions({

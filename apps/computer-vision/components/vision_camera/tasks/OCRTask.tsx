@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
+import { models, OCRDetection, useOCR } from 'react-native-executorch';
 import Svg, { Polygon, Text as SvgText } from 'react-native-svg';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
@@ -19,7 +19,7 @@ export default function OCRTask({
   onFpsChange,
   onErrorChange,
 }: Props) {
-  const model = useOCR({ model: OCR_ENGLISH });
+  const model = useOCR({ model: models.ocr.craft({ language: 'en' }) });
   const [detections, setDetections] = useState<OCRDetection[]>([]);
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
