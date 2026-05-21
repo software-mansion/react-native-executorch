@@ -84,7 +84,10 @@ function firstBackend(variants: AnyVariantMap): Backend {
   for (const b of BACKEND_ORDER) {
     if (variants[b]) return b;
   }
-  throw new Error('Model variant map is empty.');
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.Internal,
+    'Model variant map is empty.'
+  );
 }
 
 function resolveBackend(
@@ -116,7 +119,10 @@ function resolveCell(cell: BackendCell, quant: boolean): { modelName: string } {
   const fallback = quant ? cell.base : cell.quant;
   const result = primary ?? fallback;
   if (!result) {
-    throw new Error('Model variant cell has no config.');
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.Internal,
+      'Model variant cell has no config.'
+    );
   }
   return result;
 }
@@ -129,7 +135,10 @@ function resolveVariant(
   const backend = resolveBackend(variants, platformDefaults, opts.backend);
   const cell = variants[backend];
   if (!cell) {
-    throw new Error(`Backend '${backend}' is not available for this model.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidConfig,
+      `Backend '${backend}' is not available for this model.`
+    );
   }
   return resolveCell(cell, opts.quant !== false);
 }
