@@ -139,7 +139,8 @@ export class VADModule extends BaseModule {
    * @param waveform - The audio chunk to insert.
    */
   public streamInsert(waveform: Float32Array): void {
-    if (this.nativeModule == null) return;
+    if (this.nativeModule == null)
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     this.nativeModule.streamInsert(waveform);
   }
 
@@ -147,7 +148,8 @@ export class VADModule extends BaseModule {
    * Stops the current streaming VAD session.
    */
   public streamStop(): void {
-    if (this.nativeModule == null) return;
+    if (this.nativeModule == null)
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     this.nativeModule.streamStop();
     this.isStreaming = false;
   }

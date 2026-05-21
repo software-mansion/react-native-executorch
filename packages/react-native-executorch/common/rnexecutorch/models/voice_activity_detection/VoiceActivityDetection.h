@@ -63,7 +63,7 @@ private:
   std::vector<float> audioBuffer_ = {};
   mutable std::mutex audioBufferMutex_;
   // Streaming state
-  bool isStreaming_ = false;
+  std::atomic<bool> isStreaming_ = false;
 };
 
 } // namespace models::voice_activity_detection
