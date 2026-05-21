@@ -534,12 +534,12 @@ export const models = {
     selfie_segmentation: base(M.SELFIE_SEGMENTATION),
   },
   instance_segmentation: {
-    yolo26n_seg: base(M.YOLO26N_SEG),
-    yolo26s_seg: base(M.YOLO26S_SEG),
-    yolo26m_seg: base(M.YOLO26M_SEG),
-    yolo26l_seg: base(M.YOLO26L_SEG),
-    yolo26x_seg: base(M.YOLO26X_SEG),
-    rf_detr_nano_seg: variant(RF_DETR_NANO_SEG_VARIANTS),
+    yolo26n: base(M.YOLO26N_SEG),
+    yolo26s: base(M.YOLO26S_SEG),
+    yolo26m: base(M.YOLO26M_SEG),
+    yolo26l: base(M.YOLO26L_SEG),
+    yolo26x: base(M.YOLO26X_SEG),
+    rf_detr_nano: variant(RF_DETR_NANO_SEG_VARIANTS),
   },
   style_transfer: {
     candy: variant(STYLE_TRANSFER_CANDY_VARIANTS),

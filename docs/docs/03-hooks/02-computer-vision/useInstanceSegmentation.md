@@ -17,7 +17,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import { models, useInstanceSegmentation } from 'react-native-executorch';
 const model = useInstanceSegmentation({
-  model: models.instance_segmentation.yolo26n_seg(),
+  model: models.instance_segmentation.yolo26n(),
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -83,7 +83,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/Instance
 import { models, useInstanceSegmentation } from 'react-native-executorch';
 function App() {
   const model = useInstanceSegmentation({
-    model: models.instance_segmentation.yolo26n_seg(),
+    model: models.instance_segmentation.yolo26n(),
   });
 
   const handleSegment = async () => {

@@ -41,11 +41,11 @@ export default function InstanceSegmentationTask({
   onErrorChange,
 }: Props) {
   const yolo26n = useInstanceSegmentation({
-    model: instanceSegmentation.yolo26n_seg(),
+    model: instanceSegmentation.yolo26n(),
     preventLoad: activeModel !== 'instanceSegmentationYolo26n',
   });
   const rfdetr = useInstanceSegmentation({
-    model: instanceSegmentation.rf_detr_nano_seg(),
+    model: instanceSegmentation.rf_detr_nano(),
     preventLoad: activeModel !== 'instanceSegmentationRfdetr',
   });
   const fastsamS = useInstanceSegmentation({

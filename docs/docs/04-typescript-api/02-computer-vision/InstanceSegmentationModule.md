@@ -16,7 +16,7 @@ const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
 const segmentation = await InstanceSegmentationModule.fromModelName(
-  models.instance_segmentation.yolo26n_seg()
+  models.instance_segmentation.yolo26n()
 );
 
 // Running the model
@@ -43,7 +43,7 @@ Use [`fromModelName`](../../06-api-reference/classes/InstanceSegmentationModule.
 ```typescript
 import { models, InstanceSegmentationModule } from 'react-native-executorch';
 const segmentation = await InstanceSegmentationModule.fromModelName(
-  models.instance_segmentation.yolo26n_seg()
+  models.instance_segmentation.yolo26n()
 );
 ```
 

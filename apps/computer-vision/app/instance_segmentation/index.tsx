@@ -26,14 +26,14 @@ const instanceSegmentation = models.instance_segmentation;
 const objectDetection = models.object_detection;
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
-  { label: 'Yolo26N', value: instanceSegmentation.yolo26n_seg() },
-  { label: 'Yolo26S', value: instanceSegmentation.yolo26s_seg() },
-  { label: 'Yolo26M', value: instanceSegmentation.yolo26m_seg() },
-  { label: 'Yolo26L', value: instanceSegmentation.yolo26l_seg() },
-  { label: 'Yolo26X', value: instanceSegmentation.yolo26x_seg() },
+  { label: 'Yolo26N', value: instanceSegmentation.yolo26n() },
+  { label: 'Yolo26S', value: instanceSegmentation.yolo26s() },
+  { label: 'Yolo26M', value: instanceSegmentation.yolo26m() },
+  { label: 'Yolo26L', value: instanceSegmentation.yolo26l() },
+  { label: 'Yolo26X', value: instanceSegmentation.yolo26x() },
   {
     label: 'RF-DeTR Nano',
-    value: instanceSegmentation.rf_detr_nano_seg(),
+    value: instanceSegmentation.rf_detr_nano(),
   },
   { label: 'FastSAM-S', value: objectDetection.fastsam_s() },
   { label: 'FastSAM-X', value: objectDetection.fastsam_x() },
@@ -41,9 +41,7 @@ const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
 
 export default function InstanceSegmentationScreen() {
   const [selectedModel, setSelectedModel] =
-    useState<InstanceSegmentationModelSources>(
-      instanceSegmentation.yolo26n_seg()
-    );
+    useState<InstanceSegmentationModelSources>(instanceSegmentation.yolo26n());
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
