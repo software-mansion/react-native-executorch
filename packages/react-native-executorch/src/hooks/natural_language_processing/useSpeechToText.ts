@@ -18,6 +18,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  */
 export const useSpeechToText = ({
   model,
+  vad,
   preventLoad = false,
 }: SpeechToTextProps): SpeechToTextType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
@@ -42,6 +43,7 @@ export const useSpeechToText = ({
         modelSource: model.modelSource,
         tokenizerSource: model.tokenizerSource,
       },
+      vad,
       (p) => {
         if (active) setDownloadProgress(p);
       }
@@ -73,6 +75,7 @@ export const useSpeechToText = ({
     model.isMultilingual,
     model.modelSource,
     model.tokenizerSource,
+    vad,
     preventLoad,
   ]);
 

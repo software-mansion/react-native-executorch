@@ -5,6 +5,7 @@ import {
   StreamingOptions,
   TranscriptionResult,
 } from '../../types/stt';
+import { VADConfig } from '../../types/vad';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
@@ -30,6 +31,7 @@ export class SpeechToTextModule {
   /**
    * Creates a Speech to Text instance for a built-in model.
    * @param namedSources - Configuration object containing model name, sources, and multilingual flag.
+   * @param vad - Optional configuration for Voice Activity Detection (VAD).
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SpeechToTextModule` instance.
    * @example
@@ -40,11 +42,13 @@ export class SpeechToTextModule {
    */
   static async fromModelName(
     namedSources: SpeechToTextModelConfig,
+    vad?: VADConfig,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<SpeechToTextModule> {
     try {
       const nativeModule = await SpeechToTextModule.loadWhisper(
         namedSources,
+        vad,
         onDownloadProgress
       );
       return new SpeechToTextModule(nativeModule, namedSources);
@@ -64,6 +68,7 @@ export class SpeechToTextModule {
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
    * @param isMultilingual - Whether the model supports multiple languages.
+   * @param vad - Optional VAD configuration.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to a `SpeechToTextModule` instance.
    */
@@ -71,6 +76,7 @@ export class SpeechToTextModule {
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
     isMultilingual: boolean,
+    vad?: VADConfig,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<SpeechToTextModule> {
     return SpeechToTextModule.fromModelName(
@@ -80,12 +86,14 @@ export class SpeechToTextModule {
         tokenizerSource,
         isMultilingual,
       },
+      vad,
       onDownloadProgress
     );
   }
 
   private static async loadWhisper(
     model: SpeechToTextModelConfig,
+    vad: VADConfig | undefined,
     onDownloadProgressCallback: (progress: number) => void
   ): Promise<unknown> {
     const tokenizerLoadPromise = ResourceFetcher.fetch(
@@ -96,9 +104,14 @@ export class SpeechToTextModule {
       onDownloadProgressCallback,
       model.modelSource
     );
-    const [tokenizerSources, modelSources] = await Promise.all([
+    const vadPromise = vad
+      ? ResourceFetcher.fetch(undefined, vad.modelSource)
+      : Promise.resolve(undefined);
+
+    const [tokenizerSources, modelSources, vadSources] = await Promise.all([
       tokenizerLoadPromise,
       modelPromise,
+      vadPromise,
     ]);
     if (!modelSources?.[0] || !tokenizerSources?.[0]) {
       throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
@@ -107,7 +120,8 @@ export class SpeechToTextModule {
     return await global.loadSpeechToText(
       'whisper',
       modelSources[0],
-      tokenizerSources[0]
+      tokenizerSources[0],
+      vadSources?.[0] || ''
     );
   }
 
@@ -184,6 +198,8 @@ export class SpeechToTextModule {
     const verbose = !!options.verbose;
     const language = options.language || '';
     const timeout = options.timeout || 100;
+    const useVAD = options.useVAD ?? false;
+    const vadDetectionMargin = options.vadDetectionMargin || 500;
 
     const queue: {
       committed: TranscriptionResult;
@@ -219,7 +235,9 @@ export class SpeechToTextModule {
           },
           language,
           verbose,
-          timeout
+          timeout,
+          useVAD,
+          vadDetectionMargin
         );
 
         finished = true;

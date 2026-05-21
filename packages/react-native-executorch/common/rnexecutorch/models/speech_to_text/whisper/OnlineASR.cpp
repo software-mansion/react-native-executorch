@@ -10,7 +10,8 @@
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
-OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
+OnlineASR::OnlineASR(const ASR *asr, const VoiceActivityDetection *vad)
+    : asr_(asr), vad_(vad) {
   audioBuffer_.reserve((constants::kChunkSize + 1) * constants::kSamplingRate);
 }
 
@@ -42,9 +43,11 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
   }
 }
 
-ProcessResult OnlineASR::process(const DecodingOptions &options) {
+ProcessResult OnlineASR::process(const StreamingOptions &options) {
   constexpr size_t kStreamSafeBufferMaxSamples = static_cast<size_t>(
       params::kStreamSafeBufferDuration * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
+      params::kStreamSafetyThreshold * constants::kSamplingRate);
 
   std::vector<float> audioCopy;
 
@@ -55,12 +58,57 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
     audioCopy = audioBuffer_;
   }
 
-  // Obtain a transcription for current audio buffer state.
-  // It's very unlikely that buffer will exceed whisper's maximum capacity, but
-  // for absolute safety we can additionally clip the buffer.
-  std::span<const float> input(
-      audioCopy.begin(),
-      audioCopy.begin() + std::min(constants::kMaxSamples, audioCopy.size()));
+  std::span<const float> input;
+
+  // Allowing VAD changes logic significantly - we no longer commit and clean
+  // at max samples reached moments, but rather at the end of speech moments.
+  if (options.useVAD && vad_) {
+    auto speechSegments = vad_->generate(audioCopy, options.vadDetectionMargin *
+                                                        params::kVadGapFactor);
+
+    if (speechSegments.empty()) {
+      // Extra cleanup to speed-up future processing by removing silence.
+      if (audioCopy.size() > params::kVadDeadSamplesRemovalSamples) {
+        std::scoped_lock lock(streamingMutex);
+        size_t cut = std::min(params::kVadDeadSamplesRemovalSamples -
+                                  kSafetyMarginSamples,
+                              audioBuffer_.size());
+        audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+      }
+
+      return {};
+    }
+
+    const auto &lastSegment = speechSegments.back();
+    size_t marginSamples =
+        options.vadDetectionMargin * constants::kSamplesPerMilisecond;
+
+    if (audioCopy.size() - lastSegment.end <= marginSamples) {
+      // Speech is ongoing. Keep last 1s context and trim around current
+      // segment.
+      size_t startWithMargin =
+          std::max(lastSegment.start, constants::kSamplingRate) -
+          constants::kSamplingRate;
+      input = std::span(audioCopy.begin() + startWithMargin,
+                        audioCopy.begin() + lastSegment.end);
+    } else {
+      // Speech ended beyond margin. Commit existing transcript and clear
+      // buffer.
+      std::scoped_lock lock(streamingMutex);
+      std::vector<Word> committed = std::move(memory_.transcript);
+      memory_.transcript.clear();
+      memory_.eos.clear();
+
+      audioBuffer_.erase(audioBuffer_.begin(),
+                         audioBuffer_.begin() +
+                             std::min(lastSegment.end, audioBuffer_.size()));
+      return {.committed = std::move(committed), .nonCommitted = {}};
+    }
+  } else {
+    input = std::span(audioCopy.begin(),
+                      audioCopy.begin() +
+                          std::min(constants::kMaxSamples, audioCopy.size()));
+  }
 
   std::vector<Segment> transcriptions = asr_->transcribe(input, options);
 
@@ -135,7 +183,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   return {.committed = std::move(committed), .nonCommitted = std::move(words)};
 }
 
-std::vector<Word> OnlineASR::finish(const DecodingOptions &options) {
+std::vector<Word> OnlineASR::finish(const StreamingOptions &options) {
   ProcessResult result = process(options);
 
   // Last-tick committed delta + whatever never made it past the commit
@@ -179,8 +227,7 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
   // recorded any speech. In this case we can safely cut the maximum amount of
   // audio data.
   if (memory_.eos.empty()) {
-    size_t cut =
-        bufferSize - params::kStreamSafetyThreshold * constants::kSamplingRate;
+    size_t cut = bufferSize - kSafetyMarginSamples;
 
     audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
   }

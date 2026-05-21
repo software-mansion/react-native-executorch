@@ -32,7 +32,6 @@ constexpr inline float kStreamSafetyThreshold = 3.F; // [s]
  */
 constexpr inline float kStreamSafeBufferDuration =
     kStreamMaxDuration - kStreamSafetyThreshold; // [s]
-
 /**
  * An estimate of the number of words spoken per second.
  * Used for estimating transcription progress and buffer management heuristics.
@@ -59,5 +58,10 @@ constexpr inline float kWordsPerSecondLow = 1.5F;
  * segments being produced by the transcription algorithm.
  */
 constexpr inline int32_t kChunkBreakBuffer = 2; // [s]
+
+constexpr inline float kVadGapFactor = 1.2F;
+
+constexpr inline size_t kVadDeadSamplesRemovalSamples =
+    9 * constants::kSamplingRate; // 9s of audio samples
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::params
