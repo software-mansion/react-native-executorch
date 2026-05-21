@@ -14,11 +14,16 @@ The `SpeechToTextModule` class provides a direct interface to the library's spee
 You can transcribe audio in two ways: **one-shot** (for files/short clips) and **streaming** (for live microphone input).
 
 ```typescript
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import {
+  SpeechToTextModule,
+  WHISPER_TINY_EN,
+  FSMN_VAD,
+} from 'react-native-executorch';
 
-// Initialize the model
+// Initialize the model with VAD submodule
 const model = await SpeechToTextModule.fromModelName(
   WHISPER_TINY_EN,
+  FSMN_VAD, // Optional VAD submodule
   (progress) => {
     console.log(`Loading: ${progress * 100}%`);
   }
@@ -30,7 +35,7 @@ console.log(result.text);
 
 // 2. Live streaming (yields partial/stable results)
 model.streamInsert(audioChunk);
-const stream = model.stream();
+const stream = model.stream({ useVAD: true }); // Enable VAD logic
 for await (const { committed, nonCommitted } of stream) {
   // Update UI live with stable and partial text
 }
@@ -61,42 +66,20 @@ The `transcribe()` function accepts an optional configuration object:
 - `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
 - `verbose`: If `true`, the method returns a detailed `TranscriptionResult` object following the OpenAI Whisper `verbose_json` format (including segments and word-level timestamps).
 
-### Multilingual transcription
-
-If you aim to obtain a transcription in languages other than English, use a multilingual Whisper model. To get the output in your desired language, pass the [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) object with the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) field set to the target language code.
-
-```typescript
-const transcription = await model.transcribe(spanishAudio, { language: 'es' });
-```
-
-### Timestamps & Detailed Results
-
-Set `verbose: true` in the options to obtain word-level timestamps and other parameters. The result mimics the _verbose_json_ format from OpenAI Whisper API.
-
-```typescript
-const result = await model.transcribe(audioBuffer, { verbose: true });
-// Example result:
-// {
-//   text: "Example text...",
-//   segments: [
-//     { start: 0, end: 5.4, text: "Example text", words: [...] }
-//   ],
-//   language: "en"
-// }
-```
-
 ## Live Streaming Transcription
 
 The **Streaming API** is optimized for live microphone input or real-time audio feeds. It handles audio inputs of arbitrary length by automatically managing context windows to bypass the standard 30-second limit.
 
-:::iStreaming Options
+### Streaming Options
+
 The `stream()` function accepts several optional parameters:
 
 - `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
 - `verbose`: If `true`, includes word-level timestamps and segment metadata in the result objects.
 - `timeout`: (Advanced) The interval (in milliseconds) between processing consecutive audio chunks. Lower values provide more frequent updates, while higher values reduce CPU consumption. Defaults to `100`.
+- `useVAD`: Enable the Voice Activity Detection submodule (if configured during load) to improve performance by skipping silence.
 
-### nfo
+:::info
 
 - **`committed`**: Finalized transcription that is stable and will not change. Useful for building a persistent transcript record.
 - **`nonCommitted`**: Partial transcription that is still being processed and may update as more context arrives. Useful for live UI updates.
@@ -107,10 +90,14 @@ The `stream()` function accepts several optional parameters:
 In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to feed live audio into the model.
 
 ```tsx
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import {
+  SpeechToTextModule,
+  WHISPER_TINY_EN,
+  FSMN_VAD,
+} from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-const model = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN);
+const model = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN, FSMN_VAD);
 
 // 1. Configure audio session & permissions
 AudioManager.setAudioSessionOptions({
@@ -136,7 +123,7 @@ await recorder.start();
 // 3. Process the Stream
 try {
   let stableTranscript = '';
-  const streamIter = model.stream({ verbose: false });
+  const streamIter = model.stream({ useVAD: true });
 
   for await (const { committed, nonCommitted } of streamIter) {
     if (committed.text) stableTranscript += committed.text;
@@ -151,6 +138,40 @@ try {
 // 4. Cleanup
 model.streamStop();
 recorder.stop();
+```
+
+## Advanced Features
+
+### VAD Integration (Recommended for Live)
+
+Integrating **Voice Activity Detection (VAD)** as a submodule improves streaming performance by automatically removing silence. This reduces CPU usage, saves battery, and prevents hallucinations during silent periods.
+
+To use it, provide the VAD model configuration when loading the module and enable `useVAD` in the stream options:
+
+```typescript
+const model = await SpeechToTextModule.fromModelName(
+  WHISPER_TINY_EN,
+  FSMN_VAD // Optional VAD submodule
+);
+
+// Enable VAD logic in the stream context
+const stream = model.stream({ useVAD: true });
+```
+
+### Multilingual Transcription
+
+If you aim to obtain a transcription in languages other than English, use a multilingual Whisper model. To get the output in your desired language, pass the [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) object with the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) field set to the target language code.
+
+```typescript
+const transcription = await model.transcribe(spanishAudio, { language: 'es' });
+```
+
+### Timestamps & Detailed Results
+
+Set `verbose: true` in the options to obtain word-level timestamps and other parameters. The result mimics the _verbose_json_ format from OpenAI Whisper API.
+
+```typescript
+const result = await model.transcribe(audioBuffer, { verbose: true });
 ```
 
 ## Supported models

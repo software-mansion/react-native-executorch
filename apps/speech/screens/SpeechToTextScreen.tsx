@@ -52,7 +52,9 @@ import ErrorBanner from '../components/ErrorBanner';
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 const DEFAULT_MODEL =
-  Platform.OS === 'ios' ? WHISPER_BASE_EN_COREML : WHISPER_TINY_EN;
+  Platform.OS === 'ios' && !isSimulator
+    ? WHISPER_BASE_EN_COREML
+    : WHISPER_TINY_EN;
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] =
