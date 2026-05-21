@@ -62,11 +62,9 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
 
   // Allowing VAD changes logic significantly - we no longer commit and clean
   // at max samples reached moments, but rather at the end of speech moments.
-  if (options.useVAD) {
-    std::span<float> vadInput(const_cast<float *>(audioCopy.data()),
-                              audioCopy.size());
-    auto speechSegments = vad_->generate(vadInput, options.vadDetectionMargin *
-                                                       params::kVadGapFactor);
+  if (options.useVAD && vad_) {
+    auto speechSegments = vad_->generate(audioCopy, options.vadDetectionMargin *
+                                                        params::kVadGapFactor);
 
     if (speechSegments.empty()) {
       // Extra cleanup to speed-up future processing by removing silence.
@@ -89,8 +87,9 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
       // Speech is ongoing. Keep last 1s context and trim around current
       // segment.
       size_t startWithMargin =
-          std::max(0, static_cast<int>(lastSegment.start) -
-                          static_cast<int>(constants::kSamplingRate));
+          lastSegment.start > constants::kSamplingRate
+              ? lastSegment.start - constants::kSamplingRate
+              : 0;
       input = std::span(audioCopy.begin() + startWithMargin,
                         audioCopy.begin() + lastSegment.end);
     } else {

@@ -77,10 +77,21 @@ VoiceActivityDetection::generate(std::span<float> waveform,
 void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
                                     uint32_t timeout,
                                     uint32_t detectionMargin) {
-  if (isStreaming_) {
+  bool expected = false;
+  if (!isStreaming_.compare_exchange_strong(expected, true)) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
   }
+
+  // RAII guard
+  struct StreamingGuard {
+    VoiceActivityDetection *self;
+    ~StreamingGuard() {
+      self->isStreaming_ = false;
+      std::scoped_lock lock(self->audioBufferMutex_);
+      self->audioBuffer_.clear();
+    }
+  } guard{this};
 
   // Build a native callback which simply sends a boolean signal,
   // where true corresponds to detected ongoing speech, and false corresponds to
@@ -101,7 +112,7 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
       // Keep the most recent audio samples in.
       size_t cut = audioBuffer_.size() - constants::kStreamBufferMinReserve;
 
-      std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+      std::scoped_lock lock(audioBufferMutex_);
       audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
     }
 
@@ -109,7 +120,7 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
     {
       // Since the buffer does not reallocate it's memory, this is perfectly
       // safe, and copying buffer's data is not necessary.
-      std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+      std::scoped_lock lock(audioBufferMutex_);
       input = std::span(audioBuffer_);
     }
 
@@ -134,16 +145,12 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
 
     std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
   }
-
-  // Reset the streaming state
-  isStreaming_ = false;
-  audioBuffer_.clear();
 }
 
 void VoiceActivityDetection::streamStop() { isStreaming_ = false; }
 
 void VoiceActivityDetection::streamInsert(std::span<float> audio) {
-  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+  std::scoped_lock lock(audioBufferMutex_);
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
 }
 
