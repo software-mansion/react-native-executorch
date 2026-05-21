@@ -25,6 +25,8 @@ import {
   KOKORO_GERMAN_FEMALE_ANNA,
 } from './tts/voices';
 import { TextToSpeechModelConfig } from '../types/tts';
+import { RnExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 /**
  * Backend options accepted by `models` accessors.
@@ -425,7 +427,8 @@ const OCR_BY_LANGUAGE: Partial<Record<SupportedLanguage, OcrConfig>> = (() => {
 function craft({ language }: { language: SupportedLanguage }): OcrConfig {
   const cfg = OCR_BY_LANGUAGE[language];
   if (!cfg) {
-    throw new Error(
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.LanguageNotSupported,
       `OCR is not published for language '${language}'. ` +
         `Supported: ${Object.keys(OCR_BY_LANGUAGE).sort().join(', ')}`
     );
