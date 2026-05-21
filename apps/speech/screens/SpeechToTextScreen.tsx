@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -114,10 +115,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   }
 
   const handleTranscribeFromURL = async () => {
-    if (!audioURL.trim()) {
-      console.warn('Please provide a valid audio file URL');
+    if (!audioURL.trim() || model.isGenerating) {
+      if (!audioURL.trim()) {
+        console.warn('Please provide a valid audio file URL');
+      }
       return;
     }
+
+    Keyboard.dismiss();
 
     const uri = await getAudioFile(audioURL);
     // Reset previous states
@@ -142,8 +147,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
-    if (!hasMicPermission) {
-      setError('Microphone permission denied. Please enable it in Settings.');
+    if (!hasMicPermission || model.isGenerating || liveTranscribing) {
+      if (!hasMicPermission) {
+        setError('Microphone permission denied. Please enable it in Settings.');
+      }
       return;
     }
 

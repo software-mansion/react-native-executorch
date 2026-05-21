@@ -87,9 +87,8 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
       // Speech is ongoing. Keep last 1s context and trim around current
       // segment.
       size_t startWithMargin =
-          lastSegment.start > constants::kSamplingRate
-              ? lastSegment.start - constants::kSamplingRate
-              : 0;
+          std::max(lastSegment.start, constants::kSamplingRate) -
+          constants::kSamplingRate;
       input = std::span(audioCopy.begin() + startWithMargin,
                         audioCopy.begin() + lastSegment.end);
     } else {

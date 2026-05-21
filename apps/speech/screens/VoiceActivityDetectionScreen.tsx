@@ -53,12 +53,17 @@ export const VoiceActivityDetectionScreen = ({
   }, []);
 
   const handleStartStreaming = async () => {
-    if (!hasMicPermission) {
-      setError('Microphone permission denied. Please enable it in Settings.');
+    if (isStreaming || model.isGenerating || !model.isReady) {
       return;
     }
 
     setIsStreaming(true);
+    if (!hasMicPermission) {
+      setError('Microphone permission denied. Please enable it in Settings.');
+      setIsStreaming(false);
+      return;
+    }
+
     setLogs([]);
     addLog('Starting VAD stream...');
 
