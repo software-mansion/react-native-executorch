@@ -90,6 +90,7 @@ The `stream()` function accepts several optional parameters:
 - `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
 - `verbose`: If `true`, includes word-level timestamps and segment metadata in the result objects.
 - `timeout`: (Advanced) The interval (in milliseconds) between processing consecutive audio chunks in streaming mode. Lower values provide more frequent updates and lower latency, while higher values reduce CPU consumption. Defaults to `100`.
+- `useVAD`: Enable the Voice Activity Detection submodule (if configured in `useSpeechToText` props) to optimize performance by filtering silence.
 
 ### Example
 
@@ -157,12 +158,39 @@ export default function LiveTranscriber() {
 
 ## Advanced Features
 
+### VAD Integration (Recommended for Live)
+
+Integrating **Voice Activity Detection (VAD)** as a submodule improves streaming performance by automatically removing silence. This reduces CPU usage, saves battery, and prevents hallucinations during silent periods.
+
+To use it, provide the `vad` model in the hook props and enable `useVAD` in the stream options:
+
+```typescript
+import {
+  useSpeechToText,
+  WHISPER_TINY_EN,
+  FSMN_VAD,
+} from 'react-native-executorch';
+
+const model = useSpeechToText({
+  model: WHISPER_TINY_EN,
+  vad: FSMN_VAD, // Integrating VAD submodule
+});
+
+const startLiveStreaming = async () => {
+  const streamIter = model.stream({
+    useVAD: true, // Enable VAD logic in the stream context
+    vadDetectionMargin: 500, // Wait for 500ms of silence before committing (for stability)
+  });
+};
+```
+
 ### Multilingual Transcription
 
 To transcribe languages other than English, use a multilingual model (e.g., `models.speech_to_text.whisper_tiny()`) and specify the corresponding language code:
 
 ```typescript
 // Transcribe in Spanish
+const model = useSpeechToText({ model: WHISPER_TINY });
 const result = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
