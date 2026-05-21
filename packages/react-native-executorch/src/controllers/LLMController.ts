@@ -421,7 +421,7 @@ export class LLMController {
         for (const toolCall of toolCalls) {
           const toolResponse =
             await this.toolsConfig.executeToolCallback(toolCall);
-          if (toolResponse) {
+          if (toolResponse != null) {
             this.messageHistoryCallback([
               ...this._messageHistory,
               { content: toolResponse, role: 'assistant' },
