@@ -113,10 +113,7 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
 
       this.tokenizerConfig = JSON.parse(
@@ -274,16 +271,10 @@ export class LLMController {
 
   public async forward(input: string, imagePaths?: string[]): Promise<string> {
     if (!this._isReady) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this._isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
     try {
       this.isGeneratingCallback(true);
