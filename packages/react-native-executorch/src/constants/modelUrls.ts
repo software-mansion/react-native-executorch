@@ -844,7 +844,10 @@ export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${VERSION
 export const WHISPER_TINY_EN = {
   modelName: 'whisper-tiny-en',
   isMultilingual: false,
-  modelSource: WHISPER_TINY_EN_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_TINY_EN_MODEL_COREML
+      : WHISPER_TINY_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 } as const;
 
@@ -854,7 +857,10 @@ export const WHISPER_TINY_EN = {
 export const WHISPER_BASE_EN = {
   modelName: 'whisper-base-en',
   isMultilingual: false,
-  modelSource: WHISPER_BASE_EN_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_BASE_EN_MODEL_COREML
+      : WHISPER_BASE_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
 } as const;
 
@@ -864,7 +870,10 @@ export const WHISPER_BASE_EN = {
 export const WHISPER_SMALL_EN = {
   modelName: 'whisper-small-en',
   isMultilingual: false,
-  modelSource: WHISPER_SMALL_EN_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_SMALL_EN_MODEL_COREML
+      : WHISPER_SMALL_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 } as const;
 
@@ -874,7 +883,10 @@ export const WHISPER_SMALL_EN = {
 export const WHISPER_TINY = {
   modelName: 'whisper-tiny',
   isMultilingual: true,
-  modelSource: WHISPER_TINY_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_TINY_MODEL_COREML
+      : WHISPER_TINY_MODEL_XNNPACK,
   tokenizerSource: WHISPER_TINY_TOKENIZER,
 } as const;
 
@@ -884,7 +896,10 @@ export const WHISPER_TINY = {
 export const WHISPER_BASE = {
   modelName: 'whisper-base',
   isMultilingual: true,
-  modelSource: WHISPER_BASE_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_BASE_MODEL_COREML
+      : WHISPER_BASE_MODEL_XNNPACK,
   tokenizerSource: WHISPER_BASE_TOKENIZER,
 } as const;
 
@@ -894,7 +909,10 @@ export const WHISPER_BASE = {
 export const WHISPER_SMALL = {
   modelName: 'whisper-small',
   isMultilingual: true,
-  modelSource: WHISPER_SMALL_MODEL_XNNPACK,
+  modelSource:
+    Platform.OS === 'ios'
+      ? WHISPER_SMALL_MODEL_COREML
+      : WHISPER_SMALL_MODEL_XNNPACK,
   tokenizerSource: WHISPER_SMALL_TOKENIZER,
 } as const;
 
@@ -1184,8 +1202,7 @@ export const MULTI_QA_MPNET_BASE_DOT_V1 = {
 
 /**
  * @category Models - Text Embeddings
- * @deprecated Use `MODEL_REGISTRY.TEXT_EMBEDDING.DISTILUSE_BASE_MULTILINGUAL_CASED_V2`
- * (defaults to xnnpack on Android) or pass `{ backend: 'xnnpack' }`.
+ * @deprecated Use `models.text_embedding.distiluse_base_multilingual_cased_v2()`.
  */
 export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W = {
   modelName: 'distiluse-base-multilingual-cased-v2-8da4w',
@@ -1282,7 +1299,7 @@ export const FSMN_VAD = {
 } as const;
 
 // Internal — populates the urlToModelName lookup below. Not exported: the
-// typed grouping lives in `./modelRegistry` as MODEL_REGISTRY.
+// typed grouping lives in `./modelRegistry` as `models`.
 const _ALL_MODELS = [
   LLAMA3_2_3B,
   LLAMA3_2_3B_QLORA,
