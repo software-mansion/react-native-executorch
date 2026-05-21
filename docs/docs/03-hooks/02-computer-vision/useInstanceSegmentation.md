@@ -178,6 +178,12 @@ try {
 }
 ```
 
+For detailed API Reference for `selectByPoint`, `selectByBox`, and `selectByText` see their respective documentation pages:
+
+- [`selectByPoint` API Reference](../../06-api-reference/functions/selectByPoint.md)
+- [`selectByBox` API Reference](../../06-api-reference/functions/selectByBox.md)
+- [`selectByText` API Reference](../../06-api-reference/functions/selectByText.md)
+
 :::tip
 Use FastSAM-S for faster performance on simple images with non-overlapping
 instances and FastSAM-X for better accuracy on complex scenes with many
