@@ -1,6 +1,6 @@
 # Model Registry
 
-The [Model Registry](https://docs.swmansion.com/react-native-executorch/docs/next/api-reference/variables/MODEL_REGISTRY) is a collection of all pre-configured model definitions shipped with React Native ExecuTorch. Each entry contains the model's name and all source URLs needed to download and run it, so you don't have to manage URLs manually.
+The [Model Registry](https://docs.swmansion.com/react-native-executorch/docs/api-reference/variables/MODEL_REGISTRY) is a collection of all pre-configured model definitions shipped with React Native ExecuTorch. Each entry contains the model's name and all source URLs needed to download and run it, so you don't have to manage URLs manually.
 
 ## Usage[​](#usage "Direct link to Usage")
 
