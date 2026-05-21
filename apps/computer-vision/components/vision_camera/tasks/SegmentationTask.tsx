@@ -78,6 +78,7 @@ export default function SegmentationTask({
   }[activeModel];
 
   const [maskImage, setMaskImage] = useState<SkImage | null>(null);
+  const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const lastFrameTimeRef = useRef(Date.now());
 
   useEffect(() => {
@@ -117,11 +118,12 @@ export default function SegmentationTask({
   const segRof = active.runOnFrame;
 
   const updateMask = useCallback(
-    (img: SkImage) => {
+    (p: { img: SkImage; screenW: number; screenH: number }) => {
       setMaskImage((prev) => {
         prev?.dispose();
-        return img;
+        return p.img;
       });
+      setImageSize({ width: p.screenW, height: p.screenH });
       const now = Date.now();
       const diff = now - lastFrameTimeRef.current;
       if (diff > 0) onFpsChange(Math.round(1000 / diff), diff);
@@ -151,18 +153,24 @@ export default function SegmentationTask({
           const result = segRof(frame, isFrontCamera, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
-            // Sensor frames are landscape-native, so width/height are swapped
-            // relative to portrait screen orientation.
+            // Both the preview and the mask live in a portrait coord system:
+            // the activity is portrait-locked (so CameraX's PreviewView always
+            // renders the preview in portrait orientation regardless of how
+            // the device is physically tilted), and the native side runs
+            // `inverseRotateMat` which always converts the mask into the same
+            // portrait coord system. Treat sensor-native dims as portrait by
+            // swapping height/width — same convention as the sibling OCR and
+            // ObjectDetection tasks.
             const screenW = frame.height;
             const screenH = frame.width;
-            const maskW =
-              argmax.length === screenW * screenH
-                ? screenW
-                : Math.round(Math.sqrt(argmax.length));
-            const maskH =
-              argmax.length === screenW * screenH
-                ? screenH
-                : Math.round(Math.sqrt(argmax.length));
+            // Mask buffer dims: the C++ side returns the mask at model output
+            // resolution (the `resizeToInput=false` arg below). All built-in
+            // segmentation models output a square spatial map (e.g. 520×520),
+            // so sqrt(length) recovers the side. Non-square model outputs
+            // would need dims exposed from native.
+            const maskSide = Math.round(Math.sqrt(argmax.length));
+            const maskW = maskSide;
+            const maskH = maskSide;
             const pixels = new Uint8Array(maskW * maskH * 4);
             for (let i = 0; i < argmax.length; i++) {
               const color = colors[argmax[i]!] ?? [0, 0, 0, 0];
@@ -182,7 +190,7 @@ export default function SegmentationTask({
               skData,
               maskW * 4
             );
-            if (img) scheduleOnRN(updateMask, img);
+            if (img) scheduleOnRN(updateMask, { img, screenW, screenH });
           }
         } catch {
           // Frame may be disposed before processing completes — transient, safe to ignore.
@@ -200,16 +208,29 @@ export default function SegmentationTask({
 
   if (!maskImage) return null;
 
+  // Match the camera preview's cover-scale + center layout so the mask
+  // aligns pixel-for-pixel with what the user sees. `fit="fill"` lets the
+  // (square) mask stretch into the preview rect — which is computed in
+  // screen-space dims rather than the sensor-native ones.
+  const scale = Math.max(
+    canvasSize.width / imageSize.width,
+    canvasSize.height / imageSize.height
+  );
+  const dstW = imageSize.width * scale;
+  const dstH = imageSize.height * scale;
+  const offsetX = (canvasSize.width - dstW) / 2;
+  const offsetY = (canvasSize.height - dstH) / 2;
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Canvas style={StyleSheet.absoluteFill}>
         <SkiaImage
           image={maskImage}
-          fit="cover"
-          x={0}
-          y={0}
-          width={canvasSize.width}
-          height={canvasSize.height}
+          fit="fill"
+          x={offsetX}
+          y={offsetY}
+          width={dstW}
+          height={dstH}
         />
       </Canvas>
     </View>
