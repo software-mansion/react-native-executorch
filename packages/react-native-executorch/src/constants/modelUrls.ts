@@ -773,32 +773,29 @@ export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
 } as const;
 
 // S2T
-const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_EN_MODEL = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack.pte`;
+const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
+const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp32.pte`;
 
-const WHISPER_TINY_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-tiny-quantized.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-tiny-quantized.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_en_quantized_xnnpack.pte`;
+const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
+const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp32.pte`;
 
-const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_EN_MODEL = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack.pte`;
+const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
+const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp32.pte`;
 
-const WHISPER_BASE_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-base-quantized.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-base-quantized.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_en_quantized_xnnpack.pte`;
+const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
+const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp32.pte`;
 
-const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_EN_MODEL = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack.pte`;
+const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
+const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/coreml/whisper_base_coreml_fp32.pte`;
 
-const WHISPER_SMALL_EN_QUANTIZED_TOKENIZER = `${URL_PREFIX}-whisper-small-quantized.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_EN_QUANTIZED_MODEL = `${URL_PREFIX}-whisper-small-quantized.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_en_quantized_xnnpack.pte`;
-
-const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_MODEL = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack.pte`;
-
-const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_MODEL = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_xnnpack.pte`;
-
-const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_MODEL = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_xnnpack.pte`;
+const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
+const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/coreml/whisper_small_coreml_fp32.pte`;
 
 /**
  * @category Models - Speech To Text
@@ -806,18 +803,15 @@ const WHISPER_SMALL_MODEL = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}
 export const WHISPER_TINY_EN = {
   modelName: 'whisper-tiny-en',
   isMultilingual: false,
-  modelSource: WHISPER_TINY_EN_MODEL,
+  modelSource: WHISPER_TINY_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 } as const;
 
-/**
- * @category Models - Speech To Text
- */
-export const WHISPER_TINY_EN_QUANTIZED = {
-  modelName: 'whisper-tiny-en-quantized',
+export const WHISPER_TINY_EN_COREML = {
+  modelName: 'whisper-tiny-en',
   isMultilingual: false,
-  modelSource: WHISPER_TINY_EN_QUANTIZED_MODEL,
-  tokenizerSource: WHISPER_TINY_EN_QUANTIZED_TOKENIZER,
+  modelSource: WHISPER_TINY_EN_MODEL_COREML,
+  tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 } as const;
 
 /**
@@ -826,18 +820,18 @@ export const WHISPER_TINY_EN_QUANTIZED = {
 export const WHISPER_BASE_EN = {
   modelName: 'whisper-base-en',
   isMultilingual: false,
-  modelSource: WHISPER_BASE_EN_MODEL,
+  modelSource: WHISPER_BASE_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
 } as const;
 
 /**
  * @category Models - Speech To Text
  */
-export const WHISPER_BASE_EN_QUANTIZED = {
-  modelName: 'whisper-base-en-quantized',
+export const WHISPER_BASE_EN_COREML = {
+  modelName: 'whisper-base-en',
   isMultilingual: false,
-  modelSource: WHISPER_BASE_EN_QUANTIZED_MODEL,
-  tokenizerSource: WHISPER_BASE_EN_QUANTIZED_TOKENIZER,
+  modelSource: WHISPER_BASE_EN_MODEL_COREML,
+  tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
 } as const;
 
 /**
@@ -846,18 +840,18 @@ export const WHISPER_BASE_EN_QUANTIZED = {
 export const WHISPER_SMALL_EN = {
   modelName: 'whisper-small-en',
   isMultilingual: false,
-  modelSource: WHISPER_SMALL_EN_MODEL,
+  modelSource: WHISPER_SMALL_EN_MODEL_XNNPACK,
   tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 } as const;
 
 /**
  * @category Models - Speech To Text
  */
-export const WHISPER_SMALL_EN_QUANTIZED = {
-  modelName: 'whisper-small-en-quantized',
+export const WHISPER_SMALL_EN_COREML = {
+  modelName: 'whisper-small-en',
   isMultilingual: false,
-  modelSource: WHISPER_SMALL_EN_QUANTIZED_MODEL,
-  tokenizerSource: WHISPER_SMALL_EN_QUANTIZED_TOKENIZER,
+  modelSource: WHISPER_SMALL_EN_MODEL_COREML,
+  tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 } as const;
 
 /**
@@ -866,7 +860,17 @@ export const WHISPER_SMALL_EN_QUANTIZED = {
 export const WHISPER_TINY = {
   modelName: 'whisper-tiny',
   isMultilingual: true,
-  modelSource: WHISPER_TINY_MODEL,
+  modelSource: WHISPER_TINY_MODEL_XNNPACK,
+  tokenizerSource: WHISPER_TINY_TOKENIZER,
+} as const;
+
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_TINY_COREML = {
+  modelName: 'whisper-tiny',
+  isMultilingual: true,
+  modelSource: WHISPER_TINY_MODEL_COREML,
   tokenizerSource: WHISPER_TINY_TOKENIZER,
 } as const;
 
@@ -876,7 +880,17 @@ export const WHISPER_TINY = {
 export const WHISPER_BASE = {
   modelName: 'whisper-base',
   isMultilingual: true,
-  modelSource: WHISPER_BASE_MODEL,
+  modelSource: WHISPER_BASE_MODEL_XNNPACK,
+  tokenizerSource: WHISPER_BASE_TOKENIZER,
+} as const;
+
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_BASE_COREML = {
+  modelName: 'whisper-base',
+  isMultilingual: true,
+  modelSource: WHISPER_BASE_MODEL_COREML,
   tokenizerSource: WHISPER_BASE_TOKENIZER,
 } as const;
 
@@ -886,7 +900,17 @@ export const WHISPER_BASE = {
 export const WHISPER_SMALL = {
   modelName: 'whisper-small',
   isMultilingual: true,
-  modelSource: WHISPER_SMALL_MODEL,
+  modelSource: WHISPER_SMALL_MODEL_XNNPACK,
+  tokenizerSource: WHISPER_SMALL_TOKENIZER,
+} as const;
+
+/**
+ * @category Models - Speech To Text
+ */
+export const WHISPER_SMALL_COREML = {
+  modelName: 'whisper-small',
+  isMultilingual: true,
+  modelSource: WHISPER_SMALL_MODEL_COREML,
   tokenizerSource: WHISPER_SMALL_TOKENIZER,
 } as const;
 
@@ -1351,14 +1375,17 @@ export const MODEL_REGISTRY = {
     STYLE_TRANSFER_UDNIE,
     STYLE_TRANSFER_UDNIE_QUANTIZED,
     WHISPER_TINY_EN,
-    WHISPER_TINY_EN_QUANTIZED,
+    WHISPER_TINY_EN_COREML,
     WHISPER_BASE_EN,
-    WHISPER_BASE_EN_QUANTIZED,
+    WHISPER_BASE_EN_COREML,
     WHISPER_SMALL_EN,
-    WHISPER_SMALL_EN_QUANTIZED,
+    WHISPER_SMALL_EN_COREML,
     WHISPER_TINY,
+    WHISPER_TINY_COREML,
     WHISPER_BASE,
+    WHISPER_BASE_COREML,
     WHISPER_SMALL,
+    WHISPER_SMALL_COREML,
     DEEPLAB_V3_RESNET50,
     DEEPLAB_V3_RESNET101,
     DEEPLAB_V3_MOBILENET_V3_LARGE,

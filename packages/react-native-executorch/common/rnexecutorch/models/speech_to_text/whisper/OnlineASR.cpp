@@ -1,163 +1,260 @@
-#include <algorithm>
-#include <iterator>
-#include <numeric>
-#include <sstream>
-
-#include "Constants.h"
 #include "OnlineASR.h"
+#include "Constants.h"
 #include "Params.h"
 #include "Utils.h"
 
+#include <algorithm>
+#include <iterator>
+#include <ranges>
+#include <utility>
+
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
-namespace {
-std::vector<Word> move_to_vector(std::deque<Word> &container) {
-  return std::vector<Word>(std::make_move_iterator(container.begin()),
-                           std::make_move_iterator(container.end()));
-}
-} // namespace
-
 OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
-  // Reserve a minimal expected amount of memory for audio buffer.
-  audioBuffer_.reserve(static_cast<size_t>(2 * params::kStreamChunkThreshold *
-                                           constants::kSamplingRate));
-}
-
-void OnlineASR::insertAudioChunk(std::span<const float> audio) {
-  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
-  audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
+  audioBuffer_.reserve((constants::kChunkSize + 1) * constants::kSamplingRate);
 }
 
 bool OnlineASR::isReady() const {
+  std::scoped_lock lock(streamingMutex);
+
   return audioBuffer_.size() >= constants::kMinChunkSamples;
 }
 
+void OnlineASR::insertAudioChunk(std::span<const float> audio) {
+  std::scoped_lock lock(streamingMutex);
+
+  audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
+
+  // Automatic buffer cleanup.
+  //
+  // This prevents the audio buffer from growing indefinitely during continuous
+  // streaming. It is particularly useful when VAD (Voice Activity Detection)
+  // is used and elements are inserted but not processed for a long time.
+  // It should not pass the condition in a normal streaming, that is when
+  // process() method is called regularly within reasonable steps of time.
+  if (audioBuffer_.size() > constants::kMaxSamples) {
+    // Note that results are not actually committed now, but saved for
+    // a later call of process(). Append rather than assign so that two
+    // back-to-back buffer-cap hits (e.g. while VAD is muted) don't drop the
+    // first batch.
+    auto pending = commitAndClean(memory_.transcript);
+    std::ranges::move(pending, std::back_inserter(memory_.toCommit));
+  }
+}
+
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
+  constexpr size_t kStreamSafeBufferMaxSamples = static_cast<size_t>(
+      params::kStreamSafeBufferDuration * constants::kSamplingRate);
+
   std::vector<float> audioCopy;
 
   // Copy the audio buffer to avoid keeping the lock during the entire
   // transcription process.
   {
-    std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+    std::scoped_lock lock(streamingMutex);
     audioCopy = audioBuffer_;
   }
 
-  std::vector<Segment> transcriptions = asr_->transcribe(audioBuffer_, options);
+  // Obtain a transcription for current audio buffer state.
+  // It's very unlikely that buffer will exceed whisper's maximum capacity, but
+  // for absolute safety we can additionally clip the buffer.
+  std::span<const float> input(
+      audioCopy.begin(),
+      audioCopy.begin() + std::min(constants::kMaxSamples, audioCopy.size()));
 
-  if (transcriptions.empty()) {
-    return {.committed = {}, .nonCommitted = {}};
-  }
+  std::vector<Segment> transcriptions = asr_->transcribe(input, options);
 
   // Flatten segments into a single word sequence.
+  // This is our 'nonCommitted' part for now.
   std::vector<Word> words;
-  words.reserve(transcriptions.front().words.size());
-
   for (auto &segment : transcriptions) {
-    words.insert(words.end(), std::make_move_iterator(segment.words.begin()),
-                 std::make_move_iterator(segment.words.end()));
+    std::ranges::move(segment.words, std::back_inserter(words));
   }
 
-  hypothesisBuffer_.insert(words, bufferTimeOffset_);
+  // Aquire lock for the rest of the method (extensive usage of audioBuffer_).
+  std::scoped_lock lock(streamingMutex);
 
-  // Apply fix for timestamps.
-  if (!hypothesisBuffer_.fresh_.empty()) {
-    size_t noNewWords = hypothesisBuffer_.fresh_.size();
-    float establishedEnd = hypothesisBuffer_.lastCommittedTime_;
-    float newBegin = hypothesisBuffer_.fresh_.front().start;
-    const float newEnd = hypothesisBuffer_.fresh_.back().end;
-    float shift = 0.F;
-    for (size_t i = 0; i < hypothesisBuffer_.fresh_.size(); i++) {
-      const float originalEnd = hypothesisBuffer_.fresh_[i].end;
-
-      if (i < hypothesisBuffer_.hypothesis_.size() &&
-          utils::equalsIgnoreCase(hypothesisBuffer_.fresh_[i].content,
-                                  hypothesisBuffer_.hypothesis_[i].content)) {
-        hypothesisBuffer_.fresh_[i].start =
-            hypothesisBuffer_.hypothesis_[i].start;
-        hypothesisBuffer_.fresh_[i].end = hypothesisBuffer_.hypothesis_[i].end;
-        shift = hypothesisBuffer_.fresh_[i].end - originalEnd;
-
-        establishedEnd = hypothesisBuffer_.hypothesis_[i].end;
-        newBegin = hypothesisBuffer_.fresh_[i].end;
-        noNewWords--;
-        continue;
-      }
-
-      // In case of a new word, we apply timestamp range scaling
-      // based on timestamps established in previous iterations.
-      const float freshDuration = newEnd - establishedEnd;
-      const float epsilon = std::max(
-          0.F, 0.85F * (freshDuration -
-                        static_cast<float>(noNewWords /
-                                           params::kStreamWordsPerSecond)));
-      float scale =
-          (freshDuration - epsilon) / std::max(newEnd - newBegin, 0.2F);
-      hypothesisBuffer_.fresh_[i].start =
-          shift + (hypothesisBuffer_.fresh_[i].start - newEnd) * scale + newEnd;
-      hypothesisBuffer_.fresh_[i].end =
-          shift + (hypothesisBuffer_.fresh_[i].end - newEnd) * scale + newEnd;
+  // Step 1: examine all previously saved EOS points.
+  // The idea is to remove entries which have changed or no longer exist
+  // due to model correcting it's output.
+  for (auto it = memory_.eos.begin(); it != memory_.eos.end(); it++) {
+    if (it->position >= words.size() || !utils::isEos(words[it->position]) ||
+        (it->position > 0 &&
+         it->preceeding != words[it->position - 1].content)) {
+      memory_.eos.erase(it, memory_.eos.end());
+      break;
     }
   }
 
-  auto committed = hypothesisBuffer_.commit();
-  auto nonCommitted = hypothesisBuffer_.hypothesis_;
+  // Step 2: check if the newest EOS character from transcript should be
+  // saved to eos_ vector.
+  auto lastEosIt = std::find_if(words.rbegin(), words.rend(), utils::isEos);
+  if (lastEosIt != words.rend()) {
+    size_t lastEosIndex = std::distance(words.begin(), lastEosIt.base()) - 1;
 
-  // We want to save the most recent end of sentence word
-  // to improve the audio cutting mechanism.
-  for (const auto &word : committed) {
-    if (!word.punctations.empty()) {
-      lastSentenceEnd_ = word.end;
+    // Because of step 1, we know that if the last EOS exist in eos_,
+    // then it must be the last entry.
+    if (memory_.eos.empty() || memory_.eos.back().position != lastEosIndex) {
+      std::string preceeding =
+          lastEosIndex > 0 ? words[lastEosIndex - 1].content : "";
+      memory_.eos.emplace_back(lastEosIndex, preceeding, lastEosIt->end);
     }
   }
 
-  // Since Whisper does not accept waveforms longer than 30 seconds, we need
-  // to cut the audio at some safe point.
-  {
-    std::scoped_lock<std::mutex> lock(audioBufferMutex_);
+  std::vector<Word> committed;
 
-    const float audioDuration =
-        static_cast<float>(audioBuffer_.size()) / constants::kSamplingRate;
-    if (audioDuration > params::kStreamChunkThreshold) {
-      // Leave some portion of audio in, to improve model behavior
-      // in future iterations.
-      const float erasePoint =
-          hypothesisBuffer_.lastCommittedTime_ == lastSentenceEnd_
-              ? audioDuration
-              : std::min(lastSentenceEnd_, params::kStreamChunkThreshold);
-      const float minEraseDuration =
-          audioDuration - params::kStreamAudioBufferMaxReserve;
-      const float maxEraseDuration =
-          audioDuration - params::kStreamAudioBufferMinReserve;
-      const float eraseDuration = std::clamp(
-          erasePoint - bufferTimeOffset_, minEraseDuration, maxEraseDuration);
-      const size_t nSamplesToErase =
-          static_cast<size_t>(eraseDuration * constants::kSamplingRate);
-
-      audioBuffer_.erase(audioBuffer_.begin(),
-                         audioBuffer_.begin() + nSamplesToErase);
-      bufferTimeOffset_ += eraseDuration;
-    }
+  // Step 3: collect all the words which could possible get committed
+  // in-between iterations.
+  if (!memory_.toCommit.empty()) {
+    committed.insert(committed.end(),
+                     std::make_move_iterator(memory_.toCommit.begin()),
+                     std::make_move_iterator(memory_.toCommit.end()));
+    memory_.toCommit.clear();
   }
 
-  return {.committed = move_to_vector(committed),
-          .nonCommitted = move_to_vector(nonCommitted)};
+  // Step 4: clear the buffer if it is getting too large.
+  // The idea is to use the saved EOS entries and try to cut the buffer
+  // in a 'good' spot - where it will remove a significant audio chunk, yet
+  // won't affect most recent, unfinished speech samples.
+  size_t bufferSize = audioBuffer_.size();
+  if (bufferSize > kStreamSafeBufferMaxSamples) {
+    auto newCommitted = commitAndClean(words);
+
+    committed.insert(committed.end(),
+                     std::make_move_iterator(newCommitted.begin()),
+                     std::make_move_iterator(newCommitted.end()));
+  }
+
+  // Save the uncommitted part to streamer's memory,
+  // cause it might be necessary when committing inside streamInsert().
+  memory_.transcript = words;
+
+  // Note that uncommitted part represented by recent transcription (words)
+  // is already shrinked if something has been committed during the cleanup
+  // phase.
+  return {.committed = std::move(committed), .nonCommitted = std::move(words)};
 }
 
-std::vector<Word> OnlineASR::finish() {
-  // We always push the last remaining hypothesis, even if it's not
-  // confirmed in second iteration, to avoid ending up with broken sentences.
-  std::deque<Word> remaining = hypothesisBuffer_.hypothesis_;
+std::vector<Word> OnlineASR::finish(const DecodingOptions &options) {
+  ProcessResult result = process(options);
 
-  return move_to_vector(remaining);
+  // Last-tick committed delta + whatever never made it past the commit
+  // threshold.
+  std::vector<Word> residual{std::move(result.committed)};
+  residual.insert(residual.end(),
+                  std::make_move_iterator(result.nonCommitted.begin()),
+                  std::make_move_iterator(result.nonCommitted.end()));
+
+  reset();
+
+  return residual;
 }
 
 void OnlineASR::reset() {
-  std::scoped_lock<std::mutex> lock(audioBufferMutex_);
-
-  hypothesisBuffer_.reset();
-  bufferTimeOffset_ = 0.f;
+  std::scoped_lock lock(streamingMutex);
 
   audioBuffer_.clear();
+
+  // Reset memory.
+  memory_.transcript.clear();
+  memory_.eos.clear();
+  memory_.toCommit.clear();
+}
+
+std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
+  constexpr float kMidpointAnchorTime = params::kStreamMaxDuration / 2.0F;
+  constexpr size_t kMidpointAnchorSamples =
+      static_cast<size_t>(kMidpointAnchorTime * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
+      params::kStreamSafetyThreshold * constants::kSamplingRate);
+  constexpr float kMaxSafeEosTime =
+      params::kStreamSafeBufferDuration - params::kStreamSafetyThreshold;
+  constexpr float kMinDurationToCalculateDensity = 0.1F;
+
+  const size_t bufferSize = audioBuffer_.size();
+
+  std::vector<Word> committed;
+
+  // If we don't have any EOS entries, then we most likely have not
+  // recorded any speech. In this case we can safely cut the maximum amount of
+  // audio data.
+  if (memory_.eos.empty()) {
+    size_t cut =
+        bufferSize - params::kStreamSafetyThreshold * constants::kSamplingRate;
+
+    audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+  }
+
+  // If we have exactly one (most recent) EOS entry in the eos_, then
+  // we need to be more careful.
+  // Normally we want to keep at least one sentence in, but if the sentence
+  // covers a significant amount of buffer, we have no choice.
+  else if (memory_.eos.size() == 1) {
+    const float eosTimestamp = memory_.eos[0].tmstpend;
+
+    const float upperHalfDuration =
+        std::max(0.0F, eosTimestamp - kMidpointAnchorTime);
+    const float wordsPerSecond =
+        upperHalfDuration > kMinDurationToCalculateDensity
+            ? static_cast<float>(transcript.size()) / upperHalfDuration
+            : 0.0F;
+
+    // The EOS sits early enough that cutting up to the safety margin won't
+    // touch the ongoing (post-EOS) speech.
+    const bool eosSafe = eosTimestamp < kMaxSafeEosTime;
+
+    if (!eosSafe && wordsPerSecond < params::kWordsPerSecondLow) {
+      // EOS lies past the midpoint, but a low word density implies the spoken
+      // audio is concentrated in the upper half. Drop the lower half and
+      // shift the EOS accordingly.
+      audioBuffer_.erase(audioBuffer_.begin(),
+                         audioBuffer_.begin() + kMidpointAnchorSamples);
+      memory_.eos[0].tmstpend -= kMidpointAnchorTime;
+    } else {
+      // Cut everything up to and including the sentence — either by the
+      // safety margin (when EOS is early) or (more aggresively) right at the
+      // EOS boundary — and commit its words.
+      const size_t cut =
+          eosSafe
+              ? bufferSize - kSafetyMarginSamples
+              : static_cast<size_t>(eosTimestamp * constants::kSamplingRate);
+
+      audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+
+      committed.insert(committed.end(),
+                       std::make_move_iterator(transcript.begin()),
+                       std::make_move_iterator(transcript.end()));
+
+      transcript.clear();
+      memory_.eos.clear();
+    }
+  }
+
+  // In case of 2 or more sentences, we generally want to keep the last one
+  // intact. This would provide a bit of stability to the algorithm.
+  else {
+    const auto &secondTolastEntry = memory_.eos[memory_.eos.size() - 2];
+
+    const size_t cut = static_cast<size_t>(secondTolastEntry.tmstpend *
+                                           constants::kSamplingRate);
+    const size_t lastCommittedPos = secondTolastEntry.position;
+
+    audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+
+    committed.insert(
+        committed.end(), std::make_move_iterator(transcript.begin()),
+        std::make_move_iterator(transcript.begin() + lastCommittedPos + 1));
+    transcript.erase(transcript.begin(),
+                     transcript.begin() + lastCommittedPos + 1);
+
+    // Retain only the most recent EOS entry, shifting both its timestamp
+    // and its position to match the new (truncated) transcript origin.
+    memory_.eos.erase(memory_.eos.begin(), memory_.eos.end() - 1);
+    memory_.eos[0].tmstpend -= secondTolastEntry.tmstpend;
+    memory_.eos[0].position -= lastCommittedPos + 1;
+  }
+
+  return committed;
 }
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream

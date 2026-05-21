@@ -2,47 +2,43 @@
 title: SpeechToTextModule
 ---
 
-TypeScript API implementation of the [useSpeechToText](../../03-hooks/01-natural-language-processing/useSpeechToText.md) hook.
+The `SpeechToTextModule` class provides a direct interface to the library's speech-to-text (STT) capabilities. While [`useSpeechToText`](../../03-hooks/01-natural-language-processing/useSpeechToText.md) is the preferred way for React components, this module offers full control over the model's lifecycle and is suitable for non-React contexts or advanced use cases.
 
 ## API Reference
 
-- For detailed API Reference for `SpeechToTextModule` see: [`SpeechToTextModule` API Reference](../../06-api-reference/classes/SpeechToTextModule.md).
-- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
+- [`SpeechToTextModule` API Reference](../../06-api-reference/classes/SpeechToTextModule.md)
+- [STT Models List](../../06-api-reference/index.md#models---speech-to-text)
 
 ## High Level Overview
+
+You can transcribe audio in two ways: **one-shot** (for files/short clips) and **streaming** (for live microphone input).
 
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 
+// Initialize the model
 const model = await SpeechToTextModule.fromModelName(
   WHISPER_TINY_EN,
   (progress) => {
-    console.log(progress);
+    console.log(`Loading: ${progress * 100}%`);
   }
 );
 
-// Standard transcription (returns string)
-const text = await model.transcribe(waveform);
+// 1. One-shot transcription (returns TranscriptionResult)
+const result = await model.transcribe(waveform);
+console.log(result.text);
 
-// Transcription with timestamps (returns Word[])
-const textWithTimestamps = await model.transcribe(waveform, {
-  enableTimestamps: true,
-});
+// 2. Live streaming (yields partial/stable results)
+model.streamInsert(audioChunk);
+const stream = model.stream();
+for await (const { committed, nonCommitted } of stream) {
+  // Update UI live with stable and partial text
+}
 ```
-
-### Methods
-
-All methods of `SpeechToTextModule` are explained in details here: [`SpeechToTextModule API Reference`](../../06-api-reference/classes/SpeechToTextModule.md)
-
-:::info
-
-- `committed` contains the latest part of the transcription that is finalized and will not change. To obtain the full transcription during streaming, concatenate all the `committed` values yielded over time. Useful for displaying stable results during streaming.
-- `nonCommitted` contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.
-  :::
 
 ## Loading the model
 
-Use the static [`fromModelName`](../../06-api-reference/classes/SpeechToTextModule.md#frommodelname) factory method. It accepts an object with the following fields:
+Use the static [`fromModelName`](../../06-api-reference/classes/SpeechToTextModule.md#frommodelname) factory method. It accepts a configuration object with the following fields:
 
 - [`isMultilingual`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual) - Flag indicating if model is multilingual.
 - [`modelSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#modelsource) - The location of the used model (bundled encoder + decoder functionality).
@@ -50,132 +46,73 @@ Use the static [`fromModelName`](../../06-api-reference/classes/SpeechToTextModu
 
 And an optional second argument:
 
-- `onDownloadProgress` - Callback to track download progress.
+- `onDownloadProgress` - Callback to track download progress (returns a value between 0 and 1).
 
-This method returns a promise resolving to a `SpeechToTextModule` instance.
+For more information on resource management, see [loading models](../../01-fundamentals/02-loading-models.md).
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+## Transcription (Files & Short Clips)
 
-## Running the model
+To run transcription on a complete audio clip, use the [`transcribe`](../../06-api-reference/classes/SpeechToTextModule.md#transcribe) method. It accepts a `Float32Array` representing a waveform at **16kHz sampling rate**.
 
-To run the model, you can use the [`transcribe`](../../06-api-reference/classes/SpeechToTextModule.md#transcribe) method. It accepts one argument, which is an array of type `Float32Array` representing a waveform at 16kHz sampling rate. The method returns a promise, which can resolve either to an error or a string containing the output text.
+### Transcribe Options
+
+The `transcribe()` function accepts an optional configuration object:
+
+- `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
+- `verbose`: If `true`, the method returns a detailed `TranscriptionResult` object following the OpenAI Whisper `verbose_json` format (including segments and word-level timestamps).
 
 ### Multilingual transcription
 
-If you aim to obtain a transcription in other languages than English, use the multilingual version of whisper. To obtain the output text in your desired language, pass the [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) object with the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) field set to your desired language code.
+If you aim to obtain a transcription in languages other than English, use a multilingual Whisper model. To get the output in your desired language, pass the [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) object with the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) field set to the target language code.
 
 ```typescript
-import { SpeechToTextModule, WHISPER_TINY } from 'react-native-executorch';
-
-const model = await SpeechToTextModule.fromModelName(
-  WHISPER_TINY,
-  (progress) => {
-    console.log(progress);
-  }
-);
-
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
-### Timestamps & Transcription Stat Data
+### Timestamps & Detailed Results
 
-You can obtain word-level timestamps and other useful parameters from transcription ([`transcribe`](../../06-api-reference/classes/SpeechToTextModule.md#transcribe) and [`stream`](../../06-api-reference/classes/SpeechToTextModule.md#stream) methods) by setting `verbose: true` in the options. The result mimics the _verbose_json_ format from OpenAI Whisper API. For more information please read [`transcribe`](../../06-api-reference/classes/SpeechToTextModule.md#transcribe), [`stream`](../../06-api-reference/classes/SpeechToTextModule.md#stream), and [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md) API References.
+Set `verbose: true` in the options to obtain word-level timestamps and other parameters. The result mimics the _verbose_json_ format from OpenAI Whisper API.
 
 ```typescript
-const transcription = await model.transcribe(audioBuffer, { verbose: true });
-// Example result
-//
-// transcription: {
-//   task: "transcription",
-//   text: "Example text for a ...",
-//   duration: 9.05,
-//   language: "en",
+const result = await model.transcribe(audioBuffer, { verbose: true });
+// Example result:
+// {
+//   text: "Example text...",
 //   segments: [
-//     {
-//       start: 0,
-//       end: 5.4,
-//       text: "Example text for",
-//       words: [
-//         {
-//            word: "Example",
-//            start: 0,
-//            end: 1.4
-//         },
-//         ...
-//       ]
-//       tokens: [1, 32, 45, ...],
-//       temperature: 0.0,
-//       avgLogprob: -1.235,
-//       compressionRatio: 1.632
-//     },
-//     ...
-//   ]
+//     { start: 0, end: 5.4, text: "Example text", words: [...] }
+//   ],
+//   language: "en"
 // }
 ```
 
-## Example
+## Live Streaming Transcription
 
-### Transcription
+The **Streaming API** is optimized for live microphone input or real-time audio feeds. It handles audio inputs of arbitrary length by automatically managing context windows to bypass the standard 30-second limit.
 
-```tsx
-import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
-import { AudioContext } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
+:::iStreaming Options
+The `stream()` function accepts several optional parameters:
 
-const transcribeAudio = async () => {
-  // Initialize with the model config
-  const model = await SpeechToTextModule.fromModelName(
-    WHISPER_TINY_EN,
-    (progress) => {
-      console.log(progress);
-    }
-  );
+- `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
+- `verbose`: If `true`, includes word-level timestamps and segment metadata in the result objects.
+- `timeout`: (Advanced) The interval (in milliseconds) between processing consecutive audio chunks. Lower values provide more frequent updates, while higher values reduce CPU consumption. Defaults to `100`.
 
-  // Download the audio file
-  const { uri } = await FileSystem.downloadAsync(
-    'https://some-audio-url.com/file.mp3',
-    FileSystem.cacheDirectory + 'audio_file'
-  );
+### nfo
 
-  // Decode the audio data (Correct as per your previous code)
-  const audioContext = new AudioContext({ sampleRate: 16000 });
-  const decodedAudioData = await audioContext.decodeAudioData(uri);
-  const audioBuffer = decodedAudioData.getChannelData(0);
+- **`committed`**: Finalized transcription that is stable and will not change. Useful for building a persistent transcript record.
+- **`nonCommitted`**: Partial transcription that is still being processed and may update as more context arrives. Useful for live UI updates.
+  :::
 
-  // Transcribe the audio
-  try {
-    // Option 1: Text only
-    const resultText = await model.transcribe(audioBuffer);
-    console.log('Text:', resultText.text); // .text is the standard property now
+### Live Example
 
-    // Option 2: With timestamps (Use 'verbose' instead of 'enableTimestamps')
-    const resultVerbose = await model.transcribe(audioBuffer, {
-      verbose: true,
-    });
-
-    console.log('Full Text:', resultVerbose.text);
-    console.log('Segments:', resultVerbose.segments); // Contains start/end/more parameters
-  } catch (error) {
-    console.error('Error during audio transcription', error);
-  }
-};
-```
-
-### Streaming Transcription
+In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to feed live audio into the model.
 
 ```tsx
 import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-// Load the model
-const model = await SpeechToTextModule.fromModelName(
-  WHISPER_TINY_EN,
-  (progress) => {
-    console.log(progress);
-  }
-);
+const model = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN);
 
-// Configure audio session
+// 1. Configure audio session & permissions
 AudioManager.setAudioSessionOptions({
   iosCategory: 'playAndRecord',
   iosMode: 'spokenAudio',
@@ -183,44 +120,46 @@ AudioManager.setAudioSessionOptions({
 });
 await AudioManager.requestRecordingPermissions();
 
-// Initialize audio recorder with FULL config in constructor
+// 2. Setup Audio Recorder
 const recorder = new AudioRecorder({
   sampleRate: 16000,
   channelCount: 1,
-  bitsPerSample: 16,
-  bufferLengthInSamples: 16000, // e.g. 1 second buffer
 });
 
-// Pass ONLY the callback to onAudioReady
 recorder.onAudioReady((chunk) => {
-  // Insert the audio into the streaming transcription
+  // Feed chunks directly into the model's buffer
   model.streamInsert(chunk.buffer.getChannelData(0));
 });
 
 await recorder.start();
 
-// Start streaming transcription
+// 3. Process the Stream
 try {
-  let finalTranscription = '';
-
-  // Use 'verbose' flag for timestamps/segments
-  const streamIter = model.stream({ verbose: true });
+  let stableTranscript = '';
+  const streamIter = model.stream({ verbose: false });
 
   for await (const { committed, nonCommitted } of streamIter) {
-    // Note: committed/nonCommitted are objects { text, segments } now
-    console.log('Committed Text:', committed.text);
-    console.log('Live Text:', nonCommitted.text);
+    if (committed.text) stableTranscript += committed.text;
 
-    if (committed.text) {
-      finalTranscription += committed.text;
-    }
+    // UI should display: stableTranscript + nonCommitted.text
+    console.log('Live Transcript:', stableTranscript + nonCommitted.text);
   }
-  console.log('Final transcription:', finalTranscription);
 } catch (error) {
-  console.error('Error during streaming transcription:', error);
+  console.error('Streaming error:', error);
 }
 
-// Stop streaming transcription
+// 4. Cleanup
 model.streamStop();
 recorder.stop();
 ```
+
+## Supported models
+
+| Model                                                              |   Language   |
+| ------------------------------------------------------------------ | :----------: |
+| [whisper-tiny.en](https://huggingface.co/openai/whisper-tiny.en)   |   English    |
+| [whisper-tiny](https://huggingface.co/openai/whisper-tiny)         | Multilingual |
+| [whisper-base.en](https://huggingface.co/openai/whisper-base.en)   |   English    |
+| [whisper-base](https://huggingface.co/openai/whisper-base)         | Multilingual |
+| [whisper-small.en](https://huggingface.co/openai/whisper-small.en) |   English    |
+| [whisper-small](https://huggingface.co/openai/whisper-small)       | Multilingual |

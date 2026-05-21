@@ -94,7 +94,7 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 
   std::string fullText;
   for (const auto &w : words) {
-    fullText += w.content + w.punctations;
+    fullText += w.content;
   }
   res.text = fullText;
 
@@ -115,7 +115,8 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 } // namespace
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
-                          std::string languageOption, bool verbose) {
+                          std::string languageOption, bool verbose,
+                          uint32_t timeout) {
   if (isStreaming_) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
@@ -157,11 +158,15 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     // The reasoning is very simple: with the current liberal threshold values,
     // running transcriptions too rapidly (before the audio buffer is filled
     // with significant amount of new data) can cause streamer to commit wrong
-    // phrases.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // phrases. We wait on a condition_variable so streamStop() can break the
+    // pause immediately — inserts intentionally do not wake us, to preserve
+    // the throttle.
+    std::unique_lock<std::mutex> lock(streamCvMutex_);
+    streamCv_.wait_for(lock, std::chrono::milliseconds(timeout),
+                       [this] { return !isStreaming_.load(); });
   }
 
-  std::vector<Word> finalWords = streamer_->finish();
+  std::vector<Word> finalWords = streamer_->finish(options);
   TranscriptionResult finalRes =
       wordsToResult(finalWords, languageOption, verbose);
 
@@ -169,7 +174,10 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   resetStreamState();
 }
 
-void SpeechToText::streamStop() { isStreaming_ = false; }
+void SpeechToText::streamStop() {
+  isStreaming_ = false;
+  streamCv_.notify_all();
+}
 
 void SpeechToText::streamInsert(std::span<float> waveform) {
   streamer_->insertAudioChunk(waveform);

@@ -14,9 +14,11 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useSpeechToText,
   WHISPER_TINY_EN,
-  WHISPER_TINY_EN_QUANTIZED,
+  WHISPER_TINY_EN_COREML,
   WHISPER_BASE_EN,
+  WHISPER_BASE_EN_COREML,
   WHISPER_SMALL_EN,
+  WHISPER_SMALL_EN_COREML,
   TranscriptionResult,
   SpeechToTextProps,
 } from 'react-native-executorch';
@@ -25,10 +27,12 @@ import { ModelPicker, ModelOption } from '../components/ModelPicker';
 type STTModelSources = SpeechToTextProps['model'];
 
 const MODELS: ModelOption<STTModelSources>[] = [
-  { label: 'Whisper Tiny', value: WHISPER_TINY_EN },
-  { label: 'Whisper Tiny Q', value: WHISPER_TINY_EN_QUANTIZED },
-  { label: 'Whisper Base', value: WHISPER_BASE_EN },
-  { label: 'Whisper Small', value: WHISPER_SMALL_EN },
+  { label: 'Whisper Tiny EN (XNNPACK)', value: WHISPER_TINY_EN },
+  { label: 'Whisper Tiny EN (CoreML)', value: WHISPER_TINY_EN_COREML },
+  { label: 'Whisper Base EN (XNNPACK)', value: WHISPER_BASE_EN },
+  { label: 'Whisper Base EN (CoreML)', value: WHISPER_BASE_EN_COREML },
+  { label: 'Whisper Small EN (XNNPACK)', value: WHISPER_SMALL_EN },
+  { label: 'Whisper Small EN (CoreML)', value: WHISPER_SMALL_EN_COREML },
 ];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -45,9 +49,12 @@ import ErrorBanner from '../components/ErrorBanner';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
+const DEFAULT_MODEL =
+  Platform.OS === 'ios' ? WHISPER_BASE_EN_COREML : WHISPER_TINY_EN;
+
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] =
-    useState<STTModelSources>(WHISPER_TINY_EN);
+    useState<STTModelSources>(DEFAULT_MODEL);
 
   const model = useSpeechToText({
     model: selectedModel,
@@ -148,7 +155,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.current.onAudioReady(
       {
         sampleRate,
-        bufferLength: 0.1 * sampleRate,
+        bufferLength: 0.1 * sampleRate, // 100 ms
         channelCount: 1,
       },
       ({ buffer }) => {
@@ -178,6 +185,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const streamIter = model.stream({
         verbose: enableTimestamps,
+        timeout: 100,
       });
 
       for await (const { committed, nonCommitted } of streamIter) {

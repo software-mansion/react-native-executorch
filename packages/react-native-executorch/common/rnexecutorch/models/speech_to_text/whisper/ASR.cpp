@@ -1,8 +1,3 @@
-#include <algorithm>
-#include <array>
-#include <numeric>
-#include <random>
-
 #include "ASR.h"
 #include "Constants.h"
 #include "Params.h"
@@ -10,6 +5,12 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/data_processing/gzip.h>
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <random>
+#include <ranges>
 
 namespace rnexecutorch::models::speech_to_text::whisper {
 
@@ -138,8 +139,9 @@ executorch::aten::Tensor ASR::decode(std::span<uint64_t> tokens,
       positionShape, cachePositions.data(), ScalarType::Long);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
-  std::vector<int32_t> encShape = {1, constants::kNumFrames,
-                                   encoderOutputSize / constants::kNumFrames};
+  std::vector<int32_t> encShape = {
+      1, static_cast<int32_t>(constants::kNumFrames),
+      encoderOutputSize / static_cast<int32_t>(constants::kNumFrames)};
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), const_cast<float *>(encoderOutput.data()),
       ScalarType::Float);
@@ -212,7 +214,9 @@ std::vector<Segment> ASR::generate(std::span<const float> waveform,
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
-    const float avgLogProb = cumLogProb / static_cast<float>(tokens.size() + 1);
+    // Match whisper.cpp: divide by the number of summed log-probs.
+    const float avgLogProb =
+        cumLogProb / static_cast<float>(std::max<size_t>(1, scores.size()));
     const std::string text = tokenizer_->decode(tokens, true);
     const float compressionRatio = this->calculateCompressionRatio(text);
 
@@ -262,11 +266,20 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
   std::vector<float> scores;
 
   uint64_t startPos = 0;
-  while (std::cmp_less_equal(startPos + sequenceIds.size(),
-                             constants::kMaxDecodeLength)) {
-    executorch::aten::Tensor logitsTensor =
-        this->decode(sequenceIds, encoderFeatures, startPos);
 
+  // Prefill: feed each initial token individually so decode() always sees 1
+  // token.
+  executorch::aten::Tensor logitsTensor{nullptr};
+  for (size_t i = 0; i < sequenceIds.size(); i++, startPos++) {
+    std::span<uint64_t> single(sequenceIds.data() + i, 1);
+    logitsTensor = this->decode(single, encoderFeatures, startPos);
+  }
+
+  // Seed once per generate() call rather than per sampled token.
+  std::mt19937 gen(std::random_device{}());
+
+  // Autoregressive decoding: always 1 token at a time
+  while (std::cmp_less(startPos, constants::kMaxDecodeLength)) {
     const size_t logitsInnerDim = logitsTensor.size(1);
     const size_t logitsDictSize = logitsTensor.size(2);
     const float *logitsData = logitsTensor.const_data_ptr<float>() +
@@ -297,20 +310,20 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
       nextProb = *maxIt;
     } else {
       std::discrete_distribution<> dist(probs.begin(), probs.end());
-      std::mt19937 gen((std::random_device{}()));
       nextId = dist(gen);
       nextProb = probs[nextId];
     }
 
-    // Move the startPos pointer by the amount of tokens we processed
-    startPos += sequenceIds.size();
-    sequenceIds = {nextId};
     cachedTokens.push_back(nextId);
     scores.push_back(nextProb);
 
     if (nextId == endOfTranscriptionToken_) {
       break;
     }
+
+    std::span<uint64_t> single(&cachedTokens.back(), 1);
+    logitsTensor = this->decode(single, encoderFeatures, startPos);
+    ++startPos;
   }
 
   return {.tokens = std::vector<uint64_t>(cachedTokens.cbegin() +
@@ -437,15 +450,22 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
     const float wEnd = wStart + timePerChar * wSize;
     prevCharCount += wSize;
 
-    // We store punctations separately to other characters.
+    // Detect and extract trailing punctuations.
     std::string puncts = "";
     while (!w.empty() && constants::kPunctations.contains(w.back())) {
       puncts += w.back();
       w.pop_back();
     }
-    std::reverse(puncts.begin(), puncts.end());
+    std::ranges::reverse(puncts);
 
-    wordObjs.emplace_back(std::move(w), wStart, wEnd, std::move(puncts));
+    // Add the core word.
+    wordObjs.emplace_back(std::move(w), wStart, wEnd);
+
+    // If punctuation was present, add it as a separate "word" with an
+    // instantaneous timestamp at the end of the original word.
+    if (!puncts.empty()) {
+      wordObjs.emplace_back(std::move(puncts), wEnd, wEnd);
+    }
   }
 
   return wordObjs;

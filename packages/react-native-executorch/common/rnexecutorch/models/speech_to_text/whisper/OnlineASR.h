@@ -1,13 +1,13 @@
 #pragma once
 
+#include <mutex>
+#include <span>
+#include <vector>
+
 #include "../common/schema/OnlineASR.h"
 #include "../common/types/ProcessResult.h"
-#include "../common/types/Segment.h"
 #include "../common/types/Word.h"
 #include "ASR.h"
-#include "HypothesisBuffer.h"
-
-#include <mutex>
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
@@ -21,60 +21,65 @@ public:
   OnlineASR(const ASR *asr);
 
   /**
-   * Appends new audio samples to the internal processing buffer.
-   *
-   * @param audio A span of PCM float samples (expected 16kHz).
-   */
-  void insertAudioChunk(std::span<const float> audio) override;
-
-  /**
-   * Determines whether the model is ready to process the next iteration.
-   *
-   * @return True if audioBuffer has enough samples, False otherwise
+   * Checks if the buffer contains enough audio for the next processing step.
+   * @return True if ready, false otherwise.
    */
   bool isReady() const override;
 
   /**
-   * Processes the current audio buffer and returns new transcription results.
-   * Stability is managed by an internal HypothesisBuffer to ensure that
-   * only confirmed (stable) text is returned as "committed".
-   *
-   * @param options Decoding configuration (language, etc.).
-   * @return        A ProcessResult containing newly committed and uncommitted
-   * words.
+   * Appends audio samples to the internal buffer.
+   * @param audio Span containing the audio data.
+   */
+  void insertAudioChunk(std::span<const float> audio) override;
+
+  /**
+   * Processes the current buffered audio and returns transcription results.
+   * @param options Decoding options for the transcription.
+   * @return Transcription result containing committed and volatile tokens.
    */
   ProcessResult process(const DecodingOptions &options) override;
 
   /**
-   * Finalizes the current streaming session.
-   * Flushes any remaining words from the hypothesis buffer.
-   *
-   * @return A vector of remaining transcribed words.
+   * Finalizes the current stream and returns all words.
+   * @return Vector of detected words.
    */
-  std::vector<Word> finish() override;
+  std::vector<Word> finish(const DecodingOptions &options) override;
 
   /**
-   * Reset the streaming state by resetting the buffers
+   * Resets the internal state and clears buffers.
    */
   void reset() override;
 
 private:
+  // Cleans up the buffer and returns committed words based on given transcript.
+  std::vector<Word> commitAndClean(std::vector<Word> &transcript);
+
   // ASR module connection for transcribing the audio
   const ASR *asr_;
 
-  // Helper buffers - audio buffer
-  // Stores the increasing amounts of streamed audio.
-  // Cleared from time to time after reaching a threshold size.
+  // Audio buffer (input) - accumulates obtained audio samples.
   std::vector<float> audioBuffer_ = {};
-  mutable std::mutex audioBufferMutex_;
-  float bufferTimeOffset_ = 0.F; // Audio buffer offset
+  mutable std::mutex streamingMutex; // Covers both buffer & memory
 
-  // Helper buffers - hypothesis buffer
-  // Manages the whisper streaming hypothesis mechanism.
-  HypothesisBuffer hypothesisBuffer_;
+  // Streaming memory.
+  // In general, helps to navigate continous streaming state and improve buffer
+  // handling algorithms.
+  struct Memory {
+    // State management helper.
+    struct EOSEntry {
+      size_t position; // An absolute position (index) in the transcription
+                       // (word sequence).
+      std::string preceeding; // A preceeding word in the transcription
+      float tmstpend;         // Ending timestamp of the sentence.
+    };
 
-  // State members to keep track of specyfic aspects of buffer state
-  float lastSentenceEnd_ = 0.F;
+    std::vector<Word>
+        transcript; // The most recent transcription result (uncommitted only!).
+    std::vector<EOSEntry>
+        eos; // End of sentence points from the most recent transcription.
+    std::vector<Word> toCommit; // Words to be committed in the next iteration
+                                // (next process() call).
+  } memory_;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream

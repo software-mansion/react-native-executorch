@@ -1,6 +1,8 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <span>
 #include <string>
 #include <vector>
@@ -34,15 +36,11 @@ public:
                                  std::string languageOption,
                                  bool verbose) const;
 
-  [[nodiscard("Registered non-void function")]]
-  std::vector<char> transcribeStringOnly(std::span<float> waveform,
-                                         std::string languageOption) const;
-
   size_t getMemoryLowerBound() const noexcept;
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption, bool enableTimestamps);
+              std::string languageOption, bool verbose, uint32_t timeout);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 
@@ -58,6 +56,11 @@ private:
   std::unique_ptr<schema::OnlineASR> streamer_ = nullptr;
   std::atomic<bool> isStreaming_ = false;
   std::atomic<bool> readyToProcess_ = false;
+
+  // Lets streamStop() wake the streaming loop immediately instead of
+  // waiting for the next throttling interval to expire.
+  std::mutex streamCvMutex_;
+  std::condition_variable streamCv_;
 };
 
 } // namespace models::speech_to_text
