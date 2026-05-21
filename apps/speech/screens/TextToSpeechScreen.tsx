@@ -10,52 +10,35 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
+  models,
   useTextToSpeech,
   TextToSpeechModelConfig,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH,
-  KOKORO_AMERICAN_ENGLISH_MALE_ADAM,
-  KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL,
-  KOKORO_AMERICAN_ENGLISH_MALE_SANTA,
-  KOKORO_BRITISH_ENGLISH_FEMALE_EMMA,
-  KOKORO_BRITISH_ENGLISH_MALE_DANIEL,
-  KOKORO_FRENCH_FEMALE_SIWIS,
-  KOKORO_SPANISH_FEMALE_DORA,
-  KOKORO_SPANISH_MALE_ALEX,
-  KOKORO_ITALIAN_FEMALE_SARA,
-  KOKORO_ITALIAN_MALE_NICOLA,
-  KOKORO_PORTUGUESE_FEMALE_DORA,
-  KOKORO_PORTUGUESE_MALE_SANTA,
-  KOKORO_GERMAN_FEMALE_ANNA,
-  KOKORO_POLISH_MALE_MATEUSZ,
-  KOKORO_HINDI_FEMALE_ALPHA,
-  KOKORO_HINDI_MALE_OMEGA,
-  KOKORO_HINDI_MALE_PSI,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
+const tts = models.text_to_speech.kokoro;
+
 const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
-  { label: '🇺🇸 AF Heart', value: KOKORO_AMERICAN_ENGLISH_FEMALE_HEART },
-  { label: '🇺🇸 AF River', value: KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER },
-  { label: '🇺🇸 AF Sarah', value: KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH },
-  { label: '🇺🇸 AM Adam', value: KOKORO_AMERICAN_ENGLISH_MALE_ADAM },
-  { label: '🇺🇸 AM Michael', value: KOKORO_AMERICAN_ENGLISH_MALE_MICHAEL },
-  { label: '🇺🇸 AM Santa', value: KOKORO_AMERICAN_ENGLISH_MALE_SANTA },
-  { label: '🇬🇧 BF Emma', value: KOKORO_BRITISH_ENGLISH_FEMALE_EMMA },
-  { label: '🇬🇧 BM Daniel', value: KOKORO_BRITISH_ENGLISH_MALE_DANIEL },
-  { label: '🇫🇷 FF Siwis', value: KOKORO_FRENCH_FEMALE_SIWIS },
-  { label: '🇪🇸 EF Dora', value: KOKORO_SPANISH_FEMALE_DORA },
-  { label: '🇪🇸 EM Alex', value: KOKORO_SPANISH_MALE_ALEX },
-  { label: '🇮🇹 IF Sara', value: KOKORO_ITALIAN_FEMALE_SARA },
-  { label: '🇮🇹 IM Nicola', value: KOKORO_ITALIAN_MALE_NICOLA },
-  { label: '🇵🇹 PF Dora', value: KOKORO_PORTUGUESE_FEMALE_DORA },
-  { label: '🇵🇹 PM Santa', value: KOKORO_PORTUGUESE_MALE_SANTA },
-  { label: '🇩🇪 DF Anna', value: KOKORO_GERMAN_FEMALE_ANNA },
-  { label: '🇵🇱 PM Mateusz', value: KOKORO_POLISH_MALE_MATEUSZ },
-  { label: '🇮🇳 HF Alpha', value: KOKORO_HINDI_FEMALE_ALPHA },
-  { label: '🇮🇳 HM Omega', value: KOKORO_HINDI_MALE_OMEGA },
-  { label: '🇮🇳 HM Psi', value: KOKORO_HINDI_MALE_PSI },
+  { label: '🇺🇸 AF Heart', value: tts.en_us.heart() },
+  { label: '🇺🇸 AF River', value: tts.en_us.river() },
+  { label: '🇺🇸 AF Sarah', value: tts.en_us.sarah() },
+  { label: '🇺🇸 AM Adam', value: tts.en_us.adam() },
+  { label: '🇺🇸 AM Michael', value: tts.en_us.michael() },
+  { label: '🇺🇸 AM Santa', value: tts.en_us.santa() },
+  { label: '🇬🇧 BF Emma', value: tts.en_gb.emma() },
+  { label: '🇬🇧 BM Daniel', value: tts.en_gb.daniel() },
+  { label: '🇫🇷 FF Siwis', value: tts.fr.siwis() },
+  { label: '🇪🇸 EF Dora', value: tts.es.dora() },
+  { label: '🇪🇸 EM Alex', value: tts.es.alex() },
+  { label: '🇮🇹 IF Sara', value: tts.it.sara() },
+  { label: '🇮🇹 IM Nicola', value: tts.it.nicola() },
+  { label: '🇵🇹 PF Dora', value: tts.pt.dora() },
+  { label: '🇵🇹 PM Santa', value: tts.pt.santa() },
+  { label: '🇩🇪 DF Anna', value: tts.de.anna() },
+  { label: '🇵🇱 PM Mateusz', value: tts.pl.mateusz() },
+  { label: '🇮🇳 HF Alpha', value: tts.hi.alpha() },
+  { label: '🇮🇳 HM Omega', value: tts.hi.omega() },
+  { label: '🇮🇳 HM Psi', value: tts.hi.psi() },
 ];
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -95,7 +78,7 @@ const createAudioBufferFromVector = (
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedSpeaker, setSelectedSpeaker] =
-    useState<TextToSpeechModelConfig>(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
+    useState<TextToSpeechModelConfig>(tts.en_us.heart());
 
   const model = useTextToSpeech(selectedSpeaker);
 
@@ -236,6 +219,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
             <Text style={styles.inputLabel}>Enter text to synthesize</Text>
             <TextInput
               placeholder="Type something..."
+              placeholderTextColor="#aaa"
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
@@ -316,6 +300,7 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 120,
     fontSize: 16,
+    color: '#0f186e',
   },
   buttonContainer: {
     marginTop: 24,

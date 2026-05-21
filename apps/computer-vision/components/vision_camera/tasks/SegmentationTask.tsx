@@ -2,16 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  DEEPLAB_V3_RESNET50_QUANTIZED,
-  DEEPLAB_V3_RESNET101_QUANTIZED,
-  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-  FCN_RESNET50_QUANTIZED,
-  FCN_RESNET101_QUANTIZED,
-  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
-  SELFIE_SEGMENTATION,
-  useSemanticSegmentation,
-} from 'react-native-executorch';
+import { models, useSemanticSegmentation } from 'react-native-executorch';
 import {
   AlphaType,
   Canvas,
@@ -22,6 +13,7 @@ import {
 } from '@shopify/react-native-skia';
 import { CLASS_COLORS } from '../../utils/colors';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
+const semanticSegmentation = models.semantic_segmentation;
 
 type SegModelId =
   | 'segmentationDeeplabResnet50'
@@ -47,31 +39,31 @@ export default function SegmentationTask({
   onErrorChange,
 }: Props) {
   const segDeeplabResnet50 = useSemanticSegmentation({
-    model: DEEPLAB_V3_RESNET50_QUANTIZED,
+    model: semanticSegmentation.deeplab_v3_resnet50(),
     preventLoad: activeModel !== 'segmentationDeeplabResnet50',
   });
   const segDeeplabResnet101 = useSemanticSegmentation({
-    model: DEEPLAB_V3_RESNET101_QUANTIZED,
+    model: semanticSegmentation.deeplab_v3_resnet101(),
     preventLoad: activeModel !== 'segmentationDeeplabResnet101',
   });
   const segDeeplabMobilenet = useSemanticSegmentation({
-    model: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+    model: semanticSegmentation.deeplab_v3_mobilenet_v3_large(),
     preventLoad: activeModel !== 'segmentationDeeplabMobilenet',
   });
   const segLraspp = useSemanticSegmentation({
-    model: LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
+    model: semanticSegmentation.lraspp_mobilenet_v3_large(),
     preventLoad: activeModel !== 'segmentationLraspp',
   });
   const segFcnResnet50 = useSemanticSegmentation({
-    model: FCN_RESNET50_QUANTIZED,
+    model: semanticSegmentation.fcn_resnet50(),
     preventLoad: activeModel !== 'segmentationFcnResnet50',
   });
   const segFcnResnet101 = useSemanticSegmentation({
-    model: FCN_RESNET101_QUANTIZED,
+    model: semanticSegmentation.fcn_resnet101(),
     preventLoad: activeModel !== 'segmentationFcnResnet101',
   });
   const segSelfie = useSemanticSegmentation({
-    model: SELFIE_SEGMENTATION,
+    model: semanticSegmentation.selfie_segmentation(),
     preventLoad: activeModel !== 'segmentationSelfie',
   });
 

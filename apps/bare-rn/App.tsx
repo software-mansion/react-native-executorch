@@ -13,11 +13,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import {
-  initExecutorch,
-  useLLM,
-  LLAMA3_2_1B_SPINQUANT,
-} from 'react-native-executorch';
+import { models, initExecutorch, useLLM } from 'react-native-executorch';
 import { BareResourceFetcher } from 'react-native-executorch-bare-resource-fetcher';
 import { setConfig } from '@kesha-antonov/react-native-background-downloader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -144,7 +140,9 @@ function App() {
   const textInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+  const llm = useLLM({
+    model: models.llm.lfm2_5_1_2b_instruct(),
+  });
   // Alternatively, to use a custom local model, uncomment below:
   // const llm = useLLM({ model: {
   //   modelSource: require('./assets/ai-models/smolLm2/smolLm2_135M/smolLm2_135M_bf16.pte'),

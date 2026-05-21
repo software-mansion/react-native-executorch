@@ -195,21 +195,15 @@ For a list of all available Speech to Text models reference [this Hugging Face c
 
 ### Whisper Models (English only)
 
-- **WHISPER_TINY_EN** - Whisper Tiny English-only (XNNPACK)
-- **WHISPER_TINY_EN_COREML** - Whisper Tiny English-only (CoreML)
-- **WHISPER_BASE_EN** - Whisper Base English-only (XNNPACK)
-- **WHISPER_BASE_EN_COREML** - Whisper Base English-only (CoreML)
-- **WHISPER_SMALL_EN** - Whisper Small English-only (XNNPACK)
-- **WHISPER_SMALL_EN_COREML** - Whisper Small English-only (CoreML)
+- **WHISPER_TINY_EN** - Whisper Tiny English-only
+- **WHISPER_BASE_EN** - Whisper Base English-only
+- **WHISPER_SMALL_EN** - Whisper Small English-only
 
 ### Whisper Models (Multilingual)
 
-- **WHISPER_TINY** - Whisper Tiny multilingual (XNNPACK)
-- **WHISPER_TINY_COREML** - Whisper Tiny multilingual (CoreML)
-- **WHISPER_BASE** - Whisper Base multilingual (XNNPACK)
-- **WHISPER_BASE_COREML** - Whisper Base multilingual (CoreML)
-- **WHISPER_SMALL** - Whisper Small multilingual (XNNPACK)
-- **WHISPER_SMALL_COREML** - Whisper Small multilingual (CoreML)
+- **WHISPER_TINY** - Whisper Tiny multilingual
+- **WHISPER_BASE** - Whisper Base multilingual
+- **WHISPER_SMALL** - Whisper Small multilingual
 
 ---
 

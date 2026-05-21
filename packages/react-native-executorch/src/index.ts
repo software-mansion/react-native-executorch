@@ -239,6 +239,7 @@ export * from './types/poseEstimation';
 export * from './constants/commonVision';
 export * from './constants/classification';
 export * from './constants/modelUrls';
+export * from './constants/modelRegistry';
 export * from './constants/ocr/models';
 export * from './constants/tts/models';
 export * from './constants/tts/voices';

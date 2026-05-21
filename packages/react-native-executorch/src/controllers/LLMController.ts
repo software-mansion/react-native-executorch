@@ -360,7 +360,6 @@ export class LLMController {
       messages,
       this.tokenizerConfig,
       tools,
-      // eslint-disable-next-line camelcase
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
@@ -389,7 +388,6 @@ export class LLMController {
         messages,
         this.tokenizerConfig,
         this.toolsConfig?.tools,
-        // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);

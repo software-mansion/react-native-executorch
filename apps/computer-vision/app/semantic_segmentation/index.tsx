@@ -3,13 +3,7 @@ import { BottomBar } from '../../components/BottomBar';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
-  DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
-  DEEPLAB_V3_RESNET50_QUANTIZED,
-  DEEPLAB_V3_RESNET101_QUANTIZED,
-  LRASPP_MOBILENET_V3_LARGE_QUANTIZED,
-  FCN_RESNET50_QUANTIZED,
-  FCN_RESNET101_QUANTIZED,
-  SELFIE_SEGMENTATION,
+  models,
   useSemanticSegmentation,
   SemanticSegmentationModelSources,
 } from 'react-native-executorch';
@@ -27,6 +21,7 @@ import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
 import ErrorBanner from '../../components/ErrorBanner';
+const semanticSegmentation = models.semantic_segmentation;
 
 const numberToColor: number[][] = [
   [255, 87, 51], // 0 Red
@@ -55,21 +50,39 @@ const numberToColor: number[][] = [
 const MODELS: ModelOption<SemanticSegmentationModelSources>[] = [
   {
     label: 'DeepLab MobileNet',
-    value: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED,
+    value: semanticSegmentation.deeplab_v3_mobilenet_v3_large(),
   },
-  { label: 'DeepLab ResNet50', value: DEEPLAB_V3_RESNET50_QUANTIZED },
-  { label: 'DeepLab ResNet101', value: DEEPLAB_V3_RESNET101_QUANTIZED },
-  { label: 'LRASPP MobileNet', value: LRASPP_MOBILENET_V3_LARGE_QUANTIZED },
-  { label: 'FCN ResNet50', value: FCN_RESNET50_QUANTIZED },
-  { label: 'FCN ResNet101', value: FCN_RESNET101_QUANTIZED },
-  { label: 'Selfie Segmentation', value: SELFIE_SEGMENTATION },
+  {
+    label: 'DeepLab ResNet50',
+    value: semanticSegmentation.deeplab_v3_resnet50(),
+  },
+  {
+    label: 'DeepLab ResNet101',
+    value: semanticSegmentation.deeplab_v3_resnet101(),
+  },
+  {
+    label: 'LRASPP MobileNet',
+    value: semanticSegmentation.lraspp_mobilenet_v3_large(),
+  },
+  {
+    label: 'FCN ResNet50',
+    value: semanticSegmentation.fcn_resnet50(),
+  },
+  {
+    label: 'FCN ResNet101',
+    value: semanticSegmentation.fcn_resnet101(),
+  },
+  {
+    label: 'Selfie Segmentation',
+    value: semanticSegmentation.selfie_segmentation(),
+  },
 ];
 
 export default function SemanticSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
   const [selectedModel, setSelectedModel] =
     useState<SemanticSegmentationModelSources>(
-      DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED
+      semanticSegmentation.deeplab_v3_mobilenet_v3_large()
     );
 
   const {

@@ -2,11 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  STYLE_TRANSFER_CANDY,
-  STYLE_TRANSFER_MOSAIC,
-  useStyleTransfer,
-} from 'react-native-executorch';
+import { models, useStyleTransfer } from 'react-native-executorch';
 import {
   AlphaType,
   Canvas,
@@ -16,6 +12,7 @@ import {
   SkImage,
 } from '@shopify/react-native-skia';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
+const styleTransfer = models.style_transfer;
 
 type StyleModelId = 'styleTransferCandy' | 'styleTransferMosaic';
 
@@ -34,11 +31,11 @@ export default function StyleTransferTask({
   onErrorChange,
 }: Props) {
   const candy = useStyleTransfer({
-    model: STYLE_TRANSFER_CANDY,
+    model: styleTransfer.candy(),
     preventLoad: activeModel !== 'styleTransferCandy',
   });
   const mosaic = useStyleTransfer({
-    model: STYLE_TRANSFER_MOSAIC,
+    model: styleTransfer.mosaic(),
     preventLoad: activeModel !== 'styleTransferMosaic',
   });
 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import { EFFICIENTNET_V2_S, useClassification } from 'react-native-executorch';
+import { models, useClassification } from 'react-native-executorch';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 
 type Props = Omit<
@@ -19,7 +19,9 @@ export default function ClassificationTask({
   onFpsChange,
   onErrorChange,
 }: Props) {
-  const model = useClassification({ model: EFFICIENTNET_V2_S });
+  const model = useClassification({
+    model: models.classification.efficientnet_v2_s(),
+  });
   const [classResult, setClassResult] = useState({ label: '', score: 0 });
   const lastFrameTimeRef = useRef(Date.now());
 

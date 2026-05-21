@@ -30,12 +30,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import {
-  useImageEmbeddings,
-  CLIP_VIT_BASE_PATCH32_IMAGE,
-} from 'react-native-executorch';
-
-const model = useImageEmbeddings({ model: CLIP_VIT_BASE_PATCH32_IMAGE });
+import { models, useImageEmbeddings } from 'react-native-executorch';
+const model = useImageEmbeddings({
+  model: models.image_embedding.clip_vit_base_patch32_image(),
+});
 
 try {
   const imageEmbedding = await model.forward('https://url-to-image.jpg');

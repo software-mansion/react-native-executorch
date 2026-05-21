@@ -21,13 +21,10 @@ import {
   AlphaType,
 } from '@shopify/react-native-skia';
 import {
+  models,
   useInstanceSegmentation,
   useImageEmbeddings,
   useTextEmbeddings,
-  FASTSAM_S,
-  FASTSAM_X,
-  CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
-  CLIP_VIT_BASE_PATCH32_TEXT,
   InstanceSegmentationModelSources,
   SegmentedInstance,
   FastSAMLabel,
@@ -48,19 +45,22 @@ import ImageWithMasks, {
 } from '../../components/ImageWithMasks';
 import { getImage } from '../../utils';
 import ColorPalette from '../../colors';
+const instanceSegmentation = models.instance_segmentation;
 
 type PromptMode = 'point' | 'box' | 'text';
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
-  { label: 'FastSAM-S', value: FASTSAM_S },
-  { label: 'FastSAM-X', value: FASTSAM_X },
+  { label: 'FastSAM-S', value: instanceSegmentation.fastsam_s() },
+  { label: 'FastSAM-X', value: instanceSegmentation.fastsam_x() },
 ];
 
 export default function SegmentAnythingScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const [selectedModel, setSelectedModel] =
-    useState<InstanceSegmentationModelSources>(FASTSAM_S);
+    useState<InstanceSegmentationModelSources>(
+      instanceSegmentation.fastsam_s()
+    );
   const [mode, setMode] = useState<PromptMode>('point');
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
@@ -78,9 +78,11 @@ export default function SegmentAnythingScreen() {
     useInstanceSegmentation({ model: selectedModel });
 
   const clipImage = useImageEmbeddings({
-    model: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
+    model: models.image_embedding.clip_vit_base_patch32_image(),
   });
-  const clipText = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
+  const clipText = useTextEmbeddings({
+    model: models.text_embedding.clip_vit_base_patch32_text(),
+  });
   const skiaSource = useImage(imageUri || null);
 
   const [textPrompt, setTextPrompt] = useState('');

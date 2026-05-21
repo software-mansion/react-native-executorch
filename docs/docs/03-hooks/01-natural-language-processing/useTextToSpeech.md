@@ -33,13 +33,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 You can play the generated waveform in any way most suitable to you; however, in the snippet below we utilize the react-native-audio-api library to play synthesized speech.
 
 ```typescript
-import {
-  useTextToSpeech,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
-} from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const model = useTextToSpeech(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
+const model = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
@@ -114,14 +111,11 @@ Since `forward` and `stream` process the input, they might take a significant am
 ```tsx
 import React from 'react';
 import { Button, View } from 'react-native';
-import {
-  useTextToSpeech,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
-} from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
-  const tts = useTextToSpeech(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
+  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
   const generateAudio = async () => {
     const audioData = await tts.forward({
@@ -152,14 +146,11 @@ export default function App() {
 ```tsx
 import React, { useRef } from 'react';
 import { Button, View } from 'react-native';
-import {
-  useTextToSpeech,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
-} from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
-  const tts = useTextToSpeech(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
+  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
   const contextRef = useRef(new AudioContext({ sampleRate: 24000 }));
 
@@ -199,13 +190,9 @@ If you already have a phoneme string obtained from an external source (e.g. the 
 ```tsx
 import React from 'react';
 import { Button, View } from 'react-native';
-import {
-  useTextToSpeech,
-  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
-} from 'react-native-executorch';
-
+import { models, useTextToSpeech } from 'react-native-executorch';
 export default function App() {
-  const tts = useTextToSpeech(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
+  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
   const synthesizePhonemes = async () => {
     // Example phonemes for "Hello"

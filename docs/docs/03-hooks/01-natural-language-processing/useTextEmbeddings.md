@@ -29,9 +29,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
-
-const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
+import { models, useTextEmbeddings } from 'react-native-executorch';
+const model = useTextEmbeddings({
+  model: models.text_embedding.all_minilm_l6_v2(),
+});
 
 try {
   const embedding = await model.forward('Hello World!');
@@ -64,8 +65,7 @@ To run the model, you can use the [`forward`](../../06-api-reference/interfaces/
 ## Example
 
 ```typescript
-import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
-
+import { models, useTextEmbeddings } from 'react-native-executorch';
 const dotProduct = (a: number[], b: number[]) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
 
@@ -77,7 +77,9 @@ const cosineSimilarity = (a: number[], b: number[]) => {
 };
 
 function App() {
-  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
+  const model = useTextEmbeddings({
+    model: models.text_embedding.all_minilm_l6_v2(),
+  });
 
   // ...
 

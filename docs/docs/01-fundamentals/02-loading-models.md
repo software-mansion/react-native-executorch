@@ -128,7 +128,6 @@ Our library offers out-of-the-box support for multiple models. To make things ea
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:
 
 ```typescript
-import { useLLM, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
-
-const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
+import { models, useLLM } from 'react-native-executorch';
+const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
 ```

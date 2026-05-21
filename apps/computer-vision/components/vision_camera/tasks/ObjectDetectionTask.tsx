@@ -3,16 +3,15 @@ import { StyleSheet, View } from 'react-native';
 import { Frame, useFrameOutput } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  models,
   Detection,
-  RF_DETR_NANO,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  YOLO26N,
   useObjectDetection,
   CocoLabel,
   CocoLabelYolo,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
+const objectDetection = models.object_detection;
 
 type ObjModelId =
   | 'objectDetectionSsdlite'
@@ -34,15 +33,15 @@ export default function ObjectDetectionTask({
   onErrorChange,
 }: Props) {
   const ssdlite = useObjectDetection({
-    model: SSDLITE_320_MOBILENET_V3_LARGE,
+    model: objectDetection.ssdlite_320_mobilenet_v3_large(),
     preventLoad: activeModel !== 'objectDetectionSsdlite',
   });
   const rfdetr = useObjectDetection({
-    model: RF_DETR_NANO,
+    model: objectDetection.rf_detr_nano(),
     preventLoad: activeModel !== 'objectDetectionRfdetr',
   });
   const yolo26n = useObjectDetection({
-    model: YOLO26N,
+    model: objectDetection.yolo26n(),
     preventLoad: activeModel !== 'objectDetectionYolo26n',
   });
 
