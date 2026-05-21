@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -124,6 +125,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       return;
     }
 
+    Keyboard.dismiss();
     setIsPlaying(true);
 
     try {
