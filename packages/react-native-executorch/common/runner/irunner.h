@@ -73,6 +73,11 @@ struct GenerationConfig {
   size_t output_token_batch_size = 10;
   size_t batch_time_interval_ms = 120;
 
+  // Top-k sampling – keep only the k highest-logit tokens before softmax.
+  // 0 (default) disables top-k filtering. Stacks with topp: temperature ->
+  // top-k -> top-p -> softmax -> multinomial.
+  int32_t topk = 0;
+
   // Enable dynamic input shapes (if implemented) or not
   // Impacts the prefill phase and causes TextPrefiller to pass all the tokens
   // at once if set to true.

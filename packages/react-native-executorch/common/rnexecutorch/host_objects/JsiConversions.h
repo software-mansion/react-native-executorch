@@ -224,6 +224,22 @@ inline std::vector<float> getValue<std::vector<float>>(const jsi::Value &val,
 }
 
 template <>
+inline std::vector<std::vector<float>>
+getValue<std::vector<std::vector<float>>>(const jsi::Value &val,
+                                          jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  const size_t length = array.size(runtime);
+  std::vector<std::vector<float>> result;
+  result.reserve(length);
+  for (size_t i = 0; i < length; ++i) {
+    auto span =
+        getTypedArrayAsSpan<float>(array.getValueAtIndex(runtime, i), runtime);
+    result.emplace_back(span.begin(), span.end());
+  }
+  return result;
+}
+
+template <>
 inline std::vector<int64_t>
 getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int64_t>(val, runtime);

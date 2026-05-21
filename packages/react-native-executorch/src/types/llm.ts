@@ -5,20 +5,22 @@ import { ResourceSource } from './common';
  * Capabilities a multimodal LLM can have.
  * @category Types
  */
-export type LLMCapability = 'vision';
+export type LLMCapability = 'vision' | 'audio';
 
 /**
  * Derives the media argument shape for `sendMessage` from a capabilities tuple.
  * @category Types
  */
 export type MediaArg<C extends readonly LLMCapability[]> =
-  'vision' extends C[number] ? { imagePath?: string } : object;
+  ('vision' extends C[number] ? { imagePath?: string } : object) &
+    ('audio' extends C[number] ? { audioBuffer?: Float32Array } : object);
 
 /**
  * Union of all built-in LLM model names.
  * @category Types
  */
 export type LLMModelName =
+  | 'gemma4-e2b-quantized'
   | 'llama-3.2-3b'
   | 'llama-3.2-3b-qlora'
   | 'llama-3.2-3b-spinquant'
@@ -289,6 +291,12 @@ export interface Message {
    * controller normalizes the path before passing it to native code.
    */
   mediaPath?: string;
+  /**
+   * Optional fp32 mono 16 kHz PCM buffer. Only valid on `user` messages for
+   * models with the `'audio'` capability. The controller forwards it to the
+   * native `generateMultimodal` path.
+   */
+  audioWaveform?: Float32Array;
 }
 
 /**
@@ -386,6 +394,7 @@ export interface ContextStrategy {
 export const SPECIAL_TOKENS = {
   BOS_TOKEN: 'bos_token',
   EOS_TOKEN: 'eos_token',
+  EOT_TOKEN: 'eot_token',
   UNK_TOKEN: 'unk_token',
   SEP_TOKEN: 'sep_token',
   PAD_TOKEN: 'pad_token',

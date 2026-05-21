@@ -10,6 +10,7 @@
 #pragma once
 
 #include "irunner.h"
+#include "rnexecutorch/Log.h"
 #include "stats.h"
 #include "text_decoder_runner.h"
 #include "util.h"
@@ -90,6 +91,7 @@ public:
     timestamp_ = std::chrono::high_resolution_clock::now();
 
     // Generate our tokens
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa generator", pos, start_pos, max_new_tokens);
     while (pos < start_pos + max_new_tokens) {
       // Run the model
       auto logits_res = text_decoder_runner_->step(tokens_managed, pos);
@@ -100,12 +102,17 @@ public:
       prev_token = cur_token;
 
       stats_->on_sampling_begin();
-      cur_token =
-          text_decoder_runner_->logits_to_token(logits_tensor, generated_tokens);
+      cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
+                                                        generated_tokens);
       stats_->on_sampling_end();
+
+      // rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "Generated token id:",
+      //        static_cast<unsigned long long>(cur_token));
 
       pos++;
       generated_tokens.push_back(cur_token);
+
+      const bool eos_reached_now = eos_ids_->find(cur_token) != eos_ids_->end();
 
       if (use_kv_cache_) {
         // update the token tensor. token_data will not be empty.
@@ -118,8 +125,36 @@ public:
             tokens_managed, {1, static_cast<int>(token_data.size())}));
       }
 
+      // Don't include the terminal EOS/EOT token in the streamed text — it
+      // would otherwise be appended to the assistant message stored in chat
+      // history and corrupt the next turn's chat-template rendering
+      // (e.g. duplicated <end_of_turn>).
+      if (eos_reached_now) {
+        printf("\n");
+        rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                          "Reached end of generation");
+#ifndef RNEX_BYPASS_TOKENIZER
+        if (!token_cache.empty()) {
+          auto flush = tokenizer_->decode(token_cache, false);
+          if (flush.ok() && !flush.get().empty() &&
+              !flush.get().ends_with("�") && token_callback) {
+            token_callback(flush.get());
+          }
+          token_cache.clear();
+        }
+#else
+        token_cache.clear();
+#endif
+        break;
+      }
+
       token_cache.push_back(static_cast<uint64_t>(cur_token));
 
+#ifdef RNEX_BYPASS_TOKENIZER
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                        "gen_token=" + std::to_string(cur_token));
+      std::string cache_decoded = std::to_string(cur_token) + " ";
+#else
       // print the token as string, decode it with the Tokenizer object
       // We pass false, as we want don't want to skip special tokens e.g.
       // <think>
@@ -133,6 +168,7 @@ public:
                 std::to_string(static_cast<int32_t>(decodeResult.error())));
       }
       std::string cache_decoded = decodeResult.get();
+#endif
       const auto timeIntervalElapsed =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::high_resolution_clock::now() - timestamp_)
@@ -142,21 +178,13 @@ public:
       const auto eos_reached = eos_ids_->contains(cur_token);
 
       if (!cache_decoded.ends_with("�") &&
-          (countIntervalElapsed || timeIntervalElapsed || should_stop_ ||
-           eos_reached)) {
+          (countIntervalElapsed || timeIntervalElapsed || should_stop_)) {
         token_callback(cache_decoded);
         token_cache.clear();
         timestamp_ = std::chrono::high_resolution_clock::now();
       }
 
       if (should_stop_) {
-        break;
-      }
-
-      // data-dependent terminating condition: we have n_eos_ number of EOS
-      if (eos_ids_->find(cur_token) != eos_ids_->end()) {
-        printf("\n");
-        ET_LOG(Info, "\nReached to the end of generation");
         break;
       }
     }

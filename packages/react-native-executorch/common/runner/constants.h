@@ -17,13 +17,22 @@ inline constexpr auto kMaxSeqLen = "get_max_seq_len";
 inline constexpr auto kMaxContextLen = "get_max_context_len";
 inline constexpr auto kVocabSize = "get_vocab_size";
 inline constexpr auto kUseKVCache = "use_kv_cache";
+// PLE models only: token id that marks image placeholder slots in input_ids.
+// token_embedding run on this id produces the per-layer PLE signal for image
+// positions; the inputs_embeds output for those positions is discarded (the
+// vision encoder output replaces it).
+inline constexpr auto kImagePlaceholderId = "image_placeholder_id";
 
 // Multimodal method name conventions
 inline constexpr auto kVisionEncoderMethod = "vision_encoder";
 inline constexpr auto kAudioEncoderMethod = "audio_encoder";
 inline constexpr auto kTokenEmbeddingMethod = "token_embedding";
 inline constexpr auto kTextModelMethod = "text_decoder";
-
+// Absolute ceiling on prefill length (in tokens) and the fallback value used
+// when a PTE doesn't bake `get_max_seq_len`. 2048 matches Gemma4 iter201's
+// PREFILL_LEN / get_max_context_len; legacy PTEs (e.g. LFM2-VL) typically
+// bake their own get_max_seq_len so this ceiling does not affect them.
+inline constexpr auto kMaxPrefillLen = 2048;
 inline constexpr auto numOfAddedBoSTokens = 0;
 inline constexpr auto numOfAddedEoSTokens = 0;
 

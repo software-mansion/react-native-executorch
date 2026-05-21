@@ -16,6 +16,13 @@ import { Logger } from '../common/Logger';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
+// Audio soft-token expansion constants for Gemma4's audio_encoder.
+// Mirrors AUDIO_SAMPLES_PER_BLOCK (kSamplesPerBlock=7680) and the per-block
+// soft-token rate in audio_encoder.cpp; used to size the context budget so
+// long audio doesn't silently overflow get_max_seq_len during prefill.
+const AUDIO_SAMPLES_PER_BLOCK = 7680;
+const AUDIO_TOKENS_PER_BLOCK = 12;
+
 export class LLMController {
   private nativeModule: any;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
@@ -236,6 +243,17 @@ export class LLMController {
     return token;
   }
 
+  private getAudioToken(): string {
+    const token = this.tokenizerConfig.audio_token;
+    if (!token) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config is missing 'audio_token'. Audio-capable models require tokenizerConfigSource with an 'audio_token' field."
+      );
+    }
+    return token;
+  }
+
   private filterSpecialTokens(text: string): string {
     let filtered = text;
     if (
@@ -243,6 +261,12 @@ export class LLMController {
       this.tokenizerConfig.eos_token
     ) {
       filtered = filtered.replaceAll(this.tokenizerConfig.eos_token, '');
+    }
+    if (
+      SPECIAL_TOKENS.EOT_TOKEN in this.tokenizerConfig &&
+      this.tokenizerConfig.eot_token
+    ) {
+      filtered = filtered.replaceAll(this.tokenizerConfig.eot_token, '');
     }
     if (
       SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
@@ -269,25 +293,35 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string, imagePaths?: string[]): Promise<string> {
+  public async forward(
+    input: string,
+    imagePaths?: string[],
+    audioWaveforms?: Float32Array[]
+  ): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this._isGenerating) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
+    const hasImages = !!imagePaths && imagePaths.length > 0;
+    const hasAudio = !!audioWaveforms && audioWaveforms.length > 0;
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response =
-        imagePaths && imagePaths.length > 0
-          ? await this.nativeModule.generateMultimodal(
-              input,
-              imagePaths.map(normalizeImagePath),
-              this.getImageToken(),
-              this.onToken
-            )
-          : await this.nativeModule.generate(input, this.onToken);
+      let response: string;
+      if (hasImages || hasAudio) {
+        response = await this.nativeModule.generateMultimodal(
+          input,
+          this.onToken,
+          hasImages ? imagePaths!.map(normalizeImagePath) : [],
+          hasImages ? this.getImageToken() : '',
+          hasAudio ? audioWaveforms! : [],
+          hasAudio ? this.getAudioToken() : ''
+        );
+      } else {
+        response = await this.nativeModule.generate(input, this.onToken);
+      }
       return this.filterSpecialTokens(response);
     } catch (e) {
       throw parseUnknownError(e);
@@ -355,6 +389,9 @@ export class LLMController {
     const imagePaths = messages
       .filter((m) => m.mediaPath)
       .map((m) => m.mediaPath!);
+    const audioWaveforms = messages
+      .filter((m) => m.audioWaveform)
+      .map((m) => m.audioWaveform!);
 
     const renderedChat: string = this.applyChatTemplate(
       messages,
@@ -366,19 +403,22 @@ export class LLMController {
 
     return await this.forward(
       renderedChat,
-      imagePaths.length > 0 ? imagePaths : undefined
+      imagePaths.length > 0 ? imagePaths : undefined,
+      audioWaveforms.length > 0 ? audioWaveforms : undefined
     );
   }
 
   public async sendMessage(
     message: string,
-    media?: { imagePath?: string }
+    media?: { imagePath?: string; audioBuffer?: Float32Array }
   ): Promise<string> {
     const mediaPath = media?.imagePath;
+    const audioBuffer = media?.audioBuffer;
     const newMessage: Message = {
       content: message,
       role: 'user',
       ...(mediaPath ? { mediaPath } : {}),
+      ...(audioBuffer ? { audioWaveform: audioBuffer } : {}),
     };
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
@@ -394,7 +434,22 @@ export class LLMController {
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);
       const imageCount = messages.filter((m) => m.mediaPath).length;
-      return textTokens + imageCount * (visualTokenCount - 1);
+      // Audio soft-token expansion: Gemma4's audio_encoder pads samples to
+      // multiples of AUDIO_SAMPLES_PER_BLOCK (7680 @ 16 kHz) and emits
+      // AUDIO_TOKENS_PER_BLOCK (~12) soft tokens per padded block. The
+      // rendered template only contributes 1 token for the audio placeholder,
+      // so add (expansion - 1) per audio message to match prefill consumption.
+      const audioTokenExpansion = messages.reduce((acc, m) => {
+        if (!m.audioWaveform) return acc;
+        const kBlocks = Math.max(
+          1,
+          Math.ceil(m.audioWaveform.length / AUDIO_SAMPLES_PER_BLOCK)
+        );
+        return acc + (AUDIO_TOKENS_PER_BLOCK * kBlocks - 1);
+      }, 0);
+      return (
+        textTokens + imageCount * (visualTokenCount - 1) + audioTokenExpansion
+      );
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
@@ -497,12 +552,15 @@ function normalizeImagePath(path: string): string {
  * @returns Messages with image-bearing turns rewritten to structured content.
  */
 function messagesForChatTemplate(messages: Message[]): any[] {
-  return messages.map((m) =>
-    m.mediaPath && typeof m.content === 'string'
-      ? {
-          ...m,
-          content: [{ type: 'image' }, { type: 'text', text: m.content }],
-        }
-      : m
-  );
+  return messages.map((m) => {
+    if (typeof m.content !== 'string') return m;
+    const hasImage = !!m.mediaPath;
+    const hasAudio = !!m.audioWaveform;
+    if (!hasImage && !hasAudio) return m;
+    const parts: any[] = [];
+    if (hasImage) parts.push({ type: 'image' });
+    if (hasAudio) parts.push({ type: 'audio' });
+    parts.push({ type: 'text', text: m.content });
+    return { ...m, content: parts };
+  });
 }

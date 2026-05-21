@@ -22,10 +22,16 @@ public:
 
   std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
-  std::string generateMultimodal(std::string prompt,
-                                 std::vector<std::string> imagePaths,
-                                 std::string imageToken,
-                                 std::shared_ptr<jsi::Function> callback);
+  // Audio variant: `audioWaveforms` is a parallel vector of fp32 mono 16 kHz
+  // PCM buffers (decoded upstream, same contract as SpeechToText::transcribe).
+  // The prompt is scanned for `imageToken` and/or `audioToken` placeholders;
+  // each placeholder consumes the next entry from its respective vector in
+  // order. Either set of paths/waveforms/token may be empty.
+  std::string generateMultimodal(
+      std::string prompt, std::shared_ptr<jsi::Function> callback,
+      std::vector<std::string> imagePaths = {}, std::string imageToken = "",
+      std::vector<std::vector<float>> audioWaveforms = {},
+      std::string audioToken = "");
 
   void interrupt();
   void reset();
