@@ -34,8 +34,11 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
   // process() method is called regularly within reasonable steps of time.
   if (audioBuffer_.size() > constants::kMaxSamples) {
     // Note that results are not actually committed now, but saved for
-    // a later call of process().
-    memory_.toCommit = commitAndClean(memory_.transcript);
+    // a later call of process(). Append rather than assign so that two
+    // back-to-back buffer-cap hits (e.g. while VAD is muted) don't drop the
+    // first batch.
+    auto pending = commitAndClean(memory_.transcript);
+    std::ranges::move(pending, std::back_inserter(memory_.toCommit));
   }
 }
 

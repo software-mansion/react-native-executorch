@@ -7,11 +7,8 @@ import { RnExecutorchError } from '../errors/errorUtils';
  */
 export type SpeechToTextModelName =
   | 'whisper-tiny-en'
-  | 'whisper-tiny-en-quantized'
   | 'whisper-base-en'
-  | 'whisper-base-en-quantized'
   | 'whisper-small-en'
-  | 'whisper-small-en-quantized'
   | 'whisper-tiny'
   | 'whisper-base'
   | 'whisper-small';
