@@ -1,0 +1,197 @@
+# Per-app build matrix. Filter definitions live in scripts/build-app-filters.yml
+# and are evaluated by scripts/detect-changed-filters.ts against the diff of the
+# current push (not the cumulative PR diff). Adding a new model directory,
+# controller, or top-level module under packages/react-native-executorch/
+# probably means updating that filter file — `core-shared` if it affects every
+# app, or one of the per-app `<app>-pkg` anchors otherwise. CI runs
+# `scripts/check-ci-filter-coverage.ts` (in ci.yml's lint job) to flag uncovered
+# files so this stays accurate.
+name: Example apps build check
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+jobs:
+  detect-changes:
+    if: github.repository == 'software-mansion/react-native-executorch' && github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    outputs:
+      android_apps: ${{ steps.matrix.outputs.android_apps }}
+      ios_apps: ${{ steps.matrix.outputs.ios_apps }}
+      bundle_apps: ${{ steps.matrix.outputs.bundle_apps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # Enough history for `git diff $before..$head` against the previous
+          # push. PR series rarely exceed this; if they do, the script falls
+          # back to fetching the missing SHA on demand.
+          fetch-depth: 100
+
+      - name: Setup
+        if: github.event_name != 'workflow_dispatch'
+        uses: ./.github/actions/setup
+
+      - name: Detect changed apps
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          set -e
+          ZERO=0000000000000000000000000000000000000000
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BEFORE="${{ github.event.before }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "$ZERO" ]; then
+              BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            else
+              BASE_SHA="$BEFORE"
+            fi
+          else
+            BEFORE="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "$ZERO" ]; then
+              BASE_SHA="$(git rev-parse origin/main^ 2>/dev/null || git rev-parse HEAD^)"
+            else
+              BASE_SHA="$BEFORE"
+            fi
+          fi
+          echo "Diffing $BASE_SHA..$HEAD_SHA"
+          # Ensure both SHAs are reachable; fetch deeper if shallow clone is missing one.
+          if ! git cat-file -e "$BASE_SHA" 2>/dev/null || ! git cat-file -e "$HEAD_SHA" 2>/dev/null; then
+            git fetch --no-tags --depth=500 origin "$BASE_SHA" "$HEAD_SHA" 2>/dev/null \
+              || git fetch --no-tags --unshallow origin 2>/dev/null \
+              || true
+          fi
+          CHANGES=$(npx ts-node scripts/detect-changed-filters.ts "$BASE_SHA" "$HEAD_SHA")
+          echo "Matched filters: $CHANGES"
+          echo "changes=$CHANGES" >> "$GITHUB_OUTPUT"
+
+      - name: Compute matrices
+        id: matrix
+        run: |
+          all='["llm","computer-vision","speech","text-embeddings","bare-rn"]'
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "android_apps=$all" >> "$GITHUB_OUTPUT"
+            echo "ios_apps=$all" >> "$GITHUB_OUTPUT"
+            echo "bundle_apps=$all" >> "$GITHUB_OUTPUT"
+          else
+            changes='${{ steps.filter.outputs.changes }}'
+            android_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-android")) | sub("-android$"; "")]')
+            ios_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-ios")) | sub("-ios$"; "")]')
+            bundle_apps=$(echo "$changes" | jq -c '[.[] | select(endswith("-app")) | sub("-app$"; "")]')
+            echo "android_apps=$android_apps" >> "$GITHUB_OUTPUT"
+            echo "ios_apps=$ios_apps" >> "$GITHUB_OUTPUT"
+            echo "bundle_apps=$bundle_apps" >> "$GITHUB_OUTPUT"
+          fi
+
+  bundle:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.bundle_apps != '[]' && needs.detect-changes.outputs.bundle_apps != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.detect-changes.outputs.bundle_apps) }}
+        platform: [android, ios]
+    concurrency:
+      group: bundle-${{ matrix.platform }}-${{ matrix.app }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Compute bundle hash
+        id: hash
+        run: |
+          h=$(npx ts-node scripts/compute-app-hash.ts "${{ matrix.app }}-app")
+          echo "key=bundle-${{ matrix.platform }}-${{ matrix.app }}-$h" >> "$GITHUB_OUTPUT"
+      - name: Lookup pass marker
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ci-marker
+          key: ${{ steps.hash.outputs.key }}
+          lookup-only: true
+      - name: Skip notice
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: echo "Skipping bundle — bundle-${{ matrix.platform }}-${{ matrix.app }} already passed at this content hash."
+      - name: Build workspace packages
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.app == 'bare-rn'
+        run: yarn workspaces foreach --all --topological-dev run prepare
+      - name: Bundle JS for ${{ matrix.platform }}
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          if [ "${{ matrix.app }}" = "bare-rn" ]; then
+            npx react-native bundle \
+              --platform ${{ matrix.platform }} \
+              --entry-file index.js \
+              --bundle-output /tmp/bundle.js \
+              --dev false
+          else
+            npx expo export \
+              --platform ${{ matrix.platform }} \
+              --output-dir /tmp/expo-export
+          fi
+      - name: Save pass marker
+        if: steps.cache.outputs.cache-hit != 'true' && success()
+        run: |
+          mkdir -p "${{ runner.temp }}/ci-marker"
+          touch "${{ runner.temp }}/ci-marker/passed"
+      - name: Cache pass marker
+        if: steps.cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ci-marker
+          key: ${{ steps.hash.outputs.key }}
+
+  build-android:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.android_apps != '[]' && needs.detect-changes.outputs.android_apps != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.detect-changes.outputs.android_apps) }}
+    concurrency:
+      group: android-${{ matrix.app }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Build Android app
+        uses: ./.github/actions/build-android-app
+        with:
+          app-path: apps/${{ matrix.app }}
+          expo-prebuild: ${{ matrix.app == 'bare-rn' && 'false' || 'true' }}
+          filter-name: ${{ matrix.app }}-android
+
+  build-ios:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ios_apps != '[]' && needs.detect-changes.outputs.ios_apps != ''
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.detect-changes.outputs.ios_apps) }}
+    concurrency:
+      group: ios-${{ matrix.app }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Build iOS app
+        uses: ./.github/actions/build-ios-app
+        with:
+          app-path: apps/${{ matrix.app }}
+          expo-prebuild: ${{ matrix.app == 'bare-rn' && 'false' || 'true' }}
+          filter-name: ${{ matrix.app }}-ios
