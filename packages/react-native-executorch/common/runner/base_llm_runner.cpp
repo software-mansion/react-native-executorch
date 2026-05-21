@@ -150,10 +150,7 @@ void BaseLLMRunner::set_repetition_penalty(float repetition_penalty) noexcept {
   config_.repetition_penalty = repetition_penalty;
 }
 
-void BaseLLMRunner::set_topk(int32_t topk) noexcept {
-  config_.topk = topk;
-  set_topk_impl(topk);
-}
+void BaseLLMRunner::set_topk(int32_t topk) noexcept { config_.topk = topk; }
 
 void BaseLLMRunner::set_count_interval(size_t count_interval) {
   config_.output_token_batch_size = count_interval;

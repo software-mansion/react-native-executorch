@@ -400,7 +400,6 @@ export class LLMController {
       // eslint-disable-next-line camelcase
       { tools_in_user_message: false, add_generation_prompt: true }
     );
-    console.log(renderedChat);
 
     return await this.forward(
       renderedChat,
@@ -415,7 +414,6 @@ export class LLMController {
   ): Promise<string> {
     const mediaPath = media?.imagePath;
     const audioBuffer = media?.audioBuffer;
-    console.log('audioBuffer?.length', audioBuffer?.length);
     const newMessage: Message = {
       content: message,
       role: 'user',
@@ -450,9 +448,7 @@ export class LLMController {
         return acc + (AUDIO_TOKENS_PER_BLOCK * kBlocks - 1);
       }, 0);
       return (
-        textTokens +
-        imageCount * (visualTokenCount - 1) +
-        audioTokenExpansion
+        textTokens + imageCount * (visualTokenCount - 1) + audioTokenExpansion
       );
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();

@@ -70,6 +70,30 @@ int32_t Sampler::sample_mult(T *probabilities, float coin) {
   return vocab_size_ - 1; // in case of rounding errors
 }
 
+template <typename T>
+int32_t Sampler::sample_topp(T *probabilities, float coin) {
+  // top-p sampling (or "nucleus sampling") samples from the smallest set of
+  // tokens that exceed probability topp. This way we never sample tokens that
+  // have very low probabilities and are less likely to go "off the rails".
+  // coin is a random number in [0, 1), usually from random_f32()
+  int n = vocab_size_;
+  int n0 = 0;
+  // quicksort indices in descending order of probabilities
+  // values smaller than (1 - topp) / (n - 1) cannot be part of the result
+  // so for efficiency we crop these out as candidates before sorting
+  std::unique_ptr<ProbIndex<T>[]> probindex =
+      std::make_unique<ProbIndex<T>[]>(vocab_size_);
+
+  const float cutoff = (1.0f - topp_) / (n - 1);
+  for (int i = 0; i < n; i++) {
+    if (probabilities[i] >= cutoff) {
+      probindex[n0].index = i;
+      probindex[n0].prob = probabilities[i];
+      n0++;
+    }
+  }
+}
+
 // Mask logits outside the top-k by rank to -inf. Ties at the k-th boundary
 // are kept (matches HuggingFace TopKLogitsWarper).
 template <typename T> void Sampler::mask_topk(T *logits) {
@@ -96,10 +120,7 @@ Sampler::Sampler(int32_t vocab_size, float temperature, float topp,
     : vocab_size_(vocab_size),
       inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
       topp_(topp), min_p_(min_p), repetition_penalty_(repetition_penalty),
-      rng_state_(rng_seed) {}
-
-Sampler::Sampler(int vocab_size, float temperature, float topp)
-    : Sampler(vocab_size, temperature, topp, std::time(nullptr), 0.0f, 1.0f) {}
+      topk_(0), rng_state_(rng_seed) {}
 
 // Mask logits whose softmax-prob falls outside the top-p nucleus to -inf.
 // Keeps the token that crosses the threshold (HuggingFace convention).
@@ -161,19 +182,18 @@ Sampler::Sampler(int vocab_size, float temperature, float topp, int32_t topk,
                  unsigned long long rng_seed)
     : vocab_size_(vocab_size),
       inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
-      topp_(topp), topk_(topk), rng_state_(rng_seed) {}
+      topp_(topp), min_p_(0.0f), repetition_penalty_(1.0f), topk_(topk),
+      rng_state_(rng_seed) {}
 
 Sampler::Sampler(int vocab_size, float temperature, float topp, int32_t topk)
-    : vocab_size_(vocab_size),
-      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
-      topp_(topp), topk_(topk), rng_state_(std::time(nullptr)) {}
+    : Sampler(vocab_size, temperature, topp, topk, std::time(nullptr)) {}
 
 Sampler::Sampler(int vocab_size, float temperature, float topp,
                  unsigned long long rng_seed)
     : Sampler(vocab_size, temperature, topp, 0, rng_seed) {}
 
 Sampler::Sampler(int vocab_size, float temperature, float topp)
-    : Sampler(vocab_size, temperature, topp, 0) {}
+    : Sampler(vocab_size, temperature, topp, 0, std::time(nullptr)) {}
 
 template <typename T> static void softmax(T *x, int size) {
   // find max value (for numerical stability)
@@ -219,9 +239,11 @@ int32_t Sampler::sample(T *logits, const std::vector<uint64_t> &recent_tokens) {
     apply_repetition_penalty(logits, vocab_size_, recent_tokens);
     // 2. apply the temperature to the logits
     apply_temperature(logits, vocab_size_);
-    // 3. apply softmax to the logits to get the probabilities for next token
+    // 3. mask out logits outside top-k by rank (pre-softmax, becomes 0 mass)
+    mask_topk(logits);
+    // 4. apply softmax to the logits to get the probabilities for next token
     softmax(logits, vocab_size_);
-    // 4. apply min_p truncation
+    // 5. apply min_p truncation
     apply_min_p(logits, vocab_size_);
     // flip a (float) coin (this is our source of entropy for sampling)
     float coin = random_f32(&rng_state_);
@@ -235,22 +257,6 @@ int32_t Sampler::sample(T *logits, const std::vector<uint64_t> &recent_tokens) {
     }
   }
   return next;
-}
-
-template <typename T> int32_t Sampler::sample(T *logits) {
-  // Pipeline: temperature -> top-k mask -> top-p mask -> softmax -> multinomial.
-  // Greedy bypasses everything when temperature == 0.
-  if (inv_temperature_ == 0.0f) {
-    return sample_argmax(logits);
-  }
-  for (int q = 0; q < vocab_size_; q++) {
-    logits[q] = static_cast<T>(static_cast<float>(logits[q]) * inv_temperature_);
-  }
-  mask_topk(logits);
-  mask_topp(logits);
-  softmax(logits, vocab_size_);
-  float coin = random_f32(&rng_state_);
-  return sample_mult(logits, coin);
 }
 
 template <typename T> int32_t Sampler::sample(T *logits) {

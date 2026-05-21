@@ -70,9 +70,6 @@ std::string LLM::generate(std::string input,
 
   auto config = llm::GenerationConfig{.echo = false, .warming = false};
   auto error = runner_->generate(input, config, nativeCallback, {});
-  // No-op unless built with ET_EVENT_TRACER_ENABLED. Writes etdump.bin
-  // alongside the model after the generation finishes.
-  dumpEventTracer();
   if (error != Error::Ok) {
     throw RnExecutorchError(error, "Failed to generate text");
   }

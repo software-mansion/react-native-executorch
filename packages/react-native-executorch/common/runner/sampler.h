@@ -61,6 +61,7 @@ public:
   int32_t sample(T *logits, const std::vector<uint64_t> &recent_tokens);
 
 private:
+  template <typename T> int32_t sample_topp(T *probabilities, float coin);
   template <typename T> int32_t sample_mult(T *probabilities, float coin);
   template <typename T> int32_t sample_argmax(T *probabilities);
   // In-place logit warpers: set excluded indices to -inf.

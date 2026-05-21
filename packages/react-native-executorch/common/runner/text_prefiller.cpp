@@ -27,9 +27,9 @@ TextPrefiller::TextPrefiller(TextDecoderRunner *text_decoder_runner,
   // [1, N] with N>1, we must pad every prefill call to exactly N tokens.
   prefill_static_len_ = text_decoder_runner_->prefill_static_len();
   if (prefill_static_len_ > 0) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "TextPrefiller: static prefill len detected =",
-                      prefill_static_len_);
+    rnexecutorch::log(
+        rnexecutorch::LOG_LEVEL::Info,
+        "TextPrefiller: static prefill len detected =", prefill_static_len_);
   }
 }
 
@@ -46,9 +46,9 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
 
   // When the PTE's `forward` is static-shape (e.g. [1, 256]), the chunk size
   // is fixed at prefill_static_len_; otherwise fall back to max_seq_len_.
-  const int32_t chunk_size =
-      prefill_static_len_ > 0 ? static_cast<int32_t>(prefill_static_len_)
-                              : static_cast<int32_t>(max_seq_len_);
+  const int32_t chunk_size = prefill_static_len_ > 0
+                                 ? static_cast<int32_t>(prefill_static_len_)
+                                 : static_cast<int32_t>(max_seq_len_);
 
   // If prompt tokens exceed chunk_size, we need to chunk them
   if (num_prompt_tokens > chunk_size) {
@@ -56,8 +56,8 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
     int num_tokens_to_process = 0;
 
     while (num_tokens_to_process < num_prompt_tokens) {
-      auto num_tokens_to_prefill_with = std::min<int>(
-          num_prompt_tokens - num_tokens_to_process, chunk_size);
+      auto num_tokens_to_prefill_with =
+          std::min<int>(num_prompt_tokens - num_tokens_to_process, chunk_size);
 
       std::vector<uint64_t> prompt_tokens_to_process(
           num_tokens_to_prefill_with);
@@ -119,11 +119,7 @@ TextPrefiller::prefill_chunk(std::vector<uint64_t> &prompt_tokens,
 
     start_pos += num_prompt_tokens; // advance only by REAL tokens
     // Sample from the row corresponding to the last real prompt token.
-    cur_token = text_decoder_runner_->logits_to_token(
-        outputs_res.get(), -1.F, -1.F,
-        /*seq_pos=*/static_cast<int64_t>(num_prompt_tokens - 1));
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "after prefill token",
-                      cur_token);
+    cur_token = text_decoder_runner_->logits_to_token(outputs_res.get());
   } else {           // sequential prefill
     int64_t pos = 0; // position in the sequence
     // NOLINTNEXTLINE(facebook-hte-ParameterUncheckedArrayBounds)
