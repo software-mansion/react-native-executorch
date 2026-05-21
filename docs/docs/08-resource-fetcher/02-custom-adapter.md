@@ -13,6 +13,7 @@ import {
   ResourceFetcherAdapter,
   ResourceSource,
 } from 'react-native-executorch';
+
 interface ResourceFetcherAdapter {
   fetch(
     callback: (downloadProgress: number) => void,
