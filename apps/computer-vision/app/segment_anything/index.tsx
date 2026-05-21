@@ -241,7 +241,7 @@ export default function SegmentAnythingScreen() {
       const start = Date.now();
       const output = await forward(imageUri, {
         confidenceThreshold: 0.4,
-        iouThreshold: 0.9,
+        nms: { iouThreshold: 0.9 },
         maxInstances: 50,
         returnMaskAtOriginalResolution: true,
       });

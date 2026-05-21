@@ -1,5 +1,12 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, ResourceSource, Triple, Frame, PixelData } from './common';
+import {
+  LabelEnum,
+  NmsConfig,
+  ResourceSource,
+  Triple,
+  Frame,
+  PixelData,
+} from './common';
 import { Bbox } from './objectDetection';
 
 /**
@@ -48,10 +55,12 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
    */
   confidenceThreshold?: number;
   /**
-   * IoU threshold for non-maximum suppression.
-   * Defaults to model's defaultIouThreshold (typically 0.5).
+   * Override NMS mode and/or `iouThreshold` for this call. Partial — missing
+   * fields fall back to the model preset's `defaultNms`. Ignored for models
+   * whose preset disables external NMS (`postprocessorConfig.applyNMS: false`,
+   * e.g. YOLO-seg which does NMS internally).
    */
-  iouThreshold?: number;
+  nms?: NmsConfig;
   /**
    * Maximum number of instances to return. Default: 100
    */
@@ -89,9 +98,19 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
     normMean?: Triple<number>;
     normStd?: Triple<number>;
   };
+  /**
+   * `applyNMS: false` for models that produce already-deduplicated detections
+   * (e.g. YOLO-seg, where NMS runs inside the model graph). Property of the
+   * model architecture — not user-tuneable per call.
+   */
   postprocessorConfig?: { applyNMS?: boolean };
   defaultConfidenceThreshold?: number;
-  defaultIouThreshold?: number;
+  /**
+   * Default NMS configuration. Overridable per-call via
+   * {@link InstanceSegmentationOptions.nms}. Has no effect when
+   * `postprocessorConfig.applyNMS` is `false`.
+   */
+  defaultNms?: NmsConfig;
 } & (
   | {
       availableInputSizes: readonly number[];

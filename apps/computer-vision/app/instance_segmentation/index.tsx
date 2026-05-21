@@ -112,7 +112,7 @@ export default function InstanceSegmentationScreen() {
       const start = Date.now();
       const output = await forward(imageUri, {
         confidenceThreshold: 0.5,
-        iouThreshold: 0.55,
+        nms: { iouThreshold: 0.55 },
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
         inputSize,

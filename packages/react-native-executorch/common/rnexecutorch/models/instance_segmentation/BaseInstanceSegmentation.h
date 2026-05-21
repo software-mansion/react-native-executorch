@@ -28,30 +28,32 @@ public:
                      double iouThreshold, int32_t maxInstances,
                      std::vector<int32_t> classIndices,
                      bool returnMaskAtOriginalResolution,
-                     std::string methodName);
+                     std::string methodName, bool useWeightedNms);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                     double confidenceThreshold, double iouThreshold,
                     int32_t maxInstances, std::vector<int32_t> classIndices,
-                    bool returnMaskAtOriginalResolution,
-                    std::string methodName);
+                    bool returnMaskAtOriginalResolution, std::string methodName,
+                    bool useWeightedNms);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::Instance>
   generateFromPixels(JSTensorViewIn tensorView, double confidenceThreshold,
                      double iouThreshold, int32_t maxInstances,
                      std::vector<int32_t> classIndices,
                      bool returnMaskAtOriginalResolution,
-                     std::string methodName);
+                     std::string methodName, bool useWeightedNms);
 
 protected:
   cv::Size modelInputSize() const override;
 
 private:
-  std::vector<types::Instance> runInference(
-      const cv::Mat &image, double confidenceThreshold, double iouThreshold,
-      int32_t maxInstances, const std::vector<int32_t> &classIndices,
-      bool returnMaskAtOriginalResolution, const std::string &methodName);
+  std::vector<types::Instance>
+  runInference(const cv::Mat &image, double confidenceThreshold,
+               double iouThreshold, int32_t maxInstances,
+               const std::vector<int32_t> &classIndices,
+               bool returnMaskAtOriginalResolution,
+               const std::string &methodName, bool useWeightedNms);
 
   TensorPtr buildInputTensor(const cv::Mat &image);
 
@@ -89,7 +91,7 @@ private:
 
   std::vector<types::Instance>
   finalizeInstances(std::vector<types::Instance> instances, double iouThreshold,
-                    int32_t maxInstances) const;
+                    int32_t maxInstances, bool useWeightedNms) const;
 
   cv::Mat processMaskFromLogits(
       const cv::Mat &logitsMat, const utils::computer_vision::BBox &bboxModel,

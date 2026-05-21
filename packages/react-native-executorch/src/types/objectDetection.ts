@@ -1,5 +1,12 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { LabelEnum, Triple, ResourceSource, PixelData, Frame } from './common';
+import {
+  LabelEnum,
+  NmsConfig,
+  Triple,
+  ResourceSource,
+  PixelData,
+  Frame,
+} from './common';
 import { CocoLabel } from '../constants/commonVision';
 export { CocoLabel };
 
@@ -36,24 +43,16 @@ export interface Detection<L extends LabelEnum = typeof CocoLabel> {
  * Options for configuring object detection inference.
  * @category Types
  * @typeParam L - The label enum type for filtering classes of interest.
- * @property {number} [detectionThreshold] - Minimum confidence score for detections (0-1). Defaults to model-specific value.
- * @property {number} [iouThreshold] - IoU threshold for non-maximum suppression (0-1). Defaults to model-specific value.
- * @property {number} [inputSize] - Input size for multi-method models (e.g., 384, 512, 640 for YOLO). Required for YOLO models if not using default.
- * @property {(keyof L)[]} [classesOfInterest] - Optional array of class labels to filter detections. Only detections matching these classes will be returned.
  */
 export interface ObjectDetectionOptions<L extends LabelEnum> {
+  /** Minimum confidence score for detections (0-1). Defaults to the model preset's value. */
   detectionThreshold?: number;
-  iouThreshold?: number;
+  /** Override NMS mode and/or `iouThreshold` for this call. Partial — missing fields fall back to the model preset's `defaultNms`. */
+  nms?: NmsConfig;
+  /** Input size for multi-method models (e.g. 384/512/640 for YOLO). */
   inputSize?: number;
+  /** Restrict output to these class labels. */
   classesOfInterest?: (keyof L)[];
-  /**
-   * If true, use weighted (blending) NMS instead of greedy NMS. Score-weighted
-   * averaging of overlapping boxes — required for BlazeFace-style models
-   * where individual anchors aren't trained to be accurate on their own.
-   * Defaults to the model preset's `defaultUseWeightedNms` (false unless the
-   * preset opts in, e.g. `blazeface`).
-   */
-  useWeightedNms?: boolean;
   /**
    * If true, preprocess by aspect-preserving fit + center-pad (letterbox)
    * instead of a plain stretch resize to the model's input size. Required
@@ -89,20 +88,16 @@ export type ObjectDetectionModelName = ObjectDetectionModelSources['modelName'];
  * Configuration for a custom object detection model.
  * @category Types
  * @typeParam T - The label enum type for the model.
- * @property {T} labelMap - The label mapping for the model.
- * @property {object} [preprocessorConfig] - Optional preprocessing configuration with normalization parameters.
- * @property {number} [defaultDetectionThreshold] - Default detection confidence threshold (0-1).
- * @property {number} [defaultIouThreshold] - Default IoU threshold for non-maximum suppression (0-1).
- * @property {readonly number[]} [availableInputSizes] - For multi-method models, the available input sizes (e.g., [384, 512, 640]).
- * @property {number} [defaultInputSize] - For multi-method models, the default input size to use.
  */
 export type ObjectDetectionConfig<T extends LabelEnum> = {
+  /** The label mapping for the model. */
   labelMap: T;
+  /** Optional input normalisation: `(pixel - normMean) / normStd`. */
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
+  /** Default detection confidence threshold (0-1). */
   defaultDetectionThreshold?: number;
-  defaultIouThreshold?: number;
-  /** Default NMS mode for this model. Overridable per-call via `useWeightedNms`. */
-  defaultUseWeightedNms?: boolean;
+  /** Default NMS configuration. Overridable per-call via {@link ObjectDetectionOptions.nms}. */
+  defaultNms?: NmsConfig;
   /** Default preprocessing for this model. Overridable per-call via `useLetterbox`. */
   defaultUseLetterbox?: boolean;
 } & (

@@ -145,6 +145,29 @@ export type LabelEnum = Readonly<Record<string, number | string>>;
  * @category Types
  */
 export type Triple<T> = readonly [T, T, T];
+
+/**
+ * Non-maximum suppression configuration shared by computer-vision models that
+ * deduplicate overlapping detections (object detection, instance segmentation).
+ *
+ * - `'greedy'` (default): standard NMS — keep the highest-scoring box, drop
+ *   anything overlapping it above {@link iouThreshold}. Suits detectors like
+ *   YOLO / SSDLite whose individual anchors are trained to be accurate
+ *   standalone.
+ * - `'weighted'`: score-weighted blending — average overlapping boxes by
+ *   their scores instead of pruning to a single winner. Required for
+ *   detectors like BlazeFace whose anchors were trained as an ensemble.
+ *
+ * Both fields are optional in per-call options and the model preset's
+ * `defaultNms`; missing fields fall back through the preset default to the
+ * runtime default.
+ * @category Types
+ */
+export interface NmsConfig {
+  mode?: 'greedy' | 'weighted';
+  /** IoU threshold (0-1). Boxes overlapping above this are suppressed (greedy) or merged (weighted). */
+  iouThreshold?: number;
+}
 /**
  * Represents raw pixel data in RGB format for vision models.
  *
