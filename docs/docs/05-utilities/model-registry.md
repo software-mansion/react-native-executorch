@@ -128,16 +128,16 @@ useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
 
 ## Migration from the previous registry
 
-Earlier releases exposed `MODEL_REGISTRY` as an uppercase, dual-value/function shape. That has been replaced with a function-only, lowercase `models` export.
+Earlier releases exposed `MODEL_REGISTRY` as a flat value-only registry (`MODEL_REGISTRY.ALL_MODELS.<NAME>`) and shipped each precision/quantization variant as its own top-level constant. That has been replaced with a function-only, capability-grouped, lowercase `models` export that takes `{ quant, backend }` opts.
 
 ```typescript
-// Before
-useLLM(MODEL_REGISTRY.LLM.LLAMA3_2_3B);
-useLLM(MODEL_REGISTRY.LLM.LLAMA3_2_3B({ quant: false }));
+// Before — flat value-only registry, one constant per variant.
+useLLM({ model: MODEL_REGISTRY.ALL_MODELS.LLAMA3_2_3B });
+useLLM({ model: MODEL_REGISTRY.ALL_MODELS.LLAMA3_2_3B_SPINQUANT });
 
-// After
-useLLM({ model: models.llm.llama3_2_3b() });
-useLLM({ model: models.llm.llama3_2_3b({ quant: false }) });
+// After — callable accessor; pick the variant with opts.
+useLLM({ model: models.llm.llama3_2_3b() }); // quantized by default
+useLLM({ model: models.llm.llama3_2_3b({ quant: false }) }); // full precision
 ```
 
 Individual constant imports (`LLAMA3_2_3B`, `WHISPER_TINY_EN`, …) are unchanged.
