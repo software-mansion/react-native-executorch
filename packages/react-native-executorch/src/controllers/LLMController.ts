@@ -260,7 +260,7 @@ export class LLMController {
     if (this._isGenerating) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModelGenerating,
-        'You cannot delete the model now. You need ot interrupt it first.'
+        'You cannot delete the model now. You need to interrupt it first.'
       );
     }
 
