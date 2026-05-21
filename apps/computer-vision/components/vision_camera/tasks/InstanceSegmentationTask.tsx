@@ -18,7 +18,6 @@ import {
   DisplayInstance,
 } from '../../../components/ImageWithMasks';
 const instanceSegmentation = models.instance_segmentation;
-const objectDetection = models.object_detection;
 
 type InstSegModelId =
   | 'instanceSegmentationYolo26n'
@@ -49,11 +48,11 @@ export default function InstanceSegmentationTask({
     preventLoad: activeModel !== 'instanceSegmentationRfdetr',
   });
   const fastsamS = useInstanceSegmentation({
-    model: objectDetection.fastsam_s(),
+    model: instanceSegmentation.fastsam_s(),
     preventLoad: activeModel !== 'instanceSegmentationFastsamS',
   });
   const fastsamX = useInstanceSegmentation({
-    model: objectDetection.fastsam_x(),
+    model: instanceSegmentation.fastsam_x(),
     preventLoad: activeModel !== 'instanceSegmentationFastsamX',
   });
 

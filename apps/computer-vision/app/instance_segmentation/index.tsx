@@ -23,7 +23,6 @@ import ImageWithMasks, {
 } from '../../components/ImageWithMasks';
 import { StatsBar } from '../../components/StatsBar';
 const instanceSegmentation = models.instance_segmentation;
-const objectDetection = models.object_detection;
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
   { label: 'Yolo26N', value: instanceSegmentation.yolo26n() },
@@ -35,8 +34,8 @@ const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
     label: 'RF-DeTR Nano',
     value: instanceSegmentation.rf_detr_nano(),
   },
-  { label: 'FastSAM-S', value: objectDetection.fastsam_s() },
-  { label: 'FastSAM-X', value: objectDetection.fastsam_x() },
+  { label: 'FastSAM-S', value: instanceSegmentation.fastsam_s() },
+  { label: 'FastSAM-X', value: instanceSegmentation.fastsam_x() },
 ];
 
 export default function InstanceSegmentationScreen() {

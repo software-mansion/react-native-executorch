@@ -506,8 +506,6 @@ export const models = {
     yolo26m: base(M.YOLO26M),
     yolo26l: base(M.YOLO26L),
     yolo26x: base(M.YOLO26X),
-    fastsam_s: variant(FASTSAM_S_VARIANTS),
-    fastsam_x: variant(FASTSAM_X_VARIANTS),
   },
   pose_estimation: {
     yolo26n: base(M.YOLO26N_POSE),
@@ -540,6 +538,8 @@ export const models = {
     yolo26l: base(M.YOLO26L_SEG),
     yolo26x: base(M.YOLO26X_SEG),
     rf_detr_nano: variant(RF_DETR_NANO_SEG_VARIANTS),
+    fastsam_s: variant(FASTSAM_S_VARIANTS),
+    fastsam_x: variant(FASTSAM_X_VARIANTS),
   },
   style_transfer: {
     candy: variant(STYLE_TRANSFER_CANDY_VARIANTS),

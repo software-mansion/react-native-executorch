@@ -45,20 +45,22 @@ import ImageWithMasks, {
 } from '../../components/ImageWithMasks';
 import { getImage } from '../../utils';
 import ColorPalette from '../../colors';
-const objectDetection = models.object_detection;
+const instanceSegmentation = models.instance_segmentation;
 
 type PromptMode = 'point' | 'box' | 'text';
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
-  { label: 'FastSAM-S', value: objectDetection.fastsam_s() },
-  { label: 'FastSAM-X', value: objectDetection.fastsam_x() },
+  { label: 'FastSAM-S', value: instanceSegmentation.fastsam_s() },
+  { label: 'FastSAM-X', value: instanceSegmentation.fastsam_x() },
 ];
 
 export default function SegmentAnythingScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const [selectedModel, setSelectedModel] =
-    useState<InstanceSegmentationModelSources>(objectDetection.fastsam_s());
+    useState<InstanceSegmentationModelSources>(
+      instanceSegmentation.fastsam_s()
+    );
   const [mode, setMode] = useState<PromptMode>('point');
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 

@@ -155,7 +155,7 @@ import {
   selectByText,
 } from 'react-native-executorch';
 const model = useInstanceSegmentation({
-  model: models.object_detection.fastsam_x(),
+  model: models.instance_segmentation.fastsam_x(),
 });
 
 try {
