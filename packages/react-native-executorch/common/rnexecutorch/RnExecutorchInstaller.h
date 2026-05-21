@@ -93,14 +93,11 @@ private:
                   } catch (const rnexecutorch::RnExecutorchError &e) {
                     auto code = e.getNumericCode();
                     auto msg = std::string(e.what());
-                    jsCallInvoker->invokeAsync([promise, code,
-                                                msg](jsi::Runtime &rt) {
-                      jsi::Object errorData(rt);
-                      errorData.setProperty(rt, "code", code);
-                      errorData.setProperty(
-                          rt, "message", jsi::String::createFromUtf8(rt, msg));
-                      promise->reject(jsi::Value(rt, std::move(errorData)));
-                    });
+                    jsCallInvoker->invokeAsync(
+                        [promise, code, msg](jsi::Runtime &rt) {
+                          promise->reject(
+                              makeRnExecutorchErrorValue(rt, code, msg));
+                        });
                   } catch (const std::exception &e) {
                     jsCallInvoker->invokeAsync(
                         [promise, msg = std::string(e.what())]() {
