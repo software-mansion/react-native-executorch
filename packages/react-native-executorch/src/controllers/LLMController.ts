@@ -416,18 +416,20 @@ export class LLMController {
     }
 
     if (this.toolsConfig) {
-      const toolCalls = parseToolCall(response);
-      for (const toolCall of toolCalls) {
-        this.toolsConfig
-          .executeToolCallback(toolCall)
-          .then((toolResponse: string | null) => {
-            if (toolResponse) {
-              this.messageHistoryCallback([
-                ...this._messageHistory,
-                { content: toolResponse, role: 'assistant' },
-              ]);
-            }
-          });
+      try {
+        const toolCalls = parseToolCall(response);
+        for (const toolCall of toolCalls) {
+          const toolResponse =
+            await this.toolsConfig.executeToolCallback(toolCall);
+          if (toolResponse) {
+            this.messageHistoryCallback([
+              ...this._messageHistory,
+              { content: toolResponse, role: 'assistant' },
+            ]);
+          }
+        }
+      } catch (e) {
+        throw parseUnknownError(e);
       }
     }
 
