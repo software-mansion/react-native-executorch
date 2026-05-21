@@ -234,7 +234,14 @@ export default function VisionCameraScreen() {
         device={device}
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
-        orientationSource="device"
+        // Segmentation draws a 2D mask that the native side rotates into the
+        // activity's coord system (portrait, since the activity is locked).
+        // Pin the preview to that same coord system so mask + preview can't
+        // drift apart when the phone is tilted. Other tasks render coords
+        // (bboxes/points) and tolerate the device-rotated preview fine.
+        orientationSource={
+          activeTask === 'segmentation' ? 'interface' : 'device'
+        }
         onError={(e) => {
           console.warn('[Camera] onError', e);
           setError(e.message);

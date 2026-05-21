@@ -153,14 +153,16 @@ export default function SegmentationTask({
           const result = segRof(frame, isFrontCamera, [], false);
           if (result?.ARGMAX) {
             const argmax: Int32Array = result.ARGMAX;
-            // Native rotates the mask into screen-space (see
-            // `inverseRotateMat`). Derive screen-space dims from
-            // `frame.orientation`: portrait orientations ("left"/"right")
-            // swap sensor-native width/height, landscape ones keep them.
-            const orient = frame.orientation;
-            const isScreenPortrait = orient === 'left' || orient === 'right';
-            const screenW = isScreenPortrait ? frame.height : frame.width;
-            const screenH = isScreenPortrait ? frame.width : frame.height;
+            // Both the preview and the mask live in a portrait coord system:
+            // the activity is portrait-locked (so CameraX's PreviewView always
+            // renders the preview in portrait orientation regardless of how
+            // the device is physically tilted), and the native side runs
+            // `inverseRotateMat` which always converts the mask into the same
+            // portrait coord system. Treat sensor-native dims as portrait by
+            // swapping height/width — same convention as the sibling OCR and
+            // ObjectDetection tasks.
+            const screenW = frame.height;
+            const screenH = frame.width;
             // Mask buffer dims: the C++ side returns the mask at model output
             // resolution (the `resizeToInput=false` arg below). All built-in
             // segmentation models output a square spatial map (e.g. 520×520),
