@@ -33,10 +33,10 @@
     "react-native-executorch": "*"
   },
   "devDependencies": {
-    "@types/react": "~19.1.10",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
+    "@types/react": "~19.2.15",
+    "react": "19.2.6",
+    "react-native": "0.85.3",
     "react-native-executorch": "workspace:*",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.3"
   }
 }
