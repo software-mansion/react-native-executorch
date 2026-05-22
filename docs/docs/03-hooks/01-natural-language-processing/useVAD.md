@@ -13,144 +13,78 @@ It is recommended to use models provided by us, which are available at our [Hugg
 - For detailed API Reference for `useVAD` see: [`useVAD` API Reference](../../06-api-reference/functions/useVAD.md).
 - For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
 
-## High Level Overview
+## Static Audio (Batch) processing
 
-You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
+This mode is best suited for processing pre-recorded audio files or existing buffers. You provide a full waveform to the `forward` method, which returns an array of detected speech segments.
 
 ```typescript
-import { models, useVAD } from 'react-native-executorch';
-import { AudioContext } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
+import { useVAD, models } from 'react-native-executorch';
 
-const model = useVAD({
-  model: models.vad.fsmn_vad(),
-});
+const model = useVAD({ model: models.vad.fsmn_vad() });
 
-const { uri } = await FileSystem.downloadAsync(
-  'https://some-audio-url.com/file.mp3',
-  FileSystem.cacheDirectory + 'audio_file'
-);
-
-const audioContext = new AudioContext({ sampleRate: 16000 });
-const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
-const audioBuffer = decodedAudioData.getChannelData(0);
+// ... obtain audioBuffer (Float32Array) at 16kHz ...
 
 try {
-  // NOTE: to obtain segments in seconds, you need to divide
-  // start / end of the segment by the sampling rate (16k)
-
   const speechSegments = await model.forward(audioBuffer);
-  console.log(speechSegments);
+  console.log('Speech detected at:', speechSegments);
 } catch (error) {
-  console.error('Error during running VAD model', error);
+  console.error('VAD Error:', error);
 }
 ```
-
-### Arguments
-
-`useVAD` takes [`VADProps`](../../06-api-reference/interfaces/VADProps.md) that consists of:
-
-- `model` containing [`modelSource`](../../06-api-reference/interfaces/VADProps.md#modelsource).
-- An optional flag [`preventLoad`](../../06-api-reference/interfaces/VADProps.md#preventload) which prevents auto-loading of the model.
-
-You need more details? Check the following resources:
-
-- For detailed information about `useVAD` arguments check this section: [`useVAD` arguments](../../06-api-reference/functions/useVAD.md#parameters).
-- For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
-- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
-
-### Returns
-
-`useVAD` returns an object called `VADType` containing bunch of functions to interact with VAD models. To get more details please read: [`VADType` API Reference](../../06-api-reference/interfaces/VADType.md).
-
-## Running the model
-
-Before running the model's [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method. The method returns a promise that resolves to the array of detected speech [`Segment[]`](../../06-api-reference/interfaces/Segment.md).
 
 :::note
-Timestamps in returned speech segments, correspond to indices of input array (waveform).
+Timestamps in `Segment[]` correspond to the indices of the input array. Divide them by your sampling rate (usually 16000) to get results in seconds.
 :::
 
-## Example
+## Live Streaming (Real-time detection)
+
+Live streaming allows you to process audio in real-time as it arrives from a microphone or network stream. It uses an internal state to track speech transitions across chunks.
+
+### How it works
+
+1.  **Start the session**: Call `model.stream()` with callbacks for speech events. This returns a promise that stays active until the stream is stopped.
+2.  **Feed audio**: Periodically push audio chunks using `model.streamInsert()`.
+3.  **Handle events**: Use `onSpeechBegin` and `onSpeechEnd` callbacks to trigger UI updates or toggle recording for other tasks (like STT).
+4.  **End the session**: Call `model.streamStop()` to clean up.
+
+### Configuration Options
+
+You can fine-tune the streaming behavior via the `options` object:
+
+- **`timeout`** (default: `100`ms): Specifies the interval between consecutive VAD inferences. A lower value makes the detection more responsive but increases CPU usage.
+- **`detectionMargin`** (default: `100`ms): Specifies the maximum allowed gap between the last detected speech segment and the current time to still consider the speech as "ongoing." This value determines how much silence is tolerated before `onSpeechEnd` is triggered.
 
 ```tsx
-import React from 'react';
-import { Button, Text, SafeAreaView } from 'react-native';
-import { models, useVAD } from 'react-native-executorch';
-import { AudioContext } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
+import { useVAD, models } from 'react-native-executorch';
 
-export default function App() {
-  const model = useVAD({
-    model: models.vad.fsmn_vad(),
+const model = useVAD({ model: models.vad.fsmn_vad() });
+
+const startLiveVAD = async () => {
+  // Start the continuous streaming listener
+  model.stream({
+    onSpeechBegin: () => console.log('User started speaking'),
+    onSpeechEnd: () => console.log('User stopped speaking'),
+    options: {
+      timeout: 100, // Checks every 100ms
+      detectionMargin: 500, // 500ms of silence before ending speech
+    },
   });
 
-  const audioURL = 'https://some-audio-url.com/file.mp3';
+  // Example: Hook into your audio recorder's data event
+  audioRecorder.on('data', (chunk: Float32Array) => {
+    model.streamInsert(chunk);
+  });
+};
 
-  const handleAudio = async () => {
-    if (!model) {
-      console.error('VAD model is not loaded yet.');
-      return;
-    }
-
-    console.log('Processing URL:', audioURL);
-
-    try {
-      const { uri } = await FileSystem.downloadAsync(
-        audioURL,
-        FileSystem.cacheDirectory + 'vad_example.tmp'
-      );
-
-      const audioContext = new AudioContext({ sampleRate: 16000 });
-      const originalDecodedBuffer =
-        await audioContext.decodeAudioDataSource(uri);
-      const originalChannelData = originalDecodedBuffer.getChannelData(0);
-
-      const segments = await model.forward(originalChannelData);
-      if (segments.length === 0) {
-        console.log('No speech segments were found.');
-        return;
-      }
-      console.log(`Found ${segments.length} speech segments.`);
-
-      const totalLength = segments.reduce(
-        (sum, seg) => sum + (seg.end - seg.start),
-        0
-      );
-      const newAudioBuffer = audioContext.createBuffer(
-        1, // Mono
-        totalLength,
-        originalDecodedBuffer.sampleRate
-      );
-      const newChannelData = newAudioBuffer.getChannelData(0);
-
-      let offset = 0;
-      for (const segment of segments) {
-        const slice = originalChannelData.subarray(segment.start, segment.end);
-        newChannelData.set(slice, offset);
-        offset += slice.length;
-      }
-
-      //  Play the processed audio
-      const source = audioContext.createBufferSource();
-      source.buffer = newAudioBuffer;
-      source.connect(audioContext.destination);
-      source.start();
-    } catch (error) {
-      console.error('Error processing audio data:', error);
-    }
-  };
-
-  return (
-    <SafeAreaView>
-      <Text>
-        Press the button to process and play speech from a sample file.
-      </Text>
-      <Button onPress={handleAudio} title="Run VAD Example" />
-    </SafeAreaView>
-  );
-}
+const stopLiveVAD = () => {
+  model.streamStop();
+};
 ```
+
+### Arguments & Returns
+
+- **Arguments**: `useVAD` takes a [`VADProps`](../../06-api-reference/interfaces/VADProps.md) object containing the `model` and an optional `preventLoad` flag.
+- **Returns**: A [`VADType`](../../06-api-reference/interfaces/VADType.md) object providing `forward`, `stream`, `streamInsert`, and `streamStop` methods, along with `isReady` and `error` states.
 
 ## Supported models
 

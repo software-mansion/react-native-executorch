@@ -32,7 +32,6 @@ constexpr inline float kStreamSafetyThreshold = 3.F; // [s]
  */
 constexpr inline float kStreamSafeBufferDuration =
     kStreamMaxDuration - kStreamSafetyThreshold; // [s]
-
 /**
  * An estimate of the number of words spoken per second.
  * Used for estimating transcription progress and buffer management heuristics.
@@ -59,5 +58,25 @@ constexpr inline float kWordsPerSecondLow = 1.5F;
  * segments being produced by the transcription algorithm.
  */
 constexpr inline int32_t kChunkBreakBuffer = 2; // [s]
+
+/**
+ * Multiplier applied to `vadDetectionMargin` when computing the merge gap
+ * passed to `VoiceActivityDetection::generate`. The merge window is widened
+ * slightly so brief intra-utterance silences (just over the detection margin)
+ * still fold into a single speech segment.
+ */
+constexpr inline float kVadGapFactor = 1.2F;
+
+constexpr inline size_t kVadDeadSamplesRemovalSamples =
+    9 * constants::kSamplingRate; // 9s of audio samples
+
+// `OnlineASR::process` computes the silence-trim cut as
+// `kVadDeadSamplesRemovalSamples - kSafetyMarginSamples` over `size_t`. If the
+// two ever invert, that subtraction wraps and the subsequent erase reads past
+// the buffer. Catch the regression at compile time.
+static_assert(kVadDeadSamplesRemovalSamples >
+                  static_cast<size_t>(kStreamSafetyThreshold *
+                                      constants::kSamplingRate),
+              "kVadDeadSamplesRemovalSamples must exceed the safety margin");
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::params

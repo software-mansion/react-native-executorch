@@ -49,7 +49,7 @@ import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
 const model = useSpeechToText({
-  model: models.speech_to_text.whisper_tiny_en(),
+  model: models.speech_to_text.whisper_tiny_en(), // Use whisper_tiny_en for English or whisper_tiny for multilingual support
 });
 
 // 1. Get audio file
@@ -89,7 +89,13 @@ The `stream()` function accepts several optional parameters:
 
 - `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
 - `verbose`: If `true`, includes word-level timestamps and segment metadata in the result objects.
+- `useVAD`: Enable the Voice Activity Detection submodule (if configured in `useSpeechToText` props) to optimize performance by filtering silence. Defaults to `false`.
 - `timeout`: (Advanced) The interval (in milliseconds) between processing consecutive audio chunks in streaming mode. Lower values provide more frequent updates and lower latency, while higher values reduce CPU consumption. Defaults to `100`.
+- `vadDetectionMargin`: (Advanced) The duration of silence (in milliseconds) required after speech is detected before "committing" a segment. Defaults to `500`. Only active when VAD module is used.
+
+### Voice Activity Detection (VAD)
+
+Integrating a VAD submodule is highly recommended for streaming. It improves performance by automatically removing silence, which reduces CPU usage, saves battery, and prevents the model from "hallucinating" text during silent periods.
 
 ### Example
 
@@ -102,6 +108,7 @@ import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 export default function LiveTranscriber() {
   const model = useSpeechToText({
     model: models.speech_to_text.whisper_tiny_en(),
+    vad: models.vad.fsmn_vad(),
   });
   const [text, setText] = useState('');
   const isRecordingRef = useRef(false);
@@ -111,7 +118,7 @@ export default function LiveTranscriber() {
     isRecordingRef.current = true;
     setText('');
 
-    // 1. Capture microphone input
+    // 2. Capture microphone input
     recorder.onAudioReady(
       { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
       (chunk) => model.streamInsert(chunk.buffer.getChannelData(0))
@@ -119,10 +126,14 @@ export default function LiveTranscriber() {
 
     await recorder.start();
 
-    // 2. Process the stream
+    // 3. Process the stream with VAD enabled
     try {
       let finalizedText = '';
-      const streamIter = model.stream({ verbose: false });
+      const streamIter = model.stream({
+        verbose: false,
+        useVAD: true, // Enable VAD filter
+        vadDetectionMargin: 500, // Wait for 500ms of silence before committing
+      });
 
       for await (const { committed, nonCommitted } of streamIter) {
         if (!isRecordingRef.current) break;
@@ -163,6 +174,9 @@ To transcribe languages other than English, use a multilingual model (e.g., `mod
 
 ```typescript
 // Transcribe in Spanish
+const model = useSpeechToText({
+  model: models.speech_to_text.whisper_tiny(),
+});
 const result = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 

@@ -24,6 +24,7 @@
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch {
@@ -88,6 +89,21 @@ public:
                                        promiseHostFunction<&Model::transcribe>,
                                        "transcribe"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::stream>,
+                                       "stream"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
+          "streamInsert"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::voice_activity_detection::
+                                          VoiceActivityDetection>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));

@@ -263,6 +263,8 @@ add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
         ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
         ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/ASR.cpp
         ${RNEXECUTORCH_DIR}/models/speech_to_text/whisper/OnlineASR.cpp
+        ${RNEXECUTORCH_DIR}/models/voice_activity_detection/VoiceActivityDetection.cpp
+        ${RNEXECUTORCH_DIR}/models/voice_activity_detection/Utils.cpp
         ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp
         ${TOKENIZER_SOURCES}
         ${DSP_SOURCES}

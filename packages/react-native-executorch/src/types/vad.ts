@@ -8,6 +8,17 @@ import { RnExecutorchError } from '../errors/errorUtils';
 export type VADModelName = 'fsmn-vad';
 
 /**
+ * Configuration for the VAD model.
+ * @category Types
+ * @property {VADModelName} modelName - Unique name identifying the model.
+ * @property {ResourceSource} modelSource - The source of the VAD model binary.
+ */
+export interface VADConfig {
+  modelName: VADModelName;
+  modelSource: ResourceSource;
+}
+
+/**
  * Props for the useVAD hook.
  * @category Types
  * @property {object} model - An object containing the model configuration.
@@ -16,7 +27,7 @@ export type VADModelName = 'fsmn-vad';
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface VADProps {
-  model: { modelName: VADModelName; modelSource: ResourceSource };
+  model: VADConfig;
   preventLoad?: boolean;
 }
 
@@ -29,6 +40,30 @@ export interface VADProps {
 export interface Segment {
   start: number;
   end: number;
+}
+
+/**
+ * Configuration options for the VAD streaming process.
+ * @category Types
+ * @property {number} [timeout] - Specifies (in milliseconds) how much does streamer wait between model inferences.
+ * @property {number} [detectionMargin] - Specifies (in milliseconds) how far the last detected speech segment can be to still be considered as ongoing speech.
+ */
+export interface VADStreamingOptions {
+  timeout?: number;
+  detectionMargin?: number;
+}
+
+/**
+ * Input configuration for the VAD streaming hook.
+ * @category Types
+ * @property {() => void | Promise<void>} [onSpeechBegin] - Callback function triggered when speech is detected.
+ * @property {() => void | Promise<void>} [onSpeechEnd] - Callback function triggered when speech end (silence is detected).
+ * @property {VADStreamingOptions} [options] - Optional configuration for the streaming process.
+ */
+export interface VADStreamingInput {
+  onSpeechBegin?: () => void | Promise<void>;
+  onSpeechEnd?: () => void | Promise<void>;
+  options?: VADStreamingOptions;
 }
 
 /**
@@ -63,4 +98,22 @@ export interface VADType {
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
   forward(waveform: Float32Array): Promise<Segment[]>;
+
+  /**
+   * Starts a streaming Voice Activity Detection session.
+   * @param input - Configuration for streaming, including callbacks for speech begin/end and optional parameters.
+   * @returns A promise that resolves when the streaming session stops.
+   */
+  stream(input: VADStreamingInput): Promise<void>;
+
+  /**
+   * Inserts an audio chunk into the streaming VAD session.
+   * @param waveform - The audio data to add to the buffer.
+   */
+  streamInsert(waveform: Float32Array): void;
+
+  /**
+   * Stops the current streaming VAD session.
+   */
+  streamStop(): void;
 }

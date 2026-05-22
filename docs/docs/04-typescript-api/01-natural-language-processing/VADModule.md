@@ -22,7 +22,7 @@ await model.forward(waveform);
 
 ### Methods
 
-All methods of `VADModule` are explained in details here: [`VADModule` API Reference](../../06-api-reference/classes/VADModule.md)
+All methods of `VADModule` are explained in detail here: [`VADModule` API Reference](../../06-api-reference/classes/VADModule.md)
 
 ## Loading the model
 
@@ -36,11 +36,23 @@ To create a ready-to-use instance, call the static [`fromModelName`](../../06-ap
 
 The factory returns a promise that resolves to a loaded `VADModule` instance.
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+For more information on loading resources, take a look at the [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/classes/VADModule.md#forward) method on the module object. Before running the model's [`forward`](../../06-api-reference/classes/VADModule.md#forward) method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the forward method. The method returns a promise that resolves to the array of detected speech segments.
+### File Processing
+
+To process a full audio buffer at once, use the [`forward`](../../06-api-reference/classes/VADModule.md#forward) method. Before calling [`forward`](../../06-api-reference/classes/VADModule.md#forward), ensure you have the audio waveform sampled at 16 kHz. Pass the waveform as an argument; the method returns a promise that resolves to an array of detected speech segments.
+
+### Live Streaming
+
+For real-time applications, `VADModule` supports a streaming mode that identifies speech events as audio arrives.
+
+1.  **Initialize the stream**: Call [`stream`](../../06-api-reference/classes/VADModule.md#stream) with `onSpeechBegin` and `onSpeechEnd` callbacks.
+2.  **Insert audio**: Use [`streamInsert`](../../06-api-reference/classes/VADModule.md#streaminsert) to push new audio chunks into the internal buffer.
+3.  **Stop the stream**: Use [`streamStop`](../../06-api-reference/classes/VADModule.md#streamstop) to finish detection and release resources.
+
+Refer to the [`useVAD`](../../03-hooks/01-natural-language-processing/useVAD.md#live-streaming-real-time-detection) hook documentation for a detailed example of the streaming architecture.
 
 ## Managing memory
 
