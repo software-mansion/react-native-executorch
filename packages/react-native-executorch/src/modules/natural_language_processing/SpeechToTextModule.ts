@@ -199,7 +199,7 @@ export class SpeechToTextModule {
     const language = options.language || '';
     const timeout = options.timeout || 100;
     const useVAD = options.useVAD ?? false;
-    const vadDetectionMargin = options.vadDetectionMargin || 500;
+    const vadDetectionMargin = options.vadDetectionMargin ?? 500;
 
     const queue: {
       committed: TranscriptionResult;
