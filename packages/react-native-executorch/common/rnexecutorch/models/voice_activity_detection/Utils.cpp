@@ -1,6 +1,8 @@
 #include "Utils.h"
 #include "Types.h"
 
+#include <algorithm>
+
 namespace rnexecutorch::models::voice_activity_detection::utils {
 size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
                                      size_t numClass, size_t size,
@@ -28,7 +30,7 @@ mergeSegments(const std::vector<types::Segment> &segments, size_t maxMergeGap) {
 
     if (current.start < lastMerged.end ||
         current.start - lastMerged.end <= maxMergeGap) {
-      lastMerged.end = current.end;
+      lastMerged.end = std::max(lastMerged.end, current.end);
     } else {
       mergedSegments.push_back(current);
     }
