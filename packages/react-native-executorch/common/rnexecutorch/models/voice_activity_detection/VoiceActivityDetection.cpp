@@ -115,15 +115,16 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
       }
     }
 
-    std::span<float> input;
+    std::vector<float> snapshot;
     {
-      // Since the buffer does not reallocate it's memory, this is perfectly
-      // safe, and copying buffer's data is not necessary.
+      // Copy under lock so a concurrent streamInsert that grows audioBuffer_
+      // past its reserved capacity (causing a reallocation) can't invalidate
+      // the data we hand to generate().
       std::scoped_lock lock(audioBufferMutex_);
-      input = std::span(audioBuffer_);
+      snapshot.assign(audioBuffer_.begin(), audioBuffer_.end());
     }
 
-    std::vector<types::Segment> detection = generate(input);
+    std::vector<types::Segment> detection = generate(snapshot);
 
     bool speaking = false;
 
