@@ -17,10 +17,10 @@ import {
   useSpeechToText,
   TranscriptionResult,
   SpeechToTextProps,
-  FSMN_VAD,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 const speechToText = models.speech_to_text;
+const vad = models.vad;
 
 type STTModelSources = SpeechToTextProps['model'];
 
@@ -44,11 +44,6 @@ import ErrorBanner from '../components/ErrorBanner';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
-const DEFAULT_MODEL =
-  Platform.OS === 'ios' && !isSimulator
-    ? WHISPER_BASE_EN_COREML
-    : WHISPER_TINY_EN;
-
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] = useState<STTModelSources>(
     Platform.OS === 'ios'
@@ -58,7 +53,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const model = useSpeechToText({
     model: selectedModel,
-    vad: FSMN_VAD,
+    vad: vad.fsmn_vad()
   });
 
   const [transcription, setTranscription] =
@@ -408,7 +403,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                     <Text
                       style={[
                         styles.vadButtonLabel,
-                        { color: useVAD ? 'white' : '#64748b' },
+                        useVAD
+                          ? styles.vadButtonLabelActive
+                          : styles.vadButtonLabelInactive,
                       ]}
                     >
                       VAD
@@ -416,7 +413,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                     <Text
                       style={[
                         styles.vadButtonState,
-                        { color: useVAD ? '#bbf7d0' : '#94a3b8' },
+                        useVAD
+                          ? styles.vadButtonStateActive
+                          : styles.vadButtonStateInactive,
                       ]}
                     >
                       {useVAD ? 'ON' : 'OFF'}
@@ -579,10 +578,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.5,
   },
+  vadButtonLabelActive: {
+    color: 'white',
+  },
+  vadButtonLabelInactive: {
+    color: '#64748b',
+  },
   vadButtonState: {
     fontWeight: '700',
     fontSize: 10,
     letterSpacing: 1,
+  },
+  vadButtonStateActive: {
+    color: '#bbf7d0',
+  },
+  vadButtonStateInactive: {
+    color: '#94a3b8',
   },
   disabled: {
     opacity: 0.5,

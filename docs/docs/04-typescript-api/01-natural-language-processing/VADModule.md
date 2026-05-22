@@ -40,7 +40,7 @@ For more information on loading resources, take a look at the [loading models](.
 
 ## Running the model
 
-### Batch Processing
+### File Processing
 
 To process a full audio buffer at once, use the [`forward`](../../06-api-reference/classes/VADModule.md#forward) method. Before calling [`forward`](../../06-api-reference/classes/VADModule.md#forward), ensure you have the audio waveform sampled at 16 kHz. Pass the waveform as an argument; the method returns a promise that resolves to an array of detected speech segments.
 

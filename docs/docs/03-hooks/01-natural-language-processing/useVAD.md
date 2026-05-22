@@ -18,9 +18,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 This mode is best suited for processing pre-recorded audio files or existing buffers. You provide a full waveform to the `forward` method, which returns an array of detected speech segments.
 
 ```typescript
-import { useVAD, FSMN_VAD } from 'react-native-executorch';
+import { useVAD, models } from 'react-native-executorch';
 
-const model = useVAD({ model: FSMN_VAD });
+const model = useVAD({ model: models.vad.fsmn_vad() });
 
 // ... obtain audioBuffer (Float32Array) at 16kHz ...
 
@@ -55,9 +55,9 @@ You can fine-tune the streaming behavior via the `options` object:
 - **`detectionMargin`** (default: `100`ms): Specifies the maximum allowed gap between the last detected speech segment and the current time to still consider the speech as "ongoing." This value determines how much silence is tolerated before `onSpeechEnd` is triggered.
 
 ```tsx
-import { useVAD, FSMN_VAD } from 'react-native-executorch';
+import { useVAD, models } from 'react-native-executorch';
 
-const model = useVAD({ model: FSMN_VAD });
+const model = useVAD({ model: models.vad.fsmn_vad() });
 
 const startLiveVAD = async () => {
   // Start the continuous streaming listener

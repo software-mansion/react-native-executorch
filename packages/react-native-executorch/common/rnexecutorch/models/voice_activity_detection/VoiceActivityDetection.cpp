@@ -102,8 +102,6 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
     });
   };
 
-  isStreaming_ = true;
-
   while (isStreaming_) {
     // Make sure that audio buffer does not exceed it's max size
     // BEFORE infering the model, such that potentially save 1 unnecessary
@@ -134,8 +132,9 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
       auto lastSegment = detection.back();
       auto speechEnd = lastSegment.end;
 
-      uint32_t diffMs = (audioBuffer_.size() - speechEnd) /
-                        constants::kSampleRateMiliseconds; // [ms]
+      std::scoped_lock lock(audioBufferMutex_);
+      uint32_t diffMs =
+          (audioBuffer_.size() - speechEnd) / constants::kSamplesPerMs; // [ms]
 
       speaking = diffMs <= detectionMargin;
     }
@@ -239,7 +238,7 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
   }
 
   // Merge tightly placed segments according to the max allowed gap parameter.
-  size_t maxMergeGap = mergeGap * constants::kSampleRateMiliseconds;
+  size_t maxMergeGap = mergeGap * constants::kSamplesPerMs;
   return utils::mergeSegments(speechSegments, maxMergeGap);
 }
 

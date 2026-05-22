@@ -26,7 +26,8 @@ mergeSegments(const std::vector<types::Segment> &segments, size_t maxMergeGap) {
     auto &lastMerged = mergedSegments.back();
     const auto &current = segments[i];
 
-    if (current.start - lastMerged.end <= maxMergeGap) {
+    if (current.start < lastMerged.end ||
+        current.start - lastMerged.end <= maxMergeGap) {
       lastMerged.end = current.end;
     } else {
       mergedSegments.push_back(current);
