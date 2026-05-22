@@ -243,6 +243,12 @@ inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
 }
 
 template <>
+inline std::span<const float>
+getValue<std::span<const float>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getTypedArrayAsSpan<float>(val, runtime);
+}
+
+template <>
 inline std::span<double> getValue<std::span<double>>(const jsi::Value &val,
                                                      jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<double>(val, runtime);
