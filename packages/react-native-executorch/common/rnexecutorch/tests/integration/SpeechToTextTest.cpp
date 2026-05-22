@@ -20,12 +20,13 @@ template <> struct ModelTraits<SpeechToText> {
   using ModelType = SpeechToText;
 
   static ModelType createValid() {
-    return ModelType("whisper", kValidModelPath, kValidTokenizerPath, nullptr);
+    return ModelType("whisper", kValidModelPath, kValidTokenizerPath,
+                     /*vadSource=*/"", nullptr);
   }
 
   static ModelType createInvalid() {
     return ModelType("whisper", "nonexistent.pte", kValidTokenizerPath,
-                     nullptr);
+                     /*vadSource=*/"", nullptr);
   }
 
   static void callGenerate(ModelType &model) {
@@ -44,24 +45,25 @@ INSTANTIATE_TYPED_TEST_SUITE_P(SpeechToText, CommonModelTest,
 // ============================================================================
 TEST(S2TCtorTests, InvalidModelNameThrows) {
   EXPECT_THROW(SpeechToText("invalid_model", kValidModelPath,
-                            kValidTokenizerPath, nullptr),
+                            kValidTokenizerPath, /*vadSource=*/"", nullptr),
                RnExecutorchError);
 }
 
 TEST(S2TCtorTests, InvalidModelPathThrows) {
-  EXPECT_THROW(
-      SpeechToText("whisper", "nonexistent.pte", kValidTokenizerPath, nullptr),
-      RnExecutorchError);
+  EXPECT_THROW(SpeechToText("whisper", "nonexistent.pte", kValidTokenizerPath,
+                            /*vadSource=*/"", nullptr),
+               RnExecutorchError);
 }
 
 TEST(S2TCtorTests, InvalidTokenizerPathThrows) {
-  EXPECT_THROW(
-      SpeechToText("whisper", kValidModelPath, "nonexistent.json", nullptr),
-      rnexecutorch::RnExecutorchError);
+  EXPECT_THROW(SpeechToText("whisper", kValidModelPath, "nonexistent.json",
+                            /*vadSource=*/"", nullptr),
+               rnexecutorch::RnExecutorchError);
 }
 
 TEST(S2TEncodeTests, EncodeReturnsNonNull) {
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, nullptr);
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
+                     /*vadSource=*/"", nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto result = model.encode(audio);
@@ -71,7 +73,8 @@ TEST(S2TEncodeTests, EncodeReturnsNonNull) {
 
 TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
   GTEST_SKIP() << "TODO: known failure on this branch; needs investigation.";
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, nullptr);
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
+                     /*vadSource=*/"", nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto result = model.transcribe(audio, "en", true);
@@ -87,14 +90,16 @@ TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
 }
 
 TEST(S2TTranscribeTests, EmptyResultOnSilence) {
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, nullptr);
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
+                     /*vadSource=*/"", nullptr);
   auto audio = generateSilence(16000 * 5);
   auto result = model.transcribe(audio, "en", false);
   EXPECT_TRUE(result.text.empty());
 }
 
 TEST(S2TTranscribeTests, InvalidLanguageThrows) {
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, nullptr);
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
+                     /*vadSource=*/"", nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code", false),
