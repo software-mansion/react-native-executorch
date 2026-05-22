@@ -98,20 +98,20 @@ const model = await SpeechToTextModule.fromModelName(
 AudioManager.setAudioSessionOptions({
   iosCategory: 'playAndRecord',
   iosMode: 'spokenAudio',
-  iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+  iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
 });
 await AudioManager.requestRecordingPermissions();
 
 // 2. Setup Audio Recorder
-const recorder = new AudioRecorder({
-  sampleRate: 16000,
-  channelCount: 1,
-});
+const recorder = new AudioRecorder();
 
-recorder.onAudioReady((chunk) => {
-  // Feed chunks directly into the model's buffer
-  model.streamInsert(chunk.buffer.getChannelData(0));
-});
+recorder.onAudioReady(
+  { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
+  (chunk) => {
+    // Feed chunks directly into the model's buffer
+    model.streamInsert(chunk.buffer.getChannelData(0));
+  }
+);
 
 await recorder.start();
 

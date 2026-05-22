@@ -56,8 +56,10 @@ You can fine-tune the streaming behavior via the `options` object:
 
 ```tsx
 import { useVAD, models } from 'react-native-executorch';
+import { AudioRecorder } from 'react-native-audio-api';
 
 const model = useVAD({ model: models.vad.fsmn_vad() });
+const recorder = new AudioRecorder();
 
 const startLiveVAD = async () => {
   // Start the continuous streaming listener
@@ -70,13 +72,17 @@ const startLiveVAD = async () => {
     },
   });
 
-  // Example: Hook into your audio recorder's data event
-  audioRecorder.on('data', (chunk: Float32Array) => {
-    model.streamInsert(chunk);
-  });
+  // Capture microphone input at 16kHz
+  recorder.onAudioReady(
+    { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
+    (chunk) => model.streamInsert(chunk.buffer.getChannelData(0))
+  );
+
+  await recorder.start();
 };
 
 const stopLiveVAD = () => {
+  recorder.stop();
   model.streamStop();
 };
 ```

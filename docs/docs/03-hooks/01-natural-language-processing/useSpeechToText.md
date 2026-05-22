@@ -207,7 +207,6 @@ The hook returns an object with:
 - `streamInsert(audio)`: Push audio to the stream buffer.
 - `streamStop()`: Finish the current stream.
 - `isGenerating`: Boolean indicating if the model is busy.
-- `loading`: Boolean indicating if the model is being loaded.
 
 ## Supported models
 
