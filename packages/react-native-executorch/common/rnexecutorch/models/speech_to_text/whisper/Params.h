@@ -70,4 +70,13 @@ constexpr inline float kVadGapFactor = 1.2F;
 constexpr inline size_t kVadDeadSamplesRemovalSamples =
     9 * constants::kSamplingRate; // 9s of audio samples
 
+// `OnlineASR::process` computes the silence-trim cut as
+// `kVadDeadSamplesRemovalSamples - kSafetyMarginSamples` over `size_t`. If the
+// two ever invert, that subtraction wraps and the subsequent erase reads past
+// the buffer. Catch the regression at compile time.
+static_assert(kVadDeadSamplesRemovalSamples >
+                  static_cast<size_t>(kStreamSafetyThreshold *
+                                      constants::kSamplingRate),
+              "kVadDeadSamplesRemovalSamples must exceed the safety margin");
+
 } // namespace rnexecutorch::models::speech_to_text::whisper::params
