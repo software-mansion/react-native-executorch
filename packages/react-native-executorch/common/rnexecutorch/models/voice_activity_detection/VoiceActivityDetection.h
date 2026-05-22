@@ -1,5 +1,6 @@
 #pragma once
 
+#include <condition_variable>
 #include <cstddef>
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
@@ -64,6 +65,8 @@ private:
   mutable std::mutex audioBufferMutex_;
   // Streaming state
   std::atomic<bool> isStreaming_ = false;
+  std::condition_variable streamCv_;
+  std::mutex streamCvMutex_;
 };
 
 } // namespace models::voice_activity_detection

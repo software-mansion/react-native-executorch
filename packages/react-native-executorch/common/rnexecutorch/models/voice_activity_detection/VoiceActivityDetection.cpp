@@ -142,11 +142,16 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
     // Send result to the JS side.
     nativeCallback(speaking);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+    std::unique_lock<std::mutex> lock(streamCvMutex_);
+    streamCv_.wait_for(lock, std::chrono::milliseconds(timeout),
+                       [this] { return !isStreaming_.load(); });
   }
 }
 
-void VoiceActivityDetection::streamStop() { isStreaming_ = false; }
+void VoiceActivityDetection::streamStop() {
+  isStreaming_ = false;
+  streamCv_.notify_all();
+}
 
 void VoiceActivityDetection::streamInsert(std::span<float> audio) {
   std::scoped_lock lock(audioBufferMutex_);

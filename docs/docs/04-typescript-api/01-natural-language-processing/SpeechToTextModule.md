@@ -14,16 +14,12 @@ The `SpeechToTextModule` class provides a direct interface to the library's spee
 You can transcribe audio in two ways: **one-shot** (for files/short clips) and **streaming** (for live microphone input).
 
 ```typescript
-import {
-  SpeechToTextModule,
-  WHISPER_TINY_EN,
-  FSMN_VAD,
-} from 'react-native-executorch';
+import { SpeechToTextModule, models } from 'react-native-executorch';
 
 // Initialize the model with VAD submodule
 const model = await SpeechToTextModule.fromModelName(
-  WHISPER_TINY_EN,
-  FSMN_VAD, // Optional VAD submodule
+  models.speech_to_text.whisper_tiny_en(),
+  models.vad.fsmn_vad(), // Optional VAD submodule
   (progress) => {
     console.log(`Loading: ${progress * 100}%`);
   }
@@ -90,14 +86,13 @@ The `stream()` function accepts several optional parameters:
 In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to feed live audio into the model.
 
 ```tsx
-import {
-  SpeechToTextModule,
-  WHISPER_TINY_EN,
-  FSMN_VAD,
-} from 'react-native-executorch';
+import { SpeechToTextModule, models } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-const model = await SpeechToTextModule.fromModelName(WHISPER_TINY_EN, FSMN_VAD);
+const model = await SpeechToTextModule.fromModelName(
+  models.speech_to_text.whisper_tiny_en(),
+  models.vad.fsmn_vad()
+);
 
 // 1. Configure audio session & permissions
 AudioManager.setAudioSessionOptions({
@@ -150,8 +145,8 @@ To use it, provide the VAD model configuration when loading the module and enabl
 
 ```typescript
 const model = await SpeechToTextModule.fromModelName(
-  WHISPER_TINY_EN,
-  FSMN_VAD // Optional VAD submodule
+  models.speech_to_text.whisper_tiny_en(),
+  models.vad.fsmn_vad()
 );
 
 // Enable VAD logic in the stream context

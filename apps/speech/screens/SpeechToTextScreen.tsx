@@ -53,7 +53,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const model = useSpeechToText({
     model: selectedModel,
-    vad: vad.fsmn_vad()
+    vad: vad.fsmn_vad(),
   });
 
   const [transcription, setTranscription] =
@@ -117,7 +117,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
     Keyboard.dismiss();
 
-    const uri = await getAudioFile(audioURL);
     // Reset previous states
     setTranscription(null);
     setLiveResult(null);
