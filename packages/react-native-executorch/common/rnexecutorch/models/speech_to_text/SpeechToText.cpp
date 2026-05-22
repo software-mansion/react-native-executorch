@@ -186,9 +186,10 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   }
 
   // Do not use VAD on final processing to flush and commit everything properly.
-  options.useVAD = false;
+  StreamingOptions finishOptions = options;
+  finishOptions.useVAD = false;
 
-  std::vector<Word> finalWords = streamer_->finish(options);
+  std::vector<Word> finalWords = streamer_->finish(finishOptions);
   TranscriptionResult finalRes =
       wordsToResult(finalWords, languageOption, verbose);
 
