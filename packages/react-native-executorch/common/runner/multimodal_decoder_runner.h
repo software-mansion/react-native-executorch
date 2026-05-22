@@ -14,11 +14,37 @@
 #include "text_decoder_runner.h"
 
 namespace executorch::extension::llm {
+// Supports two PTE contracts, selected per-call from the kHasPLE metadata
+// key (mirrors how kEnableDynamicShape etc. are read — queried on demand,
+// not cached in a member). Callers that need it multiple times in a hot
+// path should snapshot into a local.
+//
+//  * Legacy (has_ple == false):
+//      token_embedding(ids) -> inputs_embeds
+//      text_decoder(inputs_embeds, input_pos)
+//
+//  * Gemma-style PLE (has_ple == true):
+//      token_embedding(ids) -> (inputs_embeds, ple_tok)
+//      text_decoder(inputs_embeds, ple_tok, input_pos)
+//    ple_tok carries Gemma4's per-layer PLE signal keyed on input_ids. It's
+//    computed once in token_embedding and threaded through every decoder call
+//    so PLE fires at every position (including multimodal placeholder slots).
 class MultimodalDecoderRunner : public TextDecoderRunner {
 public:
   explicit MultimodalDecoderRunner(Module &module, IOManager *io_manager,
                                    const GenerationConfig &config)
       : TextDecoderRunner(module, io_manager, config) {}
+
+  // True iff the loaded PTE uses the Gemma-style PLE contract above.
+  // Reads the kHasPLE constant_method every call; cheap, but callers in
+  // hot loops should snapshot into a local.
+  bool has_ple() const {
+    auto r = module_->get(kHasPLE);
+    if (r.error() != ::executorch::runtime::Error::Ok) {
+      return false;
+    }
+    return r->toScalar().to<bool>();
+  }
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   step(TensorPtr &tokens, int64_t start_pos) override {
@@ -26,7 +52,15 @@ public:
     if (!embed_result.ok()) {
       return embed_result.error();
     }
-    return decode((*embed_result)[0], start_pos);
+    auto &embed_outputs = *embed_result;
+    if (has_ple()) {
+      ET_CHECK_MSG(embed_outputs.size() == 2,
+                   "Expected 2 outputs (inputs_embeds, ple_tok) from "
+                   "token_embedding, got %zu",
+                   embed_outputs.size());
+      return decode(embed_outputs[0], embed_outputs[1], start_pos);
+    }
+    return decode(embed_outputs[0], start_pos);
   }
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>

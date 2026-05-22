@@ -18,8 +18,8 @@ BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
       metadata_({
           {kEnableDynamicShape, false},
-          {kMaxSeqLen, 128},
-          {kMaxContextLen, 128},
+          {kMaxSeqLen, 2048},
+          {kMaxContextLen, 2048},
           {kUseKVCache, true},
       }) {}
 
@@ -56,11 +56,16 @@ Error BaseLLMRunner::load() {
             ? static_cast<int32_t>(metadata_.at(kMaxContextLen))
             : static_cast<int32_t>(metadata_.at(kMaxSeqLen));
   }
-  if (config_.max_new_tokens < 0)
-    config_.max_new_tokens =
-        std::min(config_.max_seq_len, config_.max_context_length);
   config_.enable_dynamic_shape =
       static_cast<bool>(metadata_.at(kEnableDynamicShape));
+  if (config_.max_new_tokens < 0) {
+    // For dynamic-shape PTEs, max_seq_len is the per-call decoder chunk
+    // size, not the generation budget — use max_context_length instead.
+    const int32_t seq_cap = config_.enable_dynamic_shape
+                                ? config_.max_context_length
+                                : config_.max_seq_len;
+    config_.max_new_tokens = std::min(seq_cap, config_.max_context_length);
+  }
   config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
 
   eos_ids_ = std::make_unique<std::unordered_set<uint64_t>>();

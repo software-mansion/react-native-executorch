@@ -310,6 +310,7 @@ export class LLMController {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
       let response: string;
+      console.log(input);
       if (hasImages || hasAudio) {
         response = await this.nativeModule.generateMultimodal(
           input,

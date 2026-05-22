@@ -98,7 +98,7 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
   std::memcpy(padded_wav_.data(), wav.samples.data(),
               static_cast<size_t>(n_valid) * sizeof(float));
 
-  num_blocks_scalar_ = k_blocks;
+  num_blocks_scalar_ = n_valid;
 
   auto wav_tensor = ::executorch::extension::from_blob(
       padded_wav_.data(), {1, static_cast<SizesType>(n_padded)},
