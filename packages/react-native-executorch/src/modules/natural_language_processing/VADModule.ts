@@ -119,10 +119,10 @@ export class VADModule extends BaseModule {
           timeout,
           detectionMargin
         );
-        finished = true;
-        wake();
       } catch (e) {
         error = e;
+      } finally {
+        this.isStreaming = false;
         finished = true;
         wake();
       }
