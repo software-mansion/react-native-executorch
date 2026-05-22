@@ -75,22 +75,20 @@ React Native ExecuTorch को [Private Mind](https://privatemind.swmansion.com/
 
 **AI-समर्थित पाठ पीढ़ी के साथ आरंभ करें, केवल 3 आसान कदमों में!**
 
+नीचे दिए गए चरण एक Expo प्रोजेक्ट मानते हैं। bare React Native के लिए, कृपया दस्तावेज़ में [Getting Started गाइड](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started) का पालन करें।
+
 ### :one: स्थापना
 
 ```bash
 # पैकेज को इंस्टॉल करें
 yarn add react-native-executorch
 
-# यदि आप expo का उपयोग करते हैं, तो कृपया संसाधन प्राप्त करने के लिए ये पैकेज जोड़ें:
+# संसाधन प्राप्त करने के लिए ये पैकेज जोड़ें:
 yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
-# यदि आप bare React Native प्रोजेक्ट का उपयोग करते हैं तो इन पैकेजों का उपयोग करें:
-yarn add react-native-executorch-bare-resource-fetcher
-yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-
 # प्लेटफॉर्म के अनुसार, या तो iOS या Android चुनें
-yarn < ios | android >
+yarn <ios|android>
 ```
 
 > npm और pnpm भी काम करते हैं — पैकेजों के लिए `npm install` या `pnpm add` का उपयोग करें, और रन स्टेप के लिए `npm run <ios|android>` / `pnpm <ios|android>` का उपयोग करें।
@@ -102,7 +100,7 @@ yarn < ios | android >
 ```tsx
 import {
   useLLM,
-  LFM2_5_1_2B_INSTRUCT,
+  models,
   Message,
   initExecutorch,
 } from 'react-native-executorch';
@@ -114,7 +112,7 @@ initExecutorch({
 
 function MyComponent() {
   // मॉडल को प्रारंभ करें 🚀
-  const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
+  const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
   // ... आपके घटक के शेष
 }
 ```
@@ -147,7 +145,7 @@ const handleGenerate = async () => {
 यदि आप डेमो ऐप चलाना चाहते हैं, तो इसके प्रोजेक्ट डायरेक्टरी में नेविगेट करें। फिर निर्भरता इंस्टॉल करें और ऐप चलाएं:
 
 ```bash
-yarn && yarn < ios | android >
+yarn && yarn <ios|android>
 ```
 
 > [!WARNING]

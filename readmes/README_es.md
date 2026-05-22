@@ -75,22 +75,20 @@ React Native ExecuTorch impulsa [Private Mind](https://privatemind.swmansion.com
 
 **¡Comienza con la generación de texto impulsada por IA en 3 sencillos pasos!**
 
+Los pasos a continuación asumen un proyecto Expo. Para React Native puro, sigue la [guía de Inicio](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started) en la documentación.
+
 ### :one: Instalación
 
 ```bash
 # Instalar el paquete
 yarn add react-native-executorch
 
-# Si usa expo, agregue estos paquetes para la obtención de recursos:
+# Agrega estos paquetes para la obtención de recursos:
 yarn add react-native-executorch-expo-resource-fetcher
 yarn add expo-file-system expo-asset
 
-# Si usa un proyecto básico de React Native, use estos paquetes:
-yarn add react-native-executorch-bare-resource-fetcher
-yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
-
 # Dependiendo de la plataforma, elige iOS o Android
-yarn < ios | android >
+yarn <ios|android>
 ```
 
 > npm y pnpm también funcionan — usa `npm install` o `pnpm add` para los paquetes, y `npm run <ios|android>` / `pnpm <ios|android>` para el paso de ejecución.
@@ -102,7 +100,7 @@ Agrega esto a tu archivo de componente:
 ```tsx
 import {
   useLLM,
-  LFM2_5_1_2B_INSTRUCT,
+  models,
   Message,
   initExecutorch,
 } from 'react-native-executorch';
@@ -114,7 +112,7 @@ initExecutorch({
 
 function MyComponent() {
   // Inicializa el modelo 🚀
-  const llm = useLLM({ model: LFM2_5_1_2B_INSTRUCT });
+  const llm = useLLM({ model: models.llm.lfm2_5_1_2b_instruct() });
   // ... resto de tu componente
 }
 ```
@@ -147,7 +145,7 @@ Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/softw
 Si deseas ejecutar una aplicación de demostración, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
 
 ```bash
-yarn && yarn < ios | android >
+yarn && yarn <ios|android>
 ```
 
 > [!WARNING]
