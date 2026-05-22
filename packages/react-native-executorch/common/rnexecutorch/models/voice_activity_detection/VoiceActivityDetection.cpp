@@ -106,12 +106,13 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
     // Make sure that audio buffer does not exceed it's max size
     // BEFORE infering the model, such that potentially save 1 unnecessary
     // iteration.
-    if (audioBuffer_.size() > constants::kStreamBufferMaxSize) {
-      // Keep the most recent audio samples in.
-      size_t cut = audioBuffer_.size() - constants::kStreamBufferMinReserve;
-
+    {
       std::scoped_lock lock(audioBufferMutex_);
-      audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+      if (audioBuffer_.size() > constants::kStreamBufferMaxSize) {
+        // Keep the most recent audio samples in.
+        size_t cut = audioBuffer_.size() - constants::kStreamBufferMinReserve;
+        audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
+      }
     }
 
     std::span<float> input;
