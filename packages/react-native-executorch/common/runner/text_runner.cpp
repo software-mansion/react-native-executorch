@@ -83,7 +83,8 @@ Error TextRunner::generate_internal(
   //   Hello<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n
   (void)prompt;
   std::vector<uint64_t> prompt_tokens = {
-      128000, 128006, 882, 128007, 271, 128000, 9906, 11, 3371, 757, 264, 3446, 128009, 128006, 78191, 128007, 271};
+      128000, 128006, 882,  128007, 271,    128000, 9906,   11, 3371,
+      757,    264,    3446, 128009, 128006, 78191,  128007, 271};
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
                     "RNEX_BYPASS_TOKENIZER: hardcoded Llama-3.2 prompt tokens, "
                     "count = " +
@@ -101,19 +102,28 @@ Error TextRunner::generate_internal(
 #endif
   int num_prompt_tokens = prompt_tokens.size();
 
+  // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
+  // decoder chunk size (e.g. 128) and the true generation budget lives in
+  // get_max_context_len. Static-shape PTEs set both equal, so this collapses
+  // to the old behavior. Mirrors multimodal_prefiller.cpp:96.
+  const int32_t seq_cap = config_.enable_dynamic_shape
+                              ? config_.max_context_length
+                              : config_.max_seq_len;
+
   ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens >= 1, InvalidArgument,
                            "Expected at least 1 prompt token");
-  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < config_.max_seq_len,
-                           InvalidArgument,
-                           "num_prompt_tokens %d >= max_seq_len %" PRId32,
-                           num_prompt_tokens, config_.max_seq_len);
+  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < seq_cap, InvalidArgument,
+                           "num_prompt_tokens %d >= seq cap %" PRId32,
+                           num_prompt_tokens, seq_cap);
 
   int32_t max_new_tokens = resolve_max_new_tokens(
-      num_prompt_tokens, config_.max_seq_len,
-      static_cast<int32_t>(context_len_left), config_.max_new_tokens);
+      num_prompt_tokens, seq_cap, static_cast<int32_t>(context_len_left),
+      config_.max_new_tokens);
 
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa1", max_new_tokens, num_prompt_tokens, config_.max_seq_len, config_.max_new_tokens);
-  
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa1", max_new_tokens,
+                    num_prompt_tokens, config_.max_seq_len,
+                    config_.max_new_tokens);
+
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is <= 0", max_new_tokens);
 

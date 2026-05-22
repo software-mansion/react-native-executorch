@@ -8,6 +8,13 @@
 
 // Ported from executorch/extension/llm/runner/multimodal_prefiller.cpp
 // with our token-embedding padding fix and LFM2-VL adaptations.
+//
+// Supports two PTE shapes, selected from MultimodalDecoderRunner::has_ple()
+// (auto-detected at load time):
+//   * Legacy  : token_embedding -> inputs_embeds;
+//               text_decoder(inputs_embeds, cache_positions).
+//   * PLE     : token_embedding -> (inputs_embeds, ple_tok);
+//               text_decoder(inputs_embeds, ple_tok, cache_positions).
 
 #include "multimodal_prefiller.h"
 #include "constants.h"
@@ -39,7 +46,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
                              int64_t &start_pos) {
   rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa multimodal prefill");
 
-  const bool uses_ple = decoder_runner_->uses_ple();
+  const bool has_ple = decoder_runner_->has_ple();
   const long t_prefill_begin = time_in_ms();
 
   ET_CHECK_OR_RETURN_ERROR(!inputs.empty(), InvalidArgument,
@@ -50,9 +57,9 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   //
   // Three knobs drive prefill:
   //   * get_max_seq_len     — text_decoder S cap. In dynamic-shape PTEs this
-  //                           is the per-call chunk size (Gemma4 iter201 = 128);
-  //                           in static-shape PTEs (LFM2-VL) it is also the
-  //                           single-shot prefill cap.
+  //                           is the per-call chunk size (Gemma4 iter201 =
+  //                           128); in static-shape PTEs (LFM2-VL) it is also
+  //                           the single-shot prefill cap.
   //   * get_max_context_len — total KV budget (Gemma4 iter201 = 2048). Only
   //                           materially used by the dynamic-shape path.
   //   * enable_dynamic_shape — selects between chunked (true) and single-shot
@@ -64,9 +71,6 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     if (r.error() == Error::Ok) {
       max_seq_len = r->toScalar().to<int64_t>();
     }
-  }
-  if (max_seq_len <= 0) {
-    max_seq_len = kMaxPrefillLen;
   }
 
   int64_t max_context_len = max_seq_len;
@@ -135,7 +139,9 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
 
   for (const auto &input : inputs) {
 
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa input type", input.is_audio() ? "audio" : "no audio", input.is_image() ? "image" : "no image");
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa input type",
+                      input.is_audio() ? "audio" : "no audio",
+                      input.is_image() ? "image" : "no image");
 
     if (input.is_image()) {
       ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
@@ -167,15 +173,16 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
                                audio_tensor.dim());
       const int64_t num_audio = static_cast<int64_t>(audio_tensor.size(1));
       const int64_t audio_hidden = static_cast<int64_t>(audio_tensor.size(2));
-      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa encoded audio", num_audio, audio_hidden);
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa encoded audio",
+                        num_audio, audio_hidden);
       ET_CHECK_OR_RETURN_ERROR(num_audio > 0, InvalidState,
                                "Audio encoder produced 0 tokens");
       std::vector<uint8_t> bytes(audio_tensor.nbytes());
       std::memcpy(bytes.data(), audio_tensor.const_data_ptr(),
                   audio_tensor.nbytes());
-      audio_slots.push_back(AudioSlot{
-          std::move(bytes), audio_tensor.scalar_type(),
-          static_cast<int64_t>(ids.size()), num_audio, audio_hidden});
+      audio_slots.push_back(
+          AudioSlot{std::move(bytes), audio_tensor.scalar_type(),
+                    static_cast<int64_t>(ids.size()), num_audio, audio_hidden});
       ids.insert(ids.end(), static_cast<size_t>(num_audio), 0);
 
       // Diagnostic: dump audio encoder output magnitude + first values so
@@ -226,13 +233,12 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
         }
         const double rms =
             nfloats > 0 ? std::sqrt(sumsq / static_cast<double>(nfloats)) : 0.0;
-        rnexecutorch::log(
-            rnexecutorch::LOG_LEVEL::Info,
-            "kappa [AudioEmbed] num_audio=", nrows, " hidden=", hidden,
-            " slot_start=", slot.slot_start,
-            " dtype=", static_cast<int>(slot.dtype),
-            " bytes_per_elem=", bytes_per_elem, " maxabs=", maxabs,
-            " rms=", rms, " first16=", head);
+        rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                          "kappa [AudioEmbed] num_audio=", nrows,
+                          " hidden=", hidden, " slot_start=", slot.slot_start,
+                          " dtype=", static_cast<int>(slot.dtype),
+                          " bytes_per_elem=", bytes_per_elem,
+                          " maxabs=", maxabs, " rms=", rms, " first16=", head);
       }
     } else if (input.is_text() || input.is_tokens()) {
       std::vector<uint64_t> tokens;
@@ -260,12 +266,12 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   ET_CHECK_OR_RETURN_ERROR(total_len > 0, InvalidArgument,
                            "prefill produced zero tokens");
 
-  ET_CHECK_OR_RETURN_ERROR(
-      total_len <= prefill_total_cap, InvalidArgument,
-      "Prefill length %lld exceeds %s (%lld)",
-      static_cast<long long>(total_len),
-      enable_dynamic_shape ? "get_max_context_len" : "get_max_seq_len",
-      static_cast<long long>(prefill_total_cap));
+  ET_CHECK_OR_RETURN_ERROR(total_len <= prefill_total_cap, InvalidArgument,
+                           "Prefill length %lld exceeds %s (%lld)",
+                           static_cast<long long>(total_len),
+                           enable_dynamic_shape ? "get_max_context_len"
+                                                : "get_max_seq_len",
+                           static_cast<long long>(prefill_total_cap));
   if (!enable_dynamic_shape) {
     // Static-shape token_embedding needs fixed-length input; trailing pad
     // zeros are inert because we copy only `total_len` rows out of the
@@ -283,29 +289,26 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     const size_t dump_n = std::min<size_t>(ids.size(), size_t{512});
     ids_dump.reserve(dump_n * 6);
     for (size_t i = 0; i < dump_n; ++i) {
-      if (i) ids_dump += ",";
+      if (i)
+        ids_dump += ",";
       ids_dump += std::to_string(ids[i]);
     }
-    if (ids.size() > dump_n) ids_dump += ",…";
+    if (ids.size() > dump_n)
+      ids_dump += ",…";
     rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "[Splice] total_len=", total_len,
-                      " ids_buf=", ids.size(),
+                      "[Splice] total_len=", total_len, " ids_buf=", ids.size(),
                       " image_slots=", image_slots.size(),
-                      " audio_slots=", audio_slots.size(),
-                      " ids[0..", dump_n, "]=", ids_dump);
+                      " audio_slots=", audio_slots.size(), " ids[0..", dump_n,
+                      "]=", ids_dump);
     for (size_t i = 0; i < image_slots.size(); ++i) {
       const auto &s = image_slots[i];
-      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                        "[Splice] image_slot[", i,
-                        "] start=", s.slot_start,
-                        " num=", s.num_visual);
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[Splice] image_slot[",
+                        i, "] start=", s.slot_start, " num=", s.num_visual);
     }
     for (size_t i = 0; i < audio_slots.size(); ++i) {
       const auto &s = audio_slots[i];
-      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                        "[Splice] audio_slot[", i,
-                        "] start=", s.slot_start,
-                        " num=", s.num_audio,
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "[Splice] audio_slot[",
+                        i, "] start=", s.slot_start, " num=", s.num_audio,
                         " hidden=", s.audio_hidden,
                         " dtype=", static_cast<int>(s.dtype),
                         " bytes=", s.bytes.size());
@@ -326,7 +329,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   auto &embed_outputs = *embed_result;
   const long t_tokembed_end = time_in_ms();
 
-  const size_t expected_outputs = uses_ple ? 2u : 1u;
+  const size_t expected_outputs = has_ple ? 2u : 1u;
   ET_CHECK_OR_RETURN_ERROR(embed_outputs.size() == expected_outputs,
                            InvalidState,
                            "Expected %zu output(s) from token_embedding, "
@@ -363,7 +366,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   size_t ple_elem_size = 0;
   ::executorch::aten::ScalarType ple_tok_dtype =
       ::executorch::aten::ScalarType::Float;
-  if (uses_ple) {
+  if (has_ple) {
     auto full_ple_tok = embed_outputs[1].toTensor();
     num_layers = static_cast<SizesType>(full_ple_tok.size(2));
     ple_dim = static_cast<SizesType>(full_ple_tok.size(3));
@@ -442,7 +445,8 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     std::string out;
     out.reserve(n * 10);
     for (size_t i = 0; i < n; ++i) {
-      if (i) out += ",";
+      if (i)
+        out += ",";
       float v = 0.0f;
       if (dt == ::executorch::aten::ScalarType::Float) {
         v = reinterpret_cast<const float *>(p)[i];
@@ -457,15 +461,15 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     return out;
   };
 
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "kappa [Splice] pass 2b begin: audio_slots=",
-                    audio_slots.size(), " embeds_buf_bytes=",
-                    embeds_buf.size(), " hidden=", hidden,
-                    " embeds_dtype=", static_cast<int>(embeds_dtype),
-                    " embeds_elem_size=", embeds_elem_size);
+  rnexecutorch::log(
+      rnexecutorch::LOG_LEVEL::Info,
+      "kappa [Splice] pass 2b begin: audio_slots=", audio_slots.size(),
+      " embeds_buf_bytes=", embeds_buf.size(), " hidden=", hidden,
+      " embeds_dtype=", static_cast<int>(embeds_dtype),
+      " embeds_elem_size=", embeds_elem_size);
 
   for (auto &slot : audio_slots) {
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa splice loop!!!");
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa splice loop!!!");
 
     ET_CHECK_OR_RETURN_ERROR(
         slot.audio_hidden == static_cast<int64_t>(hidden), InvalidState,
@@ -496,8 +500,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     // already equals `src` you are looking at a re-run; if `after` differs
     // from `src` the splice/dtype-cast path is wrong.
     const size_t dbg_n = std::min<size_t>(8, static_cast<size_t>(hidden));
-    const std::string before_str =
-        stringify_floats(dst, dbg_n, embeds_dtype);
+    const std::string before_str = stringify_floats(dst, dbg_n, embeds_dtype);
     const std::string src_str =
         stringify_floats(slot.bytes.data(), dbg_n, audio_dtype);
 
@@ -512,8 +515,8 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
       }
     } else if (audio_dtype == ::executorch::aten::ScalarType::Half &&
                embeds_dtype == ::executorch::aten::ScalarType::Float) {
-      const auto *src = reinterpret_cast<const ::executorch::aten::Half *>(
-          slot.bytes.data());
+      const auto *src =
+          reinterpret_cast<const ::executorch::aten::Half *>(slot.bytes.data());
       auto *dst_f = reinterpret_cast<float *>(dst);
       for (size_t i = 0; i < audio_elems; ++i) {
         dst_f[i] = static_cast<float>(src[i]);
@@ -528,8 +531,7 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     // Post-splice: re-read the same dst row + compute magnitude over the
     // entire spliced region so the user can confirm the bytes flipped to
     // real audio embeds (post should equal src, post_maxabs > 0 always).
-    const std::string after_str =
-        stringify_floats(dst, dbg_n, embeds_dtype);
+    const std::string after_str = stringify_floats(dst, dbg_n, embeds_dtype);
     float maxabs = 0.0f;
     double sumsq = 0.0;
     for (size_t i = 0; i < audio_elems; ++i) {
@@ -541,25 +543,24 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
             reinterpret_cast<const ::executorch::aten::Half *>(dst)[i]);
       }
       const float av = std::fabs(v);
-      if (av > maxabs) maxabs = av;
+      if (av > maxabs)
+        maxabs = av;
       sumsq += static_cast<double>(v) * static_cast<double>(v);
     }
-    const double rms =
-        audio_elems > 0
-            ? std::sqrt(sumsq / static_cast<double>(audio_elems))
-            : 0.0;
+    const double rms = audio_elems > 0
+                           ? std::sqrt(sumsq / static_cast<double>(audio_elems))
+                           : 0.0;
 
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+    rnexecutorch::log(
+        rnexecutorch::LOG_LEVEL::Info,
         "kappa [Splice] audio slot start=", slot.slot_start,
-        " num=", slot.num_audio,
-        " dtype src=", static_cast<int>(audio_dtype),
-        " dst=", static_cast<int>(embeds_dtype),
-        " pre[0..", dbg_n, "]=", before_str,
-        " src[0..", dbg_n, "]=", src_str,
-        " post[0..", dbg_n, "]=", after_str,
-        " post_maxabs=", maxabs, " post_rms=", rms);
+        " num=", slot.num_audio, " dtype src=", static_cast<int>(audio_dtype),
+        " dst=", static_cast<int>(embeds_dtype), " pre[0..", dbg_n,
+        "]=", before_str, " src[0..", dbg_n, "]=", src_str, " post[0..", dbg_n,
+        "]=", after_str, " post_maxabs=", maxabs, " post_rms=", rms);
   }
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa post splice", embeds_buf);
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa post splice",
+                    embeds_buf);
 
   // ------------------------------------------------------------
   // Chunked text_decoder calls.
@@ -594,11 +595,11 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
         embeds_dtype);
 
     TensorPtr ple_chunk;
-    if (uses_ple) {
+    if (has_ple) {
       uint8_t *ple_chunk_ptr =
-          ple_tok_buf.data() +
-          static_cast<size_t>(cs) * static_cast<size_t>(num_layers) *
-              static_cast<size_t>(ple_dim) * ple_elem_size;
+          ple_tok_buf.data() + static_cast<size_t>(cs) *
+                                   static_cast<size_t>(num_layers) *
+                                   static_cast<size_t>(ple_dim) * ple_elem_size;
       ple_chunk = ::executorch::extension::from_blob(
           ple_chunk_ptr,
           {1, static_cast<SizesType>(chunk_len), num_layers, ple_dim},
@@ -610,12 +611,11 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
         ::executorch::aten::ScalarType::Long);
 
     auto res =
-        uses_ple
-            ? module_->execute(kTextModelMethod,
-                               {EValue(*embeds_chunk), EValue(*ple_chunk),
-                                EValue(*pos_chunk)})
-            : module_->execute(kTextModelMethod,
-                               {EValue(*embeds_chunk), EValue(*pos_chunk)});
+        has_ple ? module_->execute(kTextModelMethod,
+                                   {EValue(*embeds_chunk), EValue(*ple_chunk),
+                                    EValue(*pos_chunk)})
+                : module_->execute(kTextModelMethod,
+                                   {EValue(*embeds_chunk), EValue(*pos_chunk)});
     ET_CHECK_OK_OR_RETURN_ERROR(res.error());
     last_outs = std::move(*res);
   }
