@@ -49,7 +49,7 @@ public:
   /**
    * Adds a new audio chunk to the streaming buffer.
    */
-  void streamInsert(std::span<float> audio);
+  void streamInsert(std::span<const float> audio);
 
 private:
   std::vector<std::array<float, constants::kPaddedWindowSize>>

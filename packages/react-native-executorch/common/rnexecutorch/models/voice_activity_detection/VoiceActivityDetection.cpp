@@ -155,7 +155,7 @@ void VoiceActivityDetection::streamStop() {
   streamCv_.notify_all();
 }
 
-void VoiceActivityDetection::streamInsert(std::span<float> audio) {
+void VoiceActivityDetection::streamInsert(std::span<const float> audio) {
   std::scoped_lock lock(audioBufferMutex_);
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
 }
