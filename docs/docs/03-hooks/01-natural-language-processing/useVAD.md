@@ -90,7 +90,7 @@ const stopLiveVAD = () => {
 ### Arguments & Returns
 
 - **Arguments**: `useVAD` takes a [`VADProps`](../../06-api-reference/interfaces/VADProps.md) object containing the `model` and an optional `preventLoad` flag.
-- **Returns**: A [`VADType`](../../06-api-reference/interfaces/VADType.md) object providing `forward`, `stream`, `streamInsert`, and `streamStop` methods, along with `isReady` and `error` states.
+- **Returns**: A [`VADType`](../../06-api-reference/interfaces/VADType.md) object providing `forward`, `stream`, `streamInsert`, and `streamStop` methods, along with `error`, `isReady`, `isGenerating`, and `downloadProgress` states.
 
 ## Supported models
 
