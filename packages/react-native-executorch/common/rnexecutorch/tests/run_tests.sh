@@ -205,7 +205,7 @@ models_for_test() {
   StyleTransferTests) echo "style_transfer_candy_xnnpack_fp32.pte test_image.jpg" ;;
   VADTests) echo "fsmn-vad_xnnpack.pte" ;;
   TokenizerModuleTests) echo "tokenizer.json" ;;
-  SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json" ;;
+  SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json fsmn-vad_xnnpack.pte" ;;
   TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json kokoro_us_phonemizer.pte" ;;
   LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
   TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
