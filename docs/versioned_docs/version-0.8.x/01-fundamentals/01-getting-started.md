@@ -121,7 +121,7 @@ Because we are using ExecuTorch under the hood, you won't be able to build iOS a
 Running the app with the library:
 
 ```bash
-yarn <ios | android> -d
+yarn <ios|android> -d
 ```
 
 ## Supporting new models in React Native ExecuTorch
