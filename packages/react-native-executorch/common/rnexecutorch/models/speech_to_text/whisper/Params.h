@@ -59,6 +59,12 @@ constexpr inline float kWordsPerSecondLow = 1.5F;
  */
 constexpr inline int32_t kChunkBreakBuffer = 2; // [s]
 
+/**
+ * Multiplier applied to `vadDetectionMargin` when computing the merge gap
+ * passed to `VoiceActivityDetection::generate`. The merge window is widened
+ * slightly so brief intra-utterance silences (just over the detection margin)
+ * still fold into a single speech segment.
+ */
 constexpr inline float kVadGapFactor = 1.2F;
 
 constexpr inline size_t kVadDeadSamplesRemovalSamples =
