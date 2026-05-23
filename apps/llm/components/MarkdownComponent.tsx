@@ -16,7 +16,6 @@ export default function MarkdownComponent({ text }: MarkdownComponentProps) {
           fontFamily: 'regular',
           lineHeight: 19.6,
           fontSize: fontSize,
-          alignSelf: 'flex-start',
         },
         paragraph: {
           marginTop: 0,
