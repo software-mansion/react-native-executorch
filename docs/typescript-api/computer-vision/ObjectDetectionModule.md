@@ -10,16 +10,12 @@ TypeScript API implementation of the [useObjectDetection](https://docs.swmansion
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  ObjectDetectionModule,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-} from 'react-native-executorch';
-
+import { models, ObjectDetectionModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance and loading the model
 const objectDetectionModule = await ObjectDetectionModule.fromModelName(
-  SSDLITE_320_MOBILENET_V3_LARGE
+  models.object_detection.ssdlite_320_mobilenet_v3_large()
 );
 
 // Running the model
@@ -73,7 +69,6 @@ Use [`fromCustomModel`](https://docs.swmansion.com/react-native-executorch/docs/
 
 ```typescript
 import { ObjectDetectionModule } from 'react-native-executorch';
-
 const MyLabels = { BACKGROUND: 0, CAT: 1, DOG: 2 } as const;
 
 const detector = await ObjectDetectionModule.fromCustomModel(

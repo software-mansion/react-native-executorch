@@ -10,16 +10,13 @@ TypeScript API implementation of the [useStyleTransfer](https://docs.swmansion.c
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  StyleTransferModule,
-  STYLE_TRANSFER_CANDY,
-} from 'react-native-executorch';
-
+import { models, StyleTransferModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating and loading the module
-const styleTransferModule =
-  await StyleTransferModule.fromModelName(STYLE_TRANSFER_CANDY);
+const styleTransferModule = await StyleTransferModule.fromModelName(
+  models.style_transfer.candy()
+);
 
 // Running the model
 const generatedImageUrl = await styleTransferModule.forward(imageUri);

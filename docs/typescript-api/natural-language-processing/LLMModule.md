@@ -11,11 +11,10 @@ TypeScript API implementation of the [useLLM](https://docs.swmansion.com/react-n
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
-
+import { models, LLMModule } from 'react-native-executorch';
 // Creating an instance and loading the model
 const llm = await LLMModule.fromModelName(
-  LLAMA3_2_1B_QLORA,
+  models.llm.lfm2_5_1_2b_instruct(),
   (progress) => console.log(progress),
   (token) => console.log(token),
   (messages) => console.log(messages)
@@ -43,7 +42,7 @@ Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executo
 
 ```typescript
 const llm = await LLMModule.fromModelName(
-  LLAMA3_2_3B, // model config constant
+  models.llm.lfm2_5_1_2b_instruct(), // model config constant
   onDownloadProgress, // optional, progress 0–1
   tokenCallback, // optional, called on every token
   messageHistoryCallback // optional, called when generation finishes
@@ -51,7 +50,7 @@ const llm = await LLMModule.fromModelName(
 
 ```
 
-The model config object contains `modelSource`, `tokenizerSource`, `tokenizerConfigSource`, and optional `capabilities`. Pass one of the built-in constants (e.g. `LLAMA3_2_3B`) or construct it manually.
+The model config object contains `modelSource`, `tokenizerSource`, `tokenizerConfigSource`, and optional `capabilities`. Pass one of the built-in constants (e.g. `LFM2_5_1_2B_INSTRUCT`) or construct it manually.
 
 This method returns a promise resolving to an `LLMModule` instance.
 
@@ -109,11 +108,11 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   * [`temperature`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-  * `topP` - Only samples from the smallest set of tokens whose cumulative probability exceeds topP. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
+  * [`topP`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topP. Range `[0, 1]`. Values of `0` or `1` disable top-p filtering.
 
-  * `minP` - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topP` when both are set.
+  * [`minP`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#minp) - Minimum-probability threshold applied after softmax: tokens whose probability is below `minP * max_prob` are excluded from sampling. Range `[0, 1]`. Default `0` disables the filter. Stacks with `topP` when both are set.
 
-  * `repetitionPenalty` - Multiplicative penalty applied to logits of tokens that already appeared in the prompt or the generated text. Values greater than `1` discourage repetition; default `1` disables the penalty.
+  * [`repetitionPenalty`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#repetitionpenalty) - Multiplicative penalty applied to logits of tokens that already appeared in the prompt or the generated text. Values greater than `1` discourage repetition; default `1` disables the penalty.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)Built-in models ship with sampling defaults
 
@@ -124,10 +123,9 @@ Model presets expose an optional `generationConfig` that `LLMModule.fromModelNam
 Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname):
 
 ```typescript
-import { LLMModule, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
-
+import { models, LLMModule } from 'react-native-executorch';
 const llm = await LLMModule.fromModelName(
-  LFM2_5_VL_1_6B_QUANTIZED,
+  models.llm.lfm2_5_vl_1_6b(),
   undefined,
   (token) => console.log(token)
 );
@@ -177,7 +175,6 @@ Use [`fromCustomModel`](https://docs.swmansion.com/react-native-executorch/docs/
 
 ```typescript
 import { LLMModule } from 'react-native-executorch';
-
 const llm = await LLMModule.fromCustomModel(
   'https://example.com/model.pte',
   'https://example.com/tokenizer.json',

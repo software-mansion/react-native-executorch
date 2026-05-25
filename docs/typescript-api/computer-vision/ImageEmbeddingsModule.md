@@ -10,14 +10,10 @@ TypeScript API implementation of the [useImageEmbeddings](https://docs.swmansion
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  ImageEmbeddingsModule,
-  CLIP_VIT_BASE_PATCH32_IMAGE,
-} from 'react-native-executorch';
-
+import { models, ImageEmbeddingsModule } from 'react-native-executorch';
 // Creating and loading the module
 const imageEmbeddingsModule = await ImageEmbeddingsModule.fromModelName(
-  CLIP_VIT_BASE_PATCH32_IMAGE
+  models.image_embedding.clip_vit_base_patch32_image()
 );
 
 // Running the model

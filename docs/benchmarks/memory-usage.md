@@ -94,13 +94,16 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 
 ## Text Embeddings[​](#text-embeddings "Direct link to Text Embeddings")
 
-| Model / Device                            | iPhone 17 Pro \[MB] | OnePlus 12 \[MB] |
-| ----------------------------------------- | ------------------- | ---------------- |
-| ALL\_MINILM\_L6\_V2 (XNNPACK)             | 110                 | 95               |
-| ALL\_MPNET\_BASE\_V2 (XNNPACK)            | 455                 | 405              |
-| MULTI\_QA\_MINILM\_L6\_COS\_V1 (XNNPACK)  | 140                 | 120              |
-| MULTI\_QA\_MPNET\_BASE\_DOT\_V1 (XNNPACK) | 455                 | 435              |
-| CLIP\_VIT\_BASE\_PATCH32\_TEXT (XNNPACK)  | 280                 | 200              |
+| Model / Device                                            | iPhone 17 Pro \[MB] | OnePlus 12 \[MB] |
+| --------------------------------------------------------- | ------------------- | ---------------- |
+| ALL\_MINILM\_L6\_V2 (XNNPACK)                             | 110                 | 95               |
+| ALL\_MPNET\_BASE\_V2 (XNNPACK)                            | 455                 | 405              |
+| MULTI\_QA\_MINILM\_L6\_COS\_V1 (XNNPACK)                  | 140                 | 120              |
+| MULTI\_QA\_MPNET\_BASE\_DOT\_V1 (XNNPACK)                 | 455                 | 435              |
+| CLIP\_VIT\_BASE\_PATCH32\_TEXT (XNNPACK)                  | 280                 | 200              |
+| DISTILUSE\_BASE\_MULTILINGUAL\_CASED\_V2 (XNNPACK 8da4w)  | 36                  | 44               |
+| DISTILUSE\_BASE\_MULTILINGUAL\_CASED\_V2 (Core ML FP32)   | 55                  | -                |
+| PARAPHRASE\_MULTILINGUAL\_MINILM\_L12\_V2 (XNNPACK 8da4w) | 131                 | 141              |
 
 ## Image Embeddings[​](#image-embeddings "Direct link to Image Embeddings")
 
@@ -122,7 +125,7 @@ Data presented in the following sections is based on inference with non-resized 
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)note
 
-Data presented in the following sections is based on inference with `forward_640` method.
+Data presented in the following sections is based on inference with 640x640 input.
 
 | Model / Device                | iPhone 17 Pro \[MB] | OnePlus 12 \[MB] |
 | ----------------------------- | ------------------- | ---------------- |
@@ -132,6 +135,10 @@ Data presented in the following sections is based on inference with `forward_640
 | YOLO26L\_SEG (XNNPACK)        | 1024                | 680              |
 | YOLO26X\_SEG (XNNPACK)        | 1450                | 1410             |
 | RF\_DETR\_NANO\_SEG (XNNPACK) | 603                 | 620              |
+| FASTSAM\_S (XNNPACK FP32)     | 535                 | 567              |
+| FASTSAM\_X (XNNPACK FP32)     | 760                 | 792              |
+| FASTSAM\_S (Core ML FP16)     | 523                 | -                |
+| FASTSAM\_X (Core ML FP16)     | 684                 | -                |
 
 ## Text to Image[​](#text-to-image "Direct link to Text to Image")
 

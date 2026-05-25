@@ -16,7 +16,6 @@ You can initialize the ExecuTorch module in your JavaScript application using th
 
 ```typescript
 import { useExecutorchModule } from 'react-native-executorch';
-
 const executorchModule = useExecutorchModule({
   modelSource: require('../assets/models/model.pte'),
 });
@@ -63,14 +62,13 @@ First, import the necessary functions from the `react-native-executorch` package
 
 ```typescript
 import {
+  models,
   useExecutorchModule,
-  STYLE_TRANSFER_CANDY,
   ScalarType,
 } from 'react-native-executorch';
-
 // Initialize the executorch module with the predefined style transfer model.
 const executorchModule = useExecutorchModule({
-  modelSource: STYLE_TRANSFER_CANDY,
+  modelSource: models.style_transfer.candy(),
 });
 
 ```

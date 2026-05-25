@@ -13,12 +13,7 @@ For React applications, consider using the [`useExecutorchModule`](https://docs.
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  ExecutorchModule,
-  STYLE_TRANSFER_CANDY,
-  ScalarType,
-} from 'react-native-executorch';
-
+import { models, ExecutorchModule, ScalarType } from 'react-native-executorch';
 // Creating the input array
 const inputTensor = {
   dataPtr: new Float32Array(1 * 3 * 640 * 640),
@@ -30,7 +25,7 @@ const inputTensor = {
 const model = new ExecutorchModule();
 
 // Loading the model
-await model.load(STYLE_TRANSFER_CANDY);
+await model.load(models.style_transfer.candy());
 
 // Running the forward method
 const output = await model.forward([inputTensor]);
@@ -60,17 +55,12 @@ This example demonstrates the integration and usage of the ExecuTorch bindings w
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
 ```typescript
-import {
-  ExecutorchModule,
-  STYLE_TRANSFER_CANDY,
-  ScalarType,
-} from 'react-native-executorch';
-
+import { models, ExecutorchModule, ScalarType } from 'react-native-executorch';
 // Initialize the executorch module
 const executorchModule = new ExecutorchModule();
 
 // Load the model with optional download progress callback
-await executorchModule.load(STYLE_TRANSFER_CANDY, (progress) => {
+await executorchModule.load(models.style_transfer.candy(), (progress) => {
   console.log(`Download progress: ${progress}%`);
 });
 

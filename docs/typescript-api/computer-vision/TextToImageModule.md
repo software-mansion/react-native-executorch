@@ -10,16 +10,12 @@ TypeScript API implementation of the [useTextToImage](https://docs.swmansion.com
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  TextToImageModule,
-  BK_SDM_TINY_VPRED_256,
-} from 'react-native-executorch';
-
+import { models, TextToImageModule } from 'react-native-executorch';
 const input = 'a castle';
 
 // Creating an instance and loading the model
 const textToImageModule = await TextToImageModule.fromModelName(
-  BK_SDM_TINY_VPRED_256
+  models.image_generation.bk_sdm_tiny_vpred_256()
 );
 
 // Running the model

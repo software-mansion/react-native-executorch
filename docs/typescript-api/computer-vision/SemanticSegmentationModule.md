@@ -10,16 +10,13 @@ TypeScript API implementation of the [useSemanticSegmentation](https://docs.swma
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  SemanticSegmentationModule,
-  DEEPLAB_V3_RESNET50,
-} from 'react-native-executorch';
-
+import { models, SemanticSegmentationModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
-const segmentation =
-  await SemanticSegmentationModule.fromModelName(DEEPLAB_V3_RESNET50);
+const segmentation = await SemanticSegmentationModule.fromModelName(
+  models.semantic_segmentation.deeplab_v3_resnet50()
+);
 
 // Running the model
 const result = await segmentation.forward(imageUri);
@@ -41,7 +38,7 @@ Use [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/ap
 
 ```typescript
 const segmentation = await SemanticSegmentationModule.fromModelName(
-  DEEPLAB_V3_RESNET50,
+  models.semantic_segmentation.deeplab_v3_resnet50(),
   (progress) => console.log(`Download: ${Math.round(progress * 100)}%`)
 );
 

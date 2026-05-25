@@ -94,14 +94,44 @@ The values below represent the averages across all runs for the benchmark image.
 
 ## LLMs[​](#llms "Direct link to LLMs")
 
-| Model                    | iPhone 16 Pro (XNNPACK) \[tokens/s] | iPhone 13 Pro (XNNPACK) \[tokens/s] | iPhone SE 3 (XNNPACK) \[tokens/s] | Samsung Galaxy S24 (XNNPACK) \[tokens/s] | OnePlus 12 (XNNPACK) \[tokens/s] |
-| ------------------------ | ----------------------------------- | ----------------------------------- | --------------------------------- | ---------------------------------------- | -------------------------------- |
-| LLAMA3\_2\_1B            | 16.1                                | 11.4                                | ❌                                | 15.6                                     | 19.3                             |
-| LLAMA3\_2\_1B\_SPINQUANT | 40.6                                | 16.7                                | 16.5                              | 40.3                                     | 48.2                             |
-| LLAMA3\_2\_1B\_QLORA     | 31.8                                | 11.4                                | 11.2                              | 37.3                                     | 44.4                             |
-| LLAMA3\_2\_3B            | ❌                                  | ❌                                  | ❌                                | ❌                                       | 7.1                              |
-| LLAMA3\_2\_3B\_SPINQUANT | 17.2                                | 8.2                                 | ❌                                | 16.2                                     | 19.4                             |
-| LLAMA3\_2\_3B\_QLORA     | 14.5                                | ❌                                  | ❌                                | 14.8                                     | 18.1                             |
+| Model                               | Google Pixel 10 (XNNPACK) \[tokens/s] | iPhone 17 Pro (XNNPACK) \[tokens/s] | OnePlus 12 (XNNPACK) \[tokens/s] | iPhone SE 3 (XNNPACK) \[tokens/s] |
+| ----------------------------------- | ------------------------------------- | ----------------------------------- | -------------------------------- | --------------------------------- |
+| LLAMA3\_2\_1B                       | 8                                     | 8                                   | 15                               | N/A                               |
+| LLAMA3\_2\_1B\_QLORA                | 22                                    | 22                                  | 45                               | 19                                |
+| LLAMA3\_2\_1B\_SPINQUANT            | 24                                    | 36                                  | 48                               | 17                                |
+| LLAMA3\_2\_3B                       | 2                                     | 3                                   | 6                                | N/A                               |
+| LLAMA3\_2\_3B\_QLORA                | 8                                     | 7                                   | 17                               | N/A                               |
+| LLAMA3\_2\_3B\_SPINQUANT            | 11                                    | 12                                  | 18                               | N/A                               |
+| QWEN3\_0\_6B                        | 7                                     | 9                                   | 15                               | 9                                 |
+| QWEN3\_0\_6B\_QUANTIZED             | 20                                    | 27                                  | 37                               | 35                                |
+| QWEN3\_1\_7B                        | 3                                     | 5                                   | 8                                | N/A                               |
+| QWEN3\_1\_7B\_QUANTIZED             | 10                                    | 14                                  | 20                               | 13                                |
+| QWEN3\_4B                           | 2                                     | N/A                                 | 4                                | N/A                               |
+| QWEN3\_4B\_QUANTIZED                | 5                                     | 7                                   | 10                               | N/A                               |
+| HAMMER2\_1\_0\_5B                   | 13                                    | 13                                  | 25                               | 16                                |
+| HAMMER2\_1\_0\_5B\_QUANTIZED        | 34                                    | 97                                  | 72                               | 56                                |
+| HAMMER2\_1\_1\_5B                   | 5                                     | 5                                   | 10                               | N/A                               |
+| HAMMER2\_1\_1\_5B\_QUANTIZED        | 14                                    | 16                                  | 36                               | 22                                |
+| HAMMER2\_1\_3B                      | 2                                     | 3                                   | 5                                | N/A                               |
+| HAMMER2\_1\_3B\_QUANTIZED           | 9                                     | 10                                  | 20                               | N/A                               |
+| SMOLLM2\_1\_135M                    | 25                                    | 24                                  | 33                               | 42                                |
+| SMOLLM2\_1\_135M\_QUANTIZED         | 20                                    | 32                                  | 64                               | 47                                |
+| SMOLLM2\_1\_360M                    | 12                                    | 13                                  | 20                               | 15                                |
+| SMOLLM2\_1\_360M\_QUANTIZED         | 12                                    | 15                                  | 29                               | 18                                |
+| SMOLLM2\_1\_1\_7B                   | 3                                     | 5                                   | 7                                | N/A                               |
+| SMOLLM2\_1\_1\_7B\_QUANTIZED        | 12                                    | 14                                  | 27                               | 23                                |
+| QWEN2\_5\_0\_5B                     | 12                                    | 12                                  | 21                               | 15                                |
+| QWEN2\_5\_0\_5B\_QUANTIZED          | 33                                    | 31                                  | 55                               | 48                                |
+| QWEN2\_5\_1\_5B                     | 5                                     | 5                                   | 9                                | N/A                               |
+| QWEN2\_5\_1\_5B\_QUANTIZED          | 15                                    | 15                                  | 28                               | 16                                |
+| QWEN2\_5\_3B                        | 2                                     | 3                                   | 5                                | N/A                               |
+| QWEN2\_5\_3B\_QUANTIZED             | 9                                     | 10                                  | 18                               | N/A                               |
+| PHI\_4\_MINI\_4B                    | 2                                     | 3                                   | 4                                | N/A                               |
+| PHI\_4\_MINI\_4B\_QUANTIZED         | 4                                     | 7                                   | 10                               | N/A                               |
+| LFM2\_5\_350M                       | 16                                    | 26                                  | 34                               | 21                                |
+| LFM2\_5\_350M\_QUANTIZED            | 58                                    | 67                                  | 103                              | 51                                |
+| LFM2\_5\_1\_2B\_INSTRUCT            | 6                                     | 10                                  | 13                               | N/A                               |
+| LFM2\_5\_1\_2B\_INSTRUCT\_QUANTIZED | 8                                     | 26                                  | 47                               | 24                                |
 
 ❌ - Insufficient RAM.
 
@@ -138,13 +168,16 @@ Average time to synthesize speech from an input text of approximately 60 tokens,
 
 Benchmark times for text embeddings are highly dependent on the sentence length. The numbers below are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
 
-| Model                           | iPhone 17 Pro (XNNPACK) \[ms] | OnePlus 12 (XNNPACK) \[ms] |
-| ------------------------------- | ----------------------------- | -------------------------- |
-| ALL\_MINILM\_L6\_V2             | 7                             | 21                         |
-| ALL\_MPNET\_BASE\_V2            | 24                            | 90                         |
-| MULTI\_QA\_MINILM\_L6\_COS\_V1  | 7                             | 19                         |
-| MULTI\_QA\_MPNET\_BASE\_DOT\_V1 | 24                            | 88                         |
-| CLIP\_VIT\_BASE\_PATCH32\_TEXT  | 14                            | 39                         |
+| Model / Device                                            | iPhone 17 Pro \[ms] | OnePlus 12 \[ms] |
+| --------------------------------------------------------- | ------------------- | ---------------- |
+| ALL\_MINILM\_L6\_V2 (XNNPACK)                             | 7                   | 21               |
+| ALL\_MPNET\_BASE\_V2 (XNNPACK)                            | 24                  | 90               |
+| MULTI\_QA\_MINILM\_L6\_COS\_V1 (XNNPACK)                  | 7                   | 19               |
+| MULTI\_QA\_MPNET\_BASE\_DOT\_V1 (XNNPACK)                 | 24                  | 88               |
+| CLIP\_VIT\_BASE\_PATCH32\_TEXT (XNNPACK)                  | 14                  | 39               |
+| DISTILUSE\_BASE\_MULTILINGUAL\_CASED\_V2 (XNNPACK 8da4w)  | 16                  | 15               |
+| DISTILUSE\_BASE\_MULTILINGUAL\_CASED\_V2 (Core ML FP32)   | 15                  | -                |
+| PARAPHRASE\_MULTILINGUAL\_MINILM\_L12\_V2 (XNNPACK 8da4w) | 14                  | 15               |
 
 ## Image Embeddings[​](#image-embeddings "Direct link to Image Embeddings")
 
@@ -184,14 +217,18 @@ For this model all input images, whether larger or smaller, are resized before p
 
 Times presented in the tables are measured for YOLO models with input size equal to 512. Other input sizes may yield slower or faster inference times. RF-DETR Nano Seg uses a fixed resolution of 312×312.
 
-| Model               | Samsung Galaxy S24 (XNNPACK) \[ms] | Iphone 17 pro (XNNPACK) \[ms] |
-| ------------------- | ---------------------------------- | ----------------------------- |
-| YOLO26N\_SEG        | 92                                 | 90                            |
-| YOLO26S\_SEG        | 220                                | 188                           |
-| YOLO26M\_SEG        | 570                                | 550                           |
-| YOLO26L\_SEG        | 680                                | 608                           |
-| YOLO26X\_SEG        | 1410                               | 1338                          |
-| RF\_DETR\_NANO\_SEG | 549                                | 330                           |
+| Model                         | Samsung Galaxy S24 \[ms] | Iphone 17 pro \[ms] | Pixel 10 \[ms] |
+| ----------------------------- | ------------------------ | ------------------- | -------------- |
+| YOLO26N\_SEG (XNNPACK)        | 92                       | 90                  | 93             |
+| YOLO26S\_SEG (XNNPACK)        | 220                      | 188                 | 193            |
+| YOLO26M\_SEG (XNNPACK)        | 570                      | 550                 | 481            |
+| YOLO26L\_SEG (XNNPACK)        | 680                      | 608                 | 582            |
+| YOLO26X\_SEG (XNNPACK)        | 1410                     | 1338                | 1191           |
+| RF\_DETR\_NANO\_SEG (XNNPACK) | 549                      | 330                 | 428            |
+| FASTSAM\_S (XNNPACK)          | 184                      | 30                  | 286            |
+| FASTSAM\_X (XNNPACK)          | 1886                     | 2520                | 1993           |
+| FASTSAM\_S (Core ML)          | -                        | 51                  | -              |
+| FASTSAM\_X (Core ML)          | -                        | 72                  | -              |
 
 ## Text to image[​](#text-to-image "Direct link to Text to image")
 

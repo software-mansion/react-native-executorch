@@ -13,10 +13,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
-
+import { models, useInstanceSegmentation } from 'react-native-executorch';
 const model = useInstanceSegmentation({
-  model: YOLO26N_SEG,
+  model: models.instance_segmentation.yolo26n(),
 });
 
 const imageUri = 'file:///Users/.../photo.jpg';
@@ -88,11 +87,10 @@ To run the model, use the [`forward`](https://docs.swmansion.com/react-native-ex
 ## Example[​](#example "Direct link to Example")
 
 ```typescript
-import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
-
+import { models, useInstanceSegmentation } from 'react-native-executorch';
 function App() {
   const model = useInstanceSegmentation({
-    model: YOLO26N_SEG,
+    model: models.instance_segmentation.yolo26n(),
   });
 
   const handleSegment = async () => {
@@ -140,3 +138,61 @@ YOLO models use the [`CocoLabelYolo`](https://docs.swmansion.com/react-native-ex
 | yolo26l-seg     | 80                | [COCO (YOLO)](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabelYolo) | 384, 512, 640         |
 | yolo26x-seg     | 80                | [COCO (YOLO)](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabelYolo) | 384, 512, 640         |
 | rfdetr-nano-seg | 91                | [COCO](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/CocoLabel)            | 312 (fixed)           |
+| fastsam-s       | 1                 | [FastSAMLabel](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/FastSAMLabel) | 640 (fixed)           |
+| fastsam-x       | 1                 | [FastSAMLabel](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/FastSAMLabel) | 640 (fixed)           |
+
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)tip
+
+FastSAM models are class-agnostic, so they segment every instance without classifying it. That makes them a good fit for promptable selection workflows.
+
+## Promptable selection[​](#promptable-selection "Direct link to Promptable selection")
+
+Instance segmentation models return a list of segmented instances. After `forward()`, you can use prompt-based selectors to pick the instance you want. Use point selection for tap-to-select or cutout tools, box selection for drag-to-outline workflows, and text selection for search or describe-it-in-words flows. For example, a photo-editing app can use point selection to isolate a person, create custom sticker or background-removal flow can use box selection, and a shopping app can use text selection to find a product by name or description:
+
+1. Load an instance segmentation model with `useInstanceSegmentation`.
+2. Run `forward(image)` once to get the detected instances.
+3. Use a selector to pick the instance or instances matching the user's prompt.
+4. Re-run the selector when the prompt changes; you do not need to call `forward` again unless the image changes.
+
+```typescript
+import {
+  models,
+  useInstanceSegmentation,
+  selectByPoint,
+  selectByBox,
+  selectByText,
+} from 'react-native-executorch';
+const model = useInstanceSegmentation({
+  model: models.instance_segmentation.fastsam_x(),
+});
+
+try {
+  const instances = await model.forward(imageUri);
+
+  // Point: the smallest instance whose mask covers (x, y).
+  const pointMatch = selectByPoint(instances, x, y);
+  console.log('point match:', pointMatch?.bbox);
+
+  // Box: the instance with highest IoU with the prompt box.
+  const boxMatch = selectByBox(instances, { x1, y1, x2, y2 });
+  console.log('box match:', boxMatch?.bbox);
+
+  // Text: highest cosine similarity between text and per-instance image
+  // embeddings (you must provide the embeddings, e.g. with CLIP).
+  const textMatch = selectByText(instances, instanceEmbeddings, textEmbedding);
+  console.log('text match:', textMatch?.bbox);
+} catch (error) {
+  console.error(error);
+}
+
+```
+
+For detailed API Reference for `selectByPoint`, `selectByBox`, and `selectByText` see their respective documentation pages:
+
+* [`selectByPoint` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/selectByPoint)
+* [`selectByBox` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/selectByBox)
+* [`selectByText` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/selectByText)
+
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)tip
+
+Use FastSAM-S for faster performance on simple images with non-overlapping instances and FastSAM-X for better accuracy on complex scenes with many overlapping objects.

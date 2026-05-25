@@ -6,7 +6,7 @@
 
 ## React Native ExecuTorch[​](#react-native-executorch "Direct link to React Native ExecuTorch")
 
-React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Additionally, we provide a set of pre-exported models for common use cases, so you don’t have to worry about handling exports yourself. With just a few lines of JavaScript, you can run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
+React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Additionally, we provide a set of pre-exported models for common use cases, so you don't have to worry about handling exports yourself. With just a few lines of JavaScript, you can run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
 
 ## Compatibility[​](#compatibility "Direct link to Compatibility")
 
@@ -18,42 +18,72 @@ For supported React Native and Expo versions, see the [Compatibility table](http
 
 ## Installation[​](#installation "Direct link to Installation")
 
-Installation is pretty straightforward, use your package manager of choice to install the package and some peer dependencies required to streamline model downloads. If you want to implement your custom model fetching logic, see [this document](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter.md).
+Installation takes two steps: install the core package, then install a resource fetcher adapter that matches your project type. If you want to implement your own model fetching logic instead, see [this document](https://docs.swmansion.com/react-native-executorch/docs/resource-fetcher/custom-adapter.md).
 
-* NPM
-* PNPM
-* YARN
+### 1. Install the core package[​](#1-install-the-core-package "Direct link to 1. Install the core package")
+
+* npm
+* pnpm
+* yarn
 
 ```bash
 npm install react-native-executorch
-# For Expo projects, you need to install expo resource fetcher
-npm install react-native-executorch-expo-resource-fetcher
-npm install expo-file-system expo-asset
-# For bare React Native projects, you need to install bare resource fetcher
-npm install react-native-executorch-bare-resource-fetcher
-npm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 ```
 
 ```bash
-pnpm install react-native-executorch
-# For Expo projects, you need to install expo resource fetcher
-pnpm install react-native-executorch-expo-resource-fetcher
-pnpm install expo-file-system expo-asset
-# For bare React Native projects, you need to install bare resource fetcher
-pnpm install react-native-executorch-bare-resource-fetcher
-pnpm install @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+pnpm add react-native-executorch
 
 ```
 
 ```bash
 yarn add react-native-executorch
-# For Expo projects, you need to install expo resource fetcher
-yarn add react-native-executorch-expo-resource-fetcher
-yarn add expo-file-system expo-asset
-# For bare React Native projects, you need to install bare resource fetcher
-yarn add react-native-executorch-bare-resource-fetcher
-yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
+```
+
+### 2. Install a resource fetcher[​](#2-install-a-resource-fetcher "Direct link to 2. Install a resource fetcher")
+
+Pick the adapter that matches your project. We recommend the Expo adapter when your app uses Expo; use the bare adapter for projects without Expo.
+
+#### Expo projects[​](#expo-projects "Direct link to Expo projects")
+
+* npm
+* pnpm
+* yarn
+
+```bash
+npm install react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+
+```
+
+```bash
+pnpm add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+
+```
+
+```bash
+yarn add react-native-executorch-expo-resource-fetcher expo-file-system expo-asset
+
+```
+
+#### Bare React Native projects[​](#bare-react-native-projects "Direct link to Bare React Native projects")
+
+* npm
+* pnpm
+* yarn
+
+```bash
+npm install react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
+```
+
+```bash
+pnpm add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
+```
+
+```bash
+yarn add react-native-executorch-bare-resource-fetcher @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 
 ```
 
@@ -97,8 +127,36 @@ Because we are using ExecuTorch under the hood, you won't be able to build iOS a
 
 Running the app with the library:
 
+* npm
+* pnpm
+* yarn
+
+```bash
+npm run <ios|android> -- -d
+
+```
+
+```bash
+pnpm <ios|android> -d
+
+```
+
 ```bash
 yarn <ios|android> -d
+
+```
+
+## Building from source[​](#building-from-source "Direct link to Building from source")
+
+To build the library from source instead, clone the repository and initialize submodules:
+
+```bash
+git clone -b release/0.9 https://github.com/software-mansion/react-native-executorch.git
+cd react-native-executorch
+
+git submodule update --init --recursive packages/react-native-executorch/third-party/common
+
+yarn
 
 ```
 

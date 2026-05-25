@@ -20,14 +20,16 @@
 
 ## Instance Segmentation[​](#instance-segmentation "Direct link to Instance Segmentation")
 
-| Model               | XNNPACK \[MB] |
-| ------------------- | ------------- |
-| YOLO26N\_SEG        | 11.6          |
-| YOLO26S\_SEG        | 42.3          |
-| YOLO26M\_SEG        | 95.4          |
-| YOLO26L\_SEG        | 113           |
-| YOLO26X\_SEG        | 252           |
-| RF\_DETR\_NANO\_SEG | 124           |
+| Model               | XNNPACK \[MB] | Core ML FP32 \[MB] | Core ML FP16 \[MB] |
+| ------------------- | ------------- | ------------------ | ------------------ |
+| YOLO26N\_SEG        | 11.6          | -                  | -                  |
+| YOLO26S\_SEG        | 42.3          | -                  | -                  |
+| YOLO26M\_SEG        | 95.4          | -                  | -                  |
+| YOLO26L\_SEG        | 113           | -                  | -                  |
+| YOLO26X\_SEG        | 252           | -                  | -                  |
+| RF\_DETR\_NANO\_SEG | 124           | -                  | -                  |
+| FASTSAM\_S          | 47.3          | 47.8               | 24.2               |
+| FASTSAM\_X          | 289           | 290                | 145                |
 
 ## Style Transfer[​](#style-transfer "Direct link to Style Transfer")
 
@@ -58,14 +60,44 @@
 
 ## LLMs[​](#llms "Direct link to LLMs")
 
-| Model                    | XNNPACK \[GB] |
-| ------------------------ | ------------- |
-| LLAMA3\_2\_1B            | 2.47          |
-| LLAMA3\_2\_1B\_SPINQUANT | 1.14          |
-| LLAMA3\_2\_1B\_QLORA     | 1.18          |
-| LLAMA3\_2\_3B            | 6.43          |
-| LLAMA3\_2\_3B\_SPINQUANT | 2.55          |
-| LLAMA3\_2\_3B\_QLORA     | 2.65          |
+| Model                              | XNNPACK \[GB] |
+| ---------------------------------- | ------------- |
+| LLAMA3\_2\_1B                      | 2.47          |
+| LLAMA3\_2\_1B\_SPINQUANT           | 1.14          |
+| LLAMA3\_2\_1B\_QLORA               | 1.18          |
+| LLAMA3\_2\_3B                      | 6.43          |
+| LLAMA3\_2\_3B\_SPINQUANT           | 2.55          |
+| LLAMA3\_2\_3B\_QLORA               | 2.65          |
+| QWEN3\_0.6B                        | 1.11          |
+| QWEN3\_0.6B\_QUANTIZED             | 0.47          |
+| QWEN3\_1.7B                        | 3.21          |
+| QWEN3\_1.7B\_QUANTIZED             | 1.21          |
+| QWEN3\_4B                          | 7.49          |
+| QWEN3\_4B\_QUANTIZED               | 2.50          |
+| QWEN2\_5\_0.5B                     | 0.92          |
+| QWEN2\_5\_0.5B\_QUANTIZED          | 0.39          |
+| QWEN2\_5\_1.5B                     | 2.88          |
+| QWEN2\_5\_1.5B\_QUANTIZED          | 1.06          |
+| QWEN2\_5\_3B                       | 5.75          |
+| QWEN2\_5\_3B\_QUANTIZED            | 1.95          |
+| HAMMER2\_1\_0.5B                   | 0.92          |
+| HAMMER2\_1\_0.5B\_QUANTIZED        | 0.39          |
+| HAMMER2\_1\_1.5B                   | 2.88          |
+| HAMMER2\_1\_1.5B\_QUANTIZED        | 1.06          |
+| HAMMER2\_1\_3B                     | 5.75          |
+| HAMMER2\_1\_3B\_QUANTIZED          | 1.91          |
+| PHI4\_MINI                         | 7.15          |
+| PHI4\_MINI\_QUANTIZED              | 2.62          |
+| SMOLLM2\_135M                      | 0.25          |
+| SMOLLM2\_135M\_QUANTIZED           | 0.52          |
+| SMOLLM2\_360M                      | 0.67          |
+| SMOLLM2\_360M\_QUANTIZED           | 1.27          |
+| SMOLLM2\_1.7B                      | 3.19          |
+| SMOLLM2\_1.7B\_QUANTIZED           | 0.95          |
+| LFM2\_5\_1.2B\_INSTRUCT            | 2.43          |
+| LFM2\_5\_1.2B\_INSTRUCT\_QUANTIZED | 0.74          |
+| LFM2\_5\_350M\_FP16                | 0.79          |
+| LFM2\_5\_350M\_QUANTIZED           | 0.26          |
 
 ## Speech to text[​](#speech-to-text "Direct link to Speech to text")
 
@@ -87,13 +119,15 @@
 
 ## Text Embeddings[​](#text-embeddings "Direct link to Text Embeddings")
 
-| Model                           | XNNPACK \[MB] |
-| ------------------------------- | ------------- |
-| ALL\_MINILM\_L6\_V2             | 91            |
-| ALL\_MPNET\_BASE\_V2            | 438           |
-| MULTI\_QA\_MINILM\_L6\_COS\_V1  | 91            |
-| MULTI\_QA\_MPNET\_BASE\_DOT\_V1 | 438           |
-| CLIP\_VIT\_BASE\_PATCH32\_TEXT  | 254           |
+| Model                                                | Size \[MB] |
+| ---------------------------------------------------- | ---------- |
+| ALL\_MINILM\_L6\_V2                                  | 91         |
+| ALL\_MPNET\_BASE\_V2                                 | 438        |
+| MULTI\_QA\_MINILM\_L6\_COS\_V1                       | 91         |
+| MULTI\_QA\_MPNET\_BASE\_DOT\_V1                      | 438        |
+| CLIP\_VIT\_BASE\_PATCH32\_TEXT                       | 254        |
+| DISTILUSE\_BASE\_MULTILINGUAL\_CASED\_V2\_8DA4W      | 393        |
+| PARAPHRASE\_MULTILINGUAL\_MINILM\_L12\_V2\_QUANTIZED | 397        |
 
 ## Image Embeddings[​](#image-embeddings "Direct link to Image Embeddings")
 

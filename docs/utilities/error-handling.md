@@ -8,14 +8,14 @@ This example uses the `LLMModule`, and then tries to change its `generationConfi
 
 ```typescript
 import {
+  models,
   LLMModule,
-  LLAMA3_2_1B_QLORA,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
 const llm = await LLMModule.fromModelName(
-  LLAMA3_2_1B_QLORA,
+  models.llm.lfm2_5_1_2b_instruct(),
   (progress) => console.log(progress),
   (token) => console.log(token),
   (messages) => console.log(messages)
@@ -67,7 +67,9 @@ llm.delete();
 
 ## Reference[​](#reference "Direct link to Reference")
 
-All errors in React Native ExecuTorch inherit from `RnExecutorchError` and include a `code` property from the `RnExecutorchErrorCode` enum. Below is a comprehensive list of all possible errors, organized by category.
+All errors in React Native ExecuTorch inherit from `RnExecutorchError` and include a `code` property. The code is typed as `RnExecutorchErrorCode | number`: in practice you'll almost always see a member of the enum, but the codes are generated from a shared config into both the C++ and TS sources, and if those generated files drift the raw numeric value flows through unchanged. When switching on `err.code`, always include a `default` branch.
+
+Below is a comprehensive list of all possible errors, organized by category.
 
 ### Module State Errors[​](#module-state-errors "Direct link to Module State Errors")
 
@@ -82,15 +84,15 @@ These errors occur when trying to perform operations on a model in an invalid st
 
 These errors occur when invalid configuration or input is provided.
 
-| Error Code             | Description                          | When It Occurs                                                                          | How to Handle                                            |
-| ---------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `InvalidConfig`        | Configuration parameters are invalid | Setting parameters outside valid ranges (e.g., `topp` outside \[0, 1])                  | Check parameter constraints and provide valid values     |
-| `InvalidUserInput`     | Input provided to API is invalid     | Passing empty arrays, null values, or malformed data to methods                         | Validate input before calling methods                    |
-| `InvalidModelSource`   | Model source type is invalid         | Providing wrong type for model source (e.g., object when string expected)               | Ensure model source matches expected type                |
-| `LanguageNotSupported` | Language not supported by model      | Passing unsupported language to multilingual OCR or Speech-to-Text models               | Use a supported language or different model              |
-| `PlatformNotSupported` | Current platform is not supported    | Using features (e.g., camera frame processing) on an unsupported platform or OS version | Ensure you're running on a supported platform/OS version |
-| `WrongDimensions`      | Input tensor dimensions don't match  | Providing input with incorrect shape for the model                                      | Check model's expected input dimensions                  |
-| `UnexpectedNumInputs`  | Wrong number of inputs provided      | Passing more or fewer inputs than model expects                                         | Match the number of inputs to model metadata             |
+| Error Code             | Description                          | When It Occurs                                                                          | How to Handle                                                 |
+| ---------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `InvalidConfig`        | Configuration parameters are invalid | Setting parameters outside valid ranges (e.g., `topp` outside \[0, 1])                  | Check parameter constraints and provide valid values          |
+| `InvalidUserInput`     | Input provided to API is invalid     | Passing empty arrays, null values, or malformed data to methods                         | Validate input before calling methods                         |
+| `InvalidModelSource`   | Model source type is invalid         | Providing wrong type for model source (e.g., object when string expected)               | Ensure model source matches expected type                     |
+| `LanguageNotSupported` | Language not supported by model      | Passing unsupported language to multilingual OCR or Speech-to-Text models               | Use a supported language or different model                   |
+| `PlatformNotSupported` | Current platform is not supported    | Using features (e.g., camera frame processing) on an unsupported platform or OS version | Ensure you're running on a supported platform/OS version      |
+| `WrongDimensions`      | Input tensor dimensions don't match  | Providing input with incorrect shape for the model                                      | Check model's expected input dimensions                       |
+| `UnexpectedNumInputs`  | Wrong number of inputs provided      | Passing more or fewer inputs than model expects                                         | Verify the expected model I/O contract in docs or source code |
 
 ### File Operations Errors[​](#file-operations-errors "Direct link to File Operations Errors")
 
@@ -132,12 +134,12 @@ These errors are specific to streaming transcription operations.
 
 These errors come from the ExecuTorch runtime during model execution.
 
-| Error Code           | Description                      | When It Occurs                                 | How to Handle                                  |
-| -------------------- | -------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| `InvalidModelOutput` | Model output size unexpected     | Model produces output of wrong size            | Verify model is compatible with the library    |
-| `ThreadPoolError`    | Threadpool operation failed      | Internal threading issue                       | Restart the model or app                       |
-| `TokenizerError`     | Tokenizer or tokenization failed | Tokenizer initialization or processing error   | Check tokenizer files and model compatibility  |
-| `UnknownError`       | Unexpected error occurred        | 3rd-party library error or unhandled exception | Check logs for details, report if reproducible |
+| Error Code           | Description                      | When It Occurs                                 | How to Handle                                               |
+| -------------------- | -------------------------------- | ---------------------------------------------- | ----------------------------------------------------------- |
+| `InvalidModelOutput` | Model output size unexpected     | Model produces output of wrong size            | Verify model's expected I/O contract in docs or source code |
+| `ThreadPoolError`    | Threadpool operation failed      | Internal threading issue                       | Restart the model or app                                    |
+| `TokenizerError`     | Tokenizer or tokenization failed | Tokenizer initialization or processing error   | Check tokenizer files and model compatibility               |
+| `UnknownError`       | Unexpected error occurred        | 3rd-party library error or unhandled exception | Check logs for details, report if reproducible              |
 
 ### ExecuTorch Runtime Errors[​](#executorch-runtime-errors "Direct link to ExecuTorch Runtime Errors")
 
@@ -145,12 +147,13 @@ These errors are mapped directly from the ExecuTorch runtime. They typically ind
 
 #### System Errors[​](#system-errors "Direct link to System Errors")
 
-| Error Code     | Description                         |
-| -------------- | ----------------------------------- |
-| `Ok`           | Operation successful (not an error) |
-| `Internal`     | Internal ExecuTorch error           |
-| `InvalidState` | Operation called in invalid state   |
-| `EndOfMethod`  | End of method reached               |
+| Error Code      | Description                         |
+| --------------- | ----------------------------------- |
+| `Ok`            | Operation successful (not an error) |
+| `Internal`      | Internal ExecuTorch error           |
+| `InvalidState`  | Operation called in invalid state   |
+| `EndOfMethod`   | End of method reached               |
+| `AlreadyLoaded` | Resource has already been loaded    |
 
 #### Logical Errors[​](#logical-errors "Direct link to Logical Errors")
 

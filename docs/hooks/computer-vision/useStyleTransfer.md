@@ -4,7 +4,7 @@ Style transfer is a technique used in computer graphics and machine learning whe
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)info
 
-It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/style-transfer-68d0eab2b0767a20e7efeaf5), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/d0d3e5b7a1d42b2e7bcd89806efcaf0b961974c9/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/style-transfer-68d0eab2b0767a20e7efeaf5), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 
 ## API Reference[​](#api-reference "Direct link to API Reference")
 
@@ -14,12 +14,8 @@ It is recommended to use models provided by us which are available at our [Huggi
 ## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
-import {
-  useStyleTransfer,
-  STYLE_TRANSFER_CANDY,
-} from 'react-native-executorch';
-
-const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
+import { models, useStyleTransfer } from 'react-native-executorch';
+const model = useStyleTransfer({ model: models.style_transfer.candy() });
 
 const imageUri = 'file:///Users/.../cute_cat.png';
 
@@ -71,13 +67,9 @@ When `outputType` is `'url'`, the generated image is stored in your application'
 ## Example[​](#example "Direct link to Example")
 
 ```typescript
-import {
-  useStyleTransfer,
-  STYLE_TRANSFER_CANDY,
-} from 'react-native-executorch';
-
+import { models, useStyleTransfer } from 'react-native-executorch';
 function App() {
-  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
+  const model = useStyleTransfer({ model: models.style_transfer.candy() });
 
   // Returns a file URI — easy to pass to <Image source={{ uri }} />
   const runWithUrl = async (imageUri: string) => {
