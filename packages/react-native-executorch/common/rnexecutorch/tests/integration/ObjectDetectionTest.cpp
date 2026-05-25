@@ -207,9 +207,11 @@ TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
   auto shape = model.getInputShape("forward", 0);
-  EXPECT_EQ(shape.size(), 4);
-  EXPECT_EQ(shape[0], 1);
-  EXPECT_EQ(shape[1], 3);
+  // v0.9.0 ssdlite is exported without a leading batch dim, so the signature
+  // is (C, H, W) rather than the (1, C, H, W) used by sibling vision models.
+  EXPECT_EQ(shape.size(), 3);
+  EXPECT_EQ(shape[0], 3);
+  EXPECT_EQ(shape[1], 320);
 }
 
 TEST(ObjectDetectionInheritedTests, GetAllInputShapesWorks) {
