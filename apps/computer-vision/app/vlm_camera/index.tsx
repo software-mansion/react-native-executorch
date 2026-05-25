@@ -169,6 +169,11 @@ export default function VLMCameraScreen() {
       } catch {
         // not streaming
       }
+      if (frozenPathRef.current) {
+        FileSystem.deleteAsync(frozenPathRef.current, {
+          idempotent: true,
+        }).catch(() => undefined);
+      }
     };
   }, []);
 
@@ -266,6 +271,13 @@ export default function VLMCameraScreen() {
   const startRecording = async () => {
     setError(null);
     setTranscript('');
+    if (frozenPathRef.current) {
+      FileSystem.deleteAsync(frozenPathRef.current, { idempotent: true }).catch(
+        () => undefined
+      );
+      frozenPathRef.current = null;
+    }
+    setFrozenUri(null);
     const sessionOk = await AudioManager.setAudioSessionActivity(true);
     if (!sessionOk) {
       setError('Could not activate audio session');
@@ -358,6 +370,8 @@ export default function VLMCameraScreen() {
           ? tempPath
           : `file://${tempPath}`;
 
+        frozenPathRef.current = dataUri;
+        setFrozenUri(dataUri);
         setScreenState('thinking');
         startTTSConsumer();
         // Clear conversation history each turn so previous image tokens
@@ -369,19 +383,11 @@ export default function VLMCameraScreen() {
         } catch {
           // best effort
         }
-        llm
-          .sendMessage(finalText, { imagePath: dataUri })
-          .catch((e) => {
-            console.error('[vlm_camera] sendMessage error', e);
-            setError(e instanceof Error ? e.message : String(e));
-            setScreenState('idle');
-          })
-          .finally(() => {
-            // Best-effort cleanup of the temp JPEG.
-            FileSystem.deleteAsync(dataUri, { idempotent: true }).catch(
-              () => undefined
-            );
-          });
+        llm.sendMessage(finalText, { imagePath: dataUri }).catch((e) => {
+          console.error('[vlm_camera] sendMessage error', e);
+          setError(e instanceof Error ? e.message : String(e));
+          setScreenState('idle');
+        });
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
         setScreenState('idle');
