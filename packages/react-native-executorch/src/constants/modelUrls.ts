@@ -3,16 +3,19 @@ import {
   PRIVACY_FILTER_NEMOTRON_LABELS,
   PRIVACY_FILTER_OPENAI_LABELS,
 } from './privacyFilterLabels';
-import { URL_PREFIX, VERSION_TAG, PREVIOUS_VERSION_TAG } from './versions';
+import { URL_PREFIX, VERSION_TAG } from './versions';
 
 // LLMs
 
 // LLAMA 3.2
 const LLAMA3_2_3B_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`;
-const LLAMA3_2_3B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/llama-3.2-3B/QLoRA/llama3_2-3B_qat_lora.pte`;
+// Pinned to v0.8.0 — the last HF tag where the QLoRA files live; SpinQuant
+// supersedes them in later releases.
+const LLAMA3_2_3B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/resolve/v0.8.0/llama-3.2-3B/QLoRA/llama3_2-3B_qat_lora.pte`;
 const LLAMA3_2_3B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`;
 const LLAMA3_2_1B_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`;
-const LLAMA3_2_1B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/llama-3.2-1B/QLoRA/llama3_2_qat_lora.pte`;
+// Pinned to v0.8.0 — see note above on LLAMA3_2_3B_QLORA_MODEL.
+const LLAMA3_2_1B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/resolve/v0.8.0/llama-3.2-1B/QLoRA/llama3_2_qat_lora.pte`;
 const LLAMA3_2_1B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`;
 const LLAMA3_2_TOKENIZER = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer.json`;
 const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer_config.json`;
