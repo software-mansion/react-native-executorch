@@ -200,14 +200,18 @@ const result = await model.transcribe(audioBuffer, { verbose: true });
 
 ### Returns
 
-The hook returns an object with:
+The hook returns a [`SpeechToTextType`](../../06-api-reference/interfaces/SpeechToTextType.md) object containing:
 
-- `transcribe(audio, options)`: One-shot transcription.
-- `stream(options)`: Async generator for streaming results.
-- `streamInsert(audio)`: Push audio to the stream buffer.
-- `streamStop()`: Finish the current stream.
-- `isGenerating`: Boolean indicating if the model is busy.
-- `loading`: Boolean indicating if the model is being loaded.
+- `error`: `null | RnExecutorchError` - Contains the error message if the model failed to load.
+- `isReady`: `boolean` - Indicates whether the model has successfully loaded and is ready for inference.
+- `isGenerating`: `boolean` - Indicates whether the model is currently processing an inference.
+- `downloadProgress`: `number` - Tracks the progress of the model download process as a value between `0` and `1`.
+- `transcribe(audio, options)`: Starts a transcription process for a given input array, which should be a waveform at 16kHz. Returns a promise resolving to a [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md).
+- `stream(options)`: Starts a streaming transcription process. Asynchronous generator that yields objects containing `committed` and `nonCommitted` transcriptions, both of type [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md).
+- `streamInsert(audio)`: Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription.
+- `streamStop()`: Stops the ongoing streaming transcription process.
+- `encode(audio)`: Runs the encoding part of the model on the provided waveform. Returns a promise resolving to the encoded `Float32Array`.
+- `decode(tokens, encoderOutput)`: Runs the decoder of the model with the given tokens (`Int32Array`) and encoder output (`Float32Array`). Returns a promise resolving to the decoded `Float32Array`.
 
 ## Supported models
 
