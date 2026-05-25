@@ -24,7 +24,9 @@ const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
         <View style={styles.aiMessageIconContainer}>
           <LlamaIcon width={24} height={24} />
         </View>
-        <MarkdownComponent text={message.content} />
+        <View style={styles.aiMessageContent}>
+          <MarkdownComponent text={message.content} />
+        </View>
         <CloseButton deleteMessage={deleteMessage} role={message.role} />
       </View>
     );
@@ -76,6 +78,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginVertical: 8,
     alignItems: 'center',
+  },
+  aiMessageContent: {
+    flex: 1,
   },
   userMessageWrapper: {
     flexDirection: 'row-reverse',
