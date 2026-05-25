@@ -18,8 +18,8 @@ BaseLLMRunner::BaseLLMRunner(std::unique_ptr<Module> module,
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
       metadata_({
           {kEnableDynamicShape, false},
-          {kMaxSeqLen, 2048},
-          {kMaxContextLen, 2048},
+          {kMaxSeqLen, 128},
+          {kMaxContextLen, 128},
           {kUseKVCache, true},
       }) {}
 

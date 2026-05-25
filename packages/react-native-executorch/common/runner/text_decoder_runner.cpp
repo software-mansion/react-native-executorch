@@ -35,13 +35,7 @@ TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
   // dynamic "forward"; single-token decode steps go through the static
   // "forward_decode" method when present (avoids dynamic-shape re-encode
   // overhead — measured 8× faster on gemma4 Vulkan).
-  const char* method_name = "forward";
-  // if (tokens->numel() == 1) {
-  //   auto decode_meta = module_->method_meta("forward_decode");
-  //   if (decode_meta.ok()) {
-  //     method_name = "forward_decode";
-  //   }
-  // }
+  const char *method_name = "forward";
   auto method_meta_result = module_->method_meta(method_name);
   if (!method_meta_result.ok()) {
     return method_meta_result.error();

@@ -22,15 +22,10 @@ TextPrefiller::TextPrefiller(TextDecoderRunner *text_decoder_runner,
                              int64_t max_seq_len)
     : text_decoder_runner_(text_decoder_runner), use_kv_cache_(use_kv_cache),
       enable_parallel_prefill_(enable_parallel_prefill),
-      max_seq_len_(max_seq_len > 0 ? max_seq_len : 2048) {
+      max_seq_len_(max_seq_len > 0 ? max_seq_len : 128) {
   // Auto-detect static-shape prefill: when `forward` declares input 0 as
   // [1, N] with N>1, we must pad every prefill call to exactly N tokens.
   prefill_static_len_ = text_decoder_runner_->prefill_static_len();
-  if (prefill_static_len_ > 0) {
-    rnexecutorch::log(
-        rnexecutorch::LOG_LEVEL::Info,
-        "TextPrefiller: static prefill len detected =", prefill_static_len_);
-  }
 }
 
 ::executorch::runtime::Result<uint64_t>
@@ -108,9 +103,6 @@ TextPrefiller::prefill_chunk(std::vector<uint64_t> &prompt_tokens,
     auto tokens = from_blob(tokens_ptr, {1, tensor_len},
                             executorch::aten::ScalarType::Long);
 
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "prefill effective_len",
-                      num_prompt_tokens, "tensor_len", tensor_len, "start_pos",
-                      start_pos);
     auto outputs_res = text_decoder_runner_->step(tokens, start_pos);
 
     ET_CHECK_OK_OR_RETURN_ERROR(outputs_res.error());

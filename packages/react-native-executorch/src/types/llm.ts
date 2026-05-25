@@ -22,7 +22,6 @@ export type MediaArg<C extends readonly LLMCapability[]> =
 export type LLMModelName =
   | 'gemma4-e2b'
   | 'gemma4-e2b-multimodal'
-  | 'gemma4-e2b-quantized'
   | 'llama-3.2-3b'
   | 'llama-3.2-3b-qlora'
   | 'llama-3.2-3b-spinquant'
