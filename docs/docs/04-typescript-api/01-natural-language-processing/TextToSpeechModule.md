@@ -100,8 +100,8 @@ const tts = await TextToSpeechModule.fromModelName(
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
-  tts.streamInsert('This is a streaming test, with a sample input.');
   for await (const chunk of tts.stream({
+    text: 'This is a streaming test, with a sample input.',
     speed: 1.0,
   })) {
     // Play each chunk sequentially
@@ -135,10 +135,8 @@ const tts = await TextToSpeechModule.fromModelName(
 const waveform = await tts.forward('həlˈO wˈɜɹld!', 1.0, false);
 
 // Or stream from phonemes
-tts.streamInsert(
-  'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.'
-);
 for await (const chunk of tts.stream({
+  text: 'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
   speed: 1.0,
   phonemize: false,
 })) {
