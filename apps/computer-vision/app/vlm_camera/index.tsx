@@ -63,6 +63,7 @@ export default function VLMCameraScreen() {
   const [transcript, setTranscript] = useState('');
   const [frozenUri, setFrozenUri] = useState<string | null>(null);
   const frozenUriRef = useRef<string | null>(null);
+  const [spokenSentenceIndex, setSpokenSentenceIndex] = useState(-1);
 
   const recorderRef = useRef(new AudioRecorder());
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -194,6 +195,7 @@ export default function VLMCameraScreen() {
     ttsStreamingRef.current = true;
     processedLenRef.current = 0;
     let firstChunk = true;
+    let chunkIndex = 0;
     const consume = async () => {
       try {
         if (ctx.state === 'suspended') await ctx.resume();
@@ -206,6 +208,8 @@ export default function VLMCameraScreen() {
             src.connect(ctx.destination);
             src.onEnded = () => resolve();
             src.start();
+            setSpokenSentenceIndex(chunkIndex);
+            chunkIndex += 1;
             if (firstChunk) {
               firstChunk = false;
               setScreenState((prev) =>
@@ -260,6 +264,7 @@ export default function VLMCameraScreen() {
         }
       }
       ttsConsumerPromiseRef.current = null;
+      setSpokenSentenceIndex(-1);
       if (!aborted) setScreenState('idle');
     };
     void drain();
@@ -279,6 +284,7 @@ export default function VLMCameraScreen() {
       frozenUriRef.current = null;
     }
     setFrozenUri(null);
+    setSpokenSentenceIndex(-1);
     const sessionOk = await AudioManager.setAudioSessionActivity(true);
     if (!sessionOk) {
       setError('Could not activate audio session');
@@ -411,6 +417,7 @@ export default function VLMCameraScreen() {
       } catch {
         // already ended
       }
+      setSpokenSentenceIndex(-1);
       setScreenState('idle');
     }
   };
@@ -473,33 +480,52 @@ export default function VLMCameraScreen() {
 
       {frozenUri &&
         (screenState === 'thinking' || screenState === 'speaking') && (
-          <View
-            style={[
-              styles.frozenOverlay,
-              {
-                paddingTop: insets.top + 56,
-                paddingBottom: insets.bottom + 120,
-              },
-            ]}
-            pointerEvents="none"
-          >
-            {transcript ? (
-              <Text style={styles.frozenQuestion}>{transcript}</Text>
-            ) : null}
+          <View style={styles.frozenOverlay} pointerEvents="box-none">
             <Image
               source={{ uri: frozenUri }}
-              style={styles.frozenImage}
+              style={StyleSheet.absoluteFill}
               resizeMode="cover"
             />
-            {llm.response ? (
-              <ScrollView
-                style={styles.frozenResponseCard}
-                contentContainerStyle={styles.frozenResponseContent}
-                pointerEvents="auto"
-              >
-                <Text style={styles.frozenResponseText}>{llm.response}</Text>
-              </ScrollView>
-            ) : null}
+            <View style={styles.frozenScrim} pointerEvents="none" />
+            <View
+              style={[
+                styles.frozenContent,
+                {
+                  paddingTop: insets.top + 56,
+                  paddingBottom: insets.bottom + 110,
+                },
+              ]}
+              pointerEvents="box-none"
+            >
+              {transcript ? (
+                <Text style={styles.frozenQuestion}>{transcript}</Text>
+              ) : null}
+              {llm.response ? (
+                <ScrollView
+                  style={styles.frozenResponseScroll}
+                  contentContainerStyle={styles.frozenResponseContent}
+                  pointerEvents="auto"
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Text style={styles.frozenResponseText}>
+                    {splitSentences(llm.response).map((sentence, i) => (
+                      <Text
+                        key={i}
+                        style={
+                          i === spokenSentenceIndex
+                            ? styles.sentenceActive
+                            : i < spokenSentenceIndex
+                              ? styles.sentenceSpoken
+                              : styles.sentenceUpcoming
+                        }
+                      >
+                        {sentence}
+                      </Text>
+                    ))}
+                  </Text>
+                </ScrollView>
+              ) : null}
+            </View>
           </View>
         )}
 
@@ -737,6 +763,13 @@ function makeAudioBuffer(
   return buf;
 }
 
+function splitSentences(text: string): string[] {
+  const matches = text.match(/[^.?!;]*[.?!;]+|[^.?!;]+$/g);
+  return matches
+    ? matches.map((s) => s).filter((s) => s.trim().length > 0)
+    : [];
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
   centered: {
@@ -874,38 +907,41 @@ const styles = StyleSheet.create({
   },
   frozenOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    alignItems: 'center',
-    paddingHorizontal: 20,
     zIndex: 7,
+  },
+  frozenScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  frozenContent: {
+    ...StyleSheet.absoluteFillObject,
+    paddingHorizontal: 20,
   },
   frozenQuestion: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 15,
     fontStyle: 'italic',
-    textAlign: 'center',
     marginBottom: 12,
   },
-  frozenImage: {
-    width: '62%',
-    aspectRatio: 3 / 4,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.15)',
-  },
-  frozenResponseCard: {
-    marginTop: 16,
-    width: '88%',
-    maxHeight: 180,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 12,
+  frozenResponseScroll: {
+    flex: 1,
   },
   frozenResponseContent: {
-    padding: 14,
+    paddingBottom: 8,
   },
   frozenResponseText: {
-    color: 'white',
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 22,
+    lineHeight: 32,
+    fontWeight: '600',
+  },
+  sentenceSpoken: {
+    color: 'rgba(255,255,255,0.95)',
+  },
+  sentenceActive: {
+    color: '#ffffff',
+    backgroundColor: 'rgba(85,153,255,0.35)',
+  },
+  sentenceUpcoming: {
+    color: 'rgba(255,255,255,0.45)',
   },
 });
