@@ -912,7 +912,7 @@ const styles = StyleSheet.create({
   },
   frozenResponseText: {
     color: 'white',
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 19,
+    lineHeight: 27,
   },
 });
