@@ -460,14 +460,43 @@ export default function VLMCameraScreen() {
         <StatusPill state={screenState} />
       </View>
 
-      {transcript && screenState !== 'idle' && (
-        <View
-          style={[styles.transcriptOverlay, { top: insets.top + 64 }]}
-          pointerEvents="none"
-        >
-          <Text style={styles.transcriptText}>{transcript}</Text>
-        </View>
-      )}
+      {transcript &&
+        (screenState === 'recording' || screenState === 'transcribing') && (
+          <View
+            style={[styles.transcriptOverlay, { top: insets.top + 64 }]}
+            pointerEvents="none"
+          >
+            <Text style={styles.transcriptText}>{transcript}</Text>
+          </View>
+        )}
+
+      {frozenUri &&
+        (screenState === 'thinking' || screenState === 'speaking') && (
+          <View
+            style={[
+              styles.frozenOverlay,
+              {
+                paddingTop: insets.top + 56,
+                paddingBottom: insets.bottom + 120,
+              },
+            ]}
+            pointerEvents="none"
+          >
+            {transcript ? (
+              <Text style={styles.frozenQuestion}>{transcript}</Text>
+            ) : null}
+            <Image
+              source={{ uri: frozenUri }}
+              style={styles.frozenImage}
+              resizeMode="cover"
+            />
+            {llm.response ? (
+              <View style={styles.frozenResponseCard}>
+                <Text style={styles.frozenResponseText}>{llm.response}</Text>
+              </View>
+            ) : null}
+          </View>
+        )}
 
       <View
         style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}
@@ -837,5 +866,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
+  },
+  frozenOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    zIndex: 7,
+  },
+  frozenQuestion: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 15,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  frozenImage: {
+    width: '62%',
+    aspectRatio: 3 / 4,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  frozenResponseCard: {
+    marginTop: 16,
+    width: '88%',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 12,
+    padding: 14,
+  },
+  frozenResponseText: {
+    color: 'white',
+    fontSize: 16,
+    lineHeight: 22,
   },
 });
