@@ -81,7 +81,7 @@ export interface TextToImageType {
    * @param [imageSize] - Optional. The target width and height of the generated image (e.g., 512 for 512x512). Defaults to the model's standard size if omitted.
    * @param [numSteps] - Optional. The number of denoising steps for the diffusion process. More steps generally yield higher quality at the cost of generation time.
    * @param [seed] - Optional. A random seed for reproducible generation. Should be a positive integer.
-   * @returns A Promise that resolves to a string representing the generated image (e.g., base64 string or file URI).
+   * @returns A Promise that resolves to a `file://` URI pointing to the generated PNG on the device, or an empty string if generation was interrupted.
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating another image.
    */
   generate: (
