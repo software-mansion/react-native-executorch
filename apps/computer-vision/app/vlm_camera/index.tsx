@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -59,6 +60,8 @@ export default function VLMCameraScreen() {
   const [hasMicPermission, setHasMicPermission] = useState(false);
   const [screenState, setScreenState] = useState<ScreenState>('idle');
   const [transcript, setTranscript] = useState('');
+  const [frozenUri, setFrozenUri] = useState<string | null>(null);
+  const frozenPathRef = useRef<string | null>(null);
 
   const recorderRef = useRef(new AudioRecorder());
   const audioCtxRef = useRef<AudioContext | null>(null);
