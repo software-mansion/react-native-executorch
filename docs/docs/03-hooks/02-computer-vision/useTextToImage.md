@@ -82,7 +82,8 @@ function App() {
   }
   //...
 
-  return <Image source={{ uri: `data:image/png;base64,${image}` }} />;
+  // `generate` returns a `file://` URI to the PNG saved on disk.
+  return <Image source={{ uri: image }} />;
 }
 ```
 
