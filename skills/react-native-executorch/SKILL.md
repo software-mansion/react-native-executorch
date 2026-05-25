@@ -42,6 +42,9 @@ What does the feature need?
 │   ├── Count or inspect tokens → useTokenizer          → see setup.md
 │   └── Redact PII from text → usePrivacyFilter         → see setup.md
 │
+├── Full RAG pipeline (retrieval + generation + vector store)?
+│   └── react-native-rag (sibling library)              → see setup.md
+│
 └── Custom `.pte` model not covered by a dedicated hook?
     └── useExecutorchModule                             → see setup.md
 ```

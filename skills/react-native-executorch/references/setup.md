@@ -310,6 +310,43 @@ For a custom fine-tune, pass a `PrivacyFilterModelSources` object directly (with
 
 ---
 
+## RAG with `react-native-rag`
+
+For retrieval-augmented generation — vector stores, persistence, document ingestion, and a `useRAG` hook — use the sibling library [react-native-rag](https://github.com/software-mansion-labs/react-native-rag). It plugs straight into the `models` registry through `ExecuTorchEmbeddings` and `ExecuTorchLLM` wrappers, so you keep one model-selection convention across both libraries.
+
+```bash
+npm install react-native-rag
+# Optional SQLite-backed persistence (otherwise an in-memory store is used)
+npm install @react-native-rag/op-sqlite
+```
+
+```tsx
+import { useRAG, MemoryVectorStore, ExecuTorchEmbeddings, ExecuTorchLLM } from 'react-native-rag';
+import { models } from 'react-native-executorch';
+
+const vectorStore = new MemoryVectorStore({
+  embeddings: new ExecuTorchEmbeddings(models.text_embedding.all_minilm_l6_v2()),
+});
+
+const llm = new ExecuTorchLLM(models.llm.lfm2_5_1_2b_instruct());
+
+export default function App() {
+  const rag = useRAG({ vectorStore, llm });
+
+  // rag.addDocument(text), rag.query(question) → rag.response (streamed)
+  return <Text>{rag.response}</Text>;
+}
+```
+
+**When to reach for `react-native-rag` vs. rolling your own:**
+
+- **Use the library** when you need document ingestion + chunking + retrieval + generation as one pipeline, persistent vector storage across launches, or want a hook-based API symmetric with `useLLM` / `useTextEmbeddings`.
+- **Roll your own** (just `useTextEmbeddings` + cosine similarity + `useLLM`) when the corpus is small and ephemeral, or you need custom retrieval logic the library doesn't expose. The `useTextEmbeddings` example in [vision.md](./vision.md) shows the minimal building blocks.
+
+Both `ExecuTorchEmbeddings` and `ExecuTorchLLM` accept any model accessor from the registry — same `{ quant, backend }` options apply. Custom components (vector stores, splitters, embedders) implement the library's `Embeddings` / `LLM` / `VectorStore` / `TextSplitter` interfaces.
+
+---
+
 ## Device constraints
 
 | Tier | Parameter range | Examples |

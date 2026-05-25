@@ -248,6 +248,8 @@ const cosine = v1.reduce((s, x, i) => s + x * v2[i], 0); // pre-normalized
 
 Text exceeding `Max tokens` is truncated. Use `useTokenizer` (see [setup.md](./setup.md)) to count first.
 
+**Building a full RAG pipeline?** Don't roll your own — use [react-native-rag](https://github.com/software-mansion-labs/react-native-rag) (sibling library). It wraps `useTextEmbeddings` + `useLLM` with `ExecuTorchEmbeddings` / `ExecuTorchLLM`, ships a `MemoryVectorStore` + an op-sqlite persistence plugin, and exposes a `useRAG` hook. See [setup.md](./setup.md) for an end-to-end example.
+
 ---
 
 ## Troubleshooting
