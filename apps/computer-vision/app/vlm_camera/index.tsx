@@ -3,6 +3,7 @@ import {
   Animated,
   Easing,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -61,7 +62,7 @@ export default function VLMCameraScreen() {
   const [screenState, setScreenState] = useState<ScreenState>('idle');
   const [transcript, setTranscript] = useState('');
   const [frozenUri, setFrozenUri] = useState<string | null>(null);
-  const frozenPathRef = useRef<string | null>(null);
+  const frozenUriRef = useRef<string | null>(null);
 
   const recorderRef = useRef(new AudioRecorder());
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -169,8 +170,8 @@ export default function VLMCameraScreen() {
       } catch {
         // not streaming
       }
-      if (frozenPathRef.current) {
-        FileSystem.deleteAsync(frozenPathRef.current, {
+      if (frozenUriRef.current) {
+        FileSystem.deleteAsync(frozenUriRef.current, {
           idempotent: true,
         }).catch(() => undefined);
       }
@@ -271,11 +272,11 @@ export default function VLMCameraScreen() {
   const startRecording = async () => {
     setError(null);
     setTranscript('');
-    if (frozenPathRef.current) {
-      FileSystem.deleteAsync(frozenPathRef.current, { idempotent: true }).catch(
+    if (frozenUriRef.current) {
+      FileSystem.deleteAsync(frozenUriRef.current, { idempotent: true }).catch(
         () => undefined
       );
-      frozenPathRef.current = null;
+      frozenUriRef.current = null;
     }
     setFrozenUri(null);
     const sessionOk = await AudioManager.setAudioSessionActivity(true);
@@ -370,7 +371,7 @@ export default function VLMCameraScreen() {
           ? tempPath
           : `file://${tempPath}`;
 
-        frozenPathRef.current = dataUri;
+        frozenUriRef.current = dataUri;
         setFrozenUri(dataUri);
         setScreenState('thinking');
         startTTSConsumer();
@@ -491,9 +492,13 @@ export default function VLMCameraScreen() {
               resizeMode="cover"
             />
             {llm.response ? (
-              <View style={styles.frozenResponseCard}>
+              <ScrollView
+                style={styles.frozenResponseCard}
+                contentContainerStyle={styles.frozenResponseContent}
+                pointerEvents="auto"
+              >
                 <Text style={styles.frozenResponseText}>{llm.response}</Text>
-              </View>
+              </ScrollView>
             ) : null}
           </View>
         )}
@@ -891,8 +896,11 @@ const styles = StyleSheet.create({
   frozenResponseCard: {
     marginTop: 16,
     width: '88%',
+    maxHeight: 180,
     backgroundColor: 'rgba(0,0,0,0.7)',
     borderRadius: 12,
+  },
+  frozenResponseContent: {
     padding: 14,
   },
   frozenResponseText: {
