@@ -76,10 +76,9 @@ std::string LLM::generate(std::string input,
   return output;
 }
 
-std::string LLM::generateMultimodal(
-    std::string prompt, std::shared_ptr<jsi::Function> callback,
-    std::vector<std::string> imagePaths, std::string imageToken,
-    std::vector<std::vector<float>> audioWaveforms, std::string audioToken) {
+std::string LLM::generateMultimodal(std::string prompt,
+                                    std::shared_ptr<jsi::Function> callback,
+                                    MultimodalInputs mutlimodalInputs) {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
@@ -88,7 +87,8 @@ std::string LLM::generateMultimodal(
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "This model does not support multimodal input.");
   }
-  if (imageToken.empty() && audioToken.empty()) {
+  if (mutlimodalInputs.imageToken.empty() &&
+      mutlimodalInputs.audioToken.empty()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "At least one of imageToken/audioToken must be non-empty");
@@ -98,12 +98,13 @@ std::string LLM::generateMultimodal(
   // so that image/audio placeholders can be freely interleaved in the prompt.
   std::vector<llm::MultimodalInput> inputs;
   size_t imageIdx = 0, audioIdx = 0, pos = 0;
-  constexpr int32_t kAudioSampleRate = 16000;
   while (pos < prompt.size()) {
-    size_t imgAt =
-        imageToken.empty() ? std::string::npos : prompt.find(imageToken, pos);
-    size_t audAt =
-        audioToken.empty() ? std::string::npos : prompt.find(audioToken, pos);
+    size_t imgAt = mutlimodalInputs.imageToken.empty()
+                       ? std::string::npos
+                       : prompt.find(mutlimodalInputs.imageToken, pos);
+    size_t audAt = mutlimodalInputs.audioToken.empty()
+                       ? std::string::npos
+                       : prompt.find(mutlimodalInputs.audioToken, pos);
     if (imgAt == std::string::npos && audAt == std::string::npos) {
       inputs.push_back(llm::make_text_input(prompt.substr(pos)));
       break;
@@ -115,25 +116,27 @@ std::string LLM::generateMultimodal(
       inputs.push_back(llm::make_text_input(prompt.substr(pos, at - pos)));
     }
     if (imageFirst) {
-      if (imageIdx >= imagePaths.size()) {
+      if (imageIdx >= mutlimodalInputs.imagePaths.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + imageToken +
+                                "More '" + mutlimodalInputs.imageToken +
                                     "' placeholders than image paths");
       }
-      inputs.push_back(llm::make_image_input(imagePaths[imageIdx++]));
-      pos = at + imageToken.size();
+      inputs.push_back(
+          llm::make_image_input(mutlimodalInputs.imagePaths[imageIdx++]));
+      pos = at + mutlimodalInputs.imageToken.size();
     } else {
-      if (audioIdx >= audioWaveforms.size()) {
+      if (audioIdx >= mutlimodalInputs.audioWaveforms.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + audioToken +
+                                "More '" + mutlimodalInputs.audioToken +
                                     "' placeholders than audio waveforms");
       }
       inputs.push_back(llm::make_audio_input(
-          std::move(audioWaveforms[audioIdx++]), kAudioSampleRate));
-      pos = at + audioToken.size();
+          std::move(mutlimodalInputs.audioWaveforms[audioIdx++])));
+      pos = at + mutlimodalInputs.audioToken.size();
     }
   }
-  if (imageIdx < imagePaths.size() || audioIdx < audioWaveforms.size()) {
+  if (imageIdx < mutlimodalInputs.imagePaths.size() ||
+      audioIdx < mutlimodalInputs.audioWaveforms.size()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "More image/audio paths provided than placeholders in prompt");

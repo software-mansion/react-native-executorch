@@ -42,11 +42,13 @@ function LLMScreen() {
   const { bottom } = useSafeAreaInsets();
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
+    models.llm.lfm2_5_1_2b_instruct()
+  );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  let llm = Object();
-  
+  const llm = useLLM({ model: selectedModel });
   const tokenCount = llm.isReady ? llm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(
     llm.response,
@@ -110,6 +112,13 @@ function LLMScreen() {
               />
             </View>
           )}
+
+          <ModelPicker
+            models={LLM_MODELS}
+            selectedModel={selectedModel}
+            onSelect={(m) => setSelectedModel(m)}
+            disabled={llm.isGenerating}
+          />
           <StatsBar stats={stats} />
           <View
             style={[

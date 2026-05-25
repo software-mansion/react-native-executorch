@@ -35,9 +35,6 @@ public:
                                    const GenerationConfig &config)
       : TextDecoderRunner(module, io_manager, config) {}
 
-  // True iff the loaded PTE uses the Gemma-style PLE contract above.
-  // Reads the kHasPLE constant_method every call; cheap, but callers in
-  // hot loops should snapshot into a local.
   bool has_ple() const {
     auto r = module_->get(kHasPLE);
     if (r.error() != ::executorch::runtime::Error::Ok) {
@@ -69,6 +66,24 @@ public:
         &start_pos, {1}, ::executorch::aten::ScalarType::Long);
     auto outputs_result =
         module_->execute(kTextModelMethod, {embeddings, start_pos_tensor});
+    if (!outputs_result.ok()) {
+      return outputs_result.error();
+    }
+    auto &outputs = *outputs_result;
+    ET_CHECK_MSG(outputs.size() == 1,
+                 "Expected 1 output from text_decoder, got %zu",
+                 outputs.size());
+    ET_CHECK_MSG(outputs[0].isTensor(), "text_decoder output is not a tensor");
+    return outputs[0].toTensor();
+  }
+
+  inline ::executorch::runtime::Result<::executorch::aten::Tensor>
+  decode(const ::executorch::runtime::EValue &embeddings,
+         const ::executorch::runtime::EValue &ple_tok, int64_t start_pos) {
+    auto start_pos_tensor = ::executorch::extension::from_blob(
+        &start_pos, {1}, ::executorch::aten::ScalarType::Long);
+    auto outputs_result = module_->execute(
+        kTextModelMethod, {embeddings, ple_tok, start_pos_tensor});
     if (!outputs_result.ok()) {
       return outputs_result.error();
     }

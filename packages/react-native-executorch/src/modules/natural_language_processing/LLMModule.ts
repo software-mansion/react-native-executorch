@@ -59,10 +59,13 @@ export class LLMModule {
     const instance = new LLMModule({ tokenCallback, messageHistoryCallback });
     try {
       await instance.controller.load({
-        modelSource: namedSources.modelSource,
-        tokenizerSource: namedSources.tokenizerSource,
-        tokenizerConfigSource: namedSources.tokenizerConfigSource,
-        capabilities: namedSources.capabilities,
+        model: {
+          modelName: namedSources.modelName,
+          modelSource: namedSources.modelSource,
+          tokenizerSource: namedSources.tokenizerSource,
+          tokenizerConfigSource: namedSources.tokenizerConfigSource,
+          capabilities: namedSources.capabilities,
+        },
         onDownloadProgressCallback: onDownloadProgress,
       });
       return instance;

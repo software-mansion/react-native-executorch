@@ -141,6 +141,10 @@ export const GEMMA4_E2B = {
     Platform.OS === `android` ? GEMMA4_E2B_VULKAN : GEMMA4_E2B_XNNPACK,
   tokenizerSource: GEMMA4_TOKENIZER,
   tokenizerConfigSource: GEMMA4_TOKENIZER_CONFIG,
+  audioConfig: {
+    samplesPerBlock: 7680,
+    tokensPerBlock: 12,
+  },
 } as const;
 
 /**

@@ -31,18 +31,7 @@ TextDecoderRunner::TextDecoderRunner(Module &module, IOManager *io_manager,
 // outer loop (call site) is responsible for managing state.
 ::executorch::runtime::Result<executorch::aten::Tensor>
 TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
-  // Pick method by phase: parallel-prefill chunks (>1 token) go through the
-  // dynamic "forward"; single-token decode steps go through the static
-  // "forward_decode" method when present (avoids dynamic-shape re-encode
-  // overhead — measured 8× faster on gemma4 Vulkan).
-  const char* method_name = "forward";
-  // if (tokens->numel() == 1) {
-  //   auto decode_meta = module_->method_meta("forward_decode");
-  //   if (decode_meta.ok()) {
-  //     method_name = "forward_decode";
-  //   }
-  // }
-  auto method_meta_result = module_->method_meta(method_name);
+  auto method_meta_result = module_->method_meta("forward");
   if (!method_meta_result.ok()) {
     return method_meta_result.error();
   }
@@ -54,7 +43,7 @@ TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
 
   if (use_kv_cache) {
     auto start_pos_tensor_result = populate_start_pos_or_cache_position(
-        module_, start_pos, cache_positions, tokens->numel(), method_name);
+        module_, start_pos, cache_positions, tokens->numel(), "forward");
     if (!start_pos_tensor_result.ok()) {
       return start_pos_tensor_result.error();
     }
@@ -64,7 +53,7 @@ TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
     auto inputs_res = io_manager_->prepare_decode(tokens, start_pos_tensor);
     ET_CHECK_OK_OR_RETURN_ERROR(inputs_res.error());
     inputs = inputs_res.get();
-    auto outputs_res = module_->execute(method_name, inputs);
+    auto outputs_res = module_->forward(inputs);
     ET_CHECK_OK_OR_RETURN_ERROR(outputs_res.error());
 
     auto update_err = io_manager_->update_decode(outputs_res.get());

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "runner/irunner.h"
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -38,22 +39,13 @@ template <typename T> struct ProbIndex {
 
 class Sampler {
 public:
-  Sampler(int32_t vocab_size, float temperature, float topp,
-          unsigned long long rng_seed, float min_p = 0.0f,
-          float repetition_penalty = 1.0f);
   // topk <= 0 disables top-k filtering. topp <= 0 || topp >= 1 disables top-p.
   // Pipeline when temperature != 0: temperature -> top-k mask -> top-p mask
   // -> softmax -> multinomial. Note: topk == 1 with temperature != 0 collapses
   // to greedy; pass topk = 0 to keep full-vocab temperature sampling.
-  Sampler(int32_t vocab_size, float temperature, float topp, int32_t topk,
+  Sampler(int32_t vocab_size, GenerationConfig config,
           unsigned long long rng_seed);
-
-  Sampler(int32_t vocab_size, float temperature, float topp, int32_t topk);
-
-  // Back-compat overloads (topk = 0 => disabled).
-  Sampler(int32_t vocab_size, float temperature, float topp,
-          unsigned long long rng_seed);
-  Sampler(int32_t vocab_size, float temperature, float topp);
+  Sampler(int32_t vocab_size, GenerationConfig config);
 
   template <typename T> int32_t sample(T *logits);
 

@@ -70,11 +70,6 @@ private:
   bool use_kv_cache_;
   bool enable_parallel_prefill_;
   int64_t max_seq_len_;
-  // If >0, the underlying `forward` method is static-shape: every parallel
-  // prefill call must pass exactly this many tokens (pad with 0 if shorter).
-  // Sampled logit row is then (effective_len - 1), and start_pos advances by
-  // effective_len rather than the padded length.
-  int64_t prefill_static_len_{0};
 };
 
 } // namespace llm

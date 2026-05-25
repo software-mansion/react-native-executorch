@@ -2,7 +2,6 @@
 #include "audio_encoder.h"
 
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <runner/constants.h>
 
 #include <executorch/extension/tensor/tensor.h>
@@ -21,12 +20,7 @@ using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
 namespace {
-// Matches AUDIO_SAMPLES_PER_BLOCK in gemma_export/experiments_vulkan/
-// op_bisect/iter201_mm_4method_dynaudio_prefill2048_export.py.
-// The PTE's audio_samples dim was exported as `7680 * audio_blocks`.
 constexpr int32_t kSamplesPerBlock = 7680;
-// k ∈ [kAudioBlockKMin, kAudioBlockKMax] from MODEL_INTERFACE.md §6.
-// k=62 == 29.76 s @ 16 kHz is the SDPA mask + rel-shift bake point.
 constexpr int64_t kAudioBlockKMin = 1;
 constexpr int64_t kAudioBlockKMax = 62;
 } // namespace
@@ -55,7 +49,9 @@ bool AudioEncoder::is_loaded() const noexcept {
   return module_->is_method_loaded(kAudioEncoderMethod);
 }
 
-int32_t AudioEncoder::encoderTokenCount() const { return last_token_count_; }
+int32_t AudioEncoder::encoderTokenCount() const noexcept {
+  return last_token_count_;
+}
 
 Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
   if (!is_loaded()) {
@@ -68,9 +64,6 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
   const auto &wav = input.get_audio();
   ET_CHECK_OR_RETURN_ERROR(!wav.samples.empty(), InvalidArgument,
                            "AudioEncoder: empty waveform");
-  ET_CHECK_OR_RETURN_ERROR(
-      wav.sample_rate == 16000, InvalidArgument,
-      "AudioEncoder: expected 16000 Hz waveform, got %d Hz", wav.sample_rate);
 
   const int64_t n_valid = static_cast<int64_t>(wav.samples.size());
   const int64_t k_blocks = (n_valid + kSamplesPerBlock - 1) / kSamplesPerBlock;
@@ -116,10 +109,6 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
                            "audio_encoder output rank=%zd, expected 3",
                            audio_tensor.dim());
   last_token_count_ = static_cast<int32_t>(audio_tensor.size(1));
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "AudioEncoder: valid_samples=", n_valid,
-                    " padded_samples=", n_padded, " k_blocks=", k_blocks,
-                    " audio_tokens=", last_token_count_);
   return exec_result[0];
 }
 

@@ -22,7 +22,6 @@ export type MediaArg<C extends readonly LLMCapability[]> =
 export type LLMModelName =
   | 'gemma4-e2b'
   | 'gemma4-e2b-multimodal'
-  | 'gemma4-e2b-quantized'
   | 'llama-3.2-3b'
   | 'llama-3.2-3b-qlora'
   | 'llama-3.2-3b-spinquant'
@@ -67,42 +66,62 @@ export type LLMModelName =
   | 'bielik-v3.0-1.5b-quantized';
 
 /**
+ * Audio soft-token expansion constants for audio_encoder.
+ * @category Types
+ */
+export interface AudioConfig {
+  samplesPerBlock: number;
+  tokensPerBlock: number;
+}
+
+/**
+ * Properties defining LLMModel.
+ * @category Types
+ */
+export interface LLMModel {
+  /**
+   * The built-in model name (e.g. `'llama-3.2-3b'`). Used for telemetry and hook reload triggers.
+   * Pass one of the pre-built LLM constants (e.g. `LLAMA3_2_3B`) to populate all required fields.
+   */
+  modelName: LLMModelName;
+  /**
+   * `ResourceSource` that specifies the location of the model binary.
+   */
+  modelSource: ResourceSource;
+  /**
+   * `ResourceSource` pointing to the JSON file which contains the tokenizer.
+   */
+  tokenizerSource: ResourceSource;
+  /**
+   * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
+   */
+  tokenizerConfigSource: ResourceSource;
+  /**
+   * Optional list of modality capabilities the model supports.
+   * Determines the type of the `media` argument in `sendMessage`.
+   * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
+   */
+  capabilities?: readonly LLMCapability[];
+  /**
+   * Recommended default generation settings, typically copied from the
+   * upstream `generation_config.json` or the model card. Applied automatically
+   * after the native module loads and before any user `configure()` call,
+   * so callers only need to override the values they want to change.
+   */
+  generationConfig?: GenerationConfig;
+  /**
+   * Defines config for audio input modality for multimodal LLMs.
+   * `capabilities` must include 'audio'.
+   */
+  audioConfig?: AudioConfig;
+}
+
+/**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
  * @category Types
  */
 export interface LLMProps {
-  model: {
-    /**
-     * The built-in model name (e.g. `'llama-3.2-3b'`). Used for telemetry and hook reload triggers.
-     * Pass one of the pre-built LLM constants (e.g. `LLAMA3_2_3B`) to populate all required fields.
-     */
-    modelName: LLMModelName;
-    /**
-     * `ResourceSource` that specifies the location of the model binary.
-     */
-    modelSource: ResourceSource;
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer.
-     */
-    tokenizerSource: ResourceSource;
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
-     */
-    tokenizerConfigSource: ResourceSource;
-    /**
-     * Optional list of modality capabilities the model supports.
-     * Determines the type of the `media` argument in `sendMessage`.
-     * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
-     */
-    capabilities?: readonly LLMCapability[];
-    /**
-     * Recommended default generation settings, typically copied from the
-     * upstream `generation_config.json` or the model card. Applied automatically
-     * after the native module loads and before any user `configure()` call,
-     * so callers only need to override the values they want to change.
-     */
-    generationConfig?: GenerationConfig;
-  };
+  model: LLMModel;
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
    */

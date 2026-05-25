@@ -22,16 +22,7 @@ TextPrefiller::TextPrefiller(TextDecoderRunner *text_decoder_runner,
                              int64_t max_seq_len)
     : text_decoder_runner_(text_decoder_runner), use_kv_cache_(use_kv_cache),
       enable_parallel_prefill_(enable_parallel_prefill),
-      max_seq_len_(max_seq_len > 0 ? max_seq_len : 2048) {
-  // Auto-detect static-shape prefill: when `forward` declares input 0 as
-  // [1, N] with N>1, we must pad every prefill call to exactly N tokens.
-  prefill_static_len_ = text_decoder_runner_->prefill_static_len();
-  if (prefill_static_len_ > 0) {
-    rnexecutorch::log(
-        rnexecutorch::LOG_LEVEL::Info,
-        "TextPrefiller: static prefill len detected =", prefill_static_len_);
-  }
-}
+      max_seq_len_(max_seq_len > 0 ? max_seq_len : 128) {}
 
 ::executorch::runtime::Result<uint64_t>
 TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
@@ -43,12 +34,7 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
 
   // Check if we need to chunk the prompt tokens
   int32_t num_prompt_tokens = prompt_tokens.size();
-
-  // When the PTE's `forward` is static-shape (e.g. [1, 256]), the chunk size
-  // is fixed at prefill_static_len_; otherwise fall back to max_seq_len_.
-  const int32_t chunk_size = prefill_static_len_ > 0
-                                 ? static_cast<int32_t>(prefill_static_len_)
-                                 : static_cast<int32_t>(max_seq_len_);
+  const int32_t chunk_size = static_cast<int32_t>(max_seq_len_);
 
   // If prompt tokens exceed chunk_size, we need to chunk them
   if (num_prompt_tokens > chunk_size) {
@@ -91,34 +77,16 @@ TextPrefiller::prefill_chunk(std::vector<uint64_t> &prompt_tokens,
   // store the token
   uint64_t cur_token;
   if (enable_parallel_prefill_ || !use_kv_cache_) {
-    // Static-shape `forward` (e.g. [1, 256]): pad the prompt chunk to exactly
-    // prefill_static_len_ with 0, but only count `num_prompt_tokens` real
-    // tokens for sampling/start_pos. Padded slots' KV writes are overwritten
-    // by the next prefill chunk or decode step before being attended to.
-    std::vector<uint64_t> padded;
-    uint64_t *tokens_ptr = prompt_tokens.data();
-    int32_t tensor_len = num_prompt_tokens;
-    if (prefill_static_len_ > 0 && num_prompt_tokens < prefill_static_len_) {
-      padded.assign(prefill_static_len_, 0);
-      std::copy(prompt_tokens.begin(), prompt_tokens.end(), padded.begin());
-      tokens_ptr = padded.data();
-      tensor_len = static_cast<int32_t>(prefill_static_len_);
-    }
-
-    auto tokens = from_blob(tokens_ptr, {1, tensor_len},
+    auto tokens = from_blob(prompt_tokens.data(), {1, num_prompt_tokens},
                             executorch::aten::ScalarType::Long);
 
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "prefill effective_len",
-                      num_prompt_tokens, "tensor_len", tensor_len, "start_pos",
-                      start_pos);
     auto outputs_res = text_decoder_runner_->step(tokens, start_pos);
 
     ET_CHECK_OK_OR_RETURN_ERROR(outputs_res.error());
     ET_LOG(Info, "Prefill token result numel(): %zu",
            outputs_res.get().numel());
 
-    start_pos += num_prompt_tokens; // advance only by REAL tokens
-    // Sample from the row corresponding to the last real prompt token.
+    start_pos += num_prompt_tokens;
     cur_token = text_decoder_runner_->logits_to_token(outputs_res.get());
   } else {           // sequential prefill
     int64_t pos = 0; // position in the sequence

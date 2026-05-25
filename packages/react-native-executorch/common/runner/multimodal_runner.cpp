@@ -3,7 +3,6 @@
 #include "constants.h"
 #include "util.h"
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 
 namespace executorch::extension::llm {
 
@@ -83,22 +82,23 @@ Error MultimodalRunner::generate_internal(
   }
 
   stats_.inference_start_ms = time_in_ms();
-  const long t_gen_begin = stats_.inference_start_ms;
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "inputs count", inputs.size());
   auto prefill_result = mm_prefiller_->prefill(inputs, pos_);
   if (!prefill_result.ok())
     return prefill_result.error();
   uint64_t prefill_next_token = prefill_result.get();
-  const long t_prefill_done = time_in_ms();
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "prefill result",
-                    prefill_next_token);
 
   stats_.first_token_ms = time_in_ms();
   stats_.prompt_eval_end_ms = time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
+  // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
+  // decoder chunk size (e.g. 128) and the true generation budget lives in
+  // get_max_context_len. Mirrors text_runner.cpp:95-97.
+  const int32_t seq_cap = config_.enable_dynamic_shape
+                              ? config_.max_context_length
+                              : config_.max_seq_len;
   int32_t resolved_max_new = resolve_max_new_tokens(
-      static_cast<int32_t>(pos_), config_.max_seq_len,
+      static_cast<int32_t>(pos_), seq_cap,
       config_.max_context_length, config_.max_new_tokens);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};

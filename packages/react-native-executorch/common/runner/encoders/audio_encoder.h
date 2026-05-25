@@ -28,7 +28,7 @@ public:
   encode(const MultimodalInput &input) override;
   // Number of audio embedding tokens produced per encode() call. 0 until first
   // encode, since Gemma4's audio_encoder has a dynamic T dim.
-  int32_t encoderTokenCount() const override;
+  int32_t encoderTokenCount() const noexcept override;
 
 private:
   ::executorch::extension::Module *module_;

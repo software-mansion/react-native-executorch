@@ -16,14 +16,9 @@ TextRunner::TextRunner(std::unique_ptr<Module> module,
     : BaseLLMRunner(std::move(module), tokenizer_path, config) {}
 
 bool TextRunner::is_loaded() const {
-#ifdef RNEX_BYPASS_TOKENIZER
-  return module_ && module_->is_loaded() && text_decoder_runner_ &&
-         text_prefiller_ && text_token_generator_;
-#else
   return module_ && module_->is_loaded() && tokenizer_ &&
          tokenizer_->is_loaded() && text_decoder_runner_ && text_prefiller_ &&
          text_token_generator_;
-#endif
 }
 
 Error TextRunner::load_subcomponents() {
@@ -77,19 +72,6 @@ Error TextRunner::generate_internal(
   int64_t context_len_left =
       static_cast<int64_t>(config_.max_context_length) - pos_;
 
-#ifdef RNEX_BYPASS_TOKENIZER
-  // Llama 3.2 Instruct chat template wrapping "Hello" — decode offline:
-  //   <|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n
-  //   Hello<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n
-  (void)prompt;
-  std::vector<uint64_t> prompt_tokens = {
-      128000, 128006, 882,  128007, 271,    128000, 9906,   11, 3371,
-      757,    264,    3446, 128009, 128006, 78191,  128007, 271};
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "RNEX_BYPASS_TOKENIZER: hardcoded Llama-3.2 prompt tokens, "
-                    "count = " +
-                        std::to_string(prompt_tokens.size()));
-#else
   auto encodeResult =
       tokenizer_->encode(prompt, numOfAddedBoSTokens, numOfAddedEoSTokens);
   if (!encodeResult.ok()) {
@@ -99,7 +81,6 @@ Error TextRunner::generate_internal(
             std::to_string(static_cast<int32_t>(encodeResult.error())));
   }
   std::vector<uint64_t> prompt_tokens = encodeResult.get();
-#endif
   int num_prompt_tokens = prompt_tokens.size();
 
   // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
@@ -120,10 +101,6 @@ Error TextRunner::generate_internal(
       num_prompt_tokens, seq_cap, static_cast<int32_t>(context_len_left),
       config_.max_new_tokens);
 
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa1", max_new_tokens,
-                    num_prompt_tokens, config_.max_seq_len,
-                    config_.max_new_tokens);
-
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is <= 0", max_new_tokens);
 
@@ -136,11 +113,6 @@ Error TextRunner::generate_internal(
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
 
   uint64_t cur_token = prefill_res.get();
-#ifdef RNEX_BYPASS_TOKENIZER
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "RNEX_BYPASS_TOKENIZER: prefill first token id = " +
-                        std::to_string(cur_token));
-#else
   auto decodeResult = tokenizer_->decode({cur_token});
   if (!decodeResult.ok()) {
     throw rnexecutorch::RnExecutorchError(
@@ -148,7 +120,6 @@ Error TextRunner::generate_internal(
         "Unexpected issue occurred while decoding: " +
             std::to_string(static_cast<int32_t>(decodeResult.error())));
   }
-#endif
 
   prompt_tokens.push_back(cur_token);
   int64_t num_generated = ET_UNWRAP(text_token_generator_->generate(

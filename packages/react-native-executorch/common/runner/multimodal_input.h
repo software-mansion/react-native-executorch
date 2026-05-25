@@ -19,14 +19,9 @@ namespace executorch::extension::llm {
 struct ImagePath {
   std::string path;
 };
-// In-memory raw audio (fp32, mono). Pattern mirrors SpeechToText: the JS
-// layer decodes WAV/MP3 via react-native-audio-api and passes Float32Array
-// samples; the PTE has the log-mel frontend baked in, so the runner only
-// needs the waveform itself. sample_rate is expected to match the PTE's
-// mel-extractor (Gemma4: 16000 Hz).
+
 struct AudioWaveform {
   std::vector<float> samples;
-  int32_t sample_rate;
 };
 
 class MultimodalInput {
@@ -81,9 +76,8 @@ inline MultimodalInput make_text_input(std::string &&text) noexcept {
 inline MultimodalInput make_image_input(std::string path) noexcept {
   return MultimodalInput(ImagePath{std::move(path)});
 }
-inline MultimodalInput make_audio_input(std::vector<float> samples,
-                                        int32_t sample_rate = 16000) noexcept {
-  return MultimodalInput(AudioWaveform{std::move(samples), sample_rate});
+inline MultimodalInput make_audio_input(std::vector<float> samples) noexcept {
+  return MultimodalInput(AudioWaveform{std::move(samples)});
 }
 
 } // namespace executorch::extension::llm

@@ -1,11 +1,11 @@
-import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
+  AudioConfig,
   ChatConfig,
   GenerationConfig,
-  LLMCapability,
+  LLMModel,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -15,13 +15,6 @@ import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
-
-// Audio soft-token expansion constants for Gemma4's audio_encoder.
-// Mirrors AUDIO_SAMPLES_PER_BLOCK (kSamplesPerBlock=7680) and the per-block
-// soft-token rate in audio_encoder.cpp; used to size the context budget so
-// long audio doesn't silently overflow get_max_seq_len during prefill.
-const AUDIO_SAMPLES_PER_BLOCK = 7680;
-const AUDIO_TOKENS_PER_BLOCK = 12;
 
 export class LLMController {
   private nativeModule: any;
@@ -37,6 +30,7 @@ export class LLMController {
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
+  private audioConfig: AudioConfig | undefined;
 
   constructor({
     tokenCallback,
@@ -79,18 +73,10 @@ export class LLMController {
   }
 
   public async load({
-    modelSource,
-    tokenizerSource,
-    tokenizerConfigSource,
-    capabilities,
-    defaultGenerationConfig,
+    model,
     onDownloadProgressCallback,
   }: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-    capabilities?: readonly LLMCapability[];
-    defaultGenerationConfig?: GenerationConfig;
+    model: LLMModel;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -101,13 +87,13 @@ export class LLMController {
     try {
       const tokenizersPromise = ResourceFetcher.fetch(
         undefined,
-        tokenizerSource,
-        tokenizerConfigSource
+        model.tokenizerSource,
+        model.tokenizerConfigSource
       );
 
       const modelPromise = ResourceFetcher.fetch(
         onDownloadProgressCallback,
-        modelSource
+        model.modelSource
       );
 
       const [tokenizersResults, modelResult] = await Promise.all([
@@ -131,16 +117,20 @@ export class LLMController {
         this.nativeModule.unload();
       }
 
+      if ('audio' in (model.capabilities ?? [])) {
+        this.audioConfig = model.audioConfig;
+      }
+
       this.nativeModule = await global.loadLLM(
         modelPath,
         tokenizerPath,
-        capabilities ?? []
+        model.capabilities ?? []
       );
-      if (defaultGenerationConfig) {
+      if (model.generationConfig) {
         // Apply model-specific recommended sampling defaults before flipping
         // isReady so callers that react to it see the right config on first
         // send. User-provided `configure()` calls still override these.
-        this.applyGenerationConfig(defaultGenerationConfig);
+        this.applyGenerationConfig(model.generationConfig);
       }
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
@@ -310,15 +300,16 @@ export class LLMController {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
       let response: string;
-      console.log(input);
       if (hasImages || hasAudio) {
         response = await this.nativeModule.generateMultimodal(
           input,
           this.onToken,
-          hasImages ? imagePaths!.map(normalizeImagePath) : [],
-          hasImages ? this.getImageToken() : '',
-          hasAudio ? audioWaveforms! : [],
-          hasAudio ? this.getAudioToken() : ''
+          {
+            imagePaths: hasImages ? imagePaths!.map(normalizeImagePath) : [],
+            imageToken: hasImages ? this.getImageToken() : null,
+            audioWaveforms: hasAudio ? audioWaveforms! : [],
+            audioToken: hasAudio ? this.getAudioToken() : null,
+          }
         );
       } else {
         response = await this.nativeModule.generate(input, this.onToken);
@@ -433,18 +424,18 @@ export class LLMController {
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);
       const imageCount = messages.filter((m) => m.mediaPath).length;
-      // Audio soft-token expansion: Gemma4's audio_encoder pads samples to
-      // multiples of AUDIO_SAMPLES_PER_BLOCK (7680 @ 16 kHz) and emits
-      // AUDIO_TOKENS_PER_BLOCK (~12) soft tokens per padded block. The
+      // Audio soft-token expansion: audio_encoder pads samples to
+      // multiples of this.audioConfig.samplesPerBlock (7680 @ 16 kHz) and emits
+      // this.audioConfig.tokensPerBlock (~12) soft tokens per padded block. The
       // rendered template only contributes 1 token for the audio placeholder,
       // so add (expansion - 1) per audio message to match prefill consumption.
       const audioTokenExpansion = messages.reduce((acc, m) => {
         if (!m.audioWaveform) return acc;
         const kBlocks = Math.max(
           1,
-          Math.ceil(m.audioWaveform.length / AUDIO_SAMPLES_PER_BLOCK)
+          Math.ceil(m.audioWaveform.length / this.audioConfig!.samplesPerBlock)
         );
-        return acc + (AUDIO_TOKENS_PER_BLOCK * kBlocks - 1);
+        return acc + (this.audioConfig!.tokensPerBlock * kBlocks - 1);
       }, 0);
       return (
         textTokens + imageCount * (visualTokenCount - 1) + audioTokenExpansion

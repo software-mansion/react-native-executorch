@@ -17,6 +17,7 @@
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/instance_segmentation/Types.h>
+#include <rnexecutorch/models/llm/Types.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -316,6 +317,31 @@ template <>
 inline std::span<uint64_t>
 getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<uint64_t>(val, runtime);
+}
+
+template <typename T>
+inline void assignIfPresent(T &field, const jsi::Object &obj,
+                            jsi::Runtime &runtime, const char *name) {
+  if (!obj.hasProperty(runtime, name))
+    return;
+  jsi::Value v = obj.getProperty(runtime, name);
+  if (v.isUndefined() || v.isNull())
+    return;
+  field = getValue<T>(v, runtime);
+}
+
+template <>
+inline models::llm::MultimodalInputs
+getValue<models::llm::MultimodalInputs>(const jsi::Value &val,
+                                        jsi::Runtime &runtime) {
+  models::llm::MultimodalInputs multimodalInputs;
+  jsi::Object obj = val.asObject(runtime);
+  assignIfPresent(multimodalInputs.imagePaths, obj, runtime, "imagePaths");
+  assignIfPresent(multimodalInputs.imageToken, obj, runtime, "imageToken");
+  assignIfPresent(multimodalInputs.audioWaveforms, obj, runtime,
+                  "audioWaveforms");
+  assignIfPresent(multimodalInputs.audioToken, obj, runtime, "audioToken");
+  return multimodalInputs;
 }
 
 // Conversion from C++ types to jsi --------------------------------------------
