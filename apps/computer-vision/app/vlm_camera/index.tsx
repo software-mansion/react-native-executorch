@@ -474,13 +474,6 @@ export default function VLMCameraScreen() {
       {frozenUri &&
         (screenState === 'thinking' || screenState === 'speaking') && (
           <View style={styles.frozenOverlay} pointerEvents="box-none">
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-              <Image
-                source={{ uri: frozenUri }}
-                style={StyleSheet.absoluteFill}
-                resizeMode="cover"
-              />
-            </View>
             <View style={styles.frozenScrim} pointerEvents="none" />
             <View
               style={[
@@ -492,6 +485,11 @@ export default function VLMCameraScreen() {
               ]}
               pointerEvents="box-none"
             >
+              <Image
+                source={{ uri: frozenUri }}
+                style={styles.frozenImage}
+                resizeMode="cover"
+              />
               {transcript ? (
                 <Text style={styles.frozenQuestion}>{transcript}</Text>
               ) : null}
@@ -884,11 +882,20 @@ const styles = StyleSheet.create({
   },
   frozenScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   frozenContent: {
     ...StyleSheet.absoluteFillObject,
     paddingHorizontal: 20,
+    alignItems: 'flex-start',
+  },
+  frozenImage: {
+    width: 96,
+    height: 128,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    marginBottom: 16,
   },
   frozenQuestion: {
     color: 'rgba(255,255,255,0.85)',
@@ -898,14 +905,14 @@ const styles = StyleSheet.create({
   },
   frozenResponseScroll: {
     flex: 1,
+    alignSelf: 'stretch',
   },
   frozenResponseContent: {
     paddingBottom: 8,
   },
   frozenResponseText: {
     color: 'white',
-    fontSize: 22,
-    lineHeight: 32,
-    fontWeight: '600',
+    fontSize: 17,
+    lineHeight: 24,
   },
 });
