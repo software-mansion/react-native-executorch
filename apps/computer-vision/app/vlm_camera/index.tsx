@@ -35,8 +35,7 @@ import {
   useTextToSpeech,
   LFM2_5_VL_450M_QUANTIZED,
   WHISPER_TINY_EN,
-  KOKORO_SMALL,
-  KOKORO_VOICE_AF_HEART,
+  KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
 } from 'react-native-executorch';
 import ColorPalette from '../../colors';
 
@@ -98,10 +97,7 @@ export default function VLMCameraScreen() {
     model: { ...LFM2_5_VL_450M_QUANTIZED, capabilities: ['vision'] as const },
   });
   const stt = useSpeechToText({ model: WHISPER_TINY_EN });
-  const tts = useTextToSpeech({
-    model: KOKORO_SMALL,
-    voice: KOKORO_VOICE_AF_HEART,
-  });
+  const tts = useTextToSpeech(KOKORO_AMERICAN_ENGLISH_FEMALE_HEART);
 
   const allReady = llm.isReady && stt.isReady && tts.isReady;
   const avgProgress =
