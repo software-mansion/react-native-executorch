@@ -25,6 +25,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('backend_benchmark/')}
+        >
+          <Text style={styles.buttonText}>Backend Benchmark</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('classification/')}
         >
           <Text style={styles.buttonText}>Classification</Text>

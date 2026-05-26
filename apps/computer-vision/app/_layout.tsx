@@ -127,6 +127,15 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="backend_benchmark/index"
+          options={{
+            drawerLabel: 'Backend Benchmark',
+            title: 'Backend Benchmark',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',
