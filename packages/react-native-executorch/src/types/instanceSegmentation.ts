@@ -1,12 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import {
-  LabelEnum,
-  NmsConfig,
-  ResourceSource,
-  Triple,
-  Frame,
-  PixelData,
-} from './common';
+import { LabelEnum, ResourceSource, Triple, Frame, PixelData } from './common';
 import { Bbox } from './objectDetection';
 
 /**
@@ -55,12 +48,12 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
    */
   confidenceThreshold?: number;
   /**
-   * Override NMS mode and/or `iouThreshold` for this call. Partial — missing
-   * fields fall back to the model preset's `defaultNms`. Ignored for models
-   * whose preset disables external NMS (`postprocessorConfig.applyNMS: false`,
-   * e.g. YOLO-seg which does NMS internally).
+   * IoU threshold for non-maximum suppression (0-1). Defaults to the model
+   * preset's `defaultIouThreshold`. Ignored for models whose preset disables
+   * external NMS (`postprocessorConfig.applyNMS: false`, e.g. YOLO-seg which
+   * does NMS internally).
    */
-  nms?: NmsConfig;
+  iouThreshold?: number;
   /**
    * Maximum number of instances to return. Default: 100
    */
@@ -106,11 +99,17 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
   postprocessorConfig?: { applyNMS?: boolean };
   defaultConfidenceThreshold?: number;
   /**
-   * Default NMS configuration. Overridable per-call via
-   * {@link InstanceSegmentationOptions.nms}. Has no effect when
+   * Default IoU threshold for non-maximum suppression (0-1). Overridable per-call
+   * via {@link InstanceSegmentationOptions.iouThreshold}. Has no effect when
    * `postprocessorConfig.applyNMS` is `false`.
    */
-  defaultNms?: NmsConfig;
+  defaultIouThreshold?: number;
+  /**
+   * NMS algorithm baked into the model preset. Architectural — not per-call tuneable.
+   * - `'greedy'` (default): standard NMS, suits detectors whose anchors are independently accurate.
+   * - `'weighted'`: score-weighted box blending, required for ensemble-trained detectors.
+   */
+  nmsMode?: 'greedy' | 'weighted';
 } & (
   | {
       availableInputSizes: readonly number[];

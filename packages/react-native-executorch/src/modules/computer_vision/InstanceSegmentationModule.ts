@@ -34,7 +34,7 @@ const YOLO_SEG_CONFIG = {
   availableInputSizes: [384, 512, 640] as const,
   defaultInputSize: 384,
   defaultConfidenceThreshold: 0.5,
-  defaultNms: { iouThreshold: 0.5 },
+  defaultIouThreshold: 0.5,
   postprocessorConfig: {
     applyNMS: false,
   },
@@ -46,7 +46,7 @@ const FASTSAM_CONFIG = {
   availableInputSizes: undefined,
   defaultInputSize: undefined,
   defaultConfidenceThreshold: 0.5,
-  defaultNms: { iouThreshold: 0.9 },
+  defaultIouThreshold: 0.9,
   postprocessorConfig: {
     applyNMS: true,
   },
@@ -58,7 +58,7 @@ const RF_DETR_NANO_SEG_CONFIG = {
   availableInputSizes: undefined,
   defaultInputSize: undefined, //RFDetr exposes only one method named forward
   defaultConfidenceThreshold: 0.5,
-  defaultNms: { iouThreshold: 0.5 },
+  defaultIouThreshold: 0.5,
   postprocessorConfig: {
     applyNMS: true,
   },
@@ -143,7 +143,7 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
  *
  * const results = await segmentation.forward('path/to/image.jpg', {
  *   confidenceThreshold: 0.5,
- *   nms: { iouThreshold: 0.45 },
+ *   iouThreshold: 0.45,
  *   maxInstances: 20,
  *   inputSize: 640,
  * });
@@ -237,7 +237,7 @@ export class InstanceSegmentationModule<
    *     availableInputSizes: [640],
    *     defaultInputSize: 640,
    *     defaultConfidenceThreshold: 0.5,
-   *     defaultNms: { iouThreshold: 0.45 },
+   *     defaultIouThreshold: 0.45,
    *     postprocessorConfig: { applyNMS: true },
    *   },
    * );
@@ -323,10 +323,9 @@ export class InstanceSegmentationModule<
     const labelEnumOffset = this.labelEnumOffset;
     const defaultConfidenceThreshold =
       this.modelConfig.defaultConfidenceThreshold ?? 0.5;
-    const defaultNmsMode = this.modelConfig.defaultNms?.mode ?? 'greedy';
-    const defaultIouThreshold =
-      this.modelConfig.defaultNms?.iouThreshold ?? 0.5;
+    const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.5;
     const defaultInputSize = this.modelConfig.defaultInputSize;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
 
     return (
       frame: Frame,
@@ -337,9 +336,7 @@ export class InstanceSegmentationModule<
 
       const confidenceThreshold =
         options?.confidenceThreshold ?? defaultConfidenceThreshold;
-      const nmsMode = options?.nms?.mode ?? defaultNmsMode;
-      const iouThreshold = options?.nms?.iouThreshold ?? defaultIouThreshold;
-      const useWeightedNms = nmsMode === 'weighted';
+      const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
       const maxInstances = options?.maxInstances ?? 100;
       const returnMaskAtOriginalResolution =
         options?.returnMaskAtOriginalResolution ?? true;
@@ -386,14 +383,14 @@ export class InstanceSegmentationModule<
    * 1. **String path/URI**: File path, URL, or Base64-encoded string
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    * @param input - Image source (string path or PixelData object)
-   * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `nms`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
+   * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
    * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`.
    * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
    * @example
    * ```ts
    * const results = await segmentation.forward('path/to/image.jpg', {
    *   confidenceThreshold: 0.6,
-   *   nms: { iouThreshold: 0.5 },
+   *   iouThreshold: 0.5,
    *   maxInstances: 10,
    *   inputSize: 640,
    *   classesOfInterest: ['PERSON', 'CAR'],
@@ -420,13 +417,9 @@ export class InstanceSegmentationModule<
       options?.confidenceThreshold ??
       this.modelConfig.defaultConfidenceThreshold ??
       0.5;
-    const nmsMode =
-      options?.nms?.mode ?? this.modelConfig.defaultNms?.mode ?? 'greedy';
     const iouThreshold =
-      options?.nms?.iouThreshold ??
-      this.modelConfig.defaultNms?.iouThreshold ??
-      0.5;
-    const useWeightedNms = nmsMode === 'weighted';
+      options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.5;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
     const maxInstances = options?.maxInstances ?? 100;
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;

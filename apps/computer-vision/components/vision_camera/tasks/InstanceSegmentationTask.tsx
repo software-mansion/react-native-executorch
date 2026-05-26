@@ -133,7 +133,7 @@ export default function InstanceSegmentationTask({
           const ih = frame.width > frame.height ? frame.width : frame.height;
           const result = instSegRof(frame, isFrontCamera, {
             confidenceThreshold: 0.5,
-            nms: { iouThreshold: 0.5 },
+            iouThreshold: 0.5,
             maxInstances: 5,
             returnMaskAtOriginalResolution: false,
             ...(activeModel === 'instanceSegmentationYolo26n' && {

@@ -1,12 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import {
-  LabelEnum,
-  NmsConfig,
-  Triple,
-  ResourceSource,
-  PixelData,
-  Frame,
-} from './common';
+import { LabelEnum, Triple, ResourceSource, PixelData, Frame } from './common';
 import { CocoLabel } from '../constants/commonVision';
 export { CocoLabel };
 
@@ -47,20 +40,12 @@ export interface Detection<L extends LabelEnum = typeof CocoLabel> {
 export interface ObjectDetectionOptions<L extends LabelEnum> {
   /** Minimum confidence score for detections (0-1). Defaults to the model preset's value. */
   detectionThreshold?: number;
-  /** Override NMS mode and/or `iouThreshold` for this call. Partial — missing fields fall back to the model preset's `defaultNms`. */
-  nms?: NmsConfig;
+  /** IoU threshold for non-maximum suppression (0-1). Defaults to the model preset's `defaultIouThreshold`. */
+  iouThreshold?: number;
   /** Input size for multi-method models (e.g. 384/512/640 for YOLO). */
   inputSize?: number;
   /** Restrict output to these class labels. */
   classesOfInterest?: (keyof L)[];
-  /**
-   * If true, preprocess by aspect-preserving fit + center-pad (letterbox)
-   * instead of a plain stretch resize to the model's input size. Required
-   * for models trained on natural-aspect crops (e.g. BlazeFace) — a stretched
-   * portrait frame shifts anchor positions and predicts a too-narrow box.
-   * Defaults to the model preset's `defaultUseLetterbox`.
-   */
-  useLetterbox?: boolean;
 }
 
 /**
@@ -96,10 +81,20 @@ export type ObjectDetectionConfig<T extends LabelEnum> = {
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
   /** Default detection confidence threshold (0-1). */
   defaultDetectionThreshold?: number;
-  /** Default NMS configuration. Overridable per-call via {@link ObjectDetectionOptions.nms}. */
-  defaultNms?: NmsConfig;
-  /** Default preprocessing for this model. Overridable per-call via `useLetterbox`. */
-  defaultUseLetterbox?: boolean;
+  /** Default IoU threshold for non-maximum suppression (0-1). Overridable per-call via {@link ObjectDetectionOptions.iouThreshold}. */
+  defaultIouThreshold?: number;
+  /**
+   * NMS algorithm baked into the model preset. Architectural — not per-call tuneable.
+   * - `'greedy'` (default): standard NMS, suits detectors whose anchors are independently accurate (YOLO, SSDLite, RF-DETR).
+   * - `'weighted'`: score-weighted box blending, required for ensemble-trained detectors like BlazeFace.
+   */
+  nmsMode?: 'greedy' | 'weighted';
+  /**
+   * Whether the model expects aspect-preserving fit + center-pad (letterbox) preprocessing
+   * instead of plain stretch resize. Architectural property of the model — not per-call tuneable.
+   * BlazeFace requires letterbox; YOLO/SSDLite/RF-DETR do not.
+   */
+  useLetterbox?: boolean;
 } & (
   | {
       availableInputSizes: readonly number[];

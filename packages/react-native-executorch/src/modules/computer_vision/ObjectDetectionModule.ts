@@ -35,7 +35,7 @@ const YOLO_DETECTION_CONFIG = {
   availableInputSizes: [384, 512, 640] as const,
   defaultInputSize: 384,
   defaultDetectionThreshold: 0.5,
-  defaultNms: { iouThreshold: 0.5 },
+  defaultIouThreshold: 0.5,
 } satisfies ObjectDetectionConfig<typeof CocoLabelYolo>;
 
 const ModelConfigs = {
@@ -45,7 +45,7 @@ const ModelConfigs = {
     availableInputSizes: undefined,
     defaultInputSize: undefined,
     defaultDetectionThreshold: 0.7,
-    defaultNms: { iouThreshold: 0.55 },
+    defaultIouThreshold: 0.55,
   },
   'rf-detr-nano': {
     labelMap: CocoLabel,
@@ -53,7 +53,7 @@ const ModelConfigs = {
     availableInputSizes: undefined,
     defaultInputSize: undefined,
     defaultDetectionThreshold: 0.7,
-    defaultNms: { iouThreshold: 0.55 },
+    defaultIouThreshold: 0.55,
   },
   'yolo26n': YOLO_DETECTION_CONFIG,
   'yolo26s': YOLO_DETECTION_CONFIG,
@@ -66,8 +66,9 @@ const ModelConfigs = {
     availableInputSizes: undefined,
     defaultInputSize: undefined,
     defaultDetectionThreshold: 0.5,
-    defaultNms: { mode: 'weighted', iouThreshold: 0.3 },
-    defaultUseLetterbox: true,
+    defaultIouThreshold: 0.3,
+    nmsMode: 'weighted',
+    useLetterbox: true,
   },
 } as const satisfies Record<
   ObjectDetectionModelName,
@@ -182,12 +183,11 @@ export class ObjectDetectionModule<
 
     const defaultDetectionThreshold =
       this.modelConfig.defaultDetectionThreshold ?? 0.7;
-    const defaultNmsMode = this.modelConfig.defaultNms?.mode ?? 'greedy';
-    const defaultIouThreshold =
-      this.modelConfig.defaultNms?.iouThreshold ?? 0.55;
+    const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.55;
     const defaultInputSize = this.modelConfig.defaultInputSize;
     const availableInputSizes = this.modelConfig.availableInputSizes;
-    const defaultUseLetterbox = this.modelConfig.defaultUseLetterbox ?? false;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
+    const useLetterbox = this.modelConfig.useLetterbox ?? false;
 
     return (
       frame: any,
@@ -198,11 +198,8 @@ export class ObjectDetectionModule<
 
       const detectionThreshold =
         options?.detectionThreshold ?? defaultDetectionThreshold;
-      const nmsMode = options?.nms?.mode ?? defaultNmsMode;
-      const iouThreshold = options?.nms?.iouThreshold ?? defaultIouThreshold;
+      const iouThreshold = options?.iouThreshold ?? defaultIouThreshold;
       const inputSize = options?.inputSize ?? defaultInputSize;
-      const useWeightedNms = nmsMode === 'weighted';
-      const useLetterbox = options?.useLetterbox ?? defaultUseLetterbox;
 
       if (
         availableInputSizes &&
@@ -272,16 +269,11 @@ export class ObjectDetectionModule<
       options?.detectionThreshold ??
       this.modelConfig.defaultDetectionThreshold ??
       0.7;
-    const nmsMode =
-      options?.nms?.mode ?? this.modelConfig.defaultNms?.mode ?? 'greedy';
     const iouThreshold =
-      options?.nms?.iouThreshold ??
-      this.modelConfig.defaultNms?.iouThreshold ??
-      0.55;
+      options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.55;
     const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
-    const useWeightedNms = nmsMode === 'weighted';
-    const useLetterbox =
-      options?.useLetterbox ?? this.modelConfig.defaultUseLetterbox ?? false;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
+    const useLetterbox = this.modelConfig.useLetterbox ?? false;
 
     // Validate inputSize against availableInputSizes
     if (
