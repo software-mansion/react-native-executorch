@@ -41,6 +41,12 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Privacy Filter (PII)</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('privacy_filter_chat/')}
+        >
+          <Text style={styles.buttonText}>Privacy Filter Chat</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

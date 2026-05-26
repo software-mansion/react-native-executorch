@@ -146,6 +146,14 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="privacy_filter_chat/index"
+          options={{
+            drawerLabel: 'Privacy Filter Chat',
+            title: 'Privacy Filter Chat',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );
