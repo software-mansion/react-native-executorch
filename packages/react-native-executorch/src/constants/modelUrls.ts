@@ -3,7 +3,7 @@ import {
   PRIVACY_FILTER_NEMOTRON_LABELS,
   PRIVACY_FILTER_OPENAI_LABELS,
 } from './privacyFilterLabels';
-import { URL_PREFIX, PREVIOUS_VERSION_TAG } from './versions';
+import { URL_PREFIX, PREVIOUS_VERSION_TAG, VERSION_TAG } from './versions';
 
 // LLMs
 
@@ -680,6 +680,17 @@ export const YOLO26L = {
 export const YOLO26X = {
   modelName: 'yolo26x',
   modelSource: YOLO26X_DETECTION_MODEL,
+} as const;
+
+// BlazeFace — pinned to VERSION_TAG (v0.10.0) where the HF repo first publishes.
+const BLAZEFACE_XNNPACK_FP32_MODEL = `${URL_PREFIX}-blazeface/${VERSION_TAG}/xnnpack/blazeface.pte`;
+
+/**
+ * @category Models - Object Detection
+ */
+export const BLAZEFACE = {
+  modelName: 'blazeface',
+  modelSource: BLAZEFACE_XNNPACK_FP32_MODEL,
 } as const;
 
 // YOLO26 Pose Estimation

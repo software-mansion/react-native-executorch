@@ -9,16 +9,10 @@ import {
   CocoLabel,
   CocoLabelYolo,
   BlazeFaceLabel,
-  ObjectDetectionModelSources,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
 const objectDetection = models.object_detection;
-
-const BLAZEFACE: ObjectDetectionModelSources = {
-  modelName: 'blazeface',
-  modelSource: require('../../../assets/blazeface.pte'),
-};
 
 type ObjModelId =
   | 'objectDetectionSsdlite'
@@ -53,7 +47,7 @@ export default function ObjectDetectionTask({
     preventLoad: activeModel !== 'objectDetectionYolo26n',
   });
   const blazeface = useObjectDetection({
-    model: BLAZEFACE,
+    model: objectDetection.blazeface(),
     preventLoad: activeModel !== 'objectDetectionBlazeface',
   });
 

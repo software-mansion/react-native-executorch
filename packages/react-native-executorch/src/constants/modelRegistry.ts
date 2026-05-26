@@ -518,6 +518,7 @@ export const models = {
     yolo26m: base(M.YOLO26M),
     yolo26l: base(M.YOLO26L),
     yolo26x: base(M.YOLO26X),
+    blazeface: base(M.BLAZEFACE),
   },
   pose_estimation: {
     yolo26n: base(M.YOLO26N_POSE),
