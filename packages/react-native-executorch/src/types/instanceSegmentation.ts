@@ -50,8 +50,7 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
   /**
    * IoU threshold for non-maximum suppression (0-1). Defaults to the model
    * preset's `defaultIouThreshold`. Ignored for models whose preset disables
-   * external NMS (`postprocessorConfig.applyNMS: false`, e.g. YOLO-seg which
-   * does NMS internally).
+   * external NMS (`postprocessorConfig.applyNMS: false`, e.g. YOLO-seg which is NMS-free)
    */
   iouThreshold?: number;
   /**
