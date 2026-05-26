@@ -22,36 +22,16 @@ initExecutorch({
 
 function HamburgerIcon({ tintColor }: { tintColor?: string }) {
   const navigation = useNavigation();
+  const fill = tintColor ?? ColorPalette.text;
   return (
     <TouchableOpacity
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
       style={styles.hamburger}
     >
       <Svg width={24} height={24} viewBox="0 0 24 24">
-        <Rect
-          x={2}
-          y={4}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
-        <Rect
-          x={2}
-          y={11}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
-        <Rect
-          x={2}
-          y={18}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
+        <Rect x={2} y={4} width={20} height={2} rx={1} fill={fill} />
+        <Rect x={2} y={11} width={20} height={2} rx={1} fill={fill} />
+        <Rect x={2} y={18} width={20} height={2} rx={1} fill={fill} />
       </Svg>
     </TouchableOpacity>
   );
@@ -64,7 +44,11 @@ interface CustomDrawerProps extends DrawerContentComponentProps {
 function CustomDrawerContent(props: CustomDrawerProps) {
   const { isGenerating, ...otherProps } = props;
   return (
-    <DrawerContentScrollView {...otherProps}>
+    <DrawerContentScrollView
+      {...otherProps}
+      style={styles.drawerScroll}
+      contentContainerStyle={styles.drawerContent}
+    >
       {!isGenerating ? (
         <DrawerItemList {...otherProps} />
       ) : (
@@ -93,10 +77,17 @@ export default function _layout() {
           <CustomDrawerContent {...props} isGenerating={isGenerating} />
         )}
         screenOptions={{
-          drawerActiveTintColor: ColorPalette.primary,
-          drawerInactiveTintColor: '#888',
-          headerTintColor: ColorPalette.primary,
-          headerTitleStyle: { color: ColorPalette.primary },
+          drawerActiveTintColor: ColorPalette.accent,
+          drawerInactiveTintColor: ColorPalette.textMuted,
+          drawerActiveBackgroundColor: 'rgba(125, 211, 252, 0.12)',
+          drawerStyle: { backgroundColor: ColorPalette.bg },
+          headerStyle: { backgroundColor: ColorPalette.bg },
+          headerTintColor: ColorPalette.text,
+          headerTitleStyle: {
+            color: ColorPalette.text,
+            fontWeight: '600',
+          },
+          headerShadowVisible: false,
           headerLeft: (props) => <HamburgerIcon tintColor={props.tintColor} />,
         }}
       >
@@ -114,23 +105,17 @@ export default function _layout() {
             drawerLabel: 'Vision Camera',
             title: 'Vision Camera',
             headerShown: false,
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
           name="classification/index"
-          options={{
-            drawerLabel: 'Classification',
-            title: 'Classification',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
+          options={{ drawerLabel: 'Classification', title: 'Classification' }}
         />
         <Drawer.Screen
           name="semantic_segmentation/index"
           options={{
             drawerLabel: 'Semantic Segmentation',
             title: 'Semantic Segmentation',
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
@@ -138,7 +123,6 @@ export default function _layout() {
           options={{
             drawerLabel: 'Instance Segmentation',
             title: 'Instance Segmentation',
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
@@ -146,32 +130,19 @@ export default function _layout() {
           options={{
             drawerLabel: 'Object Detection',
             title: 'Object Detection',
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
           name="pose_estimation/index"
-          options={{
-            drawerLabel: 'Pose Estimation',
-            title: 'Pose Estimation',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
+          options={{ drawerLabel: 'Pose Estimation', title: 'Pose Estimation' }}
         />
         <Drawer.Screen
           name="ocr/index"
-          options={{
-            drawerLabel: 'OCR',
-            title: 'OCR',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
+          options={{ drawerLabel: 'OCR', title: 'OCR' }}
         />
         <Drawer.Screen
           name="ocr_vertical/index"
-          options={{
-            drawerLabel: 'OCR Vertical',
-            title: 'Vertical OCR',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
+          options={{ drawerLabel: 'OCR Vertical', title: 'Vertical OCR' }}
         />
         <Drawer.Screen
           name="live_text/index"
@@ -179,23 +150,17 @@ export default function _layout() {
             drawerLabel: 'Live Text',
             title: 'Live Text',
             headerShown: false,
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
           name="style_transfer/index"
-          options={{
-            drawerLabel: 'Style Transfer',
-            title: 'Style Transfer',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
+          options={{ drawerLabel: 'Style Transfer', title: 'Style Transfer' }}
         />
         <Drawer.Screen
           name="text_to_image/index"
           options={{
             drawerLabel: 'Image Generation',
             title: 'Image Generation',
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
         <Drawer.Screen
@@ -203,7 +168,6 @@ export default function _layout() {
           options={{
             drawerLabel: 'Segment Anything',
             title: 'Segment Anything',
-            headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
       </Drawer>
@@ -215,6 +179,12 @@ const styles = StyleSheet.create({
   hamburger: {
     marginLeft: 12,
   },
+  drawerScroll: {
+    backgroundColor: ColorPalette.bg,
+  },
+  drawerContent: {
+    paddingTop: 8,
+  },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
@@ -225,10 +195,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: ColorPalette.primary,
+    color: ColorPalette.text,
   },
   subText: {
     fontSize: 14,
-    color: ColorPalette.strongPrimary,
+    color: ColorPalette.textMuted,
   },
 });

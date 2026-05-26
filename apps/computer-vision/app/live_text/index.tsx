@@ -16,6 +16,7 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
+import { LinearGradient } from 'expo-linear-gradient';
 import { OCR_ENGLISH, OCRDetection, useOCR } from 'react-native-executorch';
 import ColorPalette from '../../colors';
 import Spinner from '../../components/Spinner';
@@ -28,8 +29,10 @@ import { FRAME_TARGET_RESOLUTION } from '../../components/vision_camera/tasks/ty
 
 type Phase = 'live' | 'scanning' | 'revealing' | 'result';
 
-const REVEAL_STAGGER_MS = 70;
-const REVEAL_TAIL_MS = 500;
+// Must match `STAGGER_MS` in LiveTextOverlay; the tail timer relies on it
+// to schedule the transition into the "result" phase.
+const REVEAL_STAGGER_MS = 80;
+const REVEAL_TAIL_MS = 650;
 
 export default function LiveTextScreen() {
   const insets = useSafeAreaInsets();
@@ -43,7 +46,12 @@ export default function LiveTextScreen() {
   );
   const [phase, setPhase] = useState<Phase>('live');
   const [detections, setDetections] = useState<OCRDetection[]>([]);
+  // imageSize holds the engine's portrait-space dims (sensor H × sensor W).
+  // The overlay rotates bboxes + dims into the display orientation.
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
+  const [frameOrientation, setFrameOrientation] = useState<
+    'up' | 'down' | 'left' | 'right'
+  >('left');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
   const [error, setError] = useState<string | null>(null);
 
@@ -70,10 +78,16 @@ export default function LiveTextScreen() {
   }, []);
 
   const handleOcrResult = useCallback(
-    (p: { results: OCRDetection[]; frameW: number; frameH: number }) => {
+    (p: {
+      results: OCRDetection[];
+      frameW: number;
+      frameH: number;
+      orientation: 'up' | 'down' | 'left' | 'right';
+    }) => {
       lastResultsRef.current = p.results;
       setDetections(p.results);
       setImageSize({ width: p.frameW, height: p.frameH });
+      setFrameOrientation(p.orientation);
       ocrDoneRef.current = true;
       tryAdvanceToReveal();
     },
@@ -135,12 +149,14 @@ export default function LiveTextScreen() {
           const isFrontCamera = cameraPositionSync.getDirty() === 'front';
           const result = ocrRof(frame, isFrontCamera);
           if (result) {
-            // Sensor frames are landscape-native, so width/height are
-            // swapped relative to portrait screen orientation.
+            // The OCR engine always returns bboxes in portrait-screen space
+            // (sensor H × sensor W). The overlay rotates them into the
+            // current display orientation using `orientation`.
             scheduleOnRN(handleOcrResult, {
               results: result,
               frameW: frame.height,
               frameH: frame.width,
+              orientation: frame.orientation,
             });
           }
         } catch (e) {
@@ -210,6 +226,19 @@ export default function LiveTextScreen() {
         }}
       />
 
+      {/* Cinematic vignette: top + bottom gradients darken the edges and
+        give the shutter button a legible backdrop. */}
+      <LinearGradient
+        colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0)']}
+        style={styles.vignetteTop}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.6)']}
+        style={styles.vignetteBottom}
+        pointerEvents="none"
+      />
+
       <View
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -225,6 +254,7 @@ export default function LiveTextScreen() {
         <LiveTextOverlay
           detections={detections}
           imageSize={imageSize}
+          orientation={frameOrientation}
           canvasSize={canvasSize}
           revealActive={phase === 'revealing'}
         />
@@ -298,5 +328,21 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 5,
+  },
+  vignetteTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    zIndex: 1,
+  },
+  vignetteBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 220,
+    zIndex: 1,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,10 +11,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const ACCENT = '#FFD60A';
 const SWEEP_MS = 1400;
-const GLOW_HEIGHT = 90;
-const LINE_HEIGHT = 3;
+const GLOW_HEIGHT = 110;
+const LINE_HEIGHT = 2;
 
 type Props = {
   /** Canvas height in px — the sweep travels from 0 to this value. */
@@ -24,7 +23,7 @@ type Props = {
 };
 
 /**
- * Sweeps a glowing line top-to-bottom once, then pulses at the bottom.
+ * Sweeps a soft aurora band top-to-bottom once, then pulses at the bottom.
  * Render this only while the scan is in progress; unmount it afterwards.
  * @param root0 - Component props.
  * @param root0.height - Canvas height the sweep travels across.
@@ -69,12 +68,29 @@ export default function ScanLine({ height, onSweepDone }: Props) {
       pointerEvents="none"
     >
       <LinearGradient
-        colors={['rgba(255,214,10,0)', 'rgba(255,214,10,0.28)']}
+        colors={[
+          'rgba(125, 211, 252, 0)',
+          'rgba(125, 211, 252, 0.25)',
+          'rgba(167, 139, 250, 0.55)',
+        ]}
         style={styles.glowTop}
       />
-      <View style={styles.line} />
       <LinearGradient
-        colors={['rgba(255,214,10,0.28)', 'rgba(255,214,10,0)']}
+        colors={[
+          'rgba(167, 139, 250, 0.9)',
+          '#F0F9FF',
+          'rgba(125, 211, 252, 0.9)',
+        ]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={styles.line}
+      />
+      <LinearGradient
+        colors={[
+          'rgba(167, 139, 250, 0.55)',
+          'rgba(125, 211, 252, 0.25)',
+          'rgba(125, 211, 252, 0)',
+        ]}
         style={styles.glowBottom}
       />
     </Animated.View>
@@ -95,7 +111,6 @@ const styles = StyleSheet.create({
   },
   line: {
     height: LINE_HEIGHT,
-    backgroundColor: ACCENT,
   },
   glowBottom: {
     height: GLOW_HEIGHT,

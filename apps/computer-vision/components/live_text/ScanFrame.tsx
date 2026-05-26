@@ -8,11 +8,11 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 
-const ACCENT = '#FFD60A';
-const CORNER = 34;
-const THICKNESS = 4;
-const RADIUS = 10;
-const INSET = 24;
+const ACCENT = '#7DD3FC';
+const CORNER = 32;
+const THICKNESS = 2;
+const RADIUS = 14;
+const INSET = 32;
 
 type CornerKey = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
@@ -48,11 +48,11 @@ const cornerStyles: Record<CornerKey, object> = {
 };
 
 export default function ScanFrame() {
-  const pulse = useSharedValue(0.45);
+  const pulse = useSharedValue(0.35);
 
   useEffect(() => {
     pulse.value = withRepeat(
-      withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
+      withTiming(0.85, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );

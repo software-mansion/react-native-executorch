@@ -1,90 +1,45 @@
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import ColorPalette from '../colors';
 import ExecutorchLogo from '../assets/icons/executorch.svg';
+
+const ROUTES: { label: string; path: string }[] = [
+  { label: 'Vision Camera', path: 'vision_camera/' },
+  { label: 'Classification', path: 'classification/' },
+  { label: 'Semantic Segmentation', path: 'semantic_segmentation/' },
+  { label: 'Object Detection', path: 'object_detection/' },
+  { label: 'Instance Segmentation', path: 'instance_segmentation/' },
+  { label: 'Pose Estimation', path: 'pose_estimation/' },
+  { label: 'Segment Anything', path: 'segment_anything/' },
+  { label: 'OCR', path: 'ocr/' },
+  { label: 'OCR Vertical', path: 'ocr_vertical/' },
+  { label: 'Live Text', path: 'live_text/' },
+  { label: 'Style Transfer', path: 'style_transfer/' },
+  { label: 'Image Generation', path: 'text_to_image/' },
+];
 
 export default function Home() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
       <ExecutorchLogo width={64} height={64} />
       <Text style={styles.headerText}>Select a demo model</Text>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('vision_camera/')}
-        >
-          <Text style={styles.buttonText}>Vision Camera</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('classification/')}
-        >
-          <Text style={styles.buttonText}>Classification</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('semantic_segmentation/')}
-        >
-          <Text style={styles.buttonText}>Semantic Segmentation</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('object_detection/')}
-        >
-          <Text style={styles.buttonText}>Object Detection</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('instance_segmentation/')}
-        >
-          <Text style={styles.buttonText}>Instance Segmentation</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('pose_estimation/')}
-        >
-          <Text style={styles.buttonText}>Pose Estimation</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('segment_anything/')}
-        >
-          <Text style={styles.buttonText}>Segment Anything</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('ocr/')}
-        >
-          <Text style={styles.buttonText}>OCR</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('ocr_vertical/')}
-        >
-          <Text style={styles.buttonText}>OCR Vertical</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('live_text/')}
-        >
-          <Text style={styles.buttonText}>Live Text</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('style_transfer/')}
-        >
-          <Text style={styles.buttonText}>Style Transfer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('text_to_image/')}
-        >
-          <Text style={styles.buttonText}>Image Generation</Text>
-        </TouchableOpacity>
+        {ROUTES.map(({ label, path }) => (
+          <Pressable
+            key={path}
+            onPress={() => router.navigate(path)}
+            style={({ pressed }) => [
+              styles.button,
+              pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 },
+            ]}
+          >
+            <Text style={styles.buttonText}>{label}</Text>
+          </Pressable>
+        ))}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -99,16 +54,24 @@ export const fontSizes = {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
+    backgroundColor: ColorPalette.bg,
+  },
+  container: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingVertical: 32,
   },
   headerText: {
-    fontSize: fontSizes.lg,
-    color: ColorPalette.strongPrimary,
-    margin: 20,
+    fontSize: fontSizes.xxl,
+    color: ColorPalette.text,
+    marginTop: 24,
+    marginBottom: 28,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textAlign: 'center',
   },
   buttonContainer: {
     width: '80%',
@@ -116,14 +79,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: ColorPalette.strongPrimary,
-    borderRadius: 8,
-    padding: 10,
+    width: '100%',
+    height: 52,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: ColorPalette.buttonBg,
+    borderRadius: 12,
     marginBottom: 10,
+    shadowColor: ColorPalette.buttonBg,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 10,
+    shadowOpacity: 0.35,
   },
   buttonText: {
-    color: 'white',
-    fontSize: fontSizes.md,
+    color: ColorPalette.text,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });
