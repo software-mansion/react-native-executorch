@@ -1,8 +1,10 @@
 #include "BaseModelTests.h"
 #include <gtest/gtest.h>
+#include <opencv2/opencv.hpp>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <string>
+#include <string_view>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::text_to_image;
@@ -111,7 +113,7 @@ TEST(TextToImageGenerateTests, ZeroStepsThrows) {
                RnExecutorchError);
 }
 
-TEST(TextToImageGenerateTests, GenerateReturnsNonNull) {
+TEST(TextToImageGenerateTests, GenerateReturnsFileUri) {
   // TODO: Investigate source of the issue
   GTEST_SKIP() << "Skipping TextToImage generation test in emulator "
                   "environment due to UNet forward call throwing error no. 1";
@@ -120,22 +122,8 @@ TEST(TextToImageGenerateTests, GenerateReturnsNonNull) {
                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                     createMockCallInvoker());
   auto result = model.generate("a cat", 128, 1, 42, nullptr);
-  EXPECT_NE(result, nullptr);
-}
-
-TEST(TextToImageGenerateTests, GenerateReturnsCorrectSize) {
-  // TODO: Investigate source of the issue
-  GTEST_SKIP() << "Skipping TextToImage generation test in emulator "
-                  "environment due to UNet forward call throwing error no. 1";
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
-  int32_t imageSize = 128;
-  auto result = model.generate("a cat", imageSize, 1, 42, nullptr);
-  ASSERT_NE(result, nullptr);
-  size_t expectedSize = imageSize * imageSize * 4;
-  EXPECT_EQ(result->size(), expectedSize);
+  EXPECT_FALSE(result.empty());
+  EXPECT_TRUE(result.starts_with("file://"));
 }
 
 TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
@@ -146,15 +134,20 @@ TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
                     kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                     createMockCallInvoker());
-  auto result1 = model.generate("a cat", 128, 1, 42, nullptr);
-  auto result2 = model.generate("a cat", 128, 1, 42, nullptr);
-  ASSERT_NE(result1, nullptr);
-  ASSERT_NE(result2, nullptr);
-  ASSERT_EQ(result1->size(), result2->size());
+  auto path1 = model.generate("a cat", 128, 1, 42, nullptr);
+  auto path2 = model.generate("a cat", 128, 1, 42, nullptr);
+  ASSERT_FALSE(path1.empty());
+  ASSERT_FALSE(path2.empty());
 
-  auto data1 = static_cast<uint8_t *>(result1->data());
-  auto data2 = static_cast<uint8_t *>(result2->data());
-  for (size_t i = 0; i < result1->size(); i++) {
-    EXPECT_EQ(data1[i], data2[i]) << "at index: " << i;
-  }
+  const std::string kScheme = "file://";
+  auto stripScheme = [&kScheme](const std::string &uri) {
+    return uri.starts_with(kScheme) ? uri.substr(kScheme.size()) : uri;
+  };
+  cv::Mat img1 = cv::imread(stripScheme(path1), cv::IMREAD_UNCHANGED);
+  cv::Mat img2 = cv::imread(stripScheme(path2), cv::IMREAD_UNCHANGED);
+  ASSERT_FALSE(img1.empty());
+  ASSERT_FALSE(img2.empty());
+  ASSERT_EQ(img1.size(), img2.size());
+  ASSERT_EQ(img1.type(), img2.type());
+  EXPECT_EQ(cv::countNonZero(img1 != img2), 0);
 }

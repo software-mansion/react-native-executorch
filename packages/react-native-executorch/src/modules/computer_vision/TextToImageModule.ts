@@ -3,7 +3,6 @@ import { ResourceSource } from '../../types/common';
 import { TextToImageModelName } from '../../types/tti';
 import { BaseModule } from '../BaseModule';
 
-import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
@@ -147,12 +146,13 @@ export class TextToImageModule extends BaseModule {
 
   /**
    * Runs the model to generate an image described by `input`, and conditioned by `seed`, performing `numSteps` inference steps.
-   * The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returned as a base64-encoded string.
+   * The resulting image, with dimensions `imageSize`×`imageSize` pixels, is saved as a PNG on the device and returned as a `file://` URI.
+   * If generation is interrupted before completion, an empty string is returned.
    * @param input - The text prompt to generate the image from.
    * @param imageSize - The desired width and height of the output image in pixels.
    * @param numSteps - The number of inference steps to perform.
    * @param seed - An optional seed for random number generation to ensure reproducibility.
-   * @returns A Base64-encoded string representing the generated PNG image.
+   * @returns A `file://` URI pointing to the generated PNG, or an empty string if generation was interrupted.
    */
   async forward(
     input: string,
@@ -160,27 +160,13 @@ export class TextToImageModule extends BaseModule {
     numSteps: number = 5,
     seed?: number
   ): Promise<string> {
-    const output = await this.nativeModule.generate(
+    return await this.nativeModule.generate(
       input,
       imageSize,
       numSteps,
       seed ? seed : -1,
       this.inferenceCallback
     );
-    const outputArray = new Uint8Array(output);
-    if (!outputArray.length) {
-      return '';
-    }
-    const png = new PNG({ width: imageSize, height: imageSize });
-    png.data = outputArray as unknown as Buffer;
-    const pngBuffer = PNG.sync.write(png, { colorType: 6 });
-    const pngArray = new Uint8Array(pngBuffer as unknown as ArrayBufferLike);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < pngArray.length; i += chunkSize) {
-      binary += String.fromCharCode(...pngArray.subarray(i, i + chunkSize));
-    }
-    return btoa(binary);
   }
 
   /**

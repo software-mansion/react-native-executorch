@@ -143,7 +143,7 @@ export default function TextToImageScreen() {
             <Image
               style={styles.image}
               resizeMode="contain"
-              source={{ uri: `data:image/png;base64,${image}` }}
+              source={{ uri: image }}
             />
           ) : (
             <View style={styles.infoContainer}>

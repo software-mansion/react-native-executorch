@@ -220,6 +220,19 @@ Running the app with the library:
   </TabItem>
 </Tabs>
 
+## Building from source
+
+To build the library from source instead, clone the repository and initialize submodules:
+
+```bash
+git clone -b release/0.9 https://github.com/software-mansion/react-native-executorch.git
+cd react-native-executorch
+
+git submodule update --init --recursive packages/react-native-executorch/third-party/common
+
+yarn
+```
+
 ## Supporting new models in React Native ExecuTorch
 
 Adding new functionality to the library follows a consistent three-step integration pipeline:
