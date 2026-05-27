@@ -1,7 +1,7 @@
-import { URL_PREFIX, VERSION_TAG } from '../versions';
+import { URL_PREFIX, PREVIOUS_VERSION_TAG } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
-const KOKORO_MODEL_ROOT = `${URL_PREFIX}-kokoro/${VERSION_TAG}/xnnpack`;
+const KOKORO_MODEL_ROOT = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/xnnpack`;
 const KOKORO_STANDARD_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/standard`;
 const KOKORO_POLISH_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/polish`;
 const KOKORO_GERMAN_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/german`;
