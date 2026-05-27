@@ -1,4 +1,5 @@
 import { ResourceSource } from './common';
+import { VADConfig } from './vad';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
@@ -7,11 +8,8 @@ import { RnExecutorchError } from '../errors/errorUtils';
  */
 export type SpeechToTextModelName =
   | 'whisper-tiny-en'
-  | 'whisper-tiny-en-quantized'
   | 'whisper-base-en'
-  | 'whisper-base-en-quantized'
   | 'whisper-small-en'
-  | 'whisper-small-en-quantized'
   | 'whisper-tiny'
   | 'whisper-base'
   | 'whisper-small';
@@ -25,6 +23,10 @@ export interface SpeechToTextProps {
    * Configuration object containing model sources.
    */
   model: SpeechToTextModelConfig; // | ...
+  /**
+   * An optional VAD model to be utilized to enhance speech-to-text streaming capabilities.
+   */
+  vad?: VADConfig;
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
    */
@@ -94,7 +96,7 @@ export interface SpeechToTextType {
    * @returns Asynchronous generator that returns `committed` and `nonCommitted` transcription.
    * Both `committed` and `nonCommitted` are of type `TranscriptionResult`
    */
-  stream(options?: DecodingOptions | undefined): AsyncGenerator<
+  stream(options?: StreamingOptions | undefined): AsyncGenerator<
     {
       committed: TranscriptionResult;
       nonCommitted: TranscriptionResult;
@@ -206,6 +208,21 @@ export type SpeechToTextLanguage =
 export interface DecodingOptions {
   language?: SpeechToTextLanguage;
   verbose?: boolean;
+}
+
+/**
+ * Configuration options for the speech-to-text streaming process.
+ * @category Types
+ * @property {number} [timeout] - Specifies (in milliseconds) how much does streamer wait between model inferences.
+ * @property {boolean} [useVAD] - When set to true, utilizes the inner VAD submodule (if initialized) and
+ *                                transcription process runs only when speech is being detected.
+ * @property {number} [vadDetectionMargin] - Specifies (in milliseconds) how far the last detected speech segment can be to still be considered
+ *                                           as ongoing speech. Works only with useVAD set to true.
+ */
+export interface StreamingOptions extends DecodingOptions {
+  timeout?: number;
+  useVAD?: boolean;
+  vadDetectionMargin?: number;
 }
 
 /**

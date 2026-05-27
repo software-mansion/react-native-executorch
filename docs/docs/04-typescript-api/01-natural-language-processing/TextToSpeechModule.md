@@ -13,14 +13,9 @@ TypeScript API implementation of the [useTextToSpeech](../../03-hooks/01-natural
 ## High Level Overview
 
 ```typescript
-import {
-  TextToSpeechModule,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-} from 'react-native-executorch';
-
+import { models, TextToSpeechModule } from 'react-native-executorch';
 const model = await TextToSpeechModule.fromModelName(
-  { model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART },
+  models.text_to_speech.kokoro.en_us.heart(),
   (progress) => console.log(progress)
 );
 
@@ -35,9 +30,10 @@ All methods of `TextToSpeechModule` are explained in details here: [`TextToSpeec
 
 Use the static [`fromModelName`](../../06-api-reference/classes/TextToSpeechModule.md#frommodelname) factory method with the following parameters:
 
-- [`config`](../../06-api-reference/interfaces/TextToSpeechConfig.md) - Object containing:
-  - [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration (e.g. `KOKORO_MEDIUM`).
-  - [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration (e.g. `KOKORO_VOICE_AF_HEART`).
+- [`config`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md) - Object containing:
+  - [`model`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#model) - Model configuration.
+  - [`voiceSource`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#voicesource) - Voice resource source.
+  - [`phonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#phonemizerconfig) - Phonemizer configuration.
 
 - [`onDownloadProgress`](../../06-api-reference/classes/TextToSpeechModule.md#frommodelname) - Optional callback to track download progress (value between 0 and 1).
 
@@ -47,22 +43,20 @@ For more information on resource sources, see [loading models](../../01-fundamen
 
 ## Running the model
 
-The module provides two ways to generate speech using either raw text or pre-generated phonemes:
+The module provides a way to generate speech using either raw text or pre-generated phonemes.
 
-### Using Text
+### Methods
 
-1.  [**`forward(text, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
-2.  [**`stream({ speed, stopAutomatically, onNext, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert) and allows stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
+1.  [**`forward(text, speed, phonemize)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+    - `phonemize` defaults to `true`. When set to `false`, the input is expected to be a string of IPA phonemes.
+2.  [**`stream({ speed, phonemize, stopAutomatically, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert) and allows stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
 
 ### Using Phonemes
 
-If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step:
-
-1.  [**`forwardFromPhonemes(phonemes, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forwardfromphonemes): Generates the complete audio waveform from a phoneme string.
-2.  [**`streamFromPhonemes({ phonemes, speed, onNext, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#streamfromphonemes): Streams audio chunks generated from a phoneme string.
+If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step by setting `phonemize: false` in the `forward` or `stream` methods.
 
 :::note
-Since `forward` and `forwardFromPhonemes` process the entire input at once, they might take a significant amount of time to produce audio for long inputs.
+Since `forward` processes the entire input at once, it might take a significant amount of time to produce audio for long inputs.
 :::
 
 ## Example
@@ -70,17 +64,12 @@ Since `forward` and `forwardFromPhonemes` process the entire input at once, they
 ### Speech Synthesis
 
 ```typescript
-import {
-  TextToSpeechModule,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-} from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = await TextToSpeechModule.fromModelName({
-  model: KOKORO_MEDIUM,
-  voice: KOKORO_VOICE_AF_HEART,
-});
+const tts = await TextToSpeechModule.fromModelName(
+  models.text_to_speech.kokoro.en_us.heart()
+);
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
@@ -102,17 +91,12 @@ try {
 ### Streaming Synthesis
 
 ```typescript
-import {
-  TextToSpeechModule,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-} from 'react-native-executorch';
+import { models, TextToSpeechModule } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = await TextToSpeechModule.fromModelName({
-  model: KOKORO_MEDIUM,
-  voice: KOKORO_VOICE_AF_HEART,
-});
+const tts = await TextToSpeechModule.fromModelName(
+  models.text_to_speech.kokoro.en_us.heart()
+);
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
@@ -139,28 +123,22 @@ try {
 
 ### Synthesis from Phonemes
 
-If you already have a phoneme string (e.g., from an external library), you can use `forwardFromPhonemes` or `streamFromPhonemes` to synthesize audio directly, skipping the internal phonemizer stage.
+If you already have a phoneme string (e.g., from an external library), you can use `forward` or `stream` with the `phonemize: false` flag to synthesize audio directly, skipping the internal phonemizer stage.
 
 ```typescript
-import {
-  TextToSpeechModule,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-} from 'react-native-executorch';
-
-const tts = await TextToSpeechModule.fromModelName({
-  model: KOKORO_MEDIUM,
-  voice: KOKORO_VOICE_AF_HEART,
-});
+import { models, TextToSpeechModule } from 'react-native-executorch';
+const tts = await TextToSpeechModule.fromModelName(
+  models.text_to_speech.kokoro.en_us.heart()
+);
 
 // Example phonemes for "ExecuTorch"
-const waveform = await tts.forwardFromPhonemes('həlˈO wˈɜɹld!', 1.0);
+const waveform = await tts.forward('həlˈO wˈɜɹld!', 1.0, false);
 
 // Or stream from phonemes
-for await (const chunk of tts.streamFromPhonemes({
-  phonemes:
-    'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
+for await (const chunk of tts.stream({
+  text: 'ɐ mˈæn hˌu dˈʌzᵊnt tɹˈʌst hɪmsˈɛlf, kæn nˈɛvəɹ ɹˈiᵊli tɹˈʌst ˈɛniwˌʌn ˈɛls.',
   speed: 1.0,
+  phonemize: false,
 })) {
   // ... process chunk ...
 }

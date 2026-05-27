@@ -3,16 +3,9 @@ import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import {
+  models,
   useInstanceSegmentation,
-  YOLO26N_SEG,
-  YOLO26S_SEG,
-  YOLO26M_SEG,
-  YOLO26L_SEG,
-  YOLO26X_SEG,
-  RF_DETR_NANO_SEG,
   InstanceSegmentationModelSources,
-  FASTSAM_S,
-  FASTSAM_X,
 } from 'react-native-executorch';
 import {
   View,
@@ -29,21 +22,25 @@ import ImageWithMasks, {
   DisplayInstance,
 } from '../../components/ImageWithMasks';
 import { StatsBar } from '../../components/StatsBar';
+const instanceSegmentation = models.instance_segmentation;
 
 const MODELS: ModelOption<InstanceSegmentationModelSources>[] = [
-  { label: 'Yolo26N', value: YOLO26N_SEG },
-  { label: 'Yolo26S', value: YOLO26S_SEG },
-  { label: 'Yolo26M', value: YOLO26M_SEG },
-  { label: 'Yolo26L', value: YOLO26L_SEG },
-  { label: 'Yolo26X', value: YOLO26X_SEG },
-  { label: 'RF-DeTR Nano', value: RF_DETR_NANO_SEG },
-  { label: 'FastSAM-S', value: FASTSAM_S },
-  { label: 'FastSAM-X', value: FASTSAM_X },
+  { label: 'Yolo26N', value: instanceSegmentation.yolo26n() },
+  { label: 'Yolo26S', value: instanceSegmentation.yolo26s() },
+  { label: 'Yolo26M', value: instanceSegmentation.yolo26m() },
+  { label: 'Yolo26L', value: instanceSegmentation.yolo26l() },
+  { label: 'Yolo26X', value: instanceSegmentation.yolo26x() },
+  {
+    label: 'RF-DeTR Nano',
+    value: instanceSegmentation.rf_detr_nano(),
+  },
+  { label: 'FastSAM-S', value: instanceSegmentation.fastsam_s() },
+  { label: 'FastSAM-X', value: instanceSegmentation.fastsam_x() },
 ];
 
 export default function InstanceSegmentationScreen() {
   const [selectedModel, setSelectedModel] =
-    useState<InstanceSegmentationModelSources>(YOLO26N_SEG);
+    useState<InstanceSegmentationModelSources>(instanceSegmentation.yolo26n());
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const { setGlobalGenerating } = useContext(GeneratingContext);

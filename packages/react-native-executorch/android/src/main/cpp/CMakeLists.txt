@@ -157,11 +157,15 @@ if(RNE_ENABLE_OPENCV)
 endif()
 
 # ------- Phonemizer (optional) -------
+# Built from in-tree source (third-party/common/phonemis submodule) when enabled.
 
 if(RNE_ENABLE_PHONEMIZER)
-  set(PHONEMIZER_LINK_LIBS
-    "${LIBS_DIR}/phonemis/${ANDROID_ABI}/libphonemis.a"
-  )
+  set(PHONEMIS_DIR "${COMMON_THIRD_PARTY_DIR}/phonemis")
+  add_subdirectory(${PHONEMIS_DIR} ${CMAKE_BINARY_DIR}/phonemis)
+
+  target_compile_definitions(phonemis PRIVATE ET_ON)
+  target_include_directories(phonemis PRIVATE "${INCLUDE_DIR}")
+  target_include_directories(react-native-executorch PUBLIC "${PHONEMIS_DIR}/src")
 endif()
 
 # --------------
@@ -173,10 +177,13 @@ target_link_libraries(
   ${LINK_LIBRARIES}
   ${RN_VERSION_LINK_LIBRARIES}
   ${OPENCV_LINK_LIBS}
-  ${PHONEMIZER_LINK_LIBS}
   executorch
   z
 )
+
+if(RNE_ENABLE_PHONEMIZER)
+  target_link_libraries(react-native-executorch phonemis)
+endif()
 
 # Linking against backend SOs (when enabled) makes Gradle bundle them into the
 # APK and instructs the dynamic linker to load them whenever

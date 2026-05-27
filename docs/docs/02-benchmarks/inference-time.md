@@ -243,8 +243,8 @@ Nano Seg uses a fixed resolution of 312×312.
 | YOLO26L_SEG (XNNPACK)      |           680           |        608         |      582      |
 | YOLO26X_SEG (XNNPACK)      |          1410           |        1338        |     1191      |
 | RF_DETR_NANO_SEG (XNNPACK) |           549           |        330         |      428      |
-| FASTSAM_S (XNNPACK)        |            -            |         30         |      286      |
-| FASTSAM_X (XNNPACK)        |            -            |        2520        |     1993      |
+| FASTSAM_S (XNNPACK)        |           184           |         30         |      286      |
+| FASTSAM_X (XNNPACK)        |          1886           |        2520        |     1993      |
 | FASTSAM_S (Core ML)        |            -            |         51         |       -       |
 | FASTSAM_X (Core ML)        |            -            |         72         |       -       |
 

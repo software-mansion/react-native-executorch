@@ -24,9 +24,23 @@
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch {
+
+inline jsi::Value makeRnExecutorchErrorValue(jsi::Runtime &runtime,
+                                             int32_t code,
+                                             const std::string &message) {
+  auto errorObj =
+      runtime.global()
+          .getPropertyAsFunction(runtime, "Error")
+          .callAsConstructor(runtime,
+                             jsi::String::createFromUtf8(runtime, message))
+          .asObject(runtime);
+  errorObj.setProperty(runtime, "code", code);
+  return jsi::Value(std::move(errorObj));
+}
 
 template <typename Model> class ModelHostObject : public JsiHostObject {
 public:
@@ -75,6 +89,21 @@ public:
                                        promiseHostFunction<&Model::transcribe>,
                                        "transcribe"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::stream>,
+                                       "stream"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
+          "streamInsert"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::voice_activity_detection::
+                                          VoiceActivityDetection>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
@@ -202,15 +231,6 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
           "streamInsert"));
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateFromPhonemes>,
-                              "generateFromPhonemes"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::streamFromPhonemes>,
-                              "streamFromPhonemes"));
     }
 
     if constexpr (meta::HasGenerateFromString<Model>) {
@@ -261,11 +281,8 @@ public:
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
-      jsi::Object errorData(runtime);
-      errorData.setProperty(runtime, "code", e.getNumericCode());
-      errorData.setProperty(runtime, "message",
-                            jsi::String::createFromUtf8(runtime, e.what()));
-      throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
+      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
+                                      runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -331,11 +348,8 @@ public:
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
-      jsi::Object errorData(runtime);
-      errorData.setProperty(runtime, "code", e.getNumericCode());
-      errorData.setProperty(runtime, "message",
-                            jsi::String::createFromUtf8(runtime, e.what()));
-      throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
+      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
+                                      runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -368,60 +382,55 @@ public:
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            threads::GlobalThreadPool::detach([model = this->model,
-                                               callInvoker = this->callInvoker,
-                                               promise,
-                                               argsConverted =
-                                                   std::move(argsConverted)]() {
-              try {
-                if constexpr (std::is_void_v<decltype(std::apply(
-                                  std::bind_front(FnPtr, model),
-                                  argsConverted))>) {
-                  // For void functions, just call the function and resolve
-                  // with undefined
-                  std::apply(std::bind_front(FnPtr, model),
-                             std::move(argsConverted));
-                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
-                    promise->resolve(jsi::Value::undefined());
-                  });
-                } else {
-                  // For non-void functions, capture the result and convert
-                  // it
-                  auto result = std::apply(std::bind_front(FnPtr, model),
-                                           std::move(argsConverted));
-                  // The result is copied. It should either be quickly
-                  // copiable, or passed with a shared_ptr.
-                  callInvoker->invokeAsync(
-                      [promise, result](jsi::Runtime &runtime) {
-                        promise->resolve(jsi_conversion::getJsiValue(
-                            std::move(result), runtime));
-                      });
-                }
-              } catch (const RnExecutorchError &e) {
-                auto code = e.getNumericCode();
-                auto msg = std::string(e.what());
-                callInvoker->invokeAsync([code, msg,
-                                          promise](jsi::Runtime &runtime) {
-                  jsi::Object errorData(runtime);
-                  errorData.setProperty(runtime, "code", code);
-                  errorData.setProperty(
-                      runtime, "message",
-                      jsi::String::createFromUtf8(runtime, msg));
-                  promise->reject(jsi::Value(runtime, std::move(errorData)));
+            threads::GlobalThreadPool::detach(
+                [model = this->model, callInvoker = this->callInvoker, promise,
+                 argsConverted = std::move(argsConverted)]() {
+                  try {
+                    if constexpr (std::is_void_v<decltype(std::apply(
+                                      std::bind_front(FnPtr, model),
+                                      argsConverted))>) {
+                      // For void functions, just call the function and resolve
+                      // with undefined
+                      std::apply(std::bind_front(FnPtr, model),
+                                 std::move(argsConverted));
+                      callInvoker->invokeAsync(
+                          [promise](jsi::Runtime &runtime) {
+                            promise->resolve(jsi::Value::undefined());
+                          });
+                    } else {
+                      // For non-void functions, capture the result and convert
+                      // it
+                      auto result = std::apply(std::bind_front(FnPtr, model),
+                                               std::move(argsConverted));
+                      // The result is copied. It should either be quickly
+                      // copiable, or passed with a shared_ptr.
+                      callInvoker->invokeAsync(
+                          [promise, result](jsi::Runtime &runtime) {
+                            promise->resolve(jsi_conversion::getJsiValue(
+                                std::move(result), runtime));
+                          });
+                    }
+                  } catch (const RnExecutorchError &e) {
+                    auto code = e.getNumericCode();
+                    auto msg = std::string(e.what());
+                    callInvoker->invokeAsync(
+                        [code, msg, promise](jsi::Runtime &runtime) {
+                          promise->reject(
+                              makeRnExecutorchErrorValue(runtime, code, msg));
+                        });
+                    return;
+                  } catch (const std::exception &e) {
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(std::string(e.what()));
+                    });
+                    return;
+                  } catch (...) {
+                    callInvoker->invokeAsync([promise]() {
+                      promise->reject(std::string("Unknown error"));
+                    });
+                    return;
+                  }
                 });
-                return;
-              } catch (const std::exception &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(std::string(e.what()));
-                });
-                return;
-              } catch (...) {
-                callInvoker->invokeAsync([promise]() {
-                  promise->reject(std::string("Unknown error"));
-                });
-                return;
-              }
-            });
           } catch (...) {
             promise->reject(std::string(
                 "Couldn't parse JS arguments in a native function"));
@@ -436,11 +445,8 @@ public:
       model->unload();
       thisValue.asObject(runtime).setExternalMemoryPressure(runtime, 0);
     } catch (const RnExecutorchError &e) {
-      jsi::Object errorData(runtime);
-      errorData.setProperty(runtime, "code", e.getNumericCode());
-      errorData.setProperty(runtime, "message",
-                            jsi::String::createFromUtf8(runtime, e.what()));
-      throw jsi::JSError(runtime, jsi::Value(runtime, std::move(errorData)));
+      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
+                                      runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {

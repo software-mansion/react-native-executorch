@@ -20,9 +20,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
-
-const model = useClassification({ model: EFFICIENTNET_V2_S });
+import { models, useClassification } from 'react-native-executorch';
+const model = useClassification({
+  model: models.classification.efficientnet_v2_s(),
+});
 
 const imageUri = 'file::///Users/.../cute_puppy.png';
 
@@ -75,10 +76,11 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 ## Example
 
 ```typescript
-import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
-
+import { models, useClassification } from 'react-native-executorch';
 function App() {
-  const model = useClassification({ model: EFFICIENTNET_V2_S });
+  const model = useClassification({
+    model: models.classification.efficientnet_v2_s(),
+  });
 
   // ...
   const imageUri = 'file:///Users/.../cute_puppy.png';

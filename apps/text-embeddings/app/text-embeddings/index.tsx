@@ -13,35 +13,35 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { ModelPicker } from '../../components/ModelPicker';
 import {
+  models,
   useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MPNET_BASE_V2,
-  MULTI_QA_MINILM_L6_COS_V1,
-  MULTI_QA_MPNET_BASE_DOT_V1,
-  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
-  DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
-  PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
+const textEmbedding = models.text_embedding;
 
 type TextEmbeddingModel = TextEmbeddingsProps['model'];
 
 const MODELS: { label: string; value: TextEmbeddingModel }[] = [
-  { label: 'MiniLM L6', value: ALL_MINILM_L6_V2 },
-  { label: 'MPNet Base', value: ALL_MPNET_BASE_V2 },
-  { label: 'MultiQA MiniLM', value: MULTI_QA_MINILM_L6_COS_V1 },
-  { label: 'MultiQA MPNet', value: MULTI_QA_MPNET_BASE_DOT_V1 },
+  { label: 'MiniLM L6', value: textEmbedding.all_minilm_l6_v2() },
   {
-    label: 'Multilingual DistilUSE (8da4w)',
-    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W,
+    label: 'MPNet Base',
+    value: textEmbedding.all_mpnet_base_v2(),
   },
   {
-    label: 'Multilingual DistilUSE (CoreML)',
-    value: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML,
+    label: 'MultiQA MiniLM',
+    value: textEmbedding.multi_qa_minilm_l6_cos_v1(),
   },
   {
-    label: 'Multilingual Paraphrase (8da4w)',
-    value: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED,
+    label: 'MultiQA MPNet',
+    value: textEmbedding.multi_qa_mpnet_base_dot_v1(),
+  },
+  {
+    label: 'Multilingual DistilUSE',
+    value: textEmbedding.distiluse_base_multilingual_cased_v2(),
+  },
+  {
+    label: 'Multilingual Paraphrase',
+    value: textEmbedding.paraphrase_multilingual_minilm_l12_v2(),
   },
 ];
 import { useIsFocused } from '@react-navigation/native';
@@ -55,8 +55,9 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const [selectedModel, setSelectedModel] =
-    useState<TextEmbeddingModel>(ALL_MINILM_L6_V2);
+  const [selectedModel, setSelectedModel] = useState<TextEmbeddingModel>(
+    textEmbedding.all_minilm_l6_v2()
+  );
   const model = useTextEmbeddings({ model: selectedModel });
   const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +190,7 @@ function TextEmbeddingsScreen() {
             <Text style={styles.sectionTitle}>Try Your Sentence</Text>
             <TextInput
               placeholder="Type your sentence here..."
+              placeholderTextColor="#94A3B8"
               style={styles.input}
               value={inputSentence}
               onChangeText={setInputSentence}

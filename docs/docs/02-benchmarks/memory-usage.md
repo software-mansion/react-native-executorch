@@ -130,7 +130,7 @@ with higher resolutions.
 ## Instance Segmentation
 
 :::note
-Data presented in the following sections is based on inference with forward_640 method.
+Data presented in the following sections is based on inference with 640x640 input.
 :::
 
 | Model / Device             | iPhone 17 Pro [MB] | OnePlus 12 [MB] |
@@ -141,6 +141,10 @@ Data presented in the following sections is based on inference with forward_640 
 | YOLO26L_SEG (XNNPACK)      |        1024        |       680       |
 | YOLO26X_SEG (XNNPACK)      |        1450        |      1410       |
 | RF_DETR_NANO_SEG (XNNPACK) |        603         |       620       |
+| FASTSAM_S (XNNPACK FP32)   |        535         |       567       |
+| FASTSAM_X (XNNPACK FP32)   |        760         |       792       |
+| FASTSAM_S (Core ML FP16)   |        523         |        -        |
+| FASTSAM_X (Core ML FP16)   |        684         |        -        |
 
 ## Text to Image
 

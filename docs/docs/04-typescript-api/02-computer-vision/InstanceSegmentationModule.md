@@ -11,16 +11,13 @@ TypeScript API implementation of the [useInstanceSegmentation](../../03-hooks/02
 ## High Level Overview
 
 ```typescript
-import {
-  InstanceSegmentationModule,
-  YOLO26N_SEG,
-} from 'react-native-executorch';
-
+import { models, InstanceSegmentationModule } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
 // Creating an instance from a built-in model
-const segmentation =
-  await InstanceSegmentationModule.fromModelName(YOLO26N_SEG);
+const segmentation = await InstanceSegmentationModule.fromModelName(
+  models.instance_segmentation.yolo26n()
+);
 
 // Running the model
 const instances = await segmentation.forward(imageUri);
@@ -44,13 +41,10 @@ Use [`fromModelName`](../../06-api-reference/classes/InstanceSegmentationModule.
 - `onDownloadProgress` (optional) - Callback to track download progress, receiving a value between 0 and 1.
 
 ```typescript
-import {
-  InstanceSegmentationModule,
-  YOLO26N_SEG,
-} from 'react-native-executorch';
-
-const segmentation =
-  await InstanceSegmentationModule.fromModelName(YOLO26N_SEG);
+import { models, InstanceSegmentationModule } from 'react-native-executorch';
+const segmentation = await InstanceSegmentationModule.fromModelName(
+  models.instance_segmentation.yolo26n()
+);
 ```
 
 ### From a custom config

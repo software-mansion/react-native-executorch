@@ -3,11 +3,8 @@ import { BottomBar } from '../../components/BottomBar';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
+  models,
   useStyleTransfer,
-  STYLE_TRANSFER_CANDY_QUANTIZED,
-  STYLE_TRANSFER_MOSAIC_QUANTIZED,
-  STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED,
-  STYLE_TRANSFER_UDNIE_QUANTIZED,
   StyleTransferModelName,
   ResourceSource,
 } from 'react-native-executorch';
@@ -18,6 +15,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
+const styleTransfer = models.style_transfer;
 
 type StyleTransferModelSources = {
   modelName: StyleTransferModelName;
@@ -25,16 +23,19 @@ type StyleTransferModelSources = {
 };
 
 const MODELS: ModelOption<StyleTransferModelSources>[] = [
-  { label: 'Candy', value: STYLE_TRANSFER_CANDY_QUANTIZED },
-  { label: 'Mosaic', value: STYLE_TRANSFER_MOSAIC_QUANTIZED },
-  { label: 'Rain Princess', value: STYLE_TRANSFER_RAIN_PRINCESS_QUANTIZED },
-  { label: 'Udnie', value: STYLE_TRANSFER_UDNIE_QUANTIZED },
+  { label: 'Candy', value: styleTransfer.candy() },
+  { label: 'Mosaic', value: styleTransfer.mosaic() },
+  {
+    label: 'Rain Princess',
+    value: styleTransfer.rain_princess(),
+  },
+  { label: 'Udnie', value: styleTransfer.udnie() },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 
 export default function StyleTransferScreen() {
   const [selectedModel, setSelectedModel] = useState<StyleTransferModelSources>(
-    STYLE_TRANSFER_CANDY_QUANTIZED
+    styleTransfer.candy()
   );
 
   const model = useStyleTransfer({ model: selectedModel });

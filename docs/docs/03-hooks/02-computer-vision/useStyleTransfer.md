@@ -16,12 +16,8 @@ It is recommended to use models provided by us which are available at our [Huggi
 ## High Level Overview
 
 ```typescript
-import {
-  useStyleTransfer,
-  STYLE_TRANSFER_CANDY,
-} from 'react-native-executorch';
-
-const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
+import { models, useStyleTransfer } from 'react-native-executorch';
+const model = useStyleTransfer({ model: models.style_transfer.candy() });
 
 const imageUri = 'file:///Users/.../cute_cat.png';
 
@@ -68,13 +64,9 @@ When `outputType` is `'url'`, the generated image is stored in your application'
 ## Example
 
 ```typescript
-import {
-  useStyleTransfer,
-  STYLE_TRANSFER_CANDY,
-} from 'react-native-executorch';
-
+import { models, useStyleTransfer } from 'react-native-executorch';
 function App() {
-  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
+  const model = useStyleTransfer({ model: models.style_transfer.candy() });
 
   // Returns a file URI — easy to pass to <Image source={{ uri }} />
   const runWithUrl = async (imageUri: string) => {

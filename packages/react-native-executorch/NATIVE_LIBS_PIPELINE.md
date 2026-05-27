@@ -42,19 +42,19 @@ Environment overrides: `RNET_SKIP_DOWNLOAD`, `RNET_LIBS_CACHE_DIR`, `RNET_TARGET
 
 The set of artifacts per target is defined in `getArtifacts()`:
 
-| Artifact name                            | Target  | Produced by                              | Contents                                               |
-| ---------------------------------------- | ------- | ---------------------------------------- | ------------------------------------------------------ |
-| `core-android-arm64-v8a`                 | Android | ExecuTorch fork build                    | `libexecutorch.so` (no backends), headers              |
-| `core-android-x86_64`                    | Android | ExecuTorch fork build                    | x86_64 `libexecutorch.so` for the simulator            |
-| `xnnpack-android-*`                      | Android | ExecuTorch fork build                    | `libxnnpack_executorch_backend.so` (separately-loaded) |
-| `vulkan-android-*`                       | Android | ExecuTorch fork build                    | `libvulkan_executorch_backend.so` (separately-loaded)  |
-| `core-ios`                               | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `ExecutorchLib.xcframework`                            |
-| `xnnpack-ios`                            | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `XnnpackBackend.xcframework`                           |
-| `coreml-ios`                             | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `CoreMLBackend.xcframework`                            |
-| `opencv-android-*`                       | Android | OpenCV release process                   | Static OpenCV + KleidiCV HAL                           |
-| `phonemizer-android-*`, `phonemizer-ios` | both    | phonemizer build                         | `libphonemis.a` (iOS: physical + simulator)            |
+| Artifact name            | Target  | Produced by                              | Contents                                               |
+| ------------------------ | ------- | ---------------------------------------- | ------------------------------------------------------ |
+| `core-android-arm64-v8a` | Android | ExecuTorch fork build                    | `libexecutorch.so` (no backends), headers              |
+| `core-android-x86_64`    | Android | ExecuTorch fork build                    | x86_64 `libexecutorch.so` for the simulator            |
+| `xnnpack-android-*`      | Android | ExecuTorch fork build                    | `libxnnpack_executorch_backend.so` (separately-loaded) |
+| `vulkan-android-*`       | Android | ExecuTorch fork build                    | `libvulkan_executorch_backend.so` (separately-loaded)  |
+| `core-ios`               | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `ExecutorchLib.xcframework`                            |
+| `xnnpack-ios`            | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `XnnpackBackend.xcframework`                           |
+| `coreml-ios`             | iOS     | `third-party/ios/ExecutorchLib/build.sh` | `CoreMLBackend.xcframework`                            |
+| `opencv-android-*`       | Android | OpenCV release process                   | Static OpenCV + KleidiCV HAL                           |
 
 (`opencv-ios` is not a tarball — iOS consumes OpenCV through the `opencv-rne` CocoaPod.)
+(`phonemizer` has no tarball — phonemis is a git submodule at `third-party/common/phonemis` and is compiled from source on both Android and iOS when the extra is enabled.)
 
 ## Build-time: Android
 
@@ -70,7 +70,8 @@ The set of artifacts per target is defined in `getArtifacts()`:
 `android/CMakeLists.txt` and `android/src/main/cpp/CMakeLists.txt` respond by:
 
 - Adding `-DRNE_ENABLE_OPENCV` / `-DRNE_ENABLE_PHONEMIZER` compile definitions so C++ code can `#ifdef` around optional dependencies.
-- Conditionally linking `libopencv_*.a`, KleidiCV HAL (arm64 only), and `libphonemis.a`.
+- Conditionally linking `libopencv_*.a` and KleidiCV HAL (arm64 only).
+- When `RNE_ENABLE_PHONEMIZER=ON`, `add_subdirectory()`'ing the `third-party/common/phonemis` git submodule and linking the resulting `phonemis` CMake target into `libreact-native-executorch.so`. When off, the submodule is not entered and no phonemis code is compiled.
 - Always linking against the prebuilt `libexecutorch.so` downloaded into `third-party/android/libs/executorch/<abi>/`.
 - When `RNE_ENABLE_XNNPACK=ON` / `RNE_ENABLE_VULKAN=ON`, importing the matching `libxnnpack_executorch_backend.so` / `libvulkan_executorch_backend.so` and linking `react-native-executorch.so` against it. Linking (rather than dynamic `dlopen`) lets Gradle bundle the `.so` into the APK and triggers the dynamic linker to load it whenever `libreact-native-executorch.so` is loaded — each `.so`'s load-time constructor then registers its backend with the runtime in `libexecutorch.so`.
 
@@ -79,6 +80,7 @@ The set of artifacts per target is defined in `getArtifacts()`:
 `react-native-executorch.podspec` reads the same `rne-build-config.json` and:
 
 - Excludes opencv/phonemizer C++ sources from compilation when those extras are off.
+- Conditionally adds `third-party/common/phonemis/src/**` to `s.source_files` (and excludes `phonemis/main.cpp`) so phonemis compiles into the pod when `enable_phonemizer` is true. The corresponding header path and `-DET_ON=1` flag are also gated.
 - Appends `-DRNE_ENABLE_*` to `OTHER_CPLUSPLUSFLAGS`.
 - Assembles `OTHER_LDFLAGS[sdk=iphoneos*]` and `OTHER_LDFLAGS[sdk=iphonesimulator*]` with `-force_load` entries for each enabled backend xcframework.
 - Declares `ExecutorchLib.xcframework` in `vendored_frameworks` but _not_ the backend xcframeworks — backend xcframeworks only live on the linker command line, never in the CocoaPods vendoring list (see next section for why).
@@ -169,7 +171,9 @@ libthreadpool_{ios,simulator}.a
 
 Keep the existing `libkleidiai_{ios,simulator}.a` — kleidiai is merged into `libexecutorch_llm_*.a` by upstream's framework definitions, but RNE's `ExecutorchLib.xcodeproj` still references the standalone libs explicitly. They're stable and don't need rebuilding.
 
-The non-executorch prebuilts (`libs/cpuinfo/libcpuinfo.a`, `libs/pthreadpool/{physical-arm64-release,simulator-arm64-debug}/libpthreadpool.a`, `libs/phonemis/*/libphonemis.a`) live in their existing directories and are not produced by the executorch fork build — they ship as-is from prior tarballs.
+The non-executorch prebuilts (`libs/cpuinfo/libcpuinfo.a`, `libs/pthreadpool/{physical-arm64-release,simulator-arm64-debug}/libpthreadpool.a`) live in their existing directories and are not produced by the executorch fork build — they ship as-is from prior tarballs.
+
+Phonemis is now built from in-tree source (the `third-party/common/phonemis` git submodule, pinned via `.gitmodules` to <https://github.com/IgorSwat/Phonemis>). Initialize it with `git submodule update --init --recursive` after cloning — the podspec and Android CMake will pick it up automatically when `enable_phonemizer` is true.
 
 **4. Build xcframeworks**
 

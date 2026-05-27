@@ -7,40 +7,41 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_SMALL,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-  KOKORO_VOICE_AF_RIVER,
-  KOKORO_VOICE_AF_SARAH,
-  KOKORO_VOICE_AM_ADAM,
-  KOKORO_VOICE_AM_MICHAEL,
-  KOKORO_VOICE_AM_SANTA,
-  KOKORO_VOICE_BF_EMMA,
-  KOKORO_VOICE_BM_DANIEL,
+  models,
   useTextToSpeech,
-  KokoroConfig,
-  VoiceConfig,
+  TextToSpeechModelConfig,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
-const TTS_MODELS: ModelOption<KokoroConfig>[] = [
-  { label: 'Kokoro Small', value: KOKORO_SMALL },
-  { label: 'Kokoro Medium', value: KOKORO_MEDIUM },
+const tts = models.text_to_speech.kokoro;
+
+const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
+  { label: '🇺🇸 AF Heart', value: tts.en_us.heart() },
+  { label: '🇺🇸 AF River', value: tts.en_us.river() },
+  { label: '🇺🇸 AF Sarah', value: tts.en_us.sarah() },
+  { label: '🇺🇸 AM Adam', value: tts.en_us.adam() },
+  { label: '🇺🇸 AM Michael', value: tts.en_us.michael() },
+  { label: '🇺🇸 AM Santa', value: tts.en_us.santa() },
+  { label: '🇬🇧 BF Emma', value: tts.en_gb.emma() },
+  { label: '🇬🇧 BM Daniel', value: tts.en_gb.daniel() },
+  { label: '🇫🇷 FF Siwis', value: tts.fr.siwis() },
+  { label: '🇪🇸 EF Dora', value: tts.es.dora() },
+  { label: '🇪🇸 EM Alex', value: tts.es.alex() },
+  { label: '🇮🇹 IF Sara', value: tts.it.sara() },
+  { label: '🇮🇹 IM Nicola', value: tts.it.nicola() },
+  { label: '🇵🇹 PF Dora', value: tts.pt.dora() },
+  { label: '🇵🇹 PM Santa', value: tts.pt.santa() },
+  { label: '🇩🇪 DF Anna', value: tts.de.anna() },
+  { label: '🇵🇱 PM Mateusz', value: tts.pl.mateusz() },
+  { label: '🇮🇳 HF Alpha', value: tts.hi.alpha() },
+  { label: '🇮🇳 HM Omega', value: tts.hi.omega() },
+  { label: '🇮🇳 HM Psi', value: tts.hi.psi() },
 ];
 
-const VOICES: ModelOption<VoiceConfig>[] = [
-  { label: 'AF Heart', value: KOKORO_VOICE_AF_HEART },
-  { label: 'AF River', value: KOKORO_VOICE_AF_RIVER },
-  { label: 'AF Sarah', value: KOKORO_VOICE_AF_SARAH },
-  { label: 'AM Adam', value: KOKORO_VOICE_AM_ADAM },
-  { label: 'AM Michael', value: KOKORO_VOICE_AM_MICHAEL },
-  { label: 'AM Santa', value: KOKORO_VOICE_AM_SANTA },
-  { label: 'BF Emma', value: KOKORO_VOICE_BF_EMMA },
-  { label: 'BM Daniel', value: KOKORO_VOICE_BM_DANIEL },
-];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -77,16 +78,10 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedModel, setSelectedModel] =
-    useState<KokoroConfig>(KOKORO_MEDIUM);
-  const [selectedVoice, setSelectedVoice] = useState<VoiceConfig>(
-    KOKORO_VOICE_AF_HEART
-  );
+  const [selectedSpeaker, setSelectedSpeaker] =
+    useState<TextToSpeechModelConfig>(tts.en_us.heart());
 
-  const model = useTextToSpeech({
-    model: selectedModel,
-    voice: selectedVoice,
-  });
+  const model = useTextToSpeech(selectedSpeaker);
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -94,6 +89,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [error, setError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<any>(null);
   const sourceRef = useRef<AudioBufferSourceNode>(null);
 
   useEffect(() => {
@@ -103,12 +99,20 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-    audioContextRef.current.suspend();
+    const context = new AudioContext({ sampleRate: 24000 });
+    audioContextRef.current = context;
+    context.suspend();
+
+    // Increase the audio volume
+    const gainNode = context.createGain();
+    gainNode.gain.value = 2.0; // Increase volume by 2x
+    gainNode.connect(context.destination);
+    gainNodeRef.current = gainNode;
 
     return () => {
       audioContextRef.current?.close();
       audioContextRef.current = null;
+      gainNodeRef.current = null;
     };
   }, []);
 
@@ -121,6 +125,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       return;
     }
 
+    Keyboard.dismiss();
     setIsPlaying(true);
 
     try {
@@ -142,7 +147,12 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           const source = (sourceRef.current =
             audioContext.createBufferSource());
           source.buffer = audioBuffer;
-          source.connect(audioContext.destination);
+
+          if (gainNodeRef.current) {
+            source.connect(gainNodeRef.current);
+          } else {
+            source.connect(audioContext.destination);
+          }
 
           source.onEnded = () => resolve();
 
@@ -157,6 +167,8 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
 
       await model.stream({
         text: inputText,
+        speed: 0.9,
+        phonemize: true,
         onNext,
         onEnd,
       });
@@ -198,24 +210,18 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <ModelPicker
-            label="Model"
-            models={TTS_MODELS}
-            selectedModel={selectedModel}
-            disabled={model.isGenerating}
-            onSelect={(m) => setSelectedModel(m)}
-          />
-          <ModelPicker
             label="Voice"
             models={VOICES}
-            selectedModel={selectedVoice}
+            selectedModel={selectedSpeaker}
             disabled={model.isGenerating}
-            onSelect={(m) => setSelectedVoice(m)}
+            onSelect={(m) => setSelectedSpeaker(m)}
           />
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Enter text to synthesize</Text>
             <TextInput
               placeholder="Type something..."
+              placeholderTextColor="#aaa"
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
@@ -296,6 +302,7 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 120,
     fontSize: 16,
+    color: '#0f186e',
   },
   buttonContainer: {
     marginTop: 24,

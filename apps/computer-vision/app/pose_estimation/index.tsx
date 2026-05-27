@@ -2,11 +2,11 @@ import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
+  models,
   usePoseEstimation,
   PoseDetections,
   RnExecutorchError,
   RnExecutorchErrorCode,
-  YOLO26N_POSE,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
@@ -31,7 +31,7 @@ export default function PoseEstimationScreen() {
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
   const [layout, setLayout] = useState({ width: 0, height: 0 });
 
-  const model = usePoseEstimation({ model: YOLO26N_POSE });
+  const model = usePoseEstimation({ model: models.pose_estimation.yolo26n() });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {

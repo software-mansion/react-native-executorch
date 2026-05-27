@@ -32,7 +32,6 @@ Pod::Spec.new do |s|
 
   pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
   cpuinfo_binaries_path     = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
-  phonemis_binaries_path    = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/phonemis', __dir__)
 
   # --- Core sources (always compiled) ---
   opencv_source_dirs = [
@@ -60,10 +59,12 @@ Pod::Spec.new do |s|
     "common/rnexecutorch/models/text_to_speech/**/*.{cpp,c,h,hpp}",
   ]
 
-  s.source_files = [
+  source_files = [
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
   ]
+  source_files << "third-party/common/phonemis/src/**/*.{cpp,hpp,h}" if enable_phonemizer
+  s.source_files = source_files
 
   # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files.
@@ -78,6 +79,8 @@ Pod::Spec.new do |s|
   ]
   exclude_files += opencv_source_files     unless enable_opencv
   exclude_files += phonemizer_source_files unless enable_phonemizer
+  # phonemis ships a CLI runner that defines its own `main()`; exclude when compiling into the pod.
+  exclude_files << "third-party/common/phonemis/src/phonemis/main.cpp" if enable_phonemizer
   s.exclude_files = exclude_files
 
   # --- Preprocessor flags ---
@@ -86,6 +89,8 @@ Pod::Spec.new do |s|
   extra_compiler_flags << "-DRNE_ENABLE_PHONEMIZER" if enable_phonemizer
   extra_compiler_flags << "-DRNE_ENABLE_XNNPACK"    if enable_xnnpack
   extra_compiler_flags << "-DRNE_ENABLE_COREML"     if enable_coreml
+  # ET_ON tells phonemis to compile the NeuralPhonemizer path against ExecuTorch.
+  extra_compiler_flags << "-DET_ON=1"               if enable_phonemizer
 
   # --- Link flags ---
   physical_ldflags = [
@@ -98,11 +103,6 @@ Pod::Spec.new do |s|
     "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
     "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
   ]
-
-  if enable_phonemizer
-    physical_ldflags  << "\"#{phonemis_binaries_path}/physical-arm64-release/libphonemis.a\""
-    simulator_ldflags << "\"#{phonemis_binaries_path}/simulator-arm64-debug/libphonemis.a\""
-  end
 
   xnnpack_xcframework_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework', __dir__)
   coreml_xcframework_path  = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/CoreMLBackend.xcframework', __dir__)
@@ -127,15 +127,18 @@ Pod::Spec.new do |s|
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
+  pod_header_search_paths =
+    '"$(PODS_TARGET_SRCROOT)/ios" ' +
+    '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" ' +
+    '"$(PODS_TARGET_SRCROOT)/third-party/include" ' +
+    '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" ' +
+    '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" ' +
+    '"$(PODS_TARGET_SRCROOT)/common" '
+  pod_header_search_paths += '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ' if enable_phonemizer
+
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",
-    "HEADER_SEARCH_PATHS" =>
-      '"$(PODS_TARGET_SRCROOT)/ios" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" '+
-      '"$(PODS_TARGET_SRCROOT)/common" ',
+    "HEADER_SEARCH_PATHS" => pod_header_search_paths,
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     "OTHER_CPLUSPLUSFLAGS" => extra_compiler_flags.join(' '),
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
@@ -153,6 +156,7 @@ Pod::Spec.new do |s|
   # preserve __attribute__((constructor)) registrations). Only ExecutorchLib goes
   # in vendored_frameworks to avoid duplicate symbol errors.
   s.ios.vendored_frameworks = ["third-party/ios/ExecutorchLib.xcframework"]
+
 
   s.header_mappings_dir = "common/rnexecutorch"
   s.header_dir = "rnexecutorch"

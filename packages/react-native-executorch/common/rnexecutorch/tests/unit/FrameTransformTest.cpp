@@ -67,8 +67,9 @@ TEST(RotateFrameForModel, Right_CCW) {
   EXPECT_EQ(result.cols, 480);
 }
 
-// "right" → CCW pixel check. 1×2 [R, B] → 2×1 [B; R].
-// CCW takes top-of-right-col to top: (0,1)→(0,0), (0,0)→(1,0).
+// "right" → pixel check. 1×2 [R, B] → 2×1.
+// iOS rotates CCW: (0,1)→(0,0), (0,0)→(1,0), so result is [B; R].
+// Android rotates CW (front-cam upright portrait): result is [R; B].
 TEST(RotateFrameForModel, Right_CCW_Pixels) {
   cv::Mat input(1, 2, CV_8UC3);
   input.at<cv::Vec3b>(0, 0) = {255, 0, 0}; // R left
@@ -76,8 +77,13 @@ TEST(RotateFrameForModel, Right_CCW_Pixels) {
   cv::Mat result = rotateFrameForModel(input, makeOrient("right", false));
   EXPECT_EQ(result.rows, 2);
   EXPECT_EQ(result.cols, 1);
+#if defined(__APPLE__)
   EXPECT_EQ(result.at<cv::Vec3b>(0, 0), (cv::Vec3b{0, 0, 255})); // B
   EXPECT_EQ(result.at<cv::Vec3b>(1, 0), (cv::Vec3b{255, 0, 0})); // R
+#else
+  EXPECT_EQ(result.at<cv::Vec3b>(0, 0), (cv::Vec3b{255, 0, 0})); // R
+  EXPECT_EQ(result.at<cv::Vec3b>(1, 0), (cv::Vec3b{0, 0, 255})); // B
+#endif
 }
 
 // "down" → 180°. 480×640 stays 480×640.
@@ -230,10 +236,10 @@ TEST(InverseRotateMat, DoesNotModifyInput) {
 TEST(InverseRotateBbox, Left_NoOp) {
   BBox bbox{10, 20, 100, 200};
   inverseRotateBbox(bbox, makeOrient("left", false), {640, 480});
-  EXPECT_FLOAT_EQ(bbox.x1, 10);
-  EXPECT_FLOAT_EQ(bbox.y1, 20);
-  EXPECT_FLOAT_EQ(bbox.x2, 100);
-  EXPECT_FLOAT_EQ(bbox.y2, 200);
+  EXPECT_FLOAT_EQ(bbox.p1.x, 10);
+  EXPECT_FLOAT_EQ(bbox.p1.y, 20);
+  EXPECT_FLOAT_EQ(bbox.p2.x, 100);
+  EXPECT_FLOAT_EQ(bbox.p2.y, 200);
 }
 
 // "up" → CW. rW=640, rH=480. Box (10,20)-(100,200):
@@ -241,21 +247,29 @@ TEST(InverseRotateBbox, Left_NoOp) {
 TEST(InverseRotateBbox, Up_CW) {
   BBox bbox{10, 20, 100, 200};
   inverseRotateBbox(bbox, makeOrient("up", false), {640, 480});
-  EXPECT_FLOAT_EQ(bbox.x1, 280);
-  EXPECT_FLOAT_EQ(bbox.y1, 10);
-  EXPECT_FLOAT_EQ(bbox.x2, 460);
-  EXPECT_FLOAT_EQ(bbox.y2, 100);
+  EXPECT_FLOAT_EQ(bbox.p1.x, 280);
+  EXPECT_FLOAT_EQ(bbox.p1.y, 10);
+  EXPECT_FLOAT_EQ(bbox.p2.x, 460);
+  EXPECT_FLOAT_EQ(bbox.p2.y, 100);
 }
 
-// "right" → 180°. rW=480, rH=640. Box (10,20)-(100,200):
-//   nx1=480-100=380, ny1=640-200=440, nx2=480-10=470, ny2=640-20=620
+// "right" → iOS does 180° inverse (rW=480, rH=640; (10,20)-(100,200) →
+// (380,440)-(470,620)). Android intentionally no-ops because
+// rotateFrameForModel already rotated CW (front-cam upright portrait).
 TEST(InverseRotateBbox, Right_180) {
   BBox bbox{10, 20, 100, 200};
   inverseRotateBbox(bbox, makeOrient("right", false), {480, 640});
-  EXPECT_FLOAT_EQ(bbox.x1, 380);
-  EXPECT_FLOAT_EQ(bbox.y1, 440);
-  EXPECT_FLOAT_EQ(bbox.x2, 470);
-  EXPECT_FLOAT_EQ(bbox.y2, 620);
+#if defined(__APPLE__)
+  EXPECT_FLOAT_EQ(bbox.p1.x, 380);
+  EXPECT_FLOAT_EQ(bbox.p1.y, 440);
+  EXPECT_FLOAT_EQ(bbox.p2.x, 470);
+  EXPECT_FLOAT_EQ(bbox.p2.y, 620);
+#else
+  EXPECT_FLOAT_EQ(bbox.p1.x, 10);
+  EXPECT_FLOAT_EQ(bbox.p1.y, 20);
+  EXPECT_FLOAT_EQ(bbox.p2.x, 100);
+  EXPECT_FLOAT_EQ(bbox.p2.y, 200);
+#endif
 }
 
 // "down" → CCW. rW=640, rH=480. Box (10,20)-(100,200):
@@ -263,18 +277,18 @@ TEST(InverseRotateBbox, Right_180) {
 TEST(InverseRotateBbox, Down_CCW) {
   BBox bbox{10, 20, 100, 200};
   inverseRotateBbox(bbox, makeOrient("down", false), {640, 480});
-  EXPECT_FLOAT_EQ(bbox.x1, 20);
-  EXPECT_FLOAT_EQ(bbox.y1, 540);
-  EXPECT_FLOAT_EQ(bbox.x2, 200);
-  EXPECT_FLOAT_EQ(bbox.y2, 630);
+  EXPECT_FLOAT_EQ(bbox.p1.x, 20);
+  EXPECT_FLOAT_EQ(bbox.p1.y, 540);
+  EXPECT_FLOAT_EQ(bbox.p2.x, 200);
+  EXPECT_FLOAT_EQ(bbox.p2.y, 630);
 }
 
 // Guarantees x1<=x2 and y1<=y2 after transform.
 TEST(InverseRotateBbox, OutputOrdered) {
   BBox bbox{50, 50, 150, 250};
   inverseRotateBbox(bbox, makeOrient("up", false), {640, 480});
-  EXPECT_LE(bbox.x1, bbox.x2);
-  EXPECT_LE(bbox.y1, bbox.y2);
+  EXPECT_LE(bbox.p1.x, bbox.p2.x);
+  EXPECT_LE(bbox.p1.y, bbox.p2.y);
 }
 
 // ============================================================================
@@ -317,11 +331,13 @@ TEST(InverseRotatePoints, Up_CW) {
   EXPECT_FLOAT_EQ(pts[3].y, 70);
 }
 
-// "right" → 180° per point. rW=480, rH=640. pt(10,20): nx=480-10=470,
-// ny=640-20=620.
+// "right" → iOS does 180° per point (rW=480, rH=640; (10,20)→(470,620)).
+// Android intentionally no-ops because rotateFrameForModel already rotated
+// CW (front-cam upright portrait).
 TEST(InverseRotatePoints, Right_180) {
   std::array<Pt, 4> pts = {{{10, 20}, {30, 40}, {50, 60}, {70, 80}}};
   inverseRotatePoints(pts, makeOrient("right", false), {480, 640});
+#if defined(__APPLE__)
   EXPECT_FLOAT_EQ(pts[0].x, 470);
   EXPECT_FLOAT_EQ(pts[0].y, 620);
   EXPECT_FLOAT_EQ(pts[1].x, 450);
@@ -330,6 +346,16 @@ TEST(InverseRotatePoints, Right_180) {
   EXPECT_FLOAT_EQ(pts[2].y, 580);
   EXPECT_FLOAT_EQ(pts[3].x, 410);
   EXPECT_FLOAT_EQ(pts[3].y, 560);
+#else
+  EXPECT_FLOAT_EQ(pts[0].x, 10);
+  EXPECT_FLOAT_EQ(pts[0].y, 20);
+  EXPECT_FLOAT_EQ(pts[1].x, 30);
+  EXPECT_FLOAT_EQ(pts[1].y, 40);
+  EXPECT_FLOAT_EQ(pts[2].x, 50);
+  EXPECT_FLOAT_EQ(pts[2].y, 60);
+  EXPECT_FLOAT_EQ(pts[3].x, 70);
+  EXPECT_FLOAT_EQ(pts[3].y, 80);
+#endif
 }
 
 // "down" → CCW per point. rW=640, rH=480. pt(10,20): nx=20, ny=640-10=630.

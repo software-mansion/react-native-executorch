@@ -95,12 +95,14 @@ declare global {
   var loadSpeechToText: (
     modelName: string,
     modelSource: string,
-    tokenizerSource: string
+    tokenizerSource: string,
+    vadSource: string
   ) => Promise<any>;
   var loadTextToSpeechKokoro: (
     lang: string,
     taggerData: string,
-    phonemizerData: string,
+    lexiconData: string,
+    neuralPhonemizerData: string,
     durationPredictorSource: string,
     synthesizerSource: string,
     voice: string
@@ -233,6 +235,7 @@ export * from './types/poseEstimation';
 export * from './constants/commonVision';
 export * from './constants/classification';
 export * from './constants/modelUrls';
+export * from './constants/modelRegistry';
 export * from './constants/ocr/models';
 export * from './constants/tts/models';
 export * from './constants/tts/voices';

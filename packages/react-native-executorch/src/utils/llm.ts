@@ -4,45 +4,56 @@ import { Schema, Validator } from 'jsonschema';
 import { jsonrepair } from 'jsonrepair';
 import { DEFAULT_STRUCTURED_OUTPUT_PROMPT } from '../constants/llmDefaults';
 import * as zCore from 'zod/v4/core';
-import { Logger } from '../common/Logger';
+import { RnExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 /**
  * Parses tool calls from a given message string.
  * @category Utilities - LLM
  * @param message - The message string containing tool calls in JSON format.
- * @returns An array of `ToolCall` objects extracted from the message.
+ * @returns An array of `ToolCall` objects extracted from the message. Returns
+ *   an empty array if the model did not emit a `[...]` block (i.e. chose not
+ *   to call any tool).
+ * @throws {RnExecutorchError} `InvalidModelOutput` when a `[...]` block is
+ *   present but cannot be parsed as JSON — distinct from the model
+ *   legitimately deciding not to invoke a tool.
  */
 export const parseToolCall: (message: string) => ToolCall[] = (
   message: string
 ) => {
-  try {
-    const unparsedToolCalls = message.match('\\[(.|\\s)*\\]');
-    if (!unparsedToolCalls) {
-      throw Error('Regex did not match array.');
-    }
-    const parsedMessage: LLMTool[] = JSON.parse(unparsedToolCalls[0]);
-    const results = [];
-
-    for (const tool of parsedMessage) {
-      if (
-        'name' in tool &&
-        typeof tool.name === 'string' &&
-        'arguments' in tool &&
-        tool.arguments !== null &&
-        typeof tool.arguments === 'object'
-      ) {
-        results.push({
-          toolName: tool.name,
-          arguments: tool.arguments,
-        });
-      }
-    }
-
-    return results;
-  } catch (e) {
-    Logger.error(e);
+  const unparsedToolCalls = message.match('\\[(.|\\s)*\\]');
+  if (!unparsedToolCalls) {
     return [];
   }
+
+  let parsedMessage: LLMTool[];
+  try {
+    parsedMessage = JSON.parse(unparsedToolCalls[0]);
+  } catch (e) {
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidModelOutput,
+      `Failed to parse tool call JSON from model output: ${unparsedToolCalls[0]}`,
+      e
+    );
+  }
+
+  const results: ToolCall[] = [];
+  for (const tool of parsedMessage) {
+    if (
+      'name' in tool &&
+      typeof tool.name === 'string' &&
+      'arguments' in tool &&
+      tool.arguments !== null &&
+      typeof tool.arguments === 'object'
+    ) {
+      results.push({
+        toolName: tool.name,
+        arguments: tool.arguments,
+      });
+    }
+  }
+
+  return results;
 };
 
 const filterObjectKeys = (obj: object, keysToRemove: string[]) => {

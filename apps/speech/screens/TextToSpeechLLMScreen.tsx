@@ -9,13 +9,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import SWMIcon from '../assets/swm_icon.svg';
-import {
-  useLLM,
-  useTextToSpeech,
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AF_HEART,
-  LLAMA3_2_1B_QLORA,
-} from 'react-native-executorch';
+import { models, useLLM, useTextToSpeech } from 'react-native-executorch';
 import {
   AudioManager,
   AudioContext,
@@ -53,11 +47,8 @@ const createAudioBufferFromVector = (
 export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
   const [displayText, setDisplayText] = useState('');
   const [isTtsStreaming, setIsTtsStreaming] = useState(false);
-  const llm = useLLM({ model: LLAMA3_2_1B_QLORA });
-  const tts = useTextToSpeech({
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AF_HEART,
-  });
+  const llm = useLLM({ model: models.llm.llama3_2_1b() });
+  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
   const processedLengthRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);

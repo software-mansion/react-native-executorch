@@ -17,276 +17,136 @@ keywords:
 description: "Learn how to use speech-to-text models in your React Native applications with React Native ExecuTorch's useSpeechToText hook."
 ---
 
-Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants.
+Speech to text (STT) converts spoken audio into written text. This hook allows you to implement features like voice assistants, real-time transcription, and audio file processing directly on-device.
 
 :::info
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+We recommend using our optimized models available on [Hugging Face](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use pre-defined [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) included in the library.
 :::
 
 ## API Reference
 
-- For detailed API Reference for `useSpeechToText` see: [`useSpeechToText` API Reference](../../06-api-reference/functions/useSpeechToText.md).
-- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
+- [`useSpeechToText` API Reference](../../06-api-reference/functions/useSpeechToText.md)
+- [STT Models List](../../06-api-reference/index.md#models---speech-to-text)
 
-## High Level Overview
+## Basic Usage (File Transcription)
 
-You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
+Use `transcribe` for processing pre-recorded audio or short clips. The input should be a `Float32Array` of audio samples at **16 kHz**.
+
+### Transcribe Options
+
+The `transcribe()` function accepts an optional configuration object:
+
+- `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
+- `verbose`: If `true`, the method returns a detailed `TranscriptionResult` object following the OpenAI Whisper `verbose_json` format (including segments and word-level timestamps).
+
+In this example, we use [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) to decode an audio file into the required format.
+
+### Example
 
 ```typescript
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
 const model = useSpeechToText({
-  model: WHISPER_TINY_EN,
+  model: models.speech_to_text.whisper_tiny_en(), // Use whisper_tiny_en for English or whisper_tiny for multilingual support
 });
 
+// 1. Get audio file
 const { uri } = await FileSystem.downloadAsync(
   'https://some-audio-url.com/file.mp3',
-  FileSystem.cacheDirectory + 'audio_file'
+  `${FileSystem.cacheDirectory}audio_file`
 );
 
+// 2. Decode to 16kHz PCM Float32Array
 const audioContext = new AudioContext({ sampleRate: 16000 });
 const decodedAudioData = await audioContext.decodeAudioData(uri);
 const audioBuffer = decodedAudioData.getChannelData(0);
 
+// 3. Transcribe
 try {
-  const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription.text);
+  const result = await model.transcribe(audioBuffer);
+  console.log('Transcription:', result.text);
 } catch (error) {
-  console.error('Error during audio transcription', error);
+  console.error('Transcription failed:', error);
 }
 ```
 
-### Streaming
+## Live Streaming Transcription
 
-Since speech-to-text models can only process audio segments up to 30 seconds long, we need to split longer inputs into chunks. However, simple chunking may cut speech mid-sentence, making it harder for the model to understand. To address this, we use the [whisper-streaming](https://aclanthology.org/2023.ijcnlp-demo.3.pdf) algorithm. While this introduces some overhead, it enables accurate processing of audio inputs of arbitrary length.
+For real-time applications or audio streams of arbitrary length, use the **Streaming API**. This is optimized for live input, handling the 30-second window limitation of Whisper models automatically to ensure context isn't lost between chunks.
 
-### Arguments
+### How it works:
 
-`useSpeechToText` takes [`SpeechToTextProps`](../../06-api-reference/interfaces/SpeechToTextProps.md) that consists of:
+1.  **Feed audio**: Use `streamInsert` to push small chunks of audio (e.g., 100ms) as they arrive from the microphone.
+2.  **Get results**: The `stream` generator yields two types of text:
+    - `committed`: Finalized text that won't change.
+    - `nonCommitted`: Temporary text that might update as the model gets more context from the audio.
 
-- `model` of type [`SpeechToTextConfig`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md), containing the [`isMultilingual` flag](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual), [tokenizer source](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource) and [model source](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#modelsource).
-- An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
+### Streaming Options
 
-You need more details? Check the following resources:
+The `stream()` function accepts several optional parameters:
 
-- For detailed information about `useSpeechToText` arguments check this section: [`useSpeechToText` arguments](../../06-api-reference/functions/useSpeechToText.md#parameters)
-- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
-- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- `language`: The language code (e.g., `'es'`, `'fr'`). Required for multilingual models.
+- `verbose`: If `true`, includes word-level timestamps and segment metadata in the result objects.
+- `useVAD`: Enable the Voice Activity Detection submodule (if configured in `useSpeechToText` props) to optimize performance by filtering silence. Defaults to `false`.
+- `timeout`: (Advanced) The interval (in milliseconds) between processing consecutive audio chunks in streaming mode. Lower values provide more frequent updates and lower latency, while higher values reduce CPU consumption. Defaults to `100`.
+- `vadDetectionMargin`: (Advanced) The duration of silence (in milliseconds) required after speech is detected before "committing" a segment. Defaults to `500`. Only active when VAD module is used.
 
-### Returns
+### Voice Activity Detection (VAD)
 
-`useSpeechToText` returns an object called `SpeechToTextType` containing bunch of functions to interact with STT.
+Integrating a VAD submodule is highly recommended for streaming. It improves performance by automatically removing silence, which reduces CPU usage, saves battery, and prevents the model from "hallucinating" text during silent periods.
 
-Please note, that both [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) functions accept [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) type as an argument. It accepts language abbreviation, you can check them out in [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) property of this config of type [`SpeechToTextLanguage`](../../06-api-reference/type-aliases/SpeechToTextLanguage.md).
-
-To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
-
-## Running the model
-
-Before running the model's [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
-
-### Multilingual transcription
-
-If you want to transcribe speech in languages other than English, use the multilingual version of Whisper. To generate the output in your desired language, pass the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) option to the [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method.
-
-```typescript
-import { useSpeechToText, WHISPER_TINY } from 'react-native-executorch';
-
-const model = useSpeechToText({
-  model: WHISPER_TINY,
-});
-
-const transcription = await model.transcribe(spanishAudio, { language: 'es' });
-```
-
-### Timestamps & Transcription Stat Data
-
-You can obtain word-level timestamps and other useful parameters from transcription ([`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) methods) by setting `verbose: true` in the options. The result mimics the _verbose_json_ format from OpenAI Whisper API. For more information please read [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe), [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream), and [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md) API References.
-
-```typescript
-const transcription = await model.transcribe(audioBuffer, { verbose: true });
-// Example result
-//
-// transcription: {
-//   task: "transcription",
-//   text: "Example text for a ...",
-//   duration: 9.05,
-//   language: "en",
-//   segments: [
-//     {
-//       start: 0,
-//       end: 5.4,
-//       text: "Example text for",
-//       words: [
-//         {
-//            word: "Example",
-//            start: 0,
-//            end: 1.4
-//         },
-//         ...
-//       ]
-//       tokens: [1, 32, 45, ...],
-//       temperature: 0.0,
-//       avgLogprob: -1.235,
-//       compressionRatio: 1.632
-//     },
-//     ...
-//   ]
-// }
-```
-
-## Example
-
-```tsx
-import React, { useState } from 'react';
-import { Button, Text, View } from 'react-native';
-import {
-  useSpeechToText,
-  WHISPER_TINY_EN,
-  TranscriptionResult,
-} from 'react-native-executorch';
-import { AudioContext } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
-
-function App() {
-  const model = useSpeechToText({
-    model: WHISPER_TINY_EN,
-  });
-
-  const [transcription, setTranscription] = useState<TranscriptionResult>(null);
-
-  const loadAudio = async () => {
-    const { uri } = await FileSystem.downloadAsync(
-      'https://some-audio-url.com/file.mp3',
-      FileSystem.cacheDirectory + 'audio_file'
-    );
-
-    const audioContext = new AudioContext({ sampleRate: 16000 });
-    const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
-    const audioBuffer = decodedAudioData.getChannelData(0);
-
-    return audioBuffer;
-  };
-
-  const handleTranscribe = async () => {
-    const audio = await loadAudio();
-    // Default text transcription
-    const result = await model.transcribe(audio);
-    setTranscription(result);
-  };
-
-  const handleTranscribeWithTimestamps = async () => {
-    const audio = await loadAudio();
-    // Transcription with timestamps
-    const result = await model.transcribe(audio, { verbose: true });
-    setTranscription(result);
-  };
-
-  // Custom logic for printing transcription
-  // e.g.
-
-  const renderContent = () => {
-    if (!transcription) return <Text>Press a button to transcribe</Text>;
-
-    if (transcription.segments && transcription.segments.length > 0) {
-      return (
-        <Text>
-          {transcription.text +
-            '\n\nNum segments: ' +
-            transcription.segments.length.toString()}
-        </Text>
-      );
-    }
-    return <Text>{transcription.text}</Text>;
-  };
-
-  return (
-    <View>
-      {renderContent()}
-      <Button onPress={handleTranscribe} title="Transcribe (Text)" />
-      <Button
-        onPress={handleTranscribeWithTimestamps}
-        title="Transcribe (Timestamps)"
-      />
-    </View>
-  );
-}
-```
-
-### Streaming transcription
+### Example
 
 ```tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { Text, Button, View, SafeAreaView } from 'react-native';
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { models, useSpeechToText } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-export default function App() {
+export default function LiveTranscriber() {
   const model = useSpeechToText({
-    model: WHISPER_TINY_EN,
+    model: models.speech_to_text.whisper_tiny_en(),
+    vad: models.vad.fsmn_vad(),
   });
-
-  const [transcribedText, setTranscribedText] = useState('');
-
+  const [text, setText] = useState('');
   const isRecordingRef = useRef(false);
-
   const [recorder] = useState(() => new AudioRecorder());
 
-  useEffect(() => {
-    AudioManager.setAudioSessionOptions({
-      iosCategory: 'playAndRecord',
-      iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
-    });
-    AudioManager.requestRecordingPermissions();
-  }, []);
-
-  const handleStartStreamingTranscribe = async () => {
+  const startLiveStreaming = async () => {
     isRecordingRef.current = true;
-    setTranscribedText('');
+    setText('');
 
-    const sampleRate = 16000;
-
+    // 2. Capture microphone input
     recorder.onAudioReady(
-      {
-        sampleRate,
-        bufferLength: 0.1 * sampleRate,
-        channelCount: 1,
-      },
-      (chunk) => {
-        model.streamInsert(chunk.buffer.getChannelData(0));
-      }
+      { sampleRate: 16000, bufferLength: 1600, channelCount: 1 },
+      (chunk) => model.streamInsert(chunk.buffer.getChannelData(0))
     );
 
-    try {
-      await recorder.start();
-    } catch (e) {
-      console.error('Recorder failed:', e);
-      return;
-    }
+    await recorder.start();
 
+    // 3. Process the stream with VAD enabled
     try {
-      let accumulatedCommitted = '';
-
-      const streamIter = model.stream({ verbose: false });
+      let finalizedText = '';
+      const streamIter = model.stream({
+        verbose: false,
+        useVAD: true, // Enable VAD filter
+        vadDetectionMargin: 500, // Wait for 500ms of silence before committing
+      });
 
       for await (const { committed, nonCommitted } of streamIter) {
         if (!isRecordingRef.current) break;
 
-        if (committed.text) {
-          accumulatedCommitted += committed.text;
-        }
-
-        setTranscribedText(accumulatedCommitted + nonCommitted.text);
+        if (committed.text) finalizedText += committed.text;
+        setText(finalizedText + nonCommitted.text);
       }
     } catch (error) {
-      console.error('Error during streaming transcription:', error);
+      console.error('Streaming error:', error);
     }
   };
 
-  const handleStopStreamingTranscribe = () => {
+  const stopLiveStreaming = () => {
     isRecordingRef.current = false;
     recorder.stop();
     model.streamStop();
@@ -294,27 +154,64 @@ export default function App() {
 
   return (
     <SafeAreaView>
-      <View style={{ padding: 20 }}>
-        <Text style={{ marginBottom: 20, fontSize: 18 }}>
-          {transcribedText || 'Press start to speak...'}
-        </Text>
-
-        <Button
-          onPress={handleStartStreamingTranscribe}
-          title="Start Streaming"
-          disabled={model.isGenerating}
-        />
-        <View style={{ height: 10 }} />
-        <Button
-          onPress={handleStopStreamingTranscribe}
-          title="Stop Streaming"
-          color="red"
-        />
-      </View>
+      <Text>{text || 'Press start and speak...'}</Text>
+      <Button
+        onPress={startLiveStreaming}
+        title="Start Live"
+        disabled={model.isGenerating}
+      />
+      <Button onPress={stopLiveStreaming} title="Stop" color="red" />
     </SafeAreaView>
   );
 }
 ```
+
+## Advanced Features
+
+### Multilingual Transcription
+
+To transcribe languages other than English, use a multilingual model (e.g., `models.speech_to_text.whisper_tiny()`) and specify the corresponding language code:
+
+```typescript
+// Transcribe in Spanish
+const model = useSpeechToText({
+  model: models.speech_to_text.whisper_tiny(),
+});
+const result = await model.transcribe(spanishAudio, { language: 'es' });
+```
+
+### Timestamps & Metadata
+
+Set `verbose: true` to receive word-level timestamps and confidence scores. The output follows the OpenAI Whisper `verbose_json` format.
+
+```typescript
+const result = await model.transcribe(audioBuffer, { verbose: true });
+// result.segments[0].words -> [{ word: "Hello", start: 0.5, end: 1.0 }, ...]
+```
+
+## Configuration
+
+### Arguments
+
+`useSpeechToText` accepts a configuration object:
+
+- `model`: Model source and tokenizer settings (see [ModelConfig](../../06-api-reference/interfaces/SpeechToTextModelConfig.md)).
+- `preventLoad`: (Optional) If `true`, the model won't load until you call `load()`.
+
+### Returns
+
+The hook returns a [`SpeechToTextType`](../../06-api-reference/interfaces/SpeechToTextType.md) object containing:
+
+- `error`: `null | RnExecutorchError` - Contains the error message if the model failed to load.
+- `isReady`: `boolean` - Indicates whether the model has successfully loaded and is ready for inference.
+- `isGenerating`: `boolean` - Indicates whether the model is currently processing an inference.
+- `downloadProgress`: `number` - Tracks the progress of the model download process as a value between `0` and `1`.
+- `transcribe(audio, options)`: Starts a transcription process for a given input array, which should be a waveform at 16kHz. Returns a promise resolving to a [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md).
+- `stream(options)`: Starts a streaming transcription process. Asynchronous generator that yields objects containing `committed` and `nonCommitted` transcriptions, both of type [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md).
+- `streamInsert(audio)`: Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription.
+- `streamStop()`: Stops the ongoing streaming transcription process.
+- `encode(audio)`: Runs the encoding part of the model on the provided waveform. Returns a promise resolving to the encoded `Float32Array`.
+- `decode(tokens, encoderOutput)`: Runs the decoder of the model with the given tokens (`Int32Array`) and encoder output (`Float32Array`). Returns a promise resolving to the decoded `Float32Array`.
 
 ## Supported models
 

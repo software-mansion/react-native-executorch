@@ -17,11 +17,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import {
-  KOKORO_MEDIUM,
-  KOKORO_VOICE_AM_SANTA,
-  useTextToSpeech,
-} from 'react-native-executorch';
+import { models, useTextToSpeech } from 'react-native-executorch';
 import {
   AudioManager,
   AudioContext,
@@ -60,10 +56,7 @@ const createAudioBufferFromVector = (
 
 export const Quiz = ({ onBack }: { onBack: () => void }) => {
   // --- Hooks & State ---
-  const model = useTextToSpeech({
-    model: KOKORO_MEDIUM,
-    voice: KOKORO_VOICE_AM_SANTA,
-  });
+  const model = useTextToSpeech(models.text_to_speech.kokoro.en_us.santa());
 
   const [shuffledQuestions] = useState(() => shuffleArray(QUESTIONS));
   const [currentIndex, setCurrentIndex] = useState(0);

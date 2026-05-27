@@ -9,26 +9,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
+  models,
   useSpeechToText,
-  WHISPER_TINY_EN,
-  WHISPER_TINY_EN_QUANTIZED,
-  WHISPER_BASE_EN,
-  WHISPER_SMALL_EN,
   TranscriptionResult,
   SpeechToTextProps,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
+const speechToText = models.speech_to_text;
+const vad = models.vad;
 
 type STTModelSources = SpeechToTextProps['model'];
 
 const MODELS: ModelOption<STTModelSources>[] = [
-  { label: 'Whisper Tiny', value: WHISPER_TINY_EN },
-  { label: 'Whisper Tiny Q', value: WHISPER_TINY_EN_QUANTIZED },
-  { label: 'Whisper Base', value: WHISPER_BASE_EN },
-  { label: 'Whisper Small', value: WHISPER_SMALL_EN },
+  { label: 'Whisper Tiny EN', value: speechToText.whisper_tiny_en() },
+  { label: 'Whisper Base EN', value: speechToText.whisper_base_en() },
+  { label: 'Whisper Small EN', value: speechToText.whisper_small_en() },
 ];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -46,11 +45,15 @@ import ErrorBanner from '../components/ErrorBanner';
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
-  const [selectedModel, setSelectedModel] =
-    useState<STTModelSources>(WHISPER_TINY_EN);
+  const [selectedModel, setSelectedModel] = useState<STTModelSources>(
+    Platform.OS === 'ios'
+      ? speechToText.whisper_base_en()
+      : speechToText.whisper_tiny_en()
+  );
 
   const model = useSpeechToText({
     model: selectedModel,
+    vad: vad.fsmn_vad(),
   });
 
   const [transcription, setTranscription] =
@@ -65,6 +68,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   } | null>(null);
 
   const [enableTimestamps, setEnableTimestamps] = useState(false);
+  const [useVAD, setUseVAD] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [audioURL, setAudioURL] = useState('');
   const [hasMicPermission, setHasMicPermission] = useState(false);
@@ -104,19 +108,22 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   }
 
   const handleTranscribeFromURL = async () => {
-    if (!audioURL.trim()) {
-      console.warn('Please provide a valid audio file URL');
+    if (!audioURL.trim() || model.isGenerating) {
+      if (!audioURL.trim()) {
+        console.warn('Please provide a valid audio file URL');
+      }
       return;
     }
 
-    const uri = await getAudioFile(audioURL);
+    Keyboard.dismiss();
+
     // Reset previous states
     setTranscription(null);
     setLiveResult(null);
 
-    const audioContext = new AudioContext({ sampleRate: 16000 });
-
     try {
+      const uri = await getAudioFile(audioURL);
+      const audioContext = new AudioContext({ sampleRate: 16000 });
       const decodedAudioData = await audioContext.decodeAudioData(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
       const start = Date.now();
@@ -132,8 +139,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
-    if (!hasMicPermission) {
-      setError('Microphone permission denied. Please enable it in Settings.');
+    if (!hasMicPermission || model.isGenerating || liveTranscribing) {
+      if (!hasMicPermission) {
+        setError('Microphone permission denied. Please enable it in Settings.');
+      }
       return;
     }
 
@@ -148,7 +157,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.current.onAudioReady(
       {
         sampleRate,
-        bufferLength: 0.1 * sampleRate,
+        bufferLength: 0.1 * sampleRate, // 100 ms
         channelCount: 1,
       },
       ({ buffer }) => {
@@ -178,6 +187,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const streamIter = model.stream({
         verbose: enableTimestamps,
+        timeout: 200,
+        useVAD: useVAD,
+        vadDetectionMargin: 1200,
       });
 
       for await (const { committed, nonCommitted } of streamIter) {
@@ -326,6 +338,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
             <View style={styles.urlTranscriptionContainer}>
               <TextInput
                 placeholder="Audio file URL to transcribe"
+                placeholderTextColor="#aaa"
                 style={styles.urlTranscriptionInput}
                 value={audioURL}
                 onChangeText={setAudioURL}
@@ -351,22 +364,64 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 <Text style={styles.buttonText}> Stop Live Transcription</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity
-                disabled={recordingButtonDisabled}
-                onPress={handleStartTranscribeFromMicrophone}
-                style={[
-                  styles.liveTranscriptionButton,
-                  styles.backgroundBlue,
-                  recordingButtonDisabled && styles.disabled,
-                ]}
-              >
-                <FontAwesome name="microphone" size={20} color="white" />
-                <Text style={styles.buttonText}>
-                  {isSimulator
-                    ? 'Recording is not available on Simulator'
-                    : 'Start Live Transcription'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  disabled={recordingButtonDisabled}
+                  onPress={handleStartTranscribeFromMicrophone}
+                  style={[
+                    styles.liveTranscriptionButton,
+                    styles.backgroundBlue,
+                    styles.flex1,
+                    recordingButtonDisabled && styles.disabled,
+                  ]}
+                >
+                  <FontAwesome name="microphone" size={20} color="white" />
+                  <Text style={styles.buttonText}>
+                    {isSimulator ? 'No Mic' : 'Start Live'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setUseVAD(!useVAD)}
+                  activeOpacity={0.7}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: useVAD }}
+                  accessibilityLabel={`Voice Activity Detection ${useVAD ? 'on' : 'off'}`}
+                  style={[
+                    styles.vadButton,
+                    useVAD ? styles.vadActive : styles.vadInactive,
+                    recordingButtonDisabled && styles.disabled,
+                  ]}
+                >
+                  <FontAwesome
+                    name={useVAD ? 'check-circle' : 'circle-o'}
+                    size={18}
+                    color={useVAD ? '#ffffff' : '#94a3b8'}
+                  />
+                  <View style={styles.vadTextContainer}>
+                    <Text
+                      style={[
+                        styles.vadButtonLabel,
+                        useVAD
+                          ? styles.vadButtonLabelActive
+                          : styles.vadButtonLabelInactive,
+                      ]}
+                    >
+                      VAD
+                    </Text>
+                    <Text
+                      style={[
+                        styles.vadButtonState,
+                        useVAD
+                          ? styles.vadButtonStateActive
+                          : styles.vadButtonStateInactive,
+                      ]}
+                    >
+                      {useVAD ? 'ON' : 'OFF'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </KeyboardAvoidingView>
@@ -460,6 +515,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0f186e',
     borderRightWidth: 0,
+    color: '#0f186e',
   },
   urlTranscriptionButton: {
     backgroundColor: '#0f186e',
@@ -489,6 +545,54 @@ const styles = StyleSheet.create({
   },
   backgroundBlue: {
     backgroundColor: '#0f186e',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  flex1: {
+    flex: 1,
+    marginTop: 0,
+  },
+  vadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    gap: 10,
+  },
+  vadActive: {
+    backgroundColor: '#0f186e',
+  },
+  vadInactive: {
+    backgroundColor: '#f1f5f9',
+  },
+  vadTextContainer: {
+    alignItems: 'flex-start',
+  },
+  vadButtonLabel: {
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: 0.5,
+  },
+  vadButtonLabelActive: {
+    color: 'white',
+  },
+  vadButtonLabelInactive: {
+    color: '#64748b',
+  },
+  vadButtonState: {
+    fontWeight: '700',
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  vadButtonStateActive: {
+    color: '#bbf7d0',
+  },
+  vadButtonStateInactive: {
+    color: '#94a3b8',
   },
   disabled: {
     opacity: 0.5,

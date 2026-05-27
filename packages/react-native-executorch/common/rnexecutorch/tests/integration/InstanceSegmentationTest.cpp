@@ -139,10 +139,10 @@ TEST(InstanceSegResultTests, InstancesHaveValidBoundingBoxes) {
                                           {}, true, kMethodName);
 
   for (const auto &inst : results) {
-    EXPECT_LE(inst.bbox.x1, inst.bbox.x2);
-    EXPECT_LE(inst.bbox.y1, inst.bbox.y2);
-    EXPECT_GE(inst.bbox.x1, 0.0f);
-    EXPECT_GE(inst.bbox.y1, 0.0f);
+    EXPECT_LE(inst.bbox.p1.x, inst.bbox.p2.x);
+    EXPECT_LE(inst.bbox.p1.y, inst.bbox.p2.y);
+    EXPECT_GE(inst.bbox.p1.x, 0.0f);
+    EXPECT_GE(inst.bbox.p1.y, 0.0f);
   }
 }
 

@@ -4,7 +4,7 @@ import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DeviceInfo from 'react-native-device-info';
 
-const isDevice = DeviceInfo.isEmulatorSync();
+const isDevice = !DeviceInfo.isEmulatorSync();
 
 export const BottomBar = ({
   handleCameraPress,

@@ -200,21 +200,21 @@ Running the app with the library:
   <TabItem value="npm" label="npm">
 
     ```bash
-    npm run <ios | android> -- -d
+    npm run <ios|android> -- -d
     ```
 
   </TabItem>
   <TabItem value="pnpm" label="pnpm">
 
     ```bash
-    pnpm <ios | android> -d
+    pnpm <ios|android> -d
     ```
 
   </TabItem>
   <TabItem value="yarn" label="yarn">
 
     ```bash
-    yarn <ios | android> -d
+    yarn <ios|android> -d
     ```
 
   </TabItem>

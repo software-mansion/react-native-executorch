@@ -29,9 +29,11 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 ## High Level Overview
 
 ```typescript
-import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
+import { models, useTokenizer } from 'react-native-executorch';
 
-const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
+const tokenizer = useTokenizer({
+  tokenizer: models.text_embedding.all_minilm_l6_v2(),
+});
 
 const text = 'Hello, world!';
 
@@ -52,7 +54,7 @@ try {
 
 `useTokenizer` takes [`TokenizerProps`](../../06-api-reference/interfaces/TokenizerProps.md) that consists of:
 
-- `tokenizer` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
+- `tokenizer` — an object containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/TokenizerProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
@@ -67,10 +69,12 @@ You need more details? Check the following resources:
 ## Example
 
 ```typescript
-import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
+import { models, useTokenizer } from 'react-native-executorch';
 
 function App() {
-  const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
+  const tokenizer = useTokenizer({
+    tokenizer: models.text_embedding.all_minilm_l6_v2(),
+  });
 
   // ...
 

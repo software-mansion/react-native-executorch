@@ -13,9 +13,6 @@
  *   opencv-android-arm64-v8a.tar.gz  -- OpenCV for arm64
  *   opencv-android-x86_64.tar.gz     -- OpenCV for x86_64
  *   opencv-ios.tar.gz                -- OpenCV xcframework
- *   phonemizer-android-arm64-v8a.tar.gz
- *   phonemizer-android-x86_64.tar.gz
- *   phonemizer-ios.tar.gz
  *   xnnpack-android-arm64-v8a.tar.gz -- libxnnpack_executorch_backend.so (Android)
  *   xnnpack-android-x86_64.tar.gz
  *   xnnpack-ios.tar.gz               -- XnnpackBackend.xcframework (iOS)
@@ -32,8 +29,9 @@
  *   }
  *
  * Platform applicability of each extra:
- *   opencv      Android + iOS
- *   phonemizer  Android + iOS
+ *   opencv      Android + iOS — downloaded artifact
+ *   phonemizer  Android + iOS — built from in-tree source at third-party/common/phonemis (git submodule);
+ *                               this toggle only gates compilation (RNE_ENABLE_PHONEMIZER), no download.
  *   xnnpack     Android (libxnnpack_executorch_backend.so) + iOS (XnnpackBackend.xcframework)
  *   coreml     iOS only — toggles CoreMLBackend.xcframework.
  *   vulkan     Android only — toggles libvulkan_executorch_backend.so.
@@ -180,9 +178,8 @@ function getArtifacts(targets, extras) {
       artifacts.push(makeArtifact(`opencv-${target}`, destDir));
     }
 
-    if (extras.includes('phonemizer')) {
-      artifacts.push(makeArtifact(`phonemizer-${target}`, destDir));
-    }
+    // Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+    // no artifact download required.
 
     if (extras.includes('xnnpack')) {
       artifacts.push(makeArtifact(`xnnpack-${target}`, destDir));

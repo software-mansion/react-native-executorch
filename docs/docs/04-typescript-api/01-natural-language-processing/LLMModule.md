@@ -13,11 +13,10 @@ TypeScript API implementation of the [useLLM](../../03-hooks/01-natural-language
 ## High Level Overview
 
 ```typescript
-import { LLMModule, LFM2_5_1_2B_INSTRUCT } from 'react-native-executorch';
-
+import { models, LLMModule } from 'react-native-executorch';
 // Creating an instance and loading the model
 const llm = await LLMModule.fromModelName(
-  LFM2_5_1_2B_INSTRUCT,
+  models.llm.lfm2_5_1_2b_instruct(),
   (progress) => console.log(progress),
   (token) => console.log(token),
   (messages) => console.log(messages)
@@ -44,7 +43,7 @@ Use the static [`fromModelName`](../../06-api-reference/classes/LLMModule.md#fro
 
 ```typescript
 const llm = await LLMModule.fromModelName(
-  LFM2_5_1_2B_INSTRUCT, // model config constant
+  models.llm.lfm2_5_1_2b_instruct(), // model config constant
   onDownloadProgress, // optional, progress 0–1
   tokenCallback, // optional, called on every token
   messageHistoryCallback // optional, called when generation finishes
@@ -122,10 +121,9 @@ Model presets expose an optional `generationConfig` that `LLMModule.fromModelNam
 Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](../../06-api-reference/classes/LLMModule.md#frommodelname):
 
 ```typescript
-import { LLMModule, LFM2_5_VL_1_6B_QUANTIZED } from 'react-native-executorch';
-
+import { models, LLMModule } from 'react-native-executorch';
 const llm = await LLMModule.fromModelName(
-  LFM2_5_VL_1_6B_QUANTIZED,
+  models.llm.lfm2_5_vl_1_6b(),
   undefined,
   (token) => console.log(token)
 );
@@ -171,7 +169,6 @@ Use [`fromCustomModel`](../../06-api-reference/classes/LLMModule.md#fromcustommo
 
 ```typescript
 import { LLMModule } from 'react-native-executorch';
-
 const llm = await LLMModule.fromCustomModel(
   'https://example.com/model.pte',
   'https://example.com/tokenizer.json',

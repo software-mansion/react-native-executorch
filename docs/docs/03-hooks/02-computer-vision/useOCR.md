@@ -16,10 +16,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```tsx
-import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
-
+import { models, useOCR } from 'react-native-executorch';
 function App() {
-  const model = useOCR({ model: OCR_ENGLISH });
+  const model = useOCR({ model: models.ocr.craft({ language: 'en' }) });
 
   // ...
   for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
@@ -81,10 +80,9 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
-
+import { models, useOCR } from 'react-native-executorch';
 function App() {
-  const model = useOCR({ model: OCR_ENGLISH });
+  const model = useOCR({ model: models.ocr.craft({ language: 'en' }) });
 
   const runModel = async () => {
     const ocrDetections = await model.forward('https://url-to-image.jpg');

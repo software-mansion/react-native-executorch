@@ -3,15 +3,9 @@ import { BottomBar } from '../../components/BottomBar';
 import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
+  models,
   Detection,
   useObjectDetection,
-  RF_DETR_NANO,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  YOLO26N,
-  YOLO26S,
-  YOLO26M,
-  YOLO26L,
-  YOLO26X,
   ObjectDetectionModelSources,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
@@ -20,15 +14,22 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import { StatsBar } from '../../components/StatsBar';
+const objectDetection = models.object_detection;
 
 const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
-  { label: 'RF-DeTR Nano', value: RF_DETR_NANO },
-  { label: 'SSDLite MobileNet', value: SSDLITE_320_MOBILENET_V3_LARGE },
-  { label: 'YOLO26N', value: YOLO26N },
-  { label: 'YOLO26S', value: YOLO26S },
-  { label: 'YOLO26M', value: YOLO26M },
-  { label: 'YOLO26L', value: YOLO26L },
-  { label: 'YOLO26X', value: YOLO26X },
+  {
+    label: 'RF-DeTR Nano',
+    value: objectDetection.rf_detr_nano(),
+  },
+  {
+    label: 'SSDLite MobileNet',
+    value: objectDetection.ssdlite_320_mobilenet_v3_large(),
+  },
+  { label: 'YOLO26N', value: objectDetection.yolo26n() },
+  { label: 'YOLO26S', value: objectDetection.yolo26s() },
+  { label: 'YOLO26M', value: objectDetection.yolo26m() },
+  { label: 'YOLO26L', value: objectDetection.yolo26l() },
+  { label: 'YOLO26X', value: objectDetection.yolo26x() },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 
@@ -41,7 +42,7 @@ export default function ObjectDetectionScreen() {
     height: number;
   }>();
   const [selectedModel, setSelectedModel] =
-    useState<ObjectDetectionModelSources>(RF_DETR_NANO);
+    useState<ObjectDetectionModelSources>(objectDetection.rf_detr_nano());
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
 
   const model = useObjectDetection({ model: selectedModel });

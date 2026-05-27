@@ -1,5 +1,5 @@
 import { VADModule } from '../../modules/natural_language_processing/VADModule';
-import { VADType, VADProps } from '../../types/vad';
+import { VADType, VADProps, VADStreamingInput } from '../../types/vad';
 import { useModuleFactory } from '../useModuleFactory';
 
 /**
@@ -21,5 +21,29 @@ export const useVAD = ({ model, preventLoad = false }: VADProps): VADType => {
   const forward = (waveform: Float32Array) =>
     runForward((inst) => inst.forward(waveform));
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  const stream = (input: VADStreamingInput) =>
+    runForward((inst) => inst.stream(input));
+
+  const streamInsert = (waveform: Float32Array) =>
+    runForward((inst) => {
+      inst.streamInsert(waveform);
+      return Promise.resolve();
+    });
+
+  const streamStop = () =>
+    runForward((inst) => {
+      inst.streamStop();
+      return Promise.resolve();
+    });
+
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    stream,
+    streamInsert,
+    streamStop,
+  };
 };

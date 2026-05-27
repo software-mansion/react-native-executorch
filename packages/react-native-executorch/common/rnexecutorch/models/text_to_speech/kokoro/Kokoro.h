@@ -11,7 +11,7 @@
 #include "Partitioner.h"
 #include "Synthesizer.h"
 #include "Types.h"
-#include <phonemis/pipeline.h>
+#include <phonemis/base/pipeline.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 namespace rnexecutorch {
@@ -20,49 +20,51 @@ namespace models::text_to_speech::kokoro {
 class Kokoro {
 public:
   Kokoro(const std::string &lang, const std::string &taggerDataSource,
-         const std::string &phonemizerDataSource,
+         const std::string &lexiconSource, const std::string &neuralModelSource,
          const std::string &durationPredictorSource,
          const std::string &synthesizerSource, const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
-   * Processes the entire text at once, before sending back to the JS side.
-   */
-  std::vector<float> generate(std::string text, float speed = 1.F);
-
-  /**
-   * Similar to generate(), but accepts pre-computed phonemes (as a UTF-8 IPA
-   * string) and synthesizes audio, bypassing the built-in phonemizer.
-   */
-  std::vector<float> generateFromPhonemes(std::string phonemes,
-                                          float speed = 1.F);
-
-  /**
-   * Processes text from inputTextBuffer_ in chunks, sending each chunk
-   * individualy to the JS side with asynchronous callbacks.
+   * Generates complete audio for the provided text.
    *
-   * Allows an incrementally expanded input by using an input text buffer.
+   * @param text The input to be synthesized - either a raw text or IPA
+   * phonemes.
+   * @param speed Playback speed multiplier (default: 1.0).
+   * @param phonemize Optional, if set to false disables the phonemization and
+   * operates on raw input.
+   * @return A vector of PCM float samples representing the synthesized speech.
    */
-  void stream(float speed, bool stopOnEmptyBuffer,
-              std::shared_ptr<jsi::Function> callback);
-
-  // Streaming variant that accepts pre-computed phonemes instead of text.
-  void streamFromPhonemes(std::string phonemes, float speed,
-                          std::shared_ptr<jsi::Function> callback);
+  std::vector<float> generate(std::u32string input, float speed = 1.F,
+                              bool phonemize = true);
 
   /**
-   * Updates the input streaming buffer by adding more text to be processed.
+   * Starts an asynchronous streaming process that processes text in chunks.
+   * The internal buffer can be expanded during streaming using `streamInsert`.
    *
-   * @param text A new chunk of text, appended to the end of the input buffer.
+   * @param callback A JSI function called with each generated audio chunk
+   * (std::vector<float>).
+   * @param speed Playback speed multiplier.
+   * @param phonemize Optional, if set to false disables the phonemization and
+   * operates on raw input.
+   * @param stopOnEmptyBuffer If true, streaming terminates automatically when
+   * the buffer is exhausted.
    */
-  void streamInsert(std::string textChunk) noexcept;
+  void stream(std::shared_ptr<jsi::Function> callback, float speed = 1.F,
+              bool phonemize = true, bool stopOnEmptyBuffer = false);
 
   /**
-   * Stops the streaming process.
+   * Appends new input data (either text or phonemes) to the buffer.
    *
-   * @param instant If true, stops the streaming as soon as possible by
-   * switching the isStreaming_ flag. Otherwise allows to process the rest of
-   * the buffer first, by switching the stopOnEmptyBuffer_ flag.
+   * @param chunk A text/phonemes chunk to be added to the streaming buffer.
+   */
+  void streamInsert(std::u32string chunk) noexcept;
+
+  /**
+   * Signals the streaming process to stop.
+   *
+   * @param instant If true, stops immediately, discarding remaining buffered
+   * text. If false, finishes processing the current buffer before stopping.
    */
   void streamStop(bool instant) noexcept;
 
@@ -70,38 +72,32 @@ public:
   void unload() noexcept;
 
 private:
-  // Helper function - loading voice array
+  // --- Initialization & Core Inference ---
   void loadVoice(const std::string &voiceSource);
-
-  // Helper function - shared synthesis pipeline (partition + synthesize)
-  std::vector<float> generateFromPhonemesImpl(const std::u32string &phonemes,
-                                              float speed);
-  void streamFromPhonemesImpl(const std::u32string &phonemes, float speed,
-                              std::shared_ptr<jsi::Function> callback);
-
-  // Helper function - generate specialization for given input size
-  std::vector<float> synthesize(const std::u32string &phonemes, float speed,
+  std::vector<float> synthesize(std::u32string_view phonemes, float speed,
                                 size_t paddingMs = 50);
 
-  // JS callback handle
+  // --- External Dependencies ---
   std::shared_ptr<react::CallInvoker> callInvoker_;
 
-  // Shared model context
+  // --- Model context ---
   Context context_;
 
-  // Submodules - arranged in order of their appearence in the model's pipeline
+  // --- Model Components ---
+  // Arranged in order of appearance in the generation pipeline
   phonemis::Pipeline phonemizer_;
   Partitioner partitioner_;
   DurationPredictor durationPredictor_;
   Synthesizer synthesizer_;
 
-  // Voice array — dynamically sized to match the voice file.
-  // Each row is a style vector for a given input token count.
+  // --- Data Buffers ---
+  // Voice embeddings: Each row is a style vector for a given input token count
   std::vector<std::array<float, constants::kVoiceRefSize>> voice_;
-
-  // Streaming state control variables
-  std::string inputTextBuffer_;
+  // Streaming buffer
+  std::u32string inputTextBuffer_;
   mutable std::mutex inputTextBufferMutex_;
+
+  // --- Streaming control State ---
   std::atomic<bool> isStreaming_{false};
   std::atomic<bool> stopOnEmptyBuffer_{true};
   int32_t streamSkippedIterations = 0;
@@ -110,5 +106,7 @@ private:
 
 REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
                      std::string, std::string, std::string, std::string,
-                     std::string, std::shared_ptr<react::CallInvoker>);
+                     std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+
 } // namespace rnexecutorch

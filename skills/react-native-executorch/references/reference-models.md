@@ -196,11 +196,8 @@ For a list of all available Speech to Text models reference [this Hugging Face c
 ### Whisper Models (English only)
 
 - **WHISPER_TINY_EN** - Whisper Tiny English-only
-- **WHISPER_TINY_EN_QUANTIZED** - Whisper Tiny English-only quantized
 - **WHISPER_BASE_EN** - Whisper Base English-only
-- **WHISPER_BASE_EN_QUANTIZED** - Whisper Base English-only quantized
 - **WHISPER_SMALL_EN** - Whisper Small English-only
-- **WHISPER_SMALL_EN_QUANTIZED** - Whisper Small English-only quantized
 
 ### Whisper Models (Multilingual)
 

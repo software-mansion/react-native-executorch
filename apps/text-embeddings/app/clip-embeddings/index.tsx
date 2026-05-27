@@ -13,19 +13,25 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  models,
   useTextEmbeddings,
   useImageEmbeddings,
-  CLIP_VIT_BASE_PATCH32_TEXT,
-  CLIP_VIT_BASE_PATCH32_IMAGE,
-  CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED,
   ImageEmbeddingsProps,
 } from 'react-native-executorch';
 
 type ImageEmbeddingModel = ImageEmbeddingsProps['model'];
 
 const IMAGE_MODELS: { label: string; value: ImageEmbeddingModel }[] = [
-  { label: 'ViT-B/32 Quantized', value: CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED },
-  { label: 'ViT-B/32 FP32', value: CLIP_VIT_BASE_PATCH32_IMAGE },
+  {
+    label: 'ViT-B/32 Quantized',
+    value: models.image_embedding.clip_vit_base_patch32_image(),
+  },
+  {
+    label: 'ViT-B/32 FP32',
+    value: models.image_embedding.clip_vit_base_patch32_image({
+      quant: false,
+    }),
+  },
 ];
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
@@ -48,9 +54,13 @@ export default function ClipEmbeddingsScreenWrapper() {
 
 function ClipEmbeddingsScreen() {
   const [selectedImageModel, setSelectedImageModel] =
-    useState<ImageEmbeddingModel>(CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED);
+    useState<ImageEmbeddingModel>(
+      models.image_embedding.clip_vit_base_patch32_image()
+    );
 
-  const textModel = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
+  const textModel = useTextEmbeddings({
+    model: models.text_embedding.clip_vit_base_patch32_text(),
+  });
   const imageModel = useImageEmbeddings({ model: selectedImageModel });
 
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -249,6 +259,7 @@ function ClipEmbeddingsScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Add a label…"
+                placeholderTextColor="#94A3B8"
                 value={newLabel}
                 onChangeText={setNewLabel}
                 onSubmitEditing={addLabel}

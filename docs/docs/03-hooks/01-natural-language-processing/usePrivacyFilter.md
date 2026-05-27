@@ -32,12 +32,8 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## High Level Overview
 
 ```typescript
-import {
-  usePrivacyFilter,
-  PRIVACY_FILTER_OPENAI,
-} from 'react-native-executorch';
-
-const model = usePrivacyFilter({ model: PRIVACY_FILTER_OPENAI });
+import { models, usePrivacyFilter } from 'react-native-executorch';
+const model = usePrivacyFilter({ model: models.privacy_filter.openai() });
 
 try {
   const entities = await model.generate(
@@ -89,14 +85,9 @@ Both built-in models ship with neutral, validity-only Viterbi decoding by defaul
 ```tsx
 import React, { useState } from 'react';
 import { Button, Text, View, TextInput, ScrollView } from 'react-native';
-import {
-  usePrivacyFilter,
-  PRIVACY_FILTER_OPENAI,
-  PiiEntity,
-} from 'react-native-executorch';
-
+import { models, usePrivacyFilter, PiiEntity } from 'react-native-executorch';
 export default function App() {
-  const model = usePrivacyFilter({ model: PRIVACY_FILTER_OPENAI });
+  const model = usePrivacyFilter({ model: models.privacy_filter.openai() });
   const [text, setText] = useState(
     'My name is Sarah Chen and you can reach me at sarah.chen@example.com.'
   );

@@ -243,6 +243,12 @@ inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
 }
 
 template <>
+inline std::span<const float>
+getValue<std::span<const float>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getTypedArrayAsSpan<float>(val, runtime);
+}
+
+template <>
 inline std::span<double> getValue<std::span<double>>(const jsi::Value &val,
                                                      jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<double>(val, runtime);
@@ -591,8 +597,7 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
     jsi::Object wordObj(runtime);
     wordObj.setProperty(
         runtime, "word",
-        jsi::String::createFromUtf8(runtime, seg.words[i].content +
-                                                 seg.words[i].punctations));
+        jsi::String::createFromUtf8(runtime, seg.words[i].content));
     wordObj.setProperty(runtime, "start",
                         static_cast<double>(seg.words[i].start));
     wordObj.setProperty(runtime, "end", static_cast<double>(seg.words[i].end));

@@ -12,14 +12,11 @@ TypeScript API implementation of the [useTextEmbeddings](../../03-hooks/01-natur
 ## High Level Overview
 
 ```typescript
-import {
-  TextEmbeddingsModule,
-  ALL_MINILM_L6_V2,
-} from 'react-native-executorch';
-
+import { models, TextEmbeddingsModule } from 'react-native-executorch';
 // Creating an instance and loading the model
-const textEmbeddingsModule =
-  await TextEmbeddingsModule.fromModelName(ALL_MINILM_L6_V2);
+const textEmbeddingsModule = await TextEmbeddingsModule.fromModelName(
+  models.text_embedding.all_minilm_l6_v2()
+);
 
 // Running the model
 const embedding = await textEmbeddingsModule.forward('Hello World!');

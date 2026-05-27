@@ -10,14 +10,14 @@ This example uses the `LLMModule`, and then tries to change its `generationConfi
 
 ```typescript
 import {
+  models,
   LLMModule,
-  LFM2_5_1_2B_INSTRUCT,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
 const llm = await LLMModule.fromModelName(
-  LFM2_5_1_2B_INSTRUCT,
+  models.llm.lfm2_5_1_2b_instruct(),
   (progress) => console.log(progress),
   (token) => console.log(token),
   (messages) => console.log(messages)

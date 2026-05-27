@@ -131,14 +131,6 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
-          name="voice_chat/index"
-          options={{
-            drawerLabel: 'Voice Chat',
-            title: 'Voice Chat',
-            headerTitleStyle: { color: ColorPalette.primary },
-          }}
-        />
-        <Drawer.Screen
           name="multimodal_llm/index"
           options={{
             drawerLabel: 'Multimodal LLM (VLM)',
