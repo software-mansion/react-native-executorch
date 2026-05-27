@@ -91,11 +91,13 @@ export default function _layout() {
           <CustomDrawerContent {...props} isGenerating={isGenerating} />
         )}
         screenOptions={{
-          drawerActiveTintColor: ColorPalette.primary,
-          drawerInactiveTintColor: '#888',
+          drawerActiveTintColor: '#BB86FC',
+          drawerInactiveTintColor: '#8B949E',
           headerTintColor: ColorPalette.primary,
           headerTitleStyle: { color: ColorPalette.primary },
           headerLeft: (props) => <HamburgerIcon tintColor={props.tintColor} />,
+          drawerContentStyle: { backgroundColor: '#0D1117' },
+          drawerLabelStyle: { color: '#E6EDF3' },
         }}
       >
         <Drawer.Screen
@@ -146,6 +148,16 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="gemma-x-kokoro/index"
+          options={{
+            drawerLabel: 'Gemma x Kokoro',
+            title: 'Gemma x Kokoro',
+            headerStyle: { backgroundColor: '#0D1117' },
+            headerTintColor: '#E6EDF3',
+            headerTitleStyle: { color: '#E6EDF3', fontSize: 23 },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );
@@ -153,7 +165,8 @@ export default function _layout() {
 
 const styles = StyleSheet.create({
   hamburger: {
-    marginLeft: 12,
+    marginLeft: 20,
+    paddingRight: 12,
   },
   centerContent: {
     flex: 1,
@@ -165,10 +178,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: ColorPalette.primary,
+    color: '#E6EDF3',
   },
   subText: {
     fontSize: 14,
-    color: ColorPalette.strongPrimary,
+    color: '#8B949E',
   },
 });

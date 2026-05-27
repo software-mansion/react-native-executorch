@@ -1679,6 +1679,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@callstack/react-theme-provider@npm:^3.0.9":
+  version: 3.0.9
+  resolution: "@callstack/react-theme-provider@npm:3.0.9"
+  dependencies:
+    deepmerge: "npm:^3.2.0"
+    hoist-non-react-statics: "npm:^3.3.0"
+  peerDependencies:
+    react: ">=16.3.0"
+  checksum: 10/91f21e3a2f2e70abd85d741438f61ad8d942bc787cc8f4e2b9634da9fb96903d34a90f1defd4a4d642b714503422fcab323dc71a638cb2032af1d0655907ecf6
+  languageName: node
+  linkType: hard
+
 "@cspell/cspell-bundled-dicts@npm:8.19.4":
   version: 8.19.4
   resolution: "@cspell/cspell-bundled-dicts@npm:8.19.4"
@@ -7749,7 +7761,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-convert@npm:^1.9.0":
+"color-convert@npm:^1.9.0, color-convert@npm:^1.9.3":
   version: 1.9.3
   resolution: "color-convert@npm:1.9.3"
   dependencies:
@@ -7781,13 +7793,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-string@npm:^1.9.0":
+"color-string@npm:^1.6.0, color-string@npm:^1.9.0":
   version: 1.9.1
   resolution: "color-string@npm:1.9.1"
   dependencies:
     color-name: "npm:^1.0.0"
     simple-swizzle: "npm:^0.2.2"
   checksum: 10/72aa0b81ee71b3f4fb1ac9cd839cdbd7a011a7d318ef58e6cb13b3708dca75c7e45029697260488709f1b1c7ac4e35489a87e528156c1e365917d1c4ccb9b9cd
+  languageName: node
+  linkType: hard
+
+"color@npm:^3.1.2":
+  version: 3.2.1
+  resolution: "color@npm:3.2.1"
+  dependencies:
+    color-convert: "npm:^1.9.3"
+    color-string: "npm:^1.6.0"
+  checksum: 10/bf70438e0192f4f62f4bfbb303e7231289e8cc0d15ff6b6cbdb722d51f680049f38d4fdfc057a99cb641895cf5e350478c61d98586400b060043afc44285e7ae
   languageName: node
   linkType: hard
 
@@ -8411,6 +8433,13 @@ __metadata:
   version: 0.1.4
   resolution: "deep-is@npm:0.1.4"
   checksum: 10/ec12d074aef5ae5e81fa470b9317c313142c9e8e2afe3f8efa124db309720db96d1d222b82b84c834e5f87e7a614b44a4684b6683583118b87c833b3be40d4d8
+  languageName: node
+  linkType: hard
+
+"deepmerge@npm:^3.2.0":
+  version: 3.3.0
+  resolution: "deepmerge@npm:3.3.0"
+  checksum: 10/a75f4e2f95f0439c62d1e52000862fa4f0bdd78bacdcfcfd0e5bd58c65a9f91ce45c2b661a8fd9a621c732bd36764c945567c99d987f5403774ea409e6598663
   languageName: node
   linkType: hard
 
@@ -9603,6 +9632,17 @@ __metadata:
     expo: "*"
     react: "*"
   checksum: 10/f4d52bf8c5499c7c8df4398b0ebe78c835361d15b488350340b410c57ac9794c2781cda605ce6cce968e37adab126fec455ceb3b5b97128186cc7e18571c414c
+  languageName: node
+  linkType: hard
+
+"expo-linear-gradient@npm:~55.0.0":
+  version: 55.0.14
+  resolution: "expo-linear-gradient@npm:55.0.14"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/c658eb2ad4d09c2f3c001df8399ff438cc913fec5e0e7c63c3f58904f123900b258373c3a666bc1a28309aed0ddfa2de75d7c49e53d6526c51d324791bd7b982
   languageName: node
   linkType: hard
 
@@ -12737,6 +12777,7 @@ __metadata:
     expo-constants: "npm:^55.0.16"
     expo-document-picker: "npm:~55.0.13"
     expo-font: "npm:~55.0.6"
+    expo-linear-gradient: "npm:~55.0.0"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
     expo-status-bar: "npm:~55.0.5"
@@ -12751,6 +12792,7 @@ __metadata:
     react-native-image-picker: "npm:^8.2.1"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
     react-native-markdown-display: "npm:^7.0.2"
+    react-native-paper: "npm:^5.15.3"
     react-native-reanimated: "npm:~4.3.0"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.24.0"
@@ -15572,6 +15614,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-paper@npm:^5.15.3":
+  version: 5.15.3
+  resolution: "react-native-paper@npm:5.15.3"
+  dependencies:
+    "@callstack/react-theme-provider": "npm:^3.0.9"
+    color: "npm:^3.1.2"
+    use-latest-callback: "npm:^0.2.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-safe-area-context: "*"
+  checksum: 10/6e34e04f4c9a969e6d0bd4d5b716a3283d2c25d27b39603038a2674427986d4af67ee9f9f214f8bcf4a48198d81c5cbe9bf02f0cdb60332d8019da3e7a5bf775
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:~4.3.0":
   version: 4.3.0
   resolution: "react-native-reanimated@npm:4.3.0"
@@ -17668,7 +17725,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-latest-callback@npm:^0.2.1, use-latest-callback@npm:^0.2.4":
+"use-latest-callback@npm:^0.2.1, use-latest-callback@npm:^0.2.3, use-latest-callback@npm:^0.2.4":
   version: 0.2.6
   resolution: "use-latest-callback@npm:0.2.6"
   peerDependencies:

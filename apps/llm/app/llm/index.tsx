@@ -43,7 +43,7 @@ function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<LLMModelSources>(
-    models.llm.lfm2_5_1_2b_instruct()
+    models.llm.gemma4_e2b()
   );
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);

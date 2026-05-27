@@ -41,6 +41,12 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Privacy Filter (PII)</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('gemma-x-kokoro/')}
+        >
+          <Text style={styles.buttonText}>Gemma x Kokoro</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
