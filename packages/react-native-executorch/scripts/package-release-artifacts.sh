@@ -156,7 +156,7 @@ package_merged "opencv-android-x86_64" \
 # Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
 # no Android tarball is produced.
 
-# XNNPACK and Vulkan each ship as standalone shared libraries (opt-in extras).
+# XNNPACK and Vulkan each ship as standalone shared libraries (opt-in backends).
 package_file "xnnpack-android-arm64-v8a" \
   "executorch/arm64-v8a"    "$ANDROID_LIBS/executorch/arm64-v8a/libxnnpack_executorch_backend.so"
 

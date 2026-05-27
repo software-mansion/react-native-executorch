@@ -123,7 +123,7 @@ declare global {
 }
 // eslint-disable no-var
 
-// Core globals are always installed regardless of which extras are enabled.
+// Core globals are always installed regardless of which backends/libs are enabled.
 // Optional globals (opencv/phonemizer) may be absent if the library was built
 // without those features — calling them at that point throws a runtime error
 // from the native side with a clear message.

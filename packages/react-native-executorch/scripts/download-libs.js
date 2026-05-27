@@ -23,18 +23,31 @@
  * Each tarball extracts into third-party/android/libs/ or third-party/ios/
  * preserving the existing directory structure so CMakeLists/podspec need no changes.
  *
- * User configuration (in the app's package.json):
+ * User configuration (in the app's package.json) — three optional arrays, all merged into a single set:
  *   "react-native-executorch": {
- *     "extras": ["opencv", "phonemizer", "xnnpack", "coreml", "vulkan"]   // default: all enabled
+ *     "backends": ["xnnpack", "coreml", "vulkan"],
+ *     "libs":     ["opencv", "phonemizer"],
+ *     "features": ["llm", "textToSpeech", "objectDetection"]
  *   }
  *
- * Platform applicability of each extra:
+ *   `features` is sugar — each one expands to a set of backends + libs via FEATURE_MAP below.
+ *   If no `react-native-executorch` block is present, every backend and lib defaults to ON.
+ *
+ * Recognized values:
+ *   backends:  xnnpack, coreml (iOS), vulkan (Android)
+ *   libs:      opencv, phonemizer
+ *   features:  llm, speechToText, textToSpeech, vad,
+ *              textEmbeddings, imageEmbeddings,
+ *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
+ *              ocr, verticalOCR, poseEstimation, styleTransfer, textToImage, segmentAnything
+ *
+ * Platform applicability:
  *   opencv      Android + iOS — downloaded artifact
  *   phonemizer  Android + iOS — built from in-tree source at third-party/common/phonemis (git submodule);
  *                               this toggle only gates compilation (RNE_ENABLE_PHONEMIZER), no download.
  *   xnnpack     Android (libxnnpack_executorch_backend.so) + iOS (XnnpackBackend.xcframework)
- *   coreml     iOS only — toggles CoreMLBackend.xcframework.
- *   vulkan     Android only — toggles libvulkan_executorch_backend.so.
+ *   coreml      iOS only — toggles CoreMLBackend.xcframework.
+ *   vulkan      Android only — toggles libvulkan_executorch_backend.so.
  *
  * Environment variables:
  *   RNET_SKIP_DOWNLOAD=1           -- skip download entirely (for CI with pre-cached libs)
@@ -74,47 +87,117 @@ const CACHE_DIR = process.env.RNET_LIBS_CACHE_DIR || DEFAULT_CACHE_DIR;
 
 // ---- User config -----------------------------------------------------------
 
-function readUserExtras() {
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'vulkan'];
+const ALL_LIBS = ['opencv', 'phonemizer'];
+
+// features -> { backends, libs }
+// Each feature pulls in the minimum set required to make the matching use* hook work.
+// Backends listed are "best-effort" — they only take effect on platforms where they exist
+// (coreml=iOS, vulkan=Android), so listing both is safe.
+const FEATURE_MAP = {
+  llm: { backends: ['xnnpack', 'coreml'], libs: [] },
+  multimodalLLM: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
+  textToSpeech: { backends: ['xnnpack', 'coreml'], libs: ['phonemizer'] },
+  vad: { backends: ['xnnpack', 'coreml'], libs: [] },
+  textEmbeddings: { backends: ['xnnpack', 'coreml'], libs: [] },
+  imageEmbeddings: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  objectDetection: {
+    backends: ['xnnpack', 'coreml', 'vulkan'],
+    libs: ['opencv'],
+  },
+  semanticSegmentation: {
+    backends: ['xnnpack', 'coreml', 'vulkan'],
+    libs: ['opencv'],
+  },
+  instanceSegmentation: {
+    backends: ['xnnpack', 'coreml', 'vulkan'],
+    libs: ['opencv'],
+  },
+  ocr: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  verticalOCR: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  poseEstimation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  styleTransfer: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  textToImage: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  segmentAnything: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+};
+
+function readUserConfig() {
+  const allOn = () => ({ backends: [...ALL_BACKENDS], libs: [...ALL_LIBS] });
+
   // npm/yarn set INIT_CWD to the directory where install was invoked (project root)
   const projectRoot =
     process.env.INIT_CWD || process.env.npm_config_local_prefix;
   if (!projectRoot) {
     console.warn(
-      '[react-native-executorch] Could not determine project root, enabling all extras.'
+      '[react-native-executorch] Could not determine project root, enabling all backends + libs.'
     );
-    return ['opencv', 'phonemizer'];
+    return allOn();
   }
 
-  const userPackageJsonPath = path.join(projectRoot, 'package.json');
+  let rneConfig;
   try {
     const userPackageJson = JSON.parse(
-      fs.readFileSync(userPackageJsonPath, 'utf8')
+      fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
     );
-    const rneConfig = userPackageJson['react-native-executorch'] || {};
-    return (
-      rneConfig.extras ?? [
-        'opencv',
-        'phonemizer',
-        'xnnpack',
-        'coreml',
-        'vulkan',
-      ]
-    );
+    rneConfig = userPackageJson['react-native-executorch'];
   } catch {
     console.warn(
-      '[react-native-executorch] Could not read app package.json, enabling all extras.'
+      '[react-native-executorch] Could not read app package.json, enabling all backends + libs.'
     );
-    return ['opencv', 'phonemizer', 'xnnpack', 'coreml', 'vulkan'];
+    return allOn();
   }
+
+  if (rneConfig === undefined) return allOn();
+
+  if (rneConfig.extras !== undefined) {
+    throw new Error(
+      '[react-native-executorch] The legacy `extras` field is no longer supported. ' +
+        'Use `backends`, `libs`, and/or `features` instead.'
+    );
+  }
+
+  const backends = new Set(rneConfig.backends ?? []);
+  const libs = new Set(rneConfig.libs ?? []);
+
+  for (const feature of rneConfig.features ?? []) {
+    const expansion = FEATURE_MAP[feature];
+    if (!expansion) {
+      const known = Object.keys(FEATURE_MAP).join(', ');
+      throw new Error(
+        `[react-native-executorch] Unknown feature "${feature}". Known features: ${known}.`
+      );
+    }
+    expansion.backends.forEach((b) => backends.add(b));
+    expansion.libs.forEach((l) => libs.add(l));
+  }
+
+  for (const b of backends) {
+    if (!ALL_BACKENDS.includes(b)) {
+      throw new Error(
+        `[react-native-executorch] Unknown backend "${b}". Known: ${ALL_BACKENDS.join(', ')}.`
+      );
+    }
+  }
+  for (const l of libs) {
+    if (!ALL_LIBS.includes(l)) {
+      throw new Error(
+        `[react-native-executorch] Unknown lib "${l}". Known: ${ALL_LIBS.join(', ')}.`
+      );
+    }
+  }
+
+  return { backends: [...backends], libs: [...libs] };
 }
 
-function writeBuildConfig(extras) {
+function writeBuildConfig({ backends, libs }) {
   const config = {
-    enableOpencv: extras.includes('opencv'),
-    enablePhonemizer: extras.includes('phonemizer'),
-    enableXnnpack: extras.includes('xnnpack'),
-    enableCoreml: extras.includes('coreml'),
-    enableVulkan: extras.includes('vulkan'),
+    enableOpencv: libs.includes('opencv'),
+    enablePhonemizer: libs.includes('phonemizer'),
+    enableXnnpack: backends.includes('xnnpack'),
+    enableCoreml: backends.includes('coreml'),
+    enableVulkan: backends.includes('vulkan'),
   };
   fs.writeFileSync(
     path.join(PACKAGE_ROOT, 'rne-build-config.json'),
@@ -123,18 +206,18 @@ function writeBuildConfig(extras) {
   return config;
 }
 
-// Warn the user when an `extras` choice is platform-asymmetric and the toggle
-// will be silently ignored on one of the target platforms. Better to surface
-// it at install time than to have the user wonder why an opt-out had no effect.
-function warnAboutPlatformAsymmetry(extras, targets) {
+// Warn when a backend is opted in but the build targets only the platform where
+// it has no effect (coreml=iOS-only, vulkan=Android-only). Surfacing it at install
+// time is friendlier than the user wondering why an opt-out had no effect.
+function warnAboutPlatformAsymmetry({ backends }, targets) {
   const hasAndroid = targets.some((t) => t.startsWith('android'));
   const hasIos = targets.includes('ios');
-  if (hasAndroid && extras.includes('coreml') && !hasIos) {
+  if (hasAndroid && !hasIos && backends.includes('coreml')) {
     console.warn(
       '[react-native-executorch] coreml is enabled but the build targets only Android; CoreML is iOS-only and the flag has no effect here.'
     );
   }
-  if (hasIos && extras.includes('vulkan') && !hasAndroid) {
+  if (hasIos && !hasAndroid && backends.includes('vulkan')) {
     console.warn(
       '[react-native-executorch] vulkan is enabled but the build targets only iOS; the Vulkan backend is Android-only and the flag has no effect here.'
     );
@@ -161,8 +244,8 @@ function detectTargets() {
 
 // ---- Artifact metadata -----------------------------------------------------
 
-// Core artifacts are always downloaded; optional ones only if the extra is enabled.
-function getArtifacts(targets, extras) {
+// Core artifacts are always downloaded; optional ones only if the backend / lib is enabled.
+function getArtifacts(targets, { backends, libs }) {
   const artifacts = [];
 
   for (const target of targets) {
@@ -174,24 +257,24 @@ function getArtifacts(targets, extras) {
     artifacts.push(makeArtifact(`core-${target}`, destDir));
 
     // iOS OpenCV is provided via CocoaPods (opencv-rne dependency), not a tarball
-    if (extras.includes('opencv') && target !== 'ios') {
+    if (libs.includes('opencv') && target !== 'ios') {
       artifacts.push(makeArtifact(`opencv-${target}`, destDir));
     }
 
     // Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
     // no artifact download required.
 
-    if (extras.includes('xnnpack')) {
+    if (backends.includes('xnnpack')) {
       artifacts.push(makeArtifact(`xnnpack-${target}`, destDir));
     }
 
     // CoreML is iOS only
-    if (extras.includes('coreml') && target === 'ios') {
+    if (backends.includes('coreml') && target === 'ios') {
       artifacts.push(makeArtifact(`coreml-${target}`, destDir));
     }
 
     // Vulkan is Android only
-    if (extras.includes('vulkan') && target.startsWith('android')) {
+    if (backends.includes('vulkan') && target.startsWith('android')) {
       artifacts.push(makeArtifact(`vulkan-${target}`, destDir));
     }
   }
@@ -273,21 +356,24 @@ async function main() {
     console.log(
       '[react-native-executorch] Skipping native lib download (RNET_SKIP_DOWNLOAD set)'
     );
-    // Still write build config so the native build knows what features are enabled
-    const extras = readUserExtras();
-    writeBuildConfig(extras);
+    // Still write build config so the native build knows what's enabled
+    const config = readUserConfig();
+    writeBuildConfig(config);
     return;
   }
 
-  const extras = readUserExtras();
-  const buildConfig = writeBuildConfig(extras);
+  const config = readUserConfig();
+  const buildConfig = writeBuildConfig(config);
   console.log(
-    `[react-native-executorch] Features: opencv=${buildConfig.enableOpencv}, phonemizer=${buildConfig.enablePhonemizer}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, vulkan=${buildConfig.enableVulkan}`
+    `[react-native-executorch] Backends: [${config.backends.join(', ') || '—'}]; Libs: [${config.libs.join(', ') || '—'}]`
+  );
+  console.log(
+    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemizer=${buildConfig.enablePhonemizer}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, vulkan=${buildConfig.enableVulkan}`
   );
 
   const targets = detectTargets();
-  warnAboutPlatformAsymmetry(extras, targets);
-  const artifacts = getArtifacts(targets, extras);
+  warnAboutPlatformAsymmetry(config, targets);
+  const artifacts = getArtifacts(targets, config);
 
   ensureDir(CACHE_DIR);
 

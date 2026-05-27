@@ -22,7 +22,9 @@
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
+#ifdef RNE_ENABLE_PHONEMIZER
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
+#endif
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
@@ -219,6 +221,7 @@ public:
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
+#ifdef RNE_ENABLE_PHONEMIZER
     if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
@@ -232,6 +235,7 @@ public:
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
           "streamInsert"));
     }
+#endif
 
     if constexpr (meta::HasGenerateFromString<Model>) {
       addFunctions(

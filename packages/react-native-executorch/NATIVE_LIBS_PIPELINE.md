@@ -32,10 +32,10 @@ This document describes how native dependencies (ExecuTorch runtime, backends, O
 
 Runs at `postinstall`. Responsibilities:
 
-1. Read `react-native-executorch.extras` from the app's `package.json` (uses `INIT_CWD`). Defaults to `["opencv", "phonemizer", "xnnpack", "coreml", "vulkan"]`.
-2. Write `rne-build-config.json` at the package root with boolean flags — this file is the single source of truth consumed by both the Gradle build and the podspec.
+1. Read `react-native-executorch.{backends, libs, features}` from the app's `package.json` (uses `INIT_CWD`). Each array is optional; `features` is expanded via `FEATURE_MAP` to (backends, libs) and merged with the explicit arrays. With no config, everything defaults to enabled. The legacy `extras` field is rejected with a migration error.
+2. Write `rne-build-config.json` at the package root with boolean flags (`enableXnnpack`, `enableCoreml`, `enableVulkan`, `enableOpencv`, `enablePhonemizer`) — this file is the single source of truth consumed by both the Gradle build and the podspec.
 3. Detect targets (`ios` on macOS; always `android-arm64-v8a` and, unless `RNET_NO_X86_64` is set, `android-x86_64`).
-4. For each target × enabled extra, fetch the corresponding `<artifact>.tar.gz` from the GitHub Release tagged `v${PACKAGE_VERSION}`, verify the `.sha256`, and extract into `third-party/android/libs/` or `third-party/ios/`.
+4. For each target × enabled backend/lib, fetch the corresponding `<artifact>.tar.gz` from the GitHub Release tagged `v${PACKAGE_VERSION}`, verify the `.sha256`, and extract into `third-party/android/libs/` or `third-party/ios/`. (Phonemizer ships as in-tree source via the `third-party/common/phonemis` submodule, so no tarball is fetched for it.)
 5. Cache validated tarballs under `~/.cache/react-native-executorch/<version>/` so subsequent installs skip the network.
 
 Environment overrides: `RNET_SKIP_DOWNLOAD`, `RNET_LIBS_CACHE_DIR`, `RNET_TARGET`, `RNET_BASE_URL` (useful with `python3 -m http.server` against `dist-artifacts/` for local iteration), `GITHUB_TOKEN` (needed for draft releases).
@@ -79,7 +79,7 @@ The set of artifacts per target is defined in `getArtifacts()`:
 
 `react-native-executorch.podspec` reads the same `rne-build-config.json` and:
 
-- Excludes opencv/phonemizer C++ sources from compilation when those extras are off.
+- Excludes opencv/phonemizer C++ sources from compilation when those libs are disabled.
 - Conditionally adds `third-party/common/phonemis/src/**` to `s.source_files` (and excludes `phonemis/main.cpp`) so phonemis compiles into the pod when `enable_phonemizer` is true. The corresponding header path and `-DET_ON=1` flag are also gated.
 - Appends `-DRNE_ENABLE_*` to `OTHER_CPLUSPLUSFLAGS`.
 - Assembles `OTHER_LDFLAGS[sdk=iphoneos*]` and `OTHER_LDFLAGS[sdk=iphonesimulator*]` with `-force_load` entries for each enabled backend xcframework.
@@ -198,7 +198,7 @@ CocoaPods constraint: inside an xcframework, the library file name must be ident
 
 ### Android
 
-Use `scripts/build_android_library.sh` from the fork (with the `@ms/separate-backends` branch checked out). It already passes the right preset and flags. Just enable the two extras we need:
+Use `scripts/build_android_library.sh` from the fork (with the `@ms/separate-backends` branch checked out). It already passes the right preset and flags. Just enable the two shared-backend builds we need:
 
 ```bash
 # from the executorch fork
