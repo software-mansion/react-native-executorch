@@ -142,7 +142,13 @@ Nous hébergeons actuellement quelques applications [exemples](https://github.co
 - `text-embeddings` - Calcul de représentations textuelles pour la recherche sémantique
 - `bare-rn` - Exemple de chat LLM pour React Native sans Expo
 
-Si vous souhaitez exécuter une application de démonstration, accédez à son répertoire de projet. Puis installez les dépendances et lancez l'application avec :
+Si vous souhaitez exécuter une application de démonstration, initialisez d'abord les sous-modules git nécessaires depuis la racine du dépôt :
+
+```bash
+git submodule update --init packages/react-native-executorch/third-party/common
+```
+
+Puis accédez à son répertoire de projet, installez les dépendances et lancez l'application avec :
 
 ```bash
 yarn && yarn <ios|android>

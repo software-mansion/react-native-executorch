@@ -142,7 +142,13 @@ const handleGenerate = async () => {
 - `text-embeddings` - अर्थ सेमांटिक खोज के लिए पाठ प्रस्तुतिकरण की गणना
 - `bare-rn` - bare React Native (Expo के बिना) के लिए LLM चैट उदाहरण
 
-यदि आप डेमो ऐप चलाना चाहते हैं, तो इसके प्रोजेक्ट डायरेक्टरी में नेविगेट करें। फिर निर्भरता इंस्टॉल करें और ऐप चलाएं:
+यदि आप डेमो ऐप चलाना चाहते हैं, तो पहले रिपॉजिटरी रूट से आवश्यक git submodules आरंभ करें:
+
+```bash
+git submodule update --init packages/react-native-executorch/third-party/common
+```
+
+फिर इसके प्रोजेक्ट डायरेक्टरी में नेविगेट करें, निर्भरता इंस्टॉल करें और ऐप चलाएं:
 
 ```bash
 yarn && yarn <ios|android>
