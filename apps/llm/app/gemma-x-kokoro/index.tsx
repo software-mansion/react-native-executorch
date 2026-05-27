@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PaperProvider, TextInput, FAB } from 'react-native-paper';
+import { PaperProvider, FAB } from 'react-native-paper';
 import {
   View,
   Pressable,
@@ -15,10 +15,14 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
-import { presets, presetOrder, buildTheme } from './presets';
+import { presets, presetOrder, buildTheme } from '../../assets/presets';
+import GradientBackground from '../../components/GradientBackground';
+import FlagLayer from '../../components/FlagLayer';
+import ThemedTextInput, {
+  type ThemedTextInputHandle,
+} from '../../components/ThemedTextInput';
 
 // ---------------------------------------------------------------------------
 // BACKGROUND VISIBILITY — tweak these to control intensity of gradient & flag
@@ -31,22 +35,9 @@ const FLAG_H_MARGIN = 0; // horizontal margin from screen edges (px)
 
 // ---------------------------------------------------------------------------
 // ANIMATION PARAMETERS — control the preset-switching transition animation
+// ----------------------------------------------x-----------------------------
+const ANIM_DURATION = 800; // total crossfade duration (ms)
 // ---------------------------------------------------------------------------
-const ANIM_DURATION = 600; // total crossfade duration (ms)
-// ---------------------------------------------------------------------------
-
-function blendColors(c1: string, c2: string, ratio: number): string {
-  const r1 = parseInt(c1.slice(1, 3), 16);
-  const g1 = parseInt(c1.slice(3, 5), 16);
-  const b1 = parseInt(c1.slice(5, 7), 16);
-  const r2 = parseInt(c2.slice(1, 3), 16);
-  const g2 = parseInt(c2.slice(3, 5), 16);
-  const b2 = parseInt(c2.slice(5, 7), 16);
-  const r = Math.round(r1 + (r2 - r1) * ratio);
-  const g = Math.round(g1 + (g2 - g1) * ratio);
-  const b = Math.round(b1 + (b2 - b1) * ratio);
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
 
 function computeFlagOpacity(
   flagId: string,
@@ -69,8 +60,11 @@ function GemmaXKokoroScreen() {
   const [fabOpen, setFabOpen] = useState(false);
   const [activePresetId, setActivePresetId] = useState(presetOrder[0]);
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
+  const [pressedFABId, setPressedFABId] = useState<string | null>(null);
   const isAnimating = useRef(false);
   const animProgress = useSharedValue(1);
+  const backdropProgress = useSharedValue(0);
+  const inputRef = useRef<ThemedTextInputHandle>(null);
 
   const activeIdSV = useSharedValue(presetOrder[0]);
   const pendingIdSV = useSharedValue<string | null>(null);
@@ -132,6 +126,14 @@ function GemmaXKokoroScreen() {
         animProgress.value
       ),
     })),
+    de: useAnimatedStyle(() => ({
+      opacity: computeFlagOpacity(
+        'de',
+        activeIdSV.value,
+        pendingIdSV.value,
+        animProgress.value
+      ),
+    })),
   };
 
   const triggerTransition = (newId: string) => {
@@ -167,59 +169,32 @@ function GemmaXKokoroScreen() {
     pendingIdSV.value = pendingPresetId;
   }, [pendingPresetId, pendingIdSV]);
 
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropProgress.value,
+  }));
+
+  useEffect(() => {
+    backdropProgress.value = withTiming(fabOpen ? 1 : 0, {
+      duration: 200,
+      easing: Easing.inOut(Easing.ease),
+    });
+  }, [fabOpen, backdropProgress]);
+
   const fabActions = presetOrder.map((id) => {
     const p = presets[id];
+    const isPressed = pressedFABId === id;
     return {
       icon: 'flag',
       label: `${p.flag} ${p.label}`,
-      color: p.ui.fabBackground,
+      color: isPressed ? '#FFFFFF' : p.ui.fabBackground,
       onPress: () => {
+        setPressedFABId(id);
         triggerTransition(p.id);
         setFabOpen(false);
+        setTimeout(() => setPressedFABId(null), 300);
       },
     };
   });
-
-  const renderGradient = (p: typeof activePreset) => {
-    const blendedTop = blendColors(
-      p.ui.gradientTop,
-      p.ui.containerBackground,
-      1 - GRADIENT_INTENSITY
-    );
-    return (
-      <LinearGradient
-        colors={[blendedTop, p.ui.containerBackground]}
-        style={[
-          StyleSheet.absoluteFill,
-          styles.flagContainer,
-          { paddingHorizontal: FLAG_H_MARGIN },
-        ]}
-      />
-    );
-  };
-
-  const renderTextInput = (p: typeof activePreset) => (
-    <TextInput
-      mode="outlined"
-      value={text}
-      onChangeText={setText}
-      placeholder={p.ui.placeholder}
-      placeholderTextColor={p.ui.inputPlaceholder}
-      style={[{ backgroundColor: p.ui.inputBackground }]}
-      textColor={p.ui.inputText}
-      outlineColor={p.ui.inputOutline}
-      activeOutlineColor={p.ui.inputActiveOutline}
-      cursorColor={p.ui.inputCursor}
-      selectionColor={p.ui.inputSelection}
-      right={
-        <TextInput.Icon
-          icon="arrow-up-circle"
-          color={p.ui.inputIcon}
-          onPress={() => text && setText('')}
-        />
-      }
-    />
-  );
 
   return (
     <PaperProvider theme={theme}>
@@ -228,76 +203,86 @@ function GemmaXKokoroScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
-          <Animated.View style={[StyleSheet.absoluteFill, activeLayerStyle]}>
-            {renderGradient(activePreset)}
+          <GradientBackground
+            activePreset={activePreset}
+            pendingPreset={pendingPreset}
+            activeLayerStyle={activeLayerStyle}
+            pendingLayerStyle={pendingLayerStyle}
+            gradientIntensity={GRADIENT_INTENSITY}
+            horizontalMargin={FLAG_H_MARGIN}
+          />
+
+          <FlagLayer flagStyles={flagStyles} flagFontSize={FLAG_FONT_SIZE} />
+
+          <ThemedTextInput
+            ref={inputRef}
+            text={text}
+            onChangeText={setText}
+            activePreset={activePreset}
+            pendingPreset={pendingPreset}
+            activeLayerStyle={activeLayerStyle}
+            pendingLayerStyle={pendingLayerStyle}
+          />
+
+          <Pressable
+            style={styles.content}
+            onPress={() => {
+              inputRef.current?.blur();
+              Keyboard.dismiss();
+            }}
+          />
+
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: activePreset.paperTheme.backdrop },
+              backdropStyle,
+            ]}
+            pointerEvents={fabOpen ? 'auto' : 'none'}
+          >
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setFabOpen(false)}
+            />
+          </Animated.View>
+          <Animated.View
+            style={[StyleSheet.absoluteFill, activeLayerStyle]}
+            pointerEvents="box-none"
+          >
+            <FAB.Group
+              open={fabOpen}
+              visible={true}
+              icon={fabOpen ? 'close' : 'dots-horizontal'}
+              actions={fabActions}
+              onStateChange={({ open }) => setFabOpen(open)}
+              style={styles.fabGroup}
+              fabStyle={{
+                backgroundColor: activePreset.ui.fabBackground,
+                borderRadius: 28,
+              }}
+              color={activePreset.ui.fabIcon}
+              backdropColor="transparent"
+            />
           </Animated.View>
           <Animated.View
             style={[StyleSheet.absoluteFill, pendingLayerStyle]}
-            pointerEvents="none"
+            pointerEvents="box-none"
           >
-            {renderGradient(pendingPreset)}
-          </Animated.View>
-
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {presetOrder.map((id) => (
-              <Animated.Text
-                key={id}
-                style={[
-                  styles.singleFlag,
-                  { fontSize: FLAG_FONT_SIZE },
-                  flagStyles[id],
-                ]}
-              >
-                {presets[id].flag}
-              </Animated.Text>
-            ))}
-          </View>
-
-          <View style={styles.inputWrapper}>
-            <Animated.View style={activeLayerStyle}>
-              {renderTextInput(activePreset)}
-            </Animated.View>
-            <Animated.View
-              style={[
-                {
-                  position: 'absolute',
-                  top: 4,
-                  left: 16,
-                  right: 16,
-                  bottom: 4,
-                  zIndex: 2,
-                },
-                pendingLayerStyle,
-              ]}
-              pointerEvents="none"
-            >
-              {renderTextInput(pendingPreset)}
-            </Animated.View>
-          </View>
-          <Pressable style={styles.content} onPress={Keyboard.dismiss} />
-          {fabOpen && (
-            <Pressable
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: activePreset.paperTheme.backdrop },
-              ]}
-              onPress={() => setFabOpen(false)}
+            <FAB.Group
+              open={fabOpen}
+              visible={true}
+              icon={fabOpen ? 'close' : 'dots-horizontal'}
+              actions={fabActions}
+              onStateChange={({ open }) => setFabOpen(open)}
+              style={styles.fabGroup}
+              fabStyle={{
+                backgroundColor: pendingPreset.ui.fabBackground,
+                borderRadius: 28,
+              }}
+              color={pendingPreset.ui.fabIcon}
+              backdropColor="transparent"
             />
-          )}
-          <FAB.Group
-            open={fabOpen}
-            visible={true}
-            icon={fabOpen ? 'close' : 'dots-horizontal'}
-            actions={fabActions}
-            onStateChange={({ open }) => setFabOpen(open)}
-            style={styles.fabGroup}
-            fabStyle={{
-              backgroundColor: activePreset.ui.fabBackground,
-              borderRadius: 28,
-            }}
-            color={activePreset.ui.fabIcon}
-            backdropColor="transparent"
-          />
+          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </PaperProvider>
@@ -315,23 +300,6 @@ const styles = StyleSheet.create({
   },
   root: {
     flex: 1,
-  },
-  flagContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  singleFlag: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-  },
-  inputWrapper: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
   },
   content: {
     flex: 1,
