@@ -64,6 +64,16 @@ export class StyleTransferModule extends VisionModule<PixelData | string> {
     );
   }
 
+  /**
+   * Executes style transfer on the provided image.
+   * @param input - Image source (string path/URI or `PixelData` from a frame library).
+   * @param outputType - Controls the output format. Defaults to `'pixelData'`, which
+   *   returns raw RGBA pixels suitable for direct rendering. Pass `'url'` to
+   *   have the stylized image saved to a temporary PNG on the device and
+   *   receive a `file://` URI string instead.
+   * @returns A Promise resolving to either a `PixelData` object or a `file://` URI string,
+   *   depending on `outputType`.
+   */
   async forward<O extends 'pixelData' | 'url' = 'pixelData'>(
     input: string | PixelData,
     outputType?: O

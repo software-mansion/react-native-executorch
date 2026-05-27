@@ -5986,15 +5986,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pngjs@npm:^6.0.5":
-  version: 6.0.5
-  resolution: "@types/pngjs@npm:6.0.5"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/132fce25817d47a784ed48aa678332521b0f7e6edbaa76f3fa4e9ca1228078788ae712f99ad4d1a324d9ba0b14829958677eabf3ebef1fb6e120816f433f0cd8
-  languageName: node
-  linkType: hard
-
 "@types/react-refresh@npm:^0":
   version: 0.14.7
   resolution: "@types/react-refresh@npm:0.14.7"
@@ -7918,7 +7909,6 @@ __metadata:
     "@react-navigation/drawer": "npm:^7.9.4"
     "@react-navigation/native": "npm:^7.2.2"
     "@shopify/react-native-skia": "npm:2.6.2"
-    "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.2.0"
     "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~55.0.16"
@@ -14965,13 +14955,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pngjs@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "pngjs@npm:7.0.0"
-  checksum: 10/e843ebbb0df092ee0f3a3e7dbd91ff87a239a4e4c4198fff202916bfb33b67622f4b83b3c29f3ccae94fcb97180c289df06068624554f61686fe6b9a4811f7db
-  languageName: node
-  linkType: hard
-
 "possible-typed-array-names@npm:^1.0.0":
   version: 1.1.0
   resolution: "possible-typed-array-names@npm:1.1.0"
@@ -15468,7 +15451,6 @@ __metadata:
     jsonrepair: "npm:^3.12.0"
     jsonschema: "npm:^1.5.0"
     metro-react-native-babel-preset: "npm:^0.77.0"
-    pngjs: "npm:^7.0.0"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-native-builder-bob: "npm:^0.40.12"

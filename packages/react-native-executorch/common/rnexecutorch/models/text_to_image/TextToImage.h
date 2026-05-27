@@ -8,7 +8,6 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
-#include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 #include <rnexecutorch/models/text_to_image/Decoder.h>
@@ -30,9 +29,9 @@ public:
                        int32_t schedulerNumTrainTimesteps,
                        int32_t schedulerStepsOffset,
                        std::shared_ptr<react::CallInvoker> callInvoker);
-  std::shared_ptr<OwningArrayBuffer>
-  generate(std::string input, int32_t imageSize, size_t numInferenceSteps,
-           int32_t seed, std::shared_ptr<jsi::Function> callback);
+  std::string generate(std::string input, int32_t imageSize,
+                       size_t numInferenceSteps, int32_t seed,
+                       std::shared_ptr<jsi::Function> callback);
   void interrupt() noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
@@ -40,8 +39,7 @@ public:
 private:
   void setImageSize(int32_t imageSize);
   void setSeed(int32_t &seed);
-  std::shared_ptr<OwningArrayBuffer>
-  postprocess(const std::vector<float> &output) const;
+  std::string postprocess(const std::vector<float> &output) const;
 
   size_t memorySizeLowerBound;
   int32_t imageSize;

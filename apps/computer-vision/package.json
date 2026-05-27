@@ -45,7 +45,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@types/pngjs": "^6.0.5",
     "@types/react": "~19.2.0",
     "@types/react-refresh": "^0",
     "babel-preset-expo": "~55.0.16",

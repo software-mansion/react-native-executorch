@@ -5,8 +5,10 @@
 #include <span>
 
 #include <executorch/extension/tensor/tensor.h>
+#include <opencv2/opencv.hpp>
 
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 
 #include <rnexecutorch/Error.h>
@@ -54,10 +56,9 @@ void TextToImage::setSeed(int32_t &seed) {
   seed = rd();
 }
 
-std::shared_ptr<OwningArrayBuffer>
-TextToImage::generate(std::string input, int32_t imageSize,
-                      size_t numInferenceSteps, int32_t seed,
-                      std::shared_ptr<jsi::Function> callback) {
+std::string TextToImage::generate(std::string input, int32_t imageSize,
+                                  size_t numInferenceSteps, int32_t seed,
+                                  std::shared_ptr<jsi::Function> callback) {
   std::scoped_lock lock(inference_mutex_);
   setImageSize(imageSize);
   setSeed(seed);
@@ -105,7 +106,7 @@ TextToImage::generate(std::string input, int32_t imageSize,
   }
   if (interrupted) {
     interrupted = false;
-    return std::make_shared<OwningArrayBuffer>(0);
+    return "";
   }
 
   for (auto &val : latents) {
@@ -116,18 +117,20 @@ TextToImage::generate(std::string input, int32_t imageSize,
   return postprocess(output);
 }
 
-std::shared_ptr<OwningArrayBuffer>
-TextToImage::postprocess(const std::vector<float> &output) const {
-  // Convert RGB to RGBA
-  int32_t imagePixelCount = imageSize * imageSize;
-  std::vector<uint8_t> outputRgba(imagePixelCount * 4);
-  for (int32_t i = 0; i < imagePixelCount; i++) {
-    outputRgba[i * 4 + 0] = output[i * 3 + 0];
-    outputRgba[i * 4 + 1] = output[i * 3 + 1];
-    outputRgba[i * 4 + 2] = output[i * 3 + 2];
-    outputRgba[i * 4 + 3] = 255;
+std::string TextToImage::postprocess(const std::vector<float> &output) const {
+  // Decoder output is HWC float RGB (values already in [0..255]). cv::imwrite
+  // expects a BGR matrix, so pack the channels in BGR order here.
+  cv::Mat bgr(imageSize, imageSize, CV_8UC3);
+  for (int32_t y = 0; y < imageSize; ++y) {
+    auto *row = bgr.ptr<cv::Vec3b>(y);
+    for (int32_t x = 0; x < imageSize; ++x) {
+      const int32_t idx = (y * imageSize + x) * 3;
+      row[x] = cv::Vec3b(static_cast<uint8_t>(output[idx + 2]),
+                         static_cast<uint8_t>(output[idx + 1]),
+                         static_cast<uint8_t>(output[idx + 0]));
+    }
   }
-  return std::make_shared<OwningArrayBuffer>(outputRgba);
+  return image_processing::saveToTempFile(bgr);
 }
 
 void TextToImage::interrupt() noexcept { interrupted = true; }

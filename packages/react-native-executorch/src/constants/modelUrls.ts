@@ -3,19 +3,22 @@ import {
   PRIVACY_FILTER_NEMOTRON_LABELS,
   PRIVACY_FILTER_OPENAI_LABELS,
 } from './privacyFilterLabels';
-import { URL_PREFIX, VERSION_TAG, PREVIOUS_VERSION_TAG } from './versions';
+import { URL_PREFIX, PREVIOUS_VERSION_TAG } from './versions';
 
 // LLMs
 
 // LLAMA 3.2
-const LLAMA3_2_3B_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`;
-const LLAMA3_2_3B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/llama-3.2-3B/QLoRA/llama3_2-3B_qat_lora.pte`;
-const LLAMA3_2_3B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`;
-const LLAMA3_2_1B_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`;
-const LLAMA3_2_1B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/llama-3.2-1B/QLoRA/llama3_2_qat_lora.pte`;
-const LLAMA3_2_1B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`;
-const LLAMA3_2_TOKENIZER = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer.json`;
-const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${VERSION_TAG}/tokenizer_config.json`;
+const LLAMA3_2_3B_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`;
+// Pinned to v0.8.0 — the last HF tag where the QLoRA files live; SpinQuant
+// supersedes them in later releases.
+const LLAMA3_2_3B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/resolve/v0.8.0/llama-3.2-3B/QLoRA/llama3_2-3B_qat_lora.pte`;
+const LLAMA3_2_3B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`;
+const LLAMA3_2_1B_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`;
+// Pinned to v0.8.0 — see note above on LLAMA3_2_3B_QLORA_MODEL.
+const LLAMA3_2_1B_QLORA_MODEL = `${URL_PREFIX}-llama-3.2/resolve/v0.8.0/llama-3.2-1B/QLoRA/llama3_2_qat_lora.pte`;
+const LLAMA3_2_1B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`;
+const LLAMA3_2_TOKENIZER = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -86,14 +89,14 @@ export const LLAMA3_2_1B_SPINQUANT = {
 } as const;
 
 // QWEN 3
-const QWEN3_0_6B_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`;
-const QWEN3_0_6B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`;
-const QWEN3_1_7B_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`;
-const QWEN3_1_7B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`;
-const QWEN3_4B_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`;
-const QWEN3_4B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`;
-const QWEN3_TOKENIZER = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer.json`;
-const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${VERSION_TAG}/tokenizer_config.json`;
+const QWEN3_0_6B_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`;
+const QWEN3_0_6B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`;
+const QWEN3_1_7B_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`;
+const QWEN3_1_7B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`;
+const QWEN3_4B_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`;
+const QWEN3_4B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`;
+const QWEN3_TOKENIZER = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const QWEN3_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 // Qwen3's published generation_config.json recommends temperature=0.6 and
 // top_p=0.95. We propagate those to every Qwen3 preset so model quality is
@@ -201,14 +204,14 @@ export const QWEN3_4B_QUANTIZED = {
 } as const;
 
 // HAMMER 2.1
-const HAMMER2_1_0_5B_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`;
-const HAMMER2_1_0_5B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`;
-const HAMMER2_1_1_5B_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`;
-const HAMMER2_1_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`;
-const HAMMER2_1_3B_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`;
-const HAMMER2_1_3B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`;
-const HAMMER2_1_TOKENIZER = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/tokenizer.json`;
-const HAMMER2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-hammer-2.1/${VERSION_TAG}/tokenizer_config.json`;
+const HAMMER2_1_0_5B_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`;
+const HAMMER2_1_0_5B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`;
+const HAMMER2_1_1_5B_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`;
+const HAMMER2_1_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`;
+const HAMMER2_1_3B_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`;
+const HAMMER2_1_3B_QUANTIZED_MODEL = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`;
+const HAMMER2_1_TOKENIZER = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const HAMMER2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-hammer-2.1/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -271,14 +274,14 @@ export const HAMMER2_1_3B_QUANTIZED = {
 } as const;
 
 // SMOLLM2
-const SMOLLM2_1_135M_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/135m/xnnpack/smollm2_135m_xnnpack_bf16.pte`;
-const SMOLLM2_1_135M_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`;
-const SMOLLM2_1_360M_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/360m/xnnpack/smollm2_360m_xnnpack_bf16.pte`;
-const SMOLLM2_1_360M_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/360m/xnnpack/smollm2_360m_xnnpack_8da4w.pte`;
-const SMOLLM2_1_1_7B_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/1_7b/xnnpack/smollm2_1_7b_xnnpack_bf16.pte`;
-const SMOLLM2_1_1_7B_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da4w.pte`;
-const SMOLLM2_1_TOKENIZER = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/tokenizer.json`;
-const SMOLLM2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-smolLm-2/${VERSION_TAG}/tokenizer_config.json`;
+const SMOLLM2_1_135M_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/135m/xnnpack/smollm2_135m_xnnpack_bf16.pte`;
+const SMOLLM2_1_135M_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`;
+const SMOLLM2_1_360M_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/360m/xnnpack/smollm2_360m_xnnpack_bf16.pte`;
+const SMOLLM2_1_360M_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/360m/xnnpack/smollm2_360m_xnnpack_8da4w.pte`;
+const SMOLLM2_1_1_7B_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/1_7b/xnnpack/smollm2_1_7b_xnnpack_bf16.pte`;
+const SMOLLM2_1_1_7B_QUANTIZED_MODEL = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da4w.pte`;
+const SMOLLM2_1_TOKENIZER = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const SMOLLM2_1_TOKENIZER_CONFIG = `${URL_PREFIX}-smolLm-2/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -341,14 +344,14 @@ export const SMOLLM2_1_1_7B_QUANTIZED = {
 } as const;
 
 // QWEN 2.5
-const QWEN2_5_0_5B_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`;
-const QWEN2_5_0_5B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`;
-const QWEN2_5_1_5B_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`;
-const QWEN2_5_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`;
-const QWEN2_5_3B_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`;
-const QWEN2_5_3B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`;
-const QWEN2_5_TOKENIZER = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/tokenizer.json`;
-const QWEN2_5_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-2.5/${VERSION_TAG}/tokenizer_config.json`;
+const QWEN2_5_0_5B_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`;
+const QWEN2_5_0_5B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`;
+const QWEN2_5_1_5B_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`;
+const QWEN2_5_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`;
+const QWEN2_5_3B_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`;
+const QWEN2_5_3B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`;
+const QWEN2_5_TOKENIZER = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const QWEN2_5_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-2.5/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -411,9 +414,9 @@ export const QWEN2_5_3B_QUANTIZED = {
 } as const;
 
 // QWEN3.5-0.8B
-const QWEN3_5_0_8B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/0_8b/xnnpack/qwen_3_5_0_8b_xnnpack_8da4w.pte`;
-const QWEN3_5_0_8B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/0_8b/tokenizer.json`;
-const QWEN3_5_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/0_8b/tokenizer_config.json`;
+const QWEN3_5_0_8B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/0_8b/xnnpack/qwen_3_5_0_8b_xnnpack_8da4w.pte`;
+const QWEN3_5_0_8B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/0_8b/tokenizer.json`;
+const QWEN3_5_0_8B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/0_8b/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -426,9 +429,9 @@ export const QWEN3_5_0_8B_QUANTIZED = {
 } as const;
 
 // QWEN3.5-2B
-const QWEN3_5_2B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/2b/xnnpack/qwen_3_5_2b_xnnpack_8da4w.pte`;
-const QWEN3_5_2B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/2b/tokenizer.json`;
-const QWEN3_5_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${VERSION_TAG}/2b/tokenizer_config.json`;
+const QWEN3_5_2B_QUANTIZED_MODEL = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/2b/xnnpack/qwen_3_5_2b_xnnpack_8da4w.pte`;
+const QWEN3_5_2B_TOKENIZER = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/2b/tokenizer.json`;
+const QWEN3_5_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-qwen-3.5/${PREVIOUS_VERSION_TAG}/2b/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -441,10 +444,10 @@ export const QWEN3_5_2B_QUANTIZED = {
 } as const;
 
 // PHI 4
-const PHI_4_MINI_4B_MODEL = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/xnnpack/phi_4_mini_xnnpack_bf16.pte`;
-const PHI_4_MINI_4B_QUANTIZED_MODEL = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`;
-const PHI_4_MINI_TOKENIZER = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/tokenizer.json`;
-const PHI_4_MINI_TOKENIZER_CONFIG = `${URL_PREFIX}-phi-4-mini/${VERSION_TAG}/tokenizer_config.json`;
+const PHI_4_MINI_4B_MODEL = `${URL_PREFIX}-phi-4-mini/${PREVIOUS_VERSION_TAG}/xnnpack/phi_4_mini_xnnpack_bf16.pte`;
+const PHI_4_MINI_4B_QUANTIZED_MODEL = `${URL_PREFIX}-phi-4-mini/${PREVIOUS_VERSION_TAG}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`;
+const PHI_4_MINI_TOKENIZER = `${URL_PREFIX}-phi-4-mini/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const PHI_4_MINI_TOKENIZER_CONFIG = `${URL_PREFIX}-phi-4-mini/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -467,10 +470,10 @@ export const PHI_4_MINI_4B_QUANTIZED = {
 } as const;
 
 // LFM2.5-1.2B-Instruct
-const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`;
-const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`;
-const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/1_2b/tokenizer.json`;
-const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/1_2b/tokenizer_config.json`;
+const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`;
+const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`;
+const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer.json`;
+const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -493,10 +496,10 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 } as const;
 
 // LFM2.5-350M
-const LFM2_5_350M_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`;
-const LFM2_5_350M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`;
-const LFM2_5_350M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/350m/tokenizer.json`;
-const LFM2_5_350M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/350m/tokenizer_config.json`;
+const LFM2_5_350M_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`;
+const LFM2_5_350M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`;
+const LFM2_5_350M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer.json`;
+const LFM2_5_350M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -519,10 +522,10 @@ export const LFM2_5_350M_QUANTIZED = {
 } as const;
 
 // Bielik-v3.0
-const BIELIK_V3_0_1_5B_MODEL = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`;
-const BIELIK_V3_0_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`;
-const BIELIK_V3_0_TOKENIZER = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/tokenizer.json`;
-const BIELIK_V3_0_TOKENIZER_CONFIG = `${URL_PREFIX}-bielik-v3.0/${VERSION_TAG}/tokenizer_config.json`;
+const BIELIK_V3_0_1_5B_MODEL = `${URL_PREFIX}-bielik-v3.0/${PREVIOUS_VERSION_TAG}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`;
+const BIELIK_V3_0_1_5B_QUANTIZED_MODEL = `${URL_PREFIX}-bielik-v3.0/${PREVIOUS_VERSION_TAG}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`;
+const BIELIK_V3_0_TOKENIZER = `${URL_PREFIX}-bielik-v3.0/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const BIELIK_V3_0_TOKENIZER_CONFIG = `${URL_PREFIX}-bielik-v3.0/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
@@ -545,14 +548,14 @@ export const BIELIK_V3_0_1_5B_QUANTIZED = {
 } as const;
 
 // LFM2.5-VL-1.6B
-const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`;
-const LFM2_VL_1_6B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_1_6b/tokenizer.json`;
-const LFM2_VL_1_6B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_1_6b/tokenizer_config.json`;
+const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`;
+const LFM2_VL_1_6B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer.json`;
+const LFM2_VL_1_6B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer_config.json`;
 
 // LFM2.5-VL-450M
-const LFM2_VL_450M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`;
-const LFM2_VL_450M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_450m/tokenizer.json`;
-const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${VERSION_TAG}/vl_450m/tokenizer_config.json`;
+const LFM2_VL_450M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`;
+const LFM2_VL_450M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer.json`;
+const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer_config.json`;
 
 /**
  * @category Models - VLM
@@ -604,10 +607,10 @@ export const LFM2_VL_1_6B_QUANTIZED = LFM2_5_VL_1_6B_QUANTIZED;
 export const LFM2_VL_450M_QUANTIZED = LFM2_5_VL_450M_QUANTIZED;
 
 // Classification
-export const EFFICIENTNET_V2_S_XNNPACK_FP32_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
-export const EFFICIENTNET_V2_S_XNNPACK_INT8_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
-export const EFFICIENTNET_V2_S_COREML_FP32_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp32.pte`;
-export const EFFICIENTNET_V2_S_COREML_FP16_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`;
+export const EFFICIENTNET_V2_S_XNNPACK_FP32_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${PREVIOUS_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_fp32.pte`;
+export const EFFICIENTNET_V2_S_XNNPACK_INT8_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${PREVIOUS_VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack_int8.pte`;
+export const EFFICIENTNET_V2_S_COREML_FP32_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${PREVIOUS_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp32.pte`;
+export const EFFICIENTNET_V2_S_COREML_FP16_MODEL = `${URL_PREFIX}-efficientnet-v2-s/${PREVIOUS_VERSION_TAG}/coreml/efficientnet_v2_s_coreml_fp16.pte`;
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
     ? EFFICIENTNET_V2_S_COREML_FP32_MODEL
@@ -634,10 +637,10 @@ export const EFFICIENTNET_V2_S_QUANTIZED = {
 } as const;
 
 // Object detection
-export const SSDLITE_320_MOBILENET_V3_LARGE_XNNPACK_FP32_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
-export const SSDLITE_320_MOBILENET_V3_LARGE_COREML_FP16_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`;
-export const RF_DETR_NANO_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`;
-export const RF_DETR_NANO_COREML_INT8_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`;
+export const SSDLITE_320_MOBILENET_V3_LARGE_XNNPACK_FP32_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${PREVIOUS_VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`;
+export const SSDLITE_320_MOBILENET_V3_LARGE_COREML_FP16_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${PREVIOUS_VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`;
+export const RF_DETR_NANO_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${PREVIOUS_VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`;
+export const RF_DETR_NANO_COREML_INT8_MODEL = `${URL_PREFIX}-rfdetr-nano-detector/${PREVIOUS_VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`;
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL =
   Platform.OS === 'ios'
     ? SSDLITE_320_MOBILENET_V3_LARGE_COREML_FP16_MODEL
@@ -664,11 +667,11 @@ export const RF_DETR_NANO = {
 } as const;
 
 // YOLO26 Object Detection
-const YOLO26N_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${VERSION_TAG}/n/xnnpack/yolo26_n_xnnpack_fp32.pte`;
-const YOLO26S_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${VERSION_TAG}/s/xnnpack/yolo26_s_xnnpack_fp32.pte`;
-const YOLO26M_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${VERSION_TAG}/m/xnnpack/yolo26_m_xnnpack_fp32.pte`;
-const YOLO26L_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${VERSION_TAG}/l/xnnpack/yolo26_l_xnnpack_fp32.pte`;
-const YOLO26X_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${VERSION_TAG}/x/xnnpack/yolo26_x_xnnpack_fp32.pte`;
+const YOLO26N_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${PREVIOUS_VERSION_TAG}/n/xnnpack/yolo26_n_xnnpack_fp32.pte`;
+const YOLO26S_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${PREVIOUS_VERSION_TAG}/s/xnnpack/yolo26_s_xnnpack_fp32.pte`;
+const YOLO26M_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${PREVIOUS_VERSION_TAG}/m/xnnpack/yolo26_m_xnnpack_fp32.pte`;
+const YOLO26L_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${PREVIOUS_VERSION_TAG}/l/xnnpack/yolo26_l_xnnpack_fp32.pte`;
+const YOLO26X_DETECTION_MODEL = `${URL_PREFIX}-yolo26/${PREVIOUS_VERSION_TAG}/x/xnnpack/yolo26_x_xnnpack_fp32.pte`;
 
 /**
  * @category Models - Object Detection
@@ -711,7 +714,7 @@ export const YOLO26X = {
 } as const;
 
 // YOLO26 Pose Estimation
-const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${VERSION_TAG}/xnnpack/yolo26_pose_n_xnnpack_fp32.pte`;
+const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${PREVIOUS_VERSION_TAG}/xnnpack/yolo26_pose_n_xnnpack_fp32.pte`;
 
 /**
  * @category Models - Pose Estimation
@@ -734,10 +737,10 @@ export function styleTransferUrls<
   const Slug extends string,
 >(display: Display, slug: Slug) {
   return {
-    xnnpackBase: `${URL_PREFIX}-style-transfer-${display}/${VERSION_TAG}/xnnpack/style_transfer_${slug}_xnnpack_fp32.pte`,
-    xnnpackQuant: `${URL_PREFIX}-style-transfer-${display}/${VERSION_TAG}/xnnpack/style_transfer_${slug}_xnnpack_int8.pte`,
-    coremlBase: `${URL_PREFIX}-style-transfer-${display}/${VERSION_TAG}/coreml/style_transfer_${slug}_coreml_fp32.pte`,
-    coremlQuant: `${URL_PREFIX}-style-transfer-${display}/${VERSION_TAG}/coreml/style_transfer_${slug}_coreml_fp16.pte`,
+    xnnpackBase: `${URL_PREFIX}-style-transfer-${display}/${PREVIOUS_VERSION_TAG}/xnnpack/style_transfer_${slug}_xnnpack_fp32.pte`,
+    xnnpackQuant: `${URL_PREFIX}-style-transfer-${display}/${PREVIOUS_VERSION_TAG}/xnnpack/style_transfer_${slug}_xnnpack_int8.pte`,
+    coremlBase: `${URL_PREFIX}-style-transfer-${display}/${PREVIOUS_VERSION_TAG}/coreml/style_transfer_${slug}_coreml_fp32.pte`,
+    coremlQuant: `${URL_PREFIX}-style-transfer-${display}/${PREVIOUS_VERSION_TAG}/coreml/style_transfer_${slug}_coreml_fp16.pte`,
   };
 }
 const STYLE_TRANSFER_CANDY_URLS = styleTransferUrls('candy', 'candy');
@@ -845,29 +848,29 @@ export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
 } as const;
 
 // S2T
-export const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
-export const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp32.pte`;
+export const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
+export const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp32.pte`;
 
-export const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
-export const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp32.pte`;
+export const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
+export const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_base_en_coreml_fp32.pte`;
 
-export const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
-export const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp32.pte`;
+export const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
+export const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_small_en_coreml_fp32.pte`;
 
-export const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
-export const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp32.pte`;
+export const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
+export const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/coreml/whisper_tiny_coreml_fp32.pte`;
 
-export const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
-export const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/coreml/whisper_base_coreml_fp32.pte`;
+export const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
+export const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/coreml/whisper_base_coreml_fp32.pte`;
 
-export const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
-export const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
-export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/coreml/whisper_small_coreml_fp32.pte`;
+export const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
+export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/coreml/whisper_small_coreml_fp32.pte`;
 
 /**
  * @category Models - Speech To Text
@@ -948,18 +951,18 @@ export const WHISPER_SMALL = {
 } as const;
 
 // Semantic Segmentation
-const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_fp32.pte`;
-const DEEPLAB_V3_RESNET101_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_fp32.pte`;
-const DEEPLAB_V3_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_fp32.pte`;
-const LRASPP_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-lraspp/${VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_fp32.pte`;
-const FCN_RESNET50_MODEL = `${URL_PREFIX}-fcn/${VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_fp32.pte`;
-const FCN_RESNET101_MODEL = `${URL_PREFIX}-fcn/${VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_fp32.pte`;
-const DEEPLAB_V3_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_int8.pte`;
-const DEEPLAB_V3_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_int8.pte`;
-const DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`;
-const LRASPP_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-lraspp/${VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_int8.pte`;
-const FCN_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_int8.pte`;
-const FCN_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_int8.pte`;
+const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_fp32.pte`;
+const DEEPLAB_V3_RESNET101_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_fp32.pte`;
+const DEEPLAB_V3_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_fp32.pte`;
+const LRASPP_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-lraspp/${PREVIOUS_VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_fp32.pte`;
+const FCN_RESNET50_MODEL = `${URL_PREFIX}-fcn/${PREVIOUS_VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_fp32.pte`;
+const FCN_RESNET101_MODEL = `${URL_PREFIX}-fcn/${PREVIOUS_VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_fp32.pte`;
+const DEEPLAB_V3_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_int8.pte`;
+const DEEPLAB_V3_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_resnet101_xnnpack_int8.pte`;
+const DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${PREVIOUS_VERSION_TAG}/xnnpack/deeplab_v3_mobilenet_v3_large_xnnpack_int8.pte`;
+const LRASPP_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-lraspp/${PREVIOUS_VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_int8.pte`;
+const FCN_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${PREVIOUS_VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_int8.pte`;
+const FCN_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${PREVIOUS_VERSION_TAG}/xnnpack/fcn_resnet101_xnnpack_int8.pte`;
 
 /**
  * @category Models - Semantic Segmentation
@@ -1057,7 +1060,7 @@ export const FCN_RESNET101_QUANTIZED = {
   modelSource: FCN_RESNET101_QUANTIZED_MODEL,
 } as const;
 
-const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie_segmentation_xnnpack_fp32.pte`;
+const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${PREVIOUS_VERSION_TAG}/xnnpack/selfie_segmentation_xnnpack_fp32.pte`;
 
 /**
  * @category Models - Semantic Segmentation
@@ -1068,10 +1071,10 @@ export const SELFIE_SEGMENTATION = {
 } as const;
 
 // FastSAM Instance Segmentation
-export const FASTSAM_S_XNNPACK_FP32_MODEL = `${URL_PREFIX}-fast-sam/${VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_fp32.pte`;
-export const FASTSAM_S_COREML_FP16_MODEL = `${URL_PREFIX}-fast-sam/${VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp16.pte`;
-export const FASTSAM_X_XNNPACK_FP32_MODEL = `${URL_PREFIX}-fast-sam/${VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_fp32.pte`;
-export const FASTSAM_X_COREML_FP16_MODEL = `${URL_PREFIX}-fast-sam/${VERSION_TAG}/x/coreml/fast_sam_x_coreml_fp16.pte`;
+export const FASTSAM_S_XNNPACK_FP32_MODEL = `${URL_PREFIX}-fast-sam/${PREVIOUS_VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_fp32.pte`;
+export const FASTSAM_S_COREML_FP16_MODEL = `${URL_PREFIX}-fast-sam/${PREVIOUS_VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp16.pte`;
+export const FASTSAM_X_XNNPACK_FP32_MODEL = `${URL_PREFIX}-fast-sam/${PREVIOUS_VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_fp32.pte`;
+export const FASTSAM_X_COREML_FP16_MODEL = `${URL_PREFIX}-fast-sam/${PREVIOUS_VERSION_TAG}/x/coreml/fast_sam_x_coreml_fp16.pte`;
 const FASTSAM_S_SEG_MODEL =
   Platform.OS === 'ios'
     ? FASTSAM_S_COREML_FP16_MODEL
@@ -1100,13 +1103,13 @@ export const FASTSAM_X = {
 /**
  * @category Models - Instance Segmentation
  */
-const YOLO26N_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/n/xnnpack/yolo26_seg_n_xnnpack_fp32.pte`;
-const YOLO26S_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/s/xnnpack/yolo26_seg_s_xnnpack_fp32.pte`;
-const YOLO26M_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/m/xnnpack/yolo26_seg_m_xnnpack_fp32.pte`;
-const YOLO26L_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/l/xnnpack/yolo26_seg_l_xnnpack_fp32.pte`;
-const YOLO26X_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${VERSION_TAG}/x/xnnpack/yolo26_seg_x_xnnpack_fp32.pte`;
-export const RF_DETR_NANO_SEG_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`;
-export const RF_DETR_NANO_SEG_COREML_INT8_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`;
+const YOLO26N_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${PREVIOUS_VERSION_TAG}/n/xnnpack/yolo26_seg_n_xnnpack_fp32.pte`;
+const YOLO26S_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${PREVIOUS_VERSION_TAG}/s/xnnpack/yolo26_seg_s_xnnpack_fp32.pte`;
+const YOLO26M_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${PREVIOUS_VERSION_TAG}/m/xnnpack/yolo26_seg_m_xnnpack_fp32.pte`;
+const YOLO26L_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${PREVIOUS_VERSION_TAG}/l/xnnpack/yolo26_seg_l_xnnpack_fp32.pte`;
+const YOLO26X_SEG_MODEL = `${URL_PREFIX}-yolo26-seg/${PREVIOUS_VERSION_TAG}/x/xnnpack/yolo26_seg_x_xnnpack_fp32.pte`;
+export const RF_DETR_NANO_SEG_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${PREVIOUS_VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`;
+export const RF_DETR_NANO_SEG_COREML_INT8_MODEL = `${URL_PREFIX}-rfdetr-nano-segmentation/${PREVIOUS_VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`;
 const RF_DETR_NANO_SEG_MODEL =
   Platform.OS === 'ios'
     ? RF_DETR_NANO_SEG_COREML_INT8_MODEL
@@ -1160,8 +1163,8 @@ export const RF_DETR_NANO_SEG = {
 } as const;
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`;
-const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`;
 
 /**
  * @category Models - Image Embeddings
@@ -1180,20 +1183,20 @@ export const CLIP_VIT_BASE_PATCH32_IMAGE_QUANTIZED = {
 } as const;
 
 // Text Embeddings
-const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`;
-const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
-const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`;
-const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`;
-const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_fp32.pte`;
-const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
-export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`;
-export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${VERSION_TAG}/tokenizer.json`;
-const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED_MODEL = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`;
-const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_TOKENIZER = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
+const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${PREVIOUS_VERSION_TAG}/xnnpack/all_minilm_l6_v2_xnnpack_fp32.pte`;
+const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${PREVIOUS_VERSION_TAG}/xnnpack/all_mpnet_base_v2_xnnpack_fp32.pte`;
+const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${PREVIOUS_VERSION_TAG}/xnnpack/multi_qa_minilm_l6_cos_v1_xnnpack_fp32.pte`;
+const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${PREVIOUS_VERSION_TAG}/xnnpack/multi_qa_mpnet_base_dot_v1_xnnpack_fp32.pte`;
+const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${PREVIOUS_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`;
+export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED_MODEL = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`;
+const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_TOKENIZER = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 
 /**
  * @category Models - Text Embeddings
@@ -1274,8 +1277,8 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
  */
 export const PRIVACY_FILTER_OPENAI = {
   modelName: 'privacy-filter-openai',
-  modelSource: `${URL_PREFIX}-privacy-filter-openai/${VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
-  tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${VERSION_TAG}/tokenizer.json`,
+  modelSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
+  tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
   labelNames: PRIVACY_FILTER_OPENAI_LABELS,
 } as const;
 
@@ -1287,8 +1290,8 @@ export const PRIVACY_FILTER_OPENAI = {
  */
 export const PRIVACY_FILTER_NEMOTRON = {
   modelName: 'privacy-filter-nemotron',
-  modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
-  tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${VERSION_TAG}/tokenizer.json`,
+  modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
+  tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
   labelNames: PRIVACY_FILTER_NEMOTRON_LABELS,
 } as const;
 
@@ -1299,11 +1302,11 @@ export const PRIVACY_FILTER_NEMOTRON = {
  */
 export const BK_SDM_TINY_VPRED_512 = {
   modelName: 'bk-sdm-tiny-vpred-512',
-  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
-  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
-  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_text_encoder_xnnpack_fp32.pte`,
-  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_unet_xnnpack_fp32.pte`,
-  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_vae_xnnpack_fp32.pte`,
+  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/scheduler/scheduler_config.json`,
+  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/tokenizer/tokenizer.json`,
+  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_text_encoder_xnnpack_fp32.pte`,
+  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_unet_xnnpack_fp32.pte`,
+  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_vae_xnnpack_fp32.pte`,
 } as const;
 
 /**
@@ -1311,15 +1314,15 @@ export const BK_SDM_TINY_VPRED_512 = {
  */
 export const BK_SDM_TINY_VPRED_256 = {
   modelName: 'bk-sdm-tiny-vpred-256',
-  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
-  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
-  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_text_encoder_xnnpack_fp32.pte`,
-  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_unet_256_xnnpack_fp32.pte`,
-  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/xnnpack/bk_sdm_tiny_vae_256_xnnpack_fp32.pte`,
+  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/scheduler/scheduler_config.json`,
+  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/tokenizer/tokenizer.json`,
+  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_text_encoder_xnnpack_fp32.pte`,
+  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_unet_256_xnnpack_fp32.pte`,
+  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/bk_sdm_tiny_vae_256_xnnpack_fp32.pte`,
 } as const;
 
 // Voice Activity Detection
-const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`;
+const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${PREVIOUS_VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`;
 
 /**
  * @category Models - Voice Activity Detection

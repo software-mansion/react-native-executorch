@@ -534,6 +534,7 @@ removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes,
 }
 
 static float minimumYFromBox(const types::BBox &bbox) { return bbox.p1.y; }
+static float minimumXFromBox(const types::BBox &bbox) { return bbox.p1.x; }
 
 std::vector<types::DetectorBBox>
 groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
@@ -603,12 +604,32 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
       removeSmallBoxesFromArray(mergedVec, minSideThreshold, maxSideThreshold);
 
   std::ranges::sort(mergedVec, [](const auto &obj1, const auto &obj2) {
-    const auto &coords1 = obj1.bbox;
-    const auto &coords2 = obj2.bbox;
-    const float minY1 = minimumYFromBox(coords1);
-    const float minY2 = minimumYFromBox(coords2);
-    return minY1 < minY2;
+    return minimumYFromBox(obj1.bbox) < minimumYFromBox(obj2.bbox);
   });
+
+  // Group boxes whose top-Y differs by less than half the mean text height into
+  // a row, then sort within each row left-to-right by top-X. Without this,
+  // ties on minY fall back to the earlier descending-size sort, which reads as
+  // "by probability" rather than reading order.
+  float yThresh = 0.0f;
+  if (!mergedVec.empty()) {
+    float totalHeight = 0.0f;
+    for (const auto &box : mergedVec) {
+      totalHeight += minSideLength(box.bbox);
+    }
+    yThresh = (totalHeight / static_cast<float>(mergedVec.size())) * 0.5f;
+  }
+  for (auto rowBegin = mergedVec.begin(); rowBegin != mergedVec.end();) {
+    const float rowY = minimumYFromBox(rowBegin->bbox);
+    auto rowEnd =
+        std::find_if(rowBegin, mergedVec.end(), [rowY, yThresh](const auto &b) {
+          return minimumYFromBox(b.bbox) - rowY > yThresh;
+        });
+    std::sort(rowBegin, rowEnd, [](const auto &a, const auto &b) {
+      return minimumXFromBox(a.bbox) < minimumXFromBox(b.bbox);
+    });
+    rowBegin = rowEnd;
+  }
 
   std::vector<types::DetectorBBox> orderedSortedBoxes;
   orderedSortedBoxes.reserve(mergedVec.size());
