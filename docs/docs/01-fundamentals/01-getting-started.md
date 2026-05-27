@@ -150,7 +150,7 @@ Each row reflects the union of what at least one model in that family ships toda
 | Feature                | Pulls in (backends · libs) | What it powers                          |
 | ---------------------- | -------------------------- | --------------------------------------- |
 | `llm`                  | xnnpack · —                | Text-only `useLLM`                      |
-| `multimodalLLM`        | xnnpack · opencv           | Vision-language `useLLM` (image inputs) |
+| `multimodalLLM`        | xnnpack, vulkan · opencv   | Vision-language `useLLM` (image inputs) |
 | `privacyFilter`        | xnnpack · —                | `usePrivacyFilter`                      |
 | `speechToText`         | xnnpack, coreml · —        | `useSpeechToText` (Whisper)             |
 | `textToSpeech`         | xnnpack · phonemizer       | `useTextToSpeech` (Kokoro)              |

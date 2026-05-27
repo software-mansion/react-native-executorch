@@ -95,9 +95,10 @@ const ALL_LIBS = ['opencv', 'phonemizer'];
 // today (per src/constants/modelRegistry.ts). When a new variant lands for a
 // model that adds e.g. coreml or vulkan support, bump the family here.
 const FEATURE_MAP = {
-  // LLMs (text + VLM) currently ship xnnpack only.
+  // Text-only LLMs ship xnnpack only.
   llm: { backends: ['xnnpack'], libs: [] },
-  multimodalLLM: { backends: ['xnnpack'], libs: ['opencv'] },
+  // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export).
+  multimodalLLM: { backends: ['xnnpack', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers — xnnpack only.
   privacyFilter: { backends: ['xnnpack'], libs: [] },
   // Whisper ships xnnpack + coreml.
