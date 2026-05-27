@@ -12,16 +12,16 @@
 #   core-android-x86_64.tar.gz   + .sha256
 #   opencv-android-arm64-v8a.tar.gz + .sha256
 #   opencv-android-x86_64.tar.gz   + .sha256
-#   phonemizer-android-arm64-v8a.tar.gz + .sha256
-#   phonemizer-android-x86_64.tar.gz   + .sha256
 #   xnnpack-android-arm64-v8a.tar.gz + .sha256
 #   xnnpack-android-x86_64.tar.gz   + .sha256
 #   vulkan-android-arm64-v8a.tar.gz + .sha256
 #   vulkan-android-x86_64.tar.gz   + .sha256
 #   core-ios.tar.gz       + .sha256
-#   phonemizer-ios.tar.gz + .sha256
 #   xnnpack-ios.tar.gz    + .sha256
 #   coreml-ios.tar.gz     + .sha256
+#
+# Note: phonemizer ships as in-tree source (third-party/common/phonemis submodule),
+# not as a tarball.
 #
 # Note: iOS OpenCV is provided via CocoaPods (opencv-rne), not a tarball.
 #
@@ -153,11 +153,8 @@ package_merged "opencv-android-arm64-v8a" \
 package_merged "opencv-android-x86_64" \
   "opencv/x86_64"           "$ANDROID_LIBS/opencv/x86_64"
 
-package_merged "phonemizer-android-arm64-v8a" \
-  "phonemis/arm64-v8a"      "$ANDROID_LIBS/phonemis/arm64-v8a"
-
-package_merged "phonemizer-android-x86_64" \
-  "phonemis/x86_64"         "$ANDROID_LIBS/phonemis/x86_64"
+# Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+# no Android tarball is produced.
 
 # XNNPACK and Vulkan each ship as standalone shared libraries (opt-in extras).
 package_file "xnnpack-android-arm64-v8a" \
@@ -185,8 +182,8 @@ package_merged "core-ios" \
   "libs/pthreadpool"           "$IOS_DIR/libs/pthreadpool" \
   "libs/cpuinfo"               "$IOS_DIR/libs/cpuinfo"
 
-package_merged "phonemizer-ios" \
-  "libs/phonemis"              "$IOS_DIR/libs/phonemis"
+# Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+# no iOS tarball is produced.
 
 package_merged "xnnpack-ios" \
   "XnnpackBackend.xcframework" "$IOS_DIR/XnnpackBackend.xcframework"
