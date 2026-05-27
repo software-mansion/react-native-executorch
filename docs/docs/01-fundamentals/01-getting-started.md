@@ -145,25 +145,28 @@ Recognized **backends**: `xnnpack`, `coreml` (iOS-only), `vulkan` (Android-only)
 Recognized **libs**: `opencv`, `phonemizer`.
 Recognized **features** (one per documented hook):
 
-| Feature                | Pulls in (backends · libs)       | What it powers                          |
-| ---------------------- | -------------------------------- | --------------------------------------- |
-| `llm`                  | xnnpack, coreml · —              | Text-only `useLLM`                      |
-| `multimodalLLM`        | xnnpack, coreml · opencv         | Vision-language `useLLM` (image inputs) |
-| `speechToText`         | xnnpack, coreml · —              | `useSpeechToText` (Whisper)             |
-| `textToSpeech`         | xnnpack, coreml · phonemizer     | `useTextToSpeech` (Kokoro)              |
-| `vad`                  | xnnpack, coreml · —              | `useVAD`                                |
-| `textEmbeddings`       | xnnpack, coreml · —              | `useTextEmbeddings`                     |
-| `imageEmbeddings`      | xnnpack, coreml · opencv         | `useImageEmbeddings`                    |
-| `classification`       | xnnpack, coreml · opencv         | `useClassification`                     |
-| `objectDetection`      | xnnpack, coreml, vulkan · opencv | `useObjectDetection`                    |
-| `semanticSegmentation` | xnnpack, coreml, vulkan · opencv | `useSemanticSegmentation`               |
-| `instanceSegmentation` | xnnpack, coreml, vulkan · opencv | `useInstanceSegmentation`               |
-| `ocr`                  | xnnpack, coreml · opencv         | `useOCR`                                |
-| `verticalOCR`          | xnnpack, coreml · opencv         | `useVerticalOCR`                        |
-| `poseEstimation`       | xnnpack, coreml · opencv         | `usePoseEstimation`                     |
-| `styleTransfer`        | xnnpack, coreml · opencv         | `useStyleTransfer`                      |
-| `textToImage`          | xnnpack, coreml · opencv         | `useTextToImage`                        |
-| `segmentAnything`      | xnnpack, coreml · opencv         | Segment Anything / FastSAM hooks        |
+Each row reflects the union of what at least one model in that family ships today; bump it when a new variant adds a backend.
+
+| Feature                | Pulls in (backends · libs) | What it powers                          |
+| ---------------------- | -------------------------- | --------------------------------------- |
+| `llm`                  | xnnpack · —                | Text-only `useLLM`                      |
+| `multimodalLLM`        | xnnpack · opencv           | Vision-language `useLLM` (image inputs) |
+| `privacyFilter`        | xnnpack · —                | `usePrivacyFilter`                      |
+| `speechToText`         | xnnpack, coreml · —        | `useSpeechToText` (Whisper)             |
+| `textToSpeech`         | xnnpack · phonemizer       | `useTextToSpeech` (Kokoro)              |
+| `vad`                  | xnnpack · —                | `useVAD`                                |
+| `textEmbeddings`       | xnnpack · —                | `useTextEmbeddings`                     |
+| `imageEmbeddings`      | xnnpack · opencv           | `useImageEmbeddings`                    |
+| `classification`       | xnnpack, coreml · opencv   | `useClassification`                     |
+| `objectDetection`      | xnnpack, coreml · opencv   | `useObjectDetection`                    |
+| `semanticSegmentation` | xnnpack · opencv           | `useSemanticSegmentation`               |
+| `instanceSegmentation` | xnnpack, coreml · opencv   | `useInstanceSegmentation`               |
+| `ocr`                  | xnnpack · opencv           | `useOCR`                                |
+| `verticalOCR`          | xnnpack · opencv           | `useVerticalOCR`                        |
+| `poseEstimation`       | xnnpack · opencv           | `usePoseEstimation`                     |
+| `styleTransfer`        | xnnpack, coreml · opencv   | `useStyleTransfer`                      |
+| `textToImage`          | xnnpack · opencv           | `useTextToImage`                        |
+| `segmentAnything`      | xnnpack, coreml · opencv   | FastSAM / Segment-Anything hooks        |
 
 Backend platform map:
 

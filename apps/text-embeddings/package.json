@@ -40,5 +40,11 @@
     "babel-preset-expo": "~55.0.16",
     "react-refresh": "^0.18.0"
   },
-  "private": true
+  "private": true,
+  "react-native-executorch": {
+    "features": [
+      "textEmbeddings",
+      "imageEmbeddings"
+    ]
+  }
 }

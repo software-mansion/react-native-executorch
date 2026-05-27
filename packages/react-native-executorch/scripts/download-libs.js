@@ -36,7 +36,7 @@
  * Recognized values:
  *   backends:  xnnpack, coreml (iOS), vulkan (Android)
  *   libs:      opencv, phonemizer
- *   features:  llm, speechToText, textToSpeech, vad,
+ *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
  *              ocr, verticalOCR, poseEstimation, styleTransfer, textToImage, segmentAnything
@@ -91,35 +91,41 @@ const ALL_BACKENDS = ['xnnpack', 'coreml', 'vulkan'];
 const ALL_LIBS = ['opencv', 'phonemizer'];
 
 // features -> { backends, libs }
-// Each feature pulls in the minimum set required to make the matching use* hook work.
-// Backends listed are "best-effort" — they only take effect on platforms where they exist
-// (coreml=iOS, vulkan=Android), so listing both is safe.
+// Backend lists are the union of what at least one model in that family ships
+// today (per src/constants/modelRegistry.ts). When a new variant lands for a
+// model that adds e.g. coreml or vulkan support, bump the family here.
 const FEATURE_MAP = {
-  llm: { backends: ['xnnpack', 'coreml'], libs: [] },
-  multimodalLLM: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // LLMs (text + VLM) currently ship xnnpack only.
+  llm: { backends: ['xnnpack'], libs: [] },
+  multimodalLLM: { backends: ['xnnpack'], libs: ['opencv'] },
+  // Privacy filter classifiers — xnnpack only.
+  privacyFilter: { backends: ['xnnpack'], libs: [] },
+  // Whisper ships xnnpack + coreml.
   speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
-  textToSpeech: { backends: ['xnnpack', 'coreml'], libs: ['phonemizer'] },
-  vad: { backends: ['xnnpack', 'coreml'], libs: [] },
-  textEmbeddings: { backends: ['xnnpack', 'coreml'], libs: [] },
-  imageEmbeddings: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // Kokoro ships xnnpack only.
+  textToSpeech: { backends: ['xnnpack'], libs: ['phonemizer'] },
+  // FSMN VAD — xnnpack only.
+  vad: { backends: ['xnnpack'], libs: [] },
+  textEmbeddings: { backends: ['xnnpack'], libs: [] },
+  imageEmbeddings: { backends: ['xnnpack'], libs: ['opencv'] },
+  // EfficientNet ships xnnpack + coreml.
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  objectDetection: {
-    backends: ['xnnpack', 'coreml', 'vulkan'],
-    libs: ['opencv'],
-  },
-  semanticSegmentation: {
-    backends: ['xnnpack', 'coreml', 'vulkan'],
-    libs: ['opencv'],
-  },
-  instanceSegmentation: {
-    backends: ['xnnpack', 'coreml', 'vulkan'],
-    libs: ['opencv'],
-  },
-  ocr: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  verticalOCR: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  poseEstimation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
+  objectDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // YOLO-pose only.
+  poseEstimation: { backends: ['xnnpack'], libs: ['opencv'] },
+  // DeepLab/FCN/LR-ASPP/selfie — xnnpack only.
+  semanticSegmentation: { backends: ['xnnpack'], libs: ['opencv'] },
+  // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.
+  instanceSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // CRAFT + CRNN — xnnpack only.
+  ocr: { backends: ['xnnpack'], libs: ['opencv'] },
+  verticalOCR: { backends: ['xnnpack'], libs: ['opencv'] },
+  // All style-transfer presets ship xnnpack + coreml.
   styleTransfer: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  textToImage: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
+  // BK-SDM — xnnpack only.
+  textToImage: { backends: ['xnnpack'], libs: ['opencv'] },
+  // FastSAM ships xnnpack + coreml.
   segmentAnything: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
 };
 
