@@ -1,6 +1,5 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -9,6 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import Constants from 'expo-constants';
 import {
   Camera,
   useCameraDevices,
@@ -16,111 +16,13 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { createSynchronizable } from 'react-native-worklets';
-import Svg, { Path, Polygon } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
-import ClassificationTask from '../../components/vision_camera/tasks/ClassificationTask';
 import ObjectDetectionTask from '../../components/vision_camera/tasks/ObjectDetectionTask';
-import SegmentationTask from '../../components/vision_camera/tasks/SegmentationTask';
-import InstanceSegmentationTask from '../../components/vision_camera/tasks/InstanceSegmentationTask';
-import OCRTask from '../../components/vision_camera/tasks/OCRTask';
-import StyleTransferTask from '../../components/vision_camera/tasks/StyleTransferTask';
-import PoseEstimationTask from '../../components/vision_camera/tasks/PoseEstimationTask';
-// 1. Import ErrorBanner
 import ErrorBanner from '../../components/ErrorBanner';
-
-type TaskId =
-  | 'classification'
-  | 'objectDetection'
-  | 'segmentation'
-  | 'instanceSegmentation'
-  | 'poseEstimation'
-  | 'ocr'
-  | 'styleTransfer';
-type ModelId =
-  | 'classification'
-  | 'objectDetectionSsdlite'
-  | 'objectDetectionRfdetr'
-  | 'objectDetectionYolo26n'
-  | 'segmentationDeeplabResnet50'
-  | 'segmentationDeeplabResnet101'
-  | 'segmentationDeeplabMobilenet'
-  | 'segmentationLraspp'
-  | 'segmentationFcnResnet50'
-  | 'segmentationFcnResnet101'
-  | 'segmentationSelfie'
-  | 'instanceSegmentationYolo26n'
-  | 'instanceSegmentationRfdetr'
-  | 'instanceSegmentationFastsamS'
-  | 'instanceSegmentationFastsamX'
-  | 'poseEstimationYolo26n'
-  | 'ocr'
-  | 'styleTransferCandy'
-  | 'styleTransferMosaic';
-
-type TaskVariant = { id: ModelId; label: string };
-type Task = { id: TaskId; label: string; variants: TaskVariant[] };
-
-const TASKS: Task[] = [
-  {
-    id: 'classification',
-    label: 'Classify',
-    variants: [{ id: 'classification', label: 'EfficientNet V2 S' }],
-  },
-  {
-    id: 'segmentation',
-    label: 'Segment',
-    variants: [
-      { id: 'segmentationDeeplabResnet50', label: 'DeepLab ResNet50' },
-      { id: 'segmentationDeeplabResnet101', label: 'DeepLab ResNet101' },
-      { id: 'segmentationDeeplabMobilenet', label: 'DeepLab MobileNet' },
-      { id: 'segmentationLraspp', label: 'LRASPP MobileNet' },
-      { id: 'segmentationFcnResnet50', label: 'FCN ResNet50' },
-      { id: 'segmentationFcnResnet101', label: 'FCN ResNet101' },
-      { id: 'segmentationSelfie', label: 'Selfie' },
-    ],
-  },
-  {
-    id: 'instanceSegmentation',
-    label: 'Inst Seg',
-    variants: [
-      { id: 'instanceSegmentationYolo26n', label: 'YOLO26N Seg' },
-      { id: 'instanceSegmentationRfdetr', label: 'RF-DETR Nano Seg' },
-      { id: 'instanceSegmentationFastsamS', label: 'FastSAM-S' },
-      { id: 'instanceSegmentationFastsamX', label: 'FastSAM-X' },
-    ],
-  },
-  {
-    id: 'poseEstimation',
-    label: 'Pose',
-    variants: [{ id: 'poseEstimationYolo26n', label: 'YOLO26N Pose' }],
-  },
-  {
-    id: 'objectDetection',
-    label: 'Detect',
-    variants: [
-      { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
-      { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
-      { id: 'objectDetectionYolo26n', label: 'YOLO26N' },
-    ],
-  },
-  {
-    id: 'ocr',
-    label: 'OCR',
-    variants: [{ id: 'ocr', label: 'English' }],
-  },
-  {
-    id: 'styleTransfer',
-    label: 'Style',
-    variants: [
-      { id: 'styleTransferCandy', label: 'Candy' },
-      { id: 'styleTransferMosaic', label: 'Mosaic' },
-    ],
-  },
-];
 
 export default function VisionCameraScreen() {
   const insets = useSafeAreaInsets();
@@ -129,12 +31,7 @@ export default function VisionCameraScreen() {
   const [cameraPositionSync] = useState(() =>
     createSynchronizable<'front' | 'back'>('back')
   );
-  const [activeTask, setActiveTask] = useState<TaskId>('classification');
-  const [activeModel, setActiveModel] = useState<ModelId>('classification');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
-  const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>(
-    'back'
-  );
   const [fps, setFps] = useState(0);
   const [frameMs, setFrameMs] = useState(0);
   const [isReady, setIsReady] = useState(false);
@@ -142,7 +39,6 @@ export default function VisionCameraScreen() {
   const [frameOutput, setFrameOutput] = useState<ReturnType<
     typeof useFrameOutput
   > | null>(null);
-
   const [error, setError] = useState<string | null>(null);
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -150,20 +46,7 @@ export default function VisionCameraScreen() {
   const isFocused = useIsFocused();
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
-  const device =
-    devices.find((d) => d.position === cameraPosition) ?? devices[0];
-  useEffect(() => {
-    frameKillSwitch.setBlocking(true);
-    setError(null);
-    const id = setTimeout(() => {
-      frameKillSwitch.setBlocking(false);
-    }, 300);
-    return () => clearTimeout(id);
-  }, [activeModel, frameKillSwitch]);
-
-  useEffect(() => {
-    cameraPositionSync.setBlocking(cameraPosition);
-  }, [cameraPosition, cameraPositionSync]);
+  const device = devices.find((d) => d.position === 'back') ?? devices[0];
 
   const handleFpsChange = useCallback((newFps: number, newMs: number) => {
     setFps(newFps);
@@ -203,24 +86,6 @@ export default function VisionCameraScreen() {
     );
   }
 
-  const activeTaskInfo = TASKS.find((t) => t.id === activeTask)!;
-  const activeVariantLabel =
-    activeTaskInfo.variants.find((v) => v.id === activeModel)?.label ??
-    activeTaskInfo.variants[0]!.label;
-
-  const taskProps = {
-    activeModel,
-    canvasSize,
-    cameraPositionSync,
-    frameKillSwitch,
-    onFrameOutputChange: setFrameOutput,
-    onReadyChange: setIsReady,
-    onProgressChange: setDownloadProgress,
-    onGeneratingChange: handleGeneratingChange,
-    onFpsChange: handleFpsChange,
-    onErrorChange: handleErrorChange,
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
@@ -235,13 +100,12 @@ export default function VisionCameraScreen() {
         outputs={frameOutput ? [frameOutput] : []}
         isActive={isFocused}
         orientationSource="device"
-        constraints={[{ fps: 60 }]}
-        onError={(e) => {
-          console.warn('[Camera] onError', e);
-          setError(e.message);
-        }}
-        onStarted={() => console.log('[Camera] session started')}
-        onPreviewStarted={() => console.log('[Camera] preview got first frame')}
+        constraints={
+          Constants.isDevice
+            ? [{ previewStabilizationMode: 'cinematic-extended' }]
+            : []
+        }
+        onError={(e) => setError(e.message)}
       />
 
       <View
@@ -255,66 +119,24 @@ export default function VisionCameraScreen() {
         }
       />
 
-      {activeTask === 'classification' && <ClassificationTask {...taskProps} />}
-      {activeTask === 'objectDetection' && (
-        <ObjectDetectionTask
-          {...taskProps}
-          activeModel={
-            activeModel as
-              | 'objectDetectionSsdlite'
-              | 'objectDetectionRfdetr'
-              | 'objectDetectionYolo26n'
-          }
-        />
-      )}
-      {activeTask === 'segmentation' && (
-        <SegmentationTask
-          {...taskProps}
-          activeModel={
-            activeModel as
-              | 'segmentationDeeplabResnet50'
-              | 'segmentationDeeplabResnet101'
-              | 'segmentationDeeplabMobilenet'
-              | 'segmentationLraspp'
-              | 'segmentationFcnResnet50'
-              | 'segmentationFcnResnet101'
-              | 'segmentationSelfie'
-          }
-        />
-      )}
-      {activeTask === 'instanceSegmentation' && (
-        <InstanceSegmentationTask
-          {...taskProps}
-          activeModel={
-            activeModel as
-              | 'instanceSegmentationYolo26n'
-              | 'instanceSegmentationRfdetr'
-              | 'instanceSegmentationFastsamS'
-              | 'instanceSegmentationFastsamX'
-          }
-        />
-      )}
-      {activeTask === 'poseEstimation' && (
-        <PoseEstimationTask
-          {...taskProps}
-          activeModel={activeModel as 'poseEstimationYolo26n'}
-        />
-      )}
-      {activeTask === 'ocr' && <OCRTask {...taskProps} />}
-      {activeTask === 'styleTransfer' && (
-        <StyleTransferTask
-          {...taskProps}
-          activeModel={
-            activeModel as 'styleTransferCandy' | 'styleTransferMosaic'
-          }
-        />
-      )}
+      <ObjectDetectionTask
+        activeModel="objectDetectionRfdetr"
+        canvasSize={canvasSize}
+        cameraPositionSync={cameraPositionSync}
+        frameKillSwitch={frameKillSwitch}
+        onFrameOutputChange={setFrameOutput}
+        onReadyChange={setIsReady}
+        onProgressChange={setDownloadProgress}
+        onGeneratingChange={handleGeneratingChange}
+        onFpsChange={handleFpsChange}
+        onErrorChange={handleErrorChange}
+      />
 
       {!isReady && !error && (
         <View style={styles.loadingOverlay}>
           <Spinner
             visible
-            textContent={`Loading ${activeTaskInfo.label} ${(downloadProgress * 100).toFixed(0)}%`}
+            textContent={`Loading ${(downloadProgress * 100).toFixed(0)}%`}
           />
         </View>
       )}
@@ -329,94 +151,13 @@ export default function VisionCameraScreen() {
         >
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-
-        <View style={styles.titleRow} pointerEvents="none">
-          <Text style={styles.modelTitle}>{activeVariantLabel}</Text>
-          <Text style={styles.fpsText}>
-            {fps} FPS – {frameMs.toFixed(0)} ms
-          </Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsContent}
-        >
-          {TASKS.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              style={[styles.tab, activeTask === t.id && styles.tabActive]}
-              onPress={() => {
-                setActiveTask(t.id);
-                setActiveModel(t.variants[0]!.id);
-              }}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTask === t.id && styles.tabTextActive,
-                ]}
-              >
-                {t.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsContent}
-        >
-          {activeTaskInfo.variants.map((v) => (
-            <TouchableOpacity
-              key={v.id}
-              style={[
-                styles.variantChip,
-                activeModel === v.id && styles.variantChipActive,
-              ]}
-              onPress={() => setActiveModel(v.id)}
-            >
-              <Text
-                style={[
-                  styles.variantChipText,
-                  activeModel === v.id && styles.variantChipTextActive,
-                ]}
-              >
-                {v.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
 
-      <View
-        style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 16 }]}
-        pointerEvents="box-none"
-      >
-        <TouchableOpacity
-          style={styles.flipButton}
-          onPress={() =>
-            setCameraPosition((p) => (p === 'back' ? 'front' : 'back'))
-          }
-        >
-          <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-              stroke="white"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <Path
-              d="M9 13.5a3 3 0 1 0 3-3"
-              stroke="white"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-            />
-            <Polygon points="8,11 9,13.5 11,12" fill="white" />
-          </Svg>
-        </TouchableOpacity>
+      <View style={styles.landscapeTitle} pointerEvents="none">
+        <Text style={styles.modelTitle}>RF-DETR Object Detection</Text>
+        <Text style={styles.fpsText}>
+          {fps} FPS – {frameMs.toFixed(0)} ms
+        </Text>
       </View>
     </View>
   );
@@ -466,6 +207,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
   },
+  landscapeTitle: {
+    position: 'absolute',
+    right: -90,
+    top: '50%',
+    alignItems: 'center',
+    transform: [{ rotate: '90deg' }],
+    zIndex: 6,
+  },
   modelTitle: {
     color: 'white',
     fontSize: 22,
@@ -482,68 +231,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.7)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
-  },
-  tabsContent: {
-    paddingHorizontal: 12,
-    gap: 6,
-  },
-  tab: {
-    paddingHorizontal: 18,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  tabActive: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderColor: 'white',
-  },
-  tabText: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tabTextActive: { color: 'white' },
-  chipsContent: {
-    paddingHorizontal: 12,
-    gap: 6,
-  },
-  variantChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-  },
-  variantChipActive: {
-    backgroundColor: ColorPalette.primary,
-    borderColor: ColorPalette.primary,
-  },
-  variantChipText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  variantChipTextActive: { color: 'white' },
-  bottomOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 5,
-  },
-  flipButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.4)',
   },
   backButton: {
     position: 'absolute',

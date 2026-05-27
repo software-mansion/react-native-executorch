@@ -7931,7 +7931,7 @@ __metadata:
     react-native-screens: "npm:~4.24.0"
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
-    react-native-vision-camera: "npm:^5.0.6"
+    react-native-vision-camera: "patch:react-native-vision-camera@npm%3A5.0.10#~/.yarn/patches/react-native-vision-camera-npm-5.0.10-7ddd38c091.patch"
     react-native-vision-camera-worklets: "npm:^5.0.6"
     react-native-worklets: "npm:0.8.1"
     react-refresh: "npm:^0.18.0"
@@ -15321,6 +15321,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-audio-api@npm:0.12.2":
+  version: 0.12.2
+  resolution: "react-native-audio-api@npm:0.12.2"
+  dependencies:
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-worklets: ">= 0.6.0"
+  peerDependenciesMeta:
+    react-native-worklets:
+      optional: true
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/ed495058382188c8beb51ce89f2ef14d846dc0c0a07c65a7b4c71aa106fb7ea14aa8660b05fb33941c038d1a7ab2ba4ab3eb039fe481841938c45396903c6060
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.40.12":
   version: 0.40.18
   resolution: "react-native-builder-bob@npm:0.40.18"
@@ -15698,15 +15716,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:^5.0.6":
-  version: 5.0.6
-  resolution: "react-native-vision-camera@npm:5.0.6"
+"react-native-vision-camera@npm:5.0.10":
+  version: 5.0.10
+  resolution: "react-native-vision-camera@npm:5.0.10"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/03a3e853ad4771dca7e6fff03c858b0eab80d07ef200f42431f9176671b5c63acbb40c9b795899cf99a07d71df0ffd90121f7b7c80f305c772121bdb51752db9
+  checksum: 10/2b529504191bb4df1f315859adb327859c9373cdec25587f4cf2f6235d3bbfee5103a788f1a98ac679411a46307417d2e2eb77a82af150ce4a04c5b7f4955c5f
+  languageName: node
+  linkType: hard
+
+"react-native-vision-camera@patch:react-native-vision-camera@npm%3A5.0.10#~/.yarn/patches/react-native-vision-camera-npm-5.0.10-7ddd38c091.patch":
+  version: 5.0.10
+  resolution: "react-native-vision-camera@patch:react-native-vision-camera@npm%3A5.0.10#~/.yarn/patches/react-native-vision-camera-npm-5.0.10-7ddd38c091.patch::version=5.0.10&hash=ad7936"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-image: "*"
+    react-native-nitro-modules: "*"
+  checksum: 10/d694eb72e802dba9eae22b448e6ba43d547eaa1f87969206fa1bc9808aabf9159637970f0dac5323c388a49387c6cb9bb5d989adfccd74c5d2418c9cb8ddb93f
   languageName: node
   linkType: hard
 
@@ -16725,7 +16755,7 @@ __metadata:
     metro-config: "npm:^0.83.0"
     react: "npm:19.2.5"
     react-native: "npm:0.83.4"
-    react-native-audio-api: "npm:0.12.0"
+    react-native-audio-api: "npm:0.12.2"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"

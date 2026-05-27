@@ -664,7 +664,9 @@ export const YOLO26X = {
 } as const;
 
 // YOLO26 Pose Estimation
-const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${VERSION_TAG}/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte`;
+// const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${VERSION_TAG}/yolo26n/xnnpack/yolo26n-pose_xnnpack.pte`;
+const YOLO26N_POSE_MODEL =
+  'https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/main/xnnpack/yolo26_pose_n_xnnpack_fp32.pte';
 
 /**
  * @category Models - Pose Estimation

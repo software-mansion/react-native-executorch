@@ -6,6 +6,7 @@ import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
 import { TextToSpeechLLMScreen } from './screens/TextToSpeechLLMScreen';
+import { VoiceStudioScreen } from './screens/VoiceStudioScreen';
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
@@ -15,7 +16,12 @@ initExecutorch({
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<
-    'menu' | 'speech-to-text' | 'text-to-speech' | 'quiz' | 'text-to-speech-llm'
+    | 'menu'
+    | 'speech-to-text'
+    | 'text-to-speech'
+    | 'quiz'
+    | 'text-to-speech-llm'
+    | 'voice-studio'
   >('menu');
 
   const goToMenu = () => setCurrentScreen('menu');
@@ -34,6 +40,10 @@ export default function App() {
 
   if (currentScreen === 'text-to-speech-llm') {
     return <TextToSpeechLLMScreen onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'voice-studio') {
+    return <VoiceStudioScreen onBack={goToMenu} />;
   }
 
   return (
@@ -64,6 +74,12 @@ export default function App() {
           onPress={() => setCurrentScreen('text-to-speech-llm')}
         >
           <Text style={styles.buttonText}>Text to Speech - LLM Streaming</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('voice-studio')}
+        >
+          <Text style={styles.buttonText}>Voice Studio (Landscape Demo)</Text>
         </TouchableOpacity>
       </View>
     </View>

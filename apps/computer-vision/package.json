@@ -41,7 +41,7 @@
     "react-native-screens": "~4.24.0",
     "react-native-svg": "15.15.4",
     "react-native-svg-transformer": "^1.5.3",
-    "react-native-vision-camera": "^5.0.6",
+    "react-native-vision-camera": "patch:react-native-vision-camera@npm%3A5.0.10#~/.yarn/patches/react-native-vision-camera-npm-5.0.10-7ddd38c091.patch",
     "react-native-vision-camera-worklets": "^5.0.6",
     "react-native-worklets": "0.8.1"
   },
