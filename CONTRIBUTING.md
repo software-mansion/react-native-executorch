@@ -2,12 +2,12 @@ Thank you for your interest in contributing to react-native-executorch!
 
 # Ways to contribute
 
-There are several ways you can contribute to react-native-executorch
+There are several ways you can contribute to react-native-executorch:
 
 - Submit issues related to bugs or desired new features.
 - Fix outstanding issues with the existing code.
-- Export new models to ET format
-- Contribute to examples or to the documentation
+- Export new models to ET format.
+- Contribute to examples or to the documentation.
 
 ## Submitting a bug-related issue or feature request
 
@@ -59,7 +59,7 @@ cd react-native-executorch
 git remote add upstream https://github.com/software-mansion/react-native-executorch.git
 ```
 
-3. Create your develop branch
+3. Create your develop branch:
 
 ```
 git checkout -b a-descriptive-name-for-my-changes
@@ -68,17 +68,17 @@ git checkout -b a-descriptive-name-for-my-changes
 > [!CAUTION]
 > Do not work on the main branch!
 
-4. Follow installation steps in the [README.md](./README.md)
+4. Follow installation steps in the [README.md](./README.md).
 
 5. Develop your code.
-   To keep your fork up to date run
+   To keep your fork up to date run:
 
 ```
 git fetch upstream
 git rebase upstream/main
 ```
 
-After you are done writing the code push it to the remote
+After you are done writing the code push it to the remote:
 
 ```
 git push -u origin a-descriptive-name-for-my-changes
@@ -87,5 +87,5 @@ git push -u origin a-descriptive-name-for-my-changes
 6. Test your changes.
    Make sure to test on both Android and IOS. Devices are best, but naturally testing on simulator would be just fine. You can use example apps in the `apps` directory for your testing purposes.
 
-7. Open a pull request
-   For details on how to open a pull request from a fork please visit [github's documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
+7. Open a pull request.
+   For details on how to open a pull request from a fork please visit [github's documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
