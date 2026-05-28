@@ -140,6 +140,9 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
     } catch (e) {
       console.error('Generation failed:', e);
     } finally {
+      // LLM finished — partition any trailing un-terminated tail so it gets
+      // synthesized before the stream closes.
+      tts.streamFlush();
       tts.streamStop(false);
       await ttsPromise;
 
