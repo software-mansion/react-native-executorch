@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PaperProvider, FAB } from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
 import {
   View,
+  Text,
   Pressable,
   StyleSheet,
   KeyboardAvoidingView,
@@ -19,51 +20,36 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { presets, presetOrder, buildTheme } from '../../assets/presets';
 import GradientBackground from '../../components/GradientBackground';
-import FlagLayer from '../../components/FlagLayer';
 import ThemedTextInput, {
   type ThemedTextInputHandle,
 } from '../../components/ThemedTextInput';
 
 // ---------------------------------------------------------------------------
-// BACKGROUND VISIBILITY — tweak these to control intensity of gradient & flag
+// BACKGROUND VISIBILITY — tweak gradient intensity
 // ---------------------------------------------------------------------------
 const GRADIENT_INTENSITY = 1.0; // gradient top visibility (0 = flat, 1 = full)
-const FLAG_OPACITY = 0.05; // background flag watermark opacity (0–1)
-const FLAG_FONT_SIZE = 360; // emoji flag pixel size
 const FLAG_H_MARGIN = 0; // horizontal margin from screen edges (px)
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // ANIMATION PARAMETERS — control the preset-switching transition animation
-// ----------------------------------------------x-----------------------------
-const ANIM_DURATION = 800; // total crossfade duration (ms)
+// ---------------------------------------------------------------------------
+const ANIM_DURATION = 500; // total crossfade duration (ms)
 // ---------------------------------------------------------------------------
 
-function computeFlagOpacity(
-  flagId: string,
-  activeId: string,
-  pendingId: string | null,
-  progress: number
-): number {
-  'worklet';
-  let base = 0;
-  if (pendingId === flagId) {
-    base = progress;
-  } else if (activeId === flagId) {
-    base = pendingId ? 1 - progress : 1;
-  }
-  return base * FLAG_OPACITY;
+function alpha(hex: string, a: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${a})`;
 }
 
 function GemmaXKokoroScreen() {
   const [text, setText] = useState('');
-  const [fabOpen, setFabOpen] = useState(false);
   const [activePresetId, setActivePresetId] = useState(presetOrder[0]);
   const [pendingPresetId, setPendingPresetId] = useState<string | null>(null);
-  const [pressedFABId, setPressedFABId] = useState<string | null>(null);
   const isAnimating = useRef(false);
   const animProgress = useSharedValue(1);
-  const backdropProgress = useSharedValue(0);
   const inputRef = useRef<ThemedTextInputHandle>(null);
 
   const activeIdSV = useSharedValue(presetOrder[0]);
@@ -84,57 +70,6 @@ function GemmaXKokoroScreen() {
   const pendingLayerStyle = useAnimatedStyle(() => ({
     opacity: pendingIdSV.value ? animProgress.value : 0,
   }));
-
-  const flagStyles: Record<string, ReturnType<typeof useAnimatedStyle>> = {
-    us: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'us',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-    es: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'es',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-    fr: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'fr',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-    in: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'in',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-    pl: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'pl',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-    de: useAnimatedStyle(() => ({
-      opacity: computeFlagOpacity(
-        'de',
-        activeIdSV.value,
-        pendingIdSV.value,
-        animProgress.value
-      ),
-    })),
-  };
 
   const triggerTransition = (newId: string) => {
     if (newId === activePresetId) return;
@@ -169,33 +104,6 @@ function GemmaXKokoroScreen() {
     pendingIdSV.value = pendingPresetId;
   }, [pendingPresetId, pendingIdSV]);
 
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropProgress.value,
-  }));
-
-  useEffect(() => {
-    backdropProgress.value = withTiming(fabOpen ? 1 : 0, {
-      duration: 200,
-      easing: Easing.inOut(Easing.ease),
-    });
-  }, [fabOpen, backdropProgress]);
-
-  const fabActions = presetOrder.map((id) => {
-    const p = presets[id];
-    const isPressed = pressedFABId === id;
-    return {
-      icon: 'flag',
-      label: `${p.flag} ${p.label}`,
-      color: isPressed ? '#FFFFFF' : p.ui.fabBackground,
-      onPress: () => {
-        setPressedFABId(id);
-        triggerTransition(p.id);
-        setFabOpen(false);
-        setTimeout(() => setPressedFABId(null), 300);
-      },
-    };
-  });
-
   return (
     <PaperProvider theme={theme}>
       <KeyboardAvoidingView
@@ -212,8 +120,6 @@ function GemmaXKokoroScreen() {
             horizontalMargin={FLAG_H_MARGIN}
           />
 
-          <FlagLayer flagStyles={flagStyles} flagFontSize={FLAG_FONT_SIZE} />
-
           <ThemedTextInput
             ref={inputRef}
             text={text}
@@ -224,6 +130,58 @@ function GemmaXKokoroScreen() {
             pendingLayerStyle={pendingLayerStyle}
           />
 
+          <View style={styles.languageRow}>
+            {presetOrder.map((id) => {
+              const preset = presets[id];
+              const isActive = id === activePresetId;
+              return (
+                <Pressable
+                  key={id}
+                  onPress={() => triggerTransition(id)}
+                  style={({ pressed }) => [
+                    styles.languageButton,
+                    {
+                      backgroundColor: isActive
+                        ? preset.ui.fabBackground
+                        : alpha(preset.ui.fabBackground, 0.12),
+                      borderColor: isActive
+                        ? preset.ui.fabIcon
+                        : alpha(preset.ui.fabIcon, 0.2),
+                      borderWidth: isActive ? 2.5 : 1,
+                      transform: [{ scale: pressed ? 0.97 : 1 }],
+                      opacity: pressed ? 0.85 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.languageFlag,
+                      {
+                        color: isActive
+                          ? preset.ui.fabIcon
+                          : alpha(preset.ui.fabIcon, 0.45),
+                      },
+                    ]}
+                  >
+                    {preset.flag}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.languageLabel,
+                      {
+                        color: isActive
+                          ? preset.ui.fabIcon
+                          : alpha(preset.ui.fabIcon, 0.45),
+                      },
+                    ]}
+                  >
+                    {preset.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
           <Pressable
             style={styles.content}
             onPress={() => {
@@ -231,58 +189,6 @@ function GemmaXKokoroScreen() {
               Keyboard.dismiss();
             }}
           />
-
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: activePreset.paperTheme.backdrop },
-              backdropStyle,
-            ]}
-            pointerEvents={fabOpen ? 'auto' : 'none'}
-          >
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setFabOpen(false)}
-            />
-          </Animated.View>
-          <Animated.View
-            style={[StyleSheet.absoluteFill, activeLayerStyle]}
-            pointerEvents="box-none"
-          >
-            <FAB.Group
-              open={fabOpen}
-              visible={true}
-              icon={fabOpen ? 'close' : 'dots-horizontal'}
-              actions={fabActions}
-              onStateChange={({ open }) => setFabOpen(open)}
-              style={styles.fabGroup}
-              fabStyle={{
-                backgroundColor: activePreset.ui.fabBackground,
-                borderRadius: 28,
-              }}
-              color={activePreset.ui.fabIcon}
-              backdropColor="transparent"
-            />
-          </Animated.View>
-          <Animated.View
-            style={[StyleSheet.absoluteFill, pendingLayerStyle]}
-            pointerEvents="box-none"
-          >
-            <FAB.Group
-              open={fabOpen}
-              visible={true}
-              icon={fabOpen ? 'close' : 'dots-horizontal'}
-              actions={fabActions}
-              onStateChange={({ open }) => setFabOpen(open)}
-              style={styles.fabGroup}
-              fabStyle={{
-                backgroundColor: pendingPreset.ui.fabBackground,
-                borderRadius: 28,
-              }}
-              color={pendingPreset.ui.fabIcon}
-              backdropColor="transparent"
-            />
-          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </PaperProvider>
@@ -304,9 +210,27 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  fabGroup: {
-    position: 'absolute',
-    right: 16,
-    bottom: 24,
+  languageRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    gap: 10,
+  },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    height: 52,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+  },
+  languageFlag: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  languageLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });
