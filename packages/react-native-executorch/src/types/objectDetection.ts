@@ -36,15 +36,15 @@ export interface Detection<L extends LabelEnum = typeof CocoLabel> {
  * Options for configuring object detection inference.
  * @category Types
  * @typeParam L - The label enum type for filtering classes of interest.
- * @property {number} [detectionThreshold] - Minimum confidence score for detections (0-1). Defaults to model-specific value.
- * @property {number} [iouThreshold] - IoU threshold for non-maximum suppression (0-1). Defaults to model-specific value.
- * @property {number} [inputSize] - Input size for multi-method models (e.g., 384, 512, 640 for YOLO). Required for YOLO models if not using default.
- * @property {(keyof L)[]} [classesOfInterest] - Optional array of class labels to filter detections. Only detections matching these classes will be returned.
  */
 export interface ObjectDetectionOptions<L extends LabelEnum> {
+  /** Minimum confidence score for detections (0-1). Defaults to the model preset's value. */
   detectionThreshold?: number;
+  /** IoU threshold for non-maximum suppression (0-1). Defaults to the model preset's `defaultIouThreshold`. */
   iouThreshold?: number;
+  /** Input size for multi-method models (e.g. 384/512/640 for YOLO). */
   inputSize?: number;
+  /** Restrict output to these class labels. */
   classesOfInterest?: (keyof L)[];
 }
 
@@ -60,7 +60,8 @@ export type ObjectDetectionModelSources =
   | { modelName: 'yolo26s'; modelSource: ResourceSource }
   | { modelName: 'yolo26m'; modelSource: ResourceSource }
   | { modelName: 'yolo26l'; modelSource: ResourceSource }
-  | { modelName: 'yolo26x'; modelSource: ResourceSource };
+  | { modelName: 'yolo26x'; modelSource: ResourceSource }
+  | { modelName: 'blazeface'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in object detection model names.
@@ -72,18 +73,28 @@ export type ObjectDetectionModelName = ObjectDetectionModelSources['modelName'];
  * Configuration for a custom object detection model.
  * @category Types
  * @typeParam T - The label enum type for the model.
- * @property {T} labelMap - The label mapping for the model.
- * @property {object} [preprocessorConfig] - Optional preprocessing configuration with normalization parameters.
- * @property {number} [defaultDetectionThreshold] - Default detection confidence threshold (0-1).
- * @property {number} [defaultIouThreshold] - Default IoU threshold for non-maximum suppression (0-1).
- * @property {readonly number[]} [availableInputSizes] - For multi-method models, the available input sizes (e.g., [384, 512, 640]).
- * @property {number} [defaultInputSize] - For multi-method models, the default input size to use.
  */
 export type ObjectDetectionConfig<T extends LabelEnum> = {
+  /** The label mapping for the model. */
   labelMap: T;
+  /** Optional input normalisation: `(pixel - normMean) / normStd`. */
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
+  /** Default detection confidence threshold (0-1). */
   defaultDetectionThreshold?: number;
+  /** Default IoU threshold for non-maximum suppression (0-1). Overridable per-call via {@link ObjectDetectionOptions.iouThreshold}. */
   defaultIouThreshold?: number;
+  /**
+   * NMS algorithm baked into the model preset. Architectural — not per-call tuneable.
+   * - `'greedy'` (default): standard NMS, suits detectors whose anchors are independently accurate (YOLO, SSDLite, RF-DETR).
+   * - `'weighted'`: score-weighted box blending, required for ensemble-trained detectors like BlazeFace.
+   */
+  nmsMode?: 'greedy' | 'weighted';
+  /**
+   * Whether the model expects aspect-preserving fit + center-pad (letterbox) preprocessing
+   * instead of plain stretch resize. Architectural property of the model — not per-call tuneable.
+   * BlazeFace requires letterbox; YOLO/SSDLite/RF-DETR do not.
+   */
+  useLetterbox?: boolean;
 } & (
   | {
       availableInputSizes: readonly number[];

@@ -48,8 +48,9 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
    */
   confidenceThreshold?: number;
   /**
-   * IoU threshold for non-maximum suppression.
-   * Defaults to model's defaultIouThreshold (typically 0.5).
+   * IoU threshold for non-maximum suppression (0-1). Defaults to the model
+   * preset's `defaultIouThreshold`. Ignored for models whose preset disables
+   * external NMS (`postprocessorConfig.applyNMS: false`, e.g. YOLO-seg which is NMS-free)
    */
   iouThreshold?: number;
   /**
@@ -89,9 +90,25 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
     normMean?: Triple<number>;
     normStd?: Triple<number>;
   };
+  /**
+   * `applyNMS: false` for models that produce already-deduplicated detections
+   * (e.g. YOLO-seg, where NMS runs inside the model graph). Property of the
+   * model architecture — not user-tuneable per call.
+   */
   postprocessorConfig?: { applyNMS?: boolean };
   defaultConfidenceThreshold?: number;
+  /**
+   * Default IoU threshold for non-maximum suppression (0-1). Overridable per-call
+   * via {@link InstanceSegmentationOptions.iouThreshold}. Has no effect when
+   * `postprocessorConfig.applyNMS` is `false`.
+   */
   defaultIouThreshold?: number;
+  /**
+   * NMS algorithm baked into the model preset. Architectural — not per-call tuneable.
+   * - `'greedy'` (default): standard NMS, suits detectors whose anchors are independently accurate.
+   * - `'weighted'`: score-weighted box blending, required for ensemble-trained detectors.
+   */
+  nmsMode?: 'greedy' | 'weighted';
 } & (
   | {
       availableInputSizes: readonly number[];

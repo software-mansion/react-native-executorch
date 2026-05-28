@@ -30,6 +30,7 @@ const MODELS: ModelOption<ObjectDetectionModelSources>[] = [
   { label: 'YOLO26M', value: objectDetection.yolo26m() },
   { label: 'YOLO26L', value: objectDetection.yolo26l() },
   { label: 'YOLO26X', value: objectDetection.yolo26x() },
+  { label: 'BlazeFace', value: objectDetection.blazeface() },
 ];
 import ErrorBanner from '../../components/ErrorBanner';
 

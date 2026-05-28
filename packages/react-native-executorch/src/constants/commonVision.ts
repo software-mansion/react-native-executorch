@@ -211,3 +211,14 @@ export enum CocoLabelYolo {
 export enum FastSAMLabel {
   OBJECT = 0,
 }
+
+/**
+ * Class label for BlazeFace face detection.
+ *
+ * BlazeFace is a single-class face detector. The exported model emits a flat
+ * class tensor of zeros for every anchor.
+ * @category Types
+ */
+export enum BlazeFaceLabel {
+  FACE = 0,
+}

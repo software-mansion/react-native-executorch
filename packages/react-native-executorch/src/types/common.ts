@@ -145,6 +145,7 @@ export type LabelEnum = Readonly<Record<string, number | string>>;
  * @category Types
  */
 export type Triple<T> = readonly [T, T, T];
+
 /**
  * Represents raw pixel data in RGB format for vision models.
  *

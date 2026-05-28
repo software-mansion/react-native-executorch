@@ -45,6 +45,7 @@ type ModelId =
   | 'objectDetectionSsdlite'
   | 'objectDetectionRfdetr'
   | 'objectDetectionYolo26n'
+  | 'objectDetectionBlazeface'
   | 'segmentationDeeplabResnet50'
   | 'segmentationDeeplabResnet101'
   | 'segmentationDeeplabMobilenet'
@@ -105,6 +106,7 @@ const TASKS: Task[] = [
       { id: 'objectDetectionSsdlite', label: 'SSDLite MobileNet' },
       { id: 'objectDetectionRfdetr', label: 'RF-DETR Nano' },
       { id: 'objectDetectionYolo26n', label: 'YOLO26N' },
+      { id: 'objectDetectionBlazeface', label: 'BlazeFace' },
     ],
   },
   {
@@ -270,6 +272,7 @@ export default function VisionCameraScreen() {
               | 'objectDetectionSsdlite'
               | 'objectDetectionRfdetr'
               | 'objectDetectionYolo26n'
+              | 'objectDetectionBlazeface'
           }
         />
       )}

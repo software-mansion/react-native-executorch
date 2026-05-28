@@ -14,6 +14,16 @@ namespace models::object_detection {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
+/// Affine transform from model-input pixel coords back to source-image coords:
+/// `x_src = x_model * scaleX + offsetX`. Covers both plain stretch (offsets
+/// zero) and letterbox (offsets carry the centre-pad).
+struct BoxTransform {
+  float scaleX;
+  float scaleY;
+  float offsetX;
+  float offsetY;
+};
+
 /**
  * @brief Object detection model that detects and localises objects in images.
  *
@@ -75,15 +85,18 @@ public:
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
   generateFromString(std::string imageSource, double detectionThreshold,
                      double iouThreshold, std::vector<int32_t> classIndices,
-                     std::string methodName);
+                     std::string methodName, bool useWeightedNms,
+                     bool useLetterbox);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                     double detectionThreshold, double iouThreshold,
-                    std::vector<int32_t> classIndices, std::string methodName);
+                    std::vector<int32_t> classIndices, std::string methodName,
+                    bool useWeightedNms, bool useLetterbox);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
   generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold,
                      double iouThreshold, std::vector<int32_t> classIndices,
-                     std::string methodName);
+                     std::string methodName, bool useWeightedNms,
+                     bool useLetterbox);
 
 protected:
   /**
@@ -99,7 +112,8 @@ protected:
   std::vector<types::Detection>
   runInference(cv::Mat image, double detectionThreshold, double iouThreshold,
                const std::vector<int32_t> &classIndices,
-               const std::string &methodName);
+               const std::string &methodName, bool useWeightedNms,
+               bool useLetterbox);
 
 private:
   /**
@@ -121,9 +135,9 @@ private:
    *         the size of @ref labelNames_.
    */
   std::vector<types::Detection>
-  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
+  postprocess(const std::vector<EValue> &tensors, const BoxTransform &transform,
               double detectionThreshold, double iouThreshold,
-              const std::vector<int32_t> &classIndices);
+              const std::vector<int32_t> &classIndices, bool useWeightedNms);
 
   /**
    * @brief Ensures the specified method is loaded, unloading any previous

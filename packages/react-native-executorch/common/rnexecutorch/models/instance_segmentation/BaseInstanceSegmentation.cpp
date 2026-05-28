@@ -57,7 +57,8 @@ TensorPtr BaseInstanceSegmentation::buildInputTensor(const cv::Mat &image) {
 std::vector<types::Instance> BaseInstanceSegmentation::runInference(
     const cv::Mat &image, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, const std::vector<int32_t> &classIndices,
-    bool returnMaskAtOriginalResolution, const std::string &methodName) {
+    bool returnMaskAtOriginalResolution, const std::string &methodName,
+    bool useWeightedNms) {
 
   std::scoped_lock lock(inference_mutex_);
 
@@ -86,34 +87,37 @@ std::vector<types::Instance> BaseInstanceSegmentation::runInference(
   auto instances = collectInstances(
       forwardResult.get(), originalSize, modelInputSize, confidenceThreshold,
       classIndices, returnMaskAtOriginalResolution);
-  return finalizeInstances(std::move(instances), iouThreshold, maxInstances);
+  return finalizeInstances(std::move(instances), iouThreshold, maxInstances,
+                           useWeightedNms);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromString(
     std::string imageSource, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, std::string methodName) {
+    bool returnMaskAtOriginalResolution, std::string methodName,
+    bool useWeightedNms) {
 
   cv::Mat imageBGR = image_processing::readImage(imageSource);
   cv::Mat imageRGB;
   cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
 
   return runInference(imageRGB, confidenceThreshold, iouThreshold, maxInstances,
-                      classIndices, returnMaskAtOriginalResolution, methodName);
+                      classIndices, returnMaskAtOriginalResolution, methodName,
+                      useWeightedNms);
 }
 
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
     jsi::Runtime &runtime, const jsi::Value &frameData,
     double confidenceThreshold, double iouThreshold, int32_t maxInstances,
     std::vector<int32_t> classIndices, bool returnMaskAtOriginalResolution,
-    std::string methodName) {
+    std::string methodName, bool useWeightedNms) {
 
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = utils::rotateFrameForModel(frame, orient);
-  auto instances =
-      runInference(rotated, confidenceThreshold, iouThreshold, maxInstances,
-                   classIndices, returnMaskAtOriginalResolution, methodName);
+  auto instances = runInference(
+      rotated, confidenceThreshold, iouThreshold, maxInstances, classIndices,
+      returnMaskAtOriginalResolution, methodName, useWeightedNms);
   for (auto &inst : instances) {
     utils::inverseRotateBbox(inst.bbox, orient, rotated.size());
     // Inverse-rotate the mask to match the screen orientation
@@ -131,11 +135,13 @@ std::vector<types::Instance> BaseInstanceSegmentation::generateFromFrame(
 std::vector<types::Instance> BaseInstanceSegmentation::generateFromPixels(
     JSTensorViewIn tensorView, double confidenceThreshold, double iouThreshold,
     int32_t maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, std::string methodName) {
+    bool returnMaskAtOriginalResolution, std::string methodName,
+    bool useWeightedNms) {
 
   cv::Mat image = extractFromPixels(tensorView);
   return runInference(image, confidenceThreshold, iouThreshold, maxInstances,
-                      classIndices, returnMaskAtOriginalResolution, methodName);
+                      classIndices, returnMaskAtOriginalResolution, methodName,
+                      useWeightedNms);
 }
 
 std::tuple<utils::computer_vision::BBox, float, int32_t>
@@ -296,11 +302,14 @@ void BaseInstanceSegmentation::ensureMethodLoaded(
 
 std::vector<types::Instance> BaseInstanceSegmentation::finalizeInstances(
     std::vector<types::Instance> instances, double iouThreshold,
-    int32_t maxInstances) const {
+    int32_t maxInstances, bool useWeightedNms) const {
 
   if (applyNMS_) {
-    instances =
-        utils::computer_vision::nonMaxSuppression(instances, iouThreshold);
+    instances = useWeightedNms
+                    ? utils::computer_vision::weightedNonMaxSuppression(
+                          instances, iouThreshold)
+                    : utils::computer_vision::nonMaxSuppression(instances,
+                                                                iouThreshold);
   }
 
   if (std::cmp_greater(instances.size(), maxInstances)) {

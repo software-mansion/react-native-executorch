@@ -8,6 +8,7 @@ import {
   useObjectDetection,
   CocoLabel,
   CocoLabelYolo,
+  BlazeFaceLabel,
 } from 'react-native-executorch';
 import BoundingBoxes from '../../BoundingBoxes';
 import { FRAME_TARGET_RESOLUTION, TaskProps } from './types';
@@ -16,7 +17,8 @@ const objectDetection = models.object_detection;
 type ObjModelId =
   | 'objectDetectionSsdlite'
   | 'objectDetectionRfdetr'
-  | 'objectDetectionYolo26n';
+  | 'objectDetectionYolo26n'
+  | 'objectDetectionBlazeface';
 
 type Props = TaskProps & { activeModel: ObjModelId };
 
@@ -44,13 +46,18 @@ export default function ObjectDetectionTask({
     model: objectDetection.yolo26n(),
     preventLoad: activeModel !== 'objectDetectionYolo26n',
   });
+  const blazeface = useObjectDetection({
+    model: objectDetection.blazeface(),
+    preventLoad: activeModel !== 'objectDetectionBlazeface',
+  });
 
-  const active =
-    activeModel === 'objectDetectionSsdlite'
-      ? ssdlite
-      : activeModel === 'objectDetectionRfdetr'
-        ? rfdetr
-        : yolo26n;
+  const detectors = {
+    objectDetectionSsdlite: ssdlite,
+    objectDetectionRfdetr: rfdetr,
+    objectDetectionYolo26n: yolo26n,
+    objectDetectionBlazeface: blazeface,
+  } satisfies Record<ObjModelId, unknown>;
+  const active = detectors[activeModel];
 
   type CommonDetection = Omit<Detection, 'label'> & { label: string };
 
@@ -80,7 +87,8 @@ export default function ObjectDetectionTask({
     (p: {
       results:
         | Detection<typeof CocoLabel>[]
-        | Detection<typeof CocoLabelYolo>[];
+        | Detection<typeof CocoLabelYolo>[]
+        | Detection<typeof BlazeFaceLabel>[];
       imageWidth: number;
       imageHeight: number;
     }) => {

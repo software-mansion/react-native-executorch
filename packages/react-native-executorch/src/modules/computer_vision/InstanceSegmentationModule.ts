@@ -325,6 +325,7 @@ export class InstanceSegmentationModule<
       this.modelConfig.defaultConfidenceThreshold ?? 0.5;
     const defaultIouThreshold = this.modelConfig.defaultIouThreshold ?? 0.5;
     const defaultInputSize = this.modelConfig.defaultInputSize;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
 
     return (
       frame: Frame,
@@ -360,7 +361,8 @@ export class InstanceSegmentationModule<
         maxInstances,
         classIndices,
         returnMaskAtOriginalResolution,
-        methodName
+        methodName,
+        useWeightedNms
       );
       return nativeResults.map((inst: any) => ({
         bbox: inst.bbox,
@@ -417,6 +419,7 @@ export class InstanceSegmentationModule<
       0.5;
     const iouThreshold =
       options?.iouThreshold ?? this.modelConfig.defaultIouThreshold ?? 0.5;
+    const useWeightedNms = this.modelConfig.nmsMode === 'weighted';
     const maxInstances = options?.maxInstances ?? 100;
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;
@@ -457,7 +460,8 @@ export class InstanceSegmentationModule<
             maxInstances,
             classIndices,
             returnMaskAtOriginalResolution,
-            methodName
+            methodName,
+            useWeightedNms
           )
         : await this.nativeModule.generateFromPixels(
             input,
@@ -466,7 +470,8 @@ export class InstanceSegmentationModule<
             maxInstances,
             classIndices,
             returnMaskAtOriginalResolution,
-            methodName
+            methodName,
+            useWeightedNms
           );
 
     return nativeResult.map((inst) => ({
