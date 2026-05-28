@@ -28,6 +28,7 @@ export function useTTS(presetId: string) {
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const gainRef = useRef<any>(null);
+  const sourceRef = useRef<any>(null);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +91,7 @@ export function useTTS(presetId: string) {
 
         const source = ctx.createBufferSource();
         source.buffer = audioBuffer;
+        sourceRef.current = source;
 
         if (gainRef.current) {
           source.connect(gainRef.current);
@@ -97,7 +99,10 @@ export function useTTS(presetId: string) {
           source.connect(ctx.destination);
         }
 
-        source.onEnded = () => resolve();
+        source.onEnded = () => {
+          sourceRef.current = null;
+          resolve();
+        };
         source.start();
       });
     };

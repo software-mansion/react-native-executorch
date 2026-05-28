@@ -183,8 +183,6 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
   // The extracted text is then passed to the inner loop, which performs a
   // standard streaming on a fixed amount of input text.
   while (isStreaming_) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "[NATIVE]: at the beginning of the streaming loop...");
     std::u32string input;
 
     // Extract the code relying on input buffer for a separate mutex lock
@@ -230,9 +228,6 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
     }
 
     if (!input.empty()) {
-      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                        "[NATIVE]: processing input:",
-                        phonemis::utils::conversions::u32_to_utf8(input));
       // Now we proceed with a standard streaming logic for fixed-size input.
       // Start with preprocessing the input once.
       std::u32string buffer = phonemizer_.preprocess(input);
@@ -328,9 +323,6 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
     }
   }
 
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[NATIVE]: finishing the streaming...");
-
   {
     std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
     inputTextBuffer_.clear();
@@ -424,9 +416,6 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
 }
 
 void Kokoro::streamInsert(std::u32string chunk) noexcept {
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[NATIVE]: inserting new chunk:",
-                    phonemis::utils::conversions::u32_to_utf8(chunk));
   std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
   inputTextBuffer_.append(chunk);
 }
