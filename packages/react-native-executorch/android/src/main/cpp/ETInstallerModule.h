@@ -24,7 +24,7 @@ public:
 
   static void registerNatives();
 
-  void injectJSIBindings();
+  void injectJSIBindings(jni::alias_ref<jstring> cacheDirPath);
 
 private:
   friend HybridBase;

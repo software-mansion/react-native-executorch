@@ -43,8 +43,9 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
     }
   };
   bool isEmulator = TARGET_OS_SIMULATOR;
+  std::string cacheDir = [NSTemporaryDirectory() UTF8String];
   rnexecutorch::RnExecutorchInstaller::injectJSIBindings(
-      jsiRuntime, jsCallInvoker, fetchUrl, isEmulator);
+      jsiRuntime, jsCallInvoker, fetchUrl, cacheDir, isEmulator);
 
   NSLog(@"Successfully installed JSI bindings for react-native-executorch!");
   return @true;

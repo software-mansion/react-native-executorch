@@ -14,6 +14,11 @@ namespace rnexecutorch {
 // to this variable. It's done to not handle SSL intricacies manually, as it is
 // done automagically in ObjC++/Kotlin.
 extern FetchUrlFunc_t fetchUrlFunc;
+// App-private writable directory bound by the platform layer (see
+// RnExecutorchInstaller.cpp). Used in place of std::filesystem::
+// temp_directory_path() because the latter points to /data/local/tmp on
+// Android <13, which is not writable by app processes.
+extern std::string cacheDir;
 namespace image_processing {
 std::vector<float> colorMatToVector(const cv::Mat &mat) {
   return colorMatToVector(mat, cv::Scalar(0.0, 0.0, 0.0),
@@ -64,8 +69,7 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
 std::string saveToTempFile(const cv::Mat &image) {
   std::string filename = "rn_executorch_" + file_utils::getTimeID() + ".png";
 
-  std::filesystem::path tempDir = std::filesystem::temp_directory_path();
-  std::filesystem::path filePath = tempDir / filename;
+  std::filesystem::path filePath = std::filesystem::path(cacheDir) / filename;
 
   if (!cv::imwrite(filePath.string(), image)) {
     throw RnExecutorchError(RnExecutorchErrorCode::FileWriteFailed,

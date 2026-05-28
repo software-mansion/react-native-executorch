@@ -17,6 +17,7 @@ namespace rnexecutorch {
 
 using FetchUrlFunc_t = std::function<std::vector<std::byte>(std::string)>;
 extern FetchUrlFunc_t fetchUrlFunc;
+extern std::string cacheDir;
 using namespace facebook;
 
 class RnExecutorchInstaller {
@@ -24,7 +25,8 @@ public:
   static void
   injectJSIBindings(jsi::Runtime *jsiRuntime,
                     std::shared_ptr<react::CallInvoker> jsCallInvoker,
-                    FetchUrlFunc_t fetchDataFromUrl, bool isEmulator);
+                    FetchUrlFunc_t fetchDataFromUrl,
+                    const std::string &cacheDirPath, bool isEmulator);
 
 private:
   template <typename ModelT>
