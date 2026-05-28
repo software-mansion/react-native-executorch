@@ -14,7 +14,7 @@ type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
  * not-loaded / already-generating guards so individual hooks only need to
  * define their typed `forward` wrapper.
  * @param props - Options object containing the factory function, config, deps array, and optional preventLoad flag.
- * @returns An object with error, isReady, isGenerating, downloadProgress, runForward, instance, and runOnFrame.
+ * @returns An object with error, isReady, isGenerating, downloadProgress, runForward, runSideChannel, instance, and runOnFrame.
  * @internal
  */
 export function useModuleFactory<M extends Deletable, Config>({
@@ -89,6 +89,16 @@ export function useModuleFactory<M extends Deletable, Config>({
     }
   };
 
+  // Non-gating call path for streaming modules: only checks `isReady`, never
+  // `isGenerating`. Lets side-channel methods (e.g. `streamInsert` buffer push,
+  // `streamStop` interrupt signal) run while `stream`/`forward` is in flight.
+  const runSideChannel = <R>(fn: (instance: M) => R): R => {
+    if (!isReady || !instance) {
+      throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
+    }
+    return fn(instance);
+  };
+
   const runOnFrame = useMemo(
     () =>
       instance && 'runOnFrame' in instance
@@ -103,6 +113,7 @@ export function useModuleFactory<M extends Deletable, Config>({
     isGenerating,
     downloadProgress,
     runForward,
+    runSideChannel,
     instance,
     runOnFrame,
   };
