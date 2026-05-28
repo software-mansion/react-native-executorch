@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "composite": false,
+    "noEmit": true,
+    "types": ["jest", "react", "node"]
+  },
+  "include": ["src", "__tests__"],
+  "exclude": ["node_modules", "lib"]
+}
