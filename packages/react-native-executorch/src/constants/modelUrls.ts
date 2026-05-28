@@ -1,8 +1,4 @@
 import { Platform } from 'react-native';
-import {
-  PRIVACY_FILTER_NEMOTRON_LABELS,
-  PRIVACY_FILTER_OPENAI_LABELS,
-} from './privacyFilterLabels';
 import { URL_PREFIX, PREVIOUS_VERSION_TAG } from './versions';
 
 // LLMs
@@ -1248,7 +1244,6 @@ export const PRIVACY_FILTER_OPENAI = {
   modelName: 'privacy-filter-openai',
   modelSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
-  labelNames: PRIVACY_FILTER_OPENAI_LABELS,
 } as const;
 
 /**
@@ -1261,7 +1256,6 @@ export const PRIVACY_FILTER_NEMOTRON = {
   modelName: 'privacy-filter-nemotron',
   modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
-  labelNames: PRIVACY_FILTER_NEMOTRON_LABELS,
 } as const;
 
 // Image generation

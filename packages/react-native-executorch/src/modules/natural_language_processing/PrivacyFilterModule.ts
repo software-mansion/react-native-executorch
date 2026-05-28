@@ -4,6 +4,7 @@ import {
   PrivacyFilterModelSources,
   ViterbiBiases,
 } from '../../types/privacyFilter';
+import { PRIVACY_FILTER_LABELS } from '../../constants/privacyFilterLabels';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
@@ -41,38 +42,26 @@ export class PrivacyFilterModule extends BaseModule {
   }
 
   /**
-   * Creates a Privacy Filter instance for a built-in or custom-shaped model.
-   * Pass one of the `PRIVACY_FILTER_*` constants from
-   * `react-native-executorch/constants` for a known-good config, or
-   * construct your own {@link PrivacyFilterModelSources} for a custom
-   * fine-tune.
-   * @param namedSources - Model + tokenizer resource locations and label list.
+   * Creates a Privacy Filter instance for a built-in preset. Pass one of
+   * the `PRIVACY_FILTER_*` constants from `react-native-executorch/constants`
+   * (or the matching `models.privacy_filter.*` accessor); the runner
+   * resolves the BIOES label list from `modelName`. For custom fine-tunes
+   * with a non-standard label space, use {@link fromCustomModel} instead.
+   * @param namedSources - Built-in model + tokenizer resource locations.
    * @param onDownloadProgress - Optional 0..1 download progress callback.
    * @returns A Promise resolving to a `PrivacyFilterModule` instance.
    */
-  static async fromModelName(
+  static fromModelName(
     namedSources: PrivacyFilterModelSources,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<PrivacyFilterModule> {
-    try {
-      const [modelResult, tokenizerResult] = await Promise.all([
-        ResourceFetcher.fetch(onDownloadProgress, namedSources.modelSource),
-        ResourceFetcher.fetch(undefined, namedSources.tokenizerSource),
-      ]);
-      const modelPath = modelResult?.[0];
-      const tokenizerPath = tokenizerResult?.[0];
-      if (!modelPath || !tokenizerPath) {
-        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
-      }
-      const labels = Array.from(namedSources.labelNames);
-      const biases = packViterbiBiases(namedSources.viterbiBiases);
-      return new PrivacyFilterModule(
-        await global.loadPrivacyFilter(modelPath, tokenizerPath, labels, biases)
-      );
-    } catch (error) {
-      Logger.error('Load failed:', error);
-      throw parseUnknownError(error);
-    }
+    return PrivacyFilterModule.load(
+      namedSources.modelSource,
+      namedSources.tokenizerSource,
+      PRIVACY_FILTER_LABELS[namedSources.modelName],
+      undefined,
+      onDownloadProgress
+    );
   }
 
   /**
@@ -94,16 +83,41 @@ export class PrivacyFilterModule extends BaseModule {
       onDownloadProgress?: (progress: number) => void;
     } = {}
   ): Promise<PrivacyFilterModule> {
-    return PrivacyFilterModule.fromModelName(
-      {
-        modelName: 'custom',
-        modelSource,
-        tokenizerSource,
-        labelNames,
-        viterbiBiases: options.viterbiBiases,
-      },
+    return PrivacyFilterModule.load(
+      modelSource,
+      tokenizerSource,
+      labelNames,
+      options.viterbiBiases,
       options.onDownloadProgress ?? (() => {})
     );
+  }
+
+  private static async load(
+    modelSource: ResourceSource,
+    tokenizerSource: ResourceSource,
+    labelNames: readonly string[],
+    viterbiBiases: ViterbiBiases | undefined,
+    onDownloadProgress: (progress: number) => void
+  ): Promise<PrivacyFilterModule> {
+    try {
+      const [modelResult, tokenizerResult] = await Promise.all([
+        ResourceFetcher.fetch(onDownloadProgress, modelSource),
+        ResourceFetcher.fetch(undefined, tokenizerSource),
+      ]);
+      const modelPath = modelResult?.[0];
+      const tokenizerPath = tokenizerResult?.[0];
+      if (!modelPath || !tokenizerPath) {
+        throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
+      }
+      const labels = Array.from(labelNames);
+      const biases = packViterbiBiases(viterbiBiases);
+      return new PrivacyFilterModule(
+        await global.loadPrivacyFilter(modelPath, tokenizerPath, labels, biases)
+      );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
+    }
   }
 
   /**
