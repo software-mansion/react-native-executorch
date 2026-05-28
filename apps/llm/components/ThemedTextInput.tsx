@@ -20,13 +20,15 @@ type Props = {
   pendingPreset: StylePreset;
   activeLayerStyle: object;
   pendingLayerStyle: object;
+  onSend?: (text: string) => void;
 };
 
 function renderTextInput(
   p: StylePreset,
   text: string,
   onChangeText: (text: string) => void,
-  ref: Ref<any>
+  ref: Ref<any>,
+  onSend?: (text: string) => void
 ) {
   return (
     <TextInput
@@ -44,9 +46,15 @@ function renderTextInput(
       selectionColor={p.ui.inputSelection}
       right={
         <TextInput.Icon
-          icon="arrow-up-circle"
+          icon={onSend ? 'send' : 'arrow-up-circle'}
           color={p.ui.inputIcon}
-          onPress={() => text && onChangeText('')}
+          onPress={() => {
+            if (onSend && text) {
+              onSend(text);
+            } else {
+              text && onChangeText('');
+            }
+          }}
           size={30}
         />
       }
@@ -63,6 +71,7 @@ const ThemedTextInput = forwardRef<ThemedTextInputHandle, Props>(
       pendingPreset,
       activeLayerStyle,
       pendingLayerStyle,
+      onSend,
     },
     ref
   ) => {
@@ -90,10 +99,16 @@ const ThemedTextInput = forwardRef<ThemedTextInputHandle, Props>(
             pendingLayerStyle,
           ]}
         >
-          {renderTextInput(pendingPreset, text, onChangeText, pendingRef)}
+          {renderTextInput(
+            pendingPreset,
+            text,
+            onChangeText,
+            pendingRef,
+            onSend
+          )}
         </Animated.View>
         <Animated.View style={[{ zIndex: 2 }, activeLayerStyle]}>
-          {renderTextInput(activePreset, text, onChangeText, activeRef)}
+          {renderTextInput(activePreset, text, onChangeText, activeRef, onSend)}
         </Animated.View>
       </View>
     );

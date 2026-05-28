@@ -13,11 +13,13 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withRepeat,
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import { useTTS } from '../../hooks/useTTS';
 import { presets, presetOrder, buildTheme } from '../../assets/presets';
 import GradientBackground from '../../components/GradientBackground';
 import ThemedTextInput, {
@@ -104,6 +106,34 @@ function GemmaXKokoroScreen() {
     pendingIdSV.value = pendingPresetId;
   }, [pendingPresetId, pendingIdSV]);
 
+  const { handleSend, isActive, error, status } = useTTS(activePresetId);
+
+  const pulseProgress = useSharedValue(0);
+
+  const overlayPulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 + 0.25 * pulseProgress.value,
+  }));
+
+  const indicatorPulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.6 + 0.4 * pulseProgress.value,
+    transform: [{ scale: 0.95 + 0.05 * pulseProgress.value }],
+  }));
+
+  useEffect(() => {
+    if (isActive) {
+      pulseProgress.value = withRepeat(
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true
+      );
+    } else {
+      pulseProgress.value = 0;
+    }
+    return () => {
+      pulseProgress.value = 0;
+    };
+  }, [isActive, pulseProgress]);
+
   return (
     <PaperProvider theme={theme}>
       <KeyboardAvoidingView
@@ -128,7 +158,20 @@ function GemmaXKokoroScreen() {
             pendingPreset={pendingPreset}
             activeLayerStyle={activeLayerStyle}
             pendingLayerStyle={pendingLayerStyle}
+            onSend={handleSend}
           />
+
+          {!isActive && (status || error) && (
+            <View style={styles.statusRow}>
+              {error ? (
+                <Text style={styles.statusError} numberOfLines={2}>
+                  {error}
+                </Text>
+              ) : (
+                <Text style={styles.statusText}>{status}</Text>
+              )}
+            </View>
+          )}
 
           <View style={styles.languageRow}>
             {presetOrder.map((id) => {
@@ -189,6 +232,17 @@ function GemmaXKokoroScreen() {
               Keyboard.dismiss();
             }}
           />
+
+          {isActive && (
+            <Animated.View
+              style={[styles.ttsOverlay, overlayPulseStyle]}
+              pointerEvents="auto"
+            >
+              <Animated.View style={[styles.ttsIndicator, indicatorPulseStyle]}>
+                <Text style={styles.ttsIndicatorText}>{status}</Text>
+              </Animated.View>
+            </Animated.View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </PaperProvider>
@@ -232,5 +286,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.3,
+  },
+  statusRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  statusError: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#EF4444',
+  },
+  ttsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ttsIndicator: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  ttsIndicatorText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });
