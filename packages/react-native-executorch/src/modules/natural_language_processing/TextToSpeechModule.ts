@@ -170,9 +170,12 @@ export class TextToSpeechModule {
     })();
 
     while (this.isStreaming) {
+      Logger.info('[rnExecutorch] [REACT]: Inside the yielding loop...');
       if (queue.length > 0) {
+        Logger.info('[rnExecutorch] [REACT]: Yielding result...');
         yield queue.shift()!;
         if (nativeStreamFinished && queue.length === 0) {
+          Logger.info('[rnExecutorch] [REACT]: Queue empty - finishing...');
           return;
         }
         continue;

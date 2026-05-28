@@ -123,6 +123,7 @@ export function useTTS(presetId: string) {
   }, []);
 
   const stopStream = useCallback((immediate: boolean) => {
+    ttsRef.current.streamFlush();
     ttsRef.current.streamStop(immediate);
   }, []);
 
