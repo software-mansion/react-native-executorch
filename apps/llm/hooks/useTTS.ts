@@ -140,6 +140,8 @@ export function useTTS(presetId: string) {
     stopStream,
     isActive,
     isStreaming,
+    isTTSReady: ttsModel.isReady,
+    ttsDownloadProgress: ttsModel.downloadProgress,
     error,
     status,
     clearError,

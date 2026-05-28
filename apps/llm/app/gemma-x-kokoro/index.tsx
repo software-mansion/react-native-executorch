@@ -16,6 +16,8 @@ import Animated, {
   withRepeat,
   Easing,
   runOnJS,
+  interpolateColor,
+  interpolate,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -45,6 +47,119 @@ function alpha(hex: string, a: number): string {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${a})`;
+}
+
+type LanguageButtonProps = {
+  preset: (typeof presets)[string];
+  isActive: boolean;
+  isPending: boolean;
+  isTransitioning: boolean;
+  animProgress: any;
+  onPress: () => void;
+};
+
+function LanguageButton({
+  preset,
+  isActive,
+  isPending,
+  isTransitioning,
+  animProgress,
+  onPress,
+}: LanguageButtonProps) {
+  const activeBg = preset.ui.fabBackground;
+  const activeBorder = preset.ui.fabIcon;
+  const activeText = preset.ui.fabIcon;
+  const inactiveBg = alpha(preset.ui.fabBackground, 0.12);
+  const inactiveBorder = alpha(preset.ui.fabIcon, 0.2);
+  const inactiveText = alpha(preset.ui.fabIcon, 0.45);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    if (!isTransitioning) {
+      return {
+        backgroundColor: isActive ? activeBg : inactiveBg,
+        borderColor: isActive ? activeBorder : inactiveBorder,
+        borderWidth: isActive ? 2.5 : 1,
+      };
+    }
+
+    const p = animProgress.value;
+
+    if (isActive) {
+      return {
+        backgroundColor: interpolateColor(p, [0, 1], [activeBg, inactiveBg]),
+        borderColor: interpolateColor(
+          p,
+          [0, 1],
+          [activeBorder, inactiveBorder]
+        ),
+        borderWidth: interpolate(p, [0, 1], [2.5, 1]),
+      };
+    }
+
+    if (isPending) {
+      return {
+        backgroundColor: interpolateColor(p, [0, 1], [inactiveBg, activeBg]),
+        borderColor: interpolateColor(
+          p,
+          [0, 1],
+          [inactiveBorder, activeBorder]
+        ),
+        borderWidth: interpolate(p, [0, 1], [1, 2.5]),
+      };
+    }
+
+    return {
+      backgroundColor: inactiveBg,
+      borderColor: inactiveBorder,
+      borderWidth: 1,
+    };
+  });
+
+  const textStyle = useAnimatedStyle(() => {
+    if (!isTransitioning) {
+      return { color: isActive ? activeText : inactiveText };
+    }
+
+    const p = animProgress.value;
+
+    if (isActive) {
+      return { color: interpolateColor(p, [0, 1], [activeText, inactiveText]) };
+    }
+
+    if (isPending) {
+      return { color: interpolateColor(p, [0, 1], [inactiveText, activeText]) };
+    }
+
+    return { color: inactiveText };
+  });
+
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+    >
+      <Animated.View
+        style={[
+          styles.languageButton,
+          animatedStyle,
+          {
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+            opacity: pressed ? 0.85 : 1,
+          },
+        ]}
+      >
+        <Animated.Text style={[styles.languageFlag, textStyle]}>
+          {preset.flag}
+        </Animated.Text>
+        <Animated.Text style={[styles.languageLabel, textStyle]}>
+          {preset.label}
+        </Animated.Text>
+      </Animated.View>
+    </Pressable>
+  );
 }
 
 function GemmaXKokoroScreen() {
@@ -107,8 +222,16 @@ function GemmaXKokoroScreen() {
     pendingIdSV.value = pendingPresetId;
   }, [pendingPresetId, pendingIdSV]);
 
-  const { startStream, insertChunk, stopStream, isActive, error, status } =
-    useTTS(activePresetId);
+  const {
+    startStream,
+    insertChunk,
+    stopStream,
+    isActive,
+    error,
+    status,
+    isTTSReady,
+    ttsDownloadProgress,
+  } = useTTS(activePresetId);
 
   const llm = useLLM({ model: models.llm.gemma4_e2b() });
   const [isLLMGenerating, setIsLLMGenerating] = useState(false);
@@ -163,22 +286,29 @@ function GemmaXKokoroScreen() {
     [llm, startStream, stopStream, isActive]
   );
 
+  const llmLoading = !llm.isReady && !llm.error;
+  const ttsLoading = !isTTSReady;
+
   const overlayStatus = (() => {
+    if (llmLoading) {
+      return `Loading Gemma: ${(llm.downloadProgress * 100).toFixed(0)}%`;
+    }
+    if (ttsLoading) {
+      return `Loading voice: ${(ttsDownloadProgress * 100).toFixed(0)}%`;
+    }
     if (isLLMGenerating && isActive) return 'Generating & Speaking...';
     if (isLLMGenerating) return 'Generating response...';
     return status;
   })();
-  const showOverlay = isLLMGenerating || isActive;
+  const showOverlay = llmLoading || ttsLoading || isLLMGenerating || isActive;
 
-  const llmStatus =
-    !llm.isReady && !llm.error
-      ? `Loading Gemma: ${(llm.downloadProgress * 100).toFixed(0)}%`
-      : null;
+  const isTransitioning = pendingPresetId !== null;
 
   const pulseProgress = useSharedValue(0);
+  const overlayVisible = useSharedValue(0);
 
-  const overlayPulseStyle = useAnimatedStyle(() => ({
-    opacity: 0.55 + 0.25 * pulseProgress.value,
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: overlayVisible.value * (0.55 + 0.25 * pulseProgress.value),
   }));
 
   const indicatorPulseStyle = useAnimatedStyle(() => ({
@@ -188,12 +318,20 @@ function GemmaXKokoroScreen() {
 
   useEffect(() => {
     if (showOverlay) {
+      overlayVisible.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.ease),
+      });
       pulseProgress.value = withRepeat(
         withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
         -1,
         true
       );
     } else {
+      overlayVisible.value = withTiming(0, {
+        duration: 200,
+        easing: Easing.in(Easing.ease),
+      });
       pulseProgress.value = 0;
     }
     return () => {
@@ -228,68 +366,30 @@ function GemmaXKokoroScreen() {
             onSend={handleSubmit}
           />
 
-          {!showOverlay && (llmStatus || llmError || error || status) && (
+          {!showOverlay && (llmError || error || status) && (
             <View style={styles.statusRow}>
               {llmError || error ? (
                 <Text style={styles.statusError} numberOfLines={2}>
                   {llmError || error}
                 </Text>
               ) : (
-                <Text style={styles.statusText}>{llmStatus || status}</Text>
+                <Text style={styles.statusText}>{status}</Text>
               )}
             </View>
           )}
 
           <View style={styles.languageRow}>
-            {presetOrder.map((id) => {
-              const preset = presets[id];
-              const isActive = id === activePresetId;
-              return (
-                <Pressable
-                  key={id}
-                  onPress={() => triggerTransition(id)}
-                  style={({ pressed }) => [
-                    styles.languageButton,
-                    {
-                      backgroundColor: isActive
-                        ? preset.ui.fabBackground
-                        : alpha(preset.ui.fabBackground, 0.12),
-                      borderColor: isActive
-                        ? preset.ui.fabIcon
-                        : alpha(preset.ui.fabIcon, 0.2),
-                      borderWidth: isActive ? 2.5 : 1,
-                      transform: [{ scale: pressed ? 0.97 : 1 }],
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.languageFlag,
-                      {
-                        color: isActive
-                          ? preset.ui.fabIcon
-                          : alpha(preset.ui.fabIcon, 0.45),
-                      },
-                    ]}
-                  >
-                    {preset.flag}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.languageLabel,
-                      {
-                        color: isActive
-                          ? preset.ui.fabIcon
-                          : alpha(preset.ui.fabIcon, 0.45),
-                      },
-                    ]}
-                  >
-                    {preset.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {presetOrder.map((id) => (
+              <LanguageButton
+                key={id}
+                preset={presets[id]}
+                isActive={id === activePresetId}
+                isPending={id === pendingPresetId}
+                isTransitioning={isTransitioning}
+                animProgress={animProgress}
+                onPress={() => triggerTransition(id)}
+              />
+            ))}
           </View>
 
           <Pressable
@@ -300,16 +400,14 @@ function GemmaXKokoroScreen() {
             }}
           />
 
-          {showOverlay && (
-            <Animated.View
-              style={[styles.ttsOverlay, overlayPulseStyle]}
-              pointerEvents="auto"
-            >
-              <Animated.View style={[styles.ttsIndicator, indicatorPulseStyle]}>
-                <Text style={styles.ttsIndicatorText}>{overlayStatus}</Text>
-              </Animated.View>
+          <Animated.View
+            style={[styles.ttsOverlay, overlayStyle]}
+            pointerEvents={showOverlay ? 'auto' : 'none'}
+          >
+            <Animated.View style={[styles.ttsIndicator, indicatorPulseStyle]}>
+              <Text style={styles.ttsIndicatorText}>{overlayStatus}</Text>
             </Animated.View>
-          )}
+          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </PaperProvider>
