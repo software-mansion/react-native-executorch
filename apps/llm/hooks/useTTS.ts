@@ -77,7 +77,18 @@ export function useTTS(presetId: string) {
 
     try {
       const ctx = audioCtxRef.current;
-      if (!ctx) return;
+      if (!ctx) {
+        setIsPlaying(false);
+        return;
+      }
+
+      let didEnd = false;
+      const markEnded = async () => {
+        if (didEnd) return;
+        didEnd = true;
+        setIsPlaying(false);
+        await ctx.suspend();
+      };
 
       if (ctx.state === 'suspended') {
         await ctx.resume();
@@ -103,8 +114,7 @@ export function useTTS(presetId: string) {
       };
 
       const onEnd = async () => {
-        setIsPlaying(false);
-        await ctx.suspend();
+        await markEnded();
       };
 
       await ttsRef.current.stream({
@@ -114,6 +124,8 @@ export function useTTS(presetId: string) {
         onNext,
         onEnd,
       });
+
+      await markEnded();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setIsPlaying(false);

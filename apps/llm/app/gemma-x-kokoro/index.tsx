@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PaperProvider } from 'react-native-paper';
 import {
   View,
@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import { models, useLLM } from 'react-native-executorch';
 import { useTTS } from '../../hooks/useTTS';
 import { presets, presetOrder, buildTheme } from '../../assets/presets';
 import GradientBackground from '../../components/GradientBackground';
@@ -108,6 +109,57 @@ function GemmaXKokoroScreen() {
 
   const { handleSend, isActive, error, status } = useTTS(activePresetId);
 
+  const llm = useLLM({ model: models.llm.gemma4_e2b() });
+  const llmResponseRef = useRef('');
+  const [isLLMGenerating, setIsLLMGenerating] = useState(false);
+  const [llmError, setLLMError] = useState<string | null>(null);
+
+  useEffect(() => {
+    llmResponseRef.current = llm.response;
+  }, [llm.response]);
+
+  useEffect(() => {
+    if (llm.error) setLLMError(String(llm.error));
+  }, [llm.error]);
+
+  useEffect(() => {
+    if (llm.isReady) {
+      llm.configure({
+        chatConfig: {
+          systemPrompt: `You are a helpful voice assistant. Keep responses concise, natural, and under three short sentences for spoken conversation. Respond only in ${activePreset.label}.`,
+        },
+      });
+    }
+  }, [activePresetId, llm.isReady, llm.configure, activePreset.label]);
+
+  const handleSubmit = useCallback(
+    async (inputText: string) => {
+      if (!inputText.trim() || llm.isGenerating || isActive) return;
+      Keyboard.dismiss();
+      setLLMError(null);
+      setIsLLMGenerating(true);
+      try {
+        const response = await llm.sendMessage(inputText);
+        if (response) {
+          await handleSend(response);
+        }
+      } catch (_) {
+        // errors surfaced via llm.error / tts error
+      } finally {
+        setIsLLMGenerating(false);
+      }
+    },
+    [llm, handleSend, isActive]
+  );
+
+  const overlayStatus = isLLMGenerating ? 'Generating response...' : status;
+  const showOverlay = isLLMGenerating || isActive;
+
+  const llmStatus =
+    !llm.isReady && !llm.error
+      ? `Loading Gemma: ${(llm.downloadProgress * 100).toFixed(0)}%`
+      : null;
+
   const pulseProgress = useSharedValue(0);
 
   const overlayPulseStyle = useAnimatedStyle(() => ({
@@ -120,7 +172,7 @@ function GemmaXKokoroScreen() {
   }));
 
   useEffect(() => {
-    if (isActive) {
+    if (showOverlay) {
       pulseProgress.value = withRepeat(
         withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
         -1,
@@ -132,7 +184,7 @@ function GemmaXKokoroScreen() {
     return () => {
       pulseProgress.value = 0;
     };
-  }, [isActive, pulseProgress]);
+  }, [showOverlay, pulseProgress]);
 
   return (
     <PaperProvider theme={theme}>
@@ -158,17 +210,17 @@ function GemmaXKokoroScreen() {
             pendingPreset={pendingPreset}
             activeLayerStyle={activeLayerStyle}
             pendingLayerStyle={pendingLayerStyle}
-            onSend={handleSend}
+            onSend={handleSubmit}
           />
 
-          {!isActive && (status || error) && (
+          {!showOverlay && (llmStatus || llmError || error || status) && (
             <View style={styles.statusRow}>
-              {error ? (
+              {llmError || error ? (
                 <Text style={styles.statusError} numberOfLines={2}>
-                  {error}
+                  {llmError || error}
                 </Text>
               ) : (
-                <Text style={styles.statusText}>{status}</Text>
+                <Text style={styles.statusText}>{llmStatus || status}</Text>
               )}
             </View>
           )}
@@ -233,13 +285,13 @@ function GemmaXKokoroScreen() {
             }}
           />
 
-          {isActive && (
+          {showOverlay && (
             <Animated.View
               style={[styles.ttsOverlay, overlayPulseStyle]}
               pointerEvents="auto"
             >
               <Animated.View style={[styles.ttsIndicator, indicatorPulseStyle]}>
-                <Text style={styles.ttsIndicatorText}>{status}</Text>
+                <Text style={styles.ttsIndicatorText}>{overlayStatus}</Text>
               </Animated.View>
             </Animated.View>
           )}
