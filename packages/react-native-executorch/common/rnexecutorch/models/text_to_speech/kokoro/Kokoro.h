@@ -61,10 +61,23 @@ public:
   void streamInsert(std::u32string chunk) noexcept;
 
   /**
+   * Requests the streaming loop to partition and synthesize whatever is
+   * currently buffered, even if no end-of-sentence character is present.
+   *
+   * Use after the last `streamInsert` of an utterance when you want trailing
+   * un-terminated content to play out without stopping the stream. LLM-style
+   * callers feeding partial tokens typically should not call this — the
+   * model's punctuation drives natural EOS partitioning.
+   */
+  void streamFlush() noexcept;
+
+  /**
    * Signals the streaming process to stop.
    *
    * @param instant If true, stops immediately, discarding remaining buffered
-   * text. If false, finishes processing the current buffer before stopping.
+   * text. If false, drains the current buffer (force-flushing any trailing
+   * un-terminated content) before stopping — equivalent to `streamFlush()`
+   * followed by an automatic stop once the buffer empties.
    */
   void streamStop(bool instant) noexcept;
 
@@ -100,7 +113,11 @@ private:
   // --- Streaming control State ---
   std::atomic<bool> isStreaming_{false};
   std::atomic<bool> stopOnEmptyBuffer_{true};
-  int32_t streamSkippedIterations = 0;
+  // Set by `streamFlush()` or `streamStop(false)`. While true, the stream
+  // loop force-extracts the entire searchable window even when no EOS is
+  // present. Cleared once the buffer drains so subsequent inserts go back to
+  // EOS-aligned chunking.
+  std::atomic<bool> flushPending_{false};
 };
 } // namespace models::text_to_speech::kokoro
 
