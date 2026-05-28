@@ -107,16 +107,13 @@ function GemmaXKokoroScreen() {
     pendingIdSV.value = pendingPresetId;
   }, [pendingPresetId, pendingIdSV]);
 
-  const { handleSend, isActive, error, status } = useTTS(activePresetId);
+  const { startStream, insertChunk, stopStream, isActive, error, status } =
+    useTTS(activePresetId);
 
   const llm = useLLM({ model: models.llm.gemma4_e2b() });
-  const llmResponseRef = useRef('');
   const [isLLMGenerating, setIsLLMGenerating] = useState(false);
   const [llmError, setLLMError] = useState<string | null>(null);
-
-  useEffect(() => {
-    llmResponseRef.current = llm.response;
-  }, [llm.response]);
+  const processedLLMLengthRef = useRef(0);
 
   useEffect(() => {
     if (llm.error) setLLMError(String(llm.error));
@@ -132,27 +129,45 @@ function GemmaXKokoroScreen() {
     }
   }, [activePresetId, llm.isReady, llm.configure, activePreset.label]);
 
+  useEffect(() => {
+    if (llm.response && isActive) {
+      const prevLen = processedLLMLengthRef.current;
+      if (llm.response.length > prevLen) {
+        const chunk = llm.response.slice(prevLen);
+        insertChunk(chunk);
+        processedLLMLengthRef.current = llm.response.length;
+      }
+    }
+  }, [llm.response, isActive, insertChunk]);
+
   const handleSubmit = useCallback(
     async (inputText: string) => {
       if (!inputText.trim() || llm.isGenerating || isActive) return;
       Keyboard.dismiss();
       setLLMError(null);
       setIsLLMGenerating(true);
+      processedLLMLengthRef.current = 0;
+
+      const ttsPromise = startStream();
+
       try {
-        const response = await llm.sendMessage(inputText);
-        if (response) {
-          await handleSend(response);
-        }
+        await llm.sendMessage(inputText);
       } catch (_) {
-        // errors surfaced via llm.error / tts error
+        // errors surfaced via llm.error
       } finally {
+        stopStream(false);
+        await ttsPromise;
         setIsLLMGenerating(false);
       }
     },
-    [llm, handleSend, isActive]
+    [llm, startStream, stopStream, isActive]
   );
 
-  const overlayStatus = isLLMGenerating ? 'Generating response...' : status;
+  const overlayStatus = (() => {
+    if (isLLMGenerating && isActive) return 'Generating & Speaking...';
+    if (isLLMGenerating) return 'Generating response...';
+    return status;
+  })();
   const showOverlay = isLLMGenerating || isActive;
 
   const llmStatus =

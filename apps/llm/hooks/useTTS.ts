@@ -29,17 +29,17 @@ export function useTTS(presetId: string) {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const gainRef = useRef<any>(null);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isActive = ttsModel.isGenerating || isStreaming;
 
   const status = (() => {
     if (ttsModel.isGenerating) return 'Generating audio...';
-    if (isPlaying) return 'Playing...';
+    if (isStreaming) return 'Speaking...';
     if (ttsModel.isReady) return null;
     return null;
   })();
-
-  const isActive = ttsModel.isGenerating || isPlaying;
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -68,71 +68,74 @@ export function useTTS(presetId: string) {
     if (ttsModel.error) setError(String(ttsModel.error));
   }, [ttsModel.error]);
 
-  const handleSend = useCallback(async (inputText: string) => {
-    if (!inputText.trim()) return;
-
+  const startStream = useCallback(async (): Promise<void> => {
     Keyboard.dismiss();
-    setIsPlaying(true);
+    setIsStreaming(true);
     setError(null);
 
-    try {
-      const ctx = audioCtxRef.current;
-      if (!ctx) {
-        setIsPlaying(false);
-        return;
-      }
+    const ctx = audioCtxRef.current;
+    if (!ctx) {
+      setIsStreaming(false);
+      return;
+    }
 
-      let didEnd = false;
-      const markEnded = async () => {
-        if (didEnd) return;
-        didEnd = true;
-        setIsPlaying(false);
-        await ctx.suspend();
-      };
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
 
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
+    const onNext = async (audioVec: Float32Array) => {
+      return new Promise<void>((resolve) => {
+        const audioBuffer = ctx.createBuffer(1, audioVec.length, 24000);
+        audioBuffer.getChannelData(0).set(audioVec);
 
-      const onNext = async (audioVec: Float32Array) => {
-        return new Promise<void>((resolve) => {
-          const audioBuffer = ctx.createBuffer(1, audioVec.length, 24000);
-          audioBuffer.getChannelData(0).set(audioVec);
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
 
-          const source = ctx.createBufferSource();
-          source.buffer = audioBuffer;
+        if (gainRef.current) {
+          source.connect(gainRef.current);
+        } else {
+          source.connect(ctx.destination);
+        }
 
-          if (gainRef.current) {
-            source.connect(gainRef.current);
-          } else {
-            source.connect(ctx.destination);
-          }
-
-          source.onEnded = () => resolve();
-          source.start();
-        });
-      };
-
-      const onEnd = async () => {
-        await markEnded();
-      };
-
-      await ttsRef.current.stream({
-        text: inputText,
-        speed: 0.9,
-        phonemize: true,
-        onNext,
-        onEnd,
+        source.onEnded = () => resolve();
+        source.start();
       });
+    };
 
-      await markEnded();
+    try {
+      await ttsRef.current.stream({
+        speed: 0.9,
+        stopAutomatically: false,
+        onNext,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setIsPlaying(false);
+    } finally {
+      setIsStreaming(false);
+      if (ctx.state === 'running') {
+        await ctx.suspend();
+      }
     }
+  }, []);
+
+  const insertChunk = useCallback((chunk: string) => {
+    ttsRef.current.streamInsert(chunk);
+  }, []);
+
+  const stopStream = useCallback((immediate: boolean) => {
+    ttsRef.current.streamStop(immediate);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
 
-  return { handleSend, isActive, isPlaying, error, status, clearError };
+  return {
+    startStream,
+    insertChunk,
+    stopStream,
+    isActive,
+    isStreaming,
+    error,
+    status,
+    clearError,
+  };
 }
