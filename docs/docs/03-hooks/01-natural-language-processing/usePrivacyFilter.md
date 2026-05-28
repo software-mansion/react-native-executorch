@@ -53,7 +53,7 @@ try {
 
 `usePrivacyFilter` takes [`PrivacyFilterProps`](../../06-api-reference/interfaces/PrivacyFilterProps.md) that consists of:
 
-- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/interfaces/PrivacyFilterModelSources.md) — a built-in preset (`modelName` + `modelSource` + `tokenizerSource`). The label list and Viterbi defaults are resolved from `modelName`; for custom fine-tunes use [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) directly.
+- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/type-aliases/PrivacyFilterModelSources.md) — a built-in preset (`modelName` + `modelSource` + `tokenizerSource`). The label list and Viterbi defaults are resolved from `modelName`; for custom fine-tunes use [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) directly.
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/PrivacyFilterProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
