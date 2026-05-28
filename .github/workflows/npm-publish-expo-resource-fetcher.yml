@@ -1,8 +1,6 @@
 name: NPM publish expo-resource-fetcher
 
 on:
-  schedule:
-    - cron: '01 00 * * *' # Every day at 00:01 UTC
   workflow_dispatch:
     inputs:
       latest-build:

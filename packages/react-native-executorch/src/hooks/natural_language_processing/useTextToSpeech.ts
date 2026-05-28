@@ -141,6 +141,12 @@ export const useTextToSpeech = (
     [moduleInstance]
   );
 
+  const streamFlush = useCallback(() => {
+    if (moduleInstance) {
+      moduleInstance.streamFlush();
+    }
+  }, [moduleInstance]);
+
   const streamStop = useCallback(
     (instant: boolean = true) => {
       if (moduleInstance) {
@@ -157,6 +163,7 @@ export const useTextToSpeech = (
     forward,
     stream,
     streamInsert,
+    streamFlush,
     streamStop,
     downloadProgress,
   };
