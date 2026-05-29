@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
   TextToSpeechInput,
-  TextToSpeechModelConfig,
+  TextToSpeechProps,
   TextToSpeechStreamingInput,
   TextToSpeechType,
 } from '../../types/tts';
@@ -12,15 +12,13 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 /**
  * React hook for managing Text to Speech instance.
  * @category Hooks
- * @param model - Configuration object containing model config.
- * @param options - Additional options for the hook.
- * @param options.preventLoad - If true, prevents the model from loading automatically on initialization.
+ * @param props - Configuration object containing `model` (voice + Kokoro bundle) and optional `preventLoad` flag.
  * @returns Ready to use Text to Speech model.
  */
-export const useTextToSpeech = (
-  model: TextToSpeechModelConfig,
-  { preventLoad = false }: { preventLoad?: boolean } = {}
-): TextToSpeechType => {
+export const useTextToSpeech = ({
+  model,
+  preventLoad = false,
+}: TextToSpeechProps): TextToSpeechType => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

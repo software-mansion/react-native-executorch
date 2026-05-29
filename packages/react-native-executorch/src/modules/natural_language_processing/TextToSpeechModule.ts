@@ -8,16 +8,17 @@ import {
   TextToSpeechStreamingInput,
 } from '../../types/tts';
 import { Logger } from '../../common/Logger';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for Text to Speech (TTS) functionalities.
  * @category Typescript API
  */
-export class TextToSpeechModule {
-  private nativeModule: any;
+export class TextToSpeechModule extends BaseModule {
   private isStreaming: boolean = false;
 
   private constructor(nativeModule: unknown) {
+    super();
     this.nativeModule = nativeModule;
   }
 

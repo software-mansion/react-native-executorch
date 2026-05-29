@@ -77,7 +77,7 @@ export const useTextToImage = ({
     preventLoad,
   ]);
 
-  const generate = async (
+  const forward = async (
     input: string,
     imageSize?: number,
     numSteps?: number,
@@ -106,7 +106,7 @@ export const useTextToImage = ({
     isGenerating,
     downloadProgress,
     error,
-    generate,
+    forward,
     interrupt,
   };
 };

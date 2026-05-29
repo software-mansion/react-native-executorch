@@ -126,17 +126,14 @@ const _ALIGNMENT = {
       TextEmbeddingsType['forward']
     >,
   },
-  // TextToImageModule.forward is renamed to .generate on the hook return.
-  // Tracked in #1202; alignment still asserted across the renamed pair so the
-  // signatures don't silently drift.
-  textToImage_forward_to_generate: {
+  textToImage_forward: {
     inputs: true as EqualParam<
       TextToImageModule['forward'],
-      TextToImageType['generate']
+      TextToImageType['forward']
     >,
     returns: true as EqualReturn<
       TextToImageModule['forward'],
-      TextToImageType['generate']
+      TextToImageType['forward']
     >,
   },
   tokenizer_encode: {

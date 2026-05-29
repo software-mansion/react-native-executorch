@@ -12,7 +12,7 @@ import type {
   useVerticalOCR,
 } from '../../src';
 import type {
-  useExecutorchModule,
+  useExecutorch,
   useLLM,
   usePrivacyFilter,
   useSpeechToText,
@@ -56,9 +56,7 @@ const HOOK_RETURN_TYPES = {
   useTextToImage: null as unknown as HookReturn<typeof useTextToImage>,
   useVerticalOCR: null as unknown as HookReturn<typeof useVerticalOCR>,
   // general
-  useExecutorchModule: null as unknown as HookReturn<
-    typeof useExecutorchModule
-  >,
+  useExecutorch: null as unknown as HookReturn<typeof useExecutorch>,
   // natural language processing
   useLLM: null as unknown as HookReturn<typeof useLLM>,
   usePrivacyFilter: null as unknown as HookReturn<typeof usePrivacyFilter>,

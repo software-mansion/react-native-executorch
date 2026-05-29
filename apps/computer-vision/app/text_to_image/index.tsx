@@ -92,7 +92,7 @@ export default function TextToImageScreen() {
 
     try {
       const start = Date.now();
-      const output = await model.generate(input, imageSize, steps);
+      const output = await model.forward(input, imageSize, steps);
 
       if (output.length) {
         setImage(output);

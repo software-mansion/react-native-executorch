@@ -56,7 +56,9 @@ const createAudioBufferFromVector = (
 
 export const Quiz = ({ onBack }: { onBack: () => void }) => {
   // --- Hooks & State ---
-  const model = useTextToSpeech(models.text_to_speech.kokoro.en_us.santa());
+  const model = useTextToSpeech({
+    model: models.text_to_speech.kokoro.en_us.santa(),
+  });
 
   const [shuffledQuestions] = useState(() => shuffleArray(QUESTIONS));
   const [currentIndex, setCurrentIndex] = useState(0);

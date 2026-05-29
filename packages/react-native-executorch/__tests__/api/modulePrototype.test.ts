@@ -8,11 +8,6 @@ const ABSTRACT_MODULES = new Set([
   'VisionLabeledModule',
 ]);
 
-// Modules missing a `delete()` method on their prototype chain — without it,
-// the native resources allocated in `load()` / `fromXxx()` can never be
-// released, leaking memory across hook unmounts. Tracked in #1202.
-const SKIPS_DELETE = new Set(['TokenizerModule']);
-
 type ModuleClass = new (...args: never[]) => unknown;
 
 function isClassConstructor(value: unknown): value is ModuleClass {
@@ -68,13 +63,13 @@ describe('Module prototype surface', () => {
     }
   );
 
-  describe.each(modules)('%s', (name, ModuleClass) => {
-    const deleteTest = SKIPS_DELETE.has(name) ? it.skip : it;
-    deleteTest('has a reachable delete() method', () => {
+  it.each(modules)(
+    '%s has a reachable delete() method',
+    (_name, ModuleClass) => {
       const methods = reachablePublicMethods(ModuleClass);
       expect(methods.has('delete')).toBe(true);
-    });
-  });
+    }
+  );
 
   it('BaseModule itself exposes the documented base surface', () => {
     const surface = Object.getOwnPropertyNames(BaseModule.prototype).sort();

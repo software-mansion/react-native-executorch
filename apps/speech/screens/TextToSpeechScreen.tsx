@@ -81,7 +81,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedSpeaker, setSelectedSpeaker] =
     useState<TextToSpeechModelConfig>(tts.en_us.heart());
 
-  const model = useTextToSpeech(selectedSpeaker);
+  const model = useTextToSpeech({ model: selectedSpeaker });
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);

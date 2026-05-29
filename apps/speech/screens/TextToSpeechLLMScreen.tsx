@@ -48,7 +48,9 @@ export const TextToSpeechLLMScreen = ({ onBack }: TextToSpeechLLMProps) => {
   const [displayText, setDisplayText] = useState('');
   const [isTtsStreaming, setIsTtsStreaming] = useState(false);
   const llm = useLLM({ model: models.llm.llama3_2_1b() });
-  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+  const tts = useTextToSpeech({
+    model: models.text_to_speech.kokoro.en_us.heart(),
+  });
 
   const processedLengthRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);

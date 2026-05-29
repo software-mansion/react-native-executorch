@@ -183,7 +183,7 @@ export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 export * from './hooks/natural_language_processing/useVAD';
 
-export * from './hooks/general/useExecutorchModule';
+export * from './hooks/general/useExecutorch';
 
 // modules
 export * from './modules/computer_vision/ClassificationModule';

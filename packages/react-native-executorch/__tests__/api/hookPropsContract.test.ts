@@ -13,13 +13,14 @@ import type {
   StyleTransferProps,
   TextEmbeddingsProps,
   TextToImageProps,
+  TextToSpeechProps,
   TokenizerProps,
   VADProps,
   VerticalOCRProps,
 } from '../../src';
 import type {
   useClassification,
-  useExecutorchModule,
+  useExecutorch,
   useImageEmbeddings,
   useInstanceSegmentation,
   useLLM,
@@ -32,11 +33,11 @@ import type {
   useStyleTransfer,
   useTextEmbeddings,
   useTextToImage,
+  useTextToSpeech,
   useTokenizer,
   useVAD,
   useVerticalOCR,
 } from '../../src';
-import { useTextToSpeech } from '../../src';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // preventLoad presence on every *Props type. tsc errors on the `satisfies`
@@ -62,17 +63,16 @@ const PROPS_TYPES_WITH_PREVENT_LOAD = {
   StyleTransferProps: null as unknown as StyleTransferProps,
   TextEmbeddingsProps: null as unknown as TextEmbeddingsProps,
   TextToImageProps: null as unknown as TextToImageProps,
+  TextToSpeechProps: null as unknown as TextToSpeechProps,
   TokenizerProps: null as unknown as TokenizerProps,
   VADProps: null as unknown as VADProps,
   VerticalOCRProps: null as unknown as VerticalOCRProps,
 } satisfies Record<string, HasPreventLoad>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hook call shape consistency. Every public `useXxx` is expected to take a
-// single object argument, so the second positional parameter should resolve
-// to `undefined` at the type level. `useTextToSpeech` is the lone outlier —
-// it takes `(model, { preventLoad })` — and is documented as a known
-// inconsistency until the API is normalized.
+// Hook call shape consistency. Every public `useXxx` takes a single object
+// argument, so the second positional parameter must resolve to `undefined` at
+// the type level.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type SecondParam<F> = F extends (...args: infer A) => unknown ? A[1] : never;
@@ -89,7 +89,7 @@ type AssertSingleArg<F> =
 
 const _HOOKS_TAKE_SINGLE_ARG = {
   useClassification: undefined as AssertSingleArg<typeof useClassification>,
-  useExecutorchModule: undefined as AssertSingleArg<typeof useExecutorchModule>,
+  useExecutorch: undefined as AssertSingleArg<typeof useExecutorch>,
   useImageEmbeddings: undefined as AssertSingleArg<typeof useImageEmbeddings>,
   useInstanceSegmentation: undefined as AssertSingleArg<
     typeof useInstanceSegmentation
@@ -106,7 +106,7 @@ const _HOOKS_TAKE_SINGLE_ARG = {
   useStyleTransfer: undefined as AssertSingleArg<typeof useStyleTransfer>,
   useTextEmbeddings: undefined as AssertSingleArg<typeof useTextEmbeddings>,
   useTextToImage: undefined as AssertSingleArg<typeof useTextToImage>,
-  // useTextToSpeech: takes (model, { preventLoad? }) — outlier, see #1202.
+  useTextToSpeech: undefined as AssertSingleArg<typeof useTextToSpeech>,
   useTokenizer: undefined as AssertSingleArg<typeof useTokenizer>,
   useVAD: undefined as AssertSingleArg<typeof useVAD>,
   useVerticalOCR: undefined as AssertSingleArg<typeof useVerticalOCR>,
@@ -123,10 +123,7 @@ describe('Hook props + signature contracts', () => {
     );
   });
 
-  it('useTextToSpeech is the single known multi-arg hook', () => {
-    // Documented in #1202. The single-arg assertion above is opted-out for
-    // this hook so the suite stays green; remove the opt-out once the API is
-    // normalized.
-    expect(typeof useTextToSpeech).toBe('function');
+  it('every public hook takes a single object argument (compile-time)', () => {
+    expect(Object.keys(_HOOKS_TAKE_SINGLE_ARG).length).toBeGreaterThan(0);
   });
 });
