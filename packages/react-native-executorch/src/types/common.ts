@@ -34,7 +34,7 @@ export enum ScalarType {
    */
   LONG = 4,
   /**
-   * Half-precision floating point type (16-bit).
+   * Half-precision (IEEE 754 binary16) floating point type. Pair with a `Float16Array` data buffer.
    */
   HALF = 5,
   /**
@@ -109,6 +109,7 @@ export enum ScalarType {
  */
 export type TensorBuffer =
   | ArrayBuffer
+  | Float16Array
   | Float32Array
   | Float64Array
   | Int8Array

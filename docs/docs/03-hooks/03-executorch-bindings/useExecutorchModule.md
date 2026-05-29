@@ -47,7 +47,7 @@ You need more details? Check the following resources:
 
 [`TensorPtr`](../../06-api-reference/interfaces/TensorPtr.md) is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the TensorPtr holds the following information:
 
-[`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
+[`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray` (including `Float16Array` for half-precision tensors paired with `ScalarType.HALF`). For datatypes without a matching `TypedArray` — e.g. `bfloat16` — pack the raw bytes into an `ArrayBuffer` (or a `Uint16Array` view) and pass it directly.
 
 [`sizes`](../../06-api-reference/interfaces/TensorPtr.md#sizes) - Represents a shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
 
