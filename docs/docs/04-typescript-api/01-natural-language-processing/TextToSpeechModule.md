@@ -49,7 +49,7 @@ The module provides a way to generate speech using either raw text or pre-genera
 
 1.  [**`forward(text, speed, phonemize)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
     - `phonemize` defaults to `true`. When set to `false`, the input is expected to be a string of IPA phonemes.
-2.  [**`stream({ speed, phonemize, stopAutomatically, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert) and allows stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
+2.  [**`stream({ speed, phonemize, stopAutomatically, ... })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences. In contrast to `forward`, it enables inserting text chunks dynamically into the processing buffer with [**`streamInsert(text)`**](../../06-api-reference/classes/TextToSpeechModule.md#streaminsert), force-partitioning trailing un-terminated content via [**`streamFlush()`**](../../06-api-reference/classes/TextToSpeechModule.md#streamflush), and stopping generation early with [**`streamStop(instant)`**](../../06-api-reference/classes/TextToSpeechModule.md#streamstop).
 
 ### Using Phonemes
 

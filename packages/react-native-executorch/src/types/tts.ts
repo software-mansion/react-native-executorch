@@ -135,14 +135,36 @@ export interface TextToSpeechType {
   stream: (input: TextToSpeechStreamingInput) => Promise<void>;
 
   /**
-   * Inserts new text chunk into the buffer to be processed in streaming mode.
+   * Inserts a new text chunk into the buffer to be processed in streaming mode.
+   *
+   * Chunks accumulate until an end-of-sentence character (`.?!;…`) appears in
+   * the buffer, at which point they're partitioned and synthesized. If the
+   * caller stops feeding before an EOS arrives, the trailing tail will sit in
+   * the buffer until `streamFlush()` or `streamStop(false)` is called.
+   * @param textChunk - Text (or IPA phonemes) to append to the streaming buffer.
    */
   streamInsert: (textChunk: string) => void;
 
   /**
+   * Requests the streaming session to partition and synthesize whatever is
+   * currently buffered, even if no end-of-sentence character is present.
+   *
+   * Call after the final `streamInsert` of an utterance when you want
+   * trailing un-terminated content to play out without ending the stream.
+   * LLM-style callers feeding partial tokens typically should not call this —
+   * model punctuation drives natural EOS partitioning, and the residual tail
+   * is drained by `streamStop(false)` when generation completes.
+   */
+  streamFlush: () => void;
+
+  /**
    * Interrupts and stops the currently active audio generation stream.
    * @param instant If true, stops the streaming as soon as possible. Otherwise
-   *                allows the module to complete processing for the remains of the buffer.
+   *                drains the current buffer (force-flushing any trailing
+   *                un-terminated content) before stopping — equivalent to
+   *                calling {@link TextToSpeechType.streamFlush} followed by an
+   *                automatic stop once the buffer empties, so this call
+   *                always returns.
    */
   streamStop: (instant?: boolean) => void;
 }

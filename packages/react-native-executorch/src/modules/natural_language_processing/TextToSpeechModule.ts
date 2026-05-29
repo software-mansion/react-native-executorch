@@ -184,7 +184,10 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Inserts new content (text or IPA phonemes) into the buffer to be processed in streaming mode.
+   * Inserts new content (text or IPA phonemes) into the buffer to be processed
+   * in streaming mode. Trailing un-terminated content sits in the buffer
+   * until {@link TextToSpeechModule.streamFlush} or `streamStop(false)`
+   * releases it.
    * @param input - The text or phoneme fragment to append to the streaming buffer.
    */
   public streamInsert(input: string): void {
@@ -192,9 +195,19 @@ export class TextToSpeechModule {
   }
 
   /**
+   * Force-partitions whatever is currently buffered, even without an
+   * end-of-sentence character. Call after the final `streamInsert` of an
+   * utterance to play out the trailing tail without ending the stream.
+   */
+  public streamFlush(): void {
+    this.nativeModule.streamFlush();
+  }
+
+  /**
    * Stops the streaming process if there is any ongoing.
    * @param instant - If true, stops the streaming as soon as possible. Otherwise
-   *                  allows the module to complete processing for the remains of the buffer.
+   *                  drains the current buffer (force-flushing any trailing
+   *                  un-terminated content) before stopping.
    */
   public streamStop(instant: boolean = true): void {
     this.nativeModule.streamStop(instant);

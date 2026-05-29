@@ -231,6 +231,9 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
           "streamInsert"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamFlush>,
+          "streamFlush"));
     }
 
     if constexpr (meta::HasGenerateFromString<Model>) {
