@@ -1,18 +1,24 @@
 import { models } from '../../src/constants/modelRegistry';
 import {
   ClassificationModule,
+  ExecutorchModule,
   ImageEmbeddingsModule,
   InstanceSegmentationModule,
   LLMModule,
+  OCRModule,
   ObjectDetectionModule,
   PoseEstimationModule,
   PrivacyFilterModule,
   ResourceFetcher,
   SemanticSegmentationModule,
+  SpeechToTextModule,
   StyleTransferModule,
   TextEmbeddingsModule,
   TextToImageModule,
+  TextToSpeechModule,
+  TokenizerModule,
   VADModule,
+  VerticalOCRModule,
 } from '../../src';
 
 // Stub adapter: every fetch resolves to a fixed fake path, regardless of how
@@ -149,6 +155,55 @@ const constructions: Construction[] = [
       VADModule.fromModelName(models.vad.fsmn_vad()) as Promise<{
         delete: () => void;
       }>,
+  },
+  {
+    name: 'OCRModule.fromModelName',
+    ModuleClass: OCRModule,
+    build: () =>
+      OCRModule.fromModelName(models.ocr.craft({ language: 'en' })) as Promise<{
+        delete: () => void;
+      }>,
+  },
+  {
+    name: 'VerticalOCRModule.fromModelName',
+    ModuleClass: VerticalOCRModule,
+    build: () =>
+      VerticalOCRModule.fromModelName(
+        models.ocr.craft({ language: 'en' })
+      ) as Promise<{ delete: () => void }>,
+  },
+  {
+    name: 'SpeechToTextModule.fromModelName',
+    ModuleClass: SpeechToTextModule,
+    build: () =>
+      SpeechToTextModule.fromModelName(
+        models.speech_to_text.whisper_tiny_en()
+      ) as Promise<{ delete: () => void }>,
+  },
+  {
+    name: 'TextToSpeechModule.fromModelName',
+    ModuleClass: TextToSpeechModule,
+    build: () =>
+      TextToSpeechModule.fromModelName(
+        models.text_to_speech.kokoro.en_us.heart()
+      ) as Promise<{ delete: () => void }>,
+  },
+  {
+    name: 'TokenizerModule.fromModelName',
+    ModuleClass: TokenizerModule,
+    build: () =>
+      TokenizerModule.fromModelName({
+        tokenizerSource:
+          models.text_embedding.all_minilm_l6_v2().tokenizerSource,
+      }) as Promise<{ delete: () => void }>,
+  },
+  {
+    name: 'ExecutorchModule.fromModelSource',
+    ModuleClass: ExecutorchModule,
+    build: () =>
+      ExecutorchModule.fromModelSource(
+        models.text_embedding.all_minilm_l6_v2().modelSource
+      ) as Promise<{ delete: () => void }>,
   },
 ];
 
