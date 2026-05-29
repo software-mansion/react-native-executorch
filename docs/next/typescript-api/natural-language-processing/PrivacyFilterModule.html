@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.be59238c.css">
-<script src="/react-native-executorch/assets/js/runtime~main.ee8fc7a8.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.c905ed9f.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.f5c76bd9.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.9206c8ad.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -31,16 +31,14 @@
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="methods">Methods<a href="#methods" class="hash-link" aria-label="Direct link to Methods" title="Direct link to Methods" translate="no">​</a></h3>
 <p>All methods of <code>PrivacyFilterModule</code> are explained in details here: <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule"><code>PrivacyFilterModule</code> API Reference</a></p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="loading-the-model">Loading the model<a href="#loading-the-model" class="hash-link" aria-label="Direct link to Loading the model" title="Direct link to Loading the model" translate="no">​</a></h2>
-<p>To create a ready-to-use instance, call the static <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule#frommodelname"><code>fromModelName</code></a> factory with the following parameters:</p>
+<p>To create a ready-to-use instance for a built-in preset, call the static <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule#frommodelname"><code>fromModelName</code></a> factory with the following parameters:</p>
 <ul>
 <li class="">
 <p><code>namedSources</code> — Object containing:</p>
 <ul>
-<li class=""><code>modelName</code> — Model name identifier.</li>
+<li class=""><code>modelName</code> — Built-in preset identifier (<code>&#x27;privacy-filter-openai&#x27;</code> or <code>&#x27;privacy-filter-nemotron&#x27;</code>). The runner resolves the matching BIOES label list from this value.</li>
 <li class=""><code>modelSource</code> — Location of the <code>.pte</code> model binary.</li>
 <li class=""><code>tokenizerSource</code> — Location of the <code>tokenizer.json</code> file.</li>
-<li class=""><code>labelNames</code> — BIOES label list. Index 0 must be <code>&quot;O&quot;</code>; the rest must follow the model&#x27;s <code>id2label</code> mapping exactly.</li>
-<li class=""><code>viterbiBiases</code> (optional) — Six-field bias struct that shifts the decoder&#x27;s precision/recall tradeoff. Defaults to neutral (validity-only Viterbi).</li>
 </ul>
 </li>
 <li class="">
@@ -48,7 +46,7 @@
 </li>
 </ul>
 <p>The factory returns a promise that resolves to a loaded <code>PrivacyFilterModule</code> instance.</p>
-<p>For custom-exported models, use <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule#fromcustommodel"><code>fromCustomModel</code></a> instead — it takes the same fields as positional arguments and is convenient when you only have the raw resource locations.</p>
+<p>For custom-exported models with a non-standard label space, use <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule#fromcustommodel"><code>fromCustomModel</code></a> instead. It takes <code>modelSource</code>, <code>tokenizerSource</code>, and a <code>labelNames</code> array (BIOES; index 0 must be <code>&quot;O&quot;</code>, the rest must follow the model&#x27;s <code>id2label</code> mapping exactly), plus an optional <code>options</code> object with <code>viterbiBiases</code> (six-field bias struct that shifts the decoder&#x27;s precision/recall tradeoff; defaults to neutral validity-only Viterbi) and <code>onDownloadProgress</code>.</p>
 <p>For more information on loading resources, take a look at <a class="" href="/react-native-executorch/docs/next/fundamentals/loading-models">loading models</a> page.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="running-the-model">Running the model<a href="#running-the-model" class="hash-link" aria-label="Direct link to Running the model" title="Direct link to Running the model" translate="no">​</a></h2>
 <p>To run the model, call the <a class="" href="/react-native-executorch/docs/next/api-reference/classes/PrivacyFilterModule#generate"><code>generate</code></a> method on the module object with the text you want to scan. The method returns a promise that resolves to an array of detected PII entity spans. Long inputs are processed in sliding windows with 50% overlap (window size derived from the model&#x27;s exported <code>forward</code> input shape); no truncation.</p>
