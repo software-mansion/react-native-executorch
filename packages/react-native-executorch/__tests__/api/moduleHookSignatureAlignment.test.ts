@@ -1,21 +1,21 @@
 import type {
+  ExecutorchModule,
   ExecutorchModuleType,
+  ImageEmbeddingsModule,
   ImageEmbeddingsType,
+  LLMModule,
   LLMType,
+  StyleTransferModule,
   StyleTransferType,
+  TextEmbeddingsModule,
   TextEmbeddingsType,
+  TextToImageModule,
   TextToImageType,
+  TokenizerModule,
   TokenizerType,
+  VADModule,
   VADType,
 } from '../../src';
-import type { ExecutorchModule } from '../../src';
-import type { ImageEmbeddingsModule } from '../../src';
-import type { LLMModule } from '../../src';
-import type { StyleTransferModule } from '../../src';
-import type { TextEmbeddingsModule } from '../../src';
-import type { TextToImageModule } from '../../src';
-import type { TokenizerModule } from '../../src';
-import type { VADModule } from '../../src';
 
 // Compile-time alignment between every non-generic module's primary
 // inference method(s) and the matching hook return type's method(s).
@@ -102,6 +102,11 @@ const _ALIGNMENT = {
       ImageEmbeddingsType['forward']
     >,
   },
+  // LLM's primary method is `generate` (not `forward`) because it is a
+  // streaming autoregressive text-generation API — matching the HuggingFace
+  // transformers / llama.cpp / OpenAI convention — rather than a single-pass
+  // tensor I/O call. Both the module method and the hook return field are
+  // named `generate` consistently, so the alignment check still holds.
   llm_generate: {
     inputs: true as EqualParam<LLMModule['generate'], LLMType['generate']>,
     returns: true as EqualReturn<LLMModule['generate'], LLMType['generate']>,
