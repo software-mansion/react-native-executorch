@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.be59238c.css">
-<script src="/react-native-executorch/assets/js/runtime~main.52f121cd.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.0111d984.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.ee8fc7a8.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.c905ed9f.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -57,7 +57,7 @@
 <li class=""><code>phonemize</code> defaults to <code>true</code>. When set to <code>false</code>, the input is expected to be a string of IPA phonemes.</li>
 </ul>
 </li>
-<li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#stream"><strong><code>stream({ speed, phonemize, stopAutomatically, ... })</code></strong></a>: An async generator that yields chunks of audio as they are computed. This is ideal for reducing the &quot;time to first audio&quot; for long sentences. In contrast to <code>forward</code>, it enables inserting text chunks dynamically into processing buffer with <a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#streaminsert"><strong><code>streamInsert(text)</code></strong></a> and allows stopping generation early with <a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#streamstop"><strong><code>streamStop(instant)</code></strong></a>.</li>
+<li class=""><a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#stream"><strong><code>stream({ speed, phonemize, stopAutomatically, ... })</code></strong></a>: An async generator that yields chunks of audio as they are computed. This is ideal for reducing the &quot;time to first audio&quot; for long sentences. In contrast to <code>forward</code>, it enables inserting text chunks dynamically into the processing buffer with <a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#streaminsert"><strong><code>streamInsert(text)</code></strong></a>, force-partitioning trailing un-terminated content via <a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#streamflush"><strong><code>streamFlush()</code></strong></a>, and stopping generation early with <a class="" href="/react-native-executorch/docs/next/api-reference/classes/TextToSpeechModule#streamstop"><strong><code>streamStop(instant)</code></strong></a>.</li>
 </ol>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="using-phonemes">Using Phonemes<a href="#using-phonemes" class="hash-link" aria-label="Direct link to Using Phonemes" title="Direct link to Using Phonemes" translate="no">​</a></h3>
 <p>If you have pre-computed phonemes (e.g., from an external dictionary or a custom G2P model), you can skip the internal phoneme generation step by setting <code>phonemize: false</code> in the <code>forward</code> or <code>stream</code> methods.</p>
