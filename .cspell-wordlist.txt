@@ -222,3 +222,4 @@ upsamples
 artefacts
 categorisation
 chipmunked
+autoregressive
