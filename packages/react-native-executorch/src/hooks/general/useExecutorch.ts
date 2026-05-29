@@ -30,3 +30,10 @@ export const useExecutorch = ({
 
   return { error, isReady, isGenerating, downloadProgress, forward };
 };
+
+/**
+ * @deprecated Use `useExecutorch` instead. `useExecutorchModule` is kept as a
+ * temporary alias for backward compatibility and will be removed in a future
+ * release.
+ */
+export const useExecutorchModule = useExecutorch;

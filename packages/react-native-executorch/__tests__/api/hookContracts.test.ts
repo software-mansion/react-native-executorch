@@ -2,6 +2,7 @@ import type {
   RnExecutorchError,
   useClassification,
   useExecutorch,
+  useExecutorchModule,
   useImageEmbeddings,
   useInstanceSegmentation,
   useLLM,
@@ -55,6 +56,9 @@ const HOOK_RETURN_TYPES = {
   useVerticalOCR: null as unknown as HookReturn<typeof useVerticalOCR>,
   // general
   useExecutorch: null as unknown as HookReturn<typeof useExecutorch>,
+  useExecutorchModule: null as unknown as HookReturn<
+    typeof useExecutorchModule
+  >,
   // natural language processing
   useLLM: null as unknown as HookReturn<typeof useLLM>,
   usePrivacyFilter: null as unknown as HookReturn<typeof usePrivacyFilter>,

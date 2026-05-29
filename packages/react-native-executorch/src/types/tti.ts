@@ -92,6 +92,17 @@ export interface TextToImageType {
   ) => Promise<string>;
 
   /**
+   * @deprecated Use `forward` instead. `generate` is kept as a temporary alias
+   * for backward compatibility and will be removed in a future release.
+   */
+  generate: (
+    input: string,
+    imageSize?: number,
+    numSteps?: number,
+    seed?: number
+  ) => Promise<string>;
+
+  /**
    * Interrupts the currently active image generation process at the next available inference step.
    */
   interrupt: () => void;

@@ -21,6 +21,7 @@ import type {
 import type {
   useClassification,
   useExecutorch,
+  useExecutorchModule,
   useImageEmbeddings,
   useInstanceSegmentation,
   useLLM,
@@ -90,6 +91,7 @@ type AssertSingleArg<F> =
 const _HOOKS_TAKE_SINGLE_ARG = {
   useClassification: undefined as AssertSingleArg<typeof useClassification>,
   useExecutorch: undefined as AssertSingleArg<typeof useExecutorch>,
+  useExecutorchModule: undefined as AssertSingleArg<typeof useExecutorchModule>,
   useImageEmbeddings: undefined as AssertSingleArg<typeof useImageEmbeddings>,
   useInstanceSegmentation: undefined as AssertSingleArg<
     typeof useInstanceSegmentation

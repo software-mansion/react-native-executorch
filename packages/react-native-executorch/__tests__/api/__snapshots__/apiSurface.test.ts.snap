@@ -285,6 +285,7 @@ exports[`Public API surface export names match snapshot 1`] = `
   "styleTransferUrls",
   "useClassification",
   "useExecutorch",
+  "useExecutorchModule",
   "useImageEmbeddings",
   "useInstanceSegmentation",
   "useLLM",

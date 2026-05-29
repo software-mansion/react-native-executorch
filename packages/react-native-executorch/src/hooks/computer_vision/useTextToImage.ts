@@ -107,6 +107,7 @@ export const useTextToImage = ({
     downloadProgress,
     error,
     forward,
+    generate: forward,
     interrupt,
   };
 };
