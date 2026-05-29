@@ -53,7 +53,7 @@ try {
 
 `usePrivacyFilter` takes [`PrivacyFilterProps`](../../06-api-reference/interfaces/PrivacyFilterProps.md) that consists of:
 
-- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/interfaces/PrivacyFilterModelSources.md) containing the model source, tokenizer source, and BIOES label list.
+- `model` of type [`PrivacyFilterModelSources`](../../06-api-reference/type-aliases/PrivacyFilterModelSources.md) — a built-in preset (`modelName` + `modelSource` + `tokenizerSource`). The label list and Viterbi defaults are resolved from `modelName`; for custom fine-tunes use [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) directly.
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/PrivacyFilterProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
@@ -78,7 +78,7 @@ Token indices in returned entities are positions in the tokenizer's output (the 
 
 ### Tuning precision and recall
 
-Both built-in models ship with neutral, validity-only Viterbi decoding by default. If you want to shift the precision/recall tradeoff, pass an optional [`viterbiBiases`](../../06-api-reference/interfaces/PrivacyFilterModelSources.md#viterbibiases) object — six floats matching the operating-point schema in OpenAI's `viterbi_calibration.json`. Negative `backgroundToStart` makes the decoder enter spans more eagerly (higher recall); positive `backgroundStay` keeps it in the background label more often (higher precision).
+Built-in presets run with neutral, validity-only Viterbi decoding. To shift the precision/recall tradeoff, load the model directly through [`PrivacyFilterModule.fromCustomModel`](../../04-typescript-api/01-natural-language-processing/PrivacyFilterModule.md) (reusing the preset's `modelSource` / `tokenizerSource` and label list) and pass a [`viterbiBiases`](../../06-api-reference/interfaces/ViterbiBiases.md) object — six floats matching the operating-point schema in OpenAI's `viterbi_calibration.json`. Negative `backgroundToStart` makes the decoder enter spans more eagerly (higher recall); positive `backgroundStay` keeps it in the background label more often (higher precision).
 
 ## Example
 
