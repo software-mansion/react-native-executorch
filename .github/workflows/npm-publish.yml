@@ -90,9 +90,8 @@ jobs:
 
       - name: Show packed node_modules
         working-directory: ${{ env.EXECUTORCH_DIR }}
-        if: failure() && steps.node_modules.outcome == 'failure'
-        run: >-
-          ! grep -E "node_modules/.+" build.log
+        if: failure() && steps.check_node_modules.outcome == 'failure'
+        run: grep -E "node_modules/.+" build.log
 
       - name: Add package name to env
         working-directory: ${{ env.EXECUTORCH_DIR }}
