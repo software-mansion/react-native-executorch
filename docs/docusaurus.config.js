@@ -198,7 +198,7 @@ const config = {
   customFields: {
     algolia: {
       suggestedQuestions: true,
-      enableSidePanel: true,
+      enableSidePanel: false,
     },
   },
 };
