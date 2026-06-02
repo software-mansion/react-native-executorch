@@ -7,6 +7,7 @@ import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
 import { TextToSpeechLLMScreen } from './screens/TextToSpeechLLMScreen';
+import { SpeechToSpeechScreen } from './screens/SpeechToSpeechScreen';
 import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 
@@ -19,6 +20,7 @@ export default function App() {
     | 'menu'
     | 'speech-to-text'
     | 'text-to-speech'
+    | 'speech-to-speech'
     | 'quiz'
     | 'text-to-speech-llm'
     | 'vad'
@@ -40,6 +42,10 @@ export default function App() {
 
   if (currentScreen === 'quiz') {
     return <Quiz onBack={goToMenu} />;
+  }
+
+  if (currentScreen === 'speech-to-speech') {
+    return <SpeechToSpeechScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'text-to-speech-llm') {
@@ -68,6 +74,14 @@ export default function App() {
           onPress={() => setCurrentScreen('text-to-speech')}
         >
           <Text style={styles.buttonText}>Text to Speech</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('speech-to-speech')}
+        >
+          <Text style={styles.buttonText}>
+            Text to Speech — Audio Visualiser
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
