@@ -91,6 +91,12 @@ TORCH_API inline torch::executor::Tensor & gelu_outf(torch::executor::KernelRunt
 }
 
 
+// aten::grid_sampler_2d.out(Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners, *, Tensor(a!) out) -> Tensor(a!)
+TORCH_API inline torch::executor::Tensor & grid_sampler_2d_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & input, const torch::executor::Tensor & grid, int64_t interpolation_mode, int64_t padding_mode, bool align_corners, torch::executor::Tensor & out) {
+    return ::torch::executor::native::opt_grid_sampler_2d_out(context, input, grid, interpolation_mode, padding_mode, align_corners, out);
+}
+
+
 // aten::le.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)
 TORCH_API inline torch::executor::Tensor & le_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, const torch::executor::Scalar & other, torch::executor::Tensor & out) {
     return ::torch::executor::native::opt_le_scalar_out(context, self, other, out);
@@ -136,6 +142,12 @@ TORCH_API inline ::std::tuple<torch::executor::Tensor &,torch::executor::Tensor 
 // aten::sub.out(Tensor self, Tensor other, *, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)
 TORCH_API inline torch::executor::Tensor & sub_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, const torch::executor::Tensor & other, const torch::executor::Scalar & alpha, torch::executor::Tensor & out) {
     return ::torch::executor::native::opt_sub_out(context, self, other, alpha, out);
+}
+
+
+// aten::sum.IntList_out(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
+TORCH_API inline torch::executor::Tensor & sum_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::optional<torch::executor::ArrayRef<int64_t>> dim, bool keepdim, torch::executor::optional<torch::executor::ScalarType> dtype, torch::executor::Tensor & out) {
+    return ::torch::executor::native::opt_sum_dim_out(context, self, dim, keepdim, dtype, out);
 }
 
 

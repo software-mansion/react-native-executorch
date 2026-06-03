@@ -62,6 +62,12 @@ Pod::Spec.new do |s|
 
   s.libraries = "z"
   s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
+
+  # NOTE: mlx.metallib (the MLX GPU kernels) is bundled INSIDE
+  # ExecutorchLib.framework, colocated with the binary that contains the MLX
+  # code. MLX's runtime loader resolves the metallib relative to that binary
+  # (via dladdr), so it must live next to it in the framework — not at the app
+  # bundle root.
   # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files.
   # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if
