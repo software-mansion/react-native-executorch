@@ -17,7 +17,7 @@ import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';

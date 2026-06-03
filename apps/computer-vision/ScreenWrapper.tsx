@@ -1,4 +1,4 @@
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { PropsWithChildren } from 'react';
 
 export default function ScreenWrapper({ children }: PropsWithChildren) {

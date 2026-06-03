@@ -17,7 +17,7 @@ import {
   AudioRecorder,
   AudioContext,
 } from 'react-native-audio-api';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { models, useLLM } from 'react-native-executorch';
 import SendIcon from '../../assets/icons/send_icon.svg';

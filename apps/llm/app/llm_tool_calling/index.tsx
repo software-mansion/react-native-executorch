@@ -27,7 +27,7 @@ import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
 import { PermissionStatus } from 'expo';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { GeneratingContext } from '../../context';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
 

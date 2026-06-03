@@ -14,7 +14,7 @@ import { Asset } from 'expo-asset';
 /**
  * @internal
  */
-import { getInfoAsync, makeDirectoryAsync } from 'expo-file-system/legacy';
+import { Directory, File } from 'expo-file-system';
 
 export { HTTP_CODE, DownloadStatus, SourceType };
 
@@ -92,21 +92,20 @@ export namespace ResourceFetcherUtils {
   }
 
   export async function createDirectoryIfNoExists() {
-    if (!(await checkFileExists(RNEDirectory))) {
-      try {
-        await makeDirectoryAsync(RNEDirectory, { intermediates: true });
-      } catch (error) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.FileWriteFailed,
-          `Failed to create directory at ${RNEDirectory}`,
-          error
-        );
-      }
+    const directory = new Directory(RNEDirectory);
+    if (directory.exists) return;
+    try {
+      directory.create({ intermediates: true, idempotent: true });
+    } catch (error) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.FileWriteFailed,
+        `Failed to create directory at ${RNEDirectory}`,
+        error
+      );
     }
   }
 
   export async function checkFileExists(fileUri: string) {
-    const fileInfo = await getInfoAsync(fileUri);
-    return fileInfo.exists;
+    return new File(fileUri).exists;
   }
 }

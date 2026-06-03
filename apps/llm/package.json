@@ -26,7 +26,7 @@
     "expo-router": "~56.2.8",
     "expo-status-bar": "~56.0.4",
     "metro-config": "^0.84.0",
-    "react": "19.2.5",
+    "react": "19.2.3",
     "react-native": "0.85.3",
     "react-native-audio-api": "0.12.2",
     "react-native-device-info": "^15.0.2",

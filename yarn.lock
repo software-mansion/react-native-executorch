@@ -7592,7 +7592,7 @@ __metadata:
     expo-router: "npm:~56.2.8"
     expo-status-bar: "npm:~56.0.4"
     metro-config: "npm:^0.84.0"
-    react: "npm:19.2.5"
+    react: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
@@ -7602,14 +7602,14 @@ __metadata:
     react-native-loading-spinner-overlay: "npm:^3.0.1"
     react-native-nitro-image: "npm:0.13.1"
     react-native-nitro-modules: "npm:0.35.4"
-    react-native-reanimated: "npm:~4.3.0"
+    react-native-reanimated: "npm:4.3.1"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.25.2"
     react-native-svg: "npm:15.15.4"
     react-native-svg-transformer: "npm:^1.5.3"
     react-native-vision-camera: "npm:^5.0.6"
     react-native-vision-camera-worklets: "npm:^5.0.6"
-    react-native-worklets: "npm:0.8.1"
+    react-native-worklets: "npm:0.8.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
@@ -12167,7 +12167,7 @@ __metadata:
     expo-router: "npm:~56.2.8"
     expo-status-bar: "npm:~56.0.4"
     metro-config: "npm:^0.84.0"
-    react: "npm:19.2.5"
+    react: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-audio-api: "npm:0.12.2"
     react-native-device-info: "npm:^15.0.2"
@@ -14762,6 +14762,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-reanimated@npm:4.3.1":
+  version: 4.3.1
+  resolution: "react-native-reanimated@npm:4.3.1"
+  dependencies:
+    react-native-is-edge-to-edge: "npm:^1.3.1"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: 0.81 - 0.85
+    react-native-worklets: 0.8.x
+  checksum: 10/f47d50cc35def5038e68d9013bf976849207237e238ab597e0b8c07d003b0a54d73692185f1a49dc33ab3d7a9d345660a6e70796f28545a7340649806bf17b5c
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:~4.3.0":
   version: 4.3.0
   resolution: "react-native-reanimated@npm:4.3.0"
@@ -14902,6 +14916,30 @@ __metadata:
     react: "*"
     react-native: 0.81 - 0.85
   checksum: 10/4d01fc18a51c68cae24a928604c2bed62eef3b9521d21a7cbcadf92b141c4f73730917782824acd80e62e86e4bbfe5c850362b8c154103abe2c2f2ab6d2416b4
+  languageName: node
+  linkType: hard
+
+"react-native-worklets@npm:0.8.3":
+  version: 0.8.3
+  resolution: "react-native-worklets@npm:0.8.3"
+  dependencies:
+    "@babel/plugin-transform-arrow-functions": "npm:^7.27.1"
+    "@babel/plugin-transform-class-properties": "npm:^7.27.1"
+    "@babel/plugin-transform-classes": "npm:^7.28.4"
+    "@babel/plugin-transform-nullish-coalescing-operator": "npm:^7.27.1"
+    "@babel/plugin-transform-optional-chaining": "npm:^7.27.1"
+    "@babel/plugin-transform-shorthand-properties": "npm:^7.27.1"
+    "@babel/plugin-transform-template-literals": "npm:^7.27.1"
+    "@babel/plugin-transform-unicode-regex": "npm:^7.27.1"
+    "@babel/preset-typescript": "npm:^7.27.1"
+    convert-source-map: "npm:^2.0.0"
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    "@babel/core": "*"
+    "@react-native/metro-config": "*"
+    react: "*"
+    react-native: 0.81 - 0.85
+  checksum: 10/7b200ec7f0a909e3fc4294721d5dc78e10beb5cb6280a3398dbd7df47db77f8130e605c475768659110b0a7355f4361ea9e85cac40176157d622b4b2060e447a
   languageName: node
   linkType: hard
 

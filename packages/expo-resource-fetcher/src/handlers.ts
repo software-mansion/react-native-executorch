@@ -1,13 +1,4 @@
-import {
-  cacheDirectory,
-  copyAsync,
-  createDownloadResumable,
-  moveAsync,
-  FileSystemSessionType,
-  writeAsStringAsync,
-  EncodingType,
-  type DownloadResumable,
-} from 'expo-file-system/legacy';
+import { File, Paths, type DownloadTask } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { Platform } from 'react-native';
 import {
@@ -16,14 +7,10 @@ import {
   RnExecutorchError,
 } from 'react-native-executorch';
 import { RNEDirectory } from './constants/directories';
-import {
-  ResourceFetcherUtils,
-  HTTP_CODE,
-  DownloadStatus,
-} from './ResourceFetcherUtils';
+import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
 
 export interface ActiveDownload {
-  downloadResumable: DownloadResumable;
+  downloadTask: DownloadTask;
   status: DownloadStatus;
   uri: string;
   fileUri: string;
@@ -40,12 +27,14 @@ export async function handleObject(source: object): Promise<string> {
   const digest = ResourceFetcherUtils.hashObject(jsonString);
   const path = `${RNEDirectory}${digest}.json`;
 
-  if (await ResourceFetcherUtils.checkFileExists(path)) {
+  const file = new File(path);
+  if (file.exists) {
     return ResourceFetcherUtils.removeFilePrefix(path);
   }
 
   await ResourceFetcherUtils.createDirectoryIfNoExists();
-  await writeAsStringAsync(path, jsonString, { encoding: EncodingType.UTF8 });
+  file.create();
+  file.write(jsonString, { encoding: 'utf8' });
   return ResourceFetcherUtils.removeFilePrefix(path);
 }
 
@@ -75,12 +64,12 @@ export async function handleAsset(
   const fileUriWithType =
     Platform.OS === 'android' ? `${fileUri}.${asset.type}` : fileUri;
 
-  if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+  if (new File(fileUri).exists) {
     return ResourceFetcherUtils.removeFilePrefix(fileUri);
   }
 
   await ResourceFetcherUtils.createDirectoryIfNoExists();
-  await copyAsync({ from: uri, to: fileUriWithType });
+  await new File(uri).copy(new File(fileUriWithType));
   return ResourceFetcherUtils.removeFilePrefix(fileUriWithType);
 }
 
@@ -103,9 +92,9 @@ export async function handleRemote(
 
   const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
   const fileUri = `${RNEDirectory}${filename}`;
-  const cacheFileUri = `${cacheDirectory}${filename}`;
+  const cacheFileUri = `${Paths.cache.uri}${filename}`;
 
-  if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+  if (new File(fileUri).exists) {
     return {
       path: ResourceFetcherUtils.removeFilePrefix(fileUri),
       wasDownloaded: false,
@@ -124,27 +113,20 @@ export async function handleRemote(
     reject = rej;
   });
 
-  const downloadResumable = createDownloadResumable(
-    uri,
-    cacheFileUri,
-    { sessionType: FileSystemSessionType.BACKGROUND },
-    ({
-      totalBytesWritten,
-      totalBytesExpectedToWrite,
-    }: {
-      totalBytesWritten: number;
-      totalBytesExpectedToWrite: number;
-    }) => {
-      if (totalBytesExpectedToWrite === -1) {
-        progressCallback(0);
-      } else {
-        progressCallback(totalBytesWritten / totalBytesExpectedToWrite);
-      }
+  const cacheFile = new File(cacheFileUri);
+  const downloadTask = File.createDownloadTask(uri, cacheFile, {
+    sessionType: 'background',
+  });
+  downloadTask.addListener('progress', ({ bytesWritten, totalBytes }) => {
+    if (totalBytes === -1) {
+      progressCallback(0);
+    } else {
+      progressCallback(bytesWritten / totalBytes);
     }
-  );
+  });
 
   downloads.set(source, {
-    downloadResumable,
+    downloadTask,
     status: DownloadStatus.ONGOING,
     uri,
     fileUri,
@@ -153,32 +135,22 @@ export async function handleRemote(
     reject,
   });
 
-  downloadResumable
+  downloadTask
     .downloadAsync()
-    .then(async (result) => {
-      const downloadHandle = downloads.get(source);
-      // If paused or canceled during the download, resolve/reject will be called
-      // externally by resume() or cancel() — do nothing here.
-      if (!downloadHandle || downloadHandle.status === DownloadStatus.PAUSED)
-        return;
-
-      if (
-        !result ||
-        (result.status !== HTTP_CODE.OK &&
-          result.status !== HTTP_CODE.PARTIAL_CONTENT)
-      ) {
-        downloads.delete(source);
-        reject(
-          new RnExecutorchError(
-            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-            `Failed to fetch resource from '${uri}', status: ${result?.status}`
-          )
+    .then(async (downloadedFile) => {
+      // null means the task was paused before completion — resume() will continue it.
+      // missing handle means the task was canceled — cancel() already rejected.
+      if (!downloadedFile) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'Download was paused before completion.'
         );
-        return;
       }
+      const downloadHandle = downloads.get(source);
+      if (!downloadHandle) return;
 
       try {
-        await moveAsync({ from: cacheFileUri, to: fileUri });
+        await downloadedFile.move(new File(fileUri));
       } catch (error) {
         downloads.delete(source);
         reject(error);
@@ -189,8 +161,17 @@ export async function handleRemote(
       resolve(ResourceFetcherUtils.removeFilePrefix(fileUri));
     })
     .catch((error) => {
+      // If paused, the rejection is expected — cancel/resume will resolve later.
+      const downloadHandle = downloads.get(source);
+      if (downloadHandle?.status === DownloadStatus.PAUSED) return;
       downloads.delete(source);
-      reject(error);
+      reject(
+        new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+          `Failed to fetch resource from '${uri}'`,
+          error
+        )
+      );
     });
 
   return promise.then((path) => ({ path, wasDownloaded: true }));
