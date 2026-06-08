@@ -34,7 +34,7 @@ const IMAGE_MODELS: { label: string; value: ImageEmbeddingModel }[] = [
   },
 ];
 import { launchImageLibrary } from 'react-native-image-picker';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { dotProduct } from '../../utils/math';
 import { ModelPicker } from '../../components/ModelPicker';
 

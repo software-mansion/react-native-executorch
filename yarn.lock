@@ -2938,6 +2938,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/metro-runtime@npm:^56.0.14":
+  version: 56.0.14
+  resolution: "@expo/metro-runtime@npm:56.0.14"
+  dependencies:
+    "@expo/log-box": "npm:^56.0.12"
+    anser: "npm:^1.4.9"
+    pretty-format: "npm:^29.7.0"
+    stacktrace-parser: "npm:^0.1.10"
+    whatwg-fetch: "npm:^3.0.0"
+  peerDependencies:
+    "@expo/log-box": ^56.0.12
+    expo: "*"
+    react: "*"
+    react-dom: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/28bd77689c3a9752883855fea57e047b67bc174ac7a43e43b8675f651c4e731bb6602d9c4e3a53c28cfb7387b52268897164990303a7950fe57cc64242be9a23
+  languageName: node
+  linkType: hard
+
 "@expo/metro-runtime@npm:^6.1.2":
   version: 6.1.2
   resolution: "@expo/metro-runtime@npm:6.1.2"
@@ -3183,6 +3205,33 @@ __metadata:
     react-native-worklets:
       optional: true
   checksum: 10/f19ba4ed5c76273d9abb4b8291fe4adba41da9423f80deb5e747554019dcf98e303f41bb598cba8d3ee6d3f4db617ced36dab85c8b931c3b190eaa917f0bc023
+  languageName: node
+  linkType: hard
+
+"@expo/ui@npm:^56.0.16":
+  version: 56.0.16
+  resolution: "@expo/ui@npm:56.0.16"
+  dependencies:
+    sf-symbols-typescript: "npm:^2.1.0"
+    vaul: "npm:^1.1.2"
+  peerDependencies:
+    "@babel/core": "*"
+    expo: "*"
+    react: "*"
+    react-dom: "*"
+    react-native: "*"
+    react-native-reanimated: "*"
+    react-native-worklets: "*"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    react-dom:
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 10/802cd77ddf024e485060600d8bdbfb46a7bad0c68a0c2e69f11925fba797d3a07f8948c2e2e3e335e80710a2f63b354edeb1db7d24b5c0bcf7b7d94f17610384
   languageName: node
   linkType: hard
 
@@ -9496,6 +9545,71 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-router@npm:~56.2.9":
+  version: 56.2.9
+  resolution: "expo-router@npm:56.2.9"
+  dependencies:
+    "@expo/log-box": "npm:^56.0.12"
+    "@expo/metro-runtime": "npm:^56.0.14"
+    "@expo/schema-utils": "npm:^56.0.0"
+    "@expo/ui": "npm:^56.0.16"
+    "@radix-ui/react-slot": "npm:^1.2.0"
+    "@radix-ui/react-tabs": "npm:^1.1.12"
+    "@react-native-masked-view/masked-view": "npm:^0.3.2"
+    "@testing-library/jest-dom": "npm:^6.9.1"
+    "@testing-library/user-event": "npm:^14.6.1"
+    client-only: "npm:^0.0.1"
+    color: "npm:^4.2.3"
+    debug: "npm:^4.3.4"
+    escape-string-regexp: "npm:^4.0.0"
+    expo-glass-effect: "npm:^56.0.4"
+    expo-server: "npm:^56.0.5"
+    expo-symbols: "npm:^56.0.6"
+    fast-deep-equal: "npm:^3.1.3"
+    invariant: "npm:^2.2.4"
+    nanoid: "npm:^3.3.8"
+    query-string: "npm:^7.1.3"
+    react-fast-compare: "npm:^3.2.2"
+    react-is: "npm:^19.1.0"
+    react-native-drawer-layout: "npm:^4.2.2"
+    react-native-screens: "npm:^4.25.2"
+    server-only: "npm:^0.0.1"
+    sf-symbols-typescript: "npm:^2.1.0"
+    shallowequal: "npm:^1.1.0"
+    vaul: "npm:^1.1.2"
+  peerDependencies:
+    "@expo/log-box": ^56.0.12
+    "@expo/metro-runtime": ^56.0.14
+    "@testing-library/react-native": ">= 13.2.0"
+    expo: "*"
+    expo-constants: ^56.0.17
+    expo-linking: ^56.0.13
+    react: "*"
+    react-dom: "*"
+    react-native: "*"
+    react-native-gesture-handler: "*"
+    react-native-reanimated: "*"
+    react-native-safe-area-context: ">= 5.4.0"
+    react-native-screens: ^4.25.2
+    react-native-web: "*"
+    react-server-dom-webpack: ~19.0.4 || ~19.1.5 || ~19.2.4
+  peerDependenciesMeta:
+    "@testing-library/react-native":
+      optional: true
+    react-dom:
+      optional: true
+    react-native-gesture-handler:
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-web:
+      optional: true
+    react-server-dom-webpack:
+      optional: true
+  checksum: 10/46d60ae1ba3a965546066f4b66cfd70e66802c37f0718a0b29c67351f4e1f1ce1ba347eb1125db2ecc7be7be79620a02417e61d680f7886c14d4d00b6c0bff7e
+  languageName: node
+  linkType: hard
+
 "expo-router@npm:~6.0.17":
   version: 6.0.23
   resolution: "expo-router@npm:6.0.23"
@@ -9602,6 +9716,21 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/2b4dc0b78956a9738e0e4d7e35e5888e1b188e3318028f7bd44d0f13c5aab0b2ec756cf33dccffbacd4ddfa7bdde8761836db59873b601a4312be401c8819d79
+  languageName: node
+  linkType: hard
+
+"expo-symbols@npm:^56.0.6":
+  version: 56.0.6
+  resolution: "expo-symbols@npm:56.0.6"
+  dependencies:
+    "@expo-google-fonts/material-symbols": "npm:^0.4.1"
+    sf-symbols-typescript: "npm:^2.0.0"
+  peerDependencies:
+    expo: "*"
+    expo-font: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/9c6c49c6019849274f57789ffc9c9e684a46459203734b0fef6271d617899325be53803a37de37083e5c46578c2b18f76acb302f717a83c3e4a4cc66cdcac0c8
   languageName: node
   linkType: hard
 
@@ -15446,13 +15575,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.2.5":
-  version: 19.2.5
-  resolution: "react@npm:19.2.5"
-  checksum: 10/1c3c7ffecb90b7f89a5c3ef635e6811f3a84600097f203b918150cb7e6b0a52915e858e5b4c82317a520dffccfa46ee4819ccf92c59c5b2d6c25cffe258dd20c
-  languageName: node
-  linkType: hard
-
 "readable-stream@npm:^3.4.0":
   version: 3.6.2
   resolution: "readable-stream@npm:3.6.2"
@@ -16648,24 +16770,24 @@ __metadata:
     "@types/react": "npm:~19.2.14"
     "@types/react-refresh": "npm:^0"
     babel-preset-expo: "npm:~56.0.14"
-    expo: "npm:^56.0.8"
-    expo-build-properties: "npm:~56.0.16"
-    expo-constants: "npm:~56.0.16"
+    expo: "npm:~56.0.9"
+    expo-build-properties: "npm:~56.0.17"
+    expo-constants: "npm:~56.0.17"
     expo-font: "npm:~56.0.5"
     expo-linking: "npm:~56.0.13"
-    expo-router: "npm:~56.2.8"
+    expo-router: "npm:~56.2.9"
     expo-status-bar: "npm:~56.0.4"
-    react: "npm:19.2.5"
+    react: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-executorch: "workspace:*"
     react-native-executorch-expo-resource-fetcher: "workspace:*"
     react-native-gesture-handler: "npm:~2.31.1"
     react-native-image-picker: "npm:^8.2.1"
-    react-native-reanimated: "npm:~4.3.0"
+    react-native-reanimated: "npm:4.3.1"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.25.2"
     react-native-svg: "npm:15.15.4"
-    react-native-worklets: "npm:0.8.1"
+    react-native-worklets: "npm:0.8.3"
     react-refresh: "npm:^0.18.0"
   languageName: unknown
   linkType: soft
