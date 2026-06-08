@@ -26,6 +26,14 @@ jobs:
       - name: Typecheck files
         run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
+      - name: Verify error codes are up to date
+        run: |
+          yarn codegen:errors
+          git diff --exit-code -- \
+            packages/react-native-executorch/src/errors/ErrorCodes.ts \
+            packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h \
+            || { echo "::error::Error codes are stale. Run 'yarn codegen:errors' and commit the result."; exit 1; }
+
   build-library:
     runs-on: ubuntu-latest
     steps:
