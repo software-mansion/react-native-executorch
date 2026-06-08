@@ -284,9 +284,11 @@ public:
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa", e.what());
       throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
                                       runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa", e.what());
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
       throw jsi::JSError(runtime, "Unknown error in synchronous function");
@@ -351,9 +353,11 @@ public:
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa", e.what());
       throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
                                       runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
+      rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa", e.what());
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
       throw jsi::JSError(runtime, "Unknown error in vision function");
@@ -414,6 +418,8 @@ public:
                           });
                     }
                   } catch (const RnExecutorchError &e) {
+                    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa",
+                                      e.what());
                     auto code = e.getNumericCode();
                     auto msg = std::string(e.what());
                     callInvoker->invokeAsync(
@@ -423,6 +429,8 @@ public:
                         });
                     return;
                   } catch (const std::exception &e) {
+                    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info, "kappa",
+                                      e.what());
                     callInvoker->invokeAsync([e = std::move(e), promise]() {
                       promise->reject(std::string(e.what()));
                     });

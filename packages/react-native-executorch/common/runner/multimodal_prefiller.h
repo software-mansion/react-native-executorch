@@ -18,6 +18,30 @@
 
 namespace executorch::extension::llm {
 
+namespace {
+struct ImageSlot {
+  const MultimodalInput *input; // non-owning, valid for duration of call
+  int64_t slot_start;
+  int64_t num_visual;
+};
+
+struct AudioSlot {
+  std::vector<uint8_t> bytes;
+  ::executorch::aten::ScalarType dtype;
+  int64_t slot_start;
+  int64_t num_audio;
+  int64_t audio_hidden;
+};
+
+struct PLEEmbeddings {
+  std::vector<uint8_t> ple_tok_buf;
+  aten::SizesType num_layers = 0;
+  aten::SizesType ple_dim = 0;
+  size_t ple_elem_size = 0;
+  ::executorch::aten::ScalarType ple_tok_dtype;
+};
+} // namespace
+
 class MultimodalPrefiller {
 public:
   explicit MultimodalPrefiller(Module &module,
@@ -31,8 +55,30 @@ public:
   ::executorch::runtime::Result<uint64_t>
   prefill(const std::vector<MultimodalInput> &inputs, int64_t &start_pos);
 
+  auto processMultimodalInput(const MultimodalInput &input,
+                              std::vector<int64_t> &ids,
+                              std::vector<ImageSlot> &image_slots,
+                              std::vector<AudioSlot> &audio_slots);
+  auto encodeImages(const ImageSlot &slot, const auto hidden,
+                    std::vector<uint8_t> &embeds_buf,
+                    const size_t embeds_elem_size,
+                    const ::executorch::aten::ScalarType &embeds_dtype);
+  auto encodeAudio(const AudioSlot &slot, const auto hidden,
+                   std::vector<uint8_t> &embeds_buf,
+                   const size_t embeds_elem_size,
+                   const ::executorch::aten::ScalarType &embeds_dtype);
+  auto prefillChunk(std::vector<::executorch::runtime::EValue> &last_outs,
+                    std::vector<uint8_t> &embeds_buf, auto chunk_start,
+                    auto chunk_len, auto hidden, auto embeds_elem_size,
+                    auto embeds_dtype, PLEEmbeddings &ple_embeddings,
+                    std::vector<int64_t> &cache_positions);
+  auto initializePLE(auto &embed_outputs, auto total_len,
+                     PLEEmbeddings &ple_embeddings);
   ::executorch::runtime::Error load();
   bool is_method_loaded();
+  std::optional<int64_t> get_max_seq_len() const;
+  std::optional<int64_t> get_max_context_len() const;
+  bool get_enable_dynamic_shape() const;
 
 private:
   Module *module_;

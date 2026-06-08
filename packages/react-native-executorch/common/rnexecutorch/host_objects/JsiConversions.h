@@ -1,9 +1,11 @@
 #pragma once
 
+#include "rnexecutorch/Log.h"
 #include <codecvt>
 #include <cstdint>
 #include <set>
 #include <span>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
@@ -319,28 +321,28 @@ getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<uint64_t>(val, runtime);
 }
 
-template <typename T>
-inline void assignIfPresent(T &field, const jsi::Object &obj,
-                            jsi::Runtime &runtime, const char *name) {
-  if (!obj.hasProperty(runtime, name))
-    return;
-  jsi::Value v = obj.getProperty(runtime, name);
-  if (v.isUndefined() || v.isNull())
-    return;
-  field = getValue<T>(v, runtime);
-}
-
 template <>
 inline models::llm::MultimodalInputs
 getValue<models::llm::MultimodalInputs>(const jsi::Value &val,
                                         jsi::Runtime &runtime) {
   models::llm::MultimodalInputs multimodalInputs;
   jsi::Object obj = val.asObject(runtime);
-  assignIfPresent(multimodalInputs.imagePaths, obj, runtime, "imagePaths");
-  assignIfPresent(multimodalInputs.imageToken, obj, runtime, "imageToken");
-  assignIfPresent(multimodalInputs.audioWaveforms, obj, runtime,
-                  "audioWaveforms");
-  assignIfPresent(multimodalInputs.audioToken, obj, runtime, "audioToken");
+
+  jsi::Value v = obj.getProperty(runtime, "imageToken");
+  if (!v.isUndefined() && !v.isNull()) {
+    auto &images = multimodalInputs.images.emplace();
+    images.token = getValue<std::string>(v, runtime);
+    v = obj.getProperty(runtime, "imagePaths");
+    images.paths = getValue<std::vector<std::string>>(v, runtime);
+  }
+  v = obj.getProperty(runtime, "audioToken");
+  if (!v.isUndefined() && !v.isNull()) {
+    auto &audios = multimodalInputs.audios.emplace();
+    audios.token = getValue<std::string>(v, runtime);
+    v = obj.getProperty(runtime, "audioWaveforms");
+    audios.waveforms = getValue<std::vector<std::vector<float>>>(v, runtime);
+  }
+
   return multimodalInputs;
 }
 

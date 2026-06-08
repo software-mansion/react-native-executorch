@@ -64,7 +64,7 @@ function MultimodalLLMScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const vlm = useLLM({
-    model: models.llm.gemma4_e2b(),
+    model: models.llm.gemma4_e2b_multimodal(),
   });
   const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(

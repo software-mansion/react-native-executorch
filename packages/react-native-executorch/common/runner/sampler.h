@@ -29,6 +29,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 // A simple llama2 sampler.
+struct GenerationConfig;
 
 inline constexpr auto kTopp = 0.9f;
 

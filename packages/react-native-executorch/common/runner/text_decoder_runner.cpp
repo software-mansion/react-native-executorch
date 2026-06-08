@@ -101,9 +101,7 @@ int32_t TextDecoderRunner::logits_to_token(
           auto num_tokens = logits_tensor.size(1);
           logits += (num_tokens - 1) * vocab_size;
         }
-        Sampler sampler(vocab_size, config_.temperature, config_.topp,
-                        static_cast<unsigned long long>(std::time(nullptr)),
-                        config_.min_p, config_.repetition_penalty);
+        Sampler sampler(vocab_size, config_);
         result = sampler.sample(logits, recent_tokens);
       });
   return result;

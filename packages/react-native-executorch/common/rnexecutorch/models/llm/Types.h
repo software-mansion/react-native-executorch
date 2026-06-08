@@ -4,12 +4,19 @@
 #include <vector>
 
 namespace rnexecutorch::models::llm {
-struct MultimodalInputs {
-  std::vector<std::string> imagePaths;
-  std::string imageToken;
-  std::vector<std::vector<float>> audioWaveforms;
-  std::string audioToken;
+struct ImageInputs {
+  std::vector<std::string> paths;
+  std::string token;
 };
-using Token = uint64_t;
+
+struct AudioInputs {
+  std::vector<std::vector<float>> waveforms;
+  std::string token;
+};
+
+struct MultimodalInputs {
+  std::optional<ImageInputs> images;
+  std::optional<AudioInputs> audios;
+};
 
 } // namespace rnexecutorch::models::llm

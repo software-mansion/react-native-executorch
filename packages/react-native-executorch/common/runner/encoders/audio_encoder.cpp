@@ -20,9 +20,12 @@ using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
 namespace {
+constexpr int32_t kSamplingRate = 16e3;
+constexpr int32_t kMaxLengthSeconds = 30;
 constexpr int32_t kSamplesPerBlock = 7680;
 constexpr int64_t kAudioBlockKMin = 1;
-constexpr int64_t kAudioBlockKMax = 62;
+constexpr int64_t kAudioBlockKMax =
+    kSamplingRate * kMaxLengthSeconds / kSamplesPerBlock;
 } // namespace
 
 AudioEncoder::AudioEncoder(::executorch::extension::Module &module)
@@ -70,15 +73,8 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
   ET_CHECK_OR_RETURN_ERROR(
       k_blocks >= kAudioBlockKMin && k_blocks <= kAudioBlockKMax,
       InvalidArgument,
-      "AudioEncoder: waveform of %lld samples needs k_blocks=%lld; "
-      "audio_encoder accepts k in [%lld, %lld] (block=%d samples; max %.2f s "
-      "@ 16 kHz)",
-      static_cast<long long>(n_valid), static_cast<long long>(k_blocks),
-      static_cast<long long>(kAudioBlockKMin),
-      static_cast<long long>(kAudioBlockKMax),
-      static_cast<int>(kSamplesPerBlock),
-      static_cast<double>(kSamplesPerBlock) *
-          static_cast<double>(kAudioBlockKMax) / 16000.0);
+      "AudioEncoder: waveform of %lld samples needs k_blocks=%lld.",
+      static_cast<long long>(n_valid), static_cast<long long>(k_blocks));
   const int64_t n_padded = k_blocks * kSamplesPerBlock;
 
   // Own the padded waveform for the lifetime of this call; from_blob below

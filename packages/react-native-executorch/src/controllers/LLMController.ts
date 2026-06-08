@@ -305,9 +305,9 @@ export class LLMController {
           input,
           this.onToken,
           {
-            imagePaths: hasImages ? imagePaths!.map(normalizeImagePath) : [],
+            imagePaths: hasImages ? imagePaths!.map(normalizeImagePath) : null,
             imageToken: hasImages ? this.getImageToken() : null,
-            audioWaveforms: hasAudio ? audioWaveforms! : [],
+            audioWaveforms: hasAudio ? audioWaveforms! : null,
             audioToken: hasAudio ? this.getAudioToken() : null,
           }
         );

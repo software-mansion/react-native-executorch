@@ -1,4 +1,5 @@
 #include "LLM.h"
+#include "rnexecutorch/models/llm/Types.h"
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
@@ -87,8 +88,8 @@ std::string LLM::generateMultimodal(std::string prompt,
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "This model does not support multimodal input.");
   }
-  if (mutlimodalInputs.imageToken.empty() &&
-      mutlimodalInputs.audioToken.empty()) {
+  if (!mutlimodalInputs.images.has_value() &&
+      !mutlimodalInputs.audios.has_value()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "At least one of imageToken/audioToken must be non-empty");
@@ -99,12 +100,12 @@ std::string LLM::generateMultimodal(std::string prompt,
   std::vector<llm::MultimodalInput> inputs;
   size_t imageIdx = 0, audioIdx = 0, pos = 0;
   while (pos < prompt.size()) {
-    size_t imgAt = mutlimodalInputs.imageToken.empty()
-                       ? std::string::npos
-                       : prompt.find(mutlimodalInputs.imageToken, pos);
-    size_t audAt = mutlimodalInputs.audioToken.empty()
-                       ? std::string::npos
-                       : prompt.find(mutlimodalInputs.audioToken, pos);
+    size_t imgAt = mutlimodalInputs.images.has_value()
+                       ? prompt.find(mutlimodalInputs.images.value().token, pos)
+                       : std::string::npos;
+    size_t audAt = mutlimodalInputs.audios.has_value()
+                       ? prompt.find(mutlimodalInputs.audios.value().token, pos)
+                       : std::string::npos;
     if (imgAt == std::string::npos && audAt == std::string::npos) {
       inputs.push_back(llm::make_text_input(prompt.substr(pos)));
       break;
@@ -116,27 +117,30 @@ std::string LLM::generateMultimodal(std::string prompt,
       inputs.push_back(llm::make_text_input(prompt.substr(pos, at - pos)));
     }
     if (imageFirst) {
-      if (imageIdx >= mutlimodalInputs.imagePaths.size()) {
+      auto &images = mutlimodalInputs.images.value();
+      if (imageIdx >= images.paths.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + mutlimodalInputs.imageToken +
+                                "More '" + images.token +
                                     "' placeholders than image paths");
       }
-      inputs.push_back(
-          llm::make_image_input(mutlimodalInputs.imagePaths[imageIdx++]));
-      pos = at + mutlimodalInputs.imageToken.size();
+      inputs.push_back(llm::make_image_input(images.paths[imageIdx++]));
+      pos = at + images.token.size();
     } else {
-      if (audioIdx >= mutlimodalInputs.audioWaveforms.size()) {
+      auto &audios = mutlimodalInputs.audios.value();
+      if (audioIdx >= audios.waveforms.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + mutlimodalInputs.audioToken +
+                                "More '" + audios.token +
                                     "' placeholders than audio waveforms");
       }
-      inputs.push_back(llm::make_audio_input(
-          std::move(mutlimodalInputs.audioWaveforms[audioIdx++])));
-      pos = at + mutlimodalInputs.audioToken.size();
+      inputs.push_back(
+          llm::make_audio_input(std::move(audios.waveforms[audioIdx++])));
+      pos = at + audios.token.size();
     }
   }
-  if (imageIdx < mutlimodalInputs.imagePaths.size() ||
-      audioIdx < mutlimodalInputs.audioWaveforms.size()) {
+  if ((mutlimodalInputs.images.has_value() &&
+       imageIdx < mutlimodalInputs.images.value().paths.size()) ||
+      (mutlimodalInputs.audios.has_value() &&
+       audioIdx < mutlimodalInputs.audios.value().waveforms.size())) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidUserInput,
         "More image/audio paths provided than placeholders in prompt");
