@@ -59,11 +59,6 @@ export function useLLM({
       try {
         await controllerInstance.load({
           model: model,
-          // modelSource: model.modelSource,
-          // tokenizerSource: model.tokenizerSource,
-          // tokenizerConfigSource: model.tokenizerConfigSource!,
-          // capabilities: model.capabilities,
-          // defaultGenerationConfig: model.generationConfig,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {

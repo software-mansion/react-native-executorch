@@ -235,8 +235,8 @@ getValue<std::vector<std::vector<float>>>(const jsi::Value &val,
   std::vector<std::vector<float>> result;
   result.reserve(length);
   for (size_t i = 0; i < length; ++i) {
-    auto span =
-        getTypedArrayAsSpan<float>(array.getValueAtIndex(runtime, i), runtime);
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    auto span = getTypedArrayAsSpan<float>(element, runtime);
     result.emplace_back(span.begin(), span.end());
   }
   return result;

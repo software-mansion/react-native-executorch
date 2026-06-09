@@ -109,9 +109,9 @@ auto MultimodalPrefiller::processMultimodalInput(
     for (auto t : tokens) {
       ids.push_back(static_cast<int64_t>(t));
     }
-    ET_LOG(Error, "Unsupported MultimodalInput type");
-    return Error::NotSupported;
   }
+  ET_LOG(Error, "Unsupported MultimodalInput type");
+  return Error::NotSupported;
 }
 
 auto MultimodalPrefiller::encodeAudio(

@@ -10,7 +10,6 @@
 // LLM.
 
 #include "text_prefiller.h"
-#include "rnexecutorch/Log.h"
 #include <algorithm>
 
 namespace executorch {
