@@ -26,11 +26,24 @@ Error TextRunner::load_subcomponents() {
 
   Stats *stats_ptr = &stats_;
 
-  text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
-      *module_, io_manager_.get(), config_);
+  text_decoder_runner_ =
+      std::make_unique<TextDecoderRunner>(*module_, io_manager_.get(), config_);
+
+  int32_t prefill_chunk_size = 0;
+  auto fwd_meta = module_->method_meta("forward");
+  if (fwd_meta.ok() && fwd_meta->uses_backend("MLXBackend")) {
+    auto input_meta = fwd_meta->input_tensor_meta(0);
+    if (input_meta.ok()) {
+      auto sizes = input_meta->sizes();
+      if (sizes.size() >= 2 && sizes[sizes.size() - 1] > 0) {
+        prefill_chunk_size = sizes[sizes.size() - 1];
+      }
+    }
+  }
+
   text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
-      config_.enable_dynamic_shape, config_.max_seq_len);
+      config_.enable_dynamic_shape, config_.max_seq_len, prefill_chunk_size);
   text_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
       std::move(eos_ids_), stats_ptr, config_);

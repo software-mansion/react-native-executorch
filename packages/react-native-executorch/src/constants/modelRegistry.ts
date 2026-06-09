@@ -38,7 +38,7 @@ import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
  * compile-time error.
  * @category Utils
  */
-export type Backend = 'xnnpack' | 'coreml' | 'vulkan' | 'qnn';
+export type Backend = 'xnnpack' | 'coreml' | 'vulkan' | 'qnn' | 'mlx';
 
 /**
  * Options for a `models` accessor call.
@@ -78,7 +78,7 @@ type ConfigOf<V> = Extract<
 >;
 type BackendsOf<V> = Extract<keyof V, Backend>;
 
-const BACKEND_ORDER: Backend[] = ['xnnpack', 'coreml', 'vulkan', 'qnn'];
+const BACKEND_ORDER: Backend[] = ['xnnpack', 'coreml', 'mlx', 'vulkan', 'qnn'];
 
 function firstBackend(variants: AnyVariantMap): Backend {
   for (const b of BACKEND_ORDER) {
