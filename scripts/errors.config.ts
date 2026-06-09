@@ -126,7 +126,7 @@ export const errorDefinitions = {
    */
   ResourceFetcherPlatformNotSupported: 0xbb,
   /**
-   * Thrown when the Expo resource fetcher entry point is incompatible with the installed expo-file-system version. The default entry point requires the new Directory/File API (Expo SDK 54+); use the `/legacy` entry point on older SDKs.
+   * Thrown when the Expo resource fetcher entry point is incompatible with the installed expo-file-system version. The default entry point requires the new Directory/File API (Expo SDK 56+); use the `/legacy` entry point on older SDKs.
    */
   ResourceFetcherFileSystemApiUnavailable: 0xbc,
 
