@@ -8,6 +8,10 @@
     ".": {
       "import": "./lib/index.js",
       "types": "./lib/index.d.ts"
+    },
+    "./legacy": {
+      "import": "./lib/legacy/index.js",
+      "types": "./lib/legacy/index.d.ts"
     }
   },
   "files": [
