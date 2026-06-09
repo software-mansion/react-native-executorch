@@ -41,7 +41,7 @@ and then add the following code in your React Native app:
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher'; // Use /legacy import if you're using Expo SDK < 54
 
 initExecutorch({
   resourceFetcher: ExpoResourceFetcher,

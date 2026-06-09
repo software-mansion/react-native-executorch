@@ -31,6 +31,15 @@ import {
   RnExecutorchError,
   BaseResourceFetcherClass,
 } from 'react-native-executorch';
+
+if (typeof Directory !== 'function' || typeof File !== 'function') {
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.ResourceFetcherFileSystemApiUnavailable,
+    "react-native-executorch-expo-resource-fetcher: the new 'expo-file-system' API " +
+      "(Directory/File) is unavailable — you're likely on Expo SDK <54. Import from " +
+      "'react-native-executorch-expo-resource-fetcher/legacy' instead."
+  );
+}
 import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
 import {
   type ActiveDownload,

@@ -127,7 +127,7 @@ Before using any other API, you must call `initExecutorch` with a resource fetch
 
 ```js
 import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
+import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher'; // Use /legacy import if you're using Expo SDK < 54
 // or BareResourceFetcher for bare react-native projects
 
 initExecutorch({ resourceFetcher: ExpoResourceFetcher });
