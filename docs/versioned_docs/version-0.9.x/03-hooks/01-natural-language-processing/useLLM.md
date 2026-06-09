@@ -494,13 +494,13 @@ Depending on selected model and the user's device generation speed can be above 
 
 ## Vision-Language Models (VLM)
 
-Some models support multimodal input — text and images together. To use them, pass a `capabilities` array when loading the model.
+Some models support multimodal input — text, images and/or audio together. To use them, pass a `capabilities` array when loading the model.
 
 ### Loading a VLM
 
 ```tsx
 import { models, useLLM } from 'react-native-executorch';
-const llm = useLLM({ model: models.llm.lfm2_5_vl_1_6b() });
+const llm = useLLM({ model: models.llm.gemma4_e2b_multimodal() });
 ```
 
 The `capabilities` field is already set on the model constant. You can also construct the model object explicitly:
@@ -511,21 +511,25 @@ const llm = useLLM({
     modelSource: '...',
     tokenizerSource: '...',
     tokenizerConfigSource: '...',
-    capabilities: ['vision'],
+    capabilities: ['vision', 'audio'],
   },
 });
 ```
 
 Passing `capabilities` unlocks the typed `media` argument on `sendMessage`.
 
-### Sending a message with an image
+### Sending a message with an image or audio recording
 
 ```tsx
-const llm = useLLM({ model: models.llm.lfm2_5_vl_1_6b() });
+const llm = useLLM({ model: models.llm.gemma4_e2b_multimodal() });
 
 const send = () => {
   llm.sendMessage('What is in this image?', {
     imagePath: '/path/to/image.jpg',
+  });
+  // or
+  llm.sendMessage('What can you hear?', {
+    audioBuffer: audioRecording,
   });
 };
 
@@ -538,6 +542,7 @@ return (
 ```
 
 The `imagePath` should be a local file path on the device.
+The `audioBuffer` should be a `Float32Array` with 16kHz waveform.
 
 ### Functional generation with images
 
