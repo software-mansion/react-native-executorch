@@ -20,7 +20,9 @@ export type MediaArg<C extends readonly LLMCapability[]> =
  * @category Types
  */
 export type LLMModelName =
-  | 'gemma4-e2b'
+  | 'gemma-4-e2b-mlx'
+  | 'gemma-4-e2b-xnnpack'
+  | 'gemma-4-e2b-vulkan'
   | 'gemma4-e2b-multimodal'
   | 'llama-3.2-3b'
   | 'llama-3.2-3b-qlora'

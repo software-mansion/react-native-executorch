@@ -96,10 +96,12 @@ Error TextRunner::generate_internal(
   std::vector<uint64_t> prompt_tokens = encodeResult.get();
   int num_prompt_tokens = prompt_tokens.size();
 
-  // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
-  // decoder chunk size (e.g. 128) and the true generation budget lives in
-  // get_max_context_len. Static-shape PTEs set both equal, so this collapses
-  // to the old behavior. Mirrors multimodal_prefiller.cpp:96.
+  // For dynamic-shape PTEs (e.g. Gemma4 MLX/Vulkan), get_max_seq_len is the
+  // per-call decoder chunk size (e.g. the sliding window) and the real
+  // generation budget lives in get_max_context_len. Static-shape PTEs set both
+  // equal, so this collapses to the old behavior. Without this the budget is
+  // computed from the small chunk size, so max_new_tokens can resolve to ~0 and
+  // generation ends immediately after prefill.
   const int32_t seq_cap = config_.enable_dynamic_shape
                               ? config_.max_context_length
                               : config_.max_seq_len;

@@ -504,7 +504,7 @@ export const models = {
     bielik_v3_0_1_5b: pair(M.BIELIK_V3_0_1_5B, M.BIELIK_V3_0_1_5B_QUANTIZED),
     gemma4_e2b: variant(GEMMA4_E2B_VARIANTS, {
       ios: 'mlx',
-      android: 'xnnpack',
+      android: 'vulkan',
     }),
     // Multimodal LLMs — same hook/module as plain LLMs, listed here so users
     // pick a model by capability ("LLM") rather than by modality.
