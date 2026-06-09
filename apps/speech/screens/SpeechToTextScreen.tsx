@@ -22,12 +22,24 @@ import { ModelPicker, ModelOption } from '../components/ModelPicker';
 const speechToText = models.speech_to_text;
 const vad = models.vad;
 
+const isSimulator = DeviceInfo.isEmulatorSync();
+const backend = Platform.OS === 'ios' && !isSimulator ? 'coreml' : 'xnnpack';
+
 type STTModelSources = SpeechToTextProps['model'];
 
 const MODELS: ModelOption<STTModelSources>[] = [
-  { label: 'Whisper Tiny EN', value: speechToText.whisper_tiny_en() },
-  { label: 'Whisper Base EN', value: speechToText.whisper_base_en() },
-  { label: 'Whisper Small EN', value: speechToText.whisper_small_en() },
+  {
+    label: 'Whisper Tiny EN',
+    value: speechToText.whisper_tiny_en({ backend }),
+  },
+  {
+    label: 'Whisper Base EN',
+    value: speechToText.whisper_base_en({ backend }),
+  },
+  {
+    label: 'Whisper Small EN',
+    value: speechToText.whisper_small_en({ backend }),
+  },
 ];
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -42,12 +54,10 @@ import DeviceInfo from 'react-native-device-info';
 import { VerboseTranscription } from '../components/VerboseTranscription';
 import ErrorBanner from '../components/ErrorBanner';
 
-const isSimulator = DeviceInfo.isEmulatorSync();
-
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedModel, setSelectedModel] = useState<STTModelSources>(
-    Platform.OS === 'ios'
-      ? speechToText.whisper_base_en()
+    Platform.OS === 'ios' && !isSimulator
+      ? speechToText.whisper_base_en({ backend })
       : speechToText.whisper_tiny_en()
   );
 
