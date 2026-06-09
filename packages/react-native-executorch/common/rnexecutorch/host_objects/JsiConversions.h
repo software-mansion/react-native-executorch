@@ -1,6 +1,5 @@
 #pragma once
 
-#include "rnexecutorch/Log.h"
 #include <codecvt>
 #include <cstdint>
 #include <set>

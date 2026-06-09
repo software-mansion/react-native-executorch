@@ -28,6 +28,7 @@ import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
 import ErrorBanner from '../../components/ErrorBanner';
+import AudioWaveform from '../../components/AudioWaveform';
 
 const SUGGESTED_PROMPTS = [
   "What's in this image?",
@@ -291,10 +292,16 @@ function MultimodalLLMScreen() {
           {/* Audio attachment strip */}
           {audioLabel && (
             <View style={styles.audioAttachmentContainer}>
-              <Text style={styles.audioAttachmentText}>🎵 {audioLabel}</Text>
-              <TouchableOpacity onPress={clearAudio}>
-                <Text style={styles.audioAttachmentClear}>✕</Text>
-              </TouchableOpacity>
+              <View style={styles.audioAttachmentRow}>
+                <Text style={styles.audioAttachmentText}>🎵 {audioLabel}</Text>
+                <TouchableOpacity onPress={clearAudio}>
+                  <Text style={styles.audioAttachmentClear}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              <AudioWaveform
+                buffer={audioBuffer}
+                style={styles.audioWaveform}
+              />
             </View>
           )}
 
@@ -471,9 +478,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.blueDark,
   },
   audioAttachmentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginHorizontal: 16,
@@ -482,6 +487,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: ColorPalette.blueLight,
     backgroundColor: '#fafbff',
+  },
+  audioAttachmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   audioAttachmentText: {
     fontSize: 13,
@@ -492,6 +502,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: ColorPalette.blueDark,
     paddingHorizontal: 8,
+  },
+  audioWaveform: {
+    marginTop: 6,
+    minWidth: 0,
   },
   audioUrlRow: {
     flexDirection: 'row',
