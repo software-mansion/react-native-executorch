@@ -11,19 +11,20 @@ import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for Speech to Text (STT) functionalities.
  * @category Typescript API
  */
-export class SpeechToTextModule {
-  private nativeModule: any;
+export class SpeechToTextModule extends BaseModule {
   private modelConfig: SpeechToTextModelConfig;
 
   private constructor(
     nativeModule: unknown,
     modelConfig: SpeechToTextModelConfig
   ) {
+    super();
     this.nativeModule = nativeModule;
     this.modelConfig = modelConfig;
   }

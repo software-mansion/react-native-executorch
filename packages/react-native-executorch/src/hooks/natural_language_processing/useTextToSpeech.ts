@@ -3,6 +3,7 @@ import { TextToSpeechModule } from '../../modules/natural_language_processing/Te
 import {
   TextToSpeechInput,
   TextToSpeechModelConfig,
+  TextToSpeechProps,
   TextToSpeechStreamingInput,
   TextToSpeechType,
 } from '../../types/tts';
@@ -10,17 +11,33 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
- * React hook for managing Text to Speech instance.
- * @category Hooks
- * @param model - Configuration object containing model config.
- * @param options - Additional options for the hook.
- * @param options.preventLoad - If true, prevents the model from loading automatically on initialization.
+ * @deprecated Pass a single object argument:
+ * `useTextToSpeech({ model, preventLoad })`. The two-argument form is kept as
+ * a temporary alias for backward compatibility and will be removed in a
+ * future release.
+ * @param model - The Kokoro voice / model bundle to load.
+ * @param options - Optional flags; currently only `preventLoad`.
  * @returns Ready to use Text to Speech model.
  */
-export const useTextToSpeech = (
+export function useTextToSpeech(
   model: TextToSpeechModelConfig,
-  { preventLoad = false }: { preventLoad?: boolean } = {}
-): TextToSpeechType => {
+  options?: { preventLoad?: boolean }
+): TextToSpeechType;
+/**
+ * React hook for managing Text to Speech instance.
+ * @category Hooks
+ * @param props - Configuration object containing `model` (voice + Kokoro bundle) and optional `preventLoad` flag.
+ * @returns Ready to use Text to Speech model.
+ */
+export function useTextToSpeech(props: TextToSpeechProps): TextToSpeechType;
+export function useTextToSpeech(
+  arg1: TextToSpeechProps | TextToSpeechModelConfig,
+  arg2?: { preventLoad?: boolean }
+): TextToSpeechType {
+  const { model, preventLoad = false }: TextToSpeechProps =
+    'voiceSource' in arg1
+      ? { model: arg1, preventLoad: arg2?.preventLoad }
+      : arg1;
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -167,4 +184,4 @@ export const useTextToSpeech = (
     streamStop,
     downloadProgress,
   };
-};
+}

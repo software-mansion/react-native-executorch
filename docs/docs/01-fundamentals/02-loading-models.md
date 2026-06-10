@@ -90,7 +90,7 @@ initExecutorch({
 ### Load from React Native assets folder (for files < 512MB)
 
 ```typescript
-useExecutorchModule({
+useExecutorch({
   modelSource: require('../assets/lfm2_5.pte'),
 });
 ```
@@ -100,7 +100,7 @@ useExecutorchModule({
 For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
 
 ```typescript
-useExecutorchModule({
+useExecutorch({
   modelSource: 'https://.../lfm2_5.pte',
 });
 ```
@@ -110,7 +110,7 @@ useExecutorchModule({
 If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
 
 ```typescript
-useExecutorchModule({
+useExecutorch({
   modelSource: 'file:///var/mobile/.../lfm2_5.pte',
 });
 ```

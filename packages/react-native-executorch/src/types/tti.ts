@@ -84,6 +84,17 @@ export interface TextToImageType {
    * @returns A Promise that resolves to a `file://` URI pointing to the generated PNG on the device, or an empty string if generation was interrupted.
    * @throws {RnExecutorchError} If the model is not loaded or is currently generating another image.
    */
+  forward: (
+    input: string,
+    imageSize?: number,
+    numSteps?: number,
+    seed?: number
+  ) => Promise<string>;
+
+  /**
+   * @deprecated Use `forward` instead. `generate` is kept as a temporary alias
+   * for backward compatibility and will be removed in a future release.
+   */
   generate: (
     input: string,
     imageSize?: number,

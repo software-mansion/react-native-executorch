@@ -78,6 +78,17 @@ export interface TextToSpeechModelConfig {
 }
 
 /**
+ * Props for the `useTextToSpeech` hook.
+ * @category Types
+ * @property {TextToSpeechModelConfig} model - The Kokoro voice / model bundle to load.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+ */
+export interface TextToSpeechProps {
+  model: TextToSpeechModelConfig;
+  preventLoad?: boolean;
+}
+
+/**
  * Text to Speech module input definition
  * @category Types
  * @property {string} text - a text to be spoken

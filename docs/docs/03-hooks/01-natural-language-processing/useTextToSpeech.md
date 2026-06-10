@@ -36,7 +36,9 @@ You can play the generated waveform in any way most suitable to you; however, in
 import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const model = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+const model = useTextToSpeech({
+  model: models.text_to_speech.kokoro.en_us.heart(),
+});
 
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
@@ -56,15 +58,13 @@ const handleSpeech = async (text: string) => {
 
 ### Arguments
 
-`useTextToSpeech` takes [`TextToSpeechModelConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md) that consists of:
+`useTextToSpeech` takes [`TextToSpeechProps`](../../06-api-reference/interfaces/TextToSpeechProps.md), an object containing:
 
-- `model` of type [`TextToSpeechModelSources`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md) containing the [`durationPredictorSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#synthesizersource), and [`modelName`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#modelname).
-- [`voiceSource`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#voicesource) of type [`ResourceSource`](../../06-api-reference/type-aliases/ResourceSource.md) - configuration of specific voice used in TTS.
-- [`phonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#phonemizerconfig) of type [`TextToSpeechPhonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechPhonemizerConfig.md) - configuration of the phonemizer.
-
-`useTextToSpeech`'s second optional argument is an object with:
-
-- `preventLoad` which prevents auto-loading of the model.
+- `model` of type [`TextToSpeechModelConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md), which itself consists of:
+  - [`model`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#model) of type [`TextToSpeechModelSources`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md) — bundles the [`durationPredictorSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#synthesizersource), and [`modelName`](../../06-api-reference/type-aliases/TextToSpeechModelSources.md#modelname).
+  - [`voiceSource`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#voicesource) of type [`ResourceSource`](../../06-api-reference/type-aliases/ResourceSource.md) — configuration of the specific voice used in TTS.
+  - [`phonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechModelConfig.md#phonemizerconfig) of type [`TextToSpeechPhonemizerConfig`](../../06-api-reference/interfaces/TextToSpeechPhonemizerConfig.md) — configuration of the phonemizer.
+- An optional flag `preventLoad` which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
 
@@ -115,7 +115,9 @@ import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
-  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+  const tts = useTextToSpeech({
+    model: models.text_to_speech.kokoro.en_us.heart(),
+  });
 
   const generateAudio = async () => {
     const audioData = await tts.forward({
@@ -150,7 +152,9 @@ import { models, useTextToSpeech } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
 export default function App() {
-  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+  const tts = useTextToSpeech({
+    model: models.text_to_speech.kokoro.en_us.heart(),
+  });
 
   const contextRef = useRef(new AudioContext({ sampleRate: 24000 }));
 
@@ -192,7 +196,9 @@ import React from 'react';
 import { Button, View } from 'react-native';
 import { models, useTextToSpeech } from 'react-native-executorch';
 export default function App() {
-  const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+  const tts = useTextToSpeech({
+    model: models.text_to_speech.kokoro.en_us.heart(),
+  });
 
   const synthesizePhonemes = async () => {
     // Example phonemes for "Hello"

@@ -5,7 +5,7 @@ title: ExecutorchModule
 ExecutorchModule provides TypeScript bindings for the underlying ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html).
 
 :::tip
-For React applications, consider using the [`useExecutorchModule`](../../03-hooks/03-executorch-bindings/useExecutorchModule.md) hook instead, which provides automatic state management, loading progress tracking, and cleanup on unmount.
+For React applications, consider using the [`useExecutorch`](../../03-hooks/03-executorch-bindings/useExecutorch.md) hook instead, which provides automatic state management, loading progress tracking, and cleanup on unmount.
 :::
 
 ## API Reference
@@ -23,11 +23,10 @@ const inputTensor = {
   scalarType: ScalarType.FLOAT,
 };
 
-// Creating an instance
-const model = new ExecutorchModule();
-
-// Loading the model
-await model.load(models.style_transfer.candy());
+// Creating and loading the model in a single step
+const model = await ExecutorchModule.fromModelSource(
+  models.style_transfer.candy()
+);
 
 // Running the forward method
 const output = await model.forward([inputTensor]);
@@ -57,13 +56,13 @@ First, import the necessary functions from the `react-native-executorch` package
 
 ```typescript
 import { models, ExecutorchModule, ScalarType } from 'react-native-executorch';
-// Initialize the executorch module
-const executorchModule = new ExecutorchModule();
-
-// Load the model with optional download progress callback
-await executorchModule.load(models.style_transfer.candy(), (progress) => {
-  console.log(`Download progress: ${progress}%`);
-});
+// Initialize and load the executorch module with optional download progress callback.
+const executorchModule = await ExecutorchModule.fromModelSource(
+  models.style_transfer.candy(),
+  (progress) => {
+    console.log(`Download progress: ${progress}%`);
+  }
+);
 ```
 
 ### Setting up input parameters

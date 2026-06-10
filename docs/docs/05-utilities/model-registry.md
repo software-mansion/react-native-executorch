@@ -96,7 +96,9 @@ const styled = useStyleTransfer({
 ```typescript
 import { models, useTextToSpeech } from 'react-native-executorch';
 
-const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
+const tts = useTextToSpeech({
+  model: models.text_to_speech.kokoro.en_us.heart(),
+});
 // Other languages:
 //   models.text_to_speech.kokoro.en_gb.emma()
 //   models.text_to_speech.kokoro.fr.siwis()

@@ -9,12 +9,13 @@ import {
   LLMTool,
   Message,
 } from '../../types/llm';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
  * @category Typescript API
  */
-export class LLMModule {
+export class LLMModule extends BaseModule {
   private controller: LLMController;
 
   private constructor({
@@ -24,6 +25,7 @@ export class LLMModule {
     tokenCallback?: (token: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
   } = {}) {
+    super();
     this.controller = new LLMController({
       tokenCallback,
       messageHistoryCallback,

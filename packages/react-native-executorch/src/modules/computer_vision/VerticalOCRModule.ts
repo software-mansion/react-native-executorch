@@ -3,15 +3,17 @@ import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { parseUnknownError } from '../../errors/errorUtils';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
  * @category Typescript API
  */
-export class VerticalOCRModule {
+export class VerticalOCRModule extends BaseModule {
   private controller: VerticalOCRController;
 
   private constructor(controller: VerticalOCRController) {
+    super();
     this.controller = controller;
   }
 
