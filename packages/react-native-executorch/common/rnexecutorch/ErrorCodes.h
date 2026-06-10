@@ -121,10 +121,7 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   ResourceFetcherPlatformNotSupported = 187,
   /**
-   * Thrown when the Expo resource fetcher entry point is incompatible with the
-   * installed expo-file-system version. The default entry point requires the
-   * new Directory/File API (Expo SDK 56+); use the `/legacy` entry point on
-   * older SDKs.
+   * Thrown when the Expo resource fetcher entry point is incompatible with the installed expo-file-system version. The default entry point requires the new Directory/File API (Expo SDK 56+); use the `/legacy` entry point on older SDKs.
    */
   ResourceFetcherFileSystemApiUnavailable = 188,
 };
