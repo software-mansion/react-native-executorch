@@ -33,7 +33,7 @@ MultimodalPrefiller::MultimodalPrefiller(
       tokenizer_(&tokenizer), metadata_(metadata),
       image_encoder_(image_encoder), audio_encoder_(audio_encoder) {}
 
-std::optional<int64_t> MultimodalPrefiller::get_max_seq_len() const {
+int64_t MultimodalPrefiller::get_max_seq_len() const {
   auto r = module_->get(kMaxSeqLen);
   if (r.error() != ::executorch::runtime::Error::Ok) {
     return metadata_.at(kMaxSeqLen);
@@ -41,10 +41,10 @@ std::optional<int64_t> MultimodalPrefiller::get_max_seq_len() const {
   return r->toScalar().to<int64_t>();
 }
 
-std::optional<int64_t> MultimodalPrefiller::get_max_context_len() const {
+int64_t MultimodalPrefiller::get_max_context_len() const {
   auto r = module_->get(kMaxContextLen);
   if (r.error() != ::executorch::runtime::Error::Ok) {
-    return metadata_.at(kMaxContextLen);
+    return metadata_.at(kMaxContextLen) || get_max_seq_len();
   }
   return r->toScalar().to<int64_t>();
 }
@@ -291,8 +291,8 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   //   * get_max_context_len — total KV budget. Caps max context length for
   //   multi-turn conversation.
   // ------------------------------------------------------------
-  int64_t max_seq_len = get_max_seq_len().value_or(-1);
-  int64_t max_context_len = get_max_context_len().value_or(max_seq_len);
+  int64_t max_seq_len = get_max_seq_len();
+  int64_t max_context_len = get_max_context_len();
   bool enable_dynamic_shape = get_enable_dynamic_shape();
   const int64_t prefill_total_cap =
       enable_dynamic_shape ? max_context_len : max_seq_len;

@@ -62,8 +62,8 @@ public:
                               std::vector<Types::AudioSlot> &audio_slots);
   ::executorch::runtime::Error load();
   bool is_method_loaded();
-  std::optional<int64_t> get_max_seq_len() const;
-  std::optional<int64_t> get_max_context_len() const;
+  int64_t get_max_seq_len() const;
+  int64_t get_max_context_len() const;
   bool get_enable_dynamic_shape() const;
 
 private:

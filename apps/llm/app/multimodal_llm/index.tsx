@@ -35,7 +35,7 @@ const SUGGESTED_PROMPTS = [
   'Describe this scene in detail',
   'What objects can you see?',
   'What text appears in this image?',
-  'Transcribe the audio?',
+  'Transcribe the audio',
 ];
 import { useLLMStats } from '../../hooks/useLLMStats';
 import { StatsBar } from '../../components/StatsBar';
@@ -93,10 +93,12 @@ function MultimodalLLMScreen() {
     })();
 
     return () => {
+      if (vlm.isGenerating) vlm.interrupt();
       // eslint-disable-next-line react-hooks/exhaustive-deps
       recorder.current.stop();
       AudioManager.setAudioSessionActivity(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAudioFromUrl = async () => {
@@ -244,7 +246,7 @@ function MultimodalLLMScreen() {
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
                 {model.capabilities.find((c) => c === 'audio')
-                  ? 'Say "Hi" or pick an image or and ask me anything about it.'
+                  ? 'Say hi, or pick an image, and ask me anything about it.'
                   : 'Pick an image and ask me anything about it.'}
               </Text>
               <SuggestedPrompts
