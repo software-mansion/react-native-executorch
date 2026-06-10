@@ -19,6 +19,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('video_replay/')}
+        >
+          <Text style={styles.buttonText}>Video Replay</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('classification/')}
         >
           <Text style={styles.buttonText}>Classification</Text>

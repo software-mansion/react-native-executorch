@@ -118,6 +118,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="video_replay/index"
+          options={{
+            drawerLabel: 'Video Replay',
+            title: 'Video Replay',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',
