@@ -3,6 +3,7 @@ import { Logger } from '../../common/Logger';
 import { parseUnknownError } from '../../errors/errorUtils';
 import { ResourceSource } from '../../types/common';
 import {
+  AudioConfig,
   LLMCapability,
   LLMConfig,
   LLMModelName,
@@ -51,6 +52,7 @@ export class LLMModule {
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
       capabilities?: readonly LLMCapability[];
+      audioConfig?: AudioConfig;
     },
     onDownloadProgress: (progress: number) => void = () => {},
     tokenCallback?: (token: string) => void,
@@ -65,6 +67,7 @@ export class LLMModule {
           tokenizerSource: namedSources.tokenizerSource,
           tokenizerConfigSource: namedSources.tokenizerConfigSource,
           capabilities: namedSources.capabilities,
+          audioConfig: namedSources.audioConfig,
         },
         onDownloadProgressCallback: onDownloadProgress,
       });
@@ -143,10 +146,15 @@ export class LLMModule {
    * If you want a simple chat with model the consider using `sendMessage`
    * @param input - Raw input string containing the prompt and conversation history.
    * @param imagePaths - Optional array of local image paths for multimodal inference. Each entry may be either `file:///absolute/path` or `/absolute/path` — the controller normalizes the path before passing it to native code.
+   * @param audioWaveforms - Optional array of 16kHz waveforms of audio recordings for multimodal inference.
    * @returns The generated response as a string.
    */
-  async forward(input: string, imagePaths?: string[]): Promise<string> {
-    return await this.controller.forward(input, imagePaths);
+  async forward(
+    input: string,
+    imagePaths?: string[],
+    audioWaveforms?: Float32Array[]
+  ): Promise<string> {
+    return await this.controller.forward(input, imagePaths, audioWaveforms);
   }
 
   /**
@@ -165,12 +173,12 @@ export class LLMModule {
    * After model responds it will call `messageHistoryCallback()` containing both user message and model response.
    * It also returns them.
    * @param message - The message string to send.
-   * @param media - Optional media object containing a local image path for multimodal models.
+   * @param media - Optional media object containing a local image path or 16kHz waveform of an audio recording for multimodal models.
    * @returns - Updated message history including the new user message and model response.
    */
   async sendMessage(
     message: string,
-    media?: { imagePath?: string }
+    media?: { imagePath?: string; audioBuffer?: Float32Array }
   ): Promise<Message[]> {
     await this.controller.sendMessage(message, media);
     return this.controller.messageHistory;

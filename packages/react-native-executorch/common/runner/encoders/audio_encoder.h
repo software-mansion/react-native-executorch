@@ -34,7 +34,7 @@ private:
   ::executorch::extension::Module *module_;
   int32_t last_token_count_ = 0;
   std::vector<float> padded_wav_;
-  int64_t num_blocks_scalar_ = 0;
+  int64_t valid_samples_scalar_ = 0;
 };
 
 } // namespace executorch::extension::llm

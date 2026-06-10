@@ -26,16 +26,17 @@ using ::executorch::runtime::Result;
 
 MultimodalPrefiller::MultimodalPrefiller(
     Module &module, MultimodalDecoderRunner &decoder_runner,
-    tokenizers::HFTokenizer &tokenizer, IEncoder *image_encoder,
+    tokenizers::HFTokenizer &tokenizer,
+    std::unordered_map<std::string, int64_t> metadata, IEncoder *image_encoder,
     IEncoder *audio_encoder)
     : module_(&module), decoder_runner_(&decoder_runner),
-      tokenizer_(&tokenizer), image_encoder_(image_encoder),
-      audio_encoder_(audio_encoder) {}
+      tokenizer_(&tokenizer), metadata_(metadata),
+      image_encoder_(image_encoder), audio_encoder_(audio_encoder) {}
 
 std::optional<int64_t> MultimodalPrefiller::get_max_seq_len() const {
   auto r = module_->get(kMaxSeqLen);
   if (r.error() != ::executorch::runtime::Error::Ok) {
-    return std::nullopt;
+    return metadata_.at(kMaxSeqLen);
   }
   return r->toScalar().to<int64_t>();
 }
@@ -43,7 +44,7 @@ std::optional<int64_t> MultimodalPrefiller::get_max_seq_len() const {
 std::optional<int64_t> MultimodalPrefiller::get_max_context_len() const {
   auto r = module_->get(kMaxContextLen);
   if (r.error() != ::executorch::runtime::Error::Ok) {
-    return std::nullopt;
+    return metadata_.at(kMaxContextLen);
   }
   return r->toScalar().to<int64_t>();
 }
@@ -51,22 +52,24 @@ std::optional<int64_t> MultimodalPrefiller::get_max_context_len() const {
 bool MultimodalPrefiller::get_enable_dynamic_shape() const {
   auto r = module_->get(kEnableDynamicShape);
   if (r.error() != ::executorch::runtime::Error::Ok) {
-    return false;
+    return metadata_.at(kEnableDynamicShape);
   }
   return r->toScalar().to<bool>();
 }
 
-auto MultimodalPrefiller::processMultimodalInput(
+[[nodiscard]] auto MultimodalPrefiller::processMultimodalInput(
     const MultimodalInput &input, std::vector<int64_t> &ids,
-    std::vector<ImageSlot> &image_slots, std::vector<AudioSlot> &audio_slots) {
+    std::vector<Types::ImageSlot> &image_slots,
+    std::vector<Types::AudioSlot> &audio_slots) {
   if (input.is_image()) {
     ET_CHECK_OR_RETURN_ERROR(image_encoder_ != nullptr, InvalidState,
                              "No image encoder registered");
     const int32_t num_visual = image_encoder_->encoderTokenCount();
     ET_CHECK_OR_RETURN_ERROR(num_visual > 0, InvalidState,
                              "Image encoder reports 0 visual tokens");
-    image_slots.push_back(ImageSlot{&input, static_cast<int64_t>(ids.size()),
-                                    static_cast<int64_t>(num_visual)});
+    image_slots.push_back(Types::ImageSlot{&input,
+                                           static_cast<int64_t>(ids.size()),
+                                           static_cast<int64_t>(num_visual)});
     ids.insert(ids.end(), static_cast<size_t>(num_visual), 0);
   } else if (input.is_audio()) {
     ET_CHECK_OR_RETURN_ERROR(audio_encoder_ != nullptr, InvalidState,
@@ -89,9 +92,9 @@ auto MultimodalPrefiller::processMultimodalInput(
     std::vector<uint8_t> bytes(audio_tensor.nbytes());
     std::memcpy(bytes.data(), audio_tensor.const_data_ptr(),
                 audio_tensor.nbytes());
-    audio_slots.push_back(
-        AudioSlot{std::move(bytes), audio_tensor.scalar_type(),
-                  static_cast<int64_t>(ids.size()), num_audio, audio_hidden});
+    audio_slots.push_back(Types::AudioSlot{
+        std::move(bytes), audio_tensor.scalar_type(),
+        static_cast<int64_t>(ids.size()), num_audio, audio_hidden});
     ids.insert(ids.end(), static_cast<size_t>(num_audio), 0);
   } else if (input.is_text()) {
     auto encode_result = tokenizer_->encode(input.get_text());
@@ -109,14 +112,16 @@ auto MultimodalPrefiller::processMultimodalInput(
     for (auto t : tokens) {
       ids.push_back(static_cast<int64_t>(t));
     }
+  } else {
+    ET_LOG(Error, "Unsupported MultimodalInput type");
+    return Error::NotSupported;
   }
-  ET_LOG(Error, "Unsupported MultimodalInput type");
-  return Error::NotSupported;
+  return ::executorch::runtime::Error::Ok;
 }
 
-auto MultimodalPrefiller::encodeAudio(
-    const AudioSlot &slot, const auto hidden, std::vector<uint8_t> &embeds_buf,
-    const size_t embeds_elem_size,
+[[nodiscard]] auto MultimodalPrefiller::encodeAudio(
+    const Types::AudioSlot &slot, const auto hidden,
+    std::vector<uint8_t> &embeds_buf, const size_t embeds_elem_size,
     const ::executorch::aten::ScalarType &embeds_dtype) {
   ET_CHECK_OR_RETURN_ERROR(
       slot.audio_hidden == static_cast<int64_t>(hidden), InvalidState,
@@ -166,9 +171,9 @@ auto MultimodalPrefiller::encodeAudio(
   return ::executorch::runtime::Error::Ok;
 }
 
-auto MultimodalPrefiller::encodeImages(
-    const ImageSlot &slot, const auto hidden, std::vector<uint8_t> &embeds_buf,
-    const size_t embeds_elem_size,
+[[nodiscard]] auto MultimodalPrefiller::encodeImages(
+    const Types::ImageSlot &slot, const auto hidden,
+    std::vector<uint8_t> &embeds_buf, const size_t embeds_elem_size,
     const ::executorch::aten::ScalarType &embeds_dtype) {
   auto encode_result = image_encoder_->encode(*slot.input);
   ET_CHECK_OK_OR_RETURN_ERROR(encode_result.error(), "Image encoding failed");
@@ -208,8 +213,9 @@ auto MultimodalPrefiller::encodeImages(
   return ::executorch::runtime::Error::Ok;
 }
 
-auto MultimodalPrefiller::initializePLE(auto &embed_outputs, auto total_len,
-                                        PLEEmbeddings &ple_embeddings) {
+[[nodiscard]] auto
+MultimodalPrefiller::initializePLE(auto &embed_outputs, auto total_len,
+                                   Types::PLEEmbeddings &ple_embeddings) {
   auto full_ple_tok = embed_outputs[1].toTensor();
   ple_embeddings.num_layers = static_cast<SizesType>(full_ple_tok.size(2));
   ple_embeddings.ple_dim = static_cast<SizesType>(full_ple_tok.size(3));
@@ -218,24 +224,22 @@ auto MultimodalPrefiller::initializePLE(auto &embed_outputs, auto total_len,
   const size_t total_bytes = full_ple_tok.nbytes();
   ET_CHECK_OR_RETURN_ERROR(total_numel > 0, InvalidState,
                            "ple_tok has zero elements");
-  size_t ple_elem_size = total_bytes / total_numel;
+  ple_embeddings.ple_elem_size = total_bytes / total_numel;
   const size_t prefix_bytes = static_cast<size_t>(total_len) *
                               static_cast<size_t>(ple_embeddings.num_layers) *
                               static_cast<size_t>(ple_embeddings.ple_dim) *
-                              ple_elem_size;
+                              ple_embeddings.ple_elem_size;
   ple_embeddings.ple_tok_buf.resize(prefix_bytes);
   std::memcpy(ple_embeddings.ple_tok_buf.data(),
               full_ple_tok.mutable_data_ptr(), prefix_bytes);
   return ::executorch::runtime::Error::Ok;
 }
 
-auto MultimodalPrefiller::prefillChunk(std::vector<EValue> &last_outs,
-                                       std::vector<uint8_t> &embeds_buf,
-                                       auto chunk_start, auto chunk_len,
-                                       auto hidden, auto embeds_elem_size,
-                                       auto embeds_dtype,
-                                       PLEEmbeddings &ple_embeddings,
-                                       std::vector<int64_t> &cache_positions) {
+[[nodiscard]] auto MultimodalPrefiller::prefillChunk(
+    std::vector<EValue> &last_outs, std::vector<uint8_t> &embeds_buf,
+    auto chunk_start, auto chunk_len, auto hidden, auto embeds_elem_size,
+    auto embeds_dtype, Types::PLEEmbeddings &ple_embeddings,
+    std::vector<int64_t> &cache_positions) {
   uint8_t *embeds_chunk_ptr =
       embeds_buf.data() + static_cast<size_t>(chunk_start) *
                               static_cast<size_t>(hidden) * embeds_elem_size;
@@ -296,11 +300,14 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
 
   std::vector<int64_t> ids;
   ids.reserve(static_cast<size_t>(prefill_total_cap));
-  std::vector<ImageSlot> image_slots;
-  std::vector<AudioSlot> audio_slots;
+  std::vector<Types::ImageSlot> image_slots;
+  std::vector<Types::AudioSlot> audio_slots;
 
   for (const auto &input : inputs) {
-    processMultimodalInput(input, ids, image_slots, audio_slots);
+    auto res = processMultimodalInput(input, ids, image_slots, audio_slots);
+    if (res != ::executorch::runtime::Error::Ok) {
+      return res;
+    }
   }
 
   const int64_t total_len = static_cast<int64_t>(ids.size());
@@ -350,7 +357,11 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   // Pass 2: encode images and splice their outputs into embeds_buf.
   // ------------------------------------------------------------
   for (const auto &slot : image_slots) {
-    encodeImages(slot, hidden, embeds_buf, embeds_elem_size, embeds_dtype);
+    auto res =
+        encodeImages(slot, hidden, embeds_buf, embeds_elem_size, embeds_dtype);
+    if (res != ::executorch::runtime::Error::Ok) {
+      return res;
+    }
   }
 
   // ------------------------------------------------------------
@@ -359,12 +370,19 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
   // invalidate slot state. Same dtype-conversion matrix as vision.
   // ------------------------------------------------------------
   for (auto &slot : audio_slots) {
-    encodeAudio(slot, hidden, embeds_buf, embeds_elem_size, embeds_dtype);
+    auto res =
+        encodeAudio(slot, hidden, embeds_buf, embeds_elem_size, embeds_dtype);
+    if (res != ::executorch::runtime::Error::Ok) {
+      return res;
+    }
   }
 
-  PLEEmbeddings ple_embeddings;
+  Types::PLEEmbeddings ple_embeddings;
   if (has_ple) {
-    initializePLE(embed_outputs, total_len, ple_embeddings);
+    auto res = initializePLE(embed_outputs, total_len, ple_embeddings);
+    if (res != ::executorch::runtime::Error::Ok) {
+      return res;
+    }
   }
 
   std::vector<EValue> last_outs;
@@ -379,9 +397,12 @@ MultimodalPrefiller::prefill(const std::vector<MultimodalInput> &inputs,
     const int64_t chunk_start = ci * chunk_cap;
     const int64_t chunk_end = std::min(chunk_start + chunk_cap, total_len);
     const int64_t chunk_len = chunk_end - chunk_start;
-    prefillChunk(last_outs, embeds_buf, chunk_start, chunk_len, hidden,
-                 embeds_elem_size, embeds_dtype, ple_embeddings,
-                 cache_positions);
+    auto res = prefillChunk(last_outs, embeds_buf, chunk_start, chunk_len,
+                            hidden, embeds_elem_size, embeds_dtype,
+                            ple_embeddings, cache_positions);
+    if (res != ::executorch::runtime::Error::Ok) {
+      return res;
+    }
   }
 
   ET_CHECK_OR_RETURN_ERROR(!last_outs.empty(), InvalidState,

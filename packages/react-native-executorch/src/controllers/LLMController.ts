@@ -117,9 +117,7 @@ export class LLMController {
         this.nativeModule.unload();
       }
 
-      if ((model.capabilities ?? []).find((c) => c === 'audio')) {
-        this.audioConfig = model.audioConfig;
-      }
+      this.audioConfig = model.audioConfig;
 
       this.nativeModule = await global.loadLLM(
         modelPath,

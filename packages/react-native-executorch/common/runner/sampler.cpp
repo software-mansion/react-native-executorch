@@ -255,20 +255,16 @@ int32_t Sampler::sample(T *logits, const std::vector<uint64_t> &recent_tokens) {
     apply_temperature(logits, vocab_size_);
     // 3. mask out logits outside top-k by rank (pre-softmax, becomes 0 mass)
     mask_topk(logits);
-    // 4. apply softmax to the logits to get the probabilities for next token
+    // 4. mask out logits outside top-p by rank (pre-softmax)
+    mask_topp(logits);
+    // 5. apply softmax to the logits to get the probabilities for next token
     softmax(logits, vocab_size_);
-    // 5. apply min_p truncation
+    // 6. apply min_p truncation
     apply_min_p(logits, vocab_size_);
     // flip a (float) coin (this is our source of entropy for sampling)
     float coin = random_f32(&rng_state_);
-    // 5. we sample from this distribution to get the next token
-    if (topp_ <= 0 || topp_ >= 1) {
-      // simply sample from the predicted probability distribution
-      next = sample_mult(logits, coin);
-    } else {
-      // top-p (nucleus) sampling, clamping the least likely tokens to zero
-      next = sample_topp(logits, coin);
-    }
+    // 7. we sample from this distribution to get the next token
+    next = sample_mult(logits, coin);
   }
   return next;
 }

@@ -63,10 +63,8 @@ function MultimodalLLMScreen() {
   const recordChunks = useRef<Float32Array[]>([]);
 
   const [error, setError] = useState<string | null>(null);
-
-  const vlm = useLLM({
-    model: models.llm.gemma4_e2b_multimodal(),
-  });
+  const model = models.llm.gemma4_e2b_multimodal();
+  const vlm = useLLM({ model: model });
   const tokenCount = vlm.isReady ? vlm.getGeneratedTokenCount() : 0;
   const { stats, onMessageSend } = useLLMStats(
     vlm.response,
@@ -93,6 +91,12 @@ function MultimodalLLMScreen() {
       const status = await AudioManager.requestRecordingPermissions();
       setHasMicPermission(status === 'Granted');
     })();
+
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      recorder.current.stop();
+      AudioManager.setAudioSessionActivity(false);
+    };
   }, []);
 
   const loadAudioFromUrl = async () => {
@@ -239,7 +243,9 @@ function MultimodalLLMScreen() {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                Pick an image and ask me anything about it.
+                {model.capabilities.find((c) => c === 'audio')
+                  ? 'Say hi or pick an image or and ask me anything about it.'
+                  : 'Pick an image and ask me anything about it.'}
               </Text>
               <SuggestedPrompts
                 prompts={SUGGESTED_PROMPTS}

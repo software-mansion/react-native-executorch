@@ -59,7 +59,8 @@ Error MultimodalRunner::load_subcomponents() {
     audio_encoder = aud_it->second.get();
   }
   mm_prefiller_ = std::make_unique<MultimodalPrefiller>(
-      *module_, *mm_decoder_runner_, *tokenizer_, image_encoder, audio_encoder);
+      *module_, *mm_decoder_runner_, *tokenizer_, metadata_, image_encoder,
+      audio_encoder);
   mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids_), stats_ptr, config_);
@@ -98,8 +99,8 @@ Error MultimodalRunner::generate_internal(
                               ? config_.max_context_length
                               : config_.max_seq_len;
   int32_t resolved_max_new = resolve_max_new_tokens(
-      static_cast<int32_t>(pos_), seq_cap,
-      config_.max_context_length, config_.max_new_tokens);
+      static_cast<int32_t>(pos_), seq_cap, config_.max_context_length,
+      config_.max_new_tokens);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
   auto wrapped_callback = [&](const std::string &piece) {

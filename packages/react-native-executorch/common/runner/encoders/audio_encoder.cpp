@@ -87,14 +87,14 @@ Result<EValue> AudioEncoder::encode(const MultimodalInput &input) {
   std::memcpy(padded_wav_.data(), wav.samples.data(),
               static_cast<size_t>(n_valid) * sizeof(float));
 
-  num_blocks_scalar_ = n_valid;
+  valid_samples_scalar_ = n_valid;
 
   auto wav_tensor = ::executorch::extension::from_blob(
       padded_wav_.data(), {1, static_cast<SizesType>(n_padded)},
       ::executorch::aten::ScalarType::Float);
 
   auto num_blocks_tensor = ::executorch::extension::from_blob(
-      &num_blocks_scalar_, {}, ::executorch::aten::ScalarType::Long);
+      &valid_samples_scalar_, {}, ::executorch::aten::ScalarType::Long);
 
   std::vector<EValue> args = {EValue(*wav_tensor), EValue(*num_blocks_tensor)};
   auto exec_result = ET_UNWRAP(module_->execute(kAudioEncoderMethod, args));
