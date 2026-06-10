@@ -7,6 +7,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <runner/irunner.h>
 #include <runner/sampler.h>
 #include <vector>
 
@@ -26,7 +27,7 @@ std::vector<int> sampleMany(Sampler &s, std::vector<T> logits,
 
 // 1. Repetition penalty on positive logit: token 0 should be sampled less.
 TEST(SamplerTest, RepetitionPenaltyReducesPositiveLogit) {
-  Sampler s(2, 1.0f, 1.0f, 0, 0.0f, 1.3f);
+  Sampler s(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.3f});
   std::vector<float> logits = {1.0f, 1.0f};
   std::vector<uint64_t> recent = {0};
   auto counts = sampleMany(s, logits, recent, 2000);
@@ -36,7 +37,7 @@ TEST(SamplerTest, RepetitionPenaltyReducesPositiveLogit) {
 // 2. Repetition penalty on negative logit: penalised token should appear even
 // less.
 TEST(SamplerTest, RepetitionPenaltyMultipliesNegativeLogit) {
-  Sampler s(2, 1.0f, 1.0f, 0, 0.0f, 1.5f);
+  Sampler s(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.5f});
   std::vector<float> logits = {0.0f, -1.0f};
   std::vector<uint64_t> recent = {1};
   auto counts = sampleMany(s, logits, recent, 2000);
@@ -45,8 +46,10 @@ TEST(SamplerTest, RepetitionPenaltyMultipliesNegativeLogit) {
 
 // 3. No recent tokens — penalty has no effect.
 TEST(SamplerTest, RepetitionPenaltyNoRecentTokensHasNoEffect) {
-  Sampler baseline(2, 1.0f, 1.0f, 0, 0.0f, 1.0f);
-  Sampler penalised(2, 1.0f, 1.0f, 0, 0.0f, 2.0f);
+  Sampler baseline(
+      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
+  Sampler penalised(
+      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 2.0f});
   std::vector<float> logits_b = {1.0f, 1.0f};
   std::vector<float> logits_p = {1.0f, 1.0f};
   std::vector<uint64_t> recent = {};
@@ -57,7 +60,7 @@ TEST(SamplerTest, RepetitionPenaltyNoRecentTokensHasNoEffect) {
 
 // 4. Min-p truncation: token with very low probability is excluded.
 TEST(SamplerTest, MinPFiltersTailTokens) {
-  Sampler s(3, 1.0f, 1.0f, 0, 0.1f, 1.0f);
+  Sampler s(3, {.temperature = 1.0f, .topp = 1.0f, .min_p = 0.1f});
   std::vector<float> logits = {5.0f, -5.0f, -5.0f};
   std::vector<uint64_t> recent = {};
   auto counts = sampleMany(s, logits, recent, 1000);
@@ -68,7 +71,7 @@ TEST(SamplerTest, MinPFiltersTailTokens) {
 
 // 5. Min-p = 0 disables filtering.
 TEST(SamplerTest, MinPZeroDisablesFiltering) {
-  Sampler s(3, 0.0f, 1.0f, 0, 0.0f, 1.0f);
+  Sampler s(3, {.temperature = 0.0f, .topp = 1.0f});
   std::vector<float> logits = {1.0f, -1000.0f, -1000.0f};
   std::vector<uint64_t> recent = {};
   EXPECT_EQ(s.sample(logits.data(), recent), 0);
@@ -76,7 +79,7 @@ TEST(SamplerTest, MinPZeroDisablesFiltering) {
 
 // 6. Min-p + top-p stacked.
 TEST(SamplerTest, MinPAndToppStack) {
-  Sampler s(4, 1.0f, 0.5f, 0, 0.2f, 1.0f);
+  Sampler s(4, {.temperature = 1.0f, .topp = 0.5f, .min_p = 0.2f});
   std::vector<float> logits = {5.0f, 2.0f, -2.0f, -5.0f};
   std::vector<uint64_t> recent = {};
   auto counts = sampleMany(s, logits, recent, 2000);

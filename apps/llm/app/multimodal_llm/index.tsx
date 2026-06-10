@@ -244,7 +244,7 @@ function MultimodalLLMScreen() {
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
                 {model.capabilities.find((c) => c === 'audio')
-                  ? 'Say hi or pick an image or and ask me anything about it.'
+                  ? 'Say "Hi" or pick an image or and ask me anything about it.'
                   : 'Pick an image and ask me anything about it.'}
               </Text>
               <SuggestedPrompts
