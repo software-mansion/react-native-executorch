@@ -117,7 +117,7 @@ export class LLMController {
         this.nativeModule.unload();
       }
 
-      if ((model.capabilities ?? []).find((c) => c == 'audio')) {
+      if ((model.capabilities ?? []).find((c) => c === 'audio')) {
         this.audioConfig = model.audioConfig;
       }
 
@@ -297,7 +297,6 @@ export class LLMController {
     const hasImages = !!imagePaths && imagePaths.length > 0;
     const hasAudio = !!audioWaveforms && audioWaveforms.length > 0;
     try {
-      console.log('kappa');
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
       let response: string;
@@ -361,8 +360,6 @@ export class LLMController {
     messages: Message[],
     tools?: LLMTool[]
   ): Promise<string> {
-    let s = performance.now();
-    console.log('kappa', performance.now() - s);
     if (!this._isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -393,7 +390,6 @@ export class LLMController {
       tools,
       { tools_in_user_message: false, add_generation_prompt: true }
     );
-    console.log('kappa', performance.now() - s);
 
     return await this.forward(
       renderedChat,

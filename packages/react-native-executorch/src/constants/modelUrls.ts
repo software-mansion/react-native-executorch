@@ -129,8 +129,8 @@ const GEMMA4_E2B_XNNPACK = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/xn
 const GEMMA4_E2B_VULKAN = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
 const GEMMA4_E2B_XNNPACK_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
 const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-const GEMMA4_TOKENIZER = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/tokenizer.json`;
-const GEMMA4_TOKENIZER_CONFIG = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/tokenizer_config.json`;
+const GEMMA4_TOKENIZER = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer.json`;
+const GEMMA4_TOKENIZER_CONFIG = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer_config.json`;
 
 /**
  * @category Models - LLM
