@@ -22,6 +22,7 @@ HF_VERSION_TAG="resolve/v${LIB_VERSION}"
 TEST_EXECUTABLES=(
   "NumericalTests"
   "RunnerTests"
+  "SamplerTests"
   "LogTests"
   "FileUtilsTest"
   "ImageProcessingTest"

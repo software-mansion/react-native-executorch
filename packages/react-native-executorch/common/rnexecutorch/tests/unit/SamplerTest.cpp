@@ -34,14 +34,24 @@ TEST(SamplerTest, RepetitionPenaltyReducesPositiveLogit) {
   EXPECT_LT(counts[0], 1200);
 }
 
-// 2. Repetition penalty on negative logit: penalised token should appear even
-// less.
+// 2. Repetition penalty on negative logit: multiplying a negative logit by the
+// penalty makes it more negative, so the penalised token is sampled strictly
+// less often than without the penalty. Compare against an unpenalised baseline
+// rather than a fixed threshold: with penalty 1.5 the penalised logit is
+// -1.0 * 1.5 = -1.5, giving P(token 1) = e^-1.5 / (1 + e^-1.5) ≈ 0.18 (~365 of
+// 2000) versus the baseline e^-1 / (1 + e^-1) ≈ 0.27 (~538). A static "< 200"
+// bound would be mathematically unreachable at this penalty.
 TEST(SamplerTest, RepetitionPenaltyMultipliesNegativeLogit) {
-  Sampler s(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.5f});
-  std::vector<float> logits = {0.0f, -1.0f};
+  Sampler baseline(
+      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
+  Sampler penalised(
+      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.5f});
+  std::vector<float> logits_b = {0.0f, -1.0f};
+  std::vector<float> logits_p = {0.0f, -1.0f};
   std::vector<uint64_t> recent = {1};
-  auto counts = sampleMany(s, logits, recent, 2000);
-  EXPECT_LT(counts[1], 200);
+  auto cb = sampleMany(baseline, logits_b, recent, 2000);
+  auto cp = sampleMany(penalised, logits_p, recent, 2000);
+  EXPECT_LT(cp[1], cb[1]);
 }
 
 // 3. No recent tokens — penalty has no effect.
