@@ -133,7 +133,7 @@ template <typename T> void Sampler::mask_topk(T *logits) {
   std::nth_element(scratch.begin(), scratch.begin() + (topk_ - 1),
                    scratch.end(), std::greater<T>());
   const T threshold = scratch[topk_ - 1];
-  const T neg_inf = std::numeric_limits<T>::lowest();
+  constexpr T neg_inf = std::numeric_limits<T>::lowest();
   for (size_t i = 0; i < vocab_size_; i++) {
     if (logits[i] < threshold) {
       logits[i] = neg_inf;
@@ -167,7 +167,7 @@ template <typename T> void Sampler::mask_topp(T *logits) {
     return;
   }
   for (size_t i = 0; i < vocab_size_; i++) {
-    probindex[i].prob = probindex[i].prob / sum;
+    probindex[i].prob /= sum;
   }
   std::sort(probindex.get(), probindex.get() + vocab_size_,
             [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
@@ -189,7 +189,7 @@ template <typename T> void Sampler::mask_topp(T *logits) {
   for (size_t i = 0; i <= last_idx; i++) {
     keep[probindex[i].index] = true;
   }
-  const T neg_inf = std::numeric_limits<T>::lowest();
+  constexpr T neg_inf = std::numeric_limits<T>::lowest();
   for (size_t i = 0; i < vocab_size_; i++) {
     if (!keep[i]) {
       logits[i] = neg_inf;
