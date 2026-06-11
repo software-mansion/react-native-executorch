@@ -8,7 +8,6 @@
 
 #pragma once
 #include "constants.h"
-#include "text_prefiller.h"
 #include <cctype>
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>

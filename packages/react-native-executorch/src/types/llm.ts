@@ -5,20 +5,23 @@ import { ResourceSource } from './common';
  * Capabilities a multimodal LLM can have.
  * @category Types
  */
-export type LLMCapability = 'vision';
+export type LLMCapability = 'vision' | 'audio';
 
 /**
  * Derives the media argument shape for `sendMessage` from a capabilities tuple.
  * @category Types
  */
 export type MediaArg<C extends readonly LLMCapability[]> =
-  'vision' extends C[number] ? { imagePath?: string } : object;
+  ('vision' extends C[number] ? { imagePath?: string } : object) &
+    ('audio' extends C[number] ? { audioBuffer?: Float32Array } : object);
 
 /**
  * Union of all built-in LLM model names.
  * @category Types
  */
 export type LLMModelName =
+  | 'gemma4-e2b'
+  | 'gemma4-e2b-multimodal'
   | 'llama-3.2-3b'
   | 'llama-3.2-3b-qlora'
   | 'llama-3.2-3b-spinquant'
@@ -63,42 +66,62 @@ export type LLMModelName =
   | 'bielik-v3.0-1.5b-quantized';
 
 /**
+ * Audio soft-token expansion constants for audio_encoder.
+ * @category Types
+ */
+export interface AudioConfig {
+  samplesPerBlock: number;
+  tokensPerBlock: number;
+}
+
+/**
+ * Properties defining LLMModel.
+ * @category Types
+ */
+export interface LLMModel {
+  /**
+   * The built-in model name (e.g. `'llama-3.2-3b'`). Used for telemetry and hook reload triggers.
+   * Pass one of the pre-built LLM constants (e.g. `LLAMA3_2_3B`) to populate all required fields.
+   */
+  modelName: LLMModelName;
+  /**
+   * `ResourceSource` that specifies the location of the model binary.
+   */
+  modelSource: ResourceSource;
+  /**
+   * `ResourceSource` pointing to the JSON file which contains the tokenizer.
+   */
+  tokenizerSource: ResourceSource;
+  /**
+   * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
+   */
+  tokenizerConfigSource: ResourceSource;
+  /**
+   * Optional list of modality capabilities the model supports.
+   * Determines the type of the `media` argument in `sendMessage`.
+   * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
+   */
+  capabilities?: readonly LLMCapability[];
+  /**
+   * Recommended default generation settings, typically copied from the
+   * upstream `generation_config.json` or the model card. Applied automatically
+   * after the native module loads and before any user `configure()` call,
+   * so callers only need to override the values they want to change.
+   */
+  generationConfig?: GenerationConfig;
+  /**
+   * Defines config for audio input modality for multimodal LLMs.
+   * `capabilities` must include 'audio'.
+   */
+  audioConfig?: AudioConfig;
+}
+
+/**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
  * @category Types
  */
 export interface LLMProps {
-  model: {
-    /**
-     * The built-in model name (e.g. `'llama-3.2-3b'`). Used for telemetry and hook reload triggers.
-     * Pass one of the pre-built LLM constants (e.g. `LLAMA3_2_3B`) to populate all required fields.
-     */
-    modelName: LLMModelName;
-    /**
-     * `ResourceSource` that specifies the location of the model binary.
-     */
-    modelSource: ResourceSource;
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer.
-     */
-    tokenizerSource: ResourceSource;
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
-     */
-    tokenizerConfigSource: ResourceSource;
-    /**
-     * Optional list of modality capabilities the model supports.
-     * Determines the type of the `media` argument in `sendMessage`.
-     * Example: `['vision']` enables `sendMessage(text, { imagePath })`.
-     */
-    capabilities?: readonly LLMCapability[];
-    /**
-     * Recommended default generation settings, typically copied from the
-     * upstream `generation_config.json` or the model card. Applied automatically
-     * after the native module loads and before any user `configure()` call,
-     * so callers only need to override the values they want to change.
-     */
-    generationConfig?: GenerationConfig;
-  };
+  model: LLMModel;
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
    */
@@ -289,6 +312,12 @@ export interface Message {
    * controller normalizes the path before passing it to native code.
    */
   mediaPath?: string;
+  /**
+   * Optional fp32 mono 16 kHz PCM buffer. Only valid on `user` messages for
+   * models with the `'audio'` capability. The controller forwards it to the
+   * native `generateMultimodal` path.
+   */
+  audioWaveform?: Float32Array;
 }
 
 /**
@@ -386,6 +415,7 @@ export interface ContextStrategy {
 export const SPECIAL_TOKENS = {
   BOS_TOKEN: 'bos_token',
   EOS_TOKEN: 'eos_token',
+  EOT_TOKEN: 'eot_token',
   UNK_TOKEN: 'unk_token',
   SEP_TOKEN: 'sep_token',
   PAD_TOKEN: 'pad_token',

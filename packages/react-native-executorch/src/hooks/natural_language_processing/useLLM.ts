@@ -58,11 +58,7 @@ export function useLLM({
     (async () => {
       try {
         await controllerInstance.load({
-          modelSource: model.modelSource,
-          tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource!,
-          capabilities: model.capabilities,
-          defaultGenerationConfig: model.generationConfig,
+          model: model,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -106,7 +102,10 @@ export function useLLM({
   );
 
   const sendMessage = useCallback(
-    (message: string, media?: { imagePath?: string }) => {
+    (
+      message: string,
+      media?: { imagePath?: string; audioBuffer?: Float32Array }
+    ) => {
       setResponse('');
       return controllerInstance.sendMessage(message, media);
     },

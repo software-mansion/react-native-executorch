@@ -14,11 +14,34 @@
 #include "text_decoder_runner.h"
 
 namespace executorch::extension::llm {
+// Supports two PTE contracts, selected per-call from the kHasPLE metadata
+// key (mirrors how kEnableDynamicShape etc. are read — queried on demand,
+// not cached in a member). Callers that need it multiple times in a hot
+// path should snapshot into a local.
+//
+//  * Legacy (has_ple == false):
+//      token_embedding(ids) -> inputs_embeds
+//      text_decoder(inputs_embeds, input_pos)
+//
+//  * Gemma-style PLE (has_ple == true):
+//      token_embedding(ids) -> (inputs_embeds, ple_tok)
+//      text_decoder(inputs_embeds, ple_tok, input_pos)
+//    ple_tok carries Gemma4's per-layer PLE signal keyed on input_ids. It's
+//    computed once in token_embedding and threaded through every decoder call
+//    so PLE fires at every position (including multimodal placeholder slots).
 class MultimodalDecoderRunner : public TextDecoderRunner {
 public:
   explicit MultimodalDecoderRunner(Module &module, IOManager *io_manager,
                                    const GenerationConfig &config)
       : TextDecoderRunner(module, io_manager, config) {}
+
+  bool has_ple() const {
+    auto r = module_->get(kHasPLE);
+    if (r.error() != ::executorch::runtime::Error::Ok) {
+      return false;
+    }
+    return r->toScalar().to<bool>();
+  }
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
   step(TensorPtr &tokens, int64_t start_pos) override {
@@ -26,7 +49,15 @@ public:
     if (!embed_result.ok()) {
       return embed_result.error();
     }
-    return decode((*embed_result)[0], start_pos);
+    auto &embed_outputs = *embed_result;
+    if (has_ple()) {
+      ET_CHECK_MSG(embed_outputs.size() == 2,
+                   "Expected 2 outputs (inputs_embeds, ple_tok) from "
+                   "token_embedding, got %zu",
+                   embed_outputs.size());
+      return decode(embed_outputs[0], embed_outputs[1], start_pos);
+    }
+    return decode(embed_outputs[0], start_pos);
   }
 
   inline ::executorch::runtime::Result<::executorch::aten::Tensor>
@@ -35,6 +66,24 @@ public:
         &start_pos, {1}, ::executorch::aten::ScalarType::Long);
     auto outputs_result =
         module_->execute(kTextModelMethod, {embeddings, start_pos_tensor});
+    if (!outputs_result.ok()) {
+      return outputs_result.error();
+    }
+    auto &outputs = *outputs_result;
+    ET_CHECK_MSG(outputs.size() == 1,
+                 "Expected 1 output from text_decoder, got %zu",
+                 outputs.size());
+    ET_CHECK_MSG(outputs[0].isTensor(), "text_decoder output is not a tensor");
+    return outputs[0].toTensor();
+  }
+
+  inline ::executorch::runtime::Result<::executorch::aten::Tensor>
+  decode(const ::executorch::runtime::EValue &embeddings,
+         const ::executorch::runtime::EValue &ple_tok, int64_t start_pos) {
+    auto start_pos_tensor = ::executorch::extension::from_blob(
+        &start_pos, {1}, ::executorch::aten::ScalarType::Long);
+    auto outputs_result = module_->execute(
+        kTextModelMethod, {embeddings, ple_tok, start_pos_tensor});
     if (!outputs_result.ok()) {
       return outputs_result.error();
     }

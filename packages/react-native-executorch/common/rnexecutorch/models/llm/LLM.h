@@ -7,6 +7,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/llm/Types.h>
 #include <runner/base_llm_runner.h>
 
 namespace rnexecutorch {
@@ -22,10 +23,10 @@ public:
 
   std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
+
   std::string generateMultimodal(std::string prompt,
-                                 std::vector<std::string> imagePaths,
-                                 std::string imageToken,
-                                 std::shared_ptr<jsi::Function> callback);
+                                 std::shared_ptr<jsi::Function> callback,
+                                 MultimodalInputs mutlimodalInputs = {});
 
   void interrupt();
   void reset();

@@ -11,6 +11,7 @@ import MarkdownComponent from './MarkdownComponent';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
 import { Message } from 'react-native-executorch';
+import AudioWaveform from './AudioWaveform';
 
 interface MessageItemProps {
   message: Message;
@@ -41,6 +42,12 @@ const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
             source={{ uri: message.mediaPath }}
             style={styles.userMessageImage}
             resizeMode="contain"
+          />
+        )}
+        {message.audioWaveform && (
+          <AudioWaveform
+            buffer={message.audioWaveform}
+            style={styles.userMessageWaveform}
           />
         )}
         <MarkdownComponent text={message.content} />
@@ -101,6 +108,9 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 6,
+    marginBottom: 6,
+  },
+  userMessageWaveform: {
     marginBottom: 6,
   },
   aiMessageIconContainer: {

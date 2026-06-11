@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <set>
 #include <span>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
@@ -17,6 +18,7 @@
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/instance_segmentation/Types.h>
+#include <rnexecutorch/models/llm/Types.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -224,6 +226,22 @@ inline std::vector<float> getValue<std::vector<float>>(const jsi::Value &val,
 }
 
 template <>
+inline std::vector<std::vector<float>>
+getValue<std::vector<std::vector<float>>>(const jsi::Value &val,
+                                          jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  const size_t length = array.size(runtime);
+  std::vector<std::vector<float>> result;
+  result.reserve(length);
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    auto span = getTypedArrayAsSpan<float>(element, runtime);
+    result.emplace_back(span.begin(), span.end());
+  }
+  return result;
+}
+
+template <>
 inline std::vector<int64_t>
 getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int64_t>(val, runtime);
@@ -300,6 +318,31 @@ template <>
 inline std::span<uint64_t>
 getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<uint64_t>(val, runtime);
+}
+
+template <>
+inline models::llm::MultimodalInputs
+getValue<models::llm::MultimodalInputs>(const jsi::Value &val,
+                                        jsi::Runtime &runtime) {
+  models::llm::MultimodalInputs multimodalInputs;
+  jsi::Object obj = val.asObject(runtime);
+
+  jsi::Value v = obj.getProperty(runtime, "imageToken");
+  if (!v.isUndefined() && !v.isNull()) {
+    auto &images = multimodalInputs.images.emplace();
+    images.token = getValue<std::string>(v, runtime);
+    v = obj.getProperty(runtime, "imagePaths");
+    images.paths = getValue<std::vector<std::string>>(v, runtime);
+  }
+  v = obj.getProperty(runtime, "audioToken");
+  if (!v.isUndefined() && !v.isNull()) {
+    auto &audios = multimodalInputs.audios.emplace();
+    audios.token = getValue<std::string>(v, runtime);
+    v = obj.getProperty(runtime, "audioWaveforms");
+    audios.waveforms = getValue<std::vector<std::vector<float>>>(v, runtime);
+  }
+
+  return multimodalInputs;
 }
 
 // Conversion from C++ types to jsi --------------------------------------------

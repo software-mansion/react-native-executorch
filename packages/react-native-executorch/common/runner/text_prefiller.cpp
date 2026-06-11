@@ -33,15 +33,16 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
 
   // Check if we need to chunk the prompt tokens
   int32_t num_prompt_tokens = prompt_tokens.size();
+  const int32_t chunk_size = static_cast<int32_t>(max_seq_len_);
 
-  // If prompt tokens exceed max_seq_len_, we need to chunk them
-  if (num_prompt_tokens > max_seq_len_) {
+  // If prompt tokens exceed chunk_size, we need to chunk them
+  if (num_prompt_tokens > chunk_size) {
     uint64_t cur_token = 0;
     int num_tokens_to_process = 0;
 
     while (num_tokens_to_process < num_prompt_tokens) {
-      auto num_tokens_to_prefill_with = std::min<int>(
-          num_prompt_tokens - num_tokens_to_process, max_seq_len_);
+      auto num_tokens_to_prefill_with =
+          std::min<int>(num_prompt_tokens - num_tokens_to_process, chunk_size);
 
       std::vector<uint64_t> prompt_tokens_to_process(
           num_tokens_to_prefill_with);
@@ -75,7 +76,6 @@ TextPrefiller::prefill_chunk(std::vector<uint64_t> &prompt_tokens,
   // store the token
   uint64_t cur_token;
   if (enable_parallel_prefill_ || !use_kv_cache_) {
-    // initialize tensor wrappers
     auto tokens = from_blob(prompt_tokens.data(), {1, num_prompt_tokens},
                             executorch::aten::ScalarType::Long);
 
