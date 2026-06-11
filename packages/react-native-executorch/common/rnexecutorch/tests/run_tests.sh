@@ -17,6 +17,7 @@ MODELS_DIR="$SCRIPT_DIR/integration/assets/models"
 TEST_EXECUTABLES=(
   "NumericalTests"
   "RunnerTests"
+  "SamplerTests"
   "LogTests"
   "FileUtilsTest"
   "ImageProcessingTest"
@@ -81,6 +82,8 @@ MODELS=(
   "lfm2_5_vl_quantized_xnnpack_v2.pte|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/quantized/lfm2_5_vl_1_6b_8da4w_xnnpack.pte"
   "lfm2_vl_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer.json"
   "lfm2_vl_tokenizer_config.json|https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-VL-1.6B/resolve/main/tokenizer_config.json"
+  "gemma4_e2b_mm_xnnpack.pte|https://huggingface.co/software-mansion/react-native-executorch-gemma-4-multimodal/v0.9.0/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte"
+  "gemma_tokenizer.json|https://huggingface.co/software-mansion/react-native-executorch-gemma-4/v0.9.0/e2b/tokenizer.json"
   "yolo26n-seg.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-seg/resolve/v0.8.0/yolo26n-seg/xnnpack/yolo26n-seg.pte"
   "segmentation_image.jpg|https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Collage_audi.jpg/1280px-Collage_audi.jpg"
   "yolo26n-pose.pte|https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose/resolve/v0.9.0/xnnpack/yolo26_pose_n_xnnpack_fp32.pte"
@@ -207,7 +210,7 @@ models_for_test() {
   TokenizerModuleTests) echo "tokenizer.json" ;;
   SpeechToTextTests) echo "whisper_tiny_en_xnnpack.pte whisper_tokenizer.json fsmn-vad_xnnpack.pte" ;;
   TextToSpeechTests) echo "kokoro_duration_predictor.pte kokoro_synthesizer.pte kokoro_af_heart.bin kokoro_us_lexicon.json kokoro_en_tagger.json kokoro_us_phonemizer.pte" ;;
-  LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg" ;;
+  LLMTests) echo "smolLm2_135M_8da4w.pte smollm_tokenizer.json lfm2_5_vl_quantized_xnnpack_v2.pte lfm2_vl_tokenizer.json lfm2_vl_tokenizer_config.json test_image.jpg gemma4_e2b_mm_xnnpack.pte gemma_tokenizer.json" ;;
   TextToImageTests) echo "t2i_tokenizer.json t2i_encoder.pte t2i_unet.pte t2i_decoder.pte" ;;
   InstanceSegmentationTests) echo "yolo26n-seg.pte segmentation_image.jpg" ;;
   PoseEstimationTests) echo "yolo26n-pose.pte" ;;

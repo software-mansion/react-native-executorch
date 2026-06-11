@@ -1,11 +1,11 @@
-import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
+  AudioConfig,
   ChatConfig,
   GenerationConfig,
-  LLMCapability,
+  LLMModel,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -30,6 +30,7 @@ export class LLMController {
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
+  private audioConfig: AudioConfig | undefined;
 
   constructor({
     tokenCallback,
@@ -72,18 +73,10 @@ export class LLMController {
   }
 
   public async load({
-    modelSource,
-    tokenizerSource,
-    tokenizerConfigSource,
-    capabilities,
-    defaultGenerationConfig,
+    model,
     onDownloadProgressCallback,
   }: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-    capabilities?: readonly LLMCapability[];
-    defaultGenerationConfig?: GenerationConfig;
+    model: LLMModel;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -94,13 +87,13 @@ export class LLMController {
     try {
       const tokenizersPromise = ResourceFetcher.fetch(
         undefined,
-        tokenizerSource,
-        tokenizerConfigSource
+        model.tokenizerSource,
+        model.tokenizerConfigSource
       );
 
       const modelPromise = ResourceFetcher.fetch(
         onDownloadProgressCallback,
-        modelSource
+        model.modelSource
       );
 
       const [tokenizersResults, modelResult] = await Promise.all([
@@ -124,16 +117,18 @@ export class LLMController {
         this.nativeModule.unload();
       }
 
+      this.audioConfig = model.audioConfig;
+
       this.nativeModule = await global.loadLLM(
         modelPath,
         tokenizerPath,
-        capabilities ?? []
+        model.capabilities ?? []
       );
-      if (defaultGenerationConfig) {
+      if (model.generationConfig) {
         // Apply model-specific recommended sampling defaults before flipping
         // isReady so callers that react to it see the right config on first
         // send. User-provided `configure()` calls still override these.
-        this.applyGenerationConfig(defaultGenerationConfig);
+        this.applyGenerationConfig(model.generationConfig);
       }
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
@@ -236,6 +231,17 @@ export class LLMController {
     return token;
   }
 
+  private getAudioToken(): string {
+    const token = this.tokenizerConfig.audio_token;
+    if (!token) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config is missing 'audio_token'. Audio-capable models require tokenizerConfigSource with an 'audio_token' field."
+      );
+    }
+    return token;
+  }
+
   private filterSpecialTokens(text: string): string {
     let filtered = text;
     if (
@@ -243,6 +249,12 @@ export class LLMController {
       this.tokenizerConfig.eos_token
     ) {
       filtered = filtered.replaceAll(this.tokenizerConfig.eos_token, '');
+    }
+    if (
+      SPECIAL_TOKENS.EOT_TOKEN in this.tokenizerConfig &&
+      this.tokenizerConfig.eot_token
+    ) {
+      filtered = filtered.replaceAll(this.tokenizerConfig.eot_token, '');
     }
     if (
       SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
@@ -269,25 +281,37 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string, imagePaths?: string[]): Promise<string> {
+  public async forward(
+    input: string,
+    imagePaths?: string[],
+    audioWaveforms?: Float32Array[]
+  ): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     }
     if (this._isGenerating) {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModelGenerating);
     }
+    const hasImages = !!imagePaths && imagePaths.length > 0;
+    const hasAudio = !!audioWaveforms && audioWaveforms.length > 0;
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response =
-        imagePaths && imagePaths.length > 0
-          ? await this.nativeModule.generateMultimodal(
-              input,
-              imagePaths.map(normalizeImagePath),
-              this.getImageToken(),
-              this.onToken
-            )
-          : await this.nativeModule.generate(input, this.onToken);
+      let response: string;
+      if (hasImages || hasAudio) {
+        response = await this.nativeModule.generateMultimodal(
+          input,
+          this.onToken,
+          {
+            imagePaths: hasImages ? imagePaths!.map(normalizeImagePath) : null,
+            imageToken: hasImages ? this.getImageToken() : null,
+            audioWaveforms: hasAudio ? audioWaveforms! : null,
+            audioToken: hasAudio ? this.getAudioToken() : null,
+          }
+        );
+      } else {
+        response = await this.nativeModule.generate(input, this.onToken);
+      }
       return this.filterSpecialTokens(response);
     } catch (e) {
       throw parseUnknownError(e);
@@ -355,7 +379,9 @@ export class LLMController {
     const imagePaths = messages
       .filter((m) => m.mediaPath)
       .map((m) => m.mediaPath!);
-
+    const audioWaveforms = messages
+      .filter((m) => m.audioWaveform)
+      .map((m) => m.audioWaveform!);
     const renderedChat: string = this.applyChatTemplate(
       messages,
       this.tokenizerConfig,
@@ -365,19 +391,22 @@ export class LLMController {
 
     return await this.forward(
       renderedChat,
-      imagePaths.length > 0 ? imagePaths : undefined
+      imagePaths.length > 0 ? imagePaths : undefined,
+      audioWaveforms.length > 0 ? audioWaveforms : undefined
     );
   }
 
   public async sendMessage(
     message: string,
-    media?: { imagePath?: string }
+    media?: { imagePath?: string; audioBuffer?: Float32Array }
   ): Promise<string> {
     const mediaPath = media?.imagePath;
+    const audioBuffer = media?.audioBuffer;
     const newMessage: Message = {
       content: message,
       role: 'user',
       ...(mediaPath ? { mediaPath } : {}),
+      ...(audioBuffer ? { audioWaveform: audioBuffer } : {}),
     };
     const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
@@ -392,7 +421,22 @@ export class LLMController {
       );
       const textTokens = this.nativeModule.countTextTokens(rendered);
       const imageCount = messages.filter((m) => m.mediaPath).length;
-      return textTokens + imageCount * (visualTokenCount - 1);
+      // Audio soft-token expansion: audio_encoder pads samples to
+      // multiples of this.audioConfig.samplesPerBlock (7680 @ 16 kHz) and emits
+      // this.audioConfig.tokensPerBlock (~12) soft tokens per padded block. The
+      // rendered template only contributes 1 token for the audio placeholder,
+      // so add (expansion - 1) per audio message to match prefill consumption.
+      const audioTokenExpansion = messages.reduce((acc, m) => {
+        if (!m.audioWaveform) return acc;
+        const kBlocks = Math.max(
+          1,
+          Math.ceil(m.audioWaveform.length / this.audioConfig!.samplesPerBlock)
+        );
+        return acc + (this.audioConfig!.tokensPerBlock * kBlocks - 1);
+      }, 0);
+      return (
+        textTokens + imageCount * (visualTokenCount - 1) + audioTokenExpansion
+      );
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
@@ -497,12 +541,17 @@ function normalizeImagePath(path: string): string {
  * @returns Messages with image-bearing turns rewritten to structured content.
  */
 function messagesForChatTemplate(messages: Message[]): any[] {
-  return messages.map((m) =>
-    m.mediaPath && typeof m.content === 'string'
-      ? {
-          ...m,
-          content: [{ type: 'image' }, { type: 'text', text: m.content }],
-        }
-      : m
-  );
+  return messages.map((m) => {
+    if (typeof m.content !== 'string') return m;
+    const hasImage = !!m.mediaPath;
+    const hasAudio = !!m.audioWaveform;
+    if (!hasImage && !hasAudio) return m;
+    const parts: any[] = [];
+    if (hasImage) parts.push({ type: 'image' });
+    if (hasAudio) parts.push({ type: 'audio' });
+    parts.push({ type: 'text', text: m.content });
+    // Drop the Float32Array on the clone only — passing it into the Jinja
+    // template engine slows render past 3s. Don't mutate m;
+    return { ...m, content: parts, audioWaveform: undefined };
+  });
 }

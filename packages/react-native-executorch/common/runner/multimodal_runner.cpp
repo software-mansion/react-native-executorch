@@ -3,7 +3,6 @@
 #include "constants.h"
 #include "util.h"
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 
 namespace executorch::extension::llm {
 
@@ -54,8 +53,14 @@ Error MultimodalRunner::load_subcomponents() {
   if (enc_it != encoders_.end()) {
     image_encoder = enc_it->second.get();
   }
+  IEncoder *audio_encoder = nullptr;
+  auto aud_it = encoders_.find(MultimodalType::Audio);
+  if (aud_it != encoders_.end()) {
+    audio_encoder = aud_it->second.get();
+  }
   mm_prefiller_ = std::make_unique<MultimodalPrefiller>(
-      *module_, *mm_decoder_runner_, *tokenizer_, image_encoder);
+      *module_, *mm_decoder_runner_, *tokenizer_, metadata_, image_encoder,
+      audio_encoder);
   mm_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), mm_decoder_runner_.get(), /*use_kv_cache=*/true,
       std::move(eos_ids_), stats_ptr, config_);
@@ -78,22 +83,24 @@ Error MultimodalRunner::generate_internal(
   }
 
   stats_.inference_start_ms = time_in_ms();
-
-  uint64_t prefill_next_token = 0;
-  for (const auto &input : inputs) {
-    auto prefill_result = mm_prefiller_->prefill(input, pos_);
-    if (!prefill_result.ok())
-      return prefill_result.error();
-    prefill_next_token = prefill_result.get();
-  }
+  auto prefill_result = mm_prefiller_->prefill(inputs, pos_);
+  if (!prefill_result.ok())
+    return prefill_result.error();
+  uint64_t prefill_next_token = prefill_result.get();
 
   stats_.first_token_ms = time_in_ms();
   stats_.prompt_eval_end_ms = time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
+  // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
+  // decoder chunk size (e.g. 128) and the true generation budget lives in
+  // get_max_context_len. Mirrors text_runner.cpp:95-97.
+  const int32_t seq_cap = config_.enable_dynamic_shape
+                              ? config_.max_context_length
+                              : config_.max_seq_len;
   int32_t resolved_max_new = resolve_max_new_tokens(
-      static_cast<int32_t>(pos_), config_.max_seq_len,
-      config_.max_context_length, config_.max_new_tokens);
+      static_cast<int32_t>(pos_), seq_cap, config_.max_context_length,
+      config_.max_new_tokens);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
   auto wrapped_callback = [&](const std::string &piece) {

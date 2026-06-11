@@ -100,8 +100,8 @@ public:
       prev_token = cur_token;
 
       stats_->on_sampling_begin();
-      cur_token =
-          text_decoder_runner_->logits_to_token(logits_tensor, generated_tokens);
+      cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
+                                                        generated_tokens);
       stats_->on_sampling_end();
 
       pos++;
@@ -152,7 +152,6 @@ public:
       if (should_stop_) {
         break;
       }
-
       // data-dependent terminating condition: we have n_eos_ number of EOS
       if (eos_ids_->find(cur_token) != eos_ids_->end()) {
         printf("\n");

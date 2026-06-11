@@ -10,7 +10,7 @@
 
 namespace executorch::extension::llm {
 
-enum class MultimodalType { Image };
+enum class MultimodalType { Image, Audio };
 
 class MultimodalRunner : public BaseLLMRunner {
 public:

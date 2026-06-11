@@ -19,8 +19,14 @@ namespace llm {
 
 class TextPrefiller {
 public:
+  // prefill_chunk_size: when > 0, the prompt is always processed in steps of
+  // this size (see prefill()). Set to the model's forward sequence-length cap
+  // for the MLX backend (its forward is exported with a sliding-window bound
+  // and one-shot prefill spikes Metal memory). Other backends (XNNPACK/CoreML)
+  // pass 0 → original one-shot behavior.
   TextPrefiller(TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
-                bool enable_parallel_prefill, int64_t max_seq_len = 128);
+                bool enable_parallel_prefill, int64_t max_seq_len = 128,
+                int32_t prefill_chunk_size = 0);
 
   virtual ~TextPrefiller() = default;
   /**
@@ -70,6 +76,7 @@ private:
   bool use_kv_cache_;
   bool enable_parallel_prefill_;
   int64_t max_seq_len_;
+  int32_t prefill_chunk_size_;
 };
 
 } // namespace llm

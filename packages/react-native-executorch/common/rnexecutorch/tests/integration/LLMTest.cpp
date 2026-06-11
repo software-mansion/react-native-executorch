@@ -1,11 +1,15 @@
 #include "BaseModelTests.h"
+#include "utils/TestUtils.h"
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <runner/encoders/audio_encoder.h>
 #include <runner/encoders/vision_encoder.h>
 
 using namespace rnexecutorch;
@@ -28,6 +32,12 @@ std::string formatChatML(const std::string &systemPrompt,
   return "<|im_start|>system\n" + systemPrompt + "<|im_end|>\n" +
          "<|im_start|>user\n" + userMessage + "<|im_end|>\n" +
          "<|im_start|>assistant\n";
+}
+
+// Helper to format a single-turn prompt in Gemma's chat template.
+std::string formatGemma(const std::string &userMessage) {
+  return "<start_of_turn>user\n" + userMessage + "<end_of_turn>\n" +
+         "<start_of_turn>model\n";
 }
 
 // ============================================================================
@@ -227,6 +237,18 @@ TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
   EXPECT_THROW(encoder->load(), rnexecutorch::RnExecutorchError);
 }
 
+TEST(AudioEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
+  // smolLm2_135M_8da4w.pte has no audio_encoder method
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  auto encoder =
+      std::make_unique<executorch::extension::llm::AudioEncoder>(*module);
+
+  EXPECT_THROW(encoder->load(), rnexecutorch::RnExecutorchError);
+}
+
 // ============================================================================
 // VLM-specific tests
 // ============================================================================
@@ -243,7 +265,11 @@ TEST_F(LLMTest, TextModelIsNotMultimodal) {
 
 TEST_F(LLMTest, GenerateMultimodalOnTextModelThrows) {
   LLM model(kValidModelPath, kValidTokenizerPath, {}, mockInvoker_);
-  EXPECT_THROW(model.generateMultimodal("hello", {}, "<image>", nullptr),
+  // A text-only runner reports is_multimodal() == false, so any multimodal
+  // call must be rejected before the inputs are even inspected.
+  MultimodalInputs inputs{.images =
+                              ImageInputs{.paths = {}, .token = "<image>"}};
+  EXPECT_THROW(model.generateMultimodal("hello", nullptr, std::move(inputs)),
                RnExecutorchError);
 }
 
@@ -270,22 +296,120 @@ std::shared_ptr<facebook::react::CallInvoker> VLMTest::invoker_;
 std::unique_ptr<LLM> VLMTest::model_;
 
 TEST_F(VLMTest, GenerateMultimodalEmptyImageTokenThrows) {
-  EXPECT_THROW(
-      model_->generateMultimodal("hello", {kTestImagePath}, "", nullptr),
-      RnExecutorchError);
+  MultimodalInputs inputs{
+      .images = ImageInputs{.paths = {kTestImagePath}, .token = ""}};
+  EXPECT_THROW(model_->generateMultimodal("hello", nullptr, std::move(inputs)),
+               RnExecutorchError);
 }
 
 TEST_F(VLMTest, GenerateMultimodalMorePlaceholdersThanImagePaths) {
   std::string prompt = std::string(kVlmImageToken) + " and " + kVlmImageToken;
-  EXPECT_THROW(model_->generateMultimodal(prompt, {kTestImagePath},
-                                          kVlmImageToken, nullptr),
+  MultimodalInputs inputs{.images = ImageInputs{.paths = {kTestImagePath},
+                                                .token = kVlmImageToken}};
+  EXPECT_THROW(model_->generateMultimodal(prompt, nullptr, std::move(inputs)),
                RnExecutorchError);
 }
 
 TEST_F(VLMTest, GenerateMultimodalMoreImagePathsThanPlaceholders) {
   std::string prompt = std::string(kVlmImageToken) + " describe";
-  EXPECT_THROW(model_->generateMultimodal(prompt,
-                                          {kTestImagePath, kTestImagePath},
-                                          kVlmImageToken, nullptr),
+  MultimodalInputs inputs{
+      .images = ImageInputs{.paths = {kTestImagePath, kTestImagePath},
+                            .token = kVlmImageToken}};
+  EXPECT_THROW(model_->generateMultimodal(prompt, nullptr, std::move(inputs)),
                RnExecutorchError);
+}
+
+// ============================================================================
+// Audio (Gemma 4) multimodal tests
+// ============================================================================
+constexpr auto kGemmaModelPath = "gemma4_e2b_mm_xnnpack.pte";
+constexpr auto kGemmaTokenizerPath = "gemma_tokenizer.json";
+constexpr auto kGemmaAudioToken = "<audio_soft_token>";
+constexpr auto kTestAudioPath = "test_audio_float.raw";
+
+// Fixture that loads the audio-capable Gemma model once for all audio tests.
+class GemmaAudioTest : public ::testing::Test {
+protected:
+  static void SetUpTestSuite() {
+    invoker_ = createMockCallInvoker();
+    model_ = std::make_unique<LLM>(kGemmaModelPath, kGemmaTokenizerPath,
+                                   std::vector<std::string>{"vision", "audio"},
+                                   invoker_);
+  }
+
+  static void TearDownTestSuite() {
+    model_.reset();
+    invoker_.reset();
+  }
+
+  static std::vector<float> loadAudio(size_t maxSamples = 32000) {
+    auto wav = test_utils::loadAudioFromFile(kTestAudioPath);
+    if (wav.size() > maxSamples) {
+      wav.resize(maxSamples);
+    }
+    return wav;
+  }
+
+  static std::shared_ptr<facebook::react::CallInvoker> invoker_;
+  static std::unique_ptr<LLM> model_;
+};
+
+std::shared_ptr<facebook::react::CallInvoker> GemmaAudioTest::invoker_;
+std::unique_ptr<LLM> GemmaAudioTest::model_;
+
+TEST_F(GemmaAudioTest, GenerateMultimodalNoInputsThrows) {
+  EXPECT_THROW(model_->generateMultimodal("hello", nullptr, {}),
+               RnExecutorchError);
+}
+
+TEST_F(GemmaAudioTest, GenerateMultimodalEmptyAudioTokenThrows) {
+  MultimodalInputs inputs{
+      .audios = AudioInputs{.waveforms = {loadAudio()}, .token = ""}};
+  EXPECT_THROW(model_->generateMultimodal("hello", nullptr, std::move(inputs)),
+               RnExecutorchError);
+}
+
+TEST_F(GemmaAudioTest, GenerateMultimodalMorePlaceholdersThanWaveformsThrows) {
+  std::string prompt =
+      std::string(kGemmaAudioToken) + " and " + kGemmaAudioToken;
+  MultimodalInputs inputs{.audios = AudioInputs{.waveforms = {loadAudio()},
+                                                .token = kGemmaAudioToken}};
+  EXPECT_THROW(model_->generateMultimodal(prompt, nullptr, std::move(inputs)),
+               RnExecutorchError);
+}
+
+TEST_F(GemmaAudioTest, GenerateMultimodalMoreWaveformsThanPlaceholdersThrows) {
+  std::string prompt = std::string(kGemmaAudioToken) + " describe";
+  MultimodalInputs inputs{
+      .audios = AudioInputs{.waveforms = {loadAudio(), loadAudio()},
+                            .token = kGemmaAudioToken}};
+  EXPECT_THROW(model_->generateMultimodal(prompt, nullptr, std::move(inputs)),
+               RnExecutorchError);
+}
+
+TEST_F(GemmaAudioTest, GenerateMultimodalAudioProducesOutput) {
+  std::vector<float> wav = loadAudio();
+  ASSERT_FALSE(wav.empty())
+      << "test_audio_float.raw missing on device - check run_tests.sh assets";
+
+  std::string prompt =
+      formatGemma(std::string(kGemmaAudioToken) + " Transcribe the audio.");
+  MultimodalInputs inputs{.audios = AudioInputs{.waveforms = {std::move(wav)},
+                                                .token = kGemmaAudioToken}};
+  std::string output =
+      model_->generateMultimodal(prompt, nullptr, std::move(inputs));
+
+  EXPECT_FALSE(output.empty());
+  EXPECT_GT(model_->getGeneratedTokenCount(), 0);
+}
+
+TEST_F(GemmaAudioTest, GenerateMultimodalInterleavedTextAndAudio) {
+  std::string prompt = formatGemma("Listen: " + std::string(kGemmaAudioToken) +
+                                   " then summarise it.");
+  MultimodalInputs inputs{.audios = AudioInputs{.waveforms = {loadAudio()},
+                                                .token = kGemmaAudioToken}};
+  std::string output =
+      model_->generateMultimodal(prompt, nullptr, std::move(inputs));
+
+  EXPECT_FALSE(output.empty());
 }

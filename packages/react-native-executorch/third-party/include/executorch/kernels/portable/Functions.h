@@ -25,9 +25,21 @@ namespace executor {
 
 namespace aten {
 
+// aten::_adaptive_avg_pool2d.out(Tensor self, SymInt[2] output_size, *, Tensor(a!) out) -> Tensor(a!)
+TORCH_API inline torch::executor::Tensor & _adaptive_avg_pool2d_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::ArrayRef<int64_t> output_size, torch::executor::Tensor & out) {
+    return ::torch::executor::native::_adaptive_avg_pool2d_out(context, self, output_size, out);
+}
+
+
 // aten::_cdist_forward.out(Tensor x1, Tensor x2, float p, int? compute_mode, *, Tensor(a!) out) -> Tensor(a!)
 TORCH_API inline torch::executor::Tensor & _cdist_forward_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & x1, const torch::executor::Tensor & x2, double p, torch::executor::optional<int64_t> compute_mode, torch::executor::Tensor & out) {
     return ::torch::executor::native::_cdist_forward_out(context, x1, x2, p, compute_mode, out);
+}
+
+
+// aten::_conj_physical.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
+TORCH_API inline torch::executor::Tensor & _conj_physical_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::Tensor & out) {
+    return ::torch::executor::native::_conj_physical_out(context, self, out);
 }
 
 
@@ -1198,6 +1210,12 @@ TORCH_API inline torch::executor::Tensor & upsample_nearest2d_outf(torch::execut
 // aten::var.correction_out(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out) -> Tensor(a!)
 TORCH_API inline torch::executor::Tensor & var_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::optional<torch::executor::ArrayRef<int64_t>> dim, const torch::executor::optional<torch::executor::Scalar> & correction, bool keepdim, torch::executor::Tensor & out) {
     return ::torch::executor::native::var_correction_out(context, self, dim, correction, keepdim, out);
+}
+
+
+// aten::var_mean.correction_out(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out0, Tensor(b!) out1) -> (Tensor(a!), Tensor(b!))
+TORCH_API inline ::std::tuple<torch::executor::Tensor &,torch::executor::Tensor &> var_mean_outf(torch::executor::KernelRuntimeContext & context, const torch::executor::Tensor & self, torch::executor::optional<torch::executor::ArrayRef<int64_t>> dim, const torch::executor::optional<torch::executor::Scalar> & correction, bool keepdim, torch::executor::Tensor & out0, torch::executor::Tensor & out1) {
+    return ::torch::executor::native::var_mean_correction_out(context, self, dim, correction, keepdim, out0, out1);
 }
 
 
