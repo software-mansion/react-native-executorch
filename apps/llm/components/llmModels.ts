@@ -10,6 +10,8 @@ const llm = models.llm;
 export type LLMModelSources = LLMProps['model'];
 
 export const LLM_MODELS: ModelOption<LLMModelSources>[] = [
+  // Gemma4
+  { label: 'Gemma4 E2B', value: llm.gemma4_e2b() },
   // Llama 3.2
   {
     label: 'Llama 3.2 1B',

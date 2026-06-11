@@ -496,10 +496,12 @@ export const models = {
       M.LFM2_5_1_2B_INSTRUCT_QUANTIZED
     ),
     bielik_v3_0_1_5b: pair(M.BIELIK_V3_0_1_5B, M.BIELIK_V3_0_1_5B_QUANTIZED),
+    gemma4_e2b: base(M.GEMMA4_E2B),
     // Multimodal LLMs — same hook/module as plain LLMs, listed here so users
     // pick a model by capability ("LLM") rather than by modality.
     lfm2_5_vl_1_6b: base(M.LFM2_5_VL_1_6B_QUANTIZED),
     lfm2_5_vl_450m: base(M.LFM2_5_VL_450M_QUANTIZED),
+    gemma4_e2b_multimodal: base(M.GEMMA4_E2B_MM),
   },
   classification: {
     efficientnet_v2_s: variant(EFFICIENTNET_V2_S_VARIANTS),

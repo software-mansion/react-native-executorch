@@ -65,6 +65,10 @@ Error TextRunner::generate_internal(
 
   stats_.inference_start_ms = time_in_ms();
 
+  // Multi-turn: JS re-renders the full chat history each call, so reset KV
+  // position to 0 and re-prefill from scratch.
+  pos_ = 0;
+
   int64_t context_len_left =
       static_cast<int64_t>(config_.max_context_length) - pos_;
 
@@ -79,16 +83,23 @@ Error TextRunner::generate_internal(
   std::vector<uint64_t> prompt_tokens = encodeResult.get();
   int num_prompt_tokens = prompt_tokens.size();
 
+  // For dynamic-shape PTEs (Gemma4 iter*), get_max_seq_len is the per-call
+  // decoder chunk size (e.g. 128) and the true generation budget lives in
+  // get_max_context_len. Static-shape PTEs set both equal, so this collapses
+  // to the old behavior. Mirrors multimodal_prefiller.cpp:96.
+  const int32_t seq_cap = config_.enable_dynamic_shape
+                              ? config_.max_context_length
+                              : config_.max_seq_len;
+
   ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens >= 1, InvalidArgument,
                            "Expected at least 1 prompt token");
-  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < config_.max_seq_len,
-                           InvalidArgument,
-                           "num_prompt_tokens %d >= max_seq_len %" PRId32,
-                           num_prompt_tokens, config_.max_seq_len);
+  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < seq_cap, InvalidArgument,
+                           "num_prompt_tokens %d >= seq cap %" PRId32,
+                           num_prompt_tokens, seq_cap);
 
   int32_t max_new_tokens = resolve_max_new_tokens(
-      num_prompt_tokens, config_.max_seq_len,
-      static_cast<int32_t>(context_len_left), config_.max_new_tokens);
+      num_prompt_tokens, seq_cap, static_cast<int32_t>(context_len_left),
+      config_.max_new_tokens);
 
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is <= 0", max_new_tokens);
