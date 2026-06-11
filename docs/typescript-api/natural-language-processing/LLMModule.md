@@ -120,12 +120,12 @@ Model presets expose an optional `generationConfig` that `LLMModule.fromModelNam
 
 ## Vision-Language Models (VLM)[​](#vision-language-models-vlm "Direct link to Vision-Language Models (VLM)")
 
-Some models support multimodal input — text and images together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname):
+Some models support multimodal input — text, images and/or audio together. To use them, pass `capabilities` in the model object when calling [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#frommodelname):
 
 ```typescript
 import { models, LLMModule } from 'react-native-executorch';
 const llm = await LLMModule.fromModelName(
-  models.llm.lfm2_5_vl_1_6b(),
+  models.llm.gemma4_e2b_multimodal(),
   undefined,
   (token) => console.log(token)
 );
@@ -136,20 +136,24 @@ The `capabilities` field is already set on the model constant. You can also cons
 
 ```typescript
 const llm = await LLMModule.fromModelName({
-  modelName: 'lfm2.5-vl-1.6b-quantized',
+  modelName: 'gemma4-e2b-multimodal',
   modelSource: require('./path/to/model.pte'),
   tokenizerSource: require('./path/to/tokenizer.json'),
   tokenizerConfigSource: require('./path/to/tokenizer_config.json'),
-  capabilities: ['vision'],
+  capabilities: ['vision', 'audio'],
 });
 
 ```
 
-Once loaded, pass `imagePath` to [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage):
+Once loaded, pass `imagePath` or `audioBuffer` to [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage):
 
 ```typescript
 const response = await llm.sendMessage('What is in this image?', {
   imagePath: '/path/to/image.jpg',
+});
+// or
+const response = await llm.sendMessage('What can you hear?', {
+  audioBuffer: audioRecording, //expected as waveform 16kHz
 });
 
 ```
@@ -164,7 +168,14 @@ const chat: Message[] = [
     mediaPath: '/path/to/image.jpg',
   },
 ];
-
+// or
+const chat: Message[] = [
+  {
+    role: 'user',
+    content: 'Transcribe the recording.',
+    audioWaveform: audioRecording,
+  },
+];
 const response = await llm.generate(chat);
 
 ```
