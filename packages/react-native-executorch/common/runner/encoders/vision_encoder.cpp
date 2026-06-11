@@ -112,7 +112,7 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
 
   auto it = embedding_cache_.find(path);
   if (it != embedding_cache_.end()) {
-    return it->second;
+    return EValue(*it->second.tensor);
   }
 
   auto shape = ET_UNWRAP(getInputShape());
@@ -128,9 +128,18 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
       chw.data(), sizes, ::executorch::aten::ScalarType::Float);
 
   auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
-  auto embedding = result[0];
-  embedding_cache_.emplace(path, embedding);
-  return embedding;
+  auto out_tensor = result[0].toTensor();
+
+  CachedEmbedding cached;
+  cached.bytes.resize(out_tensor.nbytes());
+  std::memcpy(cached.bytes.data(), out_tensor.const_data_ptr(),
+              out_tensor.nbytes());
+  cached.sizes.assign(out_tensor.sizes().begin(), out_tensor.sizes().end());
+  cached.dtype = out_tensor.scalar_type();
+  auto [entry, inserted] = embedding_cache_.emplace(path, std::move(cached));
+  entry->second.tensor = ::executorch::extension::from_blob(
+      entry->second.bytes.data(), entry->second.sizes, entry->second.dtype);
+  return EValue(*entry->second.tensor);
 }
 
 } // namespace executorch::extension::llm
