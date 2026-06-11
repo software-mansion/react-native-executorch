@@ -18,10 +18,11 @@ namespace llm {
 
 TextPrefiller::TextPrefiller(TextDecoderRunner *text_decoder_runner,
                              bool use_kv_cache, bool enable_parallel_prefill,
-                             int64_t max_seq_len)
+                             int64_t max_seq_len, int32_t prefill_chunk_size)
     : text_decoder_runner_(text_decoder_runner), use_kv_cache_(use_kv_cache),
       enable_parallel_prefill_(enable_parallel_prefill),
-      max_seq_len_(max_seq_len > 0 ? max_seq_len : 128) {}
+      max_seq_len_(max_seq_len > 0 ? max_seq_len : 128),
+      prefill_chunk_size_(prefill_chunk_size) {}
 
 ::executorch::runtime::Result<uint64_t>
 TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
@@ -31,11 +32,10 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
     ET_CHECK_OK_OR_RETURN_ERROR(text_decoder_runner_->load());
   }
 
-  // Check if we need to chunk the prompt tokens
   int32_t num_prompt_tokens = prompt_tokens.size();
-  const int32_t chunk_size = static_cast<int32_t>(max_seq_len_);
+  int32_t chunk_size =
+      prefill_chunk_size_ > 0 ? prefill_chunk_size_ : max_seq_len_;
 
-  // If prompt tokens exceed chunk_size, we need to chunk them
   if (num_prompt_tokens > chunk_size) {
     uint64_t cur_token = 0;
     int num_tokens_to_process = 0;
