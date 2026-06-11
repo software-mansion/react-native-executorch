@@ -38,6 +38,10 @@ public:
     UseMlock,
     /// Call `mlock()` on loaded pages, ignoring errors if it fails.
     UseMlockIgnoreErrors,
+    /// Use madvise(MADV_WILLNEED | MADV_SEQUENTIAL) instead of mlock.
+    /// Tells the kernel to prefetch pages eagerly and optimize for
+    /// sequential reads, without pinning them in RAM.
+    UseMadvise,
   };
 
   /**

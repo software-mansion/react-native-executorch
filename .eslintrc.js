@@ -8,6 +8,7 @@ const VALID_CATEGORIES = [
   'Models - Image Embeddings',
   'Models - Image Generation',
   'Models - LLM',
+  'Models - LLM Multimodal',
   'Models - Object Detection',
   'Models - Instance Segmentation',
   'Models - Pose Estimation',
