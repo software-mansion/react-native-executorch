@@ -127,7 +127,7 @@ export const QWEN3_0_6B_QUANTIZED = {
 
 // GEMMA 4 — separate HF repo; tokenizer files live at the e2b root and are
 // shared by all backend variants.
-const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b`;
+const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${VERSION_TAG}/e2b`;
 export const GEMMA4_E2B_MLX_MODEL = `${GEMMA4_E2B_PREFIX}/mlx/gemma4_e2b_mlx_int4.pte`;
 export const GEMMA4_E2B_XNNPACK_MODEL = `${GEMMA4_E2B_PREFIX}/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
 export const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
@@ -137,8 +137,8 @@ export const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_confi
 const GEMMA4_E2B_MODEL =
   Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MODEL : GEMMA4_E2B_MLX_MODEL;
 
-const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
-const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
+const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
 
 /**
  * @category Models - LLM
