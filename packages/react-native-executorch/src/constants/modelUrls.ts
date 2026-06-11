@@ -16,15 +16,6 @@ const LLAMA3_2_1B_SPINQUANT_MODEL = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_
 const LLAMA3_2_TOKENIZER = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 const LLAMA3_2_TOKENIZER_CONFIG = `${URL_PREFIX}-llama-3.2/${PREVIOUS_VERSION_TAG}/tokenizer_config.json`;
 
-// GEMMA 4 — separate HF repo; tokenizer files live at the e2b root and are
-// shared by all backend variants.
-const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b`;
-const GEMMA4_E2B_MLX_MODEL = `${GEMMA4_E2B_PREFIX}/mlx/gemma4_e2b_mlx_int4.pte`;
-const GEMMA4_E2B_XNNPACK_MODEL = `${GEMMA4_E2B_PREFIX}/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
-const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-const GEMMA4_E2B_TOKENIZER = `${GEMMA4_E2B_PREFIX}/tokenizer.json`;
-const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_config.json`;
-
 /**
  * @category Models - LLM
  */
@@ -133,22 +124,40 @@ export const QWEN3_0_6B_QUANTIZED = {
   generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
-// GEMMA 4
-const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-const GEMMA4_TOKENIZER = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer.json`;
-const GEMMA4_TOKENIZER_CONFIG = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer_config.json`;
+// GEMMA 4 — separate HF repo; tokenizer files live at the e2b root and are
+// shared by all backend variants.
+const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b`;
+export const GEMMA4_E2B_MLX_MODEL = `${GEMMA4_E2B_PREFIX}/mlx/gemma4_e2b_mlx_int4.pte`;
+export const GEMMA4_E2B_XNNPACK_MODEL = `${GEMMA4_E2B_PREFIX}/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
+export const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+export const GEMMA4_E2B_TOKENIZER = `${GEMMA4_E2B_PREFIX}/tokenizer.json`;
+export const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_config.json`;
+
+const GEMMA4_E2B_MODEL =
+  Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MODEL : GEMMA4_E2B_MLX_MODEL;
 
 const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
+const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
 
 /**
- * @category Models - VLM
+ * @category Models - LLM
+ */
+export const GEMMA4_E2B = {
+  modelName: 'gemma4-e2b',
+  modelSource: GEMMA4_E2B_MODEL,
+  tokenizerSource: GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
+} as const;
+
+/**
+ * @category Models - LLM Multimodal
  */
 export const GEMMA4_E2B_MM = {
   modelName: 'gemma4-e2b-multimodal',
   modelSource:
     Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MM : GEMMA4_E2B_MLX_MM,
-  tokenizerSource: GEMMA4_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_TOKENIZER_CONFIG,
+  tokenizerSource: GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
   capabilities: ['vision', 'audio'],
   audioConfig: {
     samplesPerBlock: 7680,
@@ -595,36 +604,6 @@ export const LFM2_5_VL_450M_QUANTIZED = {
  * @category Models - VLM
  */
 export const LFM2_VL_1_6B_QUANTIZED = LFM2_5_VL_1_6B_QUANTIZED;
-
-/**
- * @category Models - LLM
- */
-export const GEMMA4_E2B_MLX = {
-  modelName: 'gemma-4-e2b-mlx',
-  modelSource: GEMMA4_E2B_MLX_MODEL,
-  tokenizerSource: GEMMA4_E2B_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
-} as const;
-
-/**
- * @category Models - LLM
- */
-export const GEMMA4_E2B_XNNPACK = {
-  modelName: 'gemma-4-e2b-xnnpack',
-  modelSource: GEMMA4_E2B_XNNPACK_MODEL,
-  tokenizerSource: GEMMA4_E2B_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
-} as const;
-
-/**
- * @category Models - LLM
- */
-export const GEMMA4_E2B_VULKAN = {
-  modelName: 'gemma-4-e2b-vulkan',
-  modelSource: GEMMA4_E2B_VULKAN_MODEL,
-  tokenizerSource: GEMMA4_E2B_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
-} as const;
 
 /**
  * @deprecated Use `LFM2_5_VL_450M_QUANTIZED` instead — the model is from the

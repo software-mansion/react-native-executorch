@@ -182,9 +182,30 @@ function tts<C extends TextToSpeechModelConfig>(c: C): () => C {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const GEMMA4_E2B_VARIANTS = {
-  mlx: { base: M.GEMMA4_E2B_MLX },
-  xnnpack: { base: M.GEMMA4_E2B_XNNPACK },
-  vulkan: { base: M.GEMMA4_E2B_VULKAN },
+  mlx: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_MLX_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
+  xnnpack: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_XNNPACK_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
+  vulkan: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_VULKAN_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
 };
 
 const EFFICIENTNET_V2_S_VARIANTS = {
