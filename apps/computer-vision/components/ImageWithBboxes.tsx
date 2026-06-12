@@ -24,7 +24,16 @@ export interface AngleMarker {
   degrees: number;
 }
 
-const POSE_COLORS = ['lime', 'cyan', 'magenta', 'yellow', 'orange', 'pink'];
+// Vivid on dark footage; each skeleton is drawn as a soft glow under a
+// bright core stroke, so saturated hues read as neon rather than flat lines.
+export const POSE_COLORS = [
+  '#00E5FF', // electric cyan
+  '#FF2D78', // hot pink
+  '#A78BFA', // violet
+  '#FFD60A', // amber
+  '#34D399', // mint
+  '#FF8A3D', // orange
+];
 
 // Keypoints below the visibility threshold are emitted as (-1, -1).
 const isVisibleKeypoint = (kp: Keypoint) => kp.x >= 0 && kp.y >= 0;
@@ -38,6 +47,11 @@ interface Props {
   trail?: TrailPoint[];
   /** Skeletons to draw, in image pixel space. */
   poses?: PoseDetections;
+  /**
+   * Color per skeleton, parallel to `poses`. Lets callers keep a person's
+   * color stable across frames; falls back to coloring by array index.
+   */
+  poseColors?: string[];
   /** Joint-angle arcs with degree labels, in image pixel space. */
   angleMarkers?: AngleMarker[];
   /** A dashed connector line (e.g. ball to striking foot), image px space. */
@@ -54,6 +68,7 @@ export default function ImageWithBboxes({
   imageHeight,
   trail,
   poses,
+  poseColors,
   angleMarkers,
   linkLine,
   resizeMode = 'contain',
@@ -107,7 +122,9 @@ export default function ImageWithBboxes({
       {poses && poses.length > 0 && (
         <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
           {poses.map((person, personIdx) => {
-            const color = POSE_COLORS[personIdx % POSE_COLORS.length];
+            const color =
+              poseColors?.[personIdx] ??
+              POSE_COLORS[personIdx % POSE_COLORS.length];
             return (
               <React.Fragment key={`pose-${personIdx}`}>
                 {COCO_SKELETON_CONNECTIONS.map(([from, to], lineIdx) => {
@@ -117,29 +134,61 @@ export default function ImageWithBboxes({
                   if (!isVisibleKeypoint(kp1) || !isVisibleKeypoint(kp2)) {
                     return null;
                   }
+                  const x1 = kp1.x * scaleX + offsetX;
+                  const y1 = kp1.y * scaleY + offsetY;
+                  const x2 = kp2.x * scaleX + offsetX;
+                  const y2 = kp2.y * scaleY + offsetY;
+                  // A wide translucent stroke under a narrow bright one
+                  // fakes a neon glow without filters.
                   return (
-                    <Line
-                      key={`pose-${personIdx}-line-${lineIdx}`}
-                      x1={kp1.x * scaleX + offsetX}
-                      y1={kp1.y * scaleY + offsetY}
-                      x2={kp2.x * scaleX + offsetX}
-                      y2={kp2.y * scaleY + offsetY}
-                      stroke={color}
-                      strokeWidth={3}
-                    />
+                    <React.Fragment key={`pose-${personIdx}-line-${lineIdx}`}>
+                      <Line
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke={color}
+                        strokeWidth={8}
+                        strokeOpacity={0.3}
+                        strokeLinecap="round"
+                      />
+                      <Line
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke={color}
+                        strokeWidth={2.5}
+                        strokeLinecap="round"
+                      />
+                    </React.Fragment>
                   );
                 })}
                 {Object.entries(person)
                   .filter(([, kp]) => isVisibleKeypoint(kp))
-                  .map(([name, kp]) => (
-                    <Circle
-                      key={`pose-${personIdx}-kp-${name}`}
-                      cx={kp.x * scaleX + offsetX}
-                      cy={kp.y * scaleY + offsetY}
-                      r={4}
-                      fill={color}
-                    />
-                  ))}
+                  .map(([name, kp]) => {
+                    const cx = kp.x * scaleX + offsetX;
+                    const cy = kp.y * scaleY + offsetY;
+                    return (
+                      <React.Fragment key={`pose-${personIdx}-kp-${name}`}>
+                        <Circle
+                          cx={cx}
+                          cy={cy}
+                          r={6.5}
+                          fill={color}
+                          fillOpacity={0.35}
+                        />
+                        <Circle
+                          cx={cx}
+                          cy={cy}
+                          r={3}
+                          fill="white"
+                          stroke={color}
+                          strokeWidth={1.5}
+                        />
+                      </React.Fragment>
+                    );
+                  })}
               </React.Fragment>
             );
           })}

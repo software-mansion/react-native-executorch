@@ -127,6 +127,15 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="video_pose/index"
+          options={{
+            drawerLabel: 'Video Pose',
+            title: 'Video Pose',
+            headerShown: false,
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',

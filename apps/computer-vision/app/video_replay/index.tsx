@@ -1,12 +1,10 @@
 import Spinner from '../../components/Spinner';
 import {
   models,
-  CocoKeypoint,
   Detection,
   Keypoint,
   PersonKeypoints,
   PoseDetections,
-  PoseEstimationModule,
   useObjectDetection,
 } from 'react-native-executorch';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -30,79 +28,15 @@ import ScreenWrapper from '../../ScreenWrapper';
 import ErrorBanner from '../../components/ErrorBanner';
 import ColorPalette from '../../colors';
 import { fps as sourceFps, frames } from '../../assets/video_frames';
+import { useRfDetrPose } from '../../useRfDetrPose';
+import {
+  BallSample,
+  DISPLAY_SCORE_THRESHOLD,
+  LOW_DETECTION_THRESHOLD,
+  trackedBall,
+} from '../../ballTracking';
 
 const objectDetection = models.object_detection;
-
-// RF-DETR keypoint-preview export (CoreML-delegated, iOS-only). Not in the
-// model registry yet, so it loads through fromCustomModel. The export uses
-// ImageNet normalization, unlike the yolo pose preset.
-const RF_DETR_POSE_MODEL = require('../../assets/rfdetr-keypoint-preview-coreml-iOS16-all-fp32.pte');
-const IMAGENET_MEAN = [0.485, 0.456, 0.406] as const;
-const IMAGENET_STD = [0.229, 0.224, 0.225] as const;
-
-// Mirrors the usePoseEstimation hook surface for a custom (non-registry)
-// model: load/unload lifecycle, download progress and a generating flag.
-function useRfDetrPose() {
-  const [instance, setInstance] = useState<PoseEstimationModule<
-    typeof CocoKeypoint
-  > | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    let loaded: PoseEstimationModule<typeof CocoKeypoint> | null = null;
-    PoseEstimationModule.fromCustomModel(
-      RF_DETR_POSE_MODEL,
-      {
-        keypointMap: CocoKeypoint,
-        preprocessorConfig: { normMean: IMAGENET_MEAN, normStd: IMAGENET_STD },
-        defaultDetectionThreshold: 0.3,
-        defaultKeypointThreshold: 0.3,
-      },
-      (p) => {
-        if (active) setDownloadProgress(p);
-      }
-    )
-      .then((m) => {
-        if (!active) {
-          m.delete();
-          return;
-        }
-        loaded = m;
-        setInstance(m);
-      })
-      .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : String(e));
-      });
-    return () => {
-      active = false;
-      loaded?.delete();
-    };
-  }, []);
-
-  const forward = useCallback(
-    async (input: string): Promise<PoseDetections> => {
-      if (!instance) throw new Error('Pose model is not loaded yet');
-      setIsGenerating(true);
-      try {
-        return await instance.forward(input);
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    [instance]
-  );
-
-  return {
-    isReady: instance !== null,
-    isGenerating,
-    downloadProgress,
-    error,
-    forward,
-  };
-}
 
 interface LoadedFrame {
   uri: string;
@@ -114,17 +48,6 @@ interface CachedResult {
   detections: Detection[];
   poses: PoseDetections;
   inferenceTime: number;
-}
-
-// One ball position with the frame it was observed in, so timing can account
-// for frames where the ball was not detected.
-interface BallSample {
-  x: number;
-  y: number;
-  /** Ball bbox height in px, used as the apparent ball diameter. */
-  size: number;
-  score: number;
-  frameIndex: number;
 }
 
 // Per-frame kick stats. Angles are 2D projections — a joint bent toward the
@@ -158,48 +81,6 @@ const KICK_DISPLACEMENT_DIAMETERS = 1;
 // A regulation football is ~22 cm across; with the apparent ball diameter in
 // pixels this converts image-space displacement into real-world speed.
 const BALL_DIAMETER_M = 0.22;
-
-// The class whose movement gets traced across frames ("sport tracker" line).
-// The ball is 'SPORTS' in the 91-class CocoLabel (SSDLite, RF-DETR) and
-// 'SPORTS_BALL' in the 80-class CocoLabelYolo.
-const TRACKED_LABELS = new Set(['SPORTS', 'SPORTS_BALL']);
-
-// RF-DETR scores every query; its native postprocess just drops everything
-// below the threshold. Running detection at a low threshold recovers weak
-// ball sightings (in the net, motion-blurred) that the default would discard.
-// Strong detections are trusted outright; weak ones only when temporally
-// consistent with the previous sighting.
-const LOW_DETECTION_THRESHOLD = 0.15;
-const BALL_CONFIDENT_SCORE = 0.5;
-// Boxes drawn on screen keep the usual confidence bar.
-const DISPLAY_SCORE_THRESHOLD = 0.55;
-
-function trackedBall(
-  detections: Detection[],
-  prev: BallSample | null
-): (TrailPoint & { size: number; score: number }) | null {
-  let best: (TrailPoint & { size: number; score: number }) | null = null;
-  for (const det of detections) {
-    if (!TRACKED_LABELS.has(String(det.label))) continue;
-    const candidate = {
-      x: (det.bbox.x1 + det.bbox.x2) / 2,
-      y: (det.bbox.y1 + det.bbox.y2) / 2,
-      // Height over width: motion blur smears the bbox mostly along the
-      // (roughly horizontal) flight direction, so height is the stabler size.
-      size: det.bbox.y2 - det.bbox.y1,
-      score: det.score,
-    };
-    const confident = det.score >= BALL_CONFIDENT_SCORE;
-    const consistent =
-      prev !== null &&
-      Math.hypot(candidate.x - prev.x, candidate.y - prev.y) <= prev.size * 8 &&
-      candidate.size >= prev.size * 0.4 &&
-      candidate.size <= prev.size * 1.8;
-    if (!confident && !consistent) continue;
-    if (!best || candidate.score > best.score) best = candidate;
-  }
-  return best;
-}
 
 const fmtDeg = (value: number | null) =>
   value === null ? '—' : `${value.toFixed(0)}°`;
