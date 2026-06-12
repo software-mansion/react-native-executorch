@@ -14,7 +14,7 @@ import { Asset } from 'expo-asset';
 /**
  * @internal
  */
-import { Directory, File } from 'expo-file-system';
+import { Directory } from 'expo-file-system';
 
 export { HTTP_CODE, DownloadStatus, SourceType };
 
@@ -103,9 +103,5 @@ export namespace ResourceFetcherUtils {
         error
       );
     }
-  }
-
-  export async function checkFileExists(fileUri: string) {
-    return new File(fileUri).exists;
   }
 }
