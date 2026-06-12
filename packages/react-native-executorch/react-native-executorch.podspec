@@ -12,11 +12,13 @@ if File.exist?(rne_build_config_path)
   enable_phonemizer = rne_build_config["enablePhonemizer"] != false
   enable_xnnpack    = rne_build_config["enableXnnpack"]    != false
   enable_coreml     = rne_build_config["enableCoreml"]     != false
+  enable_mlx        = rne_build_config["enableMlx"]        != false
 else
   enable_opencv     = true
   enable_phonemizer = true
   enable_xnnpack    = true
   enable_coreml     = true
+  enable_mlx        = true
 end
 
 Pod::Spec.new do |s|
@@ -67,12 +69,6 @@ Pod::Spec.new do |s|
   source_files << "third-party/common/phonemis/src/**/*.{cpp,hpp,h}" if enable_phonemizer
   s.source_files = source_files
 
-  # NOTE: mlx.metallib (the MLX GPU kernels) is bundled INSIDE
-  # ExecutorchLib.framework, colocated with the binary that contains the MLX
-  # code. MLX's runtime loader resolves the metallib relative to that binary
-  # (via dladdr), so it must live next to it in the framework — not at the app
-  # bundle root. This affects how the iOS tarball ships the metallib.
-
   # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files.
   # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if
@@ -96,6 +92,7 @@ Pod::Spec.new do |s|
   extra_compiler_flags << "-DRNE_ENABLE_PHONEMIZER" if enable_phonemizer
   extra_compiler_flags << "-DRNE_ENABLE_XNNPACK"    if enable_xnnpack
   extra_compiler_flags << "-DRNE_ENABLE_COREML"     if enable_coreml
+  extra_compiler_flags << "-DRNE_ENABLE_MLX"        if enable_mlx
   # ET_ON tells phonemis to compile the NeuralPhonemizer path against ExecuTorch.
   extra_compiler_flags << "-DET_ON=1"               if enable_phonemizer
 
@@ -113,6 +110,7 @@ Pod::Spec.new do |s|
 
   xnnpack_xcframework_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework', __dir__)
   coreml_xcframework_path  = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/CoreMLBackend.xcframework', __dir__)
+  mlx_xcframework_path     = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/MLXBackend.xcframework', __dir__)
 
   if enable_xnnpack
     physical_ldflags  << "-force_load \"#{xnnpack_xcframework_path}/ios-arm64/libXnnpackBackend.a\""
@@ -122,6 +120,11 @@ Pod::Spec.new do |s|
   if enable_coreml
     physical_ldflags  << "-force_load \"#{coreml_xcframework_path}/ios-arm64/libCoreMLBackend.a\""
     simulator_ldflags << "-force_load \"#{coreml_xcframework_path}/ios-arm64-simulator/libCoreMLBackend.a\""
+  end
+
+  if enable_mlx
+    physical_ldflags  << "-force_load \"#{mlx_xcframework_path}/ios-arm64/libMLXBackend.a\""
+    simulator_ldflags << "-force_load \"#{mlx_xcframework_path}/ios-arm64-simulator/libMLXBackend.a\""
   end
 
   s.user_target_xcconfig = {
@@ -157,7 +160,18 @@ Pod::Spec.new do |s|
 
   system_frameworks = ["Accelerate"]
   system_frameworks << "CoreML" if enable_coreml
+  # MLX needs Metal at runtime; the GPU kernels in mlx.metallib are compiled
+  # against the Metal toolchain.
+  system_frameworks += ["Metal", "MetalKit", "MetalPerformanceShaders"] if enable_mlx
   s.frameworks = system_frameworks
+
+  # MLX runtime resolves its compiled GPU kernels via dladdr on a function
+  # symbol from libMLXBackend.a, then loads `mlx.metallib` from the same
+  # directory as that symbol's host binary. Because libMLXBackend.a is a
+  # static archive force-loaded into the app's main executable, the metallib
+  # has to land in the app bundle's main resource path. `s.ios.resource`
+  # achieves that via CocoaPods' resource copy.
+  s.ios.resource = "third-party/ios/libs/executorch/mlx.metallib" if enable_mlx
 
   # Backend xcframeworks are linked via force_load in OTHER_LDFLAGS (needed to
   # preserve __attribute__((constructor)) registrations). Only ExecutorchLib goes

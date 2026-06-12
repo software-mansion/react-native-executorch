@@ -12,7 +12,7 @@ def getRneBuildConfig() {
       logger.warn("[RnExecutorch] Failed to parse rne-build-config.json: ${e.message}. Defaulting to all features enabled.")
     }
   }
-  return [enableOpencv: true, enablePhonemizer: true, enableXnnpack: true, enableCoreml: true, enableVulkan: true]
+  return [enableOpencv: true, enablePhonemizer: true, enableXnnpack: true, enableCoreml: true, enableMlx: true, enableVulkan: true]
 }
 
 def rneBuildConfig = getRneBuildConfig()

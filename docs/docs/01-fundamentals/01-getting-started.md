@@ -129,7 +129,7 @@ On install, `react-native-executorch` runs a `postinstall` script that downloads
 ```json
 {
   "react-native-executorch": {
-    "backends": ["xnnpack", "coreml", "vulkan"],
+    "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
     "libs": ["opencv", "phonemizer"],
     "features": ["llm", "textToSpeech", "objectDetection"]
   }
@@ -141,16 +141,16 @@ On install, `react-native-executorch` runs a `postinstall` script that downloads
 - Omit the whole `react-native-executorch` block to enable everything (largest install, lowest friction).
 - If you mix `features` with `backends`/`libs`, the result is their union.
 
-Recognized **backends**: `xnnpack`, `coreml` (iOS-only), `vulkan` (Android-only).
+Recognized **backends**: `xnnpack`, `coreml` (iOS-only), `mlx` (iOS-only), `vulkan` (Android-only).
 Recognized **libs**: `opencv`, `phonemizer`.
 Recognized **features** (one per documented hook):
 
 Each row reflects the union of what at least one model in that family ships today; bump it when a new variant adds a backend.
 
-| Feature                | Pulls in (backends · libs) | What it powers                          |
-| ---------------------- | -------------------------- | --------------------------------------- |
-| `llm`                  | xnnpack · —                | Text-only `useLLM`                      |
-| `multimodalLLM`        | xnnpack, vulkan · opencv   | Vision-language `useLLM` (image inputs) |
+| Feature                | Pulls in (backends · libs)    | What it powers                          |
+| ---------------------- | ----------------------------- | --------------------------------------- |
+| `llm`                  | xnnpack, mlx · —              | Text-only `useLLM`                      |
+| `multimodalLLM`        | xnnpack, mlx, vulkan · opencv | Vision-language `useLLM` (image inputs) |
 | `privacyFilter`        | xnnpack · —                | `usePrivacyFilter`                      |
 | `speechToText`         | xnnpack, coreml · —        | `useSpeechToText` (Whisper)             |
 | `textToSpeech`         | xnnpack · phonemizer       | `useTextToSpeech` (Kokoro)              |
@@ -170,11 +170,12 @@ Each row reflects the union of what at least one model in that family ships toda
 
 Backend platform map:
 
-| Backend   | iOS                                                         | Android                                                   |
-| --------- | ----------------------------------------------------------- | --------------------------------------------------------- |
-| `xnnpack` | ✅ — `XnnpackBackend.xcframework` force-loaded into the app | ✅ — separately-loaded `libxnnpack_executorch_backend.so` |
-| `coreml`  | ✅ — `CoreMLBackend.xcframework` force-loaded into the app  | n/a                                                       |
-| `vulkan`  | n/a                                                         | ✅ — separately-loaded `libvulkan_executorch_backend.so`  |
+| Backend   | iOS                                                                                       | Android                                                   |
+| --------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `xnnpack` | ✅ — `XnnpackBackend.xcframework` force-loaded into the app                               | ✅ — separately-loaded `libxnnpack_executorch_backend.so` |
+| `coreml`  | ✅ — `CoreMLBackend.xcframework` force-loaded into the app                                | n/a                                                       |
+| `mlx`     | ✅ — `MLXBackend.xcframework` force-loaded into the app, plus `mlx.metallib` pod resource | n/a                                                       |
+| `vulkan`  | n/a                                                                                       | ✅ — separately-loaded `libvulkan_executorch_backend.so`  |
 
 Lib platform map:
 

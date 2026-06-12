@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Builds ExecutorchLib.xcframework for iOS and iOS Simulator, plus separate
-# static xcframeworks for optional backends (xnnpack, coreml).
+# static xcframeworks for optional backends (xnnpack, coreml, mlx).
 #
 # This script:
 # 1. Cleans previous builds
@@ -10,11 +10,13 @@
 # 4. Combines both archives into a single .xcframework
 # 5. Creates XnnpackBackend.xcframework from the backend .a files
 # 6. Creates CoreMLBackend.xcframework from the backend .a files
+# 7. Creates MLXBackend.xcframework from the backend .a files (iOS-only)
 #
 # Output:
 #   ./output/ExecutorchLib.xcframework
 #   ./output/XnnpackBackend.xcframework
 #   ./output/CoreMLBackend.xcframework
+#   ./output/MLXBackend.xcframework
 #
 # Usage: ./build.sh
 
@@ -83,9 +85,23 @@ xcodebuild -create-xcframework \
   -library "$STAGING/ios/libCoreMLBackend.a" \
   -library "$STAGING/sim/libCoreMLBackend.a" \
   -output "$OUTPUT_FOLDER/CoreMLBackend.xcframework"
+
+# --- Build MLXBackend.xcframework (iOS-only; skipped if libs absent) ---
+if [ -f "$LIBS_DIR/libbackend_mlx_ios.a" ] && [ -f "$LIBS_DIR/libbackend_mlx_simulator.a" ]; then
+  cp "$LIBS_DIR/libbackend_mlx_ios.a"       "$STAGING/ios/libMLXBackend.a"
+  cp "$LIBS_DIR/libbackend_mlx_simulator.a" "$STAGING/sim/libMLXBackend.a"
+  xcodebuild -create-xcframework \
+    -library "$STAGING/ios/libMLXBackend.a" \
+    -library "$STAGING/sim/libMLXBackend.a" \
+    -output "$OUTPUT_FOLDER/MLXBackend.xcframework"
+  echo "Built MLXBackend.xcframework"
+else
+  echo "Skipped MLXBackend.xcframework (libbackend_mlx_*.a not present)"
+fi
 rm -rf "$STAGING"
 
 echo "Done! Output:"
 echo "  $OUTPUT_FOLDER/ExecutorchLib.xcframework"
 echo "  $OUTPUT_FOLDER/XnnpackBackend.xcframework"
 echo "  $OUTPUT_FOLDER/CoreMLBackend.xcframework"
+[ -d "$OUTPUT_FOLDER/MLXBackend.xcframework" ] && echo "  $OUTPUT_FOLDER/MLXBackend.xcframework" || true

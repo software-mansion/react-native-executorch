@@ -105,6 +105,7 @@ packages/react-native-executorch/dist-artifacts/
 packages/react-native-executorch/third-party/android/libs/
 packages/react-native-executorch/third-party/ios/ExecutorchLib.xcframework/
 packages/react-native-executorch/third-party/ios/CoreMLBackend.xcframework/
+packages/react-native-executorch/third-party/ios/MLXBackend.xcframework/
 packages/react-native-executorch/third-party/ios/XnnpackBackend.xcframework/
 packages/react-native-executorch/third-party/ios/libs/
 packages/react-native-executorch/rne-build-config.json

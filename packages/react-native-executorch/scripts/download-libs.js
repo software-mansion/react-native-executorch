@@ -19,13 +19,14 @@
  *   vulkan-android-arm64-v8a.tar.gz  -- libvulkan_executorch_backend.so (Android only)
  *   vulkan-android-x86_64.tar.gz
  *   coreml-ios.tar.gz                -- CoreMLBackend.xcframework (iOS only)
+ *   mlx-ios.tar.gz                   -- MLXBackend.xcframework + mlx.metallib (iOS only)
  *
  * Each tarball extracts into third-party/android/libs/ or third-party/ios/
  * preserving the existing directory structure so CMakeLists/podspec need no changes.
  *
  * User configuration (in the app's package.json) — three optional arrays, all merged into a single set:
  *   "react-native-executorch": {
- *     "backends": ["xnnpack", "coreml", "vulkan"],
+ *     "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
  *     "libs":     ["opencv", "phonemizer"],
  *     "features": ["llm", "textToSpeech", "objectDetection"]
  *   }
@@ -34,7 +35,7 @@
  *   If no `react-native-executorch` block is present, every backend and lib defaults to ON.
  *
  * Recognized values:
- *   backends:  xnnpack, coreml (iOS), vulkan (Android)
+ *   backends:  xnnpack, coreml (iOS), mlx (iOS), vulkan (Android)
  *   libs:      opencv, phonemizer
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
@@ -47,6 +48,7 @@
  *                               this toggle only gates compilation (RNE_ENABLE_PHONEMIZER), no download.
  *   xnnpack     Android (libxnnpack_executorch_backend.so) + iOS (XnnpackBackend.xcframework)
  *   coreml      iOS only — toggles CoreMLBackend.xcframework.
+ *   mlx         iOS only — toggles MLXBackend.xcframework + mlx.metallib resource.
  *   vulkan      Android only — toggles libvulkan_executorch_backend.so.
  *
  * Environment variables:
@@ -87,7 +89,7 @@ const CACHE_DIR = process.env.RNET_LIBS_CACHE_DIR || DEFAULT_CACHE_DIR;
 
 // ---- User config -----------------------------------------------------------
 
-const ALL_BACKENDS = ['xnnpack', 'coreml', 'vulkan'];
+const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'];
 const ALL_LIBS = ['opencv', 'phonemizer'];
 
 // features -> { backends, libs }
@@ -95,10 +97,11 @@ const ALL_LIBS = ['opencv', 'phonemizer'];
 // today (per src/constants/modelRegistry.ts). When a new variant lands for a
 // model that adds e.g. coreml or vulkan support, bump the family here.
 const FEATURE_MAP = {
-  // Text-only LLMs ship xnnpack only.
-  llm: { backends: ['xnnpack'], libs: [] },
-  // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export).
-  multimodalLLM: { backends: ['xnnpack', 'vulkan'], libs: ['opencv'] },
+  // Text-only LLMs ship xnnpack + mlx (Gemma 4 ships an MLX iOS export).
+  llm: { backends: ['xnnpack', 'mlx'], libs: [] },
+  // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export) and
+  // mlx (Gemma 4 ships an MLX iOS export).
+  multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
   // Privacy filter classifiers — xnnpack only.
   privacyFilter: { backends: ['xnnpack'], libs: [] },
   // Whisper ships xnnpack + coreml.
@@ -204,6 +207,7 @@ function writeBuildConfig({ backends, libs }) {
     enablePhonemizer: libs.includes('phonemizer'),
     enableXnnpack: backends.includes('xnnpack'),
     enableCoreml: backends.includes('coreml'),
+    enableMlx: backends.includes('mlx'),
     enableVulkan: backends.includes('vulkan'),
   };
   fs.writeFileSync(
@@ -214,14 +218,19 @@ function writeBuildConfig({ backends, libs }) {
 }
 
 // Warn when a backend is opted in but the build targets only the platform where
-// it has no effect (coreml=iOS-only, vulkan=Android-only). Surfacing it at install
-// time is friendlier than the user wondering why an opt-out had no effect.
+// it has no effect (coreml/mlx=iOS-only, vulkan=Android-only). Surfacing it at
+// install time is friendlier than the user wondering why an opt-out had no effect.
 function warnAboutPlatformAsymmetry({ backends }, targets) {
   const hasAndroid = targets.some((t) => t.startsWith('android'));
   const hasIos = targets.includes('ios');
   if (hasAndroid && !hasIos && backends.includes('coreml')) {
     console.warn(
       '[react-native-executorch] coreml is enabled but the build targets only Android; CoreML is iOS-only and the flag has no effect here.'
+    );
+  }
+  if (hasAndroid && !hasIos && backends.includes('mlx')) {
+    console.warn(
+      '[react-native-executorch] mlx is enabled but the build targets only Android; the MLX backend is iOS-only and the flag has no effect here.'
     );
   }
   if (hasIos && !hasAndroid && backends.includes('vulkan')) {
@@ -278,6 +287,11 @@ function getArtifacts(targets, { backends, libs }) {
     // CoreML is iOS only
     if (backends.includes('coreml') && target === 'ios') {
       artifacts.push(makeArtifact(`coreml-${target}`, destDir));
+    }
+
+    // MLX is iOS only
+    if (backends.includes('mlx') && target === 'ios') {
+      artifacts.push(makeArtifact(`mlx-${target}`, destDir));
     }
 
     // Vulkan is Android only
@@ -375,7 +389,7 @@ async function main() {
     `[react-native-executorch] Backends: [${config.backends.join(', ') || '—'}]; Libs: [${config.libs.join(', ') || '—'}]`
   );
   console.log(
-    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemizer=${buildConfig.enablePhonemizer}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, vulkan=${buildConfig.enableVulkan}`
+    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemizer=${buildConfig.enablePhonemizer}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, mlx=${buildConfig.enableMlx}, vulkan=${buildConfig.enableVulkan}`
   );
 
   const targets = detectTargets();

@@ -19,6 +19,7 @@
 #   core-ios.tar.gz       + .sha256
 #   xnnpack-ios.tar.gz    + .sha256
 #   coreml-ios.tar.gz     + .sha256
+#   mlx-ios.tar.gz        + .sha256 (xcframework + mlx.metallib resource)
 #
 # Note: phonemizer ships as in-tree source (third-party/common/phonemis submodule),
 # not as a tarball.
@@ -190,6 +191,27 @@ package_merged "xnnpack-ios" \
 
 package_merged "coreml-ios" \
   "CoreMLBackend.xcframework"  "$IOS_DIR/CoreMLBackend.xcframework"
+
+# MLX ships an xcframework plus a separate mlx.metallib that must land in the
+# app bundle at runtime (pod Resource via podspec). Stage both into one tarball.
+echo "  → mlx-ios"
+_mlx_tmp=$(mktemp -d)
+if [ ! -d "$IOS_DIR/MLXBackend.xcframework" ]; then
+  echo "    ✗ Source directory not found: $IOS_DIR/MLXBackend.xcframework" >&2
+  exit 1
+fi
+if [ ! -f "$IOS_DIR/libs/executorch/mlx.metallib" ]; then
+  echo "    ✗ Source file not found: $IOS_DIR/libs/executorch/mlx.metallib" >&2
+  exit 1
+fi
+mkdir -p "$_mlx_tmp/MLXBackend.xcframework"
+cp -r "$IOS_DIR/MLXBackend.xcframework/." "$_mlx_tmp/MLXBackend.xcframework/"
+mkdir -p "$_mlx_tmp/libs/executorch"
+cp "$IOS_DIR/libs/executorch/mlx.metallib" "$_mlx_tmp/libs/executorch/"
+tar -czf "$OUT/mlx-ios.tar.gz" -C "$_mlx_tmp" .
+shasum -a 256 "$OUT/mlx-ios.tar.gz" | awk '{print $1}' > "$OUT/mlx-ios.tar.gz.sha256"
+echo "    ✓ $(du -sh "$OUT/mlx-ios.tar.gz" | cut -f1)"
+rm -rf "$_mlx_tmp"
 
 # ---- Summary ----------------------------------------------------------------
 
