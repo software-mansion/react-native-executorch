@@ -24,8 +24,7 @@ inline constexpr int32_t kLargeRecognizerWidth = 512;
 inline constexpr int32_t kMediumRecognizerWidth = 256;
 inline constexpr int32_t kSmallRecognizerWidth = 128;
 inline constexpr int32_t kSmallVerticalRecognizerWidth = 64;
-inline constexpr int32_t kMaxWidth =
-    kLargeRecognizerWidth + (kLargeRecognizerWidth * 0.15);
+inline constexpr int32_t kMaxWidth = kLargeRecognizerWidth + (kLargeRecognizerWidth * 0.15);
 inline constexpr int32_t kSingleCharacterMinSize = 70;
 inline constexpr int32_t kRecognizerImageSize = 1280;
 inline constexpr int32_t kVerticalLineThreshold = 20;
@@ -35,8 +34,8 @@ inline constexpr int32_t kLargeDetectorWidth = 1280;
 inline constexpr std::array<int32_t, 3> kDetectorInputWidths = {
     kSmallDetectorWidth, kMediumDetectorWidth, kLargeDetectorWidth};
 inline constexpr std::array<int32_t, 4> kRecognizerInputWidths = {
-    kSmallVerticalRecognizerWidth, kSmallRecognizerWidth,
-    kMediumRecognizerWidth, kLargeRecognizerWidth};
+    kSmallVerticalRecognizerWidth, kSmallRecognizerWidth, kMediumRecognizerWidth,
+    kLargeRecognizerWidth};
 
 /*
  Mean and variance values for image normalization were used in EASYOCR pipeline

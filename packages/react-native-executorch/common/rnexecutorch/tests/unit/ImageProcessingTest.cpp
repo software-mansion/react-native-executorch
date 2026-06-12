@@ -36,16 +36,14 @@ TEST(ReadImageTest, WorksWithRawBase64Content) {
 }
 
 TEST(ReadImageTest, FailsForInvalidBase64UriFormat) {
-  std::string invalidUri =
-      "data:image/jpeg;base64,extra,comma," + RAW_BASE64_JPEG;
+  std::string invalidUri = "data:image/jpeg;base64,extra,comma," + RAW_BASE64_JPEG;
 
   EXPECT_THROW({ readImage(invalidUri); }, RnExecutorchError);
 
   try {
     readImage(invalidUri);
   } catch (const RnExecutorchError &e) {
-    EXPECT_EQ(e.getNumericCode(),
-              static_cast<int32_t>(RnExecutorchErrorCode::FileReadFailed));
+    EXPECT_EQ(e.getNumericCode(), static_cast<int32_t>(RnExecutorchErrorCode::FileReadFailed));
   }
 }
 

@@ -12,8 +12,7 @@ using namespace executorch::extension;
 using namespace model_tests;
 using executorch::runtime::EValue;
 
-constexpr auto kValidStyleTransferModelPath =
-    "style_transfer_candy_xnnpack_fp32.pte";
+constexpr auto kValidStyleTransferModelPath = "style_transfer_candy_xnnpack_fp32.pte";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -23,13 +22,9 @@ namespace model_tests {
 template <> struct ModelTraits<BaseModel> {
   using ModelType = BaseModel;
 
-  static ModelType createValid() {
-    return ModelType(kValidStyleTransferModelPath, nullptr);
-  }
+  static ModelType createValid() { return ModelType(kValidStyleTransferModelPath, nullptr); }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", nullptr); }
 
   static void callGenerate(ModelType &model) {
     std::vector<int32_t> shape = {1, 3, 640, 640};
@@ -58,15 +53,13 @@ TEST(BaseModelGetInputShapeTests, ValidMethodCorrectShape) {
 
 TEST(BaseModelGetInputShapeTests, InvalidMethodThrows) {
   BaseModel model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.getInputShape("this_method_does_not_exist", 0),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.getInputShape("this_method_does_not_exist", 0), RnExecutorchError);
 }
 
 TEST(BaseModelGetInputShapeTests, ValidMethodInvalidIndexThrows) {
   BaseModel model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW(
-      (void)model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
+               RnExecutorchError);
 }
 
 TEST(BaseModelGetAllInputShapesTests, ValidMethodReturnsShapes) {
@@ -79,8 +72,7 @@ TEST(BaseModelGetAllInputShapesTests, ValidMethodReturnsShapes) {
 
 TEST(BaseModelGetAllInputShapesTests, InvalidMethodThrows) {
   BaseModel model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW(model.getAllInputShapes("non_existent_method"),
-               RnExecutorchError);
+  EXPECT_THROW(model.getAllInputShapes("non_existent_method"), RnExecutorchError);
 }
 
 TEST(BaseModelGetMethodMetaTests, ValidMethodReturnsOk) {

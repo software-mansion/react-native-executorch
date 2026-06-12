@@ -11,8 +11,8 @@ BaseEmbeddings::BaseEmbeddings(const std::string &modelSource,
 std::shared_ptr<OwningArrayBuffer>
 BaseEmbeddings::postprocess(const Result<std::vector<EValue>> &forwardResult) {
   auto forwardResultTensor = forwardResult->at(0).toTensor();
-  auto buffer = std::make_shared<OwningArrayBuffer>(
-      forwardResultTensor.const_data_ptr(), forwardResultTensor.nbytes());
+  auto buffer = std::make_shared<OwningArrayBuffer>(forwardResultTensor.const_data_ptr(),
+                                                    forwardResultTensor.nbytes());
   return buffer;
 }
 

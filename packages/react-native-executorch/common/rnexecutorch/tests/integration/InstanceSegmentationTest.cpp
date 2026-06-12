@@ -27,105 +27,87 @@ template <> struct ModelTraits<BaseInstanceSegmentation> {
     return ModelType(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", {}, {}, true, nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", {}, {}, true, nullptr); }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, 100, {}, true,
-                                   kMethodName);
+    (void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, 100, {}, true, kMethodName);
   }
 };
 } // namespace model_tests
 
 using InstanceSegmentationTypes = ::testing::Types<BaseInstanceSegmentation>;
-INSTANTIATE_TYPED_TEST_SUITE_P(InstanceSegmentation, CommonModelTest,
-                               InstanceSegmentationTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(InstanceSegmentation, VisionModelTest,
-                               InstanceSegmentationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(InstanceSegmentation, CommonModelTest, InstanceSegmentationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(InstanceSegmentation, VisionModelTest, InstanceSegmentationTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(InstanceSegGenerateTests, InvalidImagePathThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5, 0.5,
-                                              100, {}, true, kMethodName),
-               RnExecutorchError);
-}
-
-TEST(InstanceSegGenerateTests, EmptyImagePathThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   EXPECT_THROW(
-      (void)model.generateFromString("", 0.5, 0.5, 100, {}, true, kMethodName),
+      (void)model.generateFromString("nonexistent_image.jpg", 0.5, 0.5, 100, {}, true, kMethodName),
       RnExecutorchError);
 }
 
+TEST(InstanceSegGenerateTests, EmptyImagePathThrows) {
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW((void)model.generateFromString("", 0.5, 0.5, 100, {}, true, kMethodName),
+               RnExecutorchError);
+}
+
 TEST(InstanceSegGenerateTests, EmptyMethodNameThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5,
-                                              100, {}, true, ""),
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, 100, {}, true, ""),
                RnExecutorchError);
 }
 
 TEST(InstanceSegGenerateTests, NegativeConfidenceThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1, 0.5,
-                                              100, {}, true, kMethodName),
-               RnExecutorchError);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString(kValidTestImagePath, -0.1, 0.5, 100, {}, true, kMethodName),
+      RnExecutorchError);
 }
 
 TEST(InstanceSegGenerateTests, ConfidenceAboveOneThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1, 0.5,
-                                              100, {}, true, kMethodName),
-               RnExecutorchError);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString(kValidTestImagePath, 1.1, 0.5, 100, {}, true, kMethodName),
+      RnExecutorchError);
 }
 
 TEST(InstanceSegGenerateTests, NegativeIouThresholdThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, -0.1,
-                                              100, {}, true, kMethodName),
-               RnExecutorchError);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString(kValidTestImagePath, 0.5, -0.1, 100, {}, true, kMethodName),
+      RnExecutorchError);
 }
 
 TEST(InstanceSegGenerateTests, IouThresholdAboveOneThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 1.1,
-                                              100, {}, true, kMethodName),
-               RnExecutorchError);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  EXPECT_THROW(
+      (void)model.generateFromString(kValidTestImagePath, 0.5, 1.1, 100, {}, true, kMethodName),
+      RnExecutorchError);
 }
 
 TEST(InstanceSegGenerateTests, ValidImageReturnsResults) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
   EXPECT_FALSE(results.empty());
 }
 
 TEST(InstanceSegGenerateTests, HighThresholdReturnsFewerResults) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto lowResults = model.generateFromString(kValidTestImagePath, 0.1, 0.5, 100,
-                                             {}, true, kMethodName);
-  auto highResults = model.generateFromString(kValidTestImagePath, 0.9, 0.5,
-                                              100, {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto lowResults =
+      model.generateFromString(kValidTestImagePath, 0.1, 0.5, 100, {}, true, kMethodName);
+  auto highResults =
+      model.generateFromString(kValidTestImagePath, 0.9, 0.5, 100, {}, true, kMethodName);
   EXPECT_GE(lowResults.size(), highResults.size());
 }
 
 TEST(InstanceSegGenerateTests, MaxInstancesLimitsResults) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.1, 0.5, 2, {},
-                                          true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results = model.generateFromString(kValidTestImagePath, 0.1, 0.5, 2, {}, true, kMethodName);
   EXPECT_LE(results.size(), 2u);
 }
 
@@ -133,10 +115,9 @@ TEST(InstanceSegGenerateTests, MaxInstancesLimitsResults) {
 // Result validation tests
 // ============================================================================
 TEST(InstanceSegResultTests, InstancesHaveValidBoundingBoxes) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   for (const auto &inst : results) {
     EXPECT_LE(inst.bbox.p1.x, inst.bbox.p2.x);
@@ -147,10 +128,9 @@ TEST(InstanceSegResultTests, InstancesHaveValidBoundingBoxes) {
 }
 
 TEST(InstanceSegResultTests, InstancesHaveValidScores) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   for (const auto &inst : results) {
     EXPECT_GE(inst.score, 0.0f);
@@ -159,16 +139,14 @@ TEST(InstanceSegResultTests, InstancesHaveValidScores) {
 }
 
 TEST(InstanceSegResultTests, InstancesHaveValidMasks) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   for (const auto &inst : results) {
     EXPECT_GT(inst.maskWidth, 0);
     EXPECT_GT(inst.maskHeight, 0);
-    EXPECT_EQ(inst.mask->size(),
-              static_cast<size_t>(inst.maskWidth) * inst.maskHeight);
+    EXPECT_EQ(inst.mask->size(), static_cast<size_t>(inst.maskWidth) * inst.maskHeight);
 
     for (size_t i = 0; i < inst.mask->size(); ++i) {
       uint8_t val = inst.mask->data()[i];
@@ -178,10 +156,9 @@ TEST(InstanceSegResultTests, InstancesHaveValidMasks) {
 }
 
 TEST(InstanceSegResultTests, InstancesHaveValidClassIndices) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   for (const auto &inst : results) {
     EXPECT_GE(inst.classIndex, 0);
@@ -193,12 +170,11 @@ TEST(InstanceSegResultTests, InstancesHaveValidClassIndices) {
 // Class filtering tests
 // ============================================================================
 TEST(InstanceSegFilterTests, ClassFilterReturnsOnlyMatchingClasses) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   // Filter to class index 0 (PERSON in CocoLabelYolo)
   std::vector<int32_t> classIndices = {0};
-  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                          classIndices, true, kMethodName);
+  auto results =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, classIndices, true, kMethodName);
 
   for (const auto &inst : results) {
     EXPECT_EQ(inst.classIndex, 0);
@@ -206,14 +182,13 @@ TEST(InstanceSegFilterTests, ClassFilterReturnsOnlyMatchingClasses) {
 }
 
 TEST(InstanceSegFilterTests, EmptyFilterReturnsAllClasses) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto allResults = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                             {}, true, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto allResults =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
   EXPECT_FALSE(allResults.empty());
 
-  auto noResults = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100,
-                                            {50}, true, kMethodName);
+  auto noResults =
+      model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {50}, true, kMethodName);
   EXPECT_TRUE(noResults.empty());
 }
 
@@ -221,12 +196,9 @@ TEST(InstanceSegFilterTests, EmptyFilterReturnsAllClasses) {
 // Mask resolution tests
 // ============================================================================
 TEST(InstanceSegMaskTests, LowResMaskIsSmallerThanOriginal) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
-  auto hiRes = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {},
-                                        true, kMethodName);
-  auto loRes = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {},
-                                        false, kMethodName);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  auto hiRes = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
+  auto loRes = model.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, false, kMethodName);
 
   if (!hiRes.empty() && !loRes.empty()) {
     EXPECT_LE(loRes[0].mask->size(), hiRes[0].mask->size());
@@ -237,15 +209,13 @@ TEST(InstanceSegMaskTests, LowResMaskIsSmallerThanOriginal) {
 // NMS tests
 // ============================================================================
 TEST(InstanceSegNMSTests, NMSEnabledReturnsFewerOrEqualResults) {
-  BaseInstanceSegmentation modelWithNMS(kValidInstanceSegModelPath, {}, {},
-                                        true, nullptr);
-  BaseInstanceSegmentation modelWithoutNMS(kValidInstanceSegModelPath, {}, {},
-                                           false, nullptr);
+  BaseInstanceSegmentation modelWithNMS(kValidInstanceSegModelPath, {}, {}, true, nullptr);
+  BaseInstanceSegmentation modelWithoutNMS(kValidInstanceSegModelPath, {}, {}, false, nullptr);
 
-  auto nmsResults = modelWithNMS.generateFromString(
-      kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
-  auto noNmsResults = modelWithoutNMS.generateFromString(
-      kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
+  auto nmsResults =
+      modelWithNMS.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
+  auto noNmsResults =
+      modelWithoutNMS.generateFromString(kValidTestImagePath, 0.3, 0.5, 100, {}, true, kMethodName);
 
   EXPECT_LE(nmsResults.size(), noNmsResults.size());
 }
@@ -254,41 +224,32 @@ TEST(InstanceSegNMSTests, NMSEnabledReturnsFewerOrEqualResults) {
 // generateFromPixels tests
 // ============================================================================
 TEST(InstanceSegPixelTests, ValidPixelDataReturnsResults) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  auto results = model.generateFromPixels(tensorView, 0.3, 0.5, 100, {}, true,
-                                          kMethodName);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(tensorView, 0.3, 0.5, 100, {}, true, kMethodName);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(InstanceSegPixelTests, NegativeConfidenceThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(tensorView, -0.1, 0.5, 100, {},
-                                              true, kMethodName),
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, -0.1, 0.5, 100, {}, true, kMethodName),
                RnExecutorchError);
 }
 
 TEST(InstanceSegPixelTests, ConfidenceAboveOneThrows) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW((void)model.generateFromPixels(tensorView, 1.1, 0.5, 100, {},
-                                              true, kMethodName),
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 1.1, 0.5, 100, {}, true, kMethodName),
                RnExecutorchError);
 }
 
@@ -296,8 +257,7 @@ TEST(InstanceSegPixelTests, ConfidenceAboveOneThrows) {
 // Inherited method tests
 // ============================================================================
 TEST(InstanceSegInheritedTests, GetInputShapeWorks) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   auto shape = model.getInputShape(kMethodName, 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1);
@@ -305,15 +265,13 @@ TEST(InstanceSegInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(InstanceSegInheritedTests, GetAllInputShapesWorks) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   auto shapes = model.getAllInputShapes(kMethodName);
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(InstanceSegInheritedTests, GetMethodMetaWorks) {
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true,
-                                 nullptr);
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, {}, {}, true, nullptr);
   auto result = model.getMethodMeta(kMethodName);
   EXPECT_TRUE(result.ok());
 }
@@ -324,15 +282,13 @@ TEST(InstanceSegInheritedTests, GetMethodMetaWorks) {
 TEST(InstanceSegNormTests, ValidNormParamsDoesntThrow) {
   const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
   const std::vector<float> std = {0.229f, 0.224f, 0.225f};
-  EXPECT_NO_THROW(BaseInstanceSegmentation(kValidInstanceSegModelPath, mean,
-                                           std, true, nullptr));
+  EXPECT_NO_THROW(BaseInstanceSegmentation(kValidInstanceSegModelPath, mean, std, true, nullptr));
 }
 
 TEST(InstanceSegNormTests, ValidNormParamsGenerateSucceeds) {
   const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
   const std::vector<float> std = {0.229f, 0.224f, 0.225f};
-  BaseInstanceSegmentation model(kValidInstanceSegModelPath, mean, std, true,
-                                 nullptr);
-  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5,
-                                                 100, {}, true, kMethodName));
+  BaseInstanceSegmentation model(kValidInstanceSegModelPath, mean, std, true, nullptr);
+  EXPECT_NO_THROW(
+      (void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, 100, {}, true, kMethodName));
 }

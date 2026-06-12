@@ -26,15 +26,13 @@ protected:
   TestValue() { oss << std::boolalpha; }
 
   template <typename T>
-  void testValueViaComparison(const T &value,
-                              const std::string &expectedOutput) {
+  void testValueViaComparison(const T &value, const std::string &expectedOutput) {
     printElement(oss, value);
     EXPECT_EQ(oss.str(), expectedOutput);
     clearOutputStream(oss);
   }
 
-  template <typename T>
-  void testValueViaRegex(const T &value, const std::string &expectedPattern) {
+  template <typename T> void testValueViaRegex(const T &value, const std::string &expectedPattern) {
     printElement(oss, value);
     const std::regex pattern(expectedPattern);
     EXPECT_TRUE(std::regex_search(oss.str(), pattern))
@@ -88,9 +86,7 @@ private:
   int x, y;
 };
 
-TEST_F(DirectStreamableElementsPrintTest, HandlesIntegers) {
-  testValueViaComparison(123, "123");
-}
+TEST_F(DirectStreamableElementsPrintTest, HandlesIntegers) { testValueViaComparison(123, "123"); }
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesStrings) {
   testValueViaComparison(std::string("Hello World"), "Hello World");
@@ -110,9 +106,7 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesBooleans) {
   testValueViaComparison(false, "false");
 }
 
-TEST_F(DirectStreamableElementsPrintTest, HandlesChar) {
-  testValueViaComparison('a', "a");
-}
+TEST_F(DirectStreamableElementsPrintTest, HandlesChar) { testValueViaComparison('a', "a"); }
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
   const char *word = "Hello World";
@@ -149,13 +143,11 @@ TEST_F(DirectStreamableElementsPrintTest, handlesStaticArrayOfChars) {
 
 // log handles operator<<(&ostream) for std::tuple
 TEST_F(DirectStreamableElementsPrintTest, HandlesStdTuple) {
-  const std::tuple<int, std::string, double> tupleOfDifferentTypes = {
-      42, "Tuple", 3.14};
+  const std::tuple<int, std::string, double> tupleOfDifferentTypes = {42, "Tuple", 3.14};
   testValueViaComparison(tupleOfDifferentTypes, "<42, Tuple, 3.14>");
 
   // All empty or zero-initialized elements of tuple
-  const std::tuple<std::string, int, float> zeroInitializedTuple = {"", 0,
-                                                                    0.0f};
+  const std::tuple<std::string, int, float> zeroInitializedTuple = {"", 0, 0.0f};
   testValueViaComparison(zeroInitializedTuple, "<, 0, 0>");
 
   // Nested tuple
@@ -197,8 +189,8 @@ TEST_F(ContainerPrintTest, HandlesUnorderedSet) {
 }
 
 TEST_F(ContainerPrintTest, HandlesUnorderedMultimap) {
-  const std::unordered_multimap<std::string, int> unorderedMultimapStringToInt =
-      {{"one", 1}, {"one", 2}, {"two", 2}};
+  const std::unordered_multimap<std::string, int> unorderedMultimapStringToInt = {
+      {"one", 1}, {"one", 2}, {"two", 2}};
   std::string pattern = R"(\[\s*)";
   // construct regex by adding each permutation
   pattern += R"((?:\(one, 1\),\s*\(one, 2\),\s*\(two, 2\)|)";
@@ -253,15 +245,14 @@ TEST_F(ContainerPrintTest, HandlesMultiset) {
 }
 
 TEST_F(ContainerPrintTest, HandlesMultimap) {
-  const std::multimap<std::string, int> multimapStringToInt = {
-      {"one", 1}, {"one", 2}, {"two", 2}};
+  const std::multimap<std::string, int> multimapStringToInt = {{"one", 1}, {"one", 2}, {"two", 2}};
   testValueViaComparison(multimapStringToInt, "[(one, 1), (one, 2), (two, 2)]");
 }
 
 TEST_F(ContainerPrintTest, HandlesSpan) {
   std::vector<int> vectorOfInts = {1, 2, 3, 4};
-  const std::span<int> spanOnVector(
-      vectorOfInts.begin(), vectorOfInts.end()); // Create a span from a vector
+  const std::span<int> spanOnVector(vectorOfInts.begin(),
+                                    vectorOfInts.end()); // Create a span from a vector
   testValueViaComparison(spanOnVector, "[1, 2, 3, 4]");
 }
 
@@ -275,8 +266,7 @@ TEST_F(NestedContainerPrintTest, HandlesListOfQueuesOfPoints) {
   listOfQueues.front().push(Point(1, 1));
   listOfQueues.front().push(Point(2, 2));
   listOfQueues.front().push(Point(3, 3));
-  testValueViaComparison(listOfQueues,
-                         "[[Point(1, 1), Point(2, 2), Point(3, 3)]]");
+  testValueViaComparison(listOfQueues, "[[Point(1, 1), Point(2, 2), Point(3, 3)]]");
 }
 
 TEST_F(NestedContainerPrintTest, HandlesNestedVectors) {
@@ -287,24 +277,21 @@ TEST_F(NestedContainerPrintTest, HandlesNestedVectors) {
 TEST_F(NestedContainerPrintTest, HandlesMapOfVectorOfPoints) {
   const std::map<std::string, std::vector<Point>> mapOfVectors = {
       {"first", {Point(1, 2)}}, {"second", {Point(3, 4), Point(5, 6)}}};
-  testValueViaComparison(
-      mapOfVectors,
-      "[(first, [Point(1, 2)]), (second, [Point(3, 4), Point(5, 6)])]");
+  testValueViaComparison(mapOfVectors,
+                         "[(first, [Point(1, 2)]), (second, [Point(3, 4), Point(5, 6)])]");
 }
 
 TEST_F(NestedContainerPrintTest, HandlesVectorOfMaps) {
-  const std::vector<std::map<std::string, int>> vectorOfMaps = {
-      {{"one", 1}, {"two", 2}}, {{"three", 3}, {"four", 4}}};
+  const std::vector<std::map<std::string, int>> vectorOfMaps = {{{"one", 1}, {"two", 2}},
+                                                                {{"three", 3}, {"four", 4}}};
   // word "three" is lexicographically smaller than "four"
-  testValueViaComparison(vectorOfMaps,
-                         "[[(one, 1), (two, 2)], [(four, 4), (three, 3)]]");
+  testValueViaComparison(vectorOfMaps, "[[(one, 1), (two, 2)], [(four, 4), (three, 3)]]");
 }
 
 TEST_F(NestedContainerPrintTest, HandlesComplexNestedStructures) {
-  const std::vector<std::map<std::string, std::list<std::set<int>>>>
-      complexNested = {{{"first", {{1, 2}, {3}}}, {"second", {{4}}}}};
-  testValueViaComparison(complexNested,
-                         "[[(first, [[1, 2], [3]]), (second, [[4]])]]");
+  const std::vector<std::map<std::string, std::list<std::set<int>>>> complexNested = {
+      {{"first", {{1, 2}, {3}}}, {"second", {{4}}}}};
+  testValueViaComparison(complexNested, "[[(first, [[1, 2], [3]]), (second, [[4]])]]");
 }
 
 TEST_F(EgdeCasesPrintTest, HandleEmptyContainer) {
@@ -347,12 +334,9 @@ TEST_F(VariantPrintTest, HandlesVariant) {
 }
 
 TEST_F(ErrorHandlingPrintTest, HandlesErrorCode) {
-  const auto errorCodeValue =
-      std::make_error_code(std::errc::function_not_supported).value();
-  const std::error_code errorCode =
-      make_error_code(std::errc::function_not_supported);
-  testValueViaComparison(
-      errorCode, "ErrorCode(" + std::to_string(errorCodeValue) + ", generic)");
+  const auto errorCodeValue = std::make_error_code(std::errc::function_not_supported).value();
+  const std::error_code errorCode = make_error_code(std::errc::function_not_supported);
+  testValueViaComparison(errorCode, "ErrorCode(" + std::to_string(errorCodeValue) + ", generic)");
 }
 
 TEST_F(ErrorHandlingPrintTest, HandlesExceptionPtr) {
@@ -371,8 +355,7 @@ TEST_F(FileSystemPrintTest, HandlesPath) {
 
 TEST_F(FileSystemPrintTest, HandlesDirectoryIterator) {
   // Setup a temporary directory and files within
-  std::filesystem::path directory =
-      std::filesystem::temp_directory_path() / "test_dir";
+  std::filesystem::path directory = std::filesystem::temp_directory_path() / "test_dir";
   std::filesystem::create_directory(directory);
 
   std::ofstream(directory / "file1.txt");
@@ -381,8 +364,7 @@ TEST_F(FileSystemPrintTest, HandlesDirectoryIterator) {
   std::filesystem::directory_iterator begin(directory);
 
   testValueViaRegex(
-      begin,
-      R"(Directory\["file1.txt", "file2.txt"\]|Directory\["file2.txt", "file1.txt"\])");
+      begin, R"(Directory\["file1.txt", "file2.txt"\]|Directory\["file2.txt", "file1.txt"\])");
 
   // Cleanup
   std::filesystem::remove_all(directory);
@@ -444,8 +426,7 @@ TEST_F(BufferTest, MessageLongerThanLimit) {
 
 class LoggingTest : public ::testing::Test {
 protected:
-  template <typename T>
-  void testLoggingDoesNotChangeContainer(const T &original) {
+  template <typename T> void testLoggingDoesNotChangeContainer(const T &original) {
     const auto copy = original; // Make a copy of the container
     log(LOG_LEVEL::Info, original);
     ASSERT_TRUE(check_if_same_content(original, copy))
@@ -488,9 +469,7 @@ TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
   testLoggingDoesNotChangeContainer(original);
 }
 
-TEST(LogFunctionTest, LoggingBasic) {
-  EXPECT_NO_THROW(log(LOG_LEVEL::Debug, "Test123"));
-}
+TEST(LogFunctionTest, LoggingBasic) { EXPECT_NO_THROW(log(LOG_LEVEL::Debug, "Test123")); }
 
 TEST(LogFunctionTest, LoggingWithNonDefaultLogSize) {
   constexpr std::size_t sizeBiggerThanDefault = 2048;
@@ -502,8 +481,7 @@ TEST(LogFunctionTest, LoggingMoreThanOneElement) {
   constexpr auto testStringLiteral = "Test123";
   const auto testVector = std::vector<int>{1, 2, 3, 4};
   const auto testPair = std::pair<int, double>(1, 2.0);
-  EXPECT_NO_THROW(
-      log(LOG_LEVEL::Debug, testStringLiteral, testVector, testPair));
+  EXPECT_NO_THROW(log(LOG_LEVEL::Debug, testStringLiteral, testVector, testPair));
 }
 
 TEST(MovingSequencable, MovingSequencableTest) {

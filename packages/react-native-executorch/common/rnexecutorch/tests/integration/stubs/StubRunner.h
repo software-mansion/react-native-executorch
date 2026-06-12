@@ -12,9 +12,9 @@ public:
     loaded_ = true;
     return ::executorch::runtime::Error::Ok;
   }
-  ::executorch::runtime::Error generate_internal(
-      const std::vector<::executorch::extension::llm::MultimodalInput> &,
-      std::function<void(const std::string &)>) override {
+  ::executorch::runtime::Error
+  generate_internal(const std::vector<::executorch::extension::llm::MultimodalInput> &,
+                    std::function<void(const std::string &)>) override {
     return ::executorch::runtime::Error::Ok;
   }
   void stop_impl() override {}

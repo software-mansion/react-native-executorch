@@ -35,8 +35,7 @@ cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData);
  * Falls back to "up"/false if fields are absent (e.g. when
  * enablePhysicalBufferRotation is used — transform will be a no-op).
  */
-FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
-                                      const jsi::Value &frameData);
+FrameOrientation readFrameOrientation(jsi::Runtime &runtime, const jsi::Value &frameData);
 
 /**
  * @brief Validate a JSTensorViewIn and wrap its data in a RGB cv::Mat.

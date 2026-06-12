@@ -18,64 +18,58 @@ using namespace constants;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-VoiceActivityDetection::VoiceActivityDetection(
-    const std::string &modelSource,
-    std::shared_ptr<react::CallInvoker> callInvoker)
+VoiceActivityDetection::VoiceActivityDetection(const std::string &modelSource,
+                                               std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker), callInvoker_(callInvoker) {
   // Important - preallocate memory for the buffer to avoid any reallocations.
   audioBuffer_.reserve(2 * constants::kStreamBufferMaxSize);
 }
 
-std::vector<types::Segment>
-VoiceActivityDetection::generate(std::span<float> waveform,
-                                 uint32_t mergeGap) const {
+std::vector<types::Segment> VoiceActivityDetection::generate(std::span<float> waveform,
+                                                             uint32_t mergeGap) const {
   // Guard against small buffers to prevent underflow in preprocess
   if (waveform.size() < kWindowSize) {
     return {};
   }
 
   auto windowedInput = preprocess(waveform);
-  auto [chunksNumber, remainder] = std::div(
-      static_cast<int>(windowedInput.size()), static_cast<int>(kModelInputMax));
+  auto [chunksNumber, remainder] =
+      std::div(static_cast<int>(windowedInput.size()), static_cast<int>(kModelInputMax));
   std::vector<float> scores(windowedInput.size());
   auto lastChunkSize = remainder;
   if (remainder < kModelInputMin) {
     auto paddingSize = kModelInputMin - remainder;
     lastChunkSize = kModelInputMin;
-    windowedInput.insert(windowedInput.end(), paddingSize,
-                         std::array<float, kPaddedWindowSize>{});
+    windowedInput.insert(windowedInput.end(), paddingSize, std::array<float, kPaddedWindowSize>{});
   }
   TensorPtr inputTensor;
   size_t startIdx = 0;
 
   for (size_t i = 0; i < chunksNumber; i++) {
-    std::span<std::array<float, kPaddedWindowSize>> chunk(
-        windowedInput.data() + kModelInputMax * i, kModelInputMax);
+    std::span<std::array<float, kPaddedWindowSize>> chunk(windowedInput.data() + kModelInputMax * i,
+                                                          kModelInputMax);
     inputTensor = executorch::extension::from_blob(
-        chunk.data(), {kModelInputMax, kPaddedWindowSize},
-        executorch::aten::ScalarType::Float);
+        chunk.data(), {kModelInputMax, kPaddedWindowSize}, executorch::aten::ScalarType::Float);
     auto forwardResult = BaseModel::forward(inputTensor);
     CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
     auto tensor = forwardResult->at(0).toTensor();
-    startIdx = utils::getNonSpeechClassProbabilites(
-        tensor, tensor.size(2), tensor.size(1), scores, startIdx);
+    startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2), tensor.size(1), scores,
+                                                    startIdx);
   }
 
   std::span<std::array<float, kPaddedWindowSize>> lastChunk(
       windowedInput.data() + kModelInputMax * chunksNumber, lastChunkSize);
   inputTensor = executorch::extension::from_blob(
-      lastChunk.data(), {lastChunkSize, kPaddedWindowSize},
-      executorch::aten::ScalarType::Float);
+      lastChunk.data(), {lastChunkSize, kPaddedWindowSize}, executorch::aten::ScalarType::Float);
   auto forwardResult = BaseModel::forward(inputTensor);
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
   auto tensor = forwardResult->at(0).toTensor();
-  startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),
-                                                  remainder, scores, startIdx);
+  startIdx =
+      utils::getNonSpeechClassProbabilites(tensor, tensor.size(2), remainder, scores, startIdx);
   return postprocess(scores, kSpeechThreshold, mergeGap);
 }
 
-void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
-                                    uint32_t timeout,
+void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback, uint32_t timeout,
                                     uint32_t detectionMargin) {
   bool expected = false;
   if (!isStreaming_.compare_exchange_strong(expected, true)) {
@@ -97,9 +91,8 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
   // where true corresponds to detected ongoing speech, and false corresponds to
   // silence.
   auto nativeCallback = [this, callback](bool speaking) {
-    callInvoker_->invokeAsync([callback, speaking](jsi::Runtime &rt) {
-      callback->call(rt, jsi::Value(speaking));
-    });
+    callInvoker_->invokeAsync(
+        [callback, speaking](jsi::Runtime &rt) { callback->call(rt, jsi::Value(speaking)); });
   };
 
   while (isStreaming_) {
@@ -135,8 +128,7 @@ void VoiceActivityDetection::stream(std::shared_ptr<jsi::Function> callback,
       auto speechEnd = lastSegment.end;
 
       std::scoped_lock lock(audioBufferMutex_);
-      uint32_t diffMs =
-          (audioBuffer_.size() - speechEnd) / constants::kSamplesPerMs; // [ms]
+      uint32_t diffMs = (audioBuffer_.size() - speechEnd) / constants::kSamplesPerMs; // [ms]
 
       speaking = diffMs <= detectionMargin;
     }
@@ -175,27 +167,24 @@ VoiceActivityDetection::preprocess(std::span<float> waveform) const {
 
     auto windowView = waveform.subspan(i * kHopLength, kWindowSize);
     ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
-    auto frameView =
-        std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
+    auto frameView = std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
     const float sum = std::reduce(frameView.begin(), frameView.end(), 0.0f);
     const float mean = sum / kWindowSize;
-    ranges::transform(frameView, frameView.begin(),
-                      [mean](float value) { return value - mean; });
+    ranges::transform(frameView, frameView.begin(), [mean](float value) { return value - mean; });
 
     // apply pre-emphasis filter
     for (auto j = frameView.size() - 1; j > 0; --j) {
       frameView[j] -= kPreemphasisCoeff * frameView[j - 1];
     }
     // apply hamming window to reduce spectral leakage
-    ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
-                      std::multiplies{});
+    ranges::transform(frameView, kHammingWindowArray, frameView.begin(), std::multiplies{});
   }
   return frameBuffer;
 }
 
-std::vector<types::Segment>
-VoiceActivityDetection::postprocess(const std::vector<float> &scores,
-                                    float threshold, uint32_t mergeGap) const {
+std::vector<types::Segment> VoiceActivityDetection::postprocess(const std::vector<float> &scores,
+                                                                float threshold,
+                                                                uint32_t mergeGap) const {
   bool triggered = false;
   std::vector<types::Segment> speechSegments{};
   ssize_t startSegment = -1;

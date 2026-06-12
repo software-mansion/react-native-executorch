@@ -37,9 +37,8 @@ void softmaxWithTemperature(std::span<float> input, float temperature) {
   }
 
   if (temperature <= 0.0F) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "Temperature must be greater than 0 for softmax with temperature!");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Temperature must be greater than 0 for softmax with temperature!");
   }
 
   const auto maxElement = *std::ranges::max_element(input);
@@ -57,8 +56,7 @@ void softmaxWithTemperature(std::span<float> input, float temperature) {
 }
 
 void normalize(std::span<float> input) {
-  const auto sumOfSquares =
-      std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
+  const auto sumOfSquares = std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
   constexpr auto kEpsilon = 1.0e-15F;
 
@@ -76,8 +74,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
     ss << "Invalid dimensions for mean pooling, expected model output size to "
           "be divisible "
        << "by the size of attention mask but got size: " << modelOutput.size()
-       << " for model output and size: " << attnMask.size()
-       << " for attention mask";
+       << " for model output and size: " << attnMask.size() << " for attention mask";
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig, ss.str());
   }
 
@@ -105,9 +102,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   return result;
 }
 
-template <typename T> bool isClose(T a, T b, T atol) {
-  return std::abs(a - b) <= atol;
-}
+template <typename T> bool isClose(T a, T b, T atol) { return std::abs(a - b) <= atol; }
 
 template bool isClose<float>(float, float, float);
 template bool isClose<double>(double, double, double);

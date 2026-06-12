@@ -39,12 +39,10 @@ class VerticalDetector final : public Detector {
 public:
   explicit VerticalDetector(const std::string &modelSource,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
-                                            int32_t inputWidth) override;
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage, int32_t inputWidth) override;
 
 private:
-  std::vector<types::DetectorBBox>
-  postprocess(const Tensor &tensor, const cv::Size &modelInputSize,
-              bool detectSingleCharacters) const;
+  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor, const cv::Size &modelInputSize,
+                                               bool detectSingleCharacters) const;
 };
 } // namespace rnexecutorch::models::ocr

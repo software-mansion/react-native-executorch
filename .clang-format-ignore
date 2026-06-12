@@ -1,0 +1,12 @@
+# Files clang-format must skip. Patterns are gitignore-style, relative to this
+# file. This keeps `clang-format -i` (and the pre-commit hook) from reformatting
+# vendored third-party code and generated sources.
+
+# Vendored libraries that live outside third-party/.
+packages/react-native-executorch/common/ada/**
+packages/react-native-executorch/common/pfft/**
+packages/react-native-executorch/common/runner/**
+
+# Generated verbatim by `yarn codegen:errors` and verified in CI with a raw
+# diff; reformatting would rewrap its comments and break that check.
+packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h

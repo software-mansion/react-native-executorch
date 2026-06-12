@@ -12,10 +12,8 @@ using ::executorch::extension::module::Module;
 using ::executorch::runtime::Error;
 
 BaseModel::BaseModel(const std::string &modelSource,
-                     std::shared_ptr<react::CallInvoker> callInvoker,
-                     Module::LoadMode loadMode)
-    : callInvoker(callInvoker),
-      module_(std::make_unique<Module>(modelSource, loadMode)) {
+                     std::shared_ptr<react::CallInvoker> callInvoker, Module::LoadMode loadMode)
+    : callInvoker(callInvoker), module_(std::make_unique<Module>(modelSource, loadMode)) {
   Error loadError = module_->load();
   if (loadError != Error::Ok) {
     throw RnExecutorchError(loadError, "Failed to load model");
@@ -28,8 +26,7 @@ BaseModel::BaseModel(const std::string &modelSource,
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
-std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
-                                              int32_t index) const {
+std::vector<int32_t> BaseModel::getInputShape(std::string method_name, int32_t index) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
@@ -37,16 +34,14 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
   auto method_meta = module_->method_meta(method_name);
   if (!method_meta.ok()) {
     throw RnExecutorchError(method_meta.error(),
-                            "Failed to get metadata for method '" +
-                                method_name + "'");
+                            "Failed to get metadata for method '" + method_name + "'");
   }
 
   auto input_meta = method_meta->input_tensor_meta(index);
   if (!input_meta.ok()) {
-    throw RnExecutorchError(
-        input_meta.error(),
-        "Failed to get metadata for input tensor at index " +
-            std::to_string(index) + " in method '" + method_name + "'");
+    throw RnExecutorchError(input_meta.error(),
+                            "Failed to get metadata for input tensor at index " +
+                                std::to_string(index) + " in method '" + method_name + "'");
   }
 
   auto sizes = input_meta->sizes();
@@ -54,8 +49,7 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
   return input_shape;
 }
 
-std::vector<std::vector<int32_t>>
-BaseModel::getAllInputShapes(std::string methodName) const {
+std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes(std::string methodName) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
@@ -63,8 +57,7 @@ BaseModel::getAllInputShapes(std::string methodName) const {
   auto method_meta = module_->method_meta(methodName);
   if (!method_meta.ok()) {
     throw RnExecutorchError(method_meta.error(),
-                            "Failed to get metadata for method '" + methodName +
-                                "'");
+                            "Failed to get metadata for method '" + methodName + "'");
   }
   std::vector<std::vector<int32_t>> output;
   std::size_t numInputs = method_meta->num_inputs();
@@ -72,10 +65,9 @@ BaseModel::getAllInputShapes(std::string methodName) const {
   for (std::size_t input = 0; input < numInputs; ++input) {
     auto input_meta = method_meta->input_tensor_meta(input);
     if (!input_meta.ok()) {
-      throw RnExecutorchError(
-          input_meta.error(),
-          "Failed to get metadata for input tensor at index " +
-              std::to_string(input) + " in method '" + methodName + "'");
+      throw RnExecutorchError(input_meta.error(),
+                              "Failed to get metadata for input tensor at index " +
+                                  std::to_string(input) + " in method '" + methodName + "'");
     }
     auto shape = input_meta->sizes();
     output.emplace_back(std::vector<int32_t>(shape.begin(), shape.end()));
@@ -86,8 +78,7 @@ BaseModel::getAllInputShapes(std::string methodName) const {
 /// @brief This method is a forward wrapper that is created solely to be exposed
 /// to JS. It is not meant to be used within C++. If you want to call forward
 /// from C++ on a BaseModel, please use BaseModel::forward.
-std::vector<JSTensorViewOut>
-BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
+std::vector<JSTensorViewOut> BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
@@ -103,8 +94,7 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
   for (size_t i = 0; i < tensorViewVec.size(); i++) {
     const auto &currTensorView = tensorViewVec[i];
     auto tensorPtr =
-        make_tensor_ptr(currTensorView.sizes, currTensorView.dataPtr,
-                        currTensorView.scalarType);
+        make_tensor_ptr(currTensorView.sizes, currTensorView.dataPtr, currTensorView.scalarType);
     tensorPtrs.emplace_back(tensorPtr);
     evalues.emplace_back(*tensorPtr); // Dereference TensorPtr to get Tensor,
                                       // which implicitly converts to EValue
@@ -123,8 +113,7 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
     auto &outputTensor = outputs[i].toTensor();
     std::vector<int32_t> sizes = getTensorShape(outputTensor);
     size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
-    auto buffer = std::make_shared<OwningArrayBuffer>(
-        outputTensor.const_data_ptr(), bufferSize);
+    auto buffer = std::make_shared<OwningArrayBuffer>(outputTensor.const_data_ptr(), bufferSize);
     auto jsTensor = JSTensorViewOut(sizes, outputTensor.scalar_type(), buffer);
     output.emplace_back(jsTensor);
   }
@@ -139,39 +128,33 @@ BaseModel::getMethodMeta(const std::string &methodName) const {
   return module_->method_meta(methodName);
 }
 
-Result<std::vector<EValue>>
-BaseModel::forward(const EValue &input_evalue) const {
+Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
   return module_->forward(input_evalue);
 }
 
-Result<std::vector<EValue>>
-BaseModel::forward(const std::vector<EValue> &input_evalues) const {
+Result<std::vector<EValue>> BaseModel::forward(const std::vector<EValue> &input_evalues) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
   return module_->forward(input_evalues);
 }
 
-Result<std::vector<EValue>>
-BaseModel::execute(const std::string &methodName,
-                   const std::vector<EValue> &input_value) const {
+Result<std::vector<EValue>> BaseModel::execute(const std::string &methodName,
+                                               const std::vector<EValue> &input_value) const {
   if (!module_) {
     THROW_NOT_LOADED_ERROR();
   }
   return module_->execute(methodName, input_value);
 }
 
-std::size_t BaseModel::getMemoryLowerBound() const noexcept {
-  return memorySizeLowerBound;
-}
+std::size_t BaseModel::getMemoryLowerBound() const noexcept { return memorySizeLowerBound; }
 
 void BaseModel::unload() noexcept { module_.reset(nullptr); }
 
-std::vector<int32_t>
-BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
+std::vector<int32_t> BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();
   return std::vector<int32_t>(sizes.begin(), sizes.end());
 }

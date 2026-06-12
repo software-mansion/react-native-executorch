@@ -12,8 +12,7 @@ static std::array<types::Point, 4> bboxToCorners(const types::BBox &bbox) {
   return {bbox.p1, {bbox.p2.x, bbox.p1.y}, bbox.p2, {bbox.p1.x, bbox.p2.y}};
 }
 
-std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
-                                                   cv::Size size) {
+std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data, cv::Size size) {
   cv::Mat mat1 = cv::Mat(size, CV_32F);
   cv::Mat mat2 = cv::Mat(size, CV_32F);
 
@@ -33,20 +32,18 @@ std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
 
 // Create a segmentation map for the current component.
 // Background is 0, (black), foreground is 255 (white)
-cv::Mat createSegmentMap(const cv::Mat &mask, cv::Size mapSize,
-                         const int32_t segmentColor = 255) {
+cv::Mat createSegmentMap(const cv::Mat &mask, cv::Size mapSize, const int32_t segmentColor = 255) {
   cv::Mat segMap = cv::Mat::zeros(mapSize, CV_8U);
   segMap.setTo(segmentColor, mask);
   return segMap;
 }
 
 void morphologicalOperations(
-    const cv::Mat &segMap, const cv::Mat &stats, int32_t i, int32_t area,
-    int32_t imgW, int32_t imgH,
-    int32_t iterations = 1, // iterations number of times dilation is  applied.
-    cv::Size anchor =
-        cv::Point(-1, -1) // anchor position of the anchor within the element;
-                          // default means that the anchor is at the center.
+    const cv::Mat &segMap, const cv::Mat &stats, int32_t i, int32_t area, int32_t imgW,
+    int32_t imgH,
+    int32_t iterations = 1,             // iterations number of times dilation is  applied.
+    cv::Size anchor = cv::Point(-1, -1) // anchor position of the anchor within the element;
+                                        // default means that the anchor is at the center.
 ) {
   const int32_t x = stats.at<int32_t>(i, cv::CC_STAT_LEFT);
   const int32_t y = stats.at<int32_t>(i, cv::CC_STAT_TOP);
@@ -56,8 +53,7 @@ void morphologicalOperations(
   // Dynamically calculate dilation radius to expand the bounding box slightly
   constexpr int32_t evenMultiplyCoeff = 2; // ensure that dilationRadius is even
   const int32_t dilationRadius = static_cast<int32_t>(
-      std::sqrt(static_cast<double>(area) / std::max(w, h)) *
-      evenMultiplyCoeff);
+      std::sqrt(static_cast<double>(area) / std::max(w, h)) * evenMultiplyCoeff);
   const int32_t sx = std::max(x - dilationRadius, 0);
   const int32_t ex = std::min(x + w + dilationRadius, imgW);
   const int32_t sy = std::max(y - dilationRadius, 0);
@@ -71,36 +67,28 @@ void morphologicalOperations(
       1 + dilationRadius; // Ensures valid odd-sized kernel,
                           // notice the fact that dilationRadius is always even.
   cv::Mat kernel = cv::getStructuringElement(
-      cv::MORPH_RECT,
-      cv::Size(morphologicalKernelSize, morphologicalKernelSize));
+      cv::MORPH_RECT, cv::Size(morphologicalKernelSize, morphologicalKernelSize));
   cv::Mat roiSegMap = segMap(roi);
   cv::dilate(roiSegMap, roiSegMap, kernel, anchor, iterations);
 }
 
-types::DetectorBBox
-extractMinAreaBBoxFromContour(const std::vector<cv::Point> contour) {
+types::DetectorBBox extractMinAreaBBoxFromContour(const std::vector<cv::Point> contour) {
   cv::RotatedRect minRect = cv::minAreaRect(contour);
 
   std::array<cv::Point2f, 4> vertices;
   minRect.points(vertices.data());
 
-  float minX =
-      std::min({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
-  float minY =
-      std::min({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
-  float maxX =
-      std::max({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
-  float maxY =
-      std::max({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
+  float minX = std::min({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
+  float minY = std::min({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
+  float maxX = std::max({vertices[0].x, vertices[1].x, vertices[2].x, vertices[3].x});
+  float maxY = std::max({vertices[0].y, vertices[1].y, vertices[2].y, vertices[3].y});
   types::BBox bbox = {{minX, minY}, {maxX, maxY}};
   return {.bbox = bbox, .angle = minRect.angle};
 }
 
-void getBoxFromContour(cv::Mat &segMap,
-                       std::vector<types::DetectorBBox> &detectedBoxes) {
+void getBoxFromContour(cv::Mat &segMap, std::vector<types::DetectorBBox> &detectedBoxes) {
   std::vector<std::vector<cv::Point>> contours;
-  cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
-                   cv::CHAIN_APPROX_SIMPLE);
+  cv::findContours(segMap, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
   if (!contours.empty()) {
     detectedBoxes.emplace_back(extractMinAreaBBoxFromContour(contours[0]));
   }
@@ -109,12 +97,11 @@ void getBoxFromContour(cv::Mat &segMap,
 // Function for processing single component. It is shared between the
 // VerticalOCR and standard OCR. param isVertical specifies which OCR uses it.
 // param lowTextThreshold is used only by standard OCR.
-void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
-                      const cv::Mat &stats, int32_t i, int32_t imgW,
-                      int32_t imgH,
-                      std::vector<types::DetectorBBox> &detectedBoxes,
-                      bool isVertical, int32_t minimalAreaThreshold,
-                      int32_t dilationIter, float lowTextThreshold = 0.0) {
+void processComponent(const cv::Mat &textMap, const cv::Mat &labels, const cv::Mat &stats,
+                      int32_t i, int32_t imgW, int32_t imgH,
+                      std::vector<types::DetectorBBox> &detectedBoxes, bool isVertical,
+                      int32_t minimalAreaThreshold, int32_t dilationIter,
+                      float lowTextThreshold = 0.0) {
   const int32_t area = stats.at<int32_t>(i, cv::CC_STAT_AREA);
   // Skip small components as they are likely to be just noise
   if (area < minimalAreaThreshold) {
@@ -144,10 +131,9 @@ void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
   getBoxFromContour(segMap, detectedBoxes);
 }
 
-std::vector<types::DetectorBBox>
-getDetBoxesFromTextMap(cv::Mat &textMap, cv::Mat &affinityMap,
-                       float textThreshold, float linkThreshold,
-                       float lowTextThreshold) {
+std::vector<types::DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap, cv::Mat &affinityMap,
+                                                        float textThreshold, float linkThreshold,
+                                                        float lowTextThreshold) {
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
@@ -158,24 +144,21 @@ getDetBoxesFromTextMap(cv::Mat &textMap, cv::Mat &affinityMap,
 
   // 1. Based on maps and threshold values create binary masks
   constexpr double maxValBinaryMask = 1.0;
-  cv::threshold(textMap, textScore, textThreshold, maxValBinaryMask,
-                cv::THRESH_BINARY);
-  cv::threshold(affinityMap, affinityScore, linkThreshold, maxValBinaryMask,
-                cv::THRESH_BINARY);
+  cv::threshold(textMap, textScore, textThreshold, maxValBinaryMask, cv::THRESH_BINARY);
+  cv::threshold(affinityMap, affinityScore, linkThreshold, maxValBinaryMask, cv::THRESH_BINARY);
 
   // 2. Merge two maps into one using logical OR
   cv::Mat textScoreComb = textScore + affinityScore;
   constexpr double threshVal = 0.0;
-  cv::threshold(textScoreComb, textScoreComb, threshVal, maxValBinaryMask,
-                cv::THRESH_BINARY);
+  cv::threshold(textScoreComb, textScoreComb, threshVal, maxValBinaryMask, cv::THRESH_BINARY);
   cv::Mat binaryMat;
   textScoreComb.convertTo(binaryMat, CV_8UC1);
 
   // 3. Find connected components to identify each box
   cv::Mat labels, stats, centroids;
   constexpr int32_t connectivityType = 4;
-  const int32_t nLabels = cv::connectedComponentsWithStats(
-      binaryMat, labels, stats, centroids, connectivityType);
+  const int32_t nLabels =
+      cv::connectedComponentsWithStats(binaryMat, labels, stats, centroids, connectivityType);
 
   std::vector<types::DetectorBBox> detectedBoxes;
   detectedBoxes.reserve(nLabels); // Pre-allocate memory
@@ -188,18 +171,16 @@ getDetBoxesFromTextMap(cv::Mat &textMap, cv::Mat &affinityMap,
 
   // 4. Process each component; omit component 0 as it is background
   for (int32_t i = 1; i < nLabels; i++) {
-    processComponent(textMap, labels, stats, i, imgW, imgH, detectedBoxes,
-                     false, minimalAreaThreshold, dilationIter,
-                     lowTextThreshold);
+    processComponent(textMap, labels, stats, i, imgW, imgH, detectedBoxes, false,
+                     minimalAreaThreshold, dilationIter, lowTextThreshold);
   }
 
   return detectedBoxes;
 }
 
 std::vector<types::DetectorBBox>
-getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
-                               float textThreshold, float linkThreshold,
-                               bool independentCharacters) {
+getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap, float textThreshold,
+                               float linkThreshold, bool independentCharacters) {
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
@@ -210,10 +191,8 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
 
   // 1. Threshold text and affinity maps to create binary masks
   constexpr double maxValBinaryMask = 1.0;
-  cv::threshold(textMap, textScore, textThreshold, maxValBinaryMask,
-                cv::THRESH_BINARY);
-  cv::threshold(affinityMap, affinityScore, linkThreshold, maxValBinaryMask,
-                cv::THRESH_BINARY);
+  cv::threshold(textMap, textScore, textThreshold, maxValBinaryMask, cv::THRESH_BINARY);
+  cv::threshold(affinityMap, affinityScore, linkThreshold, maxValBinaryMask, cv::THRESH_BINARY);
 
   // Prepare values for morphological operations
   const auto kSize = cv::Size(3, 3); // size of the structuring element
@@ -224,17 +203,16 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
 
   // iterations number of times dilation is applied.
   int32_t dilationIterations;
-  const auto anchor =
-      cv::Point(-1, -1); // anchor position of the anchor within the element;
-                         // default value (-1, -1)
-                         // means that the anchor is at the element center
+  const auto anchor = cv::Point(-1, -1); // anchor position of the anchor within the element;
+                                         // default value (-1, -1)
+                                         // means that the anchor is at the element center
 
   // 2. Combine maps based on whether we are detecting words or single
   // characters
   // For single characters, subtract affinity to separate adjacent chars,
   // otherwise add affinity to link characters together
-  cv::Mat textScoreComb = independentCharacters ? textScore - affinityScore
-                                                : textScore + affinityScore;
+  cv::Mat textScoreComb =
+      independentCharacters ? textScore - affinityScore : textScore + affinityScore;
   // Clamp values to be >= 0
   cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
   // Clamp values to be <= 1
@@ -255,8 +233,8 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
 
   cv::Mat labels, stats, centroids;
   constexpr int32_t connectivityType = 4;
-  const int32_t nLabels = cv::connectedComponentsWithStats(
-      binaryMat, labels, stats, centroids, connectivityType);
+  const int32_t nLabels =
+      cv::connectedComponentsWithStats(binaryMat, labels, stats, centroids, connectivityType);
 
   std::vector<types::DetectorBBox> detectedBoxes;
   detectedBoxes.reserve(nLabels);
@@ -286,8 +264,7 @@ float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize) {
   return desiredSize / static_cast<float>(currentSize);
 }
 
-void restoreBboxRatio(std::vector<types::DetectorBBox> &boxes,
-                      float restoreRatio) {
+void restoreBboxRatio(std::vector<types::DetectorBBox> &boxes, float restoreRatio) {
   for (auto &box : boxes) {
     box.bbox = box.bbox.scale(restoreRatio, restoreRatio);
   }
@@ -299,26 +276,17 @@ float distanceFromPoint(const types::Point &p1, const types::Point &p2) {
   return std::hypot(xDist, yDist);
 }
 
-float normalizeAngle(float angle) {
-  return (angle > 45.0f) ? (angle - 90.0f) : angle;
-}
+float normalizeAngle(float angle) { return (angle > 45.0f) ? (angle - 90.0f) : angle; }
 
-types::Point midpointBetweenPoint(const types::Point &p1,
-                                  const types::Point &p2) {
+types::Point midpointBetweenPoint(const types::Point &p1, const types::Point &p2) {
   return {.x = std::midpoint(p1.x, p2.x), .y = std::midpoint(p1.y, p2.y)};
 }
 
-types::Point centerOfBox(const types::BBox &box) {
-  return midpointBetweenPoint(box.p1, box.p2);
-}
+types::Point centerOfBox(const types::BBox &box) { return midpointBetweenPoint(box.p1, box.p2); }
 
-float minSideLength(const types::BBox &bbox) {
-  return std::min(bbox.width(), bbox.height());
-}
+float minSideLength(const types::BBox &bbox) { return std::min(bbox.width(), bbox.height()); }
 
-float maxSideLength(const types::BBox &bbox) {
-  return std::max(bbox.width(), bbox.height());
-}
+float maxSideLength(const types::BBox &bbox) { return std::max(bbox.width(), bbox.height()); }
 
 /**
  * This method calculates the distances between each sequential pair of points
@@ -360,16 +328,13 @@ std::tuple<float, float, bool> fitLineToShortestSides(const types::BBox &bbox) {
   float m, c;
   bool isVertical;
 
-  std::array<cv::Point2f, 2> cvMidPoints = {
-      cv::Point2f(midpoint1.x, midpoint1.y),
-      cv::Point2f(midpoint2.x, midpoint2.y)};
+  std::array<cv::Point2f, 2> cvMidPoints = {cv::Point2f(midpoint1.x, midpoint1.y),
+                                            cv::Point2f(midpoint2.x, midpoint2.y)};
   cv::Vec4f line;
   // parameteres for fitLine calculation:
-  constexpr int32_t numericalParameter =
-      0; // important only for some types of distances, O means an optimal value
-         // is chosen
-  constexpr double accuracy =
-      0.01; // sufficient accuracy. Value proposed by OPENCV
+  constexpr int32_t numericalParameter = 0; // important only for some types of distances, O means
+                                            // an optimal value is chosen
+  constexpr double accuracy = 0.01;         // sufficient accuracy. Value proposed by OPENCV
 
   isVertical = dx < constants::kVerticalLineThreshold;
   if (isVertical) {
@@ -377,8 +342,7 @@ std::tuple<float, float, bool> fitLineToShortestSides(const types::BBox &bbox) {
       std::swap(pt.x, pt.y);
     }
   }
-  cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
-              accuracy);
+  cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy, accuracy);
   m = line[1] / line[0];
   c = line[3] - m * line[2];
   return {m, c, isVertical};
@@ -407,8 +371,7 @@ types::BBox rotateBox(const types::BBox &bbox, float angle) {
   return {{minX, minY}, {maxX, maxY}};
 }
 
-float calculateMinimalDistanceBetweenBox(const types::BBox &box1,
-                                         const types::BBox &box2) {
+float calculateMinimalDistanceBetweenBox(const types::BBox &box1, const types::BBox &box2) {
   float minDistance = std::numeric_limits<float>::max();
   for (const auto &c1 : bboxToCorners(box1)) {
     for (const auto &c2 : bboxToCorners(box2)) {
@@ -439,8 +402,7 @@ types::BBox orderPointsClockwise(const types::BBox &bbox) {
           {std::max(bbox.p1.x, bbox.p2.x), std::max(bbox.p1.y, bbox.p2.y)}};
 }
 
-types::BBox mergeRotatedBoxes(const types::BBox &box1,
-                              const types::BBox &box2) {
+types::BBox mergeRotatedBoxes(const types::BBox &box1, const types::BBox &box2) {
   return {{std::min(box1.p1.x, box2.p1.x), std::min(box1.p1.y, box2.p1.y)},
           {std::max(box1.p2.x, box2.p2.x), std::max(box1.p2.y, box2.p2.y)}};
 }
@@ -471,9 +433,8 @@ types::BBox mergeRotatedBoxes(const types::BBox &box1,
  */
 std::optional<std::pair<std::size_t, float>>
 findClosestBox(const std::vector<types::DetectorBBox> &boxes,
-               const std::unordered_set<std::size_t> &ignoredIdxs,
-               const types::BBox &currentBox, bool isVertical, float m, float c,
-               float centerThreshold) {
+               const std::unordered_set<std::size_t> &ignoredIdxs, const types::BBox &currentBox,
+               bool isVertical, float m, float c, float centerThreshold) {
   float smallestDistance = std::numeric_limits<float>::max();
   ssize_t idx = -1;
   float boxHeight = 0.0f;
@@ -495,10 +456,8 @@ findClosestBox(const std::vector<types::DetectorBBox> &boxes,
     boxHeight = minSideLength(bbox);
 
     const float lineDistance =
-        isVertical ? std::fabs(centerOfProcessedBox.x -
-                               (m * centerOfProcessedBox.y + c))
-                   : std::fabs(centerOfProcessedBox.y -
-                               (m * centerOfProcessedBox.x + c));
+        isVertical ? std::fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
+                   : std::fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c));
 
     if (lineDistance < boxHeight * centerThreshold) {
       idx = i;
@@ -506,8 +465,7 @@ findClosestBox(const std::vector<types::DetectorBBox> &boxes,
     }
   }
 
-  return idx != -1 ? std::optional(std::make_pair(idx, boxHeight))
-                   : std::nullopt;
+  return idx != -1 ? std::optional(std::make_pair(idx, boxHeight)) : std::nullopt;
 }
 
 /**
@@ -518,8 +476,8 @@ findClosestBox(const std::vector<types::DetectorBBox> &boxes,
  * Otherwise, the box is excluded from the result.
  */
 std::vector<types::DetectorBBox>
-removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes,
-                          float minSideThreshold, float maxSideThreshold) {
+removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes, float minSideThreshold,
+                          float maxSideThreshold) {
   std::vector<types::DetectorBBox> filteredBoxes;
 
   for (const auto &box : boxes) {
@@ -536,14 +494,12 @@ removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes,
 static float minimumYFromBox(const types::BBox &bbox) { return bbox.p1.y; }
 static float minimumXFromBox(const types::BBox &bbox) { return bbox.p1.x; }
 
-std::vector<types::DetectorBBox>
-groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
-               float distanceThreshold, float heightThreshold,
-               int32_t minSideThreshold, int32_t maxSideThreshold,
-               int32_t maxWidth) {
+std::vector<types::DetectorBBox> groupTextBoxes(std::vector<types::DetectorBBox> &boxes,
+                                                float centerThreshold, float distanceThreshold,
+                                                float heightThreshold, int32_t minSideThreshold,
+                                                int32_t maxSideThreshold, int32_t maxWidth) {
   // Sort boxes descending by maximum side length
-  std::ranges::sort(boxes, [](const types::DetectorBBox &lhs,
-                              const types::DetectorBBox &rhs) {
+  std::ranges::sort(boxes, [](const types::DetectorBBox &lhs, const types::DetectorBBox &rhs) {
     return maxSideLength(lhs.bbox) > maxSideLength(rhs.bbox);
   });
 
@@ -559,16 +515,14 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
     while (true) {
       // Find all aligned boxes and merge them until max_size is reached or no
       // more boxes can be merged
-      auto [slope, intercept, isVertical] =
-          fitLineToShortestSides(currentBox.bbox);
+      auto [slope, intercept, isVertical] = fitLineToShortestSides(currentBox.bbox);
 
       lineAngle = std::atan(slope) * 180.0f / M_PI;
       if (isVertical) {
         lineAngle = -90.0f;
       }
-      auto closestBoxInfo =
-          findClosestBox(boxes, ignoredIdxs, currentBox.bbox, isVertical, slope,
-                         intercept, centerThreshold);
+      auto closestBoxInfo = findClosestBox(boxes, ignoredIdxs, currentBox.bbox, isVertical, slope,
+                                           intercept, centerThreshold);
       if (!closestBoxInfo.has_value()) {
         break;
       }
@@ -580,12 +534,11 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
         candidateBox.bbox = rotateBox(candidateBox.bbox, normalizedAngle);
       }
 
-      const float minDistance = calculateMinimalDistanceBetweenBox(
-          candidateBox.bbox, currentBox.bbox);
+      const float minDistance =
+          calculateMinimalDistanceBetweenBox(candidateBox.bbox, currentBox.bbox);
       const float mergedHeight = minSideLength(currentBox.bbox);
       if (minDistance < distanceThreshold * candidateHeight &&
-          std::fabs(mergedHeight - candidateHeight) <
-              candidateHeight * heightThreshold) {
+          std::fabs(mergedHeight - candidateHeight) < candidateHeight * heightThreshold) {
         currentBox.bbox = mergeRotatedBoxes(currentBox.bbox, candidateBox.bbox);
         boxes.erase(boxes.begin() + candidateIdx);
         ignoredIdxs.clear();
@@ -600,8 +553,7 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
   }
 
   // Remove small boxes and sort by vertical
-  mergedVec =
-      removeSmallBoxesFromArray(mergedVec, minSideThreshold, maxSideThreshold);
+  mergedVec = removeSmallBoxesFromArray(mergedVec, minSideThreshold, maxSideThreshold);
 
   std::ranges::sort(mergedVec, [](const auto &obj1, const auto &obj2) {
     return minimumYFromBox(obj1.bbox) < minimumYFromBox(obj2.bbox);
@@ -621,10 +573,9 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
   }
   for (auto rowBegin = mergedVec.begin(); rowBegin != mergedVec.end();) {
     const float rowY = minimumYFromBox(rowBegin->bbox);
-    auto rowEnd =
-        std::find_if(rowBegin, mergedVec.end(), [rowY, yThresh](const auto &b) {
-          return minimumYFromBox(b.bbox) - rowY > yThresh;
-        });
+    auto rowEnd = std::find_if(rowBegin, mergedVec.end(), [rowY, yThresh](const auto &b) {
+      return minimumYFromBox(b.bbox) - rowY > yThresh;
+    });
     std::sort(rowBegin, rowEnd, [](const auto &a, const auto &b) {
       return minimumXFromBox(a.bbox) < minimumXFromBox(b.bbox);
     });
@@ -648,13 +599,11 @@ void validateInputWidth(int32_t inputWidth, std::span<const int32_t> constants,
   if (it == constants.end()) {
     std::string allowed;
     for (size_t i = 0; i < constants.size(); ++i) {
-      allowed +=
-          std::to_string(constants[i]) + (i < constants.size() - 1 ? ", " : "");
+      allowed += std::to_string(constants[i]) + (i < constants.size() - 1 ? ", " : "");
     }
 
-    throw std::runtime_error("Unexpected input width for " + modelName +
-                             "! Expected [" + allowed + "] but got " +
-                             std::to_string(inputWidth) + ".");
+    throw std::runtime_error("Unexpected input width for " + modelName + "! Expected [" + allowed +
+                             "] but got " + std::to_string(inputWidth) + ".");
   }
 }
 

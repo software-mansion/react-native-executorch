@@ -19,10 +19,8 @@ using namespace facebook;
 
 class PrivacyFilter final : public BaseModel {
 public:
-  PrivacyFilter(const std::string &modelSource,
-                const std::string &tokenizerSource,
-                std::vector<std::string> labelNames,
-                std::vector<float> viterbiBiases,
+  PrivacyFilter(const std::string &modelSource, const std::string &tokenizerSource,
+                std::vector<std::string> labelNames, std::vector<float> viterbiBiases,
                 std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::vector<types::PiiEntity>
@@ -31,10 +29,9 @@ public:
   void unload() noexcept;
 
 private:
-  void runWindow(std::vector<int64_t> &paddedInputIds,
-                 std::vector<int64_t> &paddedAttentionMask, int32_t absStart,
-                 int32_t validLen, int32_t writeFromOffset,
-                 int32_t writeToOffset, std::vector<int32_t> &outLabels);
+  void runWindow(std::vector<int64_t> &paddedInputIds, std::vector<int64_t> &paddedAttentionMask,
+                 int32_t absStart, int32_t validLen, int32_t writeFromOffset, int32_t writeToOffset,
+                 std::vector<int32_t> &outLabels);
 
   std::string labelEntityType(int32_t labelId) const;
 
@@ -48,7 +45,7 @@ private:
 
 } // namespace models::privacy_filter
 
-REGISTER_CONSTRUCTOR(models::privacy_filter::PrivacyFilter, std::string,
-                     std::string, std::vector<std::string>, std::vector<float>,
+REGISTER_CONSTRUCTOR(models::privacy_filter::PrivacyFilter, std::string, std::string,
+                     std::vector<std::string>, std::vector<float>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -14,37 +14,31 @@ using executorch::extension::make_tensor_ptr;
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-constexpr auto kValidSemanticSegmentationModelPath =
-    "deeplabV3_xnnpack_fp32.pte";
-constexpr auto kValidTestImagePath =
-    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr auto kValidSemanticSegmentationModelPath = "deeplabV3_xnnpack_fp32.pte";
+constexpr auto kValidTestImagePath = "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
 // DeepLab V3 class labels (Pascal VOC)
 static const std::vector<std::string> kDeeplabV3Labels = {
-    "BACKGROUND", "AEROPLANE",   "BICYCLE", "BIRD",  "BOAT",
-    "BOTTLE",     "BUS",         "CAR",     "CAT",   "CHAIR",
-    "COW",        "DININGTABLE", "DOG",     "HORSE", "MOTORBIKE",
-    "PERSON",     "POTTEDPLANT", "SHEEP",   "SOFA",  "TRAIN",
-    "TVMONITOR"};
+    "BACKGROUND", "AEROPLANE", "BICYCLE",     "BIRD",  "BOAT",        "BOTTLE", "BUS",
+    "CAR",        "CAT",       "CHAIR",       "COW",   "DININGTABLE", "DOG",    "HORSE",
+    "MOTORBIKE",  "PERSON",    "POTTEDPLANT", "SHEEP", "SOFA",        "TRAIN",  "TVMONITOR"};
 
 // ImageNet normalization constants
 static const std::vector<float> kImageNetMean = {0.485f, 0.456f, 0.406f};
 static const std::vector<float> kImageNetStd = {0.229f, 0.224f, 0.225f};
 
-static JSTensorViewIn makeRgbView(std::vector<uint8_t> &buf, int32_t h,
-                                  int32_t w) {
+static JSTensorViewIn makeRgbView(std::vector<uint8_t> &buf, int32_t h, int32_t w) {
   buf.assign(static_cast<size_t>(h * w * 3), 128);
-  return JSTensorViewIn{
-      buf.data(), {h, w, 3}, executorch::aten::ScalarType::Byte};
+  return JSTensorViewIn{buf.data(), {h, w, 3}, executorch::aten::ScalarType::Byte};
 }
 
 // Test fixture for tests that need dummy input data
 class SemanticSegmentationForwardTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    model = std::make_unique<BaseSemanticSegmentation>(
-        kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
-        kDeeplabV3Labels, nullptr);
+    model = std::make_unique<BaseSemanticSegmentation>(kValidSemanticSegmentationModelPath,
+                                                       kImageNetMean, kImageNetStd,
+                                                       kDeeplabV3Labels, nullptr);
     auto shapes = model->getAllInputShapes("forward");
     ASSERT_FALSE(shapes.empty());
     shape = shapes[0];
@@ -56,8 +50,7 @@ protected:
     dummyData = std::vector<float>(numElements, 0.5f);
 
     sizes = std::vector<int32_t>(shape.begin(), shape.end());
-    inputTensor =
-        make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
+    inputTensor = make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
   }
 
   std::unique_ptr<BaseSemanticSegmentation> model;
@@ -68,16 +61,14 @@ protected:
 };
 
 TEST(SemanticSegmentationCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(BaseSemanticSegmentation("this_file_does_not_exist.pte",
-                                        kImageNetMean, kImageNetStd,
+  EXPECT_THROW(BaseSemanticSegmentation("this_file_does_not_exist.pte", kImageNetMean, kImageNetStd,
                                         kDeeplabV3Labels, nullptr),
                RnExecutorchError);
 }
 
 TEST(SemanticSegmentationCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(BaseSemanticSegmentation(kValidSemanticSegmentationModelPath,
-                                           kImageNetMean, kImageNetStd,
-                                           kDeeplabV3Labels, nullptr));
+  EXPECT_NO_THROW(BaseSemanticSegmentation(kValidSemanticSegmentationModelPath, kImageNetMean,
+                                           kImageNetStd, kDeeplabV3Labels, nullptr));
 }
 
 TEST_F(SemanticSegmentationForwardTest, ForwardWithValidTensorSucceeds) {
@@ -124,52 +115,44 @@ TEST_F(SemanticSegmentationForwardTest, ForwardAfterUnloadThrows) {
 // generateFromString tests
 // ============================================================================
 TEST(SemanticSegmentationGenerateTests, InvalidImagePathThrows) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString("nonexistent_image.jpg", {}, true),
-      RnExecutorchError);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", {}, true),
+               RnExecutorchError);
 }
 
 TEST(SemanticSegmentationGenerateTests, EmptyImagePathThrows) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   EXPECT_THROW((void)model.generateFromString("", {}, true), RnExecutorchError);
 }
 
 TEST(SemanticSegmentationGenerateTests, MalformedURIThrows) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString("not_a_valid_uri://bad", {}, true),
-      RnExecutorchError);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", {}, true),
+               RnExecutorchError);
 }
 
 TEST(SemanticSegmentationGenerateTests, ValidImageNoFilterReturnsResult) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto result = model.generateFromString(kValidTestImagePath, {}, true);
   EXPECT_NE(result.argmax, nullptr);
   EXPECT_NE(result.classBuffers, nullptr);
 }
 
 TEST(SemanticSegmentationGenerateTests, ValidImageReturnsAllClasses) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto result = model.generateFromString(kValidTestImagePath, {}, true);
   ASSERT_NE(result.classBuffers, nullptr);
   EXPECT_EQ(result.classBuffers->size(), 21u);
 }
 
 TEST(SemanticSegmentationGenerateTests, ClassFilterLimitsClassBuffers) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   std::set<std::string, std::less<>> filter = {"PERSON", "CAT"};
   auto result = model.generateFromString(kValidTestImagePath, filter, true);
   ASSERT_NE(result.classBuffers, nullptr);
@@ -180,9 +163,8 @@ TEST(SemanticSegmentationGenerateTests, ClassFilterLimitsClassBuffers) {
 }
 
 TEST(SemanticSegmentationGenerateTests, ResizeFalseReturnsResult) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto result = model.generateFromString(kValidTestImagePath, {}, false);
   EXPECT_NE(result.argmax, nullptr);
 }
@@ -191,9 +173,8 @@ TEST(SemanticSegmentationGenerateTests, ResizeFalseReturnsResult) {
 // generateFromPixels tests
 // ============================================================================
 TEST(SemanticSegmentationPixelTests, ValidPixelsNoFilterReturnsResult) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   std::vector<uint8_t> buf;
   auto view = makeRgbView(buf, 64, 64);
   auto result = model.generateFromPixels(view, {}, true);
@@ -202,9 +183,8 @@ TEST(SemanticSegmentationPixelTests, ValidPixelsNoFilterReturnsResult) {
 }
 
 TEST(SemanticSegmentationPixelTests, ValidPixelsReturnsAllClasses) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   std::vector<uint8_t> buf;
   auto view = makeRgbView(buf, 64, 64);
   auto result = model.generateFromPixels(view, {}, true);
@@ -213,9 +193,8 @@ TEST(SemanticSegmentationPixelTests, ValidPixelsReturnsAllClasses) {
 }
 
 TEST(SemanticSegmentationPixelTests, ClassFilterLimitsClassBuffers) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   std::vector<uint8_t> buf;
   auto view = makeRgbView(buf, 64, 64);
   std::set<std::string, std::less<>> filter = {"PERSON"};
@@ -230,9 +209,8 @@ TEST(SemanticSegmentationPixelTests, ClassFilterLimitsClassBuffers) {
 // Inherited BaseModel tests
 // ============================================================================
 TEST(SemanticSegmentationInheritedTests, GetInputShapeWorks) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1); // Batch size
@@ -240,32 +218,28 @@ TEST(SemanticSegmentationInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(SemanticSegmentationInheritedTests, GetAllInputShapesWorks) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(SemanticSegmentationInheritedTests, GetMethodMetaWorks) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
 
 TEST(SemanticSegmentationInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }
 
 TEST(SemanticSegmentationInheritedTests, InputShapeIsSquare) {
-  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath,
-                                 kImageNetMean, kImageNetStd, kDeeplabV3Labels,
-                                 nullptr);
+  BaseSemanticSegmentation model(kValidSemanticSegmentationModelPath, kImageNetMean, kImageNetStd,
+                                 kDeeplabV3Labels, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape[2], shape[3]); // Height == Width for DeepLabV3
 }

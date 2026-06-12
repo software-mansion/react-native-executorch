@@ -20,8 +20,7 @@ cv::Mat extractFrame(jsi::Runtime &runtime, const jsi::Object &frameData) {
   }
 
   auto nativeBufferValue = frameData.getProperty(runtime, "nativeBuffer");
-  uint64_t bufferPtr = static_cast<uint64_t>(
-      nativeBufferValue.asBigInt(runtime).asUint64(runtime));
+  uint64_t bufferPtr = static_cast<uint64_t>(nativeBufferValue.asBigInt(runtime).asUint64(runtime));
 
   return extractFromNativeBuffer(bufferPtr);
 }
@@ -31,8 +30,7 @@ cv::Mat frameToMat(jsi::Runtime &runtime, const jsi::Value &frameData) {
   return extractFrame(runtime, frameObj);
 }
 
-FrameOrientation readFrameOrientation(jsi::Runtime &runtime,
-                                      const jsi::Value &frameData) {
+FrameOrientation readFrameOrientation(jsi::Runtime &runtime, const jsi::Value &frameData) {
   auto obj = frameData.asObject(runtime);
 
   std::string orientStr = "up";
@@ -61,8 +59,7 @@ cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {
                   "Invalid pixel data: sizes must have 3 elements "
                   "[height, width, channels], got %zu",
                   pixelData.sizes.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput, errorMessage);
   }
 
   int32_t height = pixelData.sizes[0];
@@ -72,16 +69,13 @@ cv::Mat pixelsToMat(const JSTensorViewIn &pixelData) {
   if (channels != 3) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Invalid pixel data: expected 3 channels (RGB), got %d",
-                  channels);
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            errorMessage);
+                  "Invalid pixel data: expected 3 channels (RGB), got %d", channels);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput, errorMessage);
   }
 
   if (pixelData.scalarType != executorch::aten::ScalarType::Byte) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "Invalid pixel data: scalarType must be BYTE (Uint8Array)");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Invalid pixel data: scalarType must be BYTE (Uint8Array)");
   }
 
   auto *dataPtr = static_cast<uint8_t *>(pixelData.dataPtr);

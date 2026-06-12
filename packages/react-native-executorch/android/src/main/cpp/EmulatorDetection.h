@@ -15,8 +15,7 @@ inline bool isEmulator() {
     std::string result;
     __system_property_read_callback(
         pi,
-        [](void *cookie, const char * /*__name*/, const char *value,
-           uint32_t /*__serial*/) {
+        [](void *cookie, const char * /*__name*/, const char *value, uint32_t /*__serial*/) {
           *static_cast<std::string *>(cookie) = value;
         },
         &result);

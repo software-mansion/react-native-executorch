@@ -5,12 +5,10 @@
 
 namespace rnexecutorch::models::ocr {
 CTCLabelConverter::CTCLabelConverter(const std::string &characters)
-    : ignoreIdx(0),
-      character({"[blank]"}) // blank character is ignored character (index 0).
+    : ignoreIdx(0), character({"[blank]"}) // blank character is ignored character (index 0).
 {
   if (characters.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "Character set cannot be empty");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig, "Character set cannot be empty");
   }
   for (size_t i = 0; i < characters.length();) {
     size_t char_len = 0;
@@ -38,9 +36,8 @@ CTCLabelConverter::CTCLabelConverter(const std::string &characters)
   }
 }
 
-std::vector<std::string>
-CTCLabelConverter::decodeGreedy(const std::vector<int32_t> &textIndex,
-                                size_t length) {
+std::vector<std::string> CTCLabelConverter::decodeGreedy(const std::vector<int32_t> &textIndex,
+                                                         size_t length) {
   /*
    The current strategy used for decoding is greedy approach
    which iterates through the list of indices and process
@@ -67,13 +64,11 @@ CTCLabelConverter::decodeGreedy(const std::vector<int32_t> &textIndex,
     if (!subArray.empty()) {
       std::optional<int32_t> lastChar;
       for (int32_t currentChar : subArray) {
-        bool isRepeated =
-            lastChar.has_value() && lastChar.value() == currentChar;
+        bool isRepeated = lastChar.has_value() && lastChar.value() == currentChar;
         bool isIgnored = currentChar == ignoreIdx;
         lastChar = currentChar;
 
-        if (currentChar >= 0 &&
-            currentChar < static_cast<int32_t>(character.size()) &&
+        if (currentChar >= 0 && currentChar < static_cast<int32_t>(character.size()) &&
             !isRepeated && !isIgnored) {
           text += character[currentChar];
         }

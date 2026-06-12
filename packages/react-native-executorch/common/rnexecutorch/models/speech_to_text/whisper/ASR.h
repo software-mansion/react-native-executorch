@@ -36,9 +36,8 @@ public:
    * encode's input.
    * @param options Control variables for decoding process.
    */
-  std::vector<Segment> virtual transcribe(
-      std::span<const float> waveform,
-      const DecodingOptions &options) const override;
+  std::vector<Segment> virtual transcribe(std::span<const float> waveform,
+                                          const DecodingOptions &options) const override;
 
   /**
    * Encodes the input audio waveform into mel spectrogram embeddings.
@@ -48,8 +47,7 @@ public:
    *                  The output tensor shape: [1, 1500, 384] for Whisper
    * models.
    */
-  executorch::aten::Tensor
-  encode(std::span<const float> waveform) const override;
+  executorch::aten::Tensor encode(std::span<const float> waveform) const override;
 
   /**
    * Decodes a sequence of tokens into logits given the encoded audio features.
@@ -63,8 +61,7 @@ public:
    * @return              A tensor representing the output logits for the next
    * token.
    */
-  executorch::aten::Tensor decode(std::span<Token> tokens,
-                                  std::span<const float> encoderOutput,
+  executorch::aten::Tensor decode(std::span<Token> tokens, std::span<const float> encoderOutput,
                                   uint64_t startPos = 0) const override;
 
   // Standard ExecuTorch model methods for compatibility with the rest of the
@@ -84,8 +81,7 @@ private:
    * 								such as whether
    * to add a language mark token or not.
    */
-  std::vector<uint64_t>
-  createInitialSequence(const DecodingOptions &options) const;
+  std::vector<uint64_t> createInitialSequence(const DecodingOptions &options) const;
 
   /**
    * Generation wrapper - wrapps encoding & decoding with
@@ -114,10 +110,9 @@ private:
    * @param encoderOutput An optional parameter. If provided, the encoding phase
    * is skipped and the provided value is used instead.
    */
-  GenerationResult generate(
-      std::span<const float> waveform, const DecodingOptions &options,
-      float temperature,
-      std::optional<std::span<const float>> encoderOutput = std::nullopt) const;
+  GenerationResult
+  generate(std::span<const float> waveform, const DecodingOptions &options, float temperature,
+           std::optional<std::span<const float>> encoderOutput = std::nullopt) const;
 
   /**
    * Calculates word-level timestamps for a sequence of generated tokens.
@@ -134,11 +129,10 @@ private:
    * @return                A vector of transcribed segments with word-level
    * timing.
    */
-  std::vector<Segment>
-  calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                               const std::span<const float> waveform,
-                               float avgLogProb, float temperature,
-                               float compressionRatio) const;
+  std::vector<Segment> calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
+                                                    const std::span<const float> waveform,
+                                                    float avgLogProb, float temperature,
+                                                    float compressionRatio) const;
 
   /**
    * Estimates word-level timestamps linearly within a token sequence.
@@ -151,9 +145,8 @@ private:
    * @param end    The timestamp token ID marking the end of the segment.
    * @return       A vector of Word objects with estimated start and end times.
    */
-  std::vector<Word>
-  estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
-                                    uint64_t start, uint64_t end) const;
+  std::vector<Word> estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
+                                                      uint64_t start, uint64_t end) const;
 
   float calculateCompressionRatio(const std::string &text) const;
 

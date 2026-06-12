@@ -1,0 +1,11 @@
+# clang-format configuration for the react-native-executorch C/C++/Objective-C
+# sources. Based on the LLVM style (the project's prior implicit default) with a
+# wider column limit so clang-format stops aggressively wrapping function
+# signatures, chained ternaries and string concatenations. See issue #1217.
+#
+# Vendored libraries (common/ada, common/pfft, common/runner) and the generated
+# ErrorCodes.h are excluded from formatting via .clang-format-ignore.
+BasedOnStyle: LLVM
+Standard: c++20
+ColumnLimit: 100
+InsertNewlineAtEOF: true

@@ -68,8 +68,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
  * @brief Checks if two floating-point numbers are considered equal.
  */
 template <typename T>
-bool isClose(T a, T b,
-             T atol = std::numeric_limits<T>::epsilon() * static_cast<T>(10));
+bool isClose(T a, T b, T atol = std::numeric_limits<T>::epsilon() * static_cast<T>(10));
 
 extern template bool isClose<float>(float, float, float);
 extern template bool isClose<double>(double, double, double);

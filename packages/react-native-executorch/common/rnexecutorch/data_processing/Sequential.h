@@ -28,14 +28,12 @@ namespace rnexecutorch::sequential {
  * @return A std::vector<T> containing the repeated elements in order.
  */
 template <typename T, std::integral IType>
-std::vector<T> repeatInterleave(std::span<const T> data,
-                                std::span<const IType> repetitions) {
+std::vector<T> repeatInterleave(std::span<const T> data, std::span<const IType> repetitions) {
   if (data.size() != repetitions.size()) {
     throw std::invalid_argument(
         "repeatInterleave(): repetitions vector must be the same size as data,"
         " expected " +
-        std::to_string(data.size()) + " but got " +
-        std::to_string(repetitions.size()));
+        std::to_string(data.size()) + " but got " + std::to_string(repetitions.size()));
   }
 
   IType totalReps = std::reduce(repetitions.begin(), repetitions.end());

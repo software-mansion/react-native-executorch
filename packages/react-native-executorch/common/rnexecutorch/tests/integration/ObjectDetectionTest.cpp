@@ -11,10 +11,8 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::object_detection;
 using namespace model_tests;
 
-constexpr auto kValidObjectDetectionModelPath =
-    "ssdlite320-mobilenetv3-large.pte";
-constexpr auto kValidTestImagePath =
-    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr auto kValidObjectDetectionModelPath = "ssdlite320-mobilenetv3-large.pte";
+constexpr auto kValidTestImagePath = "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
 // clang-format off
 const std::vector<std::string> kCocoLabels = {
@@ -41,80 +39,61 @@ template <> struct ModelTraits<ObjectDetection> {
   using ModelType = ObjectDetection;
 
   static ModelType createValid() {
-    return ModelType(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                     nullptr);
+    return ModelType(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", {}, {}, {}, nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", {}, {}, {}, nullptr); }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {},
-                                   "forward");
+    (void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {}, "forward");
   }
 };
 } // namespace model_tests
 
 using ObjectDetectionTypes = ::testing::Types<ObjectDetection>;
-INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
-                               ObjectDetectionTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, VisionModelTest,
-                               ObjectDetectionTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest, ObjectDetectionTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, VisionModelTest, ObjectDetectionTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5,
-                                              0.55, {}, "forward"),
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5, 0.55, {}, "forward"),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString("", 0.5, 0.55, {}, "forward"),
-               RnExecutorchError);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString("", 0.5, 0.55, {}, "forward"), RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, MalformedURIThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5,
-                                              0.55, {}, "forward"),
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5, 0.55, {}, "forward"),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, NegativeThresholdThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1, 0.55,
-                                              {}, "forward"),
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1, 0.55, {}, "forward"),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ThresholdAboveOneThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1, 0.55,
-                                              {}, "forward"),
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1, 0.55, {}, "forward"),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(ObjectDetectionGenerateTests, HighThresholdReturnsFewerResults) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   auto lowThresholdResults =
       model.generateFromString(kValidTestImagePath, 0.1, 0.55, {}, "forward");
   auto highThresholdResults =
@@ -123,10 +102,8 @@ TEST(ObjectDetectionGenerateTests, HighThresholdReturnsFewerResults) {
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
 
   for (const auto &detection : results) {
     EXPECT_LE(detection.bbox.p1.x, detection.bbox.p2.x);
@@ -137,10 +114,8 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.score, 0.0f);
@@ -149,16 +124,13 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
 
   for (const auto &detection : results) {
     const auto &label = detection.label;
     EXPECT_FALSE(label.empty());
-    EXPECT_NE(std::find(kCocoLabels.begin(), kCocoLabels.end(), label),
-              kCocoLabels.end());
+    EXPECT_NE(std::find(kCocoLabels.begin(), kCocoLabels.end(), label), kCocoLabels.end());
   }
 }
 
@@ -166,46 +138,37 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
 // generateFromPixels tests
 // ============================================================================
 TEST(ObjectDetectionPixelTests, ValidPixelDataReturnsResults) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
   auto results = model.generateFromPixels(tensorView, 0.3, 0.55, {}, "forward");
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(ObjectDetectionPixelTests, NegativeThresholdThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, -0.1, 0.55, {}, "forward"),
-      RnExecutorchError);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, -0.1, 0.55, {}, "forward"),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionPixelTests, ThresholdAboveOneThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, 1.1, 0.55, {}, "forward"),
-      RnExecutorchError);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 1.1, 0.55, {}, "forward"),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   auto shape = model.getInputShape("forward", 0);
   // v0.9.0 ssdlite is exported without a leading batch dim, so the signature
   // is (C, H, W) rather than the (1, C, H, W) used by sibling vision models.
@@ -215,15 +178,13 @@ TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(ObjectDetectionInheritedTests, GetAllInputShapesWorks) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(ObjectDetectionInheritedTests, GetMethodMetaWorks) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
@@ -234,73 +195,58 @@ TEST(ObjectDetectionInheritedTests, GetMethodMetaWorks) {
 TEST(ObjectDetectionNormTests, ValidNormParamsDoesntThrow) {
   const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
   const std::vector<float> std = {0.229f, 0.224f, 0.225f};
-  EXPECT_NO_THROW(
-      ObjectDetection(kValidObjectDetectionModelPath, mean, std, {}, nullptr));
+  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath, mean, std, {}, nullptr));
 }
 
 TEST(ObjectDetectionNormTests, InvalidNormMeanSizeDoesntThrow) {
-  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath, {0.5f},
-                                  {0.229f, 0.224f, 0.225f}, {}, nullptr));
+  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath, {0.5f}, {0.229f, 0.224f, 0.225f},
+                                  {}, nullptr));
 }
 
 TEST(ObjectDetectionNormTests, InvalidNormStdSizeDoesntThrow) {
-  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath,
-                                  {0.485f, 0.456f, 0.406f}, {0.5f}, {},
-                                  nullptr));
+  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath, {0.485f, 0.456f, 0.406f}, {0.5f},
+                                  {}, nullptr));
 }
 
 TEST(ObjectDetectionNormTests, ValidNormParamsGenerateSucceeds) {
   const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
   const std::vector<float> std = {0.229f, 0.224f, 0.225f};
-  ObjectDetection model(kValidObjectDetectionModelPath, mean, std, kCocoLabels,
-                        nullptr);
-  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.55,
-                                                 {}, "forward"));
+  ObjectDetection model(kValidObjectDetectionModelPath, mean, std, kCocoLabels, nullptr);
+  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {}, "forward"));
 }
 
 // ============================================================================
 // Method name tests
 // ============================================================================
 TEST(ObjectDetectionMethodTests, InvalidMethodNameThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.55,
-                                              {}, "forward_999"),
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {}, "forward_999"),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionMethodTests, EmptyMethodNameThrows) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {}, ""),
-      RnExecutorchError);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.55, {}, ""),
+               RnExecutorchError);
 }
 
 // ============================================================================
 // Class indices filtering tests
 // ============================================================================
-TEST(ObjectDetectionClassFilterTests,
-     FilteredResultsOnlyContainRequestedClasses) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+TEST(ObjectDetectionClassFilterTests, FilteredResultsOnlyContainRequestedClasses) {
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   // Only request "person" class (index 0 in COCO)
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {0}, "forward");
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {0}, "forward");
   for (const auto &det : results) {
     EXPECT_EQ(det.label, "person");
   }
 }
 
-TEST(ObjectDetectionClassFilterTests,
-     EmptyClassIndicesReturnsMoreOrEqualResults) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
-  auto allClasses =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
+TEST(ObjectDetectionClassFilterTests, EmptyClassIndicesReturnsMoreOrEqualResults) {
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
+  auto allClasses = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {}, "forward");
   // person (0) only
-  auto filtered =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.55, {0}, "forward");
+  auto filtered = model.generateFromString(kValidTestImagePath, 0.3, 0.55, {0}, "forward");
   EXPECT_GE(allClasses.size(), filtered.size());
 }
 
@@ -308,13 +254,10 @@ TEST(ObjectDetectionClassFilterTests,
 // IoU threshold tests
 // ============================================================================
 TEST(ObjectDetectionIouTests, HigherIouThresholdReturnsSameOrMoreResults) {
-  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
-                        nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels, nullptr);
   // High IoU threshold = less aggressive NMS = more boxes survive
-  auto highIou =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.9, {}, "forward");
+  auto highIou = model.generateFromString(kValidTestImagePath, 0.3, 0.9, {}, "forward");
   // Low IoU threshold = more aggressive NMS = fewer boxes survive
-  auto lowIou =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.1, {}, "forward");
+  auto lowIou = model.generateFromString(kValidTestImagePath, 0.3, 0.1, {}, "forward");
   EXPECT_GE(highIou.size(), lowIou.size());
 }

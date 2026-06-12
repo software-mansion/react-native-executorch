@@ -12,9 +12,7 @@ using namespace params::cropping;
 
 namespace {
 
-float normalize(float sample) {
-  return std::max(0.0F, std::abs(sample) - kAudioSilenceThreshold);
-}
+float normalize(float sample) { return std::max(0.0F, std::abs(sample) - kAudioSilenceThreshold); }
 
 template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
   if (audio.empty()) {
@@ -32,8 +30,8 @@ template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
 
     // Maintain the sliding window sum
     if (processedCount > kAudioCroppingSteps) {
-      const size_t oldIndex = reverse ? currentIndex + kAudioCroppingSteps
-                                      : currentIndex - kAudioCroppingSteps;
+      const size_t oldIndex =
+          reverse ? currentIndex + kAudioCroppingSteps : currentIndex - kAudioCroppingSteps;
       windowSum -= normalize(audio[oldIndex]);
     }
 
@@ -67,8 +65,7 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
   return audio.subspan(lbound, strippedLength);
 }
 
-std::vector<Token> tokenize(std::u32string_view phonemes,
-                            std::optional<size_t> expectedSize) {
+std::vector<Token> tokenize(std::u32string_view phonemes, std::optional<size_t> expectedSize) {
   if (expectedSize.has_value() && expectedSize.value() < 2) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "[Kokoro::Utils] Expected tokens must be >= 2");
@@ -84,22 +81,20 @@ std::vector<Token> tokenize(std::u32string_view phonemes,
 
   // 3. Map phonemes to vocabulary tokens
   // Starting from index 1 to leave index 0 as start-padding
-  std::transform(phonemes.begin(), phonemes.begin() + effectivePhonemeCount,
-                 tokens.begin() + 1, [](char32_t p) -> Token {
-                   return constants::kVocab.contains(p)
-                              ? constants::kVocab.at(p)
-                              : constants::kInvalidToken;
+  std::transform(phonemes.begin(), phonemes.begin() + effectivePhonemeCount, tokens.begin() + 1,
+                 [](char32_t p) -> Token {
+                   return constants::kVocab.contains(p) ? constants::kVocab.at(p)
+                                                        : constants::kInvalidToken;
                  });
 
   // 4. Remove invalid tokens while preserving order (bubbling them to the end
   // of the content segment)
-  auto validEnd = std::stable_partition(
-      tokens.begin() + 1, tokens.begin() + effectivePhonemeCount + 1,
-      [](Token t) { return t != constants::kInvalidToken; });
+  auto validEnd =
+      std::stable_partition(tokens.begin() + 1, tokens.begin() + effectivePhonemeCount + 1,
+                            [](Token t) { return t != constants::kInvalidToken; });
 
   // 5. Fill any gaps created by partitioning or sizing with pad tokens
-  std::fill(validEnd, tokens.begin() + effectivePhonemeCount + 1,
-            constants::kPadToken);
+  std::fill(validEnd, tokens.begin() + effectivePhonemeCount + 1, constants::kPadToken);
 
   return tokens;
 }

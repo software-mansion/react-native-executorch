@@ -16,16 +16,13 @@ using namespace facebook;
 
 class LLM : public BaseModel {
 public:
-  explicit LLM(const std::string &modelSource,
-               const std::string &tokenizerSource,
+  explicit LLM(const std::string &modelSource, const std::string &tokenizerSource,
                std::vector<std::string> capabilities,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
-  std::string generate(std::string prompt,
-                       std::shared_ptr<jsi::Function> callback);
+  std::string generate(std::string prompt, std::shared_ptr<jsi::Function> callback);
 
-  std::string generateMultimodal(std::string prompt,
-                                 std::shared_ptr<jsi::Function> callback,
+  std::string generateMultimodal(std::string prompt, std::shared_ptr<jsi::Function> callback,
                                  MultimodalInputs mutlimodalInputs = {});
 
   void interrupt();
@@ -49,7 +46,6 @@ private:
 };
 } // namespace models::llm
 
-REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string,
-                     std::vector<std::string>,
+REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string, std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

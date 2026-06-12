@@ -43,8 +43,7 @@ public:
    *         is incompatible.
    */
   ObjectDetection(const std::string &modelSource, std::vector<float> normMean,
-                  std::vector<float> normStd,
-                  std::vector<std::string> labelNames,
+                  std::vector<float> normStd, std::vector<std::string> labelNames,
                   std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
@@ -73,17 +72,14 @@ public:
    *         fails.
    */
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromString(std::string imageSource, double detectionThreshold,
-                     double iouThreshold, std::vector<int32_t> classIndices,
-                     std::string methodName);
+  generateFromString(std::string imageSource, double detectionThreshold, double iouThreshold,
+                     std::vector<int32_t> classIndices, std::string methodName);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
-                    double detectionThreshold, double iouThreshold,
-                    std::vector<int32_t> classIndices, std::string methodName);
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData, double detectionThreshold,
+                    double iouThreshold, std::vector<int32_t> classIndices, std::string methodName);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold,
-                     double iouThreshold, std::vector<int32_t> classIndices,
-                     std::string methodName);
+  generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold, double iouThreshold,
+                     std::vector<int32_t> classIndices, std::string methodName);
 
 protected:
   /**
@@ -96,10 +92,10 @@ protected:
    */
   cv::Size modelInputSize() const override;
 
-  std::vector<types::Detection>
-  runInference(cv::Mat image, double detectionThreshold, double iouThreshold,
-               const std::vector<int32_t> &classIndices,
-               const std::string &methodName);
+  std::vector<types::Detection> runInference(cv::Mat image, double detectionThreshold,
+                                             double iouThreshold,
+                                             const std::vector<int32_t> &classIndices,
+                                             const std::string &methodName);
 
 private:
   /**
@@ -120,10 +116,10 @@ private:
    * @throws RnExecutorchError if the model outputs a class index that exceeds
    *         the size of @ref labelNames_.
    */
-  std::vector<types::Detection>
-  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
-              double detectionThreshold, double iouThreshold,
-              const std::vector<int32_t> &classIndices);
+  std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,
+                                            cv::Size originalSize, double detectionThreshold,
+                                            double iouThreshold,
+                                            const std::vector<int32_t> &classIndices);
 
   /**
    * @brief Ensures the specified method is loaded, unloading any previous
@@ -141,8 +137,7 @@ private:
    * @param classIndices Vector of class indices to allow.
    * @return A set containing the allowed class indices.
    */
-  std::set<int32_t>
-  prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
+  std::set<int32_t> prepareAllowedClasses(const std::vector<int32_t> &classIndices) const;
 
   /// Optional per-channel mean for input normalisation (set in constructor).
   std::optional<cv::Scalar> normMean_;
@@ -158,8 +153,7 @@ private:
 };
 } // namespace models::object_detection
 
-REGISTER_CONSTRUCTOR(models::object_detection::ObjectDetection, std::string,
-                     std::vector<float>, std::vector<float>,
-                     std::vector<std::string>,
+REGISTER_CONSTRUCTOR(models::object_detection::ObjectDetection, std::string, std::vector<float>,
+                     std::vector<float>, std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

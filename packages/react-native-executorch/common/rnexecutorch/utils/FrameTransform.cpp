@@ -2,8 +2,7 @@
 
 namespace rnexecutorch::utils {
 
-cv::Mat rotateFrameForModel(const cv::Mat &mat,
-                            const FrameOrientation &orient) {
+cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient) {
   if (!orient.isMirrored && orient.orientation == Orientation::Up) {
     return mat;
   }
@@ -40,8 +39,8 @@ cv::Mat rotateFrameForModel(const cv::Mat &mat,
   return result;
 }
 
-void inverseRotateBbox(computer_vision::BBox &bbox,
-                       const FrameOrientation &orient, cv::Size rotatedSize) {
+void inverseRotateBbox(computer_vision::BBox &bbox, const FrameOrientation &orient,
+                       cv::Size rotatedSize) {
   const float w = static_cast<float>(rotatedSize.width);
   const float h = static_cast<float>(rotatedSize.height);
 
@@ -83,8 +82,8 @@ void inverseRotateBbox(computer_vision::BBox &bbox,
   if (orient.isMirrored) {
     // After CW/CCW rotation (Up/Down) screen dims are swapped: rH × rW.
     // After no-op/180° (Left/Right) screen dims are unchanged: rW × rH.
-    bool swapped = (orient.orientation == Orientation::Up ||
-                    orient.orientation == Orientation::Down);
+    bool swapped =
+        (orient.orientation == Orientation::Up || orient.orientation == Orientation::Down);
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
     float nx1 = sw - bbox.p2.x, ny1 = sh - bbox.p2.y;

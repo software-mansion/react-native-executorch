@@ -12,8 +12,7 @@ namespace rnexecutorch::models::ocr::utils {
  * @return Struct containing the scaling factor and top/left padding amounts for
  * centering the image.
  */
-types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
-                                                   cv::Size desiredSize);
+types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size, cv::Size desiredSize);
 /**
  * @brief Resizes an image proportionally to match a target height while
  * maintaining aspect ratio.
@@ -85,6 +84,5 @@ int32_t getDesiredWidth(const cv::Mat &img, bool isVertical);
  *   - Normalized float32 values in [-1, 1] range
  */
 cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
-                               double adjustContrast = 0.0,
-                               bool isVertical = false);
+                               double adjustContrast = 0.0, bool isVertical = false);
 } // namespace rnexecutorch::models::ocr::utils

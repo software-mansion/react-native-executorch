@@ -10,8 +10,7 @@
 
 namespace rnexecutorch::models::ocr {
 OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
-         const std::string &symbols,
-         std::shared_ptr<react::CallInvoker> callInvoker)
+         const std::string &symbols, std::shared_ptr<react::CallInvoker> callInvoker)
     : detector(detectorSource, callInvoker),
       recognitionHandler(recognizerSource, symbols, callInvoker) {}
 
@@ -34,10 +33,9 @@ std::vector<types::OCRDetection> OCR::runInference(cv::Mat image) {
     - coordinates of bounding box corresponding to the original image size
     - confidence score
   */
-  std::vector<types::OCRDetection> result =
-      recognitionHandler.recognize(bboxesList, image,
-                                   cv::Size(constants::kRecognizerImageSize,
-                                            constants::kRecognizerImageSize));
+  std::vector<types::OCRDetection> result = recognitionHandler.recognize(
+      bboxesList, image,
+      cv::Size(constants::kRecognizerImageSize, constants::kRecognizerImageSize));
 
   return result;
 }
@@ -51,8 +49,8 @@ std::vector<types::OCRDetection> OCR::generateFromString(std::string input) {
   return runInference(image);
 }
 
-std::vector<types::OCRDetection>
-OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
+std::vector<types::OCRDetection> OCR::generateFromFrame(jsi::Runtime &runtime,
+                                                        const jsi::Value &frameData) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
   cv::Mat bgr;
@@ -61,34 +59,28 @@ OCR::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
 #elif defined(__ANDROID__)
   cv::cvtColor(frame, bgr, cv::COLOR_RGBA2BGR);
 #else
-  throw RnExecutorchError(
-      RnExecutorchErrorCode::PlatformNotSupported,
-      "generateFromFrame is not supported on this platform");
+  throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
+                          "generateFromFrame is not supported on this platform");
 #endif
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
   auto detections = runInference(rotated);
   for (auto &det : detections) {
     std::array<types::Point, 2> corners = {det.bbox.p1, det.bbox.p2};
     ::rnexecutorch::utils::inverseRotatePoints(corners, orient, rotated.size());
-    det.bbox = {{std::min(corners[0].x, corners[1].x),
-                 std::min(corners[0].y, corners[1].y)},
-                {std::max(corners[0].x, corners[1].x),
-                 std::max(corners[0].y, corners[1].y)}};
+    det.bbox = {{std::min(corners[0].x, corners[1].x), std::min(corners[0].y, corners[1].y)},
+                {std::max(corners[0].x, corners[1].x), std::max(corners[0].y, corners[1].y)}};
   }
   return detections;
 }
 
-std::vector<types::OCRDetection>
-OCR::generateFromPixels(JSTensorViewIn pixelData) {
+std::vector<types::OCRDetection> OCR::generateFromPixels(JSTensorViewIn pixelData) {
   cv::Mat image;
-  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image,
-               cv::COLOR_RGB2BGR);
+  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image, cv::COLOR_RGB2BGR);
   return runInference(image);
 }
 
 std::size_t OCR::getMemoryLowerBound() const noexcept {
-  return detector.getMemoryLowerBound() +
-         recognitionHandler.getMemoryLowerBound();
+  return detector.getMemoryLowerBound() + recognitionHandler.getMemoryLowerBound();
 }
 
 void OCR::unload() noexcept {

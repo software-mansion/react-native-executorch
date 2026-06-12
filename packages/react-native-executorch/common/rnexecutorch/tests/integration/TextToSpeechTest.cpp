@@ -28,12 +28,11 @@ bool isAudioValid(const std::vector<float> &audio) {
   }
   // Check for non-silence (amplitude greater than an arbitrary small noise
   // threshold)
-  return std::ranges::any_of(
-      audio, [](float sample) { return std::abs(sample) > 1e-4f; });
+  return std::ranges::any_of(audio, [](float sample) { return std::abs(sample) > 1e-4f; });
 }
 
-bool isAudioSimilar(const std::vector<float> &audio1,
-                    const std::vector<float> &audio2, float tolerance = 0.1f) {
+bool isAudioSimilar(const std::vector<float> &audio1, const std::vector<float> &audio2,
+                    float tolerance = 0.1f) {
   if (audio1.empty() || audio2.empty()) {
     return false;
   }
@@ -42,10 +41,8 @@ bool isAudioSimilar(const std::vector<float> &audio1,
   size_t steps = std::max(audio1.size(), audio2.size());
 
   for (size_t i = 0; i < steps; ++i) {
-    size_t idx1 =
-        static_cast<size_t>((static_cast<float>(i) / steps) * audio1.size());
-    size_t idx2 =
-        static_cast<size_t>((static_cast<float>(i) / steps) * audio2.size());
+    size_t idx1 = static_cast<size_t>((static_cast<float>(i) / steps) * audio1.size());
+    size_t idx2 = static_cast<size_t>((static_cast<float>(i) / steps) * audio2.size());
 
     float diff = audio1[idx1] - audio2[idx2];
     sumSqDiff += diff * diff;
@@ -53,8 +50,8 @@ bool isAudioSimilar(const std::vector<float> &audio1,
 
   double rmse = std::sqrt(sumSqDiff / steps);
   if (rmse >= tolerance) {
-    std::cerr << "Audio structural RMSE difference: " << rmse
-              << " (tolerance: " << tolerance << ")" << std::endl;
+    std::cerr << "Audio structural RMSE difference: " << rmse << " (tolerance: " << tolerance << ")"
+              << std::endl;
     return false;
   }
   return true;
@@ -64,9 +61,9 @@ class KokoroTest : public ::testing::Test {
 protected:
   void SetUp() override {
     try {
-      model_ = std::make_unique<Kokoro>(
-          kValidLang, kValidTaggerPath, kValidLexiconPath, kValidPhonemizerPath,
-          kValidDurationPath, kValidSynthesizerPath, kValidVoicePath, nullptr);
+      model_ = std::make_unique<Kokoro>(kValidLang, kValidTaggerPath, kValidLexiconPath,
+                                        kValidPhonemizerPath, kValidDurationPath,
+                                        kValidSynthesizerPath, kValidVoicePath, nullptr);
     } catch (...) {
       model_ = nullptr;
     }
@@ -77,9 +74,8 @@ protected:
 } // namespace
 
 TEST(TTSCtorTests, InvalidVoicePathThrows) {
-  EXPECT_THROW(Kokoro(kValidLang, kValidTaggerPath, kValidLexiconPath,
-                      kValidPhonemizerPath, kValidDurationPath,
-                      kValidSynthesizerPath, "nonexistent_voice.bin", nullptr),
+  EXPECT_THROW(Kokoro(kValidLang, kValidTaggerPath, kValidLexiconPath, kValidPhonemizerPath,
+                      kValidDurationPath, kValidSynthesizerPath, "nonexistent_voice.bin", nullptr),
                RnExecutorchError);
 }
 
@@ -106,8 +102,7 @@ TEST_F(KokoroTest, GenerateReturnsValidAudio) {
   auto result = model_->generate(U"Hello world! How are you doing?", 1.0f);
   auto reference = test_utils::loadAudioFromFile("test_speech.raw");
 
-  ASSERT_FALSE(reference.empty())
-      << "Reference audio 'test_speech.raw' not found.";
+  ASSERT_FALSE(reference.empty()) << "Reference audio 'test_speech.raw' not found.";
 
   // Compare against an audio waveform obtained from the original
   // Kokoro model (PyTorch)

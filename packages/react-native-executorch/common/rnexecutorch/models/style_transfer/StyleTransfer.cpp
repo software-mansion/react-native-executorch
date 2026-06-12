@@ -28,8 +28,7 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
                   modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs, errorMessage);
   }
 }
 
@@ -38,14 +37,13 @@ cv::Mat StyleTransfer::runInference(cv::Mat image, cv::Size outputSize) {
 
   cv::Mat preprocessed = preprocess(image);
 
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto inputTensor = image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
-  cv::Mat mat = image_processing::getMatrixFromTensor(
-      modelInputSize(), forwardResult->at(0).toTensor());
+  cv::Mat mat =
+      image_processing::getMatrixFromTensor(modelInputSize(), forwardResult->at(0).toTensor());
   if (mat.size() != outputSize) {
     cv::resize(mat, mat, outputSize);
   }
@@ -62,8 +60,7 @@ PixelDataResult toPixelDataResult(const cv::Mat &bgrMat) {
   return PixelDataResult{pixelBuffer, size.width, size.height, rgba.channels()};
 }
 
-StyleTransferResult StyleTransfer::generateFromString(std::string imageSource,
-                                                      bool saveToFile) {
+StyleTransferResult StyleTransfer::generateFromString(std::string imageSource, bool saveToFile) {
   cv::Mat imageBGR = image_processing::readImage(imageSource);
   cv::Size originalSize = imageBGR.size();
 
@@ -87,8 +84,7 @@ PixelDataResult StyleTransfer::generateFromFrame(jsi::Runtime &runtime,
   return toPixelDataResult(oriented);
 }
 
-StyleTransferResult StyleTransfer::generateFromPixels(JSTensorViewIn pixelData,
-                                                      bool saveToFile) {
+StyleTransferResult StyleTransfer::generateFromPixels(JSTensorViewIn pixelData, bool saveToFile) {
   cv::Mat image = extractFromPixels(pixelData);
 
   cv::Mat result = runInference(image, image.size());

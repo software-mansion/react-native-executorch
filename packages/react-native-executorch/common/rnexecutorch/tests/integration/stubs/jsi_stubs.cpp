@@ -41,9 +41,7 @@ namespace rnexecutorch {
 // Stub for fetchUrlFunc - used by ImageProcessing for remote URLs
 // Tests only use local files, so this is never called
 using FetchUrlFunc_t = std::function<std::vector<std::byte>(std::string)>;
-FetchUrlFunc_t fetchUrlFunc = [](std::string) -> std::vector<std::byte> {
-  return {};
-};
+FetchUrlFunc_t fetchUrlFunc = [](std::string) -> std::vector<std::byte> { return {}; };
 
 // Global mock call invoker for tests
 std::shared_ptr<facebook::react::CallInvoker> createMockCallInvoker() {

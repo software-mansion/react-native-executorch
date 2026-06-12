@@ -21,12 +21,10 @@ class ASR {
 public:
   virtual ~ASR() = default;
 
-  virtual std::vector<Segment>
-  transcribe(std::span<const float> waveform,
-             const DecodingOptions &options) const = 0;
+  virtual std::vector<Segment> transcribe(std::span<const float> waveform,
+                                          const DecodingOptions &options) const = 0;
 
-  virtual executorch::aten::Tensor
-  encode(std::span<const float> waveform) const = 0;
+  virtual executorch::aten::Tensor encode(std::span<const float> waveform) const = 0;
 
   virtual executorch::aten::Tensor decode(std::span<uint64_t> tokens,
                                           std::span<const float> encoderOutput,

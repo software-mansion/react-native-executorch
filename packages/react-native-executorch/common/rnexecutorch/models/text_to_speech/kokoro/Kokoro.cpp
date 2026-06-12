@@ -13,29 +13,23 @@
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
-               const std::string &lexiconSource,
-               const std::string &neuralModelSource,
-               const std::string &durationPredictorSource,
-               const std::string &synthesizerSource,
-               const std::string &voiceSource,
-               std::shared_ptr<react::CallInvoker> callInvoker)
+               const std::string &lexiconSource, const std::string &neuralModelSource,
+               const std::string &durationPredictorSource, const std::string &synthesizerSource,
+               const std::string &voiceSource, std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)),
       phonemizer_(phonemis::Config{
           .lang = lang,
-          .tagger = taggerDataSource.empty()
-                        ? std::optional<phonemis::tagger::Config>{}
-                        : std::make_optional(phonemis::tagger::Config{
-                              .data_filepath = taggerDataSource}),
+          .tagger = taggerDataSource.empty() ? std::optional<phonemis::tagger::Config>{}
+                                             : std::make_optional(phonemis::tagger::Config{
+                                                   .data_filepath = taggerDataSource}),
           .phonemizer =
               phonemis::phonemizer::Config{
                   .lang = lang,
-                  .lexicon_filepath = lexiconSource.empty()
-                                          ? std::nullopt
-                                          : std::make_optional(lexiconSource),
-                  .nn_model_filepath =
-                      neuralModelSource.empty()
-                          ? std::nullopt
-                          : std::make_optional(neuralModelSource)}}),
+                  .lexicon_filepath =
+                      lexiconSource.empty() ? std::nullopt : std::make_optional(lexiconSource),
+                  .nn_model_filepath = neuralModelSource.empty()
+                                           ? std::nullopt
+                                           : std::make_optional(neuralModelSource)}}),
       durationPredictor_(durationPredictorSource, context_, callInvoker_),
       synthesizer_(synthesizerSource, context_, callInvoker_) {
   // Populate the voice array by reading given file
@@ -43,9 +37,8 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
 
   // Read model limits & check compatibility
   if (durationPredictor_.getTokensLimit() != synthesizer_.getTokensLimit()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::WrongDimensions,
-        "[Kokoro] incompatible DurationPredictor & Synthesizer models");
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
+                            "[Kokoro] incompatible DurationPredictor & Synthesizer models");
   }
 
   context_.inputTokensLimit = durationPredictor_.getTokensLimit();
@@ -59,8 +52,7 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   std::ifstream in(voiceSource, std::ios::binary);
   if (!in) {
     throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "[Kokoro::loadVoice]: cannot open file: " +
-                                voiceSource);
+                            "[Kokoro::loadVoice]: cannot open file: " + voiceSource);
   }
 
   // Determine number of rows from file size
@@ -69,11 +61,10 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   in.seekg(0, std::ios::beg);
 
   if (fileSize < bytesPerRow) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadVoice]: file too small: need at least " +
-            std::to_string(bytesPerRow) + " bytes for one row, got " +
-            std::to_string(fileSize));
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "[Kokoro::loadVoice]: file too small: need at least " +
+                                std::to_string(bytesPerRow) + " bytes for one row, got " +
+                                std::to_string(fileSize));
   }
 
   const size_t rows = fileSize / bytesPerRow;
@@ -83,14 +74,12 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   voice_.resize(rows);
 
   if (!in.read(reinterpret_cast<char *>(voice_.data()->data()), readBytes)) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::FileReadFailed,
-        "[Kokoro::loadVoice]: failed to read voice weights");
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "[Kokoro::loadVoice]: failed to read voice weights");
   }
 }
 
-std::vector<float> Kokoro::generate(std::u32string input, float speed,
-                                    bool phonemize) {
+std::vector<float> Kokoro::generate(std::u32string input, float speed, bool phonemize) {
   if (input.size() > params::kMaxTextSize) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: maximum input text size exceeded");
@@ -99,15 +88,13 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
   if (speed < constants::kMinValidSpeed) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: speed value too low (min " +
-                                std::to_string(constants::kMinValidSpeed) +
-                                ")");
+                                std::to_string(constants::kMinValidSpeed) + ")");
   }
 
   if (speed > constants::kMaxValidSpeed) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: speed value too high (max " +
-                                std::to_string(constants::kMaxValidSpeed) +
-                                ")");
+                                std::to_string(constants::kMaxValidSpeed) + ")");
   }
 
   if (input.empty()) {
@@ -119,8 +106,8 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
 
   // Divide the phonemes string into substrings, minimizing the amount of
   // breaks.
-  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
-                                          Partitioner::Mode::MIN_BREAKS);
+  auto partition =
+      partitioner_.partition(phonemes, context_.inputTokensLimit, Partitioner::Mode::MIN_BREAKS);
 
   std::vector<float> audio = {};
   for (const auto &[offset, length] : partition.segments) {
@@ -138,37 +125,32 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
     // Add audio part and silence pause to the main audio vector
     audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
                  std::make_move_iterator(audioPart.end()));
-    audio.resize(audio.size() + pauseMs * constants::kSamplesPerMilisecond,
-                 0.F);
+    audio.resize(audio.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
   }
 
   return audio;
 }
 
-void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
-                    bool phonemize, bool stopOnEmptyBuffer) {
+void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed, bool phonemize,
+                    bool stopOnEmptyBuffer) {
   if (speed < constants::kMinValidSpeed) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: speed value too low (min " +
-                                std::to_string(constants::kMinValidSpeed) +
-                                ")");
+                                std::to_string(constants::kMinValidSpeed) + ")");
   }
 
   if (speed > constants::kMaxValidSpeed) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "Kokoro: speed value too high (max " +
-                                std::to_string(constants::kMaxValidSpeed) +
-                                ")");
+                                std::to_string(constants::kMaxValidSpeed) + ")");
   }
 
   // Create a callback
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
     if (this->isStreaming_) {
-      this->callInvoker_->invokeAsync(
-          [callback, audioVec = std::move(audioVec)](jsi::Runtime &rt) {
-            callback->call(
-                rt, rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
-          });
+      this->callInvoker_->invokeAsync([callback, audioVec = std::move(audioVec)](jsi::Runtime &rt) {
+        callback->call(rt, rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
+      });
     }
   };
 
@@ -187,8 +169,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
     {
       // Trim to remove trailing whitespace characters
       inputTextBuffer_ =
-          phonemis::utils::strings::strip<std::u32string, char32_t>(
-              inputTextBuffer_);
+          phonemis::utils::strings::strip<std::u32string, char32_t>(inputTextBuffer_);
 
       std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
       if (inputTextBuffer_.empty() && stopOnEmptyBuffer_) {
@@ -196,15 +177,13 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
       }
 
       // Try to find the most recent available end of sentence character.
-      size_t searchLimit =
-          std::min(inputTextBuffer_.size(), params::kMaxTextSize);
-      auto eosIt = std::find_first_of(
-          inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
-          inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
-          constants::kEndOfSentenceCharacters.end());
-      size_t chunkSize = (eosIt != inputTextBuffer_.rend())
-                             ? std::distance(eosIt, inputTextBuffer_.rend())
-                             : 0;
+      size_t searchLimit = std::min(inputTextBuffer_.size(), params::kMaxTextSize);
+      auto eosIt =
+          std::find_first_of(inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
+                             inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
+                             constants::kEndOfSentenceCharacters.end());
+      size_t chunkSize =
+          (eosIt != inputTextBuffer_.rend()) ? std::distance(eosIt, inputTextBuffer_.rend()) : 0;
 
       // Default behavior: hold back partial content until an EOS arrives, so
       // we don't synthesize mid-sentence (relevant for LLM token streaming).
@@ -237,8 +216,8 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
         // Since we do not phonemize the entire input before partitioning, there
         // is a possibility that some segment might exceed the token limit after
         // phonemization. This is being handled later.
-        auto partition = partitioner_.partition(
-            buffer, context_.inputTokensLimit, Partitioner::Mode::MIN_LATENCY);
+        auto partition = partitioner_.partition(buffer, context_.inputTokensLimit,
+                                                Partitioner::Mode::MIN_LATENCY);
 
         for (size_t i = 0; i < partition.segments.size(); i++) {
           if (!isStreaming_) {
@@ -253,8 +232,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
           if (phonemize) {
             size_t unchangedLength = std::min(length, phonemizedTokens);
             // Include trailing space if it was already phonemized
-            if (unchangedLength < length &&
-                subsentence[unchangedLength] == U' ' &&
+            if (unchangedLength < length && subsentence[unchangedLength] == U' ' &&
                 phonemizedTokens > unchangedLength) {
               unchangedLength++;
             }
@@ -265,8 +243,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
             phonemes = subsentence.substr(0, unchangedLength);
             if (unchangedLength < length) {
               // Phonemize without preprocessing (since we already did that).
-              phonemes +=
-                  phonemizer_(subsentence.substr(unchangedLength), false);
+              phonemes += phonemizer_(subsentence.substr(unchangedLength), false);
             }
           } else {
             // Simple case - no phonemization, no risk of exceeding the token
@@ -277,8 +254,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
           if (phonemes.size() <= context_.inputTokensLimit - 2) {
             // Determine the silent padding duration
             bool endsWithSpace = (subsentence.back() == U' ');
-            bool prevEndsWithSpace =
-                (offset > 0 && partition.content[offset - 1] == U' ');
+            bool prevEndsWithSpace = (offset > 0 && partition.content[offset - 1] == U' ');
             size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50;
 
             // Generate and push audio
@@ -288,9 +264,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
                                  ? params::kPauseValues.at(phonemes.back())
                                  : params::kDefaultPause;
 
-            audioPart.resize(audioPart.size() +
-                                 pauseMs * constants::kSamplesPerMilisecond,
-                             0.F);
+            audioPart.resize(audioPart.size() + pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
             nativeCallback(std::move(audioPart));
 
@@ -315,8 +289,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
 
     // A little bit of pause to not overload the thread.
     if (isStreaming_) {
-      std::this_thread::sleep_for(
-          std::chrono::milliseconds(params::kStreamPause));
+      std::this_thread::sleep_for(std::chrono::milliseconds(params::kStreamPause));
     }
   }
 
@@ -328,8 +301,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
   }
 }
 
-std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
-                                      size_t paddingMs) {
+std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed, size_t paddingMs) {
   if (phonemes.empty()) {
     return {};
   }
@@ -343,41 +315,33 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   // Clamp input to avoid exceeding model limits (2 tokens reserved for pre/post
   // padding).
   const size_t noTokens =
-      std::clamp(phonemes.size() + 2, constants::kMinInputTokens,
-                 context_.inputTokensLimit);
+      std::clamp(phonemes.size() + 2, constants::kMinInputTokens, context_.inputTokensLimit);
   auto tokens = utils::tokenize(phonemes, {noTokens});
 
   // 2. Initialize text mask.
   // Exclude all paddings except the first and last ones.
   // We use uint8_t instead of bool to avoid boolean span issues.
   std::vector<uint8_t> textMask(noTokens, false);
-  std::fill(textMask.begin(),
-            textMask.begin() + std::min(phonemes.size() + 2, noTokens), true);
+  std::fill(textMask.begin(), textMask.begin() + std::min(phonemes.size() + 2, noTokens), true);
 
   // 3. Select the appropriate voice vector.
   // Each number of input tokens corresponds to a different voice embedding
   // vector.
-  const size_t voiceID =
-      std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
+  const size_t voiceID = std::min({phonemes.size() - 1, noTokens - 1, voice_.size() - 1});
   auto &voice = voice_[voiceID];
 
   // 4. Inference Phase 1: DurationPredictor (submodule).
-  auto [d, indices, effectiveDuration, timestamps] =
-      durationPredictor_.generate(
-          std::span(tokens),
-          std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
-          std::span(voice).last(constants::kVoiceRefHalfSize), speed);
+  auto [d, indices, effectiveDuration, timestamps] = durationPredictor_.generate(
+      std::span(tokens), std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
+      std::span(voice).last(constants::kVoiceRefHalfSize), speed);
 
   // 5. Inference Phase 2: Synthesizer.
   // Note that we reduce the size of the duration tensor to match the number of
   // tokens.
   auto decoding = synthesizer_.generate(
-      std::span(tokens),
-      std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
+      std::span(tokens), std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       std::span(indices),
-      std::span<float>(d.mutable_data_ptr<float>(),
-                       noTokens * d.sizes().back()),
-      std::span(voice));
+      std::span<float>(d.mutable_data_ptr<float>(), noTokens * d.sizes().back()), std::span(voice));
 
   // 6. Post-processing: Finalize audio.
   auto audioTensor = decoding->at(0).toTensor();
@@ -388,8 +352,7 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
 
   const int32_t audioLength = constants::kTicksPerDuration * effectiveDuration;
 
-  auto audio =
-      std::span<const float>(audioTensor.const_data_ptr<float>(), audioLength);
+  auto audio = std::span<const float>(audioTensor.const_data_ptr<float>(), audioLength);
 
   // To counter any potential trailing voice artifacts (which can occur due to
   // slight mismatch of .pte model results) we cut it according to the predicted
@@ -397,17 +360,15 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   if (noTokens > 2) {
     // We want to skip both the last PAD token, as well as any potential EOS
     // token just before it.
-    auto lastTokenTimestamp =
-        !phonemis::utils::unicode::isalpha(phonemes.back())
-            ? timestamps[noTokens - 3].end
-            : timestamps[noTokens - 2].end;
+    auto lastTokenTimestamp = !phonemis::utils::unicode::isalpha(phonemes.back())
+                                  ? timestamps[noTokens - 3].end
+                                  : timestamps[noTokens - 2].end;
 
     audio = audio.subspan(0, std::min(lastTokenTimestamp, audio.size()));
   }
 
   // Now additional stripping of a (hopefully) pure silence.
-  audio =
-      utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
+  audio = utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
   return {audio.begin(), audio.end()};
 }
@@ -430,9 +391,8 @@ void Kokoro::streamStop(bool instant) noexcept {
 }
 
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
-  return durationPredictor_.getMemoryLowerBound() +
-         synthesizer_.getMemoryLowerBound() + sizeof(voice_) +
-         sizeof(phonemizer_);
+  return durationPredictor_.getMemoryLowerBound() + synthesizer_.getMemoryLowerBound() +
+         sizeof(voice_) + sizeof(phonemizer_);
 }
 
 void Kokoro::unload() noexcept {

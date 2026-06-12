@@ -15,8 +15,7 @@ namespace rnexecutorch::models::speech_to_text::whisper::utils {
  * @param word The word to check.
  */
 inline bool isEos(const Word &word) {
-  return word.content.size() == 1 &&
-         constants::kEosPunctations.contains(word.content[0]);
+  return word.content.size() == 1 && constants::kEosPunctations.contains(word.content[0]);
 }
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::utils

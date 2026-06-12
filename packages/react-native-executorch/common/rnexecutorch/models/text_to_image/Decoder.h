@@ -12,8 +12,7 @@ namespace rnexecutorch::models::text_to_image {
 
 class Decoder final : public BaseModel {
 public:
-  explicit Decoder(const std::string &modelSource,
-                   std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit Decoder(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(std::vector<float> &input) const;
 
   int32_t latentImageSize;
