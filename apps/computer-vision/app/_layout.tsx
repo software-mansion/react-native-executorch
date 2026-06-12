@@ -122,6 +122,7 @@ export default function _layout() {
           options={{
             drawerLabel: 'Video Replay',
             title: 'Video Replay',
+            headerShown: false,
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

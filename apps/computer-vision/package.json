@@ -22,6 +22,7 @@
     "expo-font": "~55.0.6",
     "expo-linking": "~55.0.12",
     "expo-router": "~55.0.11",
+    "expo-screen-orientation": "~55.0.16",
     "expo-status-bar": "~55.0.5",
     "metro-config": "^0.83.0",
     "react": "19.2.5",

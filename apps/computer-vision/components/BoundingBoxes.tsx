@@ -11,6 +11,7 @@ interface Props<L extends LabelEnum> {
   offsetY: number;
   mirrorLabels?: boolean;
   containerWidth?: number;
+  showLabels?: boolean;
 }
 
 export default function BoundingBoxes<L extends LabelEnum>({
@@ -21,6 +22,7 @@ export default function BoundingBoxes<L extends LabelEnum>({
   offsetY,
   mirrorLabels = false,
   containerWidth,
+  showLabels = true,
 }: Props<L>) {
   return (
     <>
@@ -45,24 +47,26 @@ export default function BoundingBoxes<L extends LabelEnum>({
                 },
               ]}
             />
-            <View
-              style={[
-                styles.label,
-                {
-                  left,
-                  top: labelTop,
-                  backgroundColor: labelColorBg(det.label as string),
-                  ...(containerWidth !== undefined && {
-                    maxWidth: containerWidth - left,
-                  }),
-                },
-                mirrorLabels && { transform: [{ scaleX: -1 }] },
-              ]}
-            >
-              <Text style={styles.labelText} numberOfLines={1}>
-                {String(det.label)} ({(det.score * 100).toFixed(1)}%)
-              </Text>
-            </View>
+            {showLabels && (
+              <View
+                style={[
+                  styles.label,
+                  {
+                    left,
+                    top: labelTop,
+                    backgroundColor: labelColorBg(det.label as string),
+                    ...(containerWidth !== undefined && {
+                      maxWidth: containerWidth - left,
+                    }),
+                  },
+                  mirrorLabels && { transform: [{ scaleX: -1 }] },
+                ]}
+              >
+                <Text style={styles.labelText} numberOfLines={1}>
+                  {String(det.label)} ({(det.score * 100).toFixed(1)}%)
+                </Text>
+              </View>
+            )}
           </React.Fragment>
         );
       })}

@@ -7918,6 +7918,7 @@ __metadata:
     expo-font: "npm:~55.0.6"
     expo-linking: "npm:~55.0.12"
     expo-router: "npm:~55.0.11"
+    expo-screen-orientation: "npm:~55.0.16"
     expo-status-bar: "npm:~55.0.5"
     metro-config: "npm:^0.83.0"
     react: "npm:19.2.5"
@@ -9801,6 +9802,16 @@ __metadata:
     react-server-dom-webpack:
       optional: true
   checksum: 10/37b92fb8adc038ff5813298235a66bd22ac9a6002d5f016f3ceefa3f96e59910de6e069f0a27b9c23f6b2b40171a6589d31ad944cfe85171a4484937e981676d
+  languageName: node
+  linkType: hard
+
+"expo-screen-orientation@npm:~55.0.16":
+  version: 55.0.16
+  resolution: "expo-screen-orientation@npm:55.0.16"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 10/4b15a020b7f0d1eb5855ff75bfdcf0420734ea86e0aa8685072462e5320e0335ce1b5425596fdacd6f6b9ed13cb379f0b0379654451253dd90d1087ec60722f7
   languageName: node
   linkType: hard
 
