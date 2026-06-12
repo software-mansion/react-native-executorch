@@ -24,6 +24,7 @@ file(GLOB_RECURSE OPENCV_CPP_SOURCES CONFIGURE_DEPENDS
   "${COMMON_CPP_DIR}/rnexecutorch/models/vertical_ocr/*.cpp"
   "${COMMON_CPP_DIR}/rnexecutorch/models/embeddings/image/*.cpp"
   "${COMMON_CPP_DIR}/rnexecutorch/models/text_to_image/*.cpp"
+  "${COMMON_CPP_DIR}/rnexecutorch/models/pose_estimation/*.cpp"
   "${COMMON_CPP_DIR}/rnexecutorch/models/VisionModel.cpp"
   "${COMMON_CPP_DIR}/rnexecutorch/data_processing/ImageProcessing.cpp"
   "${COMMON_CPP_DIR}/rnexecutorch/utils/FrameExtractor.cpp"

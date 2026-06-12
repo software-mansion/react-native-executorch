@@ -44,6 +44,7 @@ Pod::Spec.new do |s|
     "common/rnexecutorch/models/vertical_ocr",
     "common/rnexecutorch/models/embeddings/image",
     "common/rnexecutorch/models/text_to_image",
+    "common/rnexecutorch/models/pose_estimation",
     "common/rnexecutorch/utils/computer_vision",
   ]
   opencv_source_files = opencv_source_dirs.map { |d| "#{d}/**/*.{cpp,c,h,hpp}" }
