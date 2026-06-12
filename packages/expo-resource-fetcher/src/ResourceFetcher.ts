@@ -32,6 +32,15 @@ import {
   BaseResourceFetcherClass,
 } from 'react-native-executorch';
 
+import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
+import {
+  type ActiveDownload,
+  handleObject,
+  handleLocalFile,
+  handleAsset,
+  handleRemote,
+} from './handlers';
+
 if (
   typeof Directory !== 'function' ||
   typeof File !== 'function' ||
@@ -45,14 +54,6 @@ if (
       "Import from 'react-native-executorch-expo-resource-fetcher/legacy' instead."
   );
 }
-import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
-import {
-  type ActiveDownload,
-  handleObject,
-  handleLocalFile,
-  handleAsset,
-  handleRemote,
-} from './handlers';
 
 class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> {
   protected downloads = new Map<ResourceSource, ActiveDownload>();
