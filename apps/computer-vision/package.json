@@ -50,5 +50,20 @@
     "babel-preset-expo": "~55.0.16",
     "react-refresh": "^0.18.0"
   },
-  "private": true
+  "private": true,
+  "react-native-executorch": {
+    "features": [
+      "classification",
+      "imageEmbeddings",
+      "instanceSegmentation",
+      "ocr",
+      "objectDetection",
+      "poseEstimation",
+      "semanticSegmentation",
+      "styleTransfer",
+      "textEmbeddings",
+      "textToImage",
+      "verticalOCR"
+    ]
+  }
 }

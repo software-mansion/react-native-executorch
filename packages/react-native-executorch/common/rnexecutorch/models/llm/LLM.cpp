@@ -6,10 +6,12 @@
 #include <map>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
+#include <runner/text_runner.h>
+#ifdef RNE_ENABLE_OPENCV
 #include <runner/encoders/audio_encoder.h>
 #include <runner/encoders/vision_encoder.h>
 #include <runner/multimodal_runner.h>
-#include <runner/text_runner.h>
+#endif
 
 namespace rnexecutorch::models::llm {
 namespace llm = ::executorch::extension::llm;
@@ -26,6 +28,7 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     runner_ =
         std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
   } else {
+#ifdef RNE_ENABLE_OPENCV
     std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
@@ -38,6 +41,12 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     }
     runner_ = std::make_unique<llm::MultimodalRunner>(
         std::move(module_), tokenizerSource, std::move(encoders));
+#else
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "Multimodal LLM was not compiled into this build. Add the "
+        "\"multimodalLLM\" feature in your app's package.json.");
+#endif
   }
 
   auto loadResult = runner_->load();

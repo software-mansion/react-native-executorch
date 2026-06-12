@@ -122,6 +122,82 @@ Pick the adapter that matches your project. We recommend the Expo adapter when y
   </TabItem>
 </Tabs>
 
+### Configuring backends, libs, and features
+
+On install, `react-native-executorch` runs a `postinstall` script that downloads prebuilt native libraries from the matching GitHub Release and unpacks them under `third-party/`. By default every optional feature is included — which keeps the app binary large. You can trim the install by declaring exactly what you need under `react-native-executorch` in your app's `package.json`. Three optional arrays are supported, and they're all merged into a single set:
+
+```json
+{
+  "react-native-executorch": {
+    "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
+    "libs": ["opencv", "phonemizer"],
+    "features": ["llm", "textToSpeech", "objectDetection"]
+  }
+}
+```
+
+- **`features`** is the friendly opt-in. List the use\* hooks you'll use; the postinstall expands each one to the backends + libs it needs.
+- **`backends` / `libs`** are the precise opt-in. List the underlying components directly.
+- Omit the whole `react-native-executorch` block to enable everything (largest install, lowest friction).
+- If you mix `features` with `backends`/`libs`, the result is their union.
+
+Recognized **backends**: `xnnpack`, `coreml` (iOS-only), `mlx` (iOS-only), `vulkan` (Android-only).
+Recognized **libs**: `opencv`, `phonemizer`.
+Recognized **features** (one per documented hook):
+
+Each row reflects the union of what at least one model in that family ships today; bump it when a new variant adds a backend.
+
+| Feature                | Pulls in (backends · libs)    | What it powers                          |
+| ---------------------- | ----------------------------- | --------------------------------------- |
+| `llm`                  | xnnpack, mlx · —              | Text-only `useLLM`                      |
+| `multimodalLLM`        | xnnpack, mlx, vulkan · opencv | Vision-language `useLLM` (image inputs) |
+| `privacyFilter`        | xnnpack · —                | `usePrivacyFilter`                      |
+| `speechToText`         | xnnpack, coreml · —        | `useSpeechToText` (Whisper)             |
+| `textToSpeech`         | xnnpack · phonemizer       | `useTextToSpeech` (Kokoro)              |
+| `vad`                  | xnnpack · —                | `useVAD`                                |
+| `textEmbeddings`       | xnnpack · —                | `useTextEmbeddings`                     |
+| `imageEmbeddings`      | xnnpack · opencv           | `useImageEmbeddings`                    |
+| `classification`       | xnnpack, coreml · opencv   | `useClassification`                     |
+| `objectDetection`      | xnnpack, coreml · opencv   | `useObjectDetection`                    |
+| `semanticSegmentation` | xnnpack · opencv           | `useSemanticSegmentation`               |
+| `instanceSegmentation` | xnnpack, coreml · opencv   | `useInstanceSegmentation`               |
+| `ocr`                  | xnnpack · opencv           | `useOCR`                                |
+| `verticalOCR`          | xnnpack · opencv           | `useVerticalOCR`                        |
+| `poseEstimation`       | xnnpack · opencv           | `usePoseEstimation`                     |
+| `styleTransfer`        | xnnpack, coreml · opencv   | `useStyleTransfer`                      |
+| `textToImage`          | xnnpack · opencv           | `useTextToImage`                        |
+| `segmentAnything`      | xnnpack, coreml · opencv   | FastSAM / Segment-Anything hooks        |
+
+Backend platform map:
+
+| Backend   | iOS                                                                                       | Android                                                   |
+| --------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `xnnpack` | ✅ — `XnnpackBackend.xcframework` force-loaded into the app                               | ✅ — separately-loaded `libxnnpack_executorch_backend.so` |
+| `coreml`  | ✅ — `CoreMLBackend.xcframework` force-loaded into the app                                | n/a                                                       |
+| `mlx`     | ✅ — `MLXBackend.xcframework` force-loaded into the app, plus `mlx.metallib` pod resource | n/a                                                       |
+| `vulkan`  | n/a                                                                                       | ✅ — separately-loaded `libvulkan_executorch_backend.so`  |
+
+Lib platform map:
+
+| Lib          | iOS                                | Android                                                  |
+| ------------ | ---------------------------------- | -------------------------------------------------------- |
+| `opencv`     | ✅ (via the `opencv-rne` CocoaPod) | ✅ (static `libopencv_*.a` + KleidiCV HAL on arm64)      |
+| `phonemizer` | ✅ (compiled from in-tree source)  | ✅ (compiled from in-tree source via `add_subdirectory`) |
+
+Source files and native libraries are excluded from compilation when a backend or lib is disabled, so builds that only need LLMs can skip OpenCV and cut tens of megabytes off the final binary.
+
+The postinstall step honors a few environment variables:
+
+| Variable               | Purpose                                                                   |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `RNET_SKIP_DOWNLOAD=1` | Skip the download entirely (for CI with pre-cached libraries).            |
+| `RNET_LIBS_CACHE_DIR`  | Custom cache directory (default: `~/.cache/react-native-executorch/<v>`). |
+| `RNET_TARGET`          | Force a specific target, e.g. `android-arm64-v8a` or `ios`.               |
+| `RNET_NO_X86_64=1`     | Skip the Android x86_64 tarball (handy when only building for a device).  |
+| `GITHUB_TOKEN`         | Required to access draft releases while iterating on a new version.       |
+
+After changing `backends` / `libs` / `features`, re-run `yarn install` (or the equivalent) so the postinstall script regenerates `rne-build-config.json` and re-extracts the right tarballs, then rebuild the native project.
+
 :::warning
 Before using any other API, you must call `initExecutorch` with a resource fetcher adapter at the entry point of your app:
 

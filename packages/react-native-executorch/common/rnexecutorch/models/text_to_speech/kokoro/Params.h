@@ -33,9 +33,16 @@ inline constexpr int32_t kStreamPause = 200;
  * (ms).
  */
 inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
-    {U'.', 375}, {U'?', 500}, {U'!', 250}, {U';', 400}, {U'…', 600}, // Ellipsis
-    {U',', 130}, {U':', 250}, {U'-', 200}, {U'—', 250}, // Em Dash (slightly
-                                                        // longer than hyphen)
+    {U'.', 375},
+    {U'?', 500},
+    {U'!', 250},
+    {U';', 400},
+    {U'…', 600}, // Ellipsis
+    {U',', 130},
+    {U':', 250},
+    {U'-', 200},
+    {U'—', 250}, // Em Dash (slightly
+                 // longer than hyphen)
     {U'|', 375}, // ASCII Pipe (treated as full stop)
     {U'।', 375}, // Hindi Purna Viram
     {U'॥', 500}, // Hindi Deergh Viram (typically longer than Purna Viram)
