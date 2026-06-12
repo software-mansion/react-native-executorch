@@ -149,7 +149,13 @@ export async function handleRemote(
         await downloadedFile.move(new File(fileUri));
       } catch (error) {
         downloads.delete(source);
-        reject(error);
+        reject(
+          new RnExecutorchError(
+            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+            `Failed to move downloaded file to '${fileUri}'`,
+            error
+          )
+        );
         return;
       }
 
