@@ -139,13 +139,9 @@ export async function handleRemote(
     .downloadAsync()
     .then(async (downloadedFile) => {
       // null means the task was paused before completion — resume() will continue it.
+      if (!downloadedFile) return;
+
       // missing handle means the task was canceled — cancel() already rejected.
-      if (!downloadedFile) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'Download was paused before completion.'
-        );
-      }
       const downloadHandle = downloads.get(source);
       if (!downloadHandle) return;
 
