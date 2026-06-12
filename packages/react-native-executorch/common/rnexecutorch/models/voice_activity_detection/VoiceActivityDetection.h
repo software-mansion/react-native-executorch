@@ -38,8 +38,7 @@ public:
    * @param detectionMargin Specifies (in miliseconds) how far the last detected
    * speech segment can be to still be considered as ongoing speech.
    */
-  void stream(std::shared_ptr<jsi::Function> callback, uint32_t timeout,
-              uint32_t detectionMargin);
+  void stream(std::shared_ptr<jsi::Function> callback, uint32_t timeout, uint32_t detectionMargin);
 
   /**
    * When called, stops the streaming procedure.
@@ -54,8 +53,7 @@ public:
 private:
   std::vector<std::array<float, constants::kPaddedWindowSize>>
   preprocess(std::span<float> waveform) const;
-  std::vector<types::Segment> postprocess(const std::vector<float> &scores,
-                                          float threshold,
+  std::vector<types::Segment> postprocess(const std::vector<float> &scores, float threshold,
                                           uint32_t mergeGap) const;
 
   std::shared_ptr<react::CallInvoker> callInvoker_;
@@ -71,6 +69,6 @@ private:
 
 } // namespace models::voice_activity_detection
 
-REGISTER_CONSTRUCTOR(models::voice_activity_detection::VoiceActivityDetection,
-                     std::string, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::voice_activity_detection::VoiceActivityDetection, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

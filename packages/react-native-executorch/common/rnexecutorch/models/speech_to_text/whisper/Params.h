@@ -17,8 +17,7 @@ namespace rnexecutorch::models::speech_to_text::whisper::params {
  * Maximum duration of audio that the streaming buffer keeps before forcing
  * a cleanup. Aligned with Whisper's maximum supported input length.
  */
-constexpr inline float kStreamMaxDuration =
-    static_cast<float>(constants::kChunkSize);
+constexpr inline float kStreamMaxDuration = static_cast<float>(constants::kChunkSize);
 
 /**
  * The minimum amount of recent audio always kept in the buffer when a blind
@@ -75,8 +74,7 @@ constexpr inline size_t kVadDeadSamplesRemovalSamples =
 // two ever invert, that subtraction wraps and the subsequent erase reads past
 // the buffer. Catch the regression at compile time.
 static_assert(kVadDeadSamplesRemovalSamples >
-                  static_cast<size_t>(kStreamSafetyThreshold *
-                                      constants::kSamplingRate),
+                  static_cast<size_t>(kStreamSafetyThreshold * constants::kSamplingRate),
               "kVadDeadSamplesRemovalSamples must exceed the safety margin");
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::params

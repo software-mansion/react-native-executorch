@@ -74,18 +74,16 @@ private:
   struct Memory {
     // State management helper.
     struct EOSEntry {
-      size_t position; // An absolute position (index) in the transcription
-                       // (word sequence).
+      size_t position;        // An absolute position (index) in the transcription
+                              // (word sequence).
       std::string preceeding; // A preceeding word in the transcription
       float tmstpend;         // Ending timestamp of the sentence.
     };
 
-    std::vector<Word>
-        transcript; // The most recent transcription result (uncommitted only!).
-    std::vector<EOSEntry>
-        eos; // End of sentence points from the most recent transcription.
-    std::vector<Word> toCommit; // Words to be committed in the next iteration
-                                // (next process() call).
+    std::vector<Word> transcript; // The most recent transcription result (uncommitted only!).
+    std::vector<EOSEntry> eos;    // End of sentence points from the most recent transcription.
+    std::vector<Word> toCommit;   // Words to be committed in the next iteration
+                                  // (next process() call).
   } memory_;
 };
 

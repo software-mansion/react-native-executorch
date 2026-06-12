@@ -19,8 +19,7 @@ using namespace facebook;
 
 class StyleTransfer : public VisionModel {
 public:
-  StyleTransfer(const std::string &modelSource,
-                std::shared_ptr<react::CallInvoker> callInvoker);
+  StyleTransfer(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] StyleTransferResult
   generateFromString(std::string imageSource, bool saveToFile);

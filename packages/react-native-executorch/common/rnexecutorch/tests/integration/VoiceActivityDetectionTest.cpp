@@ -29,13 +29,9 @@ namespace model_tests {
 template <> struct ModelTraits<VoiceActivityDetection> {
   using ModelType = VoiceActivityDetection;
 
-  static ModelType createValid() {
-    return ModelType(kValidVadModelPath, nullptr);
-  }
+  static ModelType createValid() { return ModelType(kValidVadModelPath, nullptr); }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", nullptr); }
 
   static void callGenerate(ModelType &model) {
     auto audio = loadAudioFromFile("test_audio_float.raw");

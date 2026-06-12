@@ -13,8 +13,7 @@ namespace rnexecutorch::models::text_to_speech::kokoro::utils {
  * @param audio The input audio samples.
  * @param margin Number of silence samples to preserve at each edge.
  */
-std::span<const float> stripAudio(std::span<const float> audio,
-                                  size_t margin = 0);
+std::span<const float> stripAudio(std::span<const float> audio, size_t margin = 0);
 
 /**
  * Maps phonemes to vocabulary tokens with start/end padding.

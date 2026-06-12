@@ -9,8 +9,7 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::utils;
 using executorch::aten::ScalarType;
 
-static JSTensorViewIn makeValidView(std::vector<uint8_t> &buf, int32_t h,
-                                    int32_t w) {
+static JSTensorViewIn makeValidView(std::vector<uint8_t> &buf, int32_t h, int32_t w) {
   buf.assign(static_cast<size_t>(h * w * 3), 128);
   return JSTensorViewIn{buf.data(), {h, w, 3}, ScalarType::Byte};
 }

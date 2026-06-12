@@ -15,18 +15,13 @@ using executorch::aten::ScalarType;
 // ============================================================================
 class TestableVisionModel : public VisionModel {
 public:
-  explicit TestableVisionModel(const std::string &path)
-      : VisionModel(path, nullptr) {}
+  explicit TestableVisionModel(const std::string &path) : VisionModel(path, nullptr) {}
 
   cv::Mat preprocessPublic(const cv::Mat &img) const { return preprocess(img); }
 
-  cv::Mat extractFromPixelsPublic(const JSTensorViewIn &v) const {
-    return extractFromPixels(v);
-  }
+  cv::Mat extractFromPixelsPublic(const JSTensorViewIn &v) const { return extractFromPixels(v); }
 
-  void setInputShape(std::vector<int32_t> shape) {
-    modelInputShape_ = std::move(shape);
-  }
+  void setInputShape(std::vector<int32_t> shape) { modelInputShape_ = std::move(shape); }
 };
 
 // Reuse the style_transfer .pte as a vehicle — we never call forward().
@@ -37,9 +32,7 @@ constexpr auto kModelPath = "style_transfer_candy_xnnpack_fp32.pte";
 // ============================================================================
 class VisionModelPreprocessTest : public ::testing::Test {
 protected:
-  void SetUp() override {
-    model = std::make_unique<TestableVisionModel>(kModelPath);
-  }
+  void SetUp() override { model = std::make_unique<TestableVisionModel>(kModelPath); }
   std::unique_ptr<TestableVisionModel> model;
 };
 
@@ -87,9 +80,7 @@ TEST_F(VisionModelPreprocessTest, NonSquareTargetSize) {
 // ============================================================================
 class VisionModelExtractFromPixelsTest : public ::testing::Test {
 protected:
-  void SetUp() override {
-    model = std::make_unique<TestableVisionModel>(kModelPath);
-  }
+  void SetUp() override { model = std::make_unique<TestableVisionModel>(kModelPath); }
   std::unique_ptr<TestableVisionModel> model;
 };
 

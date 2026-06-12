@@ -22,26 +22,20 @@ public:
   virtual ~BaseModel() = default;
   BaseModel(BaseModel &&) = default;
   BaseModel &operator=(BaseModel &&) = default;
-  BaseModel(
-      const std::string &modelSource,
-      std::shared_ptr<react::CallInvoker> callInvoker,
-      Module::LoadMode loadMode = Module::LoadMode::MmapUseMlockIgnoreErrors);
+  BaseModel(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker,
+            Module::LoadMode loadMode = Module::LoadMode::MmapUseMlockIgnoreErrors);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
   [[nodiscard("Registered non-void function")]] std::vector<int32_t>
   getInputShape(std::string method_name, int32_t index) const;
-  std::vector<std::vector<int32_t>>
-  getAllInputShapes(std::string methodName = "forward") const;
+  std::vector<std::vector<int32_t>> getAllInputShapes(std::string methodName = "forward") const;
   [[nodiscard("Registered non-void function")]] std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const;
   Result<std::vector<EValue>> forward(const EValue &input_value) const;
-  Result<std::vector<EValue>>
-  forward(const std::vector<EValue> &input_value) const;
-  Result<std::vector<EValue>>
-  execute(const std::string &methodName,
-          const std::vector<EValue> &input_value) const;
-  Result<executorch::runtime::MethodMeta>
-  getMethodMeta(const std::string &methodName) const;
+  Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value) const;
+  Result<std::vector<EValue>> execute(const std::string &methodName,
+                                      const std::vector<EValue> &input_value) const;
+  Result<executorch::runtime::MethodMeta> getMethodMeta(const std::string &methodName) const;
 
 protected:
   // If possible, models should not use the JS runtime to keep JSI internals
@@ -54,11 +48,9 @@ protected:
   std::size_t memorySizeLowerBound{0};
 
 private:
-  std::vector<int32_t>
-  getTensorShape(const executorch::aten::Tensor &tensor) const;
+  std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor) const;
 };
 } // namespace models
 
-REGISTER_CONSTRUCTOR(models::BaseModel, std::string,
-                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::BaseModel, std::string, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

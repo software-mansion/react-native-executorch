@@ -9,42 +9,36 @@
 #include <string>
 
 namespace rnexecutorch::models::ocr {
-VerticalDetector::VerticalDetector(
-    const std::string &modelSource,
-    std::shared_ptr<react::CallInvoker> callInvoker)
+VerticalDetector::VerticalDetector(const std::string &modelSource,
+                                   std::shared_ptr<react::CallInvoker> callInvoker)
     : Detector(modelSource, callInvoker) {};
 
-std::vector<types::DetectorBBox>
-VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth) {
+std::vector<types::DetectorBBox> VerticalDetector::generate(const cv::Mat &inputImage,
+                                                            int32_t inputWidth) {
 
-  bool detectSingleCharacters =
-      !(inputWidth >= constants::kMediumDetectorWidth);
+  bool detectSingleCharacters = !(inputWidth >= constants::kMediumDetectorWidth);
 
-  utils::validateInputWidth(inputWidth, constants::kDetectorInputWidths,
-                            "VerticalDetector");
+  utils::validateInputWidth(inputWidth, constants::kDetectorInputWidths, "VerticalDetector");
 
   std::string methodName = "forward_" + std::to_string(inputWidth);
   auto inputShapes = getAllInputShapes(methodName);
 
   cv::Size modelInputSize = calculateModelImageSize(inputWidth);
 
-  cv::Mat resizedInputImage =
-      image_processing::resizePadded(inputImage, modelInputSize);
-  TensorPtr inputTensor = image_processing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, constants::kNormalizationMean,
-      constants::kNormalizationVariance);
+  cv::Mat resizedInputImage = image_processing::resizePadded(inputImage, modelInputSize);
+  TensorPtr inputTensor = image_processing::getTensorFromMatrix(inputShapes[0], resizedInputImage,
+                                                                constants::kNormalizationMean,
+                                                                constants::kNormalizationVariance);
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
 
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
-  return postprocess(forwardResult->at(0).toTensor(),
-                     calculateModelImageSize(inputWidth),
+  return postprocess(forwardResult->at(0).toTensor(), calculateModelImageSize(inputWidth),
                      detectSingleCharacters);
 }
 
-std::vector<types::DetectorBBox>
-VerticalDetector::postprocess(const Tensor &tensor,
-                              const cv::Size &modelInputSize,
-                              bool detectSingleCharacters) const {
+std::vector<types::DetectorBBox> VerticalDetector::postprocess(const Tensor &tensor,
+                                                               const cv::Size &modelInputSize,
+                                                               bool detectSingleCharacters) const {
   /*
    The output of the model consists of two matrices (heat maps):
    1. ScoreText(Score map) - The probability of a region containing character.
@@ -54,32 +48,28 @@ VerticalDetector::postprocess(const Tensor &tensor,
 
    The result of this step is a list of bounding boxes that contain text.
    */
-  std::span<const float> tensorData(tensor.const_data_ptr<float>(),
-                                    tensor.numel());
+  std::span<const float> tensorData(tensor.const_data_ptr<float>(), tensor.numel());
   /*
    The output of the model is a matrix half the size of the input image
    containing two channels representing the heatmaps.
    */
   auto [scoreTextMat, scoreAffinityMat] = utils::interleavedArrayToMats(
-      tensorData,
-      cv::Size(modelInputSize.width / 2, modelInputSize.height / 2));
-  float txtThreshold = detectSingleCharacters
-                           ? constants::kTextThreshold
-                           : constants::kTextThresholdVertical;
+      tensorData, cv::Size(modelInputSize.width / 2, modelInputSize.height / 2));
+  float txtThreshold =
+      detectSingleCharacters ? constants::kTextThreshold : constants::kTextThresholdVertical;
   std::vector<types::DetectorBBox> bBoxesList =
-      utils::getDetBoxesFromTextMapVertical(
-          scoreTextMat, scoreAffinityMat, txtThreshold,
-          constants::kLinkThreshold, detectSingleCharacters);
-  const float restoreRatio = utils::calculateRestoreRatio(
-      scoreTextMat.rows, constants::kRecognizerImageSize);
+      utils::getDetBoxesFromTextMapVertical(scoreTextMat, scoreAffinityMat, txtThreshold,
+                                            constants::kLinkThreshold, detectSingleCharacters);
+  const float restoreRatio =
+      utils::calculateRestoreRatio(scoreTextMat.rows, constants::kRecognizerImageSize);
   utils::restoreBboxRatio(bBoxesList, restoreRatio);
 
   // if this is Narrow Detector, do not group boxes.
   if (!detectSingleCharacters) {
-    bBoxesList = utils::groupTextBoxes(
-        bBoxesList, constants::kCenterThreshold, constants::kDistanceThreshold,
-        constants::kHeightThreshold, constants::kMinSideThreshold,
-        constants::kMaxSideThreshold, constants::kMaxWidth);
+    bBoxesList = utils::groupTextBoxes(bBoxesList, constants::kCenterThreshold,
+                                       constants::kDistanceThreshold, constants::kHeightThreshold,
+                                       constants::kMinSideThreshold, constants::kMaxSideThreshold,
+                                       constants::kMaxWidth);
   }
 
   return bBoxesList;

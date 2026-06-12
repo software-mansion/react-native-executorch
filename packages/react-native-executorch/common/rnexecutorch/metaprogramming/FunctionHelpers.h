@@ -21,11 +21,9 @@ constexpr std::size_t getArgumentCount(R (Model::*f)(Types...) const) {
 }
 
 template <typename... Types, std::size_t... I>
-std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
-                                       const jsi::Value *args,
+std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>, const jsi::Value *args,
                                        jsi::Runtime &runtime) {
-  return std::tuple<Types...>{
-      jsi_conversion::getValue<Types>(args[I], runtime)...};
+  return std::tuple<Types...>{jsi_conversion::getValue<Types>(args[I], runtime)...};
 }
 
 /**
@@ -35,30 +33,24 @@ std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
  */
 
 template <typename Model, typename R, typename... Types>
-std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...),
-                                            const jsi::Value *args,
+std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...), const jsi::Value *args,
                                             jsi::Runtime &runtime) {
-  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
-                                     runtime);
+  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args, runtime);
 }
 
 template <typename Model, typename R, typename... Types>
-std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...) const,
-                                            const jsi::Value *args,
+std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...) const, const jsi::Value *args,
                                             jsi::Runtime &runtime) {
-  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
-                                     runtime);
+  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args, runtime);
 }
 
 // Free function overload used by visionHostFunction: accepts a dummy free
 // function pointer whose parameter types (Rest...) are extracted by
 // TailSignature and converted from JSI args.
 template <typename... Types>
-std::tuple<Types...> createArgsTupleFromJsi(void (*f)(Types...),
-                                            const jsi::Value *args,
+std::tuple<Types...> createArgsTupleFromJsi(void (*f)(Types...), const jsi::Value *args,
                                             jsi::Runtime &runtime) {
-  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
-                                     runtime);
+  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args, runtime);
 }
 
 // Extracts arity, return type, and argument types from a member function
@@ -66,15 +58,13 @@ std::tuple<Types...> createArgsTupleFromJsi(void (*f)(Types...),
 // JS argument count and invoke the correct return path.
 template <typename T> struct FunctionTraits;
 
-template <typename R, typename C, typename... Args>
-struct FunctionTraits<R (C::*)(Args...)> {
+template <typename R, typename C, typename... Args> struct FunctionTraits<R (C::*)(Args...)> {
   static constexpr std::size_t arity = sizeof...(Args);
   using return_type = R;
   using args_tuple = std::tuple<Args...>;
 };
 
-template <typename R, typename C, typename... Args>
-struct FunctionTraits<R (C::*)(Args...) const> {
+template <typename R, typename C, typename... Args> struct FunctionTraits<R (C::*)(Args...) const> {
   static constexpr std::size_t arity = sizeof...(Args);
   using return_type = R;
   using args_tuple = std::tuple<Args...>;
@@ -86,14 +76,12 @@ struct FunctionTraits<R (C::*)(Args...) const> {
 // createArgsTupleFromJsi, while frameData at args[0] is passed manually.
 template <typename T> struct TailSignature;
 
-template <typename R, typename C, typename Arg1, typename Arg2,
-          typename... Rest>
+template <typename R, typename C, typename Arg1, typename Arg2, typename... Rest>
 struct TailSignature<R (C::*)(Arg1, Arg2, Rest...)> {
   static void dummy(Rest...) {}
 };
 
-template <typename R, typename C, typename Arg1, typename Arg2,
-          typename... Rest>
+template <typename R, typename C, typename Arg1, typename Arg2, typename... Rest>
 struct TailSignature<R (C::*)(Arg1, Arg2, Rest...) const> {
   static void dummy(Rest...) {}
 };

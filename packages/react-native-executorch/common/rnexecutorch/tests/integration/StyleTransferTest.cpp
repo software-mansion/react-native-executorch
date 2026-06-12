@@ -11,16 +11,12 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::style_transfer;
 using namespace model_tests;
 
-constexpr auto kValidStyleTransferModelPath =
-    "style_transfer_candy_xnnpack_fp32.pte";
-constexpr auto kValidTestImagePath =
-    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr auto kValidStyleTransferModelPath = "style_transfer_candy_xnnpack_fp32.pte";
+constexpr auto kValidTestImagePath = "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
-static JSTensorViewIn makeRgbView(std::vector<uint8_t> &buf, int32_t h,
-                                  int32_t w) {
+static JSTensorViewIn makeRgbView(std::vector<uint8_t> &buf, int32_t h, int32_t w) {
   buf.assign(static_cast<size_t>(h * w * 3), 128);
-  return JSTensorViewIn{
-      buf.data(), {h, w, 3}, executorch::aten::ScalarType::Byte};
+  return JSTensorViewIn{buf.data(), {h, w, 3}, executorch::aten::ScalarType::Byte};
 }
 
 // ============================================================================
@@ -30,13 +26,9 @@ namespace model_tests {
 template <> struct ModelTraits<StyleTransfer> {
   using ModelType = StyleTransfer;
 
-  static ModelType createValid() {
-    return ModelType(kValidStyleTransferModelPath, nullptr);
-  }
+  static ModelType createValid() { return ModelType(kValidStyleTransferModelPath, nullptr); }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", nullptr); }
 
   static void callGenerate(ModelType &model) {
     (void)model.generateFromString(kValidTestImagePath, false);
@@ -45,18 +37,15 @@ template <> struct ModelTraits<StyleTransfer> {
 } // namespace model_tests
 
 using StyleTransferTypes = ::testing::Types<StyleTransfer>;
-INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, CommonModelTest,
-                               StyleTransferTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, VisionModelTest,
-                               StyleTransferTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, CommonModelTest, StyleTransferTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, VisionModelTest, StyleTransferTypes);
 
 // ============================================================================
 // generateFromString tests
 // ============================================================================
 TEST(StyleTransferGenerateTests, InvalidImagePathThrows) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", false),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", false), RnExecutorchError);
 }
 
 TEST(StyleTransferGenerateTests, EmptyImagePathThrows) {
@@ -66,8 +55,7 @@ TEST(StyleTransferGenerateTests, EmptyImagePathThrows) {
 
 TEST(StyleTransferGenerateTests, MalformedURIThrows) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", false),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", false), RnExecutorchError);
 }
 
 TEST(StyleTransferGenerateTests, ValidImageReturnsFilePath) {
@@ -142,8 +130,7 @@ TEST(StyleTransferPixelTests, ValidPixelsSaveToFileFalseHasPositiveDimensions) {
   EXPECT_GT(pr.height, 0);
 }
 
-TEST(StyleTransferPixelTests,
-     ValidPixelsSaveToFileTrueReturnsFileSchemeString) {
+TEST(StyleTransferPixelTests, ValidPixelsSaveToFileTrueReturnsFileSchemeString) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
   std::vector<uint8_t> buf;
   auto view = makeRgbView(buf, 64, 64);

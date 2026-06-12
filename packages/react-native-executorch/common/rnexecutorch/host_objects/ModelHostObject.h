@@ -29,15 +29,12 @@
 
 namespace rnexecutorch {
 
-inline jsi::Value makeRnExecutorchErrorValue(jsi::Runtime &runtime,
-                                             int32_t code,
+inline jsi::Value makeRnExecutorchErrorValue(jsi::Runtime &runtime, int32_t code,
                                              const std::string &message) {
-  auto errorObj =
-      runtime.global()
-          .getPropertyAsFunction(runtime, "Error")
-          .callAsConstructor(runtime,
-                             jsi::String::createFromUtf8(runtime, message))
-          .asObject(runtime);
+  auto errorObj = runtime.global()
+                      .getPropertyAsFunction(runtime, "Error")
+                      .callAsConstructor(runtime, jsi::String::createFromUtf8(runtime, message))
+                      .asObject(runtime);
   errorObj.setProperty(runtime, "code", code);
   return jsi::Value(std::move(errorObj));
 }
@@ -48,212 +45,169 @@ public:
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
     if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
 
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::forwardJS>,
-                                       "forward"));
+                                       promiseHostFunction<&Model::forwardJS>, "forward"));
 
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
-          "getInputShape"));
+          ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>, "getInputShape"));
     }
 
     // LLM::generate and LLM::generateMultimodal registered explicitly below
-    if constexpr (meta::HasGenerate<Model> &&
-                  !meta::SameAs<Model, models::llm::LLM>) {
+    if constexpr (meta::HasGenerate<Model> && !meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
+                                       promiseHostFunction<&Model::generate>, "generate"));
     }
 
     if constexpr (meta::HasEncode<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::encode>,
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, promiseHostFunction<&Model::encode>,
                                        "encode"));
     }
 
     if constexpr (meta::HasDecode<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::decode>,
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, promiseHostFunction<&Model::decode>,
                                        "decode"));
     }
 
     if constexpr (meta::SameAs<Model, models::speech_to_text::SpeechToText>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       synchronousHostFunction<&Model::unload>,
-                                       "unload"));
+                                       synchronousHostFunction<&Model::unload>, "unload"));
 
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::transcribe>,
-                                       "transcribe"));
+                                       promiseHostFunction<&Model::transcribe>, "transcribe"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::stream>,
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, promiseHostFunction<&Model::stream>,
                                        "stream"));
 
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
-          "streamInsert"));
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>, "streamInsert"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::streamStop>, "streamStop"));
     }
 
-    if constexpr (meta::SameAs<Model, models::voice_activity_detection::
-                                          VoiceActivityDetection>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::stream>,
+    if constexpr (meta::SameAs<Model, models::voice_activity_detection::VoiceActivityDetection>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, promiseHostFunction<&Model::stream>,
                                        "stream"));
 
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
-          "streamInsert"));
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>, "streamInsert"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::streamStop>, "streamStop"));
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, promiseHostFunction<&Model::getVocabSize>,
-          "getVocabSize"));
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::idToToken>,
-                                       "idToToken"));
+                                       promiseHostFunction<&Model::getVocabSize>, "getVocabSize"));
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::tokenToId>,
-                                       "tokenToId"));
+                                       promiseHostFunction<&Model::idToToken>, "idToToken"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::tokenToId>, "tokenToId"));
     }
 
     if constexpr (meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
-          "interrupt"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::getGeneratedTokenCount>,
-          "getGeneratedTokenCount"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::getPromptTokenCount>,
-          "getPromptTokenCount"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::countTextTokens>, "countTextTokens"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              synchronousHostFunction<&Model::setCountInterval>,
-                              "setCountInterval"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::setTimeInterval>, "setTimeInterval"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::setTemperature>, "setTemperature"));
+                                       promiseHostFunction<&Model::generate>, "generate"));
 
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       synchronousHostFunction<&Model::setTopp>,
-                                       "setTopp"));
+                                       synchronousHostFunction<&Model::interrupt>, "interrupt"));
 
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       synchronousHostFunction<&Model::setMinP>,
-                                       "setMinP"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::setRepetitionPenalty>,
-          "setRepetitionPenalty"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::getMaxContextLength>,
-          "getMaxContextLength"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+                                       synchronousHostFunction<&Model::getGeneratedTokenCount>,
+                                       "getGeneratedTokenCount"));
 
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       synchronousHostFunction<&Model::reset>,
-                                       "reset"));
+                                       synchronousHostFunction<&Model::getPromptTokenCount>,
+                                       "getPromptTokenCount"));
 
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateMultimodal>,
-                              "generateMultimodal"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::countTextTokens>,
+                                       "countTextTokens"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::getVisualTokenCount>,
-          "getVisualTokenCount"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setCountInterval>,
+                                       "setCountInterval"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setTimeInterval>,
+                                       "setTimeInterval"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setTemperature>,
+                                       "setTemperature"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setTopp>, "setTopp"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setMinP>, "setMinP"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setRepetitionPenalty>,
+                                       "setRepetitionPenalty"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::getMaxContextLength>,
+                                       "getMaxContextLength"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::reset>, "reset"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generateMultimodal>,
+                                       "generateMultimodal"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::getVisualTokenCount>,
+                                       "getVisualTokenCount"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
-          "interrupt"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::interrupt>, "interrupt"));
     }
 
     if constexpr (meta::SameAs<Model, models::ocr::OCR>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
     if constexpr (meta::SameAs<Model, models::ocr::VerticalOCR>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::stream>,
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, promiseHostFunction<&Model::stream>,
                                        "stream"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::streamStop>, "streamStop"));
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>, "streamInsert"));
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
-          "streamInsert"));
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamFlush>,
-          "streamFlush"));
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamFlush>, "streamFlush"));
     }
 
     if constexpr (meta::HasGenerateFromString<Model>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateFromString>,
-                              "generateFromString"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generateFromString>,
+                                       "generateFromString"));
     }
 
     if constexpr (meta::HasGenerateFromFrame<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
-          "generateFromFrame"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       visionHostFunction<&Model::generateFromFrame>,
+                                       "generateFromFrame"));
     }
 
     if constexpr (meta::HasGenerateFromPixels<Model>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateFromPixels>,
-                              "generateFromPixels"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generateFromPixels>,
+                                       "generateFromPixels"));
     }
   }
 
@@ -263,8 +217,7 @@ public:
     constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
     if (functionArgCount != count) {
       std::stringstream ss;
-      ss << "Argument count mismatch, was expecting: " << functionArgCount
-         << " but got: " << count;
+      ss << "Argument count mismatch, was expecting: " << functionArgCount << " but got: " << count;
       const auto errorMessage = ss.str();
       throw jsi::JSError(runtime, errorMessage);
     }
@@ -272,20 +225,19 @@ public:
     try {
       auto argsConverted = meta::createArgsTupleFromJsi(FnPtr, args, runtime);
 
-      if constexpr (std::is_void_v<decltype(std::apply(
-                        std::bind_front(FnPtr, model), argsConverted))>) {
+      if constexpr (std::is_void_v<decltype(std::apply(std::bind_front(FnPtr, model),
+                                                       argsConverted))>) {
         // For void functions, just call the function and return undefined
         std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
         return jsi::Value::undefined();
       } else {
         // For non-void functions, capture the result and convert it
-        auto result =
-            std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+        auto result = std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
-      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
-                                      runtime, e.getNumericCode(), e.what()));
+      throw jsi::JSError(runtime,
+                         makeRnExecutorchErrorValue(runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -314,8 +266,7 @@ public:
    *
    */
   template <auto FnPtr> JSI_HOST_FUNCTION(visionHostFunction) {
-    constexpr std::size_t cppArgCount =
-        meta::FunctionTraits<decltype(FnPtr)>::arity;
+    constexpr std::size_t cppArgCount = meta::FunctionTraits<decltype(FnPtr)>::arity;
     constexpr std::size_t expectedJsArgs = cppArgCount - 1;
 
     if (count != expectedJsArgs) {
@@ -324,35 +275,31 @@ public:
 
     try {
       auto dummyFuncPtr = &meta::TailSignature<decltype(FnPtr)>::dummy;
-      auto tailArgsTuple =
-          meta::createArgsTupleFromJsi(dummyFuncPtr, args + 1, runtime);
+      auto tailArgsTuple = meta::createArgsTupleFromJsi(dummyFuncPtr, args + 1, runtime);
 
-      using ReturnType =
-          typename meta::FunctionTraits<decltype(FnPtr)>::return_type;
+      using ReturnType = typename meta::FunctionTraits<decltype(FnPtr)>::return_type;
 
       if constexpr (std::is_void_v<ReturnType>) {
         std::apply(
             [&](auto &&...tailArgs) {
-              (model.get()->*FnPtr)(
-                  runtime, args[0],
-                  std::forward<decltype(tailArgs)>(tailArgs)...);
+              (model.get()->*FnPtr)(runtime, args[0],
+                                    std::forward<decltype(tailArgs)>(tailArgs)...);
             },
             std::move(tailArgsTuple));
         return jsi::Value::undefined();
       } else {
         auto result = std::apply(
             [&](auto &&...tailArgs) {
-              return (model.get()->*FnPtr)(
-                  runtime, args[0],
-                  std::forward<decltype(tailArgs)>(tailArgs)...);
+              return (model.get()->*FnPtr)(runtime, args[0],
+                                           std::forward<decltype(tailArgs)>(tailArgs)...);
             },
             std::move(tailArgsTuple));
 
         return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const RnExecutorchError &e) {
-      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
-                                      runtime, e.getNumericCode(), e.what()));
+      throw jsi::JSError(runtime,
+                         makeRnExecutorchErrorValue(runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
@@ -365,10 +312,8 @@ public:
   // signature, and the return value is converted back to JSI before resolving.
   template <auto FnPtr> JSI_HOST_FUNCTION(promiseHostFunction) {
     auto promise = Promise::createPromise(
-        runtime, callInvoker,
-        [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
-          constexpr std::size_t functionArgCount =
-              meta::getArgumentCount(FnPtr);
+        runtime, callInvoker, [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
+          constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
           if (functionArgCount != count) {
             std::stringstream ss;
             ss << "Argument count mismatch, was expecting: " << functionArgCount
@@ -379,64 +324,52 @@ public:
           }
 
           try {
-            auto argsConverted =
-                meta::createArgsTupleFromJsi(FnPtr, args, runtime);
+            auto argsConverted = meta::createArgsTupleFromJsi(FnPtr, args, runtime);
 
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            threads::GlobalThreadPool::detach(
-                [model = this->model, callInvoker = this->callInvoker, promise,
-                 argsConverted = std::move(argsConverted)]() {
-                  try {
-                    if constexpr (std::is_void_v<decltype(std::apply(
-                                      std::bind_front(FnPtr, model),
-                                      argsConverted))>) {
-                      // For void functions, just call the function and resolve
-                      // with undefined
-                      std::apply(std::bind_front(FnPtr, model),
-                                 std::move(argsConverted));
-                      callInvoker->invokeAsync(
-                          [promise](jsi::Runtime &runtime) {
-                            promise->resolve(jsi::Value::undefined());
-                          });
-                    } else {
-                      // For non-void functions, capture the result and convert
-                      // it
-                      auto result = std::apply(std::bind_front(FnPtr, model),
-                                               std::move(argsConverted));
-                      // The result is copied. It should either be quickly
-                      // copiable, or passed with a shared_ptr.
-                      callInvoker->invokeAsync(
-                          [promise, result](jsi::Runtime &runtime) {
-                            promise->resolve(jsi_conversion::getJsiValue(
-                                std::move(result), runtime));
-                          });
-                    }
-                  } catch (const RnExecutorchError &e) {
-                    auto code = e.getNumericCode();
-                    auto msg = std::string(e.what());
-                    callInvoker->invokeAsync(
-                        [code, msg, promise](jsi::Runtime &runtime) {
-                          promise->reject(
-                              makeRnExecutorchErrorValue(runtime, code, msg));
-                        });
-                    return;
-                  } catch (const std::exception &e) {
-                    callInvoker->invokeAsync([e = std::move(e), promise]() {
-                      promise->reject(std::string(e.what()));
-                    });
-                    return;
-                  } catch (...) {
-                    callInvoker->invokeAsync([promise]() {
-                      promise->reject(std::string("Unknown error"));
-                    });
-                    return;
-                  }
+            threads::GlobalThreadPool::detach([model = this->model, callInvoker = this->callInvoker,
+                                               promise,
+                                               argsConverted = std::move(argsConverted)]() {
+              try {
+                if constexpr (std::is_void_v<decltype(std::apply(std::bind_front(FnPtr, model),
+                                                                 argsConverted))>) {
+                  // For void functions, just call the function and resolve
+                  // with undefined
+                  std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
+                    promise->resolve(jsi::Value::undefined());
+                  });
+                } else {
+                  // For non-void functions, capture the result and convert
+                  // it
+                  auto result = std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+                  // The result is copied. It should either be quickly
+                  // copiable, or passed with a shared_ptr.
+                  callInvoker->invokeAsync([promise, result](jsi::Runtime &runtime) {
+                    promise->resolve(jsi_conversion::getJsiValue(std::move(result), runtime));
+                  });
+                }
+              } catch (const RnExecutorchError &e) {
+                auto code = e.getNumericCode();
+                auto msg = std::string(e.what());
+                callInvoker->invokeAsync([code, msg, promise](jsi::Runtime &runtime) {
+                  promise->reject(makeRnExecutorchErrorValue(runtime, code, msg));
                 });
+                return;
+              } catch (const std::exception &e) {
+                callInvoker->invokeAsync(
+                    [e = std::move(e), promise]() { promise->reject(std::string(e.what())); });
+                return;
+              } catch (...) {
+                callInvoker->invokeAsync(
+                    [promise]() { promise->reject(std::string("Unknown error")); });
+                return;
+              }
+            });
           } catch (...) {
-            promise->reject(std::string(
-                "Couldn't parse JS arguments in a native function"));
+            promise->reject(std::string("Couldn't parse JS arguments in a native function"));
           }
         });
 
@@ -448,8 +381,8 @@ public:
       model->unload();
       thisValue.asObject(runtime).setExternalMemoryPressure(runtime, 0);
     } catch (const RnExecutorchError &e) {
-      throw jsi::JSError(runtime, makeRnExecutorchErrorValue(
-                                      runtime, e.getNumericCode(), e.what()));
+      throw jsi::JSError(runtime,
+                         makeRnExecutorchErrorValue(runtime, e.getNumericCode(), e.what()));
     } catch (const std::exception &e) {
       throw jsi::JSError(runtime, e.what());
     } catch (...) {

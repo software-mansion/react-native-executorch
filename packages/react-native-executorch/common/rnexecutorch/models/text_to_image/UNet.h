@@ -15,8 +15,7 @@ using namespace executorch::extension;
 
 class UNet final : public BaseModel {
 public:
-  explicit UNet(const std::string &modelSource,
-                std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit UNet(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(std::vector<float> &latents, int32_t timestep,
                               TensorPtr &embeddingsTensor) const;
 

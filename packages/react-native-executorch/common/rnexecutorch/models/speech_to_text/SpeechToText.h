@@ -28,22 +28,18 @@ public:
   SpeechToText(SpeechToText &&other) noexcept;
 
   void unload() noexcept;
-  [[nodiscard(
-      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  [[nodiscard("Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   encode(std::span<float> waveform) const;
-  [[nodiscard(
-      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  [[nodiscard("Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   decode(std::span<uint64_t> tokens, std::span<float> encoderOutput) const;
   [[nodiscard("Registered non-void function")]]
-  TranscriptionResult transcribe(std::span<float> waveform,
-                                 std::string languageOption,
+  TranscriptionResult transcribe(std::span<float> waveform, std::string languageOption,
                                  bool verbose) const;
 
   size_t getMemoryLowerBound() const noexcept;
 
   // Stream
-  void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption, bool verbose,
+  void stream(std::shared_ptr<jsi::Function> callback, std::string languageOption, bool verbose,
               uint32_t timeout, bool useVAD, uint32_t vadDetectionMargin);
   void streamStop();
   void streamInsert(std::span<float> waveform);
@@ -72,8 +68,7 @@ private:
 
 } // namespace models::speech_to_text
 
-REGISTER_CONSTRUCTOR(models::speech_to_text::SpeechToText, std::string,
-                     std::string, std::string, std::string,
-                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::speech_to_text::SpeechToText, std::string, std::string, std::string,
+                     std::string, std::shared_ptr<react::CallInvoker>);
 
 } // namespace rnexecutorch

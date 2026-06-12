@@ -46,15 +46,14 @@ template <> struct ModelTraits<SpeechToText> {
 } // namespace model_tests
 
 using SpeechToTextTypes = ::testing::Types<SpeechToText>;
-INSTANTIATE_TYPED_TEST_SUITE_P(SpeechToText, CommonModelTest,
-                               SpeechToTextTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(SpeechToText, CommonModelTest, SpeechToTextTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(S2TCtorTests, InvalidModelNameThrows) {
-  EXPECT_THROW(SpeechToText("invalid_model", kValidModelPath,
-                            kValidTokenizerPath, /*vadSource=*/"", nullptr),
+  EXPECT_THROW(SpeechToText("invalid_model", kValidModelPath, kValidTokenizerPath, /*vadSource=*/"",
+                            nullptr),
                RnExecutorchError);
 }
 
@@ -111,29 +110,28 @@ TEST(S2TTranscribeTests, InvalidLanguageThrows) {
                      /*vadSource=*/"", nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
-  EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code", false),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code", false), RnExecutorchError);
 }
 
 // ============================================================================
 // VAD integration tests (vadSource provided => internal VAD module loaded)
 // ============================================================================
 TEST(S2TVadCtorTests, ValidVadSourceConstructs) {
-  EXPECT_NO_THROW(SpeechToText("whisper", kValidModelPath, kValidTokenizerPath,
-                               kValidVadModelPath, createMockCallInvoker()));
+  EXPECT_NO_THROW(SpeechToText("whisper", kValidModelPath, kValidTokenizerPath, kValidVadModelPath,
+                               createMockCallInvoker()));
 }
 
 TEST(S2TVadCtorTests, InvalidVadSourceThrows) {
-  EXPECT_THROW(SpeechToText("whisper", kValidModelPath, kValidTokenizerPath,
-                            "nonexistent_vad.pte", createMockCallInvoker()),
+  EXPECT_THROW(SpeechToText("whisper", kValidModelPath, kValidTokenizerPath, "nonexistent_vad.pte",
+                            createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(S2TVadTranscribeTests, TranscribeStillWorksWithVadLoaded) {
   // The vadSource only affects streaming. The one-shot transcribe() path
   // must remain unchanged when a VAD is attached.
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
-                     kValidVadModelPath, createMockCallInvoker());
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, kValidVadModelPath,
+                     createMockCallInvoker());
   auto silence = generateSilence(16000 * 5);
   auto result = model.transcribe(silence, "en", false);
   EXPECT_TRUE(result.text.empty());
@@ -154,8 +152,8 @@ TEST(S2TVadStreamTests, StreamWithVadOnSilenceCompletesCleanly) {
   // Drives the OnlineASR::process VAD branch with audio that contains no
   // speech segments. Exercises the "speechSegments.empty()" cleanup path
   // added by the PR.
-  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath,
-                     kValidVadModelPath, createMockCallInvoker());
+  SpeechToText model("whisper", kValidModelPath, kValidTokenizerPath, kValidVadModelPath,
+                     createMockCallInvoker());
   std::thread streamer([&model] {
     model.stream(std::shared_ptr<jsi::Function>(), /*language=*/"en",
                  /*verbose=*/false, /*timeout=*/100, /*useVAD=*/true,

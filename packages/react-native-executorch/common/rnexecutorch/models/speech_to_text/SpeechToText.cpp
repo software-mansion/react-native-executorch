@@ -9,10 +9,8 @@
 
 namespace rnexecutorch::models::speech_to_text {
 
-SpeechToText::SpeechToText(const std::string &modelName,
-                           const std::string &modelSource,
-                           const std::string &tokenizerSource,
-                           const std::string &vadSource,
+SpeechToText::SpeechToText(const std::string &modelName, const std::string &modelSource,
+                           const std::string &tokenizerSource, const std::string &vadSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)) {
   // Switch between the ASR implementations based on model name
@@ -21,49 +19,39 @@ SpeechToText::SpeechToText(const std::string &modelName,
       vad_ = std::make_unique<VoiceActivityDetection>(vadSource, callInvoker_);
     }
 
-    transcriber_ = std::make_unique<whisper::ASR>(modelSource, tokenizerSource,
-                                                  callInvoker_);
+    transcriber_ = std::make_unique<whisper::ASR>(modelSource, tokenizerSource, callInvoker_);
     streamer_ = std::make_unique<whisper::stream::OnlineASR>(
         static_cast<const whisper::ASR *>(transcriber_.get()),
         static_cast<const VoiceActivityDetection *>(vad_.get()));
   } else {
-    throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::InvalidConfig,
-        "[SpeechToText]: Invalid model name: " + modelName);
+    throw rnexecutorch::RnExecutorchError(rnexecutorch::RnExecutorchErrorCode::InvalidConfig,
+                                          "[SpeechToText]: Invalid model name: " + modelName);
   }
 }
 
 SpeechToText::SpeechToText(SpeechToText &&other) noexcept
-    : callInvoker_(std::move(other.callInvoker_)),
-      transcriber_(std::move(other.transcriber_)),
-      streamer_(std::move(other.streamer_)),
-      isStreaming_(other.isStreaming_.load()),
+    : callInvoker_(std::move(other.callInvoker_)), transcriber_(std::move(other.transcriber_)),
+      streamer_(std::move(other.streamer_)), isStreaming_(other.isStreaming_.load()),
       readyToProcess_(other.readyToProcess_.load()) {}
 
 void SpeechToText::unload() noexcept { transcriber_->unload(); }
 
-std::shared_ptr<OwningArrayBuffer>
-SpeechToText::encode(std::span<float> waveform) const {
+std::shared_ptr<OwningArrayBuffer> SpeechToText::encode(std::span<float> waveform) const {
   executorch::aten::Tensor encoderOutputTensor = transcriber_->encode(waveform);
 
-  return std::make_shared<OwningArrayBuffer>(
-      encoderOutputTensor.const_data_ptr<float>(),
-      sizeof(float) * encoderOutputTensor.numel());
+  return std::make_shared<OwningArrayBuffer>(encoderOutputTensor.const_data_ptr<float>(),
+                                             sizeof(float) * encoderOutputTensor.numel());
 }
 
-std::shared_ptr<OwningArrayBuffer>
-SpeechToText::decode(std::span<uint64_t> tokens,
-                     std::span<float> encoderOutput) const {
-  executorch::aten::Tensor decoderOutputTensor =
-      transcriber_->decode(tokens, encoderOutput);
+std::shared_ptr<OwningArrayBuffer> SpeechToText::decode(std::span<uint64_t> tokens,
+                                                        std::span<float> encoderOutput) const {
+  executorch::aten::Tensor decoderOutputTensor = transcriber_->decode(tokens, encoderOutput);
 
-  return std::make_shared<OwningArrayBuffer>(
-      decoderOutputTensor.const_data_ptr<float>(),
-      sizeof(float) * decoderOutputTensor.numel());
+  return std::make_shared<OwningArrayBuffer>(decoderOutputTensor.const_data_ptr<float>(),
+                                             sizeof(float) * decoderOutputTensor.numel());
 }
 
-TranscriptionResult SpeechToText::transcribe(std::span<float> waveform,
-                                             std::string languageOption,
+TranscriptionResult SpeechToText::transcribe(std::span<float> waveform, std::string languageOption,
                                              bool verbose) const {
   DecodingOptions options(languageOption, verbose);
   std::vector<Segment> segments = transcriber_->transcribe(waveform, options);
@@ -92,8 +80,8 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
 }
 
 namespace {
-TranscriptionResult wordsToResult(const std::vector<Word> &words,
-                                  const std::string &language, bool verbose) {
+TranscriptionResult wordsToResult(const std::vector<Word> &words, const std::string &language,
+                                  bool verbose) {
   TranscriptionResult res;
   res.language = language;
   res.task = "stream";
@@ -120,9 +108,8 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 }
 } // namespace
 
-void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
-                          std::string languageOption, bool verbose,
-                          uint32_t timeout, bool useVAD,
+void SpeechToText::stream(std::shared_ptr<jsi::Function> callback, std::string languageOption,
+                          bool verbose, uint32_t timeout, bool useVAD,
                           uint32_t vadDetectionMargin) {
   if (isStreaming_) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
@@ -135,21 +122,16 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                             "Attempting to use VAD but it's not initialized!");
   }
 
-  auto nativeCallback =
-      [this, callback](const TranscriptionResult &committed,
-                       const TranscriptionResult &nonCommitted, bool isDone) {
-        // This moves execution to the JS thread
-        callInvoker_->invokeAsync(
-            [callback, committed, nonCommitted, isDone](jsi::Runtime &rt) {
-              jsi::Value jsiCommitted =
-                  rnexecutorch::jsi_conversion::getJsiValue(committed, rt);
-              jsi::Value jsiNonCommitted =
-                  rnexecutorch::jsi_conversion::getJsiValue(nonCommitted, rt);
+  auto nativeCallback = [this, callback](const TranscriptionResult &committed,
+                                         const TranscriptionResult &nonCommitted, bool isDone) {
+    // This moves execution to the JS thread
+    callInvoker_->invokeAsync([callback, committed, nonCommitted, isDone](jsi::Runtime &rt) {
+      jsi::Value jsiCommitted = rnexecutorch::jsi_conversion::getJsiValue(committed, rt);
+      jsi::Value jsiNonCommitted = rnexecutorch::jsi_conversion::getJsiValue(nonCommitted, rt);
 
-              callback->call(rt, std::move(jsiCommitted),
-                             std::move(jsiNonCommitted), jsi::Value(isDone));
-            });
-      };
+      callback->call(rt, std::move(jsiCommitted), std::move(jsiNonCommitted), jsi::Value(isDone));
+    });
+  };
 
   isStreaming_ = true;
   StreamingOptions options(languageOption, verbose, useVAD, vadDetectionMargin);
@@ -162,8 +144,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
       // correctness when VAD is used. Otherwise we run into the vanishing text
       // issue.
       if (!res.committed.empty() || !res.nonCommitted.empty()) {
-        TranscriptionResult committedRes =
-            wordsToResult(res.committed, languageOption, verbose);
+        TranscriptionResult committedRes = wordsToResult(res.committed, languageOption, verbose);
         TranscriptionResult nonCommittedRes =
             wordsToResult(res.nonCommitted, languageOption, verbose);
 
@@ -190,8 +171,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   finishOptions.useVAD = false;
 
   std::vector<Word> finalWords = streamer_->finish(finishOptions);
-  TranscriptionResult finalRes =
-      wordsToResult(finalWords, languageOption, verbose);
+  TranscriptionResult finalRes = wordsToResult(finalWords, languageOption, verbose);
 
   nativeCallback(finalRes, {}, true);
   resetStreamState();

@@ -14,11 +14,10 @@ using namespace params::partitioning;
 // Custom infinity definition
 constexpr Partitioner::Cost INF = 1e7;
 
-Partitioner::Partition Partitioner::partition(std::u32string_view input,
-                                              size_t limit, Mode mode) const {
+Partitioner::Partition Partitioner::partition(std::u32string_view input, size_t limit,
+                                              Mode mode) const {
   if (mode == Mode::MIN_BREAKS) {
-    auto minBreakCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
-                                  int64_t bp, size_t end,
+    auto minBreakCostFn = [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp, size_t end,
                                   Separator sep) -> Cost {
       if (end - bp > limit) {
         return INF;
@@ -36,8 +35,7 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
   }
 
   if (mode == Mode::MIN_LATENCY) {
-    auto minLatencyCostFn = [limit](Cost acc, size_t beg, int64_t prevBp,
-                                    int64_t bp, size_t end,
+    auto minLatencyCostFn = [limit](Cost acc, size_t beg, int64_t prevBp, int64_t bp, size_t end,
                                     Separator sep) -> Cost {
       if (end - bp > limit) {
         return INF;
@@ -51,14 +49,11 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
       int64_t rightmostRangeLength = end - bp;
       int64_t prevRangeLength = bp - prevBp;
 
-      int64_t latency = std::max(static_cast<int64_t>(0),
-                                 rightmostRangeLength - prevRangeLength);
+      int64_t latency = std::max(static_cast<int64_t>(0), rightmostRangeLength - prevRangeLength);
       int64_t discount =
-          kTokenDiscountFactor *
-          std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
+          kTokenDiscountFactor * std::max(static_cast<int64_t>(0), kTokenDiscountRange - bp - 1);
 
-      return acc + static_cast<Cost>(latency * discount / kTokenDiscountRange) +
-             sepPenalty;
+      return acc + static_cast<Cost>(latency * discount / kTokenDiscountRange) + sepPenalty;
     };
 
     return partition(input, limit, minLatencyCostFn);
@@ -67,8 +62,7 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
   return {input, {}};
 }
 
-Partitioner::Partition Partitioner::partition(std::u32string_view input,
-                                              size_t limit,
+Partitioner::Partition Partitioner::partition(std::u32string_view input, size_t limit,
                                               CostFn costFn) const {
   if (input.empty()) {
     return {input, {}};
@@ -93,8 +87,7 @@ Partitioner::Partition Partitioner::partition(std::u32string_view input,
                       : q == &pausePoints ? Separator::PAUSE
                                           : Separator::WHITE;
       for (size_t breakIdx : (*q)) {
-        auto cost = costFn(dp[breakIdx].first, 0, dp[breakIdx].second, breakIdx,
-                           i, sep);
+        auto cost = costFn(dp[breakIdx].first, 0, dp[breakIdx].second, breakIdx, i, sep);
         if (cost < bestCost && breakIdx > 0) {
           bestCost = cost;
           prevBpIdx = breakIdx;

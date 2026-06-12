@@ -26,9 +26,8 @@ namespace models::ocr {
 
 class OCR final {
 public:
-  explicit OCR(const std::string &detectorSource,
-               const std::string &recognizerSource, const std::string &symbols,
-               std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit OCR(const std::string &detectorSource, const std::string &recognizerSource,
+               const std::string &symbols, std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
   generateFromString(std::string input);
   [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>

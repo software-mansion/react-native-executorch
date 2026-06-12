@@ -21,9 +21,8 @@ class Kokoro {
 public:
   Kokoro(const std::string &lang, const std::string &taggerDataSource,
          const std::string &lexiconSource, const std::string &neuralModelSource,
-         const std::string &durationPredictorSource,
-         const std::string &synthesizerSource, const std::string &voiceSource,
-         std::shared_ptr<react::CallInvoker> callInvoker);
+         const std::string &durationPredictorSource, const std::string &synthesizerSource,
+         const std::string &voiceSource, std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Generates complete audio for the provided text.
@@ -35,8 +34,7 @@ public:
    * operates on raw input.
    * @return A vector of PCM float samples representing the synthesized speech.
    */
-  std::vector<float> generate(std::u32string input, float speed = 1.F,
-                              bool phonemize = true);
+  std::vector<float> generate(std::u32string input, float speed = 1.F, bool phonemize = true);
 
   /**
    * Starts an asynchronous streaming process that processes text in chunks.
@@ -50,8 +48,8 @@ public:
    * @param stopOnEmptyBuffer If true, streaming terminates automatically when
    * the buffer is exhausted.
    */
-  void stream(std::shared_ptr<jsi::Function> callback, float speed = 1.F,
-              bool phonemize = true, bool stopOnEmptyBuffer = false);
+  void stream(std::shared_ptr<jsi::Function> callback, float speed = 1.F, bool phonemize = true,
+              bool stopOnEmptyBuffer = false);
 
   /**
    * Appends new input data (either text or phonemes) to the buffer.
@@ -87,8 +85,7 @@ public:
 private:
   // --- Initialization & Core Inference ---
   void loadVoice(const std::string &voiceSource);
-  std::vector<float> synthesize(std::u32string_view phonemes, float speed,
-                                size_t paddingMs = 50);
+  std::vector<float> synthesize(std::u32string_view phonemes, float speed, size_t paddingMs = 50);
 
   // --- External Dependencies ---
   std::shared_ptr<react::CallInvoker> callInvoker_;
@@ -121,9 +118,8 @@ private:
 };
 } // namespace models::text_to_speech::kokoro
 
-REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
+REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string, std::string, std::string,
                      std::string, std::string, std::string, std::string,
-                     std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 
 } // namespace rnexecutorch

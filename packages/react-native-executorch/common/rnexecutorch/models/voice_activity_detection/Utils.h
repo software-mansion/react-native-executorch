@@ -6,9 +6,8 @@
 #include <vector>
 
 namespace rnexecutorch::models::voice_activity_detection::utils {
-size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
-                                     size_t numClass, size_t size,
-                                     std::vector<float> &resultVector,
+size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor, size_t numClass,
+                                     size_t size, std::vector<float> &resultVector,
                                      size_t startIdx);
 
 /**
@@ -20,7 +19,7 @@ size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
  * samples) to qualify them for a merge.
  * @return A new collection containing the merged speech segments.
  */
-std::vector<types::Segment>
-mergeSegments(const std::vector<types::Segment> &segments, size_t maxMergeGap);
+std::vector<types::Segment> mergeSegments(const std::vector<types::Segment> &segments,
+                                          size_t maxMergeGap);
 
 } // namespace rnexecutorch::models::voice_activity_detection::utils

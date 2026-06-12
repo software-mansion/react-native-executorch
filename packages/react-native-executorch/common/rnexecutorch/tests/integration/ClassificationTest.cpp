@@ -10,8 +10,7 @@ using namespace rnexecutorch::models::classification;
 using namespace model_tests;
 
 constexpr auto kValidClassificationModelPath = "efficientnet_v2_s_xnnpack.pte";
-constexpr auto kValidTestImagePath =
-    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr auto kValidTestImagePath = "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 constexpr size_t kImagenet1kNumClasses = 1000;
 
 static std::vector<float> kImagenetNormMean = {0.485f, 0.456f, 0.406f};
@@ -34,13 +33,11 @@ template <> struct ModelTraits<Classification> {
   using ModelType = Classification;
 
   static ModelType createValid() {
-    return ModelType(kValidClassificationModelPath, kImagenetNormMean,
-                     kImagenetNormStd, getImagenetLabelNames(), nullptr);
+    return ModelType(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                     getImagenetLabelNames(), nullptr);
   }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", {}, {}, {}, nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", {}, {}, {}, nullptr); }
 
   static void callGenerate(ModelType &model) {
     (void)model.generateFromString(kValidTestImagePath);
@@ -49,52 +46,48 @@ template <> struct ModelTraits<Classification> {
 } // namespace model_tests
 
 using ClassificationTypes = ::testing::Types<Classification>;
-INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest,
-                               ClassificationTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(Classification, VisionModelTest,
-                               ClassificationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest, ClassificationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(Classification, VisionModelTest, ClassificationTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
-               RnExecutorchError);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, EmptyImagePathThrows) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, MalformedURIThrows) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
-               RnExecutorchError);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto results = model.generateFromString(kValidTestImagePath);
   EXPECT_FALSE(results.empty());
 }
 
 TEST(ClassificationGenerateTests, ResultsHaveCorrectSize) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto results = model.generateFromString(kValidTestImagePath);
   auto expectedNumClasses = kImagenet1kNumClasses;
   EXPECT_EQ(results.size(), expectedNumClasses);
 }
 
 TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto results = model.generateFromString(kValidTestImagePath);
 
   float sum = 0.0f;
@@ -107,8 +100,8 @@ TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
 }
 
 TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto results = model.generateFromString(kValidTestImagePath);
 
   float maxProb = 0.0f;
@@ -121,15 +114,14 @@ TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
 }
 
 TEST(ClassificationGenerateTests, WrongLabelCountThrows) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, {"A", "B", "C"}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath),
-               RnExecutorchError);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       {"A", "B", "C"}, nullptr);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath), RnExecutorchError);
 }
 
 TEST(ClassificationInheritedTests, GetInputShapeWorks) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1);
@@ -137,15 +129,15 @@ TEST(ClassificationInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(ClassificationInheritedTests, GetAllInputShapesWorks) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(ClassificationInheritedTests, GetMethodMetaWorks) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
@@ -154,11 +146,10 @@ TEST(ClassificationInheritedTests, GetMethodMetaWorks) {
 // generateFromPixels smoke test
 // ============================================================================
 TEST(ClassificationPixelTests, ValidPixelsReturnsResults) {
-  Classification model(kValidClassificationModelPath, kImagenetNormMean,
-                       kImagenetNormStd, getImagenetLabelNames(), nullptr);
+  Classification model(kValidClassificationModelPath, kImagenetNormMean, kImagenetNormStd,
+                       getImagenetLabelNames(), nullptr);
   std::vector<uint8_t> buf(64 * 64 * 3, 128);
-  JSTensorViewIn view{
-      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  JSTensorViewIn view{buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
   auto results = model.generateFromPixels(view);
   EXPECT_FALSE(results.empty());
 }

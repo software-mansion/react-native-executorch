@@ -21,34 +21,29 @@ using namespace facebook;
 
 class RnExecutorchInstaller {
 public:
-  static void
-  injectJSIBindings(jsi::Runtime *jsiRuntime,
-                    std::shared_ptr<react::CallInvoker> jsCallInvoker,
-                    FetchUrlFunc_t fetchDataFromUrl, bool isEmulator);
+  static void injectJSIBindings(jsi::Runtime *jsiRuntime,
+                                std::shared_ptr<react::CallInvoker> jsCallInvoker,
+                                FetchUrlFunc_t fetchDataFromUrl, bool isEmulator);
 
 private:
   template <typename ModelT>
-    requires meta::ValidConstructorTraits<ModelT> &&
-             meta::CallInvokerLastInConstructor<ModelT> &&
+    requires meta::ValidConstructorTraits<ModelT> && meta::CallInvokerLastInConstructor<ModelT> &&
              meta::ProvidesMemoryLowerBound<ModelT>
-  static jsi::Function
-  loadModel(jsi::Runtime *jsiRuntime,
-            std::shared_ptr<react::CallInvoker> jsCallInvoker,
-            const std::string &loadFunctionName) {
+  static jsi::Function loadModel(jsi::Runtime *jsiRuntime,
+                                 std::shared_ptr<react::CallInvoker> jsCallInvoker,
+                                 const std::string &loadFunctionName) {
     return jsi::Function::createFromHostFunction(
-        *jsiRuntime, jsi::PropNameID::forAscii(*jsiRuntime, loadFunctionName),
-        0,
-        [jsCallInvoker](jsi::Runtime &runtime, const jsi::Value &thisValue,
-                        const jsi::Value *args, size_t count) -> jsi::Value {
-          constexpr std::size_t expectedCount = std::tuple_size_v<
-              typename meta::ConstructorTraits<ModelT>::arg_types>;
+        *jsiRuntime, jsi::PropNameID::forAscii(*jsiRuntime, loadFunctionName), 0,
+        [jsCallInvoker](jsi::Runtime &runtime, const jsi::Value &thisValue, const jsi::Value *args,
+                        size_t count) -> jsi::Value {
+          constexpr std::size_t expectedCount =
+              std::tuple_size_v<typename meta::ConstructorTraits<ModelT>::arg_types>;
           // count doesn't account for the JSCallInvoker
           if (count != expectedCount - 1) {
             char errorMessage[100];
-            std::snprintf(
-                errorMessage, sizeof(errorMessage),
-                "Argument count mismatch, was expecting: %zu but got: %zu",
-                expectedCount, count);
+            std::snprintf(errorMessage, sizeof(errorMessage),
+                          "Argument count mismatch, was expecting: %zu but got: %zu", expectedCount,
+                          count);
             throw jsi::JSError(runtime, errorMessage);
           }
 
@@ -56,59 +51,47 @@ private:
           // access), then dispatch the heavy model construction to a background
           // thread and return a Promise.
           auto constructorArgs =
-              meta::createConstructorArgsWithCallInvoker<ModelT>(args, runtime,
-                                                                 jsCallInvoker);
+              meta::createConstructorArgsWithCallInvoker<ModelT>(args, runtime, jsCallInvoker);
 
           return Promise::createPromise(
               runtime, jsCallInvoker,
-              [jsCallInvoker, constructorArgs = std::move(constructorArgs)](
-                  std::shared_ptr<Promise> promise) {
-                threads::GlobalThreadPool::detach([jsCallInvoker, promise,
-                                                   constructorArgs = std::move(
-                                                       constructorArgs)]() {
-                  try {
-                    auto modelImplementationPtr = std::apply(
-                        [](auto &&...unpackedArgs) {
-                          return std::make_shared<ModelT>(
-                              std::forward<decltype(unpackedArgs)>(
-                                  unpackedArgs)...);
-                        },
-                        std::move(constructorArgs));
+              [jsCallInvoker,
+               constructorArgs = std::move(constructorArgs)](std::shared_ptr<Promise> promise) {
+                threads::GlobalThreadPool::detach(
+                    [jsCallInvoker, promise, constructorArgs = std::move(constructorArgs)]() {
+                      try {
+                        auto modelImplementationPtr = std::apply(
+                            [](auto &&...unpackedArgs) {
+                              return std::make_shared<ModelT>(
+                                  std::forward<decltype(unpackedArgs)>(unpackedArgs)...);
+                            },
+                            std::move(constructorArgs));
 
-                    auto modelHostObject =
-                        std::make_shared<ModelHostObject<ModelT>>(
+                        auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                             modelImplementationPtr, jsCallInvoker);
 
-                    auto memoryLowerBound =
-                        modelImplementationPtr->getMemoryLowerBound();
+                        auto memoryLowerBound = modelImplementationPtr->getMemoryLowerBound();
 
-                    jsCallInvoker->invokeAsync([promise, modelHostObject,
-                                                memoryLowerBound](
-                                                   jsi::Runtime &rt) {
-                      auto jsiObject = jsi::Object::createFromHostObject(
-                          rt, modelHostObject);
-                      jsiObject.setExternalMemoryPressure(rt, memoryLowerBound);
-                      promise->resolve(std::move(jsiObject));
-                    });
-                  } catch (const rnexecutorch::RnExecutorchError &e) {
-                    auto code = e.getNumericCode();
-                    auto msg = std::string(e.what());
-                    jsCallInvoker->invokeAsync(
-                        [promise, code, msg](jsi::Runtime &rt) {
-                          promise->reject(
-                              makeRnExecutorchErrorValue(rt, code, msg));
+                        jsCallInvoker->invokeAsync([promise, modelHostObject,
+                                                    memoryLowerBound](jsi::Runtime &rt) {
+                          auto jsiObject = jsi::Object::createFromHostObject(rt, modelHostObject);
+                          jsiObject.setExternalMemoryPressure(rt, memoryLowerBound);
+                          promise->resolve(std::move(jsiObject));
                         });
-                  } catch (const std::exception &e) {
-                    jsCallInvoker->invokeAsync(
-                        [promise, msg = std::string(e.what())]() {
-                          promise->reject(msg);
+                      } catch (const rnexecutorch::RnExecutorchError &e) {
+                        auto code = e.getNumericCode();
+                        auto msg = std::string(e.what());
+                        jsCallInvoker->invokeAsync([promise, code, msg](jsi::Runtime &rt) {
+                          promise->reject(makeRnExecutorchErrorValue(rt, code, msg));
                         });
-                  } catch (...) {
-                    jsCallInvoker->invokeAsync([promise]() {
-                      promise->reject(std::string("Unknown error"));
+                      } catch (const std::exception &e) {
+                        jsCallInvoker->invokeAsync(
+                            [promise, msg = std::string(e.what())]() { promise->reject(msg); });
+                      } catch (...) {
+                        jsCallInvoker->invokeAsync(
+                            [promise]() { promise->reject(std::string("Unknown error")); });
+                      }
                     });
-                  }
-                });
               });
         });
   }

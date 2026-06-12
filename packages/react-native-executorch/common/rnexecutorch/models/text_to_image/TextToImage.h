@@ -21,16 +21,12 @@ using namespace facebook;
 
 class TextToImage final {
 public:
-  explicit TextToImage(const std::string &tokenizerSource,
-                       const std::string &encoderSource,
-                       const std::string &unetSource,
-                       const std::string &decoderSource,
+  explicit TextToImage(const std::string &tokenizerSource, const std::string &encoderSource,
+                       const std::string &unetSource, const std::string &decoderSource,
                        float schedulerBetaStart, float schedulerBetaEnd,
-                       int32_t schedulerNumTrainTimesteps,
-                       int32_t schedulerStepsOffset,
+                       int32_t schedulerNumTrainTimesteps, int32_t schedulerStepsOffset,
                        std::shared_ptr<react::CallInvoker> callInvoker);
-  std::string generate(std::string input, int32_t imageSize,
-                       size_t numInferenceSteps, int32_t seed,
+  std::string generate(std::string input, int32_t imageSize, size_t numInferenceSteps, int32_t seed,
                        std::shared_ptr<jsi::Function> callback);
   void interrupt() noexcept;
   size_t getMemoryLowerBound() const noexcept;
@@ -58,7 +54,7 @@ private:
 };
 } // namespace models::text_to_image
 
-REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string,
-                     std::string, std::string, std::string, float, float,
-                     int32_t, int32_t, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string, std::string, std::string,
+                     std::string, float, float, int32_t, int32_t,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

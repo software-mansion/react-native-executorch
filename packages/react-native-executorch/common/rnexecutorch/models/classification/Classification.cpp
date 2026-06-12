@@ -9,24 +9,19 @@
 
 namespace rnexecutorch::models::classification {
 
-Classification::Classification(const std::string &modelSource,
-                               std::vector<float> normMean,
-                               std::vector<float> normStd,
-                               std::vector<std::string> labelNames,
+Classification::Classification(const std::string &modelSource, std::vector<float> normMean,
+                               std::vector<float> normStd, std::vector<std::string> labelNames,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : VisionModel(modelSource, callInvoker),
-      labelNames_(std::move(labelNames)) {
+    : VisionModel(modelSource, callInvoker), labelNames_(std::move(labelNames)) {
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
+    log(LOG_LEVEL::Warn, "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
   } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
+    log(LOG_LEVEL::Warn, "normStd must have 3 elements — ignoring provided value.");
   }
 
   auto inputShapes = getAllInputShapes();
@@ -41,23 +36,19 @@ Classification::Classification(const std::string &modelSource,
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
                   modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions, errorMessage);
   }
 }
 
-std::unordered_map<std::string_view, float>
-Classification::runInference(cv::Mat image) {
+std::unordered_map<std::string_view, float> Classification::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
 
-  auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, preprocessed, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  preprocessed);
+  auto inputTensor = (normMean_ && normStd_)
+                         ? image_processing::getTensorFromMatrix(modelInputShape_, preprocessed,
+                                                                 *normMean_, *normStd_)
+                         : image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
@@ -75,8 +66,7 @@ Classification::generateFromString(std::string imageSource) {
 }
 
 std::unordered_map<std::string_view, float>
-Classification::generateFromFrame(jsi::Runtime &runtime,
-                                  const jsi::Value &frameData) {
+Classification::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) {
   cv::Mat frame = extractFromFrame(runtime, frameData);
   return runInference(frame);
 }
@@ -88,21 +78,18 @@ Classification::generateFromPixels(JSTensorViewIn pixelData) {
   return runInference(image);
 }
 
-std::unordered_map<std::string_view, float>
-Classification::postprocess(const Tensor &tensor) {
-  std::span<const float> resultData(
-      static_cast<const float *>(tensor.const_data_ptr()), tensor.numel());
+std::unordered_map<std::string_view, float> Classification::postprocess(const Tensor &tensor) {
+  std::span<const float> resultData(static_cast<const float *>(tensor.const_data_ptr()),
+                                    tensor.numel());
   std::vector<float> resultVec(resultData.begin(), resultData.end());
 
   if (resultVec.size() != labelNames_.size()) {
     char errorMessage[100];
-    std::snprintf(
-        errorMessage, sizeof(errorMessage),
-        "Unexpected classification output size, was expecting: %zu classes "
-        "but got: %zu classes",
-        labelNames_.size(), resultVec.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
-                            errorMessage);
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unexpected classification output size, was expecting: %zu classes "
+                  "but got: %zu classes",
+                  labelNames_.size(), resultVec.size());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput, errorMessage);
   }
 
   numerical::softmax(resultVec);

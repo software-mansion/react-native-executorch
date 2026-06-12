@@ -12,16 +12,13 @@ JavaVM *java_machine;
 using namespace facebook::jni;
 
 ETInstallerModule::ETInstallerModule(
-    jni::alias_ref<ETInstallerModule::jhybridobject> &jThis,
-    jsi::Runtime *jsiRuntime,
+    jni::alias_ref<ETInstallerModule::jhybridobject> &jThis, jsi::Runtime *jsiRuntime,
     const std::shared_ptr<facebook::react::CallInvoker> &jsCallInvoker)
-    : javaPart_(make_global(jThis)), jsiRuntime_(jsiRuntime),
-      jsCallInvoker_(jsCallInvoker) {}
+    : javaPart_(make_global(jThis)), jsiRuntime_(jsiRuntime), jsCallInvoker_(jsCallInvoker) {}
 
 jni::local_ref<ETInstallerModule::jhybriddata> ETInstallerModule::initHybrid(
     jni::alias_ref<jhybridobject> jThis, jlong jsContext,
-    jni::alias_ref<facebook::react::CallInvokerHolder::javaobject>
-        jsCallInvokerHolder) {
+    jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder) {
   auto jsCallInvoker = jsCallInvokerHolder->cthis()->getCallInvoker();
   auto rnRuntime = reinterpret_cast<jsi::Runtime *>(jsContext);
   return makeCxxInstance(jThis, rnRuntime, jsCallInvoker);
@@ -30,8 +27,7 @@ jni::local_ref<ETInstallerModule::jhybriddata> ETInstallerModule::initHybrid(
 void ETInstallerModule::registerNatives() {
   registerHybrid({
       makeNativeMethod("initHybrid", ETInstallerModule::initHybrid),
-      makeNativeMethod("injectJSIBindings",
-                       ETInstallerModule::injectJSIBindings),
+      makeNativeMethod("injectJSIBindings", ETInstallerModule::injectJSIBindings),
   });
 }
 
@@ -48,12 +44,11 @@ void ETInstallerModule::injectJSIBindings() {
       }
     }
     static jclass cls = javaClassStatic().get();
-    static jmethodID method = env->GetStaticMethodID(
-        cls, "fetchByteDataFromUrl", "(Ljava/lang/String;)[B");
+    static jmethodID method =
+        env->GetStaticMethodID(cls, "fetchByteDataFromUrl", "(Ljava/lang/String;)[B");
 
     jstring jUrl = env->NewStringUTF(url.c_str());
-    jbyteArray byteData =
-        (jbyteArray)env->CallStaticObjectMethod(cls, method, jUrl);
+    jbyteArray byteData = (jbyteArray)env->CallStaticObjectMethod(cls, method, jUrl);
 
     if (env->IsSameObject(byteData, NULL)) {
       throw std::runtime_error("Error fetching data from a url");
@@ -68,13 +63,12 @@ void ETInstallerModule::injectJSIBindings() {
 
   auto _isEmulator = isEmulator();
 
-  RnExecutorchInstaller::injectJSIBindings(jsiRuntime_, jsCallInvoker_,
-                                           fetchDataByUrl, _isEmulator);
+  RnExecutorchInstaller::injectJSIBindings(jsiRuntime_, jsCallInvoker_, fetchDataByUrl,
+                                           _isEmulator);
 }
 } // namespace rnexecutorch
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   rnexecutorch::java_machine = vm;
-  return facebook::jni::initialize(
-      vm, [] { rnexecutorch::ETInstallerModule::registerNatives(); });
+  return facebook::jni::initialize(vm, [] { rnexecutorch::ETInstallerModule::registerNatives(); });
 }

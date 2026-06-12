@@ -63,8 +63,7 @@ cv::Mat unrotateMat(const cv::Mat &src, int32_t rotation) {
 
 extern "C" {
 
-JNIEXPORT jlong JNICALL
-Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
+JNIEXPORT jlong JNICALL Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     JNIEnv *env, jobject thiz, jstring modelPath) {
   const char *pathChars = env->GetStringUTFChars(modelPath, nullptr);
   if (pathChars == nullptr) {
@@ -82,8 +81,8 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
     std::vector<std::string> allClasses = {"foreground", "background"};
 
     auto handle = std::make_unique<ProcessorHandle>();
-    handle->segmentation = std::make_unique<BaseSemanticSegmentation>(
-        path, normMean, normStd, allClasses, nullptr);
+    handle->segmentation =
+        std::make_unique<BaseSemanticSegmentation>(path, normMean, normStd, allClasses, nullptr);
 
     auto inputShapes = handle->segmentation->getAllInputShapes();
     if (!inputShapes.empty() && inputShapes[0].size() >= 4) {
@@ -99,10 +98,9 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_loadModel(
   }
 }
 
-JNIEXPORT jbyteArray JNICALL
-Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
-    JNIEnv *env, jobject thiz, jlong handlePtr, jbyteArray rgbaData, jint width,
-    jint height, jint rotation) {
+JNIEXPORT jbyteArray JNICALL Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
+    JNIEnv *env, jobject thiz, jlong handlePtr, jbyteArray rgbaData, jint width, jint height,
+    jint rotation) {
   if (handlePtr == 0) {
     return nullptr;
   }
@@ -127,15 +125,13 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
     pixelData.scalarType = executorch::aten::ScalarType::Byte;
 
     std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
-    auto result = handle->segmentation->generateFromPixels(
-        pixelData, classesOfInterest, false);
+    auto result = handle->segmentation->generateFromPixels(pixelData, classesOfInterest, false);
 
     cv::Mat mask;
     if (result.classBuffers && result.classBuffers->count("foreground")) {
       auto &fgBuffer = result.classBuffers->at("foreground");
       auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
-      mask = cv::Mat(handle->modelHeight, handle->modelWidth, CV_32FC1, fgData)
-                 .clone();
+      mask = cv::Mat(handle->modelHeight, handle->modelWidth, CV_32FC1, fgData).clone();
     } else {
       LOGE("No foreground mask in result");
       env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
@@ -151,16 +147,15 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
       handle->previousMask = mask.clone();
       handle->hasHistory = true;
     } else {
-      cv::addWeighted(handle->previousMask, EMA_ALPHA, mask, 1.0f - EMA_ALPHA,
-                      0, handle->previousMask);
+      cv::addWeighted(handle->previousMask, EMA_ALPHA, mask, 1.0f - EMA_ALPHA, 0,
+                      handle->previousMask);
       mask = handle->previousMask.clone();
     }
 
     cv::Mat maskRotated = unrotateMat(mask, rotation);
 
     cv::Mat maskResized;
-    cv::resize(maskRotated, maskResized, cv::Size(width, height), 0, 0,
-               cv::INTER_LINEAR);
+    cv::resize(maskRotated, maskResized, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
 
     cv::Mat maskBytes;
     maskResized.convertTo(maskBytes, CV_8UC1, 255.0);
@@ -171,8 +166,7 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
       env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
       return nullptr;
     }
-    env->SetByteArrayRegion(output, 0, maskSize,
-                            reinterpret_cast<jbyte *>(maskBytes.data));
+    env->SetByteArrayRegion(output, 0, maskSize, reinterpret_cast<jbyte *>(maskBytes.data));
     env->ReleaseByteArrayElements(rgbaData, rgbaPtr, JNI_ABORT);
     return output;
 
@@ -183,8 +177,7 @@ Java_com_executorch_webrtc_ExecutorchFrameProcessor_runSegmentation(
   }
 }
 
-JNIEXPORT void JNICALL
-Java_com_executorch_webrtc_ExecutorchFrameProcessor_unloadModel(
+JNIEXPORT void JNICALL Java_com_executorch_webrtc_ExecutorchFrameProcessor_unloadModel(
     JNIEnv *env, jobject thiz, jlong handlePtr) {
   if (handlePtr == 0) {
     return;

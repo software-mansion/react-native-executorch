@@ -7,8 +7,7 @@ using namespace rnexecutorch;
 constexpr auto kValidTokenizerPath = "tokenizer.json";
 
 TEST(TokenizerCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(TokenizerModule("nonexistent_tokenizer.json", nullptr),
-               RnExecutorchError);
+  EXPECT_THROW(TokenizerModule("nonexistent_tokenizer.json", nullptr), RnExecutorchError);
 }
 
 TEST(TokenizerCtorTests, ValidPathDoesntThrow) {

@@ -42,8 +42,7 @@ namespace models {
  */
 class VisionModel : public BaseModel {
 public:
-  VisionModel(const std::string &modelSource,
-              std::shared_ptr<react::CallInvoker> callInvoker);
+  VisionModel(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker);
 
   virtual ~VisionModel() = default;
 
@@ -111,8 +110,7 @@ protected:
    *
    * @note Does NOT acquire the inference mutex — caller is responsible
    */
-  cv::Mat extractFromFrame(jsi::Runtime &runtime,
-                           const jsi::Value &frameData) const;
+  cv::Mat extractFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) const;
 
   /**
    * @brief Extract cv::Mat from raw pixel data (TensorPtr) sent from
@@ -150,7 +148,6 @@ protected:
 // Register VisionModel constructor traits
 // Even though VisionModel is abstract, the metaprogramming system needs to know
 // its constructor signature for derived classes
-REGISTER_CONSTRUCTOR(models::VisionModel, std::string,
-                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::VisionModel, std::string, std::shared_ptr<react::CallInvoker>);
 
 } // namespace rnexecutorch

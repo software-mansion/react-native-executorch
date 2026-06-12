@@ -14,8 +14,7 @@ std::vector<T> nonMaxSuppression(std::vector<T> items, double iouThreshold) {
     return {};
   }
 
-  std::ranges::sort(items,
-                    [](const T &a, const T &b) { return a.score > b.score; });
+  std::ranges::sort(items, [](const T &a, const T &b) { return a.score > b.score; });
 
   std::vector<T> result;
   std::vector<bool> suppressed(items.size(), false);

@@ -19,25 +19,21 @@ using executorch::extension::module::Module;
 using executorch::runtime::Error;
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
-         std::vector<std::string> capabilities,
-         std::shared_ptr<react::CallInvoker> callInvoker)
+         std::vector<std::string> capabilities, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::Mmap) {
   if (capabilities.empty()) {
-    runner_ =
-        std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
+    runner_ = std::make_unique<llm::TextRunner>(std::move(module_), tokenizerSource);
   } else {
     std::map<llm::MultimodalType, std::unique_ptr<llm::IEncoder>> encoders;
     for (const auto &cap : capabilities) {
       if (cap == "vision") {
-        encoders[llm::MultimodalType::Image] =
-            std::make_unique<llm::VisionEncoder>(*module_);
+        encoders[llm::MultimodalType::Image] = std::make_unique<llm::VisionEncoder>(*module_);
       } else if (cap == "audio") {
-        encoders[llm::MultimodalType::Audio] =
-            std::make_unique<llm::AudioEncoder>(*module_);
+        encoders[llm::MultimodalType::Audio] = std::make_unique<llm::AudioEncoder>(*module_);
       }
     }
-    runner_ = std::make_unique<llm::MultimodalRunner>(
-        std::move(module_), tokenizerSource, std::move(encoders));
+    runner_ = std::make_unique<llm::MultimodalRunner>(std::move(module_), tokenizerSource,
+                                                      std::move(encoders));
   }
 
   auto loadResult = runner_->load();
@@ -53,11 +49,9 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
   memorySizeLowerBound = fs::file_size(fs::path(tokenizerSource));
 }
 
-std::string LLM::generate(std::string input,
-                          std::shared_ptr<jsi::Function> callback) {
+std::string LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Runner is not loaded");
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded, "Runner is not loaded");
   }
   std::string output;
   auto nativeCallback = [this, callback, &output](const std::string &token) {
@@ -77,22 +71,18 @@ std::string LLM::generate(std::string input,
   return output;
 }
 
-std::string LLM::generateMultimodal(std::string prompt,
-                                    std::shared_ptr<jsi::Function> callback,
+std::string LLM::generateMultimodal(std::string prompt, std::shared_ptr<jsi::Function> callback,
                                     MultimodalInputs mutlimodalInputs) {
   if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Runner is not loaded");
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded, "Runner is not loaded");
   }
   if (!runner_->is_multimodal()) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "This model does not support multimodal input.");
   }
-  if (!mutlimodalInputs.images.has_value() &&
-      !mutlimodalInputs.audios.has_value()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "At least one of imageToken/audioToken must be non-empty");
+  if (!mutlimodalInputs.images.has_value() && !mutlimodalInputs.audios.has_value()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "At least one of imageToken/audioToken must be non-empty");
   }
 
   // Scan the prompt once, splitting at the earliest placeholder at each step
@@ -110,8 +100,8 @@ std::string LLM::generateMultimodal(std::string prompt,
       inputs.push_back(llm::make_text_input(prompt.substr(pos)));
       break;
     }
-    const bool imageFirst = imgAt != std::string::npos &&
-                            (audAt == std::string::npos || imgAt < audAt);
+    const bool imageFirst =
+        imgAt != std::string::npos && (audAt == std::string::npos || imgAt < audAt);
     size_t at = imageFirst ? imgAt : audAt;
     if (at > pos) {
       inputs.push_back(llm::make_text_input(prompt.substr(pos, at - pos)));
@@ -120,8 +110,7 @@ std::string LLM::generateMultimodal(std::string prompt,
       auto &images = mutlimodalInputs.images.value();
       if (imageIdx >= images.paths.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + images.token +
-                                    "' placeholders than image paths");
+                                "More '" + images.token + "' placeholders than image paths");
       }
       inputs.push_back(llm::make_image_input(images.paths[imageIdx++]));
       pos = at + images.token.size();
@@ -129,11 +118,9 @@ std::string LLM::generateMultimodal(std::string prompt,
       auto &audios = mutlimodalInputs.audios.value();
       if (audioIdx >= audios.waveforms.size()) {
         throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                                "More '" + audios.token +
-                                    "' placeholders than audio waveforms");
+                                "More '" + audios.token + "' placeholders than audio waveforms");
       }
-      inputs.push_back(
-          llm::make_audio_input(std::move(audios.waveforms[audioIdx++])));
+      inputs.push_back(llm::make_audio_input(std::move(audios.waveforms[audioIdx++])));
       pos = at + audios.token.size();
     }
   }
@@ -141,13 +128,11 @@ std::string LLM::generateMultimodal(std::string prompt,
        imageIdx < mutlimodalInputs.images.value().paths.size()) ||
       (mutlimodalInputs.audios.has_value() &&
        audioIdx < mutlimodalInputs.audios.value().waveforms.size())) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "More image/audio paths provided than placeholders in prompt");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "More image/audio paths provided than placeholders in prompt");
   }
   if (inputs.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
-                            "No inputs to generate from");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput, "No inputs to generate from");
   }
 
   std::string output;
@@ -204,16 +189,13 @@ int32_t LLM::getVisualTokenCount() const {
 
 int32_t LLM::countTextTokens(std::string text) const {
   if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::ModuleNotLoaded,
-        "Can't count tokens from a model that's not loaded");
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't count tokens from a model that's not loaded");
   }
   return runner_->count_text_tokens(text);
 }
 
-size_t LLM::getMemoryLowerBound() const noexcept {
-  return memorySizeLowerBound;
-}
+size_t LLM::getMemoryLowerBound() const noexcept { return memorySizeLowerBound; }
 
 void LLM::setCountInterval(size_t countInterval) {
   if (!runner_ || !runner_->is_loaded()) {
@@ -289,9 +271,8 @@ void LLM::setRepetitionPenalty(float repetitionPenalty) {
 
 int32_t LLM::getMaxContextLength() const {
   if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::ModuleNotLoaded,
-        "Can't get context length from a model that's not loaded");
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't get context length from a model that's not loaded");
   }
   return runner_->get_max_context_length();
 }

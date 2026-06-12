@@ -6,8 +6,7 @@ namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
 
-UNet::UNet(const std::string &modelSource,
-           std::shared_ptr<react::CallInvoker> callInvoker)
+UNet::UNet(const std::string &modelSource, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {}
 
 std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
@@ -17,16 +16,12 @@ std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
   latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
   latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
-  std::vector<int32_t> latentsShape = {2, numChannels, latentImageSize,
-                                       latentImageSize};
+  std::vector<int32_t> latentsShape = {2, numChannels, latentImageSize, latentImageSize};
 
-  auto timestepTensor =
-      make_tensor_ptr<int64_t>({static_cast<int64_t>(timestep)});
-  auto latentsTensor =
-      make_tensor_ptr(latentsShape, latentsConcat.data(), ScalarType::Float);
+  auto timestepTensor = make_tensor_ptr<int64_t>({static_cast<int64_t>(timestep)});
+  auto latentsTensor = make_tensor_ptr(latentsShape, latentsConcat.data(), ScalarType::Float);
 
-  auto forwardResult =
-      BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});
+  auto forwardResult = BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();

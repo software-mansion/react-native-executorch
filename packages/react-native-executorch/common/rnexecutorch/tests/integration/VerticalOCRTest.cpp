@@ -20,10 +20,9 @@ constexpr auto kValidVerticalTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/we_are_software_mansion.jpg";
 
 // English alphabet symbols (must match alphabets.english from symbols.ts)
-const std::string ENGLISH_SYMBOLS =
-    "0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ "
-    "\xE2\x82\xAC" // Euro sign (€)
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const std::string ENGLISH_SYMBOLS = "0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ "
+                                    "\xE2\x82\xAC" // Euro sign (€)
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -33,14 +32,12 @@ template <> struct ModelTraits<VerticalOCR> {
   using ModelType = VerticalOCR;
 
   static ModelType createValid() {
-    return ModelType(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                     ENGLISH_SYMBOLS, false,
-                     rnexecutorch::createMockCallInvoker());
+    return ModelType(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                     false, rnexecutorch::createMockCallInvoker());
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", kValidVerticalRecognizerPath,
-                     ENGLISH_SYMBOLS, false,
+    return ModelType("nonexistent.pte", kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, false,
                      rnexecutorch::createMockCallInvoker());
   }
 
@@ -59,61 +56,56 @@ INSTANTIATE_TYPED_TEST_SUITE_P(VerticalOCR, CommonModelTest, VerticalOCRTypes);
 
 // Constructor tests
 TEST(VerticalOCRCtorTests, InvalidRecognizerPathThrows) {
-  EXPECT_THROW(VerticalOCR(kValidVerticalDetectorPath, "nonexistent.pte",
-                           ENGLISH_SYMBOLS, false, createMockCallInvoker()),
+  EXPECT_THROW(VerticalOCR(kValidVerticalDetectorPath, "nonexistent.pte", ENGLISH_SYMBOLS, false,
+                           createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(VerticalOCRCtorTests, EmptySymbolsThrows) {
-  EXPECT_THROW(VerticalOCR(kValidVerticalDetectorPath,
-                           kValidVerticalRecognizerPath, "", false,
+  EXPECT_THROW(VerticalOCR(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, "", false,
                            createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(VerticalOCRCtorTests, IndependentCharsTrueDoesntThrow) {
-  EXPECT_NO_THROW(VerticalOCR(kValidVerticalDetectorPath,
-                              kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
-                              true, createMockCallInvoker()));
+  EXPECT_NO_THROW(VerticalOCR(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
+                              ENGLISH_SYMBOLS, true, createMockCallInvoker()));
 }
 
 TEST(VerticalOCRCtorTests, IndependentCharsFalseDoesntThrow) {
-  EXPECT_NO_THROW(VerticalOCR(kValidVerticalDetectorPath,
-                              kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
-                              false, createMockCallInvoker()));
+  EXPECT_NO_THROW(VerticalOCR(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
+                              ENGLISH_SYMBOLS, false, createMockCallInvoker()));
 }
 
 // Generate tests - Independent Characters strategy
 TEST(VerticalOCRGenerateTests, IndependentCharsInvalidImageThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
-               RnExecutorchError);
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsEmptyImagePathThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
   EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsMalformedURIThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
-               RnExecutorchError);
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsValidImageReturnsResults) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveValidBBoxes) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -125,8 +117,8 @@ TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveValidBBoxes) {
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveValidScores) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -136,8 +128,8 @@ TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveValidScores) {
 }
 
 TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveNonEmptyText) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, true,
+                    createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -147,35 +139,33 @@ TEST(VerticalOCRGenerateTests, IndependentCharsDetectionsHaveNonEmptyText) {
 
 // Generate tests - Joint Characters strategy
 TEST(VerticalOCRGenerateTests, JointCharsInvalidImageThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
-               RnExecutorchError);
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsEmptyImagePathThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsMalformedURIThrows) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
-               RnExecutorchError);
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"), RnExecutorchError);
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsValidImageReturnsResults) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveValidBBoxes) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -187,8 +177,8 @@ TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveValidBBoxes) {
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveValidScores) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -198,8 +188,8 @@ TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveValidScores) {
 }
 
 TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveNonEmptyText) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   auto results = model.generateFromString(kValidVerticalTestImagePath);
 
   for (const auto &detection : results) {
@@ -209,31 +199,23 @@ TEST(VerticalOCRGenerateTests, JointCharsDetectionsHaveNonEmptyText) {
 
 // Strategy comparison tests
 TEST(VerticalOCRStrategyTests, BothStrategiesRunSuccessfully) {
-  VerticalOCR independentModel(kValidVerticalDetectorPath,
-                               kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
-                               true, createMockCallInvoker());
-  VerticalOCR jointModel(kValidVerticalDetectorPath,
-                         kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, false,
-                         createMockCallInvoker());
+  VerticalOCR independentModel(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
+                               ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR jointModel(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                         false, createMockCallInvoker());
 
-  EXPECT_NO_THROW(
-      (void)independentModel.generateFromString(kValidVerticalTestImagePath));
-  EXPECT_NO_THROW(
-      (void)jointModel.generateFromString(kValidVerticalTestImagePath));
+  EXPECT_NO_THROW((void)independentModel.generateFromString(kValidVerticalTestImagePath));
+  EXPECT_NO_THROW((void)jointModel.generateFromString(kValidVerticalTestImagePath));
 }
 
 TEST(VerticalOCRStrategyTests, BothStrategiesReturnValidResults) {
-  VerticalOCR independentModel(kValidVerticalDetectorPath,
-                               kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
-                               true, createMockCallInvoker());
-  VerticalOCR jointModel(kValidVerticalDetectorPath,
-                         kValidVerticalRecognizerPath, ENGLISH_SYMBOLS, false,
-                         createMockCallInvoker());
+  VerticalOCR independentModel(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
+                               ENGLISH_SYMBOLS, true, createMockCallInvoker());
+  VerticalOCR jointModel(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                         false, createMockCallInvoker());
 
-  auto independentResults =
-      independentModel.generateFromString(kValidVerticalTestImagePath);
-  auto jointResults =
-      jointModel.generateFromString(kValidVerticalTestImagePath);
+  auto independentResults = independentModel.generateFromString(kValidVerticalTestImagePath);
+  auto jointResults = jointModel.generateFromString(kValidVerticalTestImagePath);
 
   // Both should return some results (or none if no text detected)
   EXPECT_GE(independentResults.size(), 0u);
@@ -244,11 +226,10 @@ TEST(VerticalOCRStrategyTests, BothStrategiesReturnValidResults) {
 // generateFromPixels smoke test
 // ============================================================================
 TEST(VerticalOCRPixelTests, ValidPixelsReturnsResults) {
-  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath,
-                    ENGLISH_SYMBOLS, false, createMockCallInvoker());
+  VerticalOCR model(kValidVerticalDetectorPath, kValidVerticalRecognizerPath, ENGLISH_SYMBOLS,
+                    false, createMockCallInvoker());
   std::vector<uint8_t> buf(64 * 64 * 3, 128);
-  JSTensorViewIn view{
-      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  JSTensorViewIn view{buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
   auto results = model.generateFromPixels(view);
   EXPECT_GE(results.size(), 0u);
 }

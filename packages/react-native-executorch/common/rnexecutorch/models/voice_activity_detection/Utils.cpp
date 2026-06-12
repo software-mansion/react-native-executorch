@@ -4,9 +4,8 @@
 #include <algorithm>
 
 namespace rnexecutorch::models::voice_activity_detection::utils {
-size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
-                                     size_t numClass, size_t size,
-                                     std::vector<float> &resultVector,
+size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor, size_t numClass,
+                                     size_t size, std::vector<float> &resultVector,
                                      size_t startIdx) {
   const auto *rawData = tensor.const_data_ptr<float>();
   for (size_t i = 0; i < size; i++) {
@@ -15,8 +14,8 @@ size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
   return startIdx + size;
 }
 
-std::vector<types::Segment>
-mergeSegments(const std::vector<types::Segment> &segments, size_t maxMergeGap) {
+std::vector<types::Segment> mergeSegments(const std::vector<types::Segment> &segments,
+                                          size_t maxMergeGap) {
   if (segments.empty()) {
     return segments;
   }
@@ -28,8 +27,7 @@ mergeSegments(const std::vector<types::Segment> &segments, size_t maxMergeGap) {
     auto &lastMerged = mergedSegments.back();
     const auto &current = segments[i];
 
-    if (current.start < lastMerged.end ||
-        current.start - lastMerged.end <= maxMergeGap) {
+    if (current.start < lastMerged.end || current.start - lastMerged.end <= maxMergeGap) {
       lastMerged.end = std::max(lastMerged.end, current.end);
     } else {
       mergedSegments.push_back(current);

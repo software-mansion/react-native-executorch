@@ -15,15 +15,13 @@ using ::executorch::aten::ScalarType;
 using ::executorch::extension::make_tensor_ptr;
 using ::executorch::extension::TensorPtr;
 
-DurationPredictor::DurationPredictor(
-    const std::string &modelSource, const Context &modelContext,
-    std::shared_ptr<react::CallInvoker> callInvoker)
+DurationPredictor::DurationPredictor(const std::string &modelSource, const Context &modelContext,
+                                     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker), context_(modelContext) {
   auto availableMethods = module_->method_names();
   if (!availableMethods.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnknownError,
-        "[Kokoro::DurationPredictor] Unable to read model's methods");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                            "[Kokoro::DurationPredictor] Unable to read model's methods");
   }
 
   // Recognize available forward methods
@@ -45,9 +43,8 @@ DurationPredictor::DurationPredictor(
   }
 
   // Sort the forward methods by input size
-  std::stable_sort(
-      forwardMethods_.begin(), forwardMethods_.end(),
-      [](const auto &a, const auto &b) { return a.second < b.second; });
+  std::stable_sort(forwardMethods_.begin(), forwardMethods_.end(),
+                   [](const auto &a, const auto &b) { return a.second < b.second; });
 }
 
 std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
@@ -62,35 +59,31 @@ DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
   CHECK_SIZE(ref_hs, constants::kVoiceRefHalfSize);
 
   // Select appropriate forward method
-  auto it =
-      std::ranges::find_if(forwardMethods_, [inputSize](const auto &entry) {
-        return entry.second >= inputSize;
-      });
+  auto it = std::ranges::find_if(
+      forwardMethods_, [inputSize](const auto &entry) { return entry.second >= inputSize; });
   if (it == forwardMethods_.end()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::WrongDimensions,
-        "[Kokoro::DurationPredictor] No appropriate forward method to"
-        "handle input of size " +
-            std::to_string(inputSize));
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
+                            "[Kokoro::DurationPredictor] No appropriate forward method to"
+                            "handle input of size " +
+                                std::to_string(inputSize));
   }
   auto selectedMethod = it->first;
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                                      tokens.data(), ScalarType::Long);
+  auto tokensTensor =
+      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())}, tokens.data(), ScalarType::Long);
 
-  auto textMaskTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
-                      textMask.data(), ScalarType::Bool);
+  auto textMaskTensor = make_tensor_ptr({1, static_cast<int32_t>(textMask.size())}, textMask.data(),
+                                        ScalarType::Bool);
 
-  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
-                                        ref_hs.data(), ScalarType::Float);
+  auto voiceRefTensor =
+      make_tensor_ptr({1, constants::kVoiceRefHalfSize}, ref_hs.data(), ScalarType::Float);
 
   auto speedTensor = make_tensor_ptr({1}, &speed, ScalarType::Float);
 
   // Execute the appropriate "forward_xyz" method, based on given method name
-  auto results = execute(selectedMethod, {tokensTensor, textMaskTensor,
-                                          voiceRefTensor, speedTensor});
+  auto results =
+      execute(selectedMethod, {tokensTensor, textMaskTensor, voiceRefTensor, speedTensor});
 
   CHECK_OK_OR_THROW_FORWARD_ERROR(results);
 
@@ -101,8 +94,8 @@ DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
 
   // Scale output durations if it exceedes the limits
   size_t totalDur = std::reduce(predDurPtr, predDurPtr + inputSize);
-  size_t clampedDur = std::clamp(totalDur, constants::kMinDurationTicks,
-                                 context_.inputDurationLimit);
+  size_t clampedDur =
+      std::clamp(totalDur, constants::kMinDurationTicks, context_.inputDurationLimit);
   if (totalDur != clampedDur) {
     scaleDurations(predDurTensor, inputSize, clampedDur);
   }
@@ -111,23 +104,18 @@ DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
   std::vector<int64_t> idxs(inputSize);
   std::iota(idxs.begin(), idxs.end(), 0LL);
   std::vector<int64_t> indices = rnexecutorch::sequential::repeatInterleave(
-      std::span<const int64_t>(idxs),
-      std::span<const int64_t>(predDurPtr, inputSize));
+      std::span<const int64_t>(idxs), std::span<const int64_t>(predDurPtr, inputSize));
 
   // Calculate the effective duration
   // Note that we lower effective duration even further, to remove
   // some of the side-effects at the end of the audio.
   int32_t originalLength =
-      std::distance(tokens.begin(),
-                    std::find(tokens.begin() + 1, tokens.end(), 0)) +
-      1;
+      std::distance(tokens.begin(), std::find(tokens.begin() + 1, tokens.end(), 0)) + 1;
   int32_t effDuration = std::distance(
-      indices.begin(),
-      std::lower_bound(indices.begin(), indices.end(), originalLength));
+      indices.begin(), std::lower_bound(indices.begin(), indices.end(), originalLength));
 
   // Calculate timestamps - based on predicted durations.
-  std::vector<Timestamp> timestamps =
-      calculateTimestamps(predDurPtr, inputSize);
+  std::vector<Timestamp> timestamps = calculateTimestamps(predDurPtr, inputSize);
 
   /**
    * Returns:
@@ -135,24 +123,22 @@ DurationPredictor::generate(std::span<Token> tokens, std::span<bool> textMask,
    *   - indices: vector of repeated token indices according to durations.
    *   - effDuration: an effective duration after post-processing.
    */
-  return std::make_tuple(std::move(dTensor), std::move(indices),
-                         std::move(effDuration), std::move(timestamps));
+  return std::make_tuple(std::move(dTensor), std::move(indices), std::move(effDuration),
+                         std::move(timestamps));
 }
 
 size_t DurationPredictor::getTokensLimit() const {
   return forwardMethods_.empty() ? 0 : forwardMethods_.back().second;
 }
 
-std::vector<Timestamp>
-DurationPredictor::calculateTimestamps(const int64_t *predDurPtr,
-                                       size_t inputSize) const {
+std::vector<Timestamp> DurationPredictor::calculateTimestamps(const int64_t *predDurPtr,
+                                                              size_t inputSize) const {
   std::vector<Timestamp> timestamps;
   timestamps.reserve(inputSize);
 
   size_t accDur = 0;
   for (size_t i = 0; i < inputSize; i++) {
-    int64_t dur = predDurPtr[i] *
-                  constants::kTicksPerDuration; // Convert to audio samples
+    int64_t dur = predDurPtr[i] * constants::kTicksPerDuration; // Convert to audio samples
     timestamps.emplace_back(accDur, accDur + dur);
     accDur += dur;
   }
@@ -163,18 +149,15 @@ DurationPredictor::calculateTimestamps(const int64_t *predDurPtr,
 void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
                                        int32_t targetDuration) const {
   // We expect durations tensor to be a Long tensor of a shape [1, n_tokens]
-  if (durations.dtype() != ScalarType::Long &&
-      durations.dtype() != ScalarType::Int) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidModelOutput,
-        "[Kokoro::DurationPredictor] Attempted to scale a non-integer tensor");
+  if (durations.dtype() != ScalarType::Long && durations.dtype() != ScalarType::Int) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
+                            "[Kokoro::DurationPredictor] Attempted to scale a non-integer tensor");
   }
 
   auto shape = durations.sizes();
   if (shape.size() != 1) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidModelOutput,
-        "[Kokoro::DurationPredictor] Attempted to scale an ill-shaped tensor");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
+                            "[Kokoro::DurationPredictor] Attempted to scale an ill-shaped tensor");
   }
 
   int64_t *durationsPtr = durations.mutable_data_ptr<int64_t>();
@@ -186,16 +169,13 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
   // We need to scale partial durations (integers) corresponding to each token
   // in a way that they all sum up to target duration, while keeping the balance
   // between the values.
-  std::priority_queue<std::pair<float, uint32_t>>
-      remainders; // Sorted by the first value
+  std::priority_queue<std::pair<float, uint32_t>> remainders; // Sorted by the first value
   int64_t scaledSum = 0;
   for (uint32_t i = 0; i < nTokens; i++) {
     float scaled = scaleFactor * durationsPtr[i];
-    float remainder =
-        shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
+    float remainder = shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
 
-    durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled)
-                                                     : std::floor(scaled));
+    durationsPtr[i] = static_cast<int64_t>(shrinking ? std::ceil(scaled) : std::floor(scaled));
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders

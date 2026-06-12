@@ -2,7 +2,6 @@
 #import <React/RCTEventEmitter.h>
 #import <RnExecutorchSpec/RnExecutorchSpec.h>
 
-@interface ETInstaller
-    : RCTEventEmitter <NativeETInstallerSpec, RCTCallInvokerModule>
+@interface ETInstaller : RCTEventEmitter <NativeETInstallerSpec, RCTCallInvokerModule>
 
 @end

@@ -114,10 +114,9 @@ TYPED_TEST_P(CommonModelTest, MultipleGeneratesWork) {
 
 // TODO: Investigate why TextToImage fails on MultipleGeneratesWork in the
 // emulator environment
-REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows,
-                            ValidPathDoesntThrow, GetMemoryLowerBoundValue,
-                            GetMemoryLowerBoundConsistent, UnloadDoesntThrow,
-                            MultipleUnloadsSafe, GenerateAfterUnloadThrows,
+REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows, ValidPathDoesntThrow,
+                            GetMemoryLowerBoundValue, GetMemoryLowerBoundConsistent,
+                            UnloadDoesntThrow, MultipleUnloadsSafe, GenerateAfterUnloadThrows,
                             MultipleGeneratesWork);
 
 } // namespace model_tests

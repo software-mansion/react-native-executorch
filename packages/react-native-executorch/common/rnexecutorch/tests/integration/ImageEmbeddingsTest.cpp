@@ -11,10 +11,8 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::embeddings;
 using namespace model_tests;
 
-constexpr auto kValidImageEmbeddingsModelPath =
-    "clip-vit-base-patch32-vision_xnnpack.pte";
-constexpr auto kValidTestImagePath =
-    "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
+constexpr auto kValidImageEmbeddingsModelPath = "clip-vit-base-patch32-vision_xnnpack.pte";
+constexpr auto kValidTestImagePath = "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -23,13 +21,9 @@ namespace model_tests {
 template <> struct ModelTraits<ImageEmbeddings> {
   using ModelType = ImageEmbeddings;
 
-  static ModelType createValid() {
-    return ModelType(kValidImageEmbeddingsModelPath, nullptr);
-  }
+  static ModelType createValid() { return ModelType(kValidImageEmbeddingsModelPath, nullptr); }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", nullptr); }
 
   static void callGenerate(ModelType &model) {
     (void)model.generateFromString(kValidTestImagePath);
@@ -38,18 +32,15 @@ template <> struct ModelTraits<ImageEmbeddings> {
 } // namespace model_tests
 
 using ImageEmbeddingsTypes = ::testing::Types<ImageEmbeddings>;
-INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, CommonModelTest,
-                               ImageEmbeddingsTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, VisionModelTest,
-                               ImageEmbeddingsTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, CommonModelTest, ImageEmbeddingsTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, VisionModelTest, ImageEmbeddingsTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(ImageEmbeddingsGenerateTests, InvalidImagePathThrows) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"), RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, EmptyImagePathThrows) {
@@ -59,8 +50,7 @@ TEST(ImageEmbeddingsGenerateTests, EmptyImagePathThrows) {
 
 TEST(ImageEmbeddingsGenerateTests, MalformedURIThrows) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"), RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, ValidImageReturnsResults) {
@@ -134,8 +124,7 @@ TEST(ImageEmbeddingsInheritedTests, GetMethodMetaWorks) {
 TEST(ImageEmbeddingsPixelTests, ValidPixelsReturnsEmbedding) {
   ImageEmbeddings model(kValidImageEmbeddingsModelPath, nullptr);
   std::vector<uint8_t> buf(64 * 64 * 3, 128);
-  JSTensorViewIn view{
-      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  JSTensorViewIn view{buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
   auto result = model.generateFromPixels(view);
   EXPECT_NE(result, nullptr);
   EXPECT_GT(result->size(), 0u);

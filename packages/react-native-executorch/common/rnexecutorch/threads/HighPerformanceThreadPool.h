@@ -42,8 +42,7 @@ struct ThreadConfig {
 
 class HighPerformanceThreadPool {
 public:
-  explicit HighPerformanceThreadPool(size_t numThreads = 1,
-                                     ThreadConfig cfg = ThreadConfig())
+  explicit HighPerformanceThreadPool(size_t numThreads = 1, ThreadConfig cfg = ThreadConfig())
       : config(std::move(cfg)) {
 
 #ifdef __ANDROID__
@@ -55,16 +54,14 @@ public:
       workers.emplace_back(&HighPerformanceThreadPool::workerThread, this, i);
     }
 
-    log(LOG_LEVEL::Debug, "Thread pool initialized with", numThreads,
-        "workers.");
+    log(LOG_LEVEL::Debug, "Thread pool initialized with", numThreads, "workers.");
   }
 
   ~HighPerformanceThreadPool() { shutdown(); }
 
   // Submit a task and get a future for the result
   template <typename Func, typename... Args>
-  auto submit(Func &&func, Args &&...args)
-      -> std::future<decltype(func(args...))> {
+  auto submit(Func &&func, Args &&...args) -> std::future<decltype(func(args...))> {
     return submitWithPriority(Priority::NORMAL, std::forward<Func>(func),
                               std::forward<Args>(args)...);
   }
@@ -77,10 +74,8 @@ public:
     using ReturnType = decltype(func(args...));
 
     // Create a packaged task
-    auto boundFunc =
-        std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
-    auto task = std::make_unique<Task<decltype(boundFunc), ReturnType>>(
-        std::move(boundFunc));
+    auto boundFunc = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
+    auto task = std::make_unique<Task<decltype(boundFunc), ReturnType>>(std::move(boundFunc));
     auto future = task->getFuture();
 
     // Add to queue
@@ -92,8 +87,7 @@ public:
                                 "Thread pool is shutting down");
       }
 
-      WorkItem item(std::move(task), priority,
-                    std::chrono::steady_clock::now());
+      WorkItem item(std::move(task), priority, std::chrono::steady_clock::now());
 
       taskQueue.push(std::move(item));
     }
@@ -110,8 +104,7 @@ public:
   }
 
   // Fire and forget task
-  template <typename Func, typename... Args>
-  void submitDetached(Func &&func, Args &&...args) {
+  template <typename Func, typename... Args> void submitDetached(Func &&func, Args &&...args) {
     submit(std::forward<Func>(func), std::forward<Args>(args)...);
     // Future is destroyed, task still runs
   }
@@ -210,8 +203,8 @@ private:
     const auto numOfCores = std::thread::hardware_concurrency();
 
     for (int32_t i = 0; std::cmp_less(i, numOfCores); ++i) {
-      std::string path = "/sys/devices/system/cpu/cpu" + std::to_string(i) +
-                         "/cpufreq/cpuinfo_max_freq";
+      std::string path =
+          "/sys/devices/system/cpu/cpu" + std::to_string(i) + "/cpufreq/cpuinfo_max_freq";
       std::ifstream file(path);
       if (!file.good()) {
         break;
@@ -229,13 +222,11 @@ private:
     }
 
     // Sort by frequency
-    std::ranges::sort(cores, [](const CoreInfo &a, const CoreInfo &b) {
-      return a.maxFreq > b.maxFreq;
-    });
+    std::ranges::sort(cores,
+                      [](const CoreInfo &a, const CoreInfo &b) { return a.maxFreq > b.maxFreq; });
 
     // Classify cores
-    const auto numOfPerfCores =
-        ::executorch::extension::cpuinfo::get_num_performant_cores();
+    const auto numOfPerfCores = ::executorch::extension::cpuinfo::get_num_performant_cores();
 
     constexpr float kKiloToGigaRatio = 1e6;
     for (int32_t i = 0; i < cores.size(); ++i) {
@@ -276,8 +267,7 @@ private:
 
     setThreadPriority();
 
-    log(LOG_LEVEL::Debug, "Worker", workerIndex,
-        "configured:", threadName.c_str());
+    log(LOG_LEVEL::Debug, "Worker", workerIndex, "configured:", threadName.c_str());
   }
 
   void setCPUAffinity() {
