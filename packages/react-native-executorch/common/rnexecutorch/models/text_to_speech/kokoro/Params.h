@@ -21,12 +21,6 @@ namespace rnexecutorch::models::text_to_speech::kokoro::params {
 inline constexpr size_t kMaxTextSize = 2048;
 
 /**
- * A number of skipped streaming iterations after which we process the remaining
- * input no matter how it looks like.
- */
-inline constexpr int32_t kStreamMaxSkippedIterations = 3;
-
-/**
  * A size of pause (in miliseconds) applied after each streaming iteration.
  */
 inline constexpr int32_t kStreamPause = 200;

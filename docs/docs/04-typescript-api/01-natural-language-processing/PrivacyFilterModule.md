@@ -27,20 +27,18 @@ All methods of `PrivacyFilterModule` are explained in details here: [`PrivacyFil
 
 ## Loading the model
 
-To create a ready-to-use instance, call the static [`fromModelName`](../../06-api-reference/classes/PrivacyFilterModule.md#frommodelname) factory with the following parameters:
+To create a ready-to-use instance for a built-in preset, call the static [`fromModelName`](../../06-api-reference/classes/PrivacyFilterModule.md#frommodelname) factory with the following parameters:
 
 - `namedSources` — Object containing:
-  - `modelName` — Model name identifier.
+  - `modelName` — Built-in preset identifier (`'privacy-filter-openai'` or `'privacy-filter-nemotron'`). The runner resolves the matching BIOES label list from this value.
   - `modelSource` — Location of the `.pte` model binary.
   - `tokenizerSource` — Location of the `tokenizer.json` file.
-  - `labelNames` — BIOES label list. Index 0 must be `"O"`; the rest must follow the model's `id2label` mapping exactly.
-  - `viterbiBiases` (optional) — Six-field bias struct that shifts the decoder's precision/recall tradeoff. Defaults to neutral (validity-only Viterbi).
 
 - `onDownloadProgress` — Optional callback to track download progress (value between 0 and 1).
 
 The factory returns a promise that resolves to a loaded `PrivacyFilterModule` instance.
 
-For custom-exported models, use [`fromCustomModel`](../../06-api-reference/classes/PrivacyFilterModule.md#fromcustommodel) instead — it takes the same fields as positional arguments and is convenient when you only have the raw resource locations.
+For custom-exported models with a non-standard label space, use [`fromCustomModel`](../../06-api-reference/classes/PrivacyFilterModule.md#fromcustommodel) instead. It takes `modelSource`, `tokenizerSource`, and a `labelNames` array (BIOES; index 0 must be `"O"`, the rest must follow the model's `id2label` mapping exactly), plus an optional `options` object with `viterbiBiases` (six-field bias struct that shifts the decoder's precision/recall tradeoff; defaults to neutral validity-only Viterbi) and `onDownloadProgress`.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 

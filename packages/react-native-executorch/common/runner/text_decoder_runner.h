@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "constants.h"
 #include "io_manager.h"
 #include "sampler.h"
 
@@ -40,8 +41,8 @@ public:
   step(TensorPtr &input, int64_t start_pos);
 
   /**
-   * Load the Module for text decode purpose.
-   * @return The error code.
+   * Load the Module for text decode purpose. Loads the dynamic-shape `forward`
+   * method used for both prefill and decode.
    */
   virtual ::executorch::runtime::Error load() {
     return module_->load_method("forward");

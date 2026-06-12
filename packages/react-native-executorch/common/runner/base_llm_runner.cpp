@@ -56,11 +56,16 @@ Error BaseLLMRunner::load() {
             ? static_cast<int32_t>(metadata_.at(kMaxContextLen))
             : static_cast<int32_t>(metadata_.at(kMaxSeqLen));
   }
-  if (config_.max_new_tokens < 0)
-    config_.max_new_tokens =
-        std::min(config_.max_seq_len, config_.max_context_length);
   config_.enable_dynamic_shape =
       static_cast<bool>(metadata_.at(kEnableDynamicShape));
+  if (config_.max_new_tokens < 0) {
+    // For dynamic-shape PTEs, max_seq_len is the per-call decoder chunk
+    // size, not the generation budget — use max_context_length instead.
+    const int32_t seq_cap = config_.enable_dynamic_shape
+                                ? config_.max_context_length
+                                : config_.max_seq_len;
+    config_.max_new_tokens = std::min(seq_cap, config_.max_context_length);
+  }
   config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
 
   eos_ids_ = std::make_unique<std::unordered_set<uint64_t>>();
@@ -148,6 +153,8 @@ void BaseLLMRunner::set_min_p(float min_p) noexcept { config_.min_p = min_p; }
 void BaseLLMRunner::set_repetition_penalty(float repetition_penalty) noexcept {
   config_.repetition_penalty = repetition_penalty;
 }
+
+void BaseLLMRunner::set_topk(int32_t topk) noexcept { config_.topk = topk; }
 
 void BaseLLMRunner::set_count_interval(size_t count_interval) {
   config_.output_token_batch_size = count_interval;

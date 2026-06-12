@@ -9,14 +9,20 @@ import { useModuleFactory } from '../useModuleFactory';
  * @returns Ready to use VAD model.
  */
 export const useVAD = ({ model, preventLoad = false }: VADProps): VADType => {
-  const { error, isReady, isGenerating, downloadProgress, runForward } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        VADModule.fromModelName(config, onProgress),
-      config: model,
-      deps: [model.modelName, model.modelSource],
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    runSideChannel,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      VADModule.fromModelName(config, onProgress),
+    config: model,
+    deps: [model.modelName, model.modelSource],
+    preventLoad,
+  });
 
   const forward = (waveform: Float32Array) =>
     runForward((inst) => inst.forward(waveform));
@@ -25,16 +31,9 @@ export const useVAD = ({ model, preventLoad = false }: VADProps): VADType => {
     runForward((inst) => inst.stream(input));
 
   const streamInsert = (waveform: Float32Array) =>
-    runForward((inst) => {
-      inst.streamInsert(waveform);
-      return Promise.resolve();
-    });
+    runSideChannel((inst) => inst.streamInsert(waveform));
 
-  const streamStop = () =>
-    runForward((inst) => {
-      inst.streamStop();
-      return Promise.resolve();
-    });
+  const streamStop = () => runSideChannel((inst) => inst.streamStop());
 
   return {
     error,

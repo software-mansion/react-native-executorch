@@ -1,9 +1,5 @@
 import { Platform } from 'react-native';
-import {
-  PRIVACY_FILTER_NEMOTRON_LABELS,
-  PRIVACY_FILTER_OPENAI_LABELS,
-} from './privacyFilterLabels';
-import { URL_PREFIX, PREVIOUS_VERSION_TAG } from './versions';
+import { URL_PREFIX, PREVIOUS_VERSION_TAG, VERSION_TAG } from './versions';
 
 // LLMs
 
@@ -126,6 +122,47 @@ export const QWEN3_0_6B_QUANTIZED = {
   tokenizerSource: QWEN3_TOKENIZER,
   tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
   generationConfig: QWEN3_GENERATION_CONFIG,
+} as const;
+
+// GEMMA 4 — separate HF repo; tokenizer files live at the e2b root and are
+// shared by all backend variants.
+const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b`;
+export const GEMMA4_E2B_MLX_MODEL = `${GEMMA4_E2B_PREFIX}/mlx/gemma4_e2b_mlx_int4.pte`;
+export const GEMMA4_E2B_XNNPACK_MODEL = `${GEMMA4_E2B_PREFIX}/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
+export const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+export const GEMMA4_E2B_TOKENIZER = `${GEMMA4_E2B_PREFIX}/tokenizer.json`;
+export const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_config.json`;
+
+const GEMMA4_E2B_MODEL =
+  Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MODEL : GEMMA4_E2B_MLX_MODEL;
+
+const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
+const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+
+/**
+ * @category Models - LLM
+ */
+export const GEMMA4_E2B = {
+  modelName: 'gemma4-e2b',
+  modelSource: GEMMA4_E2B_MODEL,
+  tokenizerSource: GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
+} as const;
+
+/**
+ * @category Models - LLM Multimodal
+ */
+export const GEMMA4_E2B_MM = {
+  modelName: 'gemma4-e2b-multimodal',
+  modelSource:
+    Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MM : GEMMA4_E2B_MLX_MM,
+  tokenizerSource: GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
+  capabilities: ['vision', 'audio'],
+  audioConfig: {
+    samplesPerBlock: 7680,
+    tokensPerBlock: 12,
+  },
 } as const;
 
 /**
@@ -817,29 +854,29 @@ export const STYLE_TRANSFER_UDNIE_QUANTIZED = {
 } as const;
 
 // S2T
-export const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
-export const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp32.pte`;
+export const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_TINY_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_fp32.pte`;
+export const WHISPER_TINY_EN_MODEL_COREML = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/coreml/whisper_tiny_en_coreml_fp16.pte`;
 
-export const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
-export const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_base_en_coreml_fp32.pte`;
+export const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_BASE_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_xnnpack_fp32.pte`;
+export const WHISPER_BASE_EN_MODEL_COREML = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/coreml/whisper_base_en_coreml_fp16.pte`;
 
-export const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
-export const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${PREVIOUS_VERSION_TAG}/coreml/whisper_small_en_coreml_fp32.pte`;
+export const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_SMALL_EN_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_xnnpack_fp32.pte`;
+export const WHISPER_SMALL_EN_MODEL_COREML = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/coreml/whisper_small_en_coreml_fp16.pte`;
 
-export const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
-export const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${PREVIOUS_VERSION_TAG}/coreml/whisper_tiny_coreml_fp32.pte`;
+export const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_TINY_MODEL_XNNPACK = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_xnnpack_fp32.pte`;
+export const WHISPER_TINY_MODEL_COREML = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/coreml/whisper_tiny_coreml_fp16.pte`;
 
-export const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
-export const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${PREVIOUS_VERSION_TAG}/coreml/whisper_base_coreml_fp32.pte`;
+export const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_BASE_MODEL_XNNPACK = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_xnnpack_fp32.pte`;
+export const WHISPER_BASE_MODEL_COREML = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/coreml/whisper_base_coreml_fp16.pte`;
 
-export const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
-export const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
-export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${PREVIOUS_VERSION_TAG}/coreml/whisper_small_coreml_fp32.pte`;
+export const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
+export const WHISPER_SMALL_MODEL_XNNPACK = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_xnnpack_fp32.pte`;
+export const WHISPER_SMALL_MODEL_COREML = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/coreml/whisper_small_coreml_fp16.pte`;
 
 /**
  * @category Models - Speech To Text
@@ -1248,7 +1285,6 @@ export const PRIVACY_FILTER_OPENAI = {
   modelName: 'privacy-filter-openai',
   modelSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
-  labelNames: PRIVACY_FILTER_OPENAI_LABELS,
 } as const;
 
 /**
@@ -1261,7 +1297,6 @@ export const PRIVACY_FILTER_NEMOTRON = {
   modelName: 'privacy-filter-nemotron',
   modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
-  labelNames: PRIVACY_FILTER_NEMOTRON_LABELS,
 } as const;
 
 // Image generation

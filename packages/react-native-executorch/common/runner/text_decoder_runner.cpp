@@ -31,7 +31,6 @@ TextDecoderRunner::TextDecoderRunner(Module &module, IOManager *io_manager,
 // outer loop (call site) is responsible for managing state.
 ::executorch::runtime::Result<executorch::aten::Tensor>
 TextDecoderRunner::step(TensorPtr &tokens, int64_t start_pos) {
-  // ET_LOG(Info, "Input token %" PRIu64, input_token);
   auto method_meta_result = module_->method_meta("forward");
   if (!method_meta_result.ok()) {
     return method_meta_result.error();
@@ -102,9 +101,7 @@ int32_t TextDecoderRunner::logits_to_token(
           auto num_tokens = logits_tensor.size(1);
           logits += (num_tokens - 1) * vocab_size;
         }
-        Sampler sampler(vocab_size, config_.temperature, config_.topp,
-                        static_cast<unsigned long long>(std::time(nullptr)),
-                        config_.min_p, config_.repetition_penalty);
+        Sampler sampler(vocab_size, config_);
         result = sampler.sample(logits, recent_tokens);
       });
   return result;

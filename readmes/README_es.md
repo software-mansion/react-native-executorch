@@ -142,7 +142,13 @@ Actualmente alojamos algunos ejemplos de [aplicaciones](https://github.com/softw
 - `text-embeddings` - Cálculo de representaciones de texto para búsqueda semántica
 - `bare-rn` - Ejemplo de chat LLM para React Native puro (sin Expo)
 
-Si deseas ejecutar una aplicación de demostración, navega a su directorio de proyecto. Luego instala las dependencias y ejecuta la app con:
+Si deseas ejecutar una aplicación de demostración, primero inicializa los submódulos de git necesarios desde la raíz del repositorio:
+
+```bash
+git submodule update --init packages/react-native-executorch/third-party/common
+```
+
+Luego navega a su directorio de proyecto, instala las dependencias y ejecuta la app con:
 
 ```bash
 yarn && yarn <ios|android>

@@ -141,6 +141,8 @@ const config = {
         logo: {
           alt: 'React Native ExecuTorch',
           src: 'img/logo-hero.svg',
+          href: 'https://docs.swmansion.com/react-native-executorch/',
+          target: '_self',
         },
         items: [
           {
@@ -196,7 +198,7 @@ const config = {
   customFields: {
     algolia: {
       suggestedQuestions: true,
-      enableSidePanel: true,
+      enableSidePanel: false,
     },
   },
 };

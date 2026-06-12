@@ -11,6 +11,7 @@
 		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
 		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
+		A1MLX0001RESBUILD0001 /* mlx.metallib in Resources */ = {isa = PBXBuildFile; fileRef = A1MLX0001FILEREF0001 /* mlx.metallib */; };
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
@@ -22,6 +23,7 @@
 		0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
 		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
 		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		A1MLX0001FILEREF0001 /* mlx.metallib */ = {isa = PBXFileReference; lastKnownFileType = archive.metal-library; path = mlx.metallib; sourceTree = "<group>"; };
 		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
@@ -66,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				55EA2C352CB90C7A004315B3 /* Exported */,
+				A1MLX0001FILEREF0001 /* mlx.metallib */,
 			);
 			path = ExecutorchLib;
 			sourceTree = "<group>";
@@ -153,6 +156,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1MLX0001RESBUILD0001 /* mlx.metallib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,6 +344,8 @@
 					"-force_load",
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libbackend_mps_ios.a",
 					"-force_load",
+					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libbackend_mlx_ios.a",
+					"-force_load",
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libexecutorch_ios.a",
 					"-force_load",
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libexecutorch_llm_ios.a",
@@ -425,6 +431,8 @@
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libkernels_quantized_ios.a",
 					"-force_load",
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libbackend_mps_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libbackend_mlx_ios.a",
 					"-force_load",
 					"$(PROJECT_DIR)/../../../third-party/ios/libs/executorch/libexecutorch_ios.a",
 					"-force_load",

@@ -1,3 +1,5 @@
+import { PrivacyFilterModelName } from '../types/privacyFilter';
+
 // BIOES tag scheme: 1 outside ("O") + 4 prefix variants × N entity types.
 // These arrays must match the model's id2label mapping exactly — the runner
 // uses index = label id, and labels[0] must be "O".
@@ -270,3 +272,17 @@ export const PRIVACY_FILTER_NEMOTRON_LABELS = [
   'E-vehicle_identifier',
   'S-vehicle_identifier',
 ] as const;
+
+/**
+ * Per-model label list lookup for built-in privacy filter presets. The
+ * runner resolves the label space from `modelName`; custom fine-tunes
+ * bypass this map and pass their own list through
+ * `PrivacyFilterModule.fromCustomModel`.
+ */
+export const PRIVACY_FILTER_LABELS: Record<
+  PrivacyFilterModelName,
+  readonly string[]
+> = {
+  'privacy-filter-openai': PRIVACY_FILTER_OPENAI_LABELS,
+  'privacy-filter-nemotron': PRIVACY_FILTER_NEMOTRON_LABELS,
+};

@@ -209,7 +209,7 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
       if (score >= threshold) {
         if (potentialStart == -1) {
           potentialStart = i;
-        } else if (i - potentialStart >= kMinSpeechDuration) {
+        } else if (i - potentialStart >= kMinSpeechDurationMs / kHopLengthMs) {
           triggered = true;
           startSegment = potentialStart;
           potentialStart = -1;
@@ -221,7 +221,7 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
       if (score < threshold) {
         if (potentialEnd == -1) {
           potentialEnd = i;
-        } else if (i - potentialEnd >= kMinSilenceDuration) {
+        } else if (i - potentialEnd >= kMinSilenceDurationMs / kHopLengthMs) {
           triggered = false;
           endSegment = potentialEnd;
           speechSegments.emplace_back(startSegment, endSegment);
@@ -237,11 +237,12 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
     speechSegments.emplace_back(startSegment, endSegment);
   }
 
+  constexpr size_t kSpeechPadHops = kSpeechPadMs / kHopLengthMs;
   for (auto &[start, end] : speechSegments) {
-    // std::max(start-kSpeedchPad, 0) might be underflow that is why we use ?
+    // std::max(start-kSpeechPadHops, 0) might be underflow that is why we use ?
     // operator.
-    start = (start > kSpeechPad ? start - kSpeechPad : 0) * kHopLength;
-    end = std::min(end + kSpeechPad, scores.size()) * kHopLength;
+    start = (start > kSpeechPadHops ? start - kSpeechPadHops : 0) * kHopLength;
+    end = std::min(end + kSpeechPadHops, scores.size()) * kHopLength;
   }
 
   // Merge tightly placed segments according to the max allowed gap parameter.

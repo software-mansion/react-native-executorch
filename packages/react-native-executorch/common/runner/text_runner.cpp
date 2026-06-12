@@ -26,11 +26,24 @@ Error TextRunner::load_subcomponents() {
 
   Stats *stats_ptr = &stats_;
 
-  text_decoder_runner_ = std::make_unique<TextDecoderRunner>(
-      *module_, io_manager_.get(), config_);
+  text_decoder_runner_ =
+      std::make_unique<TextDecoderRunner>(*module_, io_manager_.get(), config_);
+
+  int32_t prefill_chunk_size = 0;
+  auto fwd_meta = module_->method_meta("forward");
+  if (fwd_meta.ok() && fwd_meta->uses_backend("MLXBackend")) {
+    auto input_meta = fwd_meta->input_tensor_meta(0);
+    if (input_meta.ok()) {
+      auto sizes = input_meta->sizes();
+      if (sizes.size() >= 2 && sizes[sizes.size() - 1] > 0) {
+        prefill_chunk_size = sizes[sizes.size() - 1];
+      }
+    }
+  }
+
   text_prefiller_ = std::make_unique<TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
-      config_.enable_dynamic_shape, config_.max_seq_len);
+      config_.enable_dynamic_shape, config_.max_seq_len, prefill_chunk_size);
   text_token_generator_ = std::make_unique<TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
       std::move(eos_ids_), stats_ptr, config_);
@@ -65,6 +78,10 @@ Error TextRunner::generate_internal(
 
   stats_.inference_start_ms = time_in_ms();
 
+  // Multi-turn: JS re-renders the full chat history each call, so reset KV
+  // position to 0 and re-prefill from scratch.
+  pos_ = 0;
+
   int64_t context_len_left =
       static_cast<int64_t>(config_.max_context_length) - pos_;
 
@@ -79,16 +96,25 @@ Error TextRunner::generate_internal(
   std::vector<uint64_t> prompt_tokens = encodeResult.get();
   int num_prompt_tokens = prompt_tokens.size();
 
+  // For dynamic-shape PTEs (e.g. Gemma4 MLX/Vulkan), get_max_seq_len is the
+  // per-call decoder chunk size (e.g. the sliding window) and the real
+  // generation budget lives in get_max_context_len. Static-shape PTEs set both
+  // equal, so this collapses to the old behavior. Without this the budget is
+  // computed from the small chunk size, so max_new_tokens can resolve to ~0 and
+  // generation ends immediately after prefill.
+  const int32_t seq_cap = config_.enable_dynamic_shape
+                              ? config_.max_context_length
+                              : config_.max_seq_len;
+
   ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens >= 1, InvalidArgument,
                            "Expected at least 1 prompt token");
-  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < config_.max_seq_len,
-                           InvalidArgument,
-                           "num_prompt_tokens %d >= max_seq_len %" PRId32,
-                           num_prompt_tokens, config_.max_seq_len);
+  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < seq_cap, InvalidArgument,
+                           "num_prompt_tokens %d >= seq cap %" PRId32,
+                           num_prompt_tokens, seq_cap);
 
   int32_t max_new_tokens = resolve_max_new_tokens(
-      num_prompt_tokens, config_.max_seq_len,
-      static_cast<int32_t>(context_len_left), config_.max_new_tokens);
+      num_prompt_tokens, seq_cap, static_cast<int32_t>(context_len_left),
+      config_.max_new_tokens);
 
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is <= 0", max_new_tokens);

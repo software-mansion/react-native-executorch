@@ -8,11 +8,10 @@
   </h1>
 </div>
 
-[![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-1&n=1)
-[![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-2?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-2&n=1)
-[![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-3?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-3&n=1)
-
 <div align="center">
+  <a href="https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-executorch-1&n=1"><img src="https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1" /></a>
+  <a href="https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-executorch-2&n=1"><img src="https://swm-delivery.com/www/images/zone-gh-react-native-executorch-2?n=1" /></a>
+  <a href="https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-executorch-3&n=1"><img src="https://swm-delivery.com/www/images/zone-gh-react-native-executorch-3?n=1" /></a>
   <a href="https://github.com/software-mansion/react-native-executorch/graphs/contributors"><img src="https://img.shields.io/github/contributors/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Contributors"></a>
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
@@ -146,7 +145,13 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `text-embeddings` - Computing text representations for semantic search
 - `bare-rn` - LLM chat example for bare React Native (without Expo)
 
-If you would like to run a demo app, navigate to its project directory. Then install dependencies and run app with:
+If you would like to run a demo app, first initialize the required git submodules from the repository root:
+
+```bash
+git submodule update --init packages/react-native-executorch/third-party/common
+```
+
+Then navigate to its project directory, install dependencies and run app with:
 
 ```bash
 yarn && yarn <ios|android>

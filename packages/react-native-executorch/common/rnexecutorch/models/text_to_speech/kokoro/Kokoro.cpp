@@ -174,6 +174,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
 
   isStreaming_ = true;
   stopOnEmptyBuffer_ = stopOnEmptyBuffer;
+  flushPending_ = false;
 
   // The outer streaming loop is responsible for handling the input buffer.
   // The extracted text is then passed to the inner loop, which performs a
@@ -205,15 +206,21 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
                              ? std::distance(eosIt, inputTextBuffer_.rend())
                              : 0;
 
-      // To maximize the quality of the speech, we try to avoid processing
-      // chunks which end in the middle of a sentence.
-      if (chunkSize > 0 ||
-          streamSkippedIterations >= params::kStreamMaxSkippedIterations) {
+      // Default behavior: hold back partial content until an EOS arrives, so
+      // we don't synthesize mid-sentence (relevant for LLM token streaming).
+      // When the caller signals via `streamFlush()` / `streamStop(false)`
+      // that they want the tail drained, take the entire searchable window
+      // instead. The flush flag stays set until the buffer empties, so a
+      // multi-chunk drain progresses across iterations.
+      if (chunkSize == 0 && flushPending_.load()) {
+        chunkSize = searchLimit;
+      }
+      if (chunkSize > 0) {
         input = inputTextBuffer_.substr(0, chunkSize);
         inputTextBuffer_.erase(0, chunkSize);
-        streamSkippedIterations = 0;
-      } else {
-        streamSkippedIterations++;
+        if (inputTextBuffer_.empty()) {
+          flushPending_ = false;
+        }
       }
     }
 
@@ -317,7 +324,7 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
     std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
     inputTextBuffer_.clear();
     isStreaming_ = false;
-    streamSkippedIterations = 0;
+    flushPending_ = false;
   }
 }
 
@@ -410,10 +417,14 @@ void Kokoro::streamInsert(std::u32string chunk) noexcept {
   inputTextBuffer_.append(chunk);
 }
 
+void Kokoro::streamFlush() noexcept { flushPending_ = true; }
+
 void Kokoro::streamStop(bool instant) noexcept {
   if (instant) {
     isStreaming_ = false;
   } else {
+    // Ensure trailing un-terminated content is drained before the loop exits.
+    flushPending_ = true;
     stopOnEmptyBuffer_ = true;
   }
 }
