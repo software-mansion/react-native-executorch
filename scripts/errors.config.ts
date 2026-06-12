@@ -125,6 +125,10 @@ export const errorDefinitions = {
    * Thrown when the platform does not support the resource fetching feature, which is required for downloading models and other resources in React Native ExecuTorch.
    */
   ResourceFetcherPlatformNotSupported: 0xbb,
+  /**
+   * Thrown when the Expo resource fetcher entry point is incompatible with the installed expo-file-system version. The default entry point requires the new Directory/File API (Expo SDK 56+); use the `/legacy` entry point on older SDKs.
+   */
+  ResourceFetcherFileSystemApiUnavailable: 0xbc,
 
   // =========================================================================
   // ExecuTorch mapped errors (0x00–0x3f)

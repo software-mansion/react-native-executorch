@@ -1,5 +1,6 @@
 import * as Calendar from 'expo-calendar';
 import * as Brightness from 'expo-brightness';
+import { PermissionStatus } from 'expo';
 import { clamp } from 'react-native-reanimated';
 import { Platform } from 'react-native';
 import { ToolCall } from 'react-native-executorch';
@@ -109,7 +110,7 @@ const brightness = async (call: ToolCall) => {
 const readCalendar = async (call: ToolCall) => {
   console.log('Reading calendar!', call);
   const { status } = await Calendar.getCalendarPermissionsAsync();
-  if (status !== Calendar.PermissionStatus.GRANTED) {
+  if (status !== PermissionStatus.GRANTED) {
     return 'Calendar permission denied. Inform the user they need to grant calendar access in the app.';
   }
 
@@ -199,7 +200,7 @@ const readCalendar = async (call: ToolCall) => {
 const addEventToCalendar = async (call: ToolCall) => {
   console.log('Adding event to calendar!', call);
   const { status } = await Calendar.getCalendarPermissionsAsync();
-  if (status !== Calendar.PermissionStatus.GRANTED) {
+  if (status !== PermissionStatus.GRANTED) {
     return 'Calendar permission denied. Inform the user they need to grant calendar access in the app.';
   }
   if (

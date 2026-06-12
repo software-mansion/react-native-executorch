@@ -6,12 +6,12 @@ import {
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
-import * as SharedUtils from './sharedUtils';
+import * as SharedUtils from '../sharedUtils';
 
 /**
  * @internal
  */
-import { Directory } from 'expo-file-system';
+import { getInfoAsync, makeDirectoryAsync } from 'expo-file-system/legacy';
 
 export { HTTP_CODE, DownloadStatus, SourceType };
 
@@ -32,16 +32,21 @@ export namespace ResourceFetcherUtils {
   export const getFilesSizes = SharedUtils.getFilesSizes;
 
   export async function createDirectoryIfNoExists() {
-    const directory = new Directory(RNEDirectory);
-    if (directory.exists) return;
-    try {
-      directory.create({ intermediates: true, idempotent: true });
-    } catch (error) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.FileWriteFailed,
-        `Failed to create directory at ${RNEDirectory}`,
-        error
-      );
+    if (!(await checkFileExists(RNEDirectory))) {
+      try {
+        await makeDirectoryAsync(RNEDirectory, { intermediates: true });
+      } catch (error) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.FileWriteFailed,
+          `Failed to create directory at ${RNEDirectory}`,
+          error
+        );
+      }
     }
+  }
+
+  export async function checkFileExists(fileUri: string) {
+    const fileInfo = await getInfoAsync(fileUri);
+    return fileInfo.exists;
   }
 }
