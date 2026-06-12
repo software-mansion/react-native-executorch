@@ -8,6 +8,9 @@
  * It is functionally equivalent to the default `ExpoResourceFetcher` export, but uses the legacy
  * `expo-file-system/legacy` APIs under the hood. Prefer this build only if you cannot adopt the new
  * file-system API yet.
+ *
+ * @deprecated This is a frozen code path that will be deprecated in the next major release.
+ * We recommend migrating to the non-legacy imports.
  * @category Utilities - General
  * @remarks
  * **Key Functionality:**
@@ -192,4 +195,8 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
   }
 }
 
+/**
+ * @deprecated This is a frozen code path that will be deprecated in the next major release.
+ * We recommend migrating to the non-legacy imports.
+ */
 export const ExpoResourceFetcher = new ExpoResourceFetcherClass();
