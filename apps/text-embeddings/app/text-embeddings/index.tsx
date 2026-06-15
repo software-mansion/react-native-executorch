@@ -44,7 +44,7 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
     value: textEmbedding.paraphrase_multilingual_minilm_l12_v2(),
   },
 ];
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { dotProduct } from '../../utils/math';
 import ErrorBanner from '../../components/ErrorBanner';
 

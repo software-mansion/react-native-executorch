@@ -1,9 +1,15 @@
 /**
- * Resource Fetcher for Expo applications.
+ * Resource Fetcher for Expo applications (legacy `expo-file-system` API).
  *
  * This module provides functions to download and manage files stored in the application's document directory
  * inside the `react-native-executorch/` directory. These utilities help manage storage and clean up downloaded
  * files when they are no longer needed.
+ *
+ * It is functionally equivalent to the default `ExpoResourceFetcher` export, but uses the legacy
+ * `expo-file-system/legacy` APIs under the hood. Prefer this build only if you cannot adopt the new
+ * file-system API yet.
+ * @deprecated This is a frozen code path that will be deprecated in the next major release.
+ * We recommend migrating to the non-legacy imports.
  * @category Utilities - General
  * @remarks
  * **Key Functionality:**
@@ -23,7 +29,12 @@
  * - The {@link fetch} method accepts a progress callback (0-1) and returns file paths or throws if interrupted
  */
 
-import { Directory, File } from 'expo-file-system';
+import {
+  deleteAsync,
+  readDirectoryAsync,
+  readAsStringAsync,
+  moveAsync,
+} from 'expo-file-system/legacy';
 import { RNEDirectory } from './constants/directories';
 import {
   ResourceSource,
@@ -31,8 +42,11 @@ import {
   RnExecutorchError,
   BaseResourceFetcherClass,
 } from 'react-native-executorch';
-
-import { ResourceFetcherUtils, DownloadStatus } from './ResourceFetcherUtils';
+import {
+  ResourceFetcherUtils,
+  HTTP_CODE,
+  DownloadStatus,
+} from './ResourceFetcherUtils';
 import {
   type ActiveDownload,
   handleObject,
@@ -40,20 +54,6 @@ import {
   handleAsset,
   handleRemote,
 } from './handlers';
-
-if (
-  typeof Directory !== 'function' ||
-  typeof File !== 'function' ||
-  typeof (File as unknown as { createDownloadTask?: unknown })
-    .createDownloadTask !== 'function'
-) {
-  throw new RnExecutorchError(
-    RnExecutorchErrorCode.ResourceFetcherFileSystemApiUnavailable,
-    "react-native-executorch-expo-resource-fetcher: the new 'expo-file-system' API " +
-      "(Directory/File.createDownloadTask) is unavailable — you're likely on Expo SDK <56. " +
-      "Import from 'react-native-executorch-expo-resource-fetcher/legacy' instead."
-  );
-}
 
 class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> {
   protected downloads = new Map<ResourceSource, ActiveDownload>();
@@ -94,7 +94,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
       );
     }
     downloadHandle.status = DownloadStatus.PAUSED;
-    await downloadHandle.downloadTask.pauseAsync();
+    await downloadHandle.downloadResumable.pauseAsync();
   }
 
   protected async resume(source: ResourceSource): Promise<void> {
@@ -106,32 +106,30 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
       );
     }
     downloadHandle.status = DownloadStatus.ONGOING;
+    const result = await downloadHandle.downloadResumable.resumeAsync();
+    const current = this.downloads.get(source);
+    // Paused again or canceled during resume — resolve/reject handled elsewhere.
+    if (!current || current.status === DownloadStatus.PAUSED) return;
 
-    let downloadedFile;
-    try {
-      downloadedFile = await downloadHandle.downloadTask.resumeAsync();
-    } catch (error) {
-      const current = this.downloads.get(source);
-      // Paused again or canceled during resume — resolve/reject handled elsewhere.
-      if (!current || current.status === DownloadStatus.PAUSED) return;
+    if (
+      !result ||
+      (result.status !== HTTP_CODE.OK &&
+        result.status !== HTTP_CODE.PARTIAL_CONTENT)
+    ) {
       this.downloads.delete(source);
       downloadHandle.reject(
         new RnExecutorchError(
           RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
-          `Failed to resume download from '${downloadHandle.uri}'`,
-          error
+          `Failed to resume download from '${downloadHandle.uri}', status: ${result?.status}`
         )
       );
       return;
     }
 
-    const current = this.downloads.get(source);
-    if (!current || current.status === DownloadStatus.PAUSED) return;
-
-    // null means the task was paused again before completion — pause() handles it.
-    if (!downloadedFile) return;
-
-    await downloadedFile.move(new File(downloadHandle.fileUri));
+    await moveAsync({
+      from: downloadHandle.cacheFileUri,
+      to: downloadHandle.fileUri,
+    });
     this.downloads.delete(source);
     downloadHandle.resolve(
       ResourceFetcherUtils.removeFilePrefix(downloadHandle.fileUri)
@@ -140,7 +138,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
 
   protected async cancel(source: ResourceSource): Promise<void> {
     const downloadHandle = this.downloads.get(source)!;
-    downloadHandle.downloadTask.cancel();
+    await downloadHandle.downloadResumable.cancelAsync();
     this.downloads.delete(source);
     downloadHandle.reject(
       new RnExecutorchError(
@@ -157,7 +155,7 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
    */
   async readAsString(path: string): Promise<string> {
     const uri = path.startsWith('file://') ? path : `file://${path}`;
-    return new File(uri).text();
+    return readAsStringAsync(uri);
   }
 
   /**
@@ -165,7 +163,8 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
    * @returns A promise that resolves to an array of URIs for all the downloaded files.
    */
   async listDownloadedFiles(): Promise<string[]> {
-    return new Directory(RNEDirectory).list().map((entry) => entry.uri);
+    const files = await readDirectoryAsync(RNEDirectory);
+    return files.map((file: string) => `${RNEDirectory}${file}`);
   }
 
   /**
@@ -178,9 +177,9 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
       const filename = ResourceFetcherUtils.getFilenameFromUri(
         source as string
       );
-      const file = new File(`${RNEDirectory}${filename}`);
-      if (file.exists) {
-        file.delete();
+      const fileUri = `${RNEDirectory}${filename}`;
+      if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+        await deleteAsync(fileUri);
       }
     }
   }
@@ -195,4 +194,8 @@ class ExpoResourceFetcherClass extends BaseResourceFetcherClass<ActiveDownload> 
   }
 }
 
+/**
+ * @deprecated This is a frozen code path that will be deprecated in the next major release.
+ * We recommend migrating to the non-legacy imports.
+ */
 export const ExpoResourceFetcher = new ExpoResourceFetcherClass();

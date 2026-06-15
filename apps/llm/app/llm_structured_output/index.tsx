@@ -34,7 +34,7 @@ import { LLM_MODELS, LLMModelSources } from '../../components/llmModels';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { GeneratingContext } from '../../context';
 import { Schema } from 'jsonschema';
 import * as z from 'zod/v4';

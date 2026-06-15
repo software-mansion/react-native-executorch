@@ -1,3 +1,3 @@
-import { documentDirectory } from 'expo-file-system/legacy';
+import { Paths } from 'expo-file-system';
 
-export const RNEDirectory = `${documentDirectory}react-native-executorch/`;
+export const RNEDirectory = `${Paths.document.uri}react-native-executorch/`;
