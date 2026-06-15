@@ -32,8 +32,11 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => '17.0' }
   s.source       = { :git => "https://github.com/software-mansion/react-native-executorch.git", :tag => "#{s.version}" }
 
-  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
-  cpuinfo_binaries_path     = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
+  # libthreadpool_*.a ships pthreadpool (incl. the v2 API libbackend_xnnpack
+  # depends on) plus cpuinfo in one archive. We link it directly here because
+  # ExecutorchLib.framework keeps those symbols local-only (not exported), so
+  # split-out backend xcframeworks can't resolve them through the framework.
+  executorch_binaries_path  = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/executorch', __dir__)
 
   # --- Core sources (always compiled) ---
   opencv_source_dirs = [
@@ -99,13 +102,11 @@ Pod::Spec.new do |s|
   # --- Link flags ---
   physical_ldflags = [
     '$(inherited)',
-    "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
-    "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
+    "\"#{executorch_binaries_path}/libthreadpool_ios.a\"",
   ]
   simulator_ldflags = [
     '$(inherited)',
-    "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
-    "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
+    "\"#{executorch_binaries_path}/libthreadpool_simulator.a\"",
   ]
 
   xnnpack_xcframework_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework', __dir__)
@@ -122,9 +123,13 @@ Pod::Spec.new do |s|
     simulator_ldflags << "-force_load \"#{coreml_xcframework_path}/ios-arm64-simulator/libCoreMLBackend.a\""
   end
 
+  # MLX backend uses Metal APIs (`MTLTensorDomain`, `MTLIOErrorDomain`) that
+  # ship in iPhoneOS.sdk but NOT iPhoneSimulator.sdk, so the simulator slice of
+  # libMLXBackend.a cannot link there. Match main's behavior: only link MLX in
+  # the device slice. At runtime an MLX-exported model on simulator will fail
+  # to load — that's expected; iOS Simulator can't drive MLX-on-Metal anyway.
   if enable_mlx
     physical_ldflags  << "-force_load \"#{mlx_xcframework_path}/ios-arm64/libMLXBackend.a\""
-    simulator_ldflags << "-force_load \"#{mlx_xcframework_path}/ios-arm64-simulator/libMLXBackend.a\""
   end
 
   s.user_target_xcconfig = {
