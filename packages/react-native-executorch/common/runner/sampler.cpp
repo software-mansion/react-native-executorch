@@ -36,6 +36,8 @@
 #include <algorithm>
 #include <ctime>
 #include <limits>
+#include <ranges>
+#include <span>
 #include <vector>
 
 namespace executorch {
@@ -149,30 +151,24 @@ template <typename T> void Sampler::mask_topp(T *logits) {
   if (topp_ <= 0.0f || topp_ >= 1.0f) {
     return;
   }
-  constexpr int kBins = 2048;
+  constexpr int32_t kBins = 2048;
   constexpr float kRange = 40.0f;
 
-  float max_val = static_cast<float>(logits[0]);
-  for (size_t i = 1; i < vocab_size_; i++) {
-    float v = static_cast<float>(logits[i]);
-    if (v > max_val) {
-      max_val = v;
-    }
-  }
+  std::span<const T> logit_span{logits, static_cast<size_t>(vocab_size_)};
+  const float max_val =
+      static_cast<float>(*std::ranges::max_element(logit_span));
 
+  // Logit/exp math accumulates over the full 262k vocab; T (bf16) lacks the
+  // precision to sum without large error, so float/double are used here.
   std::vector<double> bin_mass(kBins, 0.0);
   double total = 0.0;
   for (size_t i = 0; i < vocab_size_; i++) {
     float d = static_cast<float>(logits[i]) - max_val;
     float e = std::expf(d);
     total += e;
-    int b = static_cast<int>((d + kRange) / kRange * kBins);
-    if (b < 0) {
-      b = 0;
-    } else if (b >= kBins) {
-      b = kBins - 1;
-    }
-    bin_mass[b] += e;
+    int32_t bin = static_cast<int32_t>((d + kRange) / kRange * kBins);
+    bin = std::clamp(bin, 0, kBins - 1);
+    bin_mass[bin] += e;
   }
   if (total <= 0.0) {
     return;
@@ -182,11 +178,11 @@ template <typename T> void Sampler::mask_topp(T *logits) {
   // kept (HuggingFace "keep the token that crosses" convention).
   const double target = static_cast<double>(topp_) * total;
   double acc = 0.0;
-  int keep_bin = 0;
-  for (int b = kBins - 1; b >= 0; --b) {
-    acc += bin_mass[b];
+  int32_t keep_bin = 0;
+  for (int32_t bin = kBins - 1; bin >= 0; --bin) {
+    acc += bin_mass[bin];
     if (acc >= target) {
-      keep_bin = b;
+      keep_bin = bin;
       break;
     }
   }
