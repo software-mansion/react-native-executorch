@@ -38,6 +38,7 @@
 #include <limits>
 #include <ranges>
 #include <span>
+#include <type_traits>
 #include <vector>
 
 namespace executorch {
@@ -152,32 +153,36 @@ template <typename T> void Sampler::mask_topp(T *logits) {
     return;
   }
   constexpr int32_t kBins = 2048;
-  constexpr float kRange = 40.0f;
+  // Compute in a type at least as wide as T so converting logits never loses
+  // precision: double stays double, everything else (float and the narrow
+  // half/bf16/uint16 logit types) widens to float. Accumulating in T directly
+  // would be unsafe for bf16, whose mantissa saturates when summing exp()
+  // over the full vocab.
+  using acc_t = std::conditional_t<std::is_same_v<T, double>, double, float>;
+  constexpr acc_t kRange = 40;
 
   std::span<const T> logit_span{logits, static_cast<size_t>(vocab_size_)};
-  const float max_val =
-      static_cast<float>(*std::ranges::max_element(logit_span));
+  const acc_t max_val =
+      static_cast<acc_t>(*std::ranges::max_element(logit_span));
 
-  // Accumulate in float, not T: T may be bf16, which saturates when summing
-  // exp() over the full vocab (small terms round away once the sum grows).
-  std::vector<float> bin_mass(kBins, 0.0f);
-  float total = 0.0f;
+  std::vector<acc_t> bin_mass(kBins, acc_t(0));
+  acc_t total = 0;
   for (size_t i = 0; i < vocab_size_; i++) {
-    float d = static_cast<float>(logits[i]) - max_val;
-    float e = std::expf(d);
+    acc_t d = static_cast<acc_t>(logits[i]) - max_val;
+    acc_t e = std::exp(d);
     total += e;
     int32_t bin = static_cast<int32_t>((d + kRange) / kRange * kBins);
     bin = std::clamp(bin, 0, kBins - 1);
     bin_mass[bin] += e;
   }
-  if (total <= 0.0f) {
+  if (total <= acc_t(0)) {
     return;
   }
 
   // Highest bin downward until the kept mass reaches topp. The crossing bin is
   // kept (HuggingFace "keep the token that crosses" convention).
-  const float target = topp_ * total;
-  float acc = 0.0f;
+  const acc_t target = static_cast<acc_t>(topp_) * total;
+  acc_t acc = 0;
   int32_t keep_bin = 0;
   for (int32_t bin = kBins - 1; bin >= 0; --bin) {
     acc += bin_mass[bin];
@@ -186,12 +191,12 @@ template <typename T> void Sampler::mask_topp(T *logits) {
       break;
     }
   }
-  const float d_threshold =
-      static_cast<float>(keep_bin) / kBins * kRange - kRange;
+  const acc_t d_threshold =
+      static_cast<acc_t>(keep_bin) / kBins * kRange - kRange;
 
   constexpr T neg_inf = std::numeric_limits<T>::lowest();
   for (size_t i = 0; i < vocab_size_; i++) {
-    if (static_cast<float>(logits[i]) - max_val < d_threshold) {
+    if (static_cast<acc_t>(logits[i]) - max_val < d_threshold) {
       logits[i] = neg_inf;
     }
   }
