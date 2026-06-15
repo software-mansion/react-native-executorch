@@ -27,7 +27,7 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../third-party/include")
 
 # Optional feature flags — driven by user config in package.json, passed via gradle cmake arguments
 option(RNE_ENABLE_OPENCV "Enable OpenCV-dependent computer vision features" ON)
-option(RNE_ENABLE_PHONEMIZER "Enable Phonemizer-dependent TTS features" ON)
+option(RNE_ENABLE_PHONEMIS "Enable phonemis-dependent TTS features" ON)
 option(RNE_ENABLE_XNNPACK "Load the XNNPACK backend shared library" ON)
 option(RNE_ENABLE_VULKAN "Load the Vulkan backend shared library" ON)
 

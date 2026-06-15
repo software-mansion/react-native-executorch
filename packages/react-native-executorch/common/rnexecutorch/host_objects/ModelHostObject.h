@@ -22,7 +22,7 @@
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
-#ifdef RNE_ENABLE_PHONEMIZER
+#ifdef RNE_ENABLE_PHONEMIS
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #endif
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
@@ -221,7 +221,7 @@ public:
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-#ifdef RNE_ENABLE_PHONEMIZER
+#ifdef RNE_ENABLE_PHONEMIS
     if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));

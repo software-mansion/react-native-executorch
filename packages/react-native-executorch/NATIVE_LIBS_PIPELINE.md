@@ -1,6 +1,6 @@
 # Native libraries pipeline
 
-This document describes how native dependencies (ExecuTorch runtime, backends, OpenCV, phonemizer) are produced, shipped, and stitched into an app build. It is intended for maintainers — the user-facing summary lives in `docs/docs/01-fundamentals/01-getting-started.md`.
+This document describes how native dependencies (ExecuTorch runtime, backends, OpenCV, phonemis) are produced, shipped, and stitched into an app build. It is intended for maintainers — the user-facing summary lives in `docs/docs/01-fundamentals/01-getting-started.md`.
 
 ## High-level flow
 
@@ -33,9 +33,9 @@ This document describes how native dependencies (ExecuTorch runtime, backends, O
 Runs at `postinstall`. Responsibilities:
 
 1. Read `react-native-executorch.{backends, libs, features}` from the app's `package.json` (uses `INIT_CWD`). Each array is optional; `features` is expanded via `FEATURE_MAP` to (backends, libs) and merged with the explicit arrays. With no config, everything defaults to enabled. The legacy `extras` field is rejected with a migration error.
-2. Write `rne-build-config.json` at the package root with boolean flags (`enableXnnpack`, `enableCoreml`, `enableVulkan`, `enableOpencv`, `enablePhonemizer`) — this file is the single source of truth consumed by both the Gradle build and the podspec.
+2. Write `rne-build-config.json` at the package root with boolean flags (`enableXnnpack`, `enableCoreml`, `enableVulkan`, `enableOpencv`, `enablePhonemis`) — this file is the single source of truth consumed by both the Gradle build and the podspec.
 3. Detect targets (`ios` on macOS; always `android-arm64-v8a` and, unless `RNET_NO_X86_64` is set, `android-x86_64`).
-4. For each target × enabled backend/lib, fetch the corresponding `<artifact>.tar.gz` from the GitHub Release tagged `v${PACKAGE_VERSION}`, verify the `.sha256`, and extract into `third-party/android/libs/` or `third-party/ios/`. (Phonemizer ships as in-tree source via the `third-party/common/phonemis` submodule, so no tarball is fetched for it.)
+4. For each target × enabled backend/lib, fetch the corresponding `<artifact>.tar.gz` from the GitHub Release tagged `v${PACKAGE_VERSION}`, verify the `.sha256`, and extract into `third-party/android/libs/` or `third-party/ios/`. (phonemis ships as in-tree source via the `third-party/common/phonemis` submodule, so no tarball is fetched for it.)
 5. Cache validated tarballs under `~/.cache/react-native-executorch/<version>/` so subsequent installs skip the network.
 
 Environment overrides: `RNET_SKIP_DOWNLOAD`, `RNET_LIBS_CACHE_DIR`, `RNET_TARGET`, `RNET_BASE_URL` (useful with `python3 -m http.server` against `dist-artifacts/` for local iteration), `GITHUB_TOKEN` (needed for draft releases).
@@ -54,7 +54,7 @@ The set of artifacts per target is defined in `getArtifacts()`:
 | `opencv-android-*`       | Android | OpenCV release process                   | Static OpenCV + KleidiCV HAL                           |
 
 (`opencv-ios` is not a tarball — iOS consumes OpenCV through the `opencv-rne` CocoaPod.)
-(`phonemizer` has no tarball — phonemis is a git submodule at `third-party/common/phonemis` and is compiled from source on both Android and iOS when the extra is enabled.)
+(`phonemis` has no tarball — phonemis is a git submodule at `third-party/common/phonemis` and is compiled from source on both Android and iOS when the extra is enabled.)
 
 ## Build-time: Android
 
@@ -62,16 +62,16 @@ The set of artifacts per target is defined in `getArtifacts()`:
 
 ```groovy
 "-DRNE_ENABLE_OPENCV=${rneBuildConfig.enableOpencv ? 'ON' : 'OFF'}",
-"-DRNE_ENABLE_PHONEMIZER=${rneBuildConfig.enablePhonemizer ? 'ON' : 'OFF'}",
+"-DRNE_ENABLE_PHONEMIS=${rneBuildConfig.enablePhonemis ? 'ON' : 'OFF'}",
 "-DRNE_ENABLE_XNNPACK=${rneBuildConfig.enableXnnpack ? 'ON' : 'OFF'}",
 "-DRNE_ENABLE_VULKAN=${rneBuildConfig.enableVulkan ? 'ON' : 'OFF'}"
 ```
 
 `android/CMakeLists.txt` and `android/src/main/cpp/CMakeLists.txt` respond by:
 
-- Adding `-DRNE_ENABLE_OPENCV` / `-DRNE_ENABLE_PHONEMIZER` compile definitions so C++ code can `#ifdef` around optional dependencies.
+- Adding `-DRNE_ENABLE_OPENCV` / `-DRNE_ENABLE_PHONEMIS` compile definitions so C++ code can `#ifdef` around optional dependencies.
 - Conditionally linking `libopencv_*.a` and KleidiCV HAL (arm64 only).
-- When `RNE_ENABLE_PHONEMIZER=ON`, `add_subdirectory()`'ing the `third-party/common/phonemis` git submodule and linking the resulting `phonemis` CMake target into `libreact-native-executorch.so`. When off, the submodule is not entered and no phonemis code is compiled.
+- When `RNE_ENABLE_PHONEMIS=ON`, `add_subdirectory()`'ing the `third-party/common/phonemis` git submodule and linking the resulting `phonemis` CMake target into `libreact-native-executorch.so`. When off, the submodule is not entered and no phonemis code is compiled.
 - Always linking against the prebuilt `libexecutorch.so` downloaded into `third-party/android/libs/executorch/<abi>/`.
 - When `RNE_ENABLE_XNNPACK=ON` / `RNE_ENABLE_VULKAN=ON`, importing the matching `libxnnpack_executorch_backend.so` / `libvulkan_executorch_backend.so` and linking `react-native-executorch.so` against it. Linking (rather than dynamic `dlopen`) lets Gradle bundle the `.so` into the APK and triggers the dynamic linker to load it whenever `libreact-native-executorch.so` is loaded — each `.so`'s load-time constructor then registers its backend with the runtime in `libexecutorch.so`.
 
@@ -79,8 +79,8 @@ The set of artifacts per target is defined in `getArtifacts()`:
 
 `react-native-executorch.podspec` reads the same `rne-build-config.json` and:
 
-- Excludes opencv/phonemizer C++ sources from compilation when those libs are disabled.
-- Conditionally adds `third-party/common/phonemis/src/**` to `s.source_files` (and excludes `phonemis/main.cpp`) so phonemis compiles into the pod when `enable_phonemizer` is true. The corresponding header path and `-DET_ON=1` flag are also gated.
+- Excludes opencv/phonemis C++ sources from compilation when those libs are disabled.
+- Conditionally adds `third-party/common/phonemis/src/**` to `s.source_files` (and excludes `phonemis/main.cpp`) so phonemis compiles into the pod when `enable_phonemis` is true. The corresponding header path and `-DET_ON=1` flag are also gated.
 - Appends `-DRNE_ENABLE_*` to `OTHER_CPLUSPLUSFLAGS`.
 - Assembles `OTHER_LDFLAGS[sdk=iphoneos*]` and `OTHER_LDFLAGS[sdk=iphonesimulator*]` with `-force_load` entries for each enabled backend xcframework.
 - Declares `ExecutorchLib.xcframework` in `vendored_frameworks` but _not_ the backend xcframeworks — backend xcframeworks only live on the linker command line, never in the CocoaPods vendoring list (see next section for why).
@@ -173,7 +173,7 @@ Keep the existing `libkleidiai_{ios,simulator}.a` — kleidiai is merged into `l
 
 The non-executorch prebuilts (`libs/cpuinfo/libcpuinfo.a`, `libs/pthreadpool/{physical-arm64-release,simulator-arm64-debug}/libpthreadpool.a`) live in their existing directories and are not produced by the executorch fork build — they ship as-is from prior tarballs.
 
-Phonemis is now built from in-tree source (the `third-party/common/phonemis` git submodule, pinned via `.gitmodules` to <https://github.com/IgorSwat/Phonemis>). Initialize it with `git submodule update --init --recursive` after cloning — the podspec and Android CMake will pick it up automatically when `enable_phonemizer` is true.
+Phonemis is now built from in-tree source (the `third-party/common/phonemis` git submodule, pinned via `.gitmodules` to <https://github.com/IgorSwat/Phonemis>). Initialize it with `git submodule update --init --recursive` after cloning — the podspec and Android CMake will pick it up automatically when `enable_phonemis` is true.
 
 **4. Build xcframeworks**
 

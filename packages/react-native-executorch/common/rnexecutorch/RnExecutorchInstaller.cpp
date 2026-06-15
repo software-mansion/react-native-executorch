@@ -23,7 +23,7 @@
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #endif
 
-#ifdef RNE_ENABLE_PHONEMIZER
+#ifdef RNE_ENABLE_PHONEMIS
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #endif
 
@@ -137,12 +137,12 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
           jsiRuntime, jsCallInvoker, "loadSpeechToText"));
 
-#ifdef RNE_ENABLE_PHONEMIZER
+#ifdef RNE_ENABLE_PHONEMIS
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextToSpeechKokoro",
       RnExecutorchInstaller::loadModel<models::text_to_speech::kokoro::Kokoro>(
           jsiRuntime, jsCallInvoker, "loadTextToSpeechKokoro"));
-#endif // RNE_ENABLE_PHONEMIZER
+#endif // RNE_ENABLE_PHONEMIS
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVAD",

@@ -9,13 +9,13 @@ if File.exist?(rne_build_config_path)
   require "json"
   rne_build_config = JSON.parse(File.read(rne_build_config_path))
   enable_opencv     = rne_build_config["enableOpencv"]     != false
-  enable_phonemizer = rne_build_config["enablePhonemizer"] != false
+  enable_phonemis = rne_build_config["enablePhonemis"]   != false
   enable_xnnpack    = rne_build_config["enableXnnpack"]    != false
   enable_coreml     = rne_build_config["enableCoreml"]     != false
   enable_mlx        = rne_build_config["enableMlx"]        != false
 else
   enable_opencv     = true
-  enable_phonemizer = true
+  enable_phonemis = true
   enable_xnnpack    = true
   enable_coreml     = true
   enable_mlx        = true
@@ -61,7 +61,7 @@ Pod::Spec.new do |s|
     "common/rnexecutorch/utils/FrameTransform.{cpp,h}",
   ]
 
-  phonemizer_source_files = [
+  phonemis_source_files = [
     "common/rnexecutorch/models/text_to_speech/**/*.{cpp,c,h,hpp}",
   ]
 
@@ -69,7 +69,7 @@ Pod::Spec.new do |s|
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
   ]
-  source_files << "third-party/common/phonemis/src/**/*.{cpp,hpp,h}" if enable_phonemizer
+  source_files << "third-party/common/phonemis/src/**/*.{cpp,hpp,h}" if enable_phonemis
   s.source_files = source_files
 
   # Exclude file with tests to not introduce gtest dependency.
@@ -84,20 +84,20 @@ Pod::Spec.new do |s|
     "common/rnexecutorch/jsi/*.{h,hpp}",
   ]
   exclude_files += opencv_source_files     unless enable_opencv
-  exclude_files += phonemizer_source_files unless enable_phonemizer
+  exclude_files += phonemis_source_files unless enable_phonemis
   # phonemis ships a CLI runner that defines its own `main()`; exclude when compiling into the pod.
-  exclude_files << "third-party/common/phonemis/src/phonemis/main.cpp" if enable_phonemizer
+  exclude_files << "third-party/common/phonemis/src/phonemis/main.cpp" if enable_phonemis
   s.exclude_files = exclude_files
 
   # --- Preprocessor flags ---
   extra_compiler_flags = []
   extra_compiler_flags << "-DRNE_ENABLE_OPENCV"     if enable_opencv
-  extra_compiler_flags << "-DRNE_ENABLE_PHONEMIZER" if enable_phonemizer
+  extra_compiler_flags << "-DRNE_ENABLE_PHONEMIS"   if enable_phonemis
   extra_compiler_flags << "-DRNE_ENABLE_XNNPACK"    if enable_xnnpack
   extra_compiler_flags << "-DRNE_ENABLE_COREML"     if enable_coreml
   extra_compiler_flags << "-DRNE_ENABLE_MLX"        if enable_mlx
   # ET_ON tells phonemis to compile the NeuralPhonemizer path against ExecuTorch.
-  extra_compiler_flags << "-DET_ON=1"               if enable_phonemizer
+  extra_compiler_flags << "-DET_ON=1"               if enable_phonemis
 
   # --- Link flags ---
   physical_ldflags = [
@@ -149,7 +149,7 @@ Pod::Spec.new do |s|
     '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" ' +
     '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" ' +
     '"$(PODS_TARGET_SRCROOT)/common" '
-  pod_header_search_paths += '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ' if enable_phonemizer
+  pod_header_search_paths += '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ' if enable_phonemis
 
   s.pod_target_xcconfig = {
     "USE_HEADERMAP" => "YES",

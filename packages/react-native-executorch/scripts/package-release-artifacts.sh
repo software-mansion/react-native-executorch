@@ -21,7 +21,7 @@
 #   coreml-ios.tar.gz     + .sha256
 #   mlx-ios.tar.gz        + .sha256 (xcframework + mlx.metallib resource)
 #
-# Note: phonemizer ships as in-tree source (third-party/common/phonemis submodule),
+# Note: phonemis ships as in-tree source (third-party/common/phonemis submodule),
 # not as a tarball.
 #
 # Note: iOS OpenCV is provided via CocoaPods (opencv-rne), not a tarball.
@@ -154,7 +154,7 @@ package_merged "opencv-android-arm64-v8a" \
 package_merged "opencv-android-x86_64" \
   "opencv/x86_64"           "$ANDROID_LIBS/opencv/x86_64"
 
-# Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+# phonemis is built from in-tree source (third-party/common/phonemis submodule);
 # no Android tarball is produced.
 
 # XNNPACK and Vulkan each ship as standalone shared libraries (opt-in backends).
@@ -183,7 +183,7 @@ package_merged "core-ios" \
   "libs/pthreadpool"           "$IOS_DIR/libs/pthreadpool" \
   "libs/cpuinfo"               "$IOS_DIR/libs/cpuinfo"
 
-# Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+# phonemis is built from in-tree source (third-party/common/phonemis submodule);
 # no iOS tarball is produced.
 
 package_merged "xnnpack-ios" \

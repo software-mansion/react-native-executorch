@@ -27,7 +27,7 @@
  * User configuration (in the app's package.json) — three optional arrays, all merged into a single set:
  *   "react-native-executorch": {
  *     "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
- *     "libs":     ["opencv", "phonemizer"],
+ *     "libs":     ["opencv", "phonemis"],
  *     "features": ["llm", "textToSpeech", "objectDetection"]
  *   }
  *
@@ -36,7 +36,7 @@
  *
  * Recognized values:
  *   backends:  xnnpack, coreml (iOS), mlx (iOS), vulkan (Android)
- *   libs:      opencv, phonemizer
+ *   libs:      opencv, phonemis
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
@@ -44,8 +44,8 @@
  *
  * Platform applicability:
  *   opencv      Android + iOS — downloaded artifact
- *   phonemizer  Android + iOS — built from in-tree source at third-party/common/phonemis (git submodule);
- *                               this toggle only gates compilation (RNE_ENABLE_PHONEMIZER), no download.
+ *   phonemis    Android + iOS — built from in-tree source at third-party/common/phonemis (git submodule);
+ *                               this toggle only gates compilation (RNE_ENABLE_PHONEMIS), no download.
  *   xnnpack     Android (libxnnpack_executorch_backend.so) + iOS (XnnpackBackend.xcframework)
  *   coreml      iOS only — toggles CoreMLBackend.xcframework.
  *   mlx         iOS only — toggles MLXBackend.xcframework + mlx.metallib resource.
@@ -90,7 +90,7 @@ const CACHE_DIR = process.env.RNET_LIBS_CACHE_DIR || DEFAULT_CACHE_DIR;
 // ---- User config -----------------------------------------------------------
 
 const ALL_BACKENDS = ['xnnpack', 'coreml', 'mlx', 'vulkan'];
-const ALL_LIBS = ['opencv', 'phonemizer'];
+const ALL_LIBS = ['opencv', 'phonemis'];
 
 // features -> { backends, libs }
 // Backend lists are the union of what at least one model in that family ships
@@ -107,7 +107,7 @@ const FEATURE_MAP = {
   // Whisper ships xnnpack + coreml.
   speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
   // Kokoro ships xnnpack only.
-  textToSpeech: { backends: ['xnnpack'], libs: ['phonemizer'] },
+  textToSpeech: { backends: ['xnnpack'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
   textEmbeddings: { backends: ['xnnpack'], libs: [] },
@@ -204,7 +204,7 @@ function readUserConfig() {
 function writeBuildConfig({ backends, libs }) {
   const config = {
     enableOpencv: libs.includes('opencv'),
-    enablePhonemizer: libs.includes('phonemizer'),
+    enablePhonemis: libs.includes('phonemis'),
     enableXnnpack: backends.includes('xnnpack'),
     enableCoreml: backends.includes('coreml'),
     enableMlx: backends.includes('mlx'),
@@ -277,7 +277,7 @@ function getArtifacts(targets, { backends, libs }) {
       artifacts.push(makeArtifact(`opencv-${target}`, destDir));
     }
 
-    // Phonemizer is built from in-tree source (third-party/common/phonemis submodule);
+    // phonemis is built from in-tree source (third-party/common/phonemis submodule);
     // no artifact download required.
 
     if (backends.includes('xnnpack')) {
@@ -389,7 +389,7 @@ async function main() {
     `[react-native-executorch] Backends: [${config.backends.join(', ') || '—'}]; Libs: [${config.libs.join(', ') || '—'}]`
   );
   console.log(
-    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemizer=${buildConfig.enablePhonemizer}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, mlx=${buildConfig.enableMlx}, vulkan=${buildConfig.enableVulkan}`
+    `[react-native-executorch] Build flags: opencv=${buildConfig.enableOpencv}, phonemis=${buildConfig.enablePhonemis}, xnnpack=${buildConfig.enableXnnpack}, coreml=${buildConfig.enableCoreml}, mlx=${buildConfig.enableMlx}, vulkan=${buildConfig.enableVulkan}`
   );
 
   const targets = detectTargets();

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 file(GLOB_RECURSE ANDROID_CPP_SOURCES CONFIGURE_DEPENDS "${ANDROID_CPP_DIR}/*.cpp")
 
 # --- Source separation ---
-# Glob all common sources, then separate opencv-dependent and phonemizer-dependent
+# Glob all common sources, then separate opencv-dependent and phonemis-dependent
 # files so they can be conditionally included based on feature flags.
 
 file(GLOB_RECURSE ALL_COMMON_CPP_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/*.cpp")
@@ -36,14 +36,14 @@ file(GLOB_RECURSE OPENCV_CPP_SOURCES CONFIGURE_DEPENDS
   "${COMMON_CPP_DIR}/runner/multimodal_runner.cpp"
 )
 
-# Phonemizer-dependent sources: Kokoro TTS (only user of phonemis)
-file(GLOB_RECURSE PHONEMIZER_CPP_SOURCES CONFIGURE_DEPENDS
+# phonemis-dependent sources: Kokoro TTS (only user of phonemis)
+file(GLOB_RECURSE PHONEMIS_CPP_SOURCES CONFIGURE_DEPENDS
   "${COMMON_CPP_DIR}/rnexecutorch/models/text_to_speech/*.cpp"
 )
 
 # Core = everything minus optional sources
 set(CORE_COMMON_CPP_SOURCES ${ALL_COMMON_CPP_SOURCES})
-list(REMOVE_ITEM CORE_COMMON_CPP_SOURCES ${OPENCV_CPP_SOURCES} ${PHONEMIZER_CPP_SOURCES})
+list(REMOVE_ITEM CORE_COMMON_CPP_SOURCES ${OPENCV_CPP_SOURCES} ${PHONEMIS_CPP_SOURCES})
 
 # Build final source list
 set(ENABLED_COMMON_SOURCES ${CORE_COMMON_CPP_SOURCES})
@@ -52,8 +52,8 @@ if(RNE_ENABLE_OPENCV)
   list(APPEND ENABLED_COMMON_SOURCES ${OPENCV_CPP_SOURCES})
 endif()
 
-if(RNE_ENABLE_PHONEMIZER)
-  list(APPEND ENABLED_COMMON_SOURCES ${PHONEMIZER_CPP_SOURCES})
+if(RNE_ENABLE_PHONEMIS)
+  list(APPEND ENABLED_COMMON_SOURCES ${PHONEMIS_CPP_SOURCES})
 endif()
 
 add_library(react-native-executorch SHARED
@@ -67,8 +67,8 @@ if(RNE_ENABLE_OPENCV)
   target_compile_definitions(react-native-executorch PRIVATE RNE_ENABLE_OPENCV)
 endif()
 
-if(RNE_ENABLE_PHONEMIZER)
-  target_compile_definitions(react-native-executorch PRIVATE RNE_ENABLE_PHONEMIZER)
+if(RNE_ENABLE_PHONEMIS)
+  target_compile_definitions(react-native-executorch PRIVATE RNE_ENABLE_PHONEMIS)
 endif()
 
 find_package(ReactAndroid REQUIRED CONFIG)
@@ -157,10 +157,10 @@ if(RNE_ENABLE_OPENCV)
   endif()
 endif()
 
-# ------- Phonemizer (optional) -------
+# ------- phonemis (optional) -------
 # Built from in-tree source (third-party/common/phonemis submodule) when enabled.
 
-if(RNE_ENABLE_PHONEMIZER)
+if(RNE_ENABLE_PHONEMIS)
   set(PHONEMIS_DIR "${COMMON_THIRD_PARTY_DIR}/phonemis")
   add_subdirectory(${PHONEMIS_DIR} ${CMAKE_BINARY_DIR}/phonemis)
 
@@ -182,7 +182,7 @@ target_link_libraries(
   z
 )
 
-if(RNE_ENABLE_PHONEMIZER)
+if(RNE_ENABLE_PHONEMIS)
   target_link_libraries(react-native-executorch phonemis)
 endif()
 

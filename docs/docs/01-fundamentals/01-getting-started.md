@@ -130,7 +130,7 @@ On install, `react-native-executorch` runs a `postinstall` script that downloads
 {
   "react-native-executorch": {
     "backends": ["xnnpack", "coreml", "mlx", "vulkan"],
-    "libs": ["opencv", "phonemizer"],
+    "libs": ["opencv", "phonemis"],
     "features": ["llm", "textToSpeech", "objectDetection"]
   }
 }
@@ -142,7 +142,7 @@ On install, `react-native-executorch` runs a `postinstall` script that downloads
 - If you mix `features` with `backends`/`libs`, the result is their union.
 
 Recognized **backends**: `xnnpack`, `coreml` (iOS-only), `mlx` (iOS-only), `vulkan` (Android-only).
-Recognized **libs**: `opencv`, `phonemizer`.
+Recognized **libs**: `opencv`, `phonemis`.
 Recognized **features** (one per documented hook):
 
 Each row reflects the union of what at least one model in that family ships today; bump it when a new variant adds a backend.
@@ -153,7 +153,7 @@ Each row reflects the union of what at least one model in that family ships toda
 | `multimodalLLM`        | xnnpack, mlx, vulkan · opencv | Vision-language `useLLM` (image inputs) |
 | `privacyFilter`        | xnnpack · —                | `usePrivacyFilter`                      |
 | `speechToText`         | xnnpack, coreml · —        | `useSpeechToText` (Whisper)             |
-| `textToSpeech`         | xnnpack · phonemizer       | `useTextToSpeech` (Kokoro)              |
+| `textToSpeech`         | xnnpack · phonemis       | `useTextToSpeech` (Kokoro)              |
 | `vad`                  | xnnpack · —                | `useVAD`                                |
 | `textEmbeddings`       | xnnpack · —                | `useTextEmbeddings`                     |
 | `imageEmbeddings`      | xnnpack · opencv           | `useImageEmbeddings`                    |
@@ -182,7 +182,7 @@ Lib platform map:
 | Lib          | iOS                                | Android                                                  |
 | ------------ | ---------------------------------- | -------------------------------------------------------- |
 | `opencv`     | ✅ (via the `opencv-rne` CocoaPod) | ✅ (static `libopencv_*.a` + KleidiCV HAL on arm64)      |
-| `phonemizer` | ✅ (compiled from in-tree source)  | ✅ (compiled from in-tree source via `add_subdirectory`) |
+| `phonemis` | ✅ (compiled from in-tree source)  | ✅ (compiled from in-tree source via `add_subdirectory`) |
 
 Source files and native libraries are excluded from compilation when a backend or lib is disabled, so builds that only need LLMs can skip OpenCV and cut tens of megabytes off the final binary.
 
