@@ -141,57 +141,61 @@ template <typename T> void Sampler::mask_topk(T *logits) {
   }
 }
 
-// Mask logits whose softmax-prob falls outside the top-p nucleus to -inf.
-// Keeps the token that crosses the threshold (HuggingFace convention).
+// Mask logits outside the top-p nucleus to -inf. Approximates the exact
+// sort-based nucleus with a histogram over (logit - max): two O(n) passes, no
+// sort. Binning in logit (not probability) space keeps uniform resolution for
+// peaked and flat distributions alike. kRange=40 spans exp() down to ~4e-18.
 template <typename T> void Sampler::mask_topp(T *logits) {
   if (topp_ <= 0.0f || topp_ >= 1.0f) {
     return;
   }
-  // Softmax into a scratch probs[] (do not mutate logits yet).
-  T max_val = logits[0];
+  constexpr int kBins = 2048;
+  constexpr float kRange = 40.0f;
+
+  float max_val = static_cast<float>(logits[0]);
   for (size_t i = 1; i < vocab_size_; i++) {
-    if (logits[i] > max_val) {
-      max_val = logits[i];
+    float v = static_cast<float>(logits[i]);
+    if (v > max_val) {
+      max_val = v;
     }
   }
-  std::unique_ptr<ProbIndex<T>[]> probindex =
-      std::make_unique<ProbIndex<T>[]>(vocab_size_);
-  T sum = 0;
+
+  std::vector<double> bin_mass(kBins, 0.0);
+  double total = 0.0;
   for (size_t i = 0; i < vocab_size_; i++) {
-    T e = static_cast<T>(std::expf(static_cast<float>(logits[i] - max_val)));
-    probindex[i].prob = e;
-    probindex[i].index = i;
-    sum += e;
+    float d = static_cast<float>(logits[i]) - max_val;
+    float e = std::expf(d);
+    total += e;
+    int b = static_cast<int>((d + kRange) / kRange * kBins);
+    if (b < 0) {
+      b = 0;
+    } else if (b >= kBins) {
+      b = kBins - 1;
+    }
+    bin_mass[b] += e;
   }
-  if (sum <= T(0)) {
+  if (total <= 0.0) {
     return;
   }
-  for (size_t i = 0; i < vocab_size_; i++) {
-    probindex[i].prob /= sum;
-  }
-  std::sort(probindex.get(), probindex.get() + vocab_size_,
-            [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
-              return a.prob > b.prob;
-            });
 
-  // Find the smallest prefix whose cumulative probability >= topp_.
-  T cumulative = 0;
-  int last_idx = vocab_size_ - 1;
-  for (size_t i = 0; i < vocab_size_; i++) {
-    cumulative += probindex[i].prob;
-    if (static_cast<float>(cumulative) >= topp_) {
-      last_idx = i;
+  // Highest bin downward until the kept mass reaches topp. The crossing bin is
+  // kept (HuggingFace "keep the token that crosses" convention).
+  const double target = static_cast<double>(topp_) * total;
+  double acc = 0.0;
+  int keep_bin = 0;
+  for (int b = kBins - 1; b >= 0; --b) {
+    acc += bin_mass[b];
+    if (acc >= target) {
+      keep_bin = b;
       break;
     }
   }
-  // Mark kept indices, then -inf the rest.
-  std::vector<bool> keep(vocab_size_, false);
-  for (size_t i = 0; i <= last_idx; i++) {
-    keep[probindex[i].index] = true;
-  }
+  const float d_threshold =
+      static_cast<float>(keep_bin) / kBins * kRange - kRange;
+
   constexpr T neg_inf = std::numeric_limits<T>::lowest();
   for (size_t i = 0; i < vocab_size_; i++) {
-    if (!keep[i]) {
+    if (static_cast<float>(logits[i]) - max_val < d_threshold) {
       logits[i] = neg_inf;
     }
   }
@@ -210,22 +214,28 @@ Sampler::Sampler(int32_t vocab_size, GenerationConfig config)
     : Sampler(vocab_size, config, std::time(nullptr)) {}
 
 template <typename T> static void softmax(T *x, int size) {
-  // find max value (for numerical stability)
+  // Runs after top-k/top-p masking, which sets rejected logits to lowest().
+  // Skip exp() on those: it underflows to 0 anyway and is slow on device.
+  constexpr T kMasked = std::numeric_limits<T>::lowest();
   T max_val = x[0];
   for (size_t i = 1; i < size; i++) {
     if (x[i] > max_val) {
       max_val = x[i];
     }
   }
-  // exp and sum
   T sum = 0;
   for (size_t i = 0; i < size; i++) {
+    if (x[i] == kMasked) {
+      x[i] = T(0);
+      continue;
+    }
     x[i] = expf(x[i] - max_val);
     sum += x[i];
   }
-  // normalize
   for (size_t i = 0; i < size; i++) {
-    x[i] /= sum;
+    if (x[i] != T(0)) {
+      x[i] /= sum;
+    }
   }
 }
 
