@@ -158,10 +158,10 @@ template <typename T> void Sampler::mask_topp(T *logits) {
   const float max_val =
       static_cast<float>(*std::ranges::max_element(logit_span));
 
-  // Logit/exp math accumulates over the full 262k vocab; T (bf16) lacks the
-  // precision to sum without large error, so float/double are used here.
-  std::vector<double> bin_mass(kBins, 0.0);
-  double total = 0.0;
+  // Accumulate in float, not T: T may be bf16, which saturates when summing
+  // exp() over the full vocab (small terms round away once the sum grows).
+  std::vector<float> bin_mass(kBins, 0.0f);
+  float total = 0.0f;
   for (size_t i = 0; i < vocab_size_; i++) {
     float d = static_cast<float>(logits[i]) - max_val;
     float e = std::expf(d);
@@ -170,14 +170,14 @@ template <typename T> void Sampler::mask_topp(T *logits) {
     bin = std::clamp(bin, 0, kBins - 1);
     bin_mass[bin] += e;
   }
-  if (total <= 0.0) {
+  if (total <= 0.0f) {
     return;
   }
 
   // Highest bin downward until the kept mass reaches topp. The crossing bin is
   // kept (HuggingFace "keep the token that crosses" convention).
-  const double target = static_cast<double>(topp_) * total;
-  double acc = 0.0;
+  const float target = topp_ * total;
+  float acc = 0.0f;
   int32_t keep_bin = 0;
   for (int32_t bin = kBins - 1; bin >= 0; --bin) {
     acc += bin_mass[bin];
