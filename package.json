@@ -16,7 +16,7 @@
   },
   "private": true,
   "devDependencies": {
-    "@babel/core": "^7.25.1",
+    "@babel/core": "^7.29.6",
     "@babel/eslint-parser": "^7.25.1",
     "@cspell/eslint-plugin": "^8.19.0",
     "@evilmartians/lefthook": "^2.1.1",
