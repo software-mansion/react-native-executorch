@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { isEmulatorSync } from 'react-native-device-info';
 import * as M from './modelUrls';
 import * as OCR from './ocr/models';
 import { symbols } from './ocr/symbols';
@@ -90,26 +91,47 @@ function firstBackend(variants: AnyVariantMap): Backend {
   );
 }
 
+function applySimulatorPolicy(
+  backend: Backend,
+  variants: AnyVariantMap,
+  explicit: boolean
+): Backend {
+  if (backend !== 'mlx' || Platform.OS !== 'ios' || !isEmulatorSync()) {
+    return backend;
+  }
+  if (!explicit && variants.xnnpack) return 'xnnpack';
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.InvalidConfig,
+    'The MLX backend requires a physical iOS device and cannot run on the ' +
+      'simulator.' +
+      (variants.xnnpack
+        ? " Pass `{ backend: 'xnnpack' }` (or omit `backend`) to run on the " +
+          'simulator.'
+        : ' This model ships no simulator-compatible backend.')
+  );
+}
+
 function resolveBackend(
   variants: AnyVariantMap,
   platformDefaults: PlatformDefaults<Backend> | undefined,
   requested: Backend | undefined
 ): Backend {
-  if (requested) return requested;
+  if (requested) return applySimulatorPolicy(requested, variants, true);
   if (platformDefaults) {
     if (Platform.OS === 'ios' && platformDefaults.ios)
-      return platformDefaults.ios;
+      return applySimulatorPolicy(platformDefaults.ios, variants, false);
     if (Platform.OS === 'android' && platformDefaults.android) {
       return platformDefaults.android;
     }
-    if (platformDefaults.default) return platformDefaults.default;
+    if (platformDefaults.default)
+      return applySimulatorPolicy(platformDefaults.default, variants, false);
   }
   // Implicit platform default: prefer CoreML on iOS, XNNPACK on Android
   // whenever the model ships that backend. Models can override via
   // `platformDefaults`.
   if (Platform.OS === 'ios' && variants.coreml) return 'coreml';
   if (Platform.OS === 'android' && variants.xnnpack) return 'xnnpack';
-  return firstBackend(variants);
+  return applySimulatorPolicy(firstBackend(variants), variants, false);
 }
 
 function resolveCell(cell: BackendCell, quant: boolean): { modelName: string } {
@@ -205,6 +227,29 @@ const GEMMA4_E2B_VARIANTS = {
       tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
       tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
     },
+  },
+};
+
+const GEMMA4_E2B_MM_CONFIG = {
+  modelName: 'gemma4-e2b-multimodal' as const,
+  tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+  capabilities: ['vision', 'audio'] as const,
+  audioConfig: {
+    samplesPerBlock: 7680,
+    tokensPerBlock: 12,
+  },
+};
+
+const GEMMA4_E2B_MM_VARIANTS = {
+  mlx: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_MLX_MM },
+  },
+  vulkan: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_VULKAN_MM },
+  },
+  xnnpack: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_XNNPACK_MM },
   },
 };
 
@@ -531,7 +576,10 @@ export const models = {
     // pick a model by capability ("LLM") rather than by modality.
     lfm2_5_vl_1_6b: base(M.LFM2_5_VL_1_6B_QUANTIZED),
     lfm2_5_vl_450m: base(M.LFM2_5_VL_450M_QUANTIZED),
-    gemma4_e2b_multimodal: base(M.GEMMA4_E2B_MM),
+    gemma4_e2b_multimodal: variant(GEMMA4_E2B_MM_VARIANTS, {
+      ios: 'mlx',
+      android: 'vulkan',
+    }),
   },
   classification: {
     efficientnet_v2_s: variant(EFFICIENTNET_V2_S_VARIANTS),
