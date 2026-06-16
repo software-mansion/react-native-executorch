@@ -45,5 +45,10 @@
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
+  },
+  "react-native-executorch": {
+    "features": [
+      "llm"
+    ]
   }
 }

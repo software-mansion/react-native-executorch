@@ -38,5 +38,13 @@
     "babel-preset-expo": "~56.0.14",
     "react-refresh": "^0.18.0"
   },
-  "private": true
+  "private": true,
+  "react-native-executorch": {
+    "features": [
+      "llm",
+      "speechToText",
+      "textToSpeech",
+      "vad"
+    ]
+  }
 }

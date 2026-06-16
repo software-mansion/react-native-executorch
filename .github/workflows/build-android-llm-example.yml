@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WORKING_DIRECTORY: apps/llm
+      # TODO: drop once v0.9.0 is cut and tarballs are attached to the matching Release.
+      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.9.0-libs-test
     concurrency:
       group: android-${{ github.ref }}
       cancel-in-progress: true

@@ -43,8 +43,8 @@ public:
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption, bool verbose,
-              uint32_t timeout, bool useVAD, uint32_t vadDetectionMargin);
+              std::string languageOption, bool verbose, uint32_t timeout,
+              bool useVAD, uint32_t vadDetectionMargin);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 
