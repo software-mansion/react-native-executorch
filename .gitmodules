@@ -7,4 +7,4 @@
 [submodule "packages/react-native-executorch/third-party/common/phonemis"]
 	path = packages/react-native-executorch/third-party/common/phonemis
 	url = https://github.com/IgorSwat/Phonemis
-	branch = main
+	branch = v0.1.0
