@@ -133,37 +133,9 @@ export const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_
 export const GEMMA4_E2B_TOKENIZER = `${GEMMA4_E2B_PREFIX}/tokenizer.json`;
 export const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_config.json`;
 
-const GEMMA4_E2B_MODEL =
-  Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MODEL : GEMMA4_E2B_MLX_MODEL;
-
-const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
-const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-
-/**
- * @category Models - LLM
- */
-export const GEMMA4_E2B = {
-  modelName: 'gemma4-e2b',
-  modelSource: GEMMA4_E2B_MODEL,
-  tokenizerSource: GEMMA4_E2B_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
-} as const;
-
-/**
- * @category Models - LLM Multimodal
- */
-export const GEMMA4_E2B_MM = {
-  modelName: 'gemma4-e2b-multimodal',
-  modelSource:
-    Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MM : GEMMA4_E2B_MLX_MM,
-  tokenizerSource: GEMMA4_E2B_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_E2B_TOKENIZER_CONFIG,
-  capabilities: ['vision', 'audio'],
-  audioConfig: {
-    samplesPerBlock: 7680,
-    tokensPerBlock: 12,
-  },
-} as const;
+export const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
+export const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+export const GEMMA4_E2B_XNNPACK_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
 
 /**
  * @category Models - LLM
