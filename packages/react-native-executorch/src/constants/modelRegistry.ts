@@ -79,17 +79,10 @@ type ConfigOf<V> = Extract<
 >;
 type BackendsOf<V> = Extract<keyof V, Backend>;
 
-const BACKEND_ORDER: Backend[] = ['xnnpack', 'coreml', 'mlx', 'vulkan', 'qnn'];
-
-function firstBackend(variants: AnyVariantMap): Backend {
-  for (const b of BACKEND_ORDER) {
-    if (variants[b]) return b;
-  }
-  throw new RnExecutorchError(
-    RnExecutorchErrorCode.Internal,
-    'Model variant map is empty.'
-  );
-}
+const PLATFORM_PREFERENCE: Partial<Record<typeof Platform.OS, Backend[]>> = {
+  ios: ['coreml', 'mlx', 'xnnpack'],
+  android: ['vulkan', 'qnn', 'xnnpack'],
+};
 
 function applySimulatorPolicy(
   backend: Backend,
@@ -111,27 +104,41 @@ function applySimulatorPolicy(
   );
 }
 
+function selectBackend(
+  variants: AnyVariantMap,
+  platformDefaults: PlatformDefaults<Backend> | undefined,
+  requested: Backend | undefined
+): Backend {
+  if (requested) return requested;
+  if (platformDefaults) {
+    if (Platform.OS === 'ios' && platformDefaults.ios)
+      return platformDefaults.ios;
+    if (Platform.OS === 'android' && platformDefaults.android)
+      return platformDefaults.android;
+    if (platformDefaults.default) return platformDefaults.default;
+  }
+  // Implicit platform default: walk the platform's preference order (iOS:
+  // coreml → mlx → xnnpack, Android: vulkan → qnn → xnnpack) and take the
+  // first backend the model ships. Models can override via `platformDefaults`.
+  const preference = PLATFORM_PREFERENCE[Platform.OS] ?? [];
+  for (const b of preference) {
+    if (variants[b]) return b;
+  }
+  // No backend the model ships can run on this platform.
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.InvalidConfig,
+    `This model ships no backend compatible with ${Platform.OS}.`
+  );
+}
+
 function resolveBackend(
   variants: AnyVariantMap,
   platformDefaults: PlatformDefaults<Backend> | undefined,
   requested: Backend | undefined
 ): Backend {
-  if (requested) return applySimulatorPolicy(requested, variants, true);
-  if (platformDefaults) {
-    if (Platform.OS === 'ios' && platformDefaults.ios)
-      return applySimulatorPolicy(platformDefaults.ios, variants, false);
-    if (Platform.OS === 'android' && platformDefaults.android) {
-      return platformDefaults.android;
-    }
-    if (platformDefaults.default)
-      return applySimulatorPolicy(platformDefaults.default, variants, false);
-  }
-  // Implicit platform default: prefer CoreML on iOS, XNNPACK on Android
-  // whenever the model ships that backend. Models can override via
-  // `platformDefaults`.
-  if (Platform.OS === 'ios' && variants.coreml) return 'coreml';
-  if (Platform.OS === 'android' && variants.xnnpack) return 'xnnpack';
-  return applySimulatorPolicy(firstBackend(variants), variants, false);
+  const explicit = requested !== undefined;
+  const backend = selectBackend(variants, platformDefaults, requested);
+  return applySimulatorPolicy(backend, variants, explicit);
 }
 
 function resolveCell(cell: BackendCell, quant: boolean): { modelName: string } {
