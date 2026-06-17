@@ -49,14 +49,14 @@ The following peer dependencies must also be installed in your app:
 
 ## Usage
 
-The integration is built around the `SELFIE_SEGMENTATION` model that we export from `react-native-executorch`. It's the only model we currently support and tune for — the blur pipeline expects its specific input shape and output classes, so other segmentation models will not work correctly.
+The integration is built around the `selfie_segmentation` model that we expose through the [Model Registry](./model-registry.md). It's the only model we currently support and tune for — the blur pipeline expects its specific input shape and output classes, so other segmentation models will not work correctly.
 
-Use `ResourceFetcher` together with `SELFIE_SEGMENTATION.modelSource` to download (and cache) the model, then pass the resulting path to `useBackgroundBlur`. The returned `blurMiddleware` plugs into Fishjam's `cameraTrackMiddleware`.
+Use `ResourceFetcher` together with `models.semantic_segmentation.selfie_segmentation().modelSource` to download (and cache) the model, then pass the resulting path to `useBackgroundBlur`. The returned `blurMiddleware` plugs into Fishjam's `cameraTrackMiddleware`.
 
 ```tsx
 import { useEffect, useState } from 'react';
 import { Button, Text } from 'react-native';
-import { ResourceFetcher, SELFIE_SEGMENTATION } from 'react-native-executorch';
+import { models, ResourceFetcher } from 'react-native-executorch';
 import { useBackgroundBlur } from 'react-native-executorch-webrtc';
 import { useCamera } from '@fishjam-cloud/react-native-client';
 
@@ -64,9 +64,10 @@ function VideoCall() {
   const [modelUri, setModelUri] = useState<string | null>(null);
 
   useEffect(() => {
-    ResourceFetcher.fetch(() => {}, SELFIE_SEGMENTATION.modelSource).then(
-      (paths) => paths?.[0] && setModelUri(paths[0])
-    );
+    ResourceFetcher.fetch(
+      () => {},
+      models.semantic_segmentation.selfie_segmentation().modelSource
+    ).then((paths) => paths?.[0] && setModelUri(paths[0]));
   }, []);
 
   // Wait for the model to be available before mounting the hook —
