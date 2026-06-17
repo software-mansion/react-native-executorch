@@ -32,9 +32,7 @@ export default function PoseEstimationScreen() {
   const [layout, setLayout] = useState({ width: 0, height: 0 });
 
   const model = usePoseEstimation({
-    model: models.pose_estimation.rfdetr_keypoint_preview({
-      backend: 'xnnpack',
-    }),
+    model: models.pose_estimation.rfdetr_keypoint_preview(),
   });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -64,7 +62,6 @@ export default function PoseEstimationScreen() {
     if (imageUri) {
       try {
         const start = Date.now();
-        // RF-DETR keypoint preview is a single-`forward` export, so no inputSize.
         const output = await model.forward(imageUri);
         setInferenceTime(Date.now() - start);
         setResults(output);
