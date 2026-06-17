@@ -703,12 +703,12 @@ export const YOLO26N_POSE = {
 } as const;
 
 // RF-DETR Keypoint (pose estimation) — BETA preview.
-// NOTE: served from the `preview/` path on `resolve/main` (not a tagged
-// release). This export is a preview and may be re-exported under a different
-// constant once a stable version ships.
-export const RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/resolve/main/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`;
-export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/resolve/main/preview/coreml/rfdetr-keypoint-preview-coreml-iOS16-all-fp32.pte`;
-export const RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/resolve/main/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`;
+// NOTE: served from the `preview/` path under PREVIOUS_VERSION_TAG (shipping as
+// part of a patch release). This export is a preview and may be re-exported
+// under a different constant once a stable version ships.
+export const RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/coreml/rfdetr-keypoint-preview-coreml-iOS16-all-fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`;
 const RF_DETR_KEYPOINT_PREVIEW_MODEL =
   Platform.OS === 'ios'
     ? RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL
