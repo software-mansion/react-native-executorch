@@ -707,7 +707,7 @@ export const YOLO26N_POSE = {
 // part of a patch release). This export is a preview and may be re-exported
 // under a different constant once a stable version ships.
 export const RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`;
-export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/coreml/rfdetr-keypoint-preview-coreml-iOS16-all-fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`;
 export const RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`;
 const RF_DETR_KEYPOINT_PREVIEW_MODEL =
   Platform.OS === 'ios'
