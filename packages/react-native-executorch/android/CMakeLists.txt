@@ -1,33 +1,40 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 project(RnExecutorch)
 
-set (CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_CXX_STANDARD 20)
 
-include("${REACT_NATIVE_DIR}/ReactAndroid/cmake-utils/folly-flags.cmake")
-add_compile_options(${folly_FLAGS})
+set(EXEC_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../third-party/android/jniLibs/${ANDROID_ABI}/libexecutorch.so")
 
+add_library(executorch SHARED IMPORTED)
+set_target_properties(executorch PROPERTIES IMPORTED_LOCATION ${EXEC_LIB_PATH})
 
-if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 80)
-  include("${REACT_NATIVE_DIR}/ReactCommon/cmake-utils/react-native-flags.cmake")
-  target_compile_reactnative_options(react-native-executorch PRIVATE)
-else()
-  string(APPEND CMAKE_CXX_FLAGS " -O2 -fstack-protector-all -fexceptions -frtti -std=c++${CMAKE_CXX_STANDARD} -Wall")
-endif()
+find_package(ReactAndroid REQUIRED CONFIG)
 
-string(APPEND CMAKE_CXX_FLAGS " -DRCT_NEW_ARCH_ENABLED")
+file(GLOB CORE_SOURCES ../cpp/core/*.cpp)
 
-set(ANDROID_CPP_DIR "${CMAKE_SOURCE_DIR}/src/main/cpp")
-set(COMMON_CPP_DIR "${CMAKE_SOURCE_DIR}/../common")
-set(LIBS_DIR "${CMAKE_SOURCE_DIR}/../third-party/android/libs")
-set(COMMON_THIRD_PARTY_DIR "${CMAKE_SOURCE_DIR}/../third-party/common")
-set(TOKENIZERS_DIR "${CMAKE_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/include")
-set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../third-party/include")
+add_library(${CMAKE_PROJECT_NAME} SHARED
+    ../cpp/RnExecutorch.cpp
+    ${CORE_SOURCES}
+    cpp-adapter.cpp
+)
 
-# Treat third-party headers as system headers to suppress deprecation warnings
-include_directories(SYSTEM "${INCLUDE_DIR}")
-include_directories(SYSTEM "${INCLUDE_DIR}/cpuinfo")
-include_directories(SYSTEM "${INCLUDE_DIR}/pthreadpool")
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+    C10_USING_CUSTOM_GENERATED_MACROS=1
+    EXECUTORCH_ENABLE_EXECUTION_PROFILING=1
+)
 
-add_subdirectory("${ANDROID_CPP_DIR}")
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    ../cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include
+)
+
+# Ensure executorch is linked with WHOLE_ARCHIVE so all static initializers are included
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--whole-archive)
+target_link_libraries(${CMAKE_PROJECT_NAME} executorch)
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--no-whole-archive)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    ReactAndroid::jsi
+    log
+)

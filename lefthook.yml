@@ -12,11 +12,6 @@ pre-commit:
       run: npx prettier --write {staged_files} && git add {staged_files}
     format-objc:
       glob: '*.{h,hpp,m,mm,c,cpp}'
-      # ErrorCodes.h is generated verbatim by `yarn codegen:errors` and verified
-      # in CI with a raw diff; clang-format would rewrap its comments and break
-      # that check, so it is excluded here.
-      exclude:
-        - 'packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h'
       run: clang-format -i {staged_files} && git add {staged_files}
     format-kotlin:
       glob: '*.{kt}'

@@ -9,10 +9,9 @@
     ]
   },
   "scripts": {
-    "prepare": "yarn workspaces foreach --all --topological-dev run prepare",
-    "lint": "yarn workspaces foreach --all --parallel run lint",
-    "typecheck": "yarn workspaces foreach --all --parallel run typecheck",
-    "codegen:errors": "npx ts-node scripts/generate-errors.ts"
+    "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --topological-dev run prepare",
+    "lint": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --parallel run lint",
+    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --parallel run typecheck"
   },
   "private": true,
   "devDependencies": {

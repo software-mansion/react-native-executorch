@@ -10,81 +10,33 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => '17.0' }
+  s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/software-mansion/react-native-executorch.git", :tag => "#{s.version}" }
 
+  s.source_files = "ios/**/*.{h,m,mm,swift,cpp}", "cpp/**/*.{hpp,cpp,c,h}"
+  s.private_header_files = "ios/**/*.h"
 
-  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
-  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
-
-  s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" =>
-      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool"',
-
-    "OTHER_LDFLAGS[sdk=iphoneos*]" => [
-      '$(inherited)',
-      "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-
-    ].join(' '),
-
-    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
-      '$(inherited)',
-      "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
-    ].join(' '),
-
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
-  }
+  s.ios.vendored_frameworks = "third-party/ios/Frameworks/ExecutorchLib.xcframework"
+  s.frameworks = "CoreML", "Metal", "MetalPerformanceShaders", "Accelerate"
+  s.library = "sqlite3"
 
   s.pod_target_xcconfig = {
-    "USE_HEADERMAP" => "YES",
-    "HEADER_SEARCH_PATHS" =>
-      '"$(PODS_TARGET_SRCROOT)/ios" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/cpuinfo" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/include/pthreadpool" '+
-      '"$(PODS_TARGET_SRCROOT)/common" ' +
-      '"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src" ',
-    "GCC_PREPROCESSOR_DEFINITIONS" => '$(inherited) ET_ON=1',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
+
+    "GCC_PREPROCESSOR_DEFINITIONS" => [
+      "$(inherited)",
+      "C10_USING_CUSTOM_GENERATED_MACROS=1",
+      "EXECUTORCH_ENABLE_EXECUTION_PROFILING=1",
+    ].join(' '),
+
+    "HEADER_SEARCH_PATHS" => [
+      "\"$(PODS_TARGET_SRCROOT)/cpp\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/include\"",
+    ].join(' '),
+    
+    "WARNING_CFLAGS" => "-Wno-documentation"
   }
-
-  s.source_files = [
-    "ios/**/*.{m,mm,h}",
-    "common/**/*.{cpp,c,h,hpp}",
-    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
-  ]
-
-  s.libraries = "z"
-  s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
-
-  # NOTE: mlx.metallib (the MLX GPU kernels) is bundled INSIDE
-  # ExecutorchLib.framework, colocated with the binary that contains the MLX
-  # code. MLX's runtime loader resolves the metallib relative to that binary
-  # (via dladdr), so it must live next to it in the framework — not at the app
-  # bundle root.
-  # Exclude file with tests to not introduce gtest dependency.
-  # Do not include the headers from common/rnexecutorch/jsi/ as source files.
-  # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if
-  # another pod includes a header with the same name without a path by
-  # #include "Header.h" we get a conflict. Here, headers in jsi/ collide with
-  # react-native-skia. The headers are preserved by preserve_paths and
-  # then made available by HEADER_SEARCH_PATHS.
-  s.exclude_files = [
-    "common/rnexecutorch/tests/**/*",
-    "common/rnexecutorch/jsi/*.{h,hpp}",
-    "third-party/common/phonemis/src/phonemis/main.cpp" # Exclude the phonemis runner
-  ]
-  s.header_mappings_dir = "common/rnexecutorch"
-  s.header_dir = "rnexecutorch"
-  s.preserve_paths = "common/rnexecutorch/jsi/*.{h,hpp}"
-
-  s.dependency "opencv-rne", "~> 4.11.0"
 
   install_modules_dependencies(s)
 end
+
