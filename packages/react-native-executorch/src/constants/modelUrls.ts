@@ -731,6 +731,28 @@ export const YOLO26N_POSE = {
   modelSource: YOLO26N_POSE_MODEL,
 } as const;
 
+// RF-DETR Keypoint (pose estimation) — BETA preview.
+// NOTE: served from the `preview/` path under PREVIOUS_VERSION_TAG (shipping as
+// part of a patch release). This export is a preview and may be re-exported
+// under a different constant once a stable version ships.
+export const RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`;
+const RF_DETR_KEYPOINT_PREVIEW_MODEL =
+  Platform.OS === 'ios'
+    ? RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL
+    : RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL;
+
+/**
+ * @category Models - Pose Estimation
+ * @beta Preview export — may be re-exported under a different constant once a
+ * stable RF-DETR keypoint model ships.
+ */
+export const RF_DETR_KEYPOINT_PREVIEW = {
+  modelName: 'rfdetr-keypoint-preview',
+  modelSource: RF_DETR_KEYPOINT_PREVIEW_MODEL,
+} as const;
+
 // Style transfer
 /**
  * Builds the four `(backend, precision)` URLs for a single style-transfer style.

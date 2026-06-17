@@ -1,10 +1,12 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
+import { ModelPicker, ModelOption } from '../../components/ModelPicker';
 import { getImage } from '../../utils';
 import {
   models,
   usePoseEstimation,
   PoseDetections,
+  PoseEstimationModelSources,
   RnExecutorchError,
   RnExecutorchErrorCode,
 } from 'react-native-executorch';
@@ -16,6 +18,16 @@ import { StatsBar } from '../../components/StatsBar';
 import Svg, { Circle, Line } from 'react-native-svg';
 import ErrorBanner from '../../components/ErrorBanner';
 import { COCO_SKELETON_CONNECTIONS } from '../../components/utils/cocoSkeleton';
+
+const poseEstimation = models.pose_estimation;
+
+const MODELS: ModelOption<PoseEstimationModelSources>[] = [
+  { label: 'YOLO26N Pose', value: poseEstimation.yolo26n() },
+  {
+    label: 'RF-DETR Keypoint (beta)',
+    value: poseEstimation.rfdetr_keypoint_preview(),
+  },
+];
 
 // Colors for different people
 const PERSON_COLORS = ['lime', 'cyan', 'magenta', 'yellow', 'orange', 'pink'];
@@ -30,8 +42,10 @@ export default function PoseEstimationScreen() {
   }>();
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
   const [layout, setLayout] = useState({ width: 0, height: 0 });
+  const [selectedModel, setSelectedModel] =
+    useState<PoseEstimationModelSources>(poseEstimation.yolo26n());
 
-  const model = usePoseEstimation({ model: models.pose_estimation.yolo26n() });
+  const model = usePoseEstimation({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
@@ -60,7 +74,7 @@ export default function PoseEstimationScreen() {
     if (imageUri) {
       try {
         const start = Date.now();
-        const output = await model.forward(imageUri, { inputSize: 384 });
+        const output = await model.forward(imageUri);
         setInferenceTime(Date.now() - start);
         setResults(output);
       } catch (e) {
@@ -206,6 +220,16 @@ export default function PoseEstimationScreen() {
           </View>
         )}
       </View>
+      <ModelPicker
+        models={MODELS}
+        selectedModel={selectedModel}
+        disabled={model.isGenerating}
+        onSelect={(m) => {
+          setSelectedModel(m);
+          setResults([]);
+          setInferenceTime(null);
+        }}
+      />
       <StatsBar
         inferenceTime={inferenceTime}
         detectionCount={results.length > 0 ? results.length : null}
