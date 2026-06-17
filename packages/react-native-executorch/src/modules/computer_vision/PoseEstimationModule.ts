@@ -29,8 +29,20 @@ const YOLO_POSE_CONFIG = {
   defaultKeypointThreshold: 0.5,
 } satisfies PoseEstimationConfig<typeof CocoKeypoint>;
 
+// RF-DETR keypoint preview (BETA). Unlike yolo26n-pose's multi-method
+// `forward_<size>` export, this ships a single `forward` method — omitting
+// availableInputSizes/defaultInputSize makes forward() dispatch to plain
+// `forward`. May be renamed once a stable model ships.
+const RFDETR_KEYPOINT_CONFIG = {
+  keypointMap: CocoKeypoint,
+  preprocessorConfig: undefined,
+  defaultDetectionThreshold: 0.5,
+  defaultKeypointThreshold: 0.5,
+} satisfies PoseEstimationConfig<typeof CocoKeypoint>;
+
 const ModelConfigs = {
   'yolo26n-pose': YOLO_POSE_CONFIG,
+  'rfdetr-keypoint-preview': RFDETR_KEYPOINT_CONFIG,
 } as const satisfies Record<
   PoseEstimationModelName,
   PoseEstimationConfig<LabelEnum>
