@@ -43,7 +43,7 @@ export default function PoseEstimationScreen() {
   const [inferenceTime, setInferenceTime] = useState<number | null>(null);
   const [layout, setLayout] = useState({ width: 0, height: 0 });
   const [selectedModel, setSelectedModel] =
-    useState<PoseEstimationModelSources>(MODELS[0].value);
+    useState<PoseEstimationModelSources>(poseEstimation.yolo26n());
 
   const model = usePoseEstimation({ model: selectedModel });
   const { setGlobalGenerating } = useContext(GeneratingContext);
