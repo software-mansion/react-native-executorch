@@ -36,6 +36,9 @@
 #include <algorithm>
 #include <ctime>
 #include <limits>
+#include <ranges>
+#include <span>
+#include <type_traits>
 #include <vector>
 
 namespace executorch {
@@ -141,57 +144,59 @@ template <typename T> void Sampler::mask_topk(T *logits) {
   }
 }
 
-// Mask logits whose softmax-prob falls outside the top-p nucleus to -inf.
-// Keeps the token that crosses the threshold (HuggingFace convention).
+// Mask logits outside the top-p nucleus to -inf. Approximates the exact
+// sort-based nucleus with a histogram over (logit - max): two O(n) passes, no
+// sort. Binning in logit (not probability) space keeps uniform resolution for
+// peaked and flat distributions alike. kRange=40 spans exp() down to ~4e-18.
 template <typename T> void Sampler::mask_topp(T *logits) {
   if (topp_ <= 0.0f || topp_ >= 1.0f) {
     return;
   }
-  // Softmax into a scratch probs[] (do not mutate logits yet).
-  T max_val = logits[0];
-  for (size_t i = 1; i < vocab_size_; i++) {
-    if (logits[i] > max_val) {
-      max_val = logits[i];
-    }
-  }
-  std::unique_ptr<ProbIndex<T>[]> probindex =
-      std::make_unique<ProbIndex<T>[]>(vocab_size_);
-  T sum = 0;
+  constexpr int32_t kBins = 2048;
+  // Compute in a type at least as wide as T so converting logits never loses
+  // precision: double stays double, everything else (float and the narrow
+  // half/bf16/uint16 logit types) widens to float. Accumulating in T directly
+  // would be unsafe for bf16, whose mantissa saturates when summing exp()
+  // over the full vocab.
+  using acc_t = std::conditional_t<std::is_same_v<T, double>, double, float>;
+  constexpr acc_t kRange = 40;
+
+  std::span<const T> logit_span{logits, static_cast<size_t>(vocab_size_)};
+  const acc_t max_val =
+      static_cast<acc_t>(*std::ranges::max_element(logit_span));
+
+  std::vector<acc_t> bin_mass(kBins, acc_t(0));
+  acc_t total = 0;
   for (size_t i = 0; i < vocab_size_; i++) {
-    T e = static_cast<T>(std::expf(static_cast<float>(logits[i] - max_val)));
-    probindex[i].prob = e;
-    probindex[i].index = i;
-    sum += e;
+    acc_t d = static_cast<acc_t>(logits[i]) - max_val;
+    acc_t e = std::exp(d);
+    total += e;
+    int32_t bin = static_cast<int32_t>((d + kRange) / kRange * kBins);
+    bin = std::clamp(bin, 0, kBins - 1);
+    bin_mass[bin] += e;
   }
-  if (sum <= T(0)) {
+  if (total <= acc_t(0)) {
     return;
   }
-  for (size_t i = 0; i < vocab_size_; i++) {
-    probindex[i].prob /= sum;
-  }
-  std::sort(probindex.get(), probindex.get() + vocab_size_,
-            [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
-              return a.prob > b.prob;
-            });
 
-  // Find the smallest prefix whose cumulative probability >= topp_.
-  T cumulative = 0;
-  int last_idx = vocab_size_ - 1;
-  for (size_t i = 0; i < vocab_size_; i++) {
-    cumulative += probindex[i].prob;
-    if (static_cast<float>(cumulative) >= topp_) {
-      last_idx = i;
+  // Highest bin downward until the kept mass reaches topp. The crossing bin is
+  // kept (HuggingFace "keep the token that crosses" convention).
+  const acc_t target = static_cast<acc_t>(topp_) * total;
+  acc_t acc = 0;
+  int32_t keep_bin = 0;
+  for (int32_t bin = kBins - 1; bin >= 0; --bin) {
+    acc += bin_mass[bin];
+    if (acc >= target) {
+      keep_bin = bin;
       break;
     }
   }
-  // Mark kept indices, then -inf the rest.
-  std::vector<bool> keep(vocab_size_, false);
-  for (size_t i = 0; i <= last_idx; i++) {
-    keep[probindex[i].index] = true;
-  }
+  const acc_t d_threshold =
+      static_cast<acc_t>(keep_bin) / kBins * kRange - kRange;
+
   constexpr T neg_inf = std::numeric_limits<T>::lowest();
   for (size_t i = 0; i < vocab_size_; i++) {
-    if (!keep[i]) {
+    if (static_cast<acc_t>(logits[i]) - max_val < d_threshold) {
       logits[i] = neg_inf;
     }
   }
@@ -210,22 +215,28 @@ Sampler::Sampler(int32_t vocab_size, GenerationConfig config)
     : Sampler(vocab_size, config, std::time(nullptr)) {}
 
 template <typename T> static void softmax(T *x, int size) {
-  // find max value (for numerical stability)
+  // Runs after top-k/top-p masking, which sets rejected logits to lowest().
+  // Skip exp() on those: it underflows to 0 anyway and is slow on device.
+  constexpr T kMasked = std::numeric_limits<T>::lowest();
   T max_val = x[0];
   for (size_t i = 1; i < size; i++) {
     if (x[i] > max_val) {
       max_val = x[i];
     }
   }
-  // exp and sum
   T sum = 0;
   for (size_t i = 0; i < size; i++) {
+    if (x[i] == kMasked) {
+      x[i] = T(0);
+      continue;
+    }
     x[i] = expf(x[i] - max_val);
     sum += x[i];
   }
-  // normalize
   for (size_t i = 0; i < size; i++) {
-    x[i] /= sum;
+    if (x[i] != T(0)) {
+      x[i] /= sum;
+    }
   }
 }
 

@@ -276,6 +276,31 @@ const RF_DETR_NANO_SEG_VARIANTS = {
   },
 };
 
+// RF-DETR Keypoint (pose estimation) — BETA preview. Configs mirror the
+// All three backends ship fp32
+// (non-quantized); this entry may be re-exported under a different constant
+// once more RF-DETR keypoint weights are released.
+const RF_DETR_KEYPOINT_PREVIEW_VARIANTS = {
+  xnnpack: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL,
+    },
+  },
+  coreml: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL,
+    },
+  },
+  mlx: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL,
+    },
+  },
+};
+
 const FASTSAM_S_VARIANTS = {
   xnnpack: {
     base: {
@@ -553,6 +578,9 @@ export const models = {
   },
   pose_estimation: {
     yolo26n: base(M.YOLO26N_POSE),
+    // BETA preview — may be re-exported under a different constant once a
+    // stable RF-DETR keypoint model ships.
+    rfdetr_keypoint_preview: variant(RF_DETR_KEYPOINT_PREVIEW_VARIANTS),
   },
   semantic_segmentation: {
     deeplab_v3_resnet50: pair(

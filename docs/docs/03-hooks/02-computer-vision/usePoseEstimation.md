@@ -129,10 +129,15 @@ See the full guide: [VisionCamera Integration](./visioncamera-integration.md).
 
 ## Supported models
 
-| Model                                                                                       | Number of keypoints | Keypoint list                                               | Multi-size Support |
-| ------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------- | ------------------ |
-| [YOLO26N-Pose](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose) | 17                  | [COCO](../../06-api-reference/enumerations/CocoKeypoint.md) | Yes (384/512/640)  |
+| Model                                                                                                         | Number of keypoints | Keypoint list                                               | Multi-size Support |
+| ------------------------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------- | ------------------ |
+| [YOLO26N-Pose](https://huggingface.co/software-mansion/react-native-executorch-yolo26-pose)                   | 17                  | [COCO](../../06-api-reference/enumerations/CocoKeypoint.md) | Yes (384/512/640)  |
+| [RF-DETR Keypoint (preview)](https://huggingface.co/software-mansion/react-native-executorch-rfdetr-keypoint) | 17                  | [COCO](../../06-api-reference/enumerations/CocoKeypoint.md) | No                 |
 
 :::tip
 YOLO models support multiple input sizes (384px, 512px, 640px). Smaller sizes are faster but less accurate, while larger sizes are more accurate but slower. Choose based on your speed/accuracy requirements.
+:::
+
+:::warning
+`rfdetr_keypoint_preview` is a **preview weights** export and may be re-exported under a different constant once a stable version ships. It is a single-input-size model (no `inputSize` option) and ships `xnnpack`, `coreml`, and `mlx` backends — pass `{ backend }` to override the platform default, e.g. `models.pose_estimation.rfdetr_keypoint_preview({ backend: 'mlx' })`.
 :::
