@@ -132,6 +132,12 @@ detr
 metaprogramming
 ktlint
 lefthook
+dtype
+numel
+metas
+Metas
+ndim
+nbytes
 espeak
 KOMODO
 DUNGENESS

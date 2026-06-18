@@ -1,25 +1,31 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "tsBuildInfoFile": "./lib/typescript/tsconfig.tsbuildinfo",
-    "composite": true,
-    "allowJs": false,
+    "rootDir": ".",
+    "stripInternal": true,
+    "paths": {
+      "react-native-executorch": ["./src/index"]
+    },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
+    "customConditions": ["react-native-strict-api"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
+    "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
     "strict": true,
-    "types": ["react", "node"]
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "lib"]
+    "target": "ESNext",
+    "verbatimModuleSyntax": true
+  }
 }
