@@ -17,20 +17,17 @@ namespace rnexecutorch::models::ocr {
 
 class RecognitionHandler final {
 public:
-  explicit RecognitionHandler(const std::string &recognizer,
-                              const std::string &symbols,
+  explicit RecognitionHandler(const std::string &recognizer, const std::string &symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::OCRDetection>
-  recognize(std::vector<types::DetectorBBox> bboxesList, cv::Mat &imgGray,
-            cv::Size desiredSize);
+  std::vector<types::OCRDetection> recognize(std::vector<types::DetectorBBox> bboxesList,
+                                             cv::Mat &imgGray, cv::Size desiredSize);
   void unload() noexcept;
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   std::pair<std::vector<int32_t>, float> runModel(cv::Mat image);
-  void processBBox(std::vector<types::OCRDetection> &boxList,
-                   types::DetectorBBox &box, cv::Mat &imgGray,
-                   types::PaddingInfo ratioAndPadding);
+  void processBBox(std::vector<types::OCRDetection> &boxList, types::DetectorBBox &box,
+                   cv::Mat &imgGray, types::PaddingInfo ratioAndPadding);
   std::size_t memorySizeLowerBound{0};
   CTCLabelConverter converter;
   Recognizer recognizer;

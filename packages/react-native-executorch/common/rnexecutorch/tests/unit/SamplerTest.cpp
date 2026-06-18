@@ -15,8 +15,8 @@ using namespace executorch::extension::llm;
 
 // Helper: run sampler N times, count how often each index is picked.
 template <typename T>
-std::vector<int> sampleMany(Sampler &s, std::vector<T> logits,
-                            const std::vector<uint64_t> &recent, int n) {
+std::vector<int> sampleMany(Sampler &s, std::vector<T> logits, const std::vector<uint64_t> &recent,
+                            int n) {
   std::vector<int> counts(logits.size(), 0);
   for (int i = 0; i < n; ++i) {
     std::vector<T> copy = logits;
@@ -42,10 +42,8 @@ TEST(SamplerTest, RepetitionPenaltyReducesPositiveLogit) {
 // 2000) versus the baseline e^-1 / (1 + e^-1) ≈ 0.27 (~538). A static "< 200"
 // bound would be mathematically unreachable at this penalty.
 TEST(SamplerTest, RepetitionPenaltyMultipliesNegativeLogit) {
-  Sampler baseline(
-      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
-  Sampler penalised(
-      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.5f});
+  Sampler baseline(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
+  Sampler penalised(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.5f});
   std::vector<float> logits_b = {0.0f, -1.0f};
   std::vector<float> logits_p = {0.0f, -1.0f};
   std::vector<uint64_t> recent = {1};
@@ -56,10 +54,8 @@ TEST(SamplerTest, RepetitionPenaltyMultipliesNegativeLogit) {
 
 // 3. No recent tokens — penalty has no effect.
 TEST(SamplerTest, RepetitionPenaltyNoRecentTokensHasNoEffect) {
-  Sampler baseline(
-      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
-  Sampler penalised(
-      2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 2.0f});
+  Sampler baseline(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 1.0f});
+  Sampler penalised(2, {.temperature = 1.0f, .topp = 1.0f, .repetition_penalty = 2.0f});
   std::vector<float> logits_b = {1.0f, 1.0f};
   std::vector<float> logits_p = {1.0f, 1.0f};
   std::vector<uint64_t> recent = {};

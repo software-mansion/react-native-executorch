@@ -14,13 +14,10 @@ struct BBox {
   float height() const { return p2.y - p1.y; }
   float area() const { return width() * height(); }
 
-  bool isValid() const {
-    return p2.x > p1.x && p2.y > p1.y && p1.x >= 0.0f && p1.y >= 0.0f;
-  }
+  bool isValid() const { return p2.x > p1.x && p2.y > p1.y && p1.x >= 0.0f && p1.y >= 0.0f; }
 
   BBox scale(float widthRatio, float heightRatio) const {
-    return {{p1.x * widthRatio, p1.y * heightRatio},
-            {p2.x * widthRatio, p2.y * heightRatio}};
+    return {{p1.x * widthRatio, p1.y * heightRatio}, {p2.x * widthRatio, p2.y * heightRatio}};
   }
 
   Point p1, p2;

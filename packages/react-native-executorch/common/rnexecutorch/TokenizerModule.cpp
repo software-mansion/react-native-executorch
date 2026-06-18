@@ -11,16 +11,15 @@ namespace rnexecutorch {
 using namespace facebook;
 using namespace executorch::extension::llm;
 
-TokenizerModule::TokenizerModule(
-    std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
+TokenizerModule::TokenizerModule(std::string source,
+                                 std::shared_ptr<react::CallInvoker> callInvoker)
     : tokenizer(std::make_unique<tokenizers::HFTokenizer>()) {
 
   auto status = tokenizer->load(source);
 
   if (status != tokenizers::Error::Ok) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while loading tokenizer");
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occurred while loading tokenizer");
   };
   std::filesystem::path modelPath{source};
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
@@ -35,29 +34,25 @@ std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   // setting any of bos or eos arguments to value other than provided constant
   // ( which is 0) will result in running the post_processor with
   // 'add_special_token' flag
-  auto encodeResult =
-      tokenizer->encode(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
+  auto encodeResult = tokenizer->encode(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
   if (!encodeResult.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while encoding: " +
-            std::to_string(static_cast<int32_t>(encodeResult.error())));
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occurred while encoding: " +
+                                std::to_string(static_cast<int32_t>(encodeResult.error())));
   }
   return encodeResult.get();
 }
 
-std::string TokenizerModule::decode(std::vector<uint64_t> vec,
-                                    bool skipSpecialTokens) const {
+std::string TokenizerModule::decode(std::vector<uint64_t> vec, bool skipSpecialTokens) const {
   if (!tokenizer) {
     THROW_NOT_LOADED_ERROR();
   }
 
   auto decodeResult = tokenizer->decode(vec, skipSpecialTokens);
   if (!decodeResult.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while decoding: " +
-            std::to_string(static_cast<int32_t>(decodeResult.error())));
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occurred while decoding: " +
+                                std::to_string(static_cast<int32_t>(decodeResult.error())));
   }
 
   return decodeResult.get();
@@ -76,10 +71,9 @@ std::string TokenizerModule::idToToken(uint64_t tokenId) const {
   }
   auto result = tokenizer->id_to_piece(tokenId);
   if (!result.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while converting id to token: " +
-            std::to_string(static_cast<int32_t>(result.error())));
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occurred while converting id to token: " +
+                                std::to_string(static_cast<int32_t>(result.error())));
   }
   return result.get();
 }
@@ -91,16 +85,13 @@ uint64_t TokenizerModule::tokenToId(std::string token) const {
 
   auto result = tokenizer->piece_to_id(token);
   if (!result.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while converting token to id: " +
-            std::to_string(static_cast<int32_t>(result.error())));
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occurred while converting token to id: " +
+                                std::to_string(static_cast<int32_t>(result.error())));
   }
   return result.get();
 }
 
-std::size_t TokenizerModule::getMemoryLowerBound() const noexcept {
-  return memorySizeLowerBound;
-}
+std::size_t TokenizerModule::getMemoryLowerBound() const noexcept { return memorySizeLowerBound; }
 
 } // namespace rnexecutorch

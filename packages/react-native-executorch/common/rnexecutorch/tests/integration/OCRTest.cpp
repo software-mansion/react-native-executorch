@@ -20,10 +20,9 @@ constexpr auto kValidTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/we_are_software_mansion.jpg";
 
 // English alphabet symbols (must match alphabets.english from symbols.ts)
-const std::string ENGLISH_SYMBOLS =
-    "0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ "
-    "\xE2\x82\xAC" // Euro sign (€)
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const std::string ENGLISH_SYMBOLS = "0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ "
+                                    "\xE2\x82\xAC" // Euro sign (€)
+                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -55,48 +54,39 @@ INSTANTIATE_TYPED_TEST_SUITE_P(OCR, CommonModelTest, OCRTypes);
 // Model-specific tests
 // ============================================================================
 TEST(OCRCtorTests, InvalidRecognizerPathThrows) {
-  EXPECT_THROW(OCR(kValidDetectorPath, "nonexistent.pte", ENGLISH_SYMBOLS,
-                   createMockCallInvoker()),
+  EXPECT_THROW(OCR(kValidDetectorPath, "nonexistent.pte", ENGLISH_SYMBOLS, createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(OCRCtorTests, EmptySymbolsThrows) {
-  EXPECT_THROW(OCR(kValidDetectorPath, kValidRecognizerPath, "",
-                   createMockCallInvoker()),
+  EXPECT_THROW(OCR(kValidDetectorPath, kValidRecognizerPath, "", createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, InvalidImagePathThrows) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
-               RnExecutorchError);
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"), RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, EmptyImagePathThrows) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, MalformedURIThrows) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
-               RnExecutorchError);
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"), RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, ValidImageReturnsResults) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   auto results = model.generateFromString(kValidTestImagePath);
   // May or may not have detections depending on image content
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(OCRGenerateTests, DetectionsHaveValidBoundingBoxes) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   auto results = model.generateFromString(kValidTestImagePath);
 
   for (const auto &detection : results) {
@@ -108,8 +98,7 @@ TEST(OCRGenerateTests, DetectionsHaveValidBoundingBoxes) {
 }
 
 TEST(OCRGenerateTests, DetectionsHaveValidScores) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   auto results = model.generateFromString(kValidTestImagePath);
 
   for (const auto &detection : results) {
@@ -119,8 +108,7 @@ TEST(OCRGenerateTests, DetectionsHaveValidScores) {
 }
 
 TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   auto results = model.generateFromString(kValidTestImagePath);
   for (const auto &detection : results) {
     EXPECT_FALSE(detection.text.empty());
@@ -131,11 +119,9 @@ TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
 // generateFromPixels smoke test
 // ============================================================================
 TEST(OCRPixelTests, ValidPixelsReturnsResults) {
-  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
+  OCR model(kValidDetectorPath, kValidRecognizerPath, ENGLISH_SYMBOLS, createMockCallInvoker());
   std::vector<uint8_t> buf(64 * 64 * 3, 128);
-  JSTensorViewIn view{
-      buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
+  JSTensorViewIn view{buf.data(), {64, 64, 3}, executorch::aten::ScalarType::Byte};
   auto results = model.generateFromPixels(view);
   EXPECT_GE(results.size(), 0u);
 }

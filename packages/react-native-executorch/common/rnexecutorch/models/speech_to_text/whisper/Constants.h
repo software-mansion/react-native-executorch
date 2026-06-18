@@ -30,8 +30,7 @@ inline constexpr size_t kNumFrames = 1500;
 inline constexpr float kTimePrecision = 0.02f;
 
 // Special characters serving as pause / end of sentence
-inline const std::unordered_set<char> kPunctations = {',', '.', '?',
-                                                      '!', ':', ';'};
+inline const std::unordered_set<char> kPunctations = {',', '.', '?', '!', ':', ';'};
 inline const std::unordered_set<char> kEosPunctations = {'.', '?', '!', ';'};
 
 // Special token constants

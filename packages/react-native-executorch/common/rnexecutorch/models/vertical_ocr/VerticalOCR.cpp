@@ -11,13 +11,11 @@
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
-VerticalOCR::VerticalOCR(const std::string &detectorSource,
-                         const std::string &recognizerSource,
+VerticalOCR::VerticalOCR(const std::string &detectorSource, const std::string &recognizerSource,
                          std::string symbols, bool independentChars,
                          std::shared_ptr<react::CallInvoker> invoker)
-    : detector(detectorSource, invoker), recognizer(recognizerSource, invoker),
-      converter(symbols), independentCharacters(independentChars),
-      callInvoker(invoker) {}
+    : detector(detectorSource, invoker), recognizer(recognizerSource, invoker), converter(symbols),
+      independentCharacters(independentChars), callInvoker(invoker) {}
 
 std::vector<types::OCRDetection> VerticalOCR::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
@@ -26,10 +24,8 @@ std::vector<types::OCRDetection> VerticalOCR::runInference(cv::Mat image) {
   std::vector<types::DetectorBBox> largeBoxes =
       detector.generate(image, constants::kLargeDetectorWidth);
 
-  cv::Size largeDetectorSize =
-      detector.calculateModelImageSize(constants::kLargeDetectorWidth);
-  cv::Mat resizedImage =
-      image_processing::resizePadded(image, largeDetectorSize);
+  cv::Size largeDetectorSize = detector.calculateModelImageSize(constants::kLargeDetectorWidth);
+  cv::Mat resizedImage = image_processing::resizePadded(image, largeDetectorSize);
   types::PaddingInfo imagePaddings =
       utils::calculateResizeRatioAndPaddings(image.size(), largeDetectorSize);
 
@@ -37,15 +33,13 @@ std::vector<types::OCRDetection> VerticalOCR::runInference(cv::Mat image) {
   predictions.reserve(largeBoxes.size());
 
   for (auto &box : largeBoxes) {
-    predictions.push_back(
-        _processSingleTextBox(box, image, resizedImage, imagePaddings));
+    predictions.push_back(_processSingleTextBox(box, image, resizedImage, imagePaddings));
   }
 
   return predictions;
 }
 
-std::vector<types::OCRDetection>
-VerticalOCR::generateFromString(std::string input) {
+std::vector<types::OCRDetection> VerticalOCR::generateFromString(std::string input) {
   cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
@@ -54,9 +48,8 @@ VerticalOCR::generateFromString(std::string input) {
   return runInference(image);
 }
 
-std::vector<types::OCRDetection>
-VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
-                               const jsi::Value &frameData) {
+std::vector<types::OCRDetection> VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
+                                                                const jsi::Value &frameData) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
   cv::Mat bgr;
@@ -65,28 +58,23 @@ VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
 #elif defined(__ANDROID__)
   cv::cvtColor(frame, bgr, cv::COLOR_RGBA2BGR);
 #else
-  throw RnExecutorchError(
-      RnExecutorchErrorCode::PlatformNotSupported,
-      "generateFromFrame is not supported on this platform");
+  throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
+                          "generateFromFrame is not supported on this platform");
 #endif
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(bgr, orient);
   auto detections = runInference(rotated);
   for (auto &det : detections) {
     std::array<types::Point, 2> corners = {det.bbox.p1, det.bbox.p2};
     ::rnexecutorch::utils::inverseRotatePoints(corners, orient, rotated.size());
-    det.bbox = {{std::min(corners[0].x, corners[1].x),
-                 std::min(corners[0].y, corners[1].y)},
-                {std::max(corners[0].x, corners[1].x),
-                 std::max(corners[0].y, corners[1].y)}};
+    det.bbox = {{std::min(corners[0].x, corners[1].x), std::min(corners[0].y, corners[1].y)},
+                {std::max(corners[0].x, corners[1].x), std::max(corners[0].y, corners[1].y)}};
   }
   return detections;
 }
 
-std::vector<types::OCRDetection>
-VerticalOCR::generateFromPixels(JSTensorViewIn pixelData) {
+std::vector<types::OCRDetection> VerticalOCR::generateFromPixels(JSTensorViewIn pixelData) {
   cv::Mat image;
-  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image,
-               cv::COLOR_RGB2BGR);
+  cv::cvtColor(::rnexecutorch::utils::pixelsToMat(pixelData), image, cv::COLOR_RGB2BGR);
   return runInference(image);
 }
 
@@ -97,8 +85,7 @@ std::size_t VerticalOCR::getMemoryLowerBound() const noexcept {
 // Strategy 1: Recognize each character individually
 std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
     const types::DetectorBBox &box, const cv::Mat &originalImage,
-    const std::vector<types::DetectorBBox> &characterBoxes,
-    const types::PaddingInfo &paddingsBox,
+    const std::vector<types::DetectorBBox> &characterBoxes, const types::PaddingInfo &paddingsBox,
     const types::PaddingInfo &imagePaddings) {
   std::string text;
   float confidenceScore = 0.0f;
@@ -112,19 +99,18 @@ std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
      3. Resize it to [VerticalSmallRecognizerWidth x RecognizerHeight] (64 x
      64),
     */
-    auto croppedChar = utils::prepareForRecognition(
-        originalImage, characterBox.bbox, box.bbox, paddingsBox, imagePaddings);
+    auto croppedChar = utils::prepareForRecognition(originalImage, characterBox.bbox, box.bbox,
+                                                    paddingsBox, imagePaddings);
 
     /*
      To make Recognition simpler, we convert cropped character image
      to a bit mask with white character and black background.
     */
     croppedChar = utils::characterBitMask(croppedChar);
-    croppedChar = utils::normalizeForRecognizer(
-        croppedChar, constants::kRecognizerHeight, 0.0, true);
+    croppedChar =
+        utils::normalizeForRecognizer(croppedChar, constants::kRecognizerHeight, 0.0, true);
 
-    const auto &[predIndex, score] =
-        recognizer.generate(croppedChar, constants::kRecognizerHeight);
+    const auto &[predIndex, score] = recognizer.generate(croppedChar, constants::kRecognizerHeight);
     if (!predIndex.empty()) {
       text += converter.decodeGreedy(predIndex, predIndex.size())[0];
     }
@@ -135,11 +121,11 @@ std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
 }
 
 // Strategy 2: Concatenate characters and recognize as a single line
-std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
-    const types::DetectorBBox &box, const cv::Mat &originalImage,
-    const std::vector<types::DetectorBBox> &characterBoxes,
-    const types::PaddingInfo &paddingsBox,
-    const types::PaddingInfo &imagePaddings) {
+std::pair<std::string, float>
+VerticalOCR::_handleJointCharacters(const types::DetectorBBox &box, const cv::Mat &originalImage,
+                                    const std::vector<types::DetectorBBox> &characterBoxes,
+                                    const types::PaddingInfo &paddingsBox,
+                                    const types::PaddingInfo &imagePaddings) {
   std::string text;
   std::vector<cv::Mat> croppedCharacters;
   croppedCharacters.reserve(characterBoxes.size());
@@ -152,18 +138,17 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
      64). The same height is required for horizontal concatenation of single
      characters into one image.
     */
-    auto croppedChar = utils::prepareForRecognition(
-        originalImage, characterBox.bbox, box.bbox, paddingsBox, imagePaddings);
+    auto croppedChar = utils::prepareForRecognition(originalImage, characterBox.bbox, box.bbox,
+                                                    paddingsBox, imagePaddings);
     croppedCharacters.push_back(croppedChar);
   }
 
   cv::Mat mergedCharacters;
   cv::hconcat(croppedCharacters, mergedCharacters);
   mergedCharacters = image_processing::resizePadded(
-      mergedCharacters,
-      cv::Size(constants::kLargeRecognizerWidth, constants::kRecognizerHeight));
-  mergedCharacters = utils::normalizeForRecognizer(
-      mergedCharacters, constants::kRecognizerHeight, 0.0, false);
+      mergedCharacters, cv::Size(constants::kLargeRecognizerWidth, constants::kRecognizerHeight));
+  mergedCharacters =
+      utils::normalizeForRecognizer(mergedCharacters, constants::kRecognizerHeight, 0.0, false);
 
   const auto &[predIndex, confidenceScore] =
       recognizer.generate(mergedCharacters, constants::kLargeRecognizerWidth);
@@ -173,15 +158,15 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
   return {text, confidenceScore};
 }
 
-types::OCRDetection VerticalOCR::_processSingleTextBox(
-    types::DetectorBBox &box, const cv::Mat &originalImage,
-    const cv::Mat &resizedLargeImage, const types::PaddingInfo &imagePaddings) {
+types::OCRDetection VerticalOCR::_processSingleTextBox(types::DetectorBBox &box,
+                                                       const cv::Mat &originalImage,
+                                                       const cv::Mat &resizedLargeImage,
+                                                       const types::PaddingInfo &imagePaddings) {
   cv::Rect boundingBox = utils::extractBoundingBox(box.bbox);
 
   // Crop the image for detection of single characters.
-  cv::Rect safeRect =
-      boundingBox & cv::Rect(0, 0, resizedLargeImage.cols,
-                             resizedLargeImage.rows); // ensure valid box
+  cv::Rect safeRect = boundingBox & cv::Rect(0, 0, resizedLargeImage.cols,
+                                             resizedLargeImage.rows); // ensure valid box
   cv::Mat croppedLargeBox = resizedLargeImage(safeRect);
 
   // 2. Narrow Detector - detects single characters
@@ -196,16 +181,15 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
     const int32_t boxHeight = static_cast<int32_t>(box.bbox.height());
     cv::Size narrowRecognizerSize =
         detector.calculateModelImageSize(constants::kSmallDetectorWidth);
-    types::PaddingInfo paddingsBox = utils::calculateResizeRatioAndPaddings(
-        cv::Size(boxWidth, boxHeight), narrowRecognizerSize);
+    types::PaddingInfo paddingsBox =
+        utils::calculateResizeRatioAndPaddings(cv::Size(boxWidth, boxHeight), narrowRecognizerSize);
 
     // 3. Recognition - decide between Strategy 1 and Strategy 2.
     std::tie(text, confidenceScore) =
-        independentCharacters
-            ? _handleIndependentCharacters(box, originalImage, characterBoxes,
-                                           paddingsBox, imagePaddings)
-            : _handleJointCharacters(box, originalImage, characterBoxes,
-                                     paddingsBox, imagePaddings);
+        independentCharacters ? _handleIndependentCharacters(box, originalImage, characterBoxes,
+                                                             paddingsBox, imagePaddings)
+                              : _handleJointCharacters(box, originalImage, characterBoxes,
+                                                       paddingsBox, imagePaddings);
   }
   // Modify the returned boxes to match the original image size.
   const float ratio = imagePaddings.resizeRatio;

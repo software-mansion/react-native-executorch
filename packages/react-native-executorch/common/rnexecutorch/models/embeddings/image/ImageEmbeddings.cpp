@@ -6,9 +6,8 @@
 
 namespace rnexecutorch::models::embeddings {
 
-ImageEmbeddings::ImageEmbeddings(
-    const std::string &modelSource,
-    std::shared_ptr<react::CallInvoker> callInvoker)
+ImageEmbeddings::ImageEmbeddings(const std::string &modelSource,
+                                 std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
@@ -22,31 +21,27 @@ ImageEmbeddings::ImageEmbeddings(
                   "Unexpected model input size, expected at least 2 dimensions "
                   "but got: %zu.",
                   modelInputShape_.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions, errorMessage);
   }
 }
 
-std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::runInference(cv::Mat image) {
+std::shared_ptr<OwningArrayBuffer> ImageEmbeddings::runInference(cv::Mat image) {
   std::scoped_lock lock(inference_mutex_);
 
   cv::Mat preprocessed = preprocess(image);
 
-  auto inputTensor =
-      image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
+  auto inputTensor = image_processing::getTensorFromMatrix(modelInputShape_, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();
-  return std::make_shared<OwningArrayBuffer>(
-      forwardResultTensor.const_data_ptr(), forwardResultTensor.nbytes());
+  return std::make_shared<OwningArrayBuffer>(forwardResultTensor.const_data_ptr(),
+                                             forwardResultTensor.nbytes());
 }
 
-std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generateFromString(std::string imageSource) {
+std::shared_ptr<OwningArrayBuffer> ImageEmbeddings::generateFromString(std::string imageSource) {
   cv::Mat imageBGR = image_processing::readImage(imageSource);
 
   cv::Mat imageRGB;
@@ -55,15 +50,13 @@ ImageEmbeddings::generateFromString(std::string imageSource) {
   return runInference(imageRGB);
 }
 
-std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generateFromFrame(jsi::Runtime &runtime,
-                                   const jsi::Value &frameData) {
+std::shared_ptr<OwningArrayBuffer> ImageEmbeddings::generateFromFrame(jsi::Runtime &runtime,
+                                                                      const jsi::Value &frameData) {
   cv::Mat frame = extractFromFrame(runtime, frameData);
   return runInference(frame);
 }
 
-std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generateFromPixels(JSTensorViewIn pixelData) {
+std::shared_ptr<OwningArrayBuffer> ImageEmbeddings::generateFromPixels(JSTensorViewIn pixelData) {
   cv::Mat image = extractFromPixels(pixelData);
 
   return runInference(image);

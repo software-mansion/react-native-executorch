@@ -49,8 +49,8 @@ cv::Mat rotateFrameForModel(const cv::Mat &mat, const FrameOrientation &orient);
  * Inverse of rotateFrameForModel for coordinates.
  * rotatedSize is the rotated frame size (rotated.size()).
  */
-void inverseRotateBbox(computer_vision::BBox &bbox,
-                       const FrameOrientation &orient, cv::Size rotatedSize);
+void inverseRotateBbox(computer_vision::BBox &bbox, const FrameOrientation &orient,
+                       cv::Size rotatedSize);
 
 /**
  * @brief Rotate a cv::Mat from rotated-frame space back to screen space.
@@ -82,8 +82,7 @@ concept Point2D = requires(P &p) {
  */
 template <typename Points>
   requires Point2D<typename Points::value_type>
-void inverseRotatePoints(Points &points, const FrameOrientation &orient,
-                         cv::Size rotatedSize) {
+void inverseRotatePoints(Points &points, const FrameOrientation &orient, cv::Size rotatedSize) {
   const float w = static_cast<float>(rotatedSize.width);
   const float h = static_cast<float>(rotatedSize.height);
 
@@ -120,8 +119,8 @@ void inverseRotatePoints(Points &points, const FrameOrientation &orient,
 
 #if defined(__APPLE__)
   if (orient.isMirrored) {
-    bool swapped = (orient.orientation == Orientation::Up ||
-                    orient.orientation == Orientation::Down);
+    bool swapped =
+        (orient.orientation == Orientation::Up || orient.orientation == Orientation::Down);
     float sw = swapped ? h : w;
     float sh = swapped ? w : h;
     for (auto &p : points) {

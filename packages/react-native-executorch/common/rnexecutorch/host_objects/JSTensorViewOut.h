@@ -16,7 +16,6 @@ struct JSTensorViewOut {
 
   JSTensorViewOut(std::vector<int32_t> sizes, ScalarType scalarType,
                   std::shared_ptr<OwningArrayBuffer> dataPtr)
-      : dataPtr(std::move(dataPtr)), sizes(std::move(sizes)),
-        scalarType(scalarType) {}
+      : dataPtr(std::move(dataPtr)), sizes(std::move(sizes)), scalarType(scalarType) {}
 };
 } // namespace rnexecutorch

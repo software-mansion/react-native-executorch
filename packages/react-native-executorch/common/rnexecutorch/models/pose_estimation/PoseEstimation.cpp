@@ -11,28 +11,24 @@
 
 namespace rnexecutorch::models::pose_estimation {
 
-PoseEstimation::PoseEstimation(const std::string &modelSource,
-                               std::vector<float> normMean,
+PoseEstimation::PoseEstimation(const std::string &modelSource, std::vector<float> normMean,
                                std::vector<float> normStd,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : VisionModel(modelSource, callInvoker) {
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normMean must have 3 elements — ignoring provided value.");
+    log(LOG_LEVEL::Warn, "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
   } else if (!normStd.empty()) {
-    log(LOG_LEVEL::Warn,
-        "normStd must have 3 elements — ignoring provided value.");
+    log(LOG_LEVEL::Warn, "normStd must have 3 elements — ignoring provided value.");
   }
 }
 
 PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
-                                           cv::Size originalSize,
-                                           double detectionThreshold,
+                                           cv::Size originalSize, double detectionThreshold,
                                            double keypointThreshold) {
   // Output tensors (batch dim squeezed):
   //   0: boxes     (Q, 4)    - xyxy bbox in model input pixel space
@@ -60,8 +56,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
                           static_cast<int32_t>(shape[shape.size() - 2]));
 
   float scaleX = static_cast<float>(originalSize.width) / modelInputSize.width;
-  float scaleY =
-      static_cast<float>(originalSize.height) / modelInputSize.height;
+  float scaleY = static_cast<float>(originalSize.height) / modelInputSize.height;
 
   PoseDetections allDetections;
 
@@ -96,8 +91,7 @@ PoseDetections PoseEstimation::postprocess(const std::vector<EValue> &tensors,
   return allDetections;
 }
 
-PoseDetections PoseEstimation::runInference(cv::Mat image,
-                                            double detectionThreshold,
+PoseDetections PoseEstimation::runInference(cv::Mat image, double detectionThreshold,
                                             double keypointThreshold,
                                             const std::string &methodName) {
 
@@ -117,29 +111,25 @@ PoseDetections PoseEstimation::runInference(cv::Mat image,
   auto inputShapes = getAllInputShapes(methodName);
   if (inputShapes.empty() || inputShapes[0].size() < 2) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Could not determine input shape for method: " +
-                                methodName);
+                            "Could not determine input shape for method: " + methodName);
   }
   modelInputShape_ = inputShapes[0];
   cv::Mat resizedToModelInput = preprocess(image);
 
   auto inputTensor =
       (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(
-                modelInputShape_, resizedToModelInput, *normMean_, *normStd_)
-          : image_processing::getTensorFromMatrix(modelInputShape_,
-                                                  resizedToModelInput);
+          ? image_processing::getTensorFromMatrix(modelInputShape_, resizedToModelInput, *normMean_,
+                                                  *normStd_)
+          : image_processing::getTensorFromMatrix(modelInputShape_, resizedToModelInput);
 
   auto executeResult = execute(methodName, {inputTensor});
   if (!executeResult.ok()) {
-    throw RnExecutorchError(executeResult.error(),
-                            "The model's " + methodName +
-                                " method did not succeed. "
-                                "Ensure the model input is correct.");
+    throw RnExecutorchError(executeResult.error(), "The model's " + methodName +
+                                                       " method did not succeed. "
+                                                       "Ensure the model input is correct.");
   }
 
-  return postprocess(executeResult.get(), originalSize, detectionThreshold,
-                     keypointThreshold);
+  return postprocess(executeResult.get(), originalSize, detectionThreshold, keypointThreshold);
 }
 
 PoseDetections PoseEstimation::generateFromString(std::string imageSource,
@@ -149,20 +139,16 @@ PoseDetections PoseEstimation::generateFromString(std::string imageSource,
   cv::Mat imageBGR = image_processing::readImage(imageSource);
   cv::Mat imageRGB;
   cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
-  return runInference(std::move(imageRGB), detectionThreshold,
-                      keypointThreshold, methodName);
+  return runInference(std::move(imageRGB), detectionThreshold, keypointThreshold, methodName);
 }
 
-PoseDetections PoseEstimation::generateFromFrame(jsi::Runtime &runtime,
-                                                 const jsi::Value &frameData,
+PoseDetections PoseEstimation::generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                                                  double detectionThreshold,
-                                                 double keypointThreshold,
-                                                 std::string methodName) {
+                                                 double keypointThreshold, std::string methodName) {
   auto orient = ::rnexecutorch::utils::readFrameOrientation(runtime, frameData);
   cv::Mat frame = extractFromFrame(runtime, frameData);
   cv::Mat rotated = ::rnexecutorch::utils::rotateFrameForModel(frame, orient);
-  auto detections =
-      runInference(rotated, detectionThreshold, keypointThreshold, methodName);
+  auto detections = runInference(rotated, detectionThreshold, keypointThreshold, methodName);
   for (auto &person : detections) {
     ::rnexecutorch::utils::inverseRotatePoints(person, orient, rotated.size());
   }

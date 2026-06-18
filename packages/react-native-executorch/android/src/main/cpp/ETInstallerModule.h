@@ -14,13 +14,11 @@ using namespace react;
 
 class ETInstallerModule : public jni::HybridClass<ETInstallerModule> {
 public:
-  static auto constexpr kJavaDescriptor =
-      "Lcom/swmansion/rnexecutorch/ETInstaller;";
+  static auto constexpr kJavaDescriptor = "Lcom/swmansion/rnexecutorch/ETInstaller;";
 
   static jni::local_ref<ETInstallerModule::jhybriddata>
   initHybrid(jni::alias_ref<jhybridobject> jThis, jlong jsContext,
-             jni::alias_ref<facebook::react::CallInvokerHolder::javaobject>
-                 jsCallInvokerHolder);
+             jni::alias_ref<facebook::react::CallInvokerHolder::javaobject> jsCallInvokerHolder);
 
   static void registerNatives();
 
@@ -33,10 +31,9 @@ private:
   jsi::Runtime *jsiRuntime_;
   std::shared_ptr<facebook::react::CallInvoker> jsCallInvoker_;
 
-  explicit ETInstallerModule(
-      jni::alias_ref<ETInstallerModule::jhybridobject> &jThis,
-      jsi::Runtime *jsiRuntime,
-      const std::shared_ptr<facebook::react::CallInvoker> &jsCallInvoker);
+  explicit ETInstallerModule(jni::alias_ref<ETInstallerModule::jhybridobject> &jThis,
+                             jsi::Runtime *jsiRuntime,
+                             const std::shared_ptr<facebook::react::CallInvoker> &jsCallInvoker);
 };
 
 } // namespace rnexecutorch

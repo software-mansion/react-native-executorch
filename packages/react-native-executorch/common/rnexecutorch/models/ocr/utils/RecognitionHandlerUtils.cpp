@@ -4,8 +4,7 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch::models::ocr::utils {
-types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
-                                                   cv::Size desiredSize) {
+types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size, cv::Size desiredSize) {
   const auto newRatioH = static_cast<float>(desiredSize.height) / size.height;
   const auto newRatioW = static_cast<float>(desiredSize.width) / size.width;
   auto resizeRatio = std::min(newRatioH, newRatioW);
@@ -27,21 +26,17 @@ types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
 }
 
 void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
-  auto ratio =
-      static_cast<double>(size.width) / static_cast<double>(size.height);
+  auto ratio = static_cast<double>(size.width) / static_cast<double>(size.height);
   cv::Size resizedSize;
   if (ratio < 1.0) {
-    resizedSize =
-        cv::Size(modelHeight, static_cast<int32_t>(modelHeight / ratio));
+    resizedSize = cv::Size(modelHeight, static_cast<int32_t>(modelHeight / ratio));
   } else {
-    resizedSize =
-        cv::Size(static_cast<int32_t>(modelHeight * ratio), modelHeight);
+    resizedSize = cv::Size(static_cast<int32_t>(modelHeight * ratio), modelHeight);
   }
   cv::resize(img, img, resizedSize, 0.0, 0.0, cv::INTER_LANCZOS4);
 }
 
-cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
-                  int32_t modelHeight) {
+cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   const std::array<cv::Point2f, 4> points = {{
       {box.bbox.p1.x, box.bbox.p1.y},
       {box.bbox.p2.x, box.bbox.p1.y},
@@ -57,8 +52,7 @@ cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
   cv::Point2f imageCenter(image.cols / 2.0f, image.rows / 2.0f);
   cv::Mat rotationMatrix = cv::getRotationMatrix2D(imageCenter, box.angle, 1.0);
   cv::Mat rotatedImage;
-  cv::warpAffine(image, rotatedImage, rotationMatrix, image.size(),
-                 cv::INTER_LINEAR);
+  cv::warpAffine(image, rotatedImage, rotationMatrix, image.size(), cv::INTER_LINEAR);
 
   constexpr int32_t rows = 4;
   constexpr int32_t cols = 2;
@@ -89,9 +83,7 @@ cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
 
   cv::Mat croppedImage = rotatedImage(boundingBox).clone();
 
-  computeRatioAndResize(croppedImage,
-                        cv::Size(boundingBox.width, boundingBox.height),
-                        modelHeight);
+  computeRatioAndResize(croppedImage, cv::Size(boundingBox.width, boundingBox.height), modelHeight);
 
   return croppedImage;
 }
@@ -136,12 +128,11 @@ int32_t getDesiredWidth(const cv::Mat &img, bool isVertical) {
   if (img.cols >= constants::kMediumRecognizerWidth) {
     return constants::kMediumRecognizerWidth;
   }
-  return isVertical ? constants::kSmallVerticalRecognizerWidth
-                    : constants::kSmallRecognizerWidth;
+  return isVertical ? constants::kSmallVerticalRecognizerWidth : constants::kSmallRecognizerWidth;
 }
 
-cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
-                               double adjustContrast, bool isVertical) {
+cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight, double adjustContrast,
+                               bool isVertical) {
   auto img = image.clone();
   if (adjustContrast > 0.0) {
     adjustContrastGrey(img, adjustContrast);
@@ -149,8 +140,7 @@ cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
 
   int32_t desiredWidth = getDesiredWidth(image, isVertical);
 
-  img =
-      image_processing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
+  img = image_processing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
   img.convertTo(img, CV_32F, 1.0f / 255.0f);
   img -= 0.5f;
   img *= 2.0f;

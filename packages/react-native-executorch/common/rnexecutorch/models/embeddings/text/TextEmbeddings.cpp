@@ -8,12 +8,10 @@ namespace rnexecutorch::models::embeddings {
 
 using namespace executorch::extension;
 
-TextEmbeddings::TextEmbeddings(const std::string &modelSource,
-                               const std::string &tokenizerSource,
+TextEmbeddings::TextEmbeddings(const std::string &modelSource, const std::string &tokenizerSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseEmbeddings(modelSource, callInvoker),
-      tokenizer(
-          std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
+      tokenizer(std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   auto inputIds = tokenizer->encode(input);
@@ -40,20 +38,16 @@ void TextEmbeddings::unload() noexcept {
   BaseModel::unload();
 }
 
-std::shared_ptr<OwningArrayBuffer>
-TextEmbeddings::generate(const std::string input) {
+std::shared_ptr<OwningArrayBuffer> TextEmbeddings::generate(const std::string input) {
   std::scoped_lock lock(inference_mutex_);
   auto preprocessed = preprocess(input);
 
-  std::vector<int32_t> tokenIdsShape = {
-      1, static_cast<int32_t>(preprocessed.inputIds.size())};
-  std::vector<int32_t> attnMaskShape = {
-      1, static_cast<int32_t>(preprocessed.attentionMask.size())};
+  std::vector<int32_t> tokenIdsShape = {1, static_cast<int32_t>(preprocessed.inputIds.size())};
+  std::vector<int32_t> attnMaskShape = {1, static_cast<int32_t>(preprocessed.attentionMask.size())};
 
-  auto tokenIds = make_tensor_ptr(tokenIdsShape, preprocessed.inputIds.data(),
-                                  ScalarType::Long);
-  auto attnMask = make_tensor_ptr(
-      attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
+  auto tokenIds = make_tensor_ptr(tokenIdsShape, preprocessed.inputIds.data(), ScalarType::Long);
+  auto attnMask =
+      make_tensor_ptr(attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);

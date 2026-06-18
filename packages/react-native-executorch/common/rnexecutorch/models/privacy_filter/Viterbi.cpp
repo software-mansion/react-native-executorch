@@ -33,8 +33,7 @@ bool isValidTransition(const LabelRole &prev, const LabelRole &nxt) {
     return nxt.prefix == 'O' || nxt.prefix == 'B' || nxt.prefix == 'S';
   }
   if (prev.prefix == 'B' || prev.prefix == 'I') {
-    return (nxt.prefix == 'I' || nxt.prefix == 'E') &&
-           nxt.entity == prev.entity;
+    return (nxt.prefix == 'I' || nxt.prefix == 'E') && nxt.entity == prev.entity;
   }
   return false;
 }
@@ -49,8 +48,7 @@ float biasFor(const LabelRole &prev, const LabelRole &nxt, const Biases &b) {
   if ((prev.prefix == 'E' || prev.prefix == 'S') && nxt.prefix == 'O') {
     return b.endToBackground;
   }
-  if ((prev.prefix == 'E' || prev.prefix == 'S') &&
-      (nxt.prefix == 'B' || nxt.prefix == 'S')) {
+  if ((prev.prefix == 'E' || prev.prefix == 'S') && (nxt.prefix == 'B' || nxt.prefix == 'S')) {
     return b.endToStart;
   }
   if ((prev.prefix == 'B' || prev.prefix == 'I') && nxt.prefix == 'I') {
@@ -64,8 +62,7 @@ float biasFor(const LabelRole &prev, const LabelRole &nxt, const Biases &b) {
 
 } // namespace
 
-Grammar buildGrammar(const std::vector<std::string> &labelNames,
-                     const Biases &biases) {
+Grammar buildGrammar(const std::vector<std::string> &labelNames, const Biases &biases) {
   const size_t N = labelNames.size();
   std::vector<LabelRole> roles;
   roles.reserve(N);
@@ -81,22 +78,20 @@ Grammar buildGrammar(const std::vector<std::string> &labelNames,
   for (size_t i = 0; i < N; ++i) {
     for (size_t j = 0; j < N; ++j) {
       if (isValidTransition(roles[i], roles[j])) {
-        grammar.transitionScore[i * N + j] =
-            biasFor(roles[i], roles[j], biases);
+        grammar.transitionScore[i * N + j] = biasFor(roles[i], roles[j], biases);
       }
     }
   }
 
   grammar.validStart.assign(N, false);
   for (size_t i = 0; i < N; ++i) {
-    grammar.validStart[i] = (roles[i].prefix == 'O' || roles[i].prefix == 'B' ||
-                             roles[i].prefix == 'S');
+    grammar.validStart[i] =
+        (roles[i].prefix == 'O' || roles[i].prefix == 'B' || roles[i].prefix == 'S');
   }
   return grammar;
 }
 
-std::vector<int32_t> decode(const float *logits, int32_t validLen,
-                            const Grammar &grammar) {
+std::vector<int32_t> decode(const float *logits, int32_t validLen, const Grammar &grammar) {
   if (validLen <= 0) {
     return {};
   }
@@ -144,8 +139,7 @@ std::vector<int32_t> decode(const float *logits, int32_t validLen,
   path[static_cast<size_t>(validLen) - 1] = static_cast<int32_t>(bestEnd);
   for (int32_t t = validLen - 1; t > 0; --t) {
     path[static_cast<size_t>(t) - 1] =
-        bp[static_cast<size_t>(t) * N +
-           static_cast<size_t>(path[static_cast<size_t>(t)])];
+        bp[static_cast<size_t>(t) * N + static_cast<size_t>(path[static_cast<size_t>(t)])];
   }
   return path;
 }

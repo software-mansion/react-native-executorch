@@ -13,8 +13,7 @@ FFT::~FFT() {
 }
 
 void FFT::doFFT(float *in, std::vector<std::complex<float>> &out) {
-  pffft_transform_ordered(pffftSetup_, in,
-                          reinterpret_cast<float *>(out.data()), work_,
+  pffft_transform_ordered(pffftSetup_, in, reinterpret_cast<float *>(out.data()), work_,
                           PFFFT_FORWARD);
 }
 

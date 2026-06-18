@@ -22,13 +22,9 @@ namespace model_tests {
 template <> struct ModelTraits<PoseEstimation> {
   using ModelType = PoseEstimation;
 
-  static ModelType createValid() {
-    return ModelType(kValidPoseModelPath, {}, {}, nullptr);
-  }
+  static ModelType createValid() { return ModelType(kValidPoseModelPath, {}, {}, nullptr); }
 
-  static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", {}, {}, nullptr);
-  }
+  static ModelType createInvalid() { return ModelType("nonexistent.pte", {}, {}, nullptr); }
 
   static void callGenerate(ModelType &model) {
     (void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, kMethodName);
@@ -37,31 +33,26 @@ template <> struct ModelTraits<PoseEstimation> {
 } // namespace model_tests
 
 using PoseEstimationTypes = ::testing::Types<PoseEstimation>;
-INSTANTIATE_TYPED_TEST_SUITE_P(PoseEstimation, CommonModelTest,
-                               PoseEstimationTypes);
-INSTANTIATE_TYPED_TEST_SUITE_P(PoseEstimation, VisionModelTest,
-                               PoseEstimationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(PoseEstimation, CommonModelTest, PoseEstimationTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(PoseEstimation, VisionModelTest, PoseEstimationTypes);
 
 // ============================================================================
 // generateFromString — input path validity
 // ============================================================================
 TEST(PoseEstimationGenerateTests, InvalidImagePathThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5, 0.5,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5, 0.5, kMethodName),
                RnExecutorchError);
 }
 
 TEST(PoseEstimationGenerateTests, EmptyImagePathThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString("", 0.5, 0.5, kMethodName),
-               RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("", 0.5, 0.5, kMethodName), RnExecutorchError);
 }
 
 TEST(PoseEstimationGenerateTests, MalformedURIThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5, 0.5,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5, 0.5, kMethodName),
                RnExecutorchError);
 }
 
@@ -70,29 +61,25 @@ TEST(PoseEstimationGenerateTests, MalformedURIThrows) {
 // ============================================================================
 TEST(PoseEstimationGenerateTests, NegativeDetectionThresholdThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1, 0.5,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1, 0.5, kMethodName),
                RnExecutorchError);
 }
 
 TEST(PoseEstimationGenerateTests, DetectionThresholdAboveOneThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1, 0.5,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1, 0.5, kMethodName),
                RnExecutorchError);
 }
 
 TEST(PoseEstimationGenerateTests, NegativeKeypointThresholdThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, -0.1,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, -0.1, kMethodName),
                RnExecutorchError);
 }
 
 TEST(PoseEstimationGenerateTests, KeypointThresholdAboveOneThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 1.1,
-                                              kMethodName),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 1.1, kMethodName),
                RnExecutorchError);
 }
 
@@ -101,24 +88,20 @@ TEST(PoseEstimationGenerateTests, KeypointThresholdAboveOneThrows) {
 // ============================================================================
 TEST(PoseEstimationGenerateTests, ValidImageReturnsResults) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.5, kMethodName);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, kMethodName);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(PoseEstimationGenerateTests, HighThresholdReturnsFewerResults) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  auto lowThresholdResults =
-      model.generateFromString(kValidTestImagePath, 0.1, 0.5, kMethodName);
-  auto highThresholdResults =
-      model.generateFromString(kValidTestImagePath, 0.95, 0.5, kMethodName);
+  auto lowThresholdResults = model.generateFromString(kValidTestImagePath, 0.1, 0.5, kMethodName);
+  auto highThresholdResults = model.generateFromString(kValidTestImagePath, 0.95, 0.5, kMethodName);
   EXPECT_GE(lowThresholdResults.size(), highThresholdResults.size());
 }
 
 TEST(PoseEstimationGenerateTests, AllDetectionsHaveSameKeypointCount) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.1, 0.5, kMethodName);
+  auto results = model.generateFromString(kValidTestImagePath, 0.1, 0.5, kMethodName);
   if (results.size() < 2) {
     GTEST_SKIP() << "Need at least 2 detections to compare keypoint counts";
   }
@@ -131,8 +114,7 @@ TEST(PoseEstimationGenerateTests, AllDetectionsHaveSameKeypointCount) {
 
 TEST(PoseEstimationGenerateTests, KeypointsHaveValidStructure) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  auto results =
-      model.generateFromString(kValidTestImagePath, 0.3, 0.5, kMethodName);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3, 0.5, kMethodName);
   // Each detection must contain a non-zero number of keypoints, and each
   // keypoint must be aggregate-initializable as { x, y } floats (compile-time).
   for (const auto &person : results) {
@@ -154,9 +136,8 @@ TEST(PoseEstimationPixelTests, ValidPixelDataReturnsResults) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
   auto results = model.generateFromPixels(tensorView, 0.3, 0.5, kMethodName);
   EXPECT_GE(results.size(), 0u);
 }
@@ -165,24 +146,20 @@ TEST(PoseEstimationPixelTests, NegativeThresholdThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, -0.1, 0.5, kMethodName),
-      RnExecutorchError);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, -0.1, 0.5, kMethodName),
+               RnExecutorchError);
 }
 
 TEST(PoseEstimationPixelTests, ThresholdAboveOneThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
   constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
-  JSTensorViewIn tensorView{pixelData.data(),
-                            {height, width, channels},
-                            executorch::aten::ScalarType::Byte};
-  EXPECT_THROW(
-      (void)model.generateFromPixels(tensorView, 1.1, 0.5, kMethodName),
-      RnExecutorchError);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {height, width, channels}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 1.1, 0.5, kMethodName),
+               RnExecutorchError);
 }
 
 // ============================================================================
@@ -190,16 +167,14 @@ TEST(PoseEstimationPixelTests, ThresholdAboveOneThrows) {
 // ============================================================================
 TEST(PoseEstimationMethodTests, InvalidMethodNameThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5,
-                                              "forward_999"),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, "forward_999"),
                RnExecutorchError);
 }
 
 TEST(PoseEstimationMethodTests, EmptyMethodNameThrows) {
   PoseEstimation model(kValidPoseModelPath, {}, {}, nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, ""),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, ""),
+               RnExecutorchError);
 }
 
 // ============================================================================
@@ -212,21 +187,18 @@ TEST(PoseEstimationNormTests, ValidNormParamsDoesntThrow) {
 }
 
 TEST(PoseEstimationNormTests, InvalidNormMeanSizeDoesntThrow) {
-  EXPECT_NO_THROW(PoseEstimation(kValidPoseModelPath, {0.5f},
-                                 {0.229f, 0.224f, 0.225f}, nullptr));
+  EXPECT_NO_THROW(PoseEstimation(kValidPoseModelPath, {0.5f}, {0.229f, 0.224f, 0.225f}, nullptr));
 }
 
 TEST(PoseEstimationNormTests, InvalidNormStdSizeDoesntThrow) {
-  EXPECT_NO_THROW(PoseEstimation(kValidPoseModelPath, {0.485f, 0.456f, 0.406f},
-                                 {0.5f}, nullptr));
+  EXPECT_NO_THROW(PoseEstimation(kValidPoseModelPath, {0.485f, 0.456f, 0.406f}, {0.5f}, nullptr));
 }
 
 TEST(PoseEstimationNormTests, ValidNormParamsGenerateSucceeds) {
   const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
   const std::vector<float> std = {0.229f, 0.224f, 0.225f};
   PoseEstimation model(kValidPoseModelPath, mean, std, nullptr);
-  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5,
-                                                 kMethodName));
+  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5, 0.5, kMethodName));
 }
 
 // ============================================================================

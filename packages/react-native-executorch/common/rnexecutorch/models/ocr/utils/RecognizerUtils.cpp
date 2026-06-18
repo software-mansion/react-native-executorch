@@ -62,8 +62,7 @@ types::ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
   return result;
 }
 
-float confidenceScore(const std::vector<float> &values,
-                      const std::vector<int32_t> &indices) {
+float confidenceScore(const std::vector<float> &values, const std::vector<int32_t> &indices) {
   float product = 1.0f;
   int32_t count = 0;
 
@@ -85,8 +84,7 @@ float confidenceScore(const std::vector<float> &values,
 
 cv::Rect extractBoundingBox(const BBox &bbox) {
   return cv::Rect(static_cast<int>(bbox.p1.x), static_cast<int>(bbox.p1.y),
-                  static_cast<int>(bbox.width()),
-                  static_cast<int>(bbox.height()));
+                  static_cast<int>(bbox.width()), static_cast<int>(bbox.height()));
 }
 
 cv::Mat characterBitMask(const cv::Mat &img) {
@@ -98,8 +96,7 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   bool uniform = true;
   bool accumulate = false;
 
-  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange,
-               uniform, accumulate);
+  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange, uniform, accumulate);
 
   // Compare sum of darker (left half) vs brighter (right half) pixels.
   const int32_t midPoint = histSize / 2;
@@ -111,8 +108,7 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   for (int32_t i = midPoint; i < histSize; i++) {
     sumRight += histogram.at<float>(i);
   }
-  const int32_t thresholdType =
-      (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
+  const int32_t thresholdType = (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 
   // 2. Binarize using Otsu's method (auto threshold).
   cv::Mat thresh;
@@ -120,16 +116,15 @@ cv::Mat characterBitMask(const cv::Mat &img) {
 
   // 3. Find the largest connected component near the center.
   cv::Mat labels, stats, centroids;
-  const int32_t numLabels = cv::connectedComponentsWithStats(
-      thresh, labels, stats, centroids, 8, CV_32S);
+  const int32_t numLabels =
+      cv::connectedComponentsWithStats(thresh, labels, stats, centroids, 8, CV_32S);
 
   const int32_t height = thresh.rows;
   const int32_t width = thresh.cols;
   const int32_t minX = constants::kSingleCharacterCenterThreshold * width;
   const int32_t maxX = (1 - constants::kSingleCharacterCenterThreshold) * width;
   const int32_t minY = constants::kSingleCharacterCenterThreshold * height;
-  const int32_t maxY =
-      (1 - constants::kSingleCharacterCenterThreshold) * height;
+  const int32_t maxY = (1 - constants::kSingleCharacterCenterThreshold) * height;
 
   int32_t selectedComponent = -1;
   int32_t maxArea = -1;
@@ -138,9 +133,8 @@ cv::Mat characterBitMask(const cv::Mat &img) {
     const double cx = centroids.at<double>(i, 0);
     const double cy = centroids.at<double>(i, 1);
 
-    if ((minX < cx && cx < maxX && minY < cy &&
-         cy < maxY &&                                  // check if centered
-         area > constants::kSingleCharacterMinSize) && // check if large enough
+    if ((minX < cx && cx < maxX && minY < cy && cy < maxY && // check if centered
+         area > constants::kSingleCharacterMinSize) &&       // check if large enough
         area > maxArea) {
       selectedComponent = i;
       maxArea = area;
@@ -161,8 +155,7 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   return resultImage;
 }
 
-cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const BBox &bbox,
-                                 const BBox &originalBbox,
+cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const BBox &bbox, const BBox &originalBbox,
                                  const types::PaddingInfo &paddings,
                                  const types::PaddingInfo &originalPaddings) {
   if (!originalBbox.isValid()) {
@@ -207,16 +200,14 @@ cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const BBox &bbox,
 }
 
 cv::Mat prepareForRecognition(const cv::Mat &originalImage, const BBox &bbox,
-                              const BBox &originalBbox,
-                              const types::PaddingInfo &paddings,
+                              const BBox &originalBbox, const types::PaddingInfo &paddings,
                               const types::PaddingInfo &originalPaddings) {
-  auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,
-                                              paddings, originalPaddings);
+  auto croppedChar =
+      cropImageWithBoundingBox(originalImage, bbox, originalBbox, paddings, originalPaddings);
   cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);
   cv::resize(croppedChar, croppedChar,
-             cv::Size(constants::kSmallVerticalRecognizerWidth,
-                      constants::kRecognizerHeight),
-             0, 0, cv::INTER_AREA);
+             cv::Size(constants::kSmallVerticalRecognizerWidth, constants::kRecognizerHeight), 0, 0,
+             cv::INTER_AREA);
   return croppedChar;
 }
 } // namespace rnexecutorch::models::ocr::utils

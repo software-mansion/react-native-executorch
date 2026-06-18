@@ -45,9 +45,8 @@ using executorch::extension::TensorPtr;
 
 class VerticalOCR final {
 public:
-  explicit VerticalOCR(const std::string &detectorSource,
-                       const std::string &recognizerSource, std::string symbols,
-                       bool indpendentCharacters,
+  explicit VerticalOCR(const std::string &detectorSource, const std::string &recognizerSource,
+                       std::string symbols, bool indpendentCharacters,
                        std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
   generateFromString(std::string input);
@@ -61,22 +60,20 @@ public:
 private:
   std::vector<types::OCRDetection> runInference(cv::Mat image);
 
-  std::pair<std::string, float> _handleIndependentCharacters(
-      const types::DetectorBBox &box, const cv::Mat &originalImage,
-      const std::vector<types::DetectorBBox> &characterBoxes,
-      const types::PaddingInfo &paddingsBox,
-      const types::PaddingInfo &imagePaddings);
+  std::pair<std::string, float>
+  _handleIndependentCharacters(const types::DetectorBBox &box, const cv::Mat &originalImage,
+                               const std::vector<types::DetectorBBox> &characterBoxes,
+                               const types::PaddingInfo &paddingsBox,
+                               const types::PaddingInfo &imagePaddings);
 
   std::pair<std::string, float>
-  _handleJointCharacters(const types::DetectorBBox &box,
-                         const cv::Mat &originalImage,
+  _handleJointCharacters(const types::DetectorBBox &box, const cv::Mat &originalImage,
                          const std::vector<types::DetectorBBox> &characterBoxes,
                          const types::PaddingInfo &paddingsBox,
                          const types::PaddingInfo &imagePaddings);
-  types::OCRDetection
-  _processSingleTextBox(types::DetectorBBox &box, const cv::Mat &originalImage,
-                        const cv::Mat &resizedLargeImage,
-                        const types::PaddingInfo &imagePaddings);
+  types::OCRDetection _processSingleTextBox(types::DetectorBBox &box, const cv::Mat &originalImage,
+                                            const cv::Mat &resizedLargeImage,
+                                            const types::PaddingInfo &imagePaddings);
 
   VerticalDetector detector;
   Recognizer recognizer;
@@ -87,6 +84,6 @@ private:
 };
 } // namespace models::ocr
 
-REGISTER_CONSTRUCTOR(models::ocr::VerticalOCR, std::string, std::string,
-                     std::string, bool, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::ocr::VerticalOCR, std::string, std::string, std::string, bool,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -19,14 +19,10 @@ using executorch::runtime::etensor::ScalarType;
 ASR::ASR(const std::string &modelSource, const std::string &tokenizerSource,
          std::shared_ptr<facebook::react::CallInvoker> callInvoker)
     : BaseModel(modelSource, std::move(callInvoker)), schema::ASR(),
-      tokenizer_(std::make_unique<TokenizerModule>(tokenizerSource,
-                                                   this->callInvoker)),
-      startOfTranscriptionToken_(
-          tokenizer_->tokenToId(constants::tokens::kStartOfTranscript)),
-      endOfTranscriptionToken_(
-          tokenizer_->tokenToId(constants::tokens::kEndOfTranscript)),
-      timestampBeginToken_(
-          tokenizer_->tokenToId(constants::tokens::kBeginTimestamp)) {}
+      tokenizer_(std::make_unique<TokenizerModule>(tokenizerSource, this->callInvoker)),
+      startOfTranscriptionToken_(tokenizer_->tokenToId(constants::tokens::kStartOfTranscript)),
+      endOfTranscriptionToken_(tokenizer_->tokenToId(constants::tokens::kEndOfTranscript)),
+      timestampBeginToken_(tokenizer_->tokenToId(constants::tokens::kBeginTimestamp)) {}
 
 /**
  * Whisper inference - full transcription
@@ -38,19 +34,17 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
   std::vector<Segment> results;
 
   const float waveformSize = static_cast<float>(waveform.size());
-  const float waveformSkipBoundary =
-      static_cast<float>((constants::kChunkSize - params::kChunkBreakBuffer) *
-                         constants::kSamplingRate);
+  const float waveformSkipBoundary = static_cast<float>(
+      (constants::kChunkSize - params::kChunkBreakBuffer) * constants::kSamplingRate);
 
   // We loop through the input audio waveform and process it in 30s chunks.
   // This is determined by Whisper models strict 30s audio length requirement.
   while (seek * constants::kSamplingRate < waveformSize) {
     // Calculate chunk bounds and extract the chunk.
     float start = seek * constants::kSamplingRate;
-    const auto end =
-        std::min<float>(static_cast<float>((seek + constants::kChunkSize) *
-                                           constants::kSamplingRate),
-                        waveformSize);
+    const auto end = std::min<float>(
+        static_cast<float>((seek + constants::kChunkSize) * constants::kSamplingRate),
+        waveformSize);
     auto chunk = waveform.subspan(start, end - start);
 
     if (std::cmp_less(chunk.size(), constants::kMinChunkSamples)) {
@@ -83,9 +77,8 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
       // This prevents additional segments to appear, unless the audio length is
       // very close to the max chunk size, that is there could be some words
       // spoken near the breakpoint.
-      seek = waveformSize < waveformSkipBoundary
-                 ? seek + constants::kChunkSize
-                 : segments.back().words.back().end;
+      seek = waveformSize < waveformSkipBoundary ? seek + constants::kChunkSize
+                                                 : segments.back().words.back().end;
     }
     results.insert(results.end(), std::make_move_iterator(segments.begin()),
                    std::make_move_iterator(segments.end()));
@@ -104,15 +97,13 @@ executorch::aten::Tensor ASR::encode(std::span<const float> waveform) const {
   auto inputShape = {static_cast<int32_t>(waveform.size())};
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
-      std::move(inputShape), const_cast<float *>(waveform.data()),
-      ScalarType::Float);
+      std::move(inputShape), const_cast<float *>(waveform.data()), ScalarType::Float);
 
   const auto encoderResult = this->execute("encode", {modelInputTensor});
 
   if (!encoderResult.ok()) {
-    throw RnExecutorchError(encoderResult.error(),
-                            "[Whisper] The 'encode' method did not succeed. "
-                            "Ensure the model input is correct.");
+    throw RnExecutorchError(encoderResult.error(), "[Whisper] The 'encode' method did not succeed. "
+                                                   "Ensure the model input is correct.");
   }
 
   return encoderResult.get().at(0).toTensor();
@@ -129,30 +120,26 @@ executorch::aten::Tensor ASR::decode(std::span<uint64_t> tokens,
   std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
   std::vector<int32_t> positionShape = {static_cast<int32_t>(tokens.size())};
 
-  auto tokenTensor = executorch::extension::make_tensor_ptr(
-      tokenShape, tokens.data(), ScalarType::Long);
+  auto tokenTensor =
+      executorch::extension::make_tensor_ptr(tokenShape, tokens.data(), ScalarType::Long);
 
   // Populate cache position vector
   std::vector<uint64_t> cachePositions(tokens.size());
   std::iota(cachePositions.begin(), cachePositions.end(), startPos);
-  auto positionTensor = executorch::extension::make_tensor_ptr(
-      positionShape, cachePositions.data(), ScalarType::Long);
+  auto positionTensor = executorch::extension::make_tensor_ptr(positionShape, cachePositions.data(),
+                                                               ScalarType::Long);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
-  std::vector<int32_t> encShape = {
-      1, static_cast<int32_t>(constants::kNumFrames),
-      encoderOutputSize / static_cast<int32_t>(constants::kNumFrames)};
+  std::vector<int32_t> encShape = {1, static_cast<int32_t>(constants::kNumFrames),
+                                   encoderOutputSize / static_cast<int32_t>(constants::kNumFrames)};
   auto encoderTensor = executorch::extension::make_tensor_ptr(
-      std::move(encShape), const_cast<float *>(encoderOutput.data()),
-      ScalarType::Float);
+      std::move(encShape), const_cast<float *>(encoderOutput.data()), ScalarType::Float);
 
-  const auto decoderResult =
-      this->execute("decode", {tokenTensor, positionTensor, encoderTensor});
+  const auto decoderResult = this->execute("decode", {tokenTensor, positionTensor, encoderTensor});
 
   if (!decoderResult.ok()) {
-    throw RnExecutorchError(decoderResult.error(),
-                            "[Whisper] The 'decode' method did not succeed. "
-                            "Ensure the model inputs are correct.");
+    throw RnExecutorchError(decoderResult.error(), "[Whisper] The 'decode' method did not succeed. "
+                                                   "Ensure the model inputs are correct.");
   }
 
   return decoderResult.get().at(0).toTensor();
@@ -160,21 +147,17 @@ executorch::aten::Tensor ASR::decode(std::span<uint64_t> tokens,
 
 void ASR::unload() noexcept { BaseModel::unload(); }
 
-std::size_t ASR::getMemoryLowerBound() const noexcept {
-  return BaseModel::getMemoryLowerBound();
-}
+std::size_t ASR::getMemoryLowerBound() const noexcept { return BaseModel::getMemoryLowerBound(); }
 
 /**
  * Helper functions - creating initial token IDs sequence
  */
-std::vector<uint64_t>
-ASR::createInitialSequence(const DecodingOptions &options) const {
+std::vector<uint64_t> ASR::createInitialSequence(const DecodingOptions &options) const {
   std::vector<uint64_t> seq;
   seq.push_back(startOfTranscriptionToken_);
 
   if (options.language.has_value()) {
-    uint64_t langToken =
-        tokenizer_->tokenToId("<|" + options.language.value() + "|>");
+    uint64_t langToken = tokenizer_->tokenToId("<|" + options.language.value() + "|>");
     uint64_t taskToken = tokenizer_->tokenToId("<|transcribe|>");
     seq.push_back(langToken);
     seq.push_back(taskToken);
@@ -191,15 +174,13 @@ ASR::createInitialSequence(const DecodingOptions &options) const {
 std::vector<Segment> ASR::generate(std::span<const float> waveform,
                                    const DecodingOptions &options) const {
   // A fixed pool of available temperatures
-  constexpr std::array<float, 6> temperatures = {0.0f, 0.2f, 0.4f,
-                                                 0.6f, 0.8f, 1.0f};
+  constexpr std::array<float, 6> temperatures = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
 
   // Calculate audio features just once to save time.
   executorch::aten::Tensor encoderFeaturesTensor = this->encode(waveform);
-  const float *encoderFeaturesData =
-      encoderFeaturesTensor.const_data_ptr<float>();
-  std::span<const float> encoderFeatures(
-      encoderFeaturesData, encoderFeaturesData + encoderFeaturesTensor.numel());
+  const float *encoderFeaturesData = encoderFeaturesTensor.const_data_ptr<float>();
+  std::span<const float> encoderFeatures(encoderFeaturesData,
+                                         encoderFeaturesData + encoderFeaturesTensor.numel());
 
   std::vector<uint64_t> bestTokens;
   float bestAvgLogProb = -std::numeric_limits<float>::infinity();
@@ -207,16 +188,14 @@ std::vector<Segment> ASR::generate(std::span<const float> waveform,
   float bestTemperature = 0.0f;
 
   for (auto t : temperatures) {
-    auto [tokens, scores] =
-        this->generate(waveform, options, t, {encoderFeatures});
+    auto [tokens, scores] = this->generate(waveform, options, t, {encoderFeatures});
 
-    const float cumLogProb = std::transform_reduce(
-        scores.begin(), scores.end(), 0.0f, std::plus<>(),
-        [](float s) { return std::log(std::max(s, 1e-9f)); });
+    const float cumLogProb =
+        std::transform_reduce(scores.begin(), scores.end(), 0.0f, std::plus<>(),
+                              [](float s) { return std::log(std::max(s, 1e-9f)); });
 
     // Match whisper.cpp: divide by the number of summed log-probs.
-    const float avgLogProb =
-        cumLogProb / static_cast<float>(std::max<size_t>(1, scores.size()));
+    const float avgLogProb = cumLogProb / static_cast<float>(std::max<size_t>(1, scores.size()));
     const std::string text = tokenizer_->decode(tokens, true);
     const float compressionRatio = this->calculateCompressionRatio(text);
 
@@ -236,28 +215,24 @@ std::vector<Segment> ASR::generate(std::span<const float> waveform,
     }
   }
 
-  return this->calculateWordLevelTimestamps(bestTokens, waveform,
-                                            bestAvgLogProb, bestTemperature,
+  return this->calculateWordLevelTimestamps(bestTokens, waveform, bestAvgLogProb, bestTemperature,
                                             bestCompressionRatio);
 }
 
 /**
  * Helper functions - generation wrapper, single-temperature inference
  */
-GenerationResult
-ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
-              float temperature,
-              std::optional<std::span<const float>> encoderOutput) const {
+GenerationResult ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
+                               float temperature,
+                               std::optional<std::span<const float>> encoderOutput) const {
   std::span<const float> encoderFeatures;
   if (encoderOutput.has_value()) {
     encoderFeatures = encoderOutput.value();
   } else {
     executorch::aten::Tensor encoderFeaturesTensor = this->encode(waveform);
-    const float *encoderFeaturesData =
-        encoderFeaturesTensor.const_data_ptr<float>();
+    const float *encoderFeaturesData = encoderFeaturesTensor.const_data_ptr<float>();
     encoderFeatures =
-        std::span(encoderFeaturesData,
-                  encoderFeaturesData + encoderFeaturesTensor.numel());
+        std::span(encoderFeaturesData, encoderFeaturesData + encoderFeaturesTensor.numel());
   }
 
   std::vector<uint64_t> sequenceIds = this->createInitialSequence(options);
@@ -282,8 +257,8 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
   while (std::cmp_less(startPos, constants::kMaxDecodeLength)) {
     const size_t logitsInnerDim = logitsTensor.size(1);
     const size_t logitsDictSize = logitsTensor.size(2);
-    const float *logitsData = logitsTensor.const_data_ptr<float>() +
-                              (logitsInnerDim - 1) * logitsDictSize;
+    const float *logitsData =
+        logitsTensor.const_data_ptr<float>() + (logitsInnerDim - 1) * logitsDictSize;
     // Needs to be float* without const for compatibility with utility functions
     std::span<float> logits(const_cast<float *>(logitsData),
                             const_cast<float *>(logitsData) +
@@ -326,17 +301,15 @@ ASR::generate(std::span<const float> waveform, const DecodingOptions &options,
     ++startPos;
   }
 
-  return {.tokens = std::vector<uint64_t>(cachedTokens.cbegin() +
-                                              initialSequenceLenght,
+  return {.tokens = std::vector<uint64_t>(cachedTokens.cbegin() + initialSequenceLenght,
                                           cachedTokens.cend()),
           .scores = scores};
 }
 
-std::vector<Segment>
-ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                                  const std::span<const float> waveform,
-                                  float avgLogProb, float temperature,
-                                  float compressionRatio) const {
+std::vector<Segment> ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
+                                                       const std::span<const float> waveform,
+                                                       float avgLogProb, float temperature,
+                                                       float compressionRatio) const {
   const size_t generatedTokensSize = generatedTokens.size();
   if (generatedTokensSize < 2 ||
       generatedTokens[generatedTokensSize - 1] != endOfTranscriptionToken_ ||
@@ -399,8 +372,7 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
 
   float scalingFactor =
       static_cast<float>(waveform.size()) /
-      (constants::kSamplingRate * (end - timestampBeginToken_) *
-       constants::kTimePrecision);
+      (constants::kSamplingRate * (end - timestampBeginToken_) * constants::kTimePrecision);
   if (scalingFactor < 1.0f) {
     for (auto &seg : segments) {
       for (auto &w : seg.words) {
@@ -413,9 +385,8 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
   return segments;
 }
 
-std::vector<Word>
-ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
-                                       uint64_t start, uint64_t end) const {
+std::vector<Word> ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
+                                                         uint64_t start, uint64_t end) const {
   const std::vector<uint64_t> tokensVec(tokens.begin(), tokens.end());
   const std::string segmentText = tokenizer_->decode(tokensVec, true);
 
@@ -425,8 +396,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
   while (iss >> word) {
     // Detect special tokens such as [BLANK_AUDIO] by searching for square
     // bracket.
-    if (word.find('[') == std::string::npos &&
-        word.find(']') == std::string::npos) {
+    if (word.find('[') == std::string::npos && word.find(']') == std::string::npos) {
       wordsStr.emplace_back(" ");
       wordsStr.back().append(word);
     }
@@ -438,8 +408,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
   }
   const float duration = (end - start) * constants::kTimePrecision;
   const float timePerChar = duration / std::max<float>(1, numChars);
-  const float startOffset =
-      (start - timestampBeginToken_) * constants::kTimePrecision;
+  const float startOffset = (start - timestampBeginToken_) * constants::kTimePrecision;
 
   std::vector<Word> wordObjs;
   wordObjs.reserve(wordsStr.size());

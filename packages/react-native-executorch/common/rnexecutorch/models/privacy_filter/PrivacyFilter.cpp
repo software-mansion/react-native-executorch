@@ -26,20 +26,16 @@ constexpr int64_t kPadTokenId = 199999;
 
 } // namespace
 
-PrivacyFilter::PrivacyFilter(const std::string &modelSource,
-                             const std::string &tokenizerSource,
-                             std::vector<std::string> labelNames,
-                             std::vector<float> viterbiBiases,
+PrivacyFilter::PrivacyFilter(const std::string &modelSource, const std::string &tokenizerSource,
+                             std::vector<std::string> labelNames, std::vector<float> viterbiBiases,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker),
-      tokenizer_(
-          std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
+      tokenizer_(std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
       labelNames_(std::move(labelNames)), seqLen_(0) {
   if (labelNames_.empty() || labelNames_[0] != "O") {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnknownError,
-        "PrivacyFilter requires a non-empty labelNames vector "
-        "(must include 'O' at index 0).");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                            "PrivacyFilter requires a non-empty labelNames vector "
+                            "(must include 'O' at index 0).");
   }
   if (!viterbiBiases.empty() && viterbiBiases.size() != 6) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
@@ -55,8 +51,7 @@ PrivacyFilter::PrivacyFilter(const std::string &modelSource,
     biases_.insideToEnd = viterbiBiases[5];
   }
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.empty() || inputShapes[0].size() < 2 ||
-      inputShapes[0][1] < 2) {
+  if (inputShapes.empty() || inputShapes[0].size() < 2 || inputShapes[0][1] < 2) {
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             "PrivacyFilter: expected forward input shape "
                             "[1, seq_len] with seq_len >= 2.");
@@ -83,22 +78,19 @@ void PrivacyFilter::unload() noexcept {
 }
 
 void PrivacyFilter::runWindow(std::vector<int64_t> &paddedInputIds,
-                              std::vector<int64_t> &paddedAttentionMask,
-                              int32_t absStart, int32_t validLen,
-                              int32_t writeFromOffset, int32_t writeToOffset,
+                              std::vector<int64_t> &paddedAttentionMask, int32_t absStart,
+                              int32_t validLen, int32_t writeFromOffset, int32_t writeToOffset,
                               std::vector<int32_t> &outLabels) {
   if (validLen <= 0) {
     return;
   }
 
   std::vector<int32_t> idsShape = {1, seqLen_};
-  auto inputIdsTensor =
-      make_tensor_ptr(idsShape, paddedInputIds.data(), ScalarType::Long);
+  auto inputIdsTensor = make_tensor_ptr(idsShape, paddedInputIds.data(), ScalarType::Long);
   auto attentionMaskTensor =
       make_tensor_ptr(idsShape, paddedAttentionMask.data(), ScalarType::Long);
 
-  auto forwardResult =
-      BaseModel::forward({*inputIdsTensor, *attentionMaskTensor});
+  auto forwardResult = BaseModel::forward({*inputIdsTensor, *attentionMaskTensor});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
   auto &out = forwardResult.get();
   if (out.empty()) {
@@ -120,8 +112,7 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
   std::scoped_lock lock(inference_mutex_);
 
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "PrivacyFilter is not loaded");
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded, "PrivacyFilter is not loaded");
   }
 
   auto rawIds = tokenizer_->encode(text);
@@ -131,12 +122,10 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
 
   const int32_t stride = seqLen_ / 2;
   const int32_t edgeMargin = seqLen_ / 4;
-  for (int32_t windowStart = 0; windowStart < totalTokens;
-       windowStart += stride) {
+  for (int32_t windowStart = 0; windowStart < totalTokens; windowStart += stride) {
     const int32_t validLen = std::min(seqLen_, totalTokens - windowStart);
 
-    std::vector<int64_t> paddedInputIds(static_cast<size_t>(seqLen_),
-                                        kPadTokenId);
+    std::vector<int64_t> paddedInputIds(static_cast<size_t>(seqLen_), kPadTokenId);
     std::vector<int64_t> paddedAttentionMask(static_cast<size_t>(seqLen_), 0);
     for (int32_t i = 0; i < validLen; ++i) {
       paddedInputIds[static_cast<size_t>(i)] =
@@ -149,8 +138,8 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
     int32_t writeFrom = isFirst ? 0 : edgeMargin;
     int32_t writeTo = isLast ? validLen : seqLen_ - edgeMargin;
 
-    runWindow(paddedInputIds, paddedAttentionMask, windowStart, validLen,
-              writeFrom, writeTo, predictedLabels);
+    runWindow(paddedInputIds, paddedAttentionMask, windowStart, validLen, writeFrom, writeTo,
+              predictedLabels);
 
     if (isLast) {
       break;
@@ -165,15 +154,13 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
   std::vector<Span> spans;
   int32_t i = 0;
   while (i < totalTokens) {
-    const auto entity =
-        labelEntityType(predictedLabels[static_cast<size_t>(i)]);
+    const auto entity = labelEntityType(predictedLabels[static_cast<size_t>(i)]);
     if (entity.empty()) {
       ++i;
       continue;
     }
     int32_t j = i + 1;
-    while (j < totalTokens &&
-           labelEntityType(predictedLabels[static_cast<size_t>(j)]) == entity) {
+    while (j < totalTokens && labelEntityType(predictedLabels[static_cast<size_t>(j)]) == entity) {
       ++j;
     }
     spans.emplace_back(i, j, entity);
@@ -195,16 +182,14 @@ std::vector<types::PiiEntity> PrivacyFilter::generate(std::string text) {
     }
     constexpr auto notSpace = [](unsigned char c) { return !std::isspace(c); };
     auto left = std::ranges::find_if(decoded, notSpace);
-    auto right =
-        std::ranges::find_if(decoded.rbegin(), decoded.rend(), notSpace).base();
+    auto right = std::ranges::find_if(decoded.rbegin(), decoded.rend(), notSpace).base();
     if (left < right) {
       decoded.assign(left, right);
     } else {
       decoded.clear();
     }
 
-    entities.emplace_back(span.entity, std::move(decoded), span.start,
-                          span.end);
+    entities.emplace_back(span.entity, std::move(decoded), span.start, span.end);
   }
   return entities;
 }

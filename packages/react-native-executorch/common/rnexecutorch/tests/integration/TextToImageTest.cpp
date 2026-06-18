@@ -32,22 +32,18 @@ template <> struct ModelTraits<TextToImage> {
   using ModelType = TextToImage;
 
   static ModelType createValid() {
-    return ModelType(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                     kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                     rnexecutorch::createMockCallInvoker());
+    return ModelType(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                     kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                     kSchedulerStepsOffset, rnexecutorch::createMockCallInvoker());
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.json", kValidEncoderPath, kValidUnetPath,
-                     kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                     rnexecutorch::createMockCallInvoker());
+    return ModelType("nonexistent.json", kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                     kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                     kSchedulerStepsOffset, rnexecutorch::createMockCallInvoker());
   }
 
-  static void callGenerate(ModelType &model) {
-    (void)model.generate("a cat", 128, 1, 42, nullptr);
-  }
+  static void callGenerate(ModelType &model) { (void)model.generate("a cat", 128, 1, 42, nullptr); }
 };
 } // namespace model_tests
 
@@ -60,67 +56,57 @@ INSTANTIATE_TYPED_TEST_SUITE_P(TextToImage, CommonModelTest, TextToImageTypes);
 // Model-specific tests
 // ============================================================================
 TEST(TextToImageCtorTests, InvalidEncoderPathThrows) {
-  EXPECT_THROW(TextToImage(kValidTokenizerPath, "nonexistent.pte",
-                           kValidUnetPath, kValidDecoderPath,
-                           kSchedulerBetaStart, kSchedulerBetaEnd,
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, "nonexistent.pte", kValidUnetPath,
+                           kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
                            kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                            createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageCtorTests, InvalidUnetPathThrows) {
-  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath,
-                           "nonexistent.pte", kValidDecoderPath,
-                           kSchedulerBetaStart, kSchedulerBetaEnd,
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath, "nonexistent.pte",
+                           kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
                            kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                            createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageCtorTests, InvalidDecoderPathThrows) {
-  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath,
-                           kValidUnetPath, "nonexistent.pte",
-                           kSchedulerBetaStart, kSchedulerBetaEnd,
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                           "nonexistent.pte", kSchedulerBetaStart, kSchedulerBetaEnd,
                            kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                            createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, InvalidImageSizeThrows) {
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("a cat", 100, 1, 42, nullptr),
-               RnExecutorchError);
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                    kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                    kSchedulerStepsOffset, createMockCallInvoker());
+  EXPECT_THROW((void)model.generate("a cat", 100, 1, 42, nullptr), RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, EmptyPromptThrows) {
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("", 128, 1, 42, nullptr),
-               RnExecutorchError);
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                    kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                    kSchedulerStepsOffset, createMockCallInvoker());
+  EXPECT_THROW((void)model.generate("", 128, 1, 42, nullptr), RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, ZeroStepsThrows) {
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("a cat", 128, 0, 42, nullptr),
-               RnExecutorchError);
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                    kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                    kSchedulerStepsOffset, createMockCallInvoker());
+  EXPECT_THROW((void)model.generate("a cat", 128, 0, 42, nullptr), RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, GenerateReturnsFileUri) {
   // TODO: Investigate source of the issue
   GTEST_SKIP() << "Skipping TextToImage generation test in emulator "
                   "environment due to UNet forward call throwing error no. 1";
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                    kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                    kSchedulerStepsOffset, createMockCallInvoker());
   auto result = model.generate("a cat", 128, 1, 42, nullptr);
   EXPECT_FALSE(result.empty());
   EXPECT_TRUE(result.starts_with("file://"));
@@ -130,10 +116,9 @@ TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
   // TODO: Investigate source of the issue
   GTEST_SKIP() << "Skipping TextToImage generation test in emulator "
                   "environment due to UNet forward call throwing error no. 1";
-  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
-                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
-                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
-                    createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath, kValidDecoderPath,
+                    kSchedulerBetaStart, kSchedulerBetaEnd, kSchedulerNumTrainTimesteps,
+                    kSchedulerStepsOffset, createMockCallInvoker());
   auto path1 = model.generate("a cat", 128, 1, 42, nullptr);
   auto path2 = model.generate("a cat", 128, 1, 42, nullptr);
   ASSERT_FALSE(path1.empty());

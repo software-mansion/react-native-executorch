@@ -16,12 +16,10 @@ namespace rnexecutorch {
 extern FetchUrlFunc_t fetchUrlFunc;
 namespace image_processing {
 std::vector<float> colorMatToVector(const cv::Mat &mat) {
-  return colorMatToVector(mat, cv::Scalar(0.0, 0.0, 0.0),
-                          cv::Scalar(1.0, 1.0, 1.0));
+  return colorMatToVector(mat, cv::Scalar(0.0, 0.0, 0.0), cv::Scalar(1.0, 1.0, 1.0));
 }
 
-std::vector<float> colorMatToVector(const cv::Mat &mat, cv::Scalar mean,
-                                    cv::Scalar variance) {
+std::vector<float> colorMatToVector(const cv::Mat &mat, cv::Scalar mean, cv::Scalar variance) {
   int pixelCount = mat.cols * mat.rows;
   std::vector<float> v(pixelCount * 3);
 
@@ -29,19 +27,15 @@ std::vector<float> colorMatToVector(const cv::Mat &mat, cv::Scalar mean,
     int row = i / mat.cols;
     int col = i % mat.cols;
     cv::Vec3b pixel = mat.at<cv::Vec3b>(row, col);
-    v[0 * pixelCount + i] =
-        (pixel[0] - mean[0] * 255.0) / (variance[0] * 255.0);
-    v[1 * pixelCount + i] =
-        (pixel[1] - mean[1] * 255.0) / (variance[1] * 255.0);
-    v[2 * pixelCount + i] =
-        (pixel[2] - mean[2] * 255.0) / (variance[2] * 255.0);
+    v[0 * pixelCount + i] = (pixel[0] - mean[0] * 255.0) / (variance[0] * 255.0);
+    v[1 * pixelCount + i] = (pixel[1] - mean[1] * 255.0) / (variance[1] * 255.0);
+    v[2 * pixelCount + i] = (pixel[2] - mean[2] * 255.0) / (variance[2] * 255.0);
   }
 
   return v;
 }
 
-cv::Mat bufferToColorMat(const std::span<const float> &buffer,
-                         cv::Size matSize) {
+cv::Mat bufferToColorMat(const std::span<const float> &buffer, cv::Size matSize) {
   cv::Mat mat(matSize, CV_8UC3);
 
   int pixelCount = matSize.width * matSize.height;
@@ -100,9 +94,8 @@ cv::Mat readImage(const std::string &imageURI) {
   } else if (imageURI.starts_with("http")) {
     // remote file
     std::vector<std::byte> imageData = fetchUrlFunc(imageURI);
-    image = cv::imdecode(
-        cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
-        cv::IMREAD_COLOR);
+    image = cv::imdecode(cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
+                         cv::IMREAD_COLOR);
   } else {
     // fallback to raw base64 content
     auto data = base64_decode(imageURI);
@@ -118,23 +111,18 @@ cv::Mat readImage(const std::string &imageURI) {
   return image;
 }
 
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
-                              const cv::Mat &matrix) {
-  return executorch::extension::make_tensor_ptr(tensorDims,
-                                                colorMatToVector(matrix));
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims, const cv::Mat &matrix) {
+  return executorch::extension::make_tensor_ptr(tensorDims, colorMatToVector(matrix));
 }
 
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
-                              const cv::Mat &matrix, cv::Scalar mean,
-                              cv::Scalar variance) {
-  return executorch::extension::make_tensor_ptr(
-      tensorDims, colorMatToVector(matrix, mean, variance));
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims, const cv::Mat &matrix,
+                              cv::Scalar mean, cv::Scalar variance) {
+  return executorch::extension::make_tensor_ptr(tensorDims,
+                                                colorMatToVector(matrix, mean, variance));
 }
 
-TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
-                                  const cv::Mat &matrix) {
-  return executorch::extension::make_tensor_ptr(tensorDims,
-                                                grayMatToVector(matrix));
+TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims, const cv::Mat &matrix) {
+  return executorch::extension::make_tensor_ptr(tensorDims, grayMatToVector(matrix));
 }
 
 std::vector<float> grayMatToVector(const cv::Mat &mat) {
@@ -153,37 +141,29 @@ std::vector<float> grayMatToVector(const cv::Mat &mat) {
 
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
   auto resultData = static_cast<const float *>(tensor.const_data_ptr());
-  return bufferToColorMat(std::span<const float>(resultData, tensor.numel()),
-                          size);
+  return bufferToColorMat(std::span<const float>(resultData, tensor.numel()), size);
 }
 
 cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
   cv::Size inputSize = inputImage.size();
-  const float heightRatio =
-      static_cast<float>(targetSize.height) / inputSize.height;
-  const float widthRatio =
-      static_cast<float>(targetSize.width) / inputSize.width;
+  const float heightRatio = static_cast<float>(targetSize.height) / inputSize.height;
+  const float widthRatio = static_cast<float>(targetSize.width) / inputSize.width;
   const float resizeRatio = std::min(heightRatio, widthRatio);
   const int newWidth = inputSize.width * resizeRatio;
   const int newHeight = inputSize.height * resizeRatio;
   cv::Mat resizedImg;
-  cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
-             cv::INTER_AREA);
+  cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0, cv::INTER_AREA);
   constexpr int minCornerPatchSize = 1;
   constexpr int cornerPatchFractionSize = 30;
-  int cornerPatchSize =
-      std::min(inputSize.height, inputSize.width) / cornerPatchFractionSize;
+  int cornerPatchSize = std::min(inputSize.height, inputSize.width) / cornerPatchFractionSize;
   cornerPatchSize = std::max(minCornerPatchSize, cornerPatchSize);
 
   const std::array<cv::Mat, 4> corners = {
       inputImage(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
-      inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize,
-                          cornerPatchSize)),
-      inputImage(cv::Rect(0, inputSize.height - cornerPatchSize,
-                          cornerPatchSize, cornerPatchSize)),
-      inputImage(cv::Rect(inputSize.width - cornerPatchSize,
-                          inputSize.height - cornerPatchSize, cornerPatchSize,
-                          cornerPatchSize))};
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(0, inputSize.height - cornerPatchSize, cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize, inputSize.height - cornerPatchSize,
+                          cornerPatchSize, cornerPatchSize))};
 
   // We choose the color of the padding based on a mean of colors in the corners
   // of an image.
@@ -208,17 +188,17 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
   const int right = deltaW - left;
 
   cv::Mat centeredImg;
-  cv::copyMakeBorder(resizedImg, centeredImg, top, bottom, left, right,
-                     cv::BORDER_CONSTANT, backgroundScalar);
+  cv::copyMakeBorder(resizedImg, centeredImg, top, bottom, left, right, cv::BORDER_CONSTANT,
+                     backgroundScalar);
 
   return centeredImg;
 }
 
-std::pair<TensorPtr, cv::Size>
-readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDims,
-                  bool maintainAspectRatio, std::optional<cv::Scalar> normMean,
-                  std::optional<cv::Scalar> normStd) {
+std::pair<TensorPtr, cv::Size> readImageToTensor(const std::string &path,
+                                                 const std::vector<int32_t> &tensorDims,
+                                                 bool maintainAspectRatio,
+                                                 std::optional<cv::Scalar> normMean,
+                                                 std::optional<cv::Scalar> normStd) {
   cv::Mat input = image_processing::readImage(path);
   cv::Size imageSize = input.size();
 
@@ -228,11 +208,10 @@ readImageToTensor(const std::string &path,
                   "Unexpected tensor size, expected at least 2 dimensions "
                   "but got: %zu.",
                   tensorDims.size());
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs, errorMessage);
   }
-  cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
-                                 tensorDims[tensorDims.size() - 2]);
+  cv::Size tensorSize =
+      cv::Size(tensorDims[tensorDims.size() - 1], tensorDims[tensorDims.size() - 2]);
 
   if (maintainAspectRatio) {
     input = resizePadded(input, tensorSize);
@@ -243,9 +222,9 @@ readImageToTensor(const std::string &path,
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
   if (normMean.has_value() && normStd.has_value()) {
-    return {image_processing::getTensorFromMatrix(
-                tensorDims, input, normMean.value(), normStd.value()),
-            imageSize};
+    return {
+        image_processing::getTensorFromMatrix(tensorDims, input, normMean.value(), normStd.value()),
+        imageSize};
   }
   return {image_processing::getTensorFromMatrix(tensorDims, input), imageSize};
 }

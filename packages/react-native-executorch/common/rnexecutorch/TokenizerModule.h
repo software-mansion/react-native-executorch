@@ -9,18 +9,13 @@ using namespace facebook;
 
 class TokenizerModule {
 public:
-  explicit TokenizerModule(std::string source,
-                           std::shared_ptr<react::CallInvoker> callInvoker);
-  [[nodiscard("Registered non-void function")]] std::vector<uint64_t>
-  encode(std::string s) const;
-  [[nodiscard("Registered non-void function")]] std::string
-  decode(std::vector<uint64_t> vec, bool skipSpecialTokens) const;
-  [[nodiscard("Registered non-void function")]] std::string
-  idToToken(uint64_t tokenId) const;
-  [[nodiscard("Registered non-void function")]] uint64_t
-  tokenToId(std::string token) const;
-  [[nodiscard("Registered non-void function")]] std::size_t
-  getVocabSize() const;
+  explicit TokenizerModule(std::string source, std::shared_ptr<react::CallInvoker> callInvoker);
+  [[nodiscard("Registered non-void function")]] std::vector<uint64_t> encode(std::string s) const;
+  [[nodiscard("Registered non-void function")]] std::string decode(std::vector<uint64_t> vec,
+                                                                   bool skipSpecialTokens) const;
+  [[nodiscard("Registered non-void function")]] std::string idToToken(uint64_t tokenId) const;
+  [[nodiscard("Registered non-void function")]] uint64_t tokenToId(std::string token) const;
+  [[nodiscard("Registered non-void function")]] std::size_t getVocabSize() const;
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
@@ -28,6 +23,5 @@ private:
   std::size_t memorySizeLowerBound{0};
 };
 
-REGISTER_CONSTRUCTOR(TokenizerModule, std::string,
-                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(TokenizerModule, std::string, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

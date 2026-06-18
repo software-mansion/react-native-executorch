@@ -19,14 +19,11 @@
  * @note The macro prints the variable name, file, and line for easier
  * debugging.
  */
-#define CHECK_SIZE(container, expected)                                        \
-  if ((container).size() != (expected)) {                                      \
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,                          \
-                      "Unexpected size for " #container " at ",                \
-                      std::filesystem::path(__FILE__).filename().string(),     \
-                      ":", __LINE__, ": expected ", (expected), " but got ",   \
-                      (container).size());                                     \
-    throw rnexecutorch::RnExecutorchError(                                     \
-        rnexecutorch::RnExecutorchErrorCode::WrongDimensions,                  \
-        "Invalid shape of " #container);                                       \
+#define CHECK_SIZE(container, expected)                                                            \
+  if ((container).size() != (expected)) {                                                          \
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error, "Unexpected size for " #container " at ",    \
+                      std::filesystem::path(__FILE__).filename().string(), ":", __LINE__,          \
+                      ": expected ", (expected), " but got ", (container).size());                 \
+    throw rnexecutorch::RnExecutorchError(rnexecutorch::RnExecutorchErrorCode::WrongDimensions,    \
+                                          "Invalid shape of " #container);                         \
   }

@@ -30,21 +30,20 @@ cv::Mat extractFromCVPixelBuffer(void *pixelBuffer) {
   cv::Mat mat;
 
   if (pixelFormat == kCVPixelFormatType_32BGRA) {
-    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4,
-                  baseAddress, bytesPerRow);
+    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4, baseAddress,
+                  bytesPerRow);
   } else if (pixelFormat == kCVPixelFormatType_32RGBA) {
-    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4,
-                  baseAddress, bytesPerRow);
+    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4, baseAddress,
+                  bytesPerRow);
   } else if (pixelFormat == kCVPixelFormatType_24RGB) {
-    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC3,
-                  baseAddress, bytesPerRow);
+    mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC3, baseAddress,
+                  bytesPerRow);
   } else {
     CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
     char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported CVPixelBuffer format: %u", pixelFormat);
-    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
-                            errorMessage);
+    std::snprintf(errorMessage, sizeof(errorMessage), "Unsupported CVPixelBuffer format: %u",
+                  pixelFormat);
+    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported, errorMessage);
   }
 
   CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
@@ -62,12 +61,11 @@ cv::Mat extractFromAHardwareBuffer(void *hardwareBuffer) {
   AHardwareBuffer_describe(buffer, &desc);
 
   void *data = nullptr;
-  int lockResult = AHardwareBuffer_lock(
-      buffer, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, -1, nullptr, &data);
+  int lockResult =
+      AHardwareBuffer_lock(buffer, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, -1, nullptr, &data);
 
   if (lockResult != 0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
-                            "Failed to lock AHardwareBuffer");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError, "Failed to lock AHardwareBuffer");
   }
 
   cv::Mat mat;
@@ -81,10 +79,9 @@ cv::Mat extractFromAHardwareBuffer(void *hardwareBuffer) {
   } else {
     AHardwareBuffer_unlock(buffer, nullptr);
     char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unsupported AHardwareBuffer format: %u", desc.format);
-    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
-                            errorMessage);
+    std::snprintf(errorMessage, sizeof(errorMessage), "Unsupported AHardwareBuffer format: %u",
+                  desc.format);
+    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported, errorMessage);
   }
 
   AHardwareBuffer_unlock(buffer, nullptr);

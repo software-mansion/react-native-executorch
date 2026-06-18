@@ -10,8 +10,7 @@
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
-OnlineASR::OnlineASR(const ASR *asr, const VoiceActivityDetection *vad)
-    : asr_(asr), vad_(vad) {
+OnlineASR::OnlineASR(const ASR *asr, const VoiceActivityDetection *vad) : asr_(asr), vad_(vad) {
   audioBuffer_.reserve((constants::kChunkSize + 1) * constants::kSamplingRate);
 }
 
@@ -44,10 +43,10 @@ void OnlineASR::insertAudioChunk(std::span<const float> audio) {
 }
 
 ProcessResult OnlineASR::process(const StreamingOptions &options) {
-  constexpr size_t kStreamSafeBufferMaxSamples = static_cast<size_t>(
-      params::kStreamSafeBufferDuration * constants::kSamplingRate);
-  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
-      params::kStreamSafetyThreshold * constants::kSamplingRate);
+  constexpr size_t kStreamSafeBufferMaxSamples =
+      static_cast<size_t>(params::kStreamSafeBufferDuration * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples =
+      static_cast<size_t>(params::kStreamSafetyThreshold * constants::kSamplingRate);
 
   std::vector<float> audioCopy;
 
@@ -63,15 +62,14 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
   // Allowing VAD changes logic significantly - we no longer commit and clean
   // at max samples reached moments, but rather at the end of speech moments.
   if (options.useVAD && vad_) {
-    auto speechSegments = vad_->generate(audioCopy, options.vadDetectionMargin *
-                                                        params::kVadGapFactor);
+    auto speechSegments =
+        vad_->generate(audioCopy, options.vadDetectionMargin * params::kVadGapFactor);
 
     if (speechSegments.empty()) {
       // Extra cleanup to speed-up future processing by removing silence.
       if (audioCopy.size() > params::kVadDeadSamplesRemovalSamples) {
         std::scoped_lock lock(streamingMutex);
-        size_t cut = std::min(params::kVadDeadSamplesRemovalSamples -
-                                  kSafetyMarginSamples,
+        size_t cut = std::min(params::kVadDeadSamplesRemovalSamples - kSafetyMarginSamples,
                               audioBuffer_.size());
         audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
       }
@@ -80,17 +78,14 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
     }
 
     const auto &lastSegment = speechSegments.back();
-    size_t marginSamples =
-        options.vadDetectionMargin * constants::kSamplesPerMilisecond;
+    size_t marginSamples = options.vadDetectionMargin * constants::kSamplesPerMilisecond;
 
     if (audioCopy.size() - lastSegment.end <= marginSamples) {
       // Speech is ongoing. Keep last 1s context and trim around current
       // segment.
       size_t startWithMargin =
-          std::max(lastSegment.start, constants::kSamplingRate) -
-          constants::kSamplingRate;
-      input = std::span(audioCopy.begin() + startWithMargin,
-                        audioCopy.begin() + lastSegment.end);
+          std::max(lastSegment.start, constants::kSamplingRate) - constants::kSamplingRate;
+      input = std::span(audioCopy.begin() + startWithMargin, audioCopy.begin() + lastSegment.end);
     } else {
       // Speech ended beyond margin. Commit existing transcript and clear
       // buffer.
@@ -100,14 +95,12 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
       memory_.eos.clear();
 
       audioBuffer_.erase(audioBuffer_.begin(),
-                         audioBuffer_.begin() +
-                             std::min(lastSegment.end, audioBuffer_.size()));
+                         audioBuffer_.begin() + std::min(lastSegment.end, audioBuffer_.size()));
       return {.committed = std::move(committed), .nonCommitted = {}};
     }
   } else {
     input = std::span(audioCopy.begin(),
-                      audioCopy.begin() +
-                          std::min(constants::kMaxSamples, audioCopy.size()));
+                      audioCopy.begin() + std::min(constants::kMaxSamples, audioCopy.size()));
   }
 
   std::vector<Segment> transcriptions = asr_->transcribe(input, options);
@@ -127,8 +120,7 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
   // due to model correcting it's output.
   for (auto it = memory_.eos.begin(); it != memory_.eos.end(); it++) {
     if (it->position >= words.size() || !utils::isEos(words[it->position]) ||
-        (it->position > 0 &&
-         it->preceeding != words[it->position - 1].content)) {
+        (it->position > 0 && it->preceeding != words[it->position - 1].content)) {
       memory_.eos.erase(it, memory_.eos.end());
       break;
     }
@@ -143,8 +135,7 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
     // Because of step 1, we know that if the last EOS exist in eos_,
     // then it must be the last entry.
     if (memory_.eos.empty() || memory_.eos.back().position != lastEosIndex) {
-      std::string preceeding =
-          lastEosIndex > 0 ? words[lastEosIndex - 1].content : "";
+      std::string preceeding = lastEosIndex > 0 ? words[lastEosIndex - 1].content : "";
       memory_.eos.emplace_back(lastEosIndex, preceeding, lastEosIt->end);
     }
   }
@@ -154,8 +145,7 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
   // Step 3: collect all the words which could possible get committed
   // in-between iterations.
   if (!memory_.toCommit.empty()) {
-    committed.insert(committed.end(),
-                     std::make_move_iterator(memory_.toCommit.begin()),
+    committed.insert(committed.end(), std::make_move_iterator(memory_.toCommit.begin()),
                      std::make_move_iterator(memory_.toCommit.end()));
     memory_.toCommit.clear();
   }
@@ -168,8 +158,7 @@ ProcessResult OnlineASR::process(const StreamingOptions &options) {
   if (bufferSize > kStreamSafeBufferMaxSamples) {
     auto newCommitted = commitAndClean(words);
 
-    committed.insert(committed.end(),
-                     std::make_move_iterator(newCommitted.begin()),
+    committed.insert(committed.end(), std::make_move_iterator(newCommitted.begin()),
                      std::make_move_iterator(newCommitted.end()));
   }
 
@@ -189,8 +178,7 @@ std::vector<Word> OnlineASR::finish(const StreamingOptions &options) {
   // Last-tick committed delta + whatever never made it past the commit
   // threshold.
   std::vector<Word> residual{std::move(result.committed)};
-  residual.insert(residual.end(),
-                  std::make_move_iterator(result.nonCommitted.begin()),
+  residual.insert(residual.end(), std::make_move_iterator(result.nonCommitted.begin()),
                   std::make_move_iterator(result.nonCommitted.end()));
 
   reset();
@@ -213,8 +201,8 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
   constexpr float kMidpointAnchorTime = params::kStreamMaxDuration / 2.0F;
   constexpr size_t kMidpointAnchorSamples =
       static_cast<size_t>(kMidpointAnchorTime * constants::kSamplingRate);
-  constexpr size_t kSafetyMarginSamples = static_cast<size_t>(
-      params::kStreamSafetyThreshold * constants::kSamplingRate);
+  constexpr size_t kSafetyMarginSamples =
+      static_cast<size_t>(params::kStreamSafetyThreshold * constants::kSamplingRate);
   constexpr float kMaxSafeEosTime =
       params::kStreamSafeBufferDuration - params::kStreamSafetyThreshold;
   constexpr float kMinDurationToCalculateDensity = 0.1F;
@@ -239,12 +227,10 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
   else if (memory_.eos.size() == 1) {
     const float eosTimestamp = memory_.eos[0].tmstpend;
 
-    const float upperHalfDuration =
-        std::max(0.0F, eosTimestamp - kMidpointAnchorTime);
-    const float wordsPerSecond =
-        upperHalfDuration > kMinDurationToCalculateDensity
-            ? static_cast<float>(transcript.size()) / upperHalfDuration
-            : 0.0F;
+    const float upperHalfDuration = std::max(0.0F, eosTimestamp - kMidpointAnchorTime);
+    const float wordsPerSecond = upperHalfDuration > kMinDurationToCalculateDensity
+                                     ? static_cast<float>(transcript.size()) / upperHalfDuration
+                                     : 0.0F;
 
     // The EOS sits early enough that cutting up to the safety margin won't
     // touch the ongoing (post-EOS) speech.
@@ -254,22 +240,18 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
       // EOS lies past the midpoint, but a low word density implies the spoken
       // audio is concentrated in the upper half. Drop the lower half and
       // shift the EOS accordingly.
-      audioBuffer_.erase(audioBuffer_.begin(),
-                         audioBuffer_.begin() + kMidpointAnchorSamples);
+      audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + kMidpointAnchorSamples);
       memory_.eos[0].tmstpend -= kMidpointAnchorTime;
     } else {
       // Cut everything up to and including the sentence — either by the
       // safety margin (when EOS is early) or (more aggresively) right at the
       // EOS boundary — and commit its words.
-      const size_t cut =
-          eosSafe
-              ? bufferSize - kSafetyMarginSamples
-              : static_cast<size_t>(eosTimestamp * constants::kSamplingRate);
+      const size_t cut = eosSafe ? bufferSize - kSafetyMarginSamples
+                                 : static_cast<size_t>(eosTimestamp * constants::kSamplingRate);
 
       audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
 
-      committed.insert(committed.end(),
-                       std::make_move_iterator(transcript.begin()),
+      committed.insert(committed.end(), std::make_move_iterator(transcript.begin()),
                        std::make_move_iterator(transcript.end()));
 
       transcript.clear();
@@ -282,17 +264,14 @@ std::vector<Word> OnlineASR::commitAndClean(std::vector<Word> &transcript) {
   else {
     const auto &secondTolastEntry = memory_.eos[memory_.eos.size() - 2];
 
-    const size_t cut = static_cast<size_t>(secondTolastEntry.tmstpend *
-                                           constants::kSamplingRate);
+    const size_t cut = static_cast<size_t>(secondTolastEntry.tmstpend * constants::kSamplingRate);
     const size_t lastCommittedPos = secondTolastEntry.position;
 
     audioBuffer_.erase(audioBuffer_.begin(), audioBuffer_.begin() + cut);
 
-    committed.insert(
-        committed.end(), std::make_move_iterator(transcript.begin()),
-        std::make_move_iterator(transcript.begin() + lastCommittedPos + 1));
-    transcript.erase(transcript.begin(),
-                     transcript.begin() + lastCommittedPos + 1);
+    committed.insert(committed.end(), std::make_move_iterator(transcript.begin()),
+                     std::make_move_iterator(transcript.begin() + lastCommittedPos + 1));
+    transcript.erase(transcript.begin(), transcript.begin() + lastCommittedPos + 1);
 
     // Retain only the most recent EOS entry, shifting both its timestamp
     // and its position to match the new (truncated) transcript origin.

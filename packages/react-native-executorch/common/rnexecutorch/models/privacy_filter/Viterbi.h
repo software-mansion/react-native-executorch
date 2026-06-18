@@ -30,12 +30,10 @@ struct Grammar {
   size_t numLabels = 0;
 };
 
-Grammar buildGrammar(const std::vector<std::string> &labelNames,
-                     const Biases &biases);
+Grammar buildGrammar(const std::vector<std::string> &labelNames, const Biases &biases);
 
 // Run constrained Viterbi over [validLen, numLabels] logits and return the
 // best BIOES-grammar-valid label-id sequence (length validLen).
-std::vector<int32_t> decode(const float *logits, int32_t validLen,
-                            const Grammar &grammar);
+std::vector<int32_t> decode(const float *logits, int32_t validLen, const Grammar &grammar);
 
 } // namespace rnexecutorch::models::privacy_filter::viterbi

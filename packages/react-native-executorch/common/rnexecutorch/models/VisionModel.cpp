@@ -25,8 +25,7 @@ cv::Size VisionModel::modelInputSize() const {
                   modelInputShape_[modelInputShape_.size() - 2]);
 }
 
-cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
-                                      const jsi::Value &frameData) const {
+cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData) const {
   cv::Mat frame = ::rnexecutorch::utils::frameToMat(runtime, frameData);
   cv::Mat rgb;
 #ifdef __APPLE__

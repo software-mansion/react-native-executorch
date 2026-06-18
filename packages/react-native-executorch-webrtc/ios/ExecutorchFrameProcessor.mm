@@ -72,9 +72,8 @@ constexpr float EMA_ALPHA = 0.5f;
     std::vector<float> normMean = {};
     std::vector<float> normStd = {};
     std::vector<std::string> allClasses = {"foreground", "background"};
-    seg = std::make_unique<BaseSemanticSegmentation>(
-        std::string([modelPath UTF8String]), normMean, normStd, allClasses,
-        nullptr);
+    seg = std::make_unique<BaseSemanticSegmentation>(std::string([modelPath UTF8String]), normMean,
+                                                     normStd, allClasses, nullptr);
     auto inputShapes = seg->getAllInputShapes();
     if (!inputShapes.empty() && inputShapes[0].size() >= 4) {
       h = inputShapes[0][inputShapes[0].size() - 2];
@@ -181,8 +180,8 @@ constexpr float EMA_ALPHA = 0.5f;
   }
 
   CVPixelBufferRef outputBuffer = NULL;
-  CVReturn poolStatus = CVPixelBufferPoolCreatePixelBuffer(
-      kCFAllocatorDefault, _outputPool, &outputBuffer);
+  CVReturn poolStatus =
+      CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, _outputPool, &outputBuffer);
   if (poolStatus != kCVReturnSuccess) {
     if (ownsInput) {
       CVPixelBufferRelease(inputPixelBuffer);
@@ -193,15 +192,13 @@ constexpr float EMA_ALPHA = 0.5f;
   CIImage *original = [CIImage imageWithCVPixelBuffer:inputPixelBuffer];
   CGFloat scaleX = (CGFloat)width / maskImage.extent.size.width;
   CGFloat scaleY = (CGFloat)height / maskImage.extent.size.height;
-  CIImage *scaledMask = [maskImage
-      imageByApplyingTransform:CGAffineTransformMakeScale(scaleX, scaleY)];
+  CIImage *scaledMask =
+      [maskImage imageByApplyingTransform:CGAffineTransformMakeScale(scaleX, scaleY)];
 
   CIFilter *blurFilter = [CIFilter filterWithName:@"CIGaussianBlur"];
-  [blurFilter setValue:[original imageByClampingToExtent]
-                forKey:kCIInputImageKey];
+  [blurFilter setValue:[original imageByClampingToExtent] forKey:kCIInputImageKey];
   [blurFilter setValue:@(_blurRadius) forKey:kCIInputRadiusKey];
-  CIImage *blurred =
-      [blurFilter.outputImage imageByCroppingToRect:original.extent];
+  CIImage *blurred = [blurFilter.outputImage imageByCroppingToRect:original.extent];
 
   CIFilter *blendFilter = [CIFilter filterWithName:@"CIBlendWithMask"];
   [blendFilter setValue:original forKey:kCIInputImageKey];
@@ -216,12 +213,10 @@ constexpr float EMA_ALPHA = 0.5f;
            colorSpace:colorSpace];
   CGColorSpaceRelease(colorSpace);
 
-  RTCCVPixelBuffer *rtcBuffer =
-      [[RTCCVPixelBuffer alloc] initWithPixelBuffer:outputBuffer];
-  RTCVideoFrame *outputFrame =
-      [[RTCVideoFrame alloc] initWithBuffer:rtcBuffer
-                                   rotation:frame.rotation
-                                timeStampNs:frame.timeStampNs];
+  RTCCVPixelBuffer *rtcBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:outputBuffer];
+  RTCVideoFrame *outputFrame = [[RTCVideoFrame alloc] initWithBuffer:rtcBuffer
+                                                            rotation:frame.rotation
+                                                         timeStampNs:frame.timeStampNs];
 
   CVPixelBufferRelease(outputBuffer);
   if (ownsInput) {
@@ -271,10 +266,9 @@ constexpr float EMA_ALPHA = 0.5f;
     yMat.copyTo(yuvMat(cv::Rect(0, 0, (int)width, (int)height)));
     std::vector<cv::Mat> uvChannels;
     cv::split(uvMat, uvChannels);
-    uvChannels[0].copyTo(
-        yuvMat(cv::Rect(0, (int)height, (int)width / 2, (int)height / 2)));
-    uvChannels[1].copyTo(yuvMat(cv::Rect((int)width / 2, (int)height,
-                                         (int)width / 2, (int)height / 2)));
+    uvChannels[0].copyTo(yuvMat(cv::Rect(0, (int)height, (int)width / 2, (int)height / 2)));
+    uvChannels[1].copyTo(
+        yuvMat(cv::Rect((int)width / 2, (int)height, (int)width / 2, (int)height / 2)));
     cv::cvtColor(yuvMat, rgbMat, cv::COLOR_YUV2RGB_I420);
   } else {
     CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -302,8 +296,7 @@ constexpr float EMA_ALPHA = 0.5f;
     pixelData.scalarType = executorch::aten::ScalarType::Byte;
 
     std::set<std::string, std::less<>> classesOfInterest = {"foreground"};
-    auto result =
-        _segmentation->generateFromPixels(pixelData, classesOfInterest, false);
+    auto result = _segmentation->generateFromPixels(pixelData, classesOfInterest, false);
 
     if (result.classBuffers && result.classBuffers->count("foreground")) {
       auto &fgBuffer = result.classBuffers->at("foreground");
@@ -331,8 +324,7 @@ constexpr float EMA_ALPHA = 0.5f;
   if (_previousMask.empty() || _previousMask.size() != maskRotated.size()) {
     _previousMask = maskRotated.clone();
   } else {
-    cv::addWeighted(maskRotated, EMA_ALPHA, _previousMask, 1.0f - EMA_ALPHA, 0,
-                    maskRotated);
+    cv::addWeighted(maskRotated, EMA_ALPHA, _previousMask, 1.0f - EMA_ALPHA, 0, maskRotated);
     _previousMask = maskRotated.clone();
   }
 
@@ -380,9 +372,9 @@ constexpr float EMA_ALPHA = 0.5f;
     (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
   };
   CVPixelBufferRef pixelBuffer = NULL;
-  CVReturn result = CVPixelBufferCreate(
-      kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
-      (__bridge CFDictionaryRef)attrs, &pixelBuffer);
+  CVReturn result =
+      CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
+                          (__bridge CFDictionaryRef)attrs, &pixelBuffer);
   if (result != kCVReturnSuccess) {
     return NULL;
   }
@@ -398,8 +390,7 @@ constexpr float EMA_ALPHA = 0.5f;
     memcpy(uvDst + row * uvWidth, dataU + row * strideU, uvWidth);
   }
   for (int row = 0; row < uvHeight; row++) {
-    memcpy(uvDst + uvHeight * uvWidth + row * uvWidth, dataV + row * strideV,
-           uvWidth);
+    memcpy(uvDst + uvHeight * uvWidth + row * uvWidth, dataV + row * strideV, uvWidth);
   }
 
   cv::Mat bgraMat;
@@ -425,9 +416,9 @@ constexpr float EMA_ALPHA = 0.5f;
     (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
   };
   CVPixelBufferRef pixelBuffer = NULL;
-  CVReturn result = CVPixelBufferCreate(
-      kCFAllocatorDefault, width, height, kCVPixelFormatType_OneComponent8,
-      (__bridge CFDictionaryRef)attrs, &pixelBuffer);
+  CVReturn result =
+      CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_OneComponent8,
+                          (__bridge CFDictionaryRef)attrs, &pixelBuffer);
   if (result != kCVReturnSuccess) {
     return NULL;
   }
@@ -457,8 +448,7 @@ constexpr float EMA_ALPHA = 0.5f;
     (id)kCVPixelBufferIOSurfacePropertiesKey : @{},
     (id)kCVPixelBufferMetalCompatibilityKey : @YES,
   };
-  CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL,
-                          (__bridge CFDictionaryRef)attrs, &_outputPool);
+  CVPixelBufferPoolCreate(kCFAllocatorDefault, NULL, (__bridge CFDictionaryRef)attrs, &_outputPool);
   _poolWidth = width;
   _poolHeight = height;
 }

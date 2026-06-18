@@ -11,15 +11,15 @@ std::vector<JsiHostObject *> objects;
 #endif
 
 JsiHostObject::JsiHostObject() {
-  getters_ = std::make_unique<std::unordered_map<
-      std::string, jsi::Value (JsiHostObject::*)(jsi::Runtime &)>>();
-  functions_ = std::make_unique<
-      std::unordered_map<std::string, jsi::Value (JsiHostObject::*)(
-                                          jsi::Runtime &, const jsi::Value &,
-                                          const jsi::Value *, size_t)>>();
-  setters_ = std::make_unique<std::unordered_map<
-      std::string,
-      void (JsiHostObject::*)(jsi::Runtime &, const jsi::Value &)>>();
+  getters_ = std::make_unique<
+      std::unordered_map<std::string, jsi::Value (JsiHostObject::*)(jsi::Runtime &)>>();
+  functions_ =
+      std::make_unique<std::unordered_map<std::string, jsi::Value (JsiHostObject::*)(
+                                                           jsi::Runtime &, const jsi::Value &,
+                                                           const jsi::Value *, size_t)>>();
+  setters_ =
+      std::make_unique<std::unordered_map<std::string, void (JsiHostObject::*)(
+                                                           jsi::Runtime &, const jsi::Value &)>>();
 
 #if JSI_DEBUG_ALLOCATIONS
   objects.push_back(this);
@@ -41,8 +41,7 @@ JsiHostObject::~JsiHostObject() {
 
 std::vector<jsi::PropNameID> JsiHostObject::getPropertyNames(jsi::Runtime &rt) {
   std::vector<jsi::PropNameID> propertyNames;
-  propertyNames.reserve(getters_->size() + functions_->size() +
-                        setters_->size());
+  propertyNames.reserve(getters_->size() + functions_->size() + setters_->size());
 
   for (const auto &it : *getters_) {
     propertyNames.push_back(jsi::PropNameID::forUtf8(rt, it.first));
@@ -59,8 +58,7 @@ std::vector<jsi::PropNameID> JsiHostObject::getPropertyNames(jsi::Runtime &rt) {
   return propertyNames;
 }
 
-jsi::Value JsiHostObject::get(jsi::Runtime &runtime,
-                              const jsi::PropNameID &name) {
+jsi::Value JsiHostObject::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
   auto nameAsString = name.utf8(runtime);
   auto &hostFunctionCache = hostFunctionCache_.get(runtime);
 
@@ -82,13 +80,11 @@ jsi::Value JsiHostObject::get(jsi::Runtime &runtime,
   }
 
   auto dispatcher =
-      std::bind(function->second, reinterpret_cast<JsiHostObject *>(this),
-                std::placeholders::_1, std::placeholders::_2,
-                std::placeholders::_3, std::placeholders::_4);
+      std::bind(function->second, reinterpret_cast<JsiHostObject *>(this), std::placeholders::_1,
+                std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
   return hostFunctionCache
-      .emplace(nameAsString, jsi::Function::createFromHostFunction(
-                                 runtime, name, 0, dispatcher))
+      .emplace(nameAsString, jsi::Function::createFromHostFunction(runtime, name, 0, dispatcher))
       .first->second.asFunction(runtime);
 }
 
@@ -99,8 +95,7 @@ void JsiHostObject::set(jsi::Runtime &runtime, const jsi::PropNameID &name,
   auto setter = setters_->find(nameAsString);
 
   if (setter != setters_->end()) {
-    auto dispatcher = std::bind(setter->second, this, std::placeholders::_1,
-                                std::placeholders::_2);
+    auto dispatcher = std::bind(setter->second, this, std::placeholders::_1, std::placeholders::_2);
 
     return dispatcher(runtime, value);
   }

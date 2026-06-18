@@ -16,11 +16,10 @@ namespace rnexecutorch::models::instance_segmentation::types {
 struct Instance {
 
   Instance() = default;
-  Instance(utils::computer_vision::BBox bbox,
-           std::shared_ptr<OwningArrayBuffer> mask, int32_t maskWidth,
-           int32_t maskHeight, int32_t classIndex, float score)
-      : bbox(bbox), mask(std::move(mask)), maskWidth(maskWidth),
-        maskHeight(maskHeight), classIndex(classIndex), score(score) {}
+  Instance(utils::computer_vision::BBox bbox, std::shared_ptr<OwningArrayBuffer> mask,
+           int32_t maskWidth, int32_t maskHeight, int32_t classIndex, float score)
+      : bbox(bbox), mask(std::move(mask)), maskWidth(maskWidth), maskHeight(maskHeight),
+        classIndex(classIndex), score(score) {}
 
   utils::computer_vision::BBox bbox;
   std::shared_ptr<OwningArrayBuffer> mask;

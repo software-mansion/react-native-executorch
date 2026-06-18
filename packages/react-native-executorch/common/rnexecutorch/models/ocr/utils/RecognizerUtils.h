@@ -31,8 +31,7 @@ cv::Rect extractBoundingBox(const types::BBox &bbox);
  * https://github.com/JaidedAI/EasyOCR/blob/c4f3cd7225efd4f85451bd8b4a7646ae9a092420/easyocr/recognition.py#L14
  * @details 'Some say that it's a code, sent to us from god'
  */
-float confidenceScore(const std::vector<float> &values,
-                      const std::vector<int32_t> &indices);
+float confidenceScore(const std::vector<float> &values, const std::vector<int32_t> &indices);
 
 cv::Mat characterBitMask(const cv::Mat &img);
 
@@ -59,9 +58,7 @@ cv::Mat cropImageWithBoundingBox(const cv::Mat &img, const types::BBox &bbox,
  *
  * @details it utilizes cropImageWithBoundingBox to perform specific cropping.
  */
-cv::Mat prepareForRecognition(const cv::Mat &originalImage,
-                              const types::BBox &bbox,
-                              const types::BBox &originalBbox,
-                              const types::PaddingInfo &paddings,
+cv::Mat prepareForRecognition(const cv::Mat &originalImage, const types::BBox &bbox,
+                              const types::BBox &originalBbox, const types::PaddingInfo &paddings,
                               const types::PaddingInfo &originalPaddings);
 } // namespace rnexecutorch::models::ocr::utils

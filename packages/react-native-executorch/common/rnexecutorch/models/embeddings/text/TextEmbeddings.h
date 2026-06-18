@@ -15,11 +15,9 @@ struct TokenIdsWithAttentionMask {
 
 class TextEmbeddings final : public BaseEmbeddings {
 public:
-  TextEmbeddings(const std::string &modelSource,
-                 const std::string &tokenizerSource,
+  TextEmbeddings(const std::string &modelSource, const std::string &tokenizerSource,
                  std::shared_ptr<react::CallInvoker> callInvoker);
-  [[nodiscard(
-      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  [[nodiscard("Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   generate(const std::string input);
   void unload() noexcept;
 
@@ -31,6 +29,6 @@ private:
 };
 } // namespace models::embeddings
 
-REGISTER_CONSTRUCTOR(models::embeddings::TextEmbeddings, std::string,
-                     std::string, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::embeddings::TextEmbeddings, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

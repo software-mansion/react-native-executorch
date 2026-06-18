@@ -21,61 +21,52 @@ template <> struct ModelTraits<TextEmbeddings> {
   using ModelType = TextEmbeddings;
 
   static ModelType createValid() {
-    return ModelType(kValidTextEmbeddingsModelPath,
-                     kValidTextEmbeddingsTokenizerPath, nullptr);
+    return ModelType(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", kValidTextEmbeddingsTokenizerPath,
-                     nullptr);
+    return ModelType("nonexistent.pte", kValidTextEmbeddingsTokenizerPath, nullptr);
   }
 
-  static void callGenerate(ModelType &model) {
-    (void)model.generate("Hello, world!");
-  }
+  static void callGenerate(ModelType &model) { (void)model.generate("Hello, world!"); }
 };
 } // namespace model_tests
 
 using TextEmbeddingsTypes = ::testing::Types<TextEmbeddings>;
-INSTANTIATE_TYPED_TEST_SUITE_P(TextEmbeddings, CommonModelTest,
-                               TextEmbeddingsTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(TextEmbeddings, CommonModelTest, TextEmbeddingsTypes);
 
 // ============================================================================
 // Model-specific tests
 // ============================================================================
 TEST(TextEmbeddingsCtorTests, InvalidTokenizerPathThrows) {
-  EXPECT_THROW(TextEmbeddings(kValidTextEmbeddingsModelPath,
-                              "this_tokenizer_does_not_exist.json", nullptr),
-               std::exception);
+  EXPECT_THROW(
+      TextEmbeddings(kValidTextEmbeddingsModelPath, "this_tokenizer_does_not_exist.json", nullptr),
+      std::exception);
 }
 
 TEST(TextEmbeddingsGenerateTests, EmptyStringReturnsResults) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("");
   EXPECT_NE(result, nullptr);
   EXPECT_GT(result->size(), 0u);
 }
 
 TEST(TextEmbeddingsGenerateTests, ValidTextReturnsResults) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("Hello, world!");
   EXPECT_NE(result, nullptr);
   EXPECT_GT(result->size(), 0u);
 }
 
 TEST(TextEmbeddingsGenerateTests, ResultsHaveCorrectSize) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("This is a test sentence.");
   size_t numFloats = result->size() / sizeof(float);
   EXPECT_EQ(numFloats, kMiniLmEmbeddingDimensions);
 }
 
 TEST(TextEmbeddingsGenerateTests, ResultsAreNormalized) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("The quick brown fox jumps over the lazy dog.");
 
   const float *data = reinterpret_cast<const float *>(result->data());
@@ -90,8 +81,7 @@ TEST(TextEmbeddingsGenerateTests, ResultsAreNormalized) {
 }
 
 TEST(TextEmbeddingsGenerateTests, ResultsContainValidValues) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("Testing valid values.");
 
   const float *data = reinterpret_cast<const float *>(result->data());
@@ -104,8 +94,7 @@ TEST(TextEmbeddingsGenerateTests, ResultsContainValidValues) {
 }
 
 TEST(TextEmbeddingsGenerateTests, DifferentTextProducesDifferentEmbeddings) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
 
   auto result1 = model.generate("Hello, world!");
   auto result2 = model.generate("Goodbye, moon!");
@@ -125,8 +114,7 @@ TEST(TextEmbeddingsGenerateTests, DifferentTextProducesDifferentEmbeddings) {
 }
 
 TEST(TextEmbeddingsGenerateTests, SimilarTextProducesSimilarEmbeddings) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
 
   auto result1 = model.generate("I love programming");
   auto result2 = model.generate("I enjoy coding");
@@ -143,22 +131,19 @@ TEST(TextEmbeddingsGenerateTests, SimilarTextProducesSimilarEmbeddings) {
 }
 
 TEST(TextEmbeddingsInheritedTests, GetInputShapeWorks) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_GE(shape.size(), 2u);
 }
 
 TEST(TextEmbeddingsInheritedTests, GetAllInputShapesWorks) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(TextEmbeddingsInheritedTests, GetMethodMetaWorks) {
-  TextEmbeddings model(kValidTextEmbeddingsModelPath,
-                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  TextEmbeddings model(kValidTextEmbeddingsModelPath, kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }

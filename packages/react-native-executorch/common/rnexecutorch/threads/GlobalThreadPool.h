@@ -30,15 +30,13 @@ public:
                          ThreadConfig config = {}) {
     std::call_once(initFlag, [&numThreads, config]() {
       if (!numThreads) {
-        numThreads =
-            ::executorch::extension::cpuinfo::get_num_performant_cores();
+        numThreads = ::executorch::extension::cpuinfo::get_num_performant_cores();
       }
 
       numThreads = std::max(numThreads.value(), 2u);
-      log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with",
-          numThreads, "threads");
-      instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
-                                                             config);
+      log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with", numThreads,
+          "threads");
+      instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(), config);
       // Disable OpenCV's internal threading to prevent it from overriding our
       // thread pool configuration, which would cause degraded performance
       cv::setNumThreads(0);
@@ -46,8 +44,7 @@ public:
   }
 
   // Convenience methods that mirror std::thread interface
-  template <typename Func, typename... Args>
-  static auto async(Func &&func, Args &&...args) {
+  template <typename Func, typename... Args> static auto async(Func &&func, Args &&...args) {
     return get().submit(std::forward<Func>(func), std::forward<Args>(args)...);
   }
 
@@ -58,14 +55,12 @@ public:
   }
 
   // Fire and forget (like std::thread{}.detach())
-  template <typename Func, typename... Args>
-  static void detach(Func &&func, Args &&...args) {
+  template <typename Func, typename... Args> static void detach(Func &&func, Args &&...args) {
     get().submitDetached(std::forward<Func>(func), std::forward<Args>(args)...);
   }
 
   // Execute and wait (like std::thread{}.join())
-  template <typename Func, typename... Args>
-  static auto execute(Func &&func, Args &&...args) {
+  template <typename Func, typename... Args> static auto execute(Func &&func, Args &&...args) {
     return get().execute(std::forward<Func>(func), std::forward<Args>(args)...);
   }
 

@@ -29,36 +29,29 @@ using namespace facebook;
 template <typename T> struct ConstructorTraits;
 
 template <typename T>
-concept HasConstructorTraits =
-    requires { typename ConstructorTraits<T>::arg_types; };
+concept HasConstructorTraits = requires { typename ConstructorTraits<T>::arg_types; };
 
 template <typename T, typename Tuple> struct is_constructible_from_tuple;
 
 template <typename T, typename... Args>
-struct is_constructible_from_tuple<T, std::tuple<Args...>>
-    : std::is_constructible<T, Args...> {};
+struct is_constructible_from_tuple<T, std::tuple<Args...>> : std::is_constructible<T, Args...> {};
 
 template <typename T, typename Tuple>
 concept ConstructibleFromTuple = is_constructible_from_tuple<T, Tuple>::value;
 
-template <typename NotTuple>
-struct last_element_is_call_invoker : std::false_type {};
+template <typename NotTuple> struct last_element_is_call_invoker : std::false_type {};
 
-template <typename... Args>
-struct last_element_is_call_invoker<std::tuple<Args...>> {
+template <typename... Args> struct last_element_is_call_invoker<std::tuple<Args...>> {
 private:
   template <typename Last> static constexpr bool check() {
     return std::is_same_v<Last, std::shared_ptr<facebook::react::CallInvoker>>;
   }
 
-  template <typename First, typename Second, typename... Rest>
-  static constexpr bool check_last() {
+  template <typename First, typename Second, typename... Rest> static constexpr bool check_last() {
     return check_last<Second, Rest...>();
   }
 
-  template <typename Last> static constexpr bool check_last() {
-    return check<Last>();
-  }
+  template <typename Last> static constexpr bool check_last() { return check<Last>(); }
 
 public:
   static constexpr bool value = sizeof...(Args) > 0 && check_last<Args...>();
@@ -69,19 +62,18 @@ public:
 // it wouldn't be defined, but we keep it for readability
 template <typename T>
 concept ValidConstructorTraits =
-    HasConstructorTraits<T> &&
-    ConstructibleFromTuple<T, typename ConstructorTraits<T>::arg_types>;
+    HasConstructorTraits<T> && ConstructibleFromTuple<T, typename ConstructorTraits<T>::arg_types>;
 
 template <typename T>
 concept CallInvokerLastInConstructor =
     HasConstructorTraits<T> &&
-    last_element_is_call_invoker<
-        typename ConstructorTraits<T>::arg_types>::value;
+    last_element_is_call_invoker<typename ConstructorTraits<T>::arg_types>::value;
 
 template <typename... Types, std::size_t... I>
-std::tuple<Types...> fillConstructorTupleFromArgs(
-    std::index_sequence<I...>, const jsi::Value *args, jsi::Runtime &runtime,
-    std::shared_ptr<react::CallInvoker> jsCallInvoker) {
+std::tuple<Types...>
+fillConstructorTupleFromArgs(std::index_sequence<I...>, const jsi::Value *args,
+                             jsi::Runtime &runtime,
+                             std::shared_ptr<react::CallInvoker> jsCallInvoker) {
   constexpr std::size_t lastIndex = sizeof...(Types) - 1;
   return std::make_tuple([&]() {
     if constexpr (I == lastIndex) {
@@ -104,14 +96,12 @@ std::tuple<Types...> fillConstructorTupleFromArgs(
 /// @return A tuple which can then be used to instantiate the class T.
 template <typename T>
   requires ValidConstructorTraits<T> && CallInvokerLastInConstructor<T>
-auto createConstructorArgsWithCallInvoker(
-    const jsi::Value *args, jsi::Runtime &runtime,
-    std::shared_ptr<react::CallInvoker> jsCallInvoker) {
+auto createConstructorArgsWithCallInvoker(const jsi::Value *args, jsi::Runtime &runtime,
+                                          std::shared_ptr<react::CallInvoker> jsCallInvoker) {
   return std::apply(
       [&](auto... typeWrappers) {
         return fillConstructorTupleFromArgs<decltype(typeWrappers)...>(
-            std::index_sequence_for<decltype(typeWrappers)...>{}, args, runtime,
-            jsCallInvoker);
+            std::index_sequence_for<decltype(typeWrappers)...>{}, args, runtime, jsCallInvoker);
       },
       typename ConstructorTraits<T>::arg_types{});
 }
@@ -125,9 +115,9 @@ auto createConstructorArgsWithCallInvoker(
  * @note The Class must be fully declared or forward-declared before this macro
  * is invoked
  */
-#define REGISTER_CONSTRUCTOR(Class, ...)                                       \
-  template <> struct meta::ConstructorTraits<Class> {                          \
-    using arg_types = std::tuple<__VA_ARGS__>;                                 \
+#define REGISTER_CONSTRUCTOR(Class, ...)                                                           \
+  template <> struct meta::ConstructorTraits<Class> {                                              \
+    using arg_types = std::tuple<__VA_ARGS__>;                                                     \
   }
 
 } // namespace rnexecutorch

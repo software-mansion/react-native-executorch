@@ -13,25 +13,20 @@ using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
 /// @brief Convert a OpenCV matrix to channel-first vector representation
-std::vector<float> colorMatToVector(const cv::Mat &mat, cv::Scalar mean,
-                                    cv::Scalar variance);
+std::vector<float> colorMatToVector(const cv::Mat &mat, cv::Scalar mean, cv::Scalar variance);
 /// @brief Convert a OpenCV matrix to channel-first vector representation
 std::vector<float> colorMatToVector(const cv::Mat &mat);
 /// @brief Convert a channel-first representation of an RGB image to OpenCV
 /// matrix
-cv::Mat bufferToColorMat(const std::span<const float> &buffer,
-                         cv::Size matSize);
+cv::Mat bufferToColorMat(const std::span<const float> &buffer, cv::Size matSize);
 std::string saveToTempFile(const cv::Mat &image);
 /// @brief Read image in a BGR format to a cv::Mat
 cv::Mat readImage(const std::string &imageURI);
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
-                              const cv::Mat &mat);
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
-                              const cv::Mat &matrix, cv::Scalar mean,
-                              cv::Scalar variance);
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims, const cv::Mat &mat);
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims, const cv::Mat &matrix,
+                              cv::Scalar mean, cv::Scalar variance);
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor);
-TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
-                                  const cv::Mat &matrix);
+TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims, const cv::Mat &matrix);
 std::vector<float> grayMatToVector(const cv::Mat &mat);
 /**
  * @brief Resizes an image to fit within target dimensions while preserving
@@ -48,12 +43,11 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize);
 /// maintain the original aspect ratio. The rest of the tensor will be filled
 /// padding.
 /// @return Returns a tensor pointer and the original size of the image.
-std::pair<TensorPtr, cv::Size>
-readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDims,
-                  bool maintainAspectRatio = false,
-                  std::optional<cv::Scalar> normMean = std::nullopt,
-                  std::optional<cv::Scalar> normStd = std::nullopt);
+std::pair<TensorPtr, cv::Size> readImageToTensor(const std::string &path,
+                                                 const std::vector<int32_t> &tensorDims,
+                                                 bool maintainAspectRatio = false,
+                                                 std::optional<cv::Scalar> normMean = std::nullopt,
+                                                 std::optional<cv::Scalar> normStd = std::nullopt);
 /**
  * @brief Applies sigmoid activation to logits and converts to uint8 binary mask
  * @param logits Input matrix containing raw logits (pre-sigmoid)

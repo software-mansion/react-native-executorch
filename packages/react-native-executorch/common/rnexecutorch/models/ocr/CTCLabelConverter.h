@@ -19,8 +19,7 @@ class CTCLabelConverter final {
 public:
   explicit CTCLabelConverter(const std::string &characters);
 
-  std::vector<std::string> decodeGreedy(const std::vector<int32_t> &textIndex,
-                                        size_t length);
+  std::vector<std::string> decodeGreedy(const std::vector<int32_t> &textIndex, size_t length);
 
 private:
   int32_t ignoreIdx;

@@ -11,8 +11,7 @@
 
 namespace rnexecutorch {
 
-using ErrorVariant =
-    std::variant<RnExecutorchErrorCode, executorch::runtime::Error>;
+using ErrorVariant = std::variant<RnExecutorchErrorCode, executorch::runtime::Error>;
 
 class RnExecutorchError : public std::runtime_error {
 public:
@@ -22,9 +21,7 @@ public:
       : std::runtime_error(message), errorCode(code) {}
 
   int32_t getNumericCode() const noexcept {
-    return std::visit(
-        [](auto &&arg) -> int32_t { return static_cast<int32_t>(arg); },
-        errorCode);
+    return std::visit([](auto &&arg) -> int32_t { return static_cast<int32_t>(arg); }, errorCode);
   }
 
   bool isRnExecutorchError() const noexcept {
@@ -50,26 +47,24 @@ inline std::string locationPrefix(const std::source_location &loc) {
 [[noreturn]] inline void
 throwNotLoaded(std::source_location loc = std::source_location::current()) {
   throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                          locationPrefix(loc) + "Model not loaded (in: " +
-                              loc.function_name() + ")");
+                          locationPrefix(loc) + "Model not loaded (in: " + loc.function_name() +
+                              ")");
 }
 
 template <typename Result>
-inline void checkOkOrThrowForwardError(
-    const Result &result,
-    std::source_location loc = std::source_location::current()) {
+inline void checkOkOrThrowForwardError(const Result &result,
+                                       std::source_location loc = std::source_location::current()) {
   if (!result.ok()) {
-    throw RnExecutorchError(
-        result.error(), locationPrefix(loc) +
-                            "Forward pass failed (in: " + loc.function_name() +
-                            "). Ensure the model input is correct.");
+    throw RnExecutorchError(result.error(), locationPrefix(loc) +
+                                                "Forward pass failed (in: " + loc.function_name() +
+                                                "). Ensure the model input is correct.");
   }
 }
 
 } // namespace detail
 } // namespace rnexecutorch
 
-#define CHECK_OK_OR_THROW_FORWARD_ERROR(result)                                \
+#define CHECK_OK_OR_THROW_FORWARD_ERROR(result)                                                    \
   ::rnexecutorch::detail::checkOkOrThrowForwardError(result)
 
 #define THROW_NOT_LOADED_ERROR() ::rnexecutorch::detail::throwNotLoaded()

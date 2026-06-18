@@ -18,9 +18,8 @@ public:
    * divided.
    */
   enum class Mode {
-    MIN_BREAKS = 0, // Minimizes number of substrings (best quality)
-    MIN_LATENCY =
-        1, // Minimizes the processing latency (best speed - streaming mode)
+    MIN_BREAKS = 0,  // Minimizes number of substrings (best quality)
+    MIN_LATENCY = 1, // Minimizes the processing latency (best speed - streaming mode)
   };
 
   /**
@@ -52,8 +51,8 @@ public:
    * @param end End index of the current range (inclusive).
    * @param sep The type of the breakpoint.
    */
-  using CostFn = std::function<Cost(Cost acc, size_t beg, int64_t prevBp,
-                                    int64_t bp, size_t end, Separator sep)>;
+  using CostFn = std::function<Cost(Cost acc, size_t beg, int64_t prevBp, int64_t bp, size_t end,
+                                    Separator sep)>;
 
   /**
    * Holds the result of text partitioning.
@@ -62,8 +61,7 @@ public:
    */
   struct Partition {
     std::u32string_view content;
-    std::vector<std::pair<size_t, size_t>>
-        segments; // Pairs of {offset, length} for each segment.
+    std::vector<std::pair<size_t, size_t>> segments; // Pairs of {offset, length} for each segment.
   };
 
   /**
@@ -76,13 +74,11 @@ public:
    * @return A Partition object containing the original content view and
    * breakpoints.
    */
-  Partition partition(std::u32string_view input, size_t limit,
-                      Mode mode = Mode::MIN_LATENCY) const;
+  Partition partition(std::u32string_view input, size_t limit, Mode mode = Mode::MIN_LATENCY) const;
 
 private:
   // Internal partition implementation that uses a specific cost function.
-  Partition partition(std::u32string_view input, size_t limit,
-                      CostFn costFn) const;
+  Partition partition(std::u32string_view input, size_t limit, CostFn costFn) const;
 };
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro

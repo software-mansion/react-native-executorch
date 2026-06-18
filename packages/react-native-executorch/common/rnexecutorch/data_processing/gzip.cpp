@@ -15,17 +15,14 @@ constexpr size_t kChunkSize = 16 * 1024; // 16 KiB stream buffer
 
 size_t deflateSize(const std::string &input) {
   z_stream strm{};
-  if (::deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
-                     MAX_WBITS + kGzipWrapper, kMemLevel,
+  if (::deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, MAX_WBITS + kGzipWrapper, kMemLevel,
                      Z_DEFAULT_STRATEGY) != Z_OK) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
-                            "deflateInit2 failed");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError, "deflateInit2 failed");
   }
 
   size_t outSize = 0;
 
-  strm.next_in = reinterpret_cast<z_const Bytef *>(
-      const_cast<z_const char *>(input.data()));
+  strm.next_in = reinterpret_cast<z_const Bytef *>(const_cast<z_const char *>(input.data()));
   strm.avail_in = static_cast<uInt>(input.size());
 
   std::vector<unsigned char> buf(kChunkSize);
@@ -37,8 +34,7 @@ size_t deflateSize(const std::string &input) {
     ret = ::deflate(&strm, strm.avail_in ? Z_NO_FLUSH : Z_FINISH);
     if (ret == Z_STREAM_ERROR) {
       ::deflateEnd(&strm);
-      throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
-                              "deflate stream error");
+      throw RnExecutorchError(RnExecutorchErrorCode::UnknownError, "deflate stream error");
     }
 
     outSize += buf.size() - strm.avail_out;

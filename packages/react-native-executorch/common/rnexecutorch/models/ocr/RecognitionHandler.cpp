@@ -4,15 +4,14 @@
 #include <rnexecutorch/models/ocr/utils/RecognitionHandlerUtils.h>
 
 namespace rnexecutorch::models::ocr {
-RecognitionHandler::RecognitionHandler(
-    const std::string &recognizerSource, const std::string &symbols,
-    std::shared_ptr<react::CallInvoker> callInvoker)
+RecognitionHandler::RecognitionHandler(const std::string &recognizerSource,
+                                       const std::string &symbols,
+                                       std::shared_ptr<react::CallInvoker> callInvoker)
     : converter(symbols), recognizer(recognizerSource, callInvoker) {
   memorySizeLowerBound = recognizer.getMemoryLowerBound();
 }
 
-std::pair<std::vector<int32_t>, float>
-RecognitionHandler::runModel(cv::Mat image) {
+std::pair<std::vector<int32_t>, float> RecognitionHandler::runModel(cv::Mat image) {
 
   // Note that the height of an  image is always equal to 64.
   int32_t desiredWidth = utils::getDesiredWidth(image, false);
@@ -27,8 +26,7 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
     Resize the cropped image to have height = 64 (height accepted by
     Recognizer).
   */
-  auto croppedImage =
-      utils::cropImage(box, imgGray, constants::kRecognizerHeight);
+  auto croppedImage = utils::cropImage(box, imgGray, constants::kRecognizerHeight);
 
   if (croppedImage.empty()) {
     return;
@@ -38,15 +36,13 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
     Cropped image is resized into the closest of on of three:
     128x64, 256x64, 512x64.
   */
-  croppedImage =
-      utils::normalizeForRecognizer(croppedImage, constants::kRecognizerHeight,
-                                    constants::kAdjustContrast, false);
+  croppedImage = utils::normalizeForRecognizer(croppedImage, constants::kRecognizerHeight,
+                                               constants::kAdjustContrast, false);
 
   auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
   if (confidenceScore < constants::kLowConfidenceThreshold) {
     cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
-    auto [rotatedPredictionIndices, rotatedConfidenceScore] =
-        runModel(croppedImage);
+    auto [rotatedPredictionIndices, rotatedConfidenceScore] = runModel(croppedImage);
     if (rotatedConfidenceScore > confidenceScore) {
       confidenceScore = rotatedConfidenceScore;
       predictionIndices = rotatedPredictionIndices;
@@ -64,15 +60,14 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
   types::BBox transformedBbox{
       {(box.bbox.p1.x - padLeft) * ratio, (box.bbox.p1.y - padTop) * ratio},
       {(box.bbox.p2.x - padLeft) * ratio, (box.bbox.p2.y - padTop) * ratio}};
-  boxList.emplace_back(
-      transformedBbox,
-      converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
-      confidenceScore);
+  boxList.emplace_back(transformedBbox,
+                       converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
+                       confidenceScore);
 }
 
 std::vector<types::OCRDetection>
-RecognitionHandler::recognize(std::vector<types::DetectorBBox> bboxesList,
-                              cv::Mat &imgGray, cv::Size desiredSize) {
+RecognitionHandler::recognize(std::vector<types::DetectorBBox> bboxesList, cv::Mat &imgGray,
+                              cv::Size desiredSize) {
   /*
    Recognition Handler accepts bboxesList corresponding to size
    1280x1280, which is desiredSize.

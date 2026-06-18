@@ -36,15 +36,11 @@ RCT_EXPORT_METHOD(deinitialize) {
   [_processor unloadModel];
 }
 
-RCT_EXPORT_METHOD(setBlurRadius : (double)radius) {
-  [_processor setBlurRadius:(float)radius];
-}
+RCT_EXPORT_METHOD(setBlurRadius : (double)radius) { [_processor setBlurRadius:(float)radius]; }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isAvailable) { return @YES; }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getProcessorName) {
-  return PROCESSOR_NAME;
-}
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getProcessorName) { return PROCESSOR_NAME; }
 
 #pragma mark - Legacy API (for backward compatibility)
 
@@ -54,8 +50,7 @@ RCT_EXPORT_METHOD(configureBackgroundRemoval : (NSString *)modelPath) {
   [self initialize:modelPath];
 }
 
-RCT_EXPORT_METHOD(configureBackgroundBlur : (NSString *)
-                      modelPath blurIntensity : (int)intensity) {
+RCT_EXPORT_METHOD(configureBackgroundBlur : (NSString *)modelPath blurIntensity : (int)intensity) {
   [self initialize:modelPath];
   [self setBlurRadius:intensity];
 }

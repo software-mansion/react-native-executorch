@@ -18,8 +18,7 @@ using executorch::aten::Tensor;
 
 class DurationPredictor : public BaseModel {
 public:
-  explicit DurationPredictor(const std::string &modelSource,
-                             const Context &modelContext,
+  explicit DurationPredictor(const std::string &modelSource, const Context &modelContext,
                              std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
@@ -39,30 +38,27 @@ public:
    *                    timestamps - timestamp marks for each token (phoneme)
    */
   std::tuple<Tensor, std::vector<int64_t>, int32_t, std::vector<Timestamp>>
-  generate(std::span<Token> tokens, std::span<bool> textMask,
-           std::span<float> ref_hs, float speed = 1.F);
+  generate(std::span<Token> tokens, std::span<bool> textMask, std::span<float> ref_hs,
+           float speed = 1.F);
 
   // Returns maximum supported amount of input tokens.
   size_t getTokensLimit() const;
 
 private:
   // Helper function - calculating timestamps based on predicted durations
-  std::vector<Timestamp> calculateTimestamps(const int64_t *predDurPtr,
-                                             size_t inputSize) const;
+  std::vector<Timestamp> calculateTimestamps(const int64_t *predDurPtr, size_t inputSize) const;
 
   // Helper function - duration scalling
   // Performs integer scaling on the durations tensor to ensure the sum of
   // durations matches the given target duration
-  void scaleDurations(
-      Tensor &durations, size_t nTokens,
-      int32_t targetDuration) const; // Helper function - calculating effective
-                                     // duration based on duration tensor
+  void scaleDurations(Tensor &durations, size_t nTokens,
+                      int32_t targetDuration) const; // Helper function - calculating effective
+                                                     // duration based on duration tensor
 
   // Since we apply padding to the input, the effective duration is
   // usually a little bit lower than the max duration defined by static input
   // size.
-  int32_t calculateEffectiveDuration(const Tensor &d,
-                                     const std::vector<int64_t> &indices) const;
+  int32_t calculateEffectiveDuration(const Tensor &d, const std::vector<int64_t> &indices) const;
 
   // Available forward methods
   // In order to speed-up the calculations, we allow DurationPredictor to

@@ -24,8 +24,7 @@ inline constexpr auto kSpeechThreshold = 0.6f;
 inline constexpr size_t kMinSpeechDurationMs = 250;
 inline constexpr size_t kMinSilenceDurationMs = 100;
 inline constexpr size_t kSpeechPadMs = 30;
-inline constexpr size_t kStreamBufferMaxSize = 10 * kSampleRate; // 10s
-inline constexpr size_t kStreamBufferMinReserve =
-    1 * kSampleRate; // 1s of audio
+inline constexpr size_t kStreamBufferMaxSize = 10 * kSampleRate;   // 10s
+inline constexpr size_t kStreamBufferMinReserve = 1 * kSampleRate; // 1s of audio
 
 } // namespace rnexecutorch::models::voice_activity_detection::constants

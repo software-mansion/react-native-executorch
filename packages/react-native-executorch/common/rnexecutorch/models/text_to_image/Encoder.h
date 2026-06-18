@@ -17,8 +17,7 @@ using namespace facebook;
 
 class Encoder final {
 public:
-  explicit Encoder(const std::string &tokenizerSource,
-                   const std::string &encoderSource,
+  explicit Encoder(const std::string &tokenizerSource, const std::string &encoderSource,
                    std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(std::string input);
   size_t getMemoryLowerBound() const noexcept;
