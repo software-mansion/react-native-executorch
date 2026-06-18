@@ -1,0 +1,72 @@
+name: NPM publish webrtc bootstrap (one-off)
+
+# One-off workflow to perform the FIRST publish of react-native-executorch-webrtc.
+# The shared software-mansion/npm-package-publish action (used by
+# npm-publish-satellites.yml) publishes without `--access public`, which npm
+# rejects for a brand-new package when `--provenance` is requested. Once this
+# bootstrap has published 0.9.0 (creating the package as public), all future
+# webrtc releases go through npm-publish-satellites.yml and this file can be
+# deleted.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run — pack only, do not publish'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: 'npm-webrtc-bootstrap'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    runs-on: ubuntu-latest
+    environment: deployment
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PACKAGE_DIR: packages/react-native-executorch-webrtc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'yarn'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update NPM
+        run: npm install -g npm@latest
+
+      - name: Install monorepo dependencies
+        run: yarn install --immutable
+
+      - name: Build core package
+        working-directory: packages/react-native-executorch
+        run: yarn prepare
+
+      - name: Build package
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: yarn prepare
+
+      - name: Pack package
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: npm pack
+
+      - name: Publish package to npm
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: |
+          DRY_RUN_ARG=""
+          if [ "${{ inputs.dry-run }}" = "true" ]; then DRY_RUN_ARG="--dry-run"; fi
+          npm publish react-native-executorch-webrtc-*.tgz --tag latest --provenance --access public $DRY_RUN_ARG
