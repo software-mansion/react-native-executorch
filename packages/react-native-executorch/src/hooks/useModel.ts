@@ -1,5 +1,24 @@
 import { useEffect, useState } from 'react';
 
+/**
+ * React hook to instantiate and compile a model/task pipeline with automatic
+ * lifetime management.
+ *
+ * It manages the lifecycle of a model or task runner instance. When the
+ * configuration changes or the component unmounts, it automatically disposes of
+ * the previous instance to prevent native memory leaks.
+ * @category Hooks
+ * @typeParam TConfig The configuration type passed to the model creator.
+ * @typeParam TModel The type of the compiled model instance containing a
+ * `dispose` method.
+ * @param createModel An asynchronous factory function to instantiate the
+ * model/task.
+ * @param config The configuration to pass to `createModel`, or `null` if the
+ * model shouldn't be loaded yet.
+ * @param deps Dependency array specifying when to re-create the model.
+ * @returns An object containing the loaded model instance and any instantiation
+ * error.
+ */
 export function useModel<TConfig, TModel extends { dispose: () => void }>(
   createModel: (config: TConfig) => Promise<TModel>,
   config: TConfig | null,

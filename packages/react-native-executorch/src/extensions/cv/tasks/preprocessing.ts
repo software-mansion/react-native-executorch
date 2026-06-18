@@ -13,6 +13,10 @@ import {
   normalize,
 } from '../ops/image';
 
+/**
+ * Options for configuring the image preprocessor pipeline.
+ * @category Types
+ */
 export type ImagePreprocessorOptions = {
   readonly resizeMode: ResizeMode;
   readonly interpolation: InterpolationMethod;
@@ -20,6 +24,21 @@ export type ImagePreprocessorOptions = {
   readonly beta: number | number[];
 };
 
+/**
+ * Factory to instantiate a reusable image preprocessor pipeline.
+ *
+ * Configures a pipeline to resize, color convert, convert layout (HWC to CHW),
+ * normalize, and copy raw image buffers into target tensors matching model
+ * input shapes. All intermediate scratch tensors are pre-allocated and safely
+ * disposed of when calling `dispose()`.
+ * @category Typescript API
+ * @param opts Normalization scaling coefficients, interpolation algorithms, and
+ * crop/resize modes.
+ * @param outputShape Expected output shape of the model input tensor (must
+ * match `[1, 3, H, W]` or `[3, H, W]`).
+ * @returns An object containing the `process` runner function and a `dispose`
+ * method.
+ */
 export function createImagePreprocessor(
   opts: ImagePreprocessorOptions,
   outputShape: number[]

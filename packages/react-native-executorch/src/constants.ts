@@ -1,3 +1,7 @@
+/**
+ * ImageNet 1K dataset label array containing the 1000 categories.
+ * @category Constants
+ */
 export const IMAGENET1K_LABELS = [
   'tench, Tinca tinca',
   'goldfish, Carassius auratus',
@@ -1001,4 +1005,8 @@ export const IMAGENET1K_LABELS = [
   'toilet tissue, toilet paper, bathroom tissue',
 ] as const;
 
+/**
+ * Type representing a valid ImageNet 1K label string.
+ * @category Types
+ */
 export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];

@@ -27,6 +27,14 @@ const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
   classifierOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
+/**
+ * Registry of pre-configured ExecuTorch models.
+ *
+ * This provides Hugging Face repository URLs and baseline configurations for
+ * tasks like Image Classification, allowing quick model loading and execution
+ * without manual option setup.
+ * @category Utils
+ */
 export const models = {
   classification: {
     EFFICIENTNET_V2_S: {
