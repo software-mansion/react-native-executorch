@@ -525,8 +525,8 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: options.beta is required");
         }
 
-        std::vector<double> alpha(c, 1.0); // default to no scaling
-        std::vector<double> beta(c, 0.0);  // default to no shifting
+        std::vector<double> alpha(c);
+        std::vector<double> beta(c);
 
         auto alphaVal = opts.getProperty(rt, "alpha");
         if (alphaVal.isNumber()) {

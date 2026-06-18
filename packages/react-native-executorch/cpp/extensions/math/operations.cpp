@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <numeric>
 
 #include "core/tensor.h"
 
@@ -63,7 +62,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "sigmoid: dst tensor has been disposed");
         }
 
-        const auto countElements = std::accumulate(src->shape_.begin(), src->shape_.end(), size_t(1), std::multiplies<size_t>());
+        const auto countElements = src->numel_;
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
 
@@ -80,8 +79,8 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
 void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 2 && count != 3) {
-            throw jsi::JSError(rt, "Usage: softmax(src, dst, axis?)");
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
         }
 
         if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
@@ -115,13 +114,10 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: src must have at least one dimension");
         }
 
-        int axis = -1;
-        if (count == 3) {
-            if (!args[2].isNumber()) {
-                throw jsi::JSError(rt, "softmax: axis must be a number");
-            }
-            axis = static_cast<int>(args[2].asNumber());
+        if (!args[2].isNumber()) {
+            throw jsi::JSError(rt, "softmax: axis must be a number");
         }
+        int axis = static_cast<int>(args[2].asNumber());
 
         const int rank = static_cast<int>(src->shape_.size());
         if (axis < 0) {
@@ -199,12 +195,24 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
 void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 2 && count != 3) {
-            throw jsi::JSError(rt, "Usage: argmax(src, dst, axis?)");
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");
+        }
+
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "argmax: src must be a Tensor");
+        }
+
+        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "argmax: dst must be a Tensor");
         }
 
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+
+        if (src.get() == dst.get()) {
+            throw jsi::JSError(rt, "argmax: In-place operations (src == dst) are not supported.");
+        }
 
         if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
             throw jsi::JSError(rt, "argmax: src must be float32");
@@ -213,10 +221,10 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: dst must be int32");
         }
 
-        int axis = -1;
-        if (count == 3) {
-            axis = static_cast<int>(args[2].asNumber());
+        if (!args[2].isNumber()) {
+            throw jsi::JSError(rt, "argmax: axis must be a number");
         }
+        int axis = static_cast<int>(args[2].asNumber());
 
         int rank = src->shape_.size();
         if (axis < 0) {
@@ -236,6 +244,14 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
         if (!src_lock.owns_lock() || !dst_lock.owns_lock()) {
             throw jsi::JSError(rt, "argmax: tensors in use");
+        }
+
+        if (!src->data_) {
+            throw jsi::JSError(rt, "argmax: src tensor has been disposed");
+        }
+
+        if (!dst->data_) {
+            throw jsi::JSError(rt, "argmax: dst tensor has been disposed");
         }
 
         const float *srcData = reinterpret_cast<const float *>(src->data_.get());
@@ -267,6 +283,6 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 
         return jsi::Value(rt, args[1]);
     };
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 } // namespace rnexecutorch::extensions::math
