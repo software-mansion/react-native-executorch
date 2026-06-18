@@ -226,7 +226,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
         int axis = static_cast<int>(args[2].asNumber());
 
-        int rank = src->shape_.size();
+        int rank = static_cast<int>(src->shape_.size());
         if (axis < 0) {
             axis += rank;
         }

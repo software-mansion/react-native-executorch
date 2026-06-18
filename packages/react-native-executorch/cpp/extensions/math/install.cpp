@@ -5,12 +5,12 @@ namespace rnexecutorch::extensions::math {
 namespace jsi = facebook::jsi;
 
 void install(jsi::Runtime &rt, jsi::Object &module) {
-    jsi::Object myMathModule(rt);
+    jsi::Object mathModule(rt);
 
-    install_sigmoid(rt, myMathModule);
-    install_softmax(rt, myMathModule);
-    install_argmax(rt, myMathModule);
+    install_sigmoid(rt, mathModule);
+    install_softmax(rt, mathModule);
+    install_argmax(rt, mathModule);
 
-    module.setProperty(rt, "math", myMathModule);
+    module.setProperty(rt, "math", mathModule);
 }
 } // namespace rnexecutorch::extensions::math

@@ -16,8 +16,8 @@ set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${OPENCV_LIB_PATH})
 find_package(ReactAndroid REQUIRED CONFIG)
 
 file(GLOB CORE_SOURCES ../cpp/core/*.cpp)
-file(GLOB CV_SOURCES ../cpp/extensions/cv/*.cpp)
 file(GLOB MATH_SOURCES ../cpp/extensions/math/*.cpp)
+file(GLOB CV_SOURCES ../cpp/extensions/cv/*.cpp)
 
 add_library(${CMAKE_PROJECT_NAME} SHARED
     ../cpp/RnExecutorch.cpp

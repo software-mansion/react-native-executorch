@@ -29,7 +29,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags("-fexceptions", "-frtti", "-std=c++20", "-Wall")
-                arguments("-DANDROID_STL=c++_shared")
+                arguments("-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
                 
                 // CRITICAL: Only include ABIs you actually have binaries for
                 // Since you only have arm64-v8a in third-party, we pin it here.

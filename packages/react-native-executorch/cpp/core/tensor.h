@@ -39,11 +39,5 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 };
 
-/**
- * Installs the `createTensor` function into the given JSI object.
- *
- * @param rt The active JavaScript runtime.
- * @param module The target object to attach the function to.
- */
 void install_createTensor(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::core::tensor
