@@ -171,6 +171,30 @@ convert_to_bfloat16(const ::executorch::extension::TensorPtr &src_tensor) {
 }
 
 /**
+ * Helper function to convert a float tensor to float16 (Half).
+ * Creates a new tensor with Half dtype and copies/converts the data.
+ */
+inline ::executorch::runtime::Result<::executorch::extension::TensorPtr>
+convert_to_float16(const ::executorch::extension::TensorPtr &src_tensor) {
+  ET_CHECK_OR_RETURN_ERROR(
+      src_tensor->scalar_type() == ::executorch::aten::ScalarType::Float,
+      InvalidArgument,
+      "Float16 conversion only supported from Float source data");
+
+  const auto num_elements = static_cast<size_t>(src_tensor->numel());
+  const float *float_data = src_tensor->const_data_ptr<float>();
+
+  auto half_tensor = ::executorch::extension::empty_like(
+      src_tensor, ::executorch::aten::ScalarType::Half);
+  auto *half_data = half_tensor->mutable_data_ptr<::executorch::aten::Half>();
+  for (size_t i = 0; i < num_elements; ++i) {
+    half_data[i] = ::executorch::aten::Half(float_data[i]);
+  }
+
+  return half_tensor;
+}
+
+/**
  * Convert a Float tensor to `dtype` (Float passthrough, BFloat16, or Half).
  * Used to match an exported method's declared input dtype when preprocessing
  * produces fp32 data. Returns InvalidArgument for unsupported targets.
@@ -179,27 +203,19 @@ inline ::executorch::runtime::Result<::executorch::extension::TensorPtr>
 convert_from_float(const ::executorch::extension::TensorPtr &src_tensor,
                    ::executorch::aten::ScalarType dtype) {
   using ::executorch::aten::ScalarType;
-  if (dtype == ScalarType::Float) {
+  switch (dtype) {
+  case ScalarType::Float:
     return src_tensor;
-  }
-  if (dtype == ScalarType::BFloat16) {
+  case ScalarType::BFloat16:
     return convert_to_bfloat16(src_tensor);
+  case ScalarType::Half:
+    return convert_to_float16(src_tensor);
+  default:
+    ET_CHECK_OR_RETURN_ERROR(
+        false, InvalidArgument,
+        "Unsupported target dtype %hhd for float conversion",
+        static_cast<int8_t>(dtype));
   }
-  ET_CHECK_OR_RETURN_ERROR(src_tensor->scalar_type() == ScalarType::Float,
-                           InvalidArgument,
-                           "convert_from_float only supports a Float source");
-  ET_CHECK_OR_RETURN_ERROR(dtype == ScalarType::Half, InvalidArgument,
-                           "Unsupported target dtype %hhd for pixel conversion",
-                           static_cast<int8_t>(dtype));
-  const auto num_elements = static_cast<size_t>(src_tensor->numel());
-  const float *float_data = src_tensor->const_data_ptr<float>();
-  auto half_tensor =
-      ::executorch::extension::empty_like(src_tensor, ScalarType::Half);
-  auto *half_data = half_tensor->mutable_data_ptr<::executorch::aten::Half>();
-  for (size_t i = 0; i < num_elements; ++i) {
-    half_data[i] = ::executorch::aten::Half(float_data[i]);
-  }
-  return half_tensor;
 }
 
 } // namespace llm
