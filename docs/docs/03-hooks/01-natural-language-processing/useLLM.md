@@ -567,15 +567,15 @@ const handleGenerate = async () => {
 
 ## Available models
 
-| Model Family                                                                               |            Sizes             | Quantized | Capabilities |
-| ------------------------------------------------------------------------------------------ | :--------------------------: | :-------: | :----------: |
-| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1)   |        0.5B, 1.5B, 3B        |    ✅     |      -       |
-| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)       |        0.5B, 1.5B, 3B        |    ✅     |      -       |
-| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)           |        0.6B, 1.7B, 4B        |    ✅     |      -       |
-| [Qwen 3.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-3.5)       |           0.8B, 2B           |    ✅     |      -       |
-| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini)   |              4B              |    ✅     |      -       |
-| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)       |       135M, 360M, 1.7B       |    ✅     |      -       |
-| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)     |            1B, 3B            |    ✅     |      -       |
-| [Bielik v3.0](https://huggingface.co/software-mansion/react-native-executorch-bielik-v3.0) |             1.5B             |    ✅     |      -       |
-| [LFM2.5](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5)          | 350M, 450M-VL, 1.2B, 1.6B-VL |    ✅     |    vision    |
-| [Gemma 4](https://huggingface.co/software-mansion/react-native-executorch-gemma-4)         |             E2B              |    ✅     |    vision    |
+| Model Family                                                                               |            Sizes             | Quantized | Capabilities  |
+| ------------------------------------------------------------------------------------------ | :--------------------------: | :-------: | :-----------: |
+| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1)   |        0.5B, 1.5B, 3B        |    ✅     |       -       |
+| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)       |        0.5B, 1.5B, 3B        |    ✅     |       -       |
+| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)           |        0.6B, 1.7B, 4B        |    ✅     |       -       |
+| [Qwen 3.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-3.5)       |           0.8B, 2B           |    ✅     |       -       |
+| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini)   |              4B              |    ✅     |       -       |
+| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)       |       135M, 360M, 1.7B       |    ✅     |       -       |
+| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)     |            1B, 3B            |    ✅     |       -       |
+| [Bielik v3.0](https://huggingface.co/software-mansion/react-native-executorch-bielik-v3.0) |             1.5B             |    ✅     |       -       |
+| [LFM2.5](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5)          | 350M, 450M-VL, 1.2B, 1.6B-VL |    ✅     |    vision     |
+| [Gemma 4](https://huggingface.co/software-mansion/react-native-executorch-gemma-4)         |             E2B              |    ✅     | vision, audio |
