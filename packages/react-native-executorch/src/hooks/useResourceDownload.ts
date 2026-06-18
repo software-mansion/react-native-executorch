@@ -56,6 +56,7 @@ export function useResourceDownload(source?: string, preventLoad?: boolean) {
     const urlWithoutQuery = source.split('?')[0]!;
     const basename = urlWithoutQuery.split('/').pop() ?? 'model';
     const dest = `${RNFS.CachesDirectoryPath}/${djb2(urlWithoutQuery)}_${basename}`;
+    const tmp = `${dest}.partial`;
 
     RNFS.exists(dest).then((exists) => {
       if (!isMounted) return;
@@ -68,7 +69,7 @@ export function useResourceDownload(source?: string, preventLoad?: boolean) {
 
       RNFS.downloadFile({
         fromUrl: source,
-        toFile: dest,
+        toFile: tmp,
         progressInterval: 100,
         begin: () => {
           if (isMounted) setDownloadProgress(0);
@@ -78,13 +79,18 @@ export function useResourceDownload(source?: string, preventLoad?: boolean) {
             setDownloadProgress(r.contentLength > 0 ? (r.bytesWritten / r.contentLength) * 100 : 0);
         },
       })
-        .promise.then(() => {
+        .promise.then(async (res) => {
+          if (res.statusCode && res.statusCode >= 400) {
+            throw new Error(`Download failed with HTTP status ${res.statusCode}`);
+          }
+          await RNFS.moveFile(tmp, dest);
           if (isMounted) {
             setLocalPath(dest);
             setDownloadProgress(100);
           }
         })
         .catch((e) => {
+          RNFS.unlink(tmp).catch(() => {});
           if (isMounted) setDownloadError(e instanceof Error ? e : new Error(String(e)));
         });
     });
