@@ -4,6 +4,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <runner/constants.h>
+#include <runner/util.h>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
@@ -124,8 +125,13 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
     sizes.insert(sizes.begin(), 1);
   }
 
+  auto vision_meta = ET_UNWRAP(module_->method_meta(kVisionEncoderMethod));
+  const auto want_dtype =
+      ET_UNWRAP(vision_meta.input_tensor_meta(0)).scalar_type();
+
   auto image_tensor = ::executorch::extension::from_blob(
       chw.data(), sizes, ::executorch::aten::ScalarType::Float);
+  image_tensor = ET_UNWRAP(convert_from_float(image_tensor, want_dtype));
 
   auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
   auto out_tensor = result[0].toTensor();

@@ -204,6 +204,22 @@ bool MultimodalPrefiller::get_enable_dynamic_shape() const {
     for (size_t i = 0; i < visual_elems; ++i) {
       dst_f[i] = static_cast<float>(src[i]);
     }
+  } else if (vision_dtype == ::executorch::aten::ScalarType::Float &&
+             embeds_dtype == ::executorch::aten::ScalarType::BFloat16) {
+    // Hybrid VLM: fp32 vision encoder (e.g. XNNPACK) + bf16 decoder embeds.
+    const float *src = vision_tensor.const_data_ptr<float>();
+    auto *dst_b = reinterpret_cast<::executorch::aten::BFloat16 *>(dst);
+    for (size_t i = 0; i < visual_elems; ++i) {
+      dst_b[i] = ::executorch::aten::BFloat16(src[i]);
+    }
+  } else if (vision_dtype == ::executorch::aten::ScalarType::BFloat16 &&
+             embeds_dtype == ::executorch::aten::ScalarType::Float) {
+    const auto *src =
+        vision_tensor.const_data_ptr<::executorch::aten::BFloat16>();
+    auto *dst_f = reinterpret_cast<float *>(dst);
+    for (size_t i = 0; i < visual_elems; ++i) {
+      dst_f[i] = static_cast<float>(src[i]);
+    }
   } else {
     ET_CHECK_OR_RETURN_ERROR(
         false, InvalidState,
