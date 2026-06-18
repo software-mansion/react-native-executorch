@@ -1,0 +1,16 @@
+# clang-format configuration for the react-native-executorch C/C++/Objective-C
+# sources. LLVM-based with attached braces, 4-space indentation, and no fixed
+# column limit: clang-format's aggressive wrapping to satisfy a column limit
+# tends to produce awkward, less-readable breaks, so developers handle line
+# breaks for long lines manually. See issue #1217 and the PR #1256 discussion.
+BasedOnStyle: LLVM
+Standard: c++20
+UseTab: Never
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 0
+AccessModifierOffset: -4
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+FixNamespaceComments: false
+InsertNewlineAtEOF: true

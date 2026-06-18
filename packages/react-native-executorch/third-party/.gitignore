@@ -1,0 +1,7 @@
+# Native ExecuTorch artifacts (headers, .so/.jar libs, xcframeworks) are
+# provisioned locally and NOT committed, until split builds land (see README.md).
+# Ignore everything here except this file, the README, and the common/ submodules.
+/*
+!/.gitignore
+!/README.md
+!/common/
