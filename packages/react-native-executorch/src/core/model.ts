@@ -40,11 +40,7 @@ export interface Model {
   readonly path: string;
   getMethodNames(): string[];
   getMethodMeta(methodName: string): ModelMethodMeta;
-  execute(
-    methodName: string,
-    inputs: ModelInput[],
-    outputTensors: Tensor[]
-  ): ModelOutput[];
+  execute(methodName: string, inputs: ModelInput[], outputTensors: Tensor[]): ModelOutput[];
   dispose(): void;
 
   /**

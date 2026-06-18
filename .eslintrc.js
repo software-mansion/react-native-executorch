@@ -82,8 +82,7 @@ module.exports = {
         mainDescription: false,
         tags: {
           category: {
-            message:
-              '@category must be one of categories defined in .eslintrc.js',
+            message: '@category must be one of categories defined in .eslintrc.js',
             match: CATEGORY_TAG_MATCH,
           },
         },
@@ -92,6 +91,12 @@ module.exports = {
   },
   plugins: ['prettier', 'markdown', 'jsdoc'],
   overrides: [
+    {
+      files: ['packages/react-native-executorch/src/constants.ts'],
+      rules: {
+        '@cspell/spellchecker': 'off',
+      },
+    },
     {
       files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
       rules: {

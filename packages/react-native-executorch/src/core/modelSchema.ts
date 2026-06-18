@@ -1,10 +1,5 @@
 import { type DType } from './tensor';
-import {
-  type Model,
-  type ExecuTorchTag,
-  type ModelMethodMeta,
-  type TensorMeta,
-} from './model';
+import { type Model, type ExecuTorchTag, type ModelMethodMeta, type TensorMeta } from './model';
 
 export type SymbolicShape = readonly (number | string)[];
 export type TensorConstraint = {
@@ -27,10 +22,7 @@ const primitiveTagMap = {
 
 export type ValueConstraint = keyof typeof primitiveTagMap | TensorConstraint;
 
-export function matchShape(
-  actual: number[],
-  ...expected: readonly SymbolicShape[]
-): boolean {
+export function matchShape(actual: number[], ...expected: readonly SymbolicShape[]): boolean {
   return expected.some((shape) => {
     if (actual.length !== shape.length) return false;
     const symbolMap = new Map<string, number>();
@@ -67,15 +59,11 @@ function validateTags(
     const act = actualTags[i]!;
     if (typeof exp === 'string') {
       if (!primitiveTagMap[exp].includes(act)) {
-        throw new Error(
-          `${side}[${i}]: expected primitive '${exp}', got '${act}'`
-        );
+        throw new Error(`${side}[${i}]: expected primitive '${exp}', got '${act}'`);
       }
     } else {
       if (act !== 'Tensor') {
-        throw new Error(
-          `${side}[${i}]: expected Tensor, got primitive '${act}'`
-        );
+        throw new Error(`${side}[${i}]: expected Tensor, got primitive '${act}'`);
       }
       const tMeta = tensorMetas[tIdx++]!;
       if (exp.dtype && tMeta.dtype !== exp.dtype) {
@@ -84,9 +72,7 @@ function validateTags(
         );
       }
       if (exp.shapes?.length && !matchShape(tMeta.shape, ...exp.shapes)) {
-        const expectedShapesStr = exp.shapes
-          .map((s) => `[${s.join(',')}]`)
-          .join('|');
+        const expectedShapesStr = exp.shapes.map((s) => `[${s.join(',')}]`).join('|');
         throw new Error(
           `${side}[${i}]: shape mismatch: expected shape matching ${expectedShapesStr}, got [${tMeta.shape.join(',')}]`
         );
@@ -131,12 +117,7 @@ export function validateModelSchema(
 
   try {
     validateTags('input', expectedInputs, meta.inputTags, meta.inputTensorMeta);
-    validateTags(
-      'output',
-      expectedOutputs,
-      meta.outputTags,
-      meta.outputTensorMeta
-    );
+    validateTags('output', expectedOutputs, meta.outputTags, meta.outputTensorMeta);
   } catch (e: any) {
     throw new Error(formatError(e.message));
   }

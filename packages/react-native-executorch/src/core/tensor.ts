@@ -12,10 +12,7 @@ export type Tensor = {
   dispose(): void;
   setData(src: Float32Array | Uint8Array | Int32Array): Tensor;
   getData<T extends Float32Array | Uint8Array | Int32Array>(dst: T): T;
-  through<R, Args extends any[]>(
-    fn: (t: Tensor, ...args: Args) => R,
-    ...args: Args
-  ): R;
+  through<R, Args extends any[]>(fn: (t: Tensor, ...args: Args) => R, ...args: Args): R;
   throughIf<Args extends any[]>(
     pred: boolean,
     fn: (t: Tensor, ...args: Args) => Tensor,

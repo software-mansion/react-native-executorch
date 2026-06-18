@@ -8,7 +8,5 @@ if (!globalObj.__rnexecutorch_jsi__) {
 export const rnexecutorchJsi = globalObj.__rnexecutorch_jsi__;
 
 if (!rnexecutorchJsi) {
-  throw new Error(
-    "JSI global object '__rnexecutorch_jsi__' is not registered."
-  );
+  throw new Error("JSI global object '__rnexecutorch_jsi__' is not registered.");
 }
