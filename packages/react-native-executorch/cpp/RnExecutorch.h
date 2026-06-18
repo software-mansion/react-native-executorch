@@ -8,8 +8,7 @@ namespace rnexecutorch {
  * global JavaScript object context.
  *
  * This injects the `__rnexecutorch_jsi__` global variable containing core
- * model/tensor management APIs and the namespaces for mathematical and computer
- * vision native extensions.
+ * model/tensor management APIs and the namespaces for native extensions.
  *
  * @param jsiRuntime The active JavaScript runtime.
  */
