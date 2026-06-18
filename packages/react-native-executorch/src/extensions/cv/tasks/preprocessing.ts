@@ -22,6 +22,7 @@ export type ImagePreprocessorOptions = {
   readonly interpolation: InterpolationMethod;
   readonly alpha: number | number[];
   readonly beta: number | number[];
+  readonly padValue?: number;
 };
 
 /**
@@ -59,7 +60,7 @@ export function createImagePreprocessor(
   ] as const;
 
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
-  const { resizeMode, interpolation, alpha, beta } = opts;
+  const { resizeMode, interpolation, alpha, beta, padValue } = opts;
 
   const dispose = () => tensors.forEach((t) => t.dispose());
   const process = (input: ImageBuffer): Tensor => {
@@ -76,6 +77,7 @@ export function createImagePreprocessor(
         .through(resize, tResize, {
           mode: resizeMode,
           interpolation: interpolation,
+          padValue: padValue,
         })
         .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
         .through(toChannelsFirst, tChanFirst)

@@ -94,12 +94,11 @@ export type NormalizeOptions = {
  */
 export function resize(src: Tensor, dst: Tensor, opts?: ResizeOptions): Tensor {
   'worklet';
-  const defaultResizeOptions = {
-    mode: 'stretch',
-    interpolation: 'lanczos',
-    padValue: 0,
-  } as const;
-  return rnexecutorchJsi.cv.resize(src, dst, { ...defaultResizeOptions, ...opts });
+  return rnexecutorchJsi.cv.resize(src, dst, {
+    mode: opts?.mode ?? 'stretch',
+    interpolation: opts?.interpolation ?? 'lanczos',
+    padValue: opts?.padValue ?? 0,
+  });
 }
 
 /**
