@@ -578,3 +578,4 @@ const handleGenerate = async () => {
 | [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)     |            1B, 3B            |    ✅     |      -       |
 | [Bielik v3.0](https://huggingface.co/software-mansion/react-native-executorch-bielik-v3.0) |             1.5B             |    ✅     |      -       |
 | [LFM2.5](https://huggingface.co/software-mansion/react-native-executorch-lfm-2.5)          | 350M, 450M-VL, 1.2B, 1.6B-VL |    ✅     |    vision    |
+| [Gemma 4](https://huggingface.co/software-mansion/react-native-executorch-gemma-4)         |             E2B              |    ✅     |    vision    |
