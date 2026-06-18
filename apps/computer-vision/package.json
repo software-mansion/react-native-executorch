@@ -1,0 +1,41 @@
+{
+  "name": "computer-vision",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc",
+    "lint": "eslint . --ext .ts,.tsx --fix"
+  },
+  "dependencies": {
+    "@react-navigation/drawer": "^7.9.4",
+    "@react-navigation/native": "^7.2.2",
+    "@shopify/react-native-skia": "2.6.2",
+    "expo": "~56.0.9",
+    "expo-build-properties": "~56.0.17",
+    "expo-constants": "~56.0.17",
+    "expo-linking": "~56.0.13",
+    "expo-router": "~56.2.9",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-drawer-layout": "^4.2.2",
+    "react-native-executorch": "workspace:*",
+    "react-native-gesture-handler": "~2.31.1",
+    "react-native-image-picker": "^8.2.1",
+    "react-native-reanimated": "4.3.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.25.2",
+    "react-native-svg": "15.15.4",
+    "react-native-worklets": "0.8.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@types/react": "~19.2.0",
+    "babel-preset-expo": "~56.0.14",
+    "react-native-svg-transformer": "^1.5.3"
+  },
+  "private": true
+}
