@@ -14,6 +14,13 @@
 #include "dtype.h"
 
 namespace rnexecutorch::core::tensor {
+/**
+ * JSI HostObject wrapping an ExecuTorch TensorPtr instance.
+ *
+ * Exposes methods to JavaScript for copying data, accessing properties (shape,
+ * dtype, numel), writing data from array buffers, reading data to array
+ * buffers, and disposing of underlying memory.
+ */
 class TensorHostObject : public facebook::jsi::HostObject, public std::enable_shared_from_this<TensorHostObject> {
 public:
     rnexecutorch::core::types::DType dtype_;
@@ -32,5 +39,11 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 };
 
+/**
+ * Installs the `createTensor` function into the given JSI object.
+ *
+ * @param rt The active JavaScript runtime.
+ * @param module The target object to attach the function to.
+ */
 void install_createTensor(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::core::tensor

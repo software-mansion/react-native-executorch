@@ -10,6 +10,14 @@
 #include <executorch/extension/module/module.h>
 
 namespace rnexecutorch::core::model {
+/**
+ * JSI HostObject wrapping an ExecuTorch Model instance
+ * (`executorch::extension::Module`).
+ *
+ * Exposes methods to JavaScript for inspecting model method signatures,
+ * retrieving method names, executing inference runs, and disposing of native
+ * resources.
+ */
 class ModelHostObject : public facebook::jsi::HostObject, public std::enable_shared_from_this<ModelHostObject> {
 public:
     std::string modelPath_;
@@ -22,5 +30,11 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 };
 
+/**
+ * Installs the `loadModel` function into the given JSI object.
+ *
+ * @param rt The active JavaScript runtime.
+ * @param module The target object to attach the function to.
+ */
 void install_loadModel(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::core::model
