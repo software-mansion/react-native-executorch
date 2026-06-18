@@ -1,0 +1,96 @@
+name: NPM publish satellite packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to publish.
+        type: choice
+        options:
+          - react-native-executorch-bare-resource-fetcher
+          - react-native-executorch-expo-resource-fetcher
+          - react-native-executorch-webrtc
+        required: true
+      release-type:
+        description: Type of release to publish.
+        type: choice
+        options: [stable, nightly, beta, alpha, rc]
+        default: stable
+      version:
+        description: Explicit version in x.y.z format (leave empty to infer automatically).
+        type: string
+        required: false
+        default: ''
+      perform-git-operations:
+        description: Create and push the release commit + tag.
+        type: boolean
+        default: false
+      dry-run:
+        description: Dry run — no actual publish or git push.
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: publish-${{ inputs.package }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    runs-on: ubuntu-latest
+    environment: deployment
+    permissions:
+      # `contents: write` is required when perform-git-operations pushes a tag.
+      contents: write
+      id-token: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Publish react-native-executorch-bare-resource-fetcher
+        if: ${{ inputs.package == 'react-native-executorch-bare-resource-fetcher' }}
+        uses: software-mansion/npm-package-publish@22b6e632b4310c5c061a047bccc99d0cea88d2bb
+        with:
+          package-name: 'react-native-executorch-bare-resource-fetcher'
+          package-json-path: 'packages/bare-resource-fetcher/package.json'
+          # Satellites type-check against the core package's published type
+          # declarations, so build it before packing the satellite.
+          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          release-type: ${{ inputs.release-type }}
+          version: ${{ inputs.version }}
+          perform-git-operations: ${{ inputs.perform-git-operations }}
+          dry-run: ${{ inputs.dry-run }}
+
+      - name: Publish react-native-executorch-expo-resource-fetcher
+        if: ${{ inputs.package == 'react-native-executorch-expo-resource-fetcher' }}
+        uses: software-mansion/npm-package-publish@22b6e632b4310c5c061a047bccc99d0cea88d2bb
+        with:
+          package-name: 'react-native-executorch-expo-resource-fetcher'
+          package-json-path: 'packages/expo-resource-fetcher/package.json'
+          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          release-type: ${{ inputs.release-type }}
+          version: ${{ inputs.version }}
+          perform-git-operations: ${{ inputs.perform-git-operations }}
+          dry-run: ${{ inputs.dry-run }}
+
+      - name: Publish react-native-executorch-webrtc
+        if: ${{ inputs.package == 'react-native-executorch-webrtc' }}
+        uses: software-mansion/npm-package-publish@22b6e632b4310c5c061a047bccc99d0cea88d2bb
+        with:
+          package-name: 'react-native-executorch-webrtc'
+          package-json-path: 'packages/react-native-executorch-webrtc/package.json'
+          install-dependencies-command: 'yarn install --immutable && yarn workspace react-native-executorch prepare'
+          release-type: ${{ inputs.release-type }}
+          version: ${{ inputs.version }}
+          perform-git-operations: ${{ inputs.perform-git-operations }}
+          dry-run: ${{ inputs.dry-run }}
