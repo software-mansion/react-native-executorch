@@ -3,7 +3,12 @@
 #import <React/RCTBridge+Private.h>
 #import <jsi/jsi.h>
 
-@implementation RnExecutorch
+@implementation RnExecutorch {
+    __weak RCTBridge *_bridge;
+}
+
+@synthesize bridge = _bridge;
+
 RCT_EXPORT_MODULE()
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
@@ -12,8 +17,7 @@ RCT_EXPORT_MODULE()
 }
 
 RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, install) {
-    RCTBridge *bridge = [RCTBridge currentBridge];
-    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)bridge;
+    RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
 
     if (cxxBridge == nil)
         return @NO;
