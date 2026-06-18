@@ -20,8 +20,11 @@ export type DType = 'float32' | 'uint8' | 'int32';
  * @category Types
  */
 export type Tensor = {
+  /** The element data type of the tensor. */
   readonly dtype: DType;
+  /** The concrete size of each dimension (e.g., `[1, 3, 224, 224]`). */
   readonly shape: readonly number[];
+  /** The total number of elements stored in the tensor. */
   readonly numel: number;
 
   /**
