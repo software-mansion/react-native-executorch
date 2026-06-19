@@ -1,6 +1,6 @@
 ---
 name: react-native-executorch
-description: Build on-device AI features in React Native and Expo apps with React Native ExecuTorch. Use when adding AI to a mobile app without cloud dependencies — chatbots and assistants, image classification, object detection, OCR, semantic or instance segmentation, style transfer, image generation, pose estimation, speech-to-text, text-to-speech, voice activity detection, semantic search with embeddings, tokenization, privacy filtering / PII redaction, or vision-language image understanding. Also use when the user mentions offline AI, on-device ML, privacy-preserving AI, reducing cloud API cost or latency, running models locally on mobile, or downloading and managing ML models. Covers initExecutorch, every public hook (useLLM, useClassification, useObjectDetection, useOCR, useVerticalOCR, useSemanticSegmentation, useInstanceSegmentation, useStyleTransfer, useTextToImage, useImageEmbeddings, usePoseEstimation, useSpeechToText, useTextToSpeech, useVAD, useTextEmbeddings, useTokenizer, usePrivacyFilter, useExecutorchModule), tool calling, structured output, VLMs, model loading via Expo or bare resource-fetcher adapters, and error handling.
+description: Build on-device AI features in React Native and Expo apps with React Native ExecuTorch. Use when adding AI to a mobile app without cloud dependencies — chatbots and assistants, image classification, object detection, OCR, semantic or instance segmentation, style transfer, image generation, pose estimation, speech-to-text, text-to-speech, voice activity detection, semantic search with embeddings, tokenization, privacy filtering / PII redaction, or vision-language image understanding. Also use when the user mentions offline AI, on-device ML, privacy-preserving AI, reducing cloud API cost or latency, running models locally on mobile, or downloading and managing ML models. Covers initExecutorch, every public hook (useLLM, useClassification, useObjectDetection, useOCR, useVerticalOCR, useSemanticSegmentation, useInstanceSegmentation, useStyleTransfer, useTextToImage, useImageEmbeddings, usePoseEstimation, useSpeechToText, useTextToSpeech, useVAD, useTextEmbeddings, useTokenizer, usePrivacyFilter, useExecutorch), tool calling, structured output, VLMs, model loading via Expo or bare resource-fetcher adapters, and error handling.
 ---
 
 # React Native ExecuTorch
@@ -46,7 +46,7 @@ What does the feature need?
 │   └── react-native-rag (sibling library)              → see setup.md
 │
 └── Custom `.pte` model not covered by a dedicated hook?
-    └── useExecutorchModule                             → see setup.md
+    └── useExecutorch                             → see setup.md
 ```
 
 ## Critical Rules
@@ -87,51 +87,51 @@ Full setup, Metro config for bundled `.pte` files, custom adapters, model-loadin
 
 ## Hook Quick Reference
 
-| Hook | Purpose | Reference |
-|---|---|---|
-| `useLLM` | Text generation, chat, tool calling, VLM | [llm.md](./references/llm.md) |
-| `useClassification` | Image categorisation | [vision.md](./references/vision.md) |
-| `useObjectDetection` | Bounding-box detection (YOLO26, RF-DETR, SSDLite) | [vision.md](./references/vision.md) |
-| `useSemanticSegmentation` | Per-pixel class segmentation | [vision.md](./references/vision.md) |
-| `useInstanceSegmentation` | Per-instance segmentation | [vision.md](./references/vision.md) |
-| `usePoseEstimation` | COCO 17-keypoint human pose | [vision.md](./references/vision.md) |
-| `useStyleTransfer` | Artistic image filters | [vision.md](./references/vision.md) |
-| `useTextToImage` | Stable Diffusion image generation | [vision.md](./references/vision.md) |
-| `useImageEmbeddings` | CLIP image embeddings | [vision.md](./references/vision.md) |
-| `useOCR` | Horizontal text OCR | [vision.md](./references/vision.md) |
-| `useVerticalOCR` | Vertical text OCR (experimental, CJK) | [vision.md](./references/vision.md) |
-| `useTextEmbeddings` | Sentence embeddings for similarity / RAG | [vision.md](./references/vision.md) |
-| `useSpeechToText` | Whisper transcription (batch + streaming) | [speech.md](./references/speech.md) |
-| `useTextToSpeech` | Kokoro TTS (batch + streaming, phoneme input) | [speech.md](./references/speech.md) |
-| `useVAD` | FSMN voice activity detection | [speech.md](./references/speech.md) |
-| `useTokenizer` | HuggingFace-compatible tokenization | [setup.md](./references/setup.md) |
-| `usePrivacyFilter` | On-device PII / privacy redaction | [setup.md](./references/setup.md) |
-| `useExecutorchModule` | Custom `.pte` model inference | [setup.md](./references/setup.md) |
+| Hook                      | Purpose                                           | Reference                           |
+| ------------------------- | ------------------------------------------------- | ----------------------------------- |
+| `useLLM`                  | Text generation, chat, tool calling, VLM          | [llm.md](./references/llm.md)       |
+| `useClassification`       | Image categorisation                              | [vision.md](./references/vision.md) |
+| `useObjectDetection`      | Bounding-box detection (YOLO26, RF-DETR, SSDLite) | [vision.md](./references/vision.md) |
+| `useSemanticSegmentation` | Per-pixel class segmentation                      | [vision.md](./references/vision.md) |
+| `useInstanceSegmentation` | Per-instance segmentation                         | [vision.md](./references/vision.md) |
+| `usePoseEstimation`       | COCO 17-keypoint human pose                       | [vision.md](./references/vision.md) |
+| `useStyleTransfer`        | Artistic image filters                            | [vision.md](./references/vision.md) |
+| `useTextToImage`          | Stable Diffusion image generation                 | [vision.md](./references/vision.md) |
+| `useImageEmbeddings`      | CLIP image embeddings                             | [vision.md](./references/vision.md) |
+| `useOCR`                  | Horizontal text OCR                               | [vision.md](./references/vision.md) |
+| `useVerticalOCR`          | Vertical text OCR (experimental, CJK)             | [vision.md](./references/vision.md) |
+| `useTextEmbeddings`       | Sentence embeddings for similarity / RAG          | [vision.md](./references/vision.md) |
+| `useSpeechToText`         | Whisper transcription (batch + streaming)         | [speech.md](./references/speech.md) |
+| `useTextToSpeech`         | Kokoro TTS (batch + streaming, phoneme input)     | [speech.md](./references/speech.md) |
+| `useVAD`                  | FSMN voice activity detection                     | [speech.md](./references/speech.md) |
+| `useTokenizer`            | HuggingFace-compatible tokenization               | [setup.md](./references/setup.md)   |
+| `usePrivacyFilter`        | On-device PII / privacy redaction                 | [setup.md](./references/setup.md)   |
+| `useExecutorch`           | Custom `.pte` model inference                     | [setup.md](./references/setup.md)   |
 
 Every hook also has a non-React `Module` counterpart (e.g. `LLMModule.fromModelName(...)`, `ClassificationModule.fromModelName(...)`) for use outside React components.
 
 ## Common Pitfalls
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `ResourceFetcherAdapterNotInitialized` | `initExecutorch` not called | Call it at app entry with an adapter |
-| `ModuleNotLoaded` | Inference before model finished loading | Gate calls on `isReady` |
-| `MemoryAllocationFailed` on launch | Model too large for device | Switch to `_QUANTIZED` variant or smaller parameter count |
-| App crashes on screen navigation | Unmount during active generation | `llm.interrupt()` and await `isGenerating === false` |
-| Whisper produces garbled text | Wrong sample rate | Decode audio at 16 kHz mono |
-| TTS output sounds chipmunked | Playback context at wrong rate | Create `AudioContext({ sampleRate: 24000 })` |
-| Build fails on iOS simulator (release) | Simulator lacks Metal APIs | Build release on real device |
+| Symptom                                | Likely cause                            | Fix                                                       |
+| -------------------------------------- | --------------------------------------- | --------------------------------------------------------- |
+| `ResourceFetcherAdapterNotInitialized` | `initExecutorch` not called             | Call it at app entry with an adapter                      |
+| `ModuleNotLoaded`                      | Inference before model finished loading | Gate calls on `isReady`                                   |
+| `MemoryAllocationFailed` on launch     | Model too large for device              | Switch to `_QUANTIZED` variant or smaller parameter count |
+| App crashes on screen navigation       | Unmount during active generation        | `llm.interrupt()` and await `isGenerating === false`      |
+| Whisper produces garbled text          | Wrong sample rate                       | Decode audio at 16 kHz mono                               |
+| TTS output sounds chipmunked           | Playback context at wrong rate          | Create `AudioContext({ sampleRate: 24000 })`              |
+| Build fails on iOS simulator (release) | Simulator lacks Metal APIs              | Build release on real device                              |
 
 Full error code list and recovery patterns: [setup.md](./references/setup.md).
 
 ## References
 
-| File | When to read |
-|---|---|
-| [llm.md](./references/llm.md) | `useLLM` functional + managed modes, tool calling, structured output (JSON Schema / Zod), interrupting, vision-language models, generation config |
-| [vision.md](./references/vision.md) | Image classification, object detection, semantic + instance segmentation, pose estimation, OCR (horizontal + vertical), style transfer, text-to-image, image + text embeddings |
-| [speech.md](./references/speech.md) | Speech-to-text (Whisper batch + streaming with timestamps), text-to-speech (Kokoro batch + streaming, phoneme input, voice catalogue), voice activity detection, audio sample-rate requirements |
-| [setup.md](./references/setup.md) | `initExecutorch`, Expo / bare resource-fetcher adapters, model loading strategies, Metro config, error codes and recovery, `useExecutorchModule` for custom `.pte` models, `useTokenizer`, `usePrivacyFilter`, full model catalogue |
+| File                                | When to read                                                                                                                                                                                                                  |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [llm.md](./references/llm.md)       | `useLLM` functional + managed modes, tool calling, structured output (JSON Schema / Zod), interrupting, vision-language models, generation config                                                                             |
+| [vision.md](./references/vision.md) | Image classification, object detection, semantic + instance segmentation, pose estimation, OCR (horizontal + vertical), style transfer, text-to-image, image + text embeddings                                                |
+| [speech.md](./references/speech.md) | Speech-to-text (Whisper batch + streaming with timestamps), text-to-speech (Kokoro batch + streaming, phoneme input, voice catalogue), voice activity detection, audio sample-rate requirements                               |
+| [setup.md](./references/setup.md)   | `initExecutorch`, Expo / bare resource-fetcher adapters, model loading strategies, Metro config, error codes and recovery, `useExecutorch` for custom `.pte` models, `useTokenizer`, `usePrivacyFilter`, full model catalogue |
 
 ## External Resources
 

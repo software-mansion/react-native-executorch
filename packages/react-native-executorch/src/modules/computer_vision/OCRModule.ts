@@ -3,15 +3,17 @@ import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage, OCRModelName } from '../../types/ocr';
 import { Logger } from '../../common/Logger';
 import { parseUnknownError } from '../../errors/errorUtils';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
  * @category Typescript API
  */
-export class OCRModule {
+export class OCRModule extends BaseModule {
   private controller: OCRController;
 
   private constructor(controller: OCRController) {
+    super();
     this.controller = controller;
   }
 

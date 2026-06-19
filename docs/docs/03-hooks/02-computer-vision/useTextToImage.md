@@ -26,7 +26,7 @@ const model = useTextToImage({
 const input = 'a castle';
 
 try {
-  const image = await model.generate(input);
+  const image = await model.forward(input);
 } catch (error) {
   console.error(error);
 }
@@ -52,7 +52,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the [`generate`](../../06-api-reference/interfaces/TextToImageType.md#generate) method. It accepts four arguments: a text prompt describing the requested image, a size of the image in pixels, a number of denoising steps, and an optional seed value, which enables reproducibility of the results.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/TextToImageType.md#forward) method. It accepts four arguments: a text prompt describing the requested image, a size of the image in pixels, a number of denoising steps, and an optional seed value, which enables reproducibility of the results.
 
 The image size must be a multiple of 32 due to the architecture of the U-Net and VAE models. The seed should be a positive integer.
 
@@ -76,13 +76,13 @@ function App() {
   const numSteps = 25;
 
   try {
-    image = await model.generate(input, imageSize, numSteps);
+    image = await model.forward(input, imageSize, numSteps);
   } catch (error) {
     console.error(error);
   }
   //...
 
-  // `generate` returns a `file://` URI to the PNG saved on disk.
+  // `forward` returns a `file://` URI to the PNG saved on disk.
   return <Image source={{ uri: image }} />;
 }
 ```

@@ -2,7 +2,7 @@ import { ResourceSource, TensorPtr } from '../types/common';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
- * Props for the `useExecutorchModule` hook.
+ * Props for the `useExecutorch` hook.
  * @category Types
  * @property {ResourceSource} modelSource - The source of the ExecuTorch model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -13,7 +13,7 @@ export interface ExecutorchModuleProps {
 }
 
 /**
- * Return type for the `useExecutorchModule` hook.
+ * Return type for the `useExecutorch` hook.
  * Manages the state and core execution methods for a general ExecuTorch model.
  * @category Types
  */

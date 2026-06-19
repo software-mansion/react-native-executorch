@@ -1,8 +1,8 @@
 ---
-title: useExecutorchModule
+title: useExecutorch
 ---
 
-useExecutorchModule provides React Native bindings to the ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from JavaScript.
+useExecutorch provides React Native bindings to the ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from JavaScript.
 
 :::info
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
@@ -10,15 +10,15 @@ These bindings are primarily intended for custom model integration where no dedi
 
 ## API Reference
 
-- For detailed API Reference for `useExecutorchModule` see: [`useExecutorchModule` API Reference](../../06-api-reference/functions/useExecutorchModule.md).
+- For detailed API Reference for `useExecutorch` see: [`useExecutorch` API Reference](../../06-api-reference/functions/useExecutorch.md).
 
 ## Initializing ExecuTorch Module
 
-You can initialize the ExecuTorch module in your JavaScript application using the `useExecutorchModule` hook. This hook facilitates the loading of models from the specified source and prepares them for use.
+You can initialize the ExecuTorch module in your JavaScript application using the `useExecutorch` hook. This hook facilitates the loading of models from the specified source and prepares them for use.
 
 ```typescript
-import { useExecutorchModule } from 'react-native-executorch';
-const executorchModule = useExecutorchModule({
+import { useExecutorch } from 'react-native-executorch';
+const executorchModule = useExecutorch({
   modelSource: require('../assets/models/model.pte'),
 });
 ```
@@ -29,19 +29,19 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Arguments
 
-`useExecutorchModule` takes [`ExecutorchModuleProps`](../../06-api-reference/interfaces/ExecutorchModuleProps.md) that consists of:
+`useExecutorch` takes [`ExecutorchModuleProps`](../../06-api-reference/interfaces/ExecutorchModuleProps.md) that consists of:
 
 - `model` containing [`modelSource`](../../06-api-reference/interfaces/ExecutorchModuleProps.md#modelsource).
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/ExecutorchModuleProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
 
-- For detailed information about `useExecutorchModule` arguments check this section: [`useExecutorchModule` arguments](../../06-api-reference/functions/useExecutorchModule.md#parameters).
+- For detailed information about `useExecutorch` arguments check this section: [`useExecutorch` arguments](../../06-api-reference/functions/useExecutorch.md#parameters).
 - For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-`useExecutorchModule` returns an object called `ExecutorchModuleType` containing bunch of functions to interact with arbitrarily chosen models. To get more details please read: [`ExecutorchModuleType` API Reference](../../06-api-reference/interfaces/ExecutorchModuleType.md).
+`useExecutorch` returns an object called `ExecutorchModuleType` containing bunch of functions to interact with arbitrarily chosen models. To get more details please read: [`ExecutorchModuleType` API Reference](../../06-api-reference/interfaces/ExecutorchModuleType.md).
 
 ## TensorPtr
 
@@ -62,13 +62,9 @@ This example demonstrates the integration and usage of the ExecuTorch bindings w
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
 ```typescript
-import {
-  models,
-  useExecutorchModule,
-  ScalarType,
-} from 'react-native-executorch';
+import { models, useExecutorch, ScalarType } from 'react-native-executorch';
 // Initialize the executorch module with the predefined style transfer model.
-const executorchModule = useExecutorchModule({
+const executorchModule = useExecutorch({
   modelSource: models.style_transfer.candy(),
 });
 ```

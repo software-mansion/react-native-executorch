@@ -13,7 +13,9 @@ Every hook accepts image input as one of: a remote URL (`https://…`), a local 
 ```tsx
 import { useClassification, models } from 'react-native-executorch';
 
-const model = useClassification({ model: models.classification.efficientnet_v2_s() });
+const model = useClassification({
+  model: models.classification.efficientnet_v2_s(),
+});
 
 const labels = await model.forward('https://example.com/puppy.png');
 // labels: Record<string, number> — ImageNet1k label → probability
@@ -36,8 +38,8 @@ const model = useObjectDetection({ model: models.object_detection.yolo26n() });
 
 const detections = await model.forward('https://example.com/street.jpg', {
   detectionThreshold: 0.5, // minimum confidence (0–1)
-  iouThreshold: 0.45,      // NMS aggressiveness (0–1)
-  inputSize: 640,          // for multi-size YOLO models (384 / 512 / 640)
+  iouThreshold: 0.45, // NMS aggressiveness (0–1)
+  inputSize: 640, // for multi-size YOLO models (384 / 512 / 640)
   classesOfInterest: ['PERSON', 'CAR'], // filter
 });
 
@@ -59,7 +61,11 @@ YOLO models support multiple input sizes — call `model.getAvailableInputSizes(
 Pixel-level classification.
 
 ```tsx
-import { useSemanticSegmentation, models, DeeplabLabel } from 'react-native-executorch';
+import {
+  useSemanticSegmentation,
+  models,
+  DeeplabLabel,
+} from 'react-native-executorch';
 
 const model = useSemanticSegmentation({
   model: models.semantic_segmentation.deeplab_v3_resnet50(),
@@ -67,8 +73,8 @@ const model = useSemanticSegmentation({
 
 // Pass classesOfInterest + resizeToInput to also get per-class probability maps
 const out = await model.forward(imageUri, ['CAT', 'DOG', 'PERSON'], true);
-const argmax = out[DeeplabLabel.ARGMAX];        // class id per pixel
-const catProbs = out['CAT'];                    // probability per pixel
+const argmax = out[DeeplabLabel.ARGMAX]; // class id per pixel
+const catProbs = out['CAT']; // probability per pixel
 ```
 
 **Tradeoff:** `resizeToInput: true` upsamples to the original image size — more memory and slower. With `false`, indices map to a 224×224 grid.
@@ -101,7 +107,11 @@ const instances = await model.forward('https://example.com/street.jpg');
 Detects humans and their COCO 17-keypoint skeletons (nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles).
 
 ```tsx
-import { usePoseEstimation, models, CocoKeypoint } from 'react-native-executorch';
+import {
+  usePoseEstimation,
+  models,
+  CocoKeypoint,
+} from 'react-native-executorch';
 
 const model = usePoseEstimation({ model: models.pose_estimation.yolo26n() });
 
@@ -134,6 +144,7 @@ for (const d of detections) {
 ```
 
 `OCRDetection`:
+
 ```ts
 interface OCRDetection {
   bbox: { x: number; y: number }[]; // 4 corner points (supports rotated/skewed text)
@@ -188,9 +199,11 @@ On-device Stable Diffusion (BK-SDM tiny).
 ```tsx
 import { useTextToImage, models } from 'react-native-executorch';
 
-const model = useTextToImage({ model: models.image_generation.bk_sdm_tiny_vpred_256() });
+const model = useTextToImage({
+  model: models.image_generation.bk_sdm_tiny_vpred_256(),
+});
 
-const image = await model.generate('a medieval castle by the sea', 256, 25);
+const image = await model.forward('a medieval castle by the sea', 256, 25);
 // image: base64 PNG. Render with <Image source={{ uri: `data:image/png;base64,${image}` }} />
 ```
 
@@ -236,15 +249,15 @@ const v2 = await model.forward('Greetings everyone');
 const cosine = v1.reduce((s, x, i) => s + x * v2[i], 0); // pre-normalized
 ```
 
-| Accessor | Max tokens | Dim | Use case |
-|---|---|---|---|
-| `models.text_embedding.all_minilm_l6_v2` | 254 | 384 | General purpose |
-| `models.text_embedding.all_mpnet_base_v2` | 382 | 768 | Higher quality, slower |
-| `models.text_embedding.multi_qa_minilm_l6_cos_v1` | 509 | 384 | Q&A / semantic search |
-| `models.text_embedding.multi_qa_mpnet_base_dot_v1` | 510 | 768 | Q&A / semantic search |
-| `models.text_embedding.distiluse_base_multilingual_cased_v2` | 128 | 512 | Multilingual |
-| `models.text_embedding.paraphrase_multilingual_minilm_l12_v2` | 128 | 384 | Multilingual paraphrase |
-| `models.text_embedding.clip_vit_base_patch32_text` | 74 | 512 | Pair with image embeddings (CLIP) |
+| Accessor                                                      | Max tokens | Dim | Use case                          |
+| ------------------------------------------------------------- | ---------- | --- | --------------------------------- |
+| `models.text_embedding.all_minilm_l6_v2`                      | 254        | 384 | General purpose                   |
+| `models.text_embedding.all_mpnet_base_v2`                     | 382        | 768 | Higher quality, slower            |
+| `models.text_embedding.multi_qa_minilm_l6_cos_v1`             | 509        | 384 | Q&A / semantic search             |
+| `models.text_embedding.multi_qa_mpnet_base_dot_v1`            | 510        | 768 | Q&A / semantic search             |
+| `models.text_embedding.distiluse_base_multilingual_cased_v2`  | 128        | 512 | Multilingual                      |
+| `models.text_embedding.paraphrase_multilingual_minilm_l12_v2` | 128        | 384 | Multilingual paraphrase           |
+| `models.text_embedding.clip_vit_base_patch32_text`            | 74         | 512 | Pair with image embeddings (CLIP) |
 
 Text exceeding `Max tokens` is truncated. Use `useTokenizer` (see [setup.md](./setup.md)) to count first.
 

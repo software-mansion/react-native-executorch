@@ -11,25 +11,31 @@ import { Logger } from '../../common/Logger';
  * @category Typescript API
  */
 export class ExecutorchModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
+
   /**
-   * Loads the model, where `modelSource` is a string, number, or object that specifies the location of the model binary.
-   * Optionally accepts a download progress callback.
+   * Creates an Executorch instance from a model binary.
    * @param modelSource - Source of the model to be loaded.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ExecutorchModule` instance.
    */
-  async load(
+  static async fromModelSource(
     modelSource: ResourceSource,
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ExecutorchModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
+        onDownloadProgress,
         modelSource
       );
       if (!paths?.[0]) {
         throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
-      this.nativeModule = await global.loadExecutorchModule(paths[0]);
+      const nativeModule = await global.loadExecutorchModule(paths[0]);
+      return new ExecutorchModule(nativeModule);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

@@ -3,37 +3,39 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { Logger } from '../../common/Logger';
+import { BaseModule } from '../BaseModule';
 
 /**
  * Module for Tokenizer functionalities.
  * @category Typescript API
  */
-export class TokenizerModule {
-  /**
-   * Native module instance
-   */
-  nativeModule: any;
+export class TokenizerModule extends BaseModule {
+  private constructor(nativeModule: unknown) {
+    super();
+    this.nativeModule = nativeModule;
+  }
 
   /**
-   * Loads the tokenizer from the specified source.
-   * `tokenizerSource` is a string that points to the location of the tokenizer JSON file.
-   * @param tokenizer - Object containing `tokenizerSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   * Creates a Tokenizer instance for the provided tokenizer JSON source.
+   * @param namedSources - Object containing `tokenizerSource` — a fetchable resource pointing at the tokenizer JSON.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TokenizerModule` instance.
    */
-  async load(
-    tokenizer: { tokenizerSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
+  static async fromModelName(
+    namedSources: { tokenizerSource: ResourceSource },
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<TokenizerModule> {
     try {
       const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        tokenizer.tokenizerSource
+        onDownloadProgress,
+        namedSources.tokenizerSource
       );
       const path = paths?.[0];
       if (!path) {
         throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
-      this.nativeModule = await global.loadTokenizerModule(path);
+      const nativeModule = await global.loadTokenizerModule(path);
+      return new TokenizerModule(nativeModule);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);

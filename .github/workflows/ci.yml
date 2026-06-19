@@ -45,3 +45,18 @@ jobs:
 
       - name: Build all packages
         run: yarn workspaces foreach --all --topological-dev run prepare
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Typecheck test files
+        run: yarn workspace react-native-executorch typecheck:tests
+
+      - name: Run API contract tests
+        run: yarn workspace react-native-executorch test --ci
