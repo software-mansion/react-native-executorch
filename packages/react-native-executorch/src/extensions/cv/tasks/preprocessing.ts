@@ -47,15 +47,25 @@ export function createImagePreprocessor(
   process: (input: ImageBuffer) => Tensor;
   dispose: () => void;
 } {
-  if (!matchShape(outputShape, [1, 3, 'H', 'W'], [3, 'H', 'W']))
-    throw new Error(`preprocessor: got shape [${outputShape}], required [1,3,H,W] or [3,H,W]`);
+  const numRgbChannels = 3;
+  const expectedShapes = [
+    [numRgbChannels, 'H', 'W'],
+    [1, numRgbChannels, 'H', 'W'],
+  ] as const;
+
+  if (!matchShape(outputShape, ...expectedShapes)) {
+    throw new Error(
+      `preprocessor: got shape [${outputShape}], required one of: ` +
+        `${expectedShapes.map((s) => `[${s.join(',')}]`).join(' | ')}`
+    );
+  }
 
   const targetH = outputShape.at(-2)!;
   const targetW = outputShape.at(-1)!;
   const tensors = [
-    tensor('uint8', [targetH, targetW, 3]),
-    tensor('uint8', [3, targetH, targetW]),
-    tensor('float32', [3, targetH, targetW]),
+    tensor('uint8', [targetH, targetW, numRgbChannels]),
+    tensor('uint8', [numRgbChannels, targetH, targetW]),
+    tensor('float32', [numRgbChannels, targetH, targetW]),
     tensor('float32', outputShape),
   ] as const;
 
