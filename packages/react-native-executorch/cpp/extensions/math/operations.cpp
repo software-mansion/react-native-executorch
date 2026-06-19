@@ -120,6 +120,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         int axis = static_cast<int>(args[2].asNumber());
 
         const int rank = static_cast<int>(src->shape_.size());
+        // Support negative axis indices like numpy (e.g., axis=-1 means last axis, -2 means second to last, etc.)
         if (axis < 0) {
             axis += rank;
         }
@@ -217,6 +218,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
             throw jsi::JSError(rt, "argmax: src must be float32");
         }
+
         if (dst->dtype_ != rnexecutorch::core::types::DType::int32) {
             throw jsi::JSError(rt, "argmax: dst must be int32");
         }
@@ -224,12 +226,16 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         if (!args[2].isNumber()) {
             throw jsi::JSError(rt, "argmax: axis must be a number");
         }
-        int axis = static_cast<int>(args[2].asNumber());
 
+        int axis = static_cast<int>(args[2].asNumber());
         int rank = static_cast<int>(src->shape_.size());
+
+        // Support negative axis indices like numpy (e.g., axis=-1 means last
+        // axis, -2 means second to last, etc.)
         if (axis < 0) {
             axis += rank;
         }
+
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "argmax: axis is out of range");
         }
