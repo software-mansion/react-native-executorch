@@ -12,21 +12,28 @@
 namespace rnexecutorch::extensions::cv::image_ops {
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
-static int interpToFlag(const std::string &interp) {
-    if (interp == "nearest")
+
+namespace {
+int interpToFlag(const std::string &interp) {
+    if (interp == "nearest") {
         return ::cv::INTER_NEAREST;
-    if (interp == "area")
+    }
+    if (interp == "area") {
         return ::cv::INTER_AREA;
-    if (interp == "linear")
+    }
+    if (interp == "linear") {
         return ::cv::INTER_LINEAR;
-    if (interp == "cubic")
+    }
+    if (interp == "cubic") {
         return ::cv::INTER_CUBIC;
-    if (interp == "lanczos")
+    }
+    if (interp == "lanczos") {
         return ::cv::INTER_LANCZOS4;
+    }
     throw std::invalid_argument("unsupported interpolation '" + interp + "'");
 }
 
-static int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
+int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     switch (dtype) {
     case rnexecutorch::core::types::DType::uint8:
         return CV_8U;
@@ -37,6 +44,7 @@ static int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     }
     throw std::invalid_argument("unsupported dtype");
 }
+} // namespace
 
 void install_resize(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "resize";
@@ -176,37 +184,53 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 
-static int codeToColorConversionFlag(const std::string &code) {
-    if (code == "RGBA2RGB")
+namespace {
+int codeToColorConversionFlag(const std::string &code) {
+    if (code == "RGBA2RGB") {
         return ::cv::COLOR_RGBA2RGB;
-    if (code == "RGBA2BGR")
+    }
+    if (code == "RGBA2BGR") {
         return ::cv::COLOR_RGBA2BGR;
-    if (code == "BGRA2RGBA")
+    }
+    if (code == "BGRA2RGBA") {
         return ::cv::COLOR_BGRA2RGBA;
-    if (code == "BGRA2RGB")
+    }
+    if (code == "BGRA2RGB") {
         return ::cv::COLOR_BGRA2RGB;
-    if (code == "BGRA2BGR")
+    }
+    if (code == "BGRA2BGR") {
         return ::cv::COLOR_BGRA2BGR;
-    if (code == "RGB2BGR")
+    }
+    if (code == "RGB2BGR") {
         return ::cv::COLOR_RGB2BGR;
-    if (code == "BGR2RGB")
+    }
+    if (code == "BGR2RGB") {
         return ::cv::COLOR_BGR2RGB;
-    if (code == "RGB2RGBA")
+    }
+    if (code == "RGB2RGBA") {
         return ::cv::COLOR_RGB2RGBA;
-    if (code == "BGR2RGBA")
+    }
+    if (code == "BGR2RGBA") {
         return ::cv::COLOR_BGR2RGBA;
-    if (code == "RGB2GRAY")
+    }
+    if (code == "RGB2GRAY") {
         return ::cv::COLOR_RGB2GRAY;
-    if (code == "RGBA2GRAY")
+    }
+    if (code == "RGBA2GRAY") {
         return ::cv::COLOR_RGBA2GRAY;
-    if (code == "BGR2GRAY")
+    }
+    if (code == "BGR2GRAY") {
         return ::cv::COLOR_BGR2GRAY;
-    if (code == "BGRA2GRAY")
+    }
+    if (code == "BGRA2GRAY") {
         return ::cv::COLOR_BGRA2GRAY;
-    if (code == "GRAY2RGBA")
+    }
+    if (code == "GRAY2RGBA") {
         return ::cv::COLOR_GRAY2RGBA;
+    }
     throw std::invalid_argument("cvtColor: unsupported color conversion code '" + code + "'");
 }
+} // namespace
 
 void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "cvtColor";
