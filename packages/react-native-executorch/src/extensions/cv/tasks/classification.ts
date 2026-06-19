@@ -6,7 +6,7 @@ import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { softmax } from '../../math';
-import { type ImageBuffer } from '../image';
+import type { tImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
 
 /**
