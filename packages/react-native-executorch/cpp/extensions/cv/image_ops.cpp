@@ -45,6 +45,21 @@ int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     }
     throw std::invalid_argument("unsupported dtype");
 }
+
+struct FitBox {
+    int32_t w, h, offX, offY;
+};
+
+FitBox computeFit(int32_t srcW, int32_t srcH, int32_t dstW, int32_t dstH, bool inner) {
+    double scaleW = static_cast<double>(dstW) / srcW;
+    double scaleH = static_cast<double>(dstH) / srcH;
+    double scale = inner ? std::min(scaleW, scaleH) : std::max(scaleW, scaleH);
+
+    int32_t w = static_cast<int32_t>(std::round(srcW * scale));
+    int32_t h = static_cast<int32_t>(std::round(srcH * scale));
+    int32_t sign = inner ? 1 : -1; // letterbox centers padding, crop centers the crop
+    return {w, h, sign * (dstW - w) / 2, sign * (dstH - h) / 2};
+}
 } // namespace
 
 void install_resize(jsi::Runtime &rt, jsi::Object &module) {
@@ -144,37 +159,19 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
 
         if (mode == "stretch") {
-            // Zero-alloc: cv::resize writes directly into dst->data_
             ::cv::resize(srcMat, dstMat, dstMat.size(), 0, 0, interpFlag);
         } else if (mode == "letterbox") {
-            // Scale uniformly so src fits inside dst, pad remainder.
-            // Zero-alloc: resize into an ROI submatrix view of dst_mat.
-            double scale = std::min(static_cast<double>(dstW) / srcW,
-                                    static_cast<double>(dstH) / srcH);
-
-            int32_t newW = static_cast<int32_t>(std::round(srcW * scale));
-            int32_t newH = static_cast<int32_t>(std::round(srcH * scale));
-            int32_t offX = (dstW - newW) / 2;
-            int32_t offY = (dstH - newH) / 2;
+            FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/true);
 
             dstMat.setTo(::cv::Scalar::all(padValue));
-            ::cv::Mat roi = dstMat(::cv::Rect(offX, offY, newW, newH));
+            ::cv::Mat roi = dstMat(::cv::Rect(fit.offX, fit.offY, fit.w, fit.h));
             ::cv::resize(srcMat, roi, roi.size(), 0, 0, interpFlag);
         } else if (mode == "crop") {
-            // Scale so the *smaller* dimension fills dst, then center-crop.
-            // Requires one temporary Mat because the scaled image is larger
-            // than dst in at least one dimension.
-            double scale = std::max(static_cast<double>(dstW) / srcW,
-                                    static_cast<double>(dstH) / srcH);
-
-            int32_t newW = static_cast<int32_t>(std::round(srcW * scale));
-            int32_t newH = static_cast<int32_t>(std::round(srcH * scale));
-            int32_t offX = (newW - dstW) / 2;
-            int32_t offY = (newH - dstH) / 2;
+            FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/false);
 
             ::cv::Mat scaled;
-            ::cv::resize(srcMat, scaled, ::cv::Size(newW, newH), 0, 0, interpFlag);
-            scaled(::cv::Rect(offX, offY, dstW, dstH)).copyTo(dstMat);
+            ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
+            scaled(::cv::Rect(fit.offX, fit.offY, dstW, dstH)).copyTo(dstMat);
         } else {
             throw jsi::JSError(rt, "resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
         }
