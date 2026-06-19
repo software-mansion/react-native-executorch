@@ -39,7 +39,8 @@ export type Classification<L> = {
  * `.pte` models.
  *
  * It validates the model inputs and outputs against the classification
- * SymbolicTensor requirements, pre-allocates the necessary static execution
+ * SymbolicTensor requirements, asserts that the labels array length matches the
+ * model's output vocabulary size, pre-allocates the necessary static execution
  * tensors, sets up an image preprocessor, and registers clean disposal hooks to
  * clear all native memory.
  * @category Typescript API
@@ -70,8 +71,16 @@ export async function createClassifier<L>(
   const inpShape = meta.inputTensorMeta[0]!.shape;
   const outShape = meta.outputTensorMeta[0]!.shape;
 
+  const numLabels = outShape[outShape.length - 1]!;
+  if (classifierOpts.labels.length !== numLabels) {
+    throw new Error(
+      `Classifier labels length (${classifierOpts.labels.length}) must match model output dimension (${numLabels}).`
+    );
+  }
+
+  // prettier-ignore
   const tensors = [
-    tensor('float32', outShape), //
+    tensor('float32', outShape),
     tensor('float32', outShape),
   ] as const;
 
@@ -89,11 +98,15 @@ export async function createClassifier<L>(
     options?: { topk?: number }
   ): Classification<L>[] => {
     'worklet';
+    if (options?.topk !== undefined && options.topk < 0) {
+      throw new Error(`Classifier topk option must be non-negative`);
+    }
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tLogits]);
 
+    // prettier-ignore
     const probas = tLogits
-      .through(softmax, tProbas) //
+      .through(softmax, tProbas)
       .getData(new Float32Array(tProbas.numel));
 
     return Array.from(probas)
