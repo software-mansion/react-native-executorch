@@ -34,10 +34,19 @@ namespace rnexecutorch {
 // SSL intricacies manually, as it is done automagically in ObjC++/Kotlin.
 FetchUrlFunc_t fetchUrlFunc;
 
+// App-private writable directory provided by the platform layer. Android
+// passes reactApplicationContext.cacheDir; iOS passes NSTemporaryDirectory().
+// std::filesystem::temp_directory_path() resolves to /data/local/tmp on
+// Android <13, which is not writable by app processes — so we pipe the
+// platform-provided path through explicitly.
+std::string cacheDir;
+
 void RnExecutorchInstaller::injectJSIBindings(
     jsi::Runtime *jsiRuntime, std::shared_ptr<react::CallInvoker> jsCallInvoker,
-    FetchUrlFunc_t fetchDataFromUrl, bool isEmulator) {
+    FetchUrlFunc_t fetchDataFromUrl, const std::string &cacheDirPath,
+    bool isEmulator) {
   fetchUrlFunc = fetchDataFromUrl;
+  cacheDir = cacheDirPath;
 
   jsiRuntime->global().setProperty(*jsiRuntime, "__rne_isEmulator",
                                    jsi::Value(isEmulator));
