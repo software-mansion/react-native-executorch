@@ -1,5 +1,6 @@
 #include "image_ops.h"
 
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
@@ -125,11 +126,11 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "resize: dst tensor has been disposed");
         }
 
-        int srcH = src->shape_[0];
-        int srcW = src->shape_[1];
-        int channels = src->shape_[2];
-        int dstH = dst->shape_[0];
-        int dstW = dst->shape_[1];
+        int32_t srcH = src->shape_[0];
+        int32_t srcW = src->shape_[1];
+        int32_t channels = src->shape_[2];
+        int32_t dstH = dst->shape_[0];
+        int32_t dstW = dst->shape_[1];
 
         int cvType, interpFlag;
         try {
@@ -151,10 +152,10 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             double scale = std::min(static_cast<double>(dstW) / srcW,
                                     static_cast<double>(dstH) / srcH);
 
-            int newW = static_cast<int>(std::round(srcW * scale));
-            int newH = static_cast<int>(std::round(srcH * scale));
-            int offX = (dstW - newW) / 2;
-            int offY = (dstH - newH) / 2;
+            int32_t newW = static_cast<int32_t>(std::round(srcW * scale));
+            int32_t newH = static_cast<int32_t>(std::round(srcH * scale));
+            int32_t offX = (dstW - newW) / 2;
+            int32_t offY = (dstH - newH) / 2;
 
             dstMat.setTo(::cv::Scalar::all(padValue));
             ::cv::Mat roi = dstMat(::cv::Rect(offX, offY, newW, newH));
@@ -166,10 +167,10 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             double scale = std::max(static_cast<double>(dstW) / srcW,
                                     static_cast<double>(dstH) / srcH);
 
-            int newW = static_cast<int>(std::round(srcW * scale));
-            int newH = static_cast<int>(std::round(srcH * scale));
-            int offX = (newW - dstW) / 2;
-            int offY = (newH - dstH) / 2;
+            int32_t newW = static_cast<int32_t>(std::round(srcW * scale));
+            int32_t newH = static_cast<int32_t>(std::round(srcH * scale));
+            int32_t offX = (newW - dstW) / 2;
+            int32_t offY = (newH - dstH) / 2;
 
             ::cv::Mat scaled;
             ::cv::resize(srcMat, scaled, ::cv::Size(newW, newH), 0, 0, interpFlag);
@@ -293,10 +294,10 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "cvtColor: dst tensor has been disposed");
         }
 
-        int srcH = src->shape_[0];
-        int srcW = src->shape_[1];
-        int srcC = src->shape_[2];
-        int dstC = dst->shape_[2];
+        int32_t srcH = src->shape_[0];
+        int32_t srcW = src->shape_[1];
+        int32_t srcC = src->shape_[2];
+        int32_t dstC = dst->shape_[2];
 
         int cvSrcType, cvDstType, flag;
         try {
@@ -348,16 +349,16 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsFirst: src and dst must have the same dtype");
         }
 
-        int srcH = src->shape_[0];
-        int srcW = src->shape_[1];
-        int srcC = src->shape_[2];
+        int32_t srcH = src->shape_[0];
+        int32_t srcW = src->shape_[1];
+        int32_t srcC = src->shape_[2];
 
         if (dst->shape_.size() != 3) {
             throw jsi::JSError(rt, "toChannelsFirst: dst must be a 3D tensor [C, H, W]");
         }
-        int dstC = dst->shape_[0];
-        int dstH = dst->shape_[1];
-        int dstW = dst->shape_[2];
+        int32_t dstC = dst->shape_[0];
+        int32_t dstH = dst->shape_[1];
+        int32_t dstW = dst->shape_[2];
 
         if (srcH != dstH || srcW != dstW || srcC != dstC) {
             throw jsi::JSError(rt, "toChannelsFirst: src and dst spatial dimensions and channel counts must match");
@@ -392,11 +393,11 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<::cv::Mat> channels;
         ::cv::split(srcMat, channels);
 
-        int hw = srcH * srcW;
+        int32_t hw = srcH * srcW;
         size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *dstPtr = dst->data_.get();
 
-        for (int i = 0; i < srcC; ++i) {
+        for (size_t i = 0; i < srcC; ++i) {
             std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
         }
 
@@ -436,16 +437,16 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: src and dst must have the same dtype");
         }
 
-        int srcC = src->shape_[0];
-        int srcH = src->shape_[1];
-        int srcW = src->shape_[2];
+        int32_t srcC = src->shape_[0];
+        int32_t srcH = src->shape_[1];
+        int32_t srcW = src->shape_[2];
 
         if (dst->shape_.size() != 3) {
             throw jsi::JSError(rt, "toChannelsLast: dst must be a 3D tensor [H, W, C]");
         }
-        int dstH = dst->shape_[0];
-        int dstW = dst->shape_[1];
-        int dstC = dst->shape_[2];
+        int32_t dstH = dst->shape_[0];
+        int32_t dstW = dst->shape_[1];
+        int32_t dstC = dst->shape_[2];
 
         if (srcH != dstH || srcW != dstW || srcC != dstC) {
             throw jsi::JSError(rt, "toChannelsLast: src and dst spatial dimensions and channel counts must match");
@@ -476,12 +477,12 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: " + std::string(e.what()));
         }
 
-        int hw = srcH * srcW;
+        int32_t hw = srcH * srcW;
         size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *srcPtr = src->data_.get();
 
         std::vector<::cv::Mat> channels;
-        for (int i = 0; i < srcC; ++i) {
+        for (size_t i = 0; i < srcC; ++i) {
             channels.push_back(::cv::Mat(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize));
         }
 
@@ -525,70 +526,51 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: src must be a 3D tensor [C, H, W]");
         }
 
-        int c = src->shape_[0];
-        int h = src->shape_[1];
-        int w = src->shape_[2];
+        int32_t c = src->shape_[0];
+        int32_t h = src->shape_[1];
+        int32_t w = src->shape_[2];
 
-        bool dstMatch = false;
-        if (dst->shape_.size() == 3 &&
-            dst->shape_[0] == c &&
-            dst->shape_[1] == h &&
-            dst->shape_[2] == w) {
-            dstMatch = true;
-        }
-
-        if (!dstMatch) {
+        if (dst->shape_.size() != 3 ||
+            dst->shape_[0] != c ||
+            dst->shape_[1] != h ||
+            dst->shape_[2] != w) {
             throw jsi::JSError(rt, "normalize: src and dst shapes must match exactly ([C, H, W])");
         }
 
-        if (!opts.hasProperty(rt, "alpha")) {
-            throw jsi::JSError(rt, "normalize: options.alpha is required");
-        }
-
-        if (!opts.hasProperty(rt, "beta")) {
-            throw jsi::JSError(rt, "normalize: options.beta is required");
-        }
-
-        std::vector<double> alpha(c);
-        std::vector<double> beta(c);
-
-        auto alphaVal = opts.getProperty(rt, "alpha");
-        if (alphaVal.isNumber()) {
-            std::fill(alpha.begin(), alpha.end(), alphaVal.asNumber());
-        } else if (alphaVal.isObject() && alphaVal.asObject(rt).isArray(rt)) {
-            auto arr = alphaVal.asObject(rt).asArray(rt);
-            if (arr.length(rt) != static_cast<size_t>(c)) {
-                throw jsi::JSError(rt, "normalize: options.alpha array length must be exactly equal to channels");
+        auto getNormalizeOption = [&](const char *name) -> std::vector<double> {
+            if (!opts.hasProperty(rt, name)) {
+                throw jsi::JSError(rt, "normalize: options." + std::string(name) + " is required");
             }
-            for (int i = 0; i < c; ++i) {
-                auto val = arr.getValueAtIndex(rt, i);
-                if (!val.isNumber()) {
-                    throw jsi::JSError(rt, "normalize: options.alpha array must contain only numbers");
+
+            auto val = opts.getProperty(rt, name);
+            std::vector<double> result(c);
+
+            if (val.isNumber()) {
+                std::ranges::fill(result, val.asNumber());
+            } else if (val.isObject() && val.asObject(rt).isArray(rt)) {
+                auto arr = val.asObject(rt).asArray(rt);
+                if (arr.length(rt) != static_cast<size_t>(c)) {
+                    throw jsi::JSError(rt, "normalize: options." + std::string(name) +
+                                               " array length must be exactly equal to channels");
                 }
-                alpha[i] = val.asNumber();
-            }
-        } else {
-            throw jsi::JSError(rt, "normalize: options.alpha must be a number or an array of numbers");
-        }
-
-        auto betaVal = opts.getProperty(rt, "beta");
-        if (betaVal.isNumber()) {
-            std::fill(beta.begin(), beta.end(), betaVal.asNumber());
-        } else if (betaVal.isObject() && betaVal.asObject(rt).isArray(rt)) {
-            auto arr = betaVal.asObject(rt).asArray(rt);
-            if (arr.length(rt) != static_cast<size_t>(c)) {
-                throw jsi::JSError(rt, "normalize: options.beta array length must be exactly equal to channels");
-            }
-            for (int i = 0; i < c; ++i) {
-                auto val = arr.getValueAtIndex(rt, i);
-                if (!val.isNumber()) {
-                    throw jsi::JSError(rt, "normalize: options.beta array must contain only numbers");
+                for (size_t i = 0; i < c; ++i) {
+                    auto item = arr.getValueAtIndex(rt, i);
+                    if (!item.isNumber()) {
+                        throw jsi::JSError(rt, "normalize: options." + std::string(name) +
+                                                   " array must contain only numbers");
+                    }
+                    result[i] = item.asNumber();
                 }
-                beta[i] = val.asNumber();
+            } else {
+                throw jsi::JSError(rt, "normalize: options." + std::string(name) +
+                                           " must be a number or an array of numbers");
             }
-        } else {
-            throw jsi::JSError(rt, "normalize: options.beta must be a number or an array of numbers");
-        }
+
+            return result;
+        };
+
+        std::vector<double> alpha = getNormalizeOption("alpha");
+        std::vector<double> beta = getNormalizeOption("beta");
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {
@@ -622,7 +604,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         uint8_t *srcPtr = src->data_.get();
         uint8_t *dstPtr = dst->data_.get();
 
-        for (int ch = 0; ch < c; ++ch) {
+        for (size_t ch = 0; ch < c; ++ch) {
             ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * h * w * srcElemSize);
             ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * h * w * dstElemSize);
 
