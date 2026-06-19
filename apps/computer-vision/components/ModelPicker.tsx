@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 export type ModelOption = {
   label: string;
   value: any;
+  disabled?: boolean;
 };
 
 interface ModelPickerProps {
@@ -24,13 +25,27 @@ export function ModelPicker({ label, options, selectedValue, onValueChange }: Mo
       >
         {options.map((option, index) => {
           const isSelected = option.value === selectedValue;
+          const isDisabled = option.disabled;
           return (
             <TouchableOpacity
               key={index}
-              style={[styles.chip, isSelected && styles.chipActive]}
-              onPress={() => onValueChange(option.value)}
+              style={[
+                styles.chip,
+                isSelected && styles.chipActive,
+                isDisabled && styles.chipDisabled,
+              ]}
+              onPress={() => !isDisabled && onValueChange(option.value)}
+              disabled={isDisabled}
             >
-              <Text style={[styles.text, isSelected && styles.textActive]}>{option.label}</Text>
+              <Text
+                style={[
+                  styles.text,
+                  isSelected && styles.textActive,
+                  isDisabled && styles.textDisabled,
+                ]}
+              >
+                {option.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -64,6 +79,10 @@ const styles = StyleSheet.create({
   chipActive: {
     backgroundColor: '#001A72',
   },
+  chipDisabled: {
+    backgroundColor: '#f5f5f5',
+    opacity: 0.5,
+  },
   text: {
     fontSize: 13,
     color: '#333',
@@ -72,5 +91,8 @@ const styles = StyleSheet.create({
   textActive: {
     color: '#fff',
     fontWeight: '600',
+  },
+  textDisabled: {
+    color: '#999',
   },
 });

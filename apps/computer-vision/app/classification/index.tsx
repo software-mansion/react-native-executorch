@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Skia } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
@@ -27,6 +28,7 @@ const MODEL_OPTIONS: ModelOption[] = [
   {
     label: 'EfficientNetV2-S (CoreML FP16)',
     value: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
   },
 ];
 
