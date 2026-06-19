@@ -1,6 +1,6 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
-import { type Tensor } from '../../../core/tensor';
-import { type ImageFormat } from '../image';
+import type { Tensor } from '../../../core/tensor';
+import type { ImageFormat } from '../image';
 
 /**
  * Supported color conversion code presets (similar to OpenCV).
