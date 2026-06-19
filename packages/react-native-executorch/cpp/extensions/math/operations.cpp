@@ -44,13 +44,13 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "sigmoid: only float32 tensors are supported");
         }
 
-        std::shared_lock<std::shared_mutex> src_lock(src->mutex_, std::try_to_lock);
-        if (!src_lock.owns_lock()) {
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock()) {
             throw jsi::JSError(rt, "sigmoid: src tensor is currently in use");
         }
 
-        std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-        if (!dst_lock.owns_lock()) {
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!dstLock.owns_lock()) {
             throw jsi::JSError(rt, "sigmoid: dst tensor is currently in use");
         }
 
@@ -128,13 +128,13 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: axis is out of range");
         }
 
-        std::shared_lock<std::shared_mutex> src_lock(src->mutex_, std::try_to_lock);
-        if (!src_lock.owns_lock()) {
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock()) {
             throw jsi::JSError(rt, "softmax: src tensor is currently in use");
         }
 
-        std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-        if (!dst_lock.owns_lock()) {
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!dstLock.owns_lock()) {
             throw jsi::JSError(rt, "softmax: dst tensor is currently in use");
         }
 
@@ -234,15 +234,15 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: axis is out of range");
         }
 
-        auto dst_expected_shape = src->shape_;
-        dst_expected_shape[axis] = 1;
-        if (dst->shape_ != dst_expected_shape) {
+        auto dstExpectedShape = src->shape_;
+        dstExpectedShape[axis] = 1;
+        if (dst->shape_ != dstExpectedShape) {
             throw jsi::JSError(rt, "argmax: dst shape must match src shape but with axis dimension 1");
         }
 
-        std::shared_lock<std::shared_mutex> src_lock(src->mutex_, std::try_to_lock);
-        std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-        if (!src_lock.owns_lock() || !dst_lock.owns_lock()) {
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
             throw jsi::JSError(rt, "argmax: tensors in use");
         }
 
@@ -268,16 +268,16 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
         for (size_t o = 0; o < outer; ++o) {
             for (size_t i = 0; i < inner; ++i) {
-                float max_val = -std::numeric_limits<float>::infinity();
-                int32_t max_idx = 0;
+                float maxVal = -std::numeric_limits<float>::infinity();
+                int32_t maxIdx = 0;
                 for (size_t d = 0; d < axisDim; ++d) {
                     float val = srcData[o * axisDim * inner + d * inner + i];
-                    if (val > max_val) {
-                        max_val = val;
-                        max_idx = static_cast<int32_t>(d);
+                    if (val > maxVal) {
+                        maxVal = val;
+                        maxIdx = static_cast<int32_t>(d);
                     }
                 }
-                dstData[o * inner + i] = max_idx;
+                dstData[o * inner + i] = maxIdx;
             }
         }
 
