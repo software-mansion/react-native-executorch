@@ -1,7 +1,7 @@
 import { tensor, type Tensor } from '../../../core/tensor';
 import { matchShape } from '../../../core/modelSchema';
 
-import { type ImageBuffer } from '../image';
+import type { ImageBuffer } from '../image';
 import {
   type ResizeMode,
   type InterpolationMethod,
