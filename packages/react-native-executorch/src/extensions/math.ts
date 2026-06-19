@@ -1,5 +1,5 @@
 import { rnexecutorchJsi } from '../native/bridge';
-import { type Tensor } from '../core/tensor';
+import type { Tensor } from '../core/tensor';
 
 /**
  * Computes the element-wise sigmoid activation on a source tensor and writes
