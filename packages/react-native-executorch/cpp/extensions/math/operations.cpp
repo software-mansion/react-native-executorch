@@ -263,6 +263,10 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         const float *srcData = reinterpret_cast<const float *>(src->data_.get());
 
         size_t axisDim = src->shape_[axis];
+        if (axisDim == 0) {
+            throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
+        }
+
         size_t outer = 1, inner = 1;
         for (int i = 0; i < axis; ++i) {
             outer *= src->shape_[i];
@@ -272,18 +276,26 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
+        std::vector<float> maxVals(inner);
+
         for (size_t o = 0; o < outer; ++o) {
+            const float *srcSlab = srcData + o * axisDim * inner;
+            int32_t *dstRow = dstData + o * inner;
+
             for (size_t i = 0; i < inner; ++i) {
-                float maxVal = -std::numeric_limits<float>::infinity();
-                int32_t maxIdx = 0;
-                for (size_t d = 0; d < axisDim; ++d) {
-                    float val = srcData[o * axisDim * inner + d * inner + i];
-                    if (val > maxVal) {
-                        maxVal = val;
-                        maxIdx = static_cast<int32_t>(d);
+                maxVals[i] = -std::numeric_limits<float>::infinity();
+                dstRow[i] = 0;
+            }
+
+            for (size_t d = 0; d < axisDim; ++d) {
+                const float *srcRow = srcSlab + d * inner;
+                for (size_t i = 0; i < inner; ++i) {
+                    const float val = srcRow[i];
+                    if (val > maxVals[i]) {
+                        maxVals[i] = val;
+                        dstRow[i] = static_cast<int32_t>(d);
                     }
                 }
-                dstData[o * inner + i] = maxIdx;
             }
         }
 
