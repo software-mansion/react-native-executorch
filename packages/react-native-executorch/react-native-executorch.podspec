@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift,cpp}", "cpp/**/*.{hpp,cpp,c,h}"
   s.private_header_files = "ios/**/*.h"
 
-  s.ios.vendored_frameworks = "third-party/ios/Frameworks/ExecutorchLib.xcframework"
+  s.ios.vendored_frameworks = "third-party/ios/Frameworks/ExecutorchLib.xcframework", "third-party/ios/Frameworks/opencv2.xcframework"
   s.frameworks = "CoreML", "Metal", "MetalPerformanceShaders", "Accelerate"
   s.library = "sqlite3"
 

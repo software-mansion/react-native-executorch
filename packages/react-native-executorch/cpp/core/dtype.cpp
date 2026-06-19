@@ -3,12 +3,15 @@
 
 namespace rnexecutorch::core::types {
 DType parseDType(const std::string &s) {
-    if (s == "uint8")
+    if (s == "uint8") {
         return DType::uint8;
-    if (s == "int32")
+    }
+    if (s == "int32") {
         return DType::int32;
-    if (s == "float32")
+    }
+    if (s == "float32") {
         return DType::float32;
+    }
     throw std::invalid_argument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', or 'float32'");
 }
 

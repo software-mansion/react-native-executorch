@@ -1,4 +1,15 @@
-// Core primitives — for library builders
+// Hooks — primary API for app developers
+export * from './hooks/useClassifier';
+export * from './hooks/useResourceDownload';
+
+// Constants
+export { models } from './models';
+export * as constants from './constants';
+
+// Task APIs — for developers needing manual lifetime/disposal control
+export * from './extensions/cv/tasks/classification';
+
+// Core primitives — for library builders and power users
 
 export { tensor } from './core/tensor';
 export type { DType, Tensor } from './core/tensor';
@@ -13,18 +24,13 @@ export type {
   ExecuTorchTag,
 } from './core/model';
 
-export {
-  validateModelSchema,
-  SymbolicTensor,
-  matchShape,
-} from './core/modelSchema';
-export type {
-  ValueConstraint,
-  TensorConstraint,
-  SymbolicShape,
-} from './core/modelSchema';
+export { validateModelSchema, SymbolicTensor, matchShape } from './core/modelSchema';
+export type { ValueConstraint, TensorConstraint, SymbolicShape } from './core/modelSchema';
 
 export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
+
+export * as math from './extensions/math';
+export * as cv from './extensions/cv';
 
 // Utils
 export * from './utils';

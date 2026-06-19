@@ -2,20 +2,83 @@ import { rnexecutorchJsi } from '../native/bridge';
 
 declare const tensorBrand: unique symbol;
 
+/**
+ * Element data type of a {@link Tensor}.
+ * @category Types
+ */
 export type DType = 'float32' | 'uint8' | 'int32';
+
+/**
+ * A native ExecuTorch tensor allocated in C++ memory.
+ *
+ * Tensors are the fundamental data containers used throughout the lower-level
+ * API. They carry a fixed data type, an immutable shape, and reside in native
+ * heap memory — they must be explicitly released by calling
+ * {@link Tensor.dispose} when no longer needed to avoid native memory leaks.
+ *
+ * Create tensors with the {@link tensor} factory function.
+ * @category Types
+ */
 export type Tensor = {
+  /** The element data type of the tensor. */
   readonly dtype: DType;
+  /** The concrete size of each dimension (e.g., `[1, 3, 224, 224]`). */
   readonly shape: readonly number[];
+  /** The total number of elements stored in the tensor. */
   readonly numel: number;
 
+  /**
+   * Copies this tensor's data into another tensor with an identical shape and
+   * dtype.
+   * @param dst The destination tensor to copy data into.
+   * @returns The destination tensor `dst`.
+   */
   copyTo(dst: Tensor): Tensor;
+
+  /**
+   * Releases the underlying native C++ memory held by this tensor.
+   *
+   * After calling `dispose`, the tensor must not be used again. Calling any
+   * method on a disposed tensor results in undefined behavior.
+   */
   dispose(): void;
+
+  /**
+   * Writes data from a typed array into this tensor's native buffer.
+   * @param src The source typed array. Its element type must match the tensor's
+   * {@link dtype} and its length must equal {@link numel}.
+   * @returns `this` tensor, enabling method chaining.
+   */
   setData(src: Float32Array | Uint8Array | Int32Array): Tensor;
+
+  /**
+   * Copies data out of this tensor's native buffer into a typed array.
+   * @typeParam T The concrete typed-array type to fill.
+   * @param dst The destination typed array. Its length must equal {@link numel}.
+   * @returns The same `dst` array, now filled with tensor data.
+   */
   getData<T extends Float32Array | Uint8Array | Int32Array>(dst: T): T;
-  through<R, Args extends any[]>(
-    fn: (t: Tensor, ...args: Args) => R,
-    ...args: Args
-  ): R;
+
+  /**
+   * Passes `this` tensor as the first argument to `fn` and returns the result.
+   * @typeParam R The return type of `fn`.
+   * @typeParam Args The types of any additional arguments forwarded to `fn`.
+   * @param fn The function to invoke with `(this, ...args)`.
+   * @param args Additional arguments forwarded to `fn`.
+   * @returns The return value of `fn`.
+   */
+  through<R, Args extends any[]>(fn: (t: Tensor, ...args: Args) => R, ...args: Args): R;
+
+  /**
+   * Conditionally applies `fn` to `this` tensor when `pred` is `true`,
+   * otherwise returns `this` unchanged.
+   * @typeParam Args The types of any additional arguments forwarded to `fn`.
+   * @param pred When `true`, calls `fn(this, ...args)` and returns the result.
+   * When `false`, returns `this` unchanged.
+   * @param fn The function to invoke when `pred` is `true`.
+   * @param args Additional arguments forwarded to `fn`.
+   * @returns The result of `fn` when `pred` is `true`, or `this` otherwise.
+   */
   throughIf<Args extends any[]>(
     pred: boolean,
     fn: (t: Tensor, ...args: Args) => Tensor,
@@ -30,6 +93,21 @@ export type Tensor = {
   readonly [tensorBrand]: never;
 };
 
+/**
+ * Allocates a new native tensor with the specified data type and shape.
+ *
+ * Optionally initializes the tensor's buffer from a typed array `src`. When
+ * `src` is omitted the buffer contents are undefined. The returned tensor
+ * resides in native C++ memory; call {@link Tensor.dispose} when the tensor is
+ * no longer needed.
+ * @category Typescript API
+ * @param dtype The element data type of the tensor.
+ * @param shape An array of dimension sizes (e.g. `[1, 3, 224, 224]`).
+ * @param src Optional typed array used to initialize the tensor's data. Its
+ * element type must match `dtype` and its length must equal the product of all
+ * dimension sizes.
+ * @returns A newly allocated native tensor.
+ */
 export function tensor(
   dtype: DType,
   shape: number[],

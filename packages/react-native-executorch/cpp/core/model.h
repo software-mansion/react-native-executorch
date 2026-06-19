@@ -10,6 +10,14 @@
 #include <executorch/extension/module/module.h>
 
 namespace rnexecutorch::core::model {
+/**
+ * JSI HostObject wrapping an ExecuTorch Model instance
+ * (`executorch::extension::Module`).
+ *
+ * Exposes methods to JavaScript for inspecting model method signatures,
+ * retrieving method names, executing inference runs, and disposing of native
+ * resources.
+ */
 class ModelHostObject : public facebook::jsi::HostObject, public std::enable_shared_from_this<ModelHostObject> {
 public:
     std::string modelPath_;
