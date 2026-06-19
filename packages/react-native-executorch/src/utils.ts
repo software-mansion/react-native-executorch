@@ -40,8 +40,10 @@ export async function inspectModel(source: string): Promise<{
     downloaded = true;
   }
 
+  let model: ReturnType<typeof loadModel> | undefined;
+
   try {
-    const model = loadModel(localPath);
+    model = loadModel(localPath);
     const methodNames = model.getMethodNames();
 
     const methods: { name: string; meta: ModelMethodMeta }[] = [];
@@ -50,11 +52,13 @@ export async function inspectModel(source: string): Promise<{
       methods.push({ name: method, meta });
     }
 
-    model.dispose();
     return { source, methods };
   } catch (e) {
     throw e;
   } finally {
+    if (model) {
+      model.dispose();
+    }
     if (downloaded) {
       await RNFS.unlink(localPath).catch(() => {});
     }
