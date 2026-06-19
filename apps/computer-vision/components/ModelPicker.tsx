@@ -34,7 +34,7 @@ export function ModelPicker({ label, options, selectedValue, onValueChange }: Mo
                 isSelected && styles.chipActive,
                 isDisabled && styles.chipDisabled,
               ]}
-              onPress={() => !isDisabled && onValueChange(option.value)}
+              onPress={() => onValueChange(option.value)}
               disabled={isDisabled}
             >
               <Text

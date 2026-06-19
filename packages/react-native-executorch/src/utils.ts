@@ -53,8 +53,6 @@ export async function inspectModel(source: string): Promise<{
     }
 
     return { source, methods };
-  } catch (e) {
-    throw e;
   } finally {
     if (model) {
       model.dispose();
