@@ -14,6 +14,13 @@
 #include "dtype.h"
 
 namespace rnexecutorch::core::tensor {
+/**
+ * JSI HostObject wrapping an ExecuTorch TensorPtr instance.
+ *
+ * Exposes methods to JavaScript for copying data, accessing properties (shape,
+ * dtype, numel), writing data from array buffers, reading data to array
+ * buffers, and disposing of underlying memory.
+ */
 class TensorHostObject : public facebook::jsi::HostObject, public std::enable_shared_from_this<TensorHostObject> {
 public:
     rnexecutorch::core::types::DType dtype_;

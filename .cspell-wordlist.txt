@@ -221,3 +221,11 @@ MATEUSZ
 BLAZEFACE
 Blazeface
 blazeface
+cvtColor
+colormap
+lanczos
+interp
+imgproc
+c10
+probas
+Probas

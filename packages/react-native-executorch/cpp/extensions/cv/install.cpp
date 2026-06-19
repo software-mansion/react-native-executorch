@@ -1,0 +1,18 @@
+#include "install.h"
+#include "image_ops.h"
+
+namespace rnexecutorch::extensions::cv {
+namespace jsi = facebook::jsi;
+
+void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
+    jsi::Object cvModule = jsi::Object(rt);
+
+    image_ops::install_resize(rt, cvModule);
+    image_ops::install_cvtColor(rt, cvModule);
+    image_ops::install_toChannelsFirst(rt, cvModule);
+    image_ops::install_toChannelsLast(rt, cvModule);
+    image_ops::install_normalize(rt, cvModule);
+
+    module.setProperty(rt, "cv", cvModule);
+}
+} // namespace rnexecutorch::extensions::cv

@@ -1,32 +1,12 @@
 const path = require('path');
 
 const VALID_CATEGORIES = [
-  'Base Classes',
+  'Constants',
   'Hooks',
-  'Interfaces',
-  'Models - Classification',
-  'Models - Image Embeddings',
-  'Models - Image Generation',
-  'Models - LLM',
-  'Models - LLM Multimodal',
-  'Models - Object Detection',
-  'Models - Instance Segmentation',
-  'Models - Pose Estimation',
-  'Models - Semantic Segmentation',
-  'Models - Speech To Text',
-  'Models - Style Transfer',
-  'Models - Privacy Filter',
-  'Models - Text Embeddings',
-  'Models - Text to Speech',
-  'Models - VLM',
-  'Models - Voice Activity Detection',
-  'OCR Supported Alphabets',
-  'TTS Supported Voices',
   'Types',
   'Typescript API',
   'Utils',
   'Utilities - General',
-  'Utilities - LLM',
 ];
 
 const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;
@@ -64,11 +44,7 @@ module.exports = {
         customWordListFile: path.resolve(__dirname, '.cspell-wordlist.txt'),
       },
     ],
-    // `properties: 'never'` lets the lowercase snake_case keys in `models`
-    // (e.g. `models.text_to_speech.kokoro_small`, mirroring the underlying
-    // `.pte` filenames) pass while still requiring camelCase for variable
-    // and function declarations.
-    'camelcase': ['error', { properties: 'never' }],
+    'camelcase': 'error',
     'jsdoc/require-jsdoc': 'off',
     'jsdoc/require-param': ['error', { checkDestructured: false }],
     'jsdoc/check-param-names': ['error', { checkDestructured: false }],
@@ -82,8 +58,7 @@ module.exports = {
         mainDescription: false,
         tags: {
           category: {
-            message:
-              '@category must be one of categories defined in .eslintrc.js',
+            message: '@category must be one of categories defined in .eslintrc.js',
             match: CATEGORY_TAG_MATCH,
           },
         },
@@ -92,6 +67,12 @@ module.exports = {
   },
   plugins: ['prettier', 'markdown', 'jsdoc'],
   overrides: [
+    {
+      files: ['packages/react-native-executorch/src/constants.ts'],
+      rules: {
+        '@cspell/spellchecker': 'off',
+      },
+    },
     {
       files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
       rules: {

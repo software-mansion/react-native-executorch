@@ -72,6 +72,7 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
+    "react-native-fs": "^2.20.0",
     "react-native-worklets": "*"
   },
   "devDependencies": {
@@ -81,6 +82,7 @@
     "react": "19.2.0",
     "react-native": "0.83.6",
     "react-native-builder-bob": "^0.40.18",
+    "react-native-fs": "^2.20.0",
     "react-native-worklets": "0.9.1",
     "typescript": "~5.9.2"
   },

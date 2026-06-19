@@ -53,13 +53,13 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "copyTo: In-place operations (src == dst) are not supported.");
             }
 
-            std::shared_lock<std::shared_mutex> src_lock(self->mutex_, std::try_to_lock);
-            if (!src_lock.owns_lock()) {
+            std::shared_lock<std::shared_mutex> srcLock(self->mutex_, std::try_to_lock);
+            if (!srcLock.owns_lock()) {
                 throw jsi::JSError(rt, "copyTo: src tensor is currently in use");
             }
 
-            std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-            if (!dst_lock.owns_lock()) {
+            std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+            if (!dstLock.owns_lock()) {
                 throw jsi::JSError(rt, "copyTo: dst tensor is currently in use");
             }
 
