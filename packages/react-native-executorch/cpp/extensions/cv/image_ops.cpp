@@ -4,6 +4,7 @@
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
+#include <utility>
 
 #include <opencv2/imgproc.hpp>
 
@@ -394,7 +395,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
         size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *dstPtr = dst->data_.get();
 
-        for (size_t i = 0; i < srcC; ++i) {
+        for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
             std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
         }
 
@@ -479,7 +480,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
         uint8_t *srcPtr = src->data_.get();
 
         std::vector<::cv::Mat> channels;
-        for (size_t i = 0; i < srcC; ++i) {
+        for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
             channels.push_back(::cv::Mat(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize));
         }
 
@@ -550,7 +551,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
                     throw jsi::JSError(rt, "normalize: options." + std::string(name) +
                                                " array length must be exactly equal to channels");
                 }
-                for (size_t i = 0; i < c; ++i) {
+                for (size_t i = 0; std::cmp_less(i, c); ++i) {
                     auto item = arr.getValueAtIndex(rt, i);
                     if (!item.isNumber()) {
                         throw jsi::JSError(rt, "normalize: options." + std::string(name) +
@@ -601,7 +602,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         uint8_t *srcPtr = src->data_.get();
         uint8_t *dstPtr = dst->data_.get();
 
-        for (size_t ch = 0; ch < c; ++ch) {
+        for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
             ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * h * w * srcElemSize);
             ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * h * w * dstElemSize);
 

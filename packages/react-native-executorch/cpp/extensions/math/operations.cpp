@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "core/tensor.h"
 
@@ -157,12 +158,12 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         size_t outer = 1;
-        for (size_t i = 0; i < axis; ++i) {
+        for (size_t i = 0; std::cmp_less(i, axis); ++i) {
             outer *= static_cast<size_t>(src->shape_[i]);
         }
 
         size_t inner = 1;
-        for (size_t i = axis + 1; i < rank; ++i) {
+        for (size_t i = axis + 1; std::cmp_less(i, rank); ++i) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
@@ -268,10 +269,10 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         size_t outer = 1, inner = 1;
-        for (size_t i = 0; i < axis; ++i) {
+        for (size_t i = 0; std::cmp_less(i, axis); ++i) {
             outer *= src->shape_[i];
         }
-        for (size_t i = axis + 1; i < rank; ++i) {
+        for (size_t i = axis + 1; std::cmp_less(i, rank); ++i) {
             inner *= src->shape_[i];
         }
 
