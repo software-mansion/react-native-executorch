@@ -5,9 +5,10 @@ import { createClassifier, type ClassifierModel } from '../extensions/cv/tasks/c
 /**
  * React hook to load and run an image classification model.
  *
- * This hook manages downloading the model file (if it's a remote URL),
- * compiling it, tracking download progress and compilation errors, and cleaning
- * up native model memory when the component unmounts or configuration changes.
+ * This hook manages downloading (if it's a remote URL) and loading the model
+ * file, compiling it, tracking download progress and compilation errors, and
+ * cleaning up native model memory when the component unmounts or configuration
+ * changes.
  * @category Hooks
  * @typeParam L The type representing the classification labels.
  * @param config The image classification model configuration.

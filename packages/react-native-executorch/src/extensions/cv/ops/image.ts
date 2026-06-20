@@ -86,9 +86,10 @@ export type NormalizeOptions = {
  * Supports various resize modes (`stretch`, `letterbox`, `crop`) and
  * interpolation algorithms (`linear`, `lanczos`, etc.).
  * @category Typescript API
- * @param src The source image tensor.
+ * @param src The source image tensor in HWC layout. Shape [H,W,C].
  * @param dst The pre-allocated destination tensor to write the resized image
- * to.
+ * to. `dst` must be in HWC layout and its number of channels must match `src`.
+ * Shape [H',W',C].
  * @param opts Configuration options for resizing.
  * @returns The destination tensor containing the resized image.
  */
@@ -105,9 +106,10 @@ export function resize(src: Tensor, dst: Tensor, opts?: ResizeOptions): Tensor {
  * Converts the color space of an image tensor using a specified color
  * conversion code.
  * @category Typescript API
- * @param src The source image tensor.
+ * @param src The source image tensor in HWC layout. Shape [H,W,C].
  * @param dst The pre-allocated destination tensor to write the converted image
- * to.
+ * to. `dst` must be in HWC layout and its spatial dimensions [H,W] as well as
+ * dtype must match `src`. Shape [H,W,C'].
  * @param code The color conversion code indicating source and target spaces
  * (e.g. 'RGBA2RGB').
  * @returns The destination tensor containing the converted image.
@@ -123,8 +125,10 @@ export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): T
  *
  * Commonly required for PyTorch Edge models which expect channels-first inputs.
  * @category Typescript API
- * @param src The source image tensor in HWC layout.
- * @param dst The pre-allocated destination tensor in CHW layout.
+ * @param src The source image tensor in HWC layout. Shape [H,W,C].
+ * @param dst The pre-allocated destination tensor in CHW layout. `dst` tensor's
+ * spatial dimensions [H,W], number of channels and dtype must match `src`.
+ * Shape [C,H,W].
  * @returns The destination tensor in CHW layout.
  */
 export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
@@ -139,8 +143,10 @@ export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
  * Useful for post-processing model outputs back into channels-last layouts for
  * rendering or display.
  * @category Typescript API
- * @param src The source image tensor in CHW layout.
- * @param dst The pre-allocated destination tensor in HWC layout.
+ * @param src The source image tensor in CHW layout. Shape [C,H,W].
+ * @param dst The pre-allocated destination tensor in HWC layout. `dst` tensor's
+ * spatial dimensions [H,W], number of channels and dtype must match `src`.
+ * Shape [H,W,C].
  * @returns The destination tensor in HWC layout.
  */
 export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
@@ -151,12 +157,13 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
 /**
  * Normalizes pixel values of an image tensor element-wise.
  *
- * Computes: `dst = src * alpha + beta`. Can normalize uniformly or channel-wise
- * using array options.
+ * Computes: `dst[c,h,w] = src[c,h,w] * alpha[c] + beta[c]`. Can normalize
+ * uniformly or channel-wise using array options. The result is cast to `dst`
+ * tensor's dtype.
  * @category Typescript API
- * @param src The source image tensor.
+ * @param src The source image tensor in CHW layout. Shape [C,H,W].
  * @param dst The pre-allocated destination tensor to write the normalized
- * values to.
+ * values to. `dst` must have the same shape as `src`. Shape [C,H,W].
  * @param opts Normalization scaling coefficients.
  * @returns The destination tensor containing the normalized image.
  */

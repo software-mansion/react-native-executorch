@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 /**
- * React hook to instantiate and compile a model/task pipeline with automatic
+ * React hook to instantiate and compile a model pipeline with automatic
  * lifetime management.
  *
  * It manages the lifecycle of a model or task runner instance. When the
