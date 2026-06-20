@@ -1,6 +1,7 @@
 // Hooks — primary API for app developers
 export * from './hooks/useClassifier';
 export * from './hooks/useResourceDownload';
+export * from './hooks/useModel';
 
 // Constants
 export { models } from './models';
@@ -10,7 +11,6 @@ export * as constants from './constants';
 export * from './extensions/cv/tasks/classification';
 
 // Core primitives — for library builders and power users
-
 export { tensor } from './core/tensor';
 export type { DType, Tensor } from './core/tensor';
 

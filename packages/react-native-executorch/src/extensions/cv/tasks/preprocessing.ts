@@ -26,7 +26,7 @@ export type ImagePreprocessorOptions = {
 };
 
 /**
- * Factory to instantiate a reusable image preprocessor pipeline.
+ * Creates a reusable image preprocessor pipeline.
  *
  * Configures a pipeline to resize, color convert, convert layout (HWC to CHW),
  * normalize, and copy raw image buffers into target tensors matching model
