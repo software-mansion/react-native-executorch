@@ -36,13 +36,12 @@ export type Classification<L> = {
 
 /**
  * Creates an image classifier runner for executing local Image Classification
- * `.pte` models.
+ * models.
  *
- * It validates the model inputs and outputs against the classification
- * SymbolicTensor requirements, asserts that the labels array length matches the
- * model's output vocabulary size, pre-allocates the necessary static execution
- * tensors, sets up an image preprocessor, and registers clean disposal hooks to
- * clear all native memory.
+ * It validates the model inputs and outputs requirements, asserts that the
+ * labels array length matches the model's output vocabulary size, pre-allocates
+ * the necessary static execution tensors, sets up an image preprocessor, and
+ * registers clean disposal hooks to clear all native memory.
  * @category Typescript API
  * @typeParam L The type representing the classification labels.
  * @param config Classifier task configuration containing path and options.

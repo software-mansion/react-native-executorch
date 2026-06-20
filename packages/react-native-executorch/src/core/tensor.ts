@@ -28,8 +28,7 @@ export type Tensor = {
   readonly numel: number;
 
   /**
-   * Copies this tensor's data into another tensor with an identical shape and
-   * dtype.
+   * Copies this tensor's data into another tensor with equal number of bytes.
    * @param dst The destination tensor to copy data into.
    * @returns The destination tensor `dst`.
    */
@@ -38,23 +37,23 @@ export type Tensor = {
   /**
    * Releases the underlying native C++ memory held by this tensor.
    *
-   * After calling `dispose`, the tensor must not be used again. Calling any
-   * method on a disposed tensor results in undefined behavior.
+   * After calling `dispose`, the tensor must not be used again.
    */
   dispose(): void;
 
   /**
    * Writes data from a typed array into this tensor's native buffer.
-   * @param src The source typed array. Its element type must match the tensor's
-   * {@link dtype} and its length must equal {@link numel}.
-   * @returns `this` tensor, enabling method chaining.
+   * @param src The source typed array. Its size in bytes must match the
+   * tensor's size.
+   * @returns `this` tensor.
    */
   setData(src: Float32Array | Uint8Array | Int32Array): Tensor;
 
   /**
    * Copies data out of this tensor's native buffer into a typed array.
    * @typeParam T The concrete typed-array type to fill.
-   * @param dst The destination typed array. Its length must equal {@link numel}.
+   * @param dst The destination typed array. Its size in bytes must match
+   * tensor's size.
    * @returns The same `dst` array, now filled with tensor data.
    */
   getData<T extends Float32Array | Uint8Array | Int32Array>(dst: T): T;
@@ -104,8 +103,7 @@ export type Tensor = {
  * @param dtype The element data type of the tensor.
  * @param shape An array of dimension sizes (e.g. `[1, 3, 224, 224]`).
  * @param src Optional typed array used to initialize the tensor's data. Its
- * element type must match `dtype` and its length must equal the product of all
- * dimension sizes.
+ * size in bytes must match tensor's size.
  * @returns A newly allocated native tensor.
  */
 export function tensor(
