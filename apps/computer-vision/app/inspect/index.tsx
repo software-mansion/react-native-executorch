@@ -10,12 +10,12 @@ import {
   Alert,
 } from 'react-native';
 import { inspectModel, type TensorMeta } from 'react-native-executorch';
-import ScreenWrapper from '../../ScreenWrapper';
-import ColorPalette from '../../colors';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import { ColorPalette } from '../../theme';
 
 type InspectionResult = Awaited<ReturnType<typeof inspectModel>>;
 
-export default function InspectScreen() {
+function InspectContent() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<InspectionResult | null>(null);
@@ -67,100 +67,106 @@ export default function InspectScreen() {
   };
 
   return (
-    <ScreenWrapper>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Model URL Inspector</Text>
-          <Text style={styles.cardDescription}>
-            Paste a URL to an ExecuTorch (.pte) model below to download and inspect its metadata and
-            methods.
-          </Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Model URL Inspector</Text>
+        <Text style={styles.cardDescription}>
+          Paste a URL to an ExecuTorch (.pte) model below to download and inspect its metadata and
+          methods.
+        </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="https://example.com/model.pte"
-            placeholderTextColor="#999"
-            value={url}
-            onChangeText={setUrl}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            multiline
-          />
+        <TextInput
+          style={styles.input}
+          placeholder="https://example.com/model.pte"
+          placeholderTextColor="#999"
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          multiline
+        />
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={() => handleInspect(url)}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Inspect Model</Text>
-            )}
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={() => handleInspect(url)}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Inspect Model</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
+      )}
 
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
+      {result && (
+        <View style={styles.resultsCard}>
+          <Text style={styles.resultsHeader}>Inspection Results</Text>
+          <Text style={styles.sourceLabel}>Source URL:</Text>
+          <Text style={styles.sourceValue}>{result.source}</Text>
 
-        {result && (
-          <View style={styles.resultsCard}>
-            <Text style={styles.resultsHeader}>Inspection Results</Text>
-            <Text style={styles.sourceLabel}>Source URL:</Text>
-            <Text style={styles.sourceValue}>{result.source}</Text>
+          <Text style={styles.methodsTitle}>Methods ({result.methods.length})</Text>
 
-            <Text style={styles.methodsTitle}>Methods ({result.methods.length})</Text>
-
-            {result.methods.map((method, mIdx) => (
-              <View key={mIdx} style={styles.methodContainer}>
-                <View style={styles.methodHeader}>
-                  <Text style={styles.methodName}>{method.name}</Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Method</Text>
-                  </View>
+          {result.methods.map((method, mIdx) => (
+            <View key={mIdx} style={styles.methodContainer}>
+              <View style={styles.methodHeader}>
+                <Text style={styles.methodName}>{method.name}</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>Method</Text>
                 </View>
-
-                <View style={styles.statsRow}>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statVal}>{method.meta.numInputs}</Text>
-                    <Text style={styles.statLabel}>Inputs</Text>
-                  </View>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statVal}>{method.meta.numOutputs}</Text>
-                    <Text style={styles.statLabel}>Outputs</Text>
-                  </View>
-                </View>
-
-                {method.meta.usesBackend && Object.keys(method.meta.usesBackend).length > 0 && (
-                  <View style={styles.metaSection}>
-                    <Text style={styles.metaSectionTitle}>Backends Used:</Text>
-                    <View style={styles.tagRow}>
-                      {Object.entries(method.meta.usesBackend).map(([backend, used]) => (
-                        <View
-                          key={backend}
-                          style={[styles.tag, used ? styles.tagActive : styles.tagInactive]}
-                        >
-                          <Text style={used ? styles.tagActiveText : styles.tagInactiveText}>
-                            {backend}: {used ? 'Yes' : 'No'}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
-                {renderTensorList(method.meta.inputTensorMeta, 'Input Tensors')}
-                {renderTensorList(method.meta.outputTensorMeta, 'Output Tensors')}
               </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+
+              <View style={styles.statsRow}>
+                <View style={styles.statBox}>
+                  <Text style={styles.statVal}>{method.meta.numInputs}</Text>
+                  <Text style={styles.statLabel}>Inputs</Text>
+                </View>
+                <View style={styles.statBox}>
+                  <Text style={styles.statVal}>{method.meta.numOutputs}</Text>
+                  <Text style={styles.statLabel}>Outputs</Text>
+                </View>
+              </View>
+
+              {method.meta.usesBackend && Object.keys(method.meta.usesBackend).length > 0 && (
+                <View style={styles.metaSection}>
+                  <Text style={styles.metaSectionTitle}>Backends Used:</Text>
+                  <View style={styles.tagRow}>
+                    {Object.entries(method.meta.usesBackend).map(([backend, used]) => (
+                      <View
+                        key={backend}
+                        style={[styles.tag, used ? styles.tagActive : styles.tagInactive]}
+                      >
+                        <Text style={used ? styles.tagActiveText : styles.tagInactiveText}>
+                          {backend}: {used ? 'Yes' : 'No'}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {renderTensorList(method.meta.inputTensorMeta, 'Input Tensors')}
+              {renderTensorList(method.meta.outputTensorMeta, 'Output Tensors')}
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+export default function InspectScreen() {
+  return (
+    <ScreenWrapper>
+      <InspectContent />
     </ScreenWrapper>
   );
 }

@@ -35,7 +35,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepack": "cp ../../README.md ./README.md",
-    "postpack": "rm ./README.md"
+    "postpack": "rm ./README.md",
+    "postinstall": "yarn run -T patch-package --patch-dir ../../patches"
   },
   "keywords": [
     "text-to-speech",
@@ -76,7 +77,9 @@
     "react-native-worklets": "*"
   },
   "devDependencies": {
+    "@babel/core": "^7.25.1",
     "@react-native/babel-preset": "0.83.6",
+    "@react-native/metro-config": "^0.86.0",
     "@types/react": "^19.1.12",
     "del-cli": "^6.0.0",
     "react": "19.2.0",

@@ -1,39 +1,48 @@
-import { PermissionsAndroid, Platform } from 'react-native';
-import { CameraOptions, launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
-export const getImage = async (useCamera: boolean) => {
-  if (useCamera && Platform.OS === 'android') {
-    try {
-      const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
-      if (!hasPermission) {
-        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
-          title: 'Camera Permission',
-          message: 'This app needs access to your camera to take photos.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        });
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.warn('Camera permission denied');
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn('Failed to request camera permission:', err);
-      return;
-    }
+export const getImage = async (
+  useCamera: boolean,
+  targetWidth = 800
+): Promise<string | undefined> => {
+  const permissionResult = useCamera
+    ? await ImagePicker.requestCameraPermissionsAsync()
+    : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (!permissionResult.granted) {
+    Alert.alert(
+      'Permission Required',
+      useCamera
+        ? 'Permission to access camera is required!'
+        : 'Permission to access camera roll is required!'
+    );
+    return;
   }
 
-  const options: CameraOptions = {
-    mediaType: 'photo',
+  const options: ImagePicker.ImagePickerOptions = {
+    mediaTypes: ['images'],
+    allowsEditing: false,
+    quality: 1,
   };
-  try {
-    const output = useCamera ? await launchCamera(options) : await launchImageLibrary(options);
 
-    if (!output.assets || output.assets.length === 0) return;
+  const pickerResult = useCamera
+    ? await ImagePicker.launchCameraAsync(options)
+    : await ImagePicker.launchImageLibraryAsync(options);
 
-    return output.assets[0];
-  } catch (err) {
-    console.error(err);
+  if (pickerResult.canceled || !pickerResult.assets[0]) {
+    return;
   }
+
+  const asset = pickerResult.assets[0];
+  let imageRef = await ImageManipulator.manipulate(asset.uri).renderAsync();
+
+  if (imageRef.width > targetWidth) {
+    imageRef = await ImageManipulator.manipulate(asset.uri)
+      .resize({ width: targetWidth })
+      .renderAsync();
+  }
+
+  const result = await imageRef.saveAsync({ format: SaveFormat.PNG });
+  return result.uri;
 };
