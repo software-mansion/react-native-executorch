@@ -16,8 +16,6 @@ Encoder::Encoder(const std::string &tokenizerSource,
           encoderSource, tokenizerSource, callInvoker)) {}
 
 std::vector<float> Encoder::generate(std::string input) {
-  // TextEmbeddings returns the raw [numTokens, embeddingDim] matrix; this
-  // encoder pools/uses the flat fp32 buffer directly (dataPtr).
   std::shared_ptr<OwningArrayBuffer> embeddingsText =
       encoder->generate(input).dataPtr;
   std::shared_ptr<OwningArrayBuffer> embeddingsUncond =

@@ -284,12 +284,7 @@ const LFM2_5_EMBEDDING_350M_VARIANTS = {
   },
 };
 
-// LFM2.5-ColBERT is a plain text-embedding model from the library's POV: it
-// returns per-token vectors. Late-interaction scoring (MaxSim / skiplist) is
-// the consumer's concern; the library only auto-applies the role prompts.
-// Document punctuation token ids excluded from MaxSim (ColBERT skiplist),
-// derived from the model's config_sentence_transformers.json skiplist_words.
-const LFM_COLBERT_SKIPLIST = [
+const LFM_COLBERT_SKIP_LIST = [
   510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524,
   535, 536, 537, 538, 539, 540, 541, 568, 569, 570, 571, 572, 573, 600, 601,
   602, 603,
@@ -303,7 +298,7 @@ const LFM2_5_COLBERT_350M_VARIANTS = {
       tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
       prompts: LFM_COLBERT_PROMPTS,
       multiVector: true as const,
-      skiplistIds: LFM_COLBERT_SKIPLIST,
+      skipListIds: LFM_COLBERT_SKIP_LIST,
     },
   },
   xnnpack: {
@@ -313,7 +308,7 @@ const LFM2_5_COLBERT_350M_VARIANTS = {
       tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
       prompts: LFM_COLBERT_PROMPTS,
       multiVector: true as const,
-      skiplistIds: LFM_COLBERT_SKIPLIST,
+      skipListIds: LFM_COLBERT_SKIP_LIST,
     },
   },
 };
@@ -804,9 +799,6 @@ export const models = {
       ios: 'mlx',
       android: 'xnnpack',
     }),
-    // ColBERT (late-interaction): forward() returns per-token vectors. Scoring
-    // (markers / MaxSim / skiplist) is the consumer's concern — see the
-    // colbert example screen for a reference implementation.
     lfm2_5_colbert_350m: variant(LFM2_5_COLBERT_350M_VARIANTS, {
       ios: 'mlx',
       android: 'xnnpack',

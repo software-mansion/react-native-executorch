@@ -218,7 +218,6 @@ add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
 add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEmbeddings.cpp
-        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
         ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
         ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
@@ -230,7 +229,6 @@ add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp
 add_rn_test(TextEmbeddingsTests integration/TextEmbeddingsTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp
-        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
         ${TOKENIZER_SOURCES}
     LIBS tokenizers_deps
 )
@@ -306,7 +304,6 @@ add_rn_test(TextToImageTests integration/TextToImageTest.cpp
         ${RNEXECUTORCH_DIR}/models/text_to_image/Decoder.cpp
         ${RNEXECUTORCH_DIR}/models/text_to_image/Scheduler.cpp
         ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp
-        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
         ${TOKENIZER_SOURCES}
     LIBS tokenizers_deps
 )

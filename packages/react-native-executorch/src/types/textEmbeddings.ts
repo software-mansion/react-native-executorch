@@ -68,11 +68,11 @@ export interface TextEmbeddingsModel {
   multiVector?: boolean;
   /**
    * Document token ids to exclude from late-interaction scoring (e.g. ColBERT's
-   * punctuation skiplist). Derived from the model's training config, so it's
+   * punctuation skipList). Derived from the model's training config, so it's
    * shipped here rather than reconstructed by the consumer, who passes it to
    * their own MaxSim scoring.
    */
-  skiplistIds?: number[];
+  skipListIds?: number[];
 }
 
 /**
@@ -80,8 +80,11 @@ export interface TextEmbeddingsModel {
  * - return type: `EmbeddingResult` if `multiVector`, else `Float32Array`.
  * - role arg: required if the model has `prompts`, else absent.
  */
-export type ForwardReturn<M extends TextEmbeddingsModel> =
-  M extends { multiVector: true } ? EmbeddingResult : Float32Array;
+export type ForwardReturn<M extends TextEmbeddingsModel> = M extends {
+  multiVector: true;
+}
+  ? EmbeddingResult
+  : Float32Array;
 
 /**
  * `forward`'s signature, computed from the model config:

@@ -19,21 +19,13 @@ export const dotProduct = (a: Float32Array, b: Float32Array) => {
   return sum;
 };
 
-/**
- * ColBERT late-interaction score between a query and a document encoding:
- *   score = Σ_q max_d ( q · d )
- * For each query token, the max dot over non-skiplist doc tokens, summed.
- * Per-token vectors are L2-normalized by the graph, so dot == cosine. Scoring
- * is the consumer's concern (the library just yields the per-token vectors),
- * so this lives in the app alongside dotProduct.
- */
 export const maxSim = (
   query: EmbeddingResult,
   doc: EmbeddingResult,
-  skiplistIds: number[] = []
+  skipListIds: number[] = []
 ) => {
   const dim = query.embeddingDim;
-  const skip = new Set(skiplistIds);
+  const skip = new Set(skipListIds);
   let score = 0;
   for (let qi = 0; qi < query.numTokens; qi++) {
     const qOff = qi * dim;

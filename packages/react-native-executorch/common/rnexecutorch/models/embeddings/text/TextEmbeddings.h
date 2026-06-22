@@ -3,7 +3,7 @@
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <mutex>
 #include <rnexecutorch/TokenizerModule.h>
-#include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
+#include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/embeddings/Types.h>
 
 namespace rnexecutorch {
@@ -14,7 +14,7 @@ struct TokenIdsWithAttentionMask {
   std::vector<int64_t> attentionMask;
 };
 
-class TextEmbeddings final : public BaseEmbeddings {
+class TextEmbeddings final : public BaseModel {
 public:
   TextEmbeddings(const std::string &modelSource,
                  const std::string &tokenizerSource,

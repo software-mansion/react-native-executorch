@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -18,11 +17,13 @@ import {
   TextEmbeddingsProps,
   EmbeddingResult,
 } from 'react-native-executorch';
+import { useIsFocused } from 'expo-router';
+import { dotProduct, maxSim } from '../../utils/math';
+import ErrorBanner from '../../components/ErrorBanner';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 const textEmbedding = models.text_embedding;
 
-// forward() returns a Float32Array for pooled (single-vector) models and an
-// EmbeddingResult for multi-vector (late-interaction) models. We store the raw
-// return for the whole corpus and pick the scorer per model below.
 type TextEmbeddingModel = TextEmbeddingsProps['model'];
 type Encoding = Float32Array | EmbeddingResult;
 
@@ -62,9 +63,6 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
   },
 ];
 
-// A multi-topic corpus so semantic ranking is visible: a weather query should
-// float the weather lines to the top and push sports/cooking/tech down, even
-// with no shared keywords.
 const CORPUS: string[] = [
   'The forecast says heavy showers this afternoon.',
   "It's so sunny outside today!",
@@ -80,8 +78,6 @@ const CORPUS: string[] = [
   'We hiked along the coast and camped near the cliffs.',
 ];
 
-// Tap-to-run example queries. Natural-language questions — how these models
-// are trained to be queried — give the cleanest separation.
 const EXAMPLE_QUERIES: string[] = [
   "What's the weather like?",
   'Who won the match?',
@@ -89,9 +85,6 @@ const EXAMPLE_QUERIES: string[] = [
   'How do I cook dinner?',
   'Where did they travel?',
 ];
-import { useIsFocused } from 'expo-router';
-import { dotProduct, maxSim } from '../../utils/math';
-import ErrorBanner from '../../components/ErrorBanner';
 
 export default function TextEmbeddingsScreenWrapper() {
   const isFocused = useIsFocused();
@@ -108,11 +101,8 @@ function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({ model: selectedModel });
   const [error, setError] = useState<string | null>(null);
 
-  // ColBERT-style models score per-token vectors with MaxSim and exclude
-  // punctuation tokens; pooled models score the single vector with a dot
-  // product. Both are driven off the selected model's config.
   const isMultiVector = !!selectedModel.multiVector;
-  const skiplistIds = selectedModel.skiplistIds ?? [];
+  const skipListIds = selectedModel.skipListIds ?? [];
 
   const [query, setQuery] = useState('');
   const [corpusEmbeddings, setCorpusEmbeddings] = useState<
@@ -122,8 +112,6 @@ function TextEmbeddingsScreen() {
   const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
   const [indexing, setIndexing] = useState(false);
 
-  // Embed the whole corpus once the model is ready (re-runs on model change so
-  // prefixes / weights match the active model).
   useEffect(
     () => {
       let cancelled = false;
@@ -134,17 +122,11 @@ function TextEmbeddingsScreen() {
         try {
           const embedded = [];
           for (const sentence of CORPUS) {
-            // forward(_, 'document') auto-applies the model's document prompt
-            // (a no-op for models without one). Pooled models return a
-            // Float32Array, multi-vector models an EmbeddingResult.
             const embedding = await model.forward(sentence, 'document');
             if (cancelled) return;
             embedded.push({ sentence, embedding });
           }
           setCorpusEmbeddings(embedded);
-        } catch {
-          // A transient "Model not loaded" can fire while the hook swaps
-          // models; the effect re-runs once the new model is ready.
         } finally {
           if (!cancelled) setIndexing(false);
         }
@@ -154,10 +136,7 @@ function TextEmbeddingsScreen() {
         cancelled = true;
       };
     },
-    // Re-index when the model becomes ready OR the selected model changes, so
-    // the corpus is embedded by the active model. The "Model not loaded" race
-    // is handled by the isReady gate plus clearing the corpus on switch;
-    // switching sets isReady false→true so the re-run sees the new model.
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [model.isReady, selectedModel]
   );
@@ -177,7 +156,7 @@ function TextEmbeddingsScreen() {
             ? maxSim(
                 queryEmbedding as EmbeddingResult,
                 embedding as EmbeddingResult,
-                skiplistIds
+                skipListIds
               )
             : dotProduct(
                 queryEmbedding as Float32Array,
@@ -201,8 +180,6 @@ function TextEmbeddingsScreen() {
     return model.isGenerating ? 'Generating...' : 'Model is ready';
   };
 
-  // Chips/examples just need a ready, indexed model; the Search button also
-  // needs a non-empty typed query.
   const ready = model.isReady && !indexing && corpusEmbeddings.length > 0;
   const canSearch = ready && !!query.trim();
 
@@ -306,8 +283,6 @@ function TextEmbeddingsScreen() {
   );
 }
 
-// One ranked result with a similarity bar. The bar is scaled relative to the
-// top hit so the ranking is visually obvious; the raw cosine is shown too.
 function ResultRow({
   sentence,
   similarity,

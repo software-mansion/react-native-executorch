@@ -11,7 +11,7 @@ using namespace executorch::extension;
 TextEmbeddings::TextEmbeddings(const std::string &modelSource,
                                const std::string &tokenizerSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseEmbeddings(modelSource, callInvoker),
+    : BaseModel(modelSource, callInvoker),
       tokenizer(
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 

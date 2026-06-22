@@ -708,20 +708,15 @@ getJsiValue(const models::style_transfer::PixelDataResult &result,
   return obj;
 }
 
-// Text embedding output: a [numTokens, embeddingDim] fp32 matrix + input token
-// ids. Pooled models give numTokens == 1; multi-vector give the full sequence.
-// The TS layer reduces to a single vector or keeps the matrix per model config.
-inline jsi::Value
-getJsiValue(const models::embeddings::EmbeddingResult &result,
-            jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const models::embeddings::EmbeddingResult &result,
+                              jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
 
   auto arrayBuffer = jsi::ArrayBuffer(runtime, result.dataPtr);
   auto float32ArrayCtor =
       runtime.global().getPropertyAsFunction(runtime, "Float32Array");
-  auto float32Array =
-      float32ArrayCtor.callAsConstructor(runtime, arrayBuffer)
-          .getObject(runtime);
+  auto float32Array = float32ArrayCtor.callAsConstructor(runtime, arrayBuffer)
+                          .getObject(runtime);
   obj.setProperty(runtime, "dataPtr", float32Array);
 
   obj.setProperty(runtime, "numTokens", jsi::Value(result.numTokens));
