@@ -15,13 +15,12 @@ import { ModelPicker } from '../../components/ModelPicker';
 import {
   models,
   useTextEmbeddings,
-  toVector,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
 const textEmbedding = models.text_embedding;
 
-// Single-vector (pooled) models: forward() returns the raw result; toVector()
-// gives the single embedding. The multi-vector ColBERT model has its own screen.
+// Single-vector (pooled) models: forward() returns a Float32Array directly.
+// The multi-vector ColBERT model has its own screen.
 type TextEmbeddingModel = TextEmbeddingsProps['model'];
 
 const MODELS: { label: string; value: TextEmbeddingModel }[] = [
@@ -123,10 +122,9 @@ function TextEmbeddingsScreen() {
           const embedded = [];
           for (const sentence of CORPUS) {
             // forward(_, 'document') auto-applies the model's document prompt
-            // (a no-op for models without one).
-            const embedding = toVector(
-              await model.forward(sentence, 'document')
-            );
+            // (a no-op for models without one). Single-vector models return
+            // a Float32Array directly.
+            const embedding = await model.forward(sentence, 'document');
             if (cancelled) return;
             embedded.push({ sentence, embedding });
           }
@@ -157,7 +155,7 @@ function TextEmbeddingsScreen() {
     setQuery(queryText);
     try {
       const start = Date.now();
-      const queryEmbedding = toVector(await model.forward(q, 'query'));
+      const queryEmbedding = await model.forward(q, 'query');
       setEmbeddingTime(Date.now() - start);
       const ranked = corpusEmbeddings
         .map(({ sentence, embedding }) => ({

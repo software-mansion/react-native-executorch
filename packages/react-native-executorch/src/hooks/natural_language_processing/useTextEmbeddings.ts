@@ -1,9 +1,9 @@
 import { TextEmbeddingsModule } from '../../modules/natural_language_processing/TextEmbeddingsModule';
 import { useModuleFactory } from '../useModuleFactory';
 import {
-  AnyTextEmbeddingsModel,
   EmbeddingRole,
   ForwardFn,
+  TextEmbeddingsModel,
   TextEmbeddingsType,
   TextEmbeddingsProps,
 } from '../../types/textEmbeddings';
@@ -16,7 +16,7 @@ import {
  *   [numTokens, embeddingDim] result; use `toVector` for a single vector.
  *   Models with prompts require a `role` ('query' | 'document') on `forward`.
  */
-export const useTextEmbeddings = <M extends AnyTextEmbeddingsModel>({
+export const useTextEmbeddings = <M extends TextEmbeddingsModel>({
   model,
   preventLoad = false,
 }: TextEmbeddingsProps<M>): TextEmbeddingsType<M> => {

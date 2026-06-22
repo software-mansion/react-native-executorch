@@ -25,7 +25,6 @@ import {
   useInstanceSegmentation,
   useImageEmbeddings,
   useTextEmbeddings,
-  toVector,
   InstanceSegmentationModelSources,
   SegmentedInstance,
   FastSAMLabel,
@@ -209,7 +208,7 @@ export default function SegmentAnythingScreen() {
         instanceEmbeddingsRef.current = embeddings;
         setEmbeddingProgress(null);
       }
-      const textEmb = toVector(await clipText.forward(textPrompt));
+      const textEmb = await clipText.forward(textPrompt);
       const match = selectByText(
         instances,
         instanceEmbeddingsRef.current,

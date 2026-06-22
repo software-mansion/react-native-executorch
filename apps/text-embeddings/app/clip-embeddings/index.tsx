@@ -16,7 +16,6 @@ import {
   models,
   useTextEmbeddings,
   useImageEmbeddings,
-  toVector,
   ImageEmbeddingsProps,
 } from 'react-native-executorch';
 
@@ -102,7 +101,7 @@ function ClipEmbeddingsScreen() {
       const txtStart = Date.now();
       const scored: { label: string; similarity: number }[] = [];
       for (const label of labels) {
-        const textEmbedding = toVector(await textModel.forward(label));
+        const textEmbedding = await textModel.forward(label);
         scored.push({
           label,
           similarity: dotProduct(imageEmbedding, textEmbedding),

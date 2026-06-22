@@ -294,6 +294,7 @@ const LFM2_5_COLBERT_350M_VARIANTS = {
       modelSource: M.LFM2_5_COLBERT_350M_MLX_MODEL,
       tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
       prompts: LFM_COLBERT_PROMPTS,
+      multiVector: true as const,
     },
   },
   xnnpack: {
@@ -302,6 +303,7 @@ const LFM2_5_COLBERT_350M_VARIANTS = {
       modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
       tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
       prompts: LFM_COLBERT_PROMPTS,
+      multiVector: true as const,
     },
   },
 };

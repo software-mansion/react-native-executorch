@@ -1,9 +1,9 @@
 import { ResourceSource } from '../../types/common';
 import {
-  AnyTextEmbeddingsModel,
   EmbeddingPrompts,
   EmbeddingResult,
   EmbeddingRole,
+  TextEmbeddingsModel,
   TextEmbeddingsModelName,
 } from '../../types/textEmbeddings';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
@@ -13,28 +13,35 @@ import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
- * Module for text embeddings. Returns the raw [numTokens, embeddingDim] output
- * for any model — pooled (numTokens === 1) or multi-vector. Scoring / pooling
- * is the consumer's concern (see the `toVector` util for the single-vector
- * common case).
+ * Module for text embeddings. `forward` returns a single pooled `Float32Array`
+ * for standard models, or the per-token `EmbeddingResult` for `multiVector`
+ * (late-interaction) models. The native runner always produces the raw
+ * [numTokens, embeddingDim] matrix; the reduction to a single vector happens
+ * here so the common single-vector API stays `Float32Array`.
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
   private prompts?: EmbeddingPrompts;
+  private multiVector: boolean;
 
-  private constructor(nativeModule: unknown, prompts?: EmbeddingPrompts) {
+  private constructor(
+    nativeModule: unknown,
+    prompts: EmbeddingPrompts | undefined,
+    multiVector: boolean
+  ) {
     super();
     this.nativeModule = nativeModule;
     this.prompts = prompts;
+    this.multiVector = multiVector;
   }
 
   /**
    * Creates a text embeddings instance for a built-in model.
-   * @param namedSources - The model + tokenizer sources.
+   * @param namedSources - The model config (+ optional prompts / multiVector).
    * @param onDownloadProgress - Optional download progress callback (0..1).
    */
   static async fromModelName(
-    namedSources: AnyTextEmbeddingsModel,
+    namedSources: TextEmbeddingsModel,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextEmbeddingsModule> {
     try {
@@ -49,7 +56,8 @@ export class TextEmbeddingsModule extends BaseModule {
       }
       return new TextEmbeddingsModule(
         await global.loadTextEmbeddings(modelPath, tokenizerPath),
-        namedSources.prompts
+        namedSources.prompts,
+        namedSources.multiVector ?? false
       );
     } catch (error) {
       Logger.error('Load failed:', error);
@@ -78,23 +86,29 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Embed text. Returns the raw [numTokens, embeddingDim] result.
+   * Embed text. Standard models return the single pooled `Float32Array`;
+   * `multiVector` models return the per-token `EmbeddingResult`.
    * @param input - The text to embed.
-   * @param role - Optional 'query' | 'document'; prepends the model's prompt
-   *   for that role when configured (no-op otherwise).
+   * @param role - 'query' | 'document'; prepends the model's prompt for that
+   *   role when configured (no-op otherwise).
    */
   async forward(
     input: string,
     role?: EmbeddingRole
-  ): Promise<EmbeddingResult> {
+  ): Promise<Float32Array | EmbeddingResult> {
     if (this.nativeModule == null)
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     const prefix = (role && this.prompts?.[role]) || '';
     const res = await this.nativeModule.generate(prefix + input);
     // res.dataPtr is already a Float32Array view over the owned native buffer
-    // (built at the JSI boundary), so use it directly — no extra copy.
+    // (built at the JSI boundary).
+    const vectors = res.dataPtr as Float32Array;
+    if (!this.multiVector) {
+      // Pooled models output [1, embeddingDim]; return that single row.
+      return vectors.subarray(0, res.embeddingDim);
+    }
     return {
-      vectors: res.dataPtr as Float32Array,
+      vectors,
       numTokens: res.numTokens,
       embeddingDim: res.embeddingDim,
       tokenIds: res.tokenIds,
