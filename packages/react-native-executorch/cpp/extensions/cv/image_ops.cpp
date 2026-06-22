@@ -631,6 +631,9 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
             throw jsi::JSError(rt, "applyColormap: dst must be uint8");
         }
+        if (dst->numel_ != src->numel_ * 4) {
+            throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
+        }
 
         auto colormapArray = args[2].asObject(rt).asArray(rt);
         size_t numColors = colormapArray.size(rt);
@@ -643,9 +646,9 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             lut[i][3] = color.getValueAtIndex(rt, 3).asNumber();
         }
 
-        std::shared_lock<std::shared_mutex> src_lock(src->mutex_, std::try_to_lock);
-        std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-        if (!src_lock.owns_lock() || !dst_lock.owns_lock()) {
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
             throw jsi::JSError(rt, "applyColormap: tensors in use");
         }
 
@@ -653,10 +656,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "applyColormap: tensor has been disposed");
         }
 
-        size_t pixels = 1;
-        for (int i = 0; i < src->shape_.size(); ++i) {
-            pixels *= src->shape_[i];
-        }
+        size_t pixels = src->numel_;
 
         const int32_t *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
         uint8_t *dstData = dst->data_.get();

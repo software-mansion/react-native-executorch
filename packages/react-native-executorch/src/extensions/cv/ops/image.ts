@@ -177,14 +177,22 @@ export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Te
 }
 
 /**
- * Applies a colormap to a 2D single-channel image tensor, mapping class indices
- * to RGBA colors.
+ * Applies a colormap to a single-channel image tensor, mapping class indices to
+ * RGBA colors.
+ *
+ * This operation iterates over each index/class ID in the source tensor, looks
+ * up its corresponding RGBA color in the provided colormap palette, and writes
+ * it to the destination tensor.
  * @category Typescript API
- * @param src The source index/mask tensor (int32).
- * @param dst The pre-allocated destination tensor (uint8, 4 channels).
- * @param colormap An array of RGBA color arrays corresponding to the class
- * indices.
- * @returns The destination tensor with applied colormap.
+ * @param src The source index/mask tensor. Must be a tensor of shape `[H, W,
+ * 1]` (or `[H, W]`) and `int32` dtype containing class indices.
+ * @param dst The pre-allocated destination tensor to write the mapped RGBA
+ * values to. Must be a 3D image tensor in HWC layout of shape `[H, W, 4]` and
+ * `uint8` dtype.
+ * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to
+ * each class index. The size of this list must cover all class indices present
+ * in `src`.
+ * @returns The destination tensor with the applied colormap.
  */
 export function applyColormap(
   src: Tensor,
