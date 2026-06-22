@@ -16,12 +16,15 @@ import {
   models,
   useTextEmbeddings,
   TextEmbeddingsProps,
+  EmbeddingResult,
 } from 'react-native-executorch';
 const textEmbedding = models.text_embedding;
 
-// Single-vector (pooled) models: forward() returns a Float32Array directly.
-// The multi-vector ColBERT model has its own screen.
+// forward() returns a Float32Array for pooled (single-vector) models and an
+// EmbeddingResult for multi-vector (late-interaction) models. We store the raw
+// return for the whole corpus and pick the scorer per model below.
 type TextEmbeddingModel = TextEmbeddingsProps['model'];
+type Encoding = Float32Array | EmbeddingResult;
 
 const MODELS: { label: string; value: TextEmbeddingModel }[] = [
   { label: 'MiniLM L6', value: textEmbedding.all_minilm_l6_v2() },
@@ -53,6 +56,10 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
     label: 'LFM2.5 Embedding MLX',
     value: textEmbedding.lfm2_5_embedding_350m({ backend: 'mlx' }),
   },
+  {
+    label: 'LFM2.5 ColBERT (late-interaction)',
+    value: textEmbedding.lfm2_5_colbert_350m(),
+  },
 ];
 
 // A multi-topic corpus so semantic ranking is visible: a weather query should
@@ -83,7 +90,7 @@ const EXAMPLE_QUERIES: string[] = [
   'Where did they travel?',
 ];
 import { useIsFocused } from 'expo-router';
-import { dotProduct } from '../../utils/math';
+import { dotProduct, maxSim } from '../../utils/math';
 import ErrorBanner from '../../components/ErrorBanner';
 
 export default function TextEmbeddingsScreenWrapper() {
@@ -101,9 +108,15 @@ function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({ model: selectedModel });
   const [error, setError] = useState<string | null>(null);
 
+  // ColBERT-style models score per-token vectors with MaxSim and exclude
+  // punctuation tokens; pooled models score the single vector with a dot
+  // product. Both are driven off the selected model's config.
+  const isMultiVector = !!selectedModel.multiVector;
+  const skiplistIds = selectedModel.skiplistIds ?? [];
+
   const [query, setQuery] = useState('');
   const [corpusEmbeddings, setCorpusEmbeddings] = useState<
-    { sentence: string; embedding: Float32Array }[]
+    { sentence: string; embedding: Encoding }[]
   >([]);
   const [results, setResults] = useState<RankedResult[]>([]);
   const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
@@ -122,8 +135,8 @@ function TextEmbeddingsScreen() {
           const embedded = [];
           for (const sentence of CORPUS) {
             // forward(_, 'document') auto-applies the model's document prompt
-            // (a no-op for models without one). Single-vector models return
-            // a Float32Array directly.
+            // (a no-op for models without one). Pooled models return a
+            // Float32Array, multi-vector models an EmbeddingResult.
             const embedding = await model.forward(sentence, 'document');
             if (cancelled) return;
             embedded.push({ sentence, embedding });
@@ -155,12 +168,21 @@ function TextEmbeddingsScreen() {
     setQuery(queryText);
     try {
       const start = Date.now();
-      const queryEmbedding = await model.forward(q, 'query');
+      const queryEmbedding = (await model.forward(q, 'query')) as Encoding;
       setEmbeddingTime(Date.now() - start);
       const ranked = corpusEmbeddings
         .map(({ sentence, embedding }) => ({
           sentence,
-          similarity: dotProduct(queryEmbedding, embedding),
+          similarity: isMultiVector
+            ? maxSim(
+                queryEmbedding as EmbeddingResult,
+                embedding as EmbeddingResult,
+                skiplistIds
+              )
+            : dotProduct(
+                queryEmbedding as Float32Array,
+                embedding as Float32Array
+              ),
         }))
         .sort((a, b) => b.similarity - a.similarity);
       setResults(ranked);
@@ -210,8 +232,9 @@ function TextEmbeddingsScreen() {
               Search the corpus ({CORPUS.length} sentences)
             </Text>
             <Text style={styles.hint}>
-              Ranks every sentence by meaning. Ask a full question — tap an
-              example or type your own.
+              {isMultiVector
+                ? 'Ranks per-token vectors with MaxSim (late interaction). Ask a full question — tap an example or type your own.'
+                : 'Ranks every sentence by meaning. Ask a full question — tap an example or type your own.'}
             </Text>
             <View style={styles.chipRow}>
               {EXAMPLE_QUERIES.map((q) => (
