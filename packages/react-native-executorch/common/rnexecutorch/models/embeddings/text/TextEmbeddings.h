@@ -31,6 +31,8 @@ private:
   mutable std::mutex inference_mutex_;
   std::vector<std::vector<int32_t>> inputShapes;
   TokenIdsWithAttentionMask preprocess(const std::string &input);
+  static EmbeddingResult buildResult(const executorch::aten::Tensor &output,
+                                     std::vector<int64_t> tokenIds);
   std::unique_ptr<TokenizerModule> tokenizer;
 };
 } // namespace models::embeddings

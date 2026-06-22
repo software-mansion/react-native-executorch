@@ -60,34 +60,41 @@ EmbeddingResult TextEmbeddings::generate(const std::string input) {
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
-  // Output is [1, numTokens, embeddingDim] (numTokens == 1 for pooled models,
-  // == sequence length for multi-vector models). Return the raw matrix + the
-  // input ids; the TS layer reduces to a single vector or keeps the matrix.
-  auto out = forwardResult->at(0).toTensor();
-  auto sizes = out.sizes();
+  return buildResult(forwardResult->at(0).toTensor(),
+                     std::move(preprocessed.inputIds));
+}
 
-  EmbeddingResult result;
-  result.dataPtr = std::make_shared<OwningArrayBuffer>(out.const_data_ptr(),
-                                                       out.nbytes());
-  result.numTokens = static_cast<int32_t>(sizes[sizes.size() - 2]);
-  result.embeddingDim = static_cast<int32_t>(sizes[sizes.size() - 1]);
-  result.tokenIds = std::move(preprocessed.inputIds);
+// Output is [1, numTokens, embeddingDim] (numTokens == 1 for pooled models,
+// == sequence length for multi-vector models). Multi-vector consumers index
+// tokenIds[i] per output row (e.g. skiplist masking), so numTokens must match
+// the input token count or that alignment silently breaks.
+EmbeddingResult
+TextEmbeddings::buildResult(const executorch::aten::Tensor &output,
+                            std::vector<int64_t> tokenIds) {
+  auto sizes = output.sizes();
+  if (sizes.size() < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
+                            "Embedding output must be at least 2D, got rank " +
+                                std::to_string(sizes.size()));
+  }
 
-  // Invariant for multi-vector models: one output row per input token, so
-  // numTokens (from the output tensor) must equal tokenIds.size() (from the
-  // input). Consumers index tokenIds[i] per output row (e.g. skiplist masking),
-  // which silently breaks if the graph ever pads/truncates the sequence.
-  // (Pooled models legitimately collapse to numTokens == 1.)
-  if (result.numTokens != 1 &&
-      result.numTokens != static_cast<int32_t>(result.tokenIds.size())) {
+  const auto numTokens = static_cast<int32_t>(sizes[sizes.size() - 2]);
+  const auto inputTokens = static_cast<int32_t>(tokenIds.size());
+  if (numTokens != 1 && numTokens != inputTokens) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::InvalidModelOutput,
-        "Embedding output rows (" + std::to_string(result.numTokens) +
-            ") != input tokens (" +
-            std::to_string(result.tokenIds.size()) +
+        "Embedding output rows (" + std::to_string(numTokens) +
+            ") != input tokens (" + std::to_string(inputTokens) +
             "); per-token tokenIds alignment is broken.");
   }
-  return result;
+
+  return EmbeddingResult{
+      .dataPtr = std::make_shared<OwningArrayBuffer>(output.const_data_ptr(),
+                                                     output.nbytes()),
+      .numTokens = numTokens,
+      .embeddingDim = static_cast<int32_t>(sizes[sizes.size() - 1]),
+      .tokenIds = std::move(tokenIds),
+  };
 }
 
 } // namespace rnexecutorch::models::embeddings
