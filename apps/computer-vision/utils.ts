@@ -38,11 +38,14 @@ export const getImage = async (
 };
 
 export const loadSkImage = async (uri: string, targetWidth = 800): Promise<SkImage> => {
-  const result = await ImageManipulator.manipulate(uri)
-    .resize({ width: targetWidth })
-    .renderAsync()
-    .then((res) => res.saveAsync({ format: SaveFormat.PNG }));
+  let imageRef = await ImageManipulator.manipulate(uri).renderAsync();
 
+  let finalRef = imageRef;
+  if (imageRef.width > targetWidth) {
+    finalRef = await ImageManipulator.manipulate(uri).resize({ width: targetWidth }).renderAsync();
+  }
+
+  const result = await finalRef.saveAsync({ format: SaveFormat.PNG });
   const encoded = await Skia.Data.fromURI(result.uri);
   try {
     const img = Skia.Image.MakeImageFromEncoded(encoded);
