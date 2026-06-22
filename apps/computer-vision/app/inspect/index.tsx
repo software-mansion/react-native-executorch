@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -21,15 +21,6 @@ function InspectContent() {
   const [result, setResult] = useState<InspectionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   const handleInspect = async (targetUrl: string) => {
     if (!targetUrl.trim()) {
       Alert.alert('Error', 'Please enter a valid URL');
@@ -40,17 +31,11 @@ function InspectContent() {
     setError(null);
     try {
       const res = await inspectModel(targetUrl.trim());
-      if (isMountedRef.current) {
-        setResult(res);
-      }
+      setResult(res);
     } catch (e: any) {
-      if (isMountedRef.current) {
-        setError(e.message || String(e));
-      }
+      setError(e.message || String(e));
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
