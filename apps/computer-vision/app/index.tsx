@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import ColorPalette from '../colors';
+import { ColorPalette } from '../theme';
 import ExecutorchLogo from '../assets/icons/executorch.svg';
 
 export default function Home() {

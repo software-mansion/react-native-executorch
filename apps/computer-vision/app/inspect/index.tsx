@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { inspectModel, type TensorMeta } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ColorPalette from '../../colors';
+import { ColorPalette } from '../../theme';
 
 type InspectionResult = Awaited<ReturnType<typeof inspectModel>>;
 

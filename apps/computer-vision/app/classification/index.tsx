@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { commonStyles } from '../../commonStyles';
+import { commonStyles, ColorPalette } from '../../theme';
 import { type SkImage as SkiaImageType } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import ColorPalette from '../../colors';
 import { getImage, loadSkImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
