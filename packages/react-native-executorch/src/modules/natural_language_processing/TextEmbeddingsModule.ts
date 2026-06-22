@@ -91,8 +91,10 @@ export class TextEmbeddingsModule extends BaseModule {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     const prefix = (role && this.prompts?.[role]) || '';
     const res = await this.nativeModule.generate(prefix + input);
+    // res.dataPtr is already a Float32Array view over the owned native buffer
+    // (built at the JSI boundary), so use it directly — no extra copy.
     return {
-      vectors: new Float32Array(res.dataPtr),
+      vectors: res.dataPtr as Float32Array,
       numTokens: res.numTokens,
       embeddingDim: res.embeddingDim,
       tokenIds: res.tokenIds,

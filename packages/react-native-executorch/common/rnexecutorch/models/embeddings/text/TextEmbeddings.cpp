@@ -72,6 +72,21 @@ EmbeddingResult TextEmbeddings::generate(const std::string input) {
   result.numTokens = static_cast<int32_t>(sizes[sizes.size() - 2]);
   result.embeddingDim = static_cast<int32_t>(sizes[sizes.size() - 1]);
   result.tokenIds = std::move(preprocessed.inputIds);
+
+  // Invariant for multi-vector models: one output row per input token, so
+  // numTokens (from the output tensor) must equal tokenIds.size() (from the
+  // input). Consumers index tokenIds[i] per output row (e.g. skiplist masking),
+  // which silently breaks if the graph ever pads/truncates the sequence.
+  // (Pooled models legitimately collapse to numTokens == 1.)
+  if (result.numTokens != 1 &&
+      result.numTokens != static_cast<int32_t>(result.tokenIds.size())) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidModelOutput,
+        "Embedding output rows (" + std::to_string(result.numTokens) +
+            ") != input tokens (" +
+            std::to_string(result.tokenIds.size()) +
+            "); per-token tokenIds alignment is broken.");
+  }
   return result;
 }
 

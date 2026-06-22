@@ -30,6 +30,11 @@ public:
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
+  // Shared encode implementation. bos/eos act as an add-special-tokens flag
+  // (not a literal count) when the tokenizer.json defines a post_processor.
+  std::vector<uint64_t> encodeImpl(const std::string &s, int8_t bos,
+                                   int8_t eos) const;
+
   std::unique_ptr<tokenizers::HFTokenizer> tokenizer;
   std::size_t memorySizeLowerBound{0};
 };

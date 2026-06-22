@@ -26,17 +26,15 @@ TokenizerModule::TokenizerModule(
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
-std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
+// When the tokenizer.json defines a post_processor, the underlying HFTokenizer
+// treats non-zero bos/eos as a flag to run it with add_special_token=true (not
+// a literal count). So bos=eos=0 skips special tokens; bos=eos=1 applies them.
+std::vector<uint64_t> TokenizerModule::encodeImpl(const std::string &s,
+                                                  int8_t bos, int8_t eos) const {
   if (!tokenizer) {
     THROW_NOT_LOADED_ERROR();
   }
-
-  // If the used tokenizer.json has defined post_processor field,
-  // setting any of bos or eos arguments to value other than provided constant
-  // ( which is 0) will result in running the post_processor with
-  // 'add_special_token' flag
-  auto encodeResult =
-      tokenizer->encode(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
+  auto encodeResult = tokenizer->encode(s, bos, eos);
   if (!encodeResult.ok()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::TokenizerError,
@@ -46,23 +44,13 @@ std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   return encodeResult.get();
 }
 
+std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
+  return encodeImpl(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
+}
+
 std::vector<uint64_t>
 TokenizerModule::encodeWithSpecialTokens(std::string s) const {
-  if (!tokenizer) {
-    THROW_NOT_LOADED_ERROR();
-  }
-
-  // Passing non-zero bos/eos makes HFTokenizer run the tokenizer.json
-  // post_processor with add_special_token=true (the underlying encode treats
-  // these as a flag, not a literal count, when a post_processor is defined).
-  auto encodeResult = tokenizer->encode(s, /*bos=*/1, /*eos=*/1);
-  if (!encodeResult.ok()) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::TokenizerError,
-        "Unexpected issue occurred while encoding: " +
-            std::to_string(static_cast<int32_t>(encodeResult.error())));
-  }
-  return encodeResult.get();
+  return encodeImpl(s, /*bos=*/1, /*eos=*/1);
 }
 
 std::string TokenizerModule::decode(std::vector<uint64_t> vec,

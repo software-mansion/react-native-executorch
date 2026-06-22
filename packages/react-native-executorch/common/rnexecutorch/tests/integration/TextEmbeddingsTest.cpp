@@ -53,23 +53,23 @@ TEST(TextEmbeddingsGenerateTests, EmptyStringReturnsResults) {
   TextEmbeddings model(kValidTextEmbeddingsModelPath,
                        kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("");
-  EXPECT_NE(result, nullptr);
-  EXPECT_GT(result->size(), 0u);
+  EXPECT_NE(result.dataPtr, nullptr);
+  EXPECT_GT(result.dataPtr->size(), 0u);
 }
 
 TEST(TextEmbeddingsGenerateTests, ValidTextReturnsResults) {
   TextEmbeddings model(kValidTextEmbeddingsModelPath,
                        kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("Hello, world!");
-  EXPECT_NE(result, nullptr);
-  EXPECT_GT(result->size(), 0u);
+  EXPECT_NE(result.dataPtr, nullptr);
+  EXPECT_GT(result.dataPtr->size(), 0u);
 }
 
 TEST(TextEmbeddingsGenerateTests, ResultsHaveCorrectSize) {
   TextEmbeddings model(kValidTextEmbeddingsModelPath,
                        kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("This is a test sentence.");
-  size_t numFloats = result->size() / sizeof(float);
+  size_t numFloats = result.dataPtr->size() / sizeof(float);
   EXPECT_EQ(numFloats, kMiniLmEmbeddingDimensions);
 }
 
@@ -78,8 +78,8 @@ TEST(TextEmbeddingsGenerateTests, ResultsAreNormalized) {
                        kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("The quick brown fox jumps over the lazy dog.");
 
-  const float *data = reinterpret_cast<const float *>(result->data());
-  size_t numFloats = result->size() / sizeof(float);
+  const float *data = reinterpret_cast<const float *>(result.dataPtr->data());
+  size_t numFloats = result.dataPtr->size() / sizeof(float);
 
   float sumOfSquares = 0.0f;
   for (size_t i = 0; i < numFloats; ++i) {
@@ -94,8 +94,8 @@ TEST(TextEmbeddingsGenerateTests, ResultsContainValidValues) {
                        kValidTextEmbeddingsTokenizerPath, nullptr);
   auto result = model.generate("Testing valid values.");
 
-  const float *data = reinterpret_cast<const float *>(result->data());
-  size_t numFloats = result->size() / sizeof(float);
+  const float *data = reinterpret_cast<const float *>(result.dataPtr->data());
+  size_t numFloats = result.dataPtr->size() / sizeof(float);
 
   for (size_t i = 0; i < numFloats; ++i) {
     EXPECT_FALSE(std::isnan(data[i]));
@@ -110,9 +110,9 @@ TEST(TextEmbeddingsGenerateTests, DifferentTextProducesDifferentEmbeddings) {
   auto result1 = model.generate("Hello, world!");
   auto result2 = model.generate("Goodbye, moon!");
 
-  const float *data1 = reinterpret_cast<const float *>(result1->data());
-  const float *data2 = reinterpret_cast<const float *>(result2->data());
-  size_t numFloats = result1->size() / sizeof(float);
+  const float *data1 = reinterpret_cast<const float *>(result1.dataPtr->data());
+  const float *data2 = reinterpret_cast<const float *>(result2.dataPtr->data());
+  size_t numFloats = result1.dataPtr->size() / sizeof(float);
 
   bool allEqual = true;
   for (size_t i = 0; i < numFloats; ++i) {
@@ -131,9 +131,9 @@ TEST(TextEmbeddingsGenerateTests, SimilarTextProducesSimilarEmbeddings) {
   auto result1 = model.generate("I love programming");
   auto result2 = model.generate("I enjoy coding");
 
-  const float *data1 = reinterpret_cast<const float *>(result1->data());
-  const float *data2 = reinterpret_cast<const float *>(result2->data());
-  size_t numFloats = result1->size() / sizeof(float);
+  const float *data1 = reinterpret_cast<const float *>(result1.dataPtr->data());
+  const float *data2 = reinterpret_cast<const float *>(result2.dataPtr->data());
+  size_t numFloats = result1.dataPtr->size() / sizeof(float);
 
   float dotProduct = 0.0f;
   for (size_t i = 0; i < numFloats; ++i) {

@@ -1207,11 +1207,9 @@ export const LFM2_5_EMBEDDING_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-embedding-3
 // [S,128]). Same bidirectional backbone as the embedding model + a Linear
 // 1024->128 head. forward() returns per-token vectors; late-interaction
 // scoring (MaxSim) is the consumer's concern (see the colbert example).
-// NOTE: pinned to `resolve/main` for testing — the v0.9.0 tag does not exist
-// on this repo yet. Switch to `${PREVIOUS_VERSION_TAG}` once the tag is cut.
-export const LFM2_5_COLBERT_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/resolve/main/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`;
-export const LFM2_5_COLBERT_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/resolve/main/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`;
-export const LFM2_5_COLBERT_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-colbert-350m/resolve/main/tokenizer.json`;
+export const LFM2_5_COLBERT_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_COLBERT_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`;
+export const LFM2_5_COLBERT_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 
 /**
  * @category Models - Text Embeddings

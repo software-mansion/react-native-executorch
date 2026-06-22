@@ -20,6 +20,11 @@ export function toVector(result: EmbeddingResult): Float32Array {
  * (`numTokens` arrays of length `embeddingDim`). Useful for inspecting or
  * storing individual token vectors (e.g. a multi-vector vector DB).
  *
+ * The rows are zero-copy `subarray` VIEWS over `result.vectors` — valid only
+ * while that buffer is alive and not mutated. Copy them (e.g. `new
+ * Float32Array(row)`) before storing beyond the result's lifetime. (`toVector`
+ * by contrast returns an independent copy.)
+ *
  * @category Utils
  */
 export function getTokenVectors(result: EmbeddingResult): Float32Array[] {

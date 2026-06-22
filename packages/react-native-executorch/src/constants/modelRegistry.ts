@@ -198,7 +198,6 @@ function pair<D extends { modelName: string }, Q extends { modelName: string }>(
   return variant({ xnnpack: { base: baseC, quant: quantC } });
 }
 
-
 // TTS presets bundle model + voice + phonemizer in a single config; they
 // don't share the `{ modelName: string }` shape of the rest of the registry,
 // and have no quant/backend axis. Expose them as a plain `() => Config`
