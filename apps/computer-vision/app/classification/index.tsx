@@ -4,7 +4,7 @@ import { commonStyles, ColorPalette } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { getImage, prepareImage } from '../../utils';
+import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -48,9 +48,8 @@ function ClassificationContent() {
   const handlePickImage = async (useCamera: boolean) => {
     setError(null);
     try {
-      const asset = await getImage(useCamera);
-      if (asset?.uri) {
-        const uri = await prepareImage(asset.uri);
+      const uri = await getImage(useCamera);
+      if (uri) {
         setImageUri(uri);
         setResults([]);
         setLatency(null);

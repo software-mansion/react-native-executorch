@@ -3,8 +3,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 export const getImage = async (
-  useCamera: boolean
-): Promise<ImagePicker.ImagePickerAsset | undefined> => {
+  useCamera: boolean,
+  targetWidth = 800
+): Promise<string | undefined> => {
   const permissionResult = useCamera
     ? await ImagePicker.requestCameraPermissionsAsync()
     : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,14 +34,13 @@ export const getImage = async (
     return;
   }
 
-  return pickerResult.assets[0];
-};
-
-export const prepareImage = async (uri: string, targetWidth = 800): Promise<string> => {
-  let imageRef = await ImageManipulator.manipulate(uri).renderAsync();
+  const asset = pickerResult.assets[0];
+  let imageRef = await ImageManipulator.manipulate(asset.uri).renderAsync();
 
   if (imageRef.width > targetWidth) {
-    imageRef = await ImageManipulator.manipulate(uri).resize({ width: targetWidth }).renderAsync();
+    imageRef = await ImageManipulator.manipulate(asset.uri)
+      .resize({ width: targetWidth })
+      .renderAsync();
   }
 
   const result = await imageRef.saveAsync({ format: SaveFormat.PNG });
