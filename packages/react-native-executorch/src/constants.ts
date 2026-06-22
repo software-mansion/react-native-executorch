@@ -1006,7 +1006,41 @@ export const IMAGENET1K_LABELS = [
 ] as const;
 
 /**
+ * Pascal VOC dataset label array containing the 21 categories.
+ * @category Constants
+ */
+export const PASCAL_VOC_LABELS = [
+  'background',
+  'aeroplane',
+  'bicycle',
+  'bird',
+  'boat',
+  'bottle',
+  'bus',
+  'car',
+  'cat',
+  'chair',
+  'cow',
+  'diningtable',
+  'dog',
+  'horse',
+  'motorbike',
+  'person',
+  'pottedplant',
+  'sheep',
+  'sofa',
+  'train',
+  'tvmonitor',
+] as const;
+
+/**
  * Type representing a valid ImageNet 1K label string.
  * @category Types
  */
 export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];
+
+/**
+ * Type representing a valid Pascal VOC label string.
+ * @category Types
+ */
+export type PascalVocLabel = (typeof PASCAL_VOC_LABELS)[number];

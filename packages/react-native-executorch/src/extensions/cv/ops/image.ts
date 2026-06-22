@@ -175,3 +175,22 @@ export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Te
   } as const;
   return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...opts });
 }
+
+/**
+ * Applies a colormap to a 2D single-channel image tensor, mapping class indices
+ * to RGBA colors.
+ * @category Typescript API
+ * @param src The source index/mask tensor (int32).
+ * @param dst The pre-allocated destination tensor (uint8, 4 channels).
+ * @param colormap An array of RGBA color arrays corresponding to the class
+ * indices.
+ * @returns The destination tensor with applied colormap.
+ */
+export function applyColormap(
+  src: Tensor,
+  dst: Tensor,
+  colormap: [number, number, number, number][]
+): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
+}
