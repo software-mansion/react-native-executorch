@@ -260,6 +260,64 @@ const GEMMA4_E2B_MM_VARIANTS = {
   },
 };
 
+const LFM2_5_350M_VARIANTS = {
+  mlx: { base: { ...M.LFM2_5_350M, modelSource: M.LFM2_5_350M_MLX_MODEL } },
+  xnnpack: { base: M.LFM2_5_350M, quant: M.LFM2_5_350M_QUANTIZED },
+};
+
+const LFM2_5_1_2B_INSTRUCT_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_1_2B_INSTRUCT,
+      modelSource: M.LFM2_5_1_2B_INSTRUCT_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: M.LFM2_5_1_2B_INSTRUCT,
+    quant: M.LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+  },
+};
+
+const LFM2_5_VL_1_6B_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_VL_1_6B_QUANTIZED,
+      modelSource: M.LFM2_5_VL_1_6B_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.LFM2_5_VL_1_6B_QUANTIZED },
+};
+
+const LFM2_5_VL_450M_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_VL_450M_QUANTIZED,
+      modelSource: M.LFM2_5_VL_450M_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.LFM2_5_VL_450M_QUANTIZED },
+};
+
+const PRIVACY_FILTER_OPENAI_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.PRIVACY_FILTER_OPENAI,
+      modelSource: M.PRIVACY_FILTER_OPENAI_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.PRIVACY_FILTER_OPENAI },
+};
+
+const PRIVACY_FILTER_NEMOTRON_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.PRIVACY_FILTER_NEMOTRON,
+      modelSource: M.PRIVACY_FILTER_NEMOTRON_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.PRIVACY_FILTER_NEMOTRON },
+};
+
 const EFFICIENTNET_V2_S_VARIANTS = {
   xnnpack: {
     base: {
@@ -594,11 +652,10 @@ export const models = {
     smollm2_1_360m: pair(M.SMOLLM2_1_360M, M.SMOLLM2_1_360M_QUANTIZED),
     smollm2_1_1_7b: pair(M.SMOLLM2_1_1_7B, M.SMOLLM2_1_1_7B_QUANTIZED),
     phi_4_mini_4b: pair(M.PHI_4_MINI_4B, M.PHI_4_MINI_4B_QUANTIZED),
-    lfm2_5_350m: pair(M.LFM2_5_350M, M.LFM2_5_350M_QUANTIZED),
-    lfm2_5_1_2b_instruct: pair(
-      M.LFM2_5_1_2B_INSTRUCT,
-      M.LFM2_5_1_2B_INSTRUCT_QUANTIZED
-    ),
+    lfm2_5_350m: variant(LFM2_5_350M_VARIANTS, { ios: 'mlx' }),
+    lfm2_5_1_2b_instruct: variant(LFM2_5_1_2B_INSTRUCT_VARIANTS, {
+      ios: 'mlx',
+    }),
     bielik_v3_0_1_5b: pair(M.BIELIK_V3_0_1_5B, M.BIELIK_V3_0_1_5B_QUANTIZED),
     gemma4_e2b: variant(GEMMA4_E2B_VARIANTS, {
       ios: 'mlx',
@@ -606,8 +663,8 @@ export const models = {
     }),
     // Multimodal LLMs — same hook/module as plain LLMs, listed here so users
     // pick a model by capability ("LLM") rather than by modality.
-    lfm2_5_vl_1_6b: base(M.LFM2_5_VL_1_6B_QUANTIZED),
-    lfm2_5_vl_450m: base(M.LFM2_5_VL_450M_QUANTIZED),
+    lfm2_5_vl_1_6b: variant(LFM2_5_VL_1_6B_VARIANTS, { ios: 'mlx' }),
+    lfm2_5_vl_450m: variant(LFM2_5_VL_450M_VARIANTS, { ios: 'mlx' }),
     gemma4_e2b_multimodal: variant(GEMMA4_E2B_MM_VARIANTS, {
       ios: 'mlx',
       android: 'vulkan',
@@ -617,8 +674,8 @@ export const models = {
     efficientnet_v2_s: variant(EFFICIENTNET_V2_S_VARIANTS),
   },
   privacy_filter: {
-    openai: base(M.PRIVACY_FILTER_OPENAI),
-    nemotron: base(M.PRIVACY_FILTER_NEMOTRON),
+    openai: variant(PRIVACY_FILTER_OPENAI_VARIANTS, { ios: 'mlx' }),
+    nemotron: variant(PRIVACY_FILTER_NEMOTRON_VARIANTS, { ios: 'mlx' }),
   },
   object_detection: {
     ssdlite_320_mobilenet_v3_large: variant(

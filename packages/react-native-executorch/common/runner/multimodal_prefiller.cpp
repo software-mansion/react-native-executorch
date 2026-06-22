@@ -24,6 +24,20 @@ using ::executorch::runtime::Error;
 using ::executorch::runtime::EValue;
 using ::executorch::runtime::Result;
 
+namespace {
+// Element-wise convert `count` values from `src` (Src) into the raw byte
+// buffer `dst` (interpreted as Dst). Used to splice an image-embed tensor of
+// one dtype into the fused-embeds buffer of another.
+template <typename Src, typename Dst>
+void castCopy(const void *src, uint8_t *dst, size_t count) {
+  const auto *s = static_cast<const Src *>(src);
+  auto *d = reinterpret_cast<Dst *>(dst);
+  for (size_t i = 0; i < count; ++i) {
+    d[i] = static_cast<Dst>(s[i]);
+  }
+}
+} // namespace
+
 MultimodalPrefiller::MultimodalPrefiller(
     Module &module, MultimodalDecoderRunner &decoder_runner,
     tokenizers::HFTokenizer &tokenizer,
@@ -186,24 +200,23 @@ bool MultimodalPrefiller::get_enable_dynamic_shape() const {
   uint8_t *dst = embeds_buf.data() + static_cast<size_t>(slot.slot_start) *
                                          static_cast<size_t>(hidden) *
                                          embeds_elem_size;
+  using ::executorch::aten::ScalarType;
+  const void *src = vision_tensor.const_data_ptr();
   if (vision_dtype == embeds_dtype) {
-    const uint8_t *src =
-        static_cast<const uint8_t *>(vision_tensor.const_data_ptr());
     std::memcpy(dst, src, visual_elems * embeds_elem_size);
-  } else if (vision_dtype == ::executorch::aten::ScalarType::Float &&
-             embeds_dtype == ::executorch::aten::ScalarType::Half) {
-    const float *src = vision_tensor.const_data_ptr<float>();
-    auto *dst_h = reinterpret_cast<::executorch::aten::Half *>(dst);
-    for (size_t i = 0; i < visual_elems; ++i) {
-      dst_h[i] = ::executorch::aten::Half(src[i]);
-    }
-  } else if (vision_dtype == ::executorch::aten::ScalarType::Half &&
-             embeds_dtype == ::executorch::aten::ScalarType::Float) {
-    const auto *src = vision_tensor.const_data_ptr<::executorch::aten::Half>();
-    auto *dst_f = reinterpret_cast<float *>(dst);
-    for (size_t i = 0; i < visual_elems; ++i) {
-      dst_f[i] = static_cast<float>(src[i]);
-    }
+  } else if (vision_dtype == ScalarType::Float &&
+             embeds_dtype == ScalarType::Half) {
+    castCopy<float, ::executorch::aten::Half>(src, dst, visual_elems);
+  } else if (vision_dtype == ScalarType::Half &&
+             embeds_dtype == ScalarType::Float) {
+    castCopy<::executorch::aten::Half, float>(src, dst, visual_elems);
+  } else if (vision_dtype == ScalarType::Float &&
+             embeds_dtype == ScalarType::BFloat16) {
+    // Hybrid VLM: fp32 vision encoder (e.g. XNNPACK) + bf16 decoder embeds.
+    castCopy<float, ::executorch::aten::BFloat16>(src, dst, visual_elems);
+  } else if (vision_dtype == ScalarType::BFloat16 &&
+             embeds_dtype == ScalarType::Float) {
+    castCopy<::executorch::aten::BFloat16, float>(src, dst, visual_elems);
   } else {
     ET_CHECK_OR_RETURN_ERROR(
         false, InvalidState,
