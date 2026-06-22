@@ -1,4 +1,5 @@
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
+import type { TokenizerConfig } from './extensions/nlp/tasks/tokenizer';
 import { IMAGENET1K_LABELS, type ImageNet1KLabel } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -27,6 +28,13 @@ const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
   classifierOpts: EFFICIENTNET_V2_S_OPTS,
 };
 
+// =============================================================================
+// Tokenizers
+// =============================================================================
+const ALL_MINILM_L6_V2_TOKENIZER: TokenizerConfig = {
+  tokenizerPath: `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`,
+};
+
 /**
  * Registry of pre-configured ExecuTorch models.
  *
@@ -43,5 +51,8 @@ export const models = {
       XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
     },
+  },
+  tokenizer: {
+    ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
   },
 };

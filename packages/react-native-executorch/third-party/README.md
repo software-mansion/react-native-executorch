@@ -5,7 +5,10 @@ Native ExecuTorch binaries and headers are **not** committed to this branch.
 The core package's `android/CMakeLists.txt` and `react-native-executorch.podspec`
 expect ExecuTorch artifacts under this directory:
 
-- `include/` — ExecuTorch + c10 + torch headers
+- `include/` — ExecuTorch + c10 + torch headers, including the `pytorch/tokenizers`
+  headers under `include/executorch/extension/llm/tokenizers/include` (used by the
+  nlp/tokenizer extension; the `tokenizers::HFTokenizer` symbols resolve from
+  `libexecutorch`, which is built with the llm/tokenizers extension)
 - `android/jniLibs/<abi>/libexecutorch.so`, `android/libs/executorch.jar`
 - `ios/Frameworks/ExecutorchLib.xcframework`
 
