@@ -184,14 +184,13 @@ export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Te
  * up its corresponding RGBA color in the provided colormap palette, and writes
  * it to the destination tensor.
  * @category Typescript API
- * @param src The source index/mask tensor. Must be a tensor of shape `[H, W,
- * 1]` (or `[H, W]`) and `int32` dtype containing class indices.
+ * @param src The source index/mask tensor. Must be an integer tensor of `int32`
+ * dtype containing class indices. Shape `[H, W, 1]` (or `[H, W]`).
  * @param dst The pre-allocated destination tensor to write the mapped RGBA
- * values to. Must be a 3D image tensor in HWC layout of shape `[H, W, 4]` and
- * `uint8` dtype.
- * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to
- * each class index. The size of this list must cover all class indices present
- * in `src`.
+ * values to. Must be a 3D image tensor in HWC layout and `uint8` dtype. Shape
+ * `[H, W, 4]`.
+ * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to each
+ * class index. The size of this list must cover all class indices present in `src`.
  * @returns The destination tensor with the applied colormap.
  */
 export function applyColormap(

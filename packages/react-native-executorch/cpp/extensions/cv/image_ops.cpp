@@ -622,6 +622,13 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
         }
 
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "applyColormap: src must be a Tensor");
+        }
+        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "applyColormap: dst must be a Tensor");
+        }
+
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
 
@@ -635,15 +642,29 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
         }
 
+        if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
+            throw jsi::JSError(rt, "applyColormap: colormap must be an array");
+        }
+
         auto colormapArray = args[2].asObject(rt).asArray(rt);
         size_t numColors = colormapArray.size(rt);
         std::vector<std::array<uint8_t, 4>> lut(numColors);
         for (size_t i = 0; i < numColors; ++i) {
-            auto color = colormapArray.getValueAtIndex(rt, i).asObject(rt).asArray(rt);
-            lut[i][0] = color.getValueAtIndex(rt, 0).asNumber();
-            lut[i][1] = color.getValueAtIndex(rt, 1).asNumber();
-            lut[i][2] = color.getValueAtIndex(rt, 2).asNumber();
-            lut[i][3] = color.getValueAtIndex(rt, 3).asNumber();
+            auto colorVal = colormapArray.getValueAtIndex(rt, i);
+            if (!colorVal.isObject() || !colorVal.asObject(rt).isArray(rt)) {
+                throw jsi::JSError(rt, "applyColormap: colormap entry must be an array");
+            }
+            auto color = colorVal.asObject(rt).asArray(rt);
+            if (color.size(rt) != 4) {
+                throw jsi::JSError(rt, "applyColormap: colormap entry must be an RGBA color array of size 4");
+            }
+            for (size_t c = 0; c < 4; ++c) {
+                auto channelVal = color.getValueAtIndex(rt, c);
+                if (!channelVal.isNumber()) {
+                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
+                }
+                lut[i][c] = static_cast<uint8_t>(channelVal.asNumber());
+            }
         }
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
