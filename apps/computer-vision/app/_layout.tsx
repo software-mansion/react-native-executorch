@@ -1,5 +1,5 @@
 import { Drawer } from 'expo-router/drawer';
-import ColorPalette from '../colors';
+import { ColorPalette } from '../theme';
 import React from 'react';
 
 export default function Layout() {

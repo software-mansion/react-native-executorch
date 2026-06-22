@@ -1,0 +1,309 @@
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
+index 33ff739..aa1fee2 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
+@@ -400,6 +400,18 @@ jsi::Object JSIWorkletsModuleProxy::toOptimizedObject(jsi::Runtime &rt) const {
+         return makeSerializableRegExp(rt, pattern, flags);
+       });
+ 
++  jsi_utils::addMethod<4>(
++      rt,
++      obj,
++      "createSerializableArrayBufferView",
++      [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value(&args)[4]) {
++        auto typeName = at<0>(args).getString(rt).utf8(rt);
++        auto arrayBuffer = at<1>(args).getObject(rt).getArrayBuffer(rt);
++        auto byteOffset = static_cast<size_t>(at<2>(args).asNumber());
++        auto length = static_cast<size_t>(at<3>(args).asNumber());
++        return makeSerializableArrayBuffer(rt, arrayBuffer, typeName, byteOffset, length);
++      });
++
+   jsi_utils::addMethod<2>(
+       rt, obj, "createSerializableWorklet", [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value(&args)[2]) {
+         return makeSerializableWorklet(rt, at<0>(args).getObject(rt), at<1>(args).getBool());
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
+index 3114a09..26cc787 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
+@@ -160,7 +160,12 @@ jsi::Value SerializableArrayBuffer::toJSValue(jsi::Runtime &rt) {
+   auto arrayBuffer =
+       rt.global().getPropertyAsFunction(rt, "ArrayBuffer").callAsConstructor(rt, size).getObject(rt).getArrayBuffer(rt);
+   memcpy(arrayBuffer.data(rt), data_.data(), size);
+-  return arrayBuffer;
++  if (typeName_.empty()) {
++    return arrayBuffer;
++  }
++
++  auto constructor = rt.global().getPropertyAsFunction(rt, typeName_.c_str());
++  return constructor.callAsConstructor(rt, arrayBuffer, static_cast<double>(byteOffset_), static_cast<double>(length_));
+ }
+ 
+ SerializableObject::SerializableObject(jsi::Runtime &rt, const jsi::Object &object)
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
+index 4194097..f397b2b 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
+@@ -251,9 +251,24 @@ class SerializableArrayBuffer : public Serializable {
+       : Serializable(ValueType::ArrayBufferType),
+         data_(arrayBuffer.data(rt), arrayBuffer.data(rt) + arrayBuffer.size(rt)) {}
+ 
++  SerializableArrayBuffer(
++      jsi::Runtime &rt,
++      const jsi::ArrayBuffer &arrayBuffer,
++      const std::string &typeName,
++      size_t byteOffset,
++      size_t length)
++      : Serializable(ValueType::ArrayBufferType),
++        typeName_(typeName),
++        byteOffset_(byteOffset),
++        length_(length),
++        data_(arrayBuffer.data(rt), arrayBuffer.data(rt) + arrayBuffer.size(rt)) {}
++
+   jsi::Value toJSValue(jsi::Runtime &rt) override;
+ 
+  protected:
++  const std::string typeName_;
++  const size_t byteOffset_{0};
++  const size_t length_{0};
+   const std::vector<uint8_t> data_;
+ };
+ 
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
+index 97b0787..62bd3b7 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
+@@ -89,8 +89,19 @@ jsi::Value makeSerializableArray(jsi::Runtime &rt, const jsi::Array &array, cons
+   return SerializableJSRef::newNativeStateObject(rt, serializable);
+ }
+ 
+-jsi::Value makeSerializableArrayBuffer(jsi::Runtime &rt, const jsi::ArrayBuffer &arrayBuffer) {
+-  auto serializable = std::make_shared<SerializableArrayBuffer>(rt, arrayBuffer);
++jsi::Value makeSerializableArrayBuffer(
++    jsi::Runtime &rt,
++    const jsi::ArrayBuffer &arrayBuffer,
++    std::optional<std::string> typeName,
++    std::optional<size_t> byteOffset,
++    std::optional<size_t> length) {
++  std::shared_ptr<SerializableArrayBuffer> serializable;
++  if (typeName.has_value()) {
++    serializable = std::make_shared<SerializableArrayBuffer>(
++        rt, arrayBuffer, *typeName, byteOffset.value_or(0), length.value_or(0));
++  } else {
++    serializable = std::make_shared<SerializableArrayBuffer>(rt, arrayBuffer);
++  }
+   return SerializableJSRef::newNativeStateObject(rt, serializable);
+ }
+ 
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
+index a7ce5ef..ca1c67d 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
+@@ -4,6 +4,7 @@
+ #include <worklets/SharedItems/Serializable.h>
+ 
+ #include <memory>
++#include <optional>
+ #include <string>
+ 
+ namespace worklets {
+@@ -37,7 +38,12 @@ jsi::Value makeSerializableHostObject(jsi::Runtime &rt, const std::shared_ptr<js
+ 
+ jsi::Value makeSerializableArray(jsi::Runtime &rt, const jsi::Array &array, const jsi::Value &shouldRetainRemote);
+ 
+-jsi::Value makeSerializableArrayBuffer(jsi::Runtime &rt, const jsi::ArrayBuffer &arrayBuffer);
++jsi::Value makeSerializableArrayBuffer(
++    jsi::Runtime &rt,
++    const jsi::ArrayBuffer &arrayBuffer,
++    std::optional<std::string> typeName = std::nullopt,
++    std::optional<size_t> byteOffset = std::nullopt,
++    std::optional<size_t> length = std::nullopt);
+ 
+ jsi::Value makeSerializableMap(jsi::Runtime &rt, const jsi::Array &keys, const jsi::Array &values);
+ 
+diff --git a/node_modules/react-native-worklets/lib/module/WorkletsModule/NativeWorklets.native.js b/node_modules/react-native-worklets/lib/module/WorkletsModule/NativeWorklets.native.js
+index e55cd53..4245408 100644
+--- a/node_modules/react-native-worklets/lib/module/WorkletsModule/NativeWorklets.native.js
++++ b/node_modules/react-native-worklets/lib/module/WorkletsModule/NativeWorklets.native.js
+@@ -93,6 +93,9 @@ See https://docs.swmansion.com/react-native-worklets/docs/guides/troubleshooting
+   createSerializableRegExp(pattern, flags) {
+     return this.#workletsModuleProxy.createSerializableRegExp(pattern, flags);
+   }
++  createSerializableArrayBufferView(typeName, buffer, byteOffset, length) {
++    return this.#workletsModuleProxy.createSerializableArrayBufferView(typeName, buffer, byteOffset, length);
++  }
+   createSerializableInitializer(obj) {
+     return this.#workletsModuleProxy.createSerializableInitializer(obj);
+   }
+diff --git a/node_modules/react-native-worklets/lib/module/memory/serializable.native.js b/node_modules/react-native-worklets/lib/module/memory/serializable.native.js
+index d0131ff..f7c60c2 100644
+--- a/node_modules/react-native-worklets/lib/module/memory/serializable.native.js
++++ b/node_modules/react-native-worklets/lib/module/memory/serializable.native.js
+@@ -432,24 +432,14 @@ function cloneArrayBuffer(arrayBuffer) {
+   return clone;
+ }
+ function cloneArrayBufferView(value) {
+-  const buffer = value.buffer;
+   const typeName = value.constructor.name;
+-  const handle = cloneInitializer({
+-    __init: () => {
+-      'worklet';
+-
+-      if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
+-        throw new Error(`[Worklets] Invalid array view name \`${typeName}\`.`);
+-      }
+-      const constructor = global[typeName];
+-      if (constructor === undefined) {
+-        throw new Error(`[Worklets] Constructor for \`${typeName}\` not found.`);
+-      }
+-      return new constructor(buffer);
+-    }
+-  });
+-  serializableMappingCache.set(value, handle);
+-  return handle;
++  if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
++    throw new Error(`[Worklets] Invalid array view name \`${typeName}\`.`);
++  }
++  const length = typeName === 'DataView' ? value.byteLength : value.length;
++  const clone = WorkletsModule.createSerializableArrayBufferView(typeName, value.buffer, value.byteOffset, length);
++  serializableMappingCache.set(value, clone);
++  return clone;
+ }
+ function cloneSynchronizable(value) {
+   serializableMappingCache.set(value);
+@@ -575,6 +565,17 @@ function makeShareableCloneOnUIRecursiveLEGACY(value) {
+       if (value instanceof RegExp) {
+         return globalThis.__workletsModuleProxy.createSerializableRegExp(value.source, value.flags);
+       }
++      if (value instanceof ArrayBuffer) {
++        return globalThis.__workletsModuleProxy.createSerializableArrayBuffer(value);
++      }
++      if (ArrayBuffer.isView(value)) {
++        const typeName = value.constructor.name;
++        if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
++          throw new Error(`[Worklets] Invalid array view name \`${typeName}\`.`);
++        }
++        const length = typeName === 'DataView' ? value.byteLength : value.length;
++        return globalThis.__workletsModuleProxy.createSerializableArrayBufferView(typeName, value.buffer, value.byteOffset, length);
++      }
+       if (value instanceof Map) {
+         const keys = [];
+         const values = [];
+diff --git a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts b/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
+index 778a677..0a21bac 100644
+--- a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
++++ b/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
+@@ -168,6 +168,20 @@ See https://docs.swmansion.com/react-native-worklets/docs/guides/troubleshooting
+     return this.#workletsModuleProxy.createSerializableRegExp(pattern, flags);
+   }
+ 
++  createSerializableArrayBufferView<TValue extends ArrayBufferView>(
++    typeName: string,
++    buffer: ArrayBuffer,
++    byteOffset: number,
++    length: number
++  ): SerializableRef<TValue> {
++    return this.#workletsModuleProxy.createSerializableArrayBufferView<TValue>(
++      typeName,
++      buffer,
++      byteOffset,
++      length
++    );
++  }
++
+   createSerializableInitializer(obj: object) {
+     return this.#workletsModuleProxy.createSerializableInitializer(obj);
+   }
+diff --git a/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts b/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
+index d545482..5cc7ff0 100644
+--- a/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
++++ b/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
+@@ -92,6 +92,13 @@ export interface WorkletsModuleProxy {
+     flags: string
+   ): SerializableRef<RegExp>;
+ 
++  createSerializableArrayBufferView<TValue extends ArrayBufferView>(
++    typeName: string,
++    buffer: ArrayBuffer,
++    byteOffset: number,
++    length: number
++  ): SerializableRef<TValue>;
++
+   createSerializableInitializer(obj: object): SerializableRef<object>;
+ 
+   createSerializableNonWorkletFunction<TArgs extends unknown[], TReturn>(
+diff --git a/node_modules/react-native-worklets/src/memory/serializable.native.ts b/node_modules/react-native-worklets/src/memory/serializable.native.ts
+index fd73c6b..ef23281 100644
+--- a/node_modules/react-native-worklets/src/memory/serializable.native.ts
++++ b/node_modules/react-native-worklets/src/memory/serializable.native.ts
+@@ -639,26 +639,22 @@ function cloneArrayBuffer(
+ function cloneArrayBufferView<TValue extends ArrayBufferView>(
+   value: TValue
+ ): SerializableRef<TValue> {
+-  const buffer = value.buffer;
+   const typeName = value.constructor.name;
+-  const handle = cloneInitializer({
+-    __init: () => {
+-      'worklet';
+-      if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
+-        throw new Error(`[Worklets] Invalid array view name \`${typeName}\`.`);
+-      }
+-      const constructor = global[typeName as keyof typeof global];
+-      if (constructor === undefined) {
+-        throw new Error(
+-          `[Worklets] Constructor for \`${typeName}\` not found.`
+-        );
+-      }
+-      return new constructor(buffer);
+-    },
+-  }) as unknown as SerializableRef<TValue>;
+-  serializableMappingCache.set(value, handle);
+-
+-  return handle;
++  if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
++    throw new Error(`[Worklets] Invalid array view name \`${typeName}\`.`);
++  }
++  const length =
++    typeName === 'DataView'
++      ? value.byteLength
++      : (value as unknown as { length: number }).length;
++  const clone = WorkletsModule.createSerializableArrayBufferView<TValue>(
++    typeName,
++    value.buffer as ArrayBuffer,
++    value.byteOffset,
++    length
++  );
++  serializableMappingCache.set(value, clone);
++  return clone;
+ }
+ 
+ function cloneSynchronizable<TValue>(
+@@ -821,6 +817,29 @@ function makeShareableCloneOnUIRecursiveLEGACY<TValue>(
+           value.flags
+         ) as FlatSerializableRef<TValue>;
+       }
++      if (value instanceof ArrayBuffer) {
++        return globalThis.__workletsModuleProxy.createSerializableArrayBuffer(
++          value
++        ) as FlatSerializableRef<TValue>;
++      }
++      if (ArrayBuffer.isView(value)) {
++        const typeName = value.constructor.name;
++        if (!VALID_ARRAY_VIEWS_NAMES.includes(typeName)) {
++          throw new Error(
++            `[Worklets] Invalid array view name \`${typeName}\`.`
++          );
++        }
++        const length =
++          typeName === 'DataView'
++            ? value.byteLength
++            : (value as unknown as { length: number }).length;
++        return globalThis.__workletsModuleProxy.createSerializableArrayBufferView(
++          typeName,
++          value.buffer as ArrayBuffer,
++          value.byteOffset,
++          length
++        ) as FlatSerializableRef<TValue>;
++      }
+       if (value instanceof Map) {
+         const keys: unknown[] = [];
+         const values: unknown[] = [];
