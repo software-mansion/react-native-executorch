@@ -15,23 +15,18 @@ import { useIsFocused } from 'expo-router';
 import {
   models,
   useTextEmbeddings,
-  maxSim,
   EmbeddingResult,
 } from 'react-native-executorch';
 import ColorPalette from '../../colors';
 import ErrorBanner from '../../components/ErrorBanner';
+import { maxSim } from '../../utils/math';
 
 const colbertModel = models.text_embedding.lfm2_5_colbert_350m();
 
-// The library auto-applies the model's [Q]/[D] prompts via forward(text, role).
-// Late-interaction MaxSim is a shipped util; the document skiplist (punctuation
-// token ids excluded from scoring) is the consumer's choice — these are the
-// LFM2.5-ColBERT skiplist ids.
-const SKIPLIST = [
-  510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524,
-  535, 536, 537, 538, 539, 540, 541, 568, 569, 570, 571, 572, 573, 600, 601,
-  602, 603,
-];
+// The library auto-applies the model's [Q]/[D] prompts via forward(text, role)
+// and ships the document skiplist on the model config; we just pass it to the
+// shipped MaxSim util.
+const SKIPLIST = colbertModel.skiplistIds ?? [];
 
 const CORPUS: string[] = [
   'The forecast says heavy showers this afternoon.',

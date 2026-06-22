@@ -66,6 +66,13 @@ export interface TextEmbeddingsModel {
   tokenizerSource: ResourceSource;
   prompts?: EmbeddingPrompts;
   multiVector?: boolean;
+  /**
+   * Document token ids to exclude from late-interaction scoring (e.g. ColBERT's
+   * punctuation skiplist). Derived from the model's training config, so it's
+   * shipped here rather than reconstructed by the consumer, who passes it to
+   * their own MaxSim scoring.
+   */
+  skiplistIds?: number[];
 }
 
 /**
