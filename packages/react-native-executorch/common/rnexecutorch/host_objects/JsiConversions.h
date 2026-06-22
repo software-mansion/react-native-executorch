@@ -17,6 +17,7 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
+#include <rnexecutorch/models/embeddings/Types.h>
 #include <rnexecutorch/models/instance_segmentation/Types.h>
 #include <rnexecutorch/models/llm/Types.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
@@ -703,6 +704,35 @@ getJsiValue(const models::style_transfer::PixelDataResult &result,
 
   obj.setProperty(runtime, "scalarType",
                   jsi::Value(static_cast<int32_t>(ScalarType::Byte)));
+
+  return obj;
+}
+
+// Text embedding output: a [numTokens, embeddingDim] fp32 matrix + input token
+// ids. Pooled models give numTokens == 1; multi-vector give the full sequence.
+// The TS layer reduces to a single vector or keeps the matrix per model config.
+inline jsi::Value
+getJsiValue(const models::embeddings::EmbeddingResult &result,
+            jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+
+  auto arrayBuffer = jsi::ArrayBuffer(runtime, result.dataPtr);
+  auto float32ArrayCtor =
+      runtime.global().getPropertyAsFunction(runtime, "Float32Array");
+  auto float32Array =
+      float32ArrayCtor.callAsConstructor(runtime, arrayBuffer)
+          .getObject(runtime);
+  obj.setProperty(runtime, "dataPtr", float32Array);
+
+  obj.setProperty(runtime, "numTokens", jsi::Value(result.numTokens));
+  obj.setProperty(runtime, "embeddingDim", jsi::Value(result.embeddingDim));
+
+  auto idsArray = jsi::Array(runtime, result.tokenIds.size());
+  for (size_t i = 0; i < result.tokenIds.size(); ++i) {
+    idsArray.setValueAtIndex(
+        runtime, i, jsi::Value(static_cast<double>(result.tokenIds[i])));
+  }
+  obj.setProperty(runtime, "tokenIds", idsArray);
 
   return obj;
 }

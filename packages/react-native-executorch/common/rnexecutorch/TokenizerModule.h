@@ -13,6 +13,12 @@ public:
                            std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<uint64_t>
   encode(std::string s) const;
+  // Like encode, but applies the tokenizer.json post_processor (e.g.
+  // TemplateProcessing that prepends BOS). Needed by models whose pooling
+  // depends on the BOS/CLS token (e.g. CLS-pooled text embeddings). Not JS-
+  // bound; encode() keeps its single-arg signature for the JS API.
+  [[nodiscard("Registered non-void function")]] std::vector<uint64_t>
+  encodeWithSpecialTokens(std::string s) const;
   [[nodiscard("Registered non-void function")]] std::string
   decode(std::vector<uint64_t> vec, bool skipSpecialTokens) const;
   [[nodiscard("Registered non-void function")]] std::string

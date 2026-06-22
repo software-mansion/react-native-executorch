@@ -109,6 +109,14 @@ export default function _layout() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="colbert/index"
+          options={{
+            drawerLabel: 'ColBERT search',
+            title: 'ColBERT search',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );

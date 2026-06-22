@@ -212,6 +212,7 @@ export * from './utils/ResourceFetcher';
 export * from './utils/ResourceFetcherUtils';
 export * from './utils/BaseResourceFetcherClass';
 export * from './utils/llm';
+export * from './utils/textEmbeddings';
 export * from './common/Logger';
 export * from './utils/llms/context_strategy';
 export * from './utils/segmentAnythingPrompts';

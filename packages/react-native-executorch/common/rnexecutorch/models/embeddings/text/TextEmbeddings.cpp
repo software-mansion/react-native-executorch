@@ -16,7 +16,10 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
-  auto inputIds = tokenizer->encode(input);
+  // Apply the tokenizer's post_processor so declared special tokens (e.g. a
+  // BOS prepended via TemplateProcessing) are added. CLS-pooled embedding
+  // models read position 0, so a missing BOS corrupts the pooled vector.
+  auto inputIds = tokenizer->encodeWithSpecialTokens(input);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
   std::vector<int64_t> inputIds64;
@@ -40,8 +43,7 @@ void TextEmbeddings::unload() noexcept {
   BaseModel::unload();
 }
 
-std::shared_ptr<OwningArrayBuffer>
-TextEmbeddings::generate(const std::string input) {
+EmbeddingResult TextEmbeddings::generate(const std::string input) {
   std::scoped_lock lock(inference_mutex_);
   auto preprocessed = preprocess(input);
 
@@ -58,7 +60,19 @@ TextEmbeddings::generate(const std::string input) {
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
-  return BaseEmbeddings::postprocess(forwardResult);
+  // Output is [1, numTokens, embeddingDim] (numTokens == 1 for pooled models,
+  // == sequence length for multi-vector models). Return the raw matrix + the
+  // input ids; the TS layer reduces to a single vector or keeps the matrix.
+  auto out = forwardResult->at(0).toTensor();
+  auto sizes = out.sizes();
+
+  EmbeddingResult result;
+  result.dataPtr = std::make_shared<OwningArrayBuffer>(out.const_data_ptr(),
+                                                       out.nbytes());
+  result.numTokens = static_cast<int32_t>(sizes[sizes.size() - 2]);
+  result.embeddingDim = static_cast<int32_t>(sizes[sizes.size() - 1]);
+  result.tokenIds = std::move(preprocessed.inputIds);
+  return result;
 }
 
 } // namespace rnexecutorch::models::embeddings

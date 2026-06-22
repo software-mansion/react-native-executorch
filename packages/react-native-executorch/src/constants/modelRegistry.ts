@@ -198,6 +198,7 @@ function pair<D extends { modelName: string }, Q extends { modelName: string }>(
   return variant({ xnnpack: { base: baseC, quant: quantC } });
 }
 
+
 // TTS presets bundle model + voice + phonemizer in a single config; they
 // don't share the `{ modelName: string }` shape of the rest of the registry,
 // and have no quant/backend axis. Expose them as a plain `() => Config`
@@ -257,6 +258,52 @@ const GEMMA4_E2B_MM_VARIANTS = {
   },
   xnnpack: {
     base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_XNNPACK_MM },
+  },
+};
+
+// Asymmetric query/document prompts the LFM models are trained with.
+// forward(text, role) auto-prepends these.
+const LFM_EMBEDDING_PROMPTS = { query: 'query: ', document: 'document: ' };
+const LFM_COLBERT_PROMPTS = { query: '[Q] ', document: '[D] ' };
+
+const LFM2_5_EMBEDDING_350M_VARIANTS = {
+  mlx: {
+    base: {
+      modelName: 'lfm2-5-embedding-350m' as const,
+      modelSource: M.LFM2_5_EMBEDDING_350M_MLX_MODEL,
+      tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
+      prompts: LFM_EMBEDDING_PROMPTS,
+    },
+  },
+  xnnpack: {
+    base: {
+      modelName: 'lfm2-5-embedding-350m' as const,
+      modelSource: M.LFM2_5_EMBEDDING_350M_XNNPACK_MODEL,
+      tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
+      prompts: LFM_EMBEDDING_PROMPTS,
+    },
+  },
+};
+
+// LFM2.5-ColBERT is a plain text-embedding model from the library's POV: it
+// returns per-token vectors. Late-interaction scoring (MaxSim / skiplist) is
+// the consumer's concern; the library only auto-applies the role prompts.
+const LFM2_5_COLBERT_350M_VARIANTS = {
+  mlx: {
+    base: {
+      modelName: 'lfm2-5-colbert-350m' as const,
+      modelSource: M.LFM2_5_COLBERT_350M_MLX_MODEL,
+      tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
+      prompts: LFM_COLBERT_PROMPTS,
+    },
+  },
+  xnnpack: {
+    base: {
+      modelName: 'lfm2-5-colbert-350m' as const,
+      modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
+      tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
+      prompts: LFM_COLBERT_PROMPTS,
+    },
   },
 };
 
@@ -742,6 +789,17 @@ export const models = {
       M.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED
     ),
     clip_vit_base_patch32_text: base(M.CLIP_VIT_BASE_PATCH32_TEXT),
+    lfm2_5_embedding_350m: variant(LFM2_5_EMBEDDING_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
+    // ColBERT (late-interaction): forward() returns per-token vectors. Scoring
+    // (markers / MaxSim / skiplist) is the consumer's concern — see the
+    // colbert example screen for a reference implementation.
+    lfm2_5_colbert_350m: variant(LFM2_5_COLBERT_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
   },
   image_embedding: {
     clip_vit_base_patch32_image: pair(

@@ -15,10 +15,13 @@ import { ModelPicker } from '../../components/ModelPicker';
 import {
   models,
   useTextEmbeddings,
+  toVector,
   TextEmbeddingsProps,
 } from 'react-native-executorch';
 const textEmbedding = models.text_embedding;
 
+// Single-vector (pooled) models: forward() returns the raw result; toVector()
+// gives the single embedding. The multi-vector ColBERT model has its own screen.
 type TextEmbeddingModel = TextEmbeddingsProps['model'];
 
 const MODELS: { label: string; value: TextEmbeddingModel }[] = [
@@ -43,6 +46,42 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
     label: 'Multilingual Paraphrase',
     value: textEmbedding.paraphrase_multilingual_minilm_l12_v2(),
   },
+  {
+    label: 'LFM2.5 Embedding XNNPACK',
+    value: textEmbedding.lfm2_5_embedding_350m({ backend: 'xnnpack' }),
+  },
+  {
+    label: 'LFM2.5 Embedding MLX',
+    value: textEmbedding.lfm2_5_embedding_350m({ backend: 'mlx' }),
+  },
+];
+
+// A multi-topic corpus so semantic ranking is visible: a weather query should
+// float the weather lines to the top and push sports/cooking/tech down, even
+// with no shared keywords.
+const CORPUS: string[] = [
+  'The forecast says heavy showers this afternoon.',
+  "It's so sunny outside today!",
+  'A thick fog rolled in over the harbor at dawn.',
+  'The home team scored in the final minute to win the match.',
+  'She sprinted the last lap and broke the national record.',
+  'Fans packed the stadium for the championship game.',
+  'Simmer the tomatoes with garlic before adding the pasta.',
+  'He whisked the eggs and folded in the melted chocolate.',
+  'The new phone has a faster chip and a brighter screen.',
+  'Our servers crashed under the sudden spike in traffic.',
+  'The flight to Tokyo was delayed by three hours.',
+  'We hiked along the coast and camped near the cliffs.',
+];
+
+// Tap-to-run example queries. Natural-language questions — how these models
+// are trained to be queried — give the cleanest separation.
+const EXAMPLE_QUERIES: string[] = [
+  "What's the weather like?",
+  'Who won the match?',
+  'Tell me about the latest technology',
+  'How do I cook dinner?',
+  'Where did they travel?',
 ];
 import { useIsFocused } from 'expo-router';
 import { dotProduct } from '../../utils/math';
@@ -54,6 +93,8 @@ export default function TextEmbeddingsScreenWrapper() {
   return isFocused ? <TextEmbeddingsScreen /> : null;
 }
 
+type RankedResult = { sentence: string; similarity: number };
+
 function TextEmbeddingsScreen() {
   const [selectedModel, setSelectedModel] = useState<TextEmbeddingModel>(
     textEmbedding.all_minilm_l6_v2()
@@ -61,88 +102,70 @@ function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({ model: selectedModel });
   const [error, setError] = useState<string | null>(null);
 
-  const [inputSentence, setInputSentence] = useState('');
-  const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
+  const [query, setQuery] = useState('');
+  const [corpusEmbeddings, setCorpusEmbeddings] = useState<
     { sentence: string; embedding: Float32Array }[]
   >([]);
-  const [topMatches, setTopMatches] = useState<
-    { sentence: string; similarity: number }[]
-  >([]);
+  const [results, setResults] = useState<RankedResult[]>([]);
   const [embeddingTime, setEmbeddingTime] = useState<number | null>(null);
+  const [indexing, setIndexing] = useState(false);
 
+  // Embed the whole corpus once the model is ready (re-runs on model change so
+  // prefixes / weights match the active model).
   useEffect(
     () => {
-      const computeEmbeddings = async () => {
+      let cancelled = false;
+      const indexCorpus = async () => {
         if (!model.isReady) return;
-
-        const sentences = [
-          'The weather is lovely today.',
-          "It's so sunny outside!",
-          'He drove to the stadium.',
-        ];
-
+        setIndexing(true);
+        setResults([]);
         try {
-          const embeddings = [];
-          for (const sentence of sentences) {
-            const embedding = await model.forward(sentence);
-            embeddings.push({ sentence, embedding });
+          const embedded = [];
+          for (const sentence of CORPUS) {
+            // forward(_, 'document') auto-applies the model's document prompt
+            // (a no-op for models without one).
+            const embedding = toVector(
+              await model.forward(sentence, 'document')
+            );
+            if (cancelled) return;
+            embedded.push({ sentence, embedding });
           }
-
-          setSentencesWithEmbeddings(embeddings);
-        } catch (e) {
-          setError(e instanceof Error ? e.message : String(e));
+          setCorpusEmbeddings(embedded);
+        } catch {
+          // A transient "Model not loaded" can fire while the hook swaps
+          // models; the effect re-runs once the new model is ready.
+        } finally {
+          if (!cancelled) setIndexing(false);
         }
       };
-
-      computeEmbeddings();
+      indexCorpus();
+      return () => {
+        cancelled = true;
+      };
     },
+    // Re-index when the model becomes ready OR the selected model changes, so
+    // the corpus is embedded by the active model. The "Model not loaded" race
+    // is handled by the isReady gate plus clearing the corpus on switch;
+    // switching sets isReady false→true so the re-run sees the new model.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [model.isReady]
+    [model.isReady, selectedModel]
   );
 
-  const checkSimilarities = async () => {
-    if (!model.isReady || !inputSentence.trim()) return;
-
+  const runSearch = async (queryText: string = query) => {
+    const q = queryText.trim();
+    if (!model.isReady || !q || corpusEmbeddings.length === 0) return;
+    setQuery(queryText);
     try {
       const start = Date.now();
-      const inputEmbedding = await model.forward(inputSentence);
+      const queryEmbedding = toVector(await model.forward(q, 'query'));
       setEmbeddingTime(Date.now() - start);
-      const matches = sentencesWithEmbeddings.map(
-        ({ sentence, embedding }) => ({
+      const ranked = corpusEmbeddings
+        .map(({ sentence, embedding }) => ({
           sentence,
-          similarity: dotProduct(inputEmbedding, embedding),
-        })
-      );
-      matches.sort((a, b) => b.similarity - a.similarity);
-      setTopMatches(matches.slice(0, 3));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  const addToSentences = async () => {
-    if (!model.isReady || !inputSentence.trim()) return;
-
-    try {
-      const start = Date.now();
-      const embedding = await model.forward(inputSentence);
-      setEmbeddingTime(Date.now() - start);
-      setSentencesWithEmbeddings((prev) => [
-        ...prev,
-        { sentence: inputSentence, embedding },
-      ]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-
-    setInputSentence('');
-    setTopMatches([]);
-  };
-
-  const clearList = async () => {
-    if (!model.isReady) return;
-    try {
-      setSentencesWithEmbeddings([]);
+          similarity: dotProduct(queryEmbedding, embedding),
+        }))
+        .sort((a, b) => b.similarity - a.similarity);
+      setResults(ranked);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -158,6 +181,11 @@ function TextEmbeddingsScreen() {
     return model.isGenerating ? 'Generating...' : 'Model is ready';
   };
 
+  // Chips/examples just need a ready, indexed model; the Search button also
+  // needs a non-empty typed query.
+  const ready = model.isReady && !indexing && corpusEmbeddings.length > 0;
+  const canSearch = ready && !!query.trim();
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -165,130 +193,128 @@ function TextEmbeddingsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Text style={styles.heading}>Text Embeddings Playground</Text>
+          <Text style={styles.heading}>Semantic Search</Text>
           <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
           <ModelPicker
             models={MODELS}
             selectedModel={selectedModel}
             onSelect={(m) => {
               setSelectedModel(m);
-              setSentencesWithEmbeddings([]);
-              setTopMatches([]);
+              setCorpusEmbeddings([]);
+              setResults([]);
+              setQuery('');
             }}
           />
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>List of Existing Sentences</Text>
-            {sentencesWithEmbeddings.map((item, index) => (
-              <Text key={index} style={styles.sentenceText}>
-                - {item.sentence}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Try Your Sentence</Text>
+            <Text style={styles.sectionTitle}>
+              Search the corpus ({CORPUS.length} sentences)
+            </Text>
+            <Text style={styles.hint}>
+              Ranks every sentence by meaning. Ask a full question — tap an
+              example or type your own.
+            </Text>
+            <View style={styles.chipRow}>
+              {EXAMPLE_QUERIES.map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  style={[styles.chip, !ready && styles.chipDisabled]}
+                  disabled={!ready}
+                  onPress={() => runSearch(q)}
+                >
+                  <Text style={styles.chipText}>{q}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TextInput
-              placeholder="Type your sentence here..."
+              placeholder="Type a search query..."
               placeholderTextColor="#94A3B8"
               style={styles.input}
-              value={inputSentence}
-              onChangeText={setInputSentence}
-              multiline
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={() => runSearch()}
+              returnKeyType="search"
             />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={checkSimilarities}
+            <TouchableOpacity
+              onPress={() => runSearch()}
+              style={[
+                styles.buttonPrimary,
+                !canSearch && styles.buttonDisabled,
+              ]}
+              disabled={!canSearch}
+            >
+              <Ionicons
+                name="search"
+                size={16}
+                color={!canSearch ? 'gray' : 'white'}
+              />
+              <Text
                 style={[
-                  styles.buttonPrimary,
-                  !inputSentence && styles.buttonDisabled,
+                  styles.buttonText,
+                  !canSearch && styles.buttonTextDisabled,
                 ]}
-                disabled={!inputSentence}
               >
-                <Ionicons
-                  name="search"
-                  size={16}
-                  color={!inputSentence ? 'gray' : 'white'}
-                />
-                <Text
-                  style={[
-                    styles.buttonText,
-                    !inputSentence && styles.buttonTextDisabled,
-                  ]}
-                >
-                  Find Similar
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  onPress={addToSentences}
-                  style={[
-                    styles.buttonSecondary,
-                    !inputSentence && styles.buttonDisabled,
-                  ]}
-                  disabled={!inputSentence}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={16}
-                    color={!inputSentence ? 'gray' : 'navy'}
-                  />
-                  <Text
-                    style={[
-                      styles.buttonTextOutline,
-                      !inputSentence && styles.buttonTextDisabled,
-                    ]}
-                  >
-                    Add to List
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={clearList}
-                  style={[
-                    styles.buttonSecondary,
-                    sentencesWithEmbeddings.length === 0 &&
-                      styles.buttonDisabled,
-                  ]}
-                  disabled={sentencesWithEmbeddings.length === 0}
-                >
-                  <Ionicons
-                    name="close-outline"
-                    size={16}
-                    color={
-                      sentencesWithEmbeddings.length === 0 ? 'gray' : 'navy'
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.buttonTextOutline,
-                      sentencesWithEmbeddings.length === 0 &&
-                        styles.buttonTextDisabled,
-                    ]}
-                  >
-                    Clear List
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+                {indexing ? 'Indexing corpus…' : 'Search'}
+              </Text>
+            </TouchableOpacity>
             {embeddingTime !== null && (
               <Text style={styles.statsText}>
-                Embedding time: {embeddingTime} ms
+                Query embedded in {embeddingTime} ms
               </Text>
             )}
-            {topMatches.length > 0 && (
-              <View style={styles.topMatchesContainer}>
-                <Text style={styles.sectionTitle}>Top Matches</Text>
-                {topMatches.map((item, index) => (
-                  <Text key={index} style={styles.sentenceText}>
-                    {item.sentence} ({item.similarity.toFixed(2)})
-                  </Text>
-                ))}
-              </View>
-            )}
           </View>
+
+          {results.length > 0 && (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Results</Text>
+              {results.map((item, index) => (
+                <ResultRow
+                  key={index}
+                  sentence={item.sentence}
+                  similarity={item.similarity}
+                  best={results[0].similarity}
+                  rank={index}
+                />
+              ))}
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+// One ranked result with a similarity bar. The bar is scaled relative to the
+// top hit so the ranking is visually obvious; the raw cosine is shown too.
+function ResultRow({
+  sentence,
+  similarity,
+  best,
+  rank,
+}: {
+  sentence: string;
+  similarity: number;
+  best: number;
+  rank: number;
+}) {
+  const fraction = best > 0 ? Math.max(0, similarity / best) : 0;
+  return (
+    <View style={styles.resultRow}>
+      <View style={styles.resultHeader}>
+        <Text style={styles.resultText}>{sentence}</Text>
+        <Text style={styles.resultScore}>{similarity.toFixed(2)}</Text>
+      </View>
+      <View style={styles.barTrack}>
+        <View
+          style={[
+            styles.barFill,
+            { width: `${Math.round(fraction * 100)}%` },
+            rank === 0 && styles.barFillTop,
+          ]}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -323,10 +349,67 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#1E293B',
   },
-  sentenceText: {
-    fontSize: 14,
+  hint: {
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  chip: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#C7D2FE',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipDisabled: {
+    opacity: 0.4,
+  },
+  chipText: {
+    fontSize: 13,
+    color: 'navy',
+  },
+  resultRow: {
+    marginBottom: 14,
+  },
+  resultHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 6,
+    gap: 8,
+  },
+  resultText: {
+    flex: 1,
+    fontSize: 14,
     color: '#334155',
+  },
+  resultScore: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0F172A',
+    fontVariant: ['tabular-nums'],
+  },
+  barTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 4,
+    backgroundColor: '#94A3B8',
+  },
+  barFillTop: {
+    backgroundColor: 'navy',
   },
   input: {
     backgroundColor: '#F1F5F9',
@@ -338,29 +421,9 @@ const styles = StyleSheet.create({
     minHeight: 40,
     textAlignVertical: 'top',
   },
-  buttonContainer: {
-    width: '100%',
-    gap: 10,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
   buttonPrimary: {
-    flex: 1,
+    width: '100%',
     backgroundColor: 'navy',
-    padding: 12,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: 'navy',
     padding: 12,
     borderRadius: 10,
     flexDirection: 'row',
@@ -376,16 +439,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-  buttonTextOutline: {
-    color: 'navy',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
   buttonTextDisabled: {
     color: 'gray',
-  },
-  topMatchesContainer: {
-    marginTop: 20,
   },
   statsText: {
     fontSize: 13,

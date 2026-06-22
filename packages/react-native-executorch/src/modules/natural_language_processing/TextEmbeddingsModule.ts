@@ -1,5 +1,11 @@
 import { ResourceSource } from '../../types/common';
-import { TextEmbeddingsModelName } from '../../types/textEmbeddings';
+import {
+  AnyTextEmbeddingsModel,
+  EmbeddingPrompts,
+  EmbeddingResult,
+  EmbeddingRole,
+  TextEmbeddingsModelName,
+} from '../../types/textEmbeddings';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
@@ -7,27 +13,28 @@ import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
- * Module for generating text embeddings from input text.
+ * Module for text embeddings. Returns the raw [numTokens, embeddingDim] output
+ * for any model — pooled (numTokens === 1) or multi-vector. Scoring / pooling
+ * is the consumer's concern (see the `toVector` util for the single-vector
+ * common case).
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
-  private constructor(nativeModule: unknown) {
+  private prompts?: EmbeddingPrompts;
+
+  private constructor(nativeModule: unknown, prompts?: EmbeddingPrompts) {
     super();
     this.nativeModule = nativeModule;
+    this.prompts = prompts;
   }
 
   /**
    * Creates a text embeddings instance for a built-in model.
-   * @param namedSources - An object specifying which built-in model to load and where to fetch it from.
-   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
+   * @param namedSources - The model + tokenizer sources.
+   * @param onDownloadProgress - Optional download progress callback (0..1).
    */
   static async fromModelName(
-    namedSources: {
-      modelName: TextEmbeddingsModelName;
-      modelSource: ResourceSource;
-      tokenizerSource: ResourceSource;
-    },
+    namedSources: AnyTextEmbeddingsModel,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextEmbeddingsModule> {
     try {
@@ -41,7 +48,8 @@ export class TextEmbeddingsModule extends BaseModule {
         throw new RnExecutorchError(RnExecutorchErrorCode.DownloadInterrupted);
       }
       return new TextEmbeddingsModule(
-        await global.loadTextEmbeddings(modelPath, tokenizerPath)
+        await global.loadTextEmbeddings(modelPath, tokenizerPath),
+        namedSources.prompts
       );
     } catch (error) {
       Logger.error('Load failed:', error);
@@ -50,14 +58,9 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Creates a text embeddings instance with a user-provided model binary and tokenizer.
-   * Use this when working with a custom-exported model that is not one of the built-in presets.
-   * @remarks The native model contract for this method is not formally defined and may change
-   * between releases. Refer to the native source code for the current expected tensor interface.
-   * @param modelSource - A fetchable resource pointing to the model binary.
-   * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
-   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
+   * Creates a text embeddings instance from a custom model binary + tokenizer.
+   * @remarks The native tensor contract is not formally guaranteed across
+   * releases.
    */
   static fromCustomModel(
     modelSource: ResourceSource,
@@ -75,13 +78,24 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass to generate an embedding for the provided text.
-   * @param input - The text string to embed.
-   * @returns A Promise resolving to a `Float32Array` containing the embedding vector.
+   * Embed text. Returns the raw [numTokens, embeddingDim] result.
+   * @param input - The text to embed.
+   * @param role - Optional 'query' | 'document'; prepends the model's prompt
+   *   for that role when configured (no-op otherwise).
    */
-  async forward(input: string): Promise<Float32Array> {
+  async forward(
+    input: string,
+    role?: EmbeddingRole
+  ): Promise<EmbeddingResult> {
     if (this.nativeModule == null)
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
-    return new Float32Array(await this.nativeModule.generate(input));
+    const prefix = (role && this.prompts?.[role]) || '';
+    const res = await this.nativeModule.generate(prefix + input);
+    return {
+      vectors: new Float32Array(res.dataPtr),
+      numTokens: res.numTokens,
+      embeddingDim: res.embeddingDim,
+      tokenIds: res.tokenIds,
+    };
   }
 }

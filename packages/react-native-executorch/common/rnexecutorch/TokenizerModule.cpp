@@ -46,6 +46,25 @@ std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   return encodeResult.get();
 }
 
+std::vector<uint64_t>
+TokenizerModule::encodeWithSpecialTokens(std::string s) const {
+  if (!tokenizer) {
+    THROW_NOT_LOADED_ERROR();
+  }
+
+  // Passing non-zero bos/eos makes HFTokenizer run the tokenizer.json
+  // post_processor with add_special_token=true (the underlying encode treats
+  // these as a flag, not a literal count, when a post_processor is defined).
+  auto encodeResult = tokenizer->encode(s, /*bos=*/1, /*eos=*/1);
+  if (!encodeResult.ok()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occurred while encoding: " +
+            std::to_string(static_cast<int32_t>(encodeResult.error())));
+  }
+  return encodeResult.get();
+}
+
 std::string TokenizerModule::decode(std::vector<uint64_t> vec,
                                     bool skipSpecialTokens) const {
   if (!tokenizer) {
