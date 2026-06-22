@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { commonStyles, ColorPalette } from '../../theme';
-import { type SkImage as SkiaImageType } from '@shopify/react-native-skia';
+import { useImage } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { getImage, loadSkImage } from '../../utils';
+import { getImage, prepareImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -29,11 +29,13 @@ const MODEL_OPTIONS: ModelOption[] = [
 
 function ClassificationContent() {
   const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
-  const [skiaImage, setSkiaImage] = useState<SkiaImageType | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<{ label: string; confidence: number }[]>([]);
   const [latency, setLatency] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
   const {
     isReady,
@@ -44,13 +46,17 @@ function ClassificationContent() {
   } = useClassifier<string>(selectedModel);
 
   const handlePickImage = async (useCamera: boolean) => {
-    const asset = await getImage(useCamera);
-    if (asset?.uri) {
-      const img = await loadSkImage(asset.uri);
-      setSkiaImage(img);
-      setResults([]);
-      setLatency(null);
-      setError(null);
+    setError(null);
+    try {
+      const asset = await getImage(useCamera);
+      if (asset?.uri) {
+        const uri = await prepareImage(asset.uri);
+        setImageUri(uri);
+        setResults([]);
+        setLatency(null);
+      }
+    } catch (e: any) {
+      setError(e.message || String(e));
     }
   };
 
@@ -59,8 +65,15 @@ function ClassificationContent() {
     if (!sync) setIsProcessing(true);
     setError(null);
     try {
+      const pixels = skiaImage.readPixels();
+      if (!pixels) {
+        throw new Error('Failed to read pixels from image');
+      }
+      if (!(pixels instanceof Uint8Array)) {
+        throw new Error('Expected Uint8Array from readPixels');
+      }
       const buffer = {
-        data: skiaImage.readPixels() as Uint8Array,
+        data: pixels,
         width: skiaImage.width(),
         height: skiaImage.height(),
         format: 'rgba' as const,

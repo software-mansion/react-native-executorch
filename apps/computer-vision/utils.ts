@@ -1,7 +1,6 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import { Skia, SkImage } from '@shopify/react-native-skia';
 
 export const getImage = async (
   useCamera: boolean
@@ -37,21 +36,13 @@ export const getImage = async (
   return pickerResult.assets[0];
 };
 
-export const loadSkImage = async (uri: string, targetWidth = 800): Promise<SkImage> => {
+export const prepareImage = async (uri: string, targetWidth = 800): Promise<string> => {
   let imageRef = await ImageManipulator.manipulate(uri).renderAsync();
 
-  let finalRef = imageRef;
   if (imageRef.width > targetWidth) {
-    finalRef = await ImageManipulator.manipulate(uri).resize({ width: targetWidth }).renderAsync();
+    imageRef = await ImageManipulator.manipulate(uri).resize({ width: targetWidth }).renderAsync();
   }
 
-  const result = await finalRef.saveAsync({ format: SaveFormat.PNG });
-  const encoded = await Skia.Data.fromURI(result.uri);
-  try {
-    const img = Skia.Image.MakeImageFromEncoded(encoded);
-    if (!img) throw new Error('Failed to create SkImage');
-    return img;
-  } finally {
-    encoded.dispose();
-  }
+  const result = await imageRef.saveAsync({ format: SaveFormat.PNG });
+  return result.uri;
 };
