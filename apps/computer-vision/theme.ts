@@ -10,7 +10,7 @@ export const theme = {
     primary: ColorPalette.primary,
     strongPrimary: ColorPalette.strongPrimary,
     secondary: '#ffffff',
-    accent: '#1a73e8', // Blue color used for synchronous runs
+    accent: '#1a73e8',
     background: '#f5f5f5',
     cardBackground: '#ffffff',
     placeholderBackground: '#eaeaea',

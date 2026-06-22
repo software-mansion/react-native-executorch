@@ -88,7 +88,7 @@ function ClassificationContent() {
       contentContainerStyle={commonStyles.contentContainer}
     >
       <Text style={commonStyles.description}>
-        Upload or capture an image to identify objects using an EfficientNet classifier.
+        Upload or capture an image to identify objects using a classifier.
       </Text>
 
       <ModelPicker
