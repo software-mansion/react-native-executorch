@@ -28,13 +28,6 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
-        name="segmentation/index"
-        options={{
-          drawerLabel: 'Semantic Segmentation',
-          title: 'Semantic Segmentation',
-        }}
-      />
-      <Drawer.Screen
         name="inspect/index"
         options={{
           drawerLabel: 'Model Inspector',
