@@ -142,6 +142,39 @@ TEST(TextEmbeddingsGenerateTests, SimilarTextProducesSimilarEmbeddings) {
   EXPECT_GT(dotProduct, 0.5f);
 }
 
+TEST(TextEmbeddingsGenerateTests, PooledResultMetadataIsConsistent) {
+  TextEmbeddings model(kValidTextEmbeddingsModelPath,
+                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  auto result = model.generate("A pooled embedding has a single row.");
+
+  EXPECT_EQ(result.numTokens, 1);
+  EXPECT_EQ(result.embeddingDim,
+            static_cast<int32_t>(kMiniLmEmbeddingDimensions));
+  EXPECT_EQ(result.dataPtr->size(),
+            static_cast<size_t>(result.numTokens) * result.embeddingDim *
+                sizeof(float));
+}
+
+TEST(TextEmbeddingsGenerateTests, TokenIdsIncludeSpecialTokens) {
+  TextEmbeddings model(kValidTextEmbeddingsModelPath,
+                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  auto result = model.generate("Hello");
+
+  // The tokenizer post_processor wraps the input as [CLS] ... [SEP], so even a
+  // single word yields more than one token id.
+  EXPECT_GT(result.tokenIds.size(), 1u);
+}
+
+TEST(TextEmbeddingsGenerateTests, TokenIdsGrowWithInputLength) {
+  TextEmbeddings model(kValidTextEmbeddingsModelPath,
+                       kValidTextEmbeddingsTokenizerPath, nullptr);
+  auto shortResult = model.generate("Hi");
+  auto longResult =
+      model.generate("This sentence is considerably longer than the other.");
+
+  EXPECT_GT(longResult.tokenIds.size(), shortResult.tokenIds.size());
+}
+
 TEST(TextEmbeddingsInheritedTests, GetInputShapeWorks) {
   TextEmbeddings model(kValidTextEmbeddingsModelPath,
                        kValidTextEmbeddingsTokenizerPath, nullptr);

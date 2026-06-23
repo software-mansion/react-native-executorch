@@ -93,8 +93,10 @@ export class TextEmbeddingsModule extends BaseModule {
    * Embed text into a pooled `Float32Array`, or a per-token `EmbeddingResult`
    * for `multiVector` models.
    * @param input - The text to embed.
-   * @param role - Optional role ('query' | 'document') for models with
-   *   asymmetric prompts; prepends the model's prompt for that role.
+   * @param role - Role ('query' | 'document') for models with asymmetric
+   *   prompts; the matching prompt is prepended. The `useTextEmbeddings` types
+   *   require it for prompted models and omit it for the rest; at the module
+   *   level it is optional and a no-op when the model has no prompts.
    * @returns A `Float32Array` for pooled models, an `EmbeddingResult` otherwise.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
