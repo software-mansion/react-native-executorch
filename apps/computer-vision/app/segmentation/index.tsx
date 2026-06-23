@@ -120,6 +120,9 @@ function SegmentationContent() {
         alphaType: AlphaType.Premul,
       };
       const nextImage = Skia.Image.MakeImage(info, outData, buffer.width * 4);
+      if (!nextImage) {
+        throw new Error('Failed to create overlay image from output data');
+      }
       setSegmentationImage(nextImage);
     } catch (e: any) {
       setError(e.message || String(e));
