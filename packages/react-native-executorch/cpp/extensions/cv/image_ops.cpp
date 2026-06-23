@@ -664,7 +664,11 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
                 if (!channelVal.isNumber()) {
                     throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
                 }
-                lut[i][c] = static_cast<uint8_t>(channelVal.asNumber());
+                double val = channelVal.asNumber();
+                if (std::isnan(val) || val < 0.0 || val > 255.0) {
+                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be between 0 and 255");
+                }
+                lut[i][c] = static_cast<uint8_t>(val);
             }
         }
 
