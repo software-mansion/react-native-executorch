@@ -27,6 +27,7 @@ private:
   struct ImageShape {
     int32_t channels, height, width;
     bool with_batch;
+    ::executorch::aten::ScalarType dtype;
   };
 
   // The method's output EValue aliases the runtime's reusable output buffer,

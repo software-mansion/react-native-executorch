@@ -4,6 +4,7 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <runner/constants.h>
+#include <runner/util.h>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
@@ -70,6 +71,7 @@ Result<VisionEncoder::ImageShape> VisionEncoder::getInputShape() const {
       .height = static_cast<int32_t>(dims[offset + 1]),
       .width = static_cast<int32_t>(dims[offset + 2]),
       .with_batch = with_batch,
+      .dtype = input_meta.scalar_type(),
   };
 }
 
@@ -124,8 +126,12 @@ Result<EValue> VisionEncoder::encode(const MultimodalInput &input) {
     sizes.insert(sizes.begin(), 1);
   }
 
+  // Preprocessing produces fp32 pixels; convert to the method's declared
+  // input dtype (`shape.dtype`, already read in getInputShape). Float is a
+  // passthrough, so the common path stays copy-free.
   auto image_tensor = ::executorch::extension::from_blob(
       chw.data(), sizes, ::executorch::aten::ScalarType::Float);
+  image_tensor = ET_UNWRAP(convert_from_float(image_tensor, shape.dtype));
 
   auto result = ET_UNWRAP(module_->execute(kVisionEncoderMethod, image_tensor));
   auto out_tensor = result[0].toTensor();

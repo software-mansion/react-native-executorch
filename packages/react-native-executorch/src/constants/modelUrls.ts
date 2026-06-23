@@ -450,6 +450,7 @@ export const PHI_4_MINI_4B_QUANTIZED = {
 // LFM2.5-1.2B-Instruct
 const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`;
 const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`;
+export const LFM2_5_1_2B_INSTRUCT_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`;
 const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer.json`;
 const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer_config.json`;
 
@@ -476,6 +477,7 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 // LFM2.5-350M
 const LFM2_5_350M_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`;
 const LFM2_5_350M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_350M_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`;
 const LFM2_5_350M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer.json`;
 const LFM2_5_350M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer_config.json`;
 
@@ -527,11 +529,13 @@ export const BIELIK_V3_0_1_5B_QUANTIZED = {
 
 // LFM2.5-VL-1.6B
 const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`;
+export const LFM2_5_VL_1_6B_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`;
 const LFM2_VL_1_6B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer.json`;
 const LFM2_VL_1_6B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer_config.json`;
 
 // LFM2.5-VL-450M
 const LFM2_VL_450M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`;
+export const LFM2_5_VL_450M_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`;
 const LFM2_VL_450M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer.json`;
 const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer_config.json`;
 
@@ -1287,6 +1291,8 @@ export const PRIVACY_FILTER_OPENAI = {
   tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
 } as const;
 
+export const PRIVACY_FILTER_OPENAI_MLX_MODEL = `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`;
+
 /**
  * OpenMed/privacy-filter-nemotron — extended PII detector with 55 entity
  * types (adds medical, financial, identity, technical, demographic, etc.).
@@ -1298,6 +1304,8 @@ export const PRIVACY_FILTER_NEMOTRON = {
   modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
 } as const;
+
+export const PRIVACY_FILTER_NEMOTRON_MLX_MODEL = `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`;
 
 // Image generation
 
