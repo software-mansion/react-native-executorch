@@ -45,7 +45,13 @@ try {
 
 `useTextEmbeddings` takes [`TextEmbeddingsProps`](../../06-api-reference/interfaces/TextEmbeddingsProps.md) that consists of:
 
-- `model` of type `object` containing the [model source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#modelsource) and [tokenizer source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#tokenizersource).
+- `model` of type `object` ([`TextEmbeddingsModel`](../../06-api-reference/interfaces/TextEmbeddingsModel.md)) containing:
+  - `modelName` - Unique name identifying the model.
+  - `modelSource` - Location of the used model.
+  - `tokenizerSource` - Location of the used tokenizer.
+  - `prompts` _(optional)_ - Asymmetric `query`/`document` prompts the model is trained with. When present, `forward` requires a `role` and prepends the matching prompt.
+  - `multiVector` _(optional)_ - When `true`, `forward` returns the per-token [`EmbeddingResult`](../../06-api-reference/interfaces/EmbeddingResult.md) instead of a single pooled `Float32Array`.
+  - `skipListIds` _(optional)_ - Token ids to exclude from late-interaction (MaxSim) scoring.
 - An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
