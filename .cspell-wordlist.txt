@@ -230,3 +230,14 @@ c10
 probas
 Probas
 Skia
+Amdahl
+Amdahl's
+xyxy
+xywh
+subfolders
+podspec
+logcat
+modelname
+optionalsize
+pushd
+popd

@@ -1,6 +1,6 @@
-# Agent Skills Directory
+# Development Skills Directory
 
-This directory contains specialized agent skills (recipes) to guide AI coding agents (like Antigravity or Claude Code) in extending the codebase cleanly and consistently.
+This directory contains specialized skills (recipes) to guide contributors and AI coding assistants in extending the codebase cleanly and consistently.
 
 ## Available Skills
 
