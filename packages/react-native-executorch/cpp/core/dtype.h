@@ -8,6 +8,7 @@ namespace rnexecutorch::core::types {
 enum class DType {
     uint8,
     int32,
+    int64,
     float32
 };
 
