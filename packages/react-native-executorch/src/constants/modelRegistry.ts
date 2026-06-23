@@ -313,7 +313,8 @@ const LFM2_5_COLBERT_350M_VARIANTS = {
       modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
     },
   },
-=======
+};
+
 const LFM2_5_350M_VARIANTS = {
   mlx: { base: { ...M.LFM2_5_350M, modelSource: M.LFM2_5_350M_MLX_MODEL } },
   xnnpack: { base: M.LFM2_5_350M, quant: M.LFM2_5_350M_QUANTIZED },
