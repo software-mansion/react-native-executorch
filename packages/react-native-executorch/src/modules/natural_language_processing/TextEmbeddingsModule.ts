@@ -33,8 +33,11 @@ export class TextEmbeddingsModule extends BaseModule {
 
   /**
    * Creates a text embeddings instance for a built-in model.
-   * @param namedSources - The model config (+ optional prompts / multiVector).
-   * @param onDownloadProgress - Optional download progress callback (0..1).
+   * @param namedSources - An object specifying the model name, model source,
+   *   tokenizer source, and optional `prompts` / `multiVector` / `skipListIds`.
+   * @param onDownloadProgress - Optional callback to monitor download progress,
+   *   receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
    */
   static async fromModelName(
     namedSources: TextEmbeddingsModel,
@@ -62,9 +65,14 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Creates a text embeddings instance from a custom model binary + tokenizer.
-   * @remarks The native tensor contract is not formally guaranteed across
-   * releases.
+   * Creates a text embeddings instance with a user-provided model binary.
+   * Use this when working with a custom-exported embeddings model. Internally
+   * uses `'custom'` as the model name. Note that prompts, multi-vector output,
+   * and skipLists are model-config features and are not configured here.
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param tokenizerSource - A fetchable resource pointing to the tokenizer file.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to a `TextEmbeddingsModule` instance.
    */
   static fromCustomModel(
     modelSource: ResourceSource,
@@ -85,9 +93,10 @@ export class TextEmbeddingsModule extends BaseModule {
    * Embed text into a pooled `Float32Array`, or a per-token `EmbeddingResult`
    * for `multiVector` models.
    * @param input - The text to embed.
-   * @param role - 'query' | 'document'; prepends the model's prompt for that
-   *   role when configured.
+   * @param role - Optional role ('query' | 'document') for models with
+   *   asymmetric prompts; prepends the model's prompt for that role.
    * @returns A `Float32Array` for pooled models, an `EmbeddingResult` otherwise.
+   * @throws {RnExecutorchError} If the model is not loaded.
    */
   async forward(
     input: string,
