@@ -631,6 +631,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
 
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        constexpr size_t numRgbaChannels = 4;
 
         if (src->dtype_ != rnexecutorch::core::types::DType::int32) {
             throw jsi::JSError(rt, "applyColormap: src must be int32");
@@ -638,7 +639,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
             throw jsi::JSError(rt, "applyColormap: dst must be uint8");
         }
-        if (dst->numel_ != src->numel_ * 4) {
+        if (dst->numel_ != src->numel_ * numRgbaChannels) {
             throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
         }
 
@@ -648,17 +649,17 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
 
         auto colormapArray = args[2].asObject(rt).asArray(rt);
         size_t numColors = colormapArray.size(rt);
-        std::vector<std::array<uint8_t, 4>> lut(numColors);
+        std::vector<std::array<uint8_t, numRgbaChannels>> lut(numColors);
         for (size_t i = 0; i < numColors; ++i) {
             auto colorVal = colormapArray.getValueAtIndex(rt, i);
             if (!colorVal.isObject() || !colorVal.asObject(rt).isArray(rt)) {
                 throw jsi::JSError(rt, "applyColormap: colormap entry must be an array");
             }
             auto color = colorVal.asObject(rt).asArray(rt);
-            if (color.size(rt) != 4) {
+            if (color.size(rt) != numRgbaChannels) {
                 throw jsi::JSError(rt, "applyColormap: colormap entry must be an RGBA color array of size 4");
             }
-            for (size_t c = 0; c < 4; ++c) {
+            for (size_t c = 0; c < numRgbaChannels; ++c) {
                 auto channelVal = color.getValueAtIndex(rt, c);
                 if (!channelVal.isNumber()) {
                     throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
@@ -689,11 +690,9 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
                                            std::to_string(idx) + ") that exceeds provided colormap size (" +
                                            std::to_string(numColors) + ")");
             }
-
-            dstData[i * 4 + 0] = lut[idx][0];
-            dstData[i * 4 + 1] = lut[idx][1];
-            dstData[i * 4 + 2] = lut[idx][2];
-            dstData[i * 4 + 3] = lut[idx][3];
+            for (size_t c = 0; c < numRgbaChannels; ++c) {
+                dstData[i * numRgbaChannels + c] = lut[idx][c];
+            }
         }
 
         return jsi::Value(rt, args[1]);
