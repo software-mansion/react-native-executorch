@@ -278,6 +278,8 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 
         int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
 
+        // DO NOT swap loop order. This structure intentionally prioritizes the
+        // most common case (axis = -1, inner = 1) for sequential access.
         for (size_t o = 0; o < outer; ++o) {
             for (size_t i = 0; i < inner; ++i) {
                 float maxVal = -std::numeric_limits<float>::infinity();
