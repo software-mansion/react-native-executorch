@@ -1,5 +1,6 @@
 // Hooks — primary API for app developers
 export * from './hooks/useClassifier';
+export * from './hooks/useTokenizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -9,6 +10,7 @@ export * as constants from './constants';
 
 // Task APIs — for developers needing manual lifetime/disposal control
 export * from './extensions/cv/tasks/classification';
+export * from './extensions/nlp/tasks/tokenization';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
@@ -31,6 +33,7 @@ export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';
+export * as nlp from './extensions/nlp';
 
 // Utils
 export * from './utils';
