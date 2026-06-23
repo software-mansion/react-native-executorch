@@ -32,9 +32,6 @@ Pod::Spec.new do |s|
     "HEADER_SEARCH_PATHS" => [
       "\"$(PODS_TARGET_SRCROOT)/cpp\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include\"",
-      # pytorch/tokenizers headers (and the third-party libs they pull in:
-      # nlohmann/json, re2 and its abseil dependency) ship inside the ExecuTorch
-      # llm extension bundle
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/json/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",

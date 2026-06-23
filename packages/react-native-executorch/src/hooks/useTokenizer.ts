@@ -1,33 +1,27 @@
 import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
-import { createTokenizer, type TokenizerConfig } from '../extensions/nlp/tasks/tokenizer';
+import { createTokenizer } from '../extensions/nlp/tasks/tokenization';
 
 /**
  * React hook to load and use a HuggingFace tokenizer.
  *
  * This hook manages downloading the `tokenizer.json` file (if it's a remote
  * URL), loading it natively, tracking download progress and load errors, and
- * cleaning up native memory when the component unmounts or configuration
- * changes.
+ * cleaning up native memory when the component unmounts or the source changes.
  * @category Hooks
- * @param config The tokenizer configuration containing `tokenizerPath` (a
- * remote URL or local path to a `tokenizer.json` file).
+ * @param tokenizerPath A remote URL or local path to a `tokenizer.json` file.
  * @param options Hook options.
  * @param options.preventLoad If true, prevents downloading and loading the
  * tokenizer.
  * @returns An object containing the tokenizer's loading state, error, download
  * progress, and tokenization functions.
  */
-export function useTokenizer(config: TokenizerConfig, options?: { preventLoad?: boolean }) {
+export function useTokenizer(tokenizerPath: string, options?: { preventLoad?: boolean }) {
   const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.tokenizerPath,
+    tokenizerPath,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createTokenizer,
-    localPath ? { tokenizerPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createTokenizer, localPath ?? null, [localPath]);
 
   return {
     isReady: !!model,

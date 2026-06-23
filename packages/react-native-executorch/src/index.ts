@@ -10,7 +10,7 @@ export * as constants from './constants';
 
 // Task APIs — for developers needing manual lifetime/disposal control
 export * from './extensions/cv/tasks/classification';
-export * from './extensions/nlp/tasks/tokenizer';
+export * from './extensions/nlp/tasks/tokenization';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';

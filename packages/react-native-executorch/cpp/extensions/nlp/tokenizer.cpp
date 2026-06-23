@@ -14,6 +14,34 @@ namespace {
 // (i.e. special tokens are added exactly as configured in tokenizer.json).
 constexpr uint64_t kNumAddedBosTokens = 0;
 constexpr uint64_t kNumAddedEosTokens = 0;
+
+// tokenizers::Error is its own enum (not executorch::runtime::Error), and the
+// tokenizers library ships no to_string for it, so map it to a readable name.
+std::string toString(tokenizers::Error error) {
+  switch (error) {
+  case tokenizers::Error::Ok:
+    return "Ok";
+  case tokenizers::Error::Internal:
+    return "Internal";
+  case tokenizers::Error::Uninitialized:
+    return "Uninitialized";
+  case tokenizers::Error::OutOfRange:
+    return "OutOfRange";
+  case tokenizers::Error::LoadFailure:
+    return "LoadFailure";
+  case tokenizers::Error::EncodeFailure:
+    return "EncodeFailure";
+  case tokenizers::Error::Base64DecodeFailure:
+    return "Base64DecodeFailure";
+  case tokenizers::Error::ParseFailure:
+    return "ParseFailure";
+  case tokenizers::Error::DecodeFailure:
+    return "DecodeFailure";
+  case tokenizers::Error::RegexFailure:
+    return "RegexFailure";
+  }
+  return "Unknown(" + std::to_string(static_cast<int32_t>(error)) + ")";
+}
 } // namespace
 
 TokenizerHostObject::TokenizerHostObject(const std::string &tokenizerPath)
@@ -22,7 +50,7 @@ TokenizerHostObject::TokenizerHostObject(const std::string &tokenizerPath)
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
         throw std::runtime_error("Failed to load tokenizer from '" + tokenizerPath_ +
-                                 "': error " + std::to_string(static_cast<int32_t>(error)));
+                                 "': " + toString(error));
     }
 }
 
@@ -56,8 +84,8 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto text = args[0].asString(rt).utf8(rt);
             auto result = self->tokenizer_->encode(text, kNumAddedBosTokens, kNumAddedEosTokens);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "encode: Failed to encode input: error " +
-                                           std::to_string(static_cast<int32_t>(result.error())));
+                throw jsi::JSError(rt, "encode: Failed to encode input: " +
+                                           toString(result.error()));
             }
 
             const auto &ids = result.get();
@@ -74,16 +102,21 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
     if (nameStr == "decode") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
-            if (count != 2) {
-                throw jsi::JSError(rt, "decode: Usage: decode(tokens, skipSpecialTokens)");
+            if (count < 1 || count > 2) {
+                throw jsi::JSError(rt, "decode: Usage: decode(tokens, skipSpecialTokens?)");
             }
 
             if (!args[0].isObject() || !args[0].asObject(rt).isArray(rt)) {
                 throw jsi::JSError(rt, "decode: Expected arg0 to be an array");
             }
 
-            if (!args[1].isBool()) {
-                throw jsi::JSError(rt, "decode: Expected arg1 to be a boolean");
+            // skipSpecialTokens is optional and defaults to true.
+            bool skipSpecialTokens = true;
+            if (count == 2 && !args[1].isUndefined()) {
+                if (!args[1].isBool()) {
+                    throw jsi::JSError(rt, "decode: Expected arg1 to be a boolean");
+                }
+                skipSpecialTokens = args[1].asBool();
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
@@ -96,7 +129,6 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             }
 
             auto tokensArray = args[0].asObject(rt).asArray(rt);
-            auto skipSpecialTokens = args[1].asBool();
 
             std::vector<uint64_t> tokens;
             tokens.reserve(tokensArray.size(rt));
@@ -108,15 +140,19 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 tokens.push_back(static_cast<uint64_t>(val.asNumber()));
             }
 
+            if (tokens.empty()) {
+                return jsi::String::createFromUtf8(rt, "");
+            }
+
             auto result = self->tokenizer_->decode(tokens, skipSpecialTokens);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "decode: Failed to decode tokens: error " +
-                                           std::to_string(static_cast<int32_t>(result.error())));
+                throw jsi::JSError(rt, "decode: Failed to decode tokens: " +
+                                           toString(result.error()));
             }
 
             return jsi::String::createFromUtf8(rt, result.get());
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "decode"), 2, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "decode"), 1, fnBody);
     }
 
     if (nameStr == "getVocabSize") {
@@ -163,8 +199,8 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto tokenId = static_cast<uint64_t>(args[0].asNumber());
             auto result = self->tokenizer_->id_to_piece(tokenId);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "idToToken: Failed to convert id to token: error " +
-                                           std::to_string(static_cast<int32_t>(result.error())));
+                throw jsi::JSError(rt, "idToToken: Failed to convert id to token: " +
+                                           toString(result.error()));
             }
 
             return jsi::String::createFromUtf8(rt, result.get());
@@ -195,8 +231,8 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto token = args[0].asString(rt).utf8(rt);
             auto result = self->tokenizer_->piece_to_id(token);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "tokenToId: Failed to convert token to id: error " +
-                                           std::to_string(static_cast<int32_t>(result.error())));
+                throw jsi::JSError(rt, "tokenToId: Failed to convert token to id: " +
+                                           toString(result.error()));
             }
 
             return static_cast<double>(result.get());

@@ -37,9 +37,6 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ../cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include
-    # pytorch/tokenizers headers (and the third-party libs they pull in:
-    # nlohmann/json, re2 and its abseil dependency) ship inside the ExecuTorch
-    # llm extension bundle
     ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/third-party/json/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/third-party/re2

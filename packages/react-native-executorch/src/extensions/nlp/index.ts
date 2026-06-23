@@ -1,2 +1,2 @@
-export * from './ops/tokenizer';
-export * from './tasks/tokenizer';
+export * from './tokenizer';
+export * from './tasks/tokenization';
