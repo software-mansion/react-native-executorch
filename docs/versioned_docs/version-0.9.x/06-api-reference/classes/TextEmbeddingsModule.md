@@ -1,8 +1,8 @@
 # Class: TextEmbeddingsModule
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L13)
+Defined in: [modules/natural\_language\_processing/TextEmbeddingsModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L19)
 
-Module for generating text embeddings from input text.
+Module for managing a Text Embeddings model instance.
 
 ## Extends
 
@@ -23,14 +23,12 @@ making it worklet-compatible and safe to call from VisionCamera's
 frame processor thread.
 
 **Performance characteristics:**
-
 - **Zero-copy path**: When using `frame.getNativeBuffer()` from VisionCamera v5,
   frame data is accessed directly without copying (fastest, recommended).
 - **Copy path**: When using `frame.toArrayBuffer()`, pixel data is copied
   from native to JS, then accessed from native code (slower, fallback).
 
 **Usage with VisionCamera:**
-
 ```typescript
 const frameOutput = useFrameOutput({
   pixelFormat: 'rgb',
@@ -39,16 +37,12 @@ const frameOutput = useFrameOutput({
     // Zero-copy approach (recommended)
     const nativeBuffer = frame.getNativeBuffer();
     const result = model.generateFromFrame(
-      {
-        nativeBuffer: nativeBuffer.pointer,
-        width: frame.width,
-        height: frame.height,
-      },
+      { nativeBuffer: nativeBuffer.pointer, width: frame.width, height: frame.height },
       ...args
     );
     nativeBuffer.release();
     frame.dispose();
-  },
+  }
 });
 ```
 
@@ -80,7 +74,7 @@ Model-specific output (e.g., detections, classifications, embeddings)
 
 `BaseModule.generateFromFrame`
 
----
+***
 
 ### nativeModule
 
@@ -116,15 +110,16 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 `BaseModule.delete`
 
----
+***
 
 ### forward()
 
-> **forward**(`input`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+> **forward**(`input`, `role?`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\> \| [`EmbeddingResult`](../interfaces/EmbeddingResult.md)\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:82](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L82)
+Defined in: [modules/natural\_language\_processing/TextEmbeddingsModule.ts:101](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L101)
 
-Executes the model's forward pass to generate an embedding for the provided text.
+Embed text into a pooled `Float32Array`, or a per-token `EmbeddingResult`
+for `multiVector` models.
 
 #### Parameters
 
@@ -132,15 +127,26 @@ Executes the model's forward pass to generate an embedding for the provided text
 
 `string`
 
-The text string to embed.
+The text to embed.
+
+##### role?
+
+[`EmbeddingRole`](../type-aliases/EmbeddingRole.md)
+
+Optional role ('query' | 'document') for models with
+  asymmetric prompts; prepends the model's prompt for that role.
 
 #### Returns
 
-`Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+`Promise`\<`Float32Array`\<`ArrayBufferLike`\> \| [`EmbeddingResult`](../interfaces/EmbeddingResult.md)\>
 
-A Promise resolving to a `Float32Array` containing the embedding vector.
+A `Float32Array` for pooled models, an `EmbeddingResult` otherwise.
 
----
+#### Throws
+
+If the model is not loaded.
+
+***
 
 ### forwardET()
 
@@ -171,7 +177,7 @@ Array of output tensors.
 
 `BaseModule.forwardET`
 
----
+***
 
 ### getInputShape()
 
@@ -205,16 +211,18 @@ The input shape as an array of numbers.
 
 `BaseModule.getInputShape`
 
----
+***
 
 ### fromCustomModel()
 
 > `static` **fromCustomModel**(`modelSource`, `tokenizerSource`, `onDownloadProgress?`): `Promise`\<`TextEmbeddingsModule`\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:62](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L62)
+Defined in: [modules/natural\_language\_processing/TextEmbeddingsModule.ts:77](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L77)
 
-Creates a text embeddings instance with a user-provided model binary and tokenizer.
-Use this when working with a custom-exported model that is not one of the built-in presets.
+Creates a text embeddings instance with a user-provided model binary.
+Use this when working with a custom-exported embeddings model. Internally
+uses `'custom'` as the model name. Note that prompts, multi-vector output,
+and skipLists are model-config features and are not configured here.
 
 #### Parameters
 
@@ -242,18 +250,13 @@ Optional callback to monitor download progress, receiving a value between 0 and 
 
 A Promise resolving to a `TextEmbeddingsModule` instance.
 
-#### Remarks
-
-The native model contract for this method is not formally defined and may change
-between releases. Refer to the native source code for the current expected tensor interface.
-
----
+***
 
 ### fromModelName()
 
 > `static` **fromModelName**(`namedSources`, `onDownloadProgress?`): `Promise`\<`TextEmbeddingsModule`\>
 
-Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:25](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L25)
+Defined in: [modules/natural\_language\_processing/TextEmbeddingsModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/0e95b8934cc7318c1b30a8e534444a8b50d25230/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L42)
 
 Creates a text embeddings instance for a built-in model.
 
@@ -261,25 +264,17 @@ Creates a text embeddings instance for a built-in model.
 
 ##### namedSources
 
-An object specifying which built-in model to load and where to fetch it from.
+[`TextEmbeddingsModel`](../interfaces/TextEmbeddingsModel.md)
 
-###### modelName
-
-[`TextEmbeddingsModelName`](../type-aliases/TextEmbeddingsModelName.md)
-
-###### modelSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-###### tokenizerSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
+An object specifying the model name, model source,
+  tokenizer source, and optional `prompts` / `multiVector` / `skipListIds`.
 
 ##### onDownloadProgress?
 
 (`progress`) => `void`
 
-Optional callback to monitor download progress, receiving a value between 0 and 1.
+Optional callback to monitor download progress,
+  receiving a value between 0 and 1.
 
 #### Returns
 
