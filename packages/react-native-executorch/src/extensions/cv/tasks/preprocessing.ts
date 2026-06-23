@@ -44,7 +44,21 @@ export function createImagePreprocessor(
   opts: ImagePreprocessorOptions,
   outputShape: number[]
 ): {
+  /**
+   * Preprocesses the input image by resizing, converting color space, changing
+   * format layout, and normalizing values, copying the output directly to the
+   * pre-allocated output tensor.
+   *
+   * Note: The returned tensor is managed by the preprocessor; consumers do not
+   * need to dispose of it manually.
+   * @param input The input image buffer to preprocess.
+   * @returns A reference to the output tensor containing preprocessed float32
+   * data.
+   */
   process: (input: ImageBuffer) => Tensor;
+  /**
+   * Releases all allocated native resources.
+   */
   dispose: () => void;
 } {
   const numRgbChannels = 3;
