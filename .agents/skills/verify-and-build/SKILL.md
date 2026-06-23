@@ -37,7 +37,7 @@ To check types and compile the TypeScript source code:
 Whenever you modify native files under `cpp/` or update `.podspec`:
 
 ```bash
-cd apps/<domain-app>/ios && pod install && cd ../../..
+pushd apps/<domain-app>/ios && pod install && popd
 ```
 
 - **Rebuilding**: Re-run the app from within the appropriate app folder:
@@ -59,7 +59,7 @@ yarn run android
 
 - **Clean Build**: If caching issues occur:
   ```bash
-  cd apps/<domain-app>/android && ./gradlew clean && cd ../../..
+  pushd apps/<domain-app>/android && ./gradlew clean && popd
   ```
 
 ---
