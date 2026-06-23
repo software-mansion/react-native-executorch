@@ -80,11 +80,39 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmentationModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
+  /**
+   * Releases all allocated native resources.
+   */
   dispose: () => void;
+  /**
+   * Runs semantic segmentation asynchronously.
+   *
+   * For models returning logits for all classes, this performs an argmax over
+   * the class dimensions to identify the highest-probability class per pixel,
+   * then maps each class index to an RGBA color from the colormap. The final
+   * mapped colormap is returned in the result.
+   *
+   * For models returning only a single logit value for the positive class, this
+   * applies a sigmoid activation, normalizes the probability values to
+   * grayscale (0-255), and converts the output to a grayscale RGBA mask. No
+   * colormap is applied, and the colormap in the result is undefined.
+   * @param input The input image buffer to segment.
+   * @param colormap Optional partial color mapping overrides for labels
+   * (applicable only for multi-class models). If not provided, a default
+   * colormap is automatically generated with distinct, high-contrast colors
+   * (with the first label defaulting to transparent). If a partial map is
+   * provided, any labels omitted from it will default to being rendered as
+   * fully transparent.
+   * @returns A promise resolving to the segmentation result.
+   */
   segment: (
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => Promise<SemanticSegmentationResult<L>>;
+  /**
+   * Runs semantic segmentation synchronously.
+   * @see {@link segment} for details.
+   */
   segmentWorklet: (
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
