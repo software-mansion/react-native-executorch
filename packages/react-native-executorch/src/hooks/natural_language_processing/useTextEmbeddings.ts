@@ -9,12 +9,13 @@ import {
 } from '../../types/textEmbeddings';
 
 /**
- * React hook for a Text Embeddings model.
+ * React hook for managing a Text Embeddings model instance.
  * @category Hooks
- * @param TextEmbeddingsProps - `model` source + optional `preventLoad`.
- * @returns Ready to use embeddings model. `forward` returns the raw
- *   [numTokens, embeddingDim] result; use `toVector` for a single vector.
- *   Models with prompts require a `role` ('query' | 'document') on `forward`.
+ * @param TextEmbeddingsProps - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @returns Ready to use Text Embeddings model. `forward` returns a
+ *   `Float32Array` for pooled models and an `EmbeddingResult` (per-token
+ *   vectors) for multi-vector models. Models with prompts require a `role`
+ *   ('query' | 'document') on `forward`.
  */
 export const useTextEmbeddings = <M extends TextEmbeddingsModel>({
   model,

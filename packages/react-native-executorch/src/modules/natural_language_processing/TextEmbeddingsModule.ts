@@ -13,11 +13,7 @@ import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
- * Module for text embeddings. `forward` returns a single pooled `Float32Array`
- * for standard models, or the per-token `EmbeddingResult` for `multiVector`
- * (late-interaction) models. The native runner always produces the raw
- * [numTokens, embeddingDim] matrix; the reduction to a single vector happens
- * here so the common single-vector API stays `Float32Array`.
+ * Module for managing a Text Embeddings model instance.
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
@@ -86,11 +82,12 @@ export class TextEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Embed text. Standard models return the single pooled `Float32Array`;
-   * `multiVector` models return the per-token `EmbeddingResult`.
+   * Embed text into a pooled `Float32Array`, or a per-token `EmbeddingResult`
+   * for `multiVector` models.
    * @param input - The text to embed.
    * @param role - 'query' | 'document'; prepends the model's prompt for that
-   *   role when configured (no-op otherwise).
+   *   role when configured.
+   * @returns A `Float32Array` for pooled models, an `EmbeddingResult` otherwise.
    */
   async forward(
     input: string,
@@ -100,11 +97,8 @@ export class TextEmbeddingsModule extends BaseModule {
       throw new RnExecutorchError(RnExecutorchErrorCode.ModuleNotLoaded);
     const prefix = (role && this.prompts?.[role]) || '';
     const res = await this.nativeModule.generate(prefix + input);
-    // res.dataPtr is already a Float32Array view over the owned native buffer
-    // (built at the JSI boundary).
     const vectors = res.dataPtr as Float32Array;
     if (!this.multiVector) {
-      // Pooled models output [1, embeddingDim]; return that single row.
       return vectors.subarray(0, res.embeddingDim);
     }
     return {

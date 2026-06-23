@@ -18,9 +18,8 @@ export type TextEmbeddingsModelName =
 
 /**
  * Per-token (multi-vector) embedding output for late-interaction models (e.g.
- * ColBERT): a [numTokens, embeddingDim] fp32 matrix (row-major) plus the input
- * token ids. Standard models return a single pooled `Float32Array` from
- * `forward` instead; only `multiVector` models yield this.
+ * ColBERT). Only `multiVector` models yield this; standard models return a
+ * pooled `Float32Array` from `forward` instead.
  * @category Types
  */
 export interface EmbeddingResult {
@@ -44,8 +43,7 @@ export type EmbeddingRole = 'query' | 'document';
 
 /**
  * Asymmetric prompts a model is trained with. When a model config carries
- * these, `forward` REQUIRES a `role` so the matching prompt is always applied
- * (forgetting it would silently embed raw text and wreck asymmetric retrieval).
+ * these, `forward` requires a `role` so the matching prompt is always applied.
  * @category Types
  */
 export interface EmbeddingPrompts {
@@ -55,9 +53,8 @@ export interface EmbeddingPrompts {
 
 /**
  * A text embeddings model config. Two optional flags drive `forward`:
- * - `prompts` present  -> `forward` REQUIRES a `role` (auto-prepends the prompt)
- * - `multiVector` true -> `forward` returns the per-token `EmbeddingResult`;
- *                         otherwise it returns a single pooled `Float32Array`.
+ * `prompts` makes a `role` argument required, and `multiVector` makes it return
+ * a per-token `EmbeddingResult` instead of a pooled `Float32Array`.
  * @category Types
  */
 export interface TextEmbeddingsModel {
@@ -76,9 +73,8 @@ export interface TextEmbeddingsModel {
 }
 
 /**
- * `forward`'s signature, computed from the model config:
- * - return type: `EmbeddingResult` if `multiVector`, else `Float32Array`.
- * - role arg: required if the model has `prompts`, else absent.
+ * `forward`'s return type: `EmbeddingResult` for `multiVector` models,
+ * `Float32Array` otherwise.
  */
 export type ForwardReturn<M extends TextEmbeddingsModel> = M extends {
   multiVector: true;
@@ -87,11 +83,9 @@ export type ForwardReturn<M extends TextEmbeddingsModel> = M extends {
   : Float32Array;
 
 /**
- * `forward`'s signature, computed from the model config:
- * - A model that DEFINITELY has prompts -> `role` is REQUIRED.
- * - A model that definitely has NO prompts (`prompts?: undefined`) -> no role.
- * - Otherwise (prompts optional / unknown, e.g. a heterogeneous model list) ->
- *   `role` is OPTIONAL.
+ * `forward`'s signature, computed from the model config: `role` is required
+ * when the model has `prompts`, omitted when it has none, and optional when
+ * unknown (e.g. a heterogeneous model list).
  */
 export type ForwardFn<M extends TextEmbeddingsModel> = M extends {
   prompts: EmbeddingPrompts;
@@ -106,6 +100,14 @@ export type ForwardFn<M extends TextEmbeddingsModel> = M extends {
 /**
  * Props for the useTextEmbeddings hook.
  * @category Types
+ * @property {object} model - An object containing the model configuration.
+ * @property {TextEmbeddingsModelName} model.modelName - Unique name identifying the model.
+ * @property {ResourceSource} model.modelSource - The source of the text embeddings model binary.
+ * @property {ResourceSource} model.tokenizerSource - The source of the tokenizer JSON file.
+ * @property {EmbeddingPrompts} [model.prompts] - Optional asymmetric prompts for query/document roles.
+ * @property {boolean} [model.multiVector] - Optional flag indicating if the model returns per-token embeddings.
+ * @property {number[]} [model.skipListIds] - Optional array of token IDs to skip during scoring.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextEmbeddingsProps<
   M extends TextEmbeddingsModel = TextEmbeddingsModel,
@@ -121,15 +123,28 @@ export interface TextEmbeddingsProps<
 export interface TextEmbeddingsType<
   M extends TextEmbeddingsModel = TextEmbeddingsModel,
 > {
-  error: null | RnExecutorchError;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-
   /**
-   * Embed text. Standard models return a single pooled `Float32Array`;
-   * `multiVector` models return the per-token `EmbeddingResult`. Models with
-   * `prompts` require a `role` ('query' | 'document').
+   * Contains the error message if the model failed to load or during inference.
+   */
+  error: null | RnExecutorchError;
+  /**
+   * Indicates whether the embeddings model has successfully loaded and is ready for inference.
+   */
+  isReady: boolean;
+  /**
+   * Indicates whether the model is currently generating embeddings.
+   */
+  isGenerating: boolean;
+  /**
+   * Tracks the progress of the model download process (value between 0 and 1).
+   */
+  downloadProgress: number;
+  /**
+   * Runs the text embeddings model on the provided input string.
+   * @param input - The text string to embed.
+   * @param role - Optional role for models with asymmetric prompts. Required if the model has `prompts`.
+   * @returns A promise resolving to a Float32Array or EmbeddingResult containing the vector embeddings.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
   forward: ForwardFn<M>;
 }

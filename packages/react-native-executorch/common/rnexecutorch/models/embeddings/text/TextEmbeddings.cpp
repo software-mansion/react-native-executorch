@@ -16,9 +16,6 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
-  // Apply the tokenizer's post_processor so declared special tokens (e.g. a
-  // BOS prepended via TemplateProcessing) are added. CLS-pooled embedding
-  // models read position 0, so a missing BOS corrupts the pooled vector.
   auto inputIds = tokenizer->encodeWithSpecialTokens(input);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
@@ -64,10 +61,6 @@ EmbeddingResult TextEmbeddings::generate(const std::string input) {
                      std::move(preprocessed.inputIds));
 }
 
-// Output is [1, numTokens, embeddingDim] (numTokens == 1 for pooled models,
-// == sequence length for multi-vector models). Multi-vector consumers index
-// tokenIds[i] per output row (e.g. skiplist masking), so numTokens must match
-// the input token count or that alignment silently breaks.
 EmbeddingResult
 TextEmbeddings::buildResult(const executorch::aten::Tensor &output,
                             std::vector<int64_t> tokenIds) {

@@ -260,26 +260,26 @@ const GEMMA4_E2B_MM_VARIANTS = {
   },
 };
 
-// Asymmetric query/document prompts the LFM models are trained with.
-// forward(text, role) auto-prepends these.
 const LFM_EMBEDDING_PROMPTS = { query: 'query: ', document: 'document: ' };
-const LFM_COLBERT_PROMPTS = { query: '[Q] ', document: '[D] ' };
+
+const LFM2_5_EMBEDDING_350M_CONFIG = {
+  modelName: 'lfm2-5-embedding-350m' as const,
+  tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
+  prompts: LFM_EMBEDDING_PROMPTS,
+  multiVector: false as const,
+};
 
 const LFM2_5_EMBEDDING_350M_VARIANTS = {
   mlx: {
     base: {
-      modelName: 'lfm2-5-embedding-350m' as const,
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
       modelSource: M.LFM2_5_EMBEDDING_350M_MLX_MODEL,
-      tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
-      prompts: LFM_EMBEDDING_PROMPTS,
     },
   },
   xnnpack: {
     base: {
-      modelName: 'lfm2-5-embedding-350m' as const,
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
       modelSource: M.LFM2_5_EMBEDDING_350M_XNNPACK_MODEL,
-      tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
-      prompts: LFM_EMBEDDING_PROMPTS,
     },
   },
 };
@@ -290,25 +290,27 @@ const LFM_COLBERT_SKIP_LIST = [
   602, 603,
 ];
 
+const LFM_COLBERT_PROMPTS = { query: '[Q] ', document: '[D] ' };
+
+const LFM2_5_COLBERT_350M_CONFIG = {
+  modelName: 'lfm2-5-colbert-350m' as const,
+  tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
+  prompts: LFM_COLBERT_PROMPTS,
+  multiVector: true as const,
+  skipListIds: LFM_COLBERT_SKIP_LIST,
+};
+
 const LFM2_5_COLBERT_350M_VARIANTS = {
   mlx: {
     base: {
-      modelName: 'lfm2-5-colbert-350m' as const,
+      ...LFM2_5_COLBERT_350M_CONFIG,
       modelSource: M.LFM2_5_COLBERT_350M_MLX_MODEL,
-      tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
-      prompts: LFM_COLBERT_PROMPTS,
-      multiVector: true as const,
-      skipListIds: LFM_COLBERT_SKIP_LIST,
     },
   },
   xnnpack: {
     base: {
-      modelName: 'lfm2-5-colbert-350m' as const,
+      ...LFM2_5_COLBERT_350M_CONFIG,
       modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
-      tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
-      prompts: LFM_COLBERT_PROMPTS,
-      multiVector: true as const,
-      skipListIds: LFM_COLBERT_SKIP_LIST,
     },
   },
 };
