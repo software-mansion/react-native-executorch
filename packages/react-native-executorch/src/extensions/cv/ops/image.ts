@@ -76,8 +76,8 @@ export type ResizeOptions = {
  * @category Types
  */
 export type NormalizeOptions = {
-  readonly alpha?: number | number[];
-  readonly beta?: number | number[];
+  readonly alpha?: number | readonly number[];
+  readonly beta?: number | readonly number[];
 };
 
 /**

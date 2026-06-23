@@ -20,8 +20,8 @@ import {
 export type ImagePreprocessorOptions = {
   readonly resizeMode: ResizeMode;
   readonly interpolation: InterpolationMethod;
-  readonly alpha: number | number[];
-  readonly beta: number | number[];
+  readonly alpha: number | readonly number[];
+  readonly beta: number | readonly number[];
   readonly padValue?: number;
 };
 

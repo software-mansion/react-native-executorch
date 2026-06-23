@@ -23,12 +23,28 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
     value: models.semanticSegmentation.SELFIE_SEGMENTATION.XNNPACK_FP32,
   },
   {
-    label: 'LRASPP MobileNet V3 (FP32)',
-    value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.XNNPACK_FP32,
-  },
-  {
     label: 'LRASPP MobileNet V3 (INT8)',
     value: models.semanticSegmentation.LRASPP_MOBILENET_V3_LARGE.XNNPACK_INT8,
+  },
+  {
+    label: 'DeepLab V3 ResNet50 (INT8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET50.XNNPACK_INT8,
+  },
+  {
+    label: 'DeepLab V3 ResNet101 (INT8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_RESNET101.XNNPACK_INT8,
+  },
+  {
+    label: 'DeepLab V3 MobileNet V3 (INT8)',
+    value: models.semanticSegmentation.DEEPLAB_V3_MOBILENET_V3_LARGE.XNNPACK_INT8,
+  },
+  {
+    label: 'FCN ResNet50 (INT8)',
+    value: models.semanticSegmentation.FCN_RESNET50.XNNPACK_INT8,
+  },
+  {
+    label: 'FCN ResNet101 (INT8)',
+    value: models.semanticSegmentation.FCN_RESNET101.XNNPACK_INT8,
   },
 ];
 

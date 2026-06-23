@@ -1044,3 +1044,14 @@ export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];
  * @category Types
  */
 export type PascalVocLabel = (typeof PASCAL_VOC_LABELS)[number];
+
+/**
+ * ImageNet standard normalization options containing alpha and beta
+ * coefficients. Based on the standard ImageNet mean [0.485, 0.456, 0.406] and
+ * std [0.229, 0.224, 0.225].
+ * @category Constants
+ */
+export const IMAGENET_NORM = {
+  alpha: [1 / (255.0 * 0.229), 1 / (255.0 * 0.224), 1 / (255.0 * 0.225)],
+  beta: [-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
+} as const;
