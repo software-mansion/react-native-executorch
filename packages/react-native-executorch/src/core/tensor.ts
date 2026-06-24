@@ -91,6 +91,18 @@ export type Tensor = {
   ): Tensor;
 
   /**
+   * Creates a view over a sub-region of this tensor's buffer without copying.
+   *
+   * The view shares the parent's memory, so writes through either tensor are
+   * visible to the other. The view must be {@link Tensor.dispose disposed}
+   * independently, which only releases the view — not the parent buffer.
+   * @param shape The logical shape of the view (dimensions <= parent).
+   * @param offset Byte offset into the parent buffer (defaults to 0).
+   * @returns A new tensor view sharing the parent's memory.
+   */
+  view(shape: readonly number[], offset?: number): Tensor;
+
+  /**
    * Prevents plain JS objects from being cast as Tensors. Tensors should only
    * be created via the `tensor` function exported from this module.
    * @internal
@@ -114,7 +126,7 @@ export type Tensor = {
  */
 export function tensor(
   dtype: DType,
-  shape: number[],
+  shape: readonly number[],
   src?: Float32Array | Uint8Array | Int32Array | BigInt64Array
 ): Tensor {
   'worklet';

@@ -33,7 +33,20 @@ public:
 
     std::shared_mutex mutex_;
 
+    // Parent tensor connection - for tensor views.
+    std::shared_ptr<TensorHostObject> parent_; // null for owner tensors
+    size_t offset_ = 0;
+
+    // Helper function to cover data access in tensor / view situation.
+    uint8_t *data() const { return data_ ? data_.get() : parent_->data() + offset_; }
+
+    // Owner tensor initializagtion
     TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype);
+
+    // Tensor view initialization
+    // Does not allocate the data, only points out for a parent tensor.
+    TensorHostObject(std::shared_ptr<TensorHostObject> parent,
+                     const std::vector<int32_t> &shape, size_t offset);
 
     facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;

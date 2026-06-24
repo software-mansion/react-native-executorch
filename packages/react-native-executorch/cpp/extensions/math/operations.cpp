@@ -64,8 +64,8 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         const auto countElements = src->numel_;
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data());
+        auto *dstData = reinterpret_cast<float *>(dst->data());
 
         for (size_t i = 0; i < countElements; ++i) {
             dstData[i] = 1.0f / (1.0f + std::exp(-srcData[i]));
@@ -150,8 +150,8 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: dst tensor has been disposed");
         }
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data());
+        auto *dstData = reinterpret_cast<float *>(dst->data());
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {

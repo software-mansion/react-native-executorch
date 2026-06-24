@@ -494,7 +494,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
         }
 
-        ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_.get());
+        ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data());
         ::cv::merge(channels, dstMat);
 
         return jsi::Value(rt, args[1]);

@@ -273,7 +273,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
 
                     auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->data_) {
+                    if (!tensorHostObject->tensor_) {
                         throw jsi::JSError(rt, "execute: inputs[" + std::to_string(i) + "] has been disposed");
                     }
 
@@ -374,7 +374,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
 
                     auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->data_) {
+                    if (!tensorHostObject->tensor_) {
                         throw jsi::JSError(rt, "execute: outputTensors[" + std::to_string(tensorOutputIdx) + "] has been disposed");
                     }
 
@@ -399,7 +399,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
                     validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
 
-                    std::memcpy(tensorHostObject->data_.get(),
+                    std::memcpy(tensorHostObject->data(),
                                 output.toTensor().const_data_ptr(),
                                 output.toTensor().nbytes());
 

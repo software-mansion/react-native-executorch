@@ -17,6 +17,43 @@ TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexe
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, rnexecutorch::core::types::toScalarType(dtype));
 }
 
+TensorHostObject::TensorHostObject(std::shared_ptr<TensorHostObject> parent,
+                                   const std::vector<int32_t> &shape, size_t offset) {
+    if (!parent) {
+        throw std::invalid_argument("Tensor view: parent must not be null");
+    }
+
+    if (shape.empty()) {
+        throw std::invalid_argument("Tensor view: shape must not be empty");
+    }
+
+    if (!parent->tensor_) {
+        throw std::invalid_argument("Tensor view: parent tensor has been disposed");
+    }
+
+    dtype_ = parent->dtype_;
+    shape_ = shape;
+    numel_ = std::accumulate(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
+
+    const auto elemSize = rnexecutorch::core::types::elementSize(dtype_);
+    size_ = numel_ * elemSize;
+
+    if (offset + size_ > parent->size_) {
+        throw std::invalid_argument(
+            "Tensor view: view size (" + std::to_string(size_) + " bytes) at offset " +
+            std::to_string(offset) + " exceeds parent buffer (" +
+            std::to_string(parent->size_) + " bytes)");
+    }
+
+    parent_ = std::move(parent);
+    offset_ = offset;
+
+    tensor_ = executorch::extension::from_blob(
+        parent_->data() + offset_,
+        shape_,
+        rnexecutorch::core::types::toScalarType(dtype_));
+}
+
 jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
     auto nameStr = name.utf8(rt);
 
@@ -63,11 +100,11 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "copyTo: dst tensor is currently in use");
             }
 
-            if (!self->data_) {
+            if (!self->tensor_) {
                 throw jsi::JSError(rt, "copyTo: src tensor has been disposed");
             }
 
-            if (!dst->data_) {
+            if (!dst->tensor_) {
                 throw jsi::JSError(rt, "copyTo: dst tensor has been disposed");
             }
 
@@ -143,7 +180,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Tensor is currently in use and cannot be written to");
             }
 
-            if (!self->data_) {
+            if (!self->tensor_) {
                 throw jsi::JSError(rt, "setData: Tensor has been disposed");
             }
 
@@ -154,7 +191,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, errorMsg);
             }
 
-            std::memcpy(self->data_.get(), buffer.data(rt) + byteOffset, byteLength);
+            std::memcpy(self->data(), buffer.data(rt) + byteOffset, byteLength);
 
             return jsi::Value(rt, thisVal.asObject(rt));
         };
@@ -202,7 +239,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Tensor is currently in use and cannot be read");
             }
 
-            if (!self->data_) {
+            if (!self->tensor_) {
                 throw jsi::JSError(rt, "getData: Tensor has been disposed");
             }
 
@@ -213,7 +250,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, errorMsg);
             }
 
-            std::memcpy(buffer.data(rt) + byteOffset, self->data_.get(), byteLength);
+            std::memcpy(buffer.data(rt) + byteOffset, self->data(), byteLength);
 
             return jsi::Value(rt, args[0].asObject(rt));
         };
@@ -286,16 +323,72 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::unique_lock<std::shared_mutex> lock(self->mutex_);
 
-            if (!self->data_) {
+            if (!self->tensor_) {
                 throw jsi::JSError(rt, "dispose: Tensor has already been disposed");
             }
 
             self->tensor_.reset();
-            self->data_.reset();
+
+            if (self->data_) {
+                self->data_.reset();
+            }
+
+            // Unbind the parent tensor (for tensor views)
+            if (self->parent_) {
+                self->parent_.reset();
+            }
 
             return jsi::Value::undefined();
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, fnBody);
+    }
+
+    if (nameStr == "view") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (count < 1 || count > 2) {
+                throw jsi::JSError(rt, "view: Usage: view(shape, offset?)");
+            }
+
+            if (!self->tensor_) {
+                throw jsi::JSError(rt, "view: Tensor has been disposed");
+            }
+
+            if (!args[0].isObject() || !args[0].asObject(rt).isArray(rt)) {
+                throw jsi::JSError(rt, "view: Expected shape as an array of integers");
+            }
+
+            auto shapeArray = args[0].asObject(rt).asArray(rt);
+            std::vector<std::int32_t> shape;
+            for (size_t i = 0; i < shapeArray.length(rt); ++i) {
+                auto dimValue = shapeArray.getValueAtIndex(rt, i);
+                if (!dimValue.isNumber()) {
+                    throw jsi::JSError(rt, "view: Shape array must contain only numbers");
+                }
+
+                if (dimValue.asNumber() <= 0) {
+                    throw jsi::JSError(rt, "view: Shape dimensions must be positive integers");
+                }
+
+                shape.push_back(static_cast<std::int32_t>(dimValue.asNumber()));
+            }
+
+            size_t offset = 0;
+            if (count == 2) {
+                if (!args[1].isNumber()) {
+                    throw jsi::JSError(rt, "view: Expected offset to be a number");
+                }
+                offset = static_cast<size_t>(args[1].asNumber());
+            }
+
+            try {
+                auto viewTensor = std::make_shared<TensorHostObject>(self, shape, offset);
+                return jsi::Object::createFromHostObject(rt, viewTensor);
+            } catch (const std::exception &e) {
+                throw jsi::JSError(rt, "view: " + std::string(e.what()));
+            }
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "view"), 2, fnBody);
     }
 
     return jsi::Value::undefined();
@@ -312,6 +405,7 @@ std::vector<facebook::jsi::PropNameID> TensorHostObject::getPropertyNames(jsi::R
     properties.push_back(jsi::PropNameID::forAscii(rt, "through"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "throughIf"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "view"));
     return properties;
 }
 
