@@ -26,9 +26,11 @@ enum class BoxFormat {
 BoxFormat parseBoxFormat(const std::string &s) {
     if (s == "xyxy") {
         return BoxFormat::XYXY;
-    } else if (s == "xywh") {
+    }
+    if (s == "xywh") {
         return BoxFormat::XYWH;
-    } else if (s == "cxcywh") {
+    }
+    if (s == "cxcywh") {
         return BoxFormat::CXCYWH;
     }
     throw std::invalid_argument("unsupported boxFormat '" + s + "'");
@@ -42,7 +44,8 @@ enum class NmsType {
 NmsType parseNmsType(const std::string &s) {
     if (s == "standard") {
         return NmsType::Standard;
-    } else if (s == "weighted") {
+    }
+    if (s == "weighted") {
         return NmsType::Weighted;
     }
     throw std::invalid_argument("unsupported nmsType '" + s + "'");
