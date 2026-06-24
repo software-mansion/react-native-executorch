@@ -7194,6 +7194,7 @@ __metadata:
     prettier: "npm:2.8.8"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
+    react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-executorch-bare-resource-fetcher: "workspace:*"
     react-native-safe-area-context: "npm:^5.5.2"
