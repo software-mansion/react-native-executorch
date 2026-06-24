@@ -614,4 +614,93 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
+
+void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
+    auto name = "applyColormap";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
+        }
+
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "applyColormap: src must be a Tensor");
+        }
+        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "applyColormap: dst must be a Tensor");
+        }
+
+        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        constexpr size_t numRgbaChannels = 4;
+
+        if (src->dtype_ != rnexecutorch::core::types::DType::int32) {
+            throw jsi::JSError(rt, "applyColormap: src must be int32");
+        }
+        if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
+            throw jsi::JSError(rt, "applyColormap: dst must be uint8");
+        }
+        if (dst->numel_ != src->numel_ * numRgbaChannels) {
+            throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
+        }
+
+        if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
+            throw jsi::JSError(rt, "applyColormap: colormap must be an array");
+        }
+
+        auto colormapArray = args[2].asObject(rt).asArray(rt);
+        size_t numColors = colormapArray.size(rt);
+        std::vector<std::array<uint8_t, numRgbaChannels>> lut(numColors);
+        for (size_t i = 0; i < numColors; ++i) {
+            auto colorVal = colormapArray.getValueAtIndex(rt, i);
+            if (!colorVal.isObject() || !colorVal.asObject(rt).isArray(rt)) {
+                throw jsi::JSError(rt, "applyColormap: colormap entry must be an array");
+            }
+            auto color = colorVal.asObject(rt).asArray(rt);
+            if (color.size(rt) != numRgbaChannels) {
+                throw jsi::JSError(rt, "applyColormap: colormap entry must be an RGBA color array of size 4");
+            }
+            for (size_t c = 0; c < numRgbaChannels; ++c) {
+                auto channelVal = color.getValueAtIndex(rt, c);
+                if (!channelVal.isNumber()) {
+                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
+                }
+                double val = channelVal.asNumber();
+                if (std::isnan(val) || val < 0.0 || val > 255.0) {
+                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be between 0 and 255");
+                }
+                lut[i][c] = static_cast<uint8_t>(val);
+            }
+        }
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
+            throw jsi::JSError(rt, "applyColormap: tensors in use");
+        }
+
+        if (!src->data_ || !dst->data_) {
+            throw jsi::JSError(rt, "applyColormap: tensor has been disposed");
+        }
+
+        size_t pixels = src->numel_;
+
+        const int32_t *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
+        uint8_t *dstData = dst->data_.get();
+
+        for (size_t i = 0; i < pixels; ++i) {
+            int32_t idx = srcData[i];
+            if (idx < 0 || static_cast<size_t>(idx) >= numColors) {
+                throw jsi::JSError(rt, "applyColormap: tensor contains class index (" +
+                                           std::to_string(idx) + ") that exceeds provided colormap size (" +
+                                           std::to_string(numColors) + ")");
+            }
+            for (size_t c = 0; c < numRgbaChannels; ++c) {
+                dstData[i * numRgbaChannels + c] = lut[idx][c];
+            }
+        }
+
+        return jsi::Value(rt, args[1]);
+    };
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+}
 } // namespace rnexecutorch::extensions::cv::image_ops

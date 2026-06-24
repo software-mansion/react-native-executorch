@@ -12,6 +12,7 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     image_ops::install_toChannelsFirst(rt, cvModule);
     image_ops::install_toChannelsLast(rt, cvModule);
     image_ops::install_normalize(rt, cvModule);
+    image_ops::install_applyColormap(rt, cvModule);
 
     module.setProperty(rt, "cv", cvModule);
 }

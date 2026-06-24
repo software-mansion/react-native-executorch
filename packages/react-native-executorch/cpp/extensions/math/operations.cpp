@@ -277,26 +277,21 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
-        std::vector<float> maxVals(inner);
 
+        // DO NOT swap loop order. This structure intentionally prioritizes the
+        // most common case (axis = -1, inner = 1) for sequential access.
         for (size_t o = 0; o < outer; ++o) {
-            const float *srcSlab = srcData + o * axisDim * inner;
-            int32_t *dstRow = dstData + o * inner;
-
             for (size_t i = 0; i < inner; ++i) {
-                maxVals[i] = -std::numeric_limits<float>::infinity();
-                dstRow[i] = 0;
-            }
-
-            for (size_t d = 0; d < axisDim; ++d) {
-                const float *srcRow = srcSlab + d * inner;
-                for (size_t i = 0; i < inner; ++i) {
-                    const float val = srcRow[i];
-                    if (val > maxVals[i]) {
-                        maxVals[i] = val;
-                        dstRow[i] = static_cast<int32_t>(d);
+                float maxVal = -std::numeric_limits<float>::infinity();
+                int32_t maxIdx = 0;
+                for (size_t d = 0; d < axisDim; ++d) {
+                    const float val = srcData[o * axisDim * inner + d * inner + i];
+                    if (val > maxVal) {
+                        maxVal = val;
+                        maxIdx = static_cast<int32_t>(d);
                     }
                 }
+                dstData[o * inner + i] = maxIdx;
             }
         }
 

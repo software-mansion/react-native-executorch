@@ -76,8 +76,8 @@ export type ResizeOptions = {
  * @category Types
  */
 export type NormalizeOptions = {
-  readonly alpha?: number | number[];
-  readonly beta?: number | number[];
+  readonly alpha?: number | readonly number[];
+  readonly beta?: number | readonly number[];
 };
 
 /**
@@ -174,4 +174,30 @@ export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Te
     beta: 0.0,
   } as const;
   return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...opts });
+}
+
+/**
+ * Applies a colormap to a single-channel image tensor, mapping class indices to
+ * RGBA colors.
+ *
+ * This operation iterates over each index/class ID in the source tensor, looks
+ * up its corresponding RGBA color in the provided colormap palette, and writes
+ * it to the destination tensor.
+ * @category Typescript API
+ * @param src The source index/mask tensor. Must be an integer tensor of `int32`
+ * dtype containing class indices. Shape `[H, W, 1]` (or `[H, W]`).
+ * @param dst The pre-allocated destination tensor to write the mapped RGBA
+ * values to. Must be a 3D image tensor in HWC layout and `uint8` dtype. Shape
+ * `[H, W, 4]`.
+ * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to each
+ * class index. The size of this list must cover all class indices present in `src`.
+ * @returns The destination tensor with the applied colormap.
+ */
+export function applyColormap(
+  src: Tensor,
+  dst: Tensor,
+  colormap: [number, number, number, number][]
+): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
 }
