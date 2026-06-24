@@ -145,7 +145,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(numAnchors);
 
-        for (size_t idx = 0; idx < numAnchors; ++idx) {
+        for (size_t idx = 0; std::cmp_less(idx, numAnchors); ++idx) {
             float score = scoresPtr[idx];
 
             if (score >= confidenceThreshold) {
