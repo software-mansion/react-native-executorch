@@ -29,13 +29,20 @@ All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbed
 
 Use the static [`fromModelName`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#frommodelname) factory method. It accepts a model config object (e.g. `ALL_MINILM_L6_V2`) containing:
 
-* [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#modelsource) - Location of the used model.
-* [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#tokenizersource) - Location of the used tokenizer.
+* `modelName` - Unique name identifying the model.
+* `modelSource` - Location of the used model.
+* `tokenizerSource` - Location of the used tokenizer.
+* `prompts` *(optional)* - Asymmetric `query`/`document` prompts the model is trained with. When present, `forward` requires a `role` and prepends the matching prompt.
+* `multiVector` *(optional)* - When `true`, `forward` returns the per-token `EmbeddingResult` instead of a single pooled `Float32Array`.
+* `skipListIds` *(optional)* - Token ids to exclude from late-interaction (MaxSim) scoring.
 
-And an optional `onDownloadProgress` callback. It returns a promise resolving to a `TextEmbeddingsModule` instance.
+And an optional `onDownloadProgress` callback (receiving a value between 0 and 1). It returns a promise resolving to a `TextEmbeddingsModule` instance.
 
 For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#forward) method. It accepts one argument, which is the text you want to embed. The method returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#forward) method. It accepts the text to embed and, for models with asymmetric prompts, an optional `role` (`'query' | 'document'`). The method returns a promise resolving to:
+
+* a `Float32Array` — a single pooled vector — for standard models, or
+* an [`EmbeddingResult`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/EmbeddingResult) with the per-token vectors for `multiVector` models.
