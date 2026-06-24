@@ -3,7 +3,8 @@
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <mutex>
 #include <rnexecutorch/TokenizerModule.h>
-#include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
+#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/embeddings/Types.h>
 
 namespace rnexecutorch {
 namespace models::embeddings {
@@ -13,13 +14,12 @@ struct TokenIdsWithAttentionMask {
   std::vector<int64_t> attentionMask;
 };
 
-class TextEmbeddings final : public BaseEmbeddings {
+class TextEmbeddings final : public BaseModel {
 public:
   TextEmbeddings(const std::string &modelSource,
                  const std::string &tokenizerSource,
                  std::shared_ptr<react::CallInvoker> callInvoker);
-  [[nodiscard(
-      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  [[nodiscard("Registered non-void function")]] EmbeddingResult
   generate(const std::string input);
   void unload() noexcept;
 
@@ -27,6 +27,8 @@ private:
   mutable std::mutex inference_mutex_;
   std::vector<std::vector<int32_t>> inputShapes;
   TokenIdsWithAttentionMask preprocess(const std::string &input);
+  static EmbeddingResult buildResult(const executorch::aten::Tensor &output,
+                                     std::vector<int64_t> tokenIds);
   std::unique_ptr<TokenizerModule> tokenizer;
 };
 } // namespace models::embeddings

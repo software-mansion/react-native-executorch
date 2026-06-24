@@ -215,6 +215,7 @@ export * from './utils/llm';
 export * from './common/Logger';
 export * from './utils/llms/context_strategy';
 export * from './utils/segmentAnythingPrompts';
+export * from './utils/textEmbeddings';
 
 // types
 export * from './types/objectDetection';

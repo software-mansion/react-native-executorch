@@ -1199,6 +1199,12 @@ export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-d
 export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED_MODEL = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`;
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_TOKENIZER = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const LFM2_5_EMBEDDING_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_EMBEDDING_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`;
+export const LFM2_5_EMBEDDING_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const LFM2_5_COLBERT_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_COLBERT_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`;
+export const LFM2_5_COLBERT_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
 const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 

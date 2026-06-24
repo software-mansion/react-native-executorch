@@ -4,6 +4,10 @@ import * as M from './modelUrls';
 import * as OCR from './ocr/models';
 import { symbols } from './ocr/symbols';
 import {
+  LFM_COLBERT_PROMPTS,
+  LFM_COLBERT_SKIP_LIST,
+} from './textEmbeddings/colbert';
+import {
   KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
   KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
   KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH,
@@ -257,6 +261,53 @@ const GEMMA4_E2B_MM_VARIANTS = {
   },
   xnnpack: {
     base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_XNNPACK_MM },
+  },
+};
+
+const LFM_EMBEDDING_PROMPTS = { query: 'query: ', document: 'document: ' };
+
+const LFM2_5_EMBEDDING_350M_CONFIG = {
+  modelName: 'lfm2-5-embedding-350m' as const,
+  tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
+  prompts: LFM_EMBEDDING_PROMPTS,
+  multiVector: false as const,
+};
+
+const LFM2_5_EMBEDDING_350M_VARIANTS = {
+  mlx: {
+    base: {
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
+      modelSource: M.LFM2_5_EMBEDDING_350M_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: {
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
+      modelSource: M.LFM2_5_EMBEDDING_350M_XNNPACK_MODEL,
+    },
+  },
+};
+
+const LFM2_5_COLBERT_350M_CONFIG = {
+  modelName: 'lfm2-5-colbert-350m' as const,
+  tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
+  prompts: LFM_COLBERT_PROMPTS,
+  multiVector: true as const,
+  skipListIds: LFM_COLBERT_SKIP_LIST,
+};
+
+const LFM2_5_COLBERT_350M_VARIANTS = {
+  mlx: {
+    base: {
+      ...LFM2_5_COLBERT_350M_CONFIG,
+      modelSource: M.LFM2_5_COLBERT_350M_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: {
+      ...LFM2_5_COLBERT_350M_CONFIG,
+      modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
+    },
   },
 };
 
@@ -799,6 +850,14 @@ export const models = {
       M.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED
     ),
     clip_vit_base_patch32_text: base(M.CLIP_VIT_BASE_PATCH32_TEXT),
+    lfm2_5_embedding_350m: variant(LFM2_5_EMBEDDING_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
+    lfm2_5_colbert_350m: variant(LFM2_5_COLBERT_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
   },
   image_embedding: {
     clip_vit_base_patch32_image: pair(
