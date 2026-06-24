@@ -71,6 +71,8 @@ To run the model, you can use the [`forward`](../../06-api-reference/interfaces/
 - **Pooled models** (the default, e.g. MiniLM, MPNet, LFM2.5-Embedding) resolve to a single `Float32Array` — one normalized vector for the whole input.
 - **Multi-vector models** (`multiVector: true`, e.g. LFM2.5-ColBERT) resolve to an [`EmbeddingResult`](../../06-api-reference/interfaces/EmbeddingResult.md) with the per-token vectors (`vectors`, `numTokens`, `embeddingDim`, `tokenIds`).
 
+For background on why a dense bi-encoder pools to one vector while a late-interaction model keeps per-token vectors, see Liquid AI's [LFM2.5 Retrievers blog post](https://www.liquid.ai/blog/lfm2-5-retrievers).
+
 ### Asymmetric prompts (`role`)
 
 Some retrieval models are trained to embed queries and documents with different prefixes (e.g. LFM2.5 uses `query: `/`document: `, ColBERT uses `[Q] `/`[D] `). For these models the model config carries the prompts and `forward` requires a `role`:
@@ -85,11 +87,9 @@ The matching prompt is prepended automatically; for models without prompts the `
 ## Example
 
 ```typescript
-import { models, useTextEmbeddings } from 'react-native-executorch';
-const dotProduct = (a: number[], b: number[]) =>
-  a.reduce((sum, val, i) => sum + val * b[i], 0);
+import { models, useTextEmbeddings, dotProduct } from 'react-native-executorch';
 
-const cosineSimilarity = (a: number[], b: number[]) => {
+const cosineSimilarity = (a: Float32Array, b: Float32Array) => {
   const dot = dotProduct(a, b);
   const normA = Math.sqrt(dotProduct(a, a));
   const normB = Math.sqrt(dotProduct(b, b));
@@ -132,8 +132,8 @@ function App() {
 | [distiluse-base-multilingual-cased-v2](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2)   | 50+ languages |    126     |         512          | Multilingual DistilBERT with a 768→512 projection head. Recommended when broader language coverage matters more than the exact English quality of MiniLM/MPNet.                                                                                                                                                                                                                                                                  |
 | [paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) | 50+ languages |    126     |         384          | Multilingual MiniLM-L12 distilled from paraphrase-multilingual-mpnet-base-v2. Compact (≈118 M params) sentence encoder for cross-lingual semantic similarity and retrieval across 50+ languages.                                                                                                                                                                                                                                 |
 | [clip-vit-base-patch32-text](https://huggingface.co/openai/clip-vit-base-patch32)                                           |    English    |     74     |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the text encoder part of the CLIP model. To embed images checkout [clip-vit-base-patch32-image](../02-computer-vision/useImageEmbeddings.md#supported-models). |
-| [LFM2.5-Embedding-350M](https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M)                                              |  Multilingual |    512     |         1024         | Dense bi-encoder from Liquid AI with CLS pooling. Trained with asymmetric `query: `/`document: ` prompts, so `forward` requires a `role`. On iOS it runs on the GPU via the MLX backend (physical device only); Android uses XNNPACK.                                                                                                                                                                                            |
-| [LFM2.5-ColBERT-350M](https://huggingface.co/LiquidAI/LFM2.5-ColBERT-350M)                                                  |  Multilingual |    512     |     128 (per token)  | Late-interaction (multi-vector) retriever from Liquid AI: a `Linear(1024→128)` head emits one normalized vector per token. `forward` returns an `EmbeddingResult`; score query/document pairs with MaxSim (see below). Uses `[Q] `/`[D] ` role prompts.                                                                                                                                                                          |
+| [LFM2.5-Embedding-350M](https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M)                                              | Multilingual  |    512     |         1024         | Dense bi-encoder from Liquid AI with CLS pooling. Trained with asymmetric `query: `/`document: ` prompts, so `forward` requires a `role`. On iOS it runs on the GPU via the MLX backend (physical device only); Android uses XNNPACK.                                                                                                                                                                                            |
+| [LFM2.5-ColBERT-350M](https://huggingface.co/LiquidAI/LFM2.5-ColBERT-350M)                                                  | Multilingual  |    512     |   128 (per token)    | Late-interaction (multi-vector) retriever from Liquid AI: a `Linear(1024→128)` head emits one normalized vector per token. `forward` returns an `EmbeddingResult`; score query/document pairs with MaxSim (see below). Uses `[Q] `/`[D] ` role prompts.                                                                                                                                                                          |
 
 **`Max Tokens`** - The maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.
 
@@ -145,40 +145,15 @@ For the supported models, the returned embedding vector is normalized, meaning t
 
 ## Late interaction (multi-vector models)
 
-Multi-vector models such as LFM2.5-ColBERT do not pool the sequence into a single vector. Instead, `forward` returns an [`EmbeddingResult`](../../06-api-reference/interfaces/EmbeddingResult.md) holding one normalized vector per token. You score a query against a document with **MaxSim**: for every query-token vector, take its highest dot product against the document-token vectors, then sum those maxima.
+Multi-vector models such as LFM2.5-ColBERT do not pool the sequence into a single vector. Instead, `forward` returns an [`EmbeddingResult`](../../06-api-reference/interfaces/EmbeddingResult.md) holding one normalized vector per token. You score a query against a document with **MaxSim**: for every query-token vector, take its highest dot product against the document-token vectors, then sum those maxima. The model also ships a `skipListIds` array — the punctuation token ids excluded from scoring.
 
-The library is a pure embedder — it gives you the per-token vectors and the model's punctuation `skipListIds`, but scoring is your concern (so it can run wherever you store the vectors). A reference `maxSim` implementation:
+The library ships a `maxSim` helper (and a `dotProduct` helper for pooled models), so you can score directly without reimplementing it:
 
 ```typescript
-import { models, useTextEmbeddings, EmbeddingResult } from 'react-native-executorch';
+import { models, useTextEmbeddings, maxSim } from 'react-native-executorch';
 
 const colbert = models.text_embedding.lfm2_5_colbert_350m();
 const skipListIds = colbert.skipListIds ?? [];
-
-const maxSim = (
-  query: EmbeddingResult,
-  doc: EmbeddingResult,
-  skip: number[] = []
-) => {
-  const dim = query.embeddingDim;
-  const skipped = new Set(skip);
-  let score = 0;
-  for (let qi = 0; qi < query.numTokens; qi++) {
-    const qOff = qi * dim;
-    let best = -Infinity;
-    for (let di = 0; di < doc.numTokens; di++) {
-      if (skipped.has(doc.tokenIds[di])) continue;
-      const dOff = di * dim;
-      let dot = 0;
-      for (let k = 0; k < dim; k++) {
-        dot += query.vectors[qOff + k] * doc.vectors[dOff + k];
-      }
-      if (dot > best) best = dot;
-    }
-    if (best !== -Infinity) score += best;
-  }
-  return score;
-};
 
 function App() {
   const model = useTextEmbeddings({ model: colbert });

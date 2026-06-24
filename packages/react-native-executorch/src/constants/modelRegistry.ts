@@ -4,6 +4,10 @@ import * as M from './modelUrls';
 import * as OCR from './ocr/models';
 import { symbols } from './ocr/symbols';
 import {
+  LFM_COLBERT_PROMPTS,
+  LFM_COLBERT_SKIP_LIST,
+} from './textEmbeddings/colbert';
+import {
   KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
   KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
   KOKORO_AMERICAN_ENGLISH_FEMALE_SARAH,
@@ -283,14 +287,6 @@ const LFM2_5_EMBEDDING_350M_VARIANTS = {
     },
   },
 };
-
-const LFM_COLBERT_SKIP_LIST = [
-  510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524,
-  535, 536, 537, 538, 539, 540, 541, 568, 569, 570, 571, 572, 573, 600, 601,
-  602, 603,
-];
-
-const LFM_COLBERT_PROMPTS = { query: '[Q] ', document: '[D] ' };
 
 const LFM2_5_COLBERT_350M_CONFIG = {
   modelName: 'lfm2-5-colbert-350m' as const,

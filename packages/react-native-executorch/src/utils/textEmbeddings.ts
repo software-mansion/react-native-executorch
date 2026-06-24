@@ -1,8 +1,6 @@
-import {
-  RnExecutorchError,
-  RnExecutorchErrorCode,
-  EmbeddingResult,
-} from 'react-native-executorch';
+import { EmbeddingResult } from '../types/textEmbeddings';
+import { RnExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export const dotProduct = (a: Float32Array, b: Float32Array) => {
   if (a.length !== b.length) {
@@ -14,7 +12,7 @@ export const dotProduct = (a: Float32Array, b: Float32Array) => {
 
   let sum = 0;
   for (let i = 0; i < a.length; i++) {
-    sum += a[i] * b[i];
+    sum += (a[i] ?? 0) * (b[i] ?? 0);
   }
   return sum;
 };

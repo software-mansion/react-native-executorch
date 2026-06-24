@@ -17,6 +17,7 @@ import {
   useTextEmbeddings,
   useImageEmbeddings,
   ImageEmbeddingsProps,
+  dotProduct,
 } from 'react-native-executorch';
 
 type ImageEmbeddingModel = ImageEmbeddingsProps['model'];
@@ -35,7 +36,6 @@ const IMAGE_MODELS: { label: string; value: ImageEmbeddingModel }[] = [
 ];
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from 'expo-router';
-import { dotProduct } from '../../utils/math';
 import { ModelPicker } from '../../components/ModelPicker';
 
 const DEFAULT_LABELS = [

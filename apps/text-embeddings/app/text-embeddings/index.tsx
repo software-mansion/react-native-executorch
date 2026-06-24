@@ -16,9 +16,10 @@ import {
   useTextEmbeddings,
   TextEmbeddingsProps,
   EmbeddingResult,
+  dotProduct,
+  maxSim,
 } from 'react-native-executorch';
 import { useIsFocused } from 'expo-router';
-import { dotProduct, maxSim } from '../../utils/math';
 import ErrorBanner from '../../components/ErrorBanner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -50,12 +51,8 @@ const MODELS: { label: string; value: TextEmbeddingModel }[] = [
     value: textEmbedding.paraphrase_multilingual_minilm_l12_v2(),
   },
   {
-    label: 'LFM2.5 Embedding XNNPACK',
-    value: textEmbedding.lfm2_5_embedding_350m({ backend: 'xnnpack' }),
-  },
-  {
-    label: 'LFM2.5 Embedding MLX',
-    value: textEmbedding.lfm2_5_embedding_350m({ backend: 'mlx' }),
+    label: 'LFM2.5 Embedding',
+    value: textEmbedding.lfm2_5_embedding_350m(),
   },
   {
     label: 'LFM2.5 ColBERT (late-interaction)',
