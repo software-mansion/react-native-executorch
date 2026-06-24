@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, Platform } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, theme } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
-import { useKeypointDetector, models } from 'react-native-executorch';
+import { useKeypointDetector, models, type KeypointDetection } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -46,7 +46,7 @@ function KeypointContent() {
   const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<KeypointDetection<'xyxy', string>[]>([]);
   const [latency, setLatency] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,7 +94,9 @@ function KeypointContent() {
         layout: 'hwc' as const,
       };
       const start = Date.now();
-      const output = sync ? detectKeypointsWorklet(buffer) : await detectKeypoints(buffer);
+      const output = (
+        sync ? detectKeypointsWorklet(buffer) : await detectKeypoints(buffer)
+      ) as KeypointDetection<'xyxy', string>[];
 
       setLatency(Date.now() - start);
       setResults(output);
@@ -158,7 +160,7 @@ function KeypointContent() {
       <ImageViewport skiaImage={skiaImage} onPressPlaceholder={() => handlePickImage(false)}>
         {skiaImage && results.length > 0 && (
           <View style={styles.overlayContainer} pointerEvents="none">
-            {results.map((det: any, index: number) => {
+            {results.map((det, index: number) => {
               const strokeColor = '#00ff00';
               const bgColor = 'rgba(0, 255, 0, 0.15)';
               const landmarkColor = '#ff00ff';
@@ -182,7 +184,7 @@ function KeypointContent() {
                   />
 
                   {/* Landmarks */}
-                  {Object.entries(det.landmarks).map(([key, point]: [string, any]) => {
+                  {Object.entries(det.landmarks).map(([key, point]) => {
                     const x = offsetX + point.x * scaleX;
                     const y = offsetY + point.y * scaleY;
                     return (
