@@ -23,6 +23,10 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.keypointDetection.YOLOV8N_POSE.SIZE_384.XNNPACK_FP32,
   },
   {
+    label: 'YOLO26 Pose (XNNPACK FP32)',
+    value: models.keypointDetection.YOLO26_POSE.SIZE_384.XNNPACK_FP32,
+  },
+  {
     label: 'RF-DETR Keypoint (XNNPACK FP32)',
     value: models.keypointDetection.RFDETR_KEYPOINT.XNNPACK_FP32,
   },

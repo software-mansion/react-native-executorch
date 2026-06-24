@@ -245,6 +245,29 @@ const YOLOV8N_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark>
   opts: YOLOV8N_POSE_OPTS,
 };
 
+const YOLO26_POSE_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultIouThreshold: 0.7,
+  defaultConfidenceThreshold: 0.25,
+  landmarks: COCO_LANDMARKS,
+};
+const YOLO26_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+
 const RFDETR_KEYPOINT_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
@@ -365,6 +388,12 @@ export const models = {
       SIZE_384: { XNNPACK_FP32: YOLOV8N_POSE_384_XNNPACK_FP32 },
       SIZE_512: { XNNPACK_FP32: YOLOV8N_POSE_512_XNNPACK_FP32 },
       SIZE_640: { XNNPACK_FP32: YOLOV8N_POSE_640_XNNPACK_FP32 },
+    },
+    YOLO26_POSE: {
+      ...YOLO26_POSE_384_XNNPACK_FP32,
+      SIZE_384: { XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32 },
+      SIZE_512: { XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32 },
+      SIZE_640: { XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32 },
     },
     RFDETR_KEYPOINT: {
       ...RFDETR_KEYPOINT_XNNPACK_FP32,
