@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Platform } from 'react-native';
-import { commonStyles } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, theme } from '../../theme';
 import {
   useImage,
   Skia,
@@ -57,6 +58,7 @@ const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 function StyleTransferContent() {
+  const insets = useSafeAreaInsets();
   const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -142,7 +144,10 @@ function StyleTransferContent() {
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
     >
       <Text style={commonStyles.description}>
         Upload or capture an image to apply artistic style transfer filters.
