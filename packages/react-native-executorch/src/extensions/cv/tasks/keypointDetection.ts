@@ -96,7 +96,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     const weightedKpt = new Float32Array(opts.landmarks.length * 3);
 
     for (const idx of group) {
-      const score = scores[idx]!;
+      const score = totalScore === 0 ? 1 / group.length : scores[idx]!;
       weightedBox.forEach((v, i) => {
         weightedBox[i] = v + score * boxes[idx * 4 + i]!;
       });
@@ -105,12 +105,14 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
       });
     }
 
-    weightedBox.forEach((v, i) => {
-      weightedBox[i] = v / totalScore;
-    });
-    weightedKpt.forEach((v, i) => {
-      weightedKpt[i] = v / totalScore;
-    });
+    if (totalScore > 0) {
+      weightedBox.forEach((v, i) => {
+        weightedBox[i] = v / totalScore;
+      });
+      weightedKpt.forEach((v, i) => {
+        weightedKpt[i] = v / totalScore;
+      });
+    }
 
     const [a, b, c, d] = weightedBox;
     const box = scaleBox(decodeBox([a!, b!, c!, d!], opts.boxFormat), opts);
