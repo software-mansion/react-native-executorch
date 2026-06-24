@@ -28,6 +28,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="styleTransfer/index"
+        options={{
+          drawerLabel: 'Style Transfer',
+          title: 'Style Transfer',
+        }}
+      />
+      <Drawer.Screen
         name="segmentation/index"
         options={{
           drawerLabel: 'Semantic Segmentation',
