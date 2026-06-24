@@ -2,10 +2,10 @@
 export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';
 export * from './hooks/useSemanticSegmenter';
+export * from './hooks/useKeypointDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
-export * from './hooks/useKeypointDetector';
 
 // Constants
 export { models } from './models';
