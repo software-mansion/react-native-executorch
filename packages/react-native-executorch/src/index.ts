@@ -1,5 +1,6 @@
 // Hooks — primary API for app developers
 export * from './hooks/useClassifier';
+export * from './hooks/useSemanticSegmenter';
 export * from './hooks/useTokenizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
@@ -10,6 +11,7 @@ export * as constants from './constants';
 
 // Task APIs — for developers needing manual lifetime/disposal control
 export * from './extensions/cv/tasks/classification';
+export * from './extensions/cv/tasks/semanticSegmentation';
 export * from './extensions/nlp/tasks/tokenization';
 
 // Core primitives — for library builders and power users

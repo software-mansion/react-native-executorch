@@ -1006,7 +1006,52 @@ export const IMAGENET1K_LABELS = [
 ] as const;
 
 /**
+ * Pascal VOC dataset label array containing the 21 categories.
+ * @category Constants
+ */
+export const PASCAL_VOC_LABELS = [
+  'background',
+  'aeroplane',
+  'bicycle',
+  'bird',
+  'boat',
+  'bottle',
+  'bus',
+  'car',
+  'cat',
+  'chair',
+  'cow',
+  'diningtable',
+  'dog',
+  'horse',
+  'motorbike',
+  'person',
+  'pottedplant',
+  'sheep',
+  'sofa',
+  'train',
+  'tvmonitor',
+] as const;
+
+/**
  * Type representing a valid ImageNet 1K label string.
  * @category Types
  */
 export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];
+
+/**
+ * Type representing a valid Pascal VOC label string.
+ * @category Types
+ */
+export type PascalVocLabel = (typeof PASCAL_VOC_LABELS)[number];
+
+/**
+ * ImageNet standard normalization options containing alpha and beta
+ * coefficients. Based on the standard ImageNet mean [0.485, 0.456, 0.406] and
+ * std [0.229, 0.224, 0.225].
+ * @category Constants
+ */
+export const IMAGENET_NORM = {
+  alpha: [1 / (255.0 * 0.229), 1 / (255.0 * 0.224), 1 / (255.0 * 0.225)],
+  beta: [-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
+} as const;
