@@ -209,7 +209,7 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmentationModel<PascalVocLabel> = {
 // Keypoint Detection
 // =============================================================================
 const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
-  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/blazeface_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-blazeface/${NEXT_VERSION_TAG}/xnnpack/blazeface_xnnpack_fp32.pte`,
   opts: {
     boxFormat: 'xyxy',
     resizeMode: 'letterbox',
