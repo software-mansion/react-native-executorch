@@ -149,7 +149,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             float score = scoresPtr[idx];
 
             if (score >= confidenceThreshold) {
-                candidates.push_back({idx, score});
+                candidates.emplace_back(idx, score);
             }
         }
 
