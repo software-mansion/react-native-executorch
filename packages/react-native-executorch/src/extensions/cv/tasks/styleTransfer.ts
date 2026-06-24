@@ -84,12 +84,12 @@ export async function createStyleTransfer(
   const tensors = [
     tensor('float32', outShape),
     tensor('float32', [3, targetH, targetW]),
-    tensor('float32', [targetH, targetW, 3]),
+    tensor('uint8', [3, targetH, targetW]),
     tensor('uint8', [targetH, targetW, 3]),
     tensor('uint8', [targetH, targetW, 4]),
   ] as const;
 
-  const [tOutput, tReshape, tChanLast, tUint8, tRgba] = tensors;
+  const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
   const preprocessor = createImagePreprocessor(opts, inpShape);
 
   const dispose = () => {
@@ -108,8 +108,8 @@ export async function createStyleTransfer(
     try {
       tOutput
         .copyTo(tReshape)
-        .through(toChannelsLast, tChanLast)
         .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
+        .through(toChannelsLast, tChanLast)
         .through(cvtColor, tRgba, 'RGB2RGBA')
         .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
         .getData(data);
