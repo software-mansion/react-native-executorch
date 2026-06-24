@@ -222,29 +222,6 @@ const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> =
   },
 };
 
-const YOLOV8N_POSE_OPTS = {
-  boxFormat: 'xyxy' as const,
-  resizeMode: 'letterbox' as const,
-  interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
-  defaultIouThreshold: 0.7,
-  defaultConfidenceThreshold: 0.25,
-  landmarks: COCO_LANDMARKS,
-};
-const YOLOV8N_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_384_xnnpack_fp32.pte`,
-  opts: YOLOV8N_POSE_OPTS,
-};
-const YOLOV8N_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_512_xnnpack_fp32.pte`,
-  opts: YOLOV8N_POSE_OPTS,
-};
-const YOLOV8N_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_640_xnnpack_fp32.pte`,
-  opts: YOLOV8N_POSE_OPTS,
-};
-
 const YOLO26_POSE_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'letterbox' as const,
@@ -382,12 +359,6 @@ export const models = {
     BLAZEFACE: {
       ...BLAZEFACE_XNNPACK_FP32,
       XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
-    },
-    YOLOV8N_POSE: {
-      ...YOLOV8N_POSE_384_XNNPACK_FP32,
-      SIZE_384: { XNNPACK_FP32: YOLOV8N_POSE_384_XNNPACK_FP32 },
-      SIZE_512: { XNNPACK_FP32: YOLOV8N_POSE_512_XNNPACK_FP32 },
-      SIZE_640: { XNNPACK_FP32: YOLOV8N_POSE_640_XNNPACK_FP32 },
     },
     YOLO26_POSE: {
       ...YOLO26_POSE_384_XNNPACK_FP32,
