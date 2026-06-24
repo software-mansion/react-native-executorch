@@ -233,16 +233,38 @@ const YOLOV8N_POSE_OPTS = {
   landmarks: COCO_LANDMARKS,
 };
 const YOLOV8N_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_384_xnnpack_fp32.pte`,
   opts: YOLOV8N_POSE_OPTS,
 };
 const YOLOV8N_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_512_xnnpack_fp32.pte`,
   opts: YOLOV8N_POSE_OPTS,
 };
 const YOLOV8N_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
-  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolov8n-pose/${NEXT_VERSION_TAG}/xnnpack/yolov8n_pose_640_xnnpack_fp32.pte`,
   opts: YOLOV8N_POSE_OPTS,
+};
+
+const RFDETR_KEYPOINT_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  ...IMAGENET_NORM,
+  defaultIouThreshold: 0.55,
+  defaultConfidenceThreshold: 0.5,
+  landmarks: COCO_LANDMARKS,
+};
+const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
+};
+const RFDETR_KEYPOINT_COREML_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
+};
+const RFDETR_KEYPOINT_MLX_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
 };
 
 // =============================================================================
@@ -343,6 +365,12 @@ export const models = {
       SIZE_384: { XNNPACK_FP32: YOLOV8N_POSE_384_XNNPACK_FP32 },
       SIZE_512: { XNNPACK_FP32: YOLOV8N_POSE_512_XNNPACK_FP32 },
       SIZE_640: { XNNPACK_FP32: YOLOV8N_POSE_640_XNNPACK_FP32 },
+    },
+    RFDETR_KEYPOINT: {
+      ...RFDETR_KEYPOINT_XNNPACK_FP32,
+      XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
+      COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
+      MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
     },
   },
   tokenizer: {
