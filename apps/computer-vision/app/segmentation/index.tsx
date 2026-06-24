@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { commonStyles } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, theme } from '../../theme';
 import {
   Skia,
   ColorType,
@@ -49,6 +50,7 @@ const SEGMENTATION_OPTIONS: ModelOption[] = [
 ];
 
 function SegmentationContent() {
+  const insets = useSafeAreaInsets();
   const [selectedModel, setSelectedModel] = useState<any>(SEGMENTATION_OPTIONS[0].value);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -88,9 +90,7 @@ function SegmentationContent() {
 
     isProcessingRef.current = true;
     setIsProcessing(true);
-    setLatency(null);
     setError(null);
-    setSegmentationImage(null);
 
     try {
       const pixels = skiaImage.readPixels();
@@ -137,7 +137,10 @@ function SegmentationContent() {
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
     >
       <Text style={commonStyles.description}>
         Upload or capture an image to partition it into multiple segments using semantic
