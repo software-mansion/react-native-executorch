@@ -1,12 +1,17 @@
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
+import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
   PASCAL_VOC_LABELS,
+  BLAZEFACE_LANDMARKS,
+  COCO_LANDMARKS,
   type ImageNet1KLabel,
   type PascalVocLabel,
+  type BlazeFaceLandmark,
+  type CocoLandmark,
 } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -201,6 +206,46 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmentationModel<PascalVocLabel> = {
 };
 
 // =============================================================================
+// Keypoint Detection
+// =============================================================================
+const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
+  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/blazeface_xnnpack_fp32.pte`,
+  opts: {
+    boxFormat: 'xyxy',
+    resizeMode: 'letterbox',
+    interpolation: 'linear',
+    alpha: 1 / 127.5,
+    beta: -1.0,
+    defaultIouThreshold: 0.3,
+    defaultConfidenceThreshold: 0.75,
+    landmarks: BLAZEFACE_LANDMARKS,
+  },
+};
+
+const YOLOV8N_POSE_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultIouThreshold: 0.7,
+  defaultConfidenceThreshold: 0.25,
+  landmarks: COCO_LANDMARKS,
+};
+const YOLOV8N_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_384_xnnpack_fp32.pte`,
+  opts: YOLOV8N_POSE_OPTS,
+};
+const YOLOV8N_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_512_xnnpack_fp32.pte`,
+  opts: YOLOV8N_POSE_OPTS,
+};
+const YOLOV8N_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `https://huggingface.co/bhanc/scratch/resolve/main/yolov8n_pose_640_xnnpack_fp32.pte`,
+  opts: YOLOV8N_POSE_OPTS,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -286,6 +331,18 @@ export const models = {
       ...FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
+    },
+  },
+  keypointDetection: {
+    BLAZEFACE: {
+      ...BLAZEFACE_XNNPACK_FP32,
+      XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
+    },
+    YOLOV8N_POSE: {
+      ...YOLOV8N_POSE_384_XNNPACK_FP32,
+      SIZE_384: { XNNPACK_FP32: YOLOV8N_POSE_384_XNNPACK_FP32 },
+      SIZE_512: { XNNPACK_FP32: YOLOV8N_POSE_512_XNNPACK_FP32 },
+      SIZE_640: { XNNPACK_FP32: YOLOV8N_POSE_640_XNNPACK_FP32 },
     },
   },
   tokenizer: {

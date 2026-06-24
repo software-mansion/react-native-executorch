@@ -5,6 +5,7 @@ export * from './hooks/useSemanticSegmenter';
 export * from './hooks/useTokenizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
+export * from './hooks/useKeypointDetector';
 
 // Constants
 export { models } from './models';
@@ -14,6 +15,7 @@ export * as constants from './constants';
 export * from './extensions/cv/tasks/classification';
 export * from './extensions/cv/tasks/styleTransfer';
 export * from './extensions/cv/tasks/semanticSegmentation';
+export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/nlp/tasks/tokenization';
 
 // Core primitives — for library builders and power users
