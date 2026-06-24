@@ -54,8 +54,24 @@ export async function createClassifier<L>(
   config: ClassifierModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
+  /**
+   * Releases all allocated native resources.
+   */
   dispose: () => void;
+  /**
+   * Performs asynchronous image classification on the given input image.
+   * @param input The input image buffer.
+   * @param options Configuration options for classification.
+   * @param options.topk The number of top-scoring classification results to
+   * return. If omitted, all classes are returned. Must be non-negative.
+   * @returns A promise resolving to the list of classifications sorted by
+   * confidence.
+   */
   classify: (input: ImageBuffer, options?: { topk?: number }) => Promise<Classification<L>[]>;
+  /**
+   * Synchronous version of {@link classify} to be executed directly on the
+   * caller or worklet thread.
+   */
   classifyWorklet: (input: ImageBuffer, options?: { topk?: number }) => Classification<L>[];
 }> {
   const { modelPath, classifierOpts } = config;
