@@ -45,6 +45,18 @@ fun rneBuildConfig(): Map<*, *> {
 val rneConfig = rneBuildConfig()
 fun rneFlag(key: String): String = if (rneConfig[key] != false) "ON" else "OFF"
 
+/**
+ * ExecuTorch only supports these ABIs. Honor the app's `reactNativeArchitectures`
+ * (e.g. Expo passes `-PreactNativeArchitectures=arm64-v8a` for device builds) so
+ * we only build/provision the ABIs the app actually needs; default to both.
+ */
+fun reactNativeArchitectures(): List<String> {
+    val supported = listOf("arm64-v8a", "x86_64")
+    val value = rootProject.findProperty("reactNativeArchitectures") as String?
+    return value?.split(",")?.map { it.trim() }?.filter { it in supported }
+        ?.takeIf { it.isNotEmpty() } ?: supported
+}
+
 android {
     namespace = "com.swmansion.rnexecutorch"
     compileSdk = (getExtOrDefault("compileSdkVersion", 34) as Number).toInt()
@@ -65,9 +77,7 @@ android {
                     "-DRNE_ENABLE_VULKAN=${rneFlag("enableVulkan")}"
                 )
 
-                // ExecuTorch only supports these ABIs; on-demand artifacts ship
-                // both. The dynamic linker loads whichever the device needs.
-                abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+                abiFilters.addAll(reactNativeArchitectures())
             }
         }
     }

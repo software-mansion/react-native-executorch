@@ -108,6 +108,10 @@ if(RNE_ENABLE_OPENCV)
   endif()
 endif()
 
+# libexecutorch.so references OpenMP runtime symbols (optimized kernels). Link
+# the static OpenMP runtime into libRnExecutorch.so to resolve them.
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fopenmp -static-openmp)
+
 target_link_libraries(${CMAKE_PROJECT_NAME}
     ReactAndroid::jsi
     log
