@@ -1034,6 +1034,104 @@ export const PASCAL_VOC_LABELS = [
 ] as const;
 
 /**
+ * COCO classes list.
+ * @category Constants
+ */
+export const COCO_CLASSES = [
+  'background',
+  'person',
+  'bicycle',
+  'car',
+  'motorcycle',
+  'airplane',
+  'bus',
+  'train',
+  'truck',
+  'boat',
+  'traffic light',
+  'fire hydrant',
+  'N/A',
+  'stop sign',
+  'parking meter',
+  'bench',
+  'bird',
+  'cat',
+  'dog',
+  'horse',
+  'sheep',
+  'cow',
+  'elephant',
+  'bear',
+  'zebra',
+  'giraffe',
+  'N/A',
+  'backpack',
+  'umbrella',
+  'N/A',
+  'N/A',
+  'handbag',
+  'tie',
+  'suitcase',
+  'frisbee',
+  'skis',
+  'snowboard',
+  'sports ball',
+  'kite',
+  'baseball bat',
+  'baseball glove',
+  'skateboard',
+  'surfboard',
+  'tennis racket',
+  'bottle',
+  'N/A',
+  'wine glass',
+  'cup',
+  'fork',
+  'knife',
+  'spoon',
+  'bowl',
+  'banana',
+  'apple',
+  'sandwich',
+  'orange',
+  'broccoli',
+  'carrot',
+  'hot dog',
+  'pizza',
+  'donut',
+  'cake',
+  'chair',
+  'couch',
+  'potted plant',
+  'bed',
+  'N/A',
+  'dining table',
+  'N/A',
+  'N/A',
+  'toilet',
+  'N/A',
+  'tv',
+  'laptop',
+  'mouse',
+  'remote',
+  'keyboard',
+  'cell phone',
+  'microwave',
+  'oven',
+  'toaster',
+  'sink',
+  'refrigerator',
+  'N/A',
+  'book',
+  'clock',
+  'vase',
+  'scissors',
+  'teddy bear',
+  'hair drier',
+  'toothbrush',
+] as const;
+
+/**
  * Type representing a valid ImageNet 1K label string.
  * @category Types
  */
@@ -1044,6 +1142,105 @@ export type ImageNet1KLabel = (typeof IMAGENET1K_LABELS)[number];
  * @category Types
  */
 export type PascalVocLabel = (typeof PASCAL_VOC_LABELS)[number];
+
+/**
+ * Type representing a valid COCO class string.
+ * @category Types
+ */
+export type CocoClass = (typeof COCO_CLASSES)[number];
+
+/**
+ * COCO classes list specifically for YOLO models (80 classes, 0-indexed).
+ * @category Constants
+ */
+export const COCO_CLASSES_YOLO = [
+  'person',
+  'bicycle',
+  'car',
+  'motorcycle',
+  'airplane',
+  'bus',
+  'train',
+  'truck',
+  'boat',
+  'traffic light',
+  'fire hydrant',
+  'stop sign',
+  'parking meter',
+  'bench',
+  'bird',
+  'cat',
+  'dog',
+  'horse',
+  'sheep',
+  'cow',
+  'elephant',
+  'bear',
+  'zebra',
+  'giraffe',
+  'backpack',
+  'umbrella',
+  'handbag',
+  'tie',
+  'suitcase',
+  'frisbee',
+  'skis',
+  'snowboard',
+  'sports ball',
+  'kite',
+  'baseball bat',
+  'baseball glove',
+  'skateboard',
+  'surfboard',
+  'tennis racket',
+  'bottle',
+  'wine glass',
+  'cup',
+  'fork',
+  'knife',
+  'spoon',
+  'bowl',
+  'banana',
+  'apple',
+  'sandwich',
+  'orange',
+  'broccoli',
+  'carrot',
+  'hot dog',
+  'pizza',
+  'donut',
+  'cake',
+  'chair',
+  'couch',
+  'potted plant',
+  'bed',
+  'dining table',
+  'toilet',
+  'tv',
+  'laptop',
+  'mouse',
+  'remote',
+  'keyboard',
+  'cell phone',
+  'microwave',
+  'oven',
+  'toaster',
+  'sink',
+  'refrigerator',
+  'book',
+  'clock',
+  'vase',
+  'scissors',
+  'teddy bear',
+  'hair drier',
+  'toothbrush',
+] as const;
+
+/**
+ * Type representing a valid YOLO COCO class label string.
+ * @category Types
+ */
+export type CocoClassYolo = (typeof COCO_CLASSES_YOLO)[number];
 
 /**
  * ImageNet standard normalization options containing alpha and beta
@@ -1093,5 +1290,14 @@ export const COCO_LANDMARKS = [
   'rightAnkle',
 ] as const;
 
+/**
+ * Type representing a valid BlazeFace landmark string.
+ * @category Types
+ */
 export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
+
+/**
+ * Type representing a valid COCO human pose landmark string.
+ * @category Types
+ */
 export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
