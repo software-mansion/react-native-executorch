@@ -40,7 +40,7 @@
  *   features:  llm, multimodalLLM, speechToText, textToSpeech, vad, privacyFilter,
  *              textEmbeddings, imageEmbeddings,
  *              classification, objectDetection, semanticSegmentation, instanceSegmentation,
- *              ocr, verticalOCR, poseEstimation, styleTransfer, textToImage, segmentAnything,
+ *              ocr, verticalOCR, keypointDetection, styleTransfer, textToImage, segmentAnything,
  *              tokenizer
  *
  * Platform applicability:
@@ -117,8 +117,10 @@ const FEATURE_MAP = {
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
   // YOLO is xnnpack-only, ssdlite/rf_detr add coreml → union.
   objectDetection: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // YOLO-pose only.
-  poseEstimation: { backends: ['xnnpack'], libs: ['opencv'] },
+  // Keypoint detection (#1280): BlazeFace + YOLO26-pose ship xnnpack; RF-DETR
+  // keypoint adds coreml + mlx → union. (Named to track the useKeypointDetector
+  // hook; main calls this poseEstimation.)
+  keypointDetection: { backends: ['xnnpack', 'coreml', 'mlx'], libs: ['opencv'] },
   // DeepLab/FCN/LR-ASPP/selfie — xnnpack only.
   semanticSegmentation: { backends: ['xnnpack'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.
