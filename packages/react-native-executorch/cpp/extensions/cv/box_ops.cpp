@@ -142,8 +142,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: boxes and scores must have dtype float32");
         }
 
-        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
-        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
+        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_);
+        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_);
 
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(static_cast<size_t>(numAnchors));
@@ -342,8 +342,8 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: " + std::string(e.what()));
         }
 
-        ::cv::Mat srcMat(H, W, cvType, src->data_.get());
-        ::cv::Mat dstMat(H, W, cvType, dst->data_.get());
+        ::cv::Mat srcMat(H, W, cvType, src->data_);
+        ::cv::Mat dstMat(H, W, cvType, dst->data_);
 
         dstMat.setTo(::cv::Scalar::all(0));
         if (!isEmpty) {

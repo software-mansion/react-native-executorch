@@ -1,56 +1,47 @@
 #pragma once
 
-#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <vector>
 
 #include <jsi/jsi.h>
 
 #include <executorch/extension/tensor/tensor.h>
-#include <executorch/runtime/core/exec_aten/exec_aten.h>
 
-#include "dtype.h"
+#include "tensor_view.h"
+#include "types.h"
 
 namespace rnexecutorch::core::tensor {
-/**
- * JSI HostObject wrapping an ExecuTorch TensorPtr instance.
- *
- * Exposes methods to JavaScript for copying data, accessing properties (shape,
- * dtype, numel), writing data from array buffers, reading data to array
- * buffers, and disposing of underlying memory.
- */
-class TensorHostObject : public facebook::jsi::HostObject, public std::enable_shared_from_this<TensorHostObject> {
-public:
-    rnexecutorch::core::types::DType dtype_;
-    std::vector<std::int32_t> shape_;
-    size_t numel_;
 
-    size_t size_;
-    std::unique_ptr<std::uint8_t[]> data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
-    executorch::extension::TensorPtr tensor_;
+/**
+ * A JSI HostObject that wraps an owning or non-owning tensor view.
+ */
+class TensorHostObject : public facebook::jsi::HostObject,
+                         public TensorView,
+                         public std::enable_shared_from_this<TensorHostObject> {
+public:
+    // Owning tensor allocation.
+    TensorHostObject(Shape shape, DType dtype);
+
+    // Non-owning tensor (view) wrapping external data.
+    TensorHostObject(uint8_t *data, Shape shape, DType dtype);
+
+    // JSI bridge methods.
+    facebook::jsi::Value get(facebook::jsi::Runtime &rt,
+                             const facebook::jsi::PropNameID &name) override;
+    std::vector<facebook::jsi::PropNameID> getPropertyNames(
+        facebook::jsi::Runtime &rt) override;
+
+    // Owned data storage — null for views.
+    std::unique_ptr<uint8_t[]> storage_;
+
+    // ExecuTorch entry point.
+    executorch::extension::TensorPtr et_tensor_;
 
     std::shared_mutex mutex_;
-
-    // Parent tensor connection - for tensor views.
-    std::shared_ptr<TensorHostObject> parent_; // null for owner tensors
-    size_t offset_ = 0;
-
-    // Helper function to cover data access in tensor / view situation.
-    uint8_t *data() const { return data_ ? data_.get() : parent_->data() + offset_; }
-
-    // Owner tensor initializagtion
-    TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype);
-
-    // Tensor view initialization
-    // Does not allocate the data, only points out for a parent tensor.
-    TensorHostObject(std::shared_ptr<TensorHostObject> parent,
-                     const std::vector<int32_t> &shape, size_t offset);
-
-    facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
-    std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 };
 
-void install_createTensor(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+void install_createTensor(facebook::jsi::Runtime &rt,
+                          facebook::jsi::Object &module);
+
 } // namespace rnexecutorch::core::tensor

@@ -94,8 +94,8 @@ export type Tensor = {
    * Creates a view over a sub-region of this tensor's buffer without copying.
    *
    * The view shares the parent's memory, so writes through either tensor are
-   * visible to the other. The view must be {@link Tensor.dispose disposed}
-   * independently, which only releases the view — not the parent buffer.
+   * visible to the other. The view does not own its memory — dispose the
+   * parent tensor when no views are needed.
    * @param shape The logical shape of the view (dimensions <= parent).
    * @param offset Byte offset into the parent buffer (defaults to 0).
    * @returns A new tensor view sharing the parent's memory.

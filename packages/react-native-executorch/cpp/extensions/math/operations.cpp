@@ -41,7 +41,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "sigmoid: src and dst must have the same dtype");
         }
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (src->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "sigmoid: only float32 tensors are supported");
         }
 
@@ -64,8 +64,8 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         const auto countElements = src->numel_;
-        const auto *srcData = reinterpret_cast<const float *>(src->data());
-        auto *dstData = reinterpret_cast<float *>(dst->data());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_);
+        auto *dstData = reinterpret_cast<float *>(dst->data_);
 
         for (size_t i = 0; i < countElements; ++i) {
             dstData[i] = 1.0f / (1.0f + std::exp(-srcData[i]));
@@ -107,7 +107,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: src and dst must have the same dtype");
         }
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (src->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "softmax: only float32 tensors are supported");
         }
 
@@ -150,8 +150,8 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: dst tensor has been disposed");
         }
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data());
-        auto *dstData = reinterpret_cast<float *>(dst->data());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_);
+        auto *dstData = reinterpret_cast<float *>(dst->data_);
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
@@ -218,11 +218,11 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: In-place operations (src == dst) are not supported.");
         }
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (src->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "argmax: src must be float32");
         }
 
-        if (dst->dtype_ != rnexecutorch::core::types::DType::int32) {
+        if (dst->dtype_ != rnexecutorch::core::DType::int32) {
             throw jsi::JSError(rt, "argmax: dst must be int32");
         }
 
@@ -263,7 +263,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: dst tensor has been disposed");
         }
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_);
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
@@ -279,7 +279,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
-        auto *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
+        auto *dstData = reinterpret_cast<int32_t *>(dst->data_);
 
         // DO NOT swap loop order. This structure intentionally prioritizes the
         // most common case (axis = -1, inner = 1) for sequential access.
@@ -356,8 +356,8 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "threshold: dst tensor has been disposed");
         }
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_);
+        auto *dstData = reinterpret_cast<float *>(dst->data_);
 
         for (size_t i = 0; i < src->numel_; ++i) {
             dstData[i] = (srcData[i] >= thresholdVal) ? 1.0f : 0.0f;

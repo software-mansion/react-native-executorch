@@ -123,7 +123,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 jsTensorMeta.setProperty(rt, "nbytes", static_cast<double>(tensorMeta.nbytes()));
 
                 try {
-                    const std::string dtypeStr = rnexecutorch::core::types::toString(rnexecutorch::core::types::fromScalarType(tensorMeta.scalar_type()));
+                    std::string dtypeStr = DType(tensorMeta.scalar_type());
                     jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, dtypeStr));
                 } catch (const std::exception &) {
                     jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, "not supported"));
@@ -222,7 +222,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                      const TensorHostObject *tensorHostObject,
                                      const executorch::runtime::Result<executorch::runtime::TensorInfo> &tensorMeta,
                                      const std::string &identifier) {
-                if (tensorMeta->scalar_type() != tensorHostObject->tensor_->dtype()) {
+                if (tensorMeta->scalar_type() != tensorHostObject->et_tensor_->dtype()) {
                     throw jsi::JSError(rt, "execute: Tensor dtype mismatch for " + identifier);
                 }
 
@@ -232,7 +232,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                " but got " + std::to_string(tensorHostObject->shape_.size()));
                 }
 
-                auto ndim = tensorHostObject->tensor_->sizes().size();
+                auto ndim = tensorHostObject->et_tensor_->sizes().size();
                 for (size_t j = 0; j < ndim; ++j) {
                     if (tensorMeta->sizes()[j] != tensorHostObject->shape_[j]) {
                         throw jsi::JSError(rt, "execute: Tensor shape mismatch for " + identifier +
@@ -273,7 +273,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
 
                     auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->tensor_) {
+                    if (!tensorHostObject->et_tensor_) {
                         throw jsi::JSError(rt, "execute: inputs[" + std::to_string(i) + "] has been disposed");
                     }
 
@@ -297,7 +297,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
                     validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
 
-                    inputs[i] = tensorHostObject->tensor_;
+                    inputs[i] = tensorHostObject->et_tensor_;
                     break;
                 }
                 case executorch::runtime::Tag::Double: {
@@ -374,7 +374,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
 
                     auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->tensor_) {
+                    if (!tensorHostObject->et_tensor_) {
                         throw jsi::JSError(rt, "execute: outputTensors[" + std::to_string(tensorOutputIdx) + "] has been disposed");
                     }
 
@@ -399,7 +399,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
                     validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
 
-                    std::memcpy(tensorHostObject->data(),
+                    std::memcpy(tensorHostObject->data_,
                                 output.toTensor().const_data_ptr(),
                                 output.toTensor().nbytes());
 
