@@ -17,6 +17,7 @@ export interface ImageViewportProps {
   onPressPlaceholder: () => void;
   placeholderText?: string;
   overlayOpacity?: number;
+  children?: React.ReactNode;
 }
 
 export function ImageViewport({
@@ -25,6 +26,7 @@ export function ImageViewport({
   onPressPlaceholder,
   placeholderText = 'Tap to select an image from gallery',
   overlayOpacity = 0.8,
+  children,
 }: ImageViewportProps) {
   if (!skiaImage) {
     return (
@@ -57,6 +59,7 @@ export function ImageViewport({
           />
         )}
       </Canvas>
+      {children}
     </View>
   );
 }

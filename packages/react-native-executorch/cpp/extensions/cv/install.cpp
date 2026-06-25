@@ -1,4 +1,5 @@
 #include "install.h"
+#include "box_ops.h"
 #include "image_ops.h"
 
 namespace rnexecutorch::extensions::cv {
@@ -13,6 +14,8 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     image_ops::install_toChannelsLast(rt, cvModule);
     image_ops::install_normalize(rt, cvModule);
     image_ops::install_applyColormap(rt, cvModule);
+
+    box_ops::install_nms(rt, cvModule);
 
     module.setProperty(rt, "cv", cvModule);
 }

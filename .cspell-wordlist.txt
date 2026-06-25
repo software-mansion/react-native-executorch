@@ -234,6 +234,7 @@ Amdahl
 Amdahl's
 xyxy
 xywh
+cxcywh
 subfolders
 podspec
 logcat
@@ -241,3 +242,5 @@ modelname
 optionalsize
 pushd
 popd
+yolov
+YOLOV

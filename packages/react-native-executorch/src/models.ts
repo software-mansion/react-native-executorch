@@ -1,12 +1,17 @@
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
+import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
   PASCAL_VOC_LABELS,
+  BLAZEFACE_LANDMARKS,
+  COCO_LANDMARKS,
   type ImageNet1KLabel,
   type PascalVocLabel,
+  type BlazeFaceLandmark,
+  type CocoLandmark,
 } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -201,6 +206,68 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmentationModel<PascalVocLabel> = {
 };
 
 // =============================================================================
+// Keypoint Detection
+// =============================================================================
+const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
+  modelPath: `${BASE_URL}-blazeface/${NEXT_VERSION_TAG}/xnnpack/blazeface_xnnpack_fp32.pte`,
+  opts: {
+    boxFormat: 'xyxy',
+    resizeMode: 'letterbox',
+    interpolation: 'linear',
+    alpha: 1 / 127.5,
+    beta: -1.0,
+    defaultIouThreshold: 0.3,
+    defaultConfidenceThreshold: 0.75,
+    landmarks: BLAZEFACE_LANDMARKS,
+  },
+};
+
+const YOLO26_POSE_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultIouThreshold: 0.7,
+  defaultConfidenceThreshold: 0.25,
+  landmarks: COCO_LANDMARKS,
+};
+const YOLO26_POSE_384_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_384_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_512_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_512_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+const YOLO26_POSE_640_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-yolo26-pose/${NEXT_VERSION_TAG}/xnnpack/yolo26n_pose_640_xnnpack_fp32.pte`,
+  opts: YOLO26_POSE_OPTS,
+};
+
+const RFDETR_KEYPOINT_OPTS = {
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  ...IMAGENET_NORM,
+  defaultIouThreshold: 0.55,
+  defaultConfidenceThreshold: 0.5,
+  landmarks: COCO_LANDMARKS,
+};
+const RFDETR_KEYPOINT_XNNPACK_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
+};
+const RFDETR_KEYPOINT_COREML_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
+};
+const RFDETR_KEYPOINT_MLX_FP32: KeypointDetectorModel<'xyxy', CocoLandmark> = {
+  modelPath: `${BASE_URL}-rfdetr-keypoint/${VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`,
+  opts: RFDETR_KEYPOINT_OPTS,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -286,6 +353,24 @@ export const models = {
       ...FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
+    },
+  },
+  keypointDetection: {
+    BLAZEFACE: {
+      ...BLAZEFACE_XNNPACK_FP32,
+      XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
+    },
+    YOLO26_POSE: {
+      ...YOLO26_POSE_384_XNNPACK_FP32,
+      SIZE_384: { XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32 },
+      SIZE_512: { XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32 },
+      SIZE_640: { XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32 },
+    },
+    RFDETR_KEYPOINT: {
+      ...RFDETR_KEYPOINT_XNNPACK_FP32,
+      XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
+      COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
+      MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
     },
   },
   tokenizer: {
