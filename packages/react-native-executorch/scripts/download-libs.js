@@ -7,6 +7,8 @@
  *
  * Artifact layout on GitHub Releases (per version tag, e.g. v0.9.0):
  *
+ *   headers.tar.gz                   -- ExecuTorch + c10 + torch + tokenizers + opencv
+ *                                       headers (platform-independent; always downloaded)
  *   core-android-arm64-v8a.tar.gz    -- executorch, pthreadpool, cpuinfo for arm64
  *   core-android-x86_64.tar.gz       -- executorch for x86_64
  *   core-ios.tar.gz                  -- ExecutorchLib.xcframework (without xnnpack/coreml)
@@ -268,6 +270,11 @@ function detectTargets() {
 // Core artifacts are always downloaded; optional ones only if the backend / lib is enabled.
 function getArtifacts(targets, { backends, libs }) {
   const artifacts = [];
+
+  // Headers (ExecuTorch + c10 + torch + tokenizers + opencv) are
+  // platform-independent and always needed at build time. The tarball contains
+  // an `include/` dir, so it extracts to third-party/include/.
+  artifacts.push(makeArtifact('headers', THIRD_PARTY_DIR));
 
   for (const target of targets) {
     const destDir = target.startsWith('android')

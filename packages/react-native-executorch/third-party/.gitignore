@@ -4,8 +4,10 @@
 # Committed here (source, not per-build binaries):
 #   - README.md, this .gitignore
 #   - common/            (phonemis submodule, built from source)
-#   - include/           (ExecuTorch + c10 + tokenizer headers — matches main)
 #   - ios/ExecutorchLib/ (xcodeproj wrapper that builds ExecutorchLib.xcframework)
+
+# --- Headers (ExecuTorch + c10 + tokenizer + opencv) — downloaded, not committed ---
+/include/
 
 # --- Android: downloaded per-ABI binaries ---
 /android/jniLibs/

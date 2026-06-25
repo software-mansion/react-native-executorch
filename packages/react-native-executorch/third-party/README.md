@@ -5,10 +5,6 @@ Native ExecuTorch artifacts are split into **committed source** and
 
 ## Committed to git
 
-- `include/` — ExecuTorch + c10 + torch headers, including the `pytorch/tokenizers`
-  headers under `include/executorch/extension/llm/tokenizers/include` (used by the
-  nlp/tokenizer extension; the `tokenizers::HFTokenizer` symbols resolve from
-  `libexecutorch`, which is built with the llm/tokenizers extension).
 - `ios/ExecutorchLib/` — the Xcode project that wraps the prebuilt ExecuTorch
   static archives into `ExecutorchLib.xcframework` (used only when (re)building
   the iOS release artifacts).
@@ -25,6 +21,8 @@ read to gate `RNE_ENABLE_*` and link only the requested backends.
 
 Extracted layout the podspec / `android/CMakeLists.txt` expect:
 
+- `include/` — ExecuTorch + c10 + torch + `pytorch/tokenizers` + opencv headers
+  (from `headers.tar.gz`, always downloaded; platform-independent)
 - `android/libs/executorch/<abi>/libexecutorch.so` (+ `libxnnpack_executorch_backend.so`,
   `libvulkan_executorch_backend.so` when those backends are enabled)
 - `android/libs/opencv/<abi>/*.a`, `android/libs/opencv-third-party/<abi>/libkleidicv*.a`

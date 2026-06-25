@@ -54,6 +54,7 @@ ANDROID_LIBS="$PACKAGE_ROOT/third-party/android/libs"
 IOS_DIR="$PACKAGE_ROOT/third-party/ios"
 OUT="$PACKAGE_ROOT/dist-artifacts"
 
+INCLUDE_DIR="$PACKAGE_ROOT/third-party/include"
 VERSION=$(node -p "require('$PACKAGE_ROOT/package.json').version")
 
 echo "Packaging release artifacts for v$VERSION"
@@ -136,6 +137,16 @@ package_merged() {
   echo "    ✓ $(du -sh "$out_file" | cut -f1)"
   rm -rf "$tmp"
 }
+
+# ---- Headers ----------------------------------------------------------------
+# Platform-independent ExecuTorch + c10 + torch + tokenizers + opencv headers.
+# Staged under include/ so the tarball extracts to third-party/include/.
+
+echo ""
+echo "Headers:"
+
+package_merged "headers" \
+  "include"   "$INCLUDE_DIR"
 
 # ---- Android ----------------------------------------------------------------
 
