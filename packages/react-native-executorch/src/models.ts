@@ -317,7 +317,6 @@ const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> 
   opts: YOLO26_DETECTOR_OPTS,
 };
 
-// X-Large
 const YOLO26_XLARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
   modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
