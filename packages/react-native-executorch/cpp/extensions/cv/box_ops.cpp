@@ -14,7 +14,7 @@
 
 namespace rnexecutorch::extensions::cv::box_ops {
 namespace jsi = facebook::jsi;
-using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+using rnexecutorch::core::tensor::TensorHostObject;
 
 namespace {
 enum class BoxFormat {
