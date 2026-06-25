@@ -1,0 +1,27 @@
+# clang-tidy configuration for the react-native-executorch C/C++ sources.
+#
+# This is the first, deliberately conservative step toward a clang-tidy CI gate
+# (issue #1271): a tight, high-signal set focused on correctness and performance
+# bugs rather than opinionated style. It is expected to stay green on our own
+# code; grow the check list over time.
+#
+# clang-tidy reads the include flags / standard / defines from compile_flags.txt
+# (the same database clangd uses), so it needs the same prerequisites: a provisioned
+# third-party/include and `yarn install`. The clangd extension also surfaces these
+# checks inline in the editor.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  clang-analyzer-*,
+  -bugprone-easily-swappable-parameters,
+  -performance-enum-size
+
+# Restrict analysis to this package's own cpp/ tree. Anchored on the full package
+# path so it can never match an unrelated directory that merely contains "cpp"
+# (e.g. third-party/.../abseil-cpp/, or another package's cpp/). Third-party headers
+# are also -isystem in compile_flags.txt, so clang-tidy does not analyze them anyway.
+HeaderFilterRegex: 'packages/react-native-executorch/cpp/.*\.(h|hpp)$'
+
+# Treat findings as warnings (CI decides failure via --warnings-as-errors).
+WarningsAsErrors: ''
