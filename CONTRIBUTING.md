@@ -67,6 +67,12 @@ same prerequisites as a native build:
 Without them clangd still lints your own code; the third-party includes simply stay
 unresolved until the headers are present.
 
+A `pre-commit` hook (lefthook) compiles staged `cpp/` sources with this same warning set
+and aborts the commit if any warning is introduced — the editor and the commit gate stay
+in sync. It skips automatically when no compiler or the provisioned headers are available,
+so it never blocks contributors who don't build the native code; bypass with
+`git commit --no-verify`.
+
 Editor setup: install the official **clangd** extension (e.g. `llvm-vs-code-extensions.vscode-clangd`
 for VS Code) and disable the default Microsoft C/C++ IntelliSense engine so the two
 don't conflict. clangd discovers `compile_flags.txt`/`.clangd` automatically from the
