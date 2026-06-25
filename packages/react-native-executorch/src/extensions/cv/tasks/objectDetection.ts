@@ -5,6 +5,7 @@ import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 
+import type { ResizeMode } from '../ops/image';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
 import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/boxes';
@@ -20,7 +21,7 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  readonly resizeMode: 'stretch';
+  readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   readonly labels: readonly L[];
   readonly boxFormat: F;
   readonly defaultIouThreshold: number;

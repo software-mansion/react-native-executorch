@@ -257,7 +257,7 @@ const RFDETR_NANO_DETECTOR_COREML_INT8: ObjectDetectorModel<'xyxy', CocoClass> =
 const YOLO26_DETECTOR_OPTS = {
   labels: COCO_CLASSES_YOLO,
   boxFormat: 'xyxy' as const,
-  resizeMode: 'stretch' as const,
+  resizeMode: 'letterbox' as const,
   interpolation: 'linear' as const,
   alpha: 1 / 255.0,
   beta: 0.0,
