@@ -1,7 +1,27 @@
-# Native ExecuTorch artifacts (headers, .so/.jar libs, xcframeworks) are
-# provisioned locally and NOT committed, until split builds land (see README.md).
-# Ignore everything here except this file, the README, and the common/ submodules.
-/*
-!/.gitignore
-!/README.md
-!/common/
+# Downloaded native artifacts are provisioned at postinstall by
+# scripts/download-libs.js (from GitHub Releases) and are NOT committed.
+#
+# Committed here (source, not per-build binaries):
+#   - README.md, this .gitignore
+#   - common/            (phonemis submodule, built from source)
+#   - include/           (ExecuTorch + c10 + tokenizer headers — matches main)
+#   - ios/ExecutorchLib/ (xcodeproj wrapper that builds ExecutorchLib.xcframework)
+
+# --- Android: downloaded per-ABI binaries ---
+/android/jniLibs/
+/android/libs/executorch/
+/android/libs/opencv/
+/android/libs/opencv-third-party/
+/android/libs/pthreadpool/
+/android/libs/cpuinfo/
+
+# --- iOS: downloaded xcframeworks + static archives ---
+/ios/Frameworks/
+/ios/ExecutorchLib.xcframework/
+/ios/XnnpackBackend.xcframework/
+/ios/CoreMLBackend.xcframework/
+/ios/MLXBackend.xcframework/
+/ios/libs/
+
+# Build artifacts produced by scripts/package-release-artifacts.sh
+/dist-artifacts/

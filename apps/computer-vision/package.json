@@ -2,6 +2,13 @@
   "name": "computer-vision",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "react-native-executorch": {
+    "features": [
+      "classification",
+      "semanticSegmentation",
+      "styleTransfer"
+    ]
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",

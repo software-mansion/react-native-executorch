@@ -1,55 +1,126 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 project(RnExecutorch)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 20)
 
-set(EXEC_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../third-party/android/jniLibs/${ANDROID_ABI}/libexecutorch.so")
-set(OPENCV_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../third-party/android/jniLibs/${ANDROID_ABI}/libopencv_java4.so")
+set(THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third-party")
+set(LIBS_DIR "${THIRD_PARTY_DIR}/android/libs")
+set(INCLUDE_DIR "${THIRD_PARTY_DIR}/include")
+set(CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cpp")
 
-add_library(executorch SHARED IMPORTED)
-set_target_properties(executorch PROPERTIES IMPORTED_LOCATION ${EXEC_LIB_PATH})
-
-add_library(opencv SHARED IMPORTED)
-set_target_properties(opencv PROPERTIES IMPORTED_LOCATION ${OPENCV_LIB_PATH})
+# Feature flags forwarded from build.gradle.kts (which reads rne-build-config.json
+# written by scripts/download-libs.js). Default ON so a manual/full provisioning
+# still builds everything.
+option(RNE_ENABLE_OPENCV "Compile + link OpenCV-dependent sources" ON)
+option(RNE_ENABLE_PHONEMIS "Compile phonemis (TTS) sources" ON)
+option(RNE_ENABLE_XNNPACK "Link the XNNPACK backend shared library" ON)
+option(RNE_ENABLE_VULKAN "Link the Vulkan backend shared library" ON)
 
 find_package(ReactAndroid REQUIRED CONFIG)
 
-file(GLOB CORE_SOURCES ../cpp/core/*.cpp)
-file(GLOB MATH_SOURCES ../cpp/extensions/math/*.cpp)
-file(GLOB CV_SOURCES ../cpp/extensions/cv/*.cpp)
-file(GLOB NLP_SOURCES ../cpp/extensions/nlp/*.cpp)
+# --- Source groups ---
+# core/math/nlp are backend-agnostic and always compiled. OPENCV_SOURCES is the
+# explicit, extensible list of opencv-dependent sources: when multimodal LLM
+# lands in nlp, its vision-encoder sources should be appended here too.
+file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
+file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
+file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
+file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
 
-add_library(${CMAKE_PROJECT_NAME} SHARED
-    ../cpp/RnExecutorch.cpp
+set(RNE_SOURCES
+    ${CPP_DIR}/RnExecutorch.cpp
     ${CORE_SOURCES}
-    ${CV_SOURCES}
     ${MATH_SOURCES}
     ${NLP_SOURCES}
     cpp-adapter.cpp
 )
+
+if(RNE_ENABLE_OPENCV)
+  list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
+endif()
+
+add_library(${CMAKE_PROJECT_NAME} SHARED ${RNE_SOURCES})
 
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     C10_USING_CUSTOM_GENERATED_MACROS=1
     EXECUTORCH_ENABLE_EXECUTION_PROFILING=1
 )
 
+# Propagate feature flags as preprocessor defines so C++ can guard includes/calls.
+if(RNE_ENABLE_OPENCV)
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_OPENCV)
+endif()
+if(RNE_ENABLE_PHONEMIS)
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_PHONEMIS)
+endif()
+
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    ../cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/third-party/json/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/third-party/re2
-    ${CMAKE_CURRENT_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp
+    ${CPP_DIR}
+    ${INCLUDE_DIR}
+    ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/include
+    ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/json/include
+    ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/re2
+    ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/abseil-cpp
 )
 
-# Ensure executorch is linked with WHOLE_ARCHIVE so all static initializers are included
-target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--whole-archive)
-target_link_libraries(${CMAKE_PROJECT_NAME} executorch)
-target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,--no-whole-archive)
+# ------- ExecuTorch core (always required) -------
+add_library(executorch SHARED IMPORTED)
+set_target_properties(executorch PROPERTIES
+    IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libexecutorch.so")
+
+# ------- XNNPACK backend (optional) -------
+# Backends ship as separate .so files. When enabled, CMake imports the .so and
+# links libreact-native-executorch.so against it; Gradle packages the .so into
+# the APK (via jniLibs srcDir) and the dynamic linker loads it whenever
+# libreact-native-executorch.so loads. Each backend .so's load-time constructor
+# registers itself with libexecutorch.so's backend registry.
+if(RNE_ENABLE_XNNPACK)
+  add_library(xnnpack_executorch_backend SHARED IMPORTED)
+  set_target_properties(xnnpack_executorch_backend PROPERTIES
+      IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libxnnpack_executorch_backend.so")
+endif()
+
+# ------- Vulkan backend (optional) -------
+if(RNE_ENABLE_VULKAN)
+  add_library(vulkan_executorch_backend SHARED IMPORTED)
+  set_target_properties(vulkan_executorch_backend PROPERTIES
+      IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libvulkan_executorch_backend.so")
+endif()
+
+# ------- OpenCV (optional, static) -------
+set(OPENCV_LINK_LIBS "")
+if(RNE_ENABLE_OPENCV)
+  set(OPENCV_LINK_LIBS
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_core.a"
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_features2d.a"
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_highgui.a"
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_imgproc.a"
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_photo.a"
+    "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_video.a"
+  )
+  if(ANDROID_ABI STREQUAL "arm64-v8a")
+    list(APPEND OPENCV_LINK_LIBS
+      "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv_hal.a"
+      "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv_thread.a"
+      "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv.a"
+    )
+  endif()
+endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     ReactAndroid::jsi
     log
-    opencv
+    ${OPENCV_LINK_LIBS}
+    executorch
+    z
 )
+
+# Linking against the backend .so (when enabled) makes Gradle bundle them and
+# instructs the dynamic linker to load them with libreact-native-executorch.so.
+if(RNE_ENABLE_XNNPACK)
+  target_link_libraries(${CMAKE_PROJECT_NAME} xnnpack_executorch_backend)
+endif()
+if(RNE_ENABLE_VULKAN)
+  target_link_libraries(${CMAKE_PROJECT_NAME} vulkan_executorch_backend)
+endif()

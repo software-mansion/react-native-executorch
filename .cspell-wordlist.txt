@@ -1,6 +1,15 @@
 multimodal
 swmansion
 executorch
+RNET
+libexecutorch
+libxnnpack
+libvulkan
+xcframework
+metallib
+ASPP
+pthreadpool
+cpuinfo
 execu
 Execu
 torch
