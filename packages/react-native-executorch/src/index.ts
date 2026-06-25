@@ -3,6 +3,7 @@ export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';
 export * from './hooks/useSemanticSegmenter';
 export * from './hooks/useKeypointDetector';
+export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
@@ -16,6 +17,7 @@ export * from './extensions/cv/tasks/classification';
 export * from './extensions/cv/tasks/styleTransfer';
 export * from './extensions/cv/tasks/semanticSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
+export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
 
 // Core primitives — for library builders and power users

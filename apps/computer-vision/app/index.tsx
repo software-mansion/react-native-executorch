@@ -14,6 +14,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('classification/')}>
           <Text style={styles.buttonText}>Classification</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('detection/')}>
+          <Text style={styles.buttonText}>Object Detection</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('styleTransfer/')}>
           <Text style={styles.buttonText}>Style Transfer</Text>
         </TouchableOpacity>
