@@ -266,67 +266,68 @@ const YOLO26_DETECTOR_OPTS = {
 };
 
 const YOLO26_NANO_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26n_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26n_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_NANO_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26n_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_SMALL_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26s_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26s_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_SMALL_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26s_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_MEDIUM_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26m_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26m_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_MEDIUM_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26m_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 
 const YOLO26_LARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26l_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26l_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26l_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 
+// X-Large
 const YOLO26_XLARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26x_384_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26x_512_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 const YOLO26_XLARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
-  modelPath: `/Users/bhanc/workspace/export-scripts/exports/yolo/OUTPUT_DIR/xnnpack/yolo26x_640_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_fp32.pte`,
   opts: YOLO26_DETECTOR_OPTS,
 };
 
