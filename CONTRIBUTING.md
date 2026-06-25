@@ -45,6 +45,34 @@ Found a model you would like to use in your app but it is not currently supplied
 Do you have a neat example use case and want to share it with us? You can just drop us a message on Discord server and/or open a PR to `apps` directory here.
 If you found some inconsistencies in our documentation or just something is missing just open a PR with suggested changes (remember to add changes to previous docs versions too, e.g `docs/versioned_docs/version-0.3.x`, `docs/versioned_docs/version-0.4.x`).
 
+# C++ tooling (clangd)
+
+The core package ships a committed [clangd](https://clangd.llvm.org/) setup so the
+C/C++ sources under `packages/react-native-executorch/cpp` get code intelligence and
+a strict, shared set of compiler warnings:
+
+- `packages/react-native-executorch/compile_flags.txt` — the compilation database:
+  language standard, preprocessor defines, and include roots (paths are relative to
+  the package, so the config is portable). ExecuTorch/torch/JSI headers are added as
+  system includes so their internal warnings don't pollute diagnostics for our code.
+- `packages/react-native-executorch/.clangd` — the warning policy layered on top.
+
+For clangd to resolve the `<executorch/...>` and `<jsi/jsi.h>` includes you need the
+same prerequisites as a native build:
+
+1. `yarn install` at the repo root (provides the JSI headers under `node_modules`).
+2. ExecuTorch headers provisioned under `packages/react-native-executorch/third-party/include`
+   (see [third-party/README.md](./packages/react-native-executorch/third-party/README.md)).
+
+Without them clangd still lints your own code; the third-party includes simply stay
+unresolved until the headers are present.
+
+Editor setup: install the official **clangd** extension (e.g. `llvm-vs-code-extensions.vscode-clangd`
+for VS Code) and disable the default Microsoft C/C++ IntelliSense engine so the two
+don't conflict. clangd discovers `compile_flags.txt`/`.clangd` automatically from the
+open file's directory. If you produce a `compile_commands.json` from a native build,
+clangd will prefer it — it's gitignored and takes precedence over `compile_flags.txt`.
+
 # Creating a Pull Request
 
 Before writing any code reach out to us to make sure no one is currently working on it, you can always open an issue first.
