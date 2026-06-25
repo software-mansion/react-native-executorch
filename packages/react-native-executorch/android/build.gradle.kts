@@ -119,9 +119,10 @@ dependencies {
     // React Native Android Engine
     implementation("com.facebook.react:react-android")
 
-    // The ExecuTorch Java/Kotlin wrapper (ABI-independent, committed in the
-    // android module since it is not part of the per-ABI download artifacts).
-    implementation(files("libs/executorch.jar"))
+    // The ExecuTorch Java API (ABI-independent). Downloaded (not committed) — it
+    // rides in the core-android-arm64-v8a artifact, extracted by download-libs.js
+    // to third-party/android/libs/executorch.jar.
+    implementation(files("../third-party/android/libs/executorch.jar"))
 
     // Recommended for modern Kotlin Android development
     implementation("androidx.core:core-ktx:1.12.0")

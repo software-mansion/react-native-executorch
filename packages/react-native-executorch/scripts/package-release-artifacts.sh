@@ -153,10 +153,19 @@ package_merged "headers" \
 echo ""
 echo "Android:"
 
-package_merged "core-android-arm64-v8a" \
-  "executorch/arm64-v8a"    "$ANDROID_LIBS/executorch/arm64-v8a" \
-  "pthreadpool/arm64-v8a"   "$ANDROID_LIBS/pthreadpool/arm64-v8a" \
-  "cpuinfo/arm64-v8a"       "$ANDROID_LIBS/cpuinfo/arm64-v8a"
+# core-android bundles the per-ABI executorch .so. pthreadpool + cpuinfo are
+# statically linked into libexecutorch.so (not shipped separately). The
+# ABI-independent executorch.jar (ExecuTorch Java API for the JNI bridge) rides
+# along in the arm64 core tarball, which is always downloaded.
+echo "  → core-android-arm64-v8a"
+_ca_tmp=$(mktemp -d)
+mkdir -p "$_ca_tmp/executorch/arm64-v8a"
+cp -r "$ANDROID_LIBS/executorch/arm64-v8a/." "$_ca_tmp/executorch/arm64-v8a/"
+cp "$ANDROID_LIBS/executorch.jar" "$_ca_tmp/executorch.jar"
+tar -czf "$OUT/core-android-arm64-v8a.tar.gz" -C "$_ca_tmp" .
+shasum -a 256 "$OUT/core-android-arm64-v8a.tar.gz" | awk '{print $1}' > "$OUT/core-android-arm64-v8a.tar.gz.sha256"
+echo "    ✓ $(du -sh "$OUT/core-android-arm64-v8a.tar.gz" | cut -f1)"
+rm -rf "$_ca_tmp"
 
 package_merged "core-android-x86_64" \
   "executorch/x86_64"       "$ANDROID_LIBS/executorch/x86_64"
@@ -191,11 +200,11 @@ package_file "vulkan-android-x86_64" \
 echo ""
 echo "iOS:"
 
+# pthreadpool + cpuinfo are bundled into libthreadpool_*.a (in libs/executorch),
+# so no separate libs/pthreadpool or libs/cpuinfo dirs are shipped.
 package_merged "core-ios" \
   "ExecutorchLib.xcframework"  "$IOS_DIR/ExecutorchLib.xcframework" \
-  "libs/executorch"            "$IOS_DIR/libs/executorch" \
-  "libs/pthreadpool"           "$IOS_DIR/libs/pthreadpool" \
-  "libs/cpuinfo"               "$IOS_DIR/libs/cpuinfo"
+  "libs/executorch"            "$IOS_DIR/libs/executorch"
 
 # phonemis is built from in-tree source (third-party/common/phonemis submodule);
 # no iOS tarball is produced.
