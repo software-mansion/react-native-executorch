@@ -1,0 +1,167 @@
+import { rnexecutorchJsi } from '../../../native/bridge';
+import type { Tensor } from '../../../core/tensor';
+import type { ResizeMode } from './image';
+import { scalePoint } from './points';
+
+/**
+ * Mapping of bounding box formats to their coordinate representations.
+ * @category Types
+ */
+export type BoxMap = {
+  xyxy: { xmin: number; ymin: number; xmax: number; ymax: number };
+  xywh: { xmin: number; ymin: number; w: number; h: number };
+  cxcywh: { cx: number; cy: number; w: number; h: number };
+};
+
+/**
+ * The formats of bounding boxes.
+ * @category Types
+ */
+export type BoxFormat = keyof BoxMap;
+
+/**
+ * Representation of a bounding box under a specific format.
+ * @category Types
+ */
+export type BoundingBox<F extends BoxFormat> = F extends any
+  ? { readonly format: F } & Readonly<BoxMap[F]>
+  : never;
+
+/**
+ * Decodes bounding box coordinates from a 4-tuple into a structured BoundingBox
+ * object.
+ * @category Utils
+ * @typeParam F Bounding box coordinate format.
+ * @param tuple A 4-tuple array containing coordinates.
+ * @param format The coordinate format to decode into.
+ * @returns The decoded BoundingBox object.
+ */
+export function decodeBox<F extends BoxFormat>(
+  tuple: [number, number, number, number],
+  format: F
+): BoundingBox<F> {
+  'worklet';
+  const [a, b, c, d] = tuple;
+  switch (format) {
+    case 'xyxy':
+      return { format: 'xyxy', xmin: a, ymin: b, xmax: c, ymax: d } as BoundingBox<F>;
+    case 'xywh':
+      return { format: 'xywh', xmin: a, ymin: b, w: c, h: d } as BoundingBox<F>;
+    case 'cxcywh':
+      return { format: 'cxcywh', cx: a, cy: b, w: c, h: d } as BoundingBox<F>;
+  }
+}
+
+/**
+ * Scales bounding box coordinates based on scaling options and resize modes.
+ * @category Utils
+ * @typeParam F Bounding box coordinate format.
+ * @param box The original BoundingBox.
+ * @param opts Options defining dimensions and resize modes.
+ * @param opts.from The source bounds (e.g. model input dimensions).
+ * @param opts.to The destination bounds (e.g. original image dimensions).
+ * @param opts.resizeMode The mode used to resize the image ('letterbox' or
+ * 'stretch').
+ * @returns The scaled BoundingBox object.
+ */
+export function scaleBox<F extends BoxFormat>(
+  box: BoundingBox<F>,
+  opts: {
+    readonly from: { readonly width: number; readonly height: number };
+    readonly to: { readonly width: number; readonly height: number };
+    readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+  }
+): BoundingBox<F> {
+  'worklet';
+  const { from, to, resizeMode } = opts;
+
+  let scaleX: number;
+  let scaleY: number;
+  switch (resizeMode) {
+    case 'letterbox': {
+      const scale = Math.min(from.width / to.width, from.height / to.height);
+      scaleX = scale;
+      scaleY = scale;
+      break;
+    }
+    case 'stretch':
+      scaleX = from.width / to.width;
+      scaleY = from.height / to.height;
+      break;
+  }
+
+  switch (box.format) {
+    case 'xyxy': {
+      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
+      const pMax = scalePoint({ x: box.xmax, y: box.ymax }, opts);
+      return {
+        format: 'xyxy',
+        xmin: pMin.x,
+        ymin: pMin.y,
+        xmax: pMax.x,
+        ymax: pMax.y,
+      } as BoundingBox<F>;
+    }
+    case 'xywh': {
+      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
+      return {
+        format: 'xywh',
+        xmin: pMin.x,
+        ymin: pMin.y,
+        w: box.w / scaleX,
+        h: box.h / scaleY,
+      } as BoundingBox<F>;
+    }
+    case 'cxcywh': {
+      const pCenter = scalePoint({ x: box.cx, y: box.cy }, opts);
+      return {
+        format: 'cxcywh',
+        cx: pCenter.x,
+        cy: pCenter.y,
+        w: box.w / scaleX,
+        h: box.h / scaleY,
+      } as BoundingBox<F>;
+    }
+  }
+}
+
+/**
+ * Options for Non-Maximum Suppression (NMS).
+ * @category Types
+ */
+export type NmsOptions = {
+  readonly boxFormat: BoxFormat;
+  readonly iouThreshold: number;
+  readonly confidenceThreshold: number;
+  readonly nmsType: 'standard' | 'weighted';
+};
+
+/**
+ * Executes Non-Maximum Suppression (NMS) on bounding boxes and confidence
+ * scores.
+ * @category Utils
+ * @param boxes Bounding boxes coordinate tensor.
+ * @param scores Bounding boxes confidence scores tensor.
+ * @param opts Options configure NMS thresholds and execution mode.
+ * @returns The resulting indices of the non-suppressed boxes:
+ * - For `standard` NMS: A 1D array of indices (`number[]`) representing the
+ *   selected boxes.
+ * - For `weighted` NMS: A 2D array of indices (`number[][]`) representing
+ *   groups of overlapping boxes, where the first element of each group is the
+ *   top candidate and the group indices are used to calculate the weighted
+ *   average of coordinates.
+ */
+export function nms(
+  boxes: Tensor,
+  scores: Tensor,
+  opts: NmsOptions & { readonly nmsType: 'standard' }
+): number[];
+export function nms(
+  boxes: Tensor,
+  scores: Tensor,
+  opts: NmsOptions & { readonly nmsType: 'weighted' }
+): number[][];
+export function nms(boxes: Tensor, scores: Tensor, opts: NmsOptions): number[] | number[][] {
+  'worklet';
+  return rnexecutorchJsi.cv.nms(boxes, scores, opts);
+}

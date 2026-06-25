@@ -42,6 +42,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="keypoint/index"
+        options={{
+          drawerLabel: 'Keypoint Detection',
+          title: 'Keypoint Detection',
+        }}
+      />
+      <Drawer.Screen
         name="inspect/index"
         options={{
           drawerLabel: 'Model Inspector',

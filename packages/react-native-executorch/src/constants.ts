@@ -1055,3 +1055,43 @@ export const IMAGENET_NORM = {
   alpha: [1 / (255.0 * 0.229), 1 / (255.0 * 0.224), 1 / (255.0 * 0.225)],
   beta: [-0.485 / 0.229, -0.456 / 0.224, -0.406 / 0.225],
 } as const;
+
+/**
+ * BlazeFace landmarks list.
+ * @category Constants
+ */
+export const BLAZEFACE_LANDMARKS = [
+  'leftEye',
+  'rightEye',
+  'noseTip',
+  'mouthCenter',
+  'leftEar',
+  'rightEar',
+] as const;
+
+/**
+ * COCO human pose landmarks list.
+ * @category Constants
+ */
+export const COCO_LANDMARKS = [
+  'nose',
+  'leftEye',
+  'rightEye',
+  'leftEar',
+  'rightEar',
+  'leftShoulder',
+  'rightShoulder',
+  'leftElbow',
+  'rightElbow',
+  'leftWrist',
+  'rightWrist',
+  'leftHip',
+  'rightHip',
+  'leftKnee',
+  'rightKnee',
+  'leftAnkle',
+  'rightAnkle',
+] as const;
+
+export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
+export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
