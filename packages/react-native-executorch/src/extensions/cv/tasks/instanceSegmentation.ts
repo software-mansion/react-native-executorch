@@ -37,12 +37,14 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
   readonly opts: InstanceSegmenterOptions<F, L>;
 };
 
-export type InstanceSegmentation<F extends BoxFormat, L> = {
+export type InstanceSegmentationResult<F extends BoxFormat, L> = {
   readonly box: BoundingBox<F>;
   readonly mask: ImageBuffer;
   readonly label: L;
   readonly confidence: number;
 };
+
+export type InstanceSegmentation<F extends BoxFormat, L> = InstanceSegmentationResult<F, L>;
 
 export async function createInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
@@ -53,12 +55,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
   segmentInstances: (
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
-  ) => Promise<InstanceSegmentation<F, L>[]>;
+  ) => Promise<InstanceSegmentationResult<F, L>[]>;
 
   segmentInstancesWorklet: (
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
-  ) => InstanceSegmentation<F, L>[];
+  ) => InstanceSegmentationResult<F, L>[];
 }> {
   const { modelPath, opts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -107,7 +109,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
   const segmentInstancesWorklet = (
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
-  ): InstanceSegmentation<F, L>[] => {
+  ): InstanceSegmentationResult<F, L>[] => {
     'worklet';
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
@@ -140,7 +142,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
     const [tResize, tThreshold, tCrop, tUint8] = auxTensors;
 
-    const results: InstanceSegmentation<F, L>[] = [];
+    const results: InstanceSegmentationResult<F, L>[] = [];
 
     try {
       for (const idx of indices) {
@@ -150,7 +152,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
         if (label === undefined) {
           throw new Error(
-            `InstanceSegmenter: Predicted class index ${classIdx} is` +
+            `InstanceSegmenter: Predicted class index ${classIdx} is ` +
               `out of bounds for labels array of size ${opts.labels.length}.`
           );
         }

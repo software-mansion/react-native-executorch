@@ -3,8 +3,8 @@ import { useResourceDownload } from './useResourceDownload';
 import {
   createInstanceSegmenter,
   type InstanceSegmenterModel,
+  type BoxFormat,
 } from '../extensions/cv/tasks/instanceSegmentation';
-import type { BoxFormat } from '../extensions/cv/ops/boxes';
 
 /**
  * React hook to load and run an instance segmentation model.
