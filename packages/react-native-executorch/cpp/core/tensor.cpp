@@ -113,12 +113,12 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Expected array to be an object (TypedArray)");
             }
 
-            jsi::Object dataObj = args[0].asObject(rt);
+            const jsi::Object dataObj = args[0].asObject(rt);
             if (!dataObj.hasProperty(rt, "buffer")) {
                 throw jsi::JSError(rt, "setData: Expected a TypedArray with a 'buffer' property");
             }
 
-            jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = 0;
             size_t byteLength = buffer.size(rt);
 
@@ -148,9 +148,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             if (byteLength != self->size_) {
-                std::string errorMsg = "setData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
-                                       " bytes, but Tensor requires " + std::to_string(self->size_) +
-                                       " bytes.";
+                const std::string errorMsg = "setData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
+                                             " bytes, but Tensor requires " + std::to_string(self->size_) +
+                                             " bytes.";
                 throw jsi::JSError(rt, errorMsg);
             }
 
@@ -172,12 +172,12 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Expected array to be an object (TypedArray)");
             }
 
-            jsi::Object dataObj = args[0].asObject(rt);
+            const jsi::Object dataObj = args[0].asObject(rt);
             if (!dataObj.hasProperty(rt, "buffer")) {
                 throw jsi::JSError(rt, "getData: Expected a TypedArray with a 'buffer' property");
             }
 
-            jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = 0;
             size_t byteLength = buffer.size(rt);
 
@@ -207,9 +207,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             if (byteLength != self->size_) {
-                std::string errorMsg = "getData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
-                                       " bytes, but Tensor requires " + std::to_string(self->size_) +
-                                       " bytes.";
+                const std::string errorMsg = "getData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
+                                             " bytes, but Tensor requires " + std::to_string(self->size_) +
+                                             " bytes.";
                 throw jsi::JSError(rt, errorMsg);
             }
 
@@ -253,7 +253,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "throughIf: Usage: throughIf(pred, fn, ...args)");
             }
 
-            bool pred = args[0].asBool();
+            const bool pred = args[0].asBool();
             if (!pred) {
                 return jsi::Value(rt, thisVal);
             }

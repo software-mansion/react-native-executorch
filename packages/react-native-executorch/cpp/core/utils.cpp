@@ -20,7 +20,7 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
         for (size_t i = 0; i < registeredCount; ++i) {
             auto backendName = executorch::runtime::get_backend_name(i);
             if (!backendName.ok()) {
-                std::string errorMsg = executorch::runtime::to_string(backendName.error());
+                const std::string errorMsg = executorch::runtime::to_string(backendName.error());
                 throw jsi::JSError(rt, "Failed to get backend name: " + errorMsg);
             }
             jsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, backendName.get()));

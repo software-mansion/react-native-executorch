@@ -120,7 +120,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int axis = static_cast<int>(args[2].asNumber());
-        int rank = static_cast<int>(src->shape_.size());
+        const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
         // axis, -2 means second to last, etc.)
@@ -231,7 +231,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int axis = static_cast<int>(args[2].asNumber());
-        int rank = static_cast<int>(src->shape_.size());
+        const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
         // axis, -2 means second to last, etc.)

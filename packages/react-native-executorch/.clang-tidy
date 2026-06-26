@@ -18,6 +18,12 @@
 #   llvm-header-guard — the project uses #pragma once by convention
 #   llvm-prefer-static-over-anonymous-namespace — anonymous namespaces are a valid
 #     idiom here and also hold the helpers' shared types/constants
+#   misc-include-cleaner — ExecuTorch umbrella headers make it misreport includes
+#   misc-multiple-inheritance — the JSI HostObject + enable_shared_from_this pattern
+#   misc-non-private-member-variables-in-classes — HostObjects are deliberate public
+#     data carriers read across extensions
+#   misc-const-correctness — applied once as a cleanup, but too aggressive to gate on
+#     (it flags RAII lock guards as const-able); not enforced going forward
 Checks: >
   -*,
   bugprone-*,
@@ -26,6 +32,7 @@ Checks: >
   cppcoreguidelines-*,
   google-*,
   llvm-*,
+  misc-*,
   -bugprone-easily-swappable-parameters,
   -performance-enum-size,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
@@ -34,7 +41,11 @@ Checks: >
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -cppcoreguidelines-avoid-magic-numbers,
   -llvm-header-guard,
-  -llvm-prefer-static-over-anonymous-namespace
+  -llvm-prefer-static-over-anonymous-namespace,
+  -misc-include-cleaner,
+  -misc-multiple-inheritance,
+  -misc-non-private-member-variables-in-classes,
+  -misc-const-correctness
 
 # Restrict analysis to this package's own cpp/ tree. Anchored on the full package
 # path so it can never match an unrelated directory that merely contains "cpp"

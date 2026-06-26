@@ -99,11 +99,11 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: options must specify iouThreshold, boxFormat, confidenceThreshold, and nmsType");
         }
 
-        float iouThreshold = static_cast<float>(opts.getProperty(rt, "iouThreshold").asNumber());
-        float confidenceThreshold = static_cast<float>(opts.getProperty(rt, "confidenceThreshold").asNumber());
+        const float iouThreshold = static_cast<float>(opts.getProperty(rt, "iouThreshold").asNumber());
+        const float confidenceThreshold = static_cast<float>(opts.getProperty(rt, "confidenceThreshold").asNumber());
 
-        std::string nmsTypeStr = opts.getProperty(rt, "nmsType").asString(rt).utf8(rt);
-        std::string boxFormatStr = opts.getProperty(rt, "boxFormat").asString(rt).utf8(rt);
+        const std::string nmsTypeStr = opts.getProperty(rt, "nmsType").asString(rt).utf8(rt);
+        const std::string boxFormatStr = opts.getProperty(rt, "boxFormat").asString(rt).utf8(rt);
 
         NmsType nmsType{};
         BoxFormat boxFormat{};
@@ -179,7 +179,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                 boxesPtr[idxI * 4 + 3],
                 boxFormat);
 
-            float areaA = (xmaxA - xminA) * (ymaxA - yminA);
+            const float areaA = (xmaxA - xminA) * (ymaxA - yminA);
 
             std::vector<std::int32_t> overlapping = {idxI};
 
@@ -197,19 +197,19 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                     boxesPtr[idxJ * 4 + 3],
                     boxFormat);
 
-                float areaB = (xmaxB - xminB) * (ymaxB - yminB);
+                const float areaB = (xmaxB - xminB) * (ymaxB - yminB);
 
-                float interYMin = std::max(yminA, yminB);
-                float interXMin = std::max(xminA, xminB);
-                float interYMax = std::min(ymaxA, ymaxB);
-                float interXMax = std::min(xmaxA, xmaxB);
+                const float interYMin = std::max(yminA, yminB);
+                const float interXMin = std::max(xminA, xminB);
+                const float interYMax = std::min(ymaxA, ymaxB);
+                const float interXMax = std::min(xmaxA, xmaxB);
 
-                float interH = std::max(0.0f, interYMax - interYMin);
-                float interW = std::max(0.0f, interXMax - interXMin);
-                float intersection = interH * interW;
+                const float interH = std::max(0.0f, interYMax - interYMin);
+                const float interW = std::max(0.0f, interXMax - interXMin);
+                const float intersection = interH * interW;
 
-                float unionArea = areaA + areaB - intersection;
-                float iou = (unionArea > 0.0f) ? (intersection / unionArea) : 0.0f;
+                const float unionArea = areaA + areaB - intersection;
+                const float iou = (unionArea > 0.0f) ? (intersection / unionArea) : 0.0f;
 
                 if (iou > iouThreshold) {
                     if (nmsType == NmsType::Weighted) {
@@ -233,7 +233,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         case NmsType::Weighted: {
             jsi::Array resultGroups = jsi::Array(rt, groups.size());
             for (size_t i = 0; i < groups.size(); ++i) {
-                jsi::Array singleGroup = jsi::Array(rt, groups[i].size());
+                const jsi::Array singleGroup = jsi::Array(rt, groups[i].size());
                 for (size_t j = 0; j < groups[i].size(); ++j) {
                     singleGroup.setValueAtIndex(rt, j, jsi::Value(static_cast<double>(groups[i][j])));
                 }
