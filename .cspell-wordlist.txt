@@ -253,3 +253,17 @@ pushd
 popd
 yolov
 YOLOV
+DRNE
+xcframeworks
+Kleidi
+headeronly
+absl
+nlohmann
+libopencv
+Slurper
+dlopen
+fopenmp
+CPLUSPLUSFLAGS
+LDFLAGS
+iphoneos
+libbackend

@@ -335,18 +335,18 @@ function ensureDir(dir) {
 function download(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
-    const get = (url) => {
-      const client = url.startsWith('http://') ? http : https;
+    const get = (currentUrl) => {
+      const client = currentUrl.startsWith('http://') ? http : https;
       const headers = {};
-      if (process.env.GITHUB_TOKEN && !url.startsWith('http://')) {
+      if (process.env.GITHUB_TOKEN && !currentUrl.startsWith('http://')) {
         headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
       }
-      client.get(url, { headers }, (res) => {
+      client.get(currentUrl, { headers }, (res) => {
         if (res.statusCode === 301 || res.statusCode === 302) {
           return get(res.headers.location);
         }
         if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode} for ${url}`));
+          return reject(new Error(`HTTP ${res.statusCode} for ${currentUrl}`));
         }
         res.pipe(file);
         file.on('finish', () => file.close(resolve));

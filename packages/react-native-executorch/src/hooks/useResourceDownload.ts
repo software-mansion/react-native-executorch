@@ -21,7 +21,7 @@ const djb2 = (s: string): number => {
  * network/disk errors.
  * @category Hooks
  * @experimental Subject to change once the temporary react-native-fs dependency is replaced.
- * See {@link https://github.com/software-mansion/react-native-executorch/issues/1253 | Issue #1253}.
+ * See [Issue #1253](https://github.com/software-mansion/react-native-executorch/issues/1253).
  * @param source The remote URL or local path to the resource. If it's already a
  * local path, it is returned immediately as is.
  * @param preventLoad If true, prevents checks and downloads, resetting the hook
