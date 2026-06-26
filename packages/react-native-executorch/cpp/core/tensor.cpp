@@ -8,11 +8,11 @@ namespace jsi = facebook::jsi;
 TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype)
     : dtype_(dtype),
       shape_(shape),
-      numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>())) {
+      numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<>())) {
     const auto elemSize = rnexecutorch::core::types::elementSize(dtype);
 
     size_ = numel_ * elemSize;
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays) — owning runtime-sized byte buffer
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays) — owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, rnexecutorch::core::types::toScalarType(dtype));
 }
@@ -235,9 +235,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count);
-            fnArgs.push_back(jsi::Value(rt, thisVal));
+            fnArgs.emplace_back(rt, thisVal);
             for (size_t i = 1; i < count; ++i) {
-                fnArgs.push_back(jsi::Value(rt, args[i]));
+                fnArgs.emplace_back(rt, args[i]);
             }
 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());
@@ -266,9 +266,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count - 1);
-            fnArgs.push_back(jsi::Value(rt, thisVal));
+            fnArgs.emplace_back(rt, thisVal);
             for (size_t i = 2; i < count; ++i) {
-                fnArgs.push_back(jsi::Value(rt, args[i]));
+                fnArgs.emplace_back(rt, args[i]);
             }
 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());

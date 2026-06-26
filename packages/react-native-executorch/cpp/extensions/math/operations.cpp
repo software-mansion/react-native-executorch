@@ -130,7 +130,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "softmax: axis is out of range");
         }
-        const size_t axisIdx = static_cast<size_t>(axis);
+        const auto axisIdx = static_cast<size_t>(axis);
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {
@@ -153,7 +153,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
 
-        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
+        const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "softmax: axis dimension must be greater than zero");
         }
@@ -241,7 +241,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "argmax: axis is out of range");
         }
-        const size_t axisIdx = static_cast<size_t>(axis);
+        const auto axisIdx = static_cast<size_t>(axis);
 
         auto dstExpectedShape = src->shape_;
         dstExpectedShape[axisIdx] = 1;
@@ -263,9 +263,9 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: dst tensor has been disposed");
         }
 
-        const float *srcData = reinterpret_cast<const float *>(src->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
 
-        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
+        const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
         }
@@ -278,7 +278,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
-        int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
+        auto *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
 
         // DO NOT swap loop order. This structure intentionally prioritizes the
         // most common case (axis = -1, inner = 1) for sequential access.

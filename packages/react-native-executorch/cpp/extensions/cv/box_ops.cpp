@@ -142,8 +142,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: boxes and scores must have dtype float32");
         }
 
-        const float *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
-        const float *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
+        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
+        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
 
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(static_cast<size_t>(numAnchors));

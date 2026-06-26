@@ -45,10 +45,10 @@ FitBox computeFit(int32_t srcW, int32_t srcH, int32_t dstW, int32_t dstH, bool i
     const double scaleH = static_cast<double>(dstH) / srcH;
     const double scale = inner ? std::min(scaleW, scaleH) : std::max(scaleW, scaleH);
 
-    const int32_t w = static_cast<int32_t>(std::round(srcW * scale));
-    const int32_t h = static_cast<int32_t>(std::round(srcH * scale));
+    const auto w = static_cast<int32_t>(std::round(srcW * scale));
+    const auto h = static_cast<int32_t>(std::round(srcH * scale));
     const int32_t sign = inner ? 1 : -1; // letterbox centers padding, crop centers the crop
-    return {w, h, sign * (dstW - w) / 2, sign * (dstH - h) / 2};
+    return {.w = w, .h = h, .offX = sign * (dstW - w) / 2, .offY = sign * (dstH - h) / 2};
 }
 } // namespace
 
@@ -488,7 +488,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
 
         std::vector<::cv::Mat> channels;
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-            channels.push_back(::cv::Mat(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize));
+            channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
         }
 
         ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_.get());
@@ -692,12 +692,12 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
 
         const size_t pixels = src->numel_;
 
-        const int32_t *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
+        const auto *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
         uint8_t *dstData = dst->data_.get();
 
         for (size_t i = 0; i < pixels; ++i) {
             const int32_t idx = srcData[i];
-            if (idx < 0 || static_cast<size_t>(idx) >= numColors) {
+            if (idx < 0 || std::cmp_greater_equal(idx, numColors)) {
                 throw jsi::JSError(rt, "applyColormap: tensor contains class index (" +
                                            std::to_string(idx) + ") that exceeds provided colormap size (" +
                                            std::to_string(numColors) + ")");

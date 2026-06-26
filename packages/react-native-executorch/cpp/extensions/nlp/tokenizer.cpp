@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <utility>
 
 #include <pytorch/tokenizers/error.h>
 
@@ -44,8 +45,8 @@ std::string toString(tokenizers::Error error) {
 }
 } // namespace
 
-TokenizerHostObject::TokenizerHostObject(const std::string &tokenizerPath)
-    : tokenizerPath_(tokenizerPath),
+TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
+    : tokenizerPath_(std::move(tokenizerPath)),
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {

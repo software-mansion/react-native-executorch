@@ -24,6 +24,8 @@
 #     data carriers read across extensions
 #   misc-const-correctness — applied once as a cleanup, but too aggressive to gate on
 #     (it flags RAII lock guards as const-able); not enforced going forward
+#   modernize-use-trailing-return-type — the codebase uses traditional return types
+#   modernize-return-braced-init-list — `return {…}` hides the (JSI) return type
 Checks: >
   -*,
   bugprone-*,
@@ -33,6 +35,7 @@ Checks: >
   google-*,
   llvm-*,
   misc-*,
+  modernize-*,
   -bugprone-easily-swappable-parameters,
   -performance-enum-size,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
@@ -45,7 +48,9 @@ Checks: >
   -misc-include-cleaner,
   -misc-multiple-inheritance,
   -misc-non-private-member-variables-in-classes,
-  -misc-const-correctness
+  -misc-const-correctness,
+  -modernize-use-trailing-return-type,
+  -modernize-return-braced-init-list
 
 # Restrict analysis to this package's own cpp/ tree. Anchored on the full package
 # path so it can never match an unrelated directory that merely contains "cpp"
