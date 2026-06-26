@@ -276,7 +276,7 @@ std::vector<facebook::jsi::PropNameID> TokenizerHostObject::getPropertyNames(jsi
 }
 
 void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "loadTokenizer";
+    const auto *name = "loadTokenizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(arg0)");

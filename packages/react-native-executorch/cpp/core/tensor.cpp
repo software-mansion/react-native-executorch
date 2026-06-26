@@ -316,7 +316,7 @@ std::vector<facebook::jsi::PropNameID> TensorHostObject::getPropertyNames(jsi::R
 }
 
 void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "createTensor";
+    const auto *name = "createTensor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "createTensor: Usage: createTensor(shape, dtype)");

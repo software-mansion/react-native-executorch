@@ -53,7 +53,7 @@ FitBox computeFit(int32_t srcW, int32_t srcH, int32_t dstW, int32_t dstH, bool i
 } // namespace
 
 void install_resize(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "resize";
+    const auto *name = "resize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: resize(src, dst, options)");
@@ -239,7 +239,7 @@ int codeToColorConversionFlag(const std::string &code) {
 } // namespace
 
 void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "cvtColor";
+    const auto *name = "cvtColor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: cvtColor(src, dst, code)");
@@ -325,7 +325,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "toChannelsFirst";
+    const auto *name = "toChannelsFirst";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsFirst(src, dst)");
@@ -413,7 +413,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "toChannelsLast";
+    const auto *name = "toChannelsLast";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsLast(src, dst)");
@@ -501,7 +501,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "normalize";
+    const auto *name = "normalize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: normalize(src, dst, options)");
@@ -624,7 +624,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "applyColormap";
+    const auto *name = "applyColormap";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");

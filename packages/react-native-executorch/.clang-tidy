@@ -15,6 +15,9 @@
 #   -constant-array-index — raw buffer pointer math and hot-loop indexing are by design
 #   pro-type-reinterpret-cast — type-erased byte buffers cast to typed pointers
 #   avoid-magic-numbers / easily-swappable-parameters / enum-size — opinionated / noisy
+#   llvm-header-guard — the project uses #pragma once by convention
+#   llvm-prefer-static-over-anonymous-namespace — anonymous namespaces are a valid
+#     idiom here and also hold the helpers' shared types/constants
 Checks: >
   -*,
   bugprone-*,
@@ -22,13 +25,16 @@ Checks: >
   clang-analyzer-*,
   cppcoreguidelines-*,
   google-*,
+  llvm-*,
   -bugprone-easily-swappable-parameters,
   -performance-enum-size,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
   -cppcoreguidelines-pro-bounds-constant-array-index,
   -cppcoreguidelines-pro-type-reinterpret-cast,
-  -cppcoreguidelines-avoid-magic-numbers
+  -cppcoreguidelines-avoid-magic-numbers,
+  -llvm-header-guard,
+  -llvm-prefer-static-over-anonymous-namespace
 
 # Restrict analysis to this package's own cpp/ tree. Anchored on the full package
 # path so it can never match an unrelated directory that merely contains "cpp"

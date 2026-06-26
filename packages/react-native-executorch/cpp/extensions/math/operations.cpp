@@ -12,7 +12,7 @@ namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 
 void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "sigmoid";
+    const auto *name = "sigmoid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: sigmoid(src, dst)");
@@ -78,7 +78,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "softmax";
+    const auto *name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
@@ -197,7 +197,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "argmax";
+    const auto *name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");

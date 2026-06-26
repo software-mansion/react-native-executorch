@@ -467,7 +467,7 @@ std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Ru
 }
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "loadModel";
+    const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw jsi::JSError(rt, "loadModel: Usage: loadModel(arg0)");
