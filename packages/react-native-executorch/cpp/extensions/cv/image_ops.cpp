@@ -137,7 +137,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         int32_t dstH = dst->shape_[0];
         int32_t dstW = dst->shape_[1];
 
-        int cvType, interpFlag;
+        int cvType{}, interpFlag{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
             interpFlag = interpToFlag(interp);
@@ -304,7 +304,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
         int32_t srcC = src->shape_[2];
         int32_t dstC = dst->shape_[2];
 
-        int cvSrcType, cvDstType, flag;
+        int cvSrcType{}, cvDstType{}, flag{};
         try {
             cvSrcType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
             cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);
@@ -387,7 +387,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsFirst: dst tensor has been disposed");
         }
 
-        int cvType;
+        int cvType{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
         } catch (const std::invalid_argument &e) {
@@ -475,7 +475,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: dst tensor has been disposed");
         }
 
-        int cvDepth;
+        int cvDepth{};
         try {
             cvDepth = dtypeToCvDepth(src->dtype_);
         } catch (const std::invalid_argument &e) {
@@ -595,8 +595,8 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: dst tensor has been disposed");
         }
 
-        int srcDepthType;
-        int dstDepthType;
+        int srcDepthType{};
+        int dstDepthType{};
         try {
             srcDepthType = dtypeToCvDepth(src->dtype_);
             dstDepthType = dtypeToCvDepth(dst->dtype_);

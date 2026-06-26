@@ -5,7 +5,7 @@
 #include <string>
 
 namespace rnexecutorch::core::types {
-enum DType {
+enum class DType {
     uint8,
     int32,
     float32

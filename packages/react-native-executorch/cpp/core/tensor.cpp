@@ -5,14 +5,14 @@
 namespace rnexecutorch::core::tensor {
 namespace jsi = facebook::jsi;
 
-TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype) {
+TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype)
+    : dtype_(dtype),
+      shape_(shape),
+      numel_(std::accumulate(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>())) {
     const auto elemSize = rnexecutorch::core::types::elementSize(dtype);
 
-    dtype_ = dtype;
-    shape_ = shape;
-    numel_ = std::accumulate(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
-
     size_ = numel_ * elemSize;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays) — owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, rnexecutorch::core::types::toScalarType(dtype));
 }

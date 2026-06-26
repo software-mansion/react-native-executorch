@@ -1,21 +1,33 @@
 # clang-tidy configuration for the react-native-executorch C/C++ sources.
 #
-# This is the first, deliberately conservative step toward a clang-tidy CI gate
-# (issue #1271): a tight, high-signal set focused on correctness and performance
-# bugs rather than opinionated style. It is expected to stay green on our own
-# code; grow the check list over time.
+# A high-signal set focused on correctness/performance bugs and modern C++
+# guidelines (issue #1271). Check groups are enabled one at a time and the
+# findings fixed; it is expected to stay green on our own code.
 #
 # clang-tidy reads the include flags / standard / defines from compile_flags.txt
 # (the same database clangd uses), so it needs the same prerequisites: a provisioned
 # third-party/include and `yarn install`. The clangd extension also surfaces these
 # checks inline in the editor.
+#
+# Excluded checks (incompatible with a native tensor/buffer library that interops
+# with ExecuTorch over raw pointers, or purely opinionated):
+#   pro-bounds-pointer-arithmetic / -avoid-unchecked-container-access /
+#   -constant-array-index — raw buffer pointer math and hot-loop indexing are by design
+#   pro-type-reinterpret-cast — type-erased byte buffers cast to typed pointers
+#   avoid-magic-numbers / easily-swappable-parameters / enum-size — opinionated / noisy
 Checks: >
   -*,
   bugprone-*,
   performance-*,
   clang-analyzer-*,
+  cppcoreguidelines-*,
   -bugprone-easily-swappable-parameters,
-  -performance-enum-size
+  -performance-enum-size,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-avoid-magic-numbers
 
 # Restrict analysis to this package's own cpp/ tree. Anchored on the full package
 # path so it can never match an unrelated directory that merely contains "cpp"

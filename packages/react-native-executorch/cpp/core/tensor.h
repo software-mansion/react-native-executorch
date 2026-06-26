@@ -28,7 +28,7 @@ public:
     size_t numel_;
 
     size_t size_;
-    std::unique_ptr<std::uint8_t[]> data_;
+    std::unique_ptr<std::uint8_t[]> data_; // NOLINT(cppcoreguidelines-avoid-c-arrays)
     executorch::extension::TensorPtr tensor_;
 
     std::shared_mutex mutex_;

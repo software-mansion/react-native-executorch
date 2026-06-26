@@ -105,8 +105,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         std::string nmsTypeStr = opts.getProperty(rt, "nmsType").asString(rt).utf8(rt);
         std::string boxFormatStr = opts.getProperty(rt, "boxFormat").asString(rt).utf8(rt);
 
-        NmsType nmsType;
-        BoxFormat boxFormat;
+        NmsType nmsType{};
+        BoxFormat boxFormat{};
         try {
             nmsType = parseNmsType(nmsTypeStr);
             boxFormat = parseBoxFormat(boxFormatStr);
