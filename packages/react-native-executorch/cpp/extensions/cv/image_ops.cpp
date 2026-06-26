@@ -137,7 +137,8 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t dstH = dst->shape_[0];
         const int32_t dstW = dst->shape_[1];
 
-        int cvType{}, interpFlag{};
+        int cvType{};
+        int interpFlag{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
             interpFlag = interpToFlag(interp);
@@ -304,7 +305,9 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t srcC = src->shape_[2];
         const int32_t dstC = dst->shape_[2];
 
-        int cvSrcType{}, cvDstType{}, flag{};
+        int cvSrcType{};
+        int cvDstType{};
+        int flag{};
         try {
             cvSrcType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
             cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);

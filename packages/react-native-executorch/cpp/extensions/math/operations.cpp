@@ -270,7 +270,8 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
         }
 
-        size_t outer = 1, inner = 1;
+        size_t outer = 1;
+        size_t inner = 1;
         for (size_t i = 0; std::cmp_less(i, axis); ++i) {
             outer *= static_cast<size_t>(src->shape_[i]);
         }

@@ -26,6 +26,12 @@
 #     (it flags RAII lock guards as const-able); not enforced going forward
 #   modernize-use-trailing-return-type — the codebase uses traditional return types
 #   modernize-return-braced-init-list — `return {…}` hides the (JSI) return type
+#   readability-identifier-length — short names (i, rt, h, w, …) are idiomatic here
+#   readability-math-missing-parentheses — flags standard array-offset arithmetic
+#   readability-function-cognitive-complexity — the JSI get() dispatchers and the
+#     image/tensor kernels are inherently above the threshold
+#   readability-uppercase-literal-suffix — the codebase uses lowercase (1.0f) consistently
+#   readability-magic-numbers — opinionated (same as cppcoreguidelines-avoid-magic-numbers)
 Checks: >
   -*,
   bugprone-*,
@@ -36,6 +42,7 @@ Checks: >
   llvm-*,
   misc-*,
   modernize-*,
+  readability-*,
   -bugprone-easily-swappable-parameters,
   -performance-enum-size,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
@@ -50,7 +57,12 @@ Checks: >
   -misc-non-private-member-variables-in-classes,
   -misc-const-correctness,
   -modernize-use-trailing-return-type,
-  -modernize-return-braced-init-list
+  -modernize-return-braced-init-list,
+  -readability-identifier-length,
+  -readability-math-missing-parentheses,
+  -readability-function-cognitive-complexity,
+  -readability-uppercase-literal-suffix,
+  -readability-magic-numbers
 
 # Restrict analysis to this package's own cpp/ tree. Anchored on the full package
 # path so it can never match an unrelated directory that merely contains "cpp"
