@@ -31,10 +31,11 @@ export const FORMAT_CONVERSION: Record<
   ImageFormat,
   Record<ImageFormat, ColorConversionCode | null>
 > = {
-  rgb: { rgb: null, rgba: 'RGB2RGBA', bgr: 'RGB2BGR', bgra: null },
-  bgr: { rgb: 'BGR2RGB', rgba: 'BGR2RGBA', bgr: null, bgra: null },
-  rgba: { rgb: 'RGBA2RGB', rgba: null, bgr: 'RGBA2BGR', bgra: null },
-  bgra: { rgb: 'BGRA2RGB', rgba: 'BGRA2RGBA', bgr: 'BGRA2BGR', bgra: null },
+  rgb: { rgb: null, rgba: 'RGB2RGBA', bgr: 'RGB2BGR', bgra: null, gray: 'RGB2GRAY' },
+  bgr: { rgb: 'BGR2RGB', rgba: 'BGR2RGBA', bgr: null, bgra: null, gray: 'BGR2GRAY' },
+  rgba: { rgb: 'RGBA2RGB', rgba: null, bgr: 'RGBA2BGR', bgra: null, gray: 'RGBA2GRAY' },
+  bgra: { rgb: 'BGRA2RGB', rgba: 'BGRA2RGBA', bgr: 'BGRA2BGR', bgra: null, gray: 'BGRA2GRAY' },
+  gray: { rgb: 'GRAY2RGBA', rgba: 'GRAY2RGBA', bgr: null, bgra: null, gray: null },
 };
 
 /**
@@ -47,6 +48,7 @@ export const FORMAT_CHANNELS: Record<ImageFormat, number> = {
   bgr: 3,
   rgba: 4,
   bgra: 4,
+  gray: 1,
 };
 
 /**

@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include <opencv2/core.hpp>
+
 #include "core/dtype.h"
 #include "core/tensor.h"
 
@@ -243,4 +245,136 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
+
+namespace {
+int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
+    switch (dtype) {
+    case rnexecutorch::core::types::DType::uint8:
+        return CV_8U;
+    case rnexecutorch::core::types::DType::int32:
+        return CV_32S;
+    case rnexecutorch::core::types::DType::float32:
+        return CV_32F;
+    }
+    throw std::invalid_argument("unsupported dtype");
+}
+} // namespace
+
+void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
+    auto name = "restrictToBox";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 4) {
+            throw jsi::JSError(rt, "Usage: restrictToBox(src, dst, boxTuple, format)");
+        }
+
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "restrictToBox: src must be a Tensor");
+        }
+
+        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "restrictToBox: dst must be a Tensor");
+        }
+
+        if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
+            throw jsi::JSError(rt, "restrictToBox: boxTuple must be an Array");
+        }
+
+        if (!args[3].isString()) {
+            throw jsi::JSError(rt, "restrictToBox: format must be a String");
+        }
+
+        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto boxTuple = args[2].asObject(rt).asArray(rt);
+        std::string boxFormatStr = args[3].asString(rt).utf8(rt);
+
+        if (boxTuple.size(rt) != 4) {
+            throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
+        }
+
+        BoxFormat boxFormat;
+        try {
+            boxFormat = parseBoxFormat(boxFormatStr);
+        } catch (const std::invalid_argument &e) {
+            throw jsi::JSError(rt, "restrictToBox: " + std::string(e.what()));
+        }
+
+        float a = static_cast<float>(boxTuple.getValueAtIndex(rt, 0).asNumber());
+        float b = static_cast<float>(boxTuple.getValueAtIndex(rt, 1).asNumber());
+        float c = static_cast<float>(boxTuple.getValueAtIndex(rt, 2).asNumber());
+        float d = static_cast<float>(boxTuple.getValueAtIndex(rt, 3).asNumber());
+
+        auto [xmin, ymin, xmax, ymax] = decodeToXyxy(a, b, c, d, boxFormat);
+
+        if (src.get() == dst.get()) {
+            throw jsi::JSError(rt, "restrictToBox: In-place operations (src == dst) are not supported.");
+        }
+
+        if (src->shape_ != dst->shape_) {
+            throw jsi::JSError(rt, "restrictToBox: src and dst must have the same shape");
+        }
+
+        if (src->shape_.size() < 2) {
+            throw jsi::JSError(rt, "restrictToBox: src must have at least 2 dimensions [H, W, ...]");
+        }
+
+        int32_t H = src->shape_[0];
+        int32_t W = src->shape_[1];
+        int32_t C = 1;
+        for (size_t i = 2; i < src->shape_.size(); ++i) {
+            C *= src->shape_[i];
+        }
+
+        int32_t x1 = static_cast<int32_t>(std::ceil(xmin));
+        int32_t y1 = static_cast<int32_t>(std::ceil(ymin));
+        int32_t x2 = static_cast<int32_t>(std::floor(xmax));
+        int32_t y2 = static_cast<int32_t>(std::floor(ymax));
+
+        x1 = std::max(0, x1);
+        y1 = std::max(0, y1);
+        x2 = std::min(W - 1, x2);
+        y2 = std::min(H - 1, y2);
+
+        bool isEmpty = (x2 < x1) || (y2 < y1);
+
+        if (src->dtype_ != dst->dtype_) {
+            throw jsi::JSError(rt, "restrictToBox: src and dst must have the same dtype");
+        }
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
+            throw jsi::JSError(rt, "restrictToBox: tensors in use");
+        }
+
+        if (!src->data_ || !dst->data_) {
+            throw jsi::JSError(rt, "restrictToBox: tensors must not be disposed");
+        }
+
+        int32_t cvType;
+        try {
+            cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), C);
+        } catch (const std::invalid_argument &e) {
+            throw jsi::JSError(rt, "restrictToBox: " + std::string(e.what()));
+        }
+
+        ::cv::Mat srcMat(H, W, cvType, src->data_.get());
+        ::cv::Mat dstMat(H, W, cvType, dst->data_.get());
+
+        if (isEmpty) {
+            dstMat.setTo(::cv::Scalar::all(0));
+        } else {
+            dstMat.setTo(::cv::Scalar::all(0));
+            int32_t boxW = x2 - x1 + 1;
+            int32_t boxH = y2 - y1 + 1;
+            ::cv::Rect roi(x1, y1, boxW, boxH);
+            srcMat(roi).copyTo(dstMat(roi));
+        }
+
+        return jsi::Value(rt, args[1]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 6, fnBody));
+}
+
 } // namespace rnexecutorch::extensions::cv::box_ops
