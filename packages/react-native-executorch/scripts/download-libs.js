@@ -338,7 +338,7 @@ function download(url, dest) {
     const get = (currentUrl) => {
       const client = currentUrl.startsWith('http://') ? http : https;
       const headers = {};
-      if (process.env.GITHUB_TOKEN && !currentUrl.startsWith('http://')) {
+      if (process.env.GITHUB_TOKEN && currentUrl.includes('github.com')) {
         headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
       }
       client.get(currentUrl, { headers }, (res) => {

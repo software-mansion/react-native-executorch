@@ -12,6 +12,8 @@
 # --- Android: downloaded per-ABI binaries ---
 /android/jniLibs/
 /android/libs/executorch/
+# ABI-independent ExecuTorch Java API; rides in the core-android-arm64 tarball.
+/android/libs/executorch.jar
 /android/libs/opencv/
 /android/libs/opencv-third-party/
 /android/libs/pthreadpool/

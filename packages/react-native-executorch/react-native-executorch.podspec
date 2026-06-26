@@ -37,7 +37,11 @@ Pod::Spec.new do |s|
   # depends on) plus cpuinfo in one archive. We link it directly here because
   # ExecutorchLib.framework keeps those symbols local-only (not exported), so
   # split-out backend xcframeworks can't resolve them through the framework.
-  executorch_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/executorch', __dir__)
+  # Use the literal Xcode build variable so it is expanded at build time (matching
+  # the HEADER_SEARCH_PATHS below). Do NOT wrap in File.expand_path: that resolves
+  # `$(PODS_TARGET_SRCROOT)` as a literal directory relative to __dir__, baking a
+  # malformed `<dir>/$(PODS_TARGET_SRCROOT)/...` path into the linker flags.
+  executorch_binaries_path = '$(PODS_TARGET_SRCROOT)/third-party/ios/libs/executorch'
 
   # --- Sources ---
   # OpenCV-dependent sources live under the cv extension. When more tasks land
@@ -76,9 +80,9 @@ Pod::Spec.new do |s|
     "\"#{executorch_binaries_path}/libthreadpool_simulator.a\"",
   ]
 
-  xnnpack_xcframework_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework', __dir__)
-  coreml_xcframework_path  = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/CoreMLBackend.xcframework', __dir__)
-  mlx_xcframework_path     = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/MLXBackend.xcframework', __dir__)
+  xnnpack_xcframework_path = '$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework'
+  coreml_xcframework_path  = '$(PODS_TARGET_SRCROOT)/third-party/ios/CoreMLBackend.xcframework'
+  mlx_xcframework_path     = '$(PODS_TARGET_SRCROOT)/third-party/ios/MLXBackend.xcframework'
 
   if enable_xnnpack
     physical_ldflags  << "-force_load \"#{xnnpack_xcframework_path}/ios-arm64/libXnnpackBackend.a\""
