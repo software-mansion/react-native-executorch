@@ -35,6 +35,11 @@ fi
 
 cd "$PKG_DIR"
 
+if [ ! -f compile_flags.txt ] || [ ! -f .clangd ]; then
+  echo "ℹ C++ warning check skipped: compile_flags.txt or .clangd not found."
+  exit 0
+fi
+
 if [ ! -d third-party/include/executorch ] ||
    [ ! -f ../../node_modules/react-native/ReactCommon/jsi/jsi/jsi.h ]; then
   echo "ℹ C++ warning check skipped: provision third-party/include and run 'yarn install' to enable it."
@@ -42,12 +47,15 @@ if [ ! -d third-party/include/executorch ] ||
 fi
 
 # Compilation database (includes / std / defines) + the .clangd warning set.
+# The `|| [ -n "$line" ]` keeps the final line even if the file has no trailing newline.
 db_flags=()
-while IFS= read -r line; do
+while IFS= read -r line || [ -n "$line" ]; do
   [ -n "$line" ] && db_flags+=("$line")
 done < compile_flags.txt
 warn_flags=()
-while IFS= read -r w; do warn_flags+=("$w"); done < <(grep -oE '\-W[A-Za-z0-9=-]+' .clangd)
+while IFS= read -r w || [ -n "$w" ]; do
+  [ -n "$w" ] && warn_flags+=("$w")
+done < <(grep -oE '\-W[A-Za-z0-9=-]+' .clangd)
 
 status=0
 for f in "${rel_files[@]}"; do
