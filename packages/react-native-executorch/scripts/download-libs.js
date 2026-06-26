@@ -56,6 +56,9 @@
  *
  * Environment variables:
  *   RNET_SKIP_DOWNLOAD=1           -- skip download entirely (for CI with pre-cached libs)
+ *   RNET_HEADERS_ONLY=1            -- fetch only headers.tar.gz, no native libs
+ *                                     (e.g. clang-tidy / IDE tooling needing include paths)
+ *   RNET_NO_X86_64=1              -- skip the android-x86_64 (emulator) ABI
  *   RNET_LIBS_CACHE_DIR=/path      -- use custom cache dir instead of default
  *   RNET_TARGET=android-arm64      -- force specific target (skip auto-detection)
  *   RNET_BASE_URL=http://localhost:8080  -- override base URL (useful for local testing:
@@ -275,6 +278,13 @@ function getArtifacts(targets, { backends, libs }) {
   // platform-independent and always needed at build time. The tarball contains
   // an `include/` dir, so it extracts to third-party/include/.
   artifacts.push(makeArtifact('headers', THIRD_PARTY_DIR));
+
+  // RNET_HEADERS_ONLY provisions just the platform-independent headers (no
+  // per-target native libs) — e.g. for clang-tidy / IDE tooling that needs the
+  // include paths but never links or runs the binaries.
+  if (process.env.RNET_HEADERS_ONLY) {
+    return artifacts;
+  }
 
   for (const target of targets) {
     const destDir = target.startsWith('android')

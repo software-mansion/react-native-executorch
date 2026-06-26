@@ -37,6 +37,9 @@ iOS OpenCV is provided via the `opencv-rne` CocoaPod, not a downloaded tarball.
 ## Provisioning / overrides (env vars for `download-libs.js`)
 
 - `RNET_SKIP_DOWNLOAD=1` — skip download (CI / pre-cached libs); still writes config.
+- `RNET_HEADERS_ONLY=1` — fetch only `headers.tar.gz` (no native libs), e.g. for
+  clang-tidy / IDE tooling that needs include paths but never links the binaries.
+- `RNET_NO_X86_64=1` — skip the `android-x86_64` (emulator) ABI.
 - `RNET_BASE_URL=<url>` — override the release base URL (e.g. a local
   `python3 -m http.server` for testing).
 - `RNET_TARGET=<target>` / `RNET_LIBS_CACHE_DIR=<dir>` / `GITHUB_TOKEN=<token>`.

@@ -59,7 +59,7 @@ Runs at `postinstall`. Responsibilities:
 4. For each target × enabled backend/lib, fetch the matching `<artifact>.tar.gz` from the GitHub Release tagged `v<package-version>`, verify its `.sha256`, and extract it into `third-party/`. Platform-independent headers ride in a single always-downloaded `headers.tar.gz`.
 5. Cache validated tarballs under `~/.cache/react-native-executorch/<version>/` so later installs skip the network.
 
-Environment overrides: `RNET_SKIP_DOWNLOAD`, `RNET_LIBS_CACHE_DIR`, `RNET_TARGET`, `RNET_NO_X86_64`, `RNET_BASE_URL` (point it at a local `python3 -m http.server` serving `dist-artifacts/` for local iteration), and `GITHUB_TOKEN` (needed for draft releases).
+Environment overrides: `RNET_SKIP_DOWNLOAD`, `RNET_HEADERS_ONLY` (fetch only `headers.tar.gz`, no native libs — e.g. for clang-tidy / IDE tooling), `RNET_LIBS_CACHE_DIR`, `RNET_TARGET`, `RNET_NO_X86_64`, `RNET_BASE_URL` (point it at a local `python3 -m http.server` serving `dist-artifacts/` for local iteration), and `GITHUB_TOKEN` (needed for draft releases).
 
 The artifacts per target:
 
