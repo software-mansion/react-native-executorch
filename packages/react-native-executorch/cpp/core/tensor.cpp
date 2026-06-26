@@ -39,8 +39,8 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
     if (nameStr == "copyTo") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-            if (count != 1) {
-                throw jsi::JSError(rt, "copyTo: Usage: copyTo(dst)");
+            if (count != 1 && count != 2) {
+                throw jsi::JSError(rt, "copyTo: Usage: copyTo(dst, options?)");
             }
 
             if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
@@ -71,11 +71,34 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "copyTo: dst tensor has been disposed");
             }
 
-            if (self->size_ != dst->size_) {
-                throw jsi::JSError(rt, "copyTo: size mismatch between src and dst tensors");
+            size_t srcOffset = 0;
+
+            if (count == 2 && args[1].isObject()) {
+                auto optsObj = args[1].asObject(rt);
+                if (optsObj.hasProperty(rt, "offset")) {
+                    srcOffset = static_cast<size_t>(optsObj.getProperty(rt, "offset").asNumber());
+                }
             }
 
-            std::memcpy(dst->data_.get(), self->data_.get(), self->size_);
+            size_t copyLen = self->numel_ - srcOffset;
+
+            if (count == 2 && args[1].isObject()) {
+                auto optsObj = args[1].asObject(rt);
+                if (optsObj.hasProperty(rt, "length")) {
+                    copyLen = static_cast<size_t>(optsObj.getProperty(rt, "length").asNumber());
+                }
+            }
+
+            if (srcOffset + copyLen > self->numel_) {
+                throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
+            }
+
+            const auto elemSize = rnexecutorch::core::types::elementSize(self->dtype_);
+            if (copyLen * elemSize != dst->size_) {
+                throw jsi::JSError(rt, "copyTo: size mismatch between copy byte size and dst tensor size");
+            }
+
+            std::memcpy(dst->data_.get(), self->data_.get() + (srcOffset * elemSize), copyLen * elemSize);
 
             return jsi::Value(rt, args[0].asObject(rt));
         };

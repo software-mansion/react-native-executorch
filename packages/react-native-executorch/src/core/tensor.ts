@@ -28,11 +28,17 @@ export type Tensor = {
   readonly numel: number;
 
   /**
-   * Copies this tensor's data into another tensor with equal number of bytes.
+   * Copies this tensor's data into another tensor.
    * @param dst The destination tensor to copy data into.
+   * @param options Optional configuration for the copy operation.
+   * @param options.offset The start offset in elements in the source tensor.
+   * Defaults to `0`.
+   * @param options.length The number of elements to copy. Defaults to
+   * `numel - offset`, i.e. copies from `offset` to the end of the source
+   * tensor.
    * @returns The destination tensor `dst`.
    */
-  copyTo(dst: Tensor): Tensor;
+  copyTo(dst: Tensor, options?: { offset?: number; length?: number }): Tensor;
 
   /**
    * Releases the underlying native C++ memory held by this tensor.
