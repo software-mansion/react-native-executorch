@@ -8,7 +8,7 @@
 #include "extensions/cv/install.h"
 #endif
 
-using namespace facebook;
+namespace jsi = facebook::jsi;
 
 namespace rnexecutorch {
 void install(jsi::Runtime &jsiRuntime) {

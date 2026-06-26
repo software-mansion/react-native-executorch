@@ -21,6 +21,7 @@ Checks: >
   performance-*,
   clang-analyzer-*,
   cppcoreguidelines-*,
+  google-*,
   -bugprone-easily-swappable-parameters,
   -performance-enum-size,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,

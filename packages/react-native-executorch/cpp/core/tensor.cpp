@@ -8,7 +8,7 @@ namespace jsi = facebook::jsi;
 TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype)
     : dtype_(dtype),
       shape_(shape),
-      numel_(std::accumulate(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>())) {
+      numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>())) {
     const auto elemSize = rnexecutorch::core::types::elementSize(dtype);
 
     size_ = numel_ * elemSize;
