@@ -28,6 +28,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="detection/index"
+        options={{
+          drawerLabel: 'Object Detection',
+          title: 'Object Detection',
+        }}
+      />
+      <Drawer.Screen
         name="styleTransfer/index"
         options={{
           drawerLabel: 'Style Transfer',

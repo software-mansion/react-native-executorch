@@ -267,3 +267,4 @@ CPLUSPLUSFLAGS
 LDFLAGS
 iphoneos
 libbackend
+XLARGE

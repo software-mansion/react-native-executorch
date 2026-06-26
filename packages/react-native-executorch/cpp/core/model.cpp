@@ -27,7 +27,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
     if (nameStr == "getMethodNames") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
                 throw jsi::JSError(rt, "getMethodNames: Usage: getMethodNames()");
             }
@@ -61,7 +61,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
     if (nameStr == "getMethodMeta") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw jsi::JSError(rt, "getMethodMeta: Usage: getMethodMeta(methodName)");
             }
@@ -176,7 +176,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
     if (nameStr == "execute") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 3) {
                 throw jsi::JSError(rt, "execute: Usage: execute(methodName, inputs, outputTensors)");
             }
@@ -435,7 +435,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
                 throw jsi::JSError(rt, "dispose: Usage: dispose()");
             }
@@ -468,7 +468,7 @@ std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Ru
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "loadModel";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw jsi::JSError(rt, "loadModel: Usage: loadModel(arg0)");
         }

@@ -67,7 +67,7 @@ std::array<float, 4> decodeToXyxy(
 
 void install_nms(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "nms";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 3) {
             throw jsi::JSError(rt, "Usage: nms(boxes, scores, options)");
         }
@@ -143,7 +143,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         const float *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
 
         std::vector<std::pair<std::int32_t, float>> candidates;
-        candidates.reserve(numAnchors);
+        candidates.reserve(static_cast<size_t>(numAnchors));
 
         for (size_t idx = 0; std::cmp_less(idx, numAnchors); ++idx) {
             float score = scoresPtr[idx];

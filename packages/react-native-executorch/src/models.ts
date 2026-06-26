@@ -1,4 +1,5 @@
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
+import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
@@ -6,10 +7,14 @@ import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
   PASCAL_VOC_LABELS,
+  COCO_CLASSES,
+  COCO_CLASSES_YOLO,
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
   type ImageNet1KLabel,
   type PascalVocLabel,
+  type CocoClass,
+  type CocoClassYolo,
   type BlazeFaceLandmark,
   type CocoLandmark,
 } from './constants';
@@ -206,6 +211,126 @@ const FCN_RESNET101_XNNPACK_INT8: SemanticSegmentationModel<PascalVocLabel> = {
 };
 
 // =============================================================================
+// Object Detection
+// =============================================================================
+const SSDLITE320_MOBILENET_V3_LARGE_OPTS = {
+  labels: COCO_CLASSES,
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultConfidenceThreshold: 0.5,
+  defaultIouThreshold: 0.55,
+};
+const SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/xnnpack/ssdlite320_mobilenet_v3_large_xnnpack_fp32.pte`,
+  opts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
+};
+const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp16.pte`,
+  opts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
+};
+const SSDLITE320_MOBILENET_V3_LARGE_COREML_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/coreml/ssdlite320_mobilenet_v3_large_coreml_fp32.pte`,
+  opts: SSDLITE320_MOBILENET_V3_LARGE_OPTS,
+};
+
+const RFDETR_NANO_DETECTOR_OPTS = {
+  labels: COCO_CLASSES,
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  ...IMAGENET_NORM,
+  defaultConfidenceThreshold: 0.5,
+  defaultIouThreshold: 0.55,
+};
+const RFDETR_NANO_DETECTOR_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
+  opts: RFDETR_NANO_DETECTOR_OPTS,
+};
+const RFDETR_NANO_DETECTOR_COREML_INT8: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`,
+  opts: RFDETR_NANO_DETECTOR_OPTS,
+};
+
+const YOLO26_DETECTOR_OPTS = {
+  labels: COCO_CLASSES_YOLO,
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'letterbox' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultConfidenceThreshold: 0.25,
+  defaultIouThreshold: 0.7,
+};
+
+const YOLO26_NANO_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_384_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_NANO_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_512_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_NANO_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/n/xnnpack/yolo26n_640_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+
+const YOLO26_SMALL_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_384_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_SMALL_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_512_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_SMALL_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/s/xnnpack/yolo26s_640_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+
+const YOLO26_MEDIUM_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_384_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_MEDIUM_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_512_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_MEDIUM_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/m/xnnpack/yolo26m_640_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+
+const YOLO26_LARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_384_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_LARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_512_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_LARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/l/xnnpack/yolo26l_640_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+
+const YOLO26_XLARGE_384_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_384_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_XLARGE_512_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_512_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+const YOLO26_XLARGE_640_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClassYolo> = {
+  modelPath: `${BASE_URL}-yolo26/${NEXT_VERSION_TAG}/x/xnnpack/yolo26x_640_xnnpack_fp32.pte`,
+  opts: YOLO26_DETECTOR_OPTS,
+};
+
+// =============================================================================
 // Keypoint Detection
 // =============================================================================
 const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> = {
@@ -353,6 +478,52 @@ export const models = {
       ...FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
+    },
+  },
+  objectDetection: {
+    SSDLITE320_MOBILENET_V3_LARGE: {
+      ...SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      XNNPACK_FP32: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      COREML_FP16: SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16,
+      COREML_FP32: SSDLITE320_MOBILENET_V3_LARGE_COREML_FP32,
+    },
+    RFDETR_NANO: {
+      ...RFDETR_NANO_DETECTOR_XNNPACK_FP32,
+      XNNPACK_FP32: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
+      COREML_INT8: RFDETR_NANO_DETECTOR_COREML_INT8,
+    },
+    YOLO26: {
+      ...YOLO26_NANO_384_XNNPACK_FP32,
+      NANO: {
+        ...YOLO26_NANO_384_XNNPACK_FP32,
+        SIZE_384: { XNNPACK_FP32: YOLO26_NANO_384_XNNPACK_FP32 },
+        SIZE_512: { XNNPACK_FP32: YOLO26_NANO_512_XNNPACK_FP32 },
+        SIZE_640: { XNNPACK_FP32: YOLO26_NANO_640_XNNPACK_FP32 },
+      },
+      SMALL: {
+        ...YOLO26_SMALL_384_XNNPACK_FP32,
+        SIZE_384: { XNNPACK_FP32: YOLO26_SMALL_384_XNNPACK_FP32 },
+        SIZE_512: { XNNPACK_FP32: YOLO26_SMALL_512_XNNPACK_FP32 },
+        SIZE_640: { XNNPACK_FP32: YOLO26_SMALL_640_XNNPACK_FP32 },
+      },
+      MEDIUM: {
+        ...YOLO26_MEDIUM_384_XNNPACK_FP32,
+        SIZE_384: { XNNPACK_FP32: YOLO26_MEDIUM_384_XNNPACK_FP32 },
+        SIZE_512: { XNNPACK_FP32: YOLO26_MEDIUM_512_XNNPACK_FP32 },
+        SIZE_640: { XNNPACK_FP32: YOLO26_MEDIUM_640_XNNPACK_FP32 },
+      },
+      LARGE: {
+        ...YOLO26_LARGE_384_XNNPACK_FP32,
+        SIZE_384: { XNNPACK_FP32: YOLO26_LARGE_384_XNNPACK_FP32 },
+        SIZE_512: { XNNPACK_FP32: YOLO26_LARGE_512_XNNPACK_FP32 },
+        SIZE_640: { XNNPACK_FP32: YOLO26_LARGE_640_XNNPACK_FP32 },
+      },
+      XLARGE: {
+        ...YOLO26_XLARGE_384_XNNPACK_FP32,
+        SIZE_384: { XNNPACK_FP32: YOLO26_XLARGE_384_XNNPACK_FP32 },
+        SIZE_512: { XNNPACK_FP32: YOLO26_XLARGE_512_XNNPACK_FP32 },
+        SIZE_640: { XNNPACK_FP32: YOLO26_XLARGE_640_XNNPACK_FP32 },
+      },
     },
   },
   keypointDetection: {

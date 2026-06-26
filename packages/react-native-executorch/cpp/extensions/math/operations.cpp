@@ -13,7 +13,7 @@ using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 
 void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "sigmoid";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: sigmoid(src, dst)");
         }
@@ -79,7 +79,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "softmax";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
         }
@@ -130,6 +130,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "softmax: axis is out of range");
         }
+        const size_t axisIdx = static_cast<size_t>(axis);
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {
@@ -152,7 +153,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
 
-        const size_t axisDim = static_cast<size_t>(src->shape_[axis]);
+        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "softmax: axis dimension must be greater than zero");
         }
@@ -163,7 +164,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         size_t inner = 1;
-        for (size_t i = axis + 1; std::cmp_less(i, rank); ++i) {
+        for (size_t i = axisIdx + 1; std::cmp_less(i, rank); ++i) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
@@ -197,7 +198,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "argmax";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");
         }
@@ -240,9 +241,10 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "argmax: axis is out of range");
         }
+        const size_t axisIdx = static_cast<size_t>(axis);
 
         auto dstExpectedShape = src->shape_;
-        dstExpectedShape[axis] = 1;
+        dstExpectedShape[axisIdx] = 1;
         if (dst->shape_ != dstExpectedShape) {
             throw jsi::JSError(rt, "argmax: dst shape must match src shape but with axis dimension 1");
         }
@@ -263,17 +265,17 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 
         const float *srcData = reinterpret_cast<const float *>(src->data_.get());
 
-        size_t axisDim = src->shape_[axis];
+        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
         }
 
         size_t outer = 1, inner = 1;
         for (size_t i = 0; std::cmp_less(i, axis); ++i) {
-            outer *= src->shape_[i];
+            outer *= static_cast<size_t>(src->shape_[i]);
         }
-        for (size_t i = axis + 1; std::cmp_less(i, rank); ++i) {
-            inner *= src->shape_[i];
+        for (size_t i = axisIdx + 1; std::cmp_less(i, rank); ++i) {
+            inner *= static_cast<size_t>(src->shape_[i]);
         }
 
         int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());

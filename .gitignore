@@ -15,6 +15,9 @@ jsconfig.json
 .cache/
 compile_commands.json
 compile_flags.txt
+# ...but the core package ships a shared, committed clangd config for its C++ sources:
+!/packages/react-native-executorch/.clangd
+!/packages/react-native-executorch/compile_flags.txt
 
 # Xcode
 #
