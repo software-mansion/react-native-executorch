@@ -80,7 +80,20 @@ iOS OpenCV is **not** a tarball — it is consumed through the `opencv-rne` Coco
 
 ### Header provenance
 
-`headers.tar.gz` is assembled from the `@ms/separate-backends` ExecuTorch CMake **install include tree** (`cmake-out*/include/`: `executorch`, `pytorch/{c10,torch,headeronly}`, the tokenizer third-party headers `absl` / `re2` / `nlohmann`, and `cpuinfo` / `pthreadpool` — all platform-independent, identical across ABIs and SDKs) plus the `opencv2` headers from the OpenCV prebuilt (the same source as the `opencv-rne` pod and the Android static `libopencv_*.a`). Headers are **downloaded, not committed**.
+`headers.tar.gz` is assembled by `scripts/vendor-headers.sh`, which is needed because the executorch header surface spans **four** sources — a copy of the CMake install tree alone is incomplete (it omits the source-only headers such as `extension/llm/{runner,custom_ops,apple}`, which the rewrite's LLM/multimodal tasks compile against directly):
+
+1. **ExecuTorch C++ source headers** (`runtime`, `extension`, `kernels`, … from the executorch checkout) — the full public surface incl. the LLM runner helpers and the bundled tokenizer third-party (`abseil-cpp`/`re2`/`json`/…).
+2. **Build-generated / installed headers** (`cmake-out*/include`) — flatbuffer `*_generated.h` and codegen'd `kernels/*/Functions.h`.
+3. **c10 / torch** from the assembled `executorch.xcframework` public headers.
+4. **opencv2** from the OpenCV prebuilt (same source as the `opencv-rne` pod), since OpenCV is not built from executorch.
+
+Run it before `package-release-artifacts.sh`:
+
+```bash
+./scripts/vendor-headers.sh <executorch-dir> <opencv-include-dir>
+```
+
+Headers are **downloaded, not committed**.
 
 ## Build-time: Android
 

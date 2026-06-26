@@ -268,3 +268,7 @@ LDFLAGS
 iphoneos
 libbackend
 XLARGE
+flatbuffer
+libthreadpool
+fxdiv
+pcre

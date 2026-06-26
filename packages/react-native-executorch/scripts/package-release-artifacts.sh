@@ -141,6 +141,17 @@ package_merged() {
 # ---- Headers ----------------------------------------------------------------
 # Platform-independent ExecuTorch + c10 + torch + tokenizers + opencv headers.
 # Staged under include/ so the tarball extracts to third-party/include/.
+#
+# third-party/include/ must first be assembled by scripts/vendor-headers.sh
+# (the executorch header surface spans the source tree, the build-generated
+# headers, the xcframework c10/torch, and opencv — a copy of the install tree
+# alone is incomplete, e.g. it omits extension/llm/{runner,custom_ops}).
+
+if [ ! -d "$INCLUDE_DIR/executorch/extension/llm/runner" ]; then
+  echo "  ✗ $INCLUDE_DIR looks incomplete (no extension/llm/runner)." >&2
+  echo "    Run scripts/vendor-headers.sh <executorch-dir> <opencv-include-dir> first." >&2
+  exit 1
+fi
 
 echo ""
 echo "Headers:"
