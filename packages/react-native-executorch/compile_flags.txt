@@ -1,0 +1,11 @@
+-xc++
+-std=c++20
+-DC10_USING_CUSTOM_GENERATED_MACROS=1
+-DEXECUTORCH_ENABLE_EXECUTION_PROFILING=1
+-Icpp
+-isystem../../node_modules/react-native/ReactCommon/jsi
+-isystemthird-party/include
+-isystemthird-party/include/executorch/extension/llm/tokenizers/include
+-isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/json/include
+-isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/re2
+-isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp

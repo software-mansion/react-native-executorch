@@ -13,6 +13,9 @@ pre-commit:
     format-objc:
       glob: '*.{h,hpp,m,mm,c,cpp}'
       run: clang-format -i {staged_files} && git add {staged_files}
+    cpp-warnings:
+      glob: '*.{h,hpp,c,cpp}'
+      run: packages/react-native-executorch/scripts/check-cpp-warnings.sh {staged_files}
     format-kotlin:
       glob: '*.{kt}'
       run: ktlint -F {staged_files} && git add {staged_files}

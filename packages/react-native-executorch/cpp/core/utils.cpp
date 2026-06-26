@@ -10,7 +10,7 @@ namespace jsi = facebook::jsi;
 
 void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "getExecuTorchRegisteredBackends";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
         if (count != 0) {
             throw jsi::JSError(rt, "Usage: getExecuTorchRegisteredBackends()");
         }

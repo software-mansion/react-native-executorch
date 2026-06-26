@@ -1,0 +1,33 @@
+# clangd configuration for the react-native-executorch C/C++ sources.
+#
+# Include roots, the language standard, and preprocessor defines live in
+# `compile_flags.txt` (the compilation database). This file layers the project's
+# warning policy on top and configures clangd's diagnostics.
+#
+# The warning set is intentionally strict to surface bugs early during the
+# rewrite. Third-party headers are included as `-isystem` (see compile_flags.txt),
+# so these warnings only apply to our own code in `cpp/`.
+CompileFlags:
+  Add:
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+    - -Wshadow
+    - -Wnon-virtual-dtor
+    - -Woverloaded-virtual
+    - -Wold-style-cast
+    - -Wcast-align
+    - -Wunused
+    - -Wnull-dereference
+    - -Wimplicit-fallthrough
+    - -Wextra-semi
+    - -Wformat=2
+    - -Wconversion
+    - -Wsign-conversion
+    - -Wdouble-promotion
+
+Diagnostics:
+  # ExecuTorch/torch rely heavily on umbrella headers, which clangd's include
+  # cleaner misreports as unused/missing. Disable it to avoid false positives.
+  UnusedIncludes: None
+  MissingIncludes: None

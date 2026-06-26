@@ -65,7 +65,7 @@ FitBox computeFit(int32_t srcW, int32_t srcH, int32_t dstW, int32_t dstH, bool i
 
 void install_resize(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "resize";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: resize(src, dst, options)");
         }
@@ -233,7 +233,7 @@ int codeToColorConversionFlag(const std::string &code) {
 
 void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "cvtColor";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: cvtColor(src, dst, code)");
         }
@@ -319,7 +319,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "toChannelsFirst";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsFirst(src, dst)");
         }
@@ -391,7 +391,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<::cv::Mat> channels;
         ::cv::split(srcMat, channels);
 
-        int32_t hw = srcH * srcW;
+        size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
         size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *dstPtr = dst->data_.get();
 
@@ -407,7 +407,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "toChannelsLast";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsLast(src, dst)");
         }
@@ -475,7 +475,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: " + std::string(e.what()));
         }
 
-        int32_t hw = srcH * srcW;
+        size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
         size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *srcPtr = src->data_.get();
 
@@ -495,7 +495,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "normalize";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: normalize(src, dst, options)");
         }
@@ -541,7 +541,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             }
 
             auto val = opts.getProperty(rt, name);
-            std::vector<double> result(c);
+            std::vector<double> result(static_cast<size_t>(c));
 
             if (val.isNumber()) {
                 std::ranges::fill(result, val.asNumber());
@@ -602,9 +602,10 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         uint8_t *srcPtr = src->data_.get();
         uint8_t *dstPtr = dst->data_.get();
 
+        const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
         for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
-            ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * h * w * srcElemSize);
-            ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * h * w * dstElemSize);
+            ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
+            ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * plane * dstElemSize);
 
             srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
         }
@@ -617,7 +618,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
 
 void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "applyColormap";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
         }
@@ -695,7 +696,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
                                            std::to_string(numColors) + ")");
             }
             for (size_t c = 0; c < numRgbaChannels; ++c) {
-                dstData[i * numRgbaChannels + c] = lut[idx][c];
+                dstData[i * numRgbaChannels + c] = lut[static_cast<size_t>(idx)][c];
             }
         }
 

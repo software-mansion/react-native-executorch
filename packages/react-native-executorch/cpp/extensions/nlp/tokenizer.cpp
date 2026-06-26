@@ -18,29 +18,29 @@ constexpr uint64_t kNumAddedEosTokens = 0;
 // tokenizers::Error is its own enum (not executorch::runtime::Error), and the
 // tokenizers library ships no to_string for it, so map it to a readable name.
 std::string toString(tokenizers::Error error) {
-  switch (error) {
-  case tokenizers::Error::Ok:
-    return "Ok";
-  case tokenizers::Error::Internal:
-    return "Internal";
-  case tokenizers::Error::Uninitialized:
-    return "Uninitialized";
-  case tokenizers::Error::OutOfRange:
-    return "OutOfRange";
-  case tokenizers::Error::LoadFailure:
-    return "LoadFailure";
-  case tokenizers::Error::EncodeFailure:
-    return "EncodeFailure";
-  case tokenizers::Error::Base64DecodeFailure:
-    return "Base64DecodeFailure";
-  case tokenizers::Error::ParseFailure:
-    return "ParseFailure";
-  case tokenizers::Error::DecodeFailure:
-    return "DecodeFailure";
-  case tokenizers::Error::RegexFailure:
-    return "RegexFailure";
-  }
-  return "Unknown(" + std::to_string(static_cast<int32_t>(error)) + ")";
+    switch (error) {
+    case tokenizers::Error::Ok:
+        return "Ok";
+    case tokenizers::Error::Internal:
+        return "Internal";
+    case tokenizers::Error::Uninitialized:
+        return "Uninitialized";
+    case tokenizers::Error::OutOfRange:
+        return "OutOfRange";
+    case tokenizers::Error::LoadFailure:
+        return "LoadFailure";
+    case tokenizers::Error::EncodeFailure:
+        return "EncodeFailure";
+    case tokenizers::Error::Base64DecodeFailure:
+        return "Base64DecodeFailure";
+    case tokenizers::Error::ParseFailure:
+        return "ParseFailure";
+    case tokenizers::Error::DecodeFailure:
+        return "DecodeFailure";
+    case tokenizers::Error::RegexFailure:
+        return "RegexFailure";
+    }
+    return "Unknown(" + std::to_string(static_cast<int32_t>(error)) + ")";
 }
 } // namespace
 
@@ -63,7 +63,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "encode") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw jsi::JSError(rt, "encode: Usage: encode(text)");
             }
@@ -101,7 +101,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "decode") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1 || count > 2) {
                 throw jsi::JSError(rt, "decode: Usage: decode(tokens, skipSpecialTokens?)");
             }
@@ -157,7 +157,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "getVocabSize") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
                 throw jsi::JSError(rt, "getVocabSize: Usage: getVocabSize()");
             }
@@ -178,7 +178,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "idToToken") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw jsi::JSError(rt, "idToToken: Usage: idToToken(id)");
             }
@@ -210,7 +210,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "tokenToId") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw jsi::JSError(rt, "tokenToId: Usage: tokenToId(token)");
             }
@@ -242,7 +242,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
                 throw jsi::JSError(rt, "dispose: Usage: dispose()");
             }
@@ -277,7 +277,7 @@ std::vector<facebook::jsi::PropNameID> TokenizerHostObject::getPropertyNames(jsi
 
 void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "loadTokenizer";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(arg0)");
         }
