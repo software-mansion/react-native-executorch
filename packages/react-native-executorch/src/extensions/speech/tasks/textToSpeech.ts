@@ -11,6 +11,16 @@ import { partition, chunk } from '../ops/kokoro/partition';
 import { crop } from '../ops/audio';
 import { tokenize } from '../ops/kokoro/tokenize';
 import { scaleDurations, sumDurations, expandDurations } from '../ops/kokoro/duration';
+import {
+  SAMPLE_RATE,
+  SAMPLES_PER_FRAME,
+  PAD_TOKEN_COUNT,
+  CROP_STEPS,
+  CROP_THRESHOLD,
+  CROP_MARGIN,
+  PAUSE_MS,
+  DEFAULT_PAUSE_MS,
+} from '../constants/kokoro';
 
 /**
  * Text to speech model definition.
@@ -26,7 +36,7 @@ export type TextToSpeechModel = {
 /**
  * Defines a streaming interface.
  */
-export type TextToSpeechStreamingInput = {
+export type TextToSpeechInput = {
   readonly text: string;
   readonly speed?: number;
   readonly onBegin?: () => void | Promise<void>;
@@ -39,12 +49,13 @@ export async function createTextToSpeech(
   runtime?: WorkletRuntime
 ): Promise<{
   dispose: () => void;
-  stream: (input: TextToSpeechStreamingInput) => Promise<void>;
-  streamWorklet: (input: TextToSpeechStreamingInput) => void;
+  stream: (input: TextToSpeechInput) => Promise<void>;
+  synthesizeWorklet: (input: TextToSpeechInput) => void;
 }> {
   // Step 1 - unpack components & load models
   const { durationPredictorPath, synthesizerPath, voicePath, phonemizerConfig } = config;
   const { lang, taggerSource, lexiconSource, neuralModelSource } = phonemizerConfig;
+  console.log(neuralModelSource);
 
   const phonemizer = await wrapAsync(
     createPhonemizer,
@@ -61,7 +72,7 @@ export async function createTextToSpeech(
 
   // Step 2 - validate model metadata
   // Duration predictor should have 3 forward methods.
-  const predMetas = ([32, 64, 128] as const).map((size) =>
+  ([32, 64, 128] as const).map((size) =>
     validateModelSchema(
       durationPredictor,
       `forward_${size}`,
@@ -124,8 +135,8 @@ export async function createTextToSpeech(
     audioTensor.dispose();
   };
 
-  // Step 6 - main streaming algorithm
-  const streamWorklet = (input: TextToSpeechStreamingInput): void => {
+  // Step 6 - synthesis worklet (runs on the background runtime)
+  const synthesizeWorklet = (input: TextToSpeechInput): void => {
     'worklet';
     const { text, speed, onBegin, onNext, onEnd } = input;
 
@@ -138,7 +149,7 @@ export async function createTextToSpeech(
 
     for (const input of chunk(phonemes, segments)) {
       // This effective sequence length will be useful in slicing tensors.
-      const tokenLength = input.length + 2; // Include 2 pad tokens
+      const tokenLength = input.length + PAD_TOKEN_COUNT;
 
       const dTokensTensor = tokensTensor.view([1, tokenLength]);
       const dMaskTensor = maskTensor.view([1, tokenLength]);
@@ -176,7 +187,7 @@ export async function createTextToSpeech(
       expandDurations(dDurationsTensor, dAlignmentTensor);
 
       // Second model call - producing an audio.
-      const audioSamples = finalDuration * 600;
+      const audioSamples = finalDuration * SAMPLES_PER_FRAME;
       const dAudioTensor = audioTensor.view([1, 1, audioSamples]);
       synthesizer.execute(
         'forward',
@@ -185,12 +196,17 @@ export async function createTextToSpeech(
       );
 
       // Postprocessing - trimming the audio.
-      const trimmedAudio = crop(dAudioTensor, 10, 0.001);
+      // Important for removing artifacts.
+      const trimmedAudio = crop(dAudioTensor, CROP_STEPS, CROP_THRESHOLD, CROP_MARGIN);
+
+      // Add some additional pause to make speech sound more natural.
+      const pauseMs = PAUSE_MS[input.trimEnd().slice(-1)] ?? DEFAULT_PAUSE_MS;
+      const pauseSamples = Math.round((pauseMs * SAMPLE_RATE) / 1000);
 
       if (onNext) {
         // TODO: get rid of this allocation with double buffer approach
-        const audioBuf = new Float32Array(trimmedAudio.numel);
-        trimmedAudio.getData(audioBuf);
+        const audioBuf = new Float32Array(trimmedAudio.numel + pauseSamples);
+        trimmedAudio.getData(audioBuf.subarray(0, trimmedAudio.numel));
         scheduleOnRN(onNext, audioBuf);
       }
     }
@@ -198,7 +214,26 @@ export async function createTextToSpeech(
     if (onEnd) scheduleOnRN(onEnd);
   };
 
-  const stream = wrapAsync(streamWorklet, runtime);
+  const synthesize = wrapAsync(synthesizeWorklet, runtime);
 
-  return { stream, streamWorklet, dispose };
+  // Step 7 - RN-side streaming orchestration
+  const stream = async (input: TextToSpeechInput): Promise<void> => {
+    const { onNext, onEnd, ...rest } = input;
+
+    // Serial playback chain, owned by the RN thread (where onNext executes).
+    let playback: Promise<void> = Promise.resolve();
+    const enqueue =
+      onNext &&
+      ((audio: Float32Array) => {
+        playback = playback.then(() => onNext(audio));
+      });
+
+    await synthesize({ ...rest, onNext: enqueue });
+
+    // Wait for playback to finish, then signal the true end of the stream.
+    await playback;
+    await onEnd?.();
+  };
+
+  return { stream, synthesizeWorklet, dispose };
 }

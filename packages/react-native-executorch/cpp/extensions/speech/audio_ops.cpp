@@ -18,8 +18,8 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "crop";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &,
                      const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 3) {
-            throw jsi::JSError(rt, "crop: Usage: crop(audioTensor, steps, threshold)");
+        if (count < 3 || count > 4) {
+            throw jsi::JSError(rt, "crop: Usage: crop(audioTensor, steps, threshold[, margin])");
         }
         if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
             throw jsi::JSError(rt, "crop: Expected a Tensor as first argument");
@@ -30,6 +30,9 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
         if (!args[2].isNumber()) {
             throw jsi::JSError(rt, "crop: Expected a number for threshold");
         }
+        if (count >= 4 && !args[3].isNumber()) {
+            throw jsi::JSError(rt, "crop: Expected a number for margin");
+        }
 
         auto tensor = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
 
@@ -39,6 +42,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
 
         auto steps = static_cast<uint32_t>(args[1].asNumber());
         auto threshold = static_cast<float>(args[2].asNumber());
+        auto margin = static_cast<size_t>(count >= 4 ? args[3].asNumber() : 0);
 
         if (steps == 0) {
             throw jsi::JSError(rt, "crop: steps must be > 0");
@@ -75,6 +79,9 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
         size_t begin = findBound(audio, length, false);
         size_t end = findBound(audio, length, true);
 
+        begin = (begin >= margin) ? begin - margin : 0;
+        end = std::min(end + margin, length - 1);
+
         if (end < begin) {
             throw jsi::JSError(rt, "crop: resulting range is empty");
         }
@@ -95,7 +102,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(
         rt, name,
         jsi::Function::createFromHostFunction(
-            rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+            rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
 }
 
 } // namespace mylib::extensions::speech::audio

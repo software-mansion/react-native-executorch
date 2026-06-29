@@ -48,6 +48,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED ${RNE_SOURCES})
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     C10_USING_CUSTOM_GENERATED_MACROS=1
     EXECUTORCH_ENABLE_EXECUTION_PROFILING=1
+    ET_ON   # Phonemis
 )
 
 # Propagate feature flags as preprocessor defines so C++ can guard includes/calls.
@@ -67,6 +68,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/abseil-cpp
     ${THIRD_PARTY_DIR}/common/phonemis/src
 )
+
+set(ET_ON ON CACHE BOOL "Use ExecuTorch for phonemis neural inference" FORCE)
 
 # ------- ExecuTorch core (always required) -------
 add_library(executorch SHARED IMPORTED)

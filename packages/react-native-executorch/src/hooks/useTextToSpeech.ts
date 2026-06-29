@@ -72,14 +72,9 @@ export function useTextToSpeech(config: TextToSpeechModel, options?: { preventLo
       if (!model) return;
       setIsGenerating(true);
       try {
-        await model.stream({
-          ...input,
-          onEnd: () => {
-            setIsGenerating(false);
-            input.onEnd?.();
-          },
-        });
-      } catch {
+        // Resolves only once both synthesis and playback have finished.
+        await model.stream(input);
+      } finally {
         setIsGenerating(false);
       }
     },
@@ -102,6 +97,6 @@ export function useTextToSpeech(config: TextToSpeechModel, options?: { preventLo
       dpError || synthError || voiceError || taggerError || lexiconError || neuralError || error,
     downloadProgress,
     stream,
-    streamWorklet: model?.streamWorklet,
+    synthesizeWorklet: model?.synthesizeWorklet,
   };
 }

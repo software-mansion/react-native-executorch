@@ -57,12 +57,7 @@ function TextToSpeechContent() {
   const [latency, setLatency] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    isReady,
-    downloadProgress,
-    error: loadError,
-    streamWorklet,
-  } = useTextToSpeech(selectedVoice);
+  const { isReady, downloadProgress, error: loadError, stream } = useTextToSpeech(selectedVoice);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<any>(null);
@@ -91,7 +86,7 @@ function TextToSpeechContent() {
   }, []);
 
   const handleSpeak = useCallback(async () => {
-    if (!streamWorklet || !text.trim()) return;
+    if (!stream || !text.trim()) return;
 
     Keyboard.dismiss();
     setIsPlaying(true);
@@ -106,26 +101,30 @@ function TextToSpeechContent() {
     }
 
     try {
-      streamWorklet({
+      await stream({
         text: text.trim(),
-        speed: 1.0,
+        speed: 0.9,
         onBegin: () => {
           setLatency(null);
         },
-        onNext: (audioVec: Float32Array) => {
-          const audioBuffer = createAudioBufferFromVector(audioVec, audioContext, 24000);
+        // Resolve once this chunk has finished playing so the next one is
+        // delivered only afterwards — giving gapless, sequential playback.
+        onNext: (audioVec: Float32Array) =>
+          new Promise<void>((resolve) => {
+            const audioBuffer = createAudioBufferFromVector(audioVec, audioContext, 24000);
 
-          const source = audioContext.createBufferSource();
-          source.buffer = audioBuffer;
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
 
-          if (gainNodeRef.current) {
-            source.connect(gainNodeRef.current);
-          } else {
-            source.connect(audioContext.destination);
-          }
+            if (gainNodeRef.current) {
+              source.connect(gainNodeRef.current);
+            } else {
+              source.connect(audioContext.destination);
+            }
 
-          source.start();
-        },
+            source.onEnded = () => resolve();
+            source.start();
+          }),
         onEnd: () => {
           setLatency(Date.now() - start);
           setIsPlaying(false);
@@ -136,7 +135,7 @@ function TextToSpeechContent() {
       setError(e.message || String(e));
       setIsPlaying(false);
     }
-  }, [streamWorklet, text]);
+  }, [stream, text]);
 
   const activeError = loadError ? String(loadError) : error;
 

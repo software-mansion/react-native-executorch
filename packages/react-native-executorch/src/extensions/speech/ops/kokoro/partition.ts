@@ -23,13 +23,15 @@ export function partition(text: string, maxTokens: number): Segment[] {
 }
 
 /**
- * Lazily yields each substring described by the given segments.
+ * Slices the given string into the substrings described by the segments.
+ *
+ * Implemented as a plain (non-generator) worklet so it can be called
+ * synchronously from within a worklet running on a background runtime.
  * @param text - The original string to slice from.
  * @param segments - Segments produced by {@link partition}.
- * @yields Substrings corresponding to each segment.
+ * @returns Substrings corresponding to each segment.
  */
-export function* chunk(text: string, segments: Segment[]): Generator<string, void, void> {
-  for (const seg of segments) {
-    yield text.slice(seg.offset, seg.offset + seg.length);
-  }
+export function chunk(text: string, segments: Segment[]): string[] {
+  'worklet';
+  return segments.map((seg) => text.slice(seg.offset, seg.offset + seg.length));
 }
