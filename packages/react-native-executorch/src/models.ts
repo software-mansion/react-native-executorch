@@ -683,11 +683,13 @@ export const models = {
   instanceSegmentation: {
     FASTSAM: {
       S: {
+        ...FASTSAM_S_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_S_XNNPACK_FP32,
         COREML_FP32: FASTSAM_S_COREML_FP32,
         COREML_FP16: FASTSAM_S_COREML_FP16,
       },
       X: {
+        ...FASTSAM_X_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_X_XNNPACK_FP32,
         COREML_FP32: FASTSAM_X_COREML_FP32,
         COREML_FP16: FASTSAM_X_COREML_FP16,
