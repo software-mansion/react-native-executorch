@@ -301,16 +301,13 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: src and dst must have the same shape");
         }
 
-        if (src->shape_.size() < 2) {
-            throw jsi::JSError(rt, "restrictToBox: src must have at least 2 dimensions [H, W, ...]");
+        if (src->shape_.size() != 3) {
+            throw jsi::JSError(rt, "restrictToBox: src must be a 3D tensor of shape [H, W, C]");
         }
 
         int32_t H = src->shape_[0];
         int32_t W = src->shape_[1];
-        int32_t C = 1;
-        for (size_t i = 2; i < src->shape_.size(); ++i) {
-            C *= src->shape_[i];
-        }
+        int32_t C = src->shape_[2];
 
         int32_t x1 = static_cast<int32_t>(std::ceil(xmin));
         int32_t y1 = static_cast<int32_t>(std::ceil(ymin));
@@ -361,7 +358,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 6, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
 }
 
 } // namespace rnexecutorch::extensions::cv::box_ops

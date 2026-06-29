@@ -174,9 +174,9 @@ export function nms(boxes: Tensor, scores: Tensor, opts: NmsOptions): number[] |
  * the shape). Instead, it copies the elements within the box coordinates from
  * `src` to `dst`, and sets all elements outside the box to `0`.
  * @category Typescript API
- * @param src The source tensor of shape [H, W, ...] with at least 2 dimensions.
- * @param dst The pre-allocated destination tensor of the same shape and data
- * type as `src`.
+ * @param src The source tensor of shape [H, W, C].
+ * @param dst The pre-allocated destination tensor of shape [H, W, C] and the
+ * same data type as `src`.
  * @param box The bounding box defining the region of interest to copy.
  * @returns The destination tensor containing the masked output.
  */
