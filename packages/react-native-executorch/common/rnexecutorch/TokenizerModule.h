@@ -13,6 +13,8 @@ public:
                            std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<uint64_t>
   encode(std::string s) const;
+  [[nodiscard("Registered non-void function")]] std::vector<uint64_t>
+  encodeWithSpecialTokens(std::string s) const;
   [[nodiscard("Registered non-void function")]] std::string
   decode(std::vector<uint64_t> vec, bool skipSpecialTokens) const;
   [[nodiscard("Registered non-void function")]] std::string
@@ -24,6 +26,9 @@ public:
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
+  std::vector<uint64_t> encodeImpl(const std::string &s, int8_t bos,
+                                   int8_t eos) const;
+
   std::unique_ptr<tokenizers::HFTokenizer> tokenizer;
   std::size_t memorySizeLowerBound{0};
 };

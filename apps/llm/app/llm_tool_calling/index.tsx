@@ -25,8 +25,9 @@ import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
+import { PermissionStatus } from 'expo';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 import { GeneratingContext } from '../../context';
 import SuggestedPrompts from '../../components/SuggestedPrompts';
 
@@ -91,17 +92,15 @@ function LLMToolCallingScreen() {
     const { status, canAskAgain } =
       await Calendar.getCalendarPermissionsAsync();
 
-    if (status === Calendar.PermissionStatus.GRANTED) {
+    if (status === PermissionStatus.GRANTED) {
       setHasCalendarPermission(true);
       return;
     }
 
-    if (status === Calendar.PermissionStatus.UNDETERMINED || canAskAgain) {
+    if (status === PermissionStatus.UNDETERMINED || canAskAgain) {
       const { status: nextStatus } =
         await Calendar.requestCalendarPermissionsAsync();
-      setHasCalendarPermission(
-        nextStatus === Calendar.PermissionStatus.GRANTED
-      );
+      setHasCalendarPermission(nextStatus === PermissionStatus.GRANTED);
       return;
     }
 

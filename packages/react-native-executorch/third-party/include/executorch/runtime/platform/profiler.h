@@ -255,8 +255,7 @@ using ::executorch::runtime::track_allocator;
   } while (0)
 
 #define EXECUTORCH_BEGIN_PROF(name)                                            \
-  {                                                                            \
-  }
+  {}
 
 #define EXECUTORCH_END_PROF(token_id)                                          \
   do {                                                                         \
@@ -278,8 +277,7 @@ using ::executorch::runtime::track_allocator;
   memset(prof_result_test, 0, sizeof(::executorch::runtime::prof_result_t));
 
 #define EXECUTORCH_RESET_PROFILE_RESULTS()                                     \
-  {                                                                            \
-  }
+  {}
 
 #define EXECUTORCH_TRACK_ALLOCATOR(name) ((void)(name), -1)
 

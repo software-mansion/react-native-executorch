@@ -11,12 +11,12 @@ using namespace executorch::extension;
 TextEmbeddings::TextEmbeddings(const std::string &modelSource,
                                const std::string &tokenizerSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseEmbeddings(modelSource, callInvoker),
+    : BaseModel(modelSource, callInvoker),
       tokenizer(
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
-  auto inputIds = tokenizer->encode(input);
+  auto inputIds = tokenizer->encodeWithSpecialTokens(input);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
   std::vector<int64_t> inputIds64;
@@ -40,8 +40,7 @@ void TextEmbeddings::unload() noexcept {
   BaseModel::unload();
 }
 
-std::shared_ptr<OwningArrayBuffer>
-TextEmbeddings::generate(const std::string input) {
+EmbeddingResult TextEmbeddings::generate(const std::string input) {
   std::scoped_lock lock(inference_mutex_);
   auto preprocessed = preprocess(input);
 
@@ -58,7 +57,37 @@ TextEmbeddings::generate(const std::string input) {
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   CHECK_OK_OR_THROW_FORWARD_ERROR(forwardResult);
 
-  return BaseEmbeddings::postprocess(forwardResult);
+  return buildResult(forwardResult->at(0).toTensor(),
+                     std::move(preprocessed.inputIds));
+}
+
+EmbeddingResult
+TextEmbeddings::buildResult(const executorch::aten::Tensor &output,
+                            std::vector<int64_t> tokenIds) {
+  auto sizes = output.sizes();
+  if (sizes.size() < 2) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidModelOutput,
+                            "Embedding output must be at least 2D, got rank " +
+                                std::to_string(sizes.size()));
+  }
+
+  const auto numTokens = static_cast<int32_t>(sizes[sizes.size() - 2]);
+  const auto inputTokens = static_cast<int32_t>(tokenIds.size());
+  if (numTokens != 1 && numTokens != inputTokens) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidModelOutput,
+        "Embedding output rows (" + std::to_string(numTokens) +
+            ") != input tokens (" + std::to_string(inputTokens) +
+            "); per-token tokenIds alignment is broken.");
+  }
+
+  return EmbeddingResult{
+      .dataPtr = std::make_shared<OwningArrayBuffer>(output.const_data_ptr(),
+                                                     output.nbytes()),
+      .numTokens = numTokens,
+      .embeddingDim = static_cast<int32_t>(sizes[sizes.size() - 1]),
+      .tokenIds = std::move(tokenIds),
+  };
 }
 
 } // namespace rnexecutorch::models::embeddings

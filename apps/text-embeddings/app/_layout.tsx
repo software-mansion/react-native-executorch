@@ -3,50 +3,36 @@ import { initExecutorch } from 'react-native-executorch';
 import { ExpoResourceFetcher } from 'react-native-executorch-expo-resource-fetcher';
 import ColorPalette from '../colors';
 import React, { useState } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  type ColorValue,
+} from 'react-native';
 
 import {
-  DrawerContentComponentProps,
+  type DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItemList,
-} from '@react-navigation/drawer';
-import { DrawerActions } from '@react-navigation/native';
+} from 'expo-router/build/react-navigation/drawer';
+import { DrawerActions } from 'expo-router/build/react-navigation/routers';
 import { useNavigation } from 'expo-router';
 import Svg, { Rect } from 'react-native-svg';
 import { GeneratingContext } from '../context';
 
-function HamburgerIcon({ tintColor }: { tintColor?: string }) {
+function HamburgerIcon({ tintColor }: { tintColor?: ColorValue }) {
   const navigation = useNavigation();
+  const fill = typeof tintColor === 'string' ? tintColor : '#000';
   return (
     <TouchableOpacity
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
       style={styles.hamburger}
     >
       <Svg width={24} height={24} viewBox="0 0 24 24">
-        <Rect
-          x={2}
-          y={4}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
-        <Rect
-          x={2}
-          y={11}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
-        <Rect
-          x={2}
-          y={18}
-          width={20}
-          height={2}
-          rx={1}
-          fill={tintColor ?? '#000'}
-        />
+        <Rect x={2} y={4} width={20} height={2} rx={1} fill={fill} />
+        <Rect x={2} y={11} width={20} height={2} rx={1} fill={fill} />
+        <Rect x={2} y={18} width={20} height={2} rx={1} fill={fill} />
       </Svg>
     </TouchableOpacity>
   );

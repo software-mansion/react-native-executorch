@@ -124,40 +124,18 @@ export const QWEN3_0_6B_QUANTIZED = {
   generationConfig: QWEN3_GENERATION_CONFIG,
 } as const;
 
-// GEMMA 4
-const GEMMA4_E2B_XNNPACK = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
-const GEMMA4_E2B_VULKAN = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-const GEMMA4_E2B_XNNPACK_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
-const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
-const GEMMA4_TOKENIZER = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer.json`;
-const GEMMA4_TOKENIZER_CONFIG = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b/tokenizer_config.json`;
+// GEMMA 4 — separate HF repo; tokenizer files live at the e2b root and are
+// shared by all backend variants.
+const GEMMA4_E2B_PREFIX = `${URL_PREFIX}-gemma-4/${PREVIOUS_VERSION_TAG}/e2b`;
+export const GEMMA4_E2B_MLX_MODEL = `${GEMMA4_E2B_PREFIX}/mlx/gemma4_e2b_mlx_int4.pte`;
+export const GEMMA4_E2B_XNNPACK_MODEL = `${GEMMA4_E2B_PREFIX}/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
+export const GEMMA4_E2B_VULKAN_MODEL = `${GEMMA4_E2B_PREFIX}/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+export const GEMMA4_E2B_TOKENIZER = `${GEMMA4_E2B_PREFIX}/tokenizer.json`;
+export const GEMMA4_E2B_TOKENIZER_CONFIG = `${GEMMA4_E2B_PREFIX}/tokenizer_config.json`;
 
-/**
- * @category Models - LLM
- */
-export const GEMMA4_E2B = {
-  modelName: 'gemma4-e2b',
-  modelSource:
-    Platform.OS === `android` ? GEMMA4_E2B_VULKAN : GEMMA4_E2B_XNNPACK,
-  tokenizerSource: GEMMA4_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_TOKENIZER_CONFIG,
-} as const;
-
-/**
- * @category Models - VLM
- */
-export const GEMMA4_E2B_MM = {
-  modelName: 'gemma4-e2b-multimodal',
-  modelSource:
-    Platform.OS === `android` ? GEMMA4_E2B_VULKAN_MM : GEMMA4_E2B_XNNPACK_MM,
-  tokenizerSource: GEMMA4_TOKENIZER,
-  tokenizerConfigSource: GEMMA4_TOKENIZER_CONFIG,
-  capabilities: ['vision', 'audio'],
-  audioConfig: {
-    samplesPerBlock: 7680,
-    tokensPerBlock: 12,
-  },
-} as const;
+export const GEMMA4_E2B_MLX_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/mlx/gemma4_e2b_mlx_int4.pte`;
+export const GEMMA4_E2B_VULKAN_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/vulkan/gemma_4_e2b_vulkan_8da4w.pte`;
+export const GEMMA4_E2B_XNNPACK_MM = `${URL_PREFIX}-gemma-4-multimodal/${PREVIOUS_VERSION_TAG}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`;
 
 /**
  * @category Models - LLM
@@ -472,6 +450,7 @@ export const PHI_4_MINI_4B_QUANTIZED = {
 // LFM2.5-1.2B-Instruct
 const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`;
 const LFM2_5_1_2B_INSTRUCT_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`;
+export const LFM2_5_1_2B_INSTRUCT_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`;
 const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer.json`;
 const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/1_2b/tokenizer_config.json`;
 
@@ -498,6 +477,7 @@ export const LFM2_5_1_2B_INSTRUCT_QUANTIZED = {
 // LFM2.5-350M
 const LFM2_5_350M_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`;
 const LFM2_5_350M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_350M_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`;
 const LFM2_5_350M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer.json`;
 const LFM2_5_350M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/350m/tokenizer_config.json`;
 
@@ -549,11 +529,13 @@ export const BIELIK_V3_0_1_5B_QUANTIZED = {
 
 // LFM2.5-VL-1.6B
 const LFM2_VL_1_6B_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`;
+export const LFM2_5_VL_1_6B_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/mlx/lfm_2_5_vl_1_6b_mlx_int4.pte`;
 const LFM2_VL_1_6B_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer.json`;
 const LFM2_VL_1_6B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_1_6b/tokenizer_config.json`;
 
 // LFM2.5-VL-450M
 const LFM2_VL_450M_QUANTIZED_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`;
+export const LFM2_5_VL_450M_MLX_MODEL = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`;
 const LFM2_VL_450M_TOKENIZER = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer.json`;
 const LFM2_VL_450M_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm-2.5/${PREVIOUS_VERSION_TAG}/vl_450m/tokenizer_config.json`;
 
@@ -722,6 +704,28 @@ const YOLO26N_POSE_MODEL = `${URL_PREFIX}-yolo26-pose/${PREVIOUS_VERSION_TAG}/xn
 export const YOLO26N_POSE = {
   modelName: 'yolo26n-pose',
   modelSource: YOLO26N_POSE_MODEL,
+} as const;
+
+// RF-DETR Keypoint (pose estimation) — BETA preview.
+// NOTE: served from the `preview/` path under PREVIOUS_VERSION_TAG (shipping as
+// part of a patch release). This export is a preview and may be re-exported
+// under a different constant once a stable version ships.
+export const RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/xnnpack/rfdetr_keypoint_preview_xnnpack_fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/coreml/rfdetr_keypoint_preview_coreml_fp32.pte`;
+export const RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL = `${URL_PREFIX}-rfdetr-keypoint/${PREVIOUS_VERSION_TAG}/preview/mlx/rfdetr_keypoint_preview_mlx_fp32.pte`;
+const RF_DETR_KEYPOINT_PREVIEW_MODEL =
+  Platform.OS === 'ios'
+    ? RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL
+    : RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL;
+
+/**
+ * @category Models - Pose Estimation
+ * @beta Preview export — may be re-exported under a different constant once a
+ * stable RF-DETR keypoint model ships.
+ */
+export const RF_DETR_KEYPOINT_PREVIEW = {
+  modelName: 'rfdetr-keypoint-preview',
+  modelSource: RF_DETR_KEYPOINT_PREVIEW_MODEL,
 } as const;
 
 // Style transfer
@@ -1195,6 +1199,12 @@ export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_8DA4W_MODEL = `${URL_PREFIX}-d
 export const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_TOKENIZER = `${URL_PREFIX}-distiluse-base-multilingual-cased-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED_MODEL = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/xnnpack/paraphrase_multilingual_minilm_l12_v2_xnnpack_8da4w.pte`;
 const PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_TOKENIZER = `${URL_PREFIX}-paraphrase-multilingual-MiniLM-L12-v2/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const LFM2_5_EMBEDDING_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_EMBEDDING_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`;
+export const LFM2_5_EMBEDDING_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-embedding-350m/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
+export const LFM2_5_COLBERT_350M_XNNPACK_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/xnnpack/lfm_2_5_colbert_350m_xnnpack_8da4w.pte`;
+export const LFM2_5_COLBERT_350M_MLX_MODEL = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/mlx/lfm_2_5_colbert_350m_mlx_int4.pte`;
+export const LFM2_5_COLBERT_350M_TOKENIZER = `${URL_PREFIX}-lfm2.5-colbert-350m/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`;
 const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${PREVIOUS_VERSION_TAG}/tokenizer.json`;
 
@@ -1281,6 +1291,8 @@ export const PRIVACY_FILTER_OPENAI = {
   tokenizerSource: `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
 } as const;
 
+export const PRIVACY_FILTER_OPENAI_MLX_MODEL = `${URL_PREFIX}-privacy-filter-openai/${PREVIOUS_VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`;
+
 /**
  * OpenMed/privacy-filter-nemotron — extended PII detector with 55 entity
  * types (adds medical, financial, identity, technical, demographic, etc.).
@@ -1292,6 +1304,8 @@ export const PRIVACY_FILTER_NEMOTRON = {
   modelSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerSource: `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/tokenizer.json`,
 } as const;
+
+export const PRIVACY_FILTER_NEMOTRON_MLX_MODEL = `${URL_PREFIX}-privacy-filter-nemotron/${PREVIOUS_VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`;
 
 // Image generation
 

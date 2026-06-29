@@ -2,11 +2,14 @@
 #pragma once
 
 #include "iencoder.h"
+#include <cstdint>
 #include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/evalue.h>
 #include <runner/multimodal_input.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace executorch::extension::llm {
 
@@ -24,6 +27,18 @@ private:
   struct ImageShape {
     int32_t channels, height, width;
     bool with_batch;
+    ::executorch::aten::ScalarType dtype;
+  };
+
+  // The method's output EValue aliases the runtime's reusable output buffer,
+  // which the NEXT vision_encoder.execute() overwrites — caching it directly
+  // silently turns earlier images into the most recently encoded one. Cache
+  // an owned byte snapshot instead and hand out a tensor over those bytes.
+  struct CachedEmbedding {
+    std::vector<uint8_t> bytes;
+    std::vector<::executorch::aten::SizesType> sizes;
+    ::executorch::aten::ScalarType dtype;
+    ::executorch::extension::TensorPtr tensor;
   };
 
   ::executorch::runtime::Result<ImageShape> getInputShape() const;
@@ -31,8 +46,7 @@ private:
                                      const ImageShape &targetShape) const;
 
   ::executorch::extension::Module *module_;
-  std::unordered_map<std::string, ::executorch::runtime::EValue>
-      embedding_cache_;
+  std::unordered_map<std::string, CachedEmbedding> embedding_cache_;
 };
 
 } // namespace executorch::extension::llm

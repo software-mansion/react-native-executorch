@@ -1781,7 +1781,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-executorch (0.9.0):
+  - react-native-executorch (0.10.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2430,6 +2430,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNDeviceInfo (15.0.2):
+    - React-Core
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
 
@@ -2509,6 +2511,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativeFs (from `../node_modules/@dr.pogodin/react-native-fs`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2669,6 +2672,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeFs:
     :path: "../node_modules/@dr.pogodin/react-native-fs"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2717,7 +2722,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 94f4264de2cb156960cd82b338a403f4653f2fd9
   React-microtasksnativemodule: 6c4ee39a36958c39c97b074d28f360246a335e84
   react-native-background-downloader: 114f96122822fa97b06ea0f2250b8e8270696995
-  react-native-executorch: 273c1ffd131a92738c35267c7af737275e8b32a5
+  react-native-executorch: 807a17da00be3ae805e6edab9791fc9e0a584063
   react-native-safe-area-context: befb5404eb8a16fdc07fa2bebab3568ecabcbb8a
   React-NativeModulesApple: ebf2ce72b35870036900d6498b33724386540a71
   React-oscompat: eb0626e8ba1a2c61673c991bf9dc21834898475d
@@ -2750,9 +2755,10 @@ SPEC CHECKSUMS:
   ReactCodegen: 6c26f8c25d0b5ae66f86a1cce1777076ac8bcbd8
   ReactCommon: 5f0e5c09a64a2717215dd84380e1a747810406f2
   ReactNativeFs: 5fc447c96bcf90d038b79695d721628fc7bb0170
+  RNDeviceInfo: 4c852998208b60dc192ae3529e5867817719ad1e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 728df40394d49f3f471688747cf558158b3a3bd1
 
-PODFILE CHECKSUM: 421dcdee6cbb1e2a032c3b2e3ffc9371849b2199
+PODFILE CHECKSUM: 3f9008ee1fb32bf8b4f65f3fba5576bf818a2d0f
 
 COCOAPODS: 1.16.2

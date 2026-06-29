@@ -1,7 +1,12 @@
 import { Platform } from 'react-native';
+import { isEmulatorSync } from 'react-native-device-info';
 import * as M from './modelUrls';
 import * as OCR from './ocr/models';
 import { symbols } from './ocr/symbols';
+import {
+  LFM_COLBERT_PROMPTS,
+  LFM_COLBERT_SKIP_LIST,
+} from './textEmbeddings/colbert';
 import {
   KOKORO_AMERICAN_ENGLISH_FEMALE_HEART,
   KOKORO_AMERICAN_ENGLISH_FEMALE_RIVER,
@@ -38,7 +43,7 @@ import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
  * compile-time error.
  * @category Utils
  */
-export type Backend = 'xnnpack' | 'coreml' | 'vulkan' | 'qnn';
+export type Backend = 'xnnpack' | 'coreml' | 'vulkan' | 'qnn' | 'mlx';
 
 /**
  * Options for a `models` accessor call.
@@ -78,19 +83,32 @@ type ConfigOf<V> = Extract<
 >;
 type BackendsOf<V> = Extract<keyof V, Backend>;
 
-const BACKEND_ORDER: Backend[] = ['xnnpack', 'coreml', 'vulkan', 'qnn'];
+const PLATFORM_PREFERENCE: Partial<Record<typeof Platform.OS, Backend[]>> = {
+  ios: ['coreml', 'mlx', 'xnnpack'],
+  android: ['vulkan', 'qnn', 'xnnpack'],
+};
 
-function firstBackend(variants: AnyVariantMap): Backend {
-  for (const b of BACKEND_ORDER) {
-    if (variants[b]) return b;
+function applySimulatorPolicy(
+  backend: Backend,
+  variants: AnyVariantMap,
+  explicit: boolean
+): Backend {
+  if (backend !== 'mlx' || Platform.OS !== 'ios' || !isEmulatorSync()) {
+    return backend;
   }
+  if (!explicit && variants.xnnpack) return 'xnnpack';
   throw new RnExecutorchError(
-    RnExecutorchErrorCode.Internal,
-    'Model variant map is empty.'
+    RnExecutorchErrorCode.InvalidConfig,
+    'The MLX backend requires a physical iOS device and cannot run on the ' +
+      'simulator.' +
+      (variants.xnnpack
+        ? " Pass `{ backend: 'xnnpack' }` (or omit `backend`) to run on the " +
+          'simulator.'
+        : ' This model ships no simulator-compatible backend.')
   );
 }
 
-function resolveBackend(
+function selectBackend(
   variants: AnyVariantMap,
   platformDefaults: PlatformDefaults<Backend> | undefined,
   requested: Backend | undefined
@@ -99,17 +117,32 @@ function resolveBackend(
   if (platformDefaults) {
     if (Platform.OS === 'ios' && platformDefaults.ios)
       return platformDefaults.ios;
-    if (Platform.OS === 'android' && platformDefaults.android) {
+    if (Platform.OS === 'android' && platformDefaults.android)
       return platformDefaults.android;
-    }
     if (platformDefaults.default) return platformDefaults.default;
   }
-  // Implicit platform default: prefer CoreML on iOS, XNNPACK on Android
-  // whenever the model ships that backend. Models can override via
-  // `platformDefaults`.
-  if (Platform.OS === 'ios' && variants.coreml) return 'coreml';
-  if (Platform.OS === 'android' && variants.xnnpack) return 'xnnpack';
-  return firstBackend(variants);
+  // Implicit platform default: walk the platform's preference order (iOS:
+  // coreml → mlx → xnnpack, Android: vulkan → qnn → xnnpack) and take the
+  // first backend the model ships. Models can override via `platformDefaults`.
+  const preference = PLATFORM_PREFERENCE[Platform.OS] ?? [];
+  for (const b of preference) {
+    if (variants[b]) return b;
+  }
+  // No backend the model ships can run on this platform.
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.InvalidConfig,
+    `This model ships no backend compatible with ${Platform.OS}.`
+  );
+}
+
+function resolveBackend(
+  variants: AnyVariantMap,
+  platformDefaults: PlatformDefaults<Backend> | undefined,
+  requested: Backend | undefined
+): Backend {
+  const explicit = requested !== undefined;
+  const backend = selectBackend(variants, platformDefaults, requested);
+  return applySimulatorPolicy(backend, variants, explicit);
 }
 
 function resolveCell(cell: BackendCell, quant: boolean): { modelName: string } {
@@ -181,6 +214,161 @@ function tts<C extends TextToSpeechModelConfig>(c: C): () => C {
 // Per-backend variant maps for models that ship more than one backend.
 // ─────────────────────────────────────────────────────────────────────────────
 
+const GEMMA4_E2B_VARIANTS = {
+  mlx: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_MLX_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
+  xnnpack: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_XNNPACK_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
+  vulkan: {
+    base: {
+      modelName: 'gemma4-e2b' as const,
+      modelSource: M.GEMMA4_E2B_VULKAN_MODEL,
+      tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+      tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+    },
+  },
+};
+
+const GEMMA4_E2B_MM_CONFIG = {
+  modelName: 'gemma4-e2b-multimodal' as const,
+  tokenizerSource: M.GEMMA4_E2B_TOKENIZER,
+  tokenizerConfigSource: M.GEMMA4_E2B_TOKENIZER_CONFIG,
+  capabilities: ['vision', 'audio'] as const,
+  audioConfig: {
+    samplesPerBlock: 7680,
+    tokensPerBlock: 12,
+  },
+};
+
+const GEMMA4_E2B_MM_VARIANTS = {
+  mlx: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_MLX_MM },
+  },
+  vulkan: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_VULKAN_MM },
+  },
+  xnnpack: {
+    base: { ...GEMMA4_E2B_MM_CONFIG, modelSource: M.GEMMA4_E2B_XNNPACK_MM },
+  },
+};
+
+const LFM_EMBEDDING_PROMPTS = { query: 'query: ', document: 'document: ' };
+
+const LFM2_5_EMBEDDING_350M_CONFIG = {
+  modelName: 'lfm2-5-embedding-350m' as const,
+  tokenizerSource: M.LFM2_5_EMBEDDING_350M_TOKENIZER,
+  prompts: LFM_EMBEDDING_PROMPTS,
+  multiVector: false as const,
+};
+
+const LFM2_5_EMBEDDING_350M_VARIANTS = {
+  mlx: {
+    base: {
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
+      modelSource: M.LFM2_5_EMBEDDING_350M_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: {
+      ...LFM2_5_EMBEDDING_350M_CONFIG,
+      modelSource: M.LFM2_5_EMBEDDING_350M_XNNPACK_MODEL,
+    },
+  },
+};
+
+const LFM2_5_COLBERT_350M_CONFIG = {
+  modelName: 'lfm2-5-colbert-350m' as const,
+  tokenizerSource: M.LFM2_5_COLBERT_350M_TOKENIZER,
+  prompts: LFM_COLBERT_PROMPTS,
+  multiVector: true as const,
+  skipListIds: LFM_COLBERT_SKIP_LIST,
+};
+
+const LFM2_5_COLBERT_350M_VARIANTS = {
+  mlx: {
+    base: {
+      ...LFM2_5_COLBERT_350M_CONFIG,
+      modelSource: M.LFM2_5_COLBERT_350M_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: {
+      ...LFM2_5_COLBERT_350M_CONFIG,
+      modelSource: M.LFM2_5_COLBERT_350M_XNNPACK_MODEL,
+    },
+  },
+};
+
+const LFM2_5_350M_VARIANTS = {
+  mlx: { base: { ...M.LFM2_5_350M, modelSource: M.LFM2_5_350M_MLX_MODEL } },
+  xnnpack: { base: M.LFM2_5_350M, quant: M.LFM2_5_350M_QUANTIZED },
+};
+
+const LFM2_5_1_2B_INSTRUCT_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_1_2B_INSTRUCT,
+      modelSource: M.LFM2_5_1_2B_INSTRUCT_MLX_MODEL,
+    },
+  },
+  xnnpack: {
+    base: M.LFM2_5_1_2B_INSTRUCT,
+    quant: M.LFM2_5_1_2B_INSTRUCT_QUANTIZED,
+  },
+};
+
+const LFM2_5_VL_1_6B_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_VL_1_6B_QUANTIZED,
+      modelSource: M.LFM2_5_VL_1_6B_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.LFM2_5_VL_1_6B_QUANTIZED },
+};
+
+const LFM2_5_VL_450M_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.LFM2_5_VL_450M_QUANTIZED,
+      modelSource: M.LFM2_5_VL_450M_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.LFM2_5_VL_450M_QUANTIZED },
+};
+
+const PRIVACY_FILTER_OPENAI_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.PRIVACY_FILTER_OPENAI,
+      modelSource: M.PRIVACY_FILTER_OPENAI_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.PRIVACY_FILTER_OPENAI },
+};
+
+const PRIVACY_FILTER_NEMOTRON_VARIANTS = {
+  mlx: {
+    base: {
+      ...M.PRIVACY_FILTER_NEMOTRON,
+      modelSource: M.PRIVACY_FILTER_NEMOTRON_MLX_MODEL,
+    },
+  },
+  xnnpack: { base: M.PRIVACY_FILTER_NEMOTRON },
+};
+
 const EFFICIENTNET_V2_S_VARIANTS = {
   xnnpack: {
     base: {
@@ -245,6 +433,31 @@ const RF_DETR_NANO_SEG_VARIANTS = {
     base: {
       modelName: 'rfdetr-nano-seg' as const,
       modelSource: M.RF_DETR_NANO_SEG_COREML_INT8_MODEL,
+    },
+  },
+};
+
+// RF-DETR Keypoint (pose estimation) — BETA preview. Configs mirror the
+// All three backends ship fp32
+// (non-quantized); this entry may be re-exported under a different constant
+// once more RF-DETR keypoint weights are released.
+const RF_DETR_KEYPOINT_PREVIEW_VARIANTS = {
+  xnnpack: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_XNNPACK_FP32_MODEL,
+    },
+  },
+  coreml: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_COREML_FP32_MODEL,
+    },
+  },
+  mlx: {
+    base: {
+      modelName: 'rfdetr-keypoint-preview' as const,
+      modelSource: M.RF_DETR_KEYPOINT_PREVIEW_MLX_FP32_MODEL,
     },
   },
 };
@@ -490,25 +703,30 @@ export const models = {
     smollm2_1_360m: pair(M.SMOLLM2_1_360M, M.SMOLLM2_1_360M_QUANTIZED),
     smollm2_1_1_7b: pair(M.SMOLLM2_1_1_7B, M.SMOLLM2_1_1_7B_QUANTIZED),
     phi_4_mini_4b: pair(M.PHI_4_MINI_4B, M.PHI_4_MINI_4B_QUANTIZED),
-    lfm2_5_350m: pair(M.LFM2_5_350M, M.LFM2_5_350M_QUANTIZED),
-    lfm2_5_1_2b_instruct: pair(
-      M.LFM2_5_1_2B_INSTRUCT,
-      M.LFM2_5_1_2B_INSTRUCT_QUANTIZED
-    ),
+    lfm2_5_350m: variant(LFM2_5_350M_VARIANTS, { ios: 'mlx' }),
+    lfm2_5_1_2b_instruct: variant(LFM2_5_1_2B_INSTRUCT_VARIANTS, {
+      ios: 'mlx',
+    }),
     bielik_v3_0_1_5b: pair(M.BIELIK_V3_0_1_5B, M.BIELIK_V3_0_1_5B_QUANTIZED),
-    gemma4_e2b: base(M.GEMMA4_E2B),
+    gemma4_e2b: variant(GEMMA4_E2B_VARIANTS, {
+      ios: 'mlx',
+      android: 'vulkan',
+    }),
     // Multimodal LLMs — same hook/module as plain LLMs, listed here so users
     // pick a model by capability ("LLM") rather than by modality.
-    lfm2_5_vl_1_6b: base(M.LFM2_5_VL_1_6B_QUANTIZED),
-    lfm2_5_vl_450m: base(M.LFM2_5_VL_450M_QUANTIZED),
-    gemma4_e2b_multimodal: base(M.GEMMA4_E2B_MM),
+    lfm2_5_vl_1_6b: variant(LFM2_5_VL_1_6B_VARIANTS, { ios: 'mlx' }),
+    lfm2_5_vl_450m: variant(LFM2_5_VL_450M_VARIANTS, { ios: 'mlx' }),
+    gemma4_e2b_multimodal: variant(GEMMA4_E2B_MM_VARIANTS, {
+      ios: 'mlx',
+      android: 'vulkan',
+    }),
   },
   classification: {
     efficientnet_v2_s: variant(EFFICIENTNET_V2_S_VARIANTS),
   },
   privacy_filter: {
-    openai: base(M.PRIVACY_FILTER_OPENAI),
-    nemotron: base(M.PRIVACY_FILTER_NEMOTRON),
+    openai: variant(PRIVACY_FILTER_OPENAI_VARIANTS, { ios: 'mlx' }),
+    nemotron: variant(PRIVACY_FILTER_NEMOTRON_VARIANTS, { ios: 'mlx' }),
   },
   object_detection: {
     ssdlite_320_mobilenet_v3_large: variant(
@@ -523,6 +741,9 @@ export const models = {
   },
   pose_estimation: {
     yolo26n: base(M.YOLO26N_POSE),
+    // BETA preview — may be re-exported under a different constant once a
+    // stable RF-DETR keypoint model ships.
+    rfdetr_keypoint_preview: variant(RF_DETR_KEYPOINT_PREVIEW_VARIANTS),
   },
   semantic_segmentation: {
     deeplab_v3_resnet50: pair(
@@ -629,6 +850,14 @@ export const models = {
       M.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_QUANTIZED
     ),
     clip_vit_base_patch32_text: base(M.CLIP_VIT_BASE_PATCH32_TEXT),
+    lfm2_5_embedding_350m: variant(LFM2_5_EMBEDDING_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
+    lfm2_5_colbert_350m: variant(LFM2_5_COLBERT_350M_VARIANTS, {
+      ios: 'mlx',
+      android: 'xnnpack',
+    }),
   },
   image_embedding: {
     clip_vit_base_patch32_image: pair(
