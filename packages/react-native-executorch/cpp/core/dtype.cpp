@@ -54,8 +54,7 @@ size_t elementSize(DType dtype) {
     switch (dtype) {
     case DType::uint8:
         return 1;
-    // int32 and float32 are both 4 bytes; the identical branches are intentional.
-    // NOLINTNEXTLINE(bugprone-branch-clone)
+    // NOLINTNEXTLINE(bugprone-branch-clone): int32 and float32 are both 4 bytes; the identical branches are intentional.
     case DType::int32:
         return 4;
     case DType::float32:

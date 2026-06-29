@@ -12,7 +12,7 @@ TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexe
     const auto elemSize = rnexecutorch::core::types::elementSize(dtype);
 
     size_ = numel_ * elemSize;
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays) — owning runtime-sized byte buffer
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, rnexecutorch::core::types::toScalarType(dtype));
 }
