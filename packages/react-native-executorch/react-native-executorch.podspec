@@ -37,11 +37,14 @@ Pod::Spec.new do |s|
   # depends on) plus cpuinfo in one archive. We link it directly here because
   # ExecutorchLib.framework keeps those symbols local-only (not exported), so
   # split-out backend xcframeworks can't resolve them through the framework.
-  # Use the literal Xcode build variable so it is expanded at build time (matching
-  # the HEADER_SEARCH_PATHS below). Do NOT wrap in File.expand_path: that resolves
-  # `$(PODS_TARGET_SRCROOT)` as a literal directory relative to __dir__, baking a
-  # malformed `<dir>/$(PODS_TARGET_SRCROOT)/...` path into the linker flags.
-  executorch_binaries_path = '$(PODS_TARGET_SRCROOT)/third-party/ios/libs/executorch'
+  # These paths feed `-force_load` entries in OTHER_LDFLAGS, which are applied at
+  # the CONSUMING app target's link step. `$(PODS_TARGET_SRCROOT)` is a pod-scoped
+  # build variable — undefined in the app target — so it would expand to empty and
+  # produce `/third-party/ios/.../lib*.a` (build-input-not-found). Bake the absolute
+  # path at podspec-eval time via __dir__ instead. (HEADER_SEARCH_PATHS below stay
+  # on $(PODS_TARGET_SRCROOT): those are the pod's own compile settings, where it
+  # resolves correctly.)
+  executorch_binaries_path = "#{__dir__}/third-party/ios/libs/executorch"
 
   # --- Sources ---
   # OpenCV-dependent sources live under the cv extension. When more tasks land
@@ -80,9 +83,9 @@ Pod::Spec.new do |s|
     "\"#{executorch_binaries_path}/libthreadpool_simulator.a\"",
   ]
 
-  xnnpack_xcframework_path = '$(PODS_TARGET_SRCROOT)/third-party/ios/XnnpackBackend.xcframework'
-  coreml_xcframework_path  = '$(PODS_TARGET_SRCROOT)/third-party/ios/CoreMLBackend.xcframework'
-  mlx_xcframework_path     = '$(PODS_TARGET_SRCROOT)/third-party/ios/MLXBackend.xcframework'
+  xnnpack_xcframework_path = "#{__dir__}/third-party/ios/XnnpackBackend.xcframework"
+  coreml_xcframework_path  = "#{__dir__}/third-party/ios/CoreMLBackend.xcframework"
+  mlx_xcframework_path     = "#{__dir__}/third-party/ios/MLXBackend.xcframework"
 
   if enable_xnnpack
     physical_ldflags  << "-force_load \"#{xnnpack_xcframework_path}/ios-arm64/libXnnpackBackend.a\""
