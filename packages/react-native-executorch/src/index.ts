@@ -2,6 +2,7 @@
 export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';
 export * from './hooks/useSemanticSegmenter';
+export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
@@ -16,6 +17,7 @@ export * as constants from './constants';
 export * from './extensions/cv/tasks/classification';
 export * from './extensions/cv/tasks/styleTransfer';
 export * from './extensions/cv/tasks/semanticSegmentation';
+export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';

@@ -2,7 +2,7 @@
  * Supported pixel format layouts for image buffers.
  * @category Types
  */
-export type ImageFormat = 'rgb' | 'rgba' | 'bgr' | 'bgra';
+export type ImageFormat = 'rgb' | 'rgba' | 'bgr' | 'bgra' | 'gray';
 
 /**
  * Represents a raw CPU image buffer in HWC (Height, Width, Channel) layout.

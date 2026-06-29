@@ -23,6 +23,12 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('segmentation/')}>
           <Text style={styles.buttonText}>Semantic Segmentation</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('instanceSegmentation/')}
+        >
+          <Text style={styles.buttonText}>Instance Segmentation</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('keypoint/')}>
           <Text style={styles.buttonText}>Keypoint Detection</Text>
         </TouchableOpacity>

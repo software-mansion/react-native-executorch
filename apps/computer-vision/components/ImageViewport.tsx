@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import {
   Canvas,
   Image as SkImage,
+  BlendColor,
   type SkImage as SkiaImageType,
 } from '@shopify/react-native-skia';
 
@@ -14,6 +15,7 @@ const VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
 export interface ImageViewportProps {
   skiaImage: SkiaImageType | null;
   overlayImage?: SkiaImageType | null;
+  masks?: { image: SkiaImageType; color: string }[];
   onPressPlaceholder: () => void;
   placeholderText?: string;
   overlayOpacity?: number;
@@ -23,6 +25,7 @@ export interface ImageViewportProps {
 export function ImageViewport({
   skiaImage,
   overlayImage,
+  masks,
   onPressPlaceholder,
   placeholderText = 'Tap to select an image from gallery',
   overlayOpacity = 0.8,
@@ -58,6 +61,21 @@ export function ImageViewport({
             opacity={overlayOpacity}
           />
         )}
+        {masks &&
+          masks.map((item, index) => (
+            <SkImage
+              key={index}
+              image={item.image}
+              fit="contain"
+              x={0}
+              y={0}
+              width={VIEW_WIDTH}
+              height={VIEW_HEIGHT}
+              opacity={overlayOpacity}
+            >
+              <BlendColor color={item.color} mode="srcIn" />
+            </SkImage>
+          ))}
       </Canvas>
       {children}
     </View>

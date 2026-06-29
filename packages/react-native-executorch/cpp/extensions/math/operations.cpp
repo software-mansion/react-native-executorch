@@ -301,4 +301,71 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     };
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
+
+void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
+    auto name = "threshold";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: threshold(src, dst, threshold)");
+        }
+
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "threshold: src must be a Tensor");
+        }
+
+        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "threshold: dst must be a Tensor");
+        }
+
+        if (!args[2].isNumber()) {
+            throw jsi::JSError(rt, "threshold: threshold must be a number");
+        }
+
+        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        float thresholdVal = static_cast<float>(args[2].asNumber());
+
+        if (src.get() == dst.get()) {
+            throw jsi::JSError(rt, "threshold: In-place operations (src == dst) are not supported.");
+        }
+
+        if (src->shape_ != dst->shape_) {
+            throw jsi::JSError(rt, "threshold: src and dst must have the same shape");
+        }
+
+        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+            throw jsi::JSError(rt, "threshold: src must be a float32 tensor");
+        }
+
+        if (dst->dtype_ != rnexecutorch::core::types::DType::float32) {
+            throw jsi::JSError(rt, "threshold: dst must be a float32 tensor");
+        }
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
+            throw jsi::JSError(rt, "threshold: tensors in use");
+        }
+
+        if (!src->data_) {
+            throw jsi::JSError(rt, "threshold: src tensor has been disposed");
+        }
+
+        if (!dst->data_) {
+            throw jsi::JSError(rt, "threshold: dst tensor has been disposed");
+        }
+
+        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
+        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+
+        for (size_t i = 0; i < src->numel_; ++i) {
+            dstData[i] = (srcData[i] >= thresholdVal) ? 1.0f : 0.0f;
+        }
+
+        return jsi::Value(rt, args[1]);
+    };
+
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+}
+
 } // namespace rnexecutorch::extensions::math

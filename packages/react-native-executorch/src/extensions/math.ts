@@ -46,3 +46,18 @@ export function argmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
   'worklet';
   return rnexecutorchJsi.math.argmax(src, dst, axis);
 }
+
+/**
+ * Applies the element-wise threshold step function on a float32 source tensor and
+ * writes the result to a destination tensor.
+ * @category Typescript API
+ * @param src The input float32 source tensor. Shape [d1,...,dn].
+ * @param dst The pre-allocated destination tensor to write the result to.
+ * `dst` tensor must have the same shape as `src` and have dtype float32.
+ * @param thresholdVal The threshold value above or equal to which elements are mapped to 1.0.
+ * @returns The destination tensor containing the threshold step output.
+ */
+export function threshold(src: Tensor, dst: Tensor, thresholdVal: number): Tensor {
+  'worklet';
+  return rnexecutorchJsi.math.threshold(src, dst, thresholdVal);
+}

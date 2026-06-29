@@ -56,6 +56,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="instanceSegmentation/index"
+        options={{
+          drawerLabel: 'Instance Segmentation',
+          title: 'Instance Segmentation',
+        }}
+      />
+      <Drawer.Screen
         name="inspect/index"
         options={{
           drawerLabel: 'Model Inspector',
