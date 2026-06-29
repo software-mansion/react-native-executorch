@@ -1,4 +1,6 @@
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
+import type { TextToSpeechModel } from './extensions/speech/tasks/textToSpeech';
+import type { Language } from './extensions/speech/utils/phonemizer';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
@@ -533,6 +535,172 @@ const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
 
+
+// ------------------------------------------------------------------------------------------------
+// --- Text-to-Speech (Kokoro)
+// ------------------------------------------------------------------------------------------------
+
+const KOKORO_ROOT = `${BASE_URL}-kokoro/${VERSION_TAG}`;
+
+const KOKORO_STANDARD_SOURCES = {
+  durationPredictorPath: `${KOKORO_ROOT}/xnnpack/standard/duration_predictor_std.pte`,
+  synthesizerPath: `${KOKORO_ROOT}/xnnpack/standard/synthesizer_std.pte`,
+} as const;
+
+const KOKORO_POLISH_SOURCES = {
+  durationPredictorPath: `${KOKORO_ROOT}/xnnpack/polish/duration_predictor_pl.pte`,
+  synthesizerPath: `${KOKORO_ROOT}/xnnpack/polish/synthesizer_pl.pte`,
+} as const;
+
+const KOKORO_GERMAN_SOURCES = {
+  durationPredictorPath: `${KOKORO_ROOT}/xnnpack/german/duration_predictor_de.pte`,
+  synthesizerPath: `${KOKORO_ROOT}/xnnpack/german/synthesizer_de.pte`,
+} as const;
+
+const KOKORO_PHONEMIZER_PREFIX = `${KOKORO_ROOT}/phonemizer`;
+
+const PHONEMIZER_EN_US = {
+  lang: 'en-us' as const,
+  taggerSource: `${KOKORO_PHONEMIZER_PREFIX}/en-us/tags.json`,
+  lexiconSource: `${KOKORO_PHONEMIZER_PREFIX}/en-us/lexicon.json`,
+  neuralModelSource: `${KOKORO_PHONEMIZER_PREFIX}/en-us/phonemizer_en_us.pte`,
+};
+
+const PHONEMIZER_EN_GB = {
+  lang: 'en-gb' as const,
+  taggerSource: `${KOKORO_PHONEMIZER_PREFIX}/en-gb/tags.json`,
+  lexiconSource: `${KOKORO_PHONEMIZER_PREFIX}/en-gb/lexicon.json`,
+  neuralModelSource: `${KOKORO_PHONEMIZER_PREFIX}/en-gb/phonemizer_en_gb.pte`,
+};
+
+const PHONEMIZER_SIMPLE = (lang: Language, code: string) => ({
+  lang,
+  neuralModelSource: `${KOKORO_PHONEMIZER_PREFIX}/${code}/phonemizer_${code}.pte`,
+});
+
+const KOKORO_VOICE_PREFIX = `${KOKORO_ROOT}/voices`;
+
+const KOKORO_AF_HEART: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_AF_RIVER: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_AF_SARAH: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_AM_ADAM: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_AM_MICHAEL: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_AM_SANTA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
+  phonemizerConfig: PHONEMIZER_EN_US,
+};
+
+const KOKORO_BF_EMMA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
+  phonemizerConfig: PHONEMIZER_EN_GB,
+};
+
+const KOKORO_BM_DANIEL: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,
+  phonemizerConfig: PHONEMIZER_EN_GB,
+};
+
+const KOKORO_FF_SIWIS: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/ff_siwis.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('fr', 'fr'),
+};
+
+const KOKORO_EF_DORA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/ef_dora.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('es', 'es'),
+};
+
+const KOKORO_EM_ALEX: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/em_alex.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('es', 'es'),
+};
+
+const KOKORO_IF_SARA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/if_sara.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('it', 'it'),
+};
+
+const KOKORO_IM_NICOLA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/im_nicola.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('it', 'it'),
+};
+
+const KOKORO_PF_DORA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/pf_dora.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('pt', 'pt'),
+};
+
+const KOKORO_PM_SANTA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/pm_santa.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('pt', 'pt'),
+};
+
+const KOKORO_HF_ALPHA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/hf_alpha.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('hi', 'hi'),
+};
+
+const KOKORO_HM_OMEGA: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/hm_omega.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('hi', 'hi'),
+};
+
+const KOKORO_HM_PSI: TextToSpeechModel = {
+  ...KOKORO_STANDARD_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/hm_psi.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('hi', 'hi'),
+};
+
+const KOKORO_PM_MATEUSZ: TextToSpeechModel = {
+  ...KOKORO_POLISH_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/pm_mateusz.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('pl', 'pl'),
+};
+
+const KOKORO_DF_ANNA: TextToSpeechModel = {
+  ...KOKORO_GERMAN_SOURCES,
+  voicePath: `${KOKORO_VOICE_PREFIX}/df_anna.bin`,
+  phonemizerConfig: PHONEMIZER_SIMPLE('de', 'de'),
+};
+
+
 /**
  * Registry of pre-configured ExecuTorch models.
  *
@@ -737,4 +905,28 @@ export const models = {
   tokenizer: {
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
   },
+  textToSpeech: {
+    KOKORO: {
+      AF_HEART: KOKORO_AF_HEART,
+      AF_RIVER: KOKORO_AF_RIVER,
+      AF_SARAH: KOKORO_AF_SARAH,
+      AM_ADAM: KOKORO_AM_ADAM,
+      AM_MICHAEL: KOKORO_AM_MICHAEL,
+      AM_SANTA: KOKORO_AM_SANTA,
+      BF_EMMA: KOKORO_BF_EMMA,
+      BM_DANIEL: KOKORO_BM_DANIEL,
+      FF_SIWIS: KOKORO_FF_SIWIS,
+      EF_DORA: KOKORO_EF_DORA,
+      EM_ALEX: KOKORO_EM_ALEX,
+      IF_SARA: KOKORO_IF_SARA,
+      IM_NICOLA: KOKORO_IM_NICOLA,
+      PF_DORA: KOKORO_PF_DORA,
+      PM_SANTA: KOKORO_PM_SANTA,
+      HF_ALPHA: KOKORO_HF_ALPHA,
+      HM_OMEGA: KOKORO_HM_OMEGA,
+      HM_PSI: KOKORO_HM_PSI,
+      PM_MATEUSZ: KOKORO_PM_MATEUSZ,
+      DF_ANNA: KOKORO_DF_ANNA,
+    }
+  }
 };

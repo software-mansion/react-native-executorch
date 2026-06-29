@@ -26,13 +26,16 @@ find_package(ReactAndroid REQUIRED CONFIG)
 file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
 file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
+file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp ${CPP_DIR}/extensions/speech/*/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
+
 
 set(RNE_SOURCES
     ${CPP_DIR}/RnExecutorch.cpp
     ${CORE_SOURCES}
     ${MATH_SOURCES}
     ${NLP_SOURCES}
+    ${SPEECH_SOURCES}
     cpp-adapter.cpp
 )
 
@@ -62,6 +65,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/json/include
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/re2
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/abseil-cpp
+    ${THIRD_PARTY_DIR}/common/phonemis/src
 )
 
 # ------- ExecuTorch core (always required) -------
@@ -112,11 +116,15 @@ endif()
 # the static OpenMP runtime into libRnExecutorch.so to resolve them.
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fopenmp -static-openmp)
 
+add_subdirectory(${THIRD_PARTY_DIR}/common/phonemis/src
+                 ${CMAKE_CURRENT_BINARY_DIR}/phonemis)
+
 target_link_libraries(${CMAKE_PROJECT_NAME}
     ReactAndroid::jsi
     log
     ${OPENCV_LINK_LIBS}
     executorch
+    phonemis
     z
 )
 

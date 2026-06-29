@@ -20,6 +20,7 @@ void install(jsi::Runtime &jsiRuntime) {
 #endif
     rnexecutorch::extensions::math::install(jsiRuntime, module);
     rnexecutorch::extensions::nlp::install(jsiRuntime, module);
+    rnexecutorch::extensions::speech::install(jsiRuntime, module);
 
     jsiRuntime.global().setProperty(jsiRuntime, "__rnexecutorch_jsi__", std::move(module));
 }

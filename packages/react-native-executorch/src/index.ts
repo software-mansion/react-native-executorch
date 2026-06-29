@@ -6,6 +6,7 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useTextToSpeech';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -21,6 +22,7 @@ export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
+export * from './extensions/speech/tasks/textToSpeech';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';

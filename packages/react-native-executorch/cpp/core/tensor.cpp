@@ -12,6 +12,9 @@ TensorHostObject::TensorHostObject(Shape shape, DType dtype)
     et_tensor_ = executorch::extension::from_blob(data_, shape_, static_cast<executorch::aten::ScalarType>(dtype_));
 }
 
+TensorHostObject::TensorHostObject(const TensorView &view)
+    : TensorHostObject(view.data_, view.shape_, view.dtype_) {}
+
 TensorHostObject::TensorHostObject(uint8_t *data, Shape shape, DType dtype)
     : TensorView(data, dtype, std::move(shape)), storage_(nullptr) {
     et_tensor_ = executorch::extension::from_blob(data_, shape_, static_cast<executorch::aten::ScalarType>(dtype_));

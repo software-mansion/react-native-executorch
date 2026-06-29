@@ -24,7 +24,8 @@ public:
     TensorHostObject(Shape shape, DType dtype);
 
     // Non-owning tensor (view) wrapping external data.
-    TensorHostObject(uint8_t *data, Shape shape, DType dtype);
+    TensorHostObject(const TensorView &view);                  // Direct
+    TensorHostObject(uint8_t *data, Shape shape, DType dtype); // Indirect
 
     // JSI bridge methods.
     facebook::jsi::Value get(facebook::jsi::Runtime &rt,
