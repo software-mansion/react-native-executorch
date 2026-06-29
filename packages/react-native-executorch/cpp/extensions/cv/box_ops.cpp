@@ -248,7 +248,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "restrictToBox";
+    const auto *name = "restrictToBox";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
             throw jsi::JSError(rt, "Usage: restrictToBox(src, dst, boxTuple, format)");
@@ -279,7 +279,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
         }
 
-        BoxFormat boxFormat;
+        BoxFormat boxFormat{};
         try {
             boxFormat = parseBoxFormat(boxFormatStr);
         } catch (const std::invalid_argument &e) {
@@ -309,10 +309,10 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         int32_t W = src->shape_[1];
         int32_t C = src->shape_[2];
 
-        int32_t x1 = static_cast<int32_t>(std::ceil(xmin));
-        int32_t y1 = static_cast<int32_t>(std::ceil(ymin));
-        int32_t x2 = static_cast<int32_t>(std::floor(xmax));
-        int32_t y2 = static_cast<int32_t>(std::floor(ymax));
+        auto x1 = static_cast<int32_t>(std::ceil(xmin));
+        auto y1 = static_cast<int32_t>(std::ceil(ymin));
+        auto x2 = static_cast<int32_t>(std::floor(xmax));
+        auto y2 = static_cast<int32_t>(std::floor(ymax));
 
         x1 = std::max(0, x1);
         y1 = std::max(0, y1);
@@ -335,7 +335,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: tensors must not be disposed");
         }
 
-        int32_t cvType;
+        int32_t cvType{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), C);
         } catch (const std::invalid_argument &e) {

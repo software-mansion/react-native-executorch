@@ -304,7 +304,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "threshold";
+    const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: threshold(src, dst, threshold)");
@@ -324,7 +324,7 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
 
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-        float thresholdVal = static_cast<float>(args[2].asNumber());
+        auto thresholdVal = static_cast<float>(args[2].asNumber());
 
         if (src.get() == dst.get()) {
             throw jsi::JSError(rt, "threshold: In-place operations (src == dst) are not supported.");
