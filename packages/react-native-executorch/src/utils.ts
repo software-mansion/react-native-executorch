@@ -22,7 +22,7 @@ export function getRegisteredBackends(): string[] {
  * (inputs/outputs shapes, types, and tags), and deletes the temporary file
  * before returning.
  * @category Utils
- * @experimental Subject to change once the temporary react-native-fs dependency is replaced. See {@link https://github.com/software-mansion/react-native-executorch/issues/1253 | Issue #1253}.
+ * @experimental Subject to change once the temporary react-native-fs dependency is replaced. See [Issue #1253](https://github.com/software-mansion/react-native-executorch/issues/1253).
  * @param source The remote HTTP URL or local path to the `.pte` model file.
  * @returns A promise resolving to an object containing the model source and
  * method signature metadata.
