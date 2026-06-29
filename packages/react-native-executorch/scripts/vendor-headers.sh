@@ -17,7 +17,7 @@
 # Usage:
 #   ./scripts/vendor-headers.sh <executorch-dir> <opencv-include-dir> [out-dir]
 #
-#   <executorch-dir>      a built software-mansion-labs/executorch@ms/separate-backends
+#   <executorch-dir>      a built software-mansion-labs/executorch@rne-split-build
 #                         checkout (needs cmake-out* dirs for the generated headers
 #                         and the assembled cmake-out/executorch.xcframework).
 #   <opencv-include-dir>  a directory containing `opencv2/` (the OpenCV prebuilt SDK

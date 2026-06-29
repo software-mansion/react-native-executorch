@@ -27,8 +27,8 @@ Every backend (XNNPACK, Core ML, MLX, Vulkan) and OpenCV adds size and build tim
 ```
  ┌──────────────────────┐      ┌────────────────────────┐      ┌───────────────────────┐
  │  ExecuTorch fork     │ ───▶ │  GitHub Release v<ver> │ ───▶ │  postinstall script   │
- │  @ms/separate-       │      │  <artifact>.tar.gz     │      │  download-libs.js     │
- │  backends            │      │  <artifact>.tar.gz.256 │      │                       │
+ │  rne-split-build     │      │  <artifact>.tar.gz     │      │  download-libs.js     │
+ │                      │      │  <artifact>.tar.gz.256 │      │                       │
  └──────────────────────┘      └────────────────────────┘      └───────────┬───────────┘
                                                                             │
                                                                             ▼
@@ -137,13 +137,13 @@ On **iOS** each backend ships as its own static xcframework and the podspec forc
 
 ## Building the artifacts
 
-The binaries come from the ExecuTorch fork [`software-mansion-labs/executorch@ms/separate-backends`](https://github.com/software-mansion-labs/executorch/tree/@ms/separate-backends), which is already on ExecuTorch **1.3.1** (the same version as `main`). Bumping the `react-native-executorch` package version means re-rolling the Release artifacts from the corresponding fork commit.
+The binaries come from the ExecuTorch fork [`software-mansion-labs/executorchrne-split-build`](https://github.com/software-mansion-labs/executorch/tree/rne-split-build), which is already on ExecuTorch **1.3.1** (the same version as `main`). Bumping the `react-native-executorch` package version means re-rolling the Release artifacts from the corresponding fork commit.
 
-> **MLX-iOS note.** Building the iOS MLX backend requires the MLX-iOS work that lives in the `@nk/mlx-ios` line. That branch merges into `@ms/separate-backends` conflict-free; after the merge a single `build_apple_frameworks.sh --Release` pass produces the full set including a real `libbackend_mlx_ios.a` and `mlx.metallib`. Only the **device** slice is built and shipped — the iOS simulator cannot drive MLX-on-Metal.
+> **MLX-iOS note.** Building the iOS MLX backend requires the MLX-iOS work that lives in the `@nk/mlx-ios` line. That branch merges into `rne-split-build` conflict-free; after the merge a single `build_apple_frameworks.sh --Release` pass produces the full set including a real `libbackend_mlx_ios.a` and `mlx.metallib`. Only the **device** slice is built and shipped — the iOS simulator cannot drive MLX-on-Metal.
 
 ### Android
 
-From the fork (with `@ms/separate-backends` checked out), per ABI:
+From the fork (with `rne-split-build` checked out), per ABI:
 
 ```bash
 export ANDROID_NDK=$HOME/Library/Android/sdk/ndk/27.1.12297006

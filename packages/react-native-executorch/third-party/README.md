@@ -45,5 +45,5 @@ iOS OpenCV is provided via the `opencv-rne` CocoaPod, not a downloaded tarball.
 - `RNET_TARGET=<target>` / `RNET_LIBS_CACHE_DIR=<dir>` / `GITHUB_TOKEN=<token>`.
 
 The release tarballs are produced from the
-`software-mansion-labs/executorch@ms/separate-backends` build via
+`software-mansion-labs/executorch@rne-split-build` build via
 `scripts/package-release-artifacts.sh`.
