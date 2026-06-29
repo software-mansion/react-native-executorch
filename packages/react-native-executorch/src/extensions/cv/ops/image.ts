@@ -9,6 +9,7 @@ import type { ImageFormat } from '../image';
 export type ColorConversionCode =
   | 'RGBA2RGB'
   | 'RGBA2BGR'
+  | 'RGBA2BGRA'
   | 'BGRA2RGBA'
   | 'BGRA2RGB'
   | 'BGRA2BGR'
@@ -20,7 +21,12 @@ export type ColorConversionCode =
   | 'BGRA2GRAY'
   | 'RGB2RGBA'
   | 'BGR2RGBA'
-  | 'GRAY2RGBA';
+  | 'RGB2BGRA'
+  | 'BGR2BGRA'
+  | 'GRAY2RGBA'
+  | 'GRAY2RGB'
+  | 'GRAY2BGR'
+  | 'GRAY2BGRA';
 
 /**
  * Helper lookup map detailing required color conversion codes to transition
@@ -31,11 +37,11 @@ export const FORMAT_CONVERSION: Record<
   ImageFormat,
   Record<ImageFormat, ColorConversionCode | null>
 > = {
-  rgb: { rgb: null, rgba: 'RGB2RGBA', bgr: 'RGB2BGR', bgra: null, gray: 'RGB2GRAY' },
-  bgr: { rgb: 'BGR2RGB', rgba: 'BGR2RGBA', bgr: null, bgra: null, gray: 'BGR2GRAY' },
-  rgba: { rgb: 'RGBA2RGB', rgba: null, bgr: 'RGBA2BGR', bgra: null, gray: 'RGBA2GRAY' },
+  rgb: { rgb: null, rgba: 'RGB2RGBA', bgr: 'RGB2BGR', bgra: 'RGB2BGRA', gray: 'RGB2GRAY' },
+  bgr: { rgb: 'BGR2RGB', rgba: 'BGR2RGBA', bgr: null, bgra: 'BGR2BGRA', gray: 'BGR2GRAY' },
+  rgba: { rgb: 'RGBA2RGB', rgba: null, bgr: 'RGBA2BGR', bgra: 'RGBA2BGRA', gray: 'RGBA2GRAY' },
   bgra: { rgb: 'BGRA2RGB', rgba: 'BGRA2RGBA', bgr: 'BGRA2BGR', bgra: null, gray: 'BGRA2GRAY' },
-  gray: { rgb: 'GRAY2RGBA', rgba: 'GRAY2RGBA', bgr: null, bgra: null, gray: null },
+  gray: { rgb: 'GRAY2RGB', rgba: 'GRAY2RGBA', bgr: 'GRAY2BGR', bgra: 'GRAY2BGRA', gray: null },
 };
 
 /**

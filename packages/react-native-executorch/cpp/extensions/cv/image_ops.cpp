@@ -191,6 +191,9 @@ int codeToColorConversionFlag(const std::string &code) {
     if (code == "RGBA2BGR") {
         return ::cv::COLOR_RGBA2BGR;
     }
+    if (code == "RGBA2BGRA") {
+        return ::cv::COLOR_RGBA2BGRA;
+    }
     if (code == "BGRA2RGBA") {
         return ::cv::COLOR_BGRA2RGBA;
     }
@@ -212,6 +215,12 @@ int codeToColorConversionFlag(const std::string &code) {
     if (code == "BGR2RGBA") {
         return ::cv::COLOR_BGR2RGBA;
     }
+    if (code == "RGB2BGRA") {
+        return ::cv::COLOR_RGB2BGRA;
+    }
+    if (code == "BGR2BGRA") {
+        return ::cv::COLOR_BGR2BGRA;
+    }
     if (code == "RGB2GRAY") {
         return ::cv::COLOR_RGB2GRAY;
     }
@@ -226,6 +235,15 @@ int codeToColorConversionFlag(const std::string &code) {
     }
     if (code == "GRAY2RGBA") {
         return ::cv::COLOR_GRAY2RGBA;
+    }
+    if (code == "GRAY2RGB") {
+        return ::cv::COLOR_GRAY2RGB;
+    }
+    if (code == "GRAY2BGR") {
+        return ::cv::COLOR_GRAY2BGR;
+    }
+    if (code == "GRAY2BGRA") {
+        return ::cv::COLOR_GRAY2BGRA;
     }
     throw std::invalid_argument("cvtColor: unsupported color conversion code '" + code + "'");
 }
