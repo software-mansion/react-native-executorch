@@ -714,4 +714,109 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     };
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
+
+void install_gridSample(jsi::Runtime &rt, jsi::Object &module) {
+    auto name = "gridSample";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: gridSample(src, grid, dst)");
+        }
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt) ||
+            !args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt) ||
+            !args[2].isObject() || !args[2].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "gridSample: src, grid, and dst must be Tensors");
+        }
+
+        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto grid = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto dst = args[2].asObject(rt).getHostObject<TensorHostObject>(rt);
+
+        if (src.get() == dst.get()) {
+            throw jsi::JSError(rt, "gridSample: In-place operations (src == dst) are not supported.");
+        }
+        if (src->dtype_ != rnexecutorch::core::types::DType::uint8 ||
+            dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
+            throw jsi::JSError(rt, "gridSample: src and dst must be uint8");
+        }
+        if (grid->dtype_ != rnexecutorch::core::types::DType::float32) {
+            throw jsi::JSError(rt, "gridSample: grid must be float32");
+        }
+        if (src->shape_.size() != 3 || dst->shape_.size() != 3) {
+            throw jsi::JSError(rt, "gridSample: src and dst must be [H, W, C]");
+        }
+        if (src->shape_ != dst->shape_) {
+            throw jsi::JSError(rt, "gridSample: src and dst must have the same shape");
+        }
+        // grid is the torch grid_sample field [..,2,gH,gW], channel 0 = x, 1 = y,
+        // normalized to [-1,1] with align_corners=true.
+        const auto &gs = grid->shape_;
+        if (gs.size() < 3 || gs[gs.size() - 3] != 2) {
+            throw jsi::JSError(rt, "gridSample: grid must be [..,2,gH,gW]");
+        }
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        std::shared_lock<std::shared_mutex> gridLock(grid->mutex_, std::try_to_lock);
+        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock() || !gridLock.owns_lock() || !dstLock.owns_lock()) {
+            throw jsi::JSError(rt, "gridSample: a tensor is currently in use");
+        }
+        if (!src->data_ || !grid->data_ || !dst->data_) {
+            throw jsi::JSError(rt, "gridSample: a tensor has been disposed");
+        }
+
+        const int32_t h = src->shape_[0];
+        const int32_t w = src->shape_[1];
+        const int32_t channels = src->shape_[2];
+        const int32_t gridH = gs[gs.size() - 2];
+        const int32_t gridW = gs[gs.size() - 1];
+        const int32_t plane = gridH * gridW;
+        const float *g = reinterpret_cast<const float *>(grid->data_.get());
+
+        // Bilinearly sample channel `c` of the low-res grid at fractional (gx, gy).
+        auto sampleGrid = [&](int32_t c, float gx, float gy) -> float {
+            const int32_t x0 = std::clamp(static_cast<int32_t>(std::floor(gx)), 0, gridW - 1);
+            const int32_t y0 = std::clamp(static_cast<int32_t>(std::floor(gy)), 0, gridH - 1);
+            const int32_t x1 = std::min(x0 + 1, gridW - 1);
+            const int32_t y1 = std::min(y0 + 1, gridH - 1);
+            const float dx = gx - static_cast<float>(x0);
+            const float dy = gy - static_cast<float>(y0);
+            const int32_t base = c * plane;
+            const float top = g[base + y0 * gridW + x0] +
+                              (g[base + y0 * gridW + x1] - g[base + y0 * gridW + x0]) * dx;
+            const float bot = g[base + y1 * gridW + x0] +
+                              (g[base + y1 * gridW + x1] - g[base + y1 * gridW + x0]) * dx;
+            return top + (bot - top) * dy;
+        };
+
+        ::cv::Mat mapX(h, w, CV_32F);
+        ::cv::Mat mapY(h, w, CV_32F);
+        for (int32_t oy = 0; oy < h; ++oy) {
+            const float gy = h > 1 ? (static_cast<float>(oy) / static_cast<float>(h - 1)) *
+                                         static_cast<float>(gridH - 1)
+                                   : 0.0f;
+            float *rowX = mapX.ptr<float>(oy);
+            float *rowY = mapY.ptr<float>(oy);
+            for (int32_t ox = 0; ox < w; ++ox) {
+                const float gx = w > 1 ? (static_cast<float>(ox) / static_cast<float>(w - 1)) *
+                                             static_cast<float>(gridW - 1)
+                                       : 0.0f;
+                const float nx = sampleGrid(0, gx, gy); // [-1,1]
+                const float ny = sampleGrid(1, gx, gy);
+                rowX[ox] = ((nx + 1.0f) / 2.0f) * static_cast<float>(w - 1);
+                rowY[ox] = ((ny + 1.0f) / 2.0f) * static_cast<float>(h - 1);
+            }
+        }
+
+        const int cvType = CV_MAKETYPE(CV_8U, channels);
+        ::cv::Mat srcMat(h, w, cvType, src->data_.get());
+        ::cv::Mat dstMat(h, w, cvType, dst->data_.get());
+        try {
+            ::cv::remap(srcMat, dstMat, mapX, mapY, ::cv::INTER_LINEAR, ::cv::BORDER_REPLICATE);
+        } catch (const ::cv::Exception &e) {
+            throw jsi::JSError(rt, std::string("gridSample: OpenCV error: ") + e.what());
+        }
+        return jsi::Value(rt, args[2]);
+    };
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+}
 } // namespace rnexecutorch::extensions::cv::image_ops

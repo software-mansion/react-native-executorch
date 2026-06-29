@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import {
   Canvas,
   Image as SkImage,
   BlendColor,
+  Path,
+  Skia,
   type SkImage as SkiaImageType,
 } from '@shopify/react-native-skia';
 
 import { theme } from '../theme';
 
 const VIEW_WIDTH = Dimensions.get('window').width - 32;
-const VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
+const DEFAULT_VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
+
+/** A 2D point in original-image pixel coordinates. */
+type Point = { readonly x: number; readonly y: number };
+/** A polygon (e.g. an OCR quad) in original-image pixel coordinates. */
+type Polygon = readonly Point[];
 
 export interface ImageViewportProps {
   skiaImage: SkiaImageType | null;
@@ -20,6 +27,10 @@ export interface ImageViewportProps {
   placeholderText?: string;
   overlayOpacity?: number;
   children?: React.ReactNode;
+  /** Height of the preview box in px. Defaults to a 16:9 box. */
+  height?: number;
+  /** Polygons (in original image px) to stroke over the image, e.g. OCR quads. */
+  boxes?: readonly Polygon[];
 }
 
 export function ImageViewport({
@@ -30,17 +41,47 @@ export function ImageViewport({
   placeholderText = 'Tap to select an image from gallery',
   overlayOpacity = 0.8,
   children,
+  height,
+  boxes,
 }: ImageViewportProps) {
+  const viewHeight = height ?? DEFAULT_VIEW_HEIGHT;
+
+  // Map original-pixel polygons into canvas space using the same contain-fit
+  // transform Skia uses to draw the image, then build one stroked path.
+  const boxesPath = useMemo(() => {
+    if (!skiaImage || !boxes?.length) return null;
+    const ow = skiaImage.width();
+    const oh = skiaImage.height();
+    if (ow === 0 || oh === 0) return null;
+    const scale = Math.min(VIEW_WIDTH / ow, viewHeight / oh);
+    const dx = (VIEW_WIDTH - ow * scale) / 2;
+    const dy = (viewHeight - oh * scale) / 2;
+
+    const path = Skia.Path.Make();
+    for (const poly of boxes) {
+      if (poly.length < 2) continue;
+      path.moveTo(dx + poly[0]!.x * scale, dy + poly[0]!.y * scale);
+      for (let i = 1; i < poly.length; i++) {
+        path.lineTo(dx + poly[i]!.x * scale, dy + poly[i]!.y * scale);
+      }
+      path.close();
+    }
+    return path;
+  }, [skiaImage, boxes, viewHeight]);
+
   if (!skiaImage) {
     return (
-      <TouchableOpacity style={styles.placeholder} onPress={onPressPlaceholder}>
+      <TouchableOpacity
+        style={[styles.placeholder, { height: viewHeight }]}
+        onPress={onPressPlaceholder}
+      >
         <Text style={styles.placeholderText}>{placeholderText}</Text>
       </TouchableOpacity>
     );
   }
 
   return (
-    <View style={[styles.canvasWrapper, { width: VIEW_WIDTH, height: VIEW_HEIGHT }]}>
+    <View style={[styles.canvasWrapper, { width: VIEW_WIDTH, height: viewHeight }]}>
       <Canvas style={styles.canvas}>
         <SkImage
           image={skiaImage}
@@ -48,7 +89,7 @@ export function ImageViewport({
           x={0}
           y={0}
           width={VIEW_WIDTH}
-          height={VIEW_HEIGHT}
+          height={viewHeight}
         />
         {overlayImage && (
           <SkImage
@@ -57,7 +98,7 @@ export function ImageViewport({
             x={0}
             y={0}
             width={VIEW_WIDTH}
-            height={VIEW_HEIGHT}
+            height={viewHeight}
             opacity={overlayOpacity}
           />
         )}
@@ -70,12 +111,13 @@ export function ImageViewport({
               x={0}
               y={0}
               width={VIEW_WIDTH}
-              height={VIEW_HEIGHT}
+              height={viewHeight}
               opacity={overlayOpacity}
             >
               <BlendColor color={item.color} mode="srcIn" />
             </SkImage>
           ))}
+        {boxesPath && <Path path={boxesPath} style="stroke" strokeWidth={2} color="#39FF14" />}
       </Canvas>
       {children}
     </View>
@@ -85,7 +127,6 @@ export function ImageViewport({
 const styles = StyleSheet.create({
   placeholder: {
     width: '100%',
-    height: VIEW_HEIGHT,
     borderWidth: 2,
     borderColor: theme.colors.border,
     borderStyle: 'dashed',

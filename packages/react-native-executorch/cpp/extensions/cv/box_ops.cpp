@@ -65,6 +65,7 @@ std::array<float, 4> decodeToXyxy(
     case BoxFormat::CXCYWH:
         return {a - c / 2.0f, b - d / 2.0f, a + c / 2.0f, b + d / 2.0f};
     }
+    throw std::invalid_argument("decodeToXyxy: unhandled box format");
 }
 } // namespace
 
@@ -242,6 +243,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             return resultGroups;
         }
         }
+        throw jsi::JSError(rt, "nms: unhandled nmsType");
     };
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));

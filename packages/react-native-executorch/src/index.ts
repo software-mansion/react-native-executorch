@@ -6,6 +6,10 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useOCR';
+// Layout + supporting (orientation/dewarp/table) are internal to the document
+// pipeline — consumed by useDocumentOCR, not exposed as standalone hooks.
+export * from './hooks/useDocumentOCR';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -21,6 +25,9 @@ export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
+export * from './extensions/cv/tasks/ocr';
+export * from './extensions/cv/tasks/supporting';
+export * from './extensions/cv/tasks/documentOCR';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
