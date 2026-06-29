@@ -491,9 +491,16 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &probIn, float binThreshold, floa
         quads.push_back(q);
     }
 
+    // Reading order: top -> bottom by ~row, then left -> right. Quantise y into
+    // row bands first so the comparator is a valid strict-weak ordering — a raw
+    // `|dy| > threshold` test is intransitive (a~b, b~c, but a<c) and aborts under
+    // libc++ hardening.
+    constexpr float kRowBand = 10.0f;
     std::sort(quads.begin(), quads.end(), [](const Quad &a, const Quad &b) {
-        if (std::abs(a.pts[0].y - b.pts[0].y) > 10.0f) {
-            return a.pts[0].y < b.pts[0].y;
+        const int rowA = static_cast<int>(std::floor(a.pts[0].y / kRowBand));
+        const int rowB = static_cast<int>(std::floor(b.pts[0].y / kRowBand));
+        if (rowA != rowB) {
+            return rowA < rowB;
         }
         return a.pts[0].x < b.pts[0].x;
     });

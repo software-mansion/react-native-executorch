@@ -84,7 +84,9 @@ function DocumentContent() {
   const [layoutOn, setLayoutOn] = useState(true);
   const [supportingOn, setSupportingOn] = useState(true);
   const [orientation, setOrientation] = useState(true);
-  const [dewarp, setDewarp] = useState(true);
+  // Off by default: dewarp (UVDoc) corrects photographed, physically-warped pages;
+  // on a flat screenshot it has nothing to fix and visibly distorts clean text.
+  const [dewarp, setDewarp] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [blocks, setBlocks] = useState<DocBlock[]>([]);
@@ -177,9 +179,9 @@ function DocumentContent() {
       contentContainerStyle={commonStyles.contentContainer}
     >
       <Text style={commonStyles.description}>
-        Full document pipeline: layout → OCR grouped into reading-ordered blocks, with
-        orientation/dewarp and table-structure recognition. PaddleOCR is always on; the rest are on
-        by default — toggle any off (toggling reloads the models).
+        Full document pipeline: layout → OCR grouped into reading-ordered blocks, with orientation,
+        table-structure recognition and (optional) dewarp. PaddleOCR is always on; dewarp is off by
+        default — it only helps photographed, warped pages (toggling reloads the models).
       </Text>
 
       <ModelPicker
