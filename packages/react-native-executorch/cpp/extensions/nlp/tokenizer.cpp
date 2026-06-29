@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <utility>
 
 #include <pytorch/tokenizers/error.h>
 
@@ -44,8 +45,8 @@ std::string toString(tokenizers::Error error) {
 }
 } // namespace
 
-TokenizerHostObject::TokenizerHostObject(const std::string &tokenizerPath)
-    : tokenizerPath_(tokenizerPath),
+TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
+    : tokenizerPath_(std::move(tokenizerPath)),
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
@@ -276,7 +277,7 @@ std::vector<facebook::jsi::PropNameID> TokenizerHostObject::getPropertyNames(jsi
 }
 
 void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "loadTokenizer";
+    const auto *name = "loadTokenizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(arg0)");

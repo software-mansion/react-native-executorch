@@ -1,0 +1,74 @@
+# clang-tidy configuration for the react-native-executorch C/C++ sources.
+#
+# A high-signal set focused on correctness/performance bugs and modern C++
+# guidelines (issue #1271). Check groups are enabled one at a time and the
+# findings fixed; it is expected to stay green on our own code.
+#
+# clang-tidy reads the include flags / standard / defines from compile_flags.txt
+# (the same database clangd uses), so it needs the same prerequisites: a provisioned
+# third-party/include and `yarn install`. The clangd extension also surfaces these
+# checks inline in the editor.
+#
+# Excluded checks (incompatible with a native tensor/buffer library that interops
+# with ExecuTorch over raw pointers, or purely opinionated):
+#   pro-bounds-pointer-arithmetic / -avoid-unchecked-container-access /
+#   -constant-array-index — raw buffer pointer math and hot-loop indexing are by design
+#   pro-type-reinterpret-cast — type-erased byte buffers cast to typed pointers
+#   avoid-magic-numbers / easily-swappable-parameters / enum-size — opinionated / noisy
+#   llvm-header-guard — the project uses #pragma once by convention
+#   llvm-prefer-static-over-anonymous-namespace — anonymous namespaces are a valid
+#     idiom here and also hold the helpers' shared types/constants
+#   misc-include-cleaner — ExecuTorch umbrella headers make it misreport includes
+#   misc-multiple-inheritance — the JSI HostObject + enable_shared_from_this pattern
+#   misc-non-private-member-variables-in-classes — HostObjects are deliberate public
+#     data carriers read across extensions
+#   misc-const-correctness — applied once as a cleanup, but too aggressive to gate on
+#     (it flags RAII lock guards as const-able); not enforced going forward
+#   modernize-use-trailing-return-type — the codebase uses traditional return types
+#   modernize-return-braced-init-list — `return {…}` hides the (JSI) return type
+#   readability-identifier-length — short names (i, rt, h, w, …) are idiomatic here
+#   readability-math-missing-parentheses — flags standard array-offset arithmetic
+#   readability-function-cognitive-complexity — the JSI get() dispatchers and the
+#     image/tensor kernels are inherently above the threshold
+#   readability-uppercase-literal-suffix — the codebase uses lowercase (1.0f) consistently
+#   readability-magic-numbers — opinionated (same as cppcoreguidelines-avoid-magic-numbers)
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  google-*,
+  llvm-*,
+  misc-*,
+  modernize-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -performance-enum-size,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -llvm-header-guard,
+  -llvm-prefer-static-over-anonymous-namespace,
+  -misc-include-cleaner,
+  -misc-multiple-inheritance,
+  -misc-non-private-member-variables-in-classes,
+  -misc-const-correctness,
+  -modernize-use-trailing-return-type,
+  -modernize-return-braced-init-list,
+  -readability-identifier-length,
+  -readability-math-missing-parentheses,
+  -readability-function-cognitive-complexity,
+  -readability-uppercase-literal-suffix,
+  -readability-magic-numbers
+
+# Restrict analysis to this package's own cpp/ tree. Anchored on the full package
+# path so it can never match an unrelated directory that merely contains "cpp"
+# (e.g. third-party/.../abseil-cpp/, or another package's cpp/). Third-party headers
+# are also -isystem in compile_flags.txt, so clang-tidy does not analyze them anyway.
+HeaderFilterRegex: 'packages/react-native-executorch/cpp/.*\.(h|hpp)$'
+
+# Treat findings as warnings (CI decides failure via --warnings-as-errors).
+WarningsAsErrors: ''

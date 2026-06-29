@@ -12,7 +12,7 @@ namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 
 void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "sigmoid";
+    const auto *name = "sigmoid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: sigmoid(src, dst)");
@@ -78,7 +78,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "softmax";
+    const auto *name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
@@ -120,7 +120,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int axis = static_cast<int>(args[2].asNumber());
-        int rank = static_cast<int>(src->shape_.size());
+        const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
         // axis, -2 means second to last, etc.)
@@ -130,7 +130,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "softmax: axis is out of range");
         }
-        const size_t axisIdx = static_cast<size_t>(axis);
+        const auto axisIdx = static_cast<size_t>(axis);
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {
@@ -153,7 +153,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
 
-        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
+        const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "softmax: axis dimension must be greater than zero");
         }
@@ -197,7 +197,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "argmax";
+    const auto *name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");
@@ -231,7 +231,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int axis = static_cast<int>(args[2].asNumber());
-        int rank = static_cast<int>(src->shape_.size());
+        const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
         // axis, -2 means second to last, etc.)
@@ -241,7 +241,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         if (axis < 0 || axis >= rank) {
             throw jsi::JSError(rt, "argmax: axis is out of range");
         }
-        const size_t axisIdx = static_cast<size_t>(axis);
+        const auto axisIdx = static_cast<size_t>(axis);
 
         auto dstExpectedShape = src->shape_;
         dstExpectedShape[axisIdx] = 1;
@@ -263,14 +263,15 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "argmax: dst tensor has been disposed");
         }
 
-        const float *srcData = reinterpret_cast<const float *>(src->data_.get());
+        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
 
-        const size_t axisDim = static_cast<size_t>(src->shape_[axisIdx]);
+        const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
             throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
         }
 
-        size_t outer = 1, inner = 1;
+        size_t outer = 1;
+        size_t inner = 1;
         for (size_t i = 0; std::cmp_less(i, axis); ++i) {
             outer *= static_cast<size_t>(src->shape_[i]);
         }
@@ -278,7 +279,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
-        int32_t *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
+        auto *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
 
         // DO NOT swap loop order. This structure intentionally prioritizes the
         // most common case (axis = -1, inner = 1) for sequential access.
@@ -303,7 +304,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "threshold";
+    const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: threshold(src, dst, threshold)");
@@ -323,7 +324,7 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
 
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-        float thresholdVal = static_cast<float>(args[2].asNumber());
+        auto thresholdVal = static_cast<float>(args[2].asNumber());
 
         if (src.get() == dst.get()) {
             throw jsi::JSError(rt, "threshold: In-place operations (src == dst) are not supported.");

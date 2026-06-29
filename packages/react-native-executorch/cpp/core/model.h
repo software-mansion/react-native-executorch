@@ -24,7 +24,7 @@ public:
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
 
-    ModelHostObject(const std::string &modelPath);
+    explicit ModelHostObject(const std::string &modelPath);
 
     facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;

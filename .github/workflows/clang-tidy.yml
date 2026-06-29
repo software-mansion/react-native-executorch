@@ -1,0 +1,54 @@
+name: clang-tidy
+
+on:
+  pull_request:
+    branches:
+      - main
+      - rne-rewrite
+    paths:
+      - 'packages/react-native-executorch/cpp/**'
+      - 'packages/react-native-executorch/.clang-tidy'
+      - 'packages/react-native-executorch/compile_flags.txt'
+      - 'packages/react-native-executorch/scripts/clang-tidy.sh'
+      - '.github/workflows/clang-tidy.yml'
+  workflow_dispatch:
+
+jobs:
+  clang-tidy:
+    runs-on: ubuntu-latest
+    # Dormant until the on-demand header artifact is published (#1283): clang-tidy
+    # must parse the sources, which needs the ExecuTorch/torch headers that are not
+    # committed. Enable by setting the repo variable ENABLE_CLANG_TIDY=true once a
+    # release carrying headers.tar.gz exists for the package version.
+    if: ${{ vars.ENABLE_CLANG_TIDY == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+          clang-tidy --version
+
+      - name: Provision ExecuTorch headers
+        # Reuse the on-demand download flow (#1283). clang-tidy only needs headers
+        # (it syntax-checks, no linking), so RNET_HEADERS_ONLY fetches just
+        # headers.tar.gz; RNET_TARGET avoids host platform auto-detection.
+        working-directory: packages/react-native-executorch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RNET_HEADERS_ONLY: '1'
+          RNET_TARGET: android-arm64-v8a
+          # TODO(#1291, @msluszniak): drop this override once a real versioned
+          # release exists. download-libs.js resolves the tag from the package
+          # version (v${PACKAGE_VERSION} == v0.0.0), but the placeholder 0.0.0 has
+          # no release; headers.tar.gz currently lives only on the test pre-release.
+          RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.0.0-rewrite-libs-test
+        run: node scripts/download-libs.js
+
+      - name: Run clang-tidy
+        run: yarn workspace react-native-executorch lint:cpp

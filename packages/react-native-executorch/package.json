@@ -45,6 +45,7 @@
     "prepare": "bob build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint:cpp": "./scripts/clang-tidy.sh",
     "prepack": "cp ../../README.md ./README.md",
     "postpack": "rm ./README.md",
     "postinstall": "node scripts/download-libs.js && yarn run -T patch-package --patch-dir ../../patches"

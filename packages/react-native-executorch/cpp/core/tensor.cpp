@@ -5,14 +5,14 @@
 namespace rnexecutorch::core::tensor {
 namespace jsi = facebook::jsi;
 
-TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype) {
+TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, rnexecutorch::core::types::DType dtype)
+    : dtype_(dtype),
+      shape_(shape),
+      numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<>())) {
     const auto elemSize = rnexecutorch::core::types::elementSize(dtype);
 
-    dtype_ = dtype;
-    shape_ = shape;
-    numel_ = std::accumulate(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
-
     size_ = numel_ * elemSize;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, rnexecutorch::core::types::toScalarType(dtype));
 }
@@ -113,12 +113,12 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Expected array to be an object (TypedArray)");
             }
 
-            jsi::Object dataObj = args[0].asObject(rt);
+            const jsi::Object dataObj = args[0].asObject(rt);
             if (!dataObj.hasProperty(rt, "buffer")) {
                 throw jsi::JSError(rt, "setData: Expected a TypedArray with a 'buffer' property");
             }
 
-            jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = 0;
             size_t byteLength = buffer.size(rt);
 
@@ -148,9 +148,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             if (byteLength != self->size_) {
-                std::string errorMsg = "setData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
-                                       " bytes, but Tensor requires " + std::to_string(self->size_) +
-                                       " bytes.";
+                const std::string errorMsg = "setData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
+                                             " bytes, but Tensor requires " + std::to_string(self->size_) +
+                                             " bytes.";
                 throw jsi::JSError(rt, errorMsg);
             }
 
@@ -172,12 +172,12 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Expected array to be an object (TypedArray)");
             }
 
-            jsi::Object dataObj = args[0].asObject(rt);
+            const jsi::Object dataObj = args[0].asObject(rt);
             if (!dataObj.hasProperty(rt, "buffer")) {
                 throw jsi::JSError(rt, "getData: Expected a TypedArray with a 'buffer' property");
             }
 
-            jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = 0;
             size_t byteLength = buffer.size(rt);
 
@@ -207,9 +207,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             if (byteLength != self->size_) {
-                std::string errorMsg = "getData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
-                                       " bytes, but Tensor requires " + std::to_string(self->size_) +
-                                       " bytes.";
+                const std::string errorMsg = "getData: Data size mismatch: TypedArray is " + std::to_string(byteLength) +
+                                             " bytes, but Tensor requires " + std::to_string(self->size_) +
+                                             " bytes.";
                 throw jsi::JSError(rt, errorMsg);
             }
 
@@ -235,9 +235,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count);
-            fnArgs.push_back(jsi::Value(rt, thisVal));
+            fnArgs.emplace_back(rt, thisVal);
             for (size_t i = 1; i < count; ++i) {
-                fnArgs.push_back(jsi::Value(rt, args[i]));
+                fnArgs.emplace_back(rt, args[i]);
             }
 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());
@@ -253,7 +253,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "throughIf: Usage: throughIf(pred, fn, ...args)");
             }
 
-            bool pred = args[0].asBool();
+            const bool pred = args[0].asBool();
             if (!pred) {
                 return jsi::Value(rt, thisVal);
             }
@@ -266,9 +266,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count - 1);
-            fnArgs.push_back(jsi::Value(rt, thisVal));
+            fnArgs.emplace_back(rt, thisVal);
             for (size_t i = 2; i < count; ++i) {
-                fnArgs.push_back(jsi::Value(rt, args[i]));
+                fnArgs.emplace_back(rt, args[i]);
             }
 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());
@@ -316,7 +316,7 @@ std::vector<facebook::jsi::PropNameID> TensorHostObject::getPropertyNames(jsi::R
 }
 
 void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "createTensor";
+    const auto *name = "createTensor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "createTensor: Usage: createTensor(shape, dtype)");

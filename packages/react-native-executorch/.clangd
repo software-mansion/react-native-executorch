@@ -25,6 +25,11 @@ CompileFlags:
     - -Wconversion
     - -Wsign-conversion
     - -Wdouble-promotion
+    # compile_flags.txt forces -xc++, so clangd opens headers as main-file
+    # translation units and flags their `#pragma once`. Silence that
+    # editor-only false positive (the guard is correct when the header is
+    # #included normally, which is the only context clang-tidy ever sees).
+    - -Wno-pragma-once-outside-header
 
 Diagnostics:
   # ExecuTorch/torch rely heavily on umbrella headers, which clangd's include
