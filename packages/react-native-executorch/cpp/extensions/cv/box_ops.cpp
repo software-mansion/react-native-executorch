@@ -345,10 +345,8 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         ::cv::Mat srcMat(H, W, cvType, src->data_.get());
         ::cv::Mat dstMat(H, W, cvType, dst->data_.get());
 
-        if (isEmpty) {
-            dstMat.setTo(::cv::Scalar::all(0));
-        } else {
-            dstMat.setTo(::cv::Scalar::all(0));
+        dstMat.setTo(::cv::Scalar::all(0));
+        if (!isEmpty) {
             int32_t boxW = x2 - x1 + 1;
             int32_t boxH = y2 - y1 + 1;
             ::cv::Rect roi(x1, y1, boxW, boxH);
