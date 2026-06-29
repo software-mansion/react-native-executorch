@@ -8,7 +8,8 @@ namespace rnexecutorch::core {
 
 class DType {
 public:
-    enum Value : uint8_t { uint8,
+    enum Value : uint8_t { bool_,
+                           uint8,
                            int32,
                            int64,
                            float32 };

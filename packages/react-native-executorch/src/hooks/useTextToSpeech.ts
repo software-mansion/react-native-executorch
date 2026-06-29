@@ -32,19 +32,19 @@ export function useTextToSpeech(config: TextToSpeechModel, options?: { preventLo
     localPath: taggerPath,
     downloadProgress: taggerProgress,
     downloadError: taggerError,
-  } = useResourceDownload(config.phonemizerConfig.taggerPath ?? '', options?.preventLoad);
+  } = useResourceDownload(config.phonemizerConfig.taggerSource ?? '', options?.preventLoad);
 
   const {
     localPath: lexiconPath,
     downloadProgress: lexiconProgress,
     downloadError: lexiconError,
-  } = useResourceDownload(config.phonemizerConfig.lexiconPath ?? '', options?.preventLoad);
+  } = useResourceDownload(config.phonemizerConfig.lexiconSource ?? '', options?.preventLoad);
 
   const {
     localPath: neuralPath,
     downloadProgress: neuralProgress,
     downloadError: neuralError,
-  } = useResourceDownload(config.phonemizerConfig.neuralModelPath ?? '', options?.preventLoad);
+  } = useResourceDownload(config.phonemizerConfig.neuralModelSource ?? '', options?.preventLoad);
 
   const allReady = dpPath && synthPath && voicePath;
 

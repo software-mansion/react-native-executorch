@@ -6,7 +6,7 @@ declare const tensorBrand: unique symbol;
  * Element data type of a {@link Tensor}.
  * @category Types
  */
-export type DType = 'float32' | 'uint8' | 'int32' | 'int64';
+export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
 
 /**
  * A native ExecuTorch tensor allocated in C++ memory.

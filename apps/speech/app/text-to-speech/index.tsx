@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView } from 'react-native';
-import { commonStyles, theme, ColorPalette } from '../../theme';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, Keyboard } from 'react-native';
+import { commonStyles, theme } from '../../theme';
 import { useTextToSpeech, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -8,6 +8,12 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
 import type { TextToSpeechModel } from 'react-native-executorch';
+import {
+  AudioManager,
+  AudioContext,
+  AudioBuffer,
+  AudioBufferSourceNode,
+} from 'react-native-audio-api';
 
 const VOICE_OPTIONS: ModelOption[] = [
   { label: 'AF Heart (en-us)', value: models.textToSpeech.AF_HEART },
@@ -30,6 +36,20 @@ const VOICE_OPTIONS: ModelOption[] = [
   { label: 'DF Anna (de)', value: models.textToSpeech.DF_ANNA },
 ];
 
+const createAudioBufferFromVector = (
+  audioVector: Float32Array,
+  audioContext: AudioContext | null = null,
+  sampleRate: number = 24000
+): AudioBuffer => {
+  if (audioContext == null) audioContext = new AudioContext({ sampleRate });
+
+  const audioBuffer = audioContext.createBuffer(1, audioVector.length, sampleRate);
+  const channelData = audioBuffer.getChannelData(0);
+  channelData.set(audioVector);
+
+  return audioBuffer;
+};
+
 function TextToSpeechContent() {
   const [selectedVoice, setSelectedVoice] = useState<TextToSpeechModel>(VOICE_OPTIONS[0].value);
   const [text, setText] = useState('');
@@ -44,11 +64,46 @@ function TextToSpeechContent() {
     streamWorklet,
   } = useTextToSpeech(selectedVoice);
 
-  const handleSpeak = useCallback(() => {
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<any>(null);
+
+  useEffect(() => {
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['defaultToSpeaker'],
+    });
+
+    const context = new AudioContext({ sampleRate: 24000 });
+    audioContextRef.current = context;
+    context.suspend();
+
+    const gainNode = context.createGain();
+    gainNode.gain.value = 2.0;
+    gainNode.connect(context.destination);
+    gainNodeRef.current = gainNode;
+
+    return () => {
+      audioContextRef.current?.close();
+      audioContextRef.current = null;
+      gainNodeRef.current = null;
+    };
+  }, []);
+
+  const handleSpeak = useCallback(async () => {
     if (!streamWorklet || !text.trim()) return;
+
+    Keyboard.dismiss();
     setIsPlaying(true);
     setError(null);
     const start = Date.now();
+
+    const audioContext = audioContextRef.current;
+    if (!audioContext) return;
+
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
 
     try {
       streamWorklet({
@@ -57,12 +112,24 @@ function TextToSpeechContent() {
         onBegin: () => {
           setLatency(null);
         },
-        onNext: () => {
-          // Audio chunk delivered
+        onNext: (audioVec: Float32Array) => {
+          const audioBuffer = createAudioBufferFromVector(audioVec, audioContext, 24000);
+
+          const source = audioContext.createBufferSource();
+          source.buffer = audioBuffer;
+
+          if (gainNodeRef.current) {
+            source.connect(gainNodeRef.current);
+          } else {
+            source.connect(audioContext.destination);
+          }
+
+          source.start();
         },
         onEnd: () => {
           setLatency(Date.now() - start);
           setIsPlaying(false);
+          audioContext.suspend();
         },
       });
     } catch (e: any) {

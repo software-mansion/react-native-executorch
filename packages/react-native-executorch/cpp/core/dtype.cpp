@@ -4,7 +4,9 @@
 namespace rnexecutorch::core {
 
 DType::DType(const std::string &s) {
-    if (s == "uint8") {
+    if (s == "bool") {
+        v_ = DType::bool_;
+    } else if (s == "uint8") {
         v_ = DType::uint8;
     } else if (s == "int32") {
         v_ = DType::int32;
@@ -14,12 +16,15 @@ DType::DType(const std::string &s) {
         v_ = DType::float32;
     } else {
         throw std::invalid_argument(
-            "Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
+            "Unsupported dtype: '" + s + "'. Expected 'bool', 'uint8', 'int32', 'int64', or 'float32'");
     }
 }
 
 DType::DType(executorch::aten::ScalarType st) {
     switch (st) {
+    case executorch::aten::ScalarType::Bool:
+        v_ = DType::bool_;
+        break;
     case executorch::aten::ScalarType::Byte:
         v_ = DType::uint8;
         break;
@@ -39,6 +44,8 @@ DType::DType(executorch::aten::ScalarType st) {
 
 DType::operator executorch::aten::ScalarType() const {
     switch (v_) {
+    case DType::bool_:
+        return executorch::aten::ScalarType::Bool;
     case DType::uint8:
         return executorch::aten::ScalarType::Byte;
     case DType::int32:
@@ -52,6 +59,8 @@ DType::operator executorch::aten::ScalarType() const {
 
 DType::operator std::string() const {
     switch (v_) {
+    case DType::bool_:
+        return "bool";
     case DType::uint8:
         return "uint8";
     case DType::int32:
@@ -65,6 +74,8 @@ DType::operator std::string() const {
 
 size_t DType::size() const {
     switch (v_) {
+    case DType::bool_:
+        return 1;
     case DType::uint8:
         return 1;
     // NOLINTNEXTLINE(bugprone-branch-clone): int32 and float32 are both 4 bytes; the identical branches are intentional.

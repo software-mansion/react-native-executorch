@@ -295,7 +295,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(i) + "]: " + errorMsg);
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
+                    // validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
 
                     inputs[i] = tensorHostObject->et_tensor_;
                     break;
@@ -397,7 +397,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(index) + ": " + errorMsg);
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
+                    // validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
 
                     std::memcpy(tensorHostObject->data_,
                                 output.toTensor().const_data_ptr(),

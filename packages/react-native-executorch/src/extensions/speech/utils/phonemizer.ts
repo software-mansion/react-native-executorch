@@ -13,9 +13,9 @@ export type Language = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'p
  */
 export type PhonemizerConfig = {
   lang: Language;
-  taggerPath?: string;
-  lexiconPath?: string;
-  neuralModelPath?: string;
+  taggerSource?: string;
+  lexiconSource?: string;
+  neuralModelSource?: string;
 };
 
 export type Phonemizer = {
@@ -38,8 +38,8 @@ export function createPhonemizer(config: PhonemizerConfig): Phonemizer {
   'worklet';
   return rnexecutorchJsi.speech.createPhonemizer(
     config.lang,
-    config.taggerPath ?? '',
-    config.lexiconPath ?? '',
-    config.neuralModelPath ?? ''
+    config.taggerSource ?? '',
+    config.lexiconSource ?? '',
+    config.neuralModelSource ?? ''
   ) as Phonemizer;
 }

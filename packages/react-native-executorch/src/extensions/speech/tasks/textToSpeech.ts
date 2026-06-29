@@ -44,16 +44,16 @@ export async function createTextToSpeech(
 }> {
   // Step 1 - unpack components & load models
   const { durationPredictorPath, synthesizerPath, voicePath, phonemizerConfig } = config;
-  const { lang, taggerPath, lexiconPath, neuralModelPath } = phonemizerConfig;
+  const { lang, taggerSource, lexiconSource, neuralModelSource } = phonemizerConfig;
 
   const phonemizer = await wrapAsync(
     createPhonemizer,
     runtime
   )({
     lang,
-    taggerPath,
-    lexiconPath,
-    neuralModelPath,
+    taggerSource,
+    lexiconSource,
+    neuralModelSource,
   });
 
   const durationPredictor = await wrapAsync(loadModel, runtime)(durationPredictorPath);
@@ -67,8 +67,8 @@ export async function createTextToSpeech(
       `forward_${size}`,
       [
         SymbolicTensor('int64', [1, 'N']),
-        SymbolicTensor(undefined, [1, 'N']),
-        SymbolicTensor('float32', [1, 'V']),
+        SymbolicTensor('bool', [1, 'N']),
+        SymbolicTensor('float32', [1, 128]),
         SymbolicTensor('float32', [1]),
       ],
       [SymbolicTensor('int64', ['N']), SymbolicTensor('float32', [1, 'N', 640])]
@@ -80,7 +80,7 @@ export async function createTextToSpeech(
     'forward',
     [
       SymbolicTensor('int64', [1, 'N']),
-      SymbolicTensor(undefined, [1, 'N']),
+      SymbolicTensor('bool', [1, 'N']),
       SymbolicTensor('int64', ['D']),
       SymbolicTensor('float32', [1, 'N', 640]),
       SymbolicTensor('float32', [1, 256]),
@@ -97,7 +97,7 @@ export async function createTextToSpeech(
   // The tensors are initialized with maximum capacity and
   // sliced later to handle dynamic shapes behavior without reallocations.
   const tokensTensor = tensor('int64', [1, maxTokens]);
-  const maskTensor = tensor('int64', [1, maxTokens]);
+  const maskTensor = tensor('bool', [1, maxTokens]);
   const voiceTensor = tensor('float32', [510, 256]); // Each row is a separate style vector
   const speedTensor = tensor('float32', [1]);
   const durationsTensor = tensor('int64', [maxTokens]);
@@ -106,7 +106,7 @@ export async function createTextToSpeech(
   const audioTensor = tensor('float32', [1, 1, maxAudioSamples]);
 
   // Mask and voice can be filled with values right away.
-  maskTensor.setData(new BigInt64Array(maxTokens).fill(1n));
+  maskTensor.setData(new Uint8Array(maxTokens).fill(1));
   loadVoiceEmbedding(voicePath, voiceTensor);
 
   // Step 5 - memory clean-up method
