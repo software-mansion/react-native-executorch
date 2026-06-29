@@ -1,9 +1,12 @@
 #include "RnExecutorch.h"
 
 #include "core/install.h"
-#include "extensions/cv/install.h"
 #include "extensions/math/install.h"
 #include "extensions/nlp/install.h"
+
+#ifdef RNE_ENABLE_OPENCV
+#include "extensions/cv/install.h"
+#endif
 
 using namespace facebook;
 
@@ -12,7 +15,9 @@ void install(jsi::Runtime &jsiRuntime) {
     jsi::Object module = jsi::Object(jsiRuntime);
 
     rnexecutorch::core::install(jsiRuntime, module);
+#ifdef RNE_ENABLE_OPENCV
     rnexecutorch::extensions::cv::install(jsiRuntime, module);
+#endif
     rnexecutorch::extensions::math::install(jsiRuntime, module);
     rnexecutorch::extensions::nlp::install(jsiRuntime, module);
 
