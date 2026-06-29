@@ -1,0 +1,66 @@
+#!/usr/bin/env ts-node
+// Verifies every source file under packages/react-native-executorch/ is matched by
+// at least one filter in scripts/build-app-filters.yml. Prevents new files (e.g.
+// a new model directory or controller) from silently slipping past CI's per-app
+// path triggers.
+
+import * as fs from 'fs';
+import * as cp from 'child_process';
+
+const yaml = require('js-yaml');
+const picomatch = require('picomatch');
+
+const FILTERS_FILE = 'scripts/build-app-filters.yml';
+const PACKAGE_ROOT = 'packages/react-native-executorch/';
+
+// Files that legitimately don't belong to any per-app or shared filter.
+const ALLOWLIST = new Set<string>([
+  'packages/react-native-executorch/.gitignore',
+  'packages/react-native-executorch/.watchmanconfig',
+  'packages/react-native-executorch/tsconfig.doc.json',
+]);
+
+type FilterValue = string | FilterValue[];
+
+const flatten = (x: FilterValue): string[] =>
+  Array.isArray(x) ? x.flatMap(flatten) : [x];
+
+const filters = yaml.load(
+  fs.readFileSync(FILTERS_FILE, 'utf8')
+) as Record<string, FilterValue>;
+
+const patterns = new Set<string>();
+for (const v of Object.values(filters)) {
+  flatten(v)
+    .filter((p): p is string => typeof p === 'string')
+    .forEach((p) => patterns.add(p));
+}
+const matchers = [...patterns].map((p) => picomatch(p, { dot: true }));
+const matchAny = (file: string): boolean =>
+  matchers.some((m: (f: string) => boolean) => m(file));
+
+const tracked = cp
+  .execSync('git ls-files', { encoding: 'utf8' })
+  .trim()
+  .split('\n');
+const orphans = tracked
+  .filter((f) => f.startsWith(PACKAGE_ROOT))
+  .filter((f) => !ALLOWLIST.has(f))
+  .filter((f) => !matchAny(f));
+
+if (orphans.length > 0) {
+  console.error(
+    `\n${FILTERS_FILE} does not cover ${orphans.length} file(s) under ${PACKAGE_ROOT}:\n`
+  );
+  orphans.forEach((f) => console.error('  ' + f));
+  console.error(
+    `\nAdd them to the appropriate filter (core-shared, llm-pkg, cv-pkg, speech-pkg,\n` +
+      `text-embeddings-pkg, or one of the platform-shared blocks). If the file is\n` +
+      `genuinely build-irrelevant, add it to ALLOWLIST in scripts/check-ci-filter-coverage.ts.`
+  );
+  process.exit(1);
+}
+
+console.log(
+  `OK: every file under ${PACKAGE_ROOT} is covered by ${FILTERS_FILE}.`
+);
