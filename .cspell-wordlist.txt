@@ -245,3 +245,5 @@ popd
 yolov
 YOLOV
 XLARGE
+thresholding
+binarization
