@@ -10,6 +10,7 @@ void install(jsi::Runtime &rt, jsi::Object &module) {
     install_sigmoid(rt, mathModule);
     install_softmax(rt, mathModule);
     install_argmax(rt, mathModule);
+    install_threshold(rt, mathModule);
 
     module.setProperty(rt, "math", mathModule);
 }

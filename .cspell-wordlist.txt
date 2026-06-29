@@ -273,3 +273,5 @@ libthreadpool
 fxdiv
 pcre
 libkleidicv
+thresholding
+binarization
