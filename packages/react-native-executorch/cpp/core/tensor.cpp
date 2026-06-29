@@ -72,18 +72,15 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             size_t srcOffset = 0;
-
+            size_t copyLen = self->numel_;
             if (count == 2 && args[1].isObject()) {
                 auto optsObj = args[1].asObject(rt);
                 if (optsObj.hasProperty(rt, "offset")) {
                     srcOffset = static_cast<size_t>(optsObj.getProperty(rt, "offset").asNumber());
                 }
-            }
 
-            size_t copyLen = self->numel_ - srcOffset;
+                copyLen -= srcOffset;
 
-            if (count == 2 && args[1].isObject()) {
-                auto optsObj = args[1].asObject(rt);
                 if (optsObj.hasProperty(rt, "length")) {
                     copyLen = static_cast<size_t>(optsObj.getProperty(rt, "length").asNumber());
                 }
