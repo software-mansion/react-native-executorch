@@ -10,6 +10,7 @@
 
 #include "core/dtype.h"
 #include "core/tensor.h"
+#include "utils.h"
 
 namespace rnexecutorch::extensions::cv::image_ops {
 namespace jsi = facebook::jsi;
@@ -33,18 +34,6 @@ int interpToFlag(const std::string &interp) {
         return ::cv::INTER_LANCZOS4;
     }
     throw std::invalid_argument("unsupported interpolation '" + interp + "'");
-}
-
-int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
-    switch (dtype) {
-    case rnexecutorch::core::types::DType::uint8:
-        return CV_8U;
-    case rnexecutorch::core::types::DType::int32:
-        return CV_32S;
-    case rnexecutorch::core::types::DType::float32:
-        return CV_32F;
-    }
-    throw std::invalid_argument("unsupported dtype");
 }
 
 struct FitBox {

@@ -13,6 +13,7 @@
 
 #include "core/dtype.h"
 #include "core/tensor.h"
+#include "utils.h"
 
 namespace rnexecutorch::extensions::cv::box_ops {
 namespace jsi = facebook::jsi;
@@ -245,20 +246,6 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
-
-namespace {
-int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
-    switch (dtype) {
-    case rnexecutorch::core::types::DType::uint8:
-        return CV_8U;
-    case rnexecutorch::core::types::DType::int32:
-        return CV_32S;
-    case rnexecutorch::core::types::DType::float32:
-        return CV_32F;
-    }
-    throw std::invalid_argument("unsupported dtype");
-}
-} // namespace
 
 void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "restrictToBox";
