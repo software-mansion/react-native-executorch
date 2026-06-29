@@ -43,6 +43,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RNET_HEADERS_ONLY: '1'
           RNET_TARGET: android-arm64-v8a
+          # TODO(#1291, @msluszniak): drop this override once a real versioned
+          # release exists. download-libs.js resolves the tag from the package
+          # version (v${PACKAGE_VERSION} == v0.0.0), but the placeholder 0.0.0 has
+          # no release; headers.tar.gz currently lives only on the test pre-release.
+          RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.0.0-rewrite-libs-test
         run: node scripts/download-libs.js
 
       - name: Run clang-tidy
