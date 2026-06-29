@@ -5,7 +5,9 @@
   "react-native-executorch": {
     "features": [
       "classification",
+      "instanceSegmentation",
       "keypointDetection",
+      "objectDetection",
       "semanticSegmentation",
       "styleTransfer"
     ]
