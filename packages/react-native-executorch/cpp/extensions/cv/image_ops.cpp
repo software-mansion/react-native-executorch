@@ -41,19 +41,19 @@ struct FitBox {
 };
 
 FitBox computeFit(int32_t srcW, int32_t srcH, int32_t dstW, int32_t dstH, bool inner) {
-    double scaleW = static_cast<double>(dstW) / srcW;
-    double scaleH = static_cast<double>(dstH) / srcH;
-    double scale = inner ? std::min(scaleW, scaleH) : std::max(scaleW, scaleH);
+    const double scaleW = static_cast<double>(dstW) / srcW;
+    const double scaleH = static_cast<double>(dstH) / srcH;
+    const double scale = inner ? std::min(scaleW, scaleH) : std::max(scaleW, scaleH);
 
-    int32_t w = static_cast<int32_t>(std::round(srcW * scale));
-    int32_t h = static_cast<int32_t>(std::round(srcH * scale));
-    int32_t sign = inner ? 1 : -1; // letterbox centers padding, crop centers the crop
-    return {w, h, sign * (dstW - w) / 2, sign * (dstH - h) / 2};
+    const auto w = static_cast<int32_t>(std::round(srcW * scale));
+    const auto h = static_cast<int32_t>(std::round(srcH * scale));
+    const int32_t sign = inner ? 1 : -1; // letterbox centers padding, crop centers the crop
+    return {.w = w, .h = h, .offX = sign * (dstW - w) / 2, .offY = sign * (dstH - h) / 2};
 }
 } // namespace
 
 void install_resize(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "resize";
+    const auto *name = "resize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: resize(src, dst, options)");
@@ -93,7 +93,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
 
         auto mode = opts.getProperty(rt, "mode").asString(rt).utf8(rt);
         auto interp = opts.getProperty(rt, "interpolation").asString(rt).utf8(rt);
-        double padValue = opts.getProperty(rt, "padValue").asNumber();
+        const double padValue = opts.getProperty(rt, "padValue").asNumber();
 
         if (src->shape_.size() != 3) {
             throw jsi::JSError(rt, "resize: src must be [H, W, C]");
@@ -131,13 +131,14 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "resize: dst tensor has been disposed");
         }
 
-        int32_t srcH = src->shape_[0];
-        int32_t srcW = src->shape_[1];
-        int32_t channels = src->shape_[2];
-        int32_t dstH = dst->shape_[0];
-        int32_t dstW = dst->shape_[1];
+        const int32_t srcH = src->shape_[0];
+        const int32_t srcW = src->shape_[1];
+        const int32_t channels = src->shape_[2];
+        const int32_t dstH = dst->shape_[0];
+        const int32_t dstW = dst->shape_[1];
 
-        int cvType, interpFlag;
+        int cvType{};
+        int interpFlag{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
             interpFlag = interpToFlag(interp);
@@ -145,19 +146,19 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "resize: " + std::string(e.what()));
         }
 
-        ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
         ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
 
         if (mode == "stretch") {
             ::cv::resize(srcMat, dstMat, dstMat.size(), 0, 0, interpFlag);
         } else if (mode == "letterbox") {
-            FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/true);
+            const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/true);
 
             dstMat.setTo(::cv::Scalar::all(padValue));
             ::cv::Mat roi = dstMat(::cv::Rect(fit.offX, fit.offY, fit.w, fit.h));
             ::cv::resize(srcMat, roi, roi.size(), 0, 0, interpFlag);
         } else if (mode == "crop") {
-            FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/false);
+            const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/false);
 
             ::cv::Mat scaled;
             ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
@@ -239,7 +240,7 @@ int codeToColorConversionFlag(const std::string &code) {
 } // namespace
 
 void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "cvtColor";
+    const auto *name = "cvtColor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: cvtColor(src, dst, code)");
@@ -299,18 +300,20 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "cvtColor: dst tensor has been disposed");
         }
 
-        int32_t srcH = src->shape_[0];
-        int32_t srcW = src->shape_[1];
-        int32_t srcC = src->shape_[2];
-        int32_t dstC = dst->shape_[2];
+        const int32_t srcH = src->shape_[0];
+        const int32_t srcW = src->shape_[1];
+        const int32_t srcC = src->shape_[2];
+        const int32_t dstC = dst->shape_[2];
 
-        int cvSrcType, cvDstType, flag;
+        int cvSrcType{};
+        int cvDstType{};
+        int flag{};
         try {
             cvSrcType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
             cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);
             flag = codeToColorConversionFlag(code);
 
-            ::cv::Mat srcMat(srcH, srcW, cvSrcType, src->data_.get());
+            const ::cv::Mat srcMat(srcH, srcW, cvSrcType, src->data_.get());
             ::cv::Mat dstMat(srcH, srcW, cvDstType, dst->data_.get());
 
             ::cv::cvtColor(srcMat, dstMat, flag);
@@ -325,7 +328,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "toChannelsFirst";
+    const auto *name = "toChannelsFirst";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsFirst(src, dst)");
@@ -354,16 +357,16 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsFirst: src and dst must have the same dtype");
         }
 
-        int32_t srcH = src->shape_[0];
-        int32_t srcW = src->shape_[1];
-        int32_t srcC = src->shape_[2];
+        const int32_t srcH = src->shape_[0];
+        const int32_t srcW = src->shape_[1];
+        const int32_t srcC = src->shape_[2];
 
         if (dst->shape_.size() != 3) {
             throw jsi::JSError(rt, "toChannelsFirst: dst must be a 3D tensor [C, H, W]");
         }
-        int32_t dstC = dst->shape_[0];
-        int32_t dstH = dst->shape_[1];
-        int32_t dstW = dst->shape_[2];
+        const int32_t dstC = dst->shape_[0];
+        const int32_t dstH = dst->shape_[1];
+        const int32_t dstW = dst->shape_[2];
 
         if (srcH != dstH || srcW != dstW || srcC != dstC) {
             throw jsi::JSError(rt, "toChannelsFirst: src and dst spatial dimensions and channel counts must match");
@@ -387,19 +390,19 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsFirst: dst tensor has been disposed");
         }
 
-        int cvType;
+        int cvType{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
         } catch (const std::invalid_argument &e) {
             throw jsi::JSError(rt, "toChannelsFirst: " + std::string(e.what()));
         }
 
-        ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
         std::vector<::cv::Mat> channels;
         ::cv::split(srcMat, channels);
 
-        size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+        const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
+        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *dstPtr = dst->data_.get();
 
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
@@ -413,7 +416,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "toChannelsLast";
+    const auto *name = "toChannelsLast";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw jsi::JSError(rt, "Usage: toChannelsLast(src, dst)");
@@ -442,16 +445,16 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: src and dst must have the same dtype");
         }
 
-        int32_t srcC = src->shape_[0];
-        int32_t srcH = src->shape_[1];
-        int32_t srcW = src->shape_[2];
+        const int32_t srcC = src->shape_[0];
+        const int32_t srcH = src->shape_[1];
+        const int32_t srcW = src->shape_[2];
 
         if (dst->shape_.size() != 3) {
             throw jsi::JSError(rt, "toChannelsLast: dst must be a 3D tensor [H, W, C]");
         }
-        int32_t dstH = dst->shape_[0];
-        int32_t dstW = dst->shape_[1];
-        int32_t dstC = dst->shape_[2];
+        const int32_t dstH = dst->shape_[0];
+        const int32_t dstW = dst->shape_[1];
+        const int32_t dstC = dst->shape_[2];
 
         if (srcH != dstH || srcW != dstW || srcC != dstC) {
             throw jsi::JSError(rt, "toChannelsLast: src and dst spatial dimensions and channel counts must match");
@@ -475,20 +478,20 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsLast: dst tensor has been disposed");
         }
 
-        int cvDepth;
+        int cvDepth{};
         try {
             cvDepth = dtypeToCvDepth(src->dtype_);
         } catch (const std::invalid_argument &e) {
             throw jsi::JSError(rt, "toChannelsLast: " + std::string(e.what()));
         }
 
-        size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+        const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
+        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
         uint8_t *srcPtr = src->data_.get();
 
         std::vector<::cv::Mat> channels;
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-            channels.push_back(::cv::Mat(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize));
+            channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
         }
 
         ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_.get());
@@ -501,7 +504,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "normalize";
+    const auto *name = "normalize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: normalize(src, dst, options)");
@@ -532,8 +535,8 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         int32_t c = src->shape_[0];
-        int32_t h = src->shape_[1];
-        int32_t w = src->shape_[2];
+        const int32_t h = src->shape_[1];
+        const int32_t w = src->shape_[2];
 
         if (dst->shape_.size() != 3 ||
             dst->shape_[0] != c ||
@@ -595,8 +598,8 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: dst tensor has been disposed");
         }
 
-        int srcDepthType;
-        int dstDepthType;
+        int srcDepthType{};
+        int dstDepthType{};
         try {
             srcDepthType = dtypeToCvDepth(src->dtype_);
             dstDepthType = dtypeToCvDepth(dst->dtype_);
@@ -604,14 +607,14 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: " + std::string(e.what()));
         }
 
-        size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
+        const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+        const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
         uint8_t *srcPtr = src->data_.get();
         uint8_t *dstPtr = dst->data_.get();
 
         const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
         for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
-            ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
+            const ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
             ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * plane * dstElemSize);
 
             srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
@@ -624,7 +627,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "applyColormap";
+    const auto *name = "applyColormap";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
@@ -656,7 +659,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         auto colormapArray = args[2].asObject(rt).asArray(rt);
-        size_t numColors = colormapArray.size(rt);
+        const size_t numColors = colormapArray.size(rt);
         std::vector<std::array<uint8_t, numRgbaChannels>> lut(numColors);
         for (size_t i = 0; i < numColors; ++i) {
             auto colorVal = colormapArray.getValueAtIndex(rt, i);
@@ -672,7 +675,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
                 if (!channelVal.isNumber()) {
                     throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
                 }
-                double val = channelVal.asNumber();
+                const double val = channelVal.asNumber();
                 if (std::isnan(val) || val < 0.0 || val > 255.0) {
                     throw jsi::JSError(rt, "applyColormap: colormap channel value must be between 0 and 255");
                 }
@@ -690,14 +693,14 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "applyColormap: tensor has been disposed");
         }
 
-        size_t pixels = src->numel_;
+        const size_t pixels = src->numel_;
 
-        const int32_t *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
+        const auto *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
         uint8_t *dstData = dst->data_.get();
 
         for (size_t i = 0; i < pixels; ++i) {
-            int32_t idx = srcData[i];
-            if (idx < 0 || static_cast<size_t>(idx) >= numColors) {
+            const int32_t idx = srcData[i];
+            if (idx < 0 || std::cmp_greater_equal(idx, numColors)) {
                 throw jsi::JSError(rt, "applyColormap: tensor contains class index (" +
                                            std::to_string(idx) + ") that exceeds provided colormap size (" +
                                            std::to_string(numColors) + ")");

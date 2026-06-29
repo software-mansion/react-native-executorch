@@ -14,7 +14,7 @@ class TokenizerHostObject : public facebook::jsi::HostObject,
                             public std::enable_shared_from_this<TokenizerHostObject> {
 public:
     // Loads the tokenizer from `tokenizerPath`; throws std::runtime_error on failure.
-    explicit TokenizerHostObject(const std::string &tokenizerPath);
+    explicit TokenizerHostObject(std::string tokenizerPath);
 
     facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;

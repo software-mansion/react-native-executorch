@@ -69,7 +69,7 @@ std::array<float, 4> decodeToXyxy(
 } // namespace
 
 void install_nms(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "nms";
+    const auto *name = "nms";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 3) {
             throw jsi::JSError(rt, "Usage: nms(boxes, scores, options)");
@@ -99,14 +99,14 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: options must specify iouThreshold, boxFormat, confidenceThreshold, and nmsType");
         }
 
-        float iouThreshold = static_cast<float>(opts.getProperty(rt, "iouThreshold").asNumber());
-        float confidenceThreshold = static_cast<float>(opts.getProperty(rt, "confidenceThreshold").asNumber());
+        const float iouThreshold = static_cast<float>(opts.getProperty(rt, "iouThreshold").asNumber());
+        const float confidenceThreshold = static_cast<float>(opts.getProperty(rt, "confidenceThreshold").asNumber());
 
-        std::string nmsTypeStr = opts.getProperty(rt, "nmsType").asString(rt).utf8(rt);
-        std::string boxFormatStr = opts.getProperty(rt, "boxFormat").asString(rt).utf8(rt);
+        const std::string nmsTypeStr = opts.getProperty(rt, "nmsType").asString(rt).utf8(rt);
+        const std::string boxFormatStr = opts.getProperty(rt, "boxFormat").asString(rt).utf8(rt);
 
-        NmsType nmsType;
-        BoxFormat boxFormat;
+        NmsType nmsType{};
+        BoxFormat boxFormat{};
         try {
             nmsType = parseNmsType(nmsTypeStr);
             boxFormat = parseBoxFormat(boxFormatStr);
@@ -142,8 +142,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: boxes and scores must have dtype float32");
         }
 
-        const float *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
-        const float *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
+        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
+        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
 
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(static_cast<size_t>(numAnchors));
@@ -179,7 +179,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                 boxesPtr[idxI * 4 + 3],
                 boxFormat);
 
-            float areaA = (xmaxA - xminA) * (ymaxA - yminA);
+            const float areaA = (xmaxA - xminA) * (ymaxA - yminA);
 
             std::vector<std::int32_t> overlapping = {idxI};
 
@@ -197,19 +197,19 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                     boxesPtr[idxJ * 4 + 3],
                     boxFormat);
 
-                float areaB = (xmaxB - xminB) * (ymaxB - yminB);
+                const float areaB = (xmaxB - xminB) * (ymaxB - yminB);
 
-                float interYMin = std::max(yminA, yminB);
-                float interXMin = std::max(xminA, xminB);
-                float interYMax = std::min(ymaxA, ymaxB);
-                float interXMax = std::min(xmaxA, xmaxB);
+                const float interYMin = std::max(yminA, yminB);
+                const float interXMin = std::max(xminA, xminB);
+                const float interYMax = std::min(ymaxA, ymaxB);
+                const float interXMax = std::min(xmaxA, xmaxB);
 
-                float interH = std::max(0.0f, interYMax - interYMin);
-                float interW = std::max(0.0f, interXMax - interXMin);
-                float intersection = interH * interW;
+                const float interH = std::max(0.0f, interYMax - interYMin);
+                const float interW = std::max(0.0f, interXMax - interXMin);
+                const float intersection = interH * interW;
 
-                float unionArea = areaA + areaB - intersection;
-                float iou = (unionArea > 0.0f) ? (intersection / unionArea) : 0.0f;
+                const float unionArea = areaA + areaB - intersection;
+                const float iou = (unionArea > 0.0f) ? (intersection / unionArea) : 0.0f;
 
                 if (iou > iouThreshold) {
                     if (nmsType == NmsType::Weighted) {
@@ -233,7 +233,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         case NmsType::Weighted: {
             jsi::Array resultGroups = jsi::Array(rt, groups.size());
             for (size_t i = 0; i < groups.size(); ++i) {
-                jsi::Array singleGroup = jsi::Array(rt, groups[i].size());
+                const jsi::Array singleGroup = jsi::Array(rt, groups[i].size());
                 for (size_t j = 0; j < groups[i].size(); ++j) {
                     singleGroup.setValueAtIndex(rt, j, jsi::Value(static_cast<double>(groups[i][j])));
                 }
@@ -248,7 +248,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "restrictToBox";
+    const auto *name = "restrictToBox";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
             throw jsi::JSError(rt, "Usage: restrictToBox(src, dst, boxTuple, format)");
@@ -279,7 +279,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
         }
 
-        BoxFormat boxFormat;
+        BoxFormat boxFormat{};
         try {
             boxFormat = parseBoxFormat(boxFormatStr);
         } catch (const std::invalid_argument &e) {
@@ -309,10 +309,10 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         int32_t W = src->shape_[1];
         int32_t C = src->shape_[2];
 
-        int32_t x1 = static_cast<int32_t>(std::ceil(xmin));
-        int32_t y1 = static_cast<int32_t>(std::ceil(ymin));
-        int32_t x2 = static_cast<int32_t>(std::floor(xmax));
-        int32_t y2 = static_cast<int32_t>(std::floor(ymax));
+        auto x1 = static_cast<int32_t>(std::ceil(xmin));
+        auto y1 = static_cast<int32_t>(std::ceil(ymin));
+        auto x2 = static_cast<int32_t>(std::floor(xmax));
+        auto y2 = static_cast<int32_t>(std::floor(ymax));
 
         x1 = std::max(0, x1);
         y1 = std::max(0, y1);
@@ -335,7 +335,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "restrictToBox: tensors must not be disposed");
         }
 
-        int32_t cvType;
+        int32_t cvType{};
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), C);
         } catch (const std::invalid_argument &e) {

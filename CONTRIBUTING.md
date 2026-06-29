@@ -79,6 +79,20 @@ don't conflict. clangd discovers `compile_flags.txt`/`.clangd` automatically fro
 open file's directory. If you produce a `compile_commands.json` from a native build,
 clangd will prefer it — it's gitignored and takes precedence over `compile_flags.txt`.
 
+## clang-tidy
+
+`packages/react-native-executorch/.clang-tidy` adds a conservative, high-signal set of
+static checks (bugprone / performance / clang-analyzer) on top of the same database. The
+clangd extension surfaces these inline; you can also run them from the command line:
+
+```
+yarn workspace react-native-executorch lint:cpp           # all C++ sources
+CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp
+```
+
+It needs the same provisioned headers as clangd. Suppress an intentional, reviewed finding
+with a commented `// NOLINTNEXTLINE(check-name)` rather than loosening the shared config.
+
 # Creating a Pull Request
 
 Before writing any code reach out to us to make sure no one is currently working on it, you can always open an issue first.
