@@ -4,7 +4,7 @@ import { useResourceDownload } from './useResourceDownload';
 import {
   createTextToSpeech,
   type TextToSpeechModel,
-  type TextToSpeechStreamingInput,
+  type TextToSpeechInput,
 } from '../extensions/speech/tasks/textToSpeech';
 
 export function useTextToSpeech(config: TextToSpeechModel, options?: { preventLoad?: boolean }) {
@@ -68,7 +68,7 @@ export function useTextToSpeech(config: TextToSpeechModel, options?: { preventLo
   );
 
   const stream = useCallback(
-    async (input: TextToSpeechStreamingInput) => {
+    async (input: TextToSpeechInput) => {
       if (!model) return;
       setIsGenerating(true);
       try {

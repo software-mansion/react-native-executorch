@@ -28,6 +28,7 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     kokoro::install_sumDurations(rt, kokoroModule);
     kokoro::install_scaleDurations(rt, kokoroModule);
     kokoro::install_expandDurations(rt, kokoroModule);
+    kokoro::install_cropToTimestamp(rt, kokoroModule);
     speechModule.setProperty(rt, "kokoro", kokoroModule);
 
     module.setProperty(rt, "speech", speechModule);

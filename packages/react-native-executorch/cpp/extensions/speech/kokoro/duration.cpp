@@ -1,17 +1,27 @@
 #include "duration.h"
 
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <queue>
 #include <utility>
 
 #include "core/tensor.h"
+#include "core/types.h"
 
 namespace mylib::extensions::speech::kokoro {
 
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 using DType = rnexecutorch::core::DType;
+using DSize = rnexecutorch::core::DSize;
+using Shape = rnexecutorch::core::Shape;
+
+namespace {
+// Audio samples produced per duration frame by the synthesizer. Mirrors the
+// SAMPLES_PER_FRAME constant on the JS side and the old Kokoro post-processing.
+constexpr int64_t kSamplesPerFrame = 600;
+} // namespace
 
 void install_sumDurations(jsi::Runtime &rt, jsi::Object &module) {
     auto name = "sumDurations";
@@ -188,6 +198,83 @@ void install_expandDurations(jsi::Runtime &rt, jsi::Object &module) {
         rt, name,
         jsi::Function::createFromHostFunction(
             rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
+}
+
+void install_cropToTimestamp(jsi::Runtime &rt, jsi::Object &module) {
+    auto name = "cropToTimestamp";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &,
+                     const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw jsi::JSError(rt, "cropToTimestamp: Usage: cropToTimestamp(audioTensor, durationsTensor, endsWithAlpha)");
+        }
+        if (!args[0].isObject() ||
+            !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "cropToTimestamp: Expected a Tensor as first argument (audio)");
+        }
+        if (!args[1].isObject() ||
+            !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "cropToTimestamp: Expected a Tensor as second argument (durations)");
+        }
+        if (!args[2].isBool()) {
+            throw jsi::JSError(rt, "cropToTimestamp: Expected a boolean for endsWithAlpha");
+        }
+
+        auto audio = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto durations = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
+        bool endsWithAlpha = args[2].asBool();
+
+        if (audio->dtype_ != DType::float32) {
+            throw jsi::JSError(rt, "cropToTimestamp: audio tensor must be float32");
+        }
+        if (durations->dtype_ != DType::int64) {
+            throw jsi::JSError(rt, "cropToTimestamp: durations tensor must be int64");
+        }
+
+        std::shared_lock<std::shared_mutex> audioLock(audio->mutex_, std::try_to_lock);
+        if (!audioLock.owns_lock()) {
+            throw jsi::JSError(rt, "cropToTimestamp: audio tensor is currently in use");
+        }
+        std::shared_lock<std::shared_mutex> durLock(durations->mutex_, std::try_to_lock);
+        if (!durLock.owns_lock()) {
+            throw jsi::JSError(rt, "cropToTimestamp: durations tensor is currently in use");
+        }
+
+        const size_t nTokens = durations->numel_;
+        const size_t audioSamples = audio->numel_;
+
+        // Accumulate the end timestamp (in audio samples) of the last token we
+        // want to keep. The trailing PAD token (second-to-last) is always
+        // dropped; when the segment ends with a non-letter (punctuation / EOS),
+        // the EOS token before it (third-to-last) is dropped too. Mirrors the
+        // old Kokoro timestamp-based trimming.
+        size_t croppedSamples = audioSamples;
+        if (nTokens > 2) {
+            const size_t lastIndex = endsWithAlpha ? nTokens - 2 : nTokens - 3;
+            const auto *durData = reinterpret_cast<const int64_t *>(durations->data_);
+
+            int64_t timestamp = 0;
+            for (size_t i = 0; i <= lastIndex; ++i) {
+                timestamp += durData[i] * kSamplesPerFrame;
+            }
+
+            croppedSamples = std::min(static_cast<size_t>(timestamp), audioSamples);
+        }
+
+        // Non-owning view over [0, croppedSamples) of the original audio: same
+        // data pointer, last dimension shrunk to the kept sample count.
+        Shape viewShape = audio->shape_;
+        viewShape.back() = static_cast<DSize>(croppedSamples);
+
+        auto view = std::make_shared<TensorHostObject>(
+            audio->data_, std::move(viewShape), DType::float32);
+
+        return jsi::Object::createFromHostObject(rt, view);
+    };
+
+    module.setProperty(
+        rt, name,
+        jsi::Function::createFromHostFunction(
+            rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 
 } // namespace mylib::extensions::speech::kokoro

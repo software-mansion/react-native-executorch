@@ -3,37 +3,32 @@ import { View, Text, TextInput, StyleSheet, ScrollView, Keyboard } from 'react-n
 import { commonStyles, theme } from '../../theme';
 import { useTextToSpeech, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
+import { VoicePicker, type VoiceOption } from '../../components/VoicePicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
 import type { TextToSpeechModel } from 'react-native-executorch';
-import {
-  AudioManager,
-  AudioContext,
-  AudioBuffer,
-  AudioBufferSourceNode,
-} from 'react-native-audio-api';
+import { AudioManager, AudioContext, AudioBuffer } from 'react-native-audio-api';
 
-const VOICE_OPTIONS: ModelOption[] = [
-  { label: 'AF Heart (en-us)', value: models.textToSpeech.AF_HEART },
-  { label: 'AF River (en-us)', value: models.textToSpeech.AF_RIVER },
-  { label: 'AF Sarah (en-us)', value: models.textToSpeech.AF_SARAH },
-  { label: 'AM Adam (en-us)', value: models.textToSpeech.AM_ADAM },
-  { label: 'AM Michael (en-us)', value: models.textToSpeech.AM_MICHAEL },
-  { label: 'BF Emma (en-gb)', value: models.textToSpeech.BF_EMMA },
-  { label: 'BM Daniel (en-gb)', value: models.textToSpeech.BM_DANIEL },
-  { label: 'FF Siwis (fr)', value: models.textToSpeech.FF_SIWIS },
-  { label: 'EF Dora (es)', value: models.textToSpeech.EF_DORA },
-  { label: 'EM Alex (es)', value: models.textToSpeech.EM_ALEX },
-  { label: 'IF Sara (it)', value: models.textToSpeech.IF_SARA },
-  { label: 'IM Nicola (it)', value: models.textToSpeech.IM_NICOLA },
-  { label: 'PF Dora (pt)', value: models.textToSpeech.PF_DORA },
-  { label: 'PM Santa (pt)', value: models.textToSpeech.PM_SANTA },
-  { label: 'HF Alpha (hi)', value: models.textToSpeech.HF_ALPHA },
-  { label: 'HM Omega (hi)', value: models.textToSpeech.HM_OMEGA },
-  { label: 'PM Mateusz (pl)', value: models.textToSpeech.PM_MATEUSZ },
-  { label: 'DF Anna (de)', value: models.textToSpeech.DF_ANNA },
+const VOICE_OPTIONS: VoiceOption<TextToSpeechModel>[] = [
+  { name: 'AF Heart', lang: 'en-us', value: models.textToSpeech.AF_HEART },
+  { name: 'AF River', lang: 'en-us', value: models.textToSpeech.AF_RIVER },
+  { name: 'AF Sarah', lang: 'en-us', value: models.textToSpeech.AF_SARAH },
+  { name: 'AM Adam', lang: 'en-us', value: models.textToSpeech.AM_ADAM },
+  { name: 'AM Michael', lang: 'en-us', value: models.textToSpeech.AM_MICHAEL },
+  { name: 'BF Emma', lang: 'en-gb', value: models.textToSpeech.BF_EMMA },
+  { name: 'BM Daniel', lang: 'en-gb', value: models.textToSpeech.BM_DANIEL },
+  { name: 'FF Siwis', lang: 'fr', value: models.textToSpeech.FF_SIWIS },
+  { name: 'EF Dora', lang: 'es', value: models.textToSpeech.EF_DORA },
+  { name: 'EM Alex', lang: 'es', value: models.textToSpeech.EM_ALEX },
+  { name: 'IF Sara', lang: 'it', value: models.textToSpeech.IF_SARA },
+  { name: 'IM Nicola', lang: 'it', value: models.textToSpeech.IM_NICOLA },
+  { name: 'PF Dora', lang: 'pt', value: models.textToSpeech.PF_DORA },
+  { name: 'PM Santa', lang: 'pt', value: models.textToSpeech.PM_SANTA },
+  { name: 'HF Alpha', lang: 'hi', value: models.textToSpeech.HF_ALPHA },
+  { name: 'HM Omega', lang: 'hi', value: models.textToSpeech.HM_OMEGA },
+  { name: 'PM Mateusz', lang: 'pl', value: models.textToSpeech.PM_MATEUSZ },
+  { name: 'DF Anna', lang: 'de', value: models.textToSpeech.DF_ANNA },
 ];
 
 const createAudioBufferFromVector = (
@@ -148,10 +143,11 @@ function TextToSpeechContent() {
         Enter text and select a voice to generate speech.
       </Text>
 
-      <ModelPicker
+      <VoicePicker
         label="Voice"
         options={VOICE_OPTIONS}
         selectedValue={selectedVoice}
+        disabled={isPlaying}
         onValueChange={(model) => {
           setSelectedVoice(model);
           setError(null);

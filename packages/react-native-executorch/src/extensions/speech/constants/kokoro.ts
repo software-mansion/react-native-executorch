@@ -15,9 +15,9 @@ export const PAD_TOKEN_COUNT = 2;
  * Arguments for {@link crop}, which strips leading/trailing silence from each
  * generated audio chunk.
  */
-export const CROP_STEPS = 20; // Moving-average window size (samples).
+export const CROP_STEPS = 10; // Moving-average window size (samples).
 export const CROP_THRESHOLD = 0.001; // Amplitude floor for "non-silent".
-export const CROP_MARGIN = 1000; // Samples of audio kept on each side.
+export const CROP_MARGIN = 1200; // Samples of audio kept on each side.
 
 /**
  * Trailing-silence durations (in milliseconds) keyed by the punctuation

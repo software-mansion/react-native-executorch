@@ -15,23 +15,4 @@ TensorView::TensorView(uint8_t *data, DType dtype, Shape shape)
     size_ = numel_ * dtype_.size();
 }
 
-Value TensorView::operator[](std::initializer_list<size_t> indices) {
-    size_t flat = flatten(indices);
-    return Value(data_ + flat * dtype_.size(), dtype_);
-}
-
-size_t TensorView::flatten(std::initializer_list<size_t> indices) const {
-    assert(indices.size() == shape_.size());
-
-    size_t flat = 0;
-    auto shape_it = shape_.begin();
-    for (auto idx : indices) {
-        assert(idx < static_cast<size_t>(*shape_it));
-        flat = flat * static_cast<size_t>(*shape_it) + idx;
-        ++shape_it;
-    }
-
-    return flat;
-}
-
 } // namespace rnexecutorch::core::tensor

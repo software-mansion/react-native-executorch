@@ -10,7 +10,12 @@ import { loadVoiceEmbedding } from '../ops/kokoro/voice';
 import { partition, chunk } from '../ops/kokoro/partition';
 import { crop } from '../ops/audio';
 import { tokenize } from '../ops/kokoro/tokenize';
-import { scaleDurations, sumDurations, expandDurations } from '../ops/kokoro/duration';
+import {
+  scaleDurations,
+  sumDurations,
+  expandDurations,
+  cropToTimestamp,
+} from '../ops/kokoro/duration';
 import {
   SAMPLE_RATE,
   SAMPLES_PER_FRAME,
@@ -55,7 +60,6 @@ export async function createTextToSpeech(
   // Step 1 - unpack components & load models
   const { durationPredictorPath, synthesizerPath, voicePath, phonemizerConfig } = config;
   const { lang, taggerSource, lexiconSource, neuralModelSource } = phonemizerConfig;
-  console.log(neuralModelSource);
 
   const phonemizer = await wrapAsync(
     createPhonemizer,
@@ -116,7 +120,8 @@ export async function createTextToSpeech(
   const alignmentTensor = tensor('int64', [maxDuration]);
   const audioTensor = tensor('float32', [1, 1, maxAudioSamples]);
 
-  // Mask and voice can be filled with values right away.
+  // Mask and voice can be filled with values right away, since
+  // it should not change at any moment.
   maskTensor.setData(new Uint8Array(maxTokens).fill(1));
   loadVoiceEmbedding(voicePath, voiceTensor);
 
@@ -147,16 +152,16 @@ export async function createTextToSpeech(
     const phonemes = phonemizer.phonemize(text);
     const segments = partition(phonemes, maxTokens);
 
-    for (const input of chunk(phonemes, segments)) {
+    for (const segment of chunk(phonemes, segments)) {
       // This effective sequence length will be useful in slicing tensors.
-      const tokenLength = input.length + PAD_TOKEN_COUNT;
+      const tokenLength = segment.length + PAD_TOKEN_COUNT;
 
       const dTokensTensor = tokensTensor.view([1, tokenLength]);
       const dMaskTensor = maskTensor.view([1, tokenLength]);
       const dDurationsTensor = durationsTensor.view([tokenLength]);
       const dIntermediateTensor = intermediateTensor.view([1, tokenLength, 640]);
 
-      tokenize(input, dTokensTensor);
+      tokenize(segment, dTokensTensor);
 
       // Now indexing the voice tensor to get the appropriate style vector.
       const voiceIndex = tokenLength - 1;
@@ -195,12 +200,21 @@ export async function createTextToSpeech(
         [dAudioTensor]
       );
 
-      // Postprocessing - trimming the audio.
-      // Important for removing artifacts.
-      const trimmedAudio = crop(dAudioTensor, CROP_STEPS, CROP_THRESHOLD, CROP_MARGIN);
+      // Postprocessing.
+      const lastChar = segment.trimEnd().slice(-1);
+
+      // First cropping, according to timestamps obtained from durations tensor.
+      // Eliminates the heaviest artifacts produced by the ET model.
+      const endsWithAlpha = /\p{L}/u.test(lastChar);
+      const croppedAudioTensor = cropToTimestamp(dAudioTensor, dDurationsTensor, endsWithAlpha);
+
+      // Then trim leading/trailing silence.
+      // Removes the remaining small chunks of silence, so that the pause before/after
+      // is easier to predict.
+      const trimmedAudio = crop(croppedAudioTensor, CROP_STEPS, CROP_THRESHOLD, CROP_MARGIN);
 
       // Add some additional pause to make speech sound more natural.
-      const pauseMs = PAUSE_MS[input.trimEnd().slice(-1)] ?? DEFAULT_PAUSE_MS;
+      const pauseMs = PAUSE_MS[lastChar] ?? DEFAULT_PAUSE_MS;
       const pauseSamples = Math.round((pauseMs * SAMPLE_RATE) / 1000);
 
       if (onNext) {
