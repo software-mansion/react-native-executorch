@@ -4,7 +4,8 @@
   "main": "expo-router/entry",
   "react-native-executorch": {
     "features": [
-      "tokenizer"
+      "tokenizer",
+      "textEmbeddings"
     ]
   },
   "scripts": {
