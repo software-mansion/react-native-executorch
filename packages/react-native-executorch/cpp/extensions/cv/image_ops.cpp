@@ -15,6 +15,7 @@
 namespace rnexecutorch::extensions::cv::image_ops {
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+using DType = rnexecutorch::core::DType;
 
 namespace {
 int interpToFlag(const std::string &interp) {
@@ -146,8 +147,8 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "resize: " + std::string(e.what()));
         }
 
-        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
-        ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
+        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_);
+        ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_);
 
         if (mode == "stretch") {
             ::cv::resize(srcMat, dstMat, dstMat.size(), 0, 0, interpFlag);
@@ -313,8 +314,8 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);
             flag = codeToColorConversionFlag(code);
 
-            const ::cv::Mat srcMat(srcH, srcW, cvSrcType, src->data_.get());
-            ::cv::Mat dstMat(srcH, srcW, cvDstType, dst->data_.get());
+            const ::cv::Mat srcMat(srcH, srcW, cvSrcType, src->data_);
+            ::cv::Mat dstMat(srcH, srcW, cvDstType, dst->data_);
 
             ::cv::cvtColor(srcMat, dstMat, flag);
         } catch (const std::invalid_argument &e) {
@@ -397,13 +398,13 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "toChannelsFirst: " + std::string(e.what()));
         }
 
-        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_);
         std::vector<::cv::Mat> channels;
         ::cv::split(srcMat, channels);
 
         const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        uint8_t *dstPtr = dst->data_.get();
+        const size_t elemSize = src->dtype_.size();
+        uint8_t *dstPtr = dst->data_;
 
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
             std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
@@ -486,15 +487,15 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        uint8_t *srcPtr = src->data_.get();
+        const size_t elemSize = src->dtype_.size();
+        uint8_t *srcPtr = src->data_;
 
         std::vector<::cv::Mat> channels;
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
             channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
         }
 
-        ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_.get());
+        ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_);
         ::cv::merge(channels, dstMat);
 
         return jsi::Value(rt, args[1]);
@@ -607,10 +608,10 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "normalize: " + std::string(e.what()));
         }
 
-        const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
-        uint8_t *srcPtr = src->data_.get();
-        uint8_t *dstPtr = dst->data_.get();
+        const size_t srcElemSize = src->dtype_.size();
+        const size_t dstElemSize = dst->dtype_.size();
+        uint8_t *srcPtr = src->data_;
+        uint8_t *dstPtr = dst->data_;
 
         const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
         for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
@@ -644,10 +645,10 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
         constexpr size_t numRgbaChannels = 4;
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::int32) {
+        if (src->dtype_ != rnexecutorch::core::DType::int32) {
             throw jsi::JSError(rt, "applyColormap: src must be int32");
         }
-        if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
+        if (dst->dtype_ != rnexecutorch::core::DType::uint8) {
             throw jsi::JSError(rt, "applyColormap: dst must be uint8");
         }
         if (dst->numel_ != src->numel_ * numRgbaChannels) {
@@ -695,8 +696,8 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
 
         const size_t pixels = src->numel_;
 
-        const auto *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
-        uint8_t *dstData = dst->data_.get();
+        const auto *srcData = reinterpret_cast<const int32_t *>(src->data_);
+        uint8_t *dstData = dst->data_;
 
         for (size_t i = 0; i < pixels; ++i) {
             const int32_t idx = srcData[i];
