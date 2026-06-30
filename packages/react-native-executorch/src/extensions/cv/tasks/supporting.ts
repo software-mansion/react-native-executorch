@@ -16,6 +16,37 @@ import { argmaxRange } from './documentHelpers';
 const DEFAULT_EOS_TOKEN_ID = 49;
 const DEFAULT_MAX_STEPS = 501; // SLANet max_text_length (500) + 1
 
+// A dewarp grid estimated on a page without clear boundaries (e.g. text floating
+// on white, or a clean scan UVDoc wasn't trained on) can map most of the output
+// off the source, collapsing the page to near-blank and OCR to zero detections.
+// Guard: if the dewarped page keeps less than this fraction of the source's pixel
+// activity (variance), the warp is degenerate — keep the original page.
+const DEWARP_MIN_ACTIVITY_RATIO = 0.5;
+const DEWARP_ACTIVITY_STRIDE = 31; // subsample every Nth pixel for a cheap estimate
+
+// Variance of one channel sampled every DEWARP_ACTIVITY_STRIDE pixels — a cheap,
+// polarity-independent proxy for how much content (ink/edges) an image carries. A
+// blank/uniform page is ~0. Defined before createSupporting so the worklet plugin
+// captures it (a referenced worklet must precede its caller in source order).
+function sampledActivity(data: Uint8Array, channels: number): number {
+  'worklet';
+  let n = 0;
+  let sum = 0;
+  let sumSq = 0;
+  const step = channels * DEWARP_ACTIVITY_STRIDE;
+  for (let i = 0; i < data.length; i += step) {
+    const v = data[i]!;
+    sum += v;
+    sumSq += v * v;
+    n++;
+  }
+  if (n === 0) {
+    return 0;
+  }
+  const mean = sum / n;
+  return sumSq / n - mean * mean;
+}
+
 /**
  * Detected page orientation.
  * @category Types
@@ -213,6 +244,13 @@ export async function createSupporting(
       gridSample(tSrc, tGrid, tDst);
       const out = new Uint8Array(input.width * input.height * ch);
       tDst.getData(out);
+      // Degenerate-warp guard: a grid lacking page boundaries can push content
+      // off-canvas, leaving a near-blank page. If the dewarp collapsed the image's
+      // activity, decline it and keep the original (better an un-dewarped read than
+      // zero detections).
+      if (sampledActivity(out, ch) < DEWARP_MIN_ACTIVITY_RATIO * sampledActivity(input.data, ch)) {
+        return input;
+      }
       return {
         data: out,
         width: input.width,

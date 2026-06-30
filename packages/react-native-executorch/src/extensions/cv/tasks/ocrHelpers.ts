@@ -157,6 +157,133 @@ export function quadSize(ordered: readonly Point[]): { width: number; height: nu
   return { width, height };
 }
 
+// Reading-order tuning. A vertical gutter crossed by no box must be at least this
+// fraction of the content width to separate columns; two boxes share a text line
+// when their vertical extents overlap by at least this fraction of the shorter
+// box's height. Stable across models — not worth exposing.
+const READING_COL_GAP_FRAC = 0.06;
+const READING_ROW_OVERLAP_FRAC = 0.3;
+
+type ReadingBox = { xmin: number; ymin: number; xmax: number; ymax: number };
+
+// Axis-aligned bounds of a quad. Defined before readingOrderIndices so the worklet
+// plugin captures it (a referenced worklet must precede its caller in source order).
+function bboxOfQuad(quad: readonly Point[]): ReadingBox {
+  'worklet';
+  let xmin = Infinity;
+  let ymin = Infinity;
+  let xmax = -Infinity;
+  let ymax = -Infinity;
+  for (const p of quad) {
+    if (p.x < xmin) xmin = p.x;
+    if (p.y < ymin) ymin = p.y;
+    if (p.x > xmax) xmax = p.x;
+    if (p.y > ymax) ymax = p.y;
+  }
+  return { xmin, ymin, xmax, ymax };
+}
+
+/**
+ * Returns the indices of `quads` in human reading order. Detects vertical column
+ * gutters with an x-coverage sweep — a band crossed by no box and wider than
+ * {@link READING_COL_GAP_FRAC} of the content width splits columns (within-line
+ * word gaps don't, because other lines cover that x); within each column it groups
+ * boxes into lines by vertical overlap, orders lines top-to-bottom and the boxes in
+ * a line left-to-right, and reads columns left-to-right. Single-line / single-column
+ * inputs collapse to the obvious order. The detector emits boxes in an arbitrary
+ * order, so callers reorder their detections/lines through this.
+ * @category Typescript API
+ * @param quads The detected text quads (any corner order).
+ * @returns Indices into `quads`, in reading order.
+ */
+export function readingOrderIndices(quads: readonly (readonly Point[])[]): number[] {
+  'worklet';
+  const n = quads.length;
+  if (n <= 1) {
+    return n === 1 ? [0] : [];
+  }
+  const boxes = quads.map((q) => bboxOfQuad(q));
+  let X0 = Infinity;
+  let X1 = -Infinity;
+  for (const b of boxes) {
+    if (b.xmin < X0) X0 = b.xmin;
+    if (b.xmax > X1) X1 = b.xmax;
+  }
+  const minGap = READING_COL_GAP_FRAC * Math.max(1, X1 - X0);
+
+  // Column detection: sweep box x-edges; an internal span where coverage drops to
+  // zero (no box at that x across any line) wider than minGap is a column gutter.
+  const edges: { x: number; d: number }[] = [];
+  for (const b of boxes) {
+    edges.push({ x: b.xmin, d: 1 });
+    edges.push({ x: b.xmax, d: -1 });
+  }
+  // At equal x, open (+1) before close (-1) so touching boxes don't open a gutter.
+  edges.sort((a, b) => a.x - b.x || b.d - a.d);
+  const cuts: number[] = [];
+  let active = 0;
+  let gutterStart = 0;
+  for (const e of edges) {
+    const before = active;
+    active += e.d;
+    if (before > 0 && active === 0) {
+      gutterStart = e.x;
+    } else if (before === 0 && active > 0 && e.x - gutterStart >= minGap) {
+      cuts.push((gutterStart + e.x) / 2);
+    }
+  }
+
+  // Bucket boxes into columns by center-x relative to the (ascending) cut lines.
+  const numCols = cuts.length + 1;
+  const columns: number[][] = [];
+  for (let c = 0; c < numCols; c++) {
+    columns.push([]);
+  }
+  for (let i = 0; i < n; i++) {
+    const cx = (boxes[i]!.xmin + boxes[i]!.xmax) / 2;
+    let c = 0;
+    for (const cut of cuts) {
+      if (cx > cut) c++;
+    }
+    columns[c]!.push(i);
+  }
+
+  // Within each column: group boxes into lines by vertical overlap, order lines
+  // top-to-bottom and boxes within a line left-to-right.
+  const out: number[] = [];
+  for (const col of columns) {
+    col.sort((a, b) => boxes[a]!.ymin - boxes[b]!.ymin);
+    const rows: { items: number[]; ymin: number; ymax: number }[] = [];
+    for (const i of col) {
+      const b = boxes[i]!;
+      let placed = false;
+      for (const row of rows) {
+        const overlap = Math.min(row.ymax, b.ymax) - Math.max(row.ymin, b.ymin);
+        const minH = Math.min(row.ymax - row.ymin, b.ymax - b.ymin);
+        if (overlap >= READING_ROW_OVERLAP_FRAC * Math.max(1, minH)) {
+          row.items.push(i);
+          row.ymin = Math.min(row.ymin, b.ymin);
+          row.ymax = Math.max(row.ymax, b.ymax);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        rows.push({ items: [i], ymin: b.ymin, ymax: b.ymax });
+      }
+    }
+    rows.sort((a, b) => a.ymin - b.ymin);
+    const cx = (i: number): number => boxes[i]!.xmin + boxes[i]!.xmax;
+    for (const row of rows) {
+      row.items.sort((a, b) => cx(a) - cx(b));
+      for (const i of row.items) {
+        out.push(i);
+      }
+    }
+  }
+  return out;
+}
+
 /**
  * Resolves the content width (px) of a recognizer crop: the quad resized to the
  * recognizer height keeping aspect, clamped to the model's bucket width.

@@ -11,6 +11,7 @@ import {
   type ObjectDetection,
 } from './objectDetection';
 import { createSupporting, type SupportingModel } from './supporting';
+import { readingOrderIndices } from './ocrHelpers';
 import { cropImageBuffer, rotateImageBuffer, fillTableCells } from './documentHelpers';
 
 /**
@@ -89,12 +90,6 @@ export type RunDocumentOCROptions = {
   readonly dewarp?: boolean;
 };
 
-const centerOf = (quad: readonly Point[]): { x: number; y: number } => {
-  'worklet';
-  const b = boundingBoxOf(quad);
-  return { x: (b.xmin + b.xmax) / 2, y: (b.ymin + b.ymax) / 2 };
-};
-
 const isTableLabel = (label: unknown): boolean => {
   'worklet';
   return String(label) === 'table';
@@ -121,12 +116,11 @@ function makeBlock<L>(
   isTable: boolean
 ): DocumentBlock<L> {
   'worklet';
-  // Decorate with each line's y-center once, then sort top-to-bottom (avoids
-  // recomputing the bbox inside the O(n log n) comparator).
-  const sorted = lines
-    .map((line) => ({ line, cy: centerOf(line.quad).y }))
-    .sort((a, b) => a.cy - b.cy)
-    .map((e) => e.line);
+  // Order the block's lines in reading order (top-to-bottom, and left-to-right
+  // within a line) so multi-column regions, titles split into words, and
+  // label/value rows concatenate correctly — not in the detector's arbitrary order.
+  const order = readingOrderIndices(lines.map((l) => l.quad));
+  const sorted = order.map((i) => lines[i]!);
   return {
     regionType,
     bbox,

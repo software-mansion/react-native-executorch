@@ -33,6 +33,7 @@ import {
   nowMs,
   snapDetectBucket,
   snapRecognizeBucket,
+  readingOrderIndices,
   type Buckets,
 } from './ocrHelpers';
 
@@ -493,6 +494,19 @@ function boundingQuadOf(quads: readonly (readonly Point[])[]): Point[] {
   ];
 }
 
+// Reorders recognized detections into human reading order (the detector emits
+// boxes in an arbitrary order). Column-aware: genuine multi-column pages read
+// column-by-column, single-column pages line-by-line, words within a line
+// left-to-right. Defined before its caller so the worklet plugin captures it.
+function orderDetections(dets: OCRDetection[]): OCRDetection[] {
+  'worklet';
+  if (dets.length <= 1) {
+    return dets;
+  }
+  const order = readingOrderIndices(dets.map((d) => d.quad));
+  return order.map((i) => dets[i]!);
+}
+
 // Clusters glyph-like, x-aligned, stacked boxes into vertical columns; wide lines
 // and isolated boxes come back as `singles` to read normally. So `vertical` ADDS
 // column reading without disturbing horizontal reads.
@@ -848,7 +862,7 @@ export async function createOCR(
           const { text, conf } = recognizeQuad(recCtx, recSrc, o);
           push(text, conf, o, nowMs() - boxStart);
         }
-        return { detections };
+        return { detections: orderDetections(detections) };
       }
 
       // Additive vertical pass: read x-aligned stacked glyph boxes as one joined
@@ -869,7 +883,7 @@ export async function createOCR(
         const { text, conf, stacked } = readBoxVertical(recCtx, vctx, recSrc, o, quadSize(o));
         (stacked ? pushVertical : push)(text, conf, o, nowMs() - boxStart);
       }
-      return { detections };
+      return { detections: orderDetections(detections) };
     } finally {
       tInputRaw.dispose();
       tRecImage.dispose();
