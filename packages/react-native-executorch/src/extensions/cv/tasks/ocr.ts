@@ -20,6 +20,7 @@ import {
   type ColorConversionCode,
   type CraftExtractOptions,
   type DbnetExtractOptions,
+  type Quad,
 } from '../ops/image';
 import {
   buildCharset,
@@ -49,9 +50,11 @@ export type { Buckets } from './ocrHelpers';
 export type OCROptions = {
   /**
    * Detector architecture — selects the box decoder (CRAFT heatmap grouping vs
-   * DBNet prob-map) and the default drop score. A new architecture adds a variant.
+   * DBNet prob-map) and the default drop score. Use `'custom'` for any other
+   * architecture and supply {@link OCROptions.extractBoxes} to turn the raw
+   * detector output into quads in TypeScript.
    */
-  readonly detectorKind: 'craft' | 'dbnet';
+  readonly detectorKind: 'craft' | 'dbnet' | 'custom';
   /**
    * The model's static input-size buckets. The pipeline snaps each image to the
    * closest `detect`/`recognize` bucket and calls the matching per-size method
@@ -65,6 +68,16 @@ export type OCROptions = {
   readonly charset: string | readonly string[];
   /** Drop detections below this confidence. Defaults per detector architecture. */
   readonly dropScore?: number;
+  /**
+   * Custom detector post-processing, required when `detectorKind === 'custom'`.
+   * Receives the raw `detect_<S>` output tensors (the model's declared outputs,
+   * in order — shapes read from the PTE, allocated for you) and the snapped
+   * square side `s`, and returns oriented quads in DETECTOR space (the `s × s`
+   * letterboxed input); the pipeline maps them to image pixels and applies
+   * dropScore. Ignored for the built-in kinds. MUST be a worklet — it runs on
+   * the pipeline's worklet thread.
+   */
+  readonly extractBoxes?: (outputs: readonly Tensor[], s: number) => Quad[];
   /**
    * Recognizer input normalization, applied after the warp as `x·alpha + beta`
    * (scalar, or per-RGB-channel `[r,g,b]`). Defaults to `(x/255 − 0.5)/0.5` →
@@ -124,7 +137,11 @@ export type RunOCROptions = {
 // Everything else is shared — detector input is raw RGB /255 (mean/std baked in),
 // the recognizer is RGB with constant-128 left padding, both heads emit softmaxed
 // probabilities, and confidence is the mean of per-character max-probs.
-const DEFAULT_DROP_SCORE: Record<'craft' | 'dbnet', number> = { craft: 0, dbnet: 0.5 };
+const DEFAULT_DROP_SCORE: Record<'craft' | 'dbnet' | 'custom', number> = {
+  craft: 0,
+  dbnet: 0.5,
+  custom: 0,
+};
 
 /**
  * Model configuration required to instantiate an OCR task runner. One fused PTE
@@ -214,8 +231,9 @@ type DetSet = {
   readonly tCF: Tensor; // [3, s, s]
   readonly tNorm: Tensor; // [3, s, s]
   readonly tInput: Tensor; // [1, 3, s, s]
-  readonly tHeatmap: Tensor; // dbnet [1,1,s,s] | craft [1, s/2, s/2, 2]
-  readonly tExtras: readonly Tensor[]; // craft extras at half-res
+  // The detector's output tensors (dbnet prob-map / craft heatmap+extras / a
+  // custom arch's raw outputs); the built-in decoder reads tOutputs[0].
+  readonly tOutputs: readonly Tensor[];
 };
 
 // Everything the detector pass needs, bundled so it can run both on the full
@@ -226,7 +244,10 @@ type DetectContext = {
   readonly format: ImageFormat;
   readonly numChannels: number;
   readonly detCode: ColorConversionCode | null;
-  readonly extractOpts: DetectorExtractConfig;
+  // Built-in decode config (craft/dbnet); undefined when a custom extractor is used.
+  readonly extractOpts?: DetectorExtractConfig;
+  // Custom TS box extractor for detectorKind 'custom'; takes precedence when set.
+  readonly extractBoxes?: (outputs: readonly Tensor[], s: number) => Quad[];
   readonly detSets: ReadonlyMap<number, DetSet>;
 };
 
@@ -254,14 +275,18 @@ function detectQuads(
       .through(normalize, ds.tNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
       .copyTo(ds.tInput);
 
-    ctx.model.execute(`detect_${detS}`, [ds.tInput], [ds.tHeatmap, ...ds.tExtras]);
-    // CRAFT needs the per-run input height to restore its half-res boxes;
-    // `charLevel` switches it to per-glyph (ungrouped) boxes for a column pass.
-    const extractOpts =
-      ctx.extractOpts.mode === 'craft'
-        ? { ...ctx.extractOpts, targetHeight: detS, charLevel }
-        : ctx.extractOpts;
-    const quads = extractTextBoxes(ds.tHeatmap, extractOpts);
+    ctx.model.execute(`detect_${detS}`, [ds.tInput], [...ds.tOutputs]);
+    // A custom arch hands its raw outputs to the user extractor; the built-ins
+    // decode the heatmap (tOutputs[0]). CRAFT needs the per-run input height to
+    // restore its half-res boxes; `charLevel` switches to per-glyph boxes.
+    const quads = ctx.extractBoxes
+      ? ctx.extractBoxes(ds.tOutputs, detS)
+      : extractTextBoxes(
+          ds.tOutputs[0]!,
+          ctx.extractOpts!.mode === 'craft'
+            ? { ...ctx.extractOpts!, targetHeight: detS, charLevel }
+            : ctx.extractOpts!
+        );
     return quads.map((q) => mapQuadToImage(q, detS, detS, width, height));
   } finally {
     tDetResize.dispose();
@@ -653,23 +678,34 @@ function readBoxVertical(
 // tensors; the per-run source-resize tensor is allocated in detectQuads). Mirrors
 // buildRecognizerSets — runs at construction.
 function buildDetectorSets(
+  model: Model,
   detBuckets: readonly number[],
-  detectorKind: 'craft' | 'dbnet',
+  detectorKind: 'craft' | 'dbnet' | 'custom',
   detExtraChannels: readonly number[]
 ): DetSet[] {
   return detBuckets.map((s) => {
     const heat = s / 2;
+    // Custom archs declare arbitrary outputs — size them straight from the PTE's
+    // method metadata. Built-ins keep their known heatmap (+ craft extras) shapes.
+    let tOutputs: Tensor[];
+    if (detectorKind === 'custom') {
+      tOutputs = model
+        .getMethodMeta(`detect_${s}`)
+        .outputTensorMeta.map((m) => tensor(m.dtype, m.shape));
+    } else {
+      const tHeatmap =
+        detectorKind === 'dbnet'
+          ? tensor('float32', [1, 1, s, s])
+          : tensor('float32', [1, heat, heat, 2]);
+      tOutputs = [tHeatmap, ...detExtraChannels.map((c) => tensor('float32', [1, c, heat, heat]))];
+    }
     return {
       s,
       tColor: tensor('uint8', [s, s, 3]),
       tCF: tensor('uint8', [3, s, s]),
       tNorm: tensor('float32', [3, s, s]),
       tInput: tensor('float32', [1, 3, s, s]),
-      tHeatmap:
-        detectorKind === 'dbnet'
-          ? tensor('float32', [1, 1, s, s])
-          : tensor('float32', [1, heat, heat, 2]),
-      tExtras: detExtraChannels.map((c) => tensor('float32', [1, c, heat, heat])),
+      tOutputs,
     };
   });
 }
@@ -764,8 +800,7 @@ export async function createOCR(
       d.tCF.dispose();
       d.tNorm.dispose();
       d.tInput.dispose();
-      d.tHeatmap.dispose();
-      d.tExtras.forEach((t) => t.dispose());
+      d.tOutputs.forEach((t) => t.dispose());
     });
   try {
     if (detBuckets.length === 0 || recBuckets.length === 0) {
@@ -773,28 +808,46 @@ export async function createOCR(
         'OCR: buckets.detect and buckets.recognize must each list at least one size.'
       );
     }
-    // Detector buckets feed a half-resolution CRAFT heatmap, so every side must be even.
-    if (detBuckets.some((s) => s % 2 !== 0)) {
-      throw new Error('OCR: every detect bucket side must be even (half-resolution heatmap).');
+    // CRAFT's half-resolution heatmap needs even detect-bucket sides.
+    if (ocrOpts.detectorKind === 'craft' && detBuckets.some((s) => s % 2 !== 0)) {
+      throw new Error(
+        'OCR: every CRAFT detect bucket side must be even (half-resolution heatmap).'
+      );
     }
-    // Validate every detect bucket (heatmap layout is constant across sizes); keep
-    // the largest bucket's meta for the constant extra-output channels.
     const detInSpec = [SymbolicTensor('float32', [1, 3, 'H', 'W'])];
-    const detOutSpec =
-      ocrOpts.detectorKind === 'dbnet'
-        ? [SymbolicTensor('float32', [1, 1, 'H', 'W'], [1, 'H', 'W'], ['H', 'W'])]
-        : [
-            SymbolicTensor('float32', [1, 'H', 'W', 2], ['H', 'W', 2]),
-            SymbolicTensor('float32', [1, 'C', 'fH', 'fW']),
-          ];
-    const detMeta = validateModelSchema(
-      model,
-      `detect_${detBuckets[detBuckets.length - 1]}`,
-      detInSpec,
-      detOutSpec
-    );
-    for (let i = 0; i < detBuckets.length - 1; i++) {
-      validateModelSchema(model, `detect_${detBuckets[i]}`, detInSpec, detOutSpec);
+    if (ocrOpts.detectorKind === 'custom') {
+      if (!ocrOpts.extractBoxes) {
+        throw new Error("OCR: detectorKind 'custom' requires an extractBoxes worklet.");
+      }
+      // Outputs are arbitrary (read from metadata, handed to extractBoxes); only
+      // the shared RGB input contract is enforced. getMethodMeta throws if missing.
+      for (const s of detBuckets) {
+        const inShape = model.getMethodMeta(`detect_${s}`).inputTensorMeta[0]?.shape;
+        if (!inShape || inShape.length !== 4 || inShape[1] !== 3) {
+          throw new Error(`OCR: detect_${s} must take a [1, 3, ${s}, ${s}] RGB input.`);
+        }
+      }
+    } else {
+      // Validate every detect bucket against the architecture's output spec; keep
+      // the largest bucket's meta for the constant CRAFT extra-output channels.
+      const detOutSpec =
+        ocrOpts.detectorKind === 'dbnet'
+          ? [SymbolicTensor('float32', [1, 1, 'H', 'W'], [1, 'H', 'W'], ['H', 'W'])]
+          : [
+              SymbolicTensor('float32', [1, 'H', 'W', 2], ['H', 'W', 2]),
+              SymbolicTensor('float32', [1, 'C', 'fH', 'fW']),
+            ];
+      const detMeta = validateModelSchema(
+        model,
+        `detect_${detBuckets[detBuckets.length - 1]}`,
+        detInSpec,
+        detOutSpec
+      );
+      for (let i = 0; i < detBuckets.length - 1; i++) {
+        validateModelSchema(model, `detect_${detBuckets[i]}`, detInSpec, detOutSpec);
+      }
+      // CRAFT's extra outputs (feature map) at half resolution; keep the channel counts.
+      detExtraChannels = detMeta.outputTensorMeta.slice(1).map((t) => t.shape[1]!);
     }
 
     const built = buildRecognizerSets(model, recBuckets);
@@ -812,9 +865,7 @@ export async function createOCR(
         `OCR: charset size (${charset.length}, incl. blank) must match recognizer output vocab (${built.vocabSize}).`
       );
     }
-    // CRAFT's extra outputs (feature map) at half resolution; keep the channel counts.
-    detExtraChannels = detMeta.outputTensorMeta.slice(1).map((t) => t.shape[1]!);
-    detSets = buildDetectorSets(detBuckets, ocrOpts.detectorKind, detExtraChannels);
+    detSets = buildDetectorSets(model, detBuckets, ocrOpts.detectorKind, detExtraChannels);
     detSetByS = new Map(detSets.map((d) => [d.s, d]));
   } catch (e) {
     recSets.forEach((s) => {
@@ -829,24 +880,26 @@ export async function createOCR(
     throw e;
   }
 
-  // The extractTextBoxes mode matches detectorKind ('craft'/'dbnet').
-  const extractOpts: DetectorExtractConfig =
-    ocrOpts.detectorKind === 'dbnet'
-      ? {
-          mode: 'dbnet',
-          binThreshold: DBNET_BIN_THRESHOLD,
-          boxThreshold: DBNET_BOX_THRESHOLD,
-          unclipRatio: DBNET_UNCLIP_RATIO,
-          minBoxSide: DBNET_MIN_BOX_SIDE,
-          maxCandidates: DBNET_MAX_CANDIDATES,
-          applySigmoid: APPLY_SIGMOID,
-        }
-      : {
-          mode: 'craft',
-          textThreshold: CRAFT_TEXT_THRESHOLD,
-          linkThreshold: CRAFT_LINK_THRESHOLD,
-          lowTextThreshold: CRAFT_LOW_TEXT_THRESHOLD,
-        };
+  // Built-in box-decode config (custom archs decode in TS via extractBoxes instead).
+  const extractOpts: DetectorExtractConfig | undefined =
+    ocrOpts.detectorKind === 'custom'
+      ? undefined
+      : ocrOpts.detectorKind === 'dbnet'
+        ? {
+            mode: 'dbnet',
+            binThreshold: DBNET_BIN_THRESHOLD,
+            boxThreshold: DBNET_BOX_THRESHOLD,
+            unclipRatio: DBNET_UNCLIP_RATIO,
+            minBoxSide: DBNET_MIN_BOX_SIDE,
+            maxCandidates: DBNET_MAX_CANDIDATES,
+            applySigmoid: APPLY_SIGMOID,
+          }
+        : {
+            mode: 'craft',
+            textThreshold: CRAFT_TEXT_THRESHOLD,
+            linkThreshold: CRAFT_LINK_THRESHOLD,
+            lowTextThreshold: CRAFT_LOW_TEXT_THRESHOLD,
+          };
 
   const dispose = () => {
     recSets.forEach((s) => {
@@ -893,6 +946,7 @@ export async function createOCR(
       numChannels,
       detCode: rgbCode,
       extractOpts,
+      extractBoxes: ocrOpts.extractBoxes,
       detSets: detSetByS,
     };
 
