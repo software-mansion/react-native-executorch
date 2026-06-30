@@ -90,6 +90,12 @@ export type RunDocumentOCROptions = {
   readonly dewarp?: boolean;
 };
 
+// Minimum orientation-classifier confidence (softmax of the argmax class) to act
+// on a non-zero rotation. Mirrors PaddleOCR's pipeline gate: out-of-distribution
+// inputs (photos, non-documents) produce low-confidence argmaxes that spuriously
+// flip the page, so below this we treat the page as already upright (0°).
+const ORIENTATION_MIN_CONFIDENCE = 0.7;
+
 const isTableLabel = (label: unknown): boolean => {
   'worklet';
   return String(label) === 'table';
@@ -179,9 +185,12 @@ export async function createDocumentOCR<L>(
     const useDewarp = !!supporting && (options?.dewarp ?? defaultDewarp);
     let img = input;
     if (useOrientation && supporting) {
-      const rot = supporting.detectOrientationWorklet(img).rotationCW;
-      if (rot !== 0) {
-        img = rotateImageBuffer(img, ((360 - rot) % 360) as 0 | 90 | 180 | 270);
+      // Only correct when the classifier is confident AND the predicted angle is
+      // non-zero — a low-confidence argmax (typical of OOD photos / non-documents)
+      // otherwise spuriously flips the page. Below threshold we leave it as 0°.
+      const ori = supporting.detectOrientationWorklet(img);
+      if (ori.rotationCW !== 0 && ori.confidence >= ORIENTATION_MIN_CONFIDENCE) {
+        img = rotateImageBuffer(img, ((360 - ori.rotationCW) % 360) as 0 | 90 | 180 | 270);
       }
     }
     if (useDewarp && supporting) {
