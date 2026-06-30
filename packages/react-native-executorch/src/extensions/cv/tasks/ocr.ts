@@ -204,17 +204,30 @@ function toRgbCode(format: ImageFormat): ColorConversionCode | null {
 // Stored at construction; CRAFT's `targetHeight` is per-run, so detectQuads adds it.
 type DetectorExtractConfig = Omit<CraftExtractOptions, 'targetHeight'> | DbnetExtractOptions;
 
+// Per-detect-bucket scratch tensors, allocated once at construction (like RecSet)
+// and reused across the page pass and per-box re-detects. Only the source-resize
+// tensor depends on the run's input channel count, so detectQuads allocates that
+// one per call and reuses the rest from here.
+type DetSet = {
+  readonly s: number;
+  readonly tColor: Tensor; // [s, s, 3]
+  readonly tCF: Tensor; // [3, s, s]
+  readonly tNorm: Tensor; // [3, s, s]
+  readonly tInput: Tensor; // [1, 3, s, s]
+  readonly tHeatmap: Tensor; // dbnet [1,1,s,s] | craft [1, s/2, s/2, 2]
+  readonly tExtras: readonly Tensor[]; // craft extras at half-res
+};
+
 // Everything the detector pass needs, bundled so it can run both on the full
 // page and (for vertical text) on a single box crop to find its characters.
 type DetectContext = {
   readonly model: Model;
-  readonly detectorKind: 'craft' | 'dbnet';
   readonly detBuckets: readonly number[];
   readonly format: ImageFormat;
   readonly numChannels: number;
   readonly detCode: ColorConversionCode | null;
   readonly extractOpts: DetectorExtractConfig;
-  readonly detExtraChannels: readonly number[];
+  readonly detSets: ReadonlyMap<number, DetSet>;
 };
 
 // Detects text boxes in `src` (uint8 [H,W,numChannels], native `format`) and
@@ -229,45 +242,29 @@ function detectQuads(
 ): Point[][] {
   'worklet';
   const detS = snapDetectBucket(width, height, ctx.detBuckets);
-  // CRAFT heatmap is half-resolution; detector buckets are validated even.
-  const heat = detS / 2;
-
+  // snapDetectBucket always returns one of detBuckets, so the set exists.
+  const ds = ctx.detSets.get(detS)!;
+  // Only the source resize depends on the run's channel count; the rest is cached.
   const tDetResize = tensor('uint8', [detS, detS, ctx.numChannels]);
-  const tDetColor = tensor('uint8', [detS, detS, 3]);
-  const tDetCF = tensor('uint8', [3, detS, detS]);
-  const tDetNorm = tensor('float32', [3, detS, detS]);
-  const tDetInput = tensor('float32', [1, 3, detS, detS]);
-  // CRAFT: half-res [1,S/2,S/2,2] heatmap; DBNet: full-res [1,1,S,S] prob map.
-  const tHeatmap =
-    ctx.detectorKind === 'dbnet'
-      ? tensor('float32', [1, 1, detS, detS])
-      : tensor('float32', [1, heat, heat, 2]);
-  const tDetExtras = ctx.detExtraChannels.map((c) => tensor('float32', [1, c, heat, heat]));
   try {
     src
       .through(resize, tDetResize, { mode: 'letterbox', interpolation: 'area', padValue: 0 })
-      .throughIf(ctx.detCode !== null, cvtColor, tDetColor, ctx.detCode!)
-      .through(toChannelsFirst, tDetCF)
-      .through(normalize, tDetNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
-      .copyTo(tDetInput);
+      .throughIf(ctx.detCode !== null, cvtColor, ds.tColor, ctx.detCode!)
+      .through(toChannelsFirst, ds.tCF)
+      .through(normalize, ds.tNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
+      .copyTo(ds.tInput);
 
-    ctx.model.execute(`detect_${detS}`, [tDetInput], [tHeatmap, ...tDetExtras]);
+    ctx.model.execute(`detect_${detS}`, [ds.tInput], [ds.tHeatmap, ...ds.tExtras]);
     // CRAFT needs the per-run input height to restore its half-res boxes;
     // `charLevel` switches it to per-glyph (ungrouped) boxes for a column pass.
     const extractOpts =
       ctx.extractOpts.mode === 'craft'
         ? { ...ctx.extractOpts, targetHeight: detS, charLevel }
         : ctx.extractOpts;
-    const quads = extractTextBoxes(tHeatmap, extractOpts);
+    const quads = extractTextBoxes(ds.tHeatmap, extractOpts);
     return quads.map((q) => mapQuadToImage(q, detS, detS, width, height));
   } finally {
     tDetResize.dispose();
-    tDetColor.dispose();
-    tDetCF.dispose();
-    tDetNorm.dispose();
-    tDetInput.dispose();
-    tHeatmap.dispose();
-    tDetExtras.forEach((t) => t.dispose());
   }
 }
 
@@ -652,6 +649,31 @@ function readBoxVertical(
   return { ...recognizeQuad(recCtx, pageSrc, ordered), stacked: false };
 }
 
+// Pre-allocates one detector scratch-set per detect bucket (channel-independent
+// tensors; the per-run source-resize tensor is allocated in detectQuads). Mirrors
+// buildRecognizerSets — runs at construction.
+function buildDetectorSets(
+  detBuckets: readonly number[],
+  detectorKind: 'craft' | 'dbnet',
+  detExtraChannels: readonly number[]
+): DetSet[] {
+  return detBuckets.map((s) => {
+    const heat = s / 2;
+    return {
+      s,
+      tColor: tensor('uint8', [s, s, 3]),
+      tCF: tensor('uint8', [3, s, s]),
+      tNorm: tensor('float32', [3, s, s]),
+      tInput: tensor('float32', [1, 3, s, s]),
+      tHeatmap:
+        detectorKind === 'dbnet'
+          ? tensor('float32', [1, 1, s, s])
+          : tensor('float32', [1, heat, heat, 2]),
+      tExtras: detExtraChannels.map((c) => tensor('float32', [1, c, heat, heat])),
+    };
+  });
+}
+
 // Pre-allocates one recognizer tensor-set per width bucket (each `recognize_<W>`
 // validated once) and derives the constant channel/height/vocab contract from the
 // first bucket. Kept out of the task factory; runs at construction.
@@ -734,6 +756,17 @@ export async function createOCR(
   let charset: string[] = [];
   let recSetByWidth: ReadonlyMap<number, RecSet> = new Map();
   let detExtraChannels: number[] = [];
+  let detSets: DetSet[] = [];
+  let detSetByS: ReadonlyMap<number, DetSet> = new Map();
+  const disposeDetSets = () =>
+    detSets.forEach((d) => {
+      d.tColor.dispose();
+      d.tCF.dispose();
+      d.tNorm.dispose();
+      d.tInput.dispose();
+      d.tHeatmap.dispose();
+      d.tExtras.forEach((t) => t.dispose());
+    });
   try {
     if (detBuckets.length === 0 || recBuckets.length === 0) {
       throw new Error(
@@ -781,6 +814,8 @@ export async function createOCR(
     }
     // CRAFT's extra outputs (feature map) at half resolution; keep the channel counts.
     detExtraChannels = detMeta.outputTensorMeta.slice(1).map((t) => t.shape[1]!);
+    detSets = buildDetectorSets(detBuckets, ocrOpts.detectorKind, detExtraChannels);
+    detSetByS = new Map(detSets.map((d) => [d.s, d]));
   } catch (e) {
     recSets.forEach((s) => {
       s.tCanvas.dispose();
@@ -789,6 +824,7 @@ export async function createOCR(
       s.tInput.dispose();
       s.tLogits.dispose();
     });
+    disposeDetSets();
     model.dispose();
     throw e;
   }
@@ -820,6 +856,7 @@ export async function createOCR(
       s.tInput.dispose();
       s.tLogits.dispose();
     });
+    disposeDetSets();
     model.dispose();
   };
 
@@ -851,13 +888,12 @@ export async function createOCR(
     // Detector state, reused for the page pass and the per-box character pass.
     const detCtx: DetectContext = {
       model,
-      detectorKind: ocrOpts.detectorKind,
       detBuckets,
       format,
       numChannels,
       detCode: rgbCode,
       extractOpts,
-      detExtraChannels,
+      detSets: detSetByS,
     };
 
     const tInputRaw = tensor('uint8', [height, width, numChannels]);
