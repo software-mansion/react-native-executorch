@@ -65,6 +65,29 @@ export type OCROptions = {
   readonly charset: string | readonly string[];
   /** Drop detections below this confidence. Defaults per detector architecture. */
   readonly dropScore?: number;
+  /**
+   * Recognizer input normalization, applied after the warp as `x·alpha + beta`
+   * (scalar, or per-RGB-channel `[r,g,b]`). Defaults to `(x/255 − 0.5)/0.5` →
+   * `[−1,1]` (`alpha = 1/127.5`, `beta = −1`), the SVTR/CRNN convention. Override
+   * for a recognizer trained with different normalization (e.g. ImageNet).
+   */
+  readonly recognizerNorm?: {
+    readonly alpha: number | readonly number[];
+    readonly beta: number | readonly number[];
+  };
+  /** Fill value for the recognizer canvas padding. Defaults to 128 (neutral gray). */
+  readonly recognizerPadValue?: number;
+  /**
+   * Custom recognizer decode, replacing the built-in greedy CTC. Receives the
+   * raw `recognize_<W>` output tensor (shape `[1, T, V]`, softmaxed per the
+   * contract) and the charset, and returns the recognized text plus a confidence
+   * in `[0,1]`. Use for non-CTC heads (attention/AR decoders) or custom scoring.
+   * MUST be a worklet — it runs on the pipeline's worklet thread.
+   */
+  readonly decode?: (
+    logits: Tensor,
+    charset: readonly string[]
+  ) => { readonly text: string; readonly confidence: number };
 };
 
 /**
@@ -267,6 +290,15 @@ type RecContext = {
   readonly recBuckets: readonly number[];
   readonly recH: number;
   readonly charset: string[];
+  // Per-model recognizer normalization / pad (resolved from OCROptions defaults).
+  readonly normAlpha: number | readonly number[];
+  readonly normBeta: number | readonly number[];
+  readonly padValue: number;
+  // Optional custom decode; falls back to greedy CTC when absent.
+  readonly decode?: (
+    logits: Tensor,
+    charset: readonly string[]
+  ) => { readonly text: string; readonly confidence: number };
 };
 
 // Recognizes one ordered (TL,TR,BR,BL) quad from `src`: snap content width to a
@@ -288,14 +320,19 @@ function recognizeQuad(
     contentWidth,
     align: 'left',
     padMode: 'constant',
-    padValue: RECOGNIZER_PAD_VALUE,
+    padValue: ctx.padValue,
   });
   rs.tCanvas
     .through(toChannelsFirst, rs.tCF)
-    .through(normalize, rs.tNorm, { alpha: RECOGNIZER_ALPHA, beta: RECOGNIZER_BETA })
+    .through(normalize, rs.tNorm, { alpha: ctx.normAlpha, beta: ctx.normBeta })
     .copyTo(rs.tInput);
   ctx.model.execute(`recognize_${bucketW}`, [rs.tInput], [rs.tLogits]);
-  // Both heads emit probabilities (CRNN softmax baked, SVTR pre-softmaxed).
+  // A custom decode (e.g. attention/AR head) takes the raw logits; otherwise
+  // greedy CTC. Both heads emit probabilities (CRNN softmax baked, SVTR pre-softmaxed).
+  if (ctx.decode) {
+    const r = ctx.decode(rs.tLogits, ctx.charset);
+    return { text: r.text, conf: r.confidence };
+  }
   const { indices, values } = ctcGreedyDecode(rs.tLogits, { softmax: false });
   const text = decodeGreedy(indices, ctx.charset);
   const conf = ctcConfidence(values, indices);
@@ -378,7 +415,7 @@ function recognizeGlyphStrip(
         contentWidth: gw,
         align: 'left',
         padMode: 'constant',
-        padValue: RECOGNIZER_PAD_VALUE,
+        padValue: recCtx.padValue,
       });
       slices.push({ tGlyph, w: gw });
       totalW += gw;
@@ -396,7 +433,7 @@ function recognizeGlyphStrip(
     const rs = recCtx.recSetByWidth.get(bucketW)!;
     // Assemble the strip row-major into the bucket canvas, neutral-padded.
     const strip = new Uint8Array(recH * bucketW * recC);
-    strip.fill(RECOGNIZER_PAD_VALUE);
+    strip.fill(recCtx.padValue);
     let xOff = 0;
     for (const s of slices) {
       if (xOff >= bucketW) {
@@ -415,9 +452,13 @@ function recognizeGlyphStrip(
     rs.tCanvas.setData(strip);
     rs.tCanvas
       .through(toChannelsFirst, rs.tCF)
-      .through(normalize, rs.tNorm, { alpha: RECOGNIZER_ALPHA, beta: RECOGNIZER_BETA })
+      .through(normalize, rs.tNorm, { alpha: recCtx.normAlpha, beta: recCtx.normBeta })
       .copyTo(rs.tInput);
     recCtx.model.execute(`recognize_${bucketW}`, [rs.tInput], [rs.tLogits]);
+    if (recCtx.decode) {
+      const r = recCtx.decode(rs.tLogits, recCtx.charset);
+      return r.text.length > 0 ? { text: r.text, conf: r.confidence } : null;
+    }
     const { indices, values } = ctcGreedyDecode(rs.tLogits, { softmax: false });
     const text = decodeGreedy(indices, recCtx.charset);
     const conf = ctcConfidence(values, indices);
@@ -667,6 +708,12 @@ export async function createOCR(
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const dropScore = ocrOpts.dropScore ?? DEFAULT_DROP_SCORE[ocrOpts.detectorKind];
+  // Recognizer normalization / pad / decode — defaults preserve the SVTR/CRNN
+  // contract; OCROptions can override per model (see RecContext).
+  const recNormAlpha = ocrOpts.recognizerNorm?.alpha ?? RECOGNIZER_ALPHA;
+  const recNormBeta = ocrOpts.recognizerNorm?.beta ?? RECOGNIZER_BETA;
+  const recPadValue = ocrOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE;
+  const recDecode = ocrOpts.decode;
 
   const detBuckets = ocrOpts.buckets.detect;
   const recBuckets = ocrOpts.buckets.recognize;
@@ -824,6 +871,10 @@ export async function createOCR(
         recBuckets,
         recH,
         charset,
+        normAlpha: recNormAlpha,
+        normBeta: recNormBeta,
+        padValue: recPadValue,
+        decode: recDecode,
       };
       // The vertical path crops each box from the raw page and re-detects its
       // characters; `recCode`/`recC` convert a box crop to RGB.
