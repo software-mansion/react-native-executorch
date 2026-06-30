@@ -107,6 +107,11 @@ export function mapQuadToImage(
  */
 export function orderQuad(pts: readonly Point[]): Point[] {
   'worklet';
+  // The x±y-extreme ordering below assumes exactly four corners; for any other
+  // count return a copy unchanged rather than indexing out of range.
+  if (pts.length !== 4) {
+    return [...pts];
+  }
   let tl = 0;
   let tr = 0;
   let br = 0;
@@ -170,6 +175,9 @@ type ReadingBox = { xmin: number; ymin: number; xmax: number; ymax: number };
 // plugin captures it (a referenced worklet must precede its caller in source order).
 function bboxOfQuad(quad: readonly Point[]): ReadingBox {
   'worklet';
+  if (quad.length === 0) {
+    return { xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
+  }
   let xmin = Infinity;
   let ymin = Infinity;
   let xmax = -Infinity;

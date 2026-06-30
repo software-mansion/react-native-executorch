@@ -515,6 +515,14 @@ function readStackedColumn(
 // Bounding axis-aligned quad (TL,TR,BR,BL) enclosing a set of quads.
 function boundingQuadOf(quads: readonly (readonly Point[])[]): Point[] {
   'worklet';
+  if (quads.length === 0) {
+    return [
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ];
+  }
   let xmin = Infinity;
   let ymin = Infinity;
   let xmax = -Infinity;

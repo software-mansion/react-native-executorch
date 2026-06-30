@@ -1,7 +1,7 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
-import { scalePoint, type Point } from './points';
+import { scalePoint, resizeFactors, type Point } from './points';
 
 /**
  * Mapping of bounding box formats to their coordinate representations.
@@ -73,22 +73,7 @@ export function scaleBox<F extends BoxFormat>(
   }
 ): BoundingBox<F> {
   'worklet';
-  const { from, to, resizeMode } = opts;
-
-  let scaleX: number;
-  let scaleY: number;
-  switch (resizeMode) {
-    case 'letterbox': {
-      const scale = Math.min(from.width / to.width, from.height / to.height);
-      scaleX = scale;
-      scaleY = scale;
-      break;
-    }
-    case 'stretch':
-      scaleX = from.width / to.width;
-      scaleY = from.height / to.height;
-      break;
-  }
+  const { scaleX, scaleY } = resizeFactors(opts.from, opts.to, opts.resizeMode);
 
   switch (box.format) {
     case 'xyxy': {
@@ -134,6 +119,9 @@ export function scaleBox<F extends BoxFormat>(
  */
 export function boundingBoxOf(points: readonly Point[]): BoundingBox<'xyxy'> {
   'worklet';
+  if (points.length === 0) {
+    return { format: 'xyxy', xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
+  }
   let xmin = Infinity;
   let ymin = Infinity;
   let xmax = -Infinity;
