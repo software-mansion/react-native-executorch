@@ -93,8 +93,10 @@ export type RunDocumentOCROptions = {
 // Minimum orientation-classifier confidence (softmax of the argmax class) to act
 // on a non-zero rotation. Mirrors PaddleOCR's pipeline gate: out-of-distribution
 // inputs (photos, non-documents) produce low-confidence argmaxes that spuriously
-// flip the page, so below this we treat the page as already upright (0°).
-const ORIENTATION_MIN_CONFIDENCE = 0.7;
+// flip the page, so below this we treat the page as already upright (0°). Set high
+// (0.85) — genuine documents score >0.95, leaving margin to reject OOD frames that
+// can still land ~0.74.
+const ORIENTATION_MIN_CONFIDENCE = 0.85;
 
 const isTableLabel = (label: unknown): boolean => {
   'worklet';
