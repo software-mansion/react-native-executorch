@@ -120,6 +120,21 @@ export interface Model {
   execute(methodName: string, inputs: ModelInput[], outputTensors: Tensor[]): ModelOutput[];
 
   /**
+   * Unloads a single previously-executed method, freeing its memory-planned
+   * activation arena (and, on graph-compiling backends like CoreML, its
+   * compiled graph). The method transparently reloads on its next `execute`.
+   *
+   * Use this to bound native memory when many distinct methods are executed
+   * over a session — e.g. bucketed OCR, where each `detect_<S>`/`recognize_<W>`
+   * size that is ever run would otherwise stay resident for the model's
+   * lifetime.
+   * @param methodName The exported method to unload.
+   * @returns `true` if a loaded method was freed, `false` if it was not loaded
+   * (a harmless no-op).
+   */
+  unloadMethod(methodName: string): boolean;
+
+  /**
    * Releases the native ExecuTorch model and frees all associated resources.
    *
    * After calling `dispose`, this model instance must not be used again.

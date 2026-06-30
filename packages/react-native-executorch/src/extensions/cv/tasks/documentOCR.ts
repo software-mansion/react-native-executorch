@@ -55,16 +55,37 @@ export type DocumentResult<L> = {
  * Configuration for the document OCR orchestrator. Provides an OCR model, an
  * optional layout model (regions/blocks), and an optional supporting model
  * (orientation/dewarp pre-processing + table-structure recognition). The
- * `orientation`/`dewarp` flags gate those pre-processing passes.
+ * `orientation`/`dewarp` flags are *defaults* for the per-run options of the
+ * same name — supply them here to bias every run, or leave them off and pass
+ * them to `runDocumentOCR` per call (the supporting model is loaded either way).
  * @category Types
  */
 export type DocumentOCRModel<L> = {
   readonly ocr: OCRModel;
   readonly layout?: ObjectDetectorModel<'xyxy', L>;
   readonly supporting?: SupportingModel;
-  /** Detect + correct page orientation before OCR (needs `supporting`). */
+  /** Default for the per-run `orientation` option (needs `supporting`). */
   readonly orientation?: boolean;
-  /** Geometrically dewarp the page before OCR (needs `supporting`). */
+  /** Default for the per-run `dewarp` option (needs `supporting`). */
+  readonly dewarp?: boolean;
+};
+
+/**
+ * Per-run document options (passed to `runDocumentOCR`, not baked into the
+ * model — toggling them needs no reload). Each pre-processing pass still
+ * requires the supporting model to have been loaded (`config.supporting`).
+ * @category Types
+ */
+export type RunDocumentOCROptions = {
+  /**
+   * Detect + correct page orientation before OCR. No-op without a loaded
+   * supporting model. Defaults to the model's `config.orientation`.
+   */
+  readonly orientation?: boolean;
+  /**
+   * Geometrically dewarp the page before OCR. No-op without a loaded supporting
+   * model. Defaults to the model's `config.dewarp`.
+   */
   readonly dewarp?: boolean;
 };
 
@@ -133,16 +154,21 @@ export async function createDocumentOCR<L>(
   runtime?: WorkletRuntime
 ): Promise<{
   dispose: () => void;
-  runDocumentOCR: (input: ImageBuffer) => Promise<DocumentResult<L>>;
-  runDocumentOCRWorklet: (input: ImageBuffer) => DocumentResult<L>;
+  runDocumentOCR: (
+    input: ImageBuffer,
+    options?: RunDocumentOCROptions
+  ) => Promise<DocumentResult<L>>;
+  runDocumentOCRWorklet: (input: ImageBuffer, options?: RunDocumentOCROptions) => DocumentResult<L>;
 }> {
   const ocr = await createOCR(config.ocr, runtime);
   const layout = config.layout
     ? await createObjectDetector<'xyxy', L>(config.layout, runtime)
     : null;
   const supporting = config.supporting ? await createSupporting(config.supporting, runtime) : null;
-  const useOrientation = !!supporting && !!config.orientation;
-  const useDewarp = !!supporting && !!config.dewarp;
+  // Per-run orientation/dewarp default to the model's config flags; both are
+  // no-ops without a loaded supporting model.
+  const defaultOrientation = !!config.orientation;
+  const defaultDewarp = !!config.dewarp;
 
   const dispose = () => {
     ocr.dispose();
@@ -150,8 +176,13 @@ export async function createDocumentOCR<L>(
     supporting?.dispose();
   };
 
-  const runDocumentOCRWorklet = (input: ImageBuffer): DocumentResult<L> => {
+  const runDocumentOCRWorklet = (
+    input: ImageBuffer,
+    options?: RunDocumentOCROptions
+  ): DocumentResult<L> => {
     'worklet';
+    const useOrientation = !!supporting && (options?.orientation ?? defaultOrientation);
+    const useDewarp = !!supporting && (options?.dewarp ?? defaultDewarp);
     let img = input;
     if (useOrientation && supporting) {
       const rot = supporting.detectOrientationWorklet(img).rotationCW;
@@ -163,50 +194,63 @@ export async function createDocumentOCR<L>(
       img = supporting.dewarpWorklet(img);
     }
 
-    // Mode A — no layout: OCR the whole page into one block.
-    if (!layout) {
-      const detections = ocr.runOCRWorklet(img).detections;
-      const blocks = detections.length
-        ? [
-            makeBlock<L>(
-              'ungrouped',
-              boundingBoxOf(detections.flatMap((d) => d.quad as Point[])),
-              1,
-              detections,
-              false
-            ),
-          ]
-        : [];
-      return { blocks, regions: [], detections, image: img };
-    }
+    // OCR runs once per region here (potentially many), so don't let each call
+    // free+reload its bucket arenas (release: false). Instead free the model's
+    // bucket methods ONCE in the finally below, after the whole page — keeping
+    // the page's working set cached while still bounding memory across pages.
+    try {
+      // Mode A — no layout: OCR the whole page into one block.
+      if (!layout) {
+        const detections = ocr.runOCRWorklet(img, { release: false }).detections;
+        const blocks = detections.length
+          ? [
+              makeBlock<L>(
+                'ungrouped',
+                boundingBoxOf(detections.flatMap((d) => d.quad as Point[])),
+                1,
+                detections,
+                false
+              ),
+            ]
+          : [];
+        return { blocks, regions: [], detections, image: img };
+      }
 
-    // Mode B — layout: OCR each text region's crop on its own (upscaled into the
-    // detector → far better recall than one whole-page pass), offsetting lines
-    // back to page coords. Tables also recognize structure + fill cells.
-    const regions = layout.detectObjectsWorklet(img);
-    const blocks: DocumentBlock<L>[] = [];
-    const detections: OCRDetection[] = [];
-    for (const region of regions) {
-      if (!isTextRegion(region.label)) {
-        continue;
+      // Mode B — layout: OCR each text region's crop on its own (upscaled into the
+      // detector → far better recall than one whole-page pass), offsetting lines
+      // back to page coords. Tables also recognize structure + fill cells.
+      const regions = layout.detectObjectsWorklet(img);
+      const blocks: DocumentBlock<L>[] = [];
+      const detections: OCRDetection[] = [];
+      for (const region of regions) {
+        if (!isTextRegion(region.label)) {
+          continue;
+        }
+        const { xmin, ymin } = region.box;
+        const crop = cropImageBuffer(img, region.box);
+        const lines = ocr
+          .runOCRWorklet(crop, { release: false })
+          .detections.map((d) => offsetDetection(d, xmin, ymin));
+        const table = isTableLabel(region.label);
+        if (lines.length === 0 && !table) {
+          continue;
+        }
+        detections.push(...lines);
+        let block = makeBlock<L>(region.label, region.box, region.confidence, lines, table);
+        if (table && supporting) {
+          const structure = supporting.recognizeTableWorklet(crop);
+          block = { ...block, tableHtml: fillTableCells(structure.html, block.lines) };
+        }
+        blocks.push(block);
       }
-      const { xmin, ymin } = region.box;
-      const crop = cropImageBuffer(img, region.box);
-      const lines = ocr.runOCRWorklet(crop).detections.map((d) => offsetDetection(d, xmin, ymin));
-      const table = isTableLabel(region.label);
-      if (lines.length === 0 && !table) {
-        continue;
-      }
-      detections.push(...lines);
-      let block = makeBlock<L>(region.label, region.box, region.confidence, lines, table);
-      if (table && supporting) {
-        const structure = supporting.recognizeTableWorklet(crop);
-        block = { ...block, tableHtml: fillTableCells(structure.html, block.lines) };
-      }
-      blocks.push(block);
+      blocks.sort((a, b) => a.bbox.ymin - b.bbox.ymin || a.bbox.xmin - b.bbox.xmin);
+      return { blocks, regions, detections, image: img };
+    } finally {
+      // Free the OCR model's bucket arenas once, after the whole page (the
+      // per-region runs used release: false). Bounds memory across pages while
+      // keeping each page's working set cached during the run.
+      ocr.releaseMethodsWorklet();
     }
-    blocks.sort((a, b) => a.bbox.ymin - b.bbox.ymin || a.bbox.xmin - b.bbox.xmin);
-    return { blocks, regions, detections, image: img };
   };
 
   const runDocumentOCR = wrapAsync(runDocumentOCRWorklet, runtime);

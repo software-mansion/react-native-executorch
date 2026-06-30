@@ -84,6 +84,15 @@ export type RunOCROptions = {
   readonly tallCropRatio?: number;
   /** Max stacked-column re-detection passes per page (each is detector-scale). Default 8. */
   readonly maxRedetections?: number;
+  /**
+   * Free the model's bucket-method activation arenas (`detect_<S>`/`recognize_<W>`)
+   * after this run, so memory doesn't accumulate as image/box sizes vary across
+   * runs (worse on CoreML, which compiles a graph per method). Default `true`.
+   * The document orchestrator passes `false` for its per-region OCR calls and
+   * frees once per page via `releaseMethods` instead, so it keeps the run's
+   * working set cached while still bounding memory.
+   */
+  readonly release?: boolean;
 };
 
 // The unified baked contract leaves only two things per detector architecture:
@@ -304,6 +313,31 @@ type VerticalContext = {
   readonly redetectBudget: { remaining: number };
 };
 
+// Divides an ordered TL,TR,BR,BL box into `parts` equal vertical bands (each a
+// TL,TR,BR,BL quad), top -> bottom. Used to recover the individual upright
+// letters of a stacked column from a box the detector merged (DBNet emits one
+// box per text region, not per glyph, so stacked letters arrive fused). `parts`
+// <= 1 returns the box unchanged.
+function splitTallQuad(ordered: readonly Point[], parts: number): Point[][] {
+  'worklet';
+  if (parts <= 1) {
+    return [ordered as Point[]];
+  }
+  const [tl, tr, br, bl] = ordered as [Point, Point, Point, Point];
+  const lerp = (a: Point, b: Point, t: number): Point => ({
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+  });
+  const out: Point[][] = [];
+  for (let i = 0; i < parts; i++) {
+    const t0 = i / parts;
+    const t1 = (i + 1) / parts;
+    // Left edge runs tl->bl, right edge tr->br; take the band between t0 and t1.
+    out.push([lerp(tl, bl, t0), lerp(tr, br, t0), lerp(tr, br, t1), lerp(tl, bl, t1)]);
+  }
+  return out;
+}
+
 // Joins glyph quads (in `src` pixel space, in reading order) into one recognizer
 // strip — each glyph warped upright to the recognizer height and laid side by
 // side — and recognizes it as a single line (joint hconcat). Returns null when
@@ -320,24 +354,34 @@ function recognizeGlyphStrip(
   'worklet';
   const recH = recCtx.recH;
   const maxRec = recCtx.recBuckets[recCtx.recBuckets.length - 1]!;
-  // Warp each glyph upright to recognizer height (aspect preserved).
+  // Warp each glyph upright to recognizer height (aspect preserved). A box that
+  // is much taller than wide is a merged run of stacked letters — split it into
+  // ~square single-letter cells first, so each lands in its own strip slot
+  // (otherwise N letters get squashed into one cell and read as garbage).
   const slices: { tGlyph: Tensor; w: number }[] = [];
   let totalW = 0;
   for (const g of glyphs) {
-    const gs = quadSize(g);
-    if (gs.width < 1 || gs.height < 1) {
+    const gsz = quadSize(g);
+    if (gsz.width < 1 || gsz.height < 1) {
       continue;
     }
-    const gw = Math.max(1, Math.min(Math.round((gs.width * recH) / gs.height), maxRec));
-    const tGlyph = tensor('uint8', [recH, gw, recC]);
-    warpQuad(src, tGlyph, flattenQuad(g), {
-      contentWidth: gw,
-      align: 'left',
-      padMode: 'constant',
-      padValue: RECOGNIZER_PAD_VALUE,
-    });
-    slices.push({ tGlyph, w: gw });
-    totalW += gw;
+    const parts = Math.max(1, Math.round(gsz.height / Math.max(1, gsz.width)));
+    for (const cell of splitTallQuad(g, parts)) {
+      const gs = quadSize(cell);
+      if (gs.width < 1 || gs.height < 1) {
+        continue;
+      }
+      const gw = Math.max(1, Math.min(Math.round((gs.width * recH) / gs.height), maxRec));
+      const tGlyph = tensor('uint8', [recH, gw, recC]);
+      warpQuad(src, tGlyph, flattenQuad(cell), {
+        contentWidth: gw,
+        align: 'left',
+        padMode: 'constant',
+        padValue: RECOGNIZER_PAD_VALUE,
+      });
+      slices.push({ tGlyph, w: gw });
+      totalW += gw;
+    }
   }
   if (slices.length === 0) {
     return null;
@@ -600,6 +644,10 @@ export async function createOCR(
   dispose: () => void;
   runOCR: (input: ImageBuffer, options?: RunOCROptions) => Promise<OCRResult>;
   runOCRWorklet: (input: ImageBuffer, options?: RunOCROptions) => OCRResult;
+  /** Free all bucket-method arenas without disposing the model (see `RunOCROptions.release`). */
+  releaseMethods: () => Promise<void>;
+  /** Worklet-thread variant of {@link releaseMethods}. */
+  releaseMethodsWorklet: () => void;
 }> {
   const { modelPath, ocrOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -706,11 +754,26 @@ export async function createOCR(
     model.dispose();
   };
 
+  // Free every per-size method's activation arena (detect_<S>/recognize_<W>)
+  // without disposing the model — they transparently reload on next execute.
+  // Defined before runOCRWorklet so the worklet plugin captures it (referenced
+  // worklets must precede their callers in source order).
+  const releaseMethodsWorklet = () => {
+    'worklet';
+    for (const s of detBuckets) {
+      model.unloadMethod(`detect_${s}`);
+    }
+    for (const w of recBuckets) {
+      model.unloadMethod(`recognize_${w}`);
+    }
+  };
+
   const runOCRWorklet = (input: ImageBuffer, options?: RunOCROptions): OCRResult => {
     'worklet';
     const vertical = options?.vertical ?? false;
     const tallCropRatio = options?.tallCropRatio ?? TALL_CROP_RATIO;
     const maxRedetections = options?.maxRedetections ?? MAX_VERTICAL_REDETECTIONS;
+    const release = options?.release ?? true;
     const { data, width, height, format } = input;
     const numChannels = FORMAT_CHANNELS[format];
     // Both detector and recognizer read RGB, so one conversion code serves both.
@@ -793,7 +856,10 @@ export async function createOCR(
       const { columns, singles } = groupVerticalColumns(ordered);
       for (const col of columns) {
         const boxStart = nowMs();
-        const r = recognizeGlyphStrip(recCtx, recSrc, recC, col); // col is top -> bottom
+        // `recognizeGlyphStrip` splits any multi-letter box into single-glyph
+        // cells (DBNet merges stacked letters and won't split them), so the
+        // column's boxes can be passed straight through, top -> bottom.
+        const r = recognizeGlyphStrip(recCtx, recSrc, recC, col);
         if (r) {
           pushVertical(r.text, r.conf, boundingQuadOf(col), nowMs() - boxStart);
         }
@@ -807,10 +873,17 @@ export async function createOCR(
     } finally {
       tInputRaw.dispose();
       tRecImage.dispose();
+      // Standalone runs free their bucket arenas so memory stays bounded as
+      // sizes vary; the document orchestrator opts out (release: false) and
+      // frees once per page.
+      if (release) {
+        releaseMethodsWorklet();
+      }
     }
   };
 
   const runOCR = wrapAsync(runOCRWorklet, runtime);
+  const releaseMethods = wrapAsync(releaseMethodsWorklet, runtime);
 
-  return { runOCR, runOCRWorklet, dispose };
+  return { runOCR, runOCRWorklet, dispose, releaseMethods, releaseMethodsWorklet };
 }

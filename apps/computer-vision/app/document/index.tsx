@@ -101,12 +101,12 @@ function DocumentContent() {
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
   // Hosted configs — `useDocumentOCR` downloads + caches each enabled model.
+  // orientation/dewarp are NOT baked here: they're passed per-run to
+  // `runDocumentOCR` below, so toggling them takes effect without a reload.
   const config = {
     ocr: models.ocr.PADDLE.PPOCRV6_SMALL[backend.key],
     ...(layoutOn ? { layout: models.layoutDetection.PP_DOCLAYOUT[backend.key] } : {}),
     ...(supportingOn ? { supporting: models.supporting.PP_SUPPORTING[backend.key] } : {}),
-    orientation,
-    dewarp,
   };
 
   const { isReady, downloadProgress, error: loadError, runDocumentOCR } = useDocumentOCR(config);
@@ -134,13 +134,16 @@ function DocumentContent() {
       const pixels = skiaImage.readPixels();
       if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
       const start = Date.now();
-      const out = await runDocumentOCR({
-        data: pixels,
-        width: skiaImage.width(),
-        height: skiaImage.height(),
-        format: 'rgba' as const,
-        layout: 'hwc' as const,
-      });
+      const out = await runDocumentOCR(
+        {
+          data: pixels,
+          width: skiaImage.width(),
+          height: skiaImage.height(),
+          format: 'rgba' as const,
+          layout: 'hwc' as const,
+        },
+        { orientation, dewarp }
+      );
       setWallMs(Date.now() - start);
       setBlocks(out.blocks as DocBlock[]);
       // Show the frame the boxes are relative to (orientation/dewarp may have
@@ -181,7 +184,8 @@ function DocumentContent() {
       <Text style={commonStyles.description}>
         Full document pipeline: layout → OCR grouped into reading-ordered blocks, with orientation,
         table-structure recognition and (optional) dewarp. PaddleOCR is always on; dewarp is off by
-        default — it only helps photographed, warped pages (toggling reloads the models).
+        default — it only helps photographed, warped pages. Orientation/dewarp are per-run, so
+        toggling them takes effect on the next run without reloading the models.
       </Text>
 
       <ModelPicker
