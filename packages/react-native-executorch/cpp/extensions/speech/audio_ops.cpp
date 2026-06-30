@@ -6,7 +6,7 @@
 #include "core/tensor.h"
 #include "core/types.h"
 
-namespace mylib::extensions::speech::audio {
+namespace rnexecutorch::extensions::speech::audio {
 
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
@@ -68,7 +68,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
                     sum -= norm(rev ? idx + steps : idx - steps);
                 if (i >= steps && sum / steps >= threshold)
                     return idx;
-                idx += dir;
+                idx += static_cast<size_t>(dir);
             }
             return rev ? 0 : len - 1;
         };
@@ -105,4 +105,4 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
             rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
 }
 
-} // namespace mylib::extensions::speech::audio
+} // namespace rnexecutorch::extensions::speech::audio

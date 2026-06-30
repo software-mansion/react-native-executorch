@@ -104,7 +104,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt,
                 throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
             }
 
-            const auto elemSize = rnexecutorch::core::types::elementSize(self->dtype_);
+            const auto elemSize = self->dtype_.size();
             if (copyLen * elemSize != dst->size_) {
                 throw jsi::JSError(rt, "copyTo: size mismatch between copy byte size and dst tensor size");
             }
@@ -375,7 +375,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt,
     if (nameStr == "view") {
         auto self = shared_from_this();
         auto fnBody = [self](
-                          jsi::Runtime &rt, const jsi::Value &thisVal,
+                          jsi::Runtime &rt, const jsi::Value & /*thisVal*/,
                           const jsi::Value *args,
                           size_t count) -> jsi::Value {
             if (count < 1 || count > 2) {

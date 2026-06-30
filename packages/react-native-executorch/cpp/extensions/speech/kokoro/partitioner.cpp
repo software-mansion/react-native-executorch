@@ -7,7 +7,7 @@
 #include <ranges>
 #include <unordered_set>
 
-namespace mylib::extensions::speech::kokoro {
+namespace rnexecutorch::extensions::speech::kokoro {
 
 namespace jsi = facebook::jsi;
 
@@ -65,7 +65,7 @@ const std::unordered_set<char32_t> kPauseChars = {
  */
 static Cost latencyCost(Cost acc, size_t /*beg*/, int64_t prevBp,
                         int64_t bp, size_t end, Separator sep, size_t limit) {
-    if (end - bp > limit) {
+    if (end - static_cast<size_t>(bp) > limit) {
         return kInf;
     }
 
@@ -111,11 +111,12 @@ static std::vector<Segment> partition(std::u32string_view input,
                                                 : Separator::WHITE;
             for (size_t breakIdx : (*q)) {
                 auto cost = latencyCost(dp[breakIdx].first, 0,
-                                        dp[breakIdx].second, breakIdx, i,
+                                        dp[breakIdx].second,
+                                        static_cast<int64_t>(breakIdx), i,
                                         sep, limit);
                 if (cost < bestCost && breakIdx > 0) {
                     bestCost = cost;
-                    prevBpIdx = breakIdx;
+                    prevBpIdx = static_cast<int64_t>(breakIdx);
                 }
             }
         }
@@ -137,8 +138,8 @@ static std::vector<Segment> partition(std::u32string_view input,
     while (currBp != -1) {
         size_t start = static_cast<size_t>(currBp + 1);
         segments.emplace_back(start, lastIdx - start);
-        lastIdx = currBp + 1;
-        currBp = dp[currBp].second;
+        lastIdx = static_cast<size_t>(currBp + 1);
+        currBp = dp[static_cast<size_t>(currBp)].second;
     }
     segments.emplace_back(0, lastIdx);
 
@@ -187,4 +188,4 @@ void install_partition(jsi::Runtime &rt, jsi::Object &module) {
             rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
 }
 
-} // namespace mylib::extensions::speech::kokoro
+} // namespace rnexecutorch::extensions::speech::kokoro

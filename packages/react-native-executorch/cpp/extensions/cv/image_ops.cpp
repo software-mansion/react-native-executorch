@@ -403,7 +403,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
         ::cv::split(srcMat, channels);
 
         const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize =src->dtype_.size();
+        const size_t elemSize = src->dtype_.size();
         uint8_t *dstPtr = dst->data_;
 
         for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
@@ -487,7 +487,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize = src->dtype_.type();
+        const size_t elemSize = src->dtype_.size();
         uint8_t *srcPtr = src->data_;
 
         std::vector<::cv::Mat> channels;
@@ -645,10 +645,10 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
         constexpr size_t numRgbaChannels = 4;
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::int32) {
+        if (src->dtype_ != rnexecutorch::core::DType::int32) {
             throw jsi::JSError(rt, "applyColormap: src must be int32");
         }
-        if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
+        if (dst->dtype_ != rnexecutorch::core::DType::uint8) {
             throw jsi::JSError(rt, "applyColormap: dst must be uint8");
         }
         if (dst->numel_ != src->numel_ * numRgbaChannels) {

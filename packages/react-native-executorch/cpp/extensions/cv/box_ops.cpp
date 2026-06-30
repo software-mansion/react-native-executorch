@@ -138,7 +138,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "nms: boxes and scores must have the same number of elements");
         }
 
-        if (boxes->dtype_ != rnexecutorch::core::types::DType::float32 || scores->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (boxes->dtype_ != rnexecutorch::core::DType::float32 || scores->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "nms: boxes and scores must have dtype float32");
         }
 

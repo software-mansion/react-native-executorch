@@ -54,6 +54,8 @@ DType::operator executorch::aten::ScalarType() const {
         return executorch::aten::ScalarType::Long;
     case DType::float32:
         return executorch::aten::ScalarType::Float;
+    default:
+        throw std::invalid_argument("Unsupported dtype");
     }
 }
 
@@ -69,6 +71,8 @@ DType::operator std::string() const {
         return "int64";
     case DType::float32:
         return "float32";
+    default:
+        throw std::invalid_argument("Unsupported dtype");
     }
 }
 
@@ -85,6 +89,8 @@ size_t DType::size() const {
         return 8;
     case DType::float32:
         return 4;
+    default:
+        throw std::invalid_argument("Unsupported dtype");
     }
 }
 

@@ -3,6 +3,7 @@
 #include "core/install.h"
 #include "extensions/math/install.h"
 #include "extensions/nlp/install.h"
+#include "extensions/speech/install.h"
 
 #ifdef RNE_ENABLE_OPENCV
 #include "extensions/cv/install.h"

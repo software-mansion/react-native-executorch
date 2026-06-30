@@ -334,11 +334,11 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "threshold: src and dst must have the same shape");
         }
 
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (src->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "threshold: src must be a float32 tensor");
         }
 
-        if (dst->dtype_ != rnexecutorch::core::types::DType::float32) {
+        if (dst->dtype_ != rnexecutorch::core::DType::float32) {
             throw jsi::JSError(rt, "threshold: dst must be a float32 tensor");
         }
 

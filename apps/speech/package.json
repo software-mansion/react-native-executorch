@@ -2,6 +2,11 @@
   "name": "speech",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "react-native-executorch": {
+    "features": [
+      "textToSpeech"
+    ]
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",

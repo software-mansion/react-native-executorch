@@ -9,7 +9,7 @@
 #include "core/tensor.h"
 #include "core/types.h"
 
-namespace mylib::extensions::speech::kokoro {
+namespace rnexecutorch::extensions::speech::kokoro {
 
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
@@ -185,8 +185,8 @@ void install_expandDurations(jsi::Runtime &rt, jsi::Object &module) {
 
         size_t offset = 0;
         for (size_t i = 0; i < nTokens; i++) {
-            int64_t count = src[i];
-            std::fill(dst + offset, dst + offset + count,
+            int64_t durCount = src[i];
+            std::fill(dst + offset, dst + offset + durCount,
                       static_cast<int64_t>(i));
             offset += static_cast<size_t>(count);
         }
@@ -242,31 +242,42 @@ void install_cropToTimestamp(jsi::Runtime &rt, jsi::Object &module) {
         const size_t nTokens = durations->numel_;
         const size_t audioSamples = audio->numel_;
 
-        // Accumulate the end timestamp (in audio samples) of the last token we
-        // want to keep. The trailing PAD token (second-to-last) is always
-        // dropped; when the segment ends with a non-letter (punctuation / EOS),
-        // the EOS token before it (third-to-last) is dropped too. Mirrors the
-        // old Kokoro timestamp-based trimming.
+        // Drop trailing PAD token (always) and EOS token when the segment
+        // ends with a non-letter. Also drop the leading token to trim silence
+        // at the beginning — the first duration element covers the initial
+        // pause region. Mirrors the old Kokoro timestamp-based trimming.
         size_t croppedSamples = audioSamples;
+        uint8_t *dataStart = audio->data_;
         if (nTokens > 2) {
             const size_t lastIndex = endsWithAlpha ? nTokens - 2 : nTokens - 3;
             const auto *durData = reinterpret_cast<const int64_t *>(durations->data_);
 
-            int64_t timestamp = 0;
+            int64_t startTimestamp = durData[0] * kSamplesPerFrame;
+
+            int64_t endTimestamp = 0;
             for (size_t i = 0; i <= lastIndex; ++i) {
-                timestamp += durData[i] * kSamplesPerFrame;
+                endTimestamp += durData[i] * kSamplesPerFrame;
             }
 
-            croppedSamples = std::min(static_cast<size_t>(timestamp), audioSamples);
+            size_t startOffset =
+                std::min(static_cast<size_t>(startTimestamp), audioSamples);
+            size_t endOffset =
+                std::min(static_cast<size_t>(endTimestamp), audioSamples);
+
+            if (endOffset > startOffset) {
+                croppedSamples = endOffset - startOffset;
+                dataStart =
+                    audio->data_ + startOffset * sizeof(float);
+            } else {
+                croppedSamples = 0;
+            }
         }
 
-        // Non-owning view over [0, croppedSamples) of the original audio: same
-        // data pointer, last dimension shrunk to the kept sample count.
         Shape viewShape = audio->shape_;
         viewShape.back() = static_cast<DSize>(croppedSamples);
 
         auto view = std::make_shared<TensorHostObject>(
-            audio->data_, std::move(viewShape), DType::float32);
+            dataStart, std::move(viewShape), DType::float32);
 
         return jsi::Object::createFromHostObject(rt, view);
     };
@@ -277,4 +288,4 @@ void install_cropToTimestamp(jsi::Runtime &rt, jsi::Object &module) {
             rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 
-} // namespace mylib::extensions::speech::kokoro
+} // namespace rnexecutorch::extensions::speech::kokoro

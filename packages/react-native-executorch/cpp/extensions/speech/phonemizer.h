@@ -4,7 +4,7 @@
 #include <memory>
 #include <phonemis/base/pipeline.h>
 
-namespace mylib::extensions::speech {
+namespace rnexecutorch::extensions::speech {
 
 class PhonemizerHostObject : public facebook::jsi::HostObject,
                              public std::enable_shared_from_this<PhonemizerHostObject> {
@@ -26,4 +26,4 @@ private:
 void install_createPhonemizer(facebook::jsi::Runtime &rt,
                               facebook::jsi::Object &module);
 
-} // namespace mylib::extensions::speech
+} // namespace rnexecutorch::extensions::speech

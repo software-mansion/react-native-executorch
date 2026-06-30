@@ -1,7 +1,7 @@
 #include "phonemizer.h"
 #include <phonemis/utils/conversions.h>
 
-namespace mylib::extensions::speech {
+namespace rnexecutorch::extensions::speech {
 
 namespace jsi = facebook::jsi;
 using phonemis::utils::conversions::u32_to_utf8;
@@ -110,4 +110,4 @@ void install_createPhonemizer(jsi::Runtime &rt, jsi::Object &module) {
                            rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
 }
 
-} // namespace mylib::extensions::speech
+} // namespace rnexecutorch::extensions::speech

@@ -5,7 +5,7 @@
 
 #include "core/tensor.h"
 
-namespace mylib::extensions::speech::kokoro {
+namespace rnexecutorch::extensions::speech::kokoro {
 
 namespace jsi = facebook::jsi;
 using Token = int64_t;
@@ -73,4 +73,4 @@ void install_tokenize(jsi::Runtime &rt, jsi::Object &module) {
             rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
 }
 
-} // namespace mylib::extensions::speech::kokoro
+} // namespace rnexecutorch::extensions::speech::kokoro

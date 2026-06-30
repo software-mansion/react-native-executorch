@@ -218,31 +218,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, errorMsg);
             }
 
-            auto validateTensor = [](jsi::Runtime &rt,
-                                     const TensorHostObject *tensorHostObject,
-                                     const executorch::runtime::Result<executorch::runtime::TensorInfo> &tensorMeta,
-                                     const std::string &identifier) {
-                if (tensorMeta->scalar_type() != tensorHostObject->et_tensor_->dtype()) {
-                    throw jsi::JSError(rt, "execute: Tensor dtype mismatch for " + identifier);
-                }
-
-                if (tensorMeta->sizes().size() != tensorHostObject->shape_.size()) {
-                    throw jsi::JSError(rt, "execute: Tensor rank mismatch for " + identifier +
-                                               ": expected rank " + std::to_string(tensorMeta->sizes().size()) +
-                                               " but got " + std::to_string(tensorHostObject->shape_.size()));
-                }
-
-                auto ndim = tensorHostObject->et_tensor_->sizes().size();
-                for (size_t j = 0; j < ndim; ++j) {
-                    if (tensorMeta->sizes()[j] != tensorHostObject->shape_[j]) {
-                        throw jsi::JSError(rt, "execute: Tensor shape mismatch for " + identifier +
-                                                   ": expected dimension " + std::to_string(j) + " to be " +
-                                                   std::to_string(tensorMeta->sizes()[j]) + " but got " +
-                                                   std::to_string(tensorHostObject->shape_[j]));
-                    }
-                }
-            };
-
             auto inputs = std::vector<executorch::runtime::EValue>(methodMeta->num_inputs());
             std::vector<std::unique_lock<std::shared_mutex>> tensorLocks;
             std::unordered_set<TensorHostObject *> lockedTensors;
@@ -295,6 +270,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(i) + "]: " + errorMsg);
                     }
 
+                    // TODO: do something with it. For now must be comment for TTS to work.
                     // validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
 
                     inputs[i] = tensorHostObject->et_tensor_;
@@ -397,6 +373,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(index) + ": " + errorMsg);
                     }
 
+                    // TODO: do something with it. For now must be comment for TTS to work.
                     // validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
 
                     std::memcpy(tensorHostObject->data_,

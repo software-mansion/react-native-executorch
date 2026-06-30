@@ -4,7 +4,7 @@
 #include <jsi/jsi.h>
 #include <vector>
 
-namespace mylib::extensions::speech::kokoro {
+namespace rnexecutorch::extensions::speech::kokoro {
 
 /**
  * Defines possible break points in the text.
@@ -33,4 +33,4 @@ struct Segment {
 void install_partition(facebook::jsi::Runtime &rt,
                        facebook::jsi::Object &module);
 
-} // namespace mylib::extensions::speech::kokoro
+} // namespace rnexecutorch::extensions::speech::kokoro
