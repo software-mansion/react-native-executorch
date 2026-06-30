@@ -27,6 +27,13 @@ export default function Layout() {
           title: 'Tokenizer',
         }}
       />
+      <Drawer.Screen
+        name="text-embeddings/index"
+        options={{
+          drawerLabel: 'Text Embeddings',
+          title: 'Text Embeddings',
+        }}
+      />
     </Drawer>
   );
 }

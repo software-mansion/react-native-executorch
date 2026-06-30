@@ -6,6 +6,8 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useTextEmbeddings';
+export * from './hooks/useImageEmbeddings';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -20,7 +22,9 @@ export * from './extensions/cv/tasks/semanticSegmentation';
 export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
+export * from './extensions/cv/tasks/imageEmbeddings';
 export * from './extensions/nlp/tasks/tokenization';
+export * from './extensions/nlp/tasks/textEmbeddings';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
