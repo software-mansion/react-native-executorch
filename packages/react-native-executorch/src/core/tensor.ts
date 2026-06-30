@@ -6,7 +6,7 @@ declare const tensorBrand: unique symbol;
  * Element data type of a {@link Tensor}.
  * @category Types
  */
-export type DType = 'float32' | 'uint8' | 'int32';
+export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
 
 /**
  * A native ExecuTorch tensor allocated in C++ memory.
@@ -53,7 +53,7 @@ export type Tensor = {
    * tensor's size.
    * @returns `this` tensor.
    */
-  setData(src: Float32Array | Uint8Array | Int32Array): Tensor;
+  setData(src: Float32Array | Uint8Array | Int32Array | BigInt64Array): Tensor;
 
   /**
    * Copies data out of this tensor's native buffer into a typed array.
@@ -62,7 +62,7 @@ export type Tensor = {
    * tensor's size.
    * @returns The same `dst` array, now filled with tensor data.
    */
-  getData<T extends Float32Array | Uint8Array | Int32Array>(dst: T): T;
+  getData<T extends Float32Array | Uint8Array | Int32Array | BigInt64Array>(dst: T): T;
 
   /**
    * Passes `this` tensor as the first argument to `fn` and returns the result.
@@ -91,6 +91,18 @@ export type Tensor = {
   ): Tensor;
 
   /**
+   * Creates a view over a sub-region of this tensor's buffer without copying.
+   *
+   * The view shares the parent's memory, so writes through either tensor are
+   * visible to the other. The view does not own its memory — dispose the
+   * parent tensor when no views are needed.
+   * @param shape The logical shape of the view (dimensions <= parent).
+   * @param offset Byte offset into the parent buffer (defaults to 0).
+   * @returns A new tensor view sharing the parent's memory.
+   */
+  view(shape: readonly number[], offset?: number): Tensor;
+
+  /**
    * Prevents plain JS objects from being cast as Tensors. Tensors should only
    * be created via the `tensor` function exported from this module.
    * @internal
@@ -114,8 +126,8 @@ export type Tensor = {
  */
 export function tensor(
   dtype: DType,
-  shape: number[],
-  src?: Float32Array | Uint8Array | Int32Array
+  shape: readonly number[],
+  src?: Float32Array | Uint8Array | Int32Array | BigInt64Array
 ): Tensor {
   'worklet';
   const t: Tensor = rnexecutorchJsi.createTensor(shape, dtype);
