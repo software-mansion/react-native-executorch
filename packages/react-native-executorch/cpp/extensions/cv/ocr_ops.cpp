@@ -20,6 +20,7 @@
 
 #include "core/dtype.h"
 #include "core/tensor.h"
+#include "utils.h"
 
 // Detector postprocessing geometry: CRAFT text-map grouping + DBNet prob-map ->
 // oriented quads. Pure OpenCV, kept native. ctcGreedyDecode (per-timestep argmax
@@ -509,37 +510,6 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &probIn, float binThreshold, floa
     return quads;
 }
 
-// ----------------------------- option readers ------------------------------
-// Required option getters (defaults live in the TS wrappers, so these throw).
-double getNumberProp(jsi::Runtime &rt, const jsi::Object &opts, const char *name) {
-    if (!opts.hasProperty(rt, name) || !opts.getProperty(rt, name).isNumber()) {
-        throw jsi::JSError(rt, std::string("options.") + name + " is required and must be a number");
-    }
-    return opts.getProperty(rt, name).asNumber();
-}
-
-std::string getStringProp(jsi::Runtime &rt, const jsi::Object &opts, const char *name) {
-    if (!opts.hasProperty(rt, name) || !opts.getProperty(rt, name).isString()) {
-        throw jsi::JSError(rt, std::string("options.") + name + " is required and must be a string");
-    }
-    return opts.getProperty(rt, name).asString(rt).utf8(rt);
-}
-
-bool getBoolProp(jsi::Runtime &rt, const jsi::Object &opts, const char *name) {
-    if (!opts.hasProperty(rt, name) || !opts.getProperty(rt, name).isBool()) {
-        throw jsi::JSError(rt, std::string("options.") + name + " is required and must be a boolean");
-    }
-    return opts.getProperty(rt, name).asBool();
-}
-
-// Optional boolean (defaults when absent) — used for flags a caller may omit.
-bool getBoolPropOr(jsi::Runtime &rt, const jsi::Object &opts, const char *name, bool fallback) {
-    if (!opts.hasProperty(rt, name) || !opts.getProperty(rt, name).isBool()) {
-        return fallback;
-    }
-    return opts.getProperty(rt, name).asBool();
-}
-
 // Flatten quads to a JS double array, 10 per box (x0,y0..x3,y3,score,angle).
 jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
     jsi::Array out(rt, quads.size() * 10);
@@ -636,132 +606,6 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
                                                              2, fnBody));
-}
-
-// ------------------------------- warpQuad ----------------------------------
-void install_warpQuad(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "warpQuad";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
-                     size_t count) -> jsi::Value {
-        if (count != 4) {
-            throw jsi::JSError(rt, "Usage: warpQuad(src, dst, quad, options)");
-        }
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "warpQuad: src must be a Tensor");
-        }
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "warpQuad: dst must be a Tensor");
-        }
-        if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
-            throw jsi::JSError(rt, "warpQuad: quad must be an array of 8 numbers");
-        }
-        if (!args[3].isObject()) {
-            throw jsi::JSError(rt, "warpQuad: options must be an object");
-        }
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "warpQuad: In-place operations (src == dst) are not supported.");
-        }
-        auto quadArr = args[2].asObject(rt).asArray(rt);
-        auto opts = args[3].asObject(rt);
-
-        if (quadArr.length(rt) != 8) {
-            throw jsi::JSError(rt, "warpQuad: quad must have exactly 8 numbers (4 points)");
-        }
-        if (src->shape_.size() != 3 || dst->shape_.size() != 3) {
-            throw jsi::JSError(rt, "warpQuad: src and dst must be [H,W,C]");
-        }
-        if (src->dtype_ != rnexecutorch::core::types::DType::uint8 ||
-            dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
-            throw jsi::JSError(rt, "warpQuad: src and dst must be uint8");
-        }
-        if (src->shape_[2] != dst->shape_[2]) {
-            throw jsi::JSError(rt, "warpQuad: src and dst must have the same channel count");
-        }
-
-        const int32_t channels = src->shape_[2];
-        const int32_t recH = dst->shape_[0];
-        const int32_t bucketW = dst->shape_[1];
-
-        if (!opts.hasProperty(rt, "contentWidth") ||
-            !opts.getProperty(rt, "contentWidth").isNumber()) {
-            throw jsi::JSError(rt, "warpQuad: options.contentWidth is required");
-        }
-        const int32_t contentWidth =
-            std::clamp(static_cast<int32_t>(opts.getProperty(rt, "contentWidth").asNumber()), 1,
-                       bucketW);
-        const std::string padMode = getStringProp(rt, opts, "padMode");
-        const double padValue = getNumberProp(rt, opts, "padValue");
-        const std::string align = getStringProp(rt, opts, "align");
-
-        std::array<::cv::Point2f, 4> quad;
-        for (std::size_t i = 0; i < 8; ++i) {
-            if (!quadArr.getValueAtIndex(rt, i).isNumber()) {
-                throw jsi::JSError(rt, "warpQuad: quad must contain only numbers");
-            }
-        }
-        for (std::size_t i = 0; i < 4; ++i) {
-            quad[i] = {static_cast<float>(quadArr.getValueAtIndex(rt, i * 2).asNumber()),
-                       static_cast<float>(quadArr.getValueAtIndex(rt, i * 2 + 1).asNumber())};
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "warpQuad: src tensor is currently in use");
-        }
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "warpQuad: dst tensor is currently in use");
-        }
-        if (!src->data_ || !dst->data_) {
-            throw jsi::JSError(rt, "warpQuad: a tensor has been disposed");
-        }
-
-        const int cvType = CV_MAKETYPE(CV_8U, channels);
-        ::cv::Mat srcMat(src->shape_[0], src->shape_[1], cvType, src->data_.get());
-        ::cv::Mat dstMat(recH, bucketW, cvType, dst->data_.get());
-
-        try {
-            const ::cv::Point2f dstPts[4] = {{0.0f, 0.0f},
-                                             {static_cast<float>(contentWidth), 0.0f},
-                                             {static_cast<float>(contentWidth),
-                                              static_cast<float>(recH)},
-                                             {0.0f, static_cast<float>(recH)}};
-            const ::cv::Point2f srcPts[4] = {quad[0], quad[1], quad[2], quad[3]};
-            ::cv::Mat m = ::cv::getPerspectiveTransform(srcPts, dstPts);
-            ::cv::Mat content;
-            ::cv::warpPerspective(srcMat, content, m, ::cv::Size(contentWidth, recH),
-                                  ::cv::INTER_CUBIC, ::cv::BORDER_REPLICATE);
-
-            ::cv::Scalar padColor;
-            if (padMode == "cornerMean") {
-                const int patch = std::max(1, std::min(recH, contentWidth) / 30);
-                ::cv::Scalar acc(0, 0, 0, 0);
-                const std::array<::cv::Rect, 4> rects = {
-                    ::cv::Rect(0, 0, patch, patch),
-                    ::cv::Rect(contentWidth - patch, 0, patch, patch),
-                    ::cv::Rect(0, recH - patch, patch, patch),
-                    ::cv::Rect(contentWidth - patch, recH - patch, patch, patch)};
-                for (const auto &r : rects) {
-                    acc += ::cv::mean(content(r));
-                }
-                padColor = acc / 4.0;
-            } else {
-                padColor = ::cv::Scalar::all(padValue);
-            }
-
-            dstMat.setTo(padColor);
-            const int32_t offsetX = (align == "center") ? (bucketW - contentWidth) / 2 : 0;
-            content.copyTo(dstMat(::cv::Rect(offsetX, 0, contentWidth, recH)));
-        } catch (const ::cv::Exception &e) {
-            throw jsi::JSError(rt, std::string("warpQuad: OpenCV error: ") + e.what());
-        }
-        return jsi::Value(rt, args[1]);
-    };
-    module.setProperty(rt, name,
-                       jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             4, fnBody));
 }
 
 // --------------------------- ctcGreedyDecode -------------------------------
