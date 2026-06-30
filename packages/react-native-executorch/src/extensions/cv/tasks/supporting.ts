@@ -229,15 +229,6 @@ export async function createSupporting(
     }
     const rotationCW = ((cls % 4) * 90) as 0 | 90 | 180 | 270;
     const confidence = 1 / sumExp;
-    // DEBUG: raw orientation head output (logits per class) + decoded result.
-    // console.warn (not console.log) so it surfaces in native logs from the worklet.
-    let logitsStr = '';
-    for (let i = 0; i < oriOutLen; i++) {
-      logitsStr += (i === 0 ? '' : ', ') + oriBuf[i]!.toFixed(3);
-    }
-    console.warn(
-      `[orientation] logits=[${logitsStr}] argmax=${cls} rotationCW=${rotationCW} confidence=${confidence.toFixed(3)}`
-    );
     return { rotationCW, confidence };
   };
 
