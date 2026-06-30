@@ -281,9 +281,10 @@ export function readingOrderIndices(quads: readonly (readonly Point[])[]): numbe
       }
     }
     rows.sort((a, b) => a.ymin - b.ymin);
-    const cx = (i: number): number => boxes[i]!.xmin + boxes[i]!.xmax;
+    // Sort within a line by horizontal position (edge sum = 2× center; monotonic).
+    const xSum = (i: number): number => boxes[i]!.xmin + boxes[i]!.xmax;
     for (const row of rows) {
-      row.items.sort((a, b) => cx(a) - cx(b));
+      row.items.sort((a, b) => xSum(a) - xSum(b));
       for (const i of row.items) {
         out.push(i);
       }

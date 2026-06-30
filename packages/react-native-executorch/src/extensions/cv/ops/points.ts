@@ -23,18 +23,6 @@ export function clamp(v: number, lo: number, hi: number): number {
 }
 
 /**
- * Helper function to scale a 2D point based on resize mode and resolution
- * changes.
- * @category Utils
- * @param point The original coordinate point to scale.
- * @param opts Options detailing the scaling factors and resize mode.
- * @param opts.from The source bounds (e.g. model input dimensions).
- * @param opts.to The destination bounds (e.g. original image dimensions).
- * @param opts.resizeMode The mode used to resize the image ('letterbox' or
- * 'stretch').
- * @returns The scaled coordinate point.
- */
-/**
  * Per-axis scale and offset that map a `to`-space coordinate back into
  * `from`-space, for an aspect-preserving letterbox or an axis stretch. The
  * inverse map is `(coord − offset) / scale` per axis (offset is 0 for stretch).
@@ -63,6 +51,18 @@ export function resizeFactors(
   return { scaleX: from.width / to.width, scaleY: from.height / to.height, offsetX: 0, offsetY: 0 };
 }
 
+/**
+ * Helper function to scale a 2D point based on resize mode and resolution
+ * changes.
+ * @category Utils
+ * @param point The original coordinate point to scale.
+ * @param opts Options detailing the scaling factors and resize mode.
+ * @param opts.from The source bounds (e.g. model input dimensions).
+ * @param opts.to The destination bounds (e.g. original image dimensions).
+ * @param opts.resizeMode The mode used to resize the image ('letterbox' or
+ * 'stretch').
+ * @returns The scaled coordinate point.
+ */
 export function scalePoint(
   point: Point,
   opts: {

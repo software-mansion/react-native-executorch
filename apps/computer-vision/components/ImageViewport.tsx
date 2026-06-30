@@ -14,9 +14,9 @@ import { theme } from '../theme';
 const VIEW_WIDTH = Dimensions.get('window').width - 32;
 const DEFAULT_VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
 
-/** A 2D point in original-image pixel coordinates. */
+/** A 2D point in the displayed image's pixel coordinates. */
 type Point = { readonly x: number; readonly y: number };
-/** A polygon (e.g. an OCR quad) in original-image pixel coordinates. */
+/** A polygon (e.g. an OCR quad) in the displayed image's pixel coordinates. */
 type Polygon = readonly Point[];
 
 export interface ImageViewportProps {
@@ -29,7 +29,7 @@ export interface ImageViewportProps {
   children?: React.ReactNode;
   /** Height of the preview box in px. Defaults to a 16:9 box. */
   height?: number;
-  /** Polygons (in original image px) to stroke over the image, e.g. OCR quads. */
+  /** Polygons (in the displayed image's px) to stroke over the image, e.g. OCR quads. */
   boxes?: readonly Polygon[];
 }
 
@@ -46,7 +46,7 @@ export function ImageViewport({
 }: ImageViewportProps) {
   const viewHeight = height ?? DEFAULT_VIEW_HEIGHT;
 
-  // Map original-pixel polygons into canvas space using the same contain-fit
+  // Map image-pixel polygons into canvas space using the same contain-fit
   // transform Skia uses to draw the image, then build one stroked path.
   const boxesPath = useMemo(() => {
     if (!skiaImage || !boxes?.length) return null;

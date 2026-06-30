@@ -41,10 +41,12 @@ import {
 export type { Buckets } from './ocrHelpers';
 
 /**
- * Configuration for the unified OCR pipeline. The detector and recognizer share
- * one baked contract; only the box decoder (selected by `detectorKind`) and the
- * default drop score differ per architecture. A model declares its architecture,
- * its input-size buckets, and its charset.
+ * Configuration for the unified OCR pipeline. A model declares its detector
+ * architecture, its input-size buckets, and its charset; the detector/recognizer
+ * share one baked contract whose defaults match CRAFT (EasyOCR) and DBNet
+ * (PaddleOCR). Models that diverge can override the recognizer normalization,
+ * padding, and decode, or supply a `'custom'` detector with its own box
+ * extraction — see the per-field options below.
  * @category Types
  */
 export type OCROptions = {
@@ -132,11 +134,13 @@ export type RunOCROptions = {
   readonly release?: boolean;
 };
 
-// The unified baked contract leaves only two things per detector architecture:
-// the box decoder (selected by `detectorKind`) and the default drop score.
-// Everything else is shared — detector input is raw RGB /255 (mean/std baked in),
-// the recognizer is RGB with constant-128 left padding, both heads emit softmaxed
-// probabilities, and confidence is the mean of per-character max-probs.
+// Defaults for the shared baked contract — the detector input is raw RGB /255
+// (mean/std baked into the PTE), the recognizer is RGB with (x/255−0.5)/0.5 norm
+// and constant-128 left padding, both heads emit softmaxed probabilities, and
+// confidence is the mean of per-character max-probs. CRAFT/DBNet decode the
+// heatmap natively; everything else can be overridden per model via OCROptions
+// (recognizerNorm/recognizerPadValue/decode, and 'custom' detectorKind+extractBoxes).
+// Per-architecture default drop score:
 const DEFAULT_DROP_SCORE: Record<'craft' | 'dbnet' | 'custom', number> = {
   craft: 0,
   dbnet: 0.5,
@@ -177,9 +181,11 @@ export type OCRResult = {
   readonly detections: OCRDetection[];
 };
 
+// Default recognizer normalization / pad (SVTR/CRNN); overridable per model via
+// OCROptions.recognizerNorm / recognizerPadValue.
 const RECOGNIZER_ALPHA = 1 / 127.5; // (x/255 - 0.5)/0.5 -> [-1, 1]
 const RECOGNIZER_BETA = -1;
-const RECOGNIZER_PAD_VALUE = 128; // neutral gray; constant pad for both recognizers
+const RECOGNIZER_PAD_VALUE = 128; // neutral gray
 // Detector input is raw RGB scaled to [0,1]; the per-architecture mean/std is
 // baked into the PTE, so the client only divides by 255.
 const DETECTOR_ALPHA = 1 / 255;
@@ -253,7 +259,8 @@ type DetectContext = {
 
 // Detects text boxes in `src` (uint8 [H,W,numChannels], native `format`) and
 // returns quads in `src` pixel space: letterbox into the snapped square bucket,
-// run `detect_<S>`, extract quads. Scratch is per-size, allocated and freed here.
+// run `detect_<S>`, extract quads. Scratch is the bucket's cached DetSet; only
+// the source-resize tensor (input-channel-dependent) is allocated/freed here.
 function detectQuads(
   ctx: DetectContext,
   src: Tensor,
