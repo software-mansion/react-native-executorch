@@ -270,7 +270,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(i) + "]: " + errorMsg);
                     }
 
-                    // TODO: do something with it. For now must be comment for TTS to work.
+                    // TODO(igorswat): do something with it. For now must be comment for TTS to work.
                     // validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
 
                     inputs[i] = tensorHostObject->et_tensor_;
@@ -373,7 +373,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(index) + ": " + errorMsg);
                     }
 
-                    // TODO: do something with it. For now must be comment for TTS to work.
+                    // TODO(igorswat): do something with it. For now must be comment for TTS to work.
                     // validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
 
                     std::memcpy(tensorHostObject->data_,

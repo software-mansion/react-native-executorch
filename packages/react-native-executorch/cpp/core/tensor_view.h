@@ -10,8 +10,12 @@ namespace rnexecutorch::core::tensor {
 class TensorView {
 public:
     TensorView(uint8_t *data, DType dtype, Shape shape);
+    virtual ~TensorView() = default;
 
-    virtual ~TensorView() {}
+    TensorView(const TensorView &) = delete;
+    TensorView &operator=(const TensorView &) = delete;
+    TensorView(TensorView &&) = default;
+    TensorView &operator=(TensorView &&) = default;
 
     // This class leaves a space for some additional logic if needed.
 

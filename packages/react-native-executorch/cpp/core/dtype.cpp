@@ -79,7 +79,6 @@ DType::operator std::string() const {
 size_t DType::size() const {
     switch (v_) {
     case DType::bool_:
-        return 1;
     case DType::uint8:
         return 1;
     // NOLINTNEXTLINE(bugprone-branch-clone): int32 and float32 are both 4 bytes; the identical branches are intentional.

@@ -11,7 +11,8 @@ TensorView::TensorView(uint8_t *data, DType dtype, Shape shape)
         throw std::invalid_argument("TensorView: shape must not be empty");
     }
 
-    numel_ = std::accumulate(shape_.begin(), shape_.end(), size_t(1), std::multiplies<size_t>());
+    numel_ = std::accumulate(shape_.begin(), shape_.end(),
+                             static_cast<size_t>(1), std::multiplies<>());
     size_ = numel_ * dtype_.size();
 }
 

@@ -24,7 +24,7 @@ public:
     TensorHostObject(Shape shape, DType dtype);
 
     // Non-owning tensor (view) wrapping external data.
-    TensorHostObject(const TensorView &view);                  // Direct
+    explicit TensorHostObject(const TensorView &view);         // Direct
     TensorHostObject(uint8_t *data, Shape shape, DType dtype); // Indirect
 
     // JSI bridge methods.
@@ -34,6 +34,7 @@ public:
         facebook::jsi::Runtime &rt) override;
 
     // Owned data storage — null for views.
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays) — unique_ptr<T[]> is the standard owning dynamic buffer
     std::unique_ptr<uint8_t[]> storage_;
 
     // ExecuTorch entry point.

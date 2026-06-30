@@ -7,6 +7,7 @@ namespace jsi = facebook::jsi;
 
 TensorHostObject::TensorHostObject(Shape shape, DType dtype)
     : TensorView(nullptr, dtype, std::move(shape)) {
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays) — unique_ptr<T[]> is the standard owning dynamic buffer
     storage_ = std::make_unique<uint8_t[]>(size_);
     data_ = storage_.get();
     et_tensor_ = executorch::extension::from_blob(data_, shape_, static_cast<executorch::aten::ScalarType>(dtype_));
