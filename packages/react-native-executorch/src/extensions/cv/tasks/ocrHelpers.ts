@@ -148,6 +148,13 @@ const distance = (a: Point, b: Point): number => {
   return Math.hypot(b.x - a.x, b.y - a.y);
 };
 
+// Linear interpolation between two points (t in [0,1]). Module-level so the
+// worklet plugin captures it; used by splitTallQuad to cut a quad into bands.
+const lerp = (a: Point, b: Point, t: number): Point => {
+  'worklet';
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+};
+
 /**
  * The natural width/height (in pixels) of an ordered TL,TR,BR,BL quad.
  * @category Typescript API
@@ -189,6 +196,13 @@ function bboxOfQuad(quad: readonly Point[]): ReadingBox {
     if (p.y > ymax) ymax = p.y;
   }
   return { xmin, ymin, xmax, ymax };
+}
+
+// Horizontal sort key for a box: edge sum = 2× center-x (monotonic in center,
+// avoids the divide). Module-level so it isn't re-created per readingOrderIndices.
+function xSum(b: ReadingBox): number {
+  'worklet';
+  return b.xmin + b.xmax;
 }
 
 /**
@@ -282,15 +296,144 @@ export function readingOrderIndices(quads: readonly (readonly Point[])[]): numbe
     }
     rows.sort((a, b) => a.ymin - b.ymin);
     // Sort within a line by horizontal position (edge sum = 2× center; monotonic).
-    const xSum = (i: number): number => boxes[i]!.xmin + boxes[i]!.xmax;
     for (const row of rows) {
-      row.items.sort((a, b) => xSum(a) - xSum(b));
+      row.items.sort((a, b) => xSum(boxes[a]!) - xSum(boxes[b]!));
       for (const i of row.items) {
         out.push(i);
       }
     }
   }
   return out;
+}
+
+// Vertical-text grouping tuning. A box wider than this × its height is a
+// horizontal line, never a stacked-column glyph. A box joins a column when its
+// x-span overlaps the column's by VERTICAL_X_OVERLAP of the narrower width and the
+// y-gap is within VERTICAL_Y_GAP × its height (loose — signage spacing varies).
+const VERTICAL_GLYPH_ASPECT = 1.6;
+const VERTICAL_X_OVERLAP = 0.25;
+const VERTICAL_Y_GAP = 2.5;
+
+/**
+ * Divides an ordered TL,TR,BR,BL quad into `parts` equal vertical bands (each a
+ * TL,TR,BR,BL quad), top to bottom. Recovers the individual upright letters of a
+ * stacked column from a box the detector merged (DBNet emits one box per text
+ * region, not per glyph, so stacked letters arrive fused). `parts <= 1` returns
+ * the quad unchanged.
+ * @category Typescript API
+ * @param ordered The quad corners ordered TL, TR, BR, BL.
+ * @param parts The number of equal vertical bands to split into.
+ * @returns The bands as ordered TL,TR,BR,BL quads, top to bottom.
+ */
+export function splitTallQuad(ordered: readonly Point[], parts: number): Point[][] {
+  'worklet';
+  if (parts <= 1) {
+    return [ordered as Point[]];
+  }
+  const [tl, tr, br, bl] = ordered as [Point, Point, Point, Point];
+  const out: Point[][] = [];
+  for (let i = 0; i < parts; i++) {
+    const t0 = i / parts;
+    const t1 = (i + 1) / parts;
+    // Left edge runs tl->bl, right edge tr->br; take the band between t0 and t1.
+    out.push([lerp(tl, bl, t0), lerp(tr, br, t0), lerp(tr, br, t1), lerp(tl, bl, t1)]);
+  }
+  return out;
+}
+
+/**
+ * The axis-aligned bounding quad (TL,TR,BR,BL) enclosing a set of quads. Returns a
+ * zero quad for empty input.
+ * @category Typescript API
+ * @param quads The quads to enclose.
+ * @returns The four corners of the enclosing box, ordered TL, TR, BR, BL.
+ */
+export function boundingQuadOf(quads: readonly (readonly Point[])[]): Point[] {
+  'worklet';
+  const all: Point[] = [];
+  for (const q of quads) {
+    for (const p of q) {
+      all.push(p);
+    }
+  }
+  const { xmin, ymin, xmax, ymax } = bboxOfQuad(all);
+  return [
+    { x: xmin, y: ymin },
+    { x: xmax, y: ymin },
+    { x: xmax, y: ymax },
+    { x: xmin, y: ymax },
+  ];
+}
+
+/**
+ * Clusters glyph-like, x-aligned, stacked boxes into vertical columns; wide lines
+ * and isolated boxes come back as `singles` to read normally. So the vertical pass
+ * ADDS column reading without disturbing horizontal reads.
+ * @category Typescript API
+ * @param quads The detected text quads (ordered TL,TR,BR,BL).
+ * @returns The detected `columns` (each a top-to-bottom list of quads) and the
+ * leftover `singles` (horizontal lines / isolated boxes) to read normally.
+ */
+export function groupVerticalColumns(quads: readonly (readonly Point[])[]): {
+  columns: Point[][][];
+  singles: Point[][];
+} {
+  'worklet';
+  type B = {
+    q: Point[];
+    xmin: number;
+    xmax: number;
+    ymin: number;
+    ymax: number;
+    w: number;
+    h: number;
+  };
+  const candidates: B[] = [];
+  const singles: Point[][] = [];
+  for (const q of quads) {
+    const { xmin, ymin, xmax, ymax } = bboxOfQuad(q);
+    const w = xmax - xmin;
+    const h = ymax - ymin;
+    if (w > h * VERTICAL_GLYPH_ASPECT) {
+      singles.push(q as Point[]); // a horizontal line — read normally
+    } else {
+      candidates.push({ q: q as Point[], xmin, xmax, ymin, ymax, w, h });
+    }
+  }
+  // Top -> bottom, growing each column from its current bottom box. Alignment is
+  // checked against the column's accumulated x-range (not just the last box), so a
+  // narrow glyph like `I` between wider ones doesn't break the run.
+  candidates.sort((a, b) => a.ymin - b.ymin);
+  type Col = { boxes: B[]; xmin: number; xmax: number; bottom: number };
+  const cols: Col[] = [];
+  for (const b of candidates) {
+    let placed = false;
+    for (const col of cols) {
+      const overlap = Math.min(b.xmax, col.xmax) - Math.max(b.xmin, col.xmin);
+      const aligned = overlap > VERTICAL_X_OVERLAP * Math.min(b.w, col.xmax - col.xmin);
+      const gap = b.ymin - col.bottom;
+      if (aligned && gap < VERTICAL_Y_GAP * b.h && gap > -0.5 * b.h) {
+        col.boxes.push(b);
+        col.xmin = Math.min(col.xmin, b.xmin);
+        col.xmax = Math.max(col.xmax, b.xmax);
+        col.bottom = b.ymax;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      cols.push({ boxes: [b], xmin: b.xmin, xmax: b.xmax, bottom: b.ymax });
+    }
+  }
+  const columns: Point[][][] = [];
+  for (const col of cols) {
+    if (col.boxes.length >= 2) {
+      columns.push(col.boxes.map((b) => b.q)); // already top -> bottom
+    } else {
+      singles.push(col.boxes[0]!.q);
+    }
+  }
+  return { columns, singles };
 }
 
 /**
