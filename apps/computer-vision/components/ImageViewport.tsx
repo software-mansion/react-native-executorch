@@ -12,7 +12,7 @@ import {
 import { theme } from '../theme';
 
 const VIEW_WIDTH = Dimensions.get('window').width - 32;
-const DEFAULT_VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
+const VIEW_HEIGHT = Math.round((VIEW_WIDTH * 16) / 9);
 
 /** A 2D point in the displayed image's pixel coordinates. */
 type Point = { readonly x: number; readonly y: number };
@@ -44,7 +44,7 @@ export function ImageViewport({
   height,
   boxes,
 }: ImageViewportProps) {
-  const viewHeight = height ?? DEFAULT_VIEW_HEIGHT;
+  const viewHeight = height ?? VIEW_HEIGHT;
 
   // Map image-pixel polygons into canvas space using the same contain-fit
   // transform Skia uses to draw the image, then build one stroked path.

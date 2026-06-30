@@ -541,10 +541,13 @@ const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
 // OCR
 // =============================================================================
-// EasyOCR (CRAFT + CRNN) and PaddleOCR (DBNet + SVTR). The detector/recognizer
-// profile (normalization, color, padding, CTC head, confidence) is derived from
-// `detectorKind` inside the task, so each model only declares its architecture,
-// input-size `buckets`, and `charset`. `charset` for EasyOCR is set per language.
+// EasyOCR (CRAFT + CRNN) and PaddleOCR (DBNet + SVTR). `detectorKind` selects the
+// box decoder (CRAFT heatmap grouping vs DBNet prob-map contouring) and the default
+// drop score; everything else — RGB input, recognizer normalization/padding, CTC
+// decode, confidence — is the shared baked contract (overridable per model via
+// `recognizerNorm`/`recognizerPadValue`/`decode`, which these built-ins leave at
+// the defaults). So each only declares its architecture, input-size `buckets`, and
+// `charset`. `charset` for EasyOCR is set per language.
 const EASYOCR_OPTS: OCROptions = {
   detectorKind: 'craft', // CRAFT: text + affinity heatmaps grouped into lines
   charset: alphabets.english, // overridden per language
