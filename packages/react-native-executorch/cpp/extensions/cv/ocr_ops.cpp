@@ -4,8 +4,10 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <jsi/jsi.h>
 #include <limits>
 #include <numeric>
+#include <opencv2/core/check.hpp>
 #include <optional>
 #include <span>
 #include <stdexcept>
