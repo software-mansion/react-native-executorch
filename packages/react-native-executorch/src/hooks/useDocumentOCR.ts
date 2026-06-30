@@ -2,6 +2,14 @@ import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
 import { createDocumentOCR, type DocumentOCRModel } from '../extensions/cv/tasks/documentOCR';
 
+// Swap a model spec's hosted `modelPath` for its downloaded local path. Returns
+// undefined when the spec is absent (an optional model) or its path hasn't
+// finished downloading yet.
+const localize = <M extends { modelPath: string }>(
+  spec: M | undefined,
+  localPath: string | undefined
+): M | undefined => (spec && localPath ? { ...spec, modelPath: localPath } : undefined);
+
 /**
  * React hook for the document OCR pipeline: OCR + optional layout detection +
  * optional supporting (orientation/dewarp/table), assembled into reading-ordered
@@ -22,19 +30,14 @@ export function useDocumentOCR<L>(
   const layoutDl = useResourceDownload(config.layout?.modelPath, options?.preventLoad);
   const supDl = useResourceDownload(config.supporting?.modelPath, options?.preventLoad);
 
-  const ready =
-    !!ocrDl.localPath &&
-    (!config.layout || !!layoutDl.localPath) &&
-    (!config.supporting || !!supDl.localPath);
+  // Localize each enabled model; an optional model is "ready" when it's either
+  // absent or fully downloaded. Build the run config only once all are ready.
+  const ocr = localize(config.ocr, ocrDl.localPath);
+  const layout = localize(config.layout, layoutDl.localPath);
+  const supporting = localize(config.supporting, supDl.localPath);
+  const ready = !!ocr && (!config.layout || !!layout) && (!config.supporting || !!supporting);
   const localConfig: DocumentOCRModel<L> | null = ready
-    ? {
-        ...config,
-        ocr: { ...config.ocr, modelPath: ocrDl.localPath! },
-        ...(config.layout ? { layout: { ...config.layout, modelPath: layoutDl.localPath! } } : {}),
-        ...(config.supporting
-          ? { supporting: { ...config.supporting, modelPath: supDl.localPath! } }
-          : {}),
-      }
+    ? { ...config, ocr: ocr!, layout, supporting }
     : null;
 
   const { model, error } = useModel(createDocumentOCR<L>, localConfig, [
@@ -43,16 +46,18 @@ export function useDocumentOCR<L>(
     supDl.localPath,
   ]);
 
-  // Overall progress is the slowest of the enabled downloads, so it can't read
-  // 100% while a second/third model is still fetching.
-  const progresses = [ocrDl.downloadProgress];
-  if (config.layout) progresses.push(layoutDl.downloadProgress);
-  if (config.supporting) progresses.push(supDl.downloadProgress);
+  // Aggregate only the ENABLED downloads, so progress can't read 100% while a
+  // second/third model is still fetching.
+  const downloads = [
+    ocrDl,
+    ...(config.layout ? [layoutDl] : []),
+    ...(config.supporting ? [supDl] : []),
+  ];
 
   return {
     isReady: !!model,
-    error: ocrDl.downloadError || layoutDl.downloadError || supDl.downloadError || error,
-    downloadProgress: Math.min(...progresses),
+    error: downloads.map((d) => d.downloadError).find(Boolean) || error,
+    downloadProgress: Math.min(...downloads.map((d) => d.downloadProgress)),
     runDocumentOCR: model?.runDocumentOCR,
     runDocumentOCRWorklet: model?.runDocumentOCRWorklet,
   };
