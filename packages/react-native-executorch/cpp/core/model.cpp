@@ -1,8 +1,9 @@
 #include "model.h"
 #include "dtype.h"
-#include "tensor.h"
+#include "tensor_helpers.h"
 
 #include <chrono>
+#include <format>
 #include <unordered_set>
 
 #include <executorch/runtime/backend/interface.h>
@@ -11,11 +12,19 @@
 
 namespace rnexecutorch::core::model {
 namespace jsi = facebook::jsi;
+namespace types = rnexecutorch::core::types;
+namespace conversions = rnexecutorch::core::conversions;
+
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 
 ModelHostObject::ModelHostObject(const std::string &modelPath)
     : modelPath_(modelPath),
       etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
+    auto error = etModule_->load();
+    if (!etModule_->is_loaded()) {
+        const std::string errorMsg = executorch::runtime::to_string(error);
+        throw std::runtime_error(std::format("Failed to load model: {}", errorMsg));
+    }
 }
 
 jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
@@ -79,11 +88,11 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "getMethodMeta: Model has been disposed");
             }
 
-            auto methodName = args[0].asString(rt).utf8(rt);
+            auto methodName = conversions::asType<std::string>(rt, "getMethodMeta: methodName", args[0]);
             auto methodMeta = self->etModule_->method_meta(methodName);
             if (!methodMeta.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(methodMeta.error());
-                throw jsi::JSError(rt, "getMethodMeta: Failed to get method meta: " + errorMsg);
+                throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get method meta: {}", errorMsg));
             }
 
             auto inputTagsArray = jsi::Array(rt, methodMeta->num_inputs());
@@ -91,7 +100,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 auto tag = methodMeta->input_tag(i);
                 if (!tag.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(tag.error());
-                    throw jsi::JSError(rt, "getMethodMeta: Failed to get input tag for input " + std::to_string(i) + ": " + errorMsg);
+                    throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get input tag for input {}: {}", i, errorMsg));
                 }
                 inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, executorch::runtime::tag_to_string(tag.get())));
             }
@@ -101,7 +110,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 auto tag = methodMeta->output_tag(i);
                 if (!tag.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(tag.error());
-                    throw jsi::JSError(rt, "getMethodMeta: Failed to get output tag for output " + std::to_string(i) + ": " + errorMsg);
+                    throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get output tag for output {}: {}", i, errorMsg));
                 }
                 outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, executorch::runtime::tag_to_string(tag.get())));
             }
@@ -111,7 +120,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 auto backendName = methodMeta->get_backend_name(i);
                 if (!backendName.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(backendName.error());
-                    throw jsi::JSError(rt, "getMethodMeta: Failed to get backend name for backend " + std::to_string(i) + ": " + errorMsg);
+                    throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get backend name for backend {}: {}", i, errorMsg));
                 }
                 usesBackendMap.setProperty(rt, backendName.get(), methodMeta->uses_backend(backendName.get()));
             }
@@ -123,7 +132,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 jsTensorMeta.setProperty(rt, "nbytes", static_cast<double>(tensorMeta.nbytes()));
 
                 try {
-                    const std::string dtypeStr = rnexecutorch::core::types::toString(rnexecutorch::core::types::fromScalarType(tensorMeta.scalar_type()));
+                    const std::string dtypeStr = types::toString(types::fromScalarType(tensorMeta.scalar_type()));
                     jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, dtypeStr));
                 } catch (const std::exception &) {
                     jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, "not supported"));
@@ -143,7 +152,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 auto tensorMeta = methodMeta->input_tensor_meta(i);
                 if (!tensorMeta.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(tensorMeta.error());
-                    throw jsi::JSError(rt, "getMethodMeta: Failed to get tensor meta for input " + std::to_string(i) + ": " + errorMsg);
+                    throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get tensor meta for input {}: {}", i, errorMsg));
                 }
                 inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJS(rt, tensorMeta.get()));
             }
@@ -153,13 +162,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 auto tensorMeta = methodMeta->output_tensor_meta(i);
                 if (!tensorMeta.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(tensorMeta.error());
-                    throw jsi::JSError(rt, "getMethodMeta: Failed to get tensor meta for output " + std::to_string(i) + ": " + errorMsg);
+                    throw jsi::JSError(rt, std::format("getMethodMeta: Failed to get tensor meta for output {}: {}", i, errorMsg));
                 }
                 outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJS(rt, tensorMeta.get()));
             }
 
             auto jsMeta = jsi::Object(rt);
-
             jsMeta.setProperty(rt, "name", jsi::String::createFromUtf8(rt, methodMeta->name()));
             jsMeta.setProperty(rt, "numInputs", static_cast<double>(methodMeta->num_inputs()));
             jsMeta.setProperty(rt, "numOutputs", static_cast<double>(methodMeta->num_outputs()));
@@ -181,18 +189,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "execute: Usage: execute(methodName, inputs, outputTensors)");
             }
 
-            if (!args[0].isString()) {
-                throw jsi::JSError(rt, "execute: Expected arg0 to be a string");
-            }
-
-            if (!args[1].isObject() || !args[1].asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "execute: Expected arg1 to be an array");
-            }
-
-            if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "execute: Expected arg2 to be an array");
-            }
-
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
                 throw jsi::JSError(rt, "execute: Model is currently in use");
@@ -202,20 +198,20 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "execute: Model has been disposed");
             }
 
-            auto methodName = args[0].asString(rt).utf8(rt);
+            auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
             auto methodMeta = self->etModule_->method_meta(methodName);
             auto inputsArray = args[1].asObject(rt).asArray(rt);
+            auto outputTensorsArray = args[2].asObject(rt).asArray(rt);
 
             if (!methodMeta.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(methodMeta.error());
-                throw jsi::JSError(rt, "execute: Failed to get method meta for '" + methodName + "': " + errorMsg);
+                throw jsi::JSError(rt, std::format("execute: Failed to get method meta for '{}': {}",
+                                                   methodName, errorMsg));
             }
 
             if (inputsArray.size(rt) != methodMeta->num_inputs()) {
-                const std::string errorMsg = "execute: Incorrect size for inputs: got " +
-                                             std::to_string(inputsArray.size(rt)) +
-                                             ", expected " + std::to_string(methodMeta->num_inputs());
-                throw jsi::JSError(rt, errorMsg);
+                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs: got {}, expected {}",
+                                                   inputsArray.size(rt), methodMeta->num_inputs()));
             }
 
             auto validateTensor = [](jsi::Runtime &rt,
@@ -223,22 +219,19 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                      const executorch::runtime::Result<executorch::runtime::TensorInfo> &tensorMeta,
                                      const std::string &identifier) {
                 if (tensorMeta->scalar_type() != tensorHostObject->tensor_->dtype()) {
-                    throw jsi::JSError(rt, "execute: Tensor dtype mismatch for " + identifier);
+                    throw jsi::JSError(rt, std::format("execute: Tensor dtype mismatch for {}", identifier));
                 }
 
                 if (tensorMeta->sizes().size() != tensorHostObject->shape_.size()) {
-                    throw jsi::JSError(rt, "execute: Tensor rank mismatch for " + identifier +
-                                               ": expected rank " + std::to_string(tensorMeta->sizes().size()) +
-                                               " but got " + std::to_string(tensorHostObject->shape_.size()));
+                    throw jsi::JSError(rt, std::format("execute: Tensor rank mismatch for {}: expected rank {} but got {}",
+                                                       identifier, tensorMeta->sizes().size(), tensorHostObject->shape_.size()));
                 }
 
                 auto ndim = tensorHostObject->tensor_->sizes().size();
                 for (size_t j = 0; j < ndim; ++j) {
                     if (tensorMeta->sizes()[j] != tensorHostObject->shape_[j]) {
-                        throw jsi::JSError(rt, "execute: Tensor shape mismatch for " + identifier +
-                                                   ": expected dimension " + std::to_string(j) + " to be " +
-                                                   std::to_string(tensorMeta->sizes()[j]) + " but got " +
-                                                   std::to_string(tensorHostObject->shape_[j]));
+                        throw jsi::JSError(rt, std::format("execute: Tensor shape mismatch for {}: expected dimension {} to be {} but got {}",
+                                                           identifier, j, tensorMeta->sizes()[j], tensorHostObject->shape_[j]));
                     }
                 }
             };
@@ -250,32 +243,17 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             for (size_t i = 0; i < methodMeta->num_inputs(); ++i) {
                 auto tag = methodMeta->input_tag(i);
                 auto val = inputsArray.getValueAtIndex(rt, i);
+                const auto ident = std::format("inputs[{}]", i);
+                const auto ctx = std::format("execute: {}", ident);
 
                 if (!tag.ok()) {
                     const std::string errorMsg = executorch::runtime::to_string(tag.error());
-                    throw jsi::JSError(rt, "execute: Failed to get input tag for inputs[" +
-                                               std::to_string(i) + "]: " + errorMsg);
+                    throw jsi::JSError(rt, std::format("{}: Failed to get input tag: {}", ctx, errorMsg));
                 }
 
                 switch (tag.get()) {
-                case executorch::runtime::Tag::None: {
-                    if (!val.isNull()) {
-                        throw jsi::JSError(rt, "execute: Expected inputs[" +
-                                                   std::to_string(i) + "] to be null");
-                    }
-                    inputs[i] = executorch::runtime::EValue();
-                    break;
-                }
                 case executorch::runtime::Tag::Tensor: {
-                    if (!val.isObject() || !val.asObject(rt).isHostObject<TensorHostObject>(rt)) {
-                        throw jsi::JSError(rt, "execute: Expected inputs[" +
-                                                   std::to_string(i) + "] to be a TensorHostObject");
-                    }
-
-                    auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->data_) {
-                        throw jsi::JSError(rt, "execute: inputs[" + std::to_string(i) + "] has been disposed");
-                    }
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, std::nullopt, std::nullopt);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. The same tensor was passed multiple times.");
@@ -283,50 +261,36 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
                     tensorLocks.emplace_back(tensorHostObject->mutex_, std::try_to_lock);
                     if (!tensorLocks.back().owns_lock()) {
-                        throw jsi::JSError(rt, "execute: inputs[" + std::to_string(i) +
-                                                   "] is currently in use");
+                        throw jsi::JSError(rt, std::format("{} is currently in use", ctx));
+                    }
+
+                    if (!tensorHostObject->data_) {
+                        throw jsi::JSError(rt, std::format("{} has been disposed", ctx));
                     }
 
                     auto tensorMeta = methodMeta->input_tensor_meta(i);
 
                     if (!tensorMeta.ok()) {
                         const std::string errorMsg = executorch::runtime::to_string(tensorMeta.error());
-                        throw jsi::JSError(rt, "execute: Failed to get tensor meta for inputs[" +
-                                                   std::to_string(i) + "]: " + errorMsg);
+                        throw jsi::JSError(rt, std::format("{}: Failed to get tensor meta: {}", ctx, errorMsg));
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
+                    validateTensor(rt, tensorHostObject.get(), tensorMeta, ident);
 
                     inputs[i] = tensorHostObject->tensor_;
                     break;
                 }
-                case executorch::runtime::Tag::Double: {
-                    if (!val.isNumber()) {
-                        throw jsi::JSError(rt, "execute: Expected inputs[" +
-                                                   std::to_string(i) + "] to be a number");
-                    }
-                    inputs[i] = executorch::runtime::EValue(val.asNumber());
+                case executorch::runtime::Tag::Double:
+                    inputs[i] = executorch::runtime::EValue(conversions::asType<double>(rt, ctx, val));
                     break;
-                }
-                case executorch::runtime::Tag::Int: {
-                    if (!val.isNumber()) {
-                        throw jsi::JSError(rt, "execute: Expected inputs[" +
-                                                   std::to_string(i) + "] to be a number");
-                    }
-                    inputs[i] = executorch::runtime::EValue(static_cast<int64_t>(val.asNumber()));
+                case executorch::runtime::Tag::Int:
+                    inputs[i] = executorch::runtime::EValue(conversions::asType<int64_t>(rt, ctx, val));
                     break;
-                }
-                case executorch::runtime::Tag::Bool: {
-                    if (!val.isBool()) {
-                        throw jsi::JSError(rt, "execute: Expected inputs[" +
-                                                   std::to_string(i) + "] to be a boolean");
-                    }
-                    inputs[i] = executorch::runtime::EValue(val.asBool());
+                case executorch::runtime::Tag::Bool:
+                    inputs[i] = executorch::runtime::EValue(conversions::asType<bool>(rt, ctx, val));
                     break;
-                }
-                default: {
-                    throw jsi::JSError(rt, "execute: Unsupported input type for inputs[" + std::to_string(i) + "]");
-                }
+                default:
+                    throw jsi::JSError(rt, std::format("{}: Unsupported input type", ctx));
                 }
             }
 
@@ -338,19 +302,20 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count();
             auto consoleObj = rt.global().getProperty(rt, "console").asObject(rt);
             auto logFn = consoleObj.getProperty(rt, "log").asObject(rt).asFunction(rt);
-            auto info = "Execution of method '" + methodName + "' took " + std::to_string(durationMs) + " ms";
+            auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
 
             if (!result.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(result.error());
-                throw jsi::JSError(rt, "execute: Method '" + methodName + "' execution failed: " + errorMsg +
-                                           ". This may be due to missing required backends - use getMethodMeta()" +
-                                           " to check required backends and getExecuTorchRegisteredBackends()" +
-                                           " to check which backends are registered in the runtime.");
+                throw jsi::JSError(rt, std::format("execute: Method '{}' execution failed: {}. "
+                                                   "This may be due to missing required backends - "
+                                                   "use getMethodMeta() to check required backends and "
+                                                   "getExecuTorchRegisteredBackends() to check "
+                                                   "which backends are registered in the runtime.",
+                                                   methodName, errorMsg));
             }
 
-            auto outputTensorsArray = args[2].asObject(rt).asArray(rt);
             auto jsOutputArray = jsi::Array(rt, result->size());
 
             size_t index = 0;
@@ -367,37 +332,33 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                         throw jsi::JSError(rt, "execute: Not enough tensor output placeholders in outputTensors");
                     }
 
-                    auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
-                    if (!val.isObject() || !val.asObject(rt).isHostObject<TensorHostObject>(rt)) {
-                        throw jsi::JSError(rt, "execute: Expected outputTensors[" +
-                                                   std::to_string(tensorOutputIdx) + "] to be a TensorHostObject");
-                    }
+                    const auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
+                    const auto ident = std::format("outputTensors[{}]", tensorOutputIdx);
+                    const auto ctx = std::format("execute: {}", ident);
 
-                    auto tensorHostObject = val.asObject(rt).getHostObject<TensorHostObject>(rt);
-                    if (!tensorHostObject->data_) {
-                        throw jsi::JSError(rt, "execute: outputTensors[" + std::to_string(tensorOutputIdx) + "] has been disposed");
-                    }
-
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, std::nullopt, std::nullopt);
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. The same tensor was passed multiple times.");
                     }
 
                     tensorLocks.emplace_back(tensorHostObject->mutex_, std::try_to_lock);
                     if (!tensorLocks.back().owns_lock()) {
-                        throw jsi::JSError(rt, "execute: outputTensors[" +
-                                                   std::to_string(tensorOutputIdx) +
-                                                   "] is currently in use");
+                        throw jsi::JSError(rt, std::format("{} is currently in use", ctx));
+                    }
+
+                    if (!tensorHostObject->data_) {
+                        throw jsi::JSError(rt, std::format("{} has been disposed", ctx));
                     }
 
                     auto tensorMeta = methodMeta->output_tensor_meta(index);
 
                     if (!tensorMeta.ok()) {
                         const std::string errorMsg = executorch::runtime::to_string(tensorMeta.error());
-                        throw jsi::JSError(rt, "execute: Failed to get tensor meta for output at index " +
-                                                   std::to_string(index) + ": " + errorMsg);
+                        throw jsi::JSError(rt, std::format("execute: Failed to get tensor meta for output at index {}: {}",
+                                                           index, errorMsg));
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
+                    validateTensor(rt, tensorHostObject.get(), tensorMeta, ident);
 
                     std::memcpy(tensorHostObject->data_.get(),
                                 output.toTensor().const_data_ptr(),
@@ -470,23 +431,15 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
-            throw jsi::JSError(rt, "loadModel: Usage: loadModel(arg0)");
+            throw jsi::JSError(rt, "loadModel: Usage: loadModel(path)");
         }
 
-        if (!args[0].isString()) {
-            throw jsi::JSError(rt, "loadModel: Expected arg0 to be a string");
+        auto modelPath = conversions::asType<std::string>(rt, "loadModel: path", args[0]);
+        try {
+            return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath));
+        } catch (const std::exception &e) {
+            throw jsi::JSError(rt, std::format("loadModel: {}", e.what()));
         }
-
-        auto modelPath = args[0].asString(rt).utf8(rt);
-        auto modelInstance = std::make_shared<ModelHostObject>(modelPath);
-
-        auto error = modelInstance->etModule_->load();
-        if (!modelInstance->etModule_->is_loaded()) {
-            const std::string errorMsg = executorch::runtime::to_string(error);
-            throw jsi::JSError(rt, "loadModel: Failed to load model: " + errorMsg);
-        }
-
-        return jsi::Object::createFromHostObject(rt, modelInstance);
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, fnBody);
 

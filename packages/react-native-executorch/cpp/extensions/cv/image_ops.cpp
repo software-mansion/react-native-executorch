@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -10,11 +11,15 @@
 
 #include "core/dtype.h"
 #include "core/tensor.h"
+#include "core/tensor_helpers.h"
 #include "utils.h"
 
 namespace rnexecutorch::extensions::cv::image_ops {
 namespace jsi = facebook::jsi;
-using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+namespace tensor = rnexecutorch::core::tensor;
+namespace conversions = rnexecutorch::core::conversions;
+
+using rnexecutorch::core::types::DType;
 
 namespace {
 int interpToFlag(const std::string &interp) {
@@ -59,77 +64,17 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: resize(src, dst, options)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "resize: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "resize: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "resize: dst", args[1], src->dtype_, tensor::SymbolicShape{"H'", "W'", src->shape_[2]});
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "resize: dst must be a Tensor");
-        }
+        tensor::checkNotSameTensor(rt, "resize: src", src, "resize: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "resize: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "resize: dst", dst);
 
-        if (!args[2].isObject()) {
-            throw jsi::JSError(rt, "resize: options must be an object");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "resize: In-place operations (src == dst) are not supported.");
-        }
-        auto opts = args[2].asObject(rt);
-
-        if (!opts.hasProperty(rt, "mode") || !opts.getProperty(rt, "mode").isString()) {
-            throw jsi::JSError(rt, "resize: options.mode is required and must be a string");
-        }
-
-        if (!opts.hasProperty(rt, "interpolation") || !opts.getProperty(rt, "interpolation").isString()) {
-            throw jsi::JSError(rt, "resize: options.interpolation is required and must be a string");
-        }
-
-        if (!opts.hasProperty(rt, "padValue") || !opts.getProperty(rt, "padValue").isNumber()) {
-            throw jsi::JSError(rt, "resize: options.padValue is required and must be a number");
-        }
-
-        auto mode = opts.getProperty(rt, "mode").asString(rt).utf8(rt);
-        auto interp = opts.getProperty(rt, "interpolation").asString(rt).utf8(rt);
-        const double padValue = opts.getProperty(rt, "padValue").asNumber();
-
-        if (src->shape_.size() != 3) {
-            throw jsi::JSError(rt, "resize: src must be [H, W, C]");
-        }
-
-        if (dst->shape_.size() != 3) {
-            throw jsi::JSError(rt, "resize: dst must be [H, W, C]");
-        }
-
-        if (src->shape_[2] != dst->shape_[2]) {
-            throw jsi::JSError(rt, "resize: src and dst must have the same number of channels");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "resize: src and dst must have the same dtype");
-        }
-
-        // shared on src (read-only), unique on dst (write)
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "resize: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "resize: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "resize: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "resize: dst tensor has been disposed");
-        }
+        const auto opts = args[2].asObject(rt);
+        const auto mode = conversions::getRequiredProperty<std::string>(rt, "resize: options", opts, "mode");
+        const auto interp = conversions::getRequiredProperty<std::string>(rt, "resize: options", opts, "interpolation");
+        const auto padValue = conversions::getRequiredProperty<double>(rt, "resize: options", opts, "padValue");
 
         const int32_t srcH = src->shape_[0];
         const int32_t srcW = src->shape_[1];
@@ -142,29 +87,35 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
             interpFlag = interpToFlag(interp);
-        } catch (const std::invalid_argument &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, "resize: " + std::string(e.what()));
         }
 
-        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
-        ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
+        try {
+            const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+            ::cv::Mat dstMat(dstH, dstW, cvType, dst->data_.get());
 
-        if (mode == "stretch") {
-            ::cv::resize(srcMat, dstMat, dstMat.size(), 0, 0, interpFlag);
-        } else if (mode == "letterbox") {
-            const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/true);
+            if (mode == "stretch") {
+                ::cv::resize(srcMat, dstMat, dstMat.size(), 0, 0, interpFlag);
+            } else if (mode == "letterbox") {
+                const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/true);
 
-            dstMat.setTo(::cv::Scalar::all(padValue));
-            ::cv::Mat roi = dstMat(::cv::Rect(fit.offX, fit.offY, fit.w, fit.h));
-            ::cv::resize(srcMat, roi, roi.size(), 0, 0, interpFlag);
-        } else if (mode == "crop") {
-            const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/false);
+                dstMat.setTo(::cv::Scalar::all(padValue));
+                ::cv::Mat roi = dstMat(::cv::Rect(fit.offX, fit.offY, fit.w, fit.h));
+                ::cv::resize(srcMat, roi, roi.size(), 0, 0, interpFlag);
+            } else if (mode == "crop") {
+                const FitBox fit = computeFit(srcW, srcH, dstW, dstH, /*inner=*/false);
 
-            ::cv::Mat scaled;
-            ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
-            scaled(::cv::Rect(fit.offX, fit.offY, dstW, dstH)).copyTo(dstMat);
-        } else {
-            throw jsi::JSError(rt, "resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
+                ::cv::Mat scaled;
+                ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
+                scaled(::cv::Rect(fit.offX, fit.offY, dstW, dstH)).copyTo(dstMat);
+            } else {
+                throw jsi::JSError(rt, "resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
+            }
+        } catch (const jsi::JSError &) {
+            throw;
+        } catch (const std::exception &e) {
+            throw jsi::JSError(rt, "resize: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -246,64 +197,19 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: cvtColor(src, dst, code)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "cvtColor: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "cvtColor: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "cvtColor: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[0], src->shape_[1], "C'"});
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "cvtColor: dst must be a Tensor");
-        }
-
-        if (!args[2].isString()) {
-            throw jsi::JSError(rt, "cvtColor: code must be a string");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "cvtColor: In-place operations (src == dst) are not supported.");
-        }
-        auto code = args[2].asString(rt).utf8(rt);
-
-        if (src->shape_.size() != 3) {
-            throw jsi::JSError(rt, "cvtColor: src must be a 3D tensor [H, W, C]");
-        }
-
-        if (dst->shape_.size() != 3) {
-            throw jsi::JSError(rt, "cvtColor: dst must be a 3D tensor [H, W, C]");
-        }
-
-        if (src->shape_[0] != dst->shape_[0] || src->shape_[1] != dst->shape_[1]) {
-            throw jsi::JSError(rt, "cvtColor: src and dst spatial dimensions (H, W) must match");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "cvtColor: src and dst must have the same dtype");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "cvtColor: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "cvtColor: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "cvtColor: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "cvtColor: dst tensor has been disposed");
-        }
+        tensor::checkNotSameTensor(rt, "cvtColor: src", src, "cvtColor: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "cvtColor: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "cvtColor: dst", dst);
 
         const int32_t srcH = src->shape_[0];
         const int32_t srcW = src->shape_[1];
         const int32_t srcC = src->shape_[2];
         const int32_t dstC = dst->shape_[2];
+
+        auto code = conversions::asType<std::string>(rt, "cvtColor: code", args[2]);
 
         int cvSrcType{};
         int cvDstType{};
@@ -317,7 +223,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             ::cv::Mat dstMat(srcH, srcW, cvDstType, dst->data_.get());
 
             ::cv::cvtColor(srcMat, dstMat, flag);
-        } catch (const std::invalid_argument &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, "cvtColor: " + std::string(e.what()));
         }
 
@@ -334,79 +240,33 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: toChannelsFirst(src, dst)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "toChannelsFirst: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "toChannelsFirst: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "toChannelsFirst: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[2], src->shape_[0], src->shape_[1]});
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "toChannelsFirst: dst must be a Tensor");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "toChannelsFirst: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->shape_.size() != 3) {
-            throw jsi::JSError(rt, "toChannelsFirst: src must be a 3D tensor [H, W, C]");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "toChannelsFirst: src and dst must have the same dtype");
-        }
+        tensor::checkNotSameTensor(rt, "toChannelsFirst: src", src, "toChannelsFirst: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "toChannelsFirst: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "toChannelsFirst: dst", dst);
 
         const int32_t srcH = src->shape_[0];
         const int32_t srcW = src->shape_[1];
         const int32_t srcC = src->shape_[2];
 
-        if (dst->shape_.size() != 3) {
-            throw jsi::JSError(rt, "toChannelsFirst: dst must be a 3D tensor [C, H, W]");
-        }
-        const int32_t dstC = dst->shape_[0];
-        const int32_t dstH = dst->shape_[1];
-        const int32_t dstW = dst->shape_[2];
-
-        if (srcH != dstH || srcW != dstW || srcC != dstC) {
-            throw jsi::JSError(rt, "toChannelsFirst: src and dst spatial dimensions and channel counts must match");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "toChannelsFirst: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "toChannelsFirst: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "toChannelsFirst: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "toChannelsFirst: dst tensor has been disposed");
-        }
-
-        int cvType{};
         try {
-            cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
-        } catch (const std::invalid_argument &e) {
+            const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
+
+            const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+            std::vector<::cv::Mat> channels;
+            ::cv::split(srcMat, channels);
+
+            const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
+            const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+            uint8_t *dstPtr = dst->data_.get();
+
+            for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
+                std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
+            }
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, "toChannelsFirst: " + std::string(e.what()));
-        }
-
-        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
-        std::vector<::cv::Mat> channels;
-        ::cv::split(srcMat, channels);
-
-        const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        uint8_t *dstPtr = dst->data_.get();
-
-        for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-            std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
         }
 
         return jsi::Value(rt, args[1]);
@@ -422,80 +282,34 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: toChannelsLast(src, dst)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "toChannelsLast: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "toChannelsLast: src", args[0], std::nullopt, tensor::SymbolicShape{"C", "H", "W"});
+        auto dst = tensor::fromJs(rt, "toChannelsLast: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[1], src->shape_[2], src->shape_[0]});
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "toChannelsLast: dst must be a Tensor");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "toChannelsLast: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->shape_.size() != 3) {
-            throw jsi::JSError(rt, "toChannelsLast: src must be a 3D tensor [C, H, W]");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "toChannelsLast: src and dst must have the same dtype");
-        }
+        tensor::checkNotSameTensor(rt, "toChannelsLast: src", src, "toChannelsLast: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "toChannelsLast: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "toChannelsLast: dst", dst);
 
         const int32_t srcC = src->shape_[0];
         const int32_t srcH = src->shape_[1];
         const int32_t srcW = src->shape_[2];
 
-        if (dst->shape_.size() != 3) {
-            throw jsi::JSError(rt, "toChannelsLast: dst must be a 3D tensor [H, W, C]");
-        }
-        const int32_t dstH = dst->shape_[0];
-        const int32_t dstW = dst->shape_[1];
-        const int32_t dstC = dst->shape_[2];
-
-        if (srcH != dstH || srcW != dstW || srcC != dstC) {
-            throw jsi::JSError(rt, "toChannelsLast: src and dst spatial dimensions and channel counts must match");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "toChannelsLast: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "toChannelsLast: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "toChannelsLast: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "toChannelsLast: dst tensor has been disposed");
-        }
-
-        int cvDepth{};
         try {
-            cvDepth = dtypeToCvDepth(src->dtype_);
-        } catch (const std::invalid_argument &e) {
+            const int cvDepth = dtypeToCvDepth(src->dtype_);
+
+            const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
+            const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+            uint8_t *srcPtr = src->data_.get();
+
+            std::vector<::cv::Mat> channels;
+            for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
+                channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
+            }
+
+            ::cv::Mat dstMat(srcH, srcW, CV_MAKETYPE(cvDepth, srcC), dst->data_.get());
+            ::cv::merge(channels, dstMat);
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, "toChannelsLast: " + std::string(e.what()));
         }
-
-        const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
-        const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        uint8_t *srcPtr = src->data_.get();
-
-        std::vector<::cv::Mat> channels;
-        for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-            channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
-        }
-
-        ::cv::Mat dstMat(dstH, dstW, CV_MAKETYPE(cvDepth, dstC), dst->data_.get());
-        ::cv::merge(channels, dstMat);
 
         return jsi::Value(rt, args[1]);
     };
@@ -510,114 +324,55 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: normalize(src, dst, options)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "normalize: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "normalize: src", args[0], std::nullopt, tensor::SymbolicShape{"C", "H", "W"});
+        auto dst = tensor::fromJs(rt, "normalize: dst", args[1], std::nullopt, src->shape_);
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "normalize: dst must be a Tensor");
-        }
+        tensor::checkNotSameTensor(rt, "normalize: src", src, "normalize: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "normalize: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "normalize: dst", dst);
 
-        if (!args[2].isObject()) {
-            throw jsi::JSError(rt, "normalize: options must be an object");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "normalize: In-place operations (src == dst) are not supported.");
-        }
         auto opts = args[2].asObject(rt);
 
-        if (src->shape_.size() != 3) {
-            throw jsi::JSError(rt, "normalize: src must be a 3D tensor [C, H, W]");
-        }
-
-        int32_t c = src->shape_[0];
+        const int32_t c = src->shape_[0];
         const int32_t h = src->shape_[1];
         const int32_t w = src->shape_[2];
 
-        if (dst->shape_.size() != 3 ||
-            dst->shape_[0] != c ||
-            dst->shape_[1] != h ||
-            dst->shape_[2] != w) {
-            throw jsi::JSError(rt, "normalize: src and dst shapes must match exactly ([C, H, W])");
-        }
-
-        auto getNormalizeOption = [&](const char *name) -> std::vector<double> {
-            if (!opts.hasProperty(rt, name)) {
-                throw jsi::JSError(rt, "normalize: options." + std::string(name) + " is required");
-            }
-
-            auto val = opts.getProperty(rt, name);
+        auto getNormalizeOption = [&](const char *optName) -> std::vector<double> {
+            auto val = conversions::getRequiredProperty<jsi::Value>(rt, "normalize", opts, optName);
             std::vector<double> result(static_cast<size_t>(c));
-
             if (val.isNumber()) {
                 std::ranges::fill(result, val.asNumber());
-            } else if (val.isObject() && val.asObject(rt).isArray(rt)) {
-                auto arr = val.asObject(rt).asArray(rt);
-                if (arr.length(rt) != static_cast<size_t>(c)) {
-                    throw jsi::JSError(rt, "normalize: options." + std::string(name) +
-                                               " array length must be exactly equal to channels");
-                }
-                for (size_t i = 0; std::cmp_less(i, c); ++i) {
-                    auto item = arr.getValueAtIndex(rt, i);
-                    if (!item.isNumber()) {
-                        throw jsi::JSError(rt, "normalize: options." + std::string(name) +
-                                                   " array must contain only numbers");
-                    }
-                    result[i] = item.asNumber();
-                }
             } else {
-                throw jsi::JSError(rt, "normalize: options." + std::string(name) +
-                                           " must be a number or an array of numbers");
+                auto arr = conversions::asVector<double>(rt, std::format("normalize: options.{}", optName), val);
+                if (arr.size() != static_cast<size_t>(c)) {
+                    throw jsi::JSError(rt, std::format("normalize: options.{} array length must be exactly equal to channels", optName));
+                }
+                result = std::move(arr);
             }
-
             return result;
         };
 
         std::vector<double> alpha = getNormalizeOption("alpha");
         std::vector<double> beta = getNormalizeOption("beta");
 
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "normalize: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "normalize: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "normalize: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "normalize: dst tensor has been disposed");
-        }
-
-        int srcDepthType{};
-        int dstDepthType{};
         try {
-            srcDepthType = dtypeToCvDepth(src->dtype_);
-            dstDepthType = dtypeToCvDepth(dst->dtype_);
-        } catch (const std::invalid_argument &e) {
+            const int srcDepthType = dtypeToCvDepth(src->dtype_);
+            const int dstDepthType = dtypeToCvDepth(dst->dtype_);
+
+            const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
+            const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
+            uint8_t *srcPtr = src->data_.get();
+            uint8_t *dstPtr = dst->data_.get();
+
+            const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
+            for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
+                const ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
+                ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * plane * dstElemSize);
+
+                srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
+            }
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, "normalize: " + std::string(e.what()));
-        }
-
-        const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-        const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
-        uint8_t *srcPtr = src->data_.get();
-        uint8_t *dstPtr = dst->data_.get();
-
-        const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
-        for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
-            const ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
-            ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * plane * dstElemSize);
-
-            srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
         }
 
         return jsi::Value(rt, args[1]);
@@ -633,64 +388,33 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "applyColormap: src must be a Tensor");
-        }
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "applyColormap: dst must be a Tensor");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-        constexpr size_t numRgbaChannels = 4;
-
-        if (src->dtype_ != rnexecutorch::core::types::DType::int32) {
-            throw jsi::JSError(rt, "applyColormap: src must be int32");
-        }
-        if (dst->dtype_ != rnexecutorch::core::types::DType::uint8) {
-            throw jsi::JSError(rt, "applyColormap: dst must be uint8");
-        }
-        if (dst->numel_ != src->numel_ * numRgbaChannels) {
-            throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
-        }
-
         if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
             throw jsi::JSError(rt, "applyColormap: colormap must be an array");
+        }
+
+        auto src = tensor::fromJs(rt, "applyColormap: src", args[0], DType::int32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "applyColormap: dst", args[1], DType::uint8, std::nullopt);
+
+        tensor::checkNotSameTensor(rt, "applyColormap: src", src, "applyColormap: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "applyColormap: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "applyColormap: dst", dst);
+
+        constexpr size_t numRgbaChannels = 4;
+        if (dst->numel_ != src->numel_ * numRgbaChannels) {
+            throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
         }
 
         auto colormapArray = args[2].asObject(rt).asArray(rt);
         const size_t numColors = colormapArray.size(rt);
         std::vector<std::array<uint8_t, numRgbaChannels>> lut(numColors);
         for (size_t i = 0; i < numColors; ++i) {
-            auto colorVal = colormapArray.getValueAtIndex(rt, i);
-            if (!colorVal.isObject() || !colorVal.asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "applyColormap: colormap entry must be an array");
-            }
-            auto color = colorVal.asObject(rt).asArray(rt);
-            if (color.size(rt) != numRgbaChannels) {
+            auto colorVec = conversions::asVector<uint8_t>(rt, "applyColormap: colormap entry", colormapArray.getValueAtIndex(rt, i));
+            if (colorVec.size() != numRgbaChannels) {
                 throw jsi::JSError(rt, "applyColormap: colormap entry must be an RGBA color array of size 4");
             }
             for (size_t c = 0; c < numRgbaChannels; ++c) {
-                auto channelVal = color.getValueAtIndex(rt, c);
-                if (!channelVal.isNumber()) {
-                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be a number");
-                }
-                const double val = channelVal.asNumber();
-                if (std::isnan(val) || val < 0.0 || val > 255.0) {
-                    throw jsi::JSError(rt, "applyColormap: colormap channel value must be between 0 and 255");
-                }
-                lut[i][c] = static_cast<uint8_t>(val);
+                lut[i][c] = colorVec[c];
             }
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "applyColormap: tensors in use");
-        }
-
-        if (!src->data_ || !dst->data_) {
-            throw jsi::JSError(rt, "applyColormap: tensor has been disposed");
         }
 
         const size_t pixels = src->numel_;

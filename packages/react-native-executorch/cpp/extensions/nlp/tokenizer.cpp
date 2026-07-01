@@ -1,13 +1,17 @@
 #include "tokenizer.h"
 
 #include <cstdint>
+#include <format>
 #include <stdexcept>
 #include <utility>
 
 #include <pytorch/tokenizers/error.h>
 
+#include "core/conversions.h"
+
 namespace rnexecutorch::extensions::nlp::tokenizer {
 namespace jsi = facebook::jsi;
+namespace conversions = rnexecutorch::core::conversions;
 
 namespace {
 // Number of BOS/EOS tokens to add on top of what the tokenizer.json defines.
@@ -82,20 +86,13 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "encode: Tokenizer has been disposed");
             }
 
-            auto text = args[0].asString(rt).utf8(rt);
+            auto text = conversions::asType<std::string>(rt, "encode: text", args[0]);
             auto result = self->tokenizer_->encode(text, kNumAddedBosTokens, kNumAddedEosTokens);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "encode: Failed to encode input: " +
-                                           toString(result.error()));
+                throw jsi::JSError(rt, std::format("encode: Failed to encode input: {}", toString(result.error())));
             }
 
-            const auto &ids = result.get();
-            auto jsArray = jsi::Array(rt, ids.size());
-            for (size_t i = 0; i < ids.size(); ++i) {
-                jsArray.setValueAtIndex(rt, i, static_cast<double>(ids[i]));
-            }
-
-            return jsArray;
+            return conversions::toJsiArray(rt, result.get());
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "encode"), 1, fnBody);
     }
@@ -107,17 +104,10 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "decode: Usage: decode(tokens, skipSpecialTokens?)");
             }
 
-            if (!args[0].isObject() || !args[0].asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "decode: Expected arg0 to be an array");
-            }
-
             // skipSpecialTokens is optional and defaults to true.
             bool skipSpecialTokens = true;
             if (count == 2 && !args[1].isUndefined()) {
-                if (!args[1].isBool()) {
-                    throw jsi::JSError(rt, "decode: Expected arg1 to be a boolean");
-                }
-                skipSpecialTokens = args[1].asBool();
+                skipSpecialTokens = conversions::asType<bool>(rt, "decode: skipSpecialTokens", args[1]);
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
@@ -129,17 +119,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "decode: Tokenizer has been disposed");
             }
 
-            auto tokensArray = args[0].asObject(rt).asArray(rt);
-
-            std::vector<uint64_t> tokens;
-            tokens.reserve(tokensArray.size(rt));
-            for (size_t i = 0; i < tokensArray.size(rt); ++i) {
-                auto val = tokensArray.getValueAtIndex(rt, i);
-                if (!val.isNumber()) {
-                    throw jsi::JSError(rt, "decode: Expected tokens[" + std::to_string(i) + "] to be a number");
-                }
-                tokens.push_back(static_cast<uint64_t>(val.asNumber()));
-            }
+            auto tokens = conversions::asVector<uint64_t>(rt, "decode: tokens", args[0]);
 
             if (tokens.empty()) {
                 return jsi::String::createFromUtf8(rt, "");
@@ -147,8 +127,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
             auto result = self->tokenizer_->decode(tokens, skipSpecialTokens);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "decode: Failed to decode tokens: " +
-                                           toString(result.error()));
+                throw jsi::JSError(rt, std::format("decode: Failed to decode tokens: {}", toString(result.error())));
             }
 
             return jsi::String::createFromUtf8(rt, result.get());
@@ -197,11 +176,10 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "idToToken: Tokenizer has been disposed");
             }
 
-            auto tokenId = static_cast<uint64_t>(args[0].asNumber());
+            auto tokenId = conversions::asType<uint64_t>(rt, "idToToken: id", args[0]);
             auto result = self->tokenizer_->id_to_piece(tokenId);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "idToToken: Failed to convert id to token: " +
-                                           toString(result.error()));
+                throw jsi::JSError(rt, std::format("idToToken: Failed to convert id to token: {}", toString(result.error())));
             }
 
             return jsi::String::createFromUtf8(rt, result.get());
@@ -216,10 +194,6 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "tokenToId: Usage: tokenToId(token)");
             }
 
-            if (!args[0].isString()) {
-                throw jsi::JSError(rt, "tokenToId: Expected arg0 to be a string");
-            }
-
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
                 throw jsi::JSError(rt, "tokenToId: Tokenizer is currently in use");
@@ -229,11 +203,10 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "tokenToId: Tokenizer has been disposed");
             }
 
-            auto token = args[0].asString(rt).utf8(rt);
+            auto token = conversions::asType<std::string>(rt, "tokenToId: token", args[0]);
             auto result = self->tokenizer_->piece_to_id(token);
             if (!result.ok()) {
-                throw jsi::JSError(rt, "tokenToId: Failed to convert token to id: " +
-                                           toString(result.error()));
+                throw jsi::JSError(rt, std::format("tokenToId: Failed to convert token to id: {}", toString(result.error())));
             }
 
             return static_cast<double>(result.get());
@@ -283,16 +256,12 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(arg0)");
         }
 
-        if (!args[0].isString()) {
-            throw jsi::JSError(rt, "loadTokenizer: Expected arg0 to be a string");
-        }
-
-        auto tokenizerPath = args[0].asString(rt).utf8(rt);
+        auto tokenizerPath = conversions::asType<std::string>(rt, "loadTokenizer: path", args[0]);
         try {
             auto tokenizerInstance = std::make_shared<TokenizerHostObject>(tokenizerPath);
             return jsi::Object::createFromHostObject(rt, tokenizerInstance);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::string("loadTokenizer: ") + e.what());
+            throw jsi::JSError(rt, std::format("loadTokenizer: {}", e.what()));
         }
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, fnBody);
