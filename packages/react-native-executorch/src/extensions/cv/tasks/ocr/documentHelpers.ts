@@ -1,8 +1,7 @@
-import type { ImageBuffer } from '../image';
-import { FORMAT_CHANNELS } from '../ops/image';
-import { boundingBoxOf, type BoundingBox } from '../ops/boxes';
-import { clamp } from '../ops/points';
-import type { OCRDetection } from './ocr';
+import type { ImageBuffer } from '../../image';
+import { FORMAT_CHANNELS } from '../../ops/image';
+import { boundingBoxOf, type BoundingBox } from '../../ops/boxes';
+import type { OCRDetection } from '../ocr';
 
 // Crops an axis-aligned region out of an ImageBuffer (pure pixel slice, same
 // format). Used to feed a layout region (e.g. a table) to another model.
@@ -10,10 +9,10 @@ export function cropImageBuffer(input: ImageBuffer, bbox: BoundingBox<'xyxy'>): 
   'worklet';
   const { data, width, height, format } = input;
   const ch = FORMAT_CHANNELS[format];
-  const x0 = clamp(Math.round(bbox.xmin), 0, width);
-  const y0 = clamp(Math.round(bbox.ymin), 0, height);
-  const x1 = clamp(Math.round(bbox.xmax), 0, width);
-  const y1 = clamp(Math.round(bbox.ymax), 0, height);
+  const x0 = Math.max(0, Math.min(Math.round(bbox.xmin), width));
+  const y0 = Math.max(0, Math.min(Math.round(bbox.ymin), height));
+  const x1 = Math.max(0, Math.min(Math.round(bbox.xmax), width));
+  const y1 = Math.max(0, Math.min(Math.round(bbox.ymax), height));
   const cw = Math.max(1, x1 - x0);
   const chh = Math.max(1, y1 - y0);
   const out = new Uint8Array(cw * chh * ch);
@@ -22,43 +21,6 @@ export function cropImageBuffer(input: ImageBuffer, bbox: BoundingBox<'xyxy'>): 
     out.set(data.subarray(srcStart, srcStart + cw * ch), y * cw * ch);
   }
   return { data: out, width: cw, height: chh, format, layout: input.layout };
-}
-
-// Rotates an ImageBuffer clockwise by 0/90/180/270 degrees (pure pixel reindex).
-export function rotateImageBuffer(input: ImageBuffer, degCW: 0 | 90 | 180 | 270): ImageBuffer {
-  'worklet';
-  if (degCW === 0) {
-    return input;
-  }
-  const { data, width, height, format } = input;
-  const ch = FORMAT_CHANNELS[format];
-  const swap = degCW === 90 || degCW === 270;
-  const ow = swap ? height : width;
-  const oh = swap ? width : height;
-  const out = new Uint8Array(ow * oh * ch);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let ox = 0;
-      let oy = 0;
-      if (degCW === 90) {
-        ox = height - 1 - y;
-        oy = x;
-      } else if (degCW === 180) {
-        ox = width - 1 - x;
-        oy = height - 1 - y;
-      } else {
-        // 270
-        ox = y;
-        oy = width - 1 - x;
-      }
-      const si = (y * width + x) * ch;
-      const di = (oy * ow + ox) * ch;
-      for (let c = 0; c < ch; c++) {
-        out[di + c] = data[si + c]!;
-      }
-    }
-  }
-  return { data: out, width: ow, height: oh, format, layout: input.layout };
 }
 
 /**

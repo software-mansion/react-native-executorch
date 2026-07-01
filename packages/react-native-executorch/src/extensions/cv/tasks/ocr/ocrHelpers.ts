@@ -1,5 +1,5 @@
-import type { Quad } from '../ops/image';
-import { scalePoint, clamp, type Point } from '../ops/points';
+import type { Quad } from '../../ops/textBoxes';
+import { scalePoint, type Point } from '../../ops/points';
 
 /**
  * Worklet-safe millisecond clock for in-pipeline profiling. Prefers
@@ -94,7 +94,7 @@ export function mapQuadToImage(
       to: { width: origW, height: origH },
       resizeMode: 'letterbox',
     });
-    return { x: clamp(m.x, 0, origW), y: clamp(m.y, 0, origH) };
+    return { x: Math.max(0, Math.min(m.x, origW)), y: Math.max(0, Math.min(m.y, origH)) };
   });
 }
 
@@ -454,7 +454,7 @@ export function contentWidthFor(
 ): number {
   'worklet';
   const w = Math.round((recHeight * quadW) / Math.max(1, quadH));
-  return clamp(w, 1, bucketWidth);
+  return Math.max(1, Math.min(w, bucketWidth));
 }
 
 /**

@@ -1,18 +1,20 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
+import { tensor } from '../../../core/tensor';
 import { wrapAsync } from '../../../core/runtime';
 import type { ImageBuffer } from '../image';
 import type { Point } from '../ops/points';
 import { boundingBoxOf, type BoundingBox } from '../ops/boxes';
+import { rotate, FORMAT_CHANNELS } from '../ops/image';
 import { createOCR, type OCRModel, type OCRDetection } from './ocr';
 import {
   createObjectDetector,
   type ObjectDetectorModel,
   type ObjectDetection,
 } from './objectDetection';
-import { createSupporting, type SupportingModel } from './supporting';
-import { readingOrderIndices } from './ocrHelpers';
-import { cropImageBuffer, rotateImageBuffer, fillTableCells } from './documentHelpers';
+import { createSupporting, type SupportingModel } from './ocr/supporting';
+import { readingOrderIndices } from './ocr/ocrHelpers';
+import { cropImageBuffer, fillTableCells } from './ocr/documentHelpers';
 
 /**
  * One assembled document block: a layout region (or an ungrouped catch-all) with
@@ -98,11 +100,6 @@ export type RunDocumentOCROptions = {
 // can still land ~0.74.
 const ORIENTATION_MIN_CONFIDENCE = 0.85;
 
-const isTableLabel = (label: unknown): boolean => {
-  'worklet';
-  return String(label) === 'table';
-};
-
 // Layout classes that carry no text — skip OCR on them.
 const VISUAL_LABELS = ['image', 'chart', 'seal'];
 const isTextRegion = (label: unknown): boolean => {
@@ -186,17 +183,53 @@ export async function createDocumentOCR<L>(
     const useOrientation = !!supporting && (options?.orientation ?? defaultOrientation);
     const useDewarp = !!supporting && (options?.dewarp ?? defaultDewarp);
     let img = input;
-    if (useOrientation && supporting) {
-      // Only correct when the classifier is confident AND the predicted angle is
-      // non-zero — a low-confidence argmax (typical of OOD photos / non-documents)
-      // otherwise spuriously flips the page. Below threshold we leave it as 0°.
-      const ori = supporting.detectOrientationWorklet(img);
-      if (ori.rotationCW !== 0 && ori.confidence >= ORIENTATION_MIN_CONFIDENCE) {
-        img = rotateImageBuffer(img, ((360 - ori.rotationCW) % 360) as 0 | 90 | 180 | 270);
+    // Orientation + dewarp thread one page tensor (built once): rotate and the
+    // dewarp remap run tensor -> tensor with no intermediate ImageBuffer, and the
+    // corrected page is materialized back to an ImageBuffer once for the OCR/crop
+    // stages below (which are all ImageBuffer-based).
+    if ((useOrientation || useDewarp) && supporting) {
+      const ch = FORMAT_CHANNELS[input.format];
+      let page = tensor('uint8', [input.height, input.width, ch]);
+      page.setData(input.data);
+      let pw = input.width;
+      let ph = input.height;
+      try {
+        if (useOrientation) {
+          // Only correct when the classifier is confident AND the predicted angle
+          // is non-zero — a low-confidence argmax (typical of OOD photos / non-
+          // documents) otherwise spuriously flips the page.
+          const orientation = supporting.detectOrientationWorklet(page, input.format);
+          const deg = ((360 - orientation.rotationCW) % 360) as 0 | 90 | 180 | 270;
+          if (deg !== 0 && orientation.confidence >= ORIENTATION_MIN_CONFIDENCE) {
+            const swap = deg === 90 || deg === 270;
+            const rotated = tensor('uint8', [swap ? pw : ph, swap ? ph : pw, ch]);
+            try {
+              rotate(page, rotated, deg);
+            } catch (e) {
+              rotated.dispose(); // rotate threw before we adopted `rotated` as `page`
+              throw e;
+            }
+            page.dispose();
+            page = rotated;
+            if (swap) {
+              [pw, ph] = [ph, pw];
+            }
+          }
+        }
+        if (useDewarp) {
+          // dewarp returns the input tensor unchanged when it declines the warp.
+          const dewarped = supporting.dewarpWorklet(page, input.format);
+          if (dewarped !== page) {
+            page.dispose();
+            page = dewarped;
+          }
+        }
+        const out = new Uint8Array(pw * ph * ch);
+        page.getData(out);
+        img = { data: out, width: pw, height: ph, format: input.format, layout: input.layout };
+      } finally {
+        page.dispose();
       }
-    }
-    if (useDewarp && supporting) {
-      img = supporting.dewarpWorklet(img);
     }
 
     // OCR runs once per region here (potentially many), so don't let each call
@@ -236,13 +269,18 @@ export async function createDocumentOCR<L>(
         const lines = ocr
           .runOCRWorklet(crop, { release: false })
           .detections.map((d) => offsetDetection(d, xmin, ymin));
-        const table = isTableLabel(region.label);
-        if (lines.length === 0 && !table) {
+        if (lines.length === 0 && region.label !== 'table') {
           continue;
         }
         detections.push(...lines);
-        let block = makeBlock<L>(region.label, region.box, region.confidence, lines, table);
-        if (table && supporting) {
+        let block = makeBlock<L>(
+          region.label,
+          region.box,
+          region.confidence,
+          lines,
+          region.label === 'table'
+        );
+        if (region.label === 'table' && supporting) {
           const structure = supporting.recognizeTableWorklet(crop);
           block = { ...block, tableHtml: fillTableCells(structure.html, block.lines) };
         }

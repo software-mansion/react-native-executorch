@@ -6,7 +6,8 @@ import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
 import type { Point } from '../ops/points';
-import { FORMAT_CHANNELS, cvtColor, type Quad } from '../ops/image';
+import { FORMAT_CHANNELS, cvtColor } from '../ops/image';
+import type { Quad } from '../ops/textBoxes';
 import {
   buildCharset,
   orderQuad,
@@ -16,7 +17,7 @@ import {
   boundingQuadOf,
   groupVerticalColumns,
   type Buckets,
-} from './ocrHelpers';
+} from './ocr/ocrHelpers';
 import {
   toRgbCode,
   detectQuads,
@@ -25,8 +26,8 @@ import {
   readBoxVertical,
   validateDetectorSchema,
   buildExtractOpts,
-  buildDetectorSets,
-  buildRecognizerSets,
+  deriveDetectorOutputs,
+  deriveRecognizerContract,
   disposeDetSets,
   disposeRecSets,
   type DetSet,
@@ -35,9 +36,9 @@ import {
   type RecContext,
   type VerticalContext,
   type DetectorExtractConfig,
-} from './ocrPipeline';
+} from './ocr/ocrPipeline';
 
-export type { Buckets } from './ocrHelpers';
+export type { Buckets } from './ocr/ocrHelpers';
 
 /**
  * Configuration for the unified OCR pipeline. A model declares its detector
@@ -282,23 +283,51 @@ export async function createOCR(
       ocrOpts.extractBoxes
     );
 
-    const built = buildRecognizerSets(model, recBuckets);
-    recSets = built.sets;
-    recC = built.recC;
-    recH = built.recH;
-    recSetByWidth = new Map(recSets.map((s) => [s.width, s]));
+    // Derive shapes/contract, then allocate + own the scratch tensors here so
+    // ownership never crosses a function boundary (the derive* helpers return no
+    // tensors).
+    const rec = deriveRecognizerContract(model, recBuckets);
+    recC = rec.recC;
+    recH = rec.recH;
+    // Push into the pre-declared arrays as we allocate, so a mid-loop tensor()
+    // failure leaves the partial set visible to the catch's dispose* below.
+    for (const bucket of rec.buckets) {
+      recSets.push({
+        width: bucket.width,
+        tCanvas: tensor('uint8', [rec.recH, bucket.width, rec.recC]),
+        tCF: tensor('uint8', [rec.recC, rec.recH, bucket.width]),
+        tNorm: tensor('float32', [rec.recC, rec.recH, bucket.width]),
+        tInput: tensor('float32', bucket.inShape),
+        tLogits: tensor('float32', bucket.outShape),
+      });
+    }
+    recSetByWidth = new Map(recSets.map((recSet) => [recSet.width, recSet]));
 
     if (recC !== 3) {
       throw new Error(`OCR: recognizer must take RGB (3 channels), but the model expects ${recC}.`);
     }
     charset = buildCharset(ocrOpts.charset);
-    if (charset.length !== built.vocabSize) {
+    if (charset.length !== rec.vocabSize) {
       throw new Error(
-        `OCR: charset size (${charset.length}, incl. blank) must match recognizer output vocab (${built.vocabSize}).`
+        `OCR: charset size (${charset.length}, incl. blank) must match recognizer output vocab (${rec.vocabSize}).`
       );
     }
-    detSets = buildDetectorSets(model, detBuckets, ocrOpts.detectorKind, detExtraChannels);
-    detSetByS = new Map(detSets.map((d) => [d.s, d]));
+    for (const { s, outputs } of deriveDetectorOutputs(
+      model,
+      detBuckets,
+      ocrOpts.detectorKind,
+      detExtraChannels
+    )) {
+      detSets.push({
+        s,
+        tColor: tensor('uint8', [s, s, 3]),
+        tCF: tensor('uint8', [3, s, s]),
+        tNorm: tensor('float32', [3, s, s]),
+        tInput: tensor('float32', [1, 3, s, s]),
+        tOutputs: outputs.map((o) => tensor(o.dtype, o.shape)),
+      });
+    }
+    detSetByS = new Map(detSets.map((detSet) => [detSet.s, detSet]));
   } catch (e) {
     disposeRecSets(recSets);
     disposeDetSets(detSets);
@@ -391,18 +420,18 @@ export async function createOCR(
       // Valid (non-tiny) boxes, ordered TL,TR,BR,BL.
       const ordered: Point[][] = [];
       for (const quad of quads) {
-        const o = orderQuad(quad);
-        const s = quadSize(o);
-        if (s.width >= 3 && s.height >= 3) {
-          ordered.push(o);
+        const orderedQuad = orderQuad(quad);
+        const size = quadSize(orderedQuad);
+        if (size.width >= 3 && size.height >= 3) {
+          ordered.push(orderedQuad);
         }
       }
 
       if (!vertical) {
-        for (const o of ordered) {
+        for (const orderedQuad of ordered) {
           const boxStart = nowMs();
-          const { text, conf } = recognizeQuad(recCtx, recSrc, o);
-          pushDetection(detections, dropScore, text, conf, o, nowMs() - boxStart);
+          const { text, conf } = recognizeQuad(recCtx, recSrc, orderedQuad);
+          pushDetection(detections, dropScore, text, conf, orderedQuad, nowMs() - boxStart);
         }
         return { detections: orderDetections(detections) };
       }
@@ -415,27 +444,33 @@ export async function createOCR(
         // `recognizeGlyphStrip` splits any multi-letter box into single-glyph
         // cells (DBNet merges stacked letters and won't split them), so the
         // column's boxes can be passed straight through, top -> bottom.
-        const r = recognizeGlyphStrip(recCtx, recSrc, recC, col);
-        if (r) {
+        const strip = recognizeGlyphStrip(recCtx, recSrc, col);
+        if (strip) {
           pushDetection(
             detections,
             VERTICAL_DROP_SCORE,
-            r.text,
-            r.conf,
+            strip.text,
+            strip.conf,
             boundingQuadOf(col),
             nowMs() - boxStart
           );
         }
       }
-      for (const o of singles) {
+      for (const orderedQuad of singles) {
         const boxStart = nowMs();
-        const { text, conf, stacked } = readBoxVertical(recCtx, vctx, recSrc, o, quadSize(o));
+        const { text, conf, stacked } = readBoxVertical(
+          recCtx,
+          vctx,
+          recSrc,
+          orderedQuad,
+          quadSize(orderedQuad)
+        );
         pushDetection(
           detections,
           stacked ? VERTICAL_DROP_SCORE : dropScore,
           text,
           conf,
-          o,
+          orderedQuad,
           nowMs() - boxStart
         );
       }

@@ -10,19 +10,6 @@ export type Point = {
 };
 
 /**
- * Clamps a scalar to the inclusive range `[lo, hi]`.
- * @category Utils
- * @param v The value to clamp.
- * @param lo The lower bound.
- * @param hi The upper bound.
- * @returns `v` constrained to `[lo, hi]`.
- */
-export function clamp(v: number, lo: number, hi: number): number {
-  'worklet';
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
-/**
  * Per-axis scale and offset that map a `to`-space coordinate back into
  * `from`-space, for an aspect-preserving letterbox or an axis stretch. The
  * inverse map is `(coord − offset) / scale` per axis (offset is 0 for stretch).

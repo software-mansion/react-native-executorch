@@ -9,26 +9,28 @@
 // readStackedColumn/recognizeQuad). The non-worklet builders/validators run at
 // construction time on the JS thread and have no such constraint.
 
-import { tensor, type Tensor } from '../../../core/tensor';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
-import type { Model } from '../../../core/model';
+import { tensor, type Tensor, type DType } from '../../../../core/tensor';
+import { validateModelSchema, SymbolicTensor } from '../../../../core/modelSchema';
+import type { Model } from '../../../../core/model';
 
-import type { ImageFormat } from '../image';
-import type { Point } from '../ops/points';
+import type { ImageFormat } from '../../image';
+import type { Point } from '../../ops/points';
 import {
   FORMAT_CONVERSION,
   resize,
   cvtColor,
   toChannelsFirst,
   normalize,
+  type ColorConversionCode,
+} from '../../ops/image';
+import {
   extractTextBoxes,
   warpQuad,
   ctcGreedyDecode,
-  type ColorConversionCode,
   type CraftExtractOptions,
   type DbnetExtractOptions,
   type Quad,
-} from '../ops/image';
+} from '../../ops/textBoxes';
 import {
   mapQuadToImage,
   orderQuad,
@@ -156,25 +158,25 @@ export function detectQuads(
   'worklet';
   const detS = snapDetectBucket(width, height, ctx.detBuckets);
   // snapDetectBucket always returns one of detBuckets, so the set exists.
-  const ds = ctx.detSets.get(detS)!;
+  const detSet = ctx.detSets.get(detS)!;
   // Only the source resize depends on the run's channel count; the rest is cached.
   const tDetResize = tensor('uint8', [detS, detS, ctx.numChannels]);
   try {
     src
       .through(resize, tDetResize, { mode: 'letterbox', interpolation: 'area', padValue: 0 })
-      .throughIf(ctx.detCode !== null, cvtColor, ds.tColor, ctx.detCode!)
-      .through(toChannelsFirst, ds.tCF)
-      .through(normalize, ds.tNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
-      .copyTo(ds.tInput);
+      .throughIf(ctx.detCode !== null, cvtColor, detSet.tColor, ctx.detCode!)
+      .through(toChannelsFirst, detSet.tCF)
+      .through(normalize, detSet.tNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
+      .copyTo(detSet.tInput);
 
-    ctx.model.execute(`detect_${detS}`, [ds.tInput], [...ds.tOutputs]);
+    ctx.model.execute(`detect_${detS}`, [detSet.tInput], [...detSet.tOutputs]);
     // A custom arch hands its raw outputs to the user extractor; the built-ins
     // decode the heatmap (tOutputs[0]). CRAFT needs the per-run input height to
     // restore its half-res boxes; `charLevel` switches to per-glyph boxes.
     const quads = ctx.extractBoxes
-      ? ctx.extractBoxes(ds.tOutputs, detS)
+      ? ctx.extractBoxes(detSet.tOutputs, detS)
       : extractTextBoxes(
-          ds.tOutputs[0]!,
+          detSet.tOutputs[0]!,
           ctx.extractOpts!.mode === 'craft'
             ? { ...ctx.extractOpts!, targetHeight: detS, charLevel }
             : ctx.extractOpts!
@@ -198,121 +200,108 @@ export function recognizeQuad(
   const desiredW = contentWidthFor(cs.width, cs.height, ctx.recH, maxRec);
   const bucketW = snapRecognizeBucket(desiredW, ctx.recBuckets);
   // snapRecognizeBucket always returns one of recBuckets, so the set exists.
-  const rs = ctx.recSetByWidth.get(bucketW)!;
+  const recSet = ctx.recSetByWidth.get(bucketW)!;
   const contentWidth = Math.min(desiredW, bucketW);
-  warpQuad(src, rs.tCanvas, flattenQuad(corners), {
+  warpQuad(src, recSet.tCanvas, flattenQuad(corners), {
     contentWidth,
     align: 'left',
     padMode: 'constant',
     padValue: ctx.padValue,
   });
-  rs.tCanvas
-    .through(toChannelsFirst, rs.tCF)
-    .through(normalize, rs.tNorm, { alpha: ctx.normAlpha, beta: ctx.normBeta })
-    .copyTo(rs.tInput);
-  ctx.model.execute(`recognize_${bucketW}`, [rs.tInput], [rs.tLogits]);
+  recSet.tCanvas
+    .through(toChannelsFirst, recSet.tCF)
+    .through(normalize, recSet.tNorm, { alpha: ctx.normAlpha, beta: ctx.normBeta })
+    .copyTo(recSet.tInput);
+  ctx.model.execute(`recognize_${bucketW}`, [recSet.tInput], [recSet.tLogits]);
   // A custom decode (e.g. attention/AR head) takes the raw logits; otherwise
   // greedy CTC. Both heads emit probabilities (CRNN softmax baked, SVTR pre-softmaxed).
   if (ctx.decode) {
-    const r = ctx.decode(rs.tLogits, ctx.charset);
+    const r = ctx.decode(recSet.tLogits, ctx.charset);
     return { text: r.text, conf: r.confidence };
   }
-  const { indices, values } = ctcGreedyDecode(rs.tLogits, { softmax: false });
+  const { indices, values } = ctcGreedyDecode(recSet.tLogits, { softmax: false });
   const text = decodeGreedy(indices, ctx.charset);
   const conf = ctcConfidence(values, indices);
   return { text, conf };
 }
 
-// Joins glyph quads (in `src` pixel space, in reading order) into one recognizer
-// strip — each glyph warped upright to the recognizer height and laid side by
-// side — and recognizes it as a single line (joint hconcat). Returns null when
-// nothing usable was assembled.
+// Joins glyph quads (in `src` pixel space, reading order) into one recognizer
+// strip: each glyph is warped upright to the recognizer height and placed side by
+// side directly in the canvas (native `warpQuad` with a per-glyph `offsetX`, so
+// there is no JS pixel assembly), then recognized as a single line. Returns null
+// when nothing usable was assembled.
 //
 // Must be defined BEFORE its callers: the worklet plugin captures referenced
 // worklets in source order, so a forward reference is undefined at run time.
 export function recognizeGlyphStrip(
   recCtx: RecContext,
   src: Tensor,
-  recC: number,
   glyphs: readonly (readonly Point[])[]
 ): { text: string; conf: number } | null {
   'worklet';
   const recH = recCtx.recH;
   const maxRec = recCtx.recBuckets[recCtx.recBuckets.length - 1]!;
-  // Warp each glyph upright to recognizer height (aspect preserved). A box that
-  // is much taller than wide is a merged run of stacked letters — split it into
-  // ~square single-letter cells first, so each lands in its own strip slot
-  // (otherwise N letters get squashed into one cell and read as garbage).
-  const slices: { tGlyph: Tensor; w: number }[] = [];
+  // Pass 1 (geometry only): a box much taller than wide is a merged run of stacked
+  // letters — split it into ~square single-letter cells so each lands in its own
+  // strip slot. Measure each cell's warped width (aspect preserved) to size the strip.
+  const cells: { quad: readonly Point[]; width: number }[] = [];
   let totalW = 0;
-  for (const g of glyphs) {
-    const gsz = quadSize(g);
-    if (gsz.width < 1 || gsz.height < 1) {
+  for (const glyph of glyphs) {
+    const glyphSize = quadSize(glyph);
+    if (glyphSize.width < 1 || glyphSize.height < 1) {
       continue;
     }
-    const parts = Math.max(1, Math.round(gsz.height / Math.max(1, gsz.width)));
-    for (const cell of splitTallQuad(g, parts)) {
-      const gs = quadSize(cell);
-      if (gs.width < 1 || gs.height < 1) {
+    const parts = Math.max(1, Math.round(glyphSize.height / Math.max(1, glyphSize.width)));
+    for (const cell of splitTallQuad(glyph, parts)) {
+      const cellSize = quadSize(cell);
+      if (cellSize.width < 1 || cellSize.height < 1) {
         continue;
       }
-      const gw = Math.max(1, Math.min(Math.round((gs.width * recH) / gs.height), maxRec));
-      const tGlyph = tensor('uint8', [recH, gw, recC]);
-      warpQuad(src, tGlyph, flattenQuad(cell), {
-        contentWidth: gw,
-        align: 'left',
-        padMode: 'constant',
-        padValue: recCtx.padValue,
-      });
-      slices.push({ tGlyph, w: gw });
-      totalW += gw;
+      const width = Math.max(
+        1,
+        Math.min(Math.round((cellSize.width * recH) / cellSize.height), maxRec)
+      );
+      cells.push({ quad: cell, width });
+      totalW += width;
     }
   }
-  if (slices.length === 0) {
+  if (cells.length === 0) {
     return null;
   }
-  try {
-    // Smallest bucket that fits the strip (snap up, no glyph truncated); widest
-    // bucket for very long columns.
-    const bucketW =
-      recCtx.recBuckets.find((w) => w >= totalW) ??
-      recCtx.recBuckets[recCtx.recBuckets.length - 1]!;
-    const rs = recCtx.recSetByWidth.get(bucketW)!;
-    // Assemble the strip row-major into the bucket canvas, neutral-padded.
-    const strip = new Uint8Array(recH * bucketW * recC);
-    strip.fill(recCtx.padValue);
-    let xOff = 0;
-    for (const s of slices) {
-      if (xOff >= bucketW) {
-        break;
-      }
-      const copyW = Math.min(s.w, bucketW - xOff);
-      const glyphBytes = new Uint8Array(recH * s.w * recC);
-      s.tGlyph.getData(glyphBytes);
-      for (let oy = 0; oy < recH; oy++) {
-        const srcStart = oy * s.w * recC;
-        const row = glyphBytes.subarray(srcStart, srcStart + copyW * recC);
-        strip.set(row, (oy * bucketW + xOff) * recC);
-      }
-      xOff += s.w;
+  // Smallest bucket that fits the strip (snap up, no glyph truncated); widest for
+  // very long columns.
+  const bucketW =
+    recCtx.recBuckets.find((w) => w >= totalW) ?? recCtx.recBuckets[recCtx.recBuckets.length - 1]!;
+  const recSet = recCtx.recSetByWidth.get(bucketW)!;
+  // Pass 2: warp each cell straight into the canvas at its x-offset. The first warp
+  // clears + pads the whole canvas; the rest compose in with `clear: false`.
+  let xOff = 0;
+  for (let i = 0; i < cells.length; i++) {
+    if (xOff >= bucketW) {
+      break;
     }
-    rs.tCanvas.setData(strip);
-    rs.tCanvas
-      .through(toChannelsFirst, rs.tCF)
-      .through(normalize, rs.tNorm, { alpha: recCtx.normAlpha, beta: recCtx.normBeta })
-      .copyTo(rs.tInput);
-    recCtx.model.execute(`recognize_${bucketW}`, [rs.tInput], [rs.tLogits]);
-    if (recCtx.decode) {
-      const r = recCtx.decode(rs.tLogits, recCtx.charset);
-      return r.text.length > 0 ? { text: r.text, conf: r.confidence } : null;
-    }
-    const { indices, values } = ctcGreedyDecode(rs.tLogits, { softmax: false });
-    const text = decodeGreedy(indices, recCtx.charset);
-    const conf = ctcConfidence(values, indices);
-    return text.length > 0 ? { text, conf } : null;
-  } finally {
-    slices.forEach((s) => s.tGlyph.dispose());
+    warpQuad(src, recSet.tCanvas, flattenQuad(cells[i]!.quad), {
+      contentWidth: cells[i]!.width,
+      offsetX: xOff,
+      clear: i === 0,
+      padMode: 'constant',
+      padValue: recCtx.padValue,
+    });
+    xOff += cells[i]!.width;
   }
+  recSet.tCanvas
+    .through(toChannelsFirst, recSet.tCF)
+    .through(normalize, recSet.tNorm, { alpha: recCtx.normAlpha, beta: recCtx.normBeta })
+    .copyTo(recSet.tInput);
+  recCtx.model.execute(`recognize_${bucketW}`, [recSet.tInput], [recSet.tLogits]);
+  if (recCtx.decode) {
+    const decoded = recCtx.decode(recSet.tLogits, recCtx.charset);
+    return decoded.text.length > 0 ? { text: decoded.text, conf: decoded.confidence } : null;
+  }
+  const { indices, values } = ctcGreedyDecode(recSet.tLogits, { softmax: false });
+  const text = decodeGreedy(indices, recCtx.charset);
+  const conf = ctcConfidence(values, indices);
+  return text.length > 0 ? { text, conf } : null;
 }
 
 // Reads a single tall box that packs several stacked glyphs the detector grouped
@@ -352,7 +341,7 @@ export function readStackedColumn(
     const boxSrc = vctx.recCode !== null ? cvtColor(tBoxRaw, tRecBox, vctx.recCode) : tBoxRaw;
     // Stack reading order: top -> bottom by each glyph's upper edge.
     const glyphs = charQuads.map((q) => orderQuad(q)).sort((a, b) => a[0]!.y - b[0]!.y);
-    return recognizeGlyphStrip(recCtx, boxSrc, recC, glyphs);
+    return recognizeGlyphStrip(recCtx, boxSrc, glyphs);
   } finally {
     tBoxRaw.dispose();
     tRecBox.dispose();
@@ -458,53 +447,54 @@ export function buildExtractOpts(
       };
 }
 
-// Pre-allocates one detector scratch-set per detect bucket (channel-independent
-// tensors; the per-run source-resize tensor is allocated in detectQuads). Mirrors
-// buildRecognizerSets — runs at construction.
-export function buildDetectorSets(
+// Per-detect-bucket output tensor specs (dtype + shape). Custom archs declare
+// arbitrary outputs — read straight from the PTE's method metadata; the built-ins
+// have known heatmap (+ craft extras) shapes. Returns specs only (no tensors); the
+// task factory allocates and owns them (see DetSet in createOCR). Runs at
+// construction.
+export function deriveDetectorOutputs(
   model: Model,
   detBuckets: readonly number[],
   detectorKind: 'craft' | 'dbnet' | 'custom',
   detExtraChannels: readonly number[]
-): DetSet[] {
+): { s: number; outputs: { dtype: DType; shape: number[] }[] }[] {
   return detBuckets.map((s) => {
     const heat = s / 2;
-    // Custom archs declare arbitrary outputs — size them straight from the PTE's
-    // method metadata. Built-ins keep their known heatmap (+ craft extras) shapes.
-    let tOutputs: Tensor[];
     if (detectorKind === 'custom') {
-      tOutputs = model
+      const outputs = model
         .getMethodMeta(`detect_${s}`)
-        .outputTensorMeta.map((m) => tensor(m.dtype, m.shape));
-    } else {
-      const tHeatmap =
-        detectorKind === 'dbnet'
-          ? tensor('float32', [1, 1, s, s])
-          : tensor('float32', [1, heat, heat, 2]);
-      tOutputs = [tHeatmap, ...detExtraChannels.map((c) => tensor('float32', [1, c, heat, heat]))];
+        .outputTensorMeta.map((m) => ({ dtype: m.dtype, shape: m.shape }));
+      return { s, outputs };
     }
-    return {
-      s,
-      tColor: tensor('uint8', [s, s, 3]),
-      tCF: tensor('uint8', [3, s, s]),
-      tNorm: tensor('float32', [3, s, s]),
-      tInput: tensor('float32', [1, 3, s, s]),
-      tOutputs,
-    };
+    const heatmap: { dtype: DType; shape: number[] } =
+      detectorKind === 'dbnet'
+        ? { dtype: 'float32', shape: [1, 1, s, s] }
+        : { dtype: 'float32', shape: [1, heat, heat, 2] };
+    const outputs = [
+      heatmap,
+      ...detExtraChannels.map((c) => ({ dtype: 'float32' as DType, shape: [1, c, heat, heat] })),
+    ];
+    return { s, outputs };
   });
 }
 
-// Pre-allocates one recognizer tensor-set per width bucket (each `recognize_<W>`
-// validated once) and derives the constant channel/height/vocab contract from the
-// first bucket. Kept out of the task factory; runs at construction.
-export function buildRecognizerSets(
+// Validates each `recognize_<W>` method and derives the recognizer contract:
+// the constant channel/height/vocab (from the first bucket) plus each bucket's
+// input/output shapes. Returns specs only (no tensors); the task factory allocates
+// and owns the RecSet tensors. Runs at construction.
+export function deriveRecognizerContract(
   model: Model,
   recBuckets: readonly number[]
-): { sets: RecSet[]; recC: number; recH: number; vocabSize: number } {
+): {
+  recC: number;
+  recH: number;
+  vocabSize: number;
+  buckets: { width: number; inShape: number[]; outShape: number[] }[];
+} {
   let recC = 0;
   let recH = 0;
   let vocabSize = 0;
-  const sets = recBuckets.map((w, i) => {
+  const buckets = recBuckets.map((w, i) => {
     const m = validateModelSchema(
       model,
       `recognize_${w}`,
@@ -512,22 +502,16 @@ export function buildRecognizerSets(
       [SymbolicTensor('float32', [1, 'T', 'V'])]
     );
     const inShape = m.inputTensorMeta[0]!.shape;
+    const outShape = m.outputTensorMeta[0]!.shape;
     if (i === 0) {
       // Channels/height/vocab are constant across the width buckets.
       recC = inShape[1]!;
       recH = inShape[2]!;
-      vocabSize = m.outputTensorMeta[0]!.shape[2]!;
+      vocabSize = outShape[2]!;
     }
-    return {
-      width: w,
-      tCanvas: tensor('uint8', [recH, w, recC]),
-      tCF: tensor('uint8', [recC, recH, w]),
-      tNorm: tensor('float32', [recC, recH, w]),
-      tInput: tensor('float32', inShape),
-      tLogits: tensor('float32', m.outputTensorMeta[0]!.shape),
-    };
+    return { width: w, inShape, outShape };
   });
-  return { sets, recC, recH, vocabSize };
+  return { recC, recH, vocabSize, buckets };
 }
 
 // Frees a detector scratch-set's tensors (input prep + per-bucket outputs).

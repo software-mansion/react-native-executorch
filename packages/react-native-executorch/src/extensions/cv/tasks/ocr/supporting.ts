@@ -1,14 +1,15 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import { tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
-import { wrapAsync } from '../../../core/runtime';
+import { tensor, type Tensor } from '../../../../core/tensor';
+import { loadModel } from '../../../../core/model';
+import { validateModelSchema, SymbolicTensor } from '../../../../core/modelSchema';
+import { wrapAsync } from '../../../../core/runtime';
 
-import type { ImageBuffer } from '../image';
-import { IMAGENET_NORM } from '../../../constants';
-import { gridSample, FORMAT_CHANNELS } from '../ops/image';
-import { createImagePreprocessor } from './preprocessing';
+import type { ImageBuffer, ImageFormat } from '../../image';
+import { IMAGENET_NORM } from '../../../../constants';
+import { FORMAT_CHANNELS } from '../../ops/image';
+import { gridSample } from '../../ops/textBoxes';
+import { createImagePreprocessor } from '../preprocessing';
 import { argmaxRange } from './documentHelpers';
 
 // SLANet defaults; overridable per model via SupportingModel (the vocab's eos
@@ -108,10 +109,10 @@ export async function createSupporting(
   runtime?: WorkletRuntime
 ): Promise<{
   dispose: () => void;
-  detectOrientation: (input: ImageBuffer) => Promise<Orientation>;
-  detectOrientationWorklet: (input: ImageBuffer) => Orientation;
-  dewarp: (input: ImageBuffer) => Promise<ImageBuffer>;
-  dewarpWorklet: (input: ImageBuffer) => ImageBuffer;
+  detectOrientation: (page: Tensor, format: ImageFormat) => Promise<Orientation>;
+  detectOrientationWorklet: (page: Tensor, format: ImageFormat) => Orientation;
+  dewarp: (page: Tensor, format: ImageFormat) => Promise<Tensor>;
+  dewarpWorklet: (page: Tensor, format: ImageFormat) => Tensor;
   recognizeTable: (input: ImageBuffer) => Promise<TableStructure>;
   recognizeTableWorklet: (input: ImageBuffer) => TableStructure;
 }> {
@@ -169,7 +170,7 @@ export async function createSupporting(
     );
   }
 
-  const oriPre = createImagePreprocessor(
+  const orientationPreprocessor = createImagePreprocessor(
     {
       resizeMode: 'stretch',
       interpolation: 'linear',
@@ -178,11 +179,11 @@ export async function createSupporting(
     },
     oriShape
   );
-  const dewPre = createImagePreprocessor(
+  const dewarpPreprocessor = createImagePreprocessor(
     { resizeMode: 'stretch', interpolation: 'linear', alpha: 1 / 255, beta: 0 },
     dewShape
   );
-  const tabPre = createImagePreprocessor(
+  const tablePreprocessor = createImagePreprocessor(
     {
       resizeMode: 'stretch',
       interpolation: 'linear',
@@ -209,16 +210,16 @@ export async function createSupporting(
   const probsBuf = new Float32Array(vocabLen);
 
   const dispose = () => {
-    oriPre.dispose();
-    dewPre.dispose();
-    tabPre.dispose();
+    orientationPreprocessor.dispose();
+    dewarpPreprocessor.dispose();
+    tablePreprocessor.dispose();
     tensors.forEach((t) => t.dispose());
     model.dispose();
   };
 
-  const detectOrientationWorklet = (input: ImageBuffer): Orientation => {
+  const detectOrientationWorklet = (page: Tensor, format: ImageFormat): Orientation => {
     'worklet';
-    const tInput = oriPre.process(input);
+    const tInput = orientationPreprocessor.processTensor(page, format);
     model.execute('orientation', [tInput], [tOri]);
     tOri.getData(oriBuf);
     const cls = argmaxRange(oriBuf, 0, oriOutLen);
@@ -232,43 +233,43 @@ export async function createSupporting(
     return { rotationCW, confidence };
   };
 
-  const dewarpWorklet = (input: ImageBuffer): ImageBuffer => {
+  // Dewarps the full-res page tensor in place: estimate the sampling field, apply
+  // it natively (cv::remap). Returns the dewarped tensor, or the input `page`
+  // unchanged when the warp is declined (caller owns whichever is returned).
+  const dewarpWorklet = (page: Tensor, format: ImageFormat): Tensor => {
     'worklet';
-    const tInput = dewPre.process(input);
+    const tInput = dewarpPreprocessor.processTensor(page, format);
     model.execute('dewarp', [tInput], [tGrid]);
-    // Apply the sampling field to the full-res page natively (cv::remap). The
-    // page-sized src/dst tensors depend on the input size, so allocate per call.
-    const ch = FORMAT_CHANNELS[input.format];
-    const tSrc = tensor('uint8', [input.height, input.width, ch]);
-    const tDst = tensor('uint8', [input.height, input.width, ch]);
+    const h = page.shape[0]!;
+    const w = page.shape[1]!;
+    const ch = FORMAT_CHANNELS[format];
+    const tDst = tensor('uint8', [h, w, ch]);
     try {
-      tSrc.setData(input.data);
-      gridSample(tSrc, tGrid, tDst);
-      const out = new Uint8Array(input.width * input.height * ch);
+      gridSample(page, tGrid, tDst);
+      const out = new Uint8Array(w * h * ch);
+      const src = new Uint8Array(w * h * ch);
       tDst.getData(out);
+      page.getData(src);
       // Degenerate-warp guard: a grid lacking page boundaries can push content
       // off-canvas, leaving a near-blank page. If the dewarp collapsed the image's
       // activity, decline it and keep the original (better an un-dewarped read than
       // zero detections).
-      if (sampledActivity(out, ch) < DEWARP_MIN_ACTIVITY_RATIO * sampledActivity(input.data, ch)) {
-        return input;
+      if (sampledActivity(out, ch) < DEWARP_MIN_ACTIVITY_RATIO * sampledActivity(src, ch)) {
+        tDst.dispose();
+        return page;
       }
-      return {
-        data: out,
-        width: input.width,
-        height: input.height,
-        format: input.format,
-        layout: input.layout,
-      };
-    } finally {
-      tSrc.dispose();
+      return tDst;
+    } catch (e) {
+      // On failure the caller can't see tDst to free it (success path returns it),
+      // so release it here before propagating.
       tDst.dispose();
+      throw e;
     }
   };
 
   const recognizeTableWorklet = (input: ImageBuffer): TableStructure => {
     'worklet';
-    const tInput = tabPre.process(input);
+    const tInput = tablePreprocessor.process(input);
     model.execute('table_encode', [tInput], [tFeatures]);
     tHidden.setData(zeroHidden);
     tOnehot.setData(zeroVocab);
