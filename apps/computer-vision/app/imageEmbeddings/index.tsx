@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, ColorPalette } from '../../theme';
 import { useImage, type SkImage } from '@shopify/react-native-skia';
-import { useImageEmbeddings, models } from 'react-native-executorch';
+import { useImageEmbeddings, useTextEmbeddings, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -11,25 +12,33 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
 
-const MODEL_OPTIONS: ModelOption[] = [
+const IMAGE_MODEL_OPTIONS: ModelOption[] = [
   {
-    label: 'CLIP ViT-B/32 (XNNPACK INT8)',
+    label: 'CLIP ViT-B/32 (INT8)',
     value: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_INT8,
   },
   {
-    label: 'CLIP ViT-B/32 (XNNPACK FP32)',
+    label: 'CLIP ViT-B/32 (FP32)',
     value: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_FP32,
   },
 ];
 
-// CLIP image embeddings are L2-normalized, so cosine similarity is the dot
-// product.
-const cosine = (a: Float32Array, b: Float32Array) => {
-  let dot = 0;
+const DEFAULT_LABELS = [
+  'a photo of a dog',
+  'a photo of a cat',
+  'a landscape photo',
+  'a photo of food',
+  'a photo of people',
+];
+
+// CLIP text and image embeddings are L2-normalized, so their cosine similarity
+// is the dot product.
+const dot = (a: Float32Array, b: Float32Array) => {
+  let s = 0;
   for (let i = 0; i < a.length; i++) {
-    dot += a[i]! * b[i]!;
+    s += a[i]! * b[i]!;
   }
-  return dot;
+  return s;
 };
 
 const toBuffer = (img: SkImage) => {
@@ -47,50 +56,53 @@ const toBuffer = (img: SkImage) => {
 };
 
 function ImageEmbeddingsContent() {
-  const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
-  const [uriA, setUriA] = useState<string | null>(null);
-  const [uriB, setUriB] = useState<string | null>(null);
-  const [similarity, setSimilarity] = useState<number | null>(null);
+  const [selectedImageModel, setSelectedImageModel] = useState<any>(IMAGE_MODEL_OPTIONS[0].value);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [labels, setLabels] = useState<string[]>(DEFAULT_LABELS);
+  const [newLabel, setNewLabel] = useState('');
+  const [results, setResults] = useState<{ label: string; score: number }[]>([]);
   const [latency, setLatency] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const imageA = useImage(uriA, (err) => setError(err.message || String(err)));
-  const imageB = useImage(uriB, (err) => setError(err.message || String(err)));
+  const insets = useSafeAreaInsets();
+  const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  const {
-    isReady,
-    downloadProgress,
-    error: loadError,
-    forward,
-  } = useImageEmbeddings(selectedModel);
+  // Zero-shot classification pairs a CLIP image encoder with the CLIP text
+  // encoder and scores the image against each text label by embedding similarity.
+  const imageModel = useImageEmbeddings(selectedImageModel);
+  const textModel = useTextEmbeddings(models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT);
 
-  const pick = async (slot: 'A' | 'B') => {
+  const ready = imageModel.isReady && textModel.isReady;
+
+  const pickImage = async () => {
     setError(null);
     try {
       const uri = await getImage(false);
       if (!uri) return;
-      if (slot === 'A') setUriA(uri);
-      else setUriB(uri);
-      setSimilarity(null);
+      setImageUri(uri);
+      setResults([]);
       setLatency(null);
     } catch (e: any) {
       setError(e.message || String(e));
     }
   };
 
-  const compare = async () => {
-    if (!imageA || !imageB || !forward) return;
+  const classify = async () => {
+    if (!skiaImage || !ready || !imageModel.forward || !textModel.forward) return;
     setIsProcessing(true);
     setError(null);
     try {
       const start = Date.now();
-      const [embA, embB] = await Promise.all([
-        forward(toBuffer(imageA)),
-        forward(toBuffer(imageB)),
-      ]);
+      const imageEmbedding = await imageModel.forward(toBuffer(skiaImage));
+      const scored: { label: string; score: number }[] = [];
+      for (const label of labels) {
+        const textEmbedding = await textModel.forward(label);
+        scored.push({ label, score: dot(imageEmbedding, textEmbedding) });
+      }
+      scored.sort((a, b) => b.score - a.score);
       setLatency(Date.now() - start);
-      setSimilarity(cosine(embA, embB));
+      setResults(scored);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -98,72 +110,107 @@ function ImageEmbeddingsContent() {
     }
   };
 
-  const activeError = loadError ? String(loadError) : error;
-  const pct = similarity === null ? null : Math.max(0, Math.min(100, Math.round(similarity * 100)));
+  const addLabel = () => {
+    const trimmed = newLabel.trim();
+    if (!trimmed || labels.includes(trimmed)) return;
+    setLabels((prev) => [...prev, trimmed]);
+    setNewLabel('');
+    setResults([]);
+  };
+
+  const removeLabel = (label: string) => {
+    setLabels((prev) => prev.filter((l) => l !== label));
+    setResults((prev) => prev.filter((r) => r.label !== label));
+  };
+
+  const activeError = imageModel.error
+    ? String(imageModel.error)
+    : textModel.error
+      ? String(textModel.error)
+      : error;
 
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[commonStyles.contentContainer, { paddingBottom: insets.bottom + 24 }]}
     >
       <Text style={commonStyles.description}>
-        Pick two images and compare how similar CLIP finds them (cosine similarity of their
-        embeddings).
+        Pick an image, then rank text labels by how well CLIP matches them to it (zero-shot
+        classification).
       </Text>
 
       <ModelPicker
-        label="Model"
-        options={MODEL_OPTIONS}
-        selectedValue={selectedModel}
+        label="Image model"
+        options={IMAGE_MODEL_OPTIONS}
+        selectedValue={selectedImageModel}
         onValueChange={(model) => {
-          setSelectedModel(model);
-          setSimilarity(null);
+          setSelectedImageModel(model);
+          setResults([]);
           setLatency(null);
-          setError(null);
         }}
       />
 
       <ModelStatus
-        isReady={isReady}
-        downloadProgress={downloadProgress}
+        isReady={ready}
+        downloadProgress={Math.min(imageModel.downloadProgress, textModel.downloadProgress)}
         error={activeError}
-        modelTypeLabel="image embeddings model"
+        modelTypeLabel="CLIP models"
       />
 
-      <View style={styles.pair}>
-        <View style={styles.slot}>
-          <ImageViewport skiaImage={imageA} onPressPlaceholder={() => pick('A')} />
-          <Text style={styles.slotLabel}>Image A</Text>
-        </View>
-        <View style={styles.slot}>
-          <ImageViewport skiaImage={imageB} onPressPlaceholder={() => pick('B')} />
-          <Text style={styles.slotLabel}>Image B</Text>
-        </View>
-      </View>
+      <ImageViewport skiaImage={skiaImage} onPressPlaceholder={pickImage} />
 
       <View style={commonStyles.buttonRow}>
-        <Button title="Pick A" onPress={() => pick('A')} variant="secondary" />
-        <Button title="Pick B" onPress={() => pick('B')} variant="secondary" />
+        <Button title="Pick image" onPress={pickImage} variant="secondary" />
+        <Button
+          title="Find best label"
+          onPress={classify}
+          disabled={!skiaImage || !ready || isProcessing}
+          loading={isProcessing}
+        />
       </View>
-
-      <Button
-        title="Compare"
-        onPress={compare}
-        disabled={!imageA || !imageB || !isReady || isProcessing}
-        loading={isProcessing}
-      />
 
       <LatencyIndicator latency={latency} />
 
-      {pct !== null && (
-        <View style={styles.result}>
-          <Text style={styles.resultTitle}>Similarity</Text>
-          <Text style={styles.resultValue}>{pct}%</Text>
-          <View style={styles.barTrack}>
-            <View style={[styles.barFill, { width: `${pct}%` }]} />
-          </View>
+      {results.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Results</Text>
+          {results.map((r, i) => (
+            <View key={r.label} style={styles.row}>
+              <Text style={[styles.rowLabel, i === 0 && styles.topLabel]} numberOfLines={1}>
+                {i === 0 ? '🥇 ' : ''}
+                {r.label}
+              </Text>
+              <Text style={styles.rowScore}>{r.score.toFixed(3)}</Text>
+            </View>
+          ))}
         </View>
       )}
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Labels</Text>
+        {labels.map((label) => (
+          <View key={label} style={styles.row}>
+            <Text style={styles.rowLabel} numberOfLines={1}>
+              {label}
+            </Text>
+            <TouchableOpacity onPress={() => removeLabel(label)} hitSlop={8}>
+              <Text style={styles.remove}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+        <View style={styles.addRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Add a label…"
+            placeholderTextColor="#94A3B8"
+            value={newLabel}
+            onChangeText={setNewLabel}
+            onSubmitEditing={addLabel}
+            returnKeyType="done"
+          />
+          <Button title="Add" onPress={addLabel} disabled={!newLabel.trim()} variant="secondary" />
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -177,48 +224,41 @@ export default function ImageEmbeddingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  pair: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  slot: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  slotLabel: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 6,
-  },
-  result: {
+  card: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
     borderColor: '#e9ecef',
+    marginTop: 16,
   },
-  resultTitle: {
+  cardTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: ColorPalette.strongPrimary,
     marginBottom: 8,
   },
-  resultValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: ColorPalette.primary,
-    marginBottom: 12,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
   },
-  barTrack: {
-    height: 10,
-    borderRadius: 5,
+  rowLabel: { fontSize: 14, color: '#334155', flex: 1, marginRight: 8 },
+  topLabel: { fontWeight: '700', color: ColorPalette.strongPrimary },
+  rowScore: { fontSize: 13, fontWeight: '600', color: ColorPalette.primary },
+  remove: { fontSize: 16, color: '#94A3B8', paddingHorizontal: 4 },
+  addRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  input: {
+    flex: 1,
     backgroundColor: '#f1f3f5',
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 5,
-    backgroundColor: ColorPalette.primary,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0F172A',
   },
 });

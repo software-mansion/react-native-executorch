@@ -6,6 +6,7 @@
     "features": [
       "classification",
       "imageEmbeddings",
+      "textEmbeddings",
       "instanceSegmentation",
       "keypointDetection",
       "objectDetection",
