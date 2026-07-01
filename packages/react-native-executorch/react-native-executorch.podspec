@@ -54,6 +54,12 @@ Pod::Spec.new do |s|
     "cpp/extensions/cv/**/*.{cpp,c,h,hpp}",
   ]
 
+  phonemis_source_files = [
+    "cpp/extensions/speech/phonemizer.{cpp,h}",
+    "cpp/extensions/speech/kokoro/tokenizer.cpp",
+    "cpp/extensions/speech/kokoro/partitioner.cpp",
+  ]
+
   s.source_files = [
     "ios/**/*.{h,m,mm}",
     "cpp/**/*.{cpp,c,h,hpp}",
@@ -61,11 +67,10 @@ Pod::Spec.new do |s|
 
   exclude_files = []
   exclude_files += opencv_source_files unless enable_opencv
+  exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
 
   # --- Preprocessor flags ---
-  # phonemis is wired for forward-compat (the TTS task is not yet ported to the
-  # rewrite, so no source compiles against it today).
   extra_compiler_flags = []
   extra_compiler_flags << "-DRNE_ENABLE_OPENCV"   if enable_opencv
   extra_compiler_flags << "-DRNE_ENABLE_PHONEMIS" if enable_phonemis

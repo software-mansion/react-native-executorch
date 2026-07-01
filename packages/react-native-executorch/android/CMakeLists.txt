@@ -23,21 +23,41 @@ find_package(ReactAndroid REQUIRED CONFIG)
 # core/math/nlp are backend-agnostic and always compiled. OPENCV_SOURCES is the
 # explicit, extensible list of opencv-dependent sources: when multimodal LLM
 # lands in nlp, its vision-encoder sources should be appended here too.
+#
+# The speech extension is mostly backend-agnostic (audio ops, kokoro
+# duration/voice helpers) and always compiled. Only the sources that
+# #include <phonemis/...> (the G2P phonemizer + the kokoro tokenizer/partitioner
+# that reuse phonemis' unicode conversions) depend on the in-tree phonemis
+# library; those are split into PHONEMIS_SOURCES and gated on phonemis, the same
+# way the cv sources gate on opencv.
 file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
 file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
+file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp ${CPP_DIR}/extensions/speech/*/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
+
+# Carve the phonemis-dependent translation units out of SPEECH_SOURCES.
+set(PHONEMIS_SOURCE_REGEX "/(phonemizer|kokoro/tokenizer|kokoro/partitioner)\\.cpp$")
+set(PHONEMIS_SOURCES ${SPEECH_SOURCES})
+list(FILTER PHONEMIS_SOURCES INCLUDE REGEX "${PHONEMIS_SOURCE_REGEX}")
+list(FILTER SPEECH_SOURCES   EXCLUDE REGEX "${PHONEMIS_SOURCE_REGEX}")
+
 
 set(RNE_SOURCES
     ${CPP_DIR}/RnExecutorch.cpp
     ${CORE_SOURCES}
     ${MATH_SOURCES}
     ${NLP_SOURCES}
+    ${SPEECH_SOURCES}
     cpp-adapter.cpp
 )
 
 if(RNE_ENABLE_OPENCV)
   list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
+endif()
+
+if(RNE_ENABLE_PHONEMIS)
+  list(APPEND RNE_SOURCES ${PHONEMIS_SOURCES})
 endif()
 
 add_library(${CMAKE_PROJECT_NAME} SHARED ${RNE_SOURCES})
@@ -52,7 +72,10 @@ if(RNE_ENABLE_OPENCV)
   target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_OPENCV)
 endif()
 if(RNE_ENABLE_PHONEMIS)
-  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_PHONEMIS)
+  # ET_ON switches the phonemis headers (included by PHONEMIS_SOURCES) onto their
+  # ExecuTorch-backed code paths; it must match the phonemis library build (set
+  # as a cache var before add_subdirectory below).
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_PHONEMIS ET_ON)
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -63,6 +86,12 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/re2
     ${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/abseil-cpp
 )
+
+# Phonemis (TTS) headers are only on the include path when speech is enabled.
+if(RNE_ENABLE_PHONEMIS)
+  target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+      ${THIRD_PARTY_DIR}/common/phonemis/src)
+endif()
 
 # ------- ExecuTorch core (always required) -------
 add_library(executorch SHARED IMPORTED)
@@ -112,6 +141,23 @@ endif()
 # the static OpenMP runtime into libRnExecutorch.so to resolve them.
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -fopenmp -static-openmp)
 
+# phonemis (TTS) is built from in-tree source only when speech support is
+# enabled. ET_ON tells phonemis to run neural inference through ExecuTorch and
+# must be set before add_subdirectory so phonemis/CMakeLists.txt picks it up.
+if(RNE_ENABLE_PHONEMIS)
+  set(ET_ON ON CACHE BOOL "Use ExecuTorch for phonemis neural inference" FORCE)
+  add_subdirectory(${THIRD_PARTY_DIR}/common/phonemis
+                   ${CMAKE_CURRENT_BINARY_DIR}/phonemis)
+  # phonemis is a separate (add_subdirectory) target, so the main target's
+  # target_include_directories/definitions don't reach it. Its ET_ON code paths
+  # #include <executorch/...>/<c10/...> (from ${INCLUDE_DIR}) and, like the main
+  # target, must build c10/torch with the custom macro set rather than the
+  # generated cmake_macros.h. Unresolved ExecuTorch symbols are satisfied at the
+  # final link against libexecutorch.so below.
+  target_include_directories(phonemis PRIVATE ${INCLUDE_DIR})
+  target_compile_definitions(phonemis PRIVATE C10_USING_CUSTOM_GENERATED_MACROS=1)
+endif()
+
 target_link_libraries(${CMAKE_PROJECT_NAME}
     ReactAndroid::jsi
     log
@@ -127,4 +173,7 @@ if(RNE_ENABLE_XNNPACK)
 endif()
 if(RNE_ENABLE_VULKAN)
   target_link_libraries(${CMAKE_PROJECT_NAME} vulkan_executorch_backend)
+endif()
+if(RNE_ENABLE_PHONEMIS)
+  target_link_libraries(${CMAKE_PROJECT_NAME} phonemis)
 endif()

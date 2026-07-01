@@ -12764,6 +12764,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-audio-api@npm:0.12.2":
+  version: 0.12.2
+  resolution: "react-native-audio-api@npm:0.12.2"
+  dependencies:
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-worklets: ">= 0.6.0"
+  peerDependenciesMeta:
+    react-native-worklets:
+      optional: true
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/ed495058382188c8beb51ce89f2ef14d846dc0c0a07c65a7b4c71aa106fb7ea14aa8660b05fb33941c038d1a7ab2ba4ab3eb039fe481841938c45396903c6060
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.40.18":
   version: 0.40.18
   resolution: "react-native-builder-bob@npm:0.40.18"
@@ -14035,6 +14053,34 @@ __metadata:
   checksum: 10/fead6be44478e4dd73a0721ae569f4a04f358846d8d82e8d92efae64aca928592e380cf17e8b84c25c948f3a7d8a0b4fc781a1830f3911ca87d52733265176b5
   languageName: node
   linkType: hard
+
+"speech@workspace:apps/speech":
+  version: 0.0.0-use.local
+  resolution: "speech@workspace:apps/speech"
+  dependencies:
+    "@babel/core": "npm:^7.29.0"
+    "@react-native/metro-config": "npm:^0.86.0"
+    "@react-navigation/drawer": "npm:^7.9.4"
+    "@react-navigation/native": "npm:^7.2.2"
+    "@types/react": "npm:~19.2.0"
+    babel-preset-expo: "npm:~56.0.14"
+    expo: "npm:~56.0.9"
+    expo-build-properties: "npm:~56.0.17"
+    expo-constants: "npm:~56.0.17"
+    expo-linking: "npm:~56.0.13"
+    expo-router: "npm:~56.2.9"
+    react: "npm:19.2.3"
+    react-native: "npm:0.85.3"
+    react-native-audio-api: "npm:0.12.2"
+    react-native-drawer-layout: "npm:^4.2.2"
+    react-native-executorch: "workspace:*"
+    react-native-gesture-handler: "npm:~2.31.1"
+    react-native-reanimated: "npm:4.4.0"
+    react-native-safe-area-context: "npm:~5.7.0"
+    react-native-screens: "npm:~4.25.2"
+    react-native-worklets: "npm:0.9.1"
+  languageName: unknown
+  linkType: soft
 
 "split-on-first@npm:^1.0.0":
   version: 1.1.0

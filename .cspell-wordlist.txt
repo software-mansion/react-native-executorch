@@ -275,3 +275,8 @@ pcre
 libkleidicv
 thresholding
 binarization
+subcomponents
+gapless
+Purna
+Viram
+Deergh

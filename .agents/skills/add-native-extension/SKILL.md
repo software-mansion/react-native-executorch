@@ -120,8 +120,8 @@ namespace rnexecutorch::extensions::<domain>
             }
 
             // 6. Perform the computation
-            const float *srcData = reinterpret_cast<const float *>(src->data_.get());
-            float *dstData = reinterpret_cast<float *>(dst->data_.get());
+            const float *srcData = reinterpret_cast<const float *>(src->data_);
+            float *dstData = reinterpret_cast<float *>(dst->data_);
             size_t size = src->size();
 
             for (size_t i = 0; i < size; ++i)
