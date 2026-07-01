@@ -64,6 +64,37 @@ yarn run android
 
 ---
 
+## 🧹 C++ Static Analysis
+
+Two complementary checks gate C++ quality. Always run both before committing.
+
+### 1. `lint:cpp` — clang-tidy
+
+Runs the project's `.clang-tidy` ruleset (bugprone / performance / clang-analyzer / llvm-include-order) over all `cpp/` sources.
+
+```bash
+# clang-tidy must be installed from Homebrew LLVM — the Xcode bundled version is too old:
+CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp
+```
+
+- Requires ExecuTorch headers provisioned under `third-party/include` and `yarn install` (for JSI headers).
+- Any finding fails the run (`--warnings-as-errors`). Suppress a deliberate, reviewed finding with `// NOLINTNEXTLINE(check-name)` rather than relaxing the shared config.
+
+### 2. `check-cpp-warnings.sh` — clangd warning set
+
+Compiles staged (or explicitly passed) `cpp/` sources with the same flags clangd uses in the editor (from `compile_flags.txt` + `-W` flags in `.clangd`), so the editor and CI stay in sync.
+
+```bash
+# The script takes file paths as positional arguments and exits 0 immediately
+# with none — it has no built-in file discovery. Pass files explicitly:
+find cpp/ -name '*.cpp' -o -name '*.h' | \
+  xargs ./scripts/check-cpp-warnings.sh
+```
+
+The script skips gracefully (exit 0) when no compiler, `compile_flags.txt`, `.clangd`, or provisioned headers are found — it never blocks contributors who don't build the native code.
+
+---
+
 ## 🔍 Debugging & Log Access
 
 ### 1. TypeScript & Worklet Logging
@@ -143,6 +174,7 @@ This project does **not** bundle local `.pte` model files inside the React Nativ
 
 - **Do NOT run code without verification:** Do not test TypeScript changes in the app without first running `yarn typecheck` (verify types) and `yarn prepare` (build target bundles).
 - **Do NOT skip native rebuilds after C++ edits:** If any C++ files or config bindings are added/modified, do not attempt to run the app without executing `pod install` (for iOS) or letting Gradle sync (for Android).
+- **Do NOT run `lint:cpp` with the system `clang-tidy`**: Use the Homebrew LLVM binary: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
 - **Do NOT log complex objects inside worklets:** Avoid passing complex circular objects directly to `console.log()` inside functions annotated with `'worklet';` as it can hang or crash the worklet runtime thread.
 - **Do NOT bundle local `.pte` files in the repository:** Do not commit heavy model binaries to the git repository. Always host them on Hugging Face and register their metadata in `src/models.ts`.
 
@@ -155,6 +187,8 @@ When verifying or compiling your modifications, check that:
 - [ ] TypeScript typechecking passes without errors (`yarn typecheck`).
 - [ ] Bundles compile successfully (`yarn prepare`).
 - [ ] `pod install` has been run inside `apps/<domain-app>/ios/` after any native C++ edits.
+- [ ] `lint:cpp` passes cleanly: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
+- [ ] `check-cpp-warnings.sh` passes cleanly (run via `find cpp/ -name '*.cpp' -o -name '*.h' | xargs ./scripts/check-cpp-warnings.sh` from the package root).
 - [ ] No `.pte` files are staged or added to git history.
 - [ ] Model configurations are registered inside the single `models` object registry in `src/models.ts`.
 - [ ] Native runtime issues have been investigated using Xcode Console or `adb logcat`.
