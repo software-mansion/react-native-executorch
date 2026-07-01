@@ -22,10 +22,11 @@ export type TextEmbeddingsModel = {
  *
  * It loads the tokenizer and model, validates the model input and output
  * requirements, pre-allocates the static execution tensors, and registers clean
- * disposal hooks to clear all native memory. The input text is tokenized, then
- * padded/truncated to the model's fixed sequence length with an accompanying
- * attention mask. Pooling and normalization are baked into the exported `.pte`;
- * this runner runs the forward pass and returns the raw embedding vector.
+ * disposal hooks to clear all native memory. The input text is tokenized and fed
+ * at its exact token length (no padding), truncated only when it exceeds the
+ * model's maximum sequence length; the attention mask is all ones. Pooling and
+ * normalization are baked into the exported `.pte`; this runner runs the forward
+ * pass and returns the raw embedding vector.
  * @category Typescript API
  * @param config Text embeddings task configuration containing the model and
  * tokenizer paths.
@@ -84,7 +85,10 @@ export async function createTextEmbeddings(
   const forwardWorklet = (input: string): Float32Array => {
     'worklet';
     const ids = tokenizer.encode(input);
-    const len = Math.max(1, Math.min(ids.length, maxSeqLen));
+    if (ids.length === 0) {
+      throw new Error('createTextEmbeddings: input tokenized to zero tokens');
+    }
+    const len = Math.min(ids.length, maxSeqLen);
 
     // Feed the exact token length with no padding. The model resizes its dynamic
     // sequence input to match. Padding would change the result for pooling heads

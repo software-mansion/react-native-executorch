@@ -43,6 +43,8 @@ export function useTextEmbeddings(
     isReady: !!model,
     error: modelResource.downloadError || tokenizerResource.downloadError || error,
     downloadProgress: (modelResource.downloadProgress + tokenizerResource.downloadProgress) / 2,
+    localPath: localModelPath,
+    tokenizerPath: localTokenizerPath,
     forward: model?.forward,
     forwardWorklet: model?.forwardWorklet,
   };

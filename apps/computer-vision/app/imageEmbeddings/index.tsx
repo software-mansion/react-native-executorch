@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, ColorPalette } from '../../theme';
-import { useImage, type SkImage } from '@shopify/react-native-skia';
+import { useImage } from '@shopify/react-native-skia';
 import { useImageEmbeddings, useTextEmbeddings, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { getImage } from '../../utils';
+import { getImage, skImageToBuffer } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -39,20 +39,6 @@ const dot = (a: Float32Array, b: Float32Array) => {
     s += a[i]! * b[i]!;
   }
   return s;
-};
-
-const toBuffer = (img: SkImage) => {
-  const pixels = img.readPixels();
-  if (!(pixels instanceof Uint8Array)) {
-    throw new Error('Expected Uint8Array from readPixels');
-  }
-  return {
-    data: pixels,
-    width: img.width(),
-    height: img.height(),
-    format: 'rgba' as const,
-    layout: 'hwc' as const,
-  };
 };
 
 function ImageEmbeddingsContent() {
@@ -94,7 +80,7 @@ function ImageEmbeddingsContent() {
     setError(null);
     try {
       const start = Date.now();
-      const imageEmbedding = await imageModel.forward(toBuffer(skiaImage));
+      const imageEmbedding = await imageModel.forward(skImageToBuffer(skiaImage));
       const scored: { label: string; score: number }[] = [];
       for (const label of labels) {
         const textEmbedding = await textModel.forward(label);
