@@ -1301,8 +1301,8 @@ export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
  * @category Types
  */
 export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
-export { alphabets, symbols, PPOCR_SYMBOLS } from './ocrSymbols';
-export type { OCRLanguage } from './ocrSymbols';
+export { alphabets, symbols, PPOCR_SYMBOLS } from './extensions/cv/tasks/ocr/ocrSymbols';
+export type { OCRLanguage } from './extensions/cv/tasks/ocr/ocrSymbols';
 
 /**
  * PP-DocLayoutV3 region classes, in model output order (index = class id). Some
