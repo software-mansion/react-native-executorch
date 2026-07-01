@@ -6,28 +6,22 @@ import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
 import type { Point } from '../ops/points';
-import { FORMAT_CHANNELS, cvtColor } from '../ops/image';
-import type { Quad } from '../ops/textBoxes';
+import { FORMAT_CHANNELS, FORMAT_CONVERSION, cvtColor } from '../ops/image';
+import { orderQuad, quadSize, boundingQuadOf } from '../ops/quad';
+import type { TextBoxExtractor } from './ocr/detectors';
 import {
   buildCharset,
-  orderQuad,
-  quadSize,
-  nowMs,
-  readingOrderIndices,
-  boundingQuadOf,
+  orderByReadingOrder,
   groupVerticalColumns,
   type Buckets,
-} from './ocr/ocrHelpers';
+} from './ocr/ocrUtils';
 import {
-  toRgbCode,
   detectQuads,
   recognizeQuad,
   recognizeGlyphStrip,
-  readBoxVertical,
-  validateDetectorSchema,
-  buildExtractOpts,
-  deriveDetectorOutputs,
-  deriveRecognizerContract,
+  readStackedColumn,
+  resolveDetectorContract,
+  resolveRecognizerContract,
   disposeDetSets,
   disposeRecSets,
   type DetSet,
@@ -35,28 +29,22 @@ import {
   type DetectContext,
   type RecContext,
   type VerticalContext,
-  type DetectorExtractConfig,
-} from './ocr/ocrPipeline';
+} from './ocr/pipeline';
 
-export type { Buckets } from './ocr/ocrHelpers';
+export type { Buckets } from './ocr/ocrUtils';
+export type { Quad } from '../ops/quad';
+export type { TextBoxExtractor } from './ocr/detectors';
 
 /**
- * Configuration for the unified OCR pipeline. A model declares its detector
- * architecture, its input-size buckets, and its charset; the detector/recognizer
- * share one baked contract whose defaults match CRAFT (EasyOCR) and DBNet
- * (PaddleOCR). Models that diverge can override the recognizer normalization,
- * padding, and decode, or supply a `'custom'` detector with its own box
- * extraction — see the per-field options below.
+ * Configuration for the OCR pipeline: a model declares its input-size buckets, its
+ * charset, and its detector box-extraction strategy. The pipeline is
+ * architecture-agnostic — it validates the detect/recognize contract at load and
+ * takes everything model-specific here. The built-in {@link craftExtractBoxes} /
+ * {@link dbnetExtractBoxes} cover EasyOCR / PaddleOCR; other models supply their own
+ * {@link TextBoxExtractor} and override the recognizer normalization/padding/decode.
  * @category Types
  */
-export type OCROptions = {
-  /**
-   * Detector architecture — selects the box decoder (CRAFT heatmap grouping vs
-   * DBNet prob-map) and the default drop score. Use `'custom'` for any other
-   * architecture and supply {@link OCROptions.extractBoxes} to turn the raw
-   * detector output into quads in TypeScript.
-   */
-  readonly detectorKind: 'craft' | 'dbnet' | 'custom';
+export type OcrOptions = {
   /**
    * The model's static input-size buckets. The pipeline snaps each image to the
    * closest `detect`/`recognize` bucket and calls the matching per-size method
@@ -68,36 +56,32 @@ export type OCROptions = {
    * verbatim, for multi-codepoint entries like ligatures).
    */
   readonly charset: string | readonly string[];
-  /** Drop detections below this confidence. Defaults per detector architecture. */
-  readonly dropScore?: number;
   /**
-   * Custom detector post-processing, required when `detectorKind === 'custom'`.
-   * Receives the raw `detect_<S>` output tensors (the model's declared outputs,
-   * in order — shapes read from the PTE, allocated for you) and the snapped
-   * square side `s`, and returns oriented quads in DETECTOR space (the `s × s`
-   * letterboxed input); the pipeline maps them to image pixels and applies
-   * dropScore. Ignored for the built-in kinds. MUST be a worklet — it runs on
-   * the pipeline's worklet thread.
+   * Detector box-extraction strategy: maps the raw `detect_<S>` outputs to oriented
+   * quads. Use the built-in {@link craftExtractBoxes} / {@link dbnetExtractBoxes}, or
+   * supply your own {@link TextBoxExtractor} to plug in a new detector.
    */
-  readonly extractBoxes?: (outputs: readonly Tensor[], s: number) => Quad[];
+  readonly extractBoxes: TextBoxExtractor;
+  /** Drop detections scoring below this. Defaults to 0. */
+  readonly dropScore?: number;
   /**
    * Recognizer input normalization, applied after the warp as `x·alpha + beta`
    * (scalar, or per-RGB-channel `[r,g,b]`). Defaults to `(x/255 − 0.5)/0.5` →
-   * `[−1,1]` (`alpha = 1/127.5`, `beta = −1`), the SVTR/CRNN convention. Override
-   * for a recognizer trained with different normalization (e.g. ImageNet).
+   * `[−1,1]` (`alpha = 1/127.5`, `beta = −1`). Override for a recognizer trained
+   * with different normalization (e.g. ImageNet). The detector input norm is
+   * fixed by contract: RGB ÷ 255, with mean/std baked into the PTE.
    */
   readonly recognizerNorm?: {
     readonly alpha: number | readonly number[];
     readonly beta: number | readonly number[];
   };
-  /** Fill value for the recognizer canvas padding. Defaults to 128 (neutral gray). */
+  /** Recognizer canvas padding fill value. Defaults to 128 (neutral gray). */
   readonly recognizerPadValue?: number;
   /**
-   * Custom recognizer decode, replacing the built-in greedy CTC. Receives the
-   * raw `recognize_<W>` output tensor (shape `[1, T, V]`, softmaxed per the
-   * contract) and the charset, and returns the recognized text plus a confidence
-   * in `[0,1]`. Use for non-CTC heads (attention/AR decoders) or custom scoring.
-   * MUST be a worklet — it runs on the pipeline's worklet thread.
+   * Custom recognizer decode, replacing the built-in greedy CTC. Receives the raw
+   * `recognize_<W>` output tensor (shape `[1, T, V]`) and the charset, and returns the
+   * recognized text plus a confidence in `[0,1]`. Use for non-CTC heads (attention/AR
+   * decoders) or custom scoring. MUST be a worklet.
    */
   readonly decode?: (
     logits: Tensor,
@@ -106,11 +90,11 @@ export type OCROptions = {
 };
 
 /**
- * Per-run OCR options (passed to `runOCR`, not baked into the model — toggling
+ * Per-run OCR options (passed to `runOcr`, not baked into the model — toggling
  * them needs no reload).
  * @category Types
  */
-export type RunOCROptions = {
+export type RunOcrOptions = {
   /**
    * Add handling for upright stacked columns (e.g. vertical signage, shipping-
    * container codes — letters stacked top-to-bottom) on top of the normal
@@ -128,23 +112,10 @@ export type RunOCROptions = {
    * after this run, so memory doesn't accumulate as image/box sizes vary across
    * runs (worse on CoreML, which compiles a graph per method). Default `true`.
    * The document orchestrator passes `false` for its per-region OCR calls and
-   * frees once per page via `releaseMethods` instead, so it keeps the run's
+   * frees once per page via `releaseMethodsWorklet` instead, so it keeps the run's
    * working set cached while still bounding memory.
    */
   readonly release?: boolean;
-};
-
-// Defaults for the shared baked contract — the detector input is raw RGB /255
-// (mean/std baked into the PTE), the recognizer is RGB with (x/255−0.5)/0.5 norm
-// and constant-128 left padding, both heads emit softmaxed probabilities, and
-// confidence is the mean of per-character max-probs. CRAFT/DBNet decode the
-// heatmap natively; everything else can be overridden per model via OCROptions
-// (recognizerNorm/recognizerPadValue/decode, and 'custom' detectorKind+extractBoxes).
-// Per-architecture default drop score:
-const DEFAULT_DROP_SCORE: Record<'craft' | 'dbnet' | 'custom', number> = {
-  craft: 0,
-  dbnet: 0.5,
-  custom: 0,
 };
 
 /**
@@ -152,16 +123,16 @@ const DEFAULT_DROP_SCORE: Record<'craft' | 'dbnet' | 'custom', number> = {
  * exposing `detect` + `recognize`.
  * @category Types
  */
-export type OCRModel = {
+export type OcrModel = {
   readonly modelPath: string;
-  readonly ocrOpts: OCROptions;
+  readonly ocrOpts: OcrOptions;
 };
 
 /**
  * A single recognized text region.
  * @category Types
  */
-export type OCRDetection = {
+export type OcrDetection = {
   readonly text: string;
   readonly confidence: number;
   /**
@@ -169,58 +140,38 @@ export type OCRDetection = {
    * axis-aligned box with `boundingBoxOf(quad)` from `cv.ops.boxes` if needed.
    */
   readonly quad: readonly Point[];
-  /** Wall-clock time spent recognizing this box (ms), incl. any retries. */
-  readonly recognizeMs: number;
 };
 
 /**
  * The result of one OCR run: the recognized text regions.
  * @category Types
  */
-export type OCRResult = {
-  readonly detections: OCRDetection[];
+export type OcrResult = {
+  readonly detections: OcrDetection[];
 };
 
-// Default recognizer normalization / pad (SVTR/CRNN); overridable per model via
-// OCROptions.recognizerNorm / recognizerPadValue. Detector-side norm and the
-// box-extraction tuning live with the engine in ocrPipeline.ts.
 const RECOGNIZER_ALPHA = 1 / 127.5; // (x/255 - 0.5)/0.5 -> [-1, 1]
 const RECOGNIZER_BETA = -1;
 const RECOGNIZER_PAD_VALUE = 128; // neutral gray
-// A box taller than this ratio is read as an upright stacked column.
 const TALL_CROP_RATIO = 1.5;
-// Per-page cap on stacked-column re-detection passes (each is detector-scale).
 const MAX_VERTICAL_REDETECTIONS = 8;
 // Vertical reads are lower-confidence and opt-in, so they skip the drop-score gate.
 const VERTICAL_DROP_SCORE = 0;
+// TEMP: stacked-column re-detection is disabled to measure whether char-level
+// column reading affects quality. Set true to restore it.
+const STACKED_COLUMNS_ENABLED = false;
 
-// Appends a detection when it has text and clears the drop-score threshold. A
-// module-level worklet (not a closure) so the run loop stays flat.
 function pushDetection(
-  out: OCRDetection[],
+  out: OcrDetection[],
   threshold: number,
   text: string,
   conf: number,
-  quad: readonly Point[],
-  ms: number
+  quad: readonly Point[]
 ): void {
   'worklet';
   if (text.length > 0 && conf >= threshold) {
-    out.push({ text, confidence: conf, quad, recognizeMs: ms });
+    out.push({ text, confidence: conf, quad });
   }
-}
-
-// Reorders recognized detections into human reading order (the detector emits
-// boxes in an arbitrary order). Column-aware: genuine multi-column pages read
-// column-by-column, single-column pages line-by-line, words within a line
-// left-to-right. Defined before its caller so the worklet plugin captures it.
-function orderDetections(dets: OCRDetection[]): OCRDetection[] {
-  'worklet';
-  if (dets.length <= 1) {
-    return dets;
-  }
-  const order = readingOrderIndices(dets.map((d) => d.quad));
-  return order.map((i) => dets[i]!);
 }
 
 /**
@@ -235,24 +186,20 @@ function orderDetections(dets: OCRDetection[]): OCRDetection[] {
  * @returns A promise resolving to an object with recognition and disposal
  * controls.
  */
-export async function createOCR(
-  config: OCRModel,
+export async function createOcr(
+  config: OcrModel,
   runtime?: WorkletRuntime
 ): Promise<{
   dispose: () => void;
-  runOCR: (input: ImageBuffer, options?: RunOCROptions) => Promise<OCRResult>;
-  runOCRWorklet: (input: ImageBuffer, options?: RunOCROptions) => OCRResult;
-  /** Free all bucket-method arenas without disposing the model (see `RunOCROptions.release`). */
-  releaseMethods: () => Promise<void>;
-  /** Worklet-thread variant of {@link releaseMethods}. */
+  runOcr: (input: ImageBuffer, options?: RunOcrOptions) => Promise<OcrResult>;
+  runOcrWorklet: (input: ImageBuffer, options?: RunOcrOptions) => OcrResult;
+  /** Free all bucket-method arenas without disposing the model (see `RunOcrOptions.release`). */
   releaseMethodsWorklet: () => void;
 }> {
   const { modelPath, ocrOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const dropScore = ocrOpts.dropScore ?? DEFAULT_DROP_SCORE[ocrOpts.detectorKind];
-  // Recognizer normalization / pad / decode — defaults preserve the SVTR/CRNN
-  // contract; OCROptions can override per model (see RecContext).
+  const dropScore = ocrOpts.dropScore ?? 0;
   const recNormAlpha = ocrOpts.recognizerNorm?.alpha ?? RECOGNIZER_ALPHA;
   const recNormBeta = ocrOpts.recognizerNorm?.beta ?? RECOGNIZER_BETA;
   const recPadValue = ocrOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE;
@@ -260,15 +207,16 @@ export async function createOCR(
 
   const detBuckets = ocrOpts.buckets.detect;
   const recBuckets = ocrOpts.buckets.recognize;
-  // Validation + scratch allocation can throw (bad buckets, missing methods,
-  // shape/charset mismatch); on any failure dispose the model and any tensors
-  // already built, so a bad config doesn't leak native memory.
-  let recSets: RecSet[] = [];
+  // Validation + scratch allocation can throw; each tensor is pushed into
+  // `allocated` the moment it exists (one call per statement) so the catch can
+  // dispose every native allocation — a bad config must not leak.
+  const allocated: Tensor[] = [];
+  const recSets: RecSet[] = [];
   let recC = 3;
   let recH = 0;
   let charset: string[] = [];
   let recSetByWidth: ReadonlyMap<number, RecSet> = new Map();
-  let detSets: DetSet[] = [];
+  const detSets: DetSet[] = [];
   let detSetByS: ReadonlyMap<number, DetSet> = new Map();
   try {
     if (detBuckets.length === 0 || recBuckets.length === 0) {
@@ -276,30 +224,22 @@ export async function createOCR(
         'OCR: buckets.detect and buckets.recognize must each list at least one size.'
       );
     }
-    const detExtraChannels = validateDetectorSchema(
-      model,
-      detBuckets,
-      ocrOpts.detectorKind,
-      ocrOpts.extractBoxes
-    );
-
-    // Derive shapes/contract, then allocate + own the scratch tensors here so
-    // ownership never crosses a function boundary (the derive* helpers return no
-    // tensors).
-    const rec = deriveRecognizerContract(model, recBuckets);
+    const detContract = resolveDetectorContract(model, detBuckets);
+    const rec = resolveRecognizerContract(model, recBuckets);
     recC = rec.recC;
     recH = rec.recH;
-    // Push into the pre-declared arrays as we allocate, so a mid-loop tensor()
-    // failure leaves the partial set visible to the catch's dispose* below.
     for (const bucket of rec.buckets) {
-      recSets.push({
-        width: bucket.width,
-        tCanvas: tensor('uint8', [rec.recH, bucket.width, rec.recC]),
-        tCF: tensor('uint8', [rec.recC, rec.recH, bucket.width]),
-        tNorm: tensor('float32', [rec.recC, rec.recH, bucket.width]),
-        tInput: tensor('float32', bucket.inShape),
-        tLogits: tensor('float32', bucket.outShape),
-      });
+      const tCanvas = tensor('uint8', [rec.recH, bucket.width, rec.recC]);
+      allocated.push(tCanvas);
+      const tCF = tensor('uint8', [rec.recC, rec.recH, bucket.width]);
+      allocated.push(tCF);
+      const tNorm = tensor('float32', [rec.recC, rec.recH, bucket.width]);
+      allocated.push(tNorm);
+      const tInput = tensor('float32', bucket.inShape);
+      allocated.push(tInput);
+      const tLogits = tensor('float32', bucket.outShape);
+      allocated.push(tLogits);
+      recSets.push({ width: bucket.width, tCanvas, tCF, tNorm, tInput, tLogits });
     }
     recSetByWidth = new Map(recSets.map((recSet) => [recSet.width, recSet]));
 
@@ -312,31 +252,31 @@ export async function createOCR(
         `OCR: charset size (${charset.length}, incl. blank) must match recognizer output vocab (${rec.vocabSize}).`
       );
     }
-    for (const { s, outputs } of deriveDetectorOutputs(
-      model,
-      detBuckets,
-      ocrOpts.detectorKind,
-      detExtraChannels
-    )) {
-      detSets.push({
-        s,
-        tColor: tensor('uint8', [s, s, 3]),
-        tCF: tensor('uint8', [3, s, s]),
-        tNorm: tensor('float32', [3, s, s]),
-        tInput: tensor('float32', [1, 3, s, s]),
-        tOutputs: outputs.map((o) => tensor(o.dtype, o.shape)),
-      });
+    for (const { s, outputs } of detContract) {
+      const tColor = tensor('uint8', [s, s, 3]);
+      allocated.push(tColor);
+      const tCF = tensor('uint8', [3, s, s]);
+      allocated.push(tCF);
+      const tNorm = tensor('float32', [3, s, s]);
+      allocated.push(tNorm);
+      const tInput = tensor('float32', [1, 3, s, s]);
+      allocated.push(tInput);
+      const tOutputs: Tensor[] = [];
+      for (const spec of outputs) {
+        const tOut = tensor(spec.dtype, spec.shape);
+        allocated.push(tOut);
+        tOutputs.push(tOut);
+      }
+      detSets.push({ s, tColor, tCF, tNorm, tInput, tOutputs });
     }
     detSetByS = new Map(detSets.map((detSet) => [detSet.s, detSet]));
   } catch (e) {
-    disposeRecSets(recSets);
-    disposeDetSets(detSets);
+    for (const t of allocated) {
+      t.dispose();
+    }
     model.dispose();
     throw e;
   }
-
-  // Built-in box-decode config (custom archs decode in TS via extractBoxes).
-  const extractOpts: DetectorExtractConfig | undefined = buildExtractOpts(ocrOpts.detectorKind);
 
   const dispose = () => {
     disposeRecSets(recSets);
@@ -344,10 +284,9 @@ export async function createOCR(
     model.dispose();
   };
 
-  // Free every per-size method's activation arena (detect_<S>/recognize_<W>)
-  // without disposing the model — they transparently reload on next execute.
-  // Defined before runOCRWorklet so the worklet plugin captures it (referenced
-  // worklets must precede their callers in source order).
+  // Frees each bucket method's activation arena without disposing the model; a
+  // freed method transparently reloads on its next execute. Must precede
+  // runOcrWorklet: the worklet plugin resolves referenced worklets by source order.
   const releaseMethodsWorklet = () => {
     'worklet';
     for (const s of detBuckets) {
@@ -358,7 +297,7 @@ export async function createOCR(
     }
   };
 
-  const runOCRWorklet = (input: ImageBuffer, options?: RunOCROptions): OCRResult => {
+  const runOcrWorklet = (input: ImageBuffer, options?: RunOcrOptions): OcrResult => {
     'worklet';
     const vertical = options?.vertical ?? false;
     const tallCropRatio = options?.tallCropRatio ?? TALL_CROP_RATIO;
@@ -366,33 +305,32 @@ export async function createOCR(
     const release = options?.release ?? true;
     const { data, width, height, format } = input;
     const numChannels = FORMAT_CHANNELS[format];
-    // Both detector and recognizer read RGB, so one conversion code serves both.
-    const rgbCode = toRgbCode(format);
+    const rgbCode = FORMAT_CONVERSION[format].rgb;
 
-    // Detector state, reused for the page pass and the per-box character pass.
     const detCtx: DetectContext = {
       model,
       detBuckets,
       numChannels,
       detCode: rgbCode,
-      extractOpts,
       extractBoxes: ocrOpts.extractBoxes,
       detSets: detSetByS,
     };
 
     const tInputRaw = tensor('uint8', [height, width, numChannels]);
-    const tRecImage = tensor('uint8', [height, width, recC]);
+    let tRecImage: Tensor | null = null;
     try {
       tInputRaw.setData(data);
 
-      // ---- detector pass: letterbox -> detect_<S> -> text-box quads (image space) ----
       const quads = detectQuads(detCtx, tInputRaw, width, height);
       if (quads.length === 0) {
         return { detections: [] };
       }
 
-      // ---- recognizer source: full-res image in RGB ----
-      const recSrc = rgbCode !== null ? cvtColor(tInputRaw, tRecImage, rgbCode) : tInputRaw;
+      let recSrc = tInputRaw;
+      if (rgbCode !== null) {
+        tRecImage = tensor('uint8', [height, width, recC]);
+        recSrc = cvtColor(tInputRaw, tRecImage, rgbCode);
+      }
       const recCtx: RecContext = {
         model,
         recSetByWidth,
@@ -404,20 +342,16 @@ export async function createOCR(
         padValue: recPadValue,
         decode: recDecode,
       };
-      // The vertical path crops each box from the raw page and re-detects its
-      // characters; `recCode`/`recC` convert a box crop to RGB.
       const vctx: VerticalContext = {
         detCtx,
         rawPage: tInputRaw,
-        recCode: rgbCode,
         recC,
         tallCropRatio,
         redetectBudget: { remaining: maxRedetections },
       };
 
-      const detections: OCRDetection[] = [];
+      const detections: OcrDetection[] = [];
 
-      // Valid (non-tiny) boxes, ordered TL,TR,BR,BL.
       const ordered: Point[][] = [];
       for (const quad of quads) {
         const orderedQuad = orderQuad(quad);
@@ -429,21 +363,14 @@ export async function createOCR(
 
       if (!vertical) {
         for (const orderedQuad of ordered) {
-          const boxStart = nowMs();
           const { text, conf } = recognizeQuad(recCtx, recSrc, orderedQuad);
-          pushDetection(detections, dropScore, text, conf, orderedQuad, nowMs() - boxStart);
+          pushDetection(detections, dropScore, text, conf, orderedQuad);
         }
-        return { detections: orderDetections(detections) };
+        return { detections: orderByReadingOrder(detections) };
       }
 
-      // Additive vertical pass: read x-aligned stacked glyph boxes as one joined
-      // column word; everything else (lines, isolated boxes) reads normally.
       const { columns, singles } = groupVerticalColumns(ordered);
       for (const col of columns) {
-        const boxStart = nowMs();
-        // `recognizeGlyphStrip` splits any multi-letter box into single-glyph
-        // cells (DBNet merges stacked letters and won't split them), so the
-        // column's boxes can be passed straight through, top -> bottom.
         const strip = recognizeGlyphStrip(recCtx, recSrc, col);
         if (strip) {
           pushDetection(
@@ -451,44 +378,33 @@ export async function createOCR(
             VERTICAL_DROP_SCORE,
             strip.text,
             strip.conf,
-            boundingQuadOf(col),
-            nowMs() - boxStart
+            boundingQuadOf(col)
           );
         }
       }
       for (const orderedQuad of singles) {
-        const boxStart = nowMs();
-        const { text, conf, stacked } = readBoxVertical(
-          recCtx,
-          vctx,
-          recSrc,
-          orderedQuad,
-          quadSize(orderedQuad)
-        );
-        pushDetection(
-          detections,
-          stacked ? VERTICAL_DROP_SCORE : dropScore,
-          text,
-          conf,
-          orderedQuad,
-          nowMs() - boxStart
-        );
+        const size = quadSize(orderedQuad);
+        if (STACKED_COLUMNS_ENABLED && size.height >= size.width * vctx.tallCropRatio) {
+          const stacked = readStackedColumn(recCtx, vctx, orderedQuad, size);
+          if (stacked) {
+            pushDetection(detections, VERTICAL_DROP_SCORE, stacked.text, stacked.conf, orderedQuad);
+            continue;
+          }
+        }
+        const { text, conf } = recognizeQuad(recCtx, recSrc, orderedQuad);
+        pushDetection(detections, dropScore, text, conf, orderedQuad);
       }
-      return { detections: orderDetections(detections) };
+      return { detections: orderByReadingOrder(detections) };
     } finally {
       tInputRaw.dispose();
-      tRecImage.dispose();
-      // Standalone runs free their bucket arenas so memory stays bounded as
-      // sizes vary; the document orchestrator opts out (release: false) and
-      // frees once per page.
+      tRecImage?.dispose();
       if (release) {
         releaseMethodsWorklet();
       }
     }
   };
 
-  const runOCR = wrapAsync(runOCRWorklet, runtime);
-  const releaseMethods = wrapAsync(releaseMethodsWorklet, runtime);
+  const runOcr = wrapAsync(runOcrWorklet, runtime);
 
-  return { runOCR, runOCRWorklet, dispose, releaseMethods, releaseMethodsWorklet };
+  return { runOcr, runOcrWorklet, dispose, releaseMethodsWorklet };
 }

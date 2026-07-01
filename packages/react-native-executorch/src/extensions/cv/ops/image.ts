@@ -224,3 +224,60 @@ export function rotate(src: Tensor, dst: Tensor, degCW: number): Tensor {
   'worklet';
   return rnexecutorchJsi.cv.rotate(src, dst, degCW);
 }
+
+/**
+ * Options for {@link warpQuad}. `contentWidth` is the warped content's width (px)
+ * in the canvas; `align` (`'left'`/`'center'`, default `'left'`) with `padMode`
+ * (`'constant'`/`'cornerMean'`, default `'constant'`) and `padValue` (default `0`)
+ * place and fill it. `offsetX` (default `-1` = use `align`) pins the content at an
+ * exact x, and `clear` (default `true`) wipes the canvas first — pass an explicit
+ * `offsetX` with `clear: false` to compose successive warps side-by-side into one
+ * canvas (e.g. a glyph strip).
+ * @category Types
+ */
+export type WarpQuadOptions = {
+  readonly contentWidth: number;
+  readonly align?: 'left' | 'center';
+  readonly padMode?: 'constant' | 'cornerMean';
+  readonly padValue?: number;
+  readonly offsetX?: number;
+  readonly clear?: boolean;
+};
+
+/**
+ * Perspective-crops an oriented quad region of `src` into the pre-allocated canvas
+ * `dst`, folding crop + resize-to-height + pad into one native pass.
+ * @category Typescript API
+ * @param src The source image tensor in HWC uint8 layout, shape `[H, W, C]`.
+ * @param dst The pre-allocated destination canvas in HWC uint8 layout.
+ * @param quad Eight numbers `[x0,y0,..,x3,y3]` (TL,TR,BR,BL) in `src` pixels.
+ * @param opts Content width, alignment, and padding configuration.
+ * @returns The destination tensor `dst`.
+ */
+export function warpQuad(src: Tensor, dst: Tensor, quad: number[], opts: WarpQuadOptions): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.warpQuad(src, dst, quad, {
+    contentWidth: opts.contentWidth,
+    align: opts.align ?? 'left',
+    padMode: opts.padMode ?? 'constant',
+    padValue: opts.padValue ?? 0,
+    offsetX: opts.offsetX ?? -1,
+    clear: opts.clear ?? true,
+  });
+}
+
+/**
+ * Warps `src` through a backward sampling field (a `torch.grid_sample`-style remap
+ * — the grid gives, per output pixel, where to read from in `src`) into the
+ * pre-allocated `dst`, natively via `cv::remap`.
+ * @category Typescript API
+ * @param src The source image tensor in HWC uint8 layout, shape `[H, W, C]`.
+ * @param grid The sampling field tensor (float32), shape `[..,2,gH,gW]`, channel
+ * 0 = x and 1 = y, normalized to `[-1, 1]` with `align_corners=true`.
+ * @param dst The pre-allocated destination tensor, same shape/dtype as `src`.
+ * @returns The destination tensor `dst`.
+ */
+export function warpByGrid(src: Tensor, grid: Tensor, dst: Tensor): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.warpByGrid(src, grid, dst);
+}

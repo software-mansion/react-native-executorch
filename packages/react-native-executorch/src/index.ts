@@ -6,8 +6,8 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
-export * from './hooks/useOCR';
-export * from './hooks/useDocumentOCR';
+export * from './hooks/useOcr';
+export * from './hooks/useDocumentOcr';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -24,8 +24,9 @@ export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/cv/tasks/ocr';
-export * from './extensions/cv/tasks/ocr/supporting';
-export * from './extensions/cv/tasks/documentOCR';
+export * from './extensions/cv/tasks/ocr/detectors';
+export type { DocumentModelsConfig } from './extensions/cv/tasks/ocr/documentModels';
+export * from './extensions/cv/tasks/documentOcr';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';

@@ -6,14 +6,14 @@ import type { ImageBuffer } from '../image';
 import type { Point } from '../ops/points';
 import { boundingBoxOf, type BoundingBox } from '../ops/boxes';
 import { rotate, FORMAT_CHANNELS } from '../ops/image';
-import { createOCR, type OCRModel, type OCRDetection } from './ocr';
+import { createOcr, type OcrModel, type OcrDetection } from './ocr';
 import {
   createObjectDetector,
   type ObjectDetectorModel,
   type ObjectDetection,
 } from './objectDetection';
-import { createSupporting, type SupportingModel } from './ocr/supporting';
-import { readingOrderIndices } from './ocr/ocrHelpers';
+import { createDocumentModels, type DocumentModelsConfig } from './ocr/documentModels';
+import { orderByReadingOrder } from './ocr/ocrUtils';
 import { cropImageBuffer, fillTableCells } from './ocr/documentHelpers';
 
 /**
@@ -31,7 +31,7 @@ export type DocumentBlock<L> = {
   /** The block's text, lines joined top-to-bottom by newlines. */
   readonly text: string;
   /** The OCR lines inside this block, top-to-bottom. */
-  readonly lines: readonly OCRDetection[];
+  readonly lines: readonly OcrDetection[];
   /** Whether this block is a table region. */
   readonly isTable: boolean;
   /** For table blocks: the recognized HTML structure with OCR text filled in. */
@@ -45,7 +45,7 @@ export type DocumentBlock<L> = {
 export type DocumentResult<L> = {
   readonly blocks: DocumentBlock<L>[];
   readonly regions: ObjectDetection<'xyxy', L>[];
-  readonly detections: OCRDetection[];
+  readonly detections: OcrDetection[];
   /**
    * The frame all `bbox`/`quad` coordinates are relative to. Equals the input
    * image unless orientation correction or dewarp was applied, in which case it
@@ -56,76 +56,61 @@ export type DocumentResult<L> = {
 
 /**
  * Configuration for the document OCR orchestrator. Provides an OCR model, an
- * optional layout model (regions/blocks), and an optional supporting model
+ * optional layout model (regions/blocks), and optional document models
  * (orientation/dewarp pre-processing + table-structure recognition). The
  * `orientation`/`dewarp` flags are *defaults* for the per-run options of the
  * same name — supply them here to bias every run, or leave them off and pass
- * them to `runDocumentOCR` per call (the supporting model is loaded either way).
+ * them to `runDocumentOcr` per call (the document models are loaded either way).
  * @category Types
  */
-export type DocumentOCRModel<L> = {
-  readonly ocr: OCRModel;
+export type DocumentOcrModel<L> = {
+  readonly ocr: OcrModel;
   readonly layout?: ObjectDetectorModel<'xyxy', L>;
-  readonly supporting?: SupportingModel;
-  /** Default for the per-run `orientation` option (needs `supporting`). */
+  readonly documentModels?: DocumentModelsConfig;
+  /** Default for the per-run `orientation` option (needs `documentModels`). */
   readonly orientation?: boolean;
-  /** Default for the per-run `dewarp` option (needs `supporting`). */
+  /** Default for the per-run `dewarp` option (needs `documentModels`). */
   readonly dewarp?: boolean;
+  /**
+   * Minimum orientation-classifier confidence (softmax of the argmax class) to act
+   * on a non-zero rotation — below it the page is treated as already upright, so
+   * out-of-distribution inputs (photos/non-documents) don't spuriously flip. Genuine
+   * documents score >0.95; defaults to 0.85.
+   */
+  readonly orientationMinConfidence?: number;
 };
 
 /**
- * Per-run document options (passed to `runDocumentOCR`, not baked into the
+ * Per-run document options (passed to `runDocumentOcr`, not baked into the
  * model — toggling them needs no reload). Each pre-processing pass still
- * requires the supporting model to have been loaded (`config.supporting`).
+ * requires the document models to have been loaded (`config.documentModels`).
  * @category Types
  */
-export type RunDocumentOCROptions = {
+export type RunDocumentOcrOptions = {
   /**
-   * Detect + correct page orientation before OCR. No-op without a loaded
-   * supporting model. Defaults to the model's `config.orientation`.
+   * Detect + correct page orientation before OCR. No-op without loaded document
+   * models. Defaults to the model's `config.orientation`.
    */
   readonly orientation?: boolean;
   /**
-   * Geometrically dewarp the page before OCR. No-op without a loaded supporting
-   * model. Defaults to the model's `config.dewarp`.
+   * Geometrically dewarp the page before OCR. No-op without loaded document
+   * models. Defaults to the model's `config.dewarp`.
    */
   readonly dewarp?: boolean;
 };
 
-// Minimum orientation-classifier confidence (softmax of the argmax class) to act
-// on a non-zero rotation. Mirrors PaddleOCR's pipeline gate: out-of-distribution
-// inputs (photos, non-documents) produce low-confidence argmaxes that spuriously
-// flip the page, so below this we treat the page as already upright (0°). Set high
-// (0.85) — genuine documents score >0.95, leaving margin to reject OOD frames that
-// can still land ~0.74.
-const ORIENTATION_MIN_CONFIDENCE = 0.85;
-
 // Layout classes that carry no text — skip OCR on them.
 const VISUAL_LABELS = ['image', 'chart', 'seal'];
-const isTextRegion = (label: unknown): boolean => {
-  'worklet';
-  return !VISUAL_LABELS.includes(String(label));
-};
-
-// Shifts a crop-space detection back into page coordinates.
-function offsetDetection(d: OCRDetection, dx: number, dy: number): OCRDetection {
-  'worklet';
-  return { ...d, quad: d.quad.map((p) => ({ x: p.x + dx, y: p.y + dy })) };
-}
 
 function makeBlock<L>(
   regionType: L | 'ungrouped',
   bbox: BoundingBox<'xyxy'>,
   score: number,
-  lines: OCRDetection[],
+  lines: OcrDetection[],
   isTable: boolean
 ): DocumentBlock<L> {
   'worklet';
-  // Order the block's lines in reading order (top-to-bottom, and left-to-right
-  // within a line) so multi-column regions, titles split into words, and
-  // label/value rows concatenate correctly — not in the detector's arbitrary order.
-  const order = readingOrderIndices(lines.map((l) => l.quad));
-  const sorted = order.map((i) => lines[i]!);
+  const sorted = orderByReadingOrder(lines);
   return {
     regionType,
     bbox,
@@ -138,56 +123,60 @@ function makeBlock<L>(
 
 /**
  * Creates the document OCR orchestrator. Pipeline: correct orientation → dewarp
- * (supporting) → layout → per-region OCR (each text region is cropped and OCR'd on
+ * (document models) → layout → per-region OCR (each text region is cropped and OCR'd on
  * its own, upscaled into the detector — far better recall on dense pages than one
  * whole-page pass; lines are offset back to page coords) → tables recognize their
  * structure and fill cells with that region's OCR. Visual regions are skipped.
- * Without layout it OCRs the whole page into one block. Layout/supporting optional.
+ * Without layout it OCRs the whole page into one block. Layout/document models optional.
  * @category Typescript API
- * @param config OCR model + optional layout + optional supporting + flags.
+ * @param config OCR model + optional layout + optional document models + flags.
  * @param runtime Optional worklet runtime thread.
  * @returns A promise resolving to run + disposal controls.
  */
-export async function createDocumentOCR<L>(
-  config: DocumentOCRModel<L>,
+export async function createDocumentOcr<L>(
+  config: DocumentOcrModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
   dispose: () => void;
-  runDocumentOCR: (
+  runDocumentOcr: (
     input: ImageBuffer,
-    options?: RunDocumentOCROptions
+    options?: RunDocumentOcrOptions
   ) => Promise<DocumentResult<L>>;
-  runDocumentOCRWorklet: (input: ImageBuffer, options?: RunDocumentOCROptions) => DocumentResult<L>;
+  runDocumentOcrWorklet: (input: ImageBuffer, options?: RunDocumentOcrOptions) => DocumentResult<L>;
 }> {
-  const ocr = await createOCR(config.ocr, runtime);
-  const layout = config.layout
-    ? await createObjectDetector<'xyxy', L>(config.layout, runtime)
-    : null;
-  const supporting = config.supporting ? await createSupporting(config.supporting, runtime) : null;
-  // Per-run orientation/dewarp default to the model's config flags; both are
-  // no-ops without a loaded supporting model.
+  const ocr = await createOcr(config.ocr, runtime);
+  let layout: Awaited<ReturnType<typeof createObjectDetector<'xyxy', L>>> | null = null;
+  let documentModels: Awaited<ReturnType<typeof createDocumentModels>> | null = null;
+  try {
+    layout = config.layout ? await createObjectDetector<'xyxy', L>(config.layout, runtime) : null;
+    documentModels = config.documentModels
+      ? await createDocumentModels(config.documentModels, runtime)
+      : null;
+  } catch (e) {
+    // A later model failing to build must not leak the ones already built.
+    layout?.dispose();
+    ocr.dispose();
+    throw e;
+  }
   const defaultOrientation = !!config.orientation;
   const defaultDewarp = !!config.dewarp;
+  const minConfidence = config.orientationMinConfidence ?? 0.85;
 
   const dispose = () => {
     ocr.dispose();
     layout?.dispose();
-    supporting?.dispose();
+    documentModels?.dispose();
   };
 
-  const runDocumentOCRWorklet = (
+  const runDocumentOcrWorklet = (
     input: ImageBuffer,
-    options?: RunDocumentOCROptions
+    options?: RunDocumentOcrOptions
   ): DocumentResult<L> => {
     'worklet';
-    const useOrientation = !!supporting && (options?.orientation ?? defaultOrientation);
-    const useDewarp = !!supporting && (options?.dewarp ?? defaultDewarp);
+    const useOrientation = !!documentModels && (options?.orientation ?? defaultOrientation);
+    const useDewarp = !!documentModels && (options?.dewarp ?? defaultDewarp);
     let img = input;
-    // Orientation + dewarp thread one page tensor (built once): rotate and the
-    // dewarp remap run tensor -> tensor with no intermediate ImageBuffer, and the
-    // corrected page is materialized back to an ImageBuffer once for the OCR/crop
-    // stages below (which are all ImageBuffer-based).
-    if ((useOrientation || useDewarp) && supporting) {
+    if ((useOrientation || useDewarp) && documentModels) {
       const ch = FORMAT_CHANNELS[input.format];
       let page = tensor('uint8', [input.height, input.width, ch]);
       page.setData(input.data);
@@ -195,12 +184,9 @@ export async function createDocumentOCR<L>(
       let ph = input.height;
       try {
         if (useOrientation) {
-          // Only correct when the classifier is confident AND the predicted angle
-          // is non-zero — a low-confidence argmax (typical of OOD photos / non-
-          // documents) otherwise spuriously flips the page.
-          const orientation = supporting.detectOrientationWorklet(page, input.format);
+          const orientation = documentModels.detectOrientationWorklet(page, input.format);
           const deg = ((360 - orientation.rotationCW) % 360) as 0 | 90 | 180 | 270;
-          if (deg !== 0 && orientation.confidence >= ORIENTATION_MIN_CONFIDENCE) {
+          if (deg !== 0 && orientation.confidence >= minConfidence) {
             const swap = deg === 90 || deg === 270;
             const rotated = tensor('uint8', [swap ? pw : ph, swap ? ph : pw, ch]);
             try {
@@ -218,7 +204,7 @@ export async function createDocumentOCR<L>(
         }
         if (useDewarp) {
           // dewarp returns the input tensor unchanged when it declines the warp.
-          const dewarped = supporting.dewarpWorklet(page, input.format);
+          const dewarped = documentModels.dewarpWorklet(page, input.format);
           if (dewarped !== page) {
             page.dispose();
             page = dewarped;
@@ -232,14 +218,9 @@ export async function createDocumentOCR<L>(
       }
     }
 
-    // OCR runs once per region here (potentially many), so don't let each call
-    // free+reload its bucket arenas (release: false). Instead free the model's
-    // bucket methods ONCE in the finally below, after the whole page — keeping
-    // the page's working set cached while still bounding memory across pages.
     try {
-      // Mode A — no layout: OCR the whole page into one block.
       if (!layout) {
-        const detections = ocr.runOCRWorklet(img, { release: false }).detections;
+        const detections = ocr.runOcrWorklet(img, { release: false }).detections;
         const blocks = detections.length
           ? [
               makeBlock<L>(
@@ -254,21 +235,19 @@ export async function createDocumentOCR<L>(
         return { blocks, regions: [], detections, image: img };
       }
 
-      // Mode B — layout: OCR each text region's crop on its own (upscaled into the
-      // detector → far better recall than one whole-page pass), offsetting lines
-      // back to page coords. Tables also recognize structure + fill cells.
       const regions = layout.detectObjectsWorklet(img);
       const blocks: DocumentBlock<L>[] = [];
-      const detections: OCRDetection[] = [];
+      const detections: OcrDetection[] = [];
       for (const region of regions) {
-        if (!isTextRegion(region.label)) {
+        if (VISUAL_LABELS.includes(String(region.label))) {
           continue;
         }
         const { xmin, ymin } = region.box;
         const crop = cropImageBuffer(img, region.box);
-        const lines = ocr
-          .runOCRWorklet(crop, { release: false })
-          .detections.map((d) => offsetDetection(d, xmin, ymin));
+        const lines = ocr.runOcrWorklet(crop, { release: false }).detections.map((d) => ({
+          ...d,
+          quad: d.quad.map((p) => ({ x: p.x + xmin, y: p.y + ymin })),
+        }));
         if (lines.length === 0 && region.label !== 'table') {
           continue;
         }
@@ -280,8 +259,8 @@ export async function createDocumentOCR<L>(
           lines,
           region.label === 'table'
         );
-        if (region.label === 'table' && supporting) {
-          const structure = supporting.recognizeTableWorklet(crop);
+        if (region.label === 'table' && documentModels) {
+          const structure = documentModels.recognizeTableWorklet(crop);
           block = { ...block, tableHtml: fillTableCells(structure.html, block.lines) };
         }
         blocks.push(block);
@@ -289,13 +268,11 @@ export async function createDocumentOCR<L>(
       blocks.sort((a, b) => a.bbox.ymin - b.bbox.ymin || a.bbox.xmin - b.bbox.xmin);
       return { blocks, regions, detections, image: img };
     } finally {
-      // Free the OCR model's bucket arenas once, after the whole page (the
-      // per-region runs used release: false). Bounds memory across pages while
-      // keeping each page's working set cached during the run.
+      // Per-region runs pass release: false; the bucket arenas are freed once per page.
       ocr.releaseMethodsWorklet();
     }
   };
 
-  const runDocumentOCR = wrapAsync(runDocumentOCRWorklet, runtime);
-  return { runDocumentOCR, runDocumentOCRWorklet, dispose };
+  const runDocumentOcr = wrapAsync(runDocumentOcrWorklet, runtime);
+  return { runDocumentOcr, runDocumentOcrWorklet, dispose };
 }

@@ -1301,13 +1301,11 @@ export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
  * @category Types
  */
 export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
-export { alphabets, symbols, PPOCR_SYMBOLS } from './extensions/cv/tasks/ocr/ocrSymbols';
-export type { OCRLanguage } from './extensions/cv/tasks/ocr/ocrSymbols';
+export { alphabets, symbols, PPOCR_SYMBOLS } from './extensions/cv/tasks/ocr/charsets';
+export type { OcrLanguage } from './extensions/cv/tasks/ocr/charsets';
 
 /**
- * PP-DocLayoutV3 region classes, in model output order (index = class id). Some
- * display names repeat at different ids — that is the model's own id2label, kept
- * positional so `DOC_LAYOUT_LABELS[id]` matches the logits dimension.
+ * PP-DocLayoutV3 region classes, in model output order (index = class id).
  * @category Constants
  */
 export const DOC_LAYOUT_LABELS = [
@@ -1346,9 +1344,6 @@ export type DocLayoutLabel = (typeof DOC_LAYOUT_LABELS)[number];
 
 /**
  * SLANet_plus table-structure token vocabulary (50 tokens; index = token id).
- * `0:'sos'`, `49:'eos'`. The table decoder emits the HTML `<tr>/<td>` skeleton
- * (with col/row spans) one token at a time; concatenating the non-special tokens
- * yields the table structure HTML.
  * @category Constants
  */
 export const SLANET_STRUCTURE_VOCAB = [
