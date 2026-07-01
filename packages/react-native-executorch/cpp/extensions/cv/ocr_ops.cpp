@@ -21,7 +21,6 @@
 
 #include "core/dtype.h"
 #include "core/tensor.h"
-#include "utils.h"
 
 // Detector postprocessing geometry: CRAFT text-map grouping + DBNet prob-map ->
 // oriented quads. Pure OpenCV, kept native. ctcGreedyDecode (per-timestep argmax
@@ -581,13 +580,16 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 }
                 const int32_t heatW = s[s.size() - 2];
                 const int32_t heatH = s[s.size() - 3];
-                const double targetH = getNumberProp(rt, opts, "targetHeight");
+                const double targetH = opts.getProperty(rt, "targetHeight").asNumber();
                 const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
-                quads = extractCraft(data, heatW, heatH,
-                                     static_cast<float>(getNumberProp(rt, opts, "textThreshold")),
-                                     static_cast<float>(getNumberProp(rt, opts, "linkThreshold")),
-                                     static_cast<float>(getNumberProp(rt, opts, "lowTextThreshold")),
-                                     restoreRatio, getBoolPropOr(rt, opts, "charLevel", false));
+                const bool charLevel =
+                    opts.hasProperty(rt, "charLevel") && opts.getProperty(rt, "charLevel").asBool();
+                quads = extractCraft(
+                    data, heatW, heatH,
+                    static_cast<float>(opts.getProperty(rt, "textThreshold").asNumber()),
+                    static_cast<float>(opts.getProperty(rt, "linkThreshold").asNumber()),
+                    static_cast<float>(opts.getProperty(rt, "lowTextThreshold").asNumber()), restoreRatio,
+                    charLevel);
             } else if (mode == "dbnet") {
                 // src is [1,1,H,W] or [H,W] probability map (full-res).
                 const auto &s = src->shape_;
@@ -598,12 +600,12 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 const int32_t h = s[s.size() - 2];
                 ::cv::Mat prob(h, w, CV_32F, dataPtr);
                 quads = extractDbnet(
-                    prob, static_cast<float>(getNumberProp(rt, opts, "binThreshold")),
-                    static_cast<float>(getNumberProp(rt, opts, "boxThreshold")),
-                    static_cast<float>(getNumberProp(rt, opts, "unclipRatio")),
-                    static_cast<int32_t>(getNumberProp(rt, opts, "minBoxSide")),
-                    static_cast<int32_t>(getNumberProp(rt, opts, "maxCandidates")),
-                    getBoolProp(rt, opts, "applySigmoid"));
+                    prob, static_cast<float>(opts.getProperty(rt, "binThreshold").asNumber()),
+                    static_cast<float>(opts.getProperty(rt, "boxThreshold").asNumber()),
+                    static_cast<float>(opts.getProperty(rt, "unclipRatio").asNumber()),
+                    static_cast<int32_t>(opts.getProperty(rt, "minBoxSide").asNumber()),
+                    static_cast<int32_t>(opts.getProperty(rt, "maxCandidates").asNumber()),
+                    opts.getProperty(rt, "applySigmoid").asBool());
             } else {
                 throw jsi::JSError(rt, "extractTextBoxes: unknown mode '" + mode + "'");
             }
@@ -649,7 +651,7 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "ctcGreedyDecode: numel must be a multiple of the vocab dim");
         }
         const int32_t timesteps = static_cast<int32_t>(src->numel_) / vocab;
-        const bool softmax = getBoolProp(rt, opts, "softmax");
+        const bool softmax = opts.getProperty(rt, "softmax").asBool();
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {

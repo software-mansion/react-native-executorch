@@ -455,10 +455,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             // Free a single previously-executed method's planned-memory activation
             // arena (and, on graph-compiling backends like CoreML, its compiled
-            // graph). The method transparently reloads on next execute. Returns
+            // graph). The method reloads on next execute. Returns
             // whether a loaded method was actually freed (false = not loaded, a
             // harmless no-op). Bounds memory when many distinct bucketed methods
-            // (detect_<S>/recognize_<W>) accumulate over a session.
+            // accumulate over a session.
             auto methodName = args[0].asString(rt).utf8(rt);
             bool unloaded = self->etModule_->unload_method(methodName);
             return jsi::Value(unloaded);
