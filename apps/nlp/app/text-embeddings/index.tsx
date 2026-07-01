@@ -33,27 +33,19 @@ const STARTER_SENTENCES = [
   'The cat sleeps on the warm windowsill.',
 ];
 
-// True cosine similarity. Most of these models output L2-normalized embeddings
-// (so a plain dot product would do), but some — e.g. DistilUSE — do not, so we
-// divide by the norms to stay correct regardless of whether the model normalizes.
+// These models output L2-normalized embeddings, so cosine similarity is the dot
+// product.
 const cosine = (a: Float32Array, b: Float32Array) => {
   let dot = 0;
-  let na = 0;
-  let nb = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i]! * b[i]!;
-    na += a[i]! * a[i]!;
-    nb += b[i]! * b[i]!;
   }
-  const denom = Math.sqrt(na) * Math.sqrt(nb);
-  return denom > 0 ? dot / denom : 0;
+  return dot;
 };
 
 type Entry = { sentence: string; embedding: Float32Array };
 type Match = { sentence: string; similarity: number };
 
-// A model switch disposes the previous task while a forward() may still be
-// running; the resulting "disposed" rejection is expected and not worth showing.
 const isDisposedError = (msg: string) => /disposed/i.test(msg);
 
 function TextEmbeddingsContent() {
@@ -70,11 +62,7 @@ function TextEmbeddingsContent() {
 
   const ready = isReady && !!forward;
 
-  // Seed the library with starter sentences whenever a model finishes loading.
-  // `forward`'s identity changes only when the underlying model instance does,
-  // so this re-seeds on every model switch. The `cancelled` flag stops a pending
-  // forward() from a superseded model — whose tokenizer/model the hook has since
-  // disposed — from writing stale state or surfacing a "disposed" error.
+  // Re-seed the library with starter sentences whenever the model changes.
   useEffect(() => {
     if (!ready || !forward) return;
     let cancelled = false;

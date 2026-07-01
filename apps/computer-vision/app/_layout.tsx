@@ -28,6 +28,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="imageEmbeddings/index"
+        options={{
+          drawerLabel: 'Image Embeddings',
+          title: 'Image Embeddings',
+        }}
+      />
+      <Drawer.Screen
         name="detection/index"
         options={{
           drawerLabel: 'Object Detection',
