@@ -29,7 +29,7 @@ ModelHostObject::getDynamicInputBounds(jsi::Runtime &rt) {
     dynamicBoundsComputed_ = true;
 
     auto methodNamesResult = etModule_->method_names();
-    if (!methodNamesResult.ok() || methodNamesResult->count("get_dynamic_dims") == 0) {
+    if (!methodNamesResult.ok() || !methodNamesResult->contains("get_dynamic_dims")) {
         // No dynamic dims declared: leave the cache empty (exact validation).
         return dynamicInputBounds_;
     }

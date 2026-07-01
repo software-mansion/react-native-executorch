@@ -50,12 +50,6 @@ public:
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
 
-    explicit ModelHostObject(const std::string &modelPath);
-
-    facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
-    std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
-
-private:
     // Cached, lazily-parsed `[min, max, step]` bounds from `get_dynamic_dims`,
     // one row per dimension of `forward`'s tensor inputs (flattened in input
     // order). Empty when the model does not declare the method. See the class
@@ -64,6 +58,12 @@ private:
     bool dynamicBoundsComputed_ = false;
     std::vector<std::array<int64_t, 3>> dynamicInputBounds_;
 
+    explicit ModelHostObject(const std::string &modelPath);
+
+    facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
+    std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
+
+private:
     // Returns the cached bounds, parsing `get_dynamic_dims` on first use.
     // Throws if the method is present but returns a malformed tensor.
     const std::vector<std::array<int64_t, 3>> &getDynamicInputBounds(facebook::jsi::Runtime &rt);
