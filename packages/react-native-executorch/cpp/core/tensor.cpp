@@ -57,9 +57,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto srcLock = tryLockShared(rt, "copyTo: self", self);
             auto dstLock = tryLockUnique(rt, "copyTo: dst", dst);
 
-            const jsi::Object optsObj = (count == 2 && args[1].isObject()) ? args[1].asObject(rt) : jsi::Object(rt);
-            const size_t srcOffset = conversions::getOptionalProperty<size_t>(rt, "copyTo", optsObj, "offset").value_or(0);
-            const size_t copyLen = conversions::getOptionalProperty<size_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - srcOffset);
+            const jsi::Object optsObj = (count == 2) ? args[1].asObject(rt) : jsi::Object(rt);
+            const size_t srcOffset = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "offset").value_or(0);
+            const size_t copyLen = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - srcOffset);
 
             if (srcOffset + copyLen > self->numel_) {
                 throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
@@ -87,8 +87,8 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             const auto dataObj = args[0].asObject(rt);
             const auto buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
-            size_t byteOffset = conversions::getOptionalProperty<size_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
-            size_t byteLength = conversions::getOptionalProperty<size_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
+            size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
+            size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
 
             auto lock = tryLockUnique(rt, "setData: self", self);
 
@@ -113,8 +113,8 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             const jsi::Object dataObj = args[0].asObject(rt);
             const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
-            size_t byteOffset = conversions::getOptionalProperty<size_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
-            size_t byteLength = conversions::getOptionalProperty<size_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
+            size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
+            size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
 
             auto lock = tryLockShared(rt, "getData: self", self);
 

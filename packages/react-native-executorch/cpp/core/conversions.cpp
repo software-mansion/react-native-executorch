@@ -44,14 +44,13 @@ uint8_t asType<uint8_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Val
     return static_cast<uint8_t>(v);
 }
 
-template <>
-size_t asType<size_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
-    double v = asType<double>(rt, ctx, val);
-    if (std::isnan(v) || v < 0.0) {
-        throw jsi::JSError(rt, ctx + " must be a non-negative integer");
-    }
-    return static_cast<size_t>(v);
-}
+// Note: size_t is intentionally not specialised here.
+// On Linux x86_64 size_t and uint64_t are both `unsigned long`, so adding a
+// size_t specialisation would produce a duplicate-explicit-specialisation ODR
+// error on that platform. asType<size_t> routes through the uint64_t
+// specialisation on Linux (same type) and is a separate instantiation on
+// macOS (where uint64_t is unsigned long long). Either way the semantics —
+// non-negative double → cast — are identical.
 
 template <>
 bool asType<bool>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
