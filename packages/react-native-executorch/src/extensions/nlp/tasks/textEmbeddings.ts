@@ -68,16 +68,14 @@ export async function createTextEmbeddings(
     [SymbolicTensor('int64', [1, 'L']), SymbolicTensor('int64', [1, 'L'])],
     [SymbolicTensor('float32', [1, 'D'], ['D'])]
   );
-  const seqLen = meta.inputTensorMeta[0]!.shape[1]!;
+  // The models are exported with a dynamic sequence dimension; the declared size
+  // is the upper bound, used only to truncate over-long inputs.
+  const maxSeqLen = meta.inputTensorMeta[0]!.shape[1]!;
   const outShape = meta.outputTensorMeta[0]!.shape;
 
-  const tokenIds = tensor('int64', [1, seqLen]);
-  const attentionMask = tensor('int64', [1, seqLen]);
   const tEmbedding = tensor('float32', outShape);
 
   const dispose = () => {
-    tokenIds.dispose();
-    attentionMask.dispose();
     tEmbedding.dispose();
     tokenizer.dispose();
     model.dispose();
@@ -86,22 +84,28 @@ export async function createTextEmbeddings(
   const forwardWorklet = (input: string): Float32Array => {
     'worklet';
     const ids = tokenizer.encode(input);
-    const len = Math.min(ids.length, seqLen);
+    const len = Math.max(1, Math.min(ids.length, maxSeqLen));
 
-    // Padding entries default to 0 (the [PAD] token) with a zero attention
-    // mask, so the pooling baked into the model ignores them.
-    const idsData = new BigInt64Array(seqLen);
-    const maskData = new BigInt64Array(seqLen);
+    // Feed the exact token length with no padding. The model resizes its dynamic
+    // sequence input to match. Padding would change the result for pooling heads
+    // that are sensitive to it (e.g. DistilUSE's tanh projection). The attention
+    // mask is all ones since every position is a real token.
+    const idsData = new BigInt64Array(len);
+    const maskData = new BigInt64Array(len);
     for (let i = 0; i < len; i++) {
       idsData[i] = BigInt(ids[i]!);
       maskData[i] = 1n;
     }
 
-    tokenIds.setData(idsData);
-    attentionMask.setData(maskData);
-    model.execute('forward', [tokenIds, attentionMask], [tEmbedding]);
-
-    return tEmbedding.getData(new Float32Array(tEmbedding.numel));
+    const tokenIds = tensor('int64', [1, len], idsData);
+    const attentionMask = tensor('int64', [1, len], maskData);
+    try {
+      model.execute('forward', [tokenIds, attentionMask], [tEmbedding]);
+      return tEmbedding.getData(new Float32Array(tEmbedding.numel));
+    } finally {
+      tokenIds.dispose();
+      attentionMask.dispose();
+    }
   };
 
   const forward = wrapAsync(forwardWorklet, runtime);
