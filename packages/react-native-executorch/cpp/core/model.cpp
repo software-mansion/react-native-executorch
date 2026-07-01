@@ -433,6 +433,39 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "execute"), 3, fnBody);
     }
 
+    if (nameStr == "unloadMethod") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (count != 1) {
+                throw jsi::JSError(rt, "unloadMethod: Usage: unloadMethod(methodName)");
+            }
+
+            if (!args[0].isString()) {
+                throw jsi::JSError(rt, "unloadMethod: Expected arg0 to be a string");
+            }
+
+            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                throw jsi::JSError(rt, "unloadMethod: Model is currently in use");
+            }
+
+            if (!self->etModule_) {
+                throw jsi::JSError(rt, "unloadMethod: Model has been disposed");
+            }
+
+            // Free a single previously-executed method's planned-memory activation
+            // arena (and, on graph-compiling backends like CoreML, its compiled
+            // graph). The method transparently reloads on next execute. Returns
+            // whether a loaded method was actually freed (false = not loaded, a
+            // harmless no-op). Bounds memory when many distinct bucketed methods
+            // (detect_<S>/recognize_<W>) accumulate over a session.
+            auto methodName = args[0].asString(rt).utf8(rt);
+            bool unloaded = self->etModule_->unload_method(methodName);
+            return jsi::Value(unloaded);
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "unloadMethod"), 1, fnBody);
+    }
+
     if (nameStr == "dispose") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
@@ -462,6 +495,7 @@ std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Ru
     properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodNames"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodMeta"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "execute"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "unloadMethod"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return properties;
 }

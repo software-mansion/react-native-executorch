@@ -65,6 +65,7 @@ std::array<float, 4> decodeToXyxy(
     case BoxFormat::CXCYWH:
         return {a - c / 2.0f, b - d / 2.0f, a + c / 2.0f, b + d / 2.0f};
     }
+    throw std::invalid_argument("decodeToXyxy: unhandled box format");
 }
 } // namespace
 
@@ -165,21 +166,37 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<std::vector<std::int32_t>> groups;
         std::vector<bool> suppressed(candidates.size(), false);
 
+        // Decode every candidate's box to xyxy + area once, indexed by candidate
+        // position, so the O(N^2) suppression loop below reads them instead of
+        // re-decoding box j on every pass.
+        struct DecodedBox {
+            float xmin, ymin, xmax, ymax, area;
+        };
+        std::vector<DecodedBox> decoded(candidates.size());
+        for (size_t k = 0; k < candidates.size(); ++k) {
+            const std::int32_t idx = candidates[k].first;
+            auto [xmin, ymin, xmax, ymax] = decodeToXyxy(
+                boxesPtr[idx * 4 + 0],
+                boxesPtr[idx * 4 + 1],
+                boxesPtr[idx * 4 + 2],
+                boxesPtr[idx * 4 + 3],
+                boxFormat);
+            decoded[k] = {
+                .xmin = xmin,
+                .ymin = ymin,
+                .xmax = xmax,
+                .ymax = ymax,
+                .area = (xmax - xmin) * (ymax - ymin)};
+        }
+
         for (size_t i = 0; i < candidates.size(); ++i) {
             if (suppressed[i]) {
                 continue;
             }
 
-            std::int32_t idxI = candidates[i].first;
-
-            auto [xminA, yminA, xmaxA, ymaxA] = decodeToXyxy(
-                boxesPtr[idxI * 4 + 0],
-                boxesPtr[idxI * 4 + 1],
-                boxesPtr[idxI * 4 + 2],
-                boxesPtr[idxI * 4 + 3],
-                boxFormat);
-
-            const float areaA = (xmaxA - xminA) * (ymaxA - yminA);
+            const std::int32_t idxI = candidates[i].first;
+            const DecodedBox &a = decoded[i];
+            const float areaA = a.area;
 
             std::vector<std::int32_t> overlapping = {idxI};
 
@@ -188,21 +205,14 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                     continue;
                 }
 
-                std::int32_t idxJ = candidates[j].first;
+                const std::int32_t idxJ = candidates[j].first;
+                const DecodedBox &b = decoded[j];
+                const float areaB = b.area;
 
-                auto [xminB, yminB, xmaxB, ymaxB] = decodeToXyxy(
-                    boxesPtr[idxJ * 4 + 0],
-                    boxesPtr[idxJ * 4 + 1],
-                    boxesPtr[idxJ * 4 + 2],
-                    boxesPtr[idxJ * 4 + 3],
-                    boxFormat);
-
-                const float areaB = (xmaxB - xminB) * (ymaxB - yminB);
-
-                const float interYMin = std::max(yminA, yminB);
-                const float interXMin = std::max(xminA, xminB);
-                const float interYMax = std::min(ymaxA, ymaxB);
-                const float interXMax = std::min(xmaxA, xmaxB);
+                const float interYMin = std::max(a.ymin, b.ymin);
+                const float interXMin = std::max(a.xmin, b.xmin);
+                const float interYMax = std::min(a.ymax, b.ymax);
+                const float interXMax = std::min(a.xmax, b.xmax);
 
                 const float interH = std::max(0.0f, interYMax - interYMin);
                 const float interW = std::max(0.0f, interXMax - interXMin);
@@ -242,6 +252,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             return resultGroups;
         }
         }
+        throw jsi::JSError(rt, "nms: unhandled nmsType");
     };
 
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));

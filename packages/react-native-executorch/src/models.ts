@@ -4,6 +4,8 @@ import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
+import type { OCRModel, OCROptions } from './extensions/cv/tasks/ocr';
+import type { SupportingModel } from './extensions/cv/tasks/supporting';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -12,12 +14,17 @@ import {
   COCO_CLASSES_YOLO,
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
+  DOC_LAYOUT_LABELS,
+  SLANET_STRUCTURE_VOCAB,
+  alphabets,
+  PPOCR_SYMBOLS,
   type ImageNet1KLabel,
   type PascalVocLabel,
   type CocoClass,
   type CocoClassYolo,
   type BlazeFaceLandmark,
   type CocoLandmark,
+  type DocLayoutLabel,
 } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -532,6 +539,103 @@ const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+// OCR
+// =============================================================================
+// EasyOCR (CRAFT + CRNN) and PaddleOCR (DBNet + SVTR). `detectorKind` selects the
+// box decoder (CRAFT heatmap grouping vs DBNet prob-map contouring) and the default
+// drop score; everything else — RGB input, recognizer normalization/padding, CTC
+// decode, confidence — is the shared baked contract (overridable per model via
+// `recognizerNorm`/`recognizerPadValue`/`decode`, which these built-ins leave at
+// the defaults). So each only declares its architecture, input-size `buckets`, and
+// `charset`. `charset` for EasyOCR is set per language.
+const EASYOCR_OPTS: OCROptions = {
+  detectorKind: 'craft', // CRAFT: text + affinity heatmaps grouped into lines
+  charset: alphabets.english, // overridden per language
+  buckets: { detect: [800, 1280], recognize: [64, 128, 256, 512] },
+};
+
+const PADDLE_PPOCRV6_OPTS: OCROptions = {
+  detectorKind: 'dbnet', // DBNet: binary probability map contoured into boxes
+  charset: PPOCR_SYMBOLS,
+  buckets: { detect: [640, 960, 1280], recognize: [160, 320, 480, 640, 1280] },
+};
+
+// OCR models live in dedicated per-architecture HF repos, pinned to `main`. Each
+// PTE is bucketed: it ships per-size `detect_<S>` / `recognize_<W>` methods and
+// the pipeline snaps each image to the closest bucket. Each repo also hosts a
+// `config.json` (detectorKind, buckets, dropScore, charsetUrl) and `charset.txt`;
+// for now those stay bundled in the family OCROptions above / constants rather
+// than being fetched.
+const OCR_REVISION = 'resolve/main';
+const EASYOCR_REPO = `${BASE_URL}-EasyOCR/${OCR_REVISION}`;
+const PPOCRV6_REPO = `${BASE_URL}-PP-OCRv6/${OCR_REVISION}`;
+const PP_DOCLAYOUT_REPO = `${BASE_URL}-PP-DocLayoutV3/${OCR_REVISION}`;
+const PADDLE_HELPERS_REPO = `${BASE_URL}-PaddleHelpers/${OCR_REVISION}`;
+
+type OCRBackend = 'xnnpack' | 'coreml' | 'vulkan';
+
+// EasyOCR hosts one subdir per language (`<lang>/EasyOCR_<lang>_<backend>.pte`);
+// the detector + pipeline are shared, only the recognizer head + charset change.
+const easyocr = (lang: string, backend: OCRBackend, charset: string): OCRModel => ({
+  modelPath: `${EASYOCR_REPO}/${lang}/EasyOCR_${lang}_${backend}.pte`,
+  ocrOpts: { ...EASYOCR_OPTS, charset },
+});
+const paddle = (backend: OCRBackend): OCRModel => ({
+  modelPath: `${PPOCRV6_REPO}/PP-OCRv6_${backend}.pte`,
+  ocrOpts: PADDLE_PPOCRV6_OPTS,
+});
+
+// EasyOCR ships 8 language recognizers (XNNPACK + CoreML + Vulkan each).
+// NOTE: per the export notes, zh_sim recognize is int8-fragile on XNNPACK/Vulkan
+// (large vocab) — prefer CoreML there.
+const easyLang = (lang: string, charset: string) => ({
+  XNNPACK: easyocr(lang, 'xnnpack', charset),
+  COREML: easyocr(lang, 'coreml', charset),
+  VULKAN: easyocr(lang, 'vulkan', charset),
+});
+
+const PADDLE_PPOCRV6_XNNPACK = paddle('xnnpack');
+const PADDLE_PPOCRV6_VULKAN = paddle('vulkan');
+const PADDLE_PPOCRV6_COREML = paddle('coreml');
+
+// =============================================================================
+// Document layout — PP-DocLayoutV3 (RT-DETR, 25 region classes, fixed 800x800).
+// =============================================================================
+// PP-DocLayoutV3 speaks the objectDetection contract (the RT-DETR decode is baked
+// in-graph): RGB 800x800, x/255 with NO mean/std, stretch. NMS is disabled
+// (iouThreshold 1) because RT-DETR is set-prediction and standard NMS would merge
+// legitimately nested regions (e.g. a table inside a figure).
+const PP_DOCLAYOUT_OPTS = {
+  labels: DOC_LAYOUT_LABELS,
+  boxFormat: 'xyxy' as const,
+  resizeMode: 'stretch' as const,
+  interpolation: 'linear' as const,
+  alpha: 1 / 255.0,
+  beta: 0.0,
+  defaultConfidenceThreshold: 0.3,
+  defaultIouThreshold: 1.0,
+};
+const layout = (backend: OCRBackend): ObjectDetectorModel<'xyxy', DocLayoutLabel> => ({
+  modelPath: `${PP_DOCLAYOUT_REPO}/PP-DocLayoutV3_${backend}.pte`,
+  opts: PP_DOCLAYOUT_OPTS,
+});
+const PP_DOCLAYOUT_XNNPACK = layout('xnnpack');
+const PP_DOCLAYOUT_VULKAN = layout('vulkan');
+const PP_DOCLAYOUT_COREML = layout('coreml');
+
+// =============================================================================
+// Table structure — SLANet_plus (in the fused supporting PTE: table_encode +
+// table_decode_step). Also carries orientation/dewarp methods (same file).
+// =============================================================================
+const supporting = (backend: OCRBackend): SupportingModel => ({
+  modelPath: `${PADDLE_HELPERS_REPO}/PaddleHelpers_${backend}.pte`,
+  vocab: SLANET_STRUCTURE_VOCAB,
+  eosTokenId: 49, // SLANet '</s>' token id
+  maxSteps: 501, // SLANet max_text_length (500) + 1
+});
+const PP_TABLE_XNNPACK = supporting('xnnpack');
+const PP_TABLE_VULKAN = supporting('vulkan');
+const PP_TABLE_COREML = supporting('coreml');
 
 /**
  * Registry of pre-configured ExecuTorch models.
@@ -736,5 +840,38 @@ export const models = {
   },
   tokenizer: {
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
+  },
+  ocr: {
+    EASYOCR: {
+      ENGLISH: easyLang('english', alphabets.english),
+      CYRILLIC: easyLang('cyrillic', alphabets.cyrillic),
+      LATIN: easyLang('latin', alphabets.latin),
+      JAPANESE: easyLang('japanese', alphabets.japanese),
+      ZH_SIM: easyLang('zh_sim', alphabets.zh_sim),
+      KOREAN: easyLang('korean', alphabets.korean),
+      TELUGU: easyLang('telugu', alphabets.telugu),
+      KANNADA: easyLang('kannada', alphabets.kannada),
+    },
+    PADDLE: {
+      PPOCRV6_SMALL: {
+        XNNPACK: PADDLE_PPOCRV6_XNNPACK,
+        VULKAN: PADDLE_PPOCRV6_VULKAN,
+        COREML: PADDLE_PPOCRV6_COREML,
+      },
+    },
+  },
+  layoutDetection: {
+    PP_DOCLAYOUT: {
+      XNNPACK: PP_DOCLAYOUT_XNNPACK,
+      VULKAN: PP_DOCLAYOUT_VULKAN,
+      COREML: PP_DOCLAYOUT_COREML,
+    },
+  },
+  supporting: {
+    PP_SUPPORTING: {
+      XNNPACK: PP_TABLE_XNNPACK,
+      VULKAN: PP_TABLE_VULKAN,
+      COREML: PP_TABLE_COREML,
+    },
   },
 };

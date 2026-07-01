@@ -32,6 +32,12 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('keypoint/')}>
           <Text style={styles.buttonText}>Keypoint Detection</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('ocr/')}>
+          <Text style={styles.buttonText}>OCR</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('document/')}>
+          <Text style={styles.buttonText}>Document Pipeline</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('inspect/')}>
           <Text style={styles.buttonText}>Model Inspector</Text>
         </TouchableOpacity>
