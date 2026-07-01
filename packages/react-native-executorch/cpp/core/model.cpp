@@ -278,7 +278,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                         const auto boundsTensor = boundsResult->at(0).toTensor();
                         if (boundsTensor.scalar_type() == executorch::aten::ScalarType::Long &&
                             boundsTensor.dim() == 2 && boundsTensor.size(1) == 3) {
-                            const int64_t *data = boundsTensor.const_data_ptr<int64_t>();
+                            const auto *data = boundsTensor.const_data_ptr<int64_t>();
                             const auto rows = boundsTensor.size(0);
                             dynamicInputBounds.reserve(static_cast<size_t>(rows));
                             for (int64_t r = 0; r < rows; ++r) {
