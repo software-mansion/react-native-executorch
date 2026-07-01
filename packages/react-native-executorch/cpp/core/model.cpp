@@ -2,8 +2,11 @@
 #include "dtype.h"
 #include "tensor.h"
 
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <unordered_set>
+#include <vector>
 
 #include <executorch/runtime/backend/interface.h>
 #include <executorch/runtime/core/error.h>
@@ -218,10 +221,21 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, errorMsg);
             }
 
+            // Validates a tensor against the method signature. When `dimBounds`
+            // is null, every dimension must match the signature exactly; this is
+            // used for output tensors (which we pre-allocate and memcpy into, so
+            // their shape must be exact) and for inputs of statically-shaped
+            // models. When `dimBounds` is provided, each dimension is instead
+            // checked against the model-declared [min, max, step] range, allowing
+            // dynamically-shaped inputs (e.g. a variable sequence length) while
+            // still rejecting out-of-range shapes before they reach the runtime.
+            // A static dimension is encoded as {n, n, 1}, so it still requires an
+            // exact match.
             auto validateTensor = [](jsi::Runtime &rt,
                                      const TensorHostObject *tensorHostObject,
                                      const executorch::runtime::Result<executorch::runtime::TensorInfo> &tensorMeta,
-                                     const std::string &identifier) {
+                                     const std::string &identifier,
+                                     const std::array<int64_t, 3> *dimBounds) {
                 if (tensorMeta->scalar_type() != tensorHostObject->tensor_->dtype()) {
                     throw jsi::JSError(rt, "execute: Tensor dtype mismatch for " + identifier);
                 }
@@ -232,9 +246,24 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                " but got " + std::to_string(tensorHostObject->shape_.size()));
                 }
 
-                auto ndim = tensorHostObject->tensor_->sizes().size();
+                auto ndim = tensorHostObject->shape_.size();
                 for (size_t j = 0; j < ndim; ++j) {
-                    if (tensorMeta->sizes()[j] != tensorHostObject->shape_[j]) {
+                    const auto got = static_cast<int64_t>(tensorHostObject->shape_[j]);
+
+                    if (dimBounds != nullptr) {
+                        const int64_t min = dimBounds[j][0];
+                        const int64_t max = dimBounds[j][1];
+                        const int64_t step = dimBounds[j][2];
+                        const bool inRange = got >= min && got <= max;
+                        const bool onStep = step <= 1 || (got - min) % step == 0;
+                        if (!inRange || !onStep) {
+                            throw jsi::JSError(rt, "execute: Tensor shape out of range for " + identifier +
+                                                       ": dimension " + std::to_string(j) + " must be in [" +
+                                                       std::to_string(min) + ", " + std::to_string(max) + "]" +
+                                                       (step > 1 ? " with step " + std::to_string(step) : "") +
+                                                       " but got " + std::to_string(got));
+                        }
+                    } else if (tensorMeta->sizes()[j] != tensorHostObject->shape_[j]) {
                         throw jsi::JSError(rt, "execute: Tensor shape mismatch for " + identifier +
                                                    ": expected dimension " + std::to_string(j) + " to be " +
                                                    std::to_string(tensorMeta->sizes()[j]) + " but got " +
@@ -242,6 +271,33 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
                 }
             };
+
+            // Statically-shaped models validate input dimensions exactly. A model
+            // exported with dynamic `forward` inputs declares the allowed ranges
+            // via an optional `get_dynamic_dims` method that returns an int64
+            // [D, 3] tensor of [min, max, step] rows, one per dimension of
+            // forward's tensor inputs, flattened in input order. Absent (or a
+            // Bool false) means all input dimensions are static.
+            std::vector<std::array<int64_t, 3>> dynamicInputBounds;
+            if (methodName == "forward") {
+                auto methodNamesResult = self->etModule_->method_names();
+                if (methodNamesResult.ok() && methodNamesResult->count("get_dynamic_dims") > 0) {
+                    auto boundsResult = self->etModule_->execute("get_dynamic_dims");
+                    if (boundsResult.ok() && !boundsResult->empty() && boundsResult->at(0).isTensor()) {
+                        const auto boundsTensor = boundsResult->at(0).toTensor();
+                        if (boundsTensor.scalar_type() == executorch::aten::ScalarType::Long &&
+                            boundsTensor.dim() == 2 && boundsTensor.size(1) == 3) {
+                            const int64_t *data = boundsTensor.const_data_ptr<int64_t>();
+                            const auto rows = boundsTensor.size(0);
+                            dynamicInputBounds.reserve(static_cast<size_t>(rows));
+                            for (int64_t r = 0; r < rows; ++r) {
+                                dynamicInputBounds.push_back({data[r * 3], data[r * 3 + 1], data[r * 3 + 2]});
+                            }
+                        }
+                    }
+                }
+            }
+            size_t boundsOffset = 0;
 
             auto inputs = std::vector<executorch::runtime::EValue>(methodMeta->num_inputs());
             std::vector<std::unique_lock<std::shared_mutex>> tensorLocks;
@@ -295,7 +351,16 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(i) + "]: " + errorMsg);
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]");
+                    const std::array<int64_t, 3> *dimBounds = nullptr;
+                    if (!dynamicInputBounds.empty()) {
+                        const auto rank = tensorHostObject->shape_.size();
+                        if (boundsOffset + rank <= dynamicInputBounds.size()) {
+                            dimBounds = &dynamicInputBounds[boundsOffset];
+                        }
+                        boundsOffset += rank;
+                    }
+
+                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "inputs[" + std::to_string(i) + "]", dimBounds);
 
                     inputs[i] = tensorHostObject->tensor_;
                     break;
@@ -397,7 +462,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                    std::to_string(index) + ": " + errorMsg);
                     }
 
-                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]");
+                    validateTensor(rt, tensorHostObject.get(), tensorMeta, "outputTensors[" + std::to_string(tensorOutputIdx) + "]", nullptr);
 
                     std::memcpy(tensorHostObject->data_.get(),
                                 output.toTensor().const_data_ptr(),
