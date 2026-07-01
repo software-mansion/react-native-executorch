@@ -275,3 +275,6 @@ pcre
 libkleidicv
 thresholding
 binarization
+bugprone
+NOLINTNEXTLINE
+
