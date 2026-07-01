@@ -10,7 +10,6 @@
 #include <numeric>
 #include <opencv2/core/check.hpp>
 #include <optional>
-#include <span>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_set>
@@ -67,22 +66,6 @@ std::array<::cv::Point2f, 4> corners(const Box &b) {
 }
 
 // ------------------------------ CRAFT branch -------------------------------
-std::pair<::cv::Mat, ::cv::Mat> interleavedToMats(std::span<const float> data, ::cv::Size size) {
-    ::cv::Mat textMap(size, CV_32F);
-    ::cv::Mat affinityMap(size, CV_32F);
-    const auto w = static_cast<std::size_t>(size.width);
-    for (std::size_t i = 0; i < data.size(); ++i) {
-        const auto x = static_cast<int32_t>((i / 2) % w);
-        const auto y = static_cast<int32_t>((i / 2) / w);
-        if (i % 2 == 0) {
-            textMap.at<float>(y, x) = data[i];
-        } else {
-            affinityMap.at<float>(y, x) = data[i];
-        }
-    }
-    return {textMap, affinityMap};
-}
-
 void dilateComponent(::cv::Mat &segMap, const ::cv::Mat &stats, int32_t i, int32_t area,
                      int32_t imgW, int32_t imgH) {
     const int32_t x = stats.at<int32_t>(i, ::cv::CC_STAT_LEFT);
@@ -135,9 +118,17 @@ std::optional<Box> boxFromComponent(const ::cv::Mat &textMap, const ::cv::Mat &l
     return box;
 }
 
-std::vector<Box> getDetBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityMap,
-                                        float textThreshold, float linkThreshold,
-                                        float lowTextThreshold) {
+// CRAFT text+affinity maps -> component boxes, in two modes:
+//   - line grouping (charLevel=false): affinity is ADDED to the text map so
+//     adjacent glyphs link into one region; boxes keep their rotated-rect angle.
+//   - char level (charLevel=true): affinity is SUBTRACTED to BREAK those links,
+//     and the mask is eroded/dilated to clean up, yielding one upright box per
+//     glyph (used by the per-column pass that reads stacked text glyph by glyph;
+//     mirrors the old VerticalDetector's single-character path).
+// Everything after the combine step (binarize -> connected components -> one box
+// per component) is shared. charLevel boxes are forced upright (angle 0).
+std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, float textThreshold,
+                                float linkThreshold, float lowTextThreshold, bool charLevel) {
     const int32_t imgH = textMap.rows;
     const int32_t imgW = textMap.cols;
     ::cv::Mat textScore;
@@ -145,11 +136,22 @@ std::vector<Box> getDetBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityM
     ::cv::threshold(textMap, textScore, static_cast<double>(textThreshold), 1.0, ::cv::THRESH_BINARY);
     ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
                     ::cv::THRESH_BINARY);
-    ::cv::Mat comb = textScore + affinityScore;
-    ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_BINARY);
+
+    ::cv::Mat comb;
+    if (charLevel) {
+        comb = textScore - affinityScore; // subtract to separate adjacent glyphs
+        ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_TOZERO);
+        ::cv::threshold(comb, comb, 1.0, 1.0, ::cv::THRESH_TRUNC);
+        ::cv::Mat kernel = ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(3, 3));
+        ::cv::erode(comb, comb, kernel, ::cv::Point(-1, -1), 1);
+        ::cv::dilate(comb, comb, kernel, ::cv::Point(-1, -1), 4);
+    } else {
+        comb = textScore + affinityScore; // add to link adjacent glyphs into lines
+        ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_BINARY);
+    }
+
     ::cv::Mat binary;
     comb.convertTo(binary, CV_8UC1);
-
     ::cv::Mat labels;
     ::cv::Mat stats;
     ::cv::Mat centroids;
@@ -160,6 +162,9 @@ std::vector<Box> getDetBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityM
     for (int32_t i = 1; i < nLabels; ++i) {
         auto box = boxFromComponent(textMap, labels, stats, i, imgW, imgH, lowTextThreshold);
         if (box) {
+            if (charLevel) {
+                box->angle = 0.0f; // glyphs are read upright, never rotated
+            }
             boxes.push_back(*box);
         }
     }
@@ -331,61 +336,19 @@ std::vector<Box> groupTextBoxes(std::vector<Box> boxes, float centerThreshold,
     return filtered;
 }
 
-// Char-level CRAFT extraction: one upright box per glyph, no line grouping. The
-// affinity map is SUBTRACTED from the text map to break the links between
-// adjacent characters (the opposite of the grouped path, which adds them), then
-// the components are eroded/dilated to clean up before labelling. Used by the
-// second, per-column detection pass that reads upright stacked text glyph by
-// glyph. Mirrors the old VerticalDetector's single-character path.
-std::vector<Box> getCharBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityMap,
-                                         float textThreshold, float linkThreshold,
-                                         float lowTextThreshold) {
-    const int32_t imgH = textMap.rows;
-    const int32_t imgW = textMap.cols;
-    ::cv::Mat textScore;
-    ::cv::Mat affinityScore;
-    ::cv::threshold(textMap, textScore, static_cast<double>(textThreshold), 1.0, ::cv::THRESH_BINARY);
-    ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
-                    ::cv::THRESH_BINARY);
-    ::cv::Mat comb = textScore - affinityScore; // subtract to separate adjacent glyphs
-    ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_TOZERO);
-    ::cv::threshold(comb, comb, 1.0, 1.0, ::cv::THRESH_TRUNC);
-    ::cv::Mat kernel = ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(3, 3));
-    ::cv::erode(comb, comb, kernel, ::cv::Point(-1, -1), 1);
-    ::cv::dilate(comb, comb, kernel, ::cv::Point(-1, -1), 4);
-
-    ::cv::Mat binary;
-    comb.convertTo(binary, CV_8UC1);
-    ::cv::Mat labels;
-    ::cv::Mat stats;
-    ::cv::Mat centroids;
-    const int32_t nLabels = ::cv::connectedComponentsWithStats(binary, labels, stats, centroids, 4);
-
-    std::vector<Box> boxes;
-    boxes.reserve(static_cast<std::size_t>(nLabels));
-    for (int32_t i = 1; i < nLabels; ++i) {
-        auto box = boxFromComponent(textMap, labels, stats, i, imgW, imgH, lowTextThreshold);
-        if (box) {
-            box->angle = 0.0f; // glyphs are read upright, never rotated
-            boxes.push_back(*box);
-        }
-    }
-    return boxes;
-}
-
 // CRAFT half-res heatmap (text+affinity interleaved) -> oriented quads in
 // detector-input pixels; restoreRatio scales the half-res boxes back up. With
 // charLevel the boxes are individual upright glyphs (no grouping); otherwise
-// they are grouped reading-ordered lines.
-std::vector<Quad> extractCraft(std::span<const float> data, int32_t heatW, int32_t heatH,
-                               float textThreshold, float linkThreshold, float lowTextThreshold,
-                               float restoreRatio, bool charLevel) {
-    auto [textMap, affinityMap] = interleavedToMats(data, ::cv::Size(heatW, heatH));
-    std::vector<Box> boxes =
-        charLevel ? getCharBoxesFromTextMap(textMap, affinityMap, textThreshold, linkThreshold,
-                                            lowTextThreshold)
-                  : getDetBoxesFromTextMap(textMap, affinityMap, textThreshold, linkThreshold,
-                                           lowTextThreshold);
+// they are grouped reading-ordered lines. `data` points at heatW*heatH*2 floats.
+std::vector<Quad> extractCraft(float *data, int32_t heatW, int32_t heatH, float textThreshold,
+                               float linkThreshold, float lowTextThreshold, float restoreRatio,
+                               bool charLevel) {
+    // Deinterleave the [text, affinity] channels of the half-res heatmap.
+    ::cv::Mat interleaved(heatH, heatW, CV_32FC2, data);
+    std::array<::cv::Mat, 2> channels;
+    ::cv::split(interleaved, channels);
+    std::vector<Box> boxes = componentBoxes(channels[0], channels[1], textThreshold, linkThreshold,
+                                            lowTextThreshold, charLevel);
     for (auto &b : boxes) {
         b.x0 *= restoreRatio;
         b.y0 *= restoreRatio;
@@ -424,22 +387,12 @@ std::vector<Quad> extractCraft(std::span<const float> data, int32_t heatW, int32
 }
 
 // ------------------------------ DBNet branch -------------------------------
-// DBNet prob map [H,W] -> oriented quads.
-std::vector<Quad> extractDbnet(const ::cv::Mat &probIn, float binThreshold, float boxThreshold,
-                               float unclipRatio, int32_t minBoxSide, int32_t maxCandidates,
-                               bool applySigmoid) {
-    const int32_t w = probIn.cols;
-    const int32_t h = probIn.rows;
-    // The caller declares (from the model's export contract) whether the head
-    // emits raw logits (apply sigmoid) or already-normalized probabilities.
-    ::cv::Mat prob;
-    if (applySigmoid) {
-        ::cv::Mat neg;
-        ::cv::exp(-probIn, neg);
-        prob = 1.0 / (1.0 + neg);
-    } else {
-        prob = probIn;
-    }
+// DBNet prob map [H,W] -> oriented quads. The map must be post-sigmoid
+// probabilities — any activation is baked into the model's export.
+std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float boxThreshold,
+                               float unclipRatio, int32_t minBoxSide, int32_t maxCandidates) {
+    const int32_t w = prob.cols;
+    const int32_t h = prob.rows;
 
     ::cv::Mat bitmap;
     ::cv::threshold(prob, bitmap, static_cast<double>(binThreshold), 255, ::cv::THRESH_BINARY);
@@ -535,82 +488,111 @@ jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
 
 } // namespace
 
-void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "extractTextBoxes";
+void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "extractCraftTextBoxes";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "Usage: extractTextBoxes(src, options)");
+            throw jsi::JSError(rt, "Usage: extractCraftTextBoxes(src, options)");
         }
         if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "extractTextBoxes: src must be a Tensor");
+            throw jsi::JSError(rt, "extractCraftTextBoxes: src must be a Tensor");
         }
         if (!args[1].isObject()) {
-            throw jsi::JSError(rt, "extractTextBoxes: options must be an object");
+            throw jsi::JSError(rt, "extractCraftTextBoxes: options must be an object");
         }
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
         auto opts = args[1].asObject(rt);
-
         if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "extractTextBoxes: src must be a float32 Tensor");
+            throw jsi::JSError(rt, "extractCraftTextBoxes: src must be a float32 Tensor");
         }
-        if (!opts.hasProperty(rt, "mode") || !opts.getProperty(rt, "mode").isString()) {
-            throw jsi::JSError(rt, "extractTextBoxes: options.mode is required and must be a string");
-        }
-        const std::string mode = opts.getProperty(rt, "mode").asString(rt).utf8(rt);
 
         std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
         if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "extractTextBoxes: src tensor is currently in use");
+            throw jsi::JSError(rt, "extractCraftTextBoxes: src tensor is currently in use");
         }
         if (!src->data_) {
-            throw jsi::JSError(rt, "extractTextBoxes: src tensor has been disposed");
+            throw jsi::JSError(rt, "extractCraftTextBoxes: src tensor has been disposed");
         }
-
         auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
-        std::span<const float> data(dataPtr, src->numel_);
+
+        // src is [1,Hd,Wd,2] or [Hd,Wd,2] interleaved (text, affinity), half-res.
+        const auto &s = src->shape_;
+        if (s.size() < 3 || s.back() != 2) {
+            throw jsi::JSError(rt, "extractCraftTextBoxes: src must be [..,Hd,Wd,2]");
+        }
+        const int32_t heatW = s[s.size() - 2];
+        const int32_t heatH = s[s.size() - 3];
+        const double targetH = opts.getProperty(rt, "targetHeight").asNumber();
+        const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
+        // Required option — default values live in the TypeScript wrapper layer.
+        const bool charLevel = opts.getProperty(rt, "charLevel").asBool();
 
         std::vector<Quad> quads;
         try {
-            if (mode == "craft") {
-                // src is [1,Hd,Wd,2] or [Hd,Wd,2] interleaved (text, affinity), half-res.
-                const auto &s = src->shape_;
-                if (s.size() < 3 || s.back() != 2) {
-                    throw jsi::JSError(rt, "extractTextBoxes: craft src must be [..,Hd,Wd,2]");
-                }
-                const int32_t heatW = s[s.size() - 2];
-                const int32_t heatH = s[s.size() - 3];
-                const double targetH = opts.getProperty(rt, "targetHeight").asNumber();
-                const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
-                const bool charLevel =
-                    opts.hasProperty(rt, "charLevel") && opts.getProperty(rt, "charLevel").asBool();
-                quads = extractCraft(
-                    data, heatW, heatH,
-                    static_cast<float>(opts.getProperty(rt, "textThreshold").asNumber()),
-                    static_cast<float>(opts.getProperty(rt, "linkThreshold").asNumber()),
-                    static_cast<float>(opts.getProperty(rt, "lowTextThreshold").asNumber()), restoreRatio,
-                    charLevel);
-            } else if (mode == "dbnet") {
-                // src is [1,1,H,W] or [H,W] probability map (full-res).
-                const auto &s = src->shape_;
-                if (s.size() < 2) {
-                    throw jsi::JSError(rt, "extractTextBoxes: dbnet src must be [..,H,W]");
-                }
-                const int32_t w = s[s.size() - 1];
-                const int32_t h = s[s.size() - 2];
-                ::cv::Mat prob(h, w, CV_32F, dataPtr);
-                quads = extractDbnet(
-                    prob, static_cast<float>(opts.getProperty(rt, "binThreshold").asNumber()),
-                    static_cast<float>(opts.getProperty(rt, "boxThreshold").asNumber()),
-                    static_cast<float>(opts.getProperty(rt, "unclipRatio").asNumber()),
-                    static_cast<int32_t>(opts.getProperty(rt, "minBoxSide").asNumber()),
-                    static_cast<int32_t>(opts.getProperty(rt, "maxCandidates").asNumber()),
-                    opts.getProperty(rt, "applySigmoid").asBool());
-            } else {
-                throw jsi::JSError(rt, "extractTextBoxes: unknown mode '" + mode + "'");
-            }
+            quads = extractCraft(
+                dataPtr, heatW, heatH,
+                static_cast<float>(opts.getProperty(rt, "textThreshold").asNumber()),
+                static_cast<float>(opts.getProperty(rt, "linkThreshold").asNumber()),
+                static_cast<float>(opts.getProperty(rt, "lowTextThreshold").asNumber()),
+                restoreRatio, charLevel);
         } catch (const ::cv::Exception &e) {
-            throw jsi::JSError(rt, std::string("extractTextBoxes: OpenCV error: ") + e.what());
+            throw jsi::JSError(rt, std::string("extractCraftTextBoxes: OpenCV error: ") + e.what());
+        }
+        return quadsToArray(rt, quads);
+    };
+    module.setProperty(rt, name,
+                       jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
+                                                             2, fnBody));
+}
+
+void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "extractDbnetTextBoxes";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
+                     size_t count) -> jsi::Value {
+        if (count != 2) {
+            throw jsi::JSError(rt, "Usage: extractDbnetTextBoxes(src, options)");
+        }
+        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: src must be a Tensor");
+        }
+        if (!args[1].isObject()) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: options must be an object");
+        }
+        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
+        auto opts = args[1].asObject(rt);
+        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: src must be a float32 Tensor");
+        }
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock()) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: src tensor is currently in use");
+        }
+        if (!src->data_) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: src tensor has been disposed");
+        }
+        auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
+
+        // src is [1,1,H,W] or [H,W] probability map (full-res).
+        const auto &s = src->shape_;
+        if (s.size() < 2) {
+            throw jsi::JSError(rt, "extractDbnetTextBoxes: src must be [..,H,W]");
+        }
+        const int32_t w = s[s.size() - 1];
+        const int32_t h = s[s.size() - 2];
+
+        std::vector<Quad> quads;
+        try {
+            ::cv::Mat prob(h, w, CV_32F, dataPtr);
+            quads = extractDbnet(
+                prob, static_cast<float>(opts.getProperty(rt, "binThreshold").asNumber()),
+                static_cast<float>(opts.getProperty(rt, "boxThreshold").asNumber()),
+                static_cast<float>(opts.getProperty(rt, "unclipRatio").asNumber()),
+                static_cast<int32_t>(opts.getProperty(rt, "minBoxSide").asNumber()),
+                static_cast<int32_t>(opts.getProperty(rt, "maxCandidates").asNumber()));
+        } catch (const ::cv::Exception &e) {
+            throw jsi::JSError(rt, std::string("extractDbnetTextBoxes: OpenCV error: ") + e.what());
         }
         return quadsToArray(rt, quads);
     };
@@ -620,21 +602,28 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 // --------------------------- ctcGreedyDecode -------------------------------
+// Per-timestep argmax + max value over [..,T,V] logits. `values` are the raw
+// max activations; if a caller needs probabilities it softmaxes the tensor (via
+// the math.softmax op) before decoding — this op takes no options.
 void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "ctcGreedyDecode";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
-        if (count != 2) {
-            throw jsi::JSError(rt, "Usage: ctcGreedyDecode(src, options)");
+        if (count != 1) {
+            throw jsi::JSError(rt, "Usage: ctcGreedyDecode(src)");
         }
         if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
             throw jsi::JSError(rt, "ctcGreedyDecode: src must be a Tensor");
         }
-        if (!args[1].isObject()) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: options must be an object");
-        }
         auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto opts = args[1].asObject(rt);
+
+        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
+        if (!srcLock.owns_lock()) {
+            throw jsi::JSError(rt, "ctcGreedyDecode: src tensor is currently in use");
+        }
+        if (!src->data_) {
+            throw jsi::JSError(rt, "ctcGreedyDecode: src tensor has been disposed");
+        }
 
         if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
             throw jsi::JSError(rt, "ctcGreedyDecode: src must be a float32 Tensor");
@@ -651,15 +640,6 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "ctcGreedyDecode: numel must be a multiple of the vocab dim");
         }
         const int32_t timesteps = static_cast<int32_t>(src->numel_) / vocab;
-        const bool softmax = opts.getProperty(rt, "softmax").asBool();
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: src tensor is currently in use");
-        }
-        if (!src->data_) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: src tensor has been disposed");
-        }
         const auto *data = reinterpret_cast<const float *>(src->data_.get());
 
         jsi::Array out(rt, static_cast<size_t>(timesteps) * 2);
@@ -668,23 +648,14 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
             const float *row = data + static_cast<std::size_t>(t) * static_cast<std::size_t>(vocab);
             const float *maxIt = std::max_element(row, row + vocab);
             const auto maxIdx = static_cast<int32_t>(maxIt - row);
-            const float maxVal = *maxIt;
-            auto prob = static_cast<double>(maxVal);
-            if (softmax) {
-                double sum = 0.0;
-                for (int32_t v = 0; v < vocab; ++v) {
-                    sum += std::exp(static_cast<double>(row[v]) - static_cast<double>(maxVal));
-                }
-                prob = sum > 0.0 ? 1.0 / sum : 0.0; // exp(maxVal - maxVal) / sum
-            }
             out.setValueAtIndex(rt, oi++, jsi::Value(static_cast<double>(maxIdx)));
-            out.setValueAtIndex(rt, oi++, jsi::Value(prob));
+            out.setValueAtIndex(rt, oi++, jsi::Value(static_cast<double>(*maxIt)));
         }
         return out;
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             2, fnBody));
+                                                             1, fnBody));
 }
 
 } // namespace rnexecutorch::extensions::cv::ocr_ops

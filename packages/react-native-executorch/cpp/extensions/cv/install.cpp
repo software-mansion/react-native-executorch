@@ -2,7 +2,6 @@
 #include "box_ops.h"
 #include "image_ops.h"
 #include "ocr_ops.h"
-#include "text_boxes_ops.h"
 
 namespace rnexecutorch::extensions::cv {
 namespace jsi = facebook::jsi;
@@ -17,15 +16,15 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     image_ops::install_normalize(rt, cvModule);
     image_ops::install_applyColormap(rt, cvModule);
     image_ops::install_rotate(rt, cvModule);
+    image_ops::install_warpByGrid(rt, cvModule);
+    image_ops::install_warpQuad(rt, cvModule);
 
     box_ops::install_nms(rt, cvModule);
     box_ops::install_restrictToBox(rt, cvModule);
 
-    ocr_ops::install_extractTextBoxes(rt, cvModule);
+    ocr_ops::install_extractCraftTextBoxes(rt, cvModule);
+    ocr_ops::install_extractDbnetTextBoxes(rt, cvModule);
     ocr_ops::install_ctcGreedyDecode(rt, cvModule);
-
-    text_boxes_ops::install_gridSample(rt, cvModule);
-    text_boxes_ops::install_warpQuad(rt, cvModule);
 
     module.setProperty(rt, "cv", cvModule);
 }
