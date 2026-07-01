@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, Platform } from 'react-native';
 import { commonStyles, ColorPalette } from '../../theme';
 import { useImage, Skia, ColorType, AlphaType, type SkImage } from '@shopify/react-native-skia';
-import { useDocumentOCR, models } from 'react-native-executorch';
+import { useDocumentOcr, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -12,8 +12,8 @@ import { Button } from '../../components/Button';
 
 const PREVIEW_HEIGHT = 280;
 
-// Hosted per-backend model triplets (OCR + layout + supporting) — downloaded +
-// cached on-device from Hugging Face by `useDocumentOCR`. Backends are filtered
+// Hosted per-backend model triplets (OCR + layout + document models) — downloaded +
+// cached on-device from Hugging Face by `useDocumentOcr`. Backends are filtered
 // by platform (Vulkan = Android, CoreML = iOS, XNNPACK = both).
 type BackendKey = 'XNNPACK' | 'VULKAN' | 'COREML';
 const BACKENDS: { key: BackendKey; label: string; platforms: string[] }[] = [
@@ -100,16 +100,16 @@ function DocumentContent() {
 
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  // Hosted configs — `useDocumentOCR` downloads + caches each enabled model.
+  // Hosted configs — `useDocumentOcr` downloads + caches each enabled model.
   // orientation/dewarp are NOT baked here: they're passed per-run to
-  // `runDocumentOCR` below, so toggling them takes effect without a reload.
+  // `runDocumentOcr` below, so toggling them takes effect without a reload.
   const config = {
     ocr: models.ocr.PADDLE.PPOCRV6_SMALL[backend.key],
     ...(layoutOn ? { layout: models.layoutDetection.PP_DOCLAYOUT[backend.key] } : {}),
-    ...(supportingOn ? { supporting: models.supporting.PP_SUPPORTING[backend.key] } : {}),
+    ...(supportingOn ? { documentModels: models.documentModels.PP_HELPERS[backend.key] } : {}),
   };
 
-  const { isReady, downloadProgress, error: loadError, runDocumentOCR } = useDocumentOCR(config);
+  const { isReady, downloadProgress, error: loadError, runDocumentOcr } = useDocumentOcr(config);
 
   const handlePick = async (useCamera: boolean) => {
     setError(null);
@@ -127,14 +127,14 @@ function DocumentContent() {
   };
 
   const run = async () => {
-    if (!skiaImage || !runDocumentOCR) return;
+    if (!skiaImage || !runDocumentOcr) return;
     setIsProcessing(true);
     setError(null);
     try {
       const pixels = skiaImage.readPixels();
       if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
       const start = Date.now();
-      const out = await runDocumentOCR(
+      const out = await runDocumentOcr(
         {
           data: pixels,
           width: skiaImage.width(),

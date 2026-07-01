@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, Switch } from 'react-native';
 import { commonStyles, ColorPalette } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
-import { useOCR, models, type OCRDetection } from 'react-native-executorch';
+import { useOcr, models, type OcrDetection } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -12,7 +12,7 @@ import { Button } from '../../components/Button';
 
 const PREVIEW_HEIGHT = 280;
 
-// Hosted PTEs — downloaded + cached on-device from Hugging Face by `useOCR`.
+// Hosted PTEs — downloaded + cached on-device from Hugging Face by `useOcr`.
 // Backends per platform: XNNPACK runs everywhere, Vulkan on Android, CoreML on iOS.
 const ALL_MODELS = [
   {
@@ -56,7 +56,7 @@ function OCRContent() {
   const [vertical, setVertical] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<OCRDetection[]>([]);
+  const [results, setResults] = useState<OcrDetection[]>([]);
   const [wallMs, setWallMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,8 +64,8 @@ function OCRContent() {
 
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  // `useOCR` downloads + caches the hosted PTE from its Hugging Face URL.
-  const { isReady, downloadProgress, error: loadError, runOCR } = useOCR(selected.config);
+  // `useOcr` downloads + caches the hosted PTE from its Hugging Face URL.
+  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr(selected.config);
 
   const handlePickImage = async (useCamera: boolean) => {
     setError(null);
@@ -82,7 +82,7 @@ function OCRContent() {
   };
 
   const runRecognition = async () => {
-    if (!skiaImage || !runOCR) return;
+    if (!skiaImage || !runOcr) return;
     setIsProcessing(true);
     setError(null);
     try {
@@ -99,7 +99,7 @@ function OCRContent() {
       };
       const start = Date.now();
       // `vertical` is a per-run option now — toggling it needs no model reload.
-      const output = await runOCR(buffer, { vertical });
+      const output = await runOcr(buffer, { vertical });
       setWallMs(Date.now() - start);
       setResults(output.detections);
     } catch (e: any) {
@@ -198,7 +198,6 @@ function OCRContent() {
                 {res.text}
               </Text>
               <View style={styles.resultMeta}>
-                <Text style={styles.resultMs}>{res.recognizeMs.toFixed(0)}ms</Text>
                 <Text style={styles.resultConfidence}>{Math.round(res.confidence * 100)}%</Text>
               </View>
             </View>
@@ -266,12 +265,6 @@ const styles = StyleSheet.create({
   tileUnit: { fontSize: 14, fontWeight: '600', color: '#6b73a3' },
   tileLabel: { fontSize: 11, color: '#868e96', marginTop: 4 },
   resultMeta: { flexDirection: 'row', alignItems: 'center' },
-  resultMs: {
-    fontSize: 12,
-    color: '#868e96',
-    marginRight: 10,
-    fontVariant: ['tabular-nums'],
-  },
   resultsContainer: {
     width: '100%',
     backgroundColor: '#fff',

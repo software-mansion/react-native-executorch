@@ -157,9 +157,6 @@ const TALL_CROP_RATIO = 1.5;
 const MAX_VERTICAL_REDETECTIONS = 8;
 // Vertical reads are lower-confidence and opt-in, so they skip the drop-score gate.
 const VERTICAL_DROP_SCORE = 0;
-// TEMP: stacked-column re-detection is disabled to measure whether char-level
-// column reading affects quality. Set true to restore it.
-const STACKED_COLUMNS_ENABLED = false;
 
 function pushDetection(
   out: OcrDetection[],
@@ -384,7 +381,7 @@ export async function createOcr(
       }
       for (const orderedQuad of singles) {
         const size = quadSize(orderedQuad);
-        if (STACKED_COLUMNS_ENABLED && size.height >= size.width * vctx.tallCropRatio) {
+        if (size.height >= size.width * vctx.tallCropRatio) {
           const stacked = readStackedColumn(recCtx, vctx, orderedQuad, size);
           if (stacked) {
             pushDetection(detections, VERTICAL_DROP_SCORE, stacked.text, stacked.conf, orderedQuad);
