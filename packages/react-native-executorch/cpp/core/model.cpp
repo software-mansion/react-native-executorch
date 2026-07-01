@@ -221,16 +221,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, errorMsg);
             }
 
-            // Validates a tensor against the method signature. When `dimBounds`
-            // is null, every dimension must match the signature exactly; this is
-            // used for output tensors (which we pre-allocate and memcpy into, so
-            // their shape must be exact) and for inputs of statically-shaped
-            // models. When `dimBounds` is provided, each dimension is instead
-            // checked against the model-declared [min, max, step] range, allowing
-            // dynamically-shaped inputs (e.g. a variable sequence length) while
-            // still rejecting out-of-range shapes before they reach the runtime.
-            // A static dimension is encoded as {n, n, 1}, so it still requires an
-            // exact match.
+            // Checks dtype and rank, then validates each dimension: against the
+            // model-declared [min, max, step] range when `dimBounds` is given,
+            // otherwise for an exact match with the method signature. See the
+            // ModelHostObject class docs for the get_dynamic_dims contract.
             auto validateTensor = [](jsi::Runtime &rt,
                                      const TensorHostObject *tensorHostObject,
                                      const executorch::runtime::Result<executorch::runtime::TensorInfo> &tensorMeta,
@@ -272,12 +266,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 }
             };
 
-            // Statically-shaped models validate input dimensions exactly. A model
-            // exported with dynamic `forward` inputs declares the allowed ranges
-            // via an optional `get_dynamic_dims` method that returns an int64
-            // [D, 3] tensor of [min, max, step] rows, one per dimension of
-            // forward's tensor inputs, flattened in input order. Absent (or a
-            // Bool false) means all input dimensions are static.
+            // Per-dimension [min, max, step] bounds for forward's tensor inputs,
+            // read from the optional get_dynamic_dims method (see class docs).
+            // Empty for statically shaped models, which then validate exactly.
             std::vector<std::array<int64_t, 3>> dynamicInputBounds;
             if (methodName == "forward") {
                 auto methodNamesResult = self->etModule_->method_names();
