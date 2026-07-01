@@ -717,7 +717,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 void install_gridSample(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "gridSample";
+    const auto *name = "gridSample";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
             throw jsi::JSError(rt, "Usage: gridSample(src, grid, dst)");
@@ -771,7 +771,7 @@ void install_gridSample(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t gridH = gs[gs.size() - 2];
         const int32_t gridW = gs[gs.size() - 1];
         const int32_t plane = gridH * gridW;
-        const float *g = reinterpret_cast<const float *>(grid->data_.get());
+        const auto *g = reinterpret_cast<const float *>(grid->data_.get());
 
         // Bilinearly sample channel `c` of the low-res grid at fractional (gx, gy).
         auto sampleGrid = [&](int32_t c, float gx, float gy) -> float {
@@ -795,8 +795,8 @@ void install_gridSample(jsi::Runtime &rt, jsi::Object &module) {
             const float gy = h > 1 ? (static_cast<float>(oy) / static_cast<float>(h - 1)) *
                                          static_cast<float>(gridH - 1)
                                    : 0.0f;
-            float *rowX = mapX.ptr<float>(oy);
-            float *rowY = mapY.ptr<float>(oy);
+            auto *rowX = mapX.ptr<float>(oy);
+            auto *rowY = mapY.ptr<float>(oy);
             for (int32_t ox = 0; ox < w; ++ox) {
                 const float gx = w > 1 ? (static_cast<float>(ox) / static_cast<float>(w - 1)) *
                                              static_cast<float>(gridW - 1)
@@ -825,7 +825,7 @@ void install_gridSample(jsi::Runtime &rt, jsi::Object &module) {
 // Perspective-crop an oriented quad of `src` into the `dst` canvas (crop +
 // resize-to-height + pad/align). A generic image op; used by the OCR recognizer.
 void install_warpQuad(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "warpQuad";
+    const auto *name = "warpQuad";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 4) {
@@ -908,13 +908,13 @@ void install_warpQuad(jsi::Runtime &rt, jsi::Object &module) {
         ::cv::Mat dstMat(recH, bucketW, cvType, dst->data_.get());
 
         try {
-            const ::cv::Point2f dstPts[4] = {{0.0f, 0.0f},
-                                             {static_cast<float>(contentWidth), 0.0f},
-                                             {static_cast<float>(contentWidth),
-                                              static_cast<float>(recH)},
-                                             {0.0f, static_cast<float>(recH)}};
-            const ::cv::Point2f srcPts[4] = {quad[0], quad[1], quad[2], quad[3]};
-            ::cv::Mat m = ::cv::getPerspectiveTransform(srcPts, dstPts);
+            const std::array<::cv::Point2f, 4> dstPts = {
+                ::cv::Point2f{0.0f, 0.0f},
+                {static_cast<float>(contentWidth), 0.0f},
+                {static_cast<float>(contentWidth), static_cast<float>(recH)},
+                {0.0f, static_cast<float>(recH)}};
+            const std::array<::cv::Point2f, 4> srcPts = {quad[0], quad[1], quad[2], quad[3]};
+            ::cv::Mat m = ::cv::getPerspectiveTransform(srcPts.data(), dstPts.data());
             ::cv::Mat content;
             ::cv::warpPerspective(srcMat, content, m, ::cv::Size(contentWidth, recH),
                                   ::cv::INTER_CUBIC, ::cv::BORDER_REPLICATE);

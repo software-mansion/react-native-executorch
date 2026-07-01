@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <jsi/jsi.h>
 #include <limits>
+#include <numbers>
 #include <numeric>
 #include <opencv2/core/check.hpp>
 #include <optional>
@@ -33,10 +34,10 @@ using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
 namespace {
 // ----------------------------- geometry types ------------------------------
 struct Box {
-    float x0, y0, x1, y1; // axis-aligned (p1=min, p2=max)
+    float x0{}, y0{}, x1{}, y1{}; // axis-aligned (p1=min, p2=max)
     float angle = 0.0f;
-    float width() const { return x1 - x0; }
-    float height() const { return y1 - y0; }
+    [[nodiscard]] float width() const { return x1 - x0; }
+    [[nodiscard]] float height() const { return y1 - y0; }
 };
 
 struct Quad {
@@ -72,8 +73,8 @@ std::pair<::cv::Mat, ::cv::Mat> interleavedToMats(std::span<const float> data, :
     ::cv::Mat affinityMap(size, CV_32F);
     const auto w = static_cast<std::size_t>(size.width);
     for (std::size_t i = 0; i < data.size(); ++i) {
-        const int32_t x = static_cast<int32_t>((i / 2) % w);
-        const int32_t y = static_cast<int32_t>((i / 2) / w);
+        const auto x = static_cast<int32_t>((i / 2) % w);
+        const auto y = static_cast<int32_t>((i / 2) / w);
         if (i % 2 == 0) {
             textMap.at<float>(y, x) = data[i];
         } else {
@@ -89,7 +90,7 @@ void dilateComponent(::cv::Mat &segMap, const ::cv::Mat &stats, int32_t i, int32
     const int32_t y = stats.at<int32_t>(i, ::cv::CC_STAT_TOP);
     const int32_t w = stats.at<int32_t>(i, ::cv::CC_STAT_WIDTH);
     const int32_t h = stats.at<int32_t>(i, ::cv::CC_STAT_HEIGHT);
-    const int32_t dilationRadius =
+    const auto dilationRadius =
         static_cast<int32_t>(std::sqrt(static_cast<double>(area) / std::max(w, h)) * 2);
     const int32_t sx = std::max(x - dilationRadius, 0);
     const int32_t ex = std::min(x + w + dilationRadius, imgW);
@@ -109,7 +110,7 @@ std::optional<Box> boxFromComponent(const ::cv::Mat &textMap, const ::cv::Mat &l
         return std::nullopt;
     }
     ::cv::Mat mask = (labels == i);
-    double maxVal;
+    double maxVal = 0.0;
     ::cv::minMaxLoc(textMap, nullptr, &maxVal, nullptr, nullptr, mask);
     if (maxVal < static_cast<double>(lowTextThreshold)) {
         return std::nullopt;
@@ -140,7 +141,8 @@ std::vector<Box> getDetBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityM
                                         float lowTextThreshold) {
     const int32_t imgH = textMap.rows;
     const int32_t imgW = textMap.cols;
-    ::cv::Mat textScore, affinityScore;
+    ::cv::Mat textScore;
+    ::cv::Mat affinityScore;
     ::cv::threshold(textMap, textScore, static_cast<double>(textThreshold), 1.0, ::cv::THRESH_BINARY);
     ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
                     ::cv::THRESH_BINARY);
@@ -149,7 +151,9 @@ std::vector<Box> getDetBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinityM
     ::cv::Mat binary;
     comb.convertTo(binary, CV_8UC1);
 
-    ::cv::Mat labels, stats, centroids;
+    ::cv::Mat labels;
+    ::cv::Mat stats;
+    ::cv::Mat centroids;
     const int32_t nLabels = ::cv::connectedComponentsWithStats(binary, labels, stats, centroids, 4);
 
     std::vector<Box> boxes;
@@ -174,7 +178,7 @@ std::tuple<float, float, bool> fitLineToShortestSides(const Box &b, float vertic
         sides[static_cast<std::size_t>(i)] = {dist(p1, p2), i};
         mids[static_cast<std::size_t>(i)] = {(p1.x + p2.x) * 0.5f, (p1.y + p2.y) * 0.5f};
     }
-    std::sort(sides.begin(), sides.end());
+    std::ranges::sort(sides);
     ::cv::Point2f m1 = mids[static_cast<std::size_t>(sides[0].second)];
     ::cv::Point2f m2 = mids[static_cast<std::size_t>(sides[1].second)];
     const bool isVertical = std::fabs(m2.x - m1.x) < verticalThreshold;
@@ -193,7 +197,7 @@ std::tuple<float, float, bool> fitLineToShortestSides(const Box &b, float vertic
 
 Box rotateBox(const Box &b, float angleDeg) {
     const ::cv::Point2f ctr = center(b);
-    const float rad = angleDeg * static_cast<float>(M_PI) / 180.0f;
+    const float rad = angleDeg * std::numbers::pi_v<float> / 180.0f;
     float minX = std::numeric_limits<float>::max();
     float minY = std::numeric_limits<float>::max();
     float maxX = std::numeric_limits<float>::lowest();
@@ -205,7 +209,7 @@ Box rotateBox(const Box &b, float angleDeg) {
         maxX = std::max(maxX, r.x);
         maxY = std::max(maxY, r.y);
     }
-    return {minX, minY, maxX, maxY, b.angle};
+    return {.x0 = minX, .y0 = minY, .x1 = maxX, .y1 = maxY, .angle = b.angle};
 }
 
 float minDistanceBetween(const Box &a, const Box &b) {
@@ -250,8 +254,7 @@ findClosestBox(const std::vector<Box> &boxes, const std::unordered_set<std::size
 }
 
 Box mergeBoxes(const Box &a, const Box &b) {
-    return {std::min(a.x0, b.x0), std::min(a.y0, b.y0), std::max(a.x1, b.x1), std::max(a.y1, b.y1),
-            a.angle};
+    return {.x0 = std::min(a.x0, b.x0), .y0 = std::min(a.y0, b.y0), .x1 = std::max(a.x1, b.x1), .y1 = std::max(a.y1, b.y1), .angle = a.angle};
 }
 
 // CRAFT box grouping -> reading-ordered text lines.
@@ -259,8 +262,8 @@ std::vector<Box> groupTextBoxes(std::vector<Box> boxes, float centerThreshold,
                                 float distanceThreshold, float heightThreshold,
                                 float minSideThreshold, float maxSideThreshold,
                                 float verticalThreshold) {
-    std::sort(boxes.begin(), boxes.end(),
-              [](const Box &a, const Box &b) { return maxSide(a) > maxSide(b); });
+    std::ranges::sort(boxes,
+                      [](const Box &a, const Box &b) { return maxSide(a) > maxSide(b); });
 
     std::vector<Box> merged;
     std::unordered_set<std::size_t> ignored;
@@ -273,7 +276,7 @@ std::vector<Box> groupTextBoxes(std::vector<Box> boxes, float centerThreshold,
 
         while (true) {
             auto [slope, intercept, isVertical] = fitLineToShortestSides(current, verticalThreshold);
-            lineAngle = isVertical ? -90.0f : std::atan(slope) * 180.0f / static_cast<float>(M_PI);
+            lineAngle = isVertical ? -90.0f : std::atan(slope) * 180.0f / std::numbers::pi_v<float>;
             auto closest =
                 findClosestBox(boxes, ignored, current, isVertical, slope, intercept, centerThreshold);
             if (!closest) {
@@ -309,8 +312,8 @@ std::vector<Box> groupTextBoxes(std::vector<Box> boxes, float centerThreshold,
     }
 
     // reading order: rows by top-Y, then left-to-right within a row
-    std::sort(filtered.begin(), filtered.end(),
-              [](const Box &a, const Box &b) { return a.y0 < b.y0; });
+    std::ranges::sort(filtered,
+                      [](const Box &a, const Box &b) { return a.y0 < b.y0; });
     float yThresh = 0.0f;
     if (!filtered.empty()) {
         float total = 0.0f;
@@ -340,7 +343,8 @@ std::vector<Box> getCharBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinity
                                          float lowTextThreshold) {
     const int32_t imgH = textMap.rows;
     const int32_t imgW = textMap.cols;
-    ::cv::Mat textScore, affinityScore;
+    ::cv::Mat textScore;
+    ::cv::Mat affinityScore;
     ::cv::threshold(textMap, textScore, static_cast<double>(textThreshold), 1.0, ::cv::THRESH_BINARY);
     ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
                     ::cv::THRESH_BINARY);
@@ -353,7 +357,9 @@ std::vector<Box> getCharBoxesFromTextMap(::cv::Mat &textMap, ::cv::Mat &affinity
 
     ::cv::Mat binary;
     comb.convertTo(binary, CV_8UC1);
-    ::cv::Mat labels, stats, centroids;
+    ::cv::Mat labels;
+    ::cv::Mat stats;
+    ::cv::Mat centroids;
     const int32_t nLabels = ::cv::connectedComponentsWithStats(binary, labels, stats, centroids, 4);
 
     std::vector<Box> boxes;
@@ -408,7 +414,7 @@ std::vector<Quad> extractCraft(std::span<const float> data, int32_t heatW, int32
         // can take it.
         const ::cv::Point2f ctr = center(b);
         const float rad =
-            (std::fabs(b.angle) > 45.0f) ? 0.0f : b.angle * static_cast<float>(M_PI) / 180.0f;
+            (std::fabs(b.angle) > 45.0f) ? 0.0f : b.angle * std::numbers::pi_v<float> / 180.0f;
         const auto cs = corners(b);
         for (std::size_t i = 0; i < 4; ++i) {
             q.pts[i] = rotateAround(cs[i], ctr, rad);
@@ -473,15 +479,18 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &probIn, float binThreshold, floa
             static_cast<float>(minBoxSide + 2)) {
             continue;
         }
-        ::cv::Point2f c[4];
-        expanded.points(c);
+        std::array<::cv::Point2f, 4> c;
+        expanded.points(c.data());
         Quad q;
         q.score = score;
         q.angle = expanded.angle;
-        float minX = static_cast<float>(w), minY = static_cast<float>(h), maxX = 0, maxY = 0;
+        auto minX = static_cast<float>(w);
+        auto minY = static_cast<float>(h);
+        float maxX = 0;
+        float maxY = 0;
         for (int32_t k = 0; k < 4; ++k) {
-            const float px = std::clamp(c[k].x, 0.0f, static_cast<float>(w));
-            const float py = std::clamp(c[k].y, 0.0f, static_cast<float>(h));
+            const float px = std::clamp(c[static_cast<std::size_t>(k)].x, 0.0f, static_cast<float>(w));
+            const float py = std::clamp(c[static_cast<std::size_t>(k)].y, 0.0f, static_cast<float>(h));
             q.pts[static_cast<std::size_t>(k)] = {px, py};
             minX = std::min(minX, px);
             minY = std::min(minY, py);
@@ -499,7 +508,7 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &probIn, float binThreshold, floa
     // `|dy| > threshold` test is intransitive (a~b, b~c, but a<c) and aborts under
     // libc++ hardening.
     constexpr float kRowBand = 10.0f;
-    std::sort(quads.begin(), quads.end(), [](const Quad &a, const Quad &b) {
+    std::ranges::sort(quads, [](const Quad &a, const Quad &b) {
         const int rowA = static_cast<int>(std::floor(a.pts[0].y / kRowBand));
         const int rowB = static_cast<int>(std::floor(b.pts[0].y / kRowBand));
         if (rowA != rowB) {
@@ -528,7 +537,7 @@ jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
 } // namespace
 
 void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "extractTextBoxes";
+    const auto *name = "extractTextBoxes";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 2) {
@@ -559,7 +568,7 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "extractTextBoxes: src tensor has been disposed");
         }
 
-        const auto *dataPtr = reinterpret_cast<const float *>(src->data_.get());
+        auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
         std::span<const float> data(dataPtr, src->numel_);
 
         std::vector<Quad> quads;
@@ -587,7 +596,7 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 }
                 const int32_t w = s[s.size() - 1];
                 const int32_t h = s[s.size() - 2];
-                ::cv::Mat prob(h, w, CV_32F, const_cast<float *>(dataPtr));
+                ::cv::Mat prob(h, w, CV_32F, dataPtr);
                 quads = extractDbnet(
                     prob, static_cast<float>(getNumberProp(rt, opts, "binThreshold")),
                     static_cast<float>(getNumberProp(rt, opts, "boxThreshold")),
@@ -610,7 +619,7 @@ void install_extractTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
 
 // --------------------------- ctcGreedyDecode -------------------------------
 void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "ctcGreedyDecode";
+    const auto *name = "ctcGreedyDecode";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 2) {
@@ -656,9 +665,9 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
         for (int32_t t = 0; t < timesteps; ++t) {
             const float *row = data + static_cast<std::size_t>(t) * static_cast<std::size_t>(vocab);
             const float *maxIt = std::max_element(row, row + vocab);
-            const int32_t maxIdx = static_cast<int32_t>(maxIt - row);
+            const auto maxIdx = static_cast<int32_t>(maxIt - row);
             const float maxVal = *maxIt;
-            double prob = static_cast<double>(maxVal);
+            auto prob = static_cast<double>(maxVal);
             if (softmax) {
                 double sum = 0.0;
                 for (int32_t v = 0; v < vocab; ++v) {
