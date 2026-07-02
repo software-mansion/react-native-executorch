@@ -34,20 +34,20 @@ tryLockUnique(jsi::Runtime &rt, const std::string &name, const std::shared_ptr<T
 void checkNotSameTensor(jsi::Runtime &rt,
                         const std::string &name1, const std::shared_ptr<TensorHostObject> &t1,
                         const std::string &name2, const std::shared_ptr<TensorHostObject> &t2) {
-    if (t1.get() == t2.get()) {
+    if (t1 == t2) {
         throw jsi::JSError(rt, std::format("{} and {} cannot be the same tensor", name1, name2));
     }
 }
 
 namespace {
 
-std::string shapeToString(const SymbolicShape &expectedShape) {
+std::string shapeToString(const SymbolicShape &shape) {
     std::string s;
-    for (size_t i = 0; i < expectedShape.size(); ++i) {
+    for (size_t i = 0; i < shape.size(); ++i) {
         if (i > 0) {
             s += ", ";
         }
-        const auto &dim = expectedShape.at(i);
+        const auto &dim = shape.at(i);
         if (std::holds_alternative<int32_t>(dim)) {
             s += std::format("{}", std::get<int32_t>(dim));
         } else if (std::holds_alternative<std::string>(dim)) {
@@ -78,8 +78,7 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
     const auto &shape = tensor->shape_;
 
     if (expectedDtype && dtype != *expectedDtype) {
-        throw jsi::JSError(rt, std::format("{} must be of type {}",
-                                           name, types::toString(*expectedDtype)));
+        throw jsi::JSError(rt, std::format("{} must be of type {}", name, types::toString(*expectedDtype)));
     }
 
     if (!expectedShape) {
@@ -92,8 +91,10 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
     }
 
     std::unordered_map<std::string, int32_t> symbolToConcrete;
+
     for (size_t i = 0; i < expectedShape->size(); ++i) {
         const auto &dim = expectedShape->at(i);
+
         if (std::holds_alternative<int32_t>(dim)) {
             const auto expected = std::get<int32_t>(dim);
             if (shape[i] != expected) {
