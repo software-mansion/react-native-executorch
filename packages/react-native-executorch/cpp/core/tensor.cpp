@@ -57,6 +57,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto srcLock = tryLockShared(rt, "copyTo: self", self);
             auto dstLock = tryLockUnique(rt, "copyTo: dst", dst);
 
+            if (count == 2 && !args[1].isObject()) {
+                throw jsi::JSError(rt, "copyTo: Expected options to be an object");
+            }
             const jsi::Object optsObj = (count == 2) ? args[1].asObject(rt) : jsi::Object(rt);
             const size_t srcOffset = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "offset").value_or(0);
             const size_t copyLen = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - srcOffset);
@@ -85,8 +88,15 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Usage: setData(array)");
             }
 
-            const auto dataObj = args[0].asObject(rt);
-            const auto buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            if (!args[0].isObject()) {
+                throw jsi::JSError(rt, "setData: Expected array to be an object (TypedArray)");
+            }
+            auto dataObj = args[0].asObject(rt);
+            auto bufferVal = conversions::getRequiredProperty<jsi::Value>(rt, "setData", dataObj, "buffer");
+            if (!bufferVal.isObject() || !bufferVal.asObject(rt).isArrayBuffer(rt)) {
+                throw jsi::JSError(rt, "setData: option 'buffer' must be an ArrayBuffer");
+            }
+            auto buffer = bufferVal.asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
 
@@ -111,8 +121,15 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Usage: getData(array)");
             }
 
-            const jsi::Object dataObj = args[0].asObject(rt);
-            const jsi::ArrayBuffer buffer = dataObj.getProperty(rt, "buffer").asObject(rt).getArrayBuffer(rt);
+            if (!args[0].isObject()) {
+                throw jsi::JSError(rt, "getData: Expected array to be an object (TypedArray)");
+            }
+            auto dataObj = args[0].asObject(rt);
+            auto bufferVal = conversions::getRequiredProperty<jsi::Value>(rt, "getData", dataObj, "buffer");
+            if (!bufferVal.isObject() || !bufferVal.asObject(rt).isArrayBuffer(rt)) {
+                throw jsi::JSError(rt, "getData: option 'buffer' must be an ArrayBuffer");
+            }
+            auto buffer = bufferVal.asObject(rt).getArrayBuffer(rt);
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
 
@@ -137,6 +154,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "through: Usage: through(fn, ...args)");
             }
 
+            if (!args[0].isObject() || !args[0].asObject(rt).isFunction(rt)) {
+                throw jsi::JSError(rt, "through: First argument must be a function");
+            }
             auto fn = args[0].asObject(rt).asFunction(rt);
 
             std::vector<jsi::Value> fnArgs;
@@ -164,6 +184,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 return jsi::Value(rt, thisVal);
             }
 
+            if (!args[1].isObject() || !args[1].asObject(rt).isFunction(rt)) {
+                throw jsi::JSError(rt, "throughIf: Second argument must be a function");
+            }
             auto fn = args[1].asObject(rt).asFunction(rt);
 
             std::vector<jsi::Value> fnArgs;

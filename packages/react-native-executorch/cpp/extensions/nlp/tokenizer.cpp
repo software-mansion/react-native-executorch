@@ -73,10 +73,6 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "encode: Usage: encode(text)");
             }
 
-            if (!args[0].isString()) {
-                throw jsi::JSError(rt, "encode: Expected arg0 to be a string");
-            }
-
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
                 throw jsi::JSError(rt, "encode: Tokenizer is currently in use");
@@ -161,10 +157,6 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw jsi::JSError(rt, "idToToken: Usage: idToToken(id)");
-            }
-
-            if (!args[0].isNumber()) {
-                throw jsi::JSError(rt, "idToToken: Expected arg0 to be a number");
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);

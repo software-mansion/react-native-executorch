@@ -119,10 +119,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "getMethodMeta: Usage: getMethodMeta(methodName)");
             }
 
-            if (!args[0].isString()) {
-                throw jsi::JSError(rt, "getMethodMeta: Expected methodName to be a string");
-            }
-
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
                 throw jsi::JSError(rt, "getMethodMeta: Model is currently in use");
@@ -203,6 +199,13 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
             auto methodMeta = getOrThrow(rt, "execute", self->etModule_->method_meta(methodName));
+
+            if (!args[1].isObject() || !args[1].asObject(rt).isArray(rt)) {
+                throw jsi::JSError(rt, "execute: Expected inputs to be an Array");
+            }
+            if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
+                throw jsi::JSError(rt, "execute: Expected outputTensors to be an Array");
+            }
 
             auto inputsArray = args[1].asObject(rt).asArray(rt);
             auto outputTensorsArray = args[2].asObject(rt).asArray(rt);
