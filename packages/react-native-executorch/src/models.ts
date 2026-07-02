@@ -4,7 +4,7 @@ import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
-import type { OcrModel, OcrOptions } from './extensions/cv/tasks/ocr';
+import type { OcrModel, OcrOptions } from './extensions/cv/tasks/ocr/ocr';
 import { craftExtractBoxes, dbnetExtractBoxes } from './extensions/cv/tasks/ocr/detectors';
 import type { DocumentModelsConfig } from './extensions/cv/tasks/ocr/documentModels';
 import {

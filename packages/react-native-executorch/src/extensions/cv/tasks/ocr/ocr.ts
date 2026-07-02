@@ -1,20 +1,15 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import { tensor, type Tensor } from '../../../core/tensor';
-import { loadModel } from '../../../core/model';
-import { wrapAsync } from '../../../core/runtime';
+import { tensor, type Tensor } from '../../../../core/tensor';
+import { loadModel } from '../../../../core/model';
+import { wrapAsync } from '../../../../core/runtime';
 
-import type { ImageBuffer } from '../image';
-import type { Point } from '../ops/points';
-import { FORMAT_CHANNELS, FORMAT_CONVERSION, cvtColor } from '../ops/image';
-import { orderQuad, quadSize, boundingQuadOf } from '../ops/quad';
-import type { TextBoxExtractor } from './ocr/detectors';
-import {
-  buildCharset,
-  orderByReadingOrder,
-  groupVerticalColumns,
-  type Buckets,
-} from './ocr/ocrUtils';
+import type { ImageBuffer } from '../../image';
+import type { Point } from '../../ops/points';
+import { FORMAT_CHANNELS, FORMAT_CONVERSION, cvtColor } from '../../ops/image';
+import { orderQuad, quadSize, boundingQuadOf } from '../../ops/quad';
+import type { TextBoxExtractor } from './detectors';
+import { orderByReadingOrder, groupVerticalColumns, type Buckets } from './ocrUtils';
 import {
   detectQuads,
   recognizeQuad,
@@ -27,11 +22,11 @@ import {
   type DetectContext,
   type RecContext,
   type VerticalContext,
-} from './ocr/pipeline';
+} from './pipeline';
 
-export type { Buckets } from './ocr/ocrUtils';
-export type { Quad } from '../ops/quad';
-export type { TextBoxExtractor } from './ocr/detectors';
+export type { Buckets } from './ocrUtils';
+export type { Quad } from '../../ops/quad';
+export type { TextBoxExtractor } from './detectors';
 
 /**
  * Configuration for the OCR pipeline: a model declares its input-size buckets, its
@@ -135,7 +130,7 @@ export type OcrDetection = {
   readonly confidence: number;
   /**
    * The oriented quad (TL,TR,BR,BL) in original image pixels. Derive the
-   * axis-aligned bounds with `boundsOfPoints(quad)` from `cv.ops.quad` if needed.
+   * axis-aligned bounds with `boundsOfPoints(quad, 'xyxy')` from `cv.ops.quad` if needed.
    */
   readonly quad: readonly Point[];
 };
@@ -241,7 +236,13 @@ export async function createOcr(
     if (recC !== 3) {
       throw new Error(`OCR: recognizer must take RGB (3 channels), but the model expects ${recC}.`);
     }
-    charset = buildCharset(ocrOpts.charset);
+    // CTC lookup: index 0 is the blank (ctcCollapse never decodes it), then the
+    // model's characters — a string splits into codepoints, an array is taken
+    // verbatim (preserving multi-codepoint entries like ligatures).
+    charset = [
+      '[blank]',
+      ...(typeof ocrOpts.charset === 'string' ? Array.from(ocrOpts.charset) : ocrOpts.charset),
+    ];
     if (charset.length !== rec.vocabSize) {
       throw new Error(
         `OCR: charset size (${charset.length}, incl. blank) must match recognizer output vocab (${rec.vocabSize}).`

@@ -1,21 +1,25 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import { tensor } from '../../../core/tensor';
-import { wrapAsync } from '../../../core/runtime';
-import type { ImageBuffer } from '../image';
-import type { Point } from '../ops/points';
-import type { BoundingBox } from '../ops/boxes';
-import { boundsOfPoints } from '../ops/quad';
-import { rotate, FORMAT_CHANNELS } from '../ops/image';
+import { tensor } from '../../../../core/tensor';
+import { wrapAsync } from '../../../../core/runtime';
+import type { ImageBuffer } from '../../image';
+import type { Point } from '../../ops/points';
+import type { BoundingBox } from '../../ops/boxes';
+import { boundsOfPoints } from '../../ops/quad';
+import { rotate, FORMAT_CHANNELS } from '../../ops/image';
 import { createOcr, type OcrModel, type OcrDetection } from './ocr';
 import {
   createObjectDetector,
   type ObjectDetectorModel,
   type ObjectDetection,
-} from './objectDetection';
-import { createDocumentModels, type DocumentModelsConfig } from './ocr/documentModels';
-import { orderByReadingOrder } from './ocr/ocrUtils';
-import { cropImageBuffer, fillTableCells } from './ocr/documentHelpers';
+} from '../objectDetection';
+import {
+  createDocumentModels,
+  cropImageBuffer,
+  fillTableCells,
+  type DocumentModelsConfig,
+} from './documentModels';
+import { orderByReadingOrder } from './ocrUtils';
 
 /**
  * One assembled document block: a layout region (or an ungrouped catch-all) with
@@ -226,7 +230,10 @@ export async function createDocumentOcr<L>(
           ? [
               makeBlock<L>(
                 'ungrouped',
-                { format: 'xyxy', ...boundsOfPoints(detections.flatMap((d) => d.quad as Point[])) },
+                boundsOfPoints(
+                  detections.flatMap((d) => d.quad as Point[]),
+                  'xyxy'
+                ),
                 1,
                 detections,
                 false

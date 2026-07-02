@@ -1,6 +1,6 @@
 import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
-import { createDocumentOcr, type DocumentOcrModel } from '../extensions/cv/tasks/documentOcr';
+import { createDocumentOcr, type DocumentOcrModel } from '../extensions/cv/tasks/ocr/documentOcr';
 
 // Swap a model spec's hosted `modelPath` for its downloaded local path. Returns
 // undefined when the spec is absent (an optional model) or its path hasn't

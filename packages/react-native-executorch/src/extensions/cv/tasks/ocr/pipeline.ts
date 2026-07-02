@@ -24,7 +24,7 @@ import {
 } from '../../ops/image';
 import { mapQuadToImage, orderQuad, quadSize, flattenQuad, splitTallQuad } from '../../ops/quad';
 import type { TextBoxExtractor } from './detectors';
-import { contentWidthFor, ctcCollapse, snapDetectBucket, snapRecognizeBucket } from './ocrUtils';
+import { contentWidthFor, ctcCollapse, snapBucket } from './ocrUtils';
 
 // The detector consumes raw RGB scaled to [0,1]; its mean/std normalization is
 // baked into the model, so the client only divides by 255.
@@ -119,7 +119,7 @@ export function detectQuads(
   charLevel = false
 ): Point[][] {
   'worklet';
-  const detS = snapDetectBucket(width, height, ctx.detBuckets);
+  const detS = snapBucket(Math.max(width, height), ctx.detBuckets);
   const detSet = ctx.detSets.get(detS)!;
   // Only the source resize depends on the run's channel count; the rest is cached.
   const tDetResize = tensor('uint8', [detS, detS, ctx.numChannels]);
@@ -173,7 +173,7 @@ export function recognizeQuad(
   const size = quadSize(corners);
   const maxRec = ctx.recBuckets[ctx.recBuckets.length - 1]!;
   const desiredW = contentWidthFor(size.width, size.height, ctx.recH, maxRec);
-  const bucketW = snapRecognizeBucket(desiredW, ctx.recBuckets);
+  const bucketW = snapBucket(desiredW, ctx.recBuckets);
   const recSet = ctx.recSetByWidth.get(bucketW)!;
   warpQuad(src, recSet.tCanvas, flattenQuad(corners), {
     contentWidth: Math.min(desiredW, bucketW),
@@ -220,7 +220,7 @@ export function recognizeGlyphStrip(
   if (cells.length === 0) {
     return null;
   }
-  const bucketW = snapRecognizeBucket(totalW, recCtx.recBuckets);
+  const bucketW = snapBucket(totalW, recCtx.recBuckets);
   const recSet = recCtx.recSetByWidth.get(bucketW)!;
   // Warp each cell into the canvas at its x-offset; the first warp clears + pads
   // the whole canvas, the rest compose in with `clear: false`.

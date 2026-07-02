@@ -16,8 +16,7 @@ import { quadsFromFlat, type Quad } from '../../ops/quad';
  * new detector into the OCR pipeline by supplying a function of this type (the
  * built-ins below, or its own). MUST be a worklet.
  * @category Types
- * @param outputs The model's `detect_<S>` output tensors, in order (owned by the
- * pipeline — do not dispose).
+ * @param outputs The model's `detect_<S>` output tensors, in order
  * @param side The snapped square detector side `S` (input is `S × S` letterboxed).
  * @param charLevel Emit one box per glyph instead of grouped lines; strategies
  * without a char-level mode ignore it.
@@ -30,35 +29,29 @@ export type TextBoxExtractor = (
 ) => Quad[];
 
 /**
- * Threshold overrides for {@link makeCraftExtractBoxes}. Any omitted field keeps
- * the CRAFT default.
+ * Threshold overrides for {@link makeCraftExtractBoxes}. Omitted fields keep the
+ * CRAFT defaults: `textHeatmapThreshold` 0.4, `linkHeatmapThreshold` 0.4,
+ * `minBoxPeakScore` 0.7.
  * @category Types
  */
 export type CraftExtractorOptions = {
-  /** Region-heatmap binarization threshold. Defaults to 0.4. */
-  readonly textThreshold?: number;
-  /** Affinity-heatmap (glyph linking) threshold. Defaults to 0.4. */
-  readonly linkThreshold?: number;
-  /** Minimum component peak score to keep a box. Defaults to 0.7. */
-  readonly lowTextThreshold?: number;
+  readonly textHeatmapThreshold?: number;
+  readonly linkHeatmapThreshold?: number;
+  readonly minBoxPeakScore?: number;
 };
 
 /**
- * Threshold overrides for {@link makeDbnetExtractBoxes}. Any omitted field keeps
- * the DBNet default.
+ * Threshold overrides for {@link makeDbnetExtractBoxes}. Omitted fields keep the
+ * DBNet defaults: `binarizationThreshold` 0.3, `minBoxScore` 0.6, `unclipRatio`
+ * 1.5, `minBoxSidePx` 3, `maxContourCandidates` 1000.
  * @category Types
  */
 export type DbnetExtractorOptions = {
-  /** Probability-map binarization threshold. Defaults to 0.3. */
-  readonly binThreshold?: number;
-  /** Minimum mean in-contour probability to keep a box. Defaults to 0.6. */
-  readonly boxThreshold?: number;
-  /** Box expansion (unclip) ratio. Defaults to 1.5. */
+  readonly binarizationThreshold?: number;
+  readonly minBoxScore?: number;
   readonly unclipRatio?: number;
-  /** Minimum box side in pixels. Defaults to 3. */
-  readonly minBoxSide?: number;
-  /** Maximum contour candidates considered. Defaults to 1000. */
-  readonly maxCandidates?: number;
+  readonly minBoxSidePx?: number;
+  readonly maxContourCandidates?: number;
 };
 
 // CRAFT region+affinity heatmap thresholds — stable across models, the defaults.
@@ -74,7 +67,7 @@ const DBNET_MIN_BOX_SIDE = 3;
 const DBNET_MAX_CANDIDATES = 1000;
 
 /**
- * Builds a CRAFT {@link TextBoxExtractor} with custom thresholds: groups the
+ * Builds a CRAFT {@link TextBoxExtractor}. Groups the
  * half-resolution region+affinity heatmap (`outputs[0]` is the `[1,Hd,Wd,2]`
  * heatmap) into oriented text-line quads, or per-glyph boxes when `charLevel`.
  * For the standard thresholds use the ready-made {@link craftExtractBoxes}.
@@ -83,9 +76,9 @@ const DBNET_MAX_CANDIDATES = 1000;
  * @returns A {@link TextBoxExtractor} to assign to `OcrOptions.extractBoxes`.
  */
 export function makeCraftExtractBoxes(overrides?: CraftExtractorOptions): TextBoxExtractor {
-  const textThreshold = overrides?.textThreshold ?? CRAFT_TEXT_THRESHOLD;
-  const linkThreshold = overrides?.linkThreshold ?? CRAFT_LINK_THRESHOLD;
-  const lowTextThreshold = overrides?.lowTextThreshold ?? CRAFT_LOW_TEXT_THRESHOLD;
+  const textThreshold = overrides?.textHeatmapThreshold ?? CRAFT_TEXT_THRESHOLD;
+  const linkThreshold = overrides?.linkHeatmapThreshold ?? CRAFT_LINK_THRESHOLD;
+  const lowTextThreshold = overrides?.minBoxPeakScore ?? CRAFT_LOW_TEXT_THRESHOLD;
   return (outputs, side, charLevel) => {
     'worklet';
     // The half-resolution heatmap requires an even detector side; the pipeline is
@@ -107,7 +100,7 @@ export function makeCraftExtractBoxes(overrides?: CraftExtractorOptions): TextBo
 }
 
 /**
- * Builds a DBNet {@link TextBoxExtractor} with custom thresholds: thresholds and
+ * Builds a DBNet {@link TextBoxExtractor}. Thresholds and
  * unclips the probability map (`outputs[0]` is the `[1,1,H,W]` post-sigmoid prob
  * map) into oriented text quads. It decodes at full resolution with no char-level
  * mode, so the extractor uses neither `side` nor `charLevel`. For the standard
@@ -117,11 +110,11 @@ export function makeCraftExtractBoxes(overrides?: CraftExtractorOptions): TextBo
  * @returns A {@link TextBoxExtractor} to assign to `OcrOptions.extractBoxes`.
  */
 export function makeDbnetExtractBoxes(overrides?: DbnetExtractorOptions): TextBoxExtractor {
-  const binThreshold = overrides?.binThreshold ?? DBNET_BIN_THRESHOLD;
-  const boxThreshold = overrides?.boxThreshold ?? DBNET_BOX_THRESHOLD;
+  const binThreshold = overrides?.binarizationThreshold ?? DBNET_BIN_THRESHOLD;
+  const boxThreshold = overrides?.minBoxScore ?? DBNET_BOX_THRESHOLD;
   const unclipRatio = overrides?.unclipRatio ?? DBNET_UNCLIP_RATIO;
-  const minBoxSide = overrides?.minBoxSide ?? DBNET_MIN_BOX_SIDE;
-  const maxCandidates = overrides?.maxCandidates ?? DBNET_MAX_CANDIDATES;
+  const minBoxSide = overrides?.minBoxSidePx ?? DBNET_MIN_BOX_SIDE;
+  const maxCandidates = overrides?.maxContourCandidates ?? DBNET_MAX_CANDIDATES;
   return (outputs) => {
     'worklet';
     const flat = rnexecutorchJsi.cv.extractDbnetTextBoxes(outputs[0]!, {

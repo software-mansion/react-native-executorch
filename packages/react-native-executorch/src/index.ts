@@ -23,10 +23,10 @@ export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
-export * from './extensions/cv/tasks/ocr';
+export * from './extensions/cv/tasks/ocr/ocr';
 export * from './extensions/cv/tasks/ocr/detectors';
 export type { DocumentModelsConfig } from './extensions/cv/tasks/ocr/documentModels';
-export * from './extensions/cv/tasks/documentOcr';
+export * from './extensions/cv/tasks/ocr/documentOcr';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';

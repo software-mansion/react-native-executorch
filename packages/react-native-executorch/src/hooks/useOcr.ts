@@ -1,4 +1,4 @@
-import { createOcr, type OcrModel } from '../extensions/cv/tasks/ocr';
+import { createOcr, type OcrModel } from '../extensions/cv/tasks/ocr/ocr';
 import { useResourceDownload } from './useResourceDownload';
 import { useModel } from './useModel';
 

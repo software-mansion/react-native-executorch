@@ -166,28 +166,20 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<std::vector<std::int32_t>> groups;
         std::vector<bool> suppressed(candidates.size(), false);
 
-        // Decode every candidate's box to xyxy + area once, indexed by candidate
-        // position, so the O(N^2) suppression loop below reads them instead of
-        // re-decoding box j on every pass.
-        struct DecodedBox {
-            float xmin, ymin, xmax, ymax, area;
-        };
-        std::vector<DecodedBox> decoded(candidates.size());
+        // Decode every candidate to xyxy once, not per pair in the O(n²) loop.
+        std::vector<std::array<float, 4>> decoded(candidates.size());
         for (size_t k = 0; k < candidates.size(); ++k) {
             const std::int32_t idx = candidates[k].first;
-            auto [xmin, ymin, xmax, ymax] = decodeToXyxy(
+            decoded[k] = decodeToXyxy(
                 boxesPtr[idx * 4 + 0],
                 boxesPtr[idx * 4 + 1],
                 boxesPtr[idx * 4 + 2],
                 boxesPtr[idx * 4 + 3],
                 boxFormat);
-            decoded[k] = {
-                .xmin = xmin,
-                .ymin = ymin,
-                .xmax = xmax,
-                .ymax = ymax,
-                .area = (xmax - xmin) * (ymax - ymin)};
         }
+        const auto boxArea = [](const std::array<float, 4> &box) {
+            return (box[2] - box[0]) * (box[3] - box[1]);
+        };
 
         for (size_t i = 0; i < candidates.size(); ++i) {
             if (suppressed[i]) {
@@ -195,8 +187,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             }
 
             const std::int32_t idxI = candidates[i].first;
-            const DecodedBox &a = decoded[i];
-            const float areaA = a.area;
+            const auto &[aXmin, aYmin, aXmax, aYmax] = decoded[i];
+            const float areaA = boxArea(decoded[i]);
 
             std::vector<std::int32_t> overlapping = {idxI};
 
@@ -206,13 +198,13 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
                 }
 
                 const std::int32_t idxJ = candidates[j].first;
-                const DecodedBox &b = decoded[j];
-                const float areaB = b.area;
+                const auto &[bXmin, bYmin, bXmax, bYmax] = decoded[j];
+                const float areaB = boxArea(decoded[j]);
 
-                const float interYMin = std::max(a.ymin, b.ymin);
-                const float interXMin = std::max(a.xmin, b.xmin);
-                const float interYMax = std::min(a.ymax, b.ymax);
-                const float interXMax = std::min(a.xmax, b.xmax);
+                const float interYMin = std::max(aYmin, bYmin);
+                const float interXMin = std::max(aXmin, bXmin);
+                const float interYMax = std::min(aYmax, bYmax);
+                const float interXMax = std::min(aXmax, bXmax);
 
                 const float interH = std::max(0.0f, interYMax - interYMin);
                 const float interW = std::max(0.0f, interXMax - interXMin);

@@ -1,7 +1,7 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
-import { scalePoint, resizeFactors } from './points';
+import { scalePoint } from './points';
 
 /**
  * Mapping of bounding box formats to their coordinate representations.
@@ -73,8 +73,8 @@ export function scaleBox<F extends BoxFormat>(
   }
 ): BoundingBox<F> {
   'worklet';
-  const { scaleX, scaleY } = resizeFactors(opts.from, opts.to, opts.resizeMode);
-
+  // Both resize maps are affine, so a span scales exactly as the difference of
+  // two mapped points.
   switch (box.format) {
     case 'xyxy': {
       const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
@@ -89,22 +89,24 @@ export function scaleBox<F extends BoxFormat>(
     }
     case 'xywh': {
       const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
+      const pFar = scalePoint({ x: box.xmin + box.w, y: box.ymin + box.h }, opts);
       return {
         format: 'xywh',
         xmin: pMin.x,
         ymin: pMin.y,
-        w: box.w / scaleX,
-        h: box.h / scaleY,
+        w: pFar.x - pMin.x,
+        h: pFar.y - pMin.y,
       } as BoundingBox<F>;
     }
     case 'cxcywh': {
       const pCenter = scalePoint({ x: box.cx, y: box.cy }, opts);
+      const pFar = scalePoint({ x: box.cx + box.w, y: box.cy + box.h }, opts);
       return {
         format: 'cxcywh',
         cx: pCenter.x,
         cy: pCenter.y,
-        w: box.w / scaleX,
-        h: box.h / scaleY,
+        w: pFar.x - pCenter.x,
+        h: pFar.y - pCenter.y,
       } as BoundingBox<F>;
     }
   }

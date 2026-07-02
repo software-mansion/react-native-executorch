@@ -9,7 +9,10 @@ import type { ImageBuffer, ImageFormat } from '../../image';
 import { IMAGENET_NORM } from '../../../../constants';
 import { FORMAT_CHANNELS } from '../../ops/image';
 import { warpByGrid } from '../../ops/image';
+import type { BoundingBox } from '../../ops/boxes';
+import { boundsOfPoints } from '../../ops/quad';
 import { createImagePreprocessor } from '../preprocessing';
+import type { OcrDetection } from './ocr';
 
 /**
  * A detected page orientation: the clockwise rotation (rotate by its negation to
@@ -131,11 +134,9 @@ export async function createDocumentModels(
   const { modelPath, structureVocab, eosTokenId, maxSteps } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  // Contract validation + preprocessor/tensor construction below can throw (a
-  // missing method, shape/vocab mismatch, failed allocation). Everything built
-  // is pushed into `created` as it is created — one by one, so a mid-sequence
-  // failure can't strand its predecessors — and the catch disposes it all: a
-  // bad config must not leak native memory (mirrors createOcr).
+  // Everything built is pushed into `created` as it is created — one by one, so
+  // a mid-sequence failure can't strand its predecessors — and the catch
+  // disposes it all: a bad config must not leak native memory (mirrors createOcr).
   const created: { dispose: () => void }[] = [];
   try {
     // orientation: image -> class logits
@@ -326,4 +327,126 @@ export async function createDocumentModels(
     model.dispose();
     throw e;
   }
+}
+
+/**
+ * Crops an axis-aligned region out of an image as a plain pixel slice (same format
+ * and layout). Used to feed a layout region to another model.
+ * @category Typescript API
+ * @param input The source image.
+ * @param bbox The crop region, in `xyxy` pixels.
+ * @returns The cropped image.
+ */
+export function cropImageBuffer(input: ImageBuffer, bbox: BoundingBox<'xyxy'>): ImageBuffer {
+  'worklet';
+  const { data, width, height, format } = input;
+  const channels = FORMAT_CHANNELS[format];
+  const x0 = Math.max(0, Math.min(Math.round(bbox.xmin), width));
+  const y0 = Math.max(0, Math.min(Math.round(bbox.ymin), height));
+  const x1 = Math.max(0, Math.min(Math.round(bbox.xmax), width));
+  const y1 = Math.max(0, Math.min(Math.round(bbox.ymax), height));
+  const cropWidth = Math.max(1, x1 - x0);
+  const cropHeight = Math.max(1, y1 - y0);
+  const out = new Uint8Array(cropWidth * cropHeight * channels);
+  for (let y = 0; y < cropHeight; y++) {
+    const rowStart = ((y0 + y) * width + x0) * channels;
+    out.set(data.subarray(rowStart, rowStart + cropWidth * channels), y * cropWidth * channels);
+  }
+  return { data: out, width: cropWidth, height: cropHeight, format, layout: input.layout };
+}
+
+// 1-D clustering of cell-center coordinates into `k` table rows (or columns).
+// The sorted values are split at their k-1 widest gaps — each resulting run of
+// values is one row/column, represented by its mean coordinate. Splitting at the
+// widest gaps (instead of at fixed intervals) matches how table cells actually
+// distribute: values within a row are tightly packed while rows are separated by
+// clear gaps, so uneven row heights / column widths still cluster correctly.
+// Fewer than `k` values means every value is its own cluster.
+function clusterCentersByGaps(values: readonly number[], k: number): number[] {
+  'worklet';
+  const sorted = [...values].sort((a, b) => a - b);
+  if (sorted.length <= k) {
+    return sorted;
+  }
+  // Rank the interior gaps (gap i sits between sorted[i-1] and sorted[i]) and take
+  // the k-1 widest as cut points, restored to ascending order.
+  const gaps = sorted.slice(1).map((value, i) => ({ at: i + 1, size: value - sorted[i]! }));
+  gaps.sort((a, b) => b.size - a.size);
+  const cuts = gaps
+    .slice(0, k - 1)
+    .map((gap) => gap.at)
+    .sort((a, b) => a - b);
+  // Average each [prev, cut) span into its center.
+  const centers: number[] = [];
+  let prev = 0;
+  for (const cut of [...cuts, sorted.length]) {
+    const group = sorted.slice(prev, cut);
+    centers.push(group.reduce((sum, value) => sum + value, 0) / group.length);
+    prev = cut;
+  }
+  return centers;
+}
+
+/**
+ * Fills a table-structure HTML skeleton with a region's OCR lines. The grid size
+ * comes from the skeleton (row count, and the widest row's cell count); each
+ * line's box center is assigned to its nearest row and column cluster, so shared
+ * column centers keep columns aligned. Falls back to a document-order fill when the
+ * skeleton has no grid.
+ *
+ * Alignment is geometric only — dense rows can misplace a value, since the
+ * skeleton carries no per-cell coordinates.
+ * @category Typescript API
+ * @param html The structure HTML skeleton (empty cells).
+ * @param lines The region's OCR lines, with page-space quads.
+ * @returns A `<table>` with each cell filled by its nearest-assigned text.
+ */
+export function fillTableCells(html: string, lines: readonly OcrDetection[]): string {
+  'worklet';
+  const rowCount = (html.match(/<tr>/g) ?? []).length;
+  let colCount = 0;
+  const rowRegex = /<tr>([\s\S]*?)<\/tr>/g;
+  let row: RegExpExecArray | null;
+  while ((row = rowRegex.exec(html)) !== null) {
+    colCount = Math.max(colCount, (row[1]!.match(/<td/g) ?? []).length);
+  }
+  // No grid, or nothing to place: fill the skeleton cells in document order.
+  if (rowCount === 0 || colCount === 0 || lines.length === 0) {
+    let i = 0;
+    return html.replace(/<td([^>]*)><\/td>/g, (_match, attrs) => {
+      const text = i < lines.length ? lines[i]!.text : '';
+      i++;
+      return `<td${attrs}>${text}</td>`;
+    });
+  }
+
+  const centersX: number[] = [];
+  const centersY: number[] = [];
+  for (const line of lines) {
+    const box = boundsOfPoints(line.quad, 'xyxy');
+    centersX.push((box.xmin + box.xmax) / 2);
+    centersY.push((box.ymin + box.ymax) / 2);
+  }
+  const rowCenters = clusterCentersByGaps(centersY, rowCount);
+  const colCenters = clusterCentersByGaps(centersX, colCount);
+  const grid: string[][] = Array.from({ length: rowCenters.length }, () =>
+    new Array<string>(colCenters.length).fill('')
+  );
+  // Assign each line to the row/column whose cluster center is nearest.
+  for (let i = 0; i < lines.length; i++) {
+    const r = rowCenters.reduce(
+      (best, center, j) =>
+        Math.abs(centersY[i]! - center) < Math.abs(centersY[i]! - rowCenters[best]!) ? j : best,
+      0
+    );
+    const c = colCenters.reduce(
+      (best, center, j) =>
+        Math.abs(centersX[i]! - center) < Math.abs(centersX[i]! - colCenters[best]!) ? j : best,
+      0
+    );
+    grid[r]![c] = `${grid[r]![c]!} ${lines[i]!.text}`.trim();
+  }
+  return `<table>${grid
+    .map((cells) => `<tr>${cells.map((text) => `<td>${text}</td>`).join('')}</tr>`)
+    .join('')}</table>`;
 }

@@ -122,12 +122,7 @@ export interface Model {
   /**
    * Unloads a single previously-executed method, freeing its memory-planned
    * activation arena (and, on graph-compiling backends like CoreML, its
-   * compiled graph). The method transparently reloads on its next `execute`.
-   *
-   * Use this to bound native memory when many distinct methods are executed
-   * over a session — e.g. bucketed OCR, where each `detect_<S>`/`recognize_<W>`
-   * size that is ever run would otherwise stay resident for the model's
-   * lifetime.
+   * compiled graph). The method reloads on its next `execute`.
    * @param methodName The exported method to unload.
    * @returns `true` if a loaded method was freed, `false` if it was not loaded
    * (a harmless no-op).

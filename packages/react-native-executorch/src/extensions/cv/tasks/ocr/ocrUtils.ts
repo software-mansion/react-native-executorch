@@ -20,10 +20,18 @@ export type Buckets = {
 // loses detail the model was trained to see.
 const BUCKET_SNAP_TOLERANCE = 0.1;
 
-// Selects the smallest bucket that fits `size`, but snaps down to the next-lower
-// bucket when `size` exceeds it by no more than BUCKET_SNAP_TOLERANCE. Clamps to
-// the largest bucket for oversized inputs.
-function snapBucket(size: number, buckets: readonly number[]): number {
+/**
+ * Selects the smallest bucket that fits `size`, but snaps down to the next-lower
+ * bucket when `size` exceeds it by no more than the snap tolerance; oversized
+ * inputs clamp to the largest bucket. Detector callers pass the image's longest
+ * side (selecting `detect_<S>`); recognizer callers pass the desired crop
+ * content width (selecting `recognize_<W>`).
+ * @category Typescript API
+ * @param size The size to fit, in pixels.
+ * @param buckets The model's ascending bucket sizes.
+ * @returns The selected bucket size.
+ */
+export function snapBucket(size: number, buckets: readonly number[]): number {
   'worklet';
   for (let i = 0; i < buckets.length; i++) {
     if (buckets[i]! >= size) {
@@ -32,35 +40,6 @@ function snapBucket(size: number, buckets: readonly number[]): number {
     }
   }
   return buckets[buckets.length - 1]!;
-}
-
-/**
- * Selects the detector bucket for an image from its longest side.
- * @category Typescript API
- * @param imageWidth The image width in pixels.
- * @param imageHeight The image height in pixels.
- * @param buckets The ascending detector side buckets.
- * @returns The selected square side `S` (invoke `detect_<S>`).
- */
-export function snapDetectBucket(
-  imageWidth: number,
-  imageHeight: number,
-  buckets: readonly number[]
-): number {
-  'worklet';
-  return snapBucket(Math.max(imageWidth, imageHeight), buckets);
-}
-
-/**
- * Selects the recognizer width bucket for a desired crop content width.
- * @category Typescript API
- * @param desiredWidth The crop content width at the recognizer height.
- * @param buckets The ascending recognizer width buckets.
- * @returns The selected width `W` (invoke `recognize_<W>`).
- */
-export function snapRecognizeBucket(desiredWidth: number, buckets: readonly number[]): number {
-  'worklet';
-  return snapBucket(desiredWidth, buckets);
 }
 
 /**
@@ -90,18 +69,25 @@ export function contentWidthFor(
 const COLUMN_GAP_FRACTION = 0.06;
 const LINE_OVERLAP_FRACTION = 0.3;
 
-// Returns the indices of `quads` in human reading order. Column gutters are found
-// by an x-coverage sweep (a band no box crosses, wider than COLUMN_GAP_FRACTION of
-// the content width, splits columns); within each column boxes are grouped into
-// lines by vertical overlap, lines ordered top-to-bottom, boxes within a line
-// left-to-right, and columns read left-to-right.
-function readingOrder(quads: readonly (readonly Point[])[]): number[] {
+/**
+ * Reorders items carrying a `quad` into human reading order: multi-column inputs
+ * read column-by-column, single-column inputs line-by-line, and boxes within a
+ * line left-to-right. Detectors emit boxes in an arbitrary order, so detections
+ * and assembled blocks are ordered through this.
+ * @category Typescript API
+ * @param items The items to reorder, each carrying a `quad`.
+ * @returns The items in reading order.
+ */
+export function orderByReadingOrder<T extends { quad: readonly Point[] }>(items: T[]): T[] {
   'worklet';
-  const count = quads.length;
+  const count = items.length;
   if (count <= 1) {
-    return count === 1 ? [0] : [];
+    return items;
   }
-  const boxes = quads.map((q) => boundsOfPoints(q));
+
+  // 1. Axis-aligned bounds per quad, plus the content x-range: a column gutter
+  //    must be at least COLUMN_GAP_FRACTION of that range to count.
+  const boxes = items.map((it) => boundsOfPoints(it.quad, 'xyxy'));
   let minX = Infinity;
   let maxX = -Infinity;
   for (const box of boxes) {
@@ -110,8 +96,9 @@ function readingOrder(quads: readonly (readonly Point[])[]): number[] {
   }
   const minGap = COLUMN_GAP_FRACTION * Math.max(1, maxX - minX);
 
-  // Sweep the box x-edges; an interior span with zero coverage wider than minGap
-  // is a column gutter, cut at its midpoint.
+  // 2. Find column gutters with an x-coverage sweep over the box edges: while
+  //    inside any box the coverage counter is > 0; a zero-coverage span wider
+  //    than minGap is a gutter, and its midpoint becomes a column cut.
   const edges: { x: number; delta: number }[] = [];
   for (const box of boxes) {
     edges.push({ x: box.xmin, delta: 1 });
@@ -132,7 +119,8 @@ function readingOrder(quads: readonly (readonly Point[])[]): number[] {
     }
   }
 
-  // Assign each box to a column by its center-x relative to the (ascending) cuts.
+  // 3. Assign each box to a column: count how many (ascending) cuts its
+  //    center-x lies to the right of.
   const columns: number[][] = Array.from({ length: cuts.length + 1 }, () => []);
   for (let i = 0; i < count; i++) {
     const centerX = (boxes[i]!.xmin + boxes[i]!.xmax) / 2;
@@ -143,6 +131,9 @@ function readingOrder(quads: readonly (readonly Point[])[]): number[] {
     columns[column]!.push(i);
   }
 
+  // 4. Within each (left-to-right) column: group boxes into lines by vertical
+  //    overlap (≥ LINE_OVERLAP_FRACTION of the shorter height joins a line),
+  //    order lines top-to-bottom and boxes within a line left-to-right.
   const order: number[] = [];
   for (const column of columns) {
     column.sort((a, b) => boxes[a]!.ymin - boxes[b]!.ymin);
@@ -173,24 +164,7 @@ function readingOrder(quads: readonly (readonly Point[])[]): number[] {
       order.push(...line.items);
     }
   }
-  return order;
-}
-
-/**
- * Reorders items carrying a `quad` into human reading order: multi-column inputs
- * read column-by-column, single-column inputs line-by-line, and boxes within a
- * line left-to-right. Detectors emit boxes in an arbitrary order, so detections
- * and assembled blocks are ordered through this.
- * @category Typescript API
- * @param items The items to reorder, each carrying a `quad`.
- * @returns The items in reading order.
- */
-export function orderByReadingOrder<T extends { quad: readonly Point[] }>(items: T[]): T[] {
-  'worklet';
-  if (items.length <= 1) {
-    return items;
-  }
-  return readingOrder(items.map((it) => it.quad)).map((i) => items[i]!);
+  return order.map((i) => items[i]!);
 }
 
 // A box wider than this multiple of its height is a horizontal line, never a
@@ -227,7 +201,7 @@ export function groupVerticalColumns(quads: readonly (readonly Point[])[]): {
   const candidates: Candidate[] = [];
   const singles: Point[][] = [];
   for (const q of quads) {
-    const { xmin, ymin, xmax, ymax } = boundsOfPoints(q);
+    const { xmin, ymin, xmax, ymax } = boundsOfPoints(q, 'xyxy');
     const width = xmax - xmin;
     const height = ymax - ymin;
     if (width > height * COLUMN_GLYPH_ASPECT) {
@@ -307,21 +281,4 @@ export function ctcCollapse(
     last = idx;
   }
   return { text, confidence: count === 0 ? 0 : sum / count };
-}
-
-/**
- * Builds a CTC charset lookup: `numSpecials` reserved tokens (the CTC blank) are
- * prepended, then the characters follow — a string is split into codepoints, an
- * array is taken verbatim (preserving multi-codepoint entries) — so
- * `charset[index]` decodes argmax `index`.
- * @category Typescript API
- * @param charset The model's ordered character set.
- * @param numSpecials Number of reserved low indices (default 1 = CTC blank).
- * @returns The charset lookup array, `numSpecials` reserved slots at the front.
- */
-export function buildCharset(charset: string | readonly string[], numSpecials = 1): string[] {
-  'worklet';
-  const reserved = Array.from({ length: numSpecials }, (_unused, i) => `[reserved${i}]`);
-  const chars = typeof charset === 'string' ? Array.from(charset) : charset;
-  return [...reserved, ...chars];
 }

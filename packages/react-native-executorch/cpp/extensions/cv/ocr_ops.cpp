@@ -21,10 +21,6 @@
 #include "core/dtype.h"
 #include "core/tensor.h"
 
-// Detector postprocessing geometry: CRAFT text-map grouping + DBNet prob-map ->
-// oriented quads. Pure OpenCV, kept native. ctcGreedyDecode (per-timestep argmax
-// + max prob) is native too; the CTC blank-collapse, charset mapping, and
-// confidence aggregation stay in TypeScript.
 namespace rnexecutorch::extensions::cv::ocr_ops {
 namespace jsi = facebook::jsi;
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
@@ -41,7 +37,6 @@ struct Box {
 struct Quad {
     std::array<::cv::Point2f, 4> pts;
     float score = 1.0f;
-    float angle = 0.0f;
 };
 
 float dist(const ::cv::Point2f &a, const ::cv::Point2f &b) {
@@ -307,31 +302,13 @@ std::vector<Box> groupTextBoxes(std::vector<Box> boxes, float centerThreshold,
         merged.push_back(current);
     }
 
-    // remove small boxes
+    // Remove small boxes. Output order is unspecified — the TypeScript pipeline
+    // derives reading order geometrically for every result set.
     std::vector<Box> filtered;
     for (const auto &b : merged) {
         if (minSide(b) > minSideThreshold && maxSide(b) > maxSideThreshold) {
             filtered.push_back(b);
         }
-    }
-
-    // reading order: rows by top-Y, then left-to-right within a row
-    std::ranges::sort(filtered,
-                      [](const Box &a, const Box &b) { return a.y0 < b.y0; });
-    float yThresh = 0.0f;
-    if (!filtered.empty()) {
-        float total = 0.0f;
-        for (const auto &b : filtered) {
-            total += minSide(b);
-        }
-        yThresh = (total / static_cast<float>(filtered.size())) * 0.5f;
-    }
-    for (auto rowBegin = filtered.begin(); rowBegin != filtered.end();) {
-        const float rowY = rowBegin->y0;
-        auto rowEnd = std::find_if(rowBegin, filtered.end(),
-                                   [rowY, yThresh](const Box &b) { return b.y0 - rowY > yThresh; });
-        std::sort(rowBegin, rowEnd, [](const Box &a, const Box &b) { return a.x0 < b.x0; });
-        rowBegin = rowEnd;
     }
     return filtered;
 }
@@ -368,7 +345,6 @@ std::vector<Quad> extractCraft(float *data, int32_t heatW, int32_t heatH, float 
     for (const auto &b : boxes) {
         Quad q;
         q.score = 1.0f;
-        q.angle = b.angle;
         // De-skew near-horizontal lines by rotating the AABB corners about the
         // center. A near-vertical line (angle ~ -90, from a tall/stacked region)
         // is NOT flipped flat — that would lay an upright column on its side and
@@ -435,7 +411,6 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         expanded.points(c.data());
         Quad q;
         q.score = score;
-        q.angle = expanded.angle;
         auto minX = static_cast<float>(w);
         auto minY = static_cast<float>(h);
         float maxX = 0;
@@ -454,26 +429,14 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         }
         quads.push_back(q);
     }
-
-    // Reading order: top -> bottom by ~row, then left -> right. Quantise y into
-    // row bands first so the comparator is a valid strict-weak ordering — a raw
-    // `|dy| > threshold` test is intransitive (a~b, b~c, but a<c) and aborts under
-    // libc++ hardening.
-    constexpr float kRowBand = 10.0f;
-    std::ranges::sort(quads, [](const Quad &a, const Quad &b) {
-        const int rowA = static_cast<int>(std::floor(a.pts[0].y / kRowBand));
-        const int rowB = static_cast<int>(std::floor(b.pts[0].y / kRowBand));
-        if (rowA != rowB) {
-            return rowA < rowB;
-        }
-        return a.pts[0].x < b.pts[0].x;
-    });
+    // Output order is unspecified — the TypeScript pipeline derives reading
+    // order geometrically for every result set.
     return quads;
 }
 
-// Flatten quads to a JS double array, 10 per box (x0,y0..x3,y3,score,angle).
+// Flatten quads to a JS double array, 9 per box (x0,y0..x3,y3,score).
 jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
-    jsi::Array out(rt, quads.size() * 10);
+    jsi::Array out(rt, quads.size() * 9);
     size_t idx = 0;
     for (const auto &q : quads) {
         for (std::size_t k = 0; k < 4; ++k) {
@@ -481,7 +444,6 @@ jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
             out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(q.pts[k].y)));
         }
         out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(q.score)));
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(q.angle)));
     }
     return out;
 }

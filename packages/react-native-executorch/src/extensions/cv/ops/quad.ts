@@ -1,45 +1,41 @@
 import { scalePoint, type Point } from './points';
+import type { BoundingBox, BoxFormat } from './boxes';
 
 /**
  * An oriented quadrilateral in pixel space: `points` are the four corners ordered
- * top-left, top-right, bottom-right, bottom-left, `score` is the region confidence
- * in `[0, 1]`, and `angle` is the rotation in degrees.
+ * top-left, top-right, bottom-right, bottom-left, and `score` is the region
+ * confidence in `[0, 1]`. Orientation lives in the corners themselves.
  * @category Types
  */
 export type Quad = {
   readonly points: readonly Point[];
   readonly score: number;
-  readonly angle: number;
 };
-
-/**
- * The axis-aligned bounds of a set of points.
- * @category Types
- */
-export type Bounds = { xmin: number; ymin: number; xmax: number; ymax: number };
 
 const distance = (a: Point, b: Point): number => {
   'worklet';
   return Math.hypot(b.x - a.x, b.y - a.y);
 };
 
-const lerp = (a: Point, b: Point, t: number): Point => {
+const interpolatePoint = (a: Point, b: Point, t: number): Point => {
   'worklet';
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
 };
 
 /**
- * Computes the axis-aligned bounds enclosing a set of points. Returns a zero box
- * for empty input.
+ * Computes the axis-aligned bounding box enclosing a set of points, in the
+ * requested box format. Returns a zero box for empty input.
  * @category Typescript API
+ * @typeParam F Bounding box coordinate format.
  * @param points The points to enclose.
- * @returns The enclosing `{ xmin, ymin, xmax, ymax }` bounds.
+ * @param format The coordinate format of the returned box.
+ * @returns The enclosing {@link BoundingBox} in `format`.
  */
-export function boundsOfPoints(points: readonly Point[]): Bounds {
+export function boundsOfPoints<F extends BoxFormat>(
+  points: readonly Point[],
+  format: F
+): BoundingBox<F> {
   'worklet';
-  if (points.length === 0) {
-    return { xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
-  }
   let xmin = Infinity;
   let ymin = Infinity;
   let xmax = -Infinity;
@@ -50,7 +46,23 @@ export function boundsOfPoints(points: readonly Point[]): Bounds {
     if (p.x > xmax) xmax = p.x;
     if (p.y > ymax) ymax = p.y;
   }
-  return { xmin, ymin, xmax, ymax };
+  if (points.length === 0) {
+    xmin = ymin = xmax = ymax = 0;
+  }
+  switch (format) {
+    case 'xyxy':
+      return { format: 'xyxy', xmin, ymin, xmax, ymax } as BoundingBox<F>;
+    case 'xywh':
+      return { format: 'xywh', xmin, ymin, w: xmax - xmin, h: ymax - ymin } as BoundingBox<F>;
+    case 'cxcywh':
+      return {
+        format: 'cxcywh',
+        cx: (xmin + xmax) / 2,
+        cy: (ymin + ymax) / 2,
+        w: xmax - xmin,
+        h: ymax - ymin,
+      } as BoundingBox<F>;
+  }
 }
 
 /**
@@ -159,7 +171,12 @@ export function splitTallQuad(ordered: readonly Point[], parts: number): Point[]
   for (let i = 0; i < parts; i++) {
     const t0 = i / parts;
     const t1 = (i + 1) / parts;
-    out.push([lerp(tl, bl, t0), lerp(tr, br, t0), lerp(tr, br, t1), lerp(tl, bl, t1)]);
+    out.push([
+      interpolatePoint(tl, bl, t0),
+      interpolatePoint(tr, br, t0),
+      interpolatePoint(tr, br, t1),
+      interpolatePoint(tl, bl, t1),
+    ]);
   }
   return out;
 }
@@ -179,7 +196,7 @@ export function boundingQuadOf(quads: readonly (readonly Point[])[]): Point[] {
       all.push(p);
     }
   }
-  const { xmin, ymin, xmax, ymax } = boundsOfPoints(all);
+  const { xmin, ymin, xmax, ymax } = boundsOfPoints(all, 'xyxy');
   return [
     { x: xmin, y: ymin },
     { x: xmax, y: ymin },
@@ -204,8 +221,8 @@ export function flattenQuad(corners: readonly Point[]): number[] {
 }
 
 /**
- * Builds oriented quads from a detector's flat output array — 10 numbers per box:
- * `x0,y0,..,x3,y3,score,angle`.
+ * Builds oriented quads from a detector's flat output array — 9 numbers per box:
+ * `x0,y0,..,x3,y3,score`.
  * @category Typescript API
  * @param flat The flat number array from a native detector decode.
  * @returns The parsed quads.
@@ -213,7 +230,7 @@ export function flattenQuad(corners: readonly Point[]): number[] {
 export function quadsFromFlat(flat: number[]): Quad[] {
   'worklet';
   const quads: Quad[] = [];
-  for (let i = 0; i < flat.length; i += 10) {
+  for (let i = 0; i < flat.length; i += 9) {
     quads.push({
       points: [
         { x: flat[i]!, y: flat[i + 1]! },
@@ -222,7 +239,6 @@ export function quadsFromFlat(flat: number[]): Quad[] {
         { x: flat[i + 6]!, y: flat[i + 7]! },
       ],
       score: flat[i + 8]!,
-      angle: flat[i + 9]!,
     });
   }
   return quads;
