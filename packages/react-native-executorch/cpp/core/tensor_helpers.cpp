@@ -39,6 +39,32 @@ void checkNotSameTensor(jsi::Runtime &rt,
     }
 }
 
+namespace {
+
+std::string shapeToString(const SymbolicShape &expectedShape) {
+    std::string s;
+    for (size_t i = 0; i < expectedShape.size(); ++i) {
+        if (i > 0) {
+            s += ", ";
+        }
+        const auto &dim = expectedShape.at(i);
+        if (std::holds_alternative<int32_t>(dim)) {
+            s += std::format("{}", std::get<int32_t>(dim));
+        } else if (std::holds_alternative<std::string>(dim)) {
+            s += std::get<std::string>(dim);
+        } else {
+            const auto &rangeDim = std::get<RangeDim>(dim);
+            s += std::format("[{}..{}{}]",
+                             rangeDim.min,
+                             rangeDim.max,
+                             rangeDim.step ? std::format(" step {}", *rangeDim.step) : "");
+        }
+    }
+    return std::format("[{}]", s);
+}
+
+} // namespace
+
 std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype, const std::optional<SymbolicShape> &expectedShape) {
@@ -48,52 +74,56 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
     }
 
     auto tensor = value.asObject(rt).getHostObject<TensorHostObject>(rt);
-    auto dtype = tensor->dtype_;
-    auto shape = tensor->shape_;
+    const auto &dtype = tensor->dtype_;
+    const auto &shape = tensor->shape_;
 
     if (expectedDtype && dtype != *expectedDtype) {
         throw jsi::JSError(rt, std::format("{} must be of type {}",
                                            name, types::toString(*expectedDtype)));
     }
 
-    if (expectedShape) {
-        std::string shapeStr = "[";
-        for (size_t i = 0; i < expectedShape->size(); ++i) {
-            if (i > 0) {
-                shapeStr += ", ";
-            }
-            const auto &dim = expectedShape->at(i);
-            if (std::holds_alternative<int32_t>(dim)) {
-                shapeStr += std::to_string(std::get<int32_t>(dim));
-            } else {
-                shapeStr += std::get<std::string>(dim);
-            }
-        }
-        shapeStr += "]";
+    if (!expectedShape) {
+        return tensor;
+    }
 
-        if (shape.size() != expectedShape->size()) {
-            throw jsi::JSError(rt, std::format("{} must have shape {} (expected {} dimensions, got {})",
-                                               name, shapeStr, expectedShape->size(), shape.size()));
-        }
+    if (shape.size() != expectedShape->size()) {
+        throw jsi::JSError(rt, std::format("{} must have shape {} (expected {} dimensions, got {})",
+                                           name, shapeToString(*expectedShape), expectedShape->size(), shape.size()));
+    }
 
-        std::unordered_map<std::string, int32_t> symbolMap;
-        for (size_t i = 0; i < expectedShape->size(); ++i) {
-            const auto &dim = expectedShape->at(i);
-            if (std::holds_alternative<int32_t>(dim)) {
-                if (shape[i] != std::get<int32_t>(dim)) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
-                                                       name, shapeStr, i, std::get<int32_t>(dim), shape[i]));
-                }
-            } else {
-                const auto &symbol = std::get<std::string>(dim);
-                if (symbolMap.contains(symbol) && shape[i] != symbolMap[symbol]) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim '{}' mismatch: expected {}, got {})",
-                                                       name, shapeStr, i, symbolMap[symbol], shape[i]));
-                }
-                symbolMap[symbol] = shape[i];
+    std::unordered_map<std::string, int32_t> symbolToConcrete;
+    for (size_t i = 0; i < expectedShape->size(); ++i) {
+        const auto &dim = expectedShape->at(i);
+        if (std::holds_alternative<int32_t>(dim)) {
+            const auto expected = std::get<int32_t>(dim);
+            if (shape[i] != expected) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
+                                                   name, shapeToString(*expectedShape), i, expected, shape[i]));
+            }
+        } else if (std::holds_alternative<std::string>(dim)) {
+            const auto &symbol = std::get<std::string>(dim);
+            if (symbolToConcrete.contains(symbol) && shape[i] != symbolToConcrete[symbol]) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim '{}' mismatch: expected {}, got {})",
+                                                   name, shapeToString(*expectedShape), i, symbolToConcrete[symbol], shape[i]));
+            }
+            symbolToConcrete[symbol] = shape[i];
+        } else {
+            const auto &rangeDim = std::get<RangeDim>(dim);
+            if (shape[i] < rangeDim.min) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
+                                                   name, shapeToString(*expectedShape), i, shape[i], rangeDim.min));
+            }
+            if (shape[i] > rangeDim.max) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
+                                                   name, shapeToString(*expectedShape), i, shape[i], rangeDim.max));
+            }
+            if (rangeDim.step && (shape[i] - rangeDim.min) % *rangeDim.step != 0) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
+                                                   name, shapeToString(*expectedShape), i, rangeDim.min, *rangeDim.step, shape[i]));
             }
         }
     }
+
     return tensor;
 }
 } // namespace rnexecutorch::core::tensor

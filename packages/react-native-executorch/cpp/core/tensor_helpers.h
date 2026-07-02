@@ -1,9 +1,11 @@
 #pragma once
 
+#include <concepts>
 #include <cstdint>
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <ranges>
 #include <shared_mutex>
 #include <string>
 #include <vector>
@@ -18,7 +20,14 @@ namespace rnexecutorch::core::tensor {
 namespace jsi = facebook::jsi;
 
 using rnexecutorch::core::types::DType;
-using SymbolicShape = std::vector<std::variant<int32_t, std::string>>;
+
+struct RangeDim {
+    int32_t min;
+    int32_t max;
+    std::optional<int32_t> step;
+};
+
+using SymbolicShape = std::vector<std::variant<int32_t, std::string, RangeDim>>;
 
 [[nodiscard]] std::shared_lock<std::shared_mutex>
 tryLockShared(jsi::Runtime &rt, const std::string &name, const std::shared_ptr<TensorHostObject> &tensor);
@@ -34,9 +43,12 @@ std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype, const std::optional<SymbolicShape> &expectedShape);
 
+template <typename Range>
+    requires std::ranges::input_range<Range> &&
+             std::convertible_to<std::ranges::range_value_t<Range>, int32_t>
 inline std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
-       std::optional<DType> expectedDtype, const std::vector<int32_t> &expectedShape) {
+       std::optional<DType> expectedDtype, const Range &expectedShape) {
     SymbolicShape convertedShape(expectedShape.begin(), expectedShape.end());
     return fromJs(rt, name, value, expectedDtype, std::move(convertedShape));
 }
