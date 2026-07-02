@@ -291,30 +291,25 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                 output.toTensor().const_data_ptr(),
                                 output.toTensor().nbytes());
 
-                    jsOutputArray.setValueAtIndex(rt, index, jsi::Object::createFromHostObject(rt, tensorHostObject));
+                    jsOutputArray.setValueAtIndex(rt, index, val);
                     ++tensorOutputIdx;
                     break;
                 }
-                case executorch::runtime::Tag::Double: {
+                case executorch::runtime::Tag::Double:
                     jsOutputArray.setValueAtIndex(rt, index, output.toDouble());
                     break;
-                }
-                case executorch::runtime::Tag::Int: {
+                case executorch::runtime::Tag::Int:
                     jsOutputArray.setValueAtIndex(rt, index, static_cast<double>(output.toInt()));
                     break;
-                }
-                case executorch::runtime::Tag::Bool: {
+                case executorch::runtime::Tag::Bool:
                     jsOutputArray.setValueAtIndex(rt, index, output.toBool());
                     break;
-                }
-                case executorch::runtime::Tag::None: {
+                case executorch::runtime::Tag::None:
                     jsOutputArray.setValueAtIndex(rt, index, jsi::Value::null());
                     break;
-                }
-                default: {
+                default:
                     throw jsi::JSError(rt, std::format("execute: Unsupported return type: {}",
                                                        executorch::runtime::tag_to_string(output.tag)));
-                }
                 }
 
                 ++index;
