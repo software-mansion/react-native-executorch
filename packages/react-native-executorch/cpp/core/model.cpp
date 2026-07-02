@@ -256,13 +256,23 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 }
             }
 
-            auto result = unwrap(rt, std::format("execute: Method '{}' execution failed. "
-                                                 "This may be due to missing required backends - "
-                                                 "use getMethodMeta() to check required backends and "
-                                                 "getExecuTorchRegisteredBackends() to check "
-                                                 "which backends are registered in the runtime. Error:",
+            auto startTime = std::chrono::high_resolution_clock::now();
+            auto executeResult = self->etModule_->execute(methodName, inputs);
+            auto finishTime = std::chrono::high_resolution_clock::now();
+
+#ifdef EXECUTORCH_ENABLE_EXECUTION_PROFILING
+            auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count();
+            auto consoleObj = rt.global().getProperty(rt, "console").asObject(rt);
+            auto logFn = consoleObj.getProperty(rt, "log").asObject(rt).asFunction(rt);
+            auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);
+            logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
+#endif
+
+            auto result = unwrap(rt, std::format("execute: Method '{}' failed (check getMethodMeta() "
+                                                 "for required backends and getRegisteredBackends() "
+                                                 "for registered ones)",
                                                  methodName),
-                                 self->etModule_->execute(methodName, inputs));
+                                 std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
             size_t index = 0;
