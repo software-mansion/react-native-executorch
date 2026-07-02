@@ -18,19 +18,19 @@ namespace jsi = facebook::jsi;
 namespace types = rnexecutorch::core::types;
 
 template <typename T>
-T getOrThrow(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
+T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
-        throw jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
+        throw jsi::JSError(rt, ctx + ": " + executorch::runtime::to_string(result.error()));
     }
     return std::move(result.get());
 }
 
 types::DType
-getDTypeOrThrow(jsi::Runtime &rt, const std::string &ctx, executorch::aten::ScalarType scalarType) {
+fromScalarType(jsi::Runtime &rt, const std::string &ctx, executorch::aten::ScalarType scalarType) {
     try {
         return types::fromScalarType(scalarType);
     } catch (const std::exception &e) {
-        throw jsi::JSError(rt, std::format("{}: Unsupported tensor dtype: {}", ctx, e.what()));
+        throw jsi::JSError(rt, ctx + ": Unsupported tensor dtype: " + e.what());
     }
 }
 
@@ -96,7 +96,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "getMethodNames: Model has been disposed");
             }
 
-            auto methodNames = getOrThrow(rt, "getMethodNames", self->etModule_->method_names());
+            auto methodNames = unwrap(rt, "getMethodNames", self->etModule_->method_names());
 
             auto jsArray = jsi::Array(rt, methodNames.size());
             size_t index = 0;
@@ -129,40 +129,40 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "getMethodMeta: methodName", args[0]);
-            auto methodMeta = getOrThrow(rt, "getMethodMeta", self->etModule_->method_meta(methodName));
+            auto methodMeta = unwrap(rt, "getMethodMeta", self->etModule_->method_meta(methodName));
 
             auto inputTagsArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: input tag [{}]", i);
-                auto tag = getOrThrow(rt, ctx, methodMeta.input_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
                 inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto outputTagsArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: output tag [{}]", i);
-                auto tag = getOrThrow(rt, ctx, methodMeta.output_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.output_tag(i));
                 outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto usesBackendMap = jsi::Object(rt);
             for (size_t i = 0; i < methodMeta.num_backends(); ++i) {
                 auto ctx = std::format("getMethodMeta: backend name [{}]", i);
-                const auto *backendName = getOrThrow(rt, ctx, methodMeta.get_backend_name(i));
+                const auto *backendName = unwrap(rt, ctx, methodMeta.get_backend_name(i));
                 usesBackendMap.setProperty(rt, backendName, methodMeta.uses_backend(backendName));
             }
 
             auto inputTensorMetaArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: input tensor meta [{}]", i);
-                auto tensorMeta = getOrThrow(rt, ctx, methodMeta.input_tensor_meta(i));
+                auto tensorMeta = unwrap(rt, ctx, methodMeta.input_tensor_meta(i));
                 inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
             auto outputTensorMetaArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: output tensor meta [{}]", i);
-                auto tensorMeta = getOrThrow(rt, ctx, methodMeta.output_tensor_meta(i));
+                auto tensorMeta = unwrap(rt, ctx, methodMeta.output_tensor_meta(i));
                 outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
@@ -198,7 +198,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
-            auto methodMeta = getOrThrow(rt, "execute", self->etModule_->method_meta(methodName));
+            auto methodMeta = unwrap(rt, "execute", self->etModule_->method_meta(methodName));
 
             if (!args[1].isObject() || !args[1].asObject(rt).isArray(rt)) {
                 throw jsi::JSError(rt, "execute: Expected inputs to be an Array");
@@ -221,13 +221,13 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("execute: inputs[{}]", i);
-                auto tag = getOrThrow(rt, ctx, methodMeta.input_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
                 auto val = inputsArray.getValueAtIndex(rt, i);
 
                 switch (tag) {
                 case executorch::runtime::Tag::Tensor: {
-                    auto tensorMeta = getOrThrow(rt, std::format("{}: tensor meta", ctx), methodMeta.input_tensor_meta(i));
-                    auto expectedDtype = getDTypeOrThrow(rt, ctx, tensorMeta.scalar_type());
+                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.input_tensor_meta(i));
+                    auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
@@ -256,11 +256,13 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 }
             }
 
-            auto result = getOrThrow(rt, std::format("execute: Method '{}' failed (check getMethodMeta() "
-                                                     "for required backends and getRegisteredBackends() "
-                                                     "for registered ones)",
-                                                     methodName),
-                                     self->etModule_->execute(methodName, inputs));
+            auto result = unwrap(rt, std::format("execute: Method '{}' execution failed. "
+                                                 "This may be due to missing required backends - "
+                                                 "use getMethodMeta() to check required backends and "
+                                                 "getExecuTorchRegisteredBackends() to check "
+                                                 "which backends are registered in the runtime. Error:",
+                                                 methodName),
+                                 self->etModule_->execute(methodName, inputs));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
             size_t index = 0;
@@ -276,8 +278,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
                     auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
 
-                    auto tensorMeta = getOrThrow(rt, std::format("{}: tensor meta", ctx), methodMeta.output_tensor_meta(index));
-                    auto expectedDtype = getDTypeOrThrow(rt, ctx, tensorMeta.scalar_type());
+                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.output_tensor_meta(index));
+                    auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {

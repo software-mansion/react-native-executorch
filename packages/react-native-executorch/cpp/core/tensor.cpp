@@ -92,11 +92,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Expected array to be an object (TypedArray)");
             }
             auto dataObj = args[0].asObject(rt);
-            auto bufferVal = conversions::getRequiredProperty<jsi::Value>(rt, "setData", dataObj, "buffer");
-            if (!bufferVal.isObject() || !bufferVal.asObject(rt).isArrayBuffer(rt)) {
-                throw jsi::JSError(rt, "setData: option 'buffer' must be an ArrayBuffer");
-            }
-            auto buffer = bufferVal.asObject(rt).getArrayBuffer(rt);
+            auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "setData", dataObj, "buffer");
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
 
@@ -125,11 +121,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Expected array to be an object (TypedArray)");
             }
             auto dataObj = args[0].asObject(rt);
-            auto bufferVal = conversions::getRequiredProperty<jsi::Value>(rt, "getData", dataObj, "buffer");
-            if (!bufferVal.isObject() || !bufferVal.asObject(rt).isArrayBuffer(rt)) {
-                throw jsi::JSError(rt, "getData: option 'buffer' must be an ArrayBuffer");
-            }
-            auto buffer = bufferVal.asObject(rt).getArrayBuffer(rt);
+            auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "getData", dataObj, "buffer");
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
 
