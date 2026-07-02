@@ -61,7 +61,7 @@ namespace rnexecutorch::core::model {
 namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
 
-using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+using rnexecutorch::core::tensor::TensorHostObject;
 
 ModelHostObject::ModelHostObject(const std::string &modelPath)
     : modelPath_(modelPath),
