@@ -40,16 +40,11 @@ void checkNotSameTensor(jsi::Runtime &rt,
 }
 
 namespace {
-
 std::string shapeToString(const SymbolicShape &shape) {
     std::string s;
-    for (size_t i = 0; i < shape.size(); ++i) {
-        if (i > 0) {
-            s += ", ";
-        }
-        const auto &dim = shape.at(i);
+    for (const auto &dim : shape) {
         if (std::holds_alternative<int32_t>(dim)) {
-            s += std::format("{}", std::get<int32_t>(dim));
+            s += std::to_string(std::get<int32_t>(dim));
         } else if (std::holds_alternative<std::string>(dim)) {
             s += std::get<std::string>(dim);
         } else {
@@ -59,10 +54,14 @@ std::string shapeToString(const SymbolicShape &shape) {
                              rangeDim.max,
                              rangeDim.step ? std::format(" step {}", *rangeDim.step) : "");
         }
+        s += ", ";
     }
-    return std::format("[{}]", s);
+    if (!shape.empty()) {
+        s.pop_back();
+        s.pop_back();
+    }
+    return "[" + s + "]";
 }
-
 } // namespace
 
 std::shared_ptr<TensorHostObject>
