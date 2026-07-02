@@ -103,7 +103,7 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
         } else if (std::holds_alternative<std::string>(dim)) {
             const auto &symbol = std::get<std::string>(dim);
             if (symbolToConcrete.contains(symbol) && shape[i] != symbolToConcrete[symbol]) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim '{}' mismatch: expected {}, got {})",
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
                                                    name, shapeToString(*expectedShape), i, symbolToConcrete[symbol], shape[i]));
             }
             symbolToConcrete[symbol] = shape[i];
