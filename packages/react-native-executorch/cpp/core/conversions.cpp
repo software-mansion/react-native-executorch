@@ -1,7 +1,18 @@
 #include "conversions.h"
 #include <cmath>
+#include <limits>
 
 namespace rnexecutorch::core::conversions {
+
+constexpr double kMaxInt64Double = static_cast<double>(std::numeric_limits<int64_t>::max());
+constexpr double kMinInt64Double = static_cast<double>(std::numeric_limits<int64_t>::min());
+constexpr double kMaxUint64Double = static_cast<double>(std::numeric_limits<uint64_t>::max());
+
+constexpr double kMinInt32Double = static_cast<double>(std::numeric_limits<int32_t>::min());
+constexpr double kMaxInt32Double = static_cast<double>(std::numeric_limits<int32_t>::max());
+
+constexpr double kMinUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::min());
+constexpr double kMaxUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::max());
 
 template <>
 double asType<double>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
@@ -18,18 +29,26 @@ float asType<float>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &
 
 template <>
 int32_t asType<int32_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
-    return static_cast<int32_t>(asType<double>(rt, ctx, val));
+    double v = asType<double>(rt, ctx, val);
+    if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinInt32Double || v > kMaxInt32Double) {
+        throw jsi::JSError(rt, ctx + " must be a 32-bit integer");
+    }
+    return static_cast<int32_t>(v);
 }
 
 template <>
 int64_t asType<int64_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
-    return static_cast<int64_t>(asType<double>(rt, ctx, val));
+    double v = asType<double>(rt, ctx, val);
+    if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinInt64Double || v >= kMaxInt64Double) {
+        throw jsi::JSError(rt, ctx + " must be a 64-bit integer");
+    }
+    return static_cast<int64_t>(v);
 }
 
 template <>
 uint64_t asType<uint64_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
-    if (std::isnan(v) || v < 0.0) {
+    if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < 0.0 || v >= kMaxUint64Double) {
         throw jsi::JSError(rt, ctx + " must be a non-negative integer");
     }
     return static_cast<uint64_t>(v);
@@ -38,19 +57,11 @@ uint64_t asType<uint64_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::V
 template <>
 uint8_t asType<uint8_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
-    if (std::isnan(v) || v < 0.0 || v > 255.0) {
-        throw jsi::JSError(rt, ctx + " must be between 0 and 255");
+    if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinUint8Double || v > kMaxUint8Double) {
+        throw jsi::JSError(rt, ctx + " must be an integer between 0 and 255");
     }
     return static_cast<uint8_t>(v);
 }
-
-// Note: size_t is intentionally not specialised here.
-// On Linux x86_64 size_t and uint64_t are both `unsigned long`, so adding a
-// size_t specialisation would produce a duplicate-explicit-specialisation ODR
-// error on that platform. asType<size_t> routes through the uint64_t
-// specialisation on Linux (same type) and is a separate instantiation on
-// macOS (where uint64_t is unsigned long long). Either way the semantics —
-// non-negative double → cast — are identical.
 
 template <>
 bool asType<bool>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
@@ -67,4 +78,18 @@ std::string asType<std::string>(jsi::Runtime &rt, const std::string &ctx, const 
     }
     return val.asString(rt).utf8(rt);
 }
+
+template <>
+jsi::Value asType<jsi::Value>(jsi::Runtime &rt, const std::string & /*ctx*/, const jsi::Value &val) {
+    return jsi::Value(rt, val);
+}
+
+template <>
+jsi::ArrayBuffer asType<jsi::ArrayBuffer>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+    if (!val.isObject() || !val.asObject(rt).isArrayBuffer(rt)) {
+        throw jsi::JSError(rt, ctx + " must be an ArrayBuffer");
+    }
+    return val.asObject(rt).getArrayBuffer(rt);
+}
+
 } // namespace rnexecutorch::core::conversions
