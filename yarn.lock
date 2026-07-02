@@ -12764,6 +12764,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-audio-api@npm:0.13.1":
+  version: 0.13.1
+  resolution: "react-native-audio-api@npm:0.13.1"
+  dependencies:
+    semver: "npm:^7.7.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-worklets: ">= 0.6.0"
+  peerDependenciesMeta:
+    react-native-worklets:
+      optional: true
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/30675d28706f4cf03beb925120a6745d858f7dead4bc0df2dd734d6d0feaafc14924bbb1dd261c4f158a4501743f8abe72e029aadac8759b442480c01850ca88
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.40.18":
   version: 0.40.18
   resolution: "react-native-builder-bob@npm:0.40.18"
@@ -12793,6 +12811,15 @@ __metadata:
   bin:
     bob: bin/bob
   checksum: 10/06eddba046a508dff0aa322c823fa57a280e2ed6a6f586de2114ebc11b6bb7863714eaaff8e93d681bb851fb4f9e792b102541211847f0e546f4e9546df6c3de
+  languageName: node
+  linkType: hard
+
+"react-native-device-info@npm:^15.0.2":
+  version: 15.0.2
+  resolution: "react-native-device-info@npm:15.0.2"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/9f945a16bd1aebefc60868e22552375bc630eb98d5505d8cdc847d7841a226540408e7ea174cbb4eb5bfec17235eaca731d154082f64e4935e2a4d2e0244b39b
   languageName: node
   linkType: hard
 
@@ -14035,6 +14062,38 @@ __metadata:
   checksum: 10/fead6be44478e4dd73a0721ae569f4a04f358846d8d82e8d92efae64aca928592e380cf17e8b84c25c948f3a7d8a0b4fc781a1830f3911ca87d52733265176b5
   languageName: node
   linkType: hard
+
+"speech@workspace:apps/speech":
+  version: 0.0.0-use.local
+  resolution: "speech@workspace:apps/speech"
+  dependencies:
+    "@babel/core": "npm:^7.29.0"
+    "@react-native/metro-config": "npm:^0.86.0"
+    "@react-navigation/drawer": "npm:^7.9.4"
+    "@react-navigation/native": "npm:^7.2.2"
+    "@types/react": "npm:~19.2.0"
+    babel-preset-expo: "npm:~56.0.14"
+    expo: "npm:~56.0.9"
+    expo-build-properties: "npm:~56.0.17"
+    expo-constants: "npm:~56.0.17"
+    expo-linking: "npm:~56.0.13"
+    expo-router: "npm:~56.2.9"
+    react: "npm:19.2.3"
+    react-native: "npm:0.85.3"
+    react-native-audio-api: "npm:0.13.1"
+    react-native-device-info: "npm:^15.0.2"
+    react-native-drawer-layout: "npm:^4.2.2"
+    react-native-executorch: "workspace:*"
+    react-native-gesture-handler: "npm:~2.31.1"
+    react-native-reanimated: "npm:4.4.0"
+    react-native-safe-area-context: "npm:~5.7.0"
+    react-native-screens: "npm:~4.25.2"
+    react-native-svg: "npm:15.15.4"
+    react-native-svg-transformer: "npm:^1.5.3"
+    react-native-worklets: "npm:0.9.1"
+    react-refresh: "npm:^0.14.0"
+  languageName: unknown
+  linkType: soft
 
 "split-on-first@npm:^1.0.0":
   version: 1.1.0

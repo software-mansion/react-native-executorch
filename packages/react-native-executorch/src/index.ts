@@ -6,6 +6,7 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useVAD';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -21,6 +22,8 @@ export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/nlp/tasks/tokenization';
+export * from './extensions/speech/tasks/vad';
+export * from './extensions/speech/vadStreamer';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
@@ -44,6 +47,7 @@ export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';
 export * as nlp from './extensions/nlp';
+export * as speech from './extensions/speech';
 
 // Utils
 export * from './utils';
