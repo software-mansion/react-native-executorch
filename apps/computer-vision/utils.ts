@@ -7,6 +7,9 @@ import type { SkImage } from '@shopify/react-native-skia';
  * Converts a Skia image into the raw RGBA/HWC image buffer that
  * react-native-executorch vision tasks accept. Throws if the pixel data cannot
  * be read.
+ * @param image - The Skia image to read pixels from.
+ * @returns The RGBA/HWC image buffer with its `data`, `width`, `height`,
+ * `format`, and `layout`.
  */
 export const skImageToBuffer = (image: SkImage) => {
   const pixels = image.readPixels();
