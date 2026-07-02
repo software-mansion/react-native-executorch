@@ -912,7 +912,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         ::cv::Mat dstMat(h, w, cvType, dst->data_.get());
         try {
             ::cv::remap(srcMat, dstMat, mapX, mapY, ::cv::INTER_LINEAR, ::cv::BORDER_REPLICATE);
-        } catch (const ::cv::Exception &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::string("warpByGrid: OpenCV error: ") + e.what());
         }
         return jsi::Value(rt, args[2]);
@@ -1052,7 +1052,7 @@ void install_warpQuad(jsi::Runtime &rt, jsi::Object &module) {
                 content(::cv::Rect(0, 0, copyW, recH))
                     .copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
             }
-        } catch (const ::cv::Exception &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::string("warpQuad: OpenCV error: ") + e.what());
         }
         return jsi::Value(rt, args[1]);

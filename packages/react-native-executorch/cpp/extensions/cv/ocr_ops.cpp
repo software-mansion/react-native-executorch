@@ -536,7 +536,7 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 static_cast<float>(opts.getProperty(rt, "linkThreshold").asNumber()),
                 static_cast<float>(opts.getProperty(rt, "lowTextThreshold").asNumber()),
                 restoreRatio, charLevel);
-        } catch (const ::cv::Exception &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::string("extractCraftTextBoxes: OpenCV error: ") + e.what());
         }
         return quadsToArray(rt, quads);
@@ -591,7 +591,7 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 static_cast<float>(opts.getProperty(rt, "unclipRatio").asNumber()),
                 static_cast<int32_t>(opts.getProperty(rt, "minBoxSide").asNumber()),
                 static_cast<int32_t>(opts.getProperty(rt, "maxCandidates").asNumber()));
-        } catch (const ::cv::Exception &e) {
+        } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::string("extractDbnetTextBoxes: OpenCV error: ") + e.what());
         }
         return quadsToArray(rt, quads);
