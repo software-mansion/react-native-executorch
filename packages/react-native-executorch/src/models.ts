@@ -4,6 +4,7 @@ import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
 import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSegmentation';
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
+import type { VADModel } from './extensions/speech/tasks/vad';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -529,6 +530,13 @@ const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
 };
 
 // =============================================================================
+// Voice Activity Detection
+// =============================================================================
+const FSMN_VAD_XNNPACK_FP32: VADModel = {
+  modelPath: `${BASE_URL}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -732,6 +740,12 @@ export const models = {
         SIZE_512: { XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32 },
       },
+    },
+  },
+  vad: {
+    FSMN_VAD: {
+      ...FSMN_VAD_XNNPACK_FP32,
+      XNNPACK_FP32: FSMN_VAD_XNNPACK_FP32,
     },
   },
   tokenizer: {

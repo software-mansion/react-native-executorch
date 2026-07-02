@@ -278,3 +278,6 @@ binarization
 bugprone
 NOLINTNEXTLINE
 
+hann
+preemphasis
+coeff
