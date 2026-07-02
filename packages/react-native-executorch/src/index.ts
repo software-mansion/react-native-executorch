@@ -8,6 +8,7 @@ export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
+export * from './hooks/useVAD';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -25,6 +26,8 @@ export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
+export * from './extensions/speech/tasks/vad';
+export * from './extensions/speech/vadStreamer';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
@@ -48,6 +51,7 @@ export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';
 export * as nlp from './extensions/nlp';
+export * as speech from './extensions/speech';
 
 // Utils
 export * from './utils';
