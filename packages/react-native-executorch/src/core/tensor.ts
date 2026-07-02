@@ -6,7 +6,7 @@ declare const tensorBrand: unique symbol;
  * Element data type of a {@link Tensor}.
  * @category Types
  */
-export type DType = 'float32' | 'uint8' | 'int32';
+export type DType = 'float32' | 'uint8' | 'int32' | 'int64';
 
 /**
  * A native ExecuTorch tensor allocated in C++ memory.
@@ -50,10 +50,10 @@ export type Tensor = {
   /**
    * Writes data from a typed array into this tensor's native buffer.
    * @param src The source typed array. Its size in bytes must match the
-   * tensor's size.
+   * tensor's size. Use a `BigInt64Array` for `int64` tensors.
    * @returns `this` tensor.
    */
-  setData(src: Float32Array | Uint8Array | Int32Array): Tensor;
+  setData(src: Float32Array | Uint8Array | Int32Array | BigInt64Array): Tensor;
 
   /**
    * Copies data out of this tensor's native buffer into a typed array.
@@ -62,7 +62,7 @@ export type Tensor = {
    * tensor's size.
    * @returns The same `dst` array, now filled with tensor data.
    */
-  getData<T extends Float32Array | Uint8Array | Int32Array>(dst: T): T;
+  getData<T extends Float32Array | Uint8Array | Int32Array | BigInt64Array>(dst: T): T;
 
   /**
    * Passes `this` tensor as the first argument to `fn` and returns the result.
@@ -115,7 +115,7 @@ export type Tensor = {
 export function tensor(
   dtype: DType,
   shape: number[],
-  src?: Float32Array | Uint8Array | Int32Array
+  src?: Float32Array | Uint8Array | Int32Array | BigInt64Array
 ): Tensor {
   'worklet';
   const t: Tensor = rnexecutorchJsi.createTensor(shape, dtype);

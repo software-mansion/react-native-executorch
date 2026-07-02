@@ -14,6 +14,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('tokenizer/')}>
           <Text style={styles.buttonText}>Tokenizer</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-embeddings/')}>
+          <Text style={styles.buttonText}>Text Embeddings</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
