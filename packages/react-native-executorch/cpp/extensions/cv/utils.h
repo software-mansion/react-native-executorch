@@ -6,14 +6,16 @@
 
 namespace rnexecutorch::extensions::cv {
 
-inline int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
+inline int dtypeToCvDepth(rnexecutorch::core::DType dtype) {
     switch (dtype) {
-    case rnexecutorch::core::types::DType::uint8:
+    case rnexecutorch::core::DType::uint8:
         return CV_8U;
-    case rnexecutorch::core::types::DType::int32:
+    case rnexecutorch::core::DType::int32:
         return CV_32S;
-    case rnexecutorch::core::types::DType::float32:
+    case rnexecutorch::core::DType::float32:
         return CV_32F;
+    default:
+        break;
     }
     throw std::invalid_argument("unsupported dtype");
 }
