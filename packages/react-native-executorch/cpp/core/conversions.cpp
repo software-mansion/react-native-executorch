@@ -92,4 +92,28 @@ jsi::ArrayBuffer asType<jsi::ArrayBuffer>(jsi::Runtime &rt, const std::string &c
     return val.asObject(rt).getArrayBuffer(rt);
 }
 
+template <>
+jsi::Object asType<jsi::Object>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+    if (!val.isObject()) {
+        throw jsi::JSError(rt, ctx + " must be an object");
+    }
+    return val.asObject(rt);
+}
+
+template <>
+jsi::Array asType<jsi::Array>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+    if (!val.isObject() || !val.asObject(rt).isArray(rt)) {
+        throw jsi::JSError(rt, ctx + " must be an Array");
+    }
+    return val.asObject(rt).asArray(rt);
+}
+
+template <>
+jsi::Function asType<jsi::Function>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+    if (!val.isObject() || !val.asObject(rt).isFunction(rt)) {
+        throw jsi::JSError(rt, ctx + " must be a function");
+    }
+    return val.asObject(rt).asFunction(rt);
+}
+
 } // namespace rnexecutorch::core::conversions

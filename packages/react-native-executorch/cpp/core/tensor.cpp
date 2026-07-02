@@ -57,24 +57,24 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto srcLock = tryLockShared(rt, "copyTo: self", self);
             auto dstLock = tryLockUnique(rt, "copyTo: dst", dst);
 
-            if (count == 2 && !args[1].isObject()) {
-                throw jsi::JSError(rt, "copyTo: Expected options to be an object");
+            jsi::Object optsObj(rt);
+            if (count == 2) {
+                optsObj = conversions::asType<jsi::Object>(rt, "copyTo: options", args[1]);
             }
-            const jsi::Object optsObj = (count == 2) ? args[1].asObject(rt) : jsi::Object(rt);
-            const size_t srcOffset = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "offset").value_or(0);
-            const size_t copyLen = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - srcOffset);
+            size_t offset = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "offset").value_or(0);
+            size_t length = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - offset);
 
-            if (srcOffset + copyLen > self->numel_) {
+            if (offset + length > self->numel_) {
                 throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
             }
 
             const auto elemSize = types::elementSize(self->dtype_);
 
-            if (copyLen * elemSize != dst->size_) {
+            if (length * elemSize != dst->size_) {
                 throw jsi::JSError(rt, "copyTo: size mismatch between copy byte size and dst tensor size");
             }
 
-            std::memcpy(dst->data_.get(), self->data_.get() + (srcOffset * elemSize), copyLen * elemSize);
+            std::memcpy(dst->data_.get(), self->data_.get() + (offset * elemSize), length * elemSize);
 
             return jsi::Value(rt, args[0].asObject(rt));
         };
@@ -88,10 +88,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "setData: Usage: setData(array)");
             }
 
-            if (!args[0].isObject()) {
-                throw jsi::JSError(rt, "setData: Expected array to be an object (TypedArray)");
-            }
-            auto dataObj = args[0].asObject(rt);
+            auto dataObj = conversions::asType<jsi::Object>(rt, "setData: array", args[0]);
             auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "setData", dataObj, "buffer");
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
@@ -117,10 +114,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "getData: Usage: getData(array)");
             }
 
-            if (!args[0].isObject()) {
-                throw jsi::JSError(rt, "getData: Expected array to be an object (TypedArray)");
-            }
-            auto dataObj = args[0].asObject(rt);
+            auto dataObj = conversions::asType<jsi::Object>(rt, "getData: array", args[0]);
             auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "getData", dataObj, "buffer");
             size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
             size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
@@ -146,10 +140,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "through: Usage: through(fn, ...args)");
             }
 
-            if (!args[0].isObject() || !args[0].asObject(rt).isFunction(rt)) {
-                throw jsi::JSError(rt, "through: First argument must be a function");
-            }
-            auto fn = args[0].asObject(rt).asFunction(rt);
+            auto fn = conversions::asType<jsi::Function>(rt, "through: fn", args[0]);
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count);
@@ -176,10 +167,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 return jsi::Value(rt, thisVal);
             }
 
-            if (!args[1].isObject() || !args[1].asObject(rt).isFunction(rt)) {
-                throw jsi::JSError(rt, "throughIf: Second argument must be a function");
-            }
-            auto fn = args[1].asObject(rt).asFunction(rt);
+            auto fn = conversions::asType<jsi::Function>(rt, "throughIf: fn", args[1]);
 
             std::vector<jsi::Value> fnArgs;
             fnArgs.reserve(count - 1);

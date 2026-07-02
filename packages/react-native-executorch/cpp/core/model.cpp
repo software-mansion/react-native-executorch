@@ -200,15 +200,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
             auto methodMeta = unwrap(rt, "execute", self->etModule_->method_meta(methodName));
 
-            if (!args[1].isObject() || !args[1].asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "execute: Expected inputs to be an Array");
-            }
-            if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
-                throw jsi::JSError(rt, "execute: Expected outputTensors to be an Array");
-            }
-
-            auto inputsArray = args[1].asObject(rt).asArray(rt);
-            auto outputTensorsArray = args[2].asObject(rt).asArray(rt);
+            auto inputsArray = conversions::asType<jsi::Array>(rt, "execute: inputs", args[1]);
+            auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
             if (inputsArray.size(rt) != methodMeta.num_inputs()) {
                 throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs: got {}, expected {}",
