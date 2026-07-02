@@ -51,7 +51,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 throw jsi::JSError(rt, "copyTo: Usage: copyTo(dst, options?)");
             }
 
-            auto dst = fromJs(rt, "copyTo: dst", args[0], std::nullopt, std::nullopt);
+            auto dst = tensor::fromJs(rt, "copyTo: dst", args[0], std::nullopt, std::nullopt);
 
             checkNotSameTensor(rt, "copyTo: self", self, "copyTo: dst", dst);
             auto srcLock = tryLockShared(rt, "copyTo: self", self);
