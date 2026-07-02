@@ -46,13 +46,16 @@ function ctcGreedyDecode(src: Tensor): { indices: number[]; values: number[] } {
   return { indices, values };
 }
 
-/** Per-detect-bucket scratch tensors, allocated once and reused across runs. */
+/**
+ * Per-detect-bucket scratch tensors, allocated once and reused across runs:
+ * `tColor [s,s,3]` → `tCF [3,s,s]` → `tNorm [3,s,s]` → `tInput [1,3,s,s]`.
+ */
 export type DetSet = {
   readonly s: number;
-  readonly tColor: Tensor; // [s, s, 3]
-  readonly tCF: Tensor; // [3, s, s]
-  readonly tNorm: Tensor; // [3, s, s]
-  readonly tInput: Tensor; // [1, 3, s, s]
+  readonly tColor: Tensor;
+  readonly tCF: Tensor;
+  readonly tNorm: Tensor;
+  readonly tInput: Tensor;
   readonly tOutputs: readonly Tensor[];
 };
 
@@ -61,7 +64,7 @@ export type DetectContext = {
   readonly model: Model;
   readonly detBuckets: readonly number[];
   readonly numChannels: number;
-  readonly detCode: ColorConversionCode | null;
+  readonly toRgbCode: ColorConversionCode | null;
   readonly extractBoxes: TextBoxExtractor;
   readonly detSets: ReadonlyMap<number, DetSet>;
 };
@@ -86,7 +89,7 @@ export type RecContext = {
   readonly normAlpha: number | readonly number[];
   readonly normBeta: number | readonly number[];
   readonly padValue: number;
-  // Optional custom decode; falls back to greedy CTC when absent.
+  /** Optional custom decode; falls back to greedy CTC when absent. */
   readonly decode?: (
     logits: Tensor,
     charset: readonly string[]
@@ -98,9 +101,9 @@ export type VerticalContext = {
   readonly detCtx: DetectContext;
   readonly rawPage: Tensor;
   readonly recC: number;
-  // Height/width ratio above which a box is treated as a stacked column.
+  /** Height/width ratio above which a box is treated as a stacked column. */
   readonly tallCropRatio: number;
-  // Per-page budget for the (expensive) stacked-column re-detection pass.
+  /** Per-page budget for the (expensive) stacked-column re-detection pass. */
   readonly redetectBudget: { remaining: number };
 };
 
@@ -123,7 +126,7 @@ export function detectQuads(
   try {
     src
       .through(resize, tDetResize, { mode: 'letterbox', interpolation: 'area', padValue: 0 })
-      .throughIf(ctx.detCode !== null, cvtColor, detSet.tColor, ctx.detCode!)
+      .throughIf(ctx.toRgbCode !== null, cvtColor, detSet.tColor, ctx.toRgbCode!)
       .through(toChannelsFirst, detSet.tCF)
       .through(normalize, detSet.tNorm, { alpha: DETECTOR_ALPHA, beta: DETECTOR_BETA })
       .copyTo(detSet.tInput);
@@ -246,35 +249,35 @@ export function recognizeGlyphStrip(
 // re-detect budget is spent, or no glyphs are found.
 export function readStackedColumn(
   recCtx: RecContext,
-  vctx: VerticalContext,
+  verticalCtx: VerticalContext,
   ordered: readonly Point[],
   size: { width: number; height: number }
 ): { text: string; conf: number } | null {
   'worklet';
   const boxW = Math.round(size.width);
   const boxH = Math.round(size.height);
-  if (boxW < 3 || boxH < 3 || vctx.redetectBudget.remaining <= 0) {
+  if (boxW < 3 || boxH < 3 || verticalCtx.redetectBudget.remaining <= 0) {
     return null;
   }
-  vctx.redetectBudget.remaining--;
-  const tBoxRaw = tensor('uint8', [boxH, boxW, vctx.detCtx.numChannels]);
+  verticalCtx.redetectBudget.remaining--;
+  const tBoxRaw = tensor('uint8', [boxH, boxW, verticalCtx.detCtx.numChannels]);
   // RGB conversion target — allocated lazily, only when the crop isn't RGB.
   let tRecBox: Tensor | null = null;
   try {
-    warpQuad(vctx.rawPage, tBoxRaw, flattenQuad(ordered), {
+    warpQuad(verticalCtx.rawPage, tBoxRaw, flattenQuad(ordered), {
       contentWidth: boxW,
       align: 'left',
       padMode: 'constant',
       padValue: 0,
     });
-    const charQuads = detectQuads(vctx.detCtx, tBoxRaw, boxW, boxH, /* charLevel */ true);
+    const charQuads = detectQuads(verticalCtx.detCtx, tBoxRaw, boxW, boxH, /* charLevel */ true);
     if (charQuads.length === 0) {
       return null;
     }
     let boxSrc = tBoxRaw;
-    if (vctx.detCtx.detCode !== null) {
-      tRecBox = tensor('uint8', [boxH, boxW, vctx.recC]);
-      boxSrc = cvtColor(tBoxRaw, tRecBox, vctx.detCtx.detCode);
+    if (verticalCtx.detCtx.toRgbCode !== null) {
+      tRecBox = tensor('uint8', [boxH, boxW, verticalCtx.recC]);
+      boxSrc = cvtColor(tBoxRaw, tRecBox, verticalCtx.detCtx.toRgbCode);
     }
     // Read the stack top-to-bottom by each glyph's upper edge.
     const glyphs = charQuads.map((q) => orderQuad(q)).sort((a, b) => a[0]!.y - b[0]!.y);
@@ -341,28 +344,4 @@ export function resolveRecognizerContract(
     return { width: w, inShape, outShape };
   });
   return { recC, recH, vocabSize, buckets };
-}
-
-// Frees a detector scratch-set's tensors.
-export function disposeDetSets(detSets: readonly DetSet[]): void {
-  for (const d of detSets) {
-    d.tColor.dispose();
-    d.tCF.dispose();
-    d.tNorm.dispose();
-    d.tInput.dispose();
-    for (const t of d.tOutputs) {
-      t.dispose();
-    }
-  }
-}
-
-// Frees a recognizer scratch-set's tensors.
-export function disposeRecSets(recSets: readonly RecSet[]): void {
-  for (const s of recSets) {
-    s.tCanvas.dispose();
-    s.tCF.dispose();
-    s.tNorm.dispose();
-    s.tInput.dispose();
-    s.tLogits.dispose();
-  }
 }

@@ -1,7 +1,7 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
-import { scalePoint, resizeFactors, type Point } from './points';
+import { scalePoint, resizeFactors } from './points';
 
 /**
  * Mapping of bounding box formats to their coordinate representations.
@@ -108,31 +108,6 @@ export function scaleBox<F extends BoxFormat>(
       } as BoundingBox<F>;
     }
   }
-}
-
-/**
- * Computes the axis-aligned bounding box (`xyxy`) enclosing a set of points,
- * e.g. the corners of an oriented OCR {@link Quad}.
- * @category Utils
- * @param points The points to bound (need not be ordered).
- * @returns The enclosing bounding box in `xyxy` format.
- */
-export function boundingBoxOf(points: readonly Point[]): BoundingBox<'xyxy'> {
-  'worklet';
-  if (points.length === 0) {
-    return { format: 'xyxy', xmin: 0, ymin: 0, xmax: 0, ymax: 0 };
-  }
-  let xmin = Infinity;
-  let ymin = Infinity;
-  let xmax = -Infinity;
-  let ymax = -Infinity;
-  for (const p of points) {
-    if (p.x < xmin) xmin = p.x;
-    if (p.y < ymin) ymin = p.y;
-    if (p.x > xmax) xmax = p.x;
-    if (p.y > ymax) ymax = p.y;
-  }
-  return { format: 'xyxy', xmin, ymin, xmax, ymax };
 }
 
 /**

@@ -4,7 +4,8 @@ import { tensor } from '../../../core/tensor';
 import { wrapAsync } from '../../../core/runtime';
 import type { ImageBuffer } from '../image';
 import type { Point } from '../ops/points';
-import { boundingBoxOf, type BoundingBox } from '../ops/boxes';
+import type { BoundingBox } from '../ops/boxes';
+import { boundsOfPoints } from '../ops/quad';
 import { rotate, FORMAT_CHANNELS } from '../ops/image';
 import { createOcr, type OcrModel, type OcrDetection } from './ocr';
 import {
@@ -225,7 +226,7 @@ export async function createDocumentOcr<L>(
           ? [
               makeBlock<L>(
                 'ungrouped',
-                boundingBoxOf(detections.flatMap((d) => d.quad as Point[])),
+                { format: 'xyxy', ...boundsOfPoints(detections.flatMap((d) => d.quad as Point[])) },
                 1,
                 detections,
                 false

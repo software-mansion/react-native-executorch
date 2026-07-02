@@ -1,6 +1,7 @@
 import type { ImageBuffer } from '../../image';
 import { FORMAT_CHANNELS } from '../../ops/image';
-import { boundingBoxOf, type BoundingBox } from '../../ops/boxes';
+import type { BoundingBox } from '../../ops/boxes';
+import { boundsOfPoints } from '../../ops/quad';
 import type { OcrDetection } from '../ocr';
 
 /**
@@ -105,7 +106,7 @@ export function fillTableCells(html: string, lines: readonly OcrDetection[]): st
   const centersX: number[] = [];
   const centersY: number[] = [];
   for (const line of lines) {
-    const box = boundingBoxOf(line.quad);
+    const box = boundsOfPoints(line.quad);
     centersX.push((box.xmin + box.xmax) / 2);
     centersY.push((box.ymin + box.ymax) / 2);
   }

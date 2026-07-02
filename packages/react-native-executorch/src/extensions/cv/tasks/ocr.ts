@@ -22,8 +22,6 @@ import {
   readStackedColumn,
   resolveDetectorContract,
   resolveRecognizerContract,
-  disposeDetSets,
-  disposeRecSets,
   type DetSet,
   type RecSet,
   type DetectContext,
@@ -119,8 +117,8 @@ export type RunOcrOptions = {
 };
 
 /**
- * Model configuration required to instantiate an OCR task runner. One fused PTE
- * exposing `detect` + `recognize`.
+ * Model configuration required to instantiate an OCR task runner: one fused PTE
+ * exposing the per-size `detect_<S>` / `recognize_<W>` methods, plus its options.
  * @category Types
  */
 export type OcrModel = {
@@ -137,7 +135,7 @@ export type OcrDetection = {
   readonly confidence: number;
   /**
    * The oriented quad (TL,TR,BR,BL) in original image pixels. Derive the
-   * axis-aligned box with `boundingBoxOf(quad)` from `cv.ops.boxes` if needed.
+   * axis-aligned bounds with `boundsOfPoints(quad)` from `cv.ops.quad` if needed.
    */
   readonly quad: readonly Point[];
 };
@@ -172,13 +170,13 @@ function pushDetection(
 }
 
 /**
- * Creates a unified OCR runner for two-stage detect -> recognize models
- * (EasyOCR / PaddleOCR). It loads one fused PTE, validates the `detect` and
- * `recognize` methods, pre-allocates static scratch tensors sized from the
- * model's compiled shapes, and returns recognition + disposal controls.
+ * Creates a unified OCR runner for two-stage detect → recognize models
+ * (EasyOCR / PaddleOCR). It loads one fused PTE, validates every
+ * `detect_<S>` / `recognize_<W>` bucket method, pre-allocates static scratch
+ * tensors sized from the model's compiled shapes, and returns recognition +
+ * disposal controls.
  * @category Typescript API
- * @param config OCR task configuration containing the model path and flat
- * options.
+ * @param config The model path and OCR options ({@link OcrModel}).
  * @param runtime Optional worklet runtime thread on which to run the pipeline.
  * @returns A promise resolving to an object with recognition and disposal
  * controls.
@@ -276,8 +274,7 @@ export async function createOcr(
   }
 
   const dispose = () => {
-    disposeRecSets(recSets);
-    disposeDetSets(detSets);
+    allocated.forEach((t) => t.dispose());
     model.dispose();
   };
 
@@ -308,7 +305,7 @@ export async function createOcr(
       model,
       detBuckets,
       numChannels,
-      detCode: rgbCode,
+      toRgbCode: rgbCode,
       extractBoxes: ocrOpts.extractBoxes,
       detSets: detSetByS,
     };
@@ -339,7 +336,7 @@ export async function createOcr(
         padValue: recPadValue,
         decode: recDecode,
       };
-      const vctx: VerticalContext = {
+      const verticalCtx: VerticalContext = {
         detCtx,
         rawPage: tInputRaw,
         recC,
@@ -381,8 +378,8 @@ export async function createOcr(
       }
       for (const orderedQuad of singles) {
         const size = quadSize(orderedQuad);
-        if (size.height >= size.width * vctx.tallCropRatio) {
-          const stacked = readStackedColumn(recCtx, vctx, orderedQuad, size);
+        if (size.height >= size.width * verticalCtx.tallCropRatio) {
+          const stacked = readStackedColumn(recCtx, verticalCtx, orderedQuad, size);
           if (stacked) {
             pushDetection(detections, VERTICAL_DROP_SCORE, stacked.text, stacked.conf, orderedQuad);
             continue;
