@@ -14,29 +14,51 @@
 #include <executorch/runtime/core/tag.h>
 
 namespace {
+namespace jsi = facebook::jsi;
+namespace types = rnexecutorch::core::types;
+
 template <typename T>
-T getOrThrow(facebook::jsi::Runtime &rt, const std::string &ctx,
-             executorch::runtime::Result<T> result) {
+T getOrThrow(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
-        throw facebook::jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
+        throw jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
     }
     return std::move(result.get());
 }
 
-rnexecutorch::core::types::DType
-getDTypeOrThrow(facebook::jsi::Runtime &rt, const std::string &ctx,
-                executorch::aten::ScalarType scalarType) {
+types::DType
+getDTypeOrThrow(jsi::Runtime &rt, const std::string &ctx, executorch::aten::ScalarType scalarType) {
     try {
-        return rnexecutorch::core::types::fromScalarType(scalarType);
+        return types::fromScalarType(scalarType);
     } catch (const std::exception &e) {
-        throw facebook::jsi::JSError(rt, std::format("{}: Unsupported tensor dtype: {}", ctx, e.what()));
+        throw jsi::JSError(rt, std::format("{}: Unsupported tensor dtype: {}", ctx, e.what()));
     }
+}
+
+jsi::Object tensorMetaToJs(jsi::Runtime &rt, const executorch::runtime::TensorInfo &tensorMeta) {
+    auto jsTensorMeta = jsi::Object(rt);
+    jsTensorMeta.setProperty(rt, "name", jsi::String::createFromUtf8(rt, std::string(tensorMeta.name())));
+    jsTensorMeta.setProperty(rt, "ndim", static_cast<double>(tensorMeta.sizes().size()));
+    jsTensorMeta.setProperty(rt, "nbytes", static_cast<double>(tensorMeta.nbytes()));
+
+    try {
+        auto dtypeStr = types::toString(types::fromScalarType(tensorMeta.scalar_type()));
+        jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, dtypeStr));
+    } catch (const std::exception &) {
+        jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, "not supported"));
+    }
+
+    auto jsShapeArray = jsi::Array(rt, tensorMeta.sizes().size());
+    for (size_t i = 0; i < tensorMeta.sizes().size(); ++i) {
+        jsShapeArray.setValueAtIndex(rt, i, static_cast<double>(tensorMeta.sizes()[i]));
+    }
+    jsTensorMeta.setProperty(rt, "shape", jsShapeArray);
+
+    return jsTensorMeta;
 }
 } // namespace
 
 namespace rnexecutorch::core::model {
 namespace jsi = facebook::jsi;
-namespace types = rnexecutorch::core::types;
 namespace conversions = rnexecutorch::core::conversions;
 
 using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
@@ -91,6 +113,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
     if (nameStr == "getMethodMeta") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+            using executorch::runtime::tag_to_string;
+
             if (count != 1) {
                 throw jsi::JSError(rt, "getMethodMeta: Usage: getMethodMeta(methodName)");
             }
@@ -113,54 +137,37 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             auto inputTagsArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto tag = getOrThrow(rt, std::format("getMethodMeta: input tag [{}]", i), methodMeta.input_tag(i));
-                inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, executorch::runtime::tag_to_string(tag)));
+                auto ctx = std::format("getMethodMeta: input tag [{}]", i);
+                auto tag = getOrThrow(rt, ctx, methodMeta.input_tag(i));
+                inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto outputTagsArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
-                auto tag = getOrThrow(rt, std::format("getMethodMeta: output tag [{}]", i), methodMeta.output_tag(i));
-                outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, executorch::runtime::tag_to_string(tag)));
+                auto ctx = std::format("getMethodMeta: output tag [{}]", i);
+                auto tag = getOrThrow(rt, ctx, methodMeta.output_tag(i));
+                outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto usesBackendMap = jsi::Object(rt);
             for (size_t i = 0; i < methodMeta.num_backends(); ++i) {
-                const auto *backendName = getOrThrow(rt, std::format("getMethodMeta: backend name [{}]", i), methodMeta.get_backend_name(i));
+                auto ctx = std::format("getMethodMeta: backend name [{}]", i);
+                const auto *backendName = getOrThrow(rt, ctx, methodMeta.get_backend_name(i));
                 usesBackendMap.setProperty(rt, backendName, methodMeta.uses_backend(backendName));
             }
 
-            auto tensorMetaToJS = [](jsi::Runtime &rt, const executorch::runtime::TensorInfo &tensorMeta) -> jsi::Object {
-                auto jsTensorMeta = jsi::Object(rt);
-                jsTensorMeta.setProperty(rt, "name", jsi::String::createFromUtf8(rt, std::string(tensorMeta.name())));
-                jsTensorMeta.setProperty(rt, "ndim", static_cast<double>(tensorMeta.sizes().size()));
-                jsTensorMeta.setProperty(rt, "nbytes", static_cast<double>(tensorMeta.nbytes()));
-
-                try {
-                    auto dtypeStr = types::toString(types::fromScalarType(tensorMeta.scalar_type()));
-                    jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, dtypeStr));
-                } catch (const std::exception &) {
-                    jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, "not supported"));
-                }
-
-                auto jsShapeArray = jsi::Array(rt, tensorMeta.sizes().size());
-                for (size_t i = 0; i < tensorMeta.sizes().size(); ++i) {
-                    jsShapeArray.setValueAtIndex(rt, i, static_cast<double>(tensorMeta.sizes()[i]));
-                }
-                jsTensorMeta.setProperty(rt, "shape", jsShapeArray);
-
-                return jsTensorMeta;
-            };
-
             auto inputTensorMetaArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto tensorMeta = getOrThrow(rt, std::format("getMethodMeta: input tensor meta [{}]", i), methodMeta.input_tensor_meta(i));
-                inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJS(rt, tensorMeta));
+                auto ctx = std::format("getMethodMeta: input tensor meta [{}]", i);
+                auto tensorMeta = getOrThrow(rt, ctx, methodMeta.input_tensor_meta(i));
+                inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
             auto outputTensorMetaArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
-                auto tensorMeta = getOrThrow(rt, std::format("getMethodMeta: output tensor meta [{}]", i), methodMeta.output_tensor_meta(i));
-                outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJS(rt, tensorMeta));
+                auto ctx = std::format("getMethodMeta: output tensor meta [{}]", i);
+                auto tensorMeta = getOrThrow(rt, ctx, methodMeta.output_tensor_meta(i));
+                outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
             auto jsMeta = jsi::Object(rt);
@@ -195,8 +202,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
-            auto methodMeta = getOrThrow(rt, std::format("execute: method meta for '{}'", methodName),
-                                         self->etModule_->method_meta(methodName));
+            auto methodMeta = getOrThrow(rt, "execute", self->etModule_->method_meta(methodName));
 
             auto inputsArray = args[1].asObject(rt).asArray(rt);
             auto outputTensorsArray = args[2].asObject(rt).asArray(rt);
@@ -211,9 +217,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             std::unordered_set<TensorHostObject *> lockedTensors;
 
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto tag = getOrThrow(rt, std::format("execute: inputs[{}] tag", i), methodMeta.input_tag(i));
-                auto val = inputsArray.getValueAtIndex(rt, i);
                 auto ctx = std::format("execute: inputs[{}]", i);
+                auto tag = getOrThrow(rt, ctx, methodMeta.input_tag(i));
+                auto val = inputsArray.getValueAtIndex(rt, i);
 
                 switch (tag) {
                 case executorch::runtime::Tag::Tensor: {
@@ -226,63 +232,62 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                "The same tensor was passed multiple times.");
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
-
                     inputs[i] = tensorHostObject->tensor_;
                     break;
                 }
                 case executorch::runtime::Tag::Double:
-                    inputs[i] = executorch::runtime::EValue(conversions::asType<double>(rt, ctx, val));
+                    inputs[i] = conversions::asType<double>(rt, ctx, val);
                     break;
                 case executorch::runtime::Tag::Int:
-                    inputs[i] = executorch::runtime::EValue(conversions::asType<int64_t>(rt, ctx, val));
+                    inputs[i] = conversions::asType<int64_t>(rt, ctx, val);
                     break;
                 case executorch::runtime::Tag::Bool:
-                    inputs[i] = executorch::runtime::EValue(conversions::asType<bool>(rt, ctx, val));
+                    inputs[i] = conversions::asType<bool>(rt, ctx, val);
+                    break;
+                case executorch::runtime::Tag::None:
+                    inputs[i] = executorch::runtime::EValue();
                     break;
                 default:
-                    throw jsi::JSError(rt, std::format("{}: Unsupported input type", ctx));
+                    throw jsi::JSError(rt, std::format("{}: Unsupported input type: {}",
+                                                       ctx, executorch::runtime::tag_to_string(tag)));
                 }
             }
 
-            const auto result = getOrThrow(rt, std::format("execute: Method '{}' failed (check getMethodMeta() "
-                                                           "for required backends and getRegisteredBackends() "
-                                                           "for registered ones)",
-                                                           methodName),
-                                           self->etModule_->execute(methodName, inputs));
+            auto result = getOrThrow(rt, std::format("execute: Method '{}' failed (check getMethodMeta() "
+                                                     "for required backends and getRegisteredBackends() "
+                                                     "for registered ones)",
+                                                     methodName),
+                                     self->etModule_->execute(methodName, inputs));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
-
             size_t index = 0;
             size_t tensorOutputIdx = 0;
 
             for (const auto &output : result) {
                 switch (output.tag) {
-                case executorch::runtime::Tag::None: {
-                    jsOutputArray.setValueAtIndex(rt, index, jsi::Value::null());
-                    break;
-                }
                 case executorch::runtime::Tag::Tensor: {
                     if (tensorOutputIdx >= outputTensorsArray.size(rt)) {
                         throw jsi::JSError(rt, "execute: Not enough tensor output placeholders in outputTensors");
                     }
 
-                    auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
+                    auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
 
                     auto tensorMeta = getOrThrow(rt, std::format("{}: tensor meta", ctx), methodMeta.output_tensor_meta(index));
                     auto expectedDtype = getDTypeOrThrow(rt, ctx, tensorMeta.scalar_type());
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
-                        throw jsi::JSError(rt, "execute: Tensor aliasing detected. The same tensor was passed multiple times.");
+                        throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
+                                               "The same tensor was passed multiple times.");
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
-
-                    std::memcpy(tensorHostObject->data_.get(), output.toTensor().const_data_ptr(), output.toTensor().nbytes());
+                    std::memcpy(tensorHostObject->data_.get(),
+                                output.toTensor().const_data_ptr(),
+                                output.toTensor().nbytes());
 
                     jsOutputArray.setValueAtIndex(rt, index, jsi::Object::createFromHostObject(rt, tensorHostObject));
                     ++tensorOutputIdx;
-
                     break;
                 }
                 case executorch::runtime::Tag::Double: {
@@ -297,8 +302,13 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     jsOutputArray.setValueAtIndex(rt, index, output.toBool());
                     break;
                 }
+                case executorch::runtime::Tag::None: {
+                    jsOutputArray.setValueAtIndex(rt, index, jsi::Value::null());
+                    break;
+                }
                 default: {
-                    throw jsi::JSError(rt, "execute: Unsupported return type");
+                    throw jsi::JSError(rt, std::format("execute: Unsupported return type: {}",
+                                                       executorch::runtime::tag_to_string(output.tag)));
                 }
                 }
 
