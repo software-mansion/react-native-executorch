@@ -1,10 +1,14 @@
 #include "model.h"
 
+#include <array>
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <format>
+#include <optional>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "dtype.h"
 #include "tensor_helpers.h"
@@ -57,6 +61,44 @@ jsi::Object tensorMetaToJs(jsi::Runtime &rt, const executorch::runtime::TensorIn
 
     return jsTensorMeta;
 }
+
+std::vector<std::array<int64_t, 3>>
+parseDynamicDims(executorch::extension::Module &module) {
+    std::vector<std::array<int64_t, 3>> bounds;
+
+    auto methodNames = module.method_names();
+    if (!methodNames.ok() || !methodNames->contains("get_dynamic_dims")) {
+        return bounds;
+    }
+
+    auto result = module.execute("get_dynamic_dims");
+    if (!result.ok() || result->empty() || !result->at(0).isTensor()) {
+        throw std::runtime_error("get_dynamic_dims is present but did not return a tensor");
+    }
+
+    const auto boundsTensor = result->at(0).toTensor();
+    if (boundsTensor.scalar_type() != executorch::aten::ScalarType::Long || boundsTensor.dim() != 2 ||
+        boundsTensor.size(1) != 3) {
+        throw std::runtime_error("get_dynamic_dims must return an int64 [D, 3] tensor of "
+                                 "[min, max, step] rows");
+    }
+
+    const auto *data = boundsTensor.const_data_ptr<int64_t>();
+    const auto rows = boundsTensor.size(0);
+    bounds.reserve(static_cast<size_t>(rows));
+    for (int64_t r = 0; r < rows; ++r) {
+        const int64_t minDim = data[r * 3];
+        const int64_t maxDim = data[r * 3 + 1];
+        const int64_t step = data[r * 3 + 2];
+        if (maxDim < minDim || step < 1) {
+            throw std::runtime_error(std::format("get_dynamic_dims row {} is invalid: expected "
+                                                 "min <= max and step >= 1 but got [{}, {}, {}]",
+                                                 r, minDim, maxDim, step));
+        }
+        bounds.push_back({minDim, maxDim, step});
+    }
+    return bounds;
+}
 } // namespace
 
 namespace rnexecutorch::core::model {
@@ -72,6 +114,10 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     if (!etModule_->is_loaded()) {
         const std::string errorMsg = executorch::runtime::to_string(error);
         throw std::runtime_error(std::format("Failed to load model: {}", errorMsg));
+    }
+
+    if (auto bounds = parseDynamicDims(*etModule_); !bounds.empty()) {
+        dynamicInputBounds_.emplace("forward", std::move(bounds));
     }
 }
 
@@ -214,6 +260,15 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             std::vector<std::unique_lock<std::shared_mutex>> tensorLocks;
             std::unordered_set<TensorHostObject *> lockedTensors;
 
+            // Per-dimension [min, max, step] bounds parsed from get_dynamic_dims
+            // at construction. Absent for statically shaped methods, which then
+            // validate exactly.
+            const std::vector<std::array<int64_t, 3>> noBounds;
+            auto boundsIt = self->dynamicInputBounds_.find(methodName);
+            const auto &dynamicInputBounds =
+                boundsIt != self->dynamicInputBounds_.end() ? boundsIt->second : noBounds;
+            size_t boundsOffset = 0;
+
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("execute: inputs[{}]", i);
                 auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
@@ -223,7 +278,36 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 case executorch::runtime::Tag::Tensor: {
                     auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.input_tensor_meta(i));
                     auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
-                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
+
+                    std::shared_ptr<TensorHostObject> tensorHostObject;
+                    if (dynamicInputBounds.empty()) {
+                        tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
+                    } else {
+                        // Map bounds by the method-declared rank so mapping is
+                        // independent of the caller-supplied shape.
+                        const auto rank = tensorMeta.sizes().size();
+                        if (boundsOffset + rank > dynamicInputBounds.size()) {
+                            throw jsi::JSError(rt, std::format("execute: get_dynamic_dims declares fewer "
+                                                               "dimensions ({}) than forward's tensor "
+                                                               "inputs require",
+                                                               dynamicInputBounds.size()));
+                        }
+                        tensor::SymbolicShape expectedShape;
+                        expectedShape.reserve(rank);
+                        for (size_t d = 0; d < rank; ++d) {
+                            const auto &row = dynamicInputBounds[boundsOffset + d];
+                            tensor::RangeDim rangeDim;
+                            rangeDim.min = static_cast<int32_t>(row[0]);
+                            rangeDim.max = static_cast<int32_t>(row[1]);
+                            if (row[2] > 1) {
+                                rangeDim.step = static_cast<int32_t>(row[2]);
+                            }
+                            expectedShape.emplace_back(rangeDim);
+                        }
+                        boundsOffset += rank;
+                        tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype,
+                                                          std::optional<tensor::SymbolicShape>(std::move(expectedShape)));
+                    }
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
@@ -249,6 +333,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     throw jsi::JSError(rt, std::format("{}: Unsupported input type: {}",
                                                        ctx, executorch::runtime::tag_to_string(tag)));
                 }
+            }
+
+            if (!dynamicInputBounds.empty() && boundsOffset != dynamicInputBounds.size()) {
+                throw jsi::JSError(rt, std::format("execute: get_dynamic_dims declares more dimensions ({}) "
+                                                   "than forward's tensor inputs use ({})",
+                                                   dynamicInputBounds.size(), boundsOffset));
             }
 
             auto startTime = std::chrono::high_resolution_clock::now();

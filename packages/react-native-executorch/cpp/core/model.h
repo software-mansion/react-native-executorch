@@ -1,8 +1,11 @@
 #pragma once
 
+#include <array>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <jsi/jsi.h>
@@ -31,6 +34,8 @@ private:
     std::string modelPath_;
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
+
+    std::unordered_map<std::string, std::vector<std::array<int64_t, 3>>> dynamicInputBounds_;
 };
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module);
