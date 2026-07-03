@@ -64,7 +64,7 @@ export function useVAD(config: VADModel, options?: { preventLoad?: boolean }) {
       throw new Error('useVAD: model is not loaded yet');
     }
     streamerRef.current?.stop();
-    const streamer = createVadStreamer(model.detect, {
+    const streamer = createVadStreamer(model.detect, config.featureConfig.sampleRate, {
       ...input.options,
       onSpeechBegin: input.onSpeechBegin,
       onSpeechEnd: input.onSpeechEnd,

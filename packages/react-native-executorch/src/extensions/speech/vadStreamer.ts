@@ -1,11 +1,11 @@
 import type { Segment } from './tasks/vad';
 
-const SAMPLE_RATE = 16000;
 // Bound the streaming buffer so continuous input cannot grow it without limit.
-// When it exceeds the cap, only the most recent samples are kept (mirrors the
-// native streaming buffer trimming).
-const MAX_BUFFER_SAMPLES = 10 * SAMPLE_RATE; // 10 s
-const RESERVE_SAMPLES = 1 * SAMPLE_RATE; // 1 s kept after trimming
+// When it exceeds the cap, only the most recent audio is kept (mirrors the
+// native streaming buffer trimming). Expressed in seconds and scaled by the
+// stream's sample rate.
+const MAX_BUFFER_SECONDS = 10;
+const RESERVE_SECONDS = 1; // kept after trimming
 
 /**
  * Options controlling the streaming detection loop.
@@ -51,15 +51,20 @@ export type VADStreamer = {
  * `VoiceActivityDetection::stream`.
  * @category Typescript API
  * @param detect The async detection function to run over the buffer.
+ * @param sampleRate Sample rate (Hz) of the inserted audio, used to convert the
+ * buffer length to seconds and to bound the buffer.
  * @param options Streaming configuration and callbacks.
  * @returns A {@link VADStreamer} controlling the session lifecycle.
  */
 export function createVadStreamer(
   detect: (waveform: Float32Array) => Promise<Segment[]>,
+  sampleRate: number,
   options?: VADStreamOptions
 ): VADStreamer {
   const timeout = options?.timeout ?? 100;
   const detectionMargin = options?.detectionMargin ?? 100;
+  const maxBufferSamples = MAX_BUFFER_SECONDS * sampleRate;
+  const reserveSamples = RESERVE_SECONDS * sampleRate;
 
   let buffer = new Float32Array(0);
   let running = false;
@@ -73,7 +78,7 @@ export function createVadStreamer(
     const next = new Float32Array(buffer.length + chunk.length);
     next.set(buffer);
     next.set(chunk, buffer.length);
-    buffer = next.length > MAX_BUFFER_SAMPLES ? next.slice(next.length - RESERVE_SAMPLES) : next;
+    buffer = next.length > maxBufferSamples ? next.slice(next.length - reserveSamples) : next;
   };
 
   const tick = async () => {
@@ -84,7 +89,7 @@ export function createVadStreamer(
     try {
       const segments = await detect(snapshot);
       if (segments.length > 0) {
-        const bufferEndSec = snapshot.length / SAMPLE_RATE;
+        const bufferEndSec = snapshot.length / sampleRate;
         const diffMs = (bufferEndSec - segments[segments.length - 1]!.end) * 1000;
         speaking = diffMs <= detectionMargin;
       }

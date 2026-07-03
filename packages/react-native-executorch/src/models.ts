@@ -594,8 +594,19 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
 // =============================================================================
 // Voice Activity Detection
 // =============================================================================
+// FSMN-VAD feature extraction: 16 kHz mono, 25 ms window / 10 ms hop, windows
+// zero-padded to 512, 0.97 pre-emphasis, minimum 100 frames per forward pass.
+const FSMN_VAD_FEATURE_CONFIG = {
+  sampleRate: 16000,
+  frameLength: 400,
+  hopLength: 160,
+  fftLength: 512,
+  preemphasis: 0.97,
+  minFrames: 100,
+};
 const FSMN_VAD_XNNPACK_FP32: VADModel = {
   modelPath: `${BASE_URL}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
+  featureConfig: FSMN_VAD_FEATURE_CONFIG,
 };
 
 // =============================================================================
