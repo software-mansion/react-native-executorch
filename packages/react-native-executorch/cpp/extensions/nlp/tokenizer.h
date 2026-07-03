@@ -20,7 +20,7 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 
 private:
-    const std::string tokenizerPath_;
+    std::string tokenizerPath_;
     std::unique_ptr<tokenizers::HFTokenizer> tokenizer_;
     std::mutex mutex_;
 };
