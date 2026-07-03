@@ -3,13 +3,18 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <utility>
 
 #include "core/tensor.h"
+#include "core/tensor_helpers.h"
 
 namespace rnexecutorch::extensions::math {
 namespace jsi = facebook::jsi;
-using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+namespace conversions = rnexecutorch::core::conversions;
+
+namespace tensor = rnexecutorch::core::tensor;
+using rnexecutorch::core::types::DType;
 
 void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "sigmoid";
@@ -18,50 +23,12 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: sigmoid(src, dst)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "sigmoid: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "sigmoid: src", args[0], DType::float32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "sigmoid: dst", args[1], DType::float32, src->shape_);
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "sigmoid: dst must be a Tensor");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "sigmoid: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->shape_ != dst->shape_) {
-            throw jsi::JSError(rt, "sigmoid: src and dst must have the same shape");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "sigmoid: src and dst must have the same dtype");
-        }
-
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "sigmoid: only float32 tensors are supported");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "sigmoid: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "sigmoid: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "sigmoid: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "sigmoid: dst tensor has been disposed");
-        }
+        tensor::checkNotSameTensor(rt, "sigmoid: src", src, "sigmoid: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "sigmoid: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "sigmoid: dst", dst);
 
         const auto countElements = src->numel_;
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
@@ -84,42 +51,18 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "softmax: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "softmax: src", args[0], DType::float32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "softmax: dst", args[1], DType::float32, src->shape_);
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "softmax: dst must be a Tensor");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "softmax: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->shape_ != dst->shape_) {
-            throw jsi::JSError(rt, "softmax: src and dst must have the same shape");
-        }
-
-        if (src->dtype_ != dst->dtype_) {
-            throw jsi::JSError(rt, "softmax: src and dst must have the same dtype");
-        }
-
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "softmax: only float32 tensors are supported");
-        }
+        tensor::checkNotSameTensor(rt, "softmax: src", src, "softmax: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "softmax: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "softmax: dst", dst);
 
         if (src->shape_.empty()) {
             throw jsi::JSError(rt, "softmax: src must have at least one dimension");
         }
 
-        if (!args[2].isNumber()) {
-            throw jsi::JSError(rt, "softmax: axis must be a number");
-        }
-
-        int axis = static_cast<int>(args[2].asNumber());
+        int axis = conversions::asType<int32_t>(rt, "softmax: axis", args[2]);
         const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
@@ -131,24 +74,6 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "softmax: axis is out of range");
         }
         const auto axisIdx = static_cast<size_t>(axis);
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock()) {
-            throw jsi::JSError(rt, "softmax: src tensor is currently in use");
-        }
-
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "softmax: dst tensor is currently in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "softmax: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "softmax: dst tensor has been disposed");
-        }
 
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
@@ -203,34 +128,14 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "argmax: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "argmax: src", args[0], DType::float32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "argmax: dst", args[1], DType::int32, std::nullopt);
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "argmax: dst must be a Tensor");
-        }
+        tensor::checkNotSameTensor(rt, "argmax: src", src, "argmax: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "argmax: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "argmax: dst", dst);
 
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "argmax: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "argmax: src must be float32");
-        }
-
-        if (dst->dtype_ != rnexecutorch::core::types::DType::int32) {
-            throw jsi::JSError(rt, "argmax: dst must be int32");
-        }
-
-        if (!args[2].isNumber()) {
-            throw jsi::JSError(rt, "argmax: axis must be a number");
-        }
-
-        int axis = static_cast<int>(args[2].asNumber());
+        int axis = conversions::asType<int32_t>(rt, "argmax: axis", args[2]);
         const int rank = static_cast<int>(src->shape_.size());
 
         // Support negative axis indices like numpy (e.g., axis=-1 means last
@@ -247,20 +152,6 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
         dstExpectedShape[axisIdx] = 1;
         if (dst->shape_ != dstExpectedShape) {
             throw jsi::JSError(rt, "argmax: dst shape must match src shape but with axis dimension 1");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "argmax: tensors in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "argmax: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "argmax: dst tensor has been disposed");
         }
 
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
@@ -310,51 +201,14 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: threshold(src, dst, threshold)");
         }
 
-        if (!args[0].isObject() || !args[0].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "threshold: src must be a Tensor");
-        }
+        auto src = tensor::fromJs(rt, "threshold: src", args[0], DType::float32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "threshold: dst", args[1], DType::float32, src->shape_);
 
-        if (!args[1].isObject() || !args[1].asObject(rt).isHostObject<TensorHostObject>(rt)) {
-            throw jsi::JSError(rt, "threshold: dst must be a Tensor");
-        }
+        tensor::checkNotSameTensor(rt, "threshold: src", src, "threshold: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "threshold: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "threshold: dst", dst);
 
-        if (!args[2].isNumber()) {
-            throw jsi::JSError(rt, "threshold: threshold must be a number");
-        }
-
-        auto src = args[0].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto dst = args[1].asObject(rt).getHostObject<TensorHostObject>(rt);
-        auto thresholdVal = static_cast<float>(args[2].asNumber());
-
-        if (src.get() == dst.get()) {
-            throw jsi::JSError(rt, "threshold: In-place operations (src == dst) are not supported.");
-        }
-
-        if (src->shape_ != dst->shape_) {
-            throw jsi::JSError(rt, "threshold: src and dst must have the same shape");
-        }
-
-        if (src->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "threshold: src must be a float32 tensor");
-        }
-
-        if (dst->dtype_ != rnexecutorch::core::types::DType::float32) {
-            throw jsi::JSError(rt, "threshold: dst must be a float32 tensor");
-        }
-
-        std::shared_lock<std::shared_mutex> srcLock(src->mutex_, std::try_to_lock);
-        std::unique_lock<std::shared_mutex> dstLock(dst->mutex_, std::try_to_lock);
-        if (!srcLock.owns_lock() || !dstLock.owns_lock()) {
-            throw jsi::JSError(rt, "threshold: tensors in use");
-        }
-
-        if (!src->data_) {
-            throw jsi::JSError(rt, "threshold: src tensor has been disposed");
-        }
-
-        if (!dst->data_) {
-            throw jsi::JSError(rt, "threshold: dst tensor has been disposed");
-        }
+        auto thresholdVal = conversions::asType<float>(rt, "threshold: threshold", args[2]);
 
         const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
         auto *dstData = reinterpret_cast<float *>(dst->data_.get());
