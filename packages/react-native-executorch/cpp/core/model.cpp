@@ -22,7 +22,7 @@ namespace types = rnexecutorch::core::types;
 template <typename T>
 T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
-        throw jsi::JSError(rt, ctx + ": " + executorch::runtime::to_string(result.error()));
+        throw jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
     }
     return std::move(result.get());
 }

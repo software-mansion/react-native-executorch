@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -59,9 +60,9 @@ DECLARE_ASTYPE_SPECIALIZATION(jsi::ArrayBuffer);
 template <typename T>
 T getRequiredProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Object &obj, const std::string &propName) {
     if (!obj.hasProperty(rt, propName.c_str())) {
-        throw jsi::JSError(rt, ctx + ": option '" + propName + "' is required");
+        throw jsi::JSError(rt, std::format("{}: option '{}' is required", ctx, propName));
     }
-    return asType<T>(rt, ctx + ": option '" + propName + "'", obj.getProperty(rt, propName.c_str()));
+    return asType<T>(rt, std::format("{}: option '{}'", ctx, propName), obj.getProperty(rt, propName.c_str()));
 }
 
 /**
@@ -85,7 +86,7 @@ std::optional<T> getOptionalProperty(jsi::Runtime &rt, const std::string &ctx, c
     if (val.isUndefined() || val.isNull()) {
         return std::nullopt;
     }
-    return asType<T>(rt, ctx + ": option '" + propName + "'", val);
+    return asType<T>(rt, std::format("{}: option '{}'", ctx, propName), val);
 }
 
 /**
@@ -106,7 +107,7 @@ std::vector<T> asVector(jsi::Runtime &rt, const std::string &ctx, const jsi::Val
     const size_t len = arr.size(rt);
     vec.reserve(len);
     for (size_t i = 0; i < len; ++i) {
-        vec.push_back(asType<T>(rt, ctx + "[" + std::to_string(i) + "]", arr.getValueAtIndex(rt, i)));
+        vec.push_back(asType<T>(rt, std::format("{}[{}]", ctx, i), arr.getValueAtIndex(rt, i)));
     }
     return vec;
 }
