@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { commonStyles, ColorPalette } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, ColorPalette, theme } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -28,6 +29,7 @@ const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 function ClassificationContent() {
+  const insets = useSafeAreaInsets();
   const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -97,7 +99,10 @@ function ClassificationContent() {
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
     >
       <Text style={commonStyles.description}>
         Upload or capture an image to identify objects using a classifier.
