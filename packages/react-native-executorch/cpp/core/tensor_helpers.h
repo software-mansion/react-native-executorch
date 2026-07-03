@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <initializer_list>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -103,5 +104,19 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype, const Range &expectedShape) {
     SymbolicShape convertedShape(expectedShape.begin(), expectedShape.end());
     return fromJs(rt, name, value, expectedDtype, std::move(convertedShape));
+}
+
+/**
+ * @overload
+ *
+ * Convenience wrapper that accepts an initializer list of symbolic shape
+ * elements. Allows passing shape constraints like `{"H", "W", 1}` directly
+ * without typing SymbolicShape explicitly.
+ */
+inline std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype,
+       std::initializer_list<std::variant<int32_t, std::string, RangeDim>> expectedShape) {
+    return fromJs(rt, name, value, expectedDtype, std::optional<SymbolicShape>(expectedShape));
 }
 } // namespace rnexecutorch::core::tensor

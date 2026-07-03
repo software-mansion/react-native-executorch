@@ -81,8 +81,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: nms(boxes, scores, options)");
         }
 
-        auto boxes = tensor::fromJs(rt, "nms: boxes", args[0], DType::float32, tensor::SymbolicShape{"N", 4});
-        auto scores = tensor::fromJs(rt, "nms: scores", args[1], DType::float32, tensor::SymbolicShape{boxes->shape_[0]});
+        auto boxes = tensor::fromJs(rt, "nms: boxes", args[0], DType::float32, {"N", 4});
+        auto scores = tensor::fromJs(rt, "nms: scores", args[1], DType::float32, {boxes->shape_[0]});
 
         tensor::checkNotSameTensor(rt, "nms: boxes", boxes, "nms: scores", scores);
         auto boxesLock = tensor::tryLockShared(rt, "nms: boxes", boxes);
@@ -212,7 +212,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: restrictToBox(src, dst, boxTuple, format)");
         }
 
-        auto src = tensor::fromJs(rt, "restrictToBox: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
+        auto src = tensor::fromJs(rt, "restrictToBox: src", args[0], std::nullopt, {"H", "W", "C"});
         auto dst = tensor::fromJs(rt, "restrictToBox: dst", args[1], src->dtype_, src->shape_);
 
         tensor::checkNotSameTensor(rt, "restrictToBox: src", src, "restrictToBox: dst", dst);

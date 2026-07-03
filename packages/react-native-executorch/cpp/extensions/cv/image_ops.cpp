@@ -65,8 +65,8 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: resize(src, dst, options)");
         }
 
-        auto src = tensor::fromJs(rt, "resize: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
-        auto dst = tensor::fromJs(rt, "resize: dst", args[1], src->dtype_, tensor::SymbolicShape{"H'", "W'", src->shape_[2]});
+        auto src = tensor::fromJs(rt, "resize: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "resize: dst", args[1], src->dtype_, {"H'", "W'", src->shape_[2]});
 
         tensor::checkNotSameTensor(rt, "resize: src", src, "resize: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "resize: src", src);
@@ -198,8 +198,8 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: cvtColor(src, dst, code)");
         }
 
-        auto src = tensor::fromJs(rt, "cvtColor: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
-        auto dst = tensor::fromJs(rt, "cvtColor: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[0], src->shape_[1], "C'"});
+        auto src = tensor::fromJs(rt, "cvtColor: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "cvtColor: dst", args[1], src->dtype_, {src->shape_[0], src->shape_[1], "C'"});
 
         tensor::checkNotSameTensor(rt, "cvtColor: src", src, "cvtColor: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "cvtColor: src", src);
@@ -241,8 +241,8 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: toChannelsFirst(src, dst)");
         }
 
-        auto src = tensor::fromJs(rt, "toChannelsFirst: src", args[0], std::nullopt, tensor::SymbolicShape{"H", "W", "C"});
-        auto dst = tensor::fromJs(rt, "toChannelsFirst: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[2], src->shape_[0], src->shape_[1]});
+        auto src = tensor::fromJs(rt, "toChannelsFirst: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "toChannelsFirst: dst", args[1], src->dtype_, {src->shape_[2], src->shape_[0], src->shape_[1]});
 
         tensor::checkNotSameTensor(rt, "toChannelsFirst: src", src, "toChannelsFirst: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "toChannelsFirst: src", src);
@@ -283,8 +283,8 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: toChannelsLast(src, dst)");
         }
 
-        auto src = tensor::fromJs(rt, "toChannelsLast: src", args[0], std::nullopt, tensor::SymbolicShape{"C", "H", "W"});
-        auto dst = tensor::fromJs(rt, "toChannelsLast: dst", args[1], src->dtype_, tensor::SymbolicShape{src->shape_[1], src->shape_[2], src->shape_[0]});
+        auto src = tensor::fromJs(rt, "toChannelsLast: src", args[0], std::nullopt, {"C", "H", "W"});
+        auto dst = tensor::fromJs(rt, "toChannelsLast: dst", args[1], src->dtype_, {src->shape_[1], src->shape_[2], src->shape_[0]});
 
         tensor::checkNotSameTensor(rt, "toChannelsLast: src", src, "toChannelsLast: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "toChannelsLast: src", src);
@@ -325,7 +325,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: normalize(src, dst, options)");
         }
 
-        auto src = tensor::fromJs(rt, "normalize: src", args[0], std::nullopt, tensor::SymbolicShape{"C", "H", "W"});
+        auto src = tensor::fromJs(rt, "normalize: src", args[0], std::nullopt, {"C", "H", "W"});
         auto dst = tensor::fromJs(rt, "normalize: dst", args[1], std::nullopt, src->shape_);
 
         tensor::checkNotSameTensor(rt, "normalize: src", src, "normalize: dst", dst);
@@ -390,8 +390,8 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         auto colormapArray = conversions::asType<jsi::Array>(rt, "applyColormap: colormap", args[2]);
-        auto src = tensor::fromJs(rt, "applyColormap: src", args[0], DType::int32, tensor::SymbolicShape{"H", "W", 1});
-        auto dst = tensor::fromJs(rt, "applyColormap: dst", args[1], DType::uint8, tensor::SymbolicShape{src->shape_[0], src->shape_[1], 4});
+        auto src = tensor::fromJs(rt, "applyColormap: src", args[0], DType::int32, {"H", "W", 1});
+        auto dst = tensor::fromJs(rt, "applyColormap: dst", args[1], DType::uint8, {src->shape_[0], src->shape_[1], 4});
 
         tensor::checkNotSameTensor(rt, "applyColormap: src", src, "applyColormap: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "applyColormap: src", src);
