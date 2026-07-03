@@ -5,26 +5,31 @@ import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 
-// Frame geometry fixed by the FSMN-VAD feature-extraction contract (ported from
-// the native `voice_activity_detection/Constants.h`). Audio is expected to be a
-// mono waveform sampled at 16 kHz.
-const SAMPLE_RATE = 16000;
-const SAMPLES_PER_MS = SAMPLE_RATE / 1000; // 16
-const WINDOW_SIZE = 400; // 25 ms window
-const HOP_LENGTH = 160; // 10 ms hop
-const HOP_LENGTH_MS = HOP_LENGTH / SAMPLES_PER_MS; // 10
-const PADDED_WINDOW_SIZE = 512; // bit_ceil(WINDOW_SIZE)
-const PREEMPHASIS_COEFF = 0.97;
-// Zero-padding that centers the WINDOW_SIZE window inside the padded frame.
-const LEFT_PAD = Math.floor((PADDED_WINDOW_SIZE - WINDOW_SIZE) / 2); // 56
-// The model requires at least this many frames per forward pass; a short final
-// chunk is zero-padded up to it (matches native `kModelInputMin`).
-const MIN_MODEL_FRAMES = 100;
+/**
+ * Feature-extraction geometry describing how a raw waveform is turned into the
+ * per-frame input a VAD model expects. These values are model-specific — they
+ * must match how the `.pte` was trained — and are supplied by the model config
+ * (see the `models` registry), not hardcoded in the pipeline.
+ * @category Types
+ * @property {number} sampleRate - Expected input sample rate in Hz (e.g. `16000`).
+ * @property {number} frameLength - Analysis window length in samples (e.g. `400`, 25 ms).
+ * @property {number} hopLength - Samples between consecutive windows (e.g. `160`, 10 ms).
+ * @property {number} fftLength - Zero-padded window length fed to the model (e.g. `512`).
+ * @property {number} preemphasis - Pre-emphasis filter coefficient (e.g. `0.97`).
+ * @property {number} minFrames - Minimum frames the model accepts per forward pass (e.g. `100`).
+ */
+export type VADFeatureConfig = {
+  readonly sampleRate: number;
+  readonly frameLength: number;
+  readonly hopLength: number;
+  readonly fftLength: number;
+  readonly preemphasis: number;
+  readonly minFrames: number;
+};
 
 /**
  * Tunable thresholds controlling how per-frame speech probabilities are turned
- * into speech {@link Segment}s. Defaults mirror the reference FSMN-VAD
- * configuration.
+ * into speech {@link Segment}s.
  * @category Types
  * @property {number} [speechThreshold] - Minimum speech probability (0-1) for a
  * frame to count as speech. Defaults to `0.6`.
@@ -48,9 +53,16 @@ export type VADOptions = {
 /**
  * Model configuration required to instantiate a VAD task runner.
  * @category Types
+ * @property {string} modelPath - Local path or remote URL of the `.pte` model.
+ * @property {VADFeatureConfig} featureConfig - Model-specific feature-extraction
+ * geometry.
+ * @property {VADOptions} [defaultOptions] - Detection thresholds tuned for this
+ * model; overridable per `detect` call. Falls back to the library defaults.
  */
 export type VADModel = {
   readonly modelPath: string;
+  readonly featureConfig: VADFeatureConfig;
+  readonly defaultOptions?: VADOptions;
 };
 
 /**
@@ -66,6 +78,8 @@ export type Segment = {
 // read every field unconditionally.
 type ResolvedOptions = Required<VADOptions>;
 
+// Library fallback thresholds (Silero-style). A model may override any of these
+// via `VADModel.defaultOptions`, and callers via the `detect` options argument.
 const DEFAULT_OPTIONS: ResolvedOptions = {
   speechThreshold: 0.6,
   minSpeechDurationMs: 250,
@@ -90,32 +104,39 @@ function hannWindow(size: number): Float32Array {
 
 // Slices the waveform into overlapping frames and applies mean-removal, a
 // pre-emphasis filter and a Hann window to each, writing the result into a
-// zero-padded `PADDED_WINDOW_SIZE` buffer. Returns a flat `[numFrames * 512]`
+// zero-padded `fftLength` buffer. Returns a flat `[numFrames * fftLength]`
 // array. Mirrors `VoiceActivityDetection::preprocess`.
-function frameWaveform(waveform: Float32Array, hann: Float32Array): Float32Array {
+function frameWaveform(
+  waveform: Float32Array,
+  hann: Float32Array,
+  fc: VADFeatureConfig
+): Float32Array {
   'worklet';
-  const numFrames = Math.floor((waveform.length - WINDOW_SIZE) / HOP_LENGTH);
+  const { frameLength, hopLength, fftLength, preemphasis } = fc;
+  // Zero-padding that centers the window inside the padded frame.
+  const leftPad = Math.floor((fftLength - frameLength) / 2);
+  const numFrames = Math.floor((waveform.length - frameLength) / hopLength);
   if (numFrames <= 0) return new Float32Array(0);
 
-  const frames = new Float32Array(numFrames * PADDED_WINDOW_SIZE);
+  const frames = new Float32Array(numFrames * fftLength);
   for (let f = 0; f < numFrames; f++) {
-    const base = f * PADDED_WINDOW_SIZE + LEFT_PAD;
-    const start = f * HOP_LENGTH;
+    const base = f * fftLength + leftPad;
+    const start = f * hopLength;
 
     let sum = 0;
-    for (let j = 0; j < WINDOW_SIZE; j++) {
+    for (let j = 0; j < frameLength; j++) {
       const v = waveform[start + j]!;
       frames[base + j] = v;
       sum += v;
     }
-    const mean = sum / WINDOW_SIZE;
-    for (let j = 0; j < WINDOW_SIZE; j++) frames[base + j]! -= mean;
+    const mean = sum / frameLength;
+    for (let j = 0; j < frameLength; j++) frames[base + j]! -= mean;
 
     // Pre-emphasis applied in reverse so each tap reads the raw previous sample.
-    for (let j = WINDOW_SIZE - 1; j > 0; j--) {
-      frames[base + j]! -= PREEMPHASIS_COEFF * frames[base + j - 1]!;
+    for (let j = frameLength - 1; j > 0; j--) {
+      frames[base + j]! -= preemphasis * frames[base + j - 1]!;
     }
-    for (let j = 0; j < WINDOW_SIZE; j++) frames[base + j]! *= hann[j]!;
+    for (let j = 0; j < frameLength; j++) frames[base + j]! *= hann[j]!;
   }
   return frames;
 }
@@ -124,12 +145,17 @@ function frameWaveform(waveform: Float32Array, hann: Float32Array): Float32Array
 // sample units. Mirrors `VoiceActivityDetection::postprocess` (excluding the
 // final merge step). `scores[i]` holds the non-speech probability of frame `i`,
 // so the speech probability is `1 - scores[i]`.
-function scoresToSegments(scores: Float32Array, opts: ResolvedOptions): SampleSegment[] {
+function scoresToSegments(
+  scores: Float32Array,
+  opts: ResolvedOptions,
+  hopLength: number,
+  hopLengthMs: number
+): SampleSegment[] {
   'worklet';
   const threshold = opts.speechThreshold;
-  const minSpeechHops = Math.floor(opts.minSpeechDurationMs / HOP_LENGTH_MS);
-  const minSilenceHops = Math.floor(opts.minSilenceDurationMs / HOP_LENGTH_MS);
-  const speechPadHops = Math.floor(opts.speechPadMs / HOP_LENGTH_MS);
+  const minSpeechHops = Math.floor(opts.minSpeechDurationMs / hopLengthMs);
+  const minSilenceHops = Math.floor(opts.minSilenceDurationMs / hopLengthMs);
+  const speechPadHops = Math.floor(opts.speechPadMs / hopLengthMs);
 
   const segments: SampleSegment[] = [];
   let triggered = false;
@@ -164,9 +190,8 @@ function scoresToSegments(scores: Float32Array, opts: ResolvedOptions): SampleSe
   if (triggered) segments.push({ start: startSegment, end: scores.length });
 
   for (const segment of segments) {
-    segment.start =
-      (segment.start > speechPadHops ? segment.start - speechPadHops : 0) * HOP_LENGTH;
-    segment.end = Math.min(segment.end + speechPadHops, scores.length) * HOP_LENGTH;
+    segment.start = (segment.start > speechPadHops ? segment.start - speechPadHops : 0) * hopLength;
+    segment.end = Math.min(segment.end + speechPadHops, scores.length) * hopLength;
   }
   return segments;
 }
@@ -191,19 +216,21 @@ function mergeSegments(segments: SampleSegment[], maxMergeGap: number): SampleSe
 }
 
 /**
- * Creates a Voice Activity Detection runner for executing local FSMN-VAD models.
+ * Creates a Voice Activity Detection runner for executing local VAD models.
  *
  * It loads the model, validates its input/output signature, pre-allocates the
  * static output tensor and registers a disposal hook. The whole pipeline —
  * feature extraction, chunked inference and segment postprocessing — runs in
- * TypeScript on top of the core `model.execute` primitive.
+ * TypeScript on top of the core `model.execute` primitive, parameterized by the
+ * model's {@link VADFeatureConfig}.
  *
  * The model exposes a dynamic frame dimension: each forward pass accepts
- * `[frames, 512]` (up to the model-declared maximum) and returns per-frame class
- * probabilities. Long inputs are split into chunks; a short final chunk is
+ * `[frames, fftLength]` (up to the model-declared maximum) and returns per-frame
+ * class probabilities. Long inputs are split into chunks; a short final chunk is
  * zero-padded up to the model minimum and its padding scores are discarded.
  * @category Typescript API
- * @param config VAD task configuration containing the model path.
+ * @param config VAD task configuration containing the model path and feature
+ * config.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing detection and disposal
@@ -218,7 +245,8 @@ export async function createVAD(
    */
   dispose: () => void;
   /**
-   * Asynchronously detects speech segments within a mono 16 kHz waveform.
+   * Asynchronously detects speech segments within a mono waveform sampled at the
+   * model's configured sample rate.
    * @param waveform The input audio samples.
    * @param options Optional per-call overrides of the detection thresholds.
    * @returns A promise resolving to the detected speech segments, in seconds.
@@ -230,16 +258,20 @@ export async function createVAD(
    */
   detectWorklet: (waveform: Float32Array, options?: VADOptions) => Segment[];
 }> {
-  const { modelPath } = config;
+  const { modelPath, featureConfig: fc } = config;
+  const samplesPerMs = fc.sampleRate / 1000;
+  const hopLengthMs = fc.hopLength / samplesPerMs;
+  const modelDefaults: ResolvedOptions = { ...DEFAULT_OPTIONS, ...config.defaultOptions };
+
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  // Input: [frames, 512] with a dynamic frame count. Output: per-frame class
-  // probabilities, either [1, frames, classes] or [frames, classes]. Class 0 is
-  // the non-speech class.
+  // Input: [frames, fftLength] with a dynamic frame count. Output: per-frame
+  // class probabilities, either [1, frames, classes] or [frames, classes]. Class
+  // 0 is the non-speech class.
   const meta = validateModelSchema(
     model,
     'forward',
-    [SymbolicTensor('float32', ['N', PADDED_WINDOW_SIZE])],
+    [SymbolicTensor('float32', ['N', fc.fftLength])],
     [SymbolicTensor('float32', [1, 'F', 'C'], ['F', 'C'])]
   );
   const maxFrames = meta.inputTensorMeta[0]!.shape[0]!;
@@ -254,7 +286,7 @@ export async function createVAD(
   const outBuffer = new Float32Array(tOutput.numel);
   const chunkCapacity = Math.min(maxFrames, Math.floor(tOutput.numel / numClass));
 
-  const hann = hannWindow(WINDOW_SIZE);
+  const hann = hannWindow(fc.frameLength);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -263,23 +295,23 @@ export async function createVAD(
 
   const detectWorklet = (waveform: Float32Array, options?: VADOptions): Segment[] => {
     'worklet';
-    if (waveform.length < WINDOW_SIZE) return [];
+    if (waveform.length < fc.frameLength) return [];
 
-    const opts: ResolvedOptions = { ...DEFAULT_OPTIONS, ...options };
-    const frames = frameWaveform(waveform, hann);
-    const numFrames = frames.length / PADDED_WINDOW_SIZE;
+    const opts: ResolvedOptions = { ...modelDefaults, ...options };
+    const frames = frameWaveform(waveform, hann, fc);
+    const numFrames = frames.length / fc.fftLength;
     if (numFrames === 0) return [];
 
     const scores = new Float32Array(numFrames);
     let offset = 0;
     while (offset < numFrames) {
       const realFrames = Math.min(numFrames - offset, chunkCapacity);
-      const chunkFrames = Math.max(realFrames, MIN_MODEL_FRAMES);
-      const chunkData = new Float32Array(chunkFrames * PADDED_WINDOW_SIZE);
-      const from = offset * PADDED_WINDOW_SIZE;
-      const to = (offset + realFrames) * PADDED_WINDOW_SIZE;
+      const chunkFrames = Math.max(realFrames, fc.minFrames);
+      const chunkData = new Float32Array(chunkFrames * fc.fftLength);
+      const from = offset * fc.fftLength;
+      const to = (offset + realFrames) * fc.fftLength;
       chunkData.set(frames.subarray(from, to));
-      const tInput = tensor('float32', [chunkFrames, PADDED_WINDOW_SIZE], chunkData);
+      const tInput = tensor('float32', [chunkFrames, fc.fftLength], chunkData);
       try {
         model.execute('forward', [tInput], [tOutput]);
         tOutput.getData(outBuffer);
@@ -292,9 +324,9 @@ export async function createVAD(
       offset += realFrames;
     }
 
-    const raw = scoresToSegments(scores, opts);
-    const merged = mergeSegments(raw, opts.mergeGapMs * SAMPLES_PER_MS);
-    return merged.map((s) => ({ start: s.start / SAMPLE_RATE, end: s.end / SAMPLE_RATE }));
+    const raw = scoresToSegments(scores, opts, fc.hopLength, hopLengthMs);
+    const merged = mergeSegments(raw, opts.mergeGapMs * samplesPerMs);
+    return merged.map((s) => ({ start: s.start / fc.sampleRate, end: s.end / fc.sampleRate }));
   };
 
   const detect = wrapAsync(detectWorklet, runtime);

@@ -9,7 +9,8 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
-const SAMPLE_RATE = 16000;
+// Record at the model's expected sample rate rather than hardcoding it.
+const SAMPLE_RATE = models.vad.FSMN_VAD.featureConfig.sampleRate;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
