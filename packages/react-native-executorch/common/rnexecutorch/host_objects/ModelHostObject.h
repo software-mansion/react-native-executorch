@@ -236,6 +236,24 @@ public:
           "streamFlush"));
     }
 
+    if constexpr (meta::SameAs<
+                      Model, models::text_to_speech::supertonic::Supertonic>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::stream>,
+                                       "stream"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
+          "streamInsert"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamFlush>,
+          "streamFlush"));
+    }
+
     if constexpr (meta::HasGenerateFromString<Model>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,

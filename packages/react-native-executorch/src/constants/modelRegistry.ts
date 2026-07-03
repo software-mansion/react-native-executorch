@@ -28,6 +28,16 @@ import {
   KOKORO_HINDI_MALE_PSI,
   KOKORO_POLISH_MALE_MATEUSZ,
   KOKORO_GERMAN_FEMALE_ANNA,
+  SUPERTONIC_MALE_1,
+  SUPERTONIC_MALE_2,
+  SUPERTONIC_MALE_3,
+  SUPERTONIC_MALE_4,
+  SUPERTONIC_MALE_5,
+  SUPERTONIC_FEMALE_1,
+  SUPERTONIC_FEMALE_2,
+  SUPERTONIC_FEMALE_3,
+  SUPERTONIC_FEMALE_4,
+  SUPERTONIC_FEMALE_5,
 } from './tts/voices';
 import { TextToSpeechModelConfig } from '../types/tts';
 import { RnExecutorchError } from '../errors/errorUtils';
@@ -834,6 +844,20 @@ export const models = {
       de: {
         anna: tts(KOKORO_GERMAN_FEMALE_ANNA),
       },
+    },
+    // Supertonic 3: a single multilingual model; each voice works for any of
+    // the 31 supported languages (set via the config's `lang` field).
+    supertonic: {
+      m1: tts(SUPERTONIC_MALE_1),
+      m2: tts(SUPERTONIC_MALE_2),
+      m3: tts(SUPERTONIC_MALE_3),
+      m4: tts(SUPERTONIC_MALE_4),
+      m5: tts(SUPERTONIC_MALE_5),
+      f1: tts(SUPERTONIC_FEMALE_1),
+      f2: tts(SUPERTONIC_FEMALE_2),
+      f3: tts(SUPERTONIC_FEMALE_3),
+      f4: tts(SUPERTONIC_FEMALE_4),
+      f5: tts(SUPERTONIC_FEMALE_5),
     },
   },
   text_embedding: {

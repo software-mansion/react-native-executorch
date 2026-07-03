@@ -107,6 +107,15 @@ declare global {
     synthesizerSource: string,
     voice: string
   ) => Promise<any>;
+  var loadTextToSpeechSupertonic: (
+    lang: string,
+    unicodeIndexerSource: string,
+    durationPredictorSource: string,
+    textEncoderSource: string,
+    vectorEstimatorSource: string,
+    vocoderSource: string,
+    voice: string
+  ) => Promise<any>;
   var loadOCR: (
     detectorSource: string,
     recognizer: string,
@@ -140,6 +149,7 @@ if (
   global.loadPrivacyFilter == null ||
   global.loadSpeechToText == null ||
   global.loadTextToSpeechKokoro == null ||
+  global.loadTextToSpeechSupertonic == null ||
   global.loadOCR == null ||
   global.loadVerticalOCR == null ||
   global.__rne_isEmulator == null

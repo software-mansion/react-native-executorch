@@ -14,33 +14,54 @@ import {
   models,
   useTextToSpeech,
   TextToSpeechModelConfig,
+  TextToSpeechSupertonicLanguage,
 } from 'react-native-executorch';
 import { ModelPicker, ModelOption } from '../components/ModelPicker';
 
-const tts = models.text_to_speech.kokoro;
+// Supertonic 3: a single multilingual model with 10 built-in voices. Each voice
+// works for any of the supported languages, and both the language and the
+// number of flow-matching steps are set per synthesis call (no model reload) —
+// see the LANGUAGES / STEPS pickers below.
+const tts = models.text_to_speech.supertonic;
 
 const VOICES: ModelOption<TextToSpeechModelConfig>[] = [
-  { label: '🇺🇸 AF Heart', value: tts.en_us.heart() },
-  { label: '🇺🇸 AF River', value: tts.en_us.river() },
-  { label: '🇺🇸 AF Sarah', value: tts.en_us.sarah() },
-  { label: '🇺🇸 AM Adam', value: tts.en_us.adam() },
-  { label: '🇺🇸 AM Michael', value: tts.en_us.michael() },
-  { label: '🇺🇸 AM Santa', value: tts.en_us.santa() },
-  { label: '🇬🇧 BF Emma', value: tts.en_gb.emma() },
-  { label: '🇬🇧 BM Daniel', value: tts.en_gb.daniel() },
-  { label: '🇫🇷 FF Siwis', value: tts.fr.siwis() },
-  { label: '🇪🇸 EF Dora', value: tts.es.dora() },
-  { label: '🇪🇸 EM Alex', value: tts.es.alex() },
-  { label: '🇮🇹 IF Sara', value: tts.it.sara() },
-  { label: '🇮🇹 IM Nicola', value: tts.it.nicola() },
-  { label: '🇵🇹 PF Dora', value: tts.pt.dora() },
-  { label: '🇵🇹 PM Santa', value: tts.pt.santa() },
-  { label: '🇩🇪 DF Anna', value: tts.de.anna() },
-  { label: '🇵🇱 PM Mateusz', value: tts.pl.mateusz() },
-  { label: '🇮🇳 HF Alpha', value: tts.hi.alpha() },
-  { label: '🇮🇳 HM Omega', value: tts.hi.omega() },
-  { label: '🇮🇳 HM Psi', value: tts.hi.psi() },
+  { label: '👨 Male 1', value: tts.m1() },
+  { label: '👨 Male 2', value: tts.m2() },
+  { label: '👨 Male 3', value: tts.m3() },
+  { label: '👨 Male 4', value: tts.m4() },
+  { label: '👨 Male 5', value: tts.m5() },
+  { label: '👩 Female 1', value: tts.f1() },
+  { label: '👩 Female 2', value: tts.f2() },
+  { label: '👩 Female 3', value: tts.f3() },
+  { label: '👩 Female 4', value: tts.f4() },
+  { label: '👩 Female 5', value: tts.f5() },
 ];
+
+// A per-call hyperparameter: the `<lang>` token. 'na' = unknown/other.
+const LANGUAGES: ModelOption<TextToSpeechSupertonicLanguage>[] = [
+  { label: '🇺🇸 English', value: 'en' },
+  { label: '🇪🇸 Spanish', value: 'es' },
+  { label: '🇫🇷 French', value: 'fr' },
+  { label: '🇩🇪 German', value: 'de' },
+  { label: '🇮🇹 Italian', value: 'it' },
+  { label: '🇵🇹 Portuguese', value: 'pt' },
+  { label: '🇵🇱 Polish', value: 'pl' },
+  { label: '🇷🇺 Russian', value: 'ru' },
+  { label: '🇯🇵 Japanese', value: 'ja' },
+  { label: '🇰🇷 Korean', value: 'ko' },
+  { label: '🇮🇳 Hindi', value: 'hi' },
+  { label: '🌐 Other (na)', value: 'na' },
+];
+
+// A per-call hyperparameter: number of flow-matching steps (quality vs. speed).
+const STEPS: ModelOption<number>[] = [
+  { label: '6 (fastest)', value: 6 },
+  { label: '8 (default)', value: 8 },
+  { label: '16 (best quality)', value: 16 },
+];
+
+// Supertonic renders audio at 44.1 kHz.
+const SAMPLE_RATE = 44100;
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -56,13 +77,13 @@ import ErrorBanner from '../components/ErrorBanner';
  * Converts an audio vector (Float32Array) to an AudioBuffer for playback
  * @param audioVector - The generated audio samples from the model
  * @param audioContext - An optional AudioContext to create the buffer in. If not provided, a new one will be created.
- * @param sampleRate - The sample rate (default: 24000 Hz for Kokoro)
+ * @param sampleRate - The sample rate (default: 44100 Hz for Supertonic)
  * @returns AudioBuffer ready for playback
  */
 const createAudioBufferFromVector = (
   audioVector: Float32Array,
   audioContext: AudioContext | null = null,
-  sampleRate: number = 24000
+  sampleRate: number = SAMPLE_RATE
 ): AudioBuffer => {
   if (audioContext == null) audioContext = new AudioContext({ sampleRate });
 
@@ -79,7 +100,10 @@ const createAudioBufferFromVector = (
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedSpeaker, setSelectedSpeaker] =
-    useState<TextToSpeechModelConfig>(tts.en_us.heart());
+    useState<TextToSpeechModelConfig>(tts.m1());
+  const [selectedLang, setSelectedLang] =
+    useState<TextToSpeechSupertonicLanguage>('en');
+  const [totalSteps, setTotalSteps] = useState<number>(8);
 
   const model = useTextToSpeech(selectedSpeaker);
 
@@ -99,7 +123,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    const context = new AudioContext({ sampleRate: 24000 });
+    const context = new AudioContext({ sampleRate: SAMPLE_RATE });
     audioContextRef.current = context;
     context.suspend();
 
@@ -141,7 +165,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           const audioBuffer = createAudioBufferFromVector(
             audioVec,
             audioContext,
-            24000
+            SAMPLE_RATE
           );
 
           const source = (sourceRef.current =
@@ -167,8 +191,9 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
 
       await model.stream({
         text: inputText,
-        speed: 0.9,
-        phonemize: true,
+        speed: 1.0,
+        totalSteps,
+        lang: selectedLang,
         onNext,
         onEnd,
       });
@@ -215,6 +240,22 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
             selectedModel={selectedSpeaker}
             disabled={model.isGenerating}
             onSelect={(m) => setSelectedSpeaker(m)}
+          />
+
+          <ModelPicker
+            label="Language"
+            models={LANGUAGES}
+            selectedModel={selectedLang}
+            disabled={isPlaying}
+            onSelect={(l) => setSelectedLang(l)}
+          />
+
+          <ModelPicker
+            label="Steps"
+            models={STEPS}
+            selectedModel={totalSteps}
+            disabled={isPlaying}
+            onSelect={(s) => setTotalSteps(s)}
           />
 
           <View style={styles.inputContainer}>

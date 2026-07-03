@@ -64,10 +64,12 @@ export const useTextToSpeech = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     model.model.modelName,
-    model.model.durationPredictorSource,
-    model.model.synthesizerSource,
+    // Source fields differ between kokoro and supertonic — stringify the whole
+    // model descriptor so a change to any source triggers a reload.
+    JSON.stringify(model.model),
     model.voiceSource,
-    model.phonemizerConfig,
+    model.lang,
+    JSON.stringify(model.phonemizerConfig),
     preventLoad,
   ]);
 
@@ -92,7 +94,9 @@ export const useTextToSpeech = (
       return await instance.forward(
         input.text ?? '',
         input.speed ?? 1.0,
-        input.phonemize ?? true
+        input.phonemize ?? true,
+        input.totalSteps ?? 8,
+        input.lang ?? ''
       );
     } finally {
       setIsGenerating(false);
@@ -115,6 +119,8 @@ export const useTextToSpeech = (
         for await (const audio of instance.stream({
           speed: input.speed ?? 1.0,
           phonemize: input.phonemize ?? true,
+          totalSteps: input.totalSteps ?? 8,
+          lang: input.lang,
           stopAutomatically: input.stopAutomatically ?? true,
         })) {
           if (input.onNext) {

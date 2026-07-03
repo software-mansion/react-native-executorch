@@ -131,6 +131,12 @@ void RnExecutorchInstaller::injectJSIBindings(
           jsiRuntime, jsCallInvoker, "loadTextToSpeechKokoro"));
 
   jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextToSpeechSupertonic",
+      RnExecutorchInstaller::loadModel<
+          models::text_to_speech::supertonic::Supertonic>(
+          jsiRuntime, jsCallInvoker, "loadTextToSpeechSupertonic"));
+
+  jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVAD",
       RnExecutorchInstaller::loadModel<
           models::voice_activity_detection::VoiceActivityDetection>(

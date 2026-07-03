@@ -1,4 +1,4 @@
-import { URL_PREFIX, PREVIOUS_VERSION_TAG } from '../versions';
+import { URL_PREFIX, PREVIOUS_VERSION_TAG, VERSION_TAG } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
 const KOKORO_MODEL_ROOT = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/xnnpack`;
@@ -35,4 +35,23 @@ export const KOKORO_GERMAN = {
   modelName: 'kokoro' as const,
   durationPredictorSource: `${KOKORO_GERMAN_MODEL_ROOT}/duration_predictor_de.pte`,
   synthesizerSource: `${KOKORO_GERMAN_MODEL_ROOT}/synthesizer_de.pte`,
+};
+
+// Text to speech (tts) - Supertonic 3 model
+const SUPERTONIC_MODEL_ROOT = `${URL_PREFIX}-supertonic/${VERSION_TAG}/xnnpack`;
+
+/**
+ * Supertonic 3 — a multilingual (31 languages + `na` fallback) flow-matching
+ * TTS. No phonemizer: text is mapped directly through a unicode indexer. Runs
+ * four ExecuTorch submodules in sequence (duration predictor, text encoder,
+ * vector estimator, vocoder) at 44.1 kHz.
+ * @category Models - Text to Speech
+ */
+export const SUPERTONIC = {
+  modelName: 'supertonic' as const,
+  unicodeIndexerSource: `${SUPERTONIC_MODEL_ROOT}/unicode_indexer.json`,
+  durationPredictorSource: `${SUPERTONIC_MODEL_ROOT}/duration_predictor.pte`,
+  textEncoderSource: `${SUPERTONIC_MODEL_ROOT}/text_encoder.pte`,
+  vectorEstimatorSource: `${SUPERTONIC_MODEL_ROOT}/vector_estimator.pte`,
+  vocoderSource: `${SUPERTONIC_MODEL_ROOT}/vocoder.pte`,
 };
