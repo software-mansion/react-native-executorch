@@ -65,10 +65,13 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
                 optsObj = conversions::asType<jsi::Object>(rt, "copyTo: options", args[1]);
             }
             size_t offset = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "offset").value_or(0);
-            size_t length = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "length").value_or(self->numel_ - offset);
+            if (offset > self->numel_) {
+                throw jsi::JSError(rt, "copyTo: offset is out of bounds for src tensor");
+            }
 
-            if (offset + length > self->numel_) {
-                throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
+            size_t length = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "length").value_or(self->numel_ - offset);
+            if (length > self->numel_ - offset) {
+                throw jsi::JSError(rt, "copyTo: length is out of bounds for the given offset of the src tensor");
             }
 
             const auto elemSize = types::elementSize(self->dtype_);
@@ -98,6 +101,10 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             auto lock = tryLockUnique(rt, "setData: self", self);
 
+            if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
+                throw jsi::JSError(rt, "setData: Out of bounds offset/length for buffer");
+            }
+
             if (byteLength != self->size_) {
                 throw jsi::JSError(rt, std::format("setData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
                                                    byteLength, self->size_));
@@ -123,6 +130,10 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             size_t byteLength = getOptionalProperty<uint64_t>(rt, "getData: array", dataObj, "byteLength").value_or(buffer.size(rt));
 
             auto lock = tryLockShared(rt, "getData: self", self);
+
+            if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
+                throw jsi::JSError(rt, "getData: Out of bounds offset/length for buffer");
+            }
 
             if (byteLength != self->size_) {
                 throw jsi::JSError(rt, std::format("getData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
