@@ -2,17 +2,18 @@
 
 #include <algorithm>
 #include <cmath>
-#include <numeric>
+#include <cstring>
+#include <format>
 #include <optional>
 #include <stdexcept>
 #include <utility>
-
-#include <opencv2/imgproc.hpp>
 
 #include "core/dtype.h"
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
 #include "utils.h"
+
+#include <opencv2/imgproc.hpp>
 
 namespace rnexecutorch::extensions::cv::image_ops {
 namespace jsi = facebook::jsi;
@@ -71,7 +72,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         auto srcLock = tensor::tryLockShared(rt, "resize: src", src);
         auto dstLock = tensor::tryLockUnique(rt, "resize: dst", dst);
 
-        const auto opts = args[2].asObject(rt);
+        const auto opts = conversions::asType<jsi::Object>(rt, "resize: options", args[2]);
         const auto mode = conversions::getRequiredProperty<std::string>(rt, "resize: options", opts, "mode");
         const auto interp = conversions::getRequiredProperty<std::string>(rt, "resize: options", opts, "interpolation");
         const auto padValue = conversions::getRequiredProperty<double>(rt, "resize: options", opts, "padValue");
@@ -331,17 +332,17 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         auto srcLock = tensor::tryLockShared(rt, "normalize: src", src);
         auto dstLock = tensor::tryLockUnique(rt, "normalize: dst", dst);
 
-        auto opts = args[2].asObject(rt);
+        auto opts = conversions::asType<jsi::Object>(rt, "normalize: options", args[2]);
 
         const int32_t c = src->shape_[0];
         const int32_t h = src->shape_[1];
         const int32_t w = src->shape_[2];
 
         auto getNormalizeOption = [&](const char *optName) -> std::vector<double> {
-            auto val = conversions::getRequiredProperty<jsi::Value>(rt, "normalize", opts, optName);
+            auto val = conversions::getRequiredProperty<jsi::Value>(rt, "normalize: options", opts, optName);
             std::vector<double> result(static_cast<size_t>(c));
             if (val.isNumber()) {
-                std::ranges::fill(result, val.asNumber());
+                std::ranges::fill(result, conversions::asType<double>(rt, std::format("normalize: options.{}", optName), val));
             } else {
                 auto arr = conversions::asVector<double>(rt, std::format("normalize: options.{}", optName), val);
                 if (arr.size() != static_cast<size_t>(c)) {
@@ -388,23 +389,16 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: applyColormap(src, dst, colormap)");
         }
 
-        if (!args[2].isObject() || !args[2].asObject(rt).isArray(rt)) {
-            throw jsi::JSError(rt, "applyColormap: colormap must be an array");
-        }
-
-        auto src = tensor::fromJs(rt, "applyColormap: src", args[0], DType::int32, std::nullopt);
-        auto dst = tensor::fromJs(rt, "applyColormap: dst", args[1], DType::uint8, std::nullopt);
+        auto colormapArray = conversions::asType<jsi::Array>(rt, "applyColormap: colormap", args[2]);
+        auto src = tensor::fromJs(rt, "applyColormap: src", args[0], DType::int32, tensor::SymbolicShape{"H", "W", 1});
+        auto dst = tensor::fromJs(rt, "applyColormap: dst", args[1], DType::uint8, tensor::SymbolicShape{src->shape_[0], src->shape_[1], 4});
 
         tensor::checkNotSameTensor(rt, "applyColormap: src", src, "applyColormap: dst", dst);
         auto srcLock = tensor::tryLockShared(rt, "applyColormap: src", src);
         auto dstLock = tensor::tryLockUnique(rt, "applyColormap: dst", dst);
 
         constexpr size_t numRgbaChannels = 4;
-        if (dst->numel_ != src->numel_ * numRgbaChannels) {
-            throw jsi::JSError(rt, "applyColormap: dst must have exactly 4 times the number of elements as src (RGBA channels)");
-        }
 
-        auto colormapArray = args[2].asObject(rt).asArray(rt);
         const size_t numColors = colormapArray.size(rt);
         std::vector<std::array<uint8_t, numRgbaChannels>> lut(numColors);
         for (size_t i = 0; i < numColors; ++i) {

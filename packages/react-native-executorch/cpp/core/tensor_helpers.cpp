@@ -1,11 +1,13 @@
 #include "tensor_helpers.h"
-#include "dtype.h"
 
 #include <format>
 #include <unordered_map>
 
+#include "dtype.h"
+
 namespace rnexecutorch::core::tensor {
 namespace types = rnexecutorch::core::types;
+namespace conversions = rnexecutorch::core::conversions;
 
 std::shared_lock<std::shared_mutex>
 tryLockShared(jsi::Runtime &rt, const std::string &name, const std::shared_ptr<TensorHostObject> &tensor) {
@@ -68,11 +70,12 @@ std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype, const std::optional<SymbolicShape> &expectedShape) {
 
-    if (!value.isObject() || !value.asObject(rt).isHostObject<TensorHostObject>(rt)) {
+    auto obj = conversions::asType<jsi::Object>(rt, name, value);
+    if (!obj.isHostObject<TensorHostObject>(rt)) {
         throw jsi::JSError(rt, name + " must be a Tensor");
     }
 
-    auto tensor = value.asObject(rt).getHostObject<TensorHostObject>(rt);
+    auto tensor = obj.getHostObject<TensorHostObject>(rt);
     const auto &dtype = tensor->dtype_;
     const auto &shape = tensor->shape_;
 
