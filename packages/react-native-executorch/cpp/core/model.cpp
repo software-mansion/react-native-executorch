@@ -1,13 +1,15 @@
 #include "model.h"
-#include "dtype.h"
-#include "tensor_helpers.h"
 
 #include <chrono>
 #include <exception>
 #include <format>
-#include <jsi/jsi.h>
 #include <unordered_set>
 #include <utility>
+
+#include "dtype.h"
+#include "tensor_helpers.h"
+
+#include <jsi/jsi.h>
 
 #include <executorch/runtime/backend/interface.h>
 #include <executorch/runtime/core/error.h>
@@ -255,8 +257,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
 #ifdef EXECUTORCH_ENABLE_EXECUTION_PROFILING
             auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTime - startTime).count();
-            auto consoleObj = rt.global().getProperty(rt, "console").asObject(rt);
-            auto logFn = consoleObj.getProperty(rt, "log").asObject(rt).asFunction(rt);
+            auto consoleObj = conversions::asType<jsi::Object>(rt, "console", rt.global().getProperty(rt, "console"));
+            auto logFn = conversions::asType<jsi::Function>(rt, "console.log", consoleObj.getProperty(rt, "log"));
             auto info = std::format("Execution of method '{}' took {} ms", methodName, durationMs);
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif

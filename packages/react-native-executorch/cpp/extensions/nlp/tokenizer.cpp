@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <utility>
 
-#include <pytorch/tokenizers/error.h>
-
 #include "core/conversions.h"
+
+#include <pytorch/tokenizers/error.h>
 
 namespace rnexecutorch::extensions::nlp::tokenizer {
 namespace jsi = facebook::jsi;
@@ -245,7 +245,7 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadTokenizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
-            throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(arg0)");
+            throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(path)");
         }
 
         auto tokenizerPath = conversions::asType<std::string>(rt, "loadTokenizer: path", args[0]);

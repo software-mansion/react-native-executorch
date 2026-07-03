@@ -11,12 +11,12 @@
 #include <utility>
 #include <vector>
 
-#include <opencv2/core.hpp>
-
 #include "core/dtype.h"
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
 #include "utils.h"
+
+#include <opencv2/core.hpp>
 
 namespace rnexecutorch::extensions::cv::box_ops {
 namespace jsi = facebook::jsi;
@@ -88,11 +88,11 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         auto boxesLock = tensor::tryLockShared(rt, "nms: boxes", boxes);
         auto scoresLock = tensor::tryLockShared(rt, "nms: scores", scores);
 
-        const auto opts = args[2].asObject(rt);
-        const auto nmsTypeStr = conversions::getRequiredProperty<std::string>(rt, "nms", opts, "nmsType");
-        const auto boxFormatStr = conversions::getRequiredProperty<std::string>(rt, "nms", opts, "boxFormat");
-        const auto iouThreshold = conversions::getRequiredProperty<float>(rt, "nms", opts, "iouThreshold");
-        const auto confidenceThreshold = conversions::getRequiredProperty<float>(rt, "nms", opts, "confidenceThreshold");
+        auto opts = conversions::asType<jsi::Object>(rt, "nms: options", args[2]);
+        auto nmsTypeStr = conversions::getRequiredProperty<std::string>(rt, "nms: options", opts, "nmsType");
+        auto boxFormatStr = conversions::getRequiredProperty<std::string>(rt, "nms: options", opts, "boxFormat");
+        auto iouThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "iouThreshold");
+        auto confidenceThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "confidenceThreshold");
 
         NmsType nmsType{};
         BoxFormat boxFormat{};

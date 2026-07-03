@@ -28,7 +28,7 @@ public:
     std::vector<jsi::PropNameID> getPropertyNames(jsi::Runtime &rt) override;
 
 private:
-    std::string modelPath_;
+    const std::string modelPath_;
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
 };
