@@ -65,12 +65,13 @@ export async function createImageEmbeddings(
   const inpShape = meta.inputTensorMeta[0]!.shape;
   const outShape = meta.outputTensorMeta[0]!.shape;
 
-  const tEmbedding = tensor('float32', outShape);
+  const tensors = [tensor('float32', outShape)] as const;
+  const [tEmbedding] = tensors;
   const preprocessor = createImagePreprocessor(opts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
-    tEmbedding.dispose();
+    tensors.forEach((t) => t.dispose());
     model.dispose();
   };
 

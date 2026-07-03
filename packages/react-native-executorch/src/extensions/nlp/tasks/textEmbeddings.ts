@@ -74,10 +74,11 @@ export async function createTextEmbeddings(
   const maxSeqLen = meta.inputTensorMeta[0]!.shape[1]!;
   const outShape = meta.outputTensorMeta[0]!.shape;
 
-  const tEmbedding = tensor('float32', outShape);
+  const tensors = [tensor('float32', outShape)] as const;
+  const [tEmbedding] = tensors;
 
   const dispose = () => {
-    tEmbedding.dispose();
+    tensors.forEach((t) => t.dispose());
     tokenizer.dispose();
     model.dispose();
   };
