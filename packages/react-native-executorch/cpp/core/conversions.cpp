@@ -4,15 +4,15 @@
 
 namespace rnexecutorch::core::conversions {
 
-constexpr double kMaxInt64Double = static_cast<double>(std::numeric_limits<int64_t>::max());
-constexpr double kMinInt64Double = static_cast<double>(std::numeric_limits<int64_t>::min());
-constexpr double kMaxUint64Double = static_cast<double>(std::numeric_limits<uint64_t>::max());
+constexpr auto kMaxInt64Double = static_cast<double>(std::numeric_limits<int64_t>::max());
+constexpr auto kMinInt64Double = static_cast<double>(std::numeric_limits<int64_t>::min());
+constexpr auto kMaxUint64Double = static_cast<double>(std::numeric_limits<uint64_t>::max());
 
-constexpr double kMinInt32Double = static_cast<double>(std::numeric_limits<int32_t>::min());
-constexpr double kMaxInt32Double = static_cast<double>(std::numeric_limits<int32_t>::max());
+constexpr auto kMinInt32Double = static_cast<double>(std::numeric_limits<int32_t>::min());
+constexpr auto kMaxInt32Double = static_cast<double>(std::numeric_limits<int32_t>::max());
 
-constexpr double kMinUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::min());
-constexpr double kMaxUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::max());
+constexpr auto kMinUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::min());
+constexpr auto kMaxUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::max());
 
 template <>
 double asType<double>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
