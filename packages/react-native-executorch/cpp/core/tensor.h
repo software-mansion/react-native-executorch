@@ -1,16 +1,16 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <mutex>
 #include <shared_mutex>
-#include <string>
 #include <vector>
 
-#include <executorch/extension/tensor/tensor_ptr.h>
+#include "dtype.h"
+
 #include <jsi/jsi.h>
 
-#include "dtype.h"
+#include <executorch/extension/tensor/tensor_ptr.h>
 
 namespace rnexecutorch::core::tensor {
 namespace jsi = facebook::jsi;
@@ -26,10 +26,10 @@ namespace types = rnexecutorch::core::types;
 class TensorHostObject : public jsi::HostObject,
                          public std::enable_shared_from_this<TensorHostObject> {
 public:
-    types::DType dtype_;
-    std::vector<std::int32_t> shape_;
-    size_t numel_;
-    size_t size_;
+    const types::DType dtype_;
+    const std::vector<std::int32_t> shape_;
+    const size_t numel_;
+    const size_t size_;
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     std::unique_ptr<std::uint8_t[]> data_;

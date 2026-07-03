@@ -1,6 +1,4 @@
 #include "tensor.h"
-#include "dtype.h"
-#include "tensor_helpers.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -10,8 +8,10 @@
 #include <numeric>
 #include <optional>
 #include <string>
-#include <unordered_map>
-#include <variant>
+
+#include "core/conversions.h"
+#include "dtype.h"
+#include "tensor_helpers.h"
 
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 
@@ -19,13 +19,16 @@ namespace rnexecutorch::core::tensor {
 namespace types = rnexecutorch::core::types;
 namespace conversions = rnexecutorch::core::conversions;
 
+using rnexecutorch::core::conversions::getOptionalProperty;
+using rnexecutorch::core::conversions::getRequiredProperty;
+
 TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, DType dtype)
     : dtype_(dtype),
       shape_(shape),
       numel_(std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<>())),
       size_(numel_ * types::elementSize(dtype)) {
-    data_ = std::make_unique<std::uint8_t[]>(size_); // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays):
-                                                     // owning runtime-sized byte buffer
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
+    data_ = std::make_unique<std::uint8_t[]>(size_);
     tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::toScalarType(dtype));
 }
 
@@ -61,8 +64,8 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             if (count == 2) {
                 optsObj = conversions::asType<jsi::Object>(rt, "copyTo: options", args[1]);
             }
-            size_t offset = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "offset").value_or(0);
-            size_t length = conversions::getOptionalProperty<uint64_t>(rt, "copyTo", optsObj, "length").value_or(self->numel_ - offset);
+            size_t offset = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "offset").value_or(0);
+            size_t length = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "length").value_or(self->numel_ - offset);
 
             if (offset + length > self->numel_) {
                 throw jsi::JSError(rt, "copyTo: out of bounds offset and length for src tensor");
@@ -76,7 +79,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::memcpy(dst->data_.get(), self->data_.get() + (offset * elemSize), length * elemSize);
 
-            return jsi::Value(rt, args[0].asObject(rt));
+            return jsi::Value(rt, args[0]);
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "copyTo"), 1, fnBody);
     }
@@ -89,9 +92,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "setData: array", args[0]);
-            auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "setData", dataObj, "buffer");
-            size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteOffset").value_or(0);
-            size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "setData", dataObj, "byteLength").value_or(buffer.size(rt));
+            auto buffer = getRequiredProperty<jsi::ArrayBuffer>(rt, "setData: array", dataObj, "buffer");
+            size_t byteOffset = getOptionalProperty<uint64_t>(rt, "setData: array", dataObj, "byteOffset").value_or(0);
+            size_t byteLength = getOptionalProperty<uint64_t>(rt, "setData: array", dataObj, "byteLength").value_or(buffer.size(rt));
 
             auto lock = tryLockUnique(rt, "setData: self", self);
 
@@ -102,7 +105,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::memcpy(self->data_.get(), buffer.data(rt) + byteOffset, byteLength);
 
-            return jsi::Value(rt, thisVal.asObject(rt));
+            return jsi::Value(rt, thisVal);
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "setData"), 1, fnBody);
     }
@@ -115,9 +118,9 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "getData: array", args[0]);
-            auto buffer = conversions::getRequiredProperty<jsi::ArrayBuffer>(rt, "getData", dataObj, "buffer");
-            size_t byteOffset = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteOffset").value_or(0);
-            size_t byteLength = conversions::getOptionalProperty<uint64_t>(rt, "getData", dataObj, "byteLength").value_or(buffer.size(rt));
+            auto buffer = getRequiredProperty<jsi::ArrayBuffer>(rt, "getData: array", dataObj, "buffer");
+            size_t byteOffset = getOptionalProperty<uint64_t>(rt, "getData: array", dataObj, "byteOffset").value_or(0);
+            size_t byteLength = getOptionalProperty<uint64_t>(rt, "getData: array", dataObj, "byteLength").value_or(buffer.size(rt));
 
             auto lock = tryLockShared(rt, "getData: self", self);
 
@@ -128,7 +131,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             std::memcpy(buffer.data(rt) + byteOffset, self->data_.get(), byteLength);
 
-            return jsi::Value(rt, args[0].asObject(rt));
+            return jsi::Value(rt, args[0]);
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getData"), 1, fnBody);
     }
