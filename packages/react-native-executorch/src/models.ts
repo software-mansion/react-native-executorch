@@ -533,7 +533,7 @@ const YOLO26_XLARGE_SEG_640_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoCla
 // Voice Activity Detection
 // =============================================================================
 const FSMN_VAD_XNNPACK_FP32: VADModel = {
-  modelPath: `${BASE_URL}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
+  modelPath: `${BASE_URL}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
 };
 
 // =============================================================================
