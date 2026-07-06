@@ -1,22 +1,22 @@
 #include "Supertonic.h"
 #include "Constants.h"
 #include "Params.h"
-#include "Utils.h"
+
+#include "../common/Constants.h"
+#include "../common/Utils.h"
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 
 #include <algorithm>
 #include <chrono>
-#include <cmath>
-#include <cstring>
 #include <fstream>
 #include <thread>
 
 namespace rnexecutorch::models::text_to_speech::supertonic {
 
-using ::executorch::aten::ScalarType;
-using ::executorch::extension::make_tensor_ptr;
+namespace common_constants = ::rnexecutorch::models::text_to_speech::constants;
+namespace common_utils = ::rnexecutorch::models::text_to_speech::utils;
 
 namespace {
 
@@ -47,10 +47,18 @@ Supertonic::Supertonic(const std::string &lang,
                        std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker_(std::move(callInvoker)),
       textProcessor_(unicodeIndexerSource, lang),
+      partitioner_(
+          ::rnexecutorch::models::text_to_speech::TextPartitionerConfig{
+              .eosCost = params::partitioning::kEosCost,
+              .pauseCost = params::partitioning::kPauseCost,
+              .whiteCost = params::partitioning::kWhiteCost,
+              .tokenDiscountFactor = params::partitioning::kTokenDiscountFactor,
+              .tokenDiscountRange = params::partitioning::kTokenDiscountRange,
+          }),
       durationPredictor_(durationPredictorSource, callInvoker_),
       textEncoder_(textEncoderSource, callInvoker_),
       vectorEstimator_(vectorEstimatorSource, callInvoker_),
-      vocoder_(vocoderSource, callInvoker_), rng_(std::random_device{}()) {
+      vocoder_(vocoderSource, callInvoker_) {
   loadVoice(voiceSource);
 }
 
@@ -109,7 +117,6 @@ std::vector<float> Supertonic::synthesize(std::u32string_view text, float speed,
   if (tok.ids.empty()) {
     return {};
   }
-  // Clamp to the exported model's dynamic-shape range.
   if (tok.ids.size() > constants::kMaxTokens) {
     tok.ids.resize(constants::kMaxTokens);
     tok.mask.resize(constants::kMaxTokens);
@@ -119,88 +126,35 @@ std::vector<float> Supertonic::synthesize(std::u32string_view text, float speed,
   }
   const auto tLen = static_cast<int32_t>(tok.ids.size());
 
-  auto idsTensor = make_tensor_ptr({1, tLen}, tok.ids.data(), ScalarType::Long);
-  auto maskTensor =
-      make_tensor_ptr({1, 1, tLen}, tok.mask.data(), ScalarType::Float);
-  auto styleTtlTensor =
-      make_tensor_ptr({1, constants::kStyleTtlTokens, constants::kStyleTtlDim},
-                      voice_.ttl.data(), ScalarType::Float);
-  auto styleDpTensor =
-      make_tensor_ptr({1, constants::kStyleDpTokens, constants::kStyleDpDim},
-                      voice_.dp.data(), ScalarType::Float);
-
-  // 2. Duration predictor -> seconds.
-  auto durResult =
-      durationPredictor_.run({idsTensor, styleDpTensor, maskTensor});
-  auto durTensor = durResult->at(0).toTensor();
-  const float durationSec = durTensor.const_data_ptr<float>()[0] / speed;
+  // 2. Duration predictor.
+  float durationSec =
+      durationPredictor_.generate(tok.ids, tok.mask, voice_.dp, speed);
   if (!(durationSec > 0.0F)) {
     return {};
   }
 
-  // 3. Text encoder -> text embedding [1, 256, T] (copied so it stays valid
-  //    across the vector-estimator loop).
-  auto teResult = textEncoder_.run({idsTensor, styleTtlTensor, maskTensor});
-  auto textEmbTensor0 = teResult->at(0).toTensor();
-  std::vector<float> textEmb(textEmbTensor0.const_data_ptr<float>(),
-                             textEmbTensor0.const_data_ptr<float>() +
-                                 textEmbTensor0.numel());
-  const int32_t textEmbLen = tLen; // [1, 256, T]
-  auto textEmbTensor = make_tensor_ptr({1, constants::kTextEmbDim, textEmbLen},
-                                       textEmb.data(), ScalarType::Float);
+  // 3. Text encoder.
+  auto textEmb = textEncoder_.generate(tok.ids, tok.mask, voice_.ttl);
 
-  // 4. Sample masked Gaussian latent noise.
-  const int64_t chunk = constants::kSamplesPerLatentFrame;
-  const auto sr = static_cast<double>(constants::kSamplingRate);
-  const auto wavLen = static_cast<int64_t>(durationSec * sr);
-  size_t L = static_cast<size_t>(std::ceil(durationSec * sr / chunk));
-  L = std::clamp<size_t>(L, 1, constants::kMaxLatentFrames);
-  const size_t latentValid =
-      std::min<size_t>(static_cast<size_t>((wavLen + chunk - 1) / chunk), L);
-  const int32_t channels = constants::kLatentChannels;
+  // 4. Vector estimator (flow-matching Euler loop with latent geometry).
+  auto latent = vectorEstimator_.generate(textEmb, tLen, voice_.ttl, tok.mask,
+                                          tLen, durationSec, totalSteps);
 
-  std::vector<float> latentMask(L, 0.0F);
-  std::fill(latentMask.begin(), latentMask.begin() + latentValid, 1.0F);
+  // 5. Vocoder.
+  auto wav = vocoder_.generate(latent.xt, constants::kLatentChannels, latent.L);
 
-  std::normal_distribution<float> gauss(0.0F, 1.0F);
-  std::vector<float> xt(static_cast<size_t>(channels) * L);
-  for (int32_t c = 0; c < channels; ++c) {
-    for (size_t i = 0; i < L; ++i) {
-      xt[static_cast<size_t>(c) * L + i] = gauss(rng_) * latentMask[i];
-    }
-  }
-
-  auto xtTensor = make_tensor_ptr({1, channels, static_cast<int32_t>(L)},
-                                  xt.data(), ScalarType::Float);
-  auto latentMaskTensor = make_tensor_ptr({1, 1, static_cast<int32_t>(L)},
-                                          latentMask.data(), ScalarType::Float);
-
-  // 5. Flow-matching Euler loop.
-  float totalF = static_cast<float>(totalSteps);
-  auto totalTensor = make_tensor_ptr({1}, &totalF, ScalarType::Float);
-  for (int32_t step = 0; step < totalSteps; ++step) {
-    float curF = static_cast<float>(step);
-    auto curTensor = make_tensor_ptr({1}, &curF, ScalarType::Float);
-    auto veResult = vectorEstimator_.run(
-        {xtTensor, textEmbTensor, styleTtlTensor, maskTensor, latentMaskTensor,
-         curTensor, totalTensor});
-    auto out = veResult->at(0).toTensor();
-    std::memcpy(xt.data(), out.const_data_ptr<float>(),
-                xt.size() * sizeof(float));
-  }
-
-  // 6. Vocoder -> waveform.
-  auto vocResult = vocoder_.run({xtTensor});
-  auto wavTensor = vocResult->at(0).toTensor();
-  const auto totalSamples = static_cast<size_t>(wavTensor.numel());
-  const float *wavPtr = wavTensor.const_data_ptr<float>();
-
-  // 7. Crop to the predicted duration, then strip trailing silence.
+  // 6. Crop to the predicted duration, then strip trailing silence.
+  const auto totalSamples = wav.size();
+  const auto wavLen = static_cast<int64_t>(
+      durationSec * static_cast<double>(constants::kSamplingRate));
   const size_t cropLen = std::min<size_t>(
       static_cast<size_t>(std::max<int64_t>(wavLen, 0)), totalSamples);
-  std::span<const float> audio(wavPtr, cropLen > 0 ? cropLen : totalSamples);
-  audio =
-      utils::stripAudio(audio, paddingMs * constants::kSamplesPerMillisecond);
+  std::span<const float> audio(wav.data(),
+                               cropLen > 0 ? cropLen : totalSamples);
+  audio = common_utils::stripAudio(
+      audio, paddingMs * constants::kSamplesPerMillisecond,
+      params::cropping::kAudioCroppingSteps,
+      params::cropping::kAudioSilenceThreshold);
   return {audio.begin(), audio.end()};
 }
 
@@ -215,8 +169,7 @@ std::vector<float> Supertonic::generate(std::u32string input, float speed,
     return {};
   }
 
-  auto partition = partitioner_.partition(input, params::kMaxSegmentChars,
-                                          Partitioner::Mode::MIN_BREAKS);
+  auto partition = partitioner_.partition(input, params::kMaxSegmentChars);
 
   std::vector<float> audio;
   for (const auto &[offset, length] : partition.segments) {
@@ -267,8 +220,9 @@ void Supertonic::stream(std::shared_ptr<jsi::Function> callback, float speed,
           std::min(inputTextBuffer_.size(), params::kMaxTextSize);
       auto eosIt = std::find_first_of(
           inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
-          inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
-          constants::kEndOfSentenceCharacters.end());
+          inputTextBuffer_.rend(),
+          common_constants::kEndOfSentenceCharacters.begin(),
+          common_constants::kEndOfSentenceCharacters.end());
       size_t chunkSize = (eosIt != inputTextBuffer_.rend())
                              ? std::distance(eosIt, inputTextBuffer_.rend())
                              : 0;
@@ -288,8 +242,7 @@ void Supertonic::stream(std::shared_ptr<jsi::Function> callback, float speed,
     }
 
     if (!input.empty()) {
-      auto partition = partitioner_.partition(input, params::kMaxSegmentChars,
-                                              Partitioner::Mode::MIN_LATENCY);
+      auto partition = partitioner_.partition(input, params::kMaxSegmentChars);
       for (const auto &[offset, length] : partition.segments) {
         if (!isStreaming_) {
           break;

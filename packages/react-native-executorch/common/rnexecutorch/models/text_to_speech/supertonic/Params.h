@@ -13,9 +13,11 @@ namespace rnexecutorch::models::text_to_speech::supertonic::params {
 // handle any length, so this is a safety valve only.
 inline constexpr size_t kMaxTextSize = 2048;
 
-// Max characters per synthesized segment (mirrors DEFAULT_MAX_CHUNK_LENGTH in
-// supertonic_torch). The partitioner keeps segments under this.
-inline constexpr size_t kMaxSegmentChars = 300;
+// Max characters per synthesized segment.
+inline constexpr size_t kMaxSegmentChars = 256;
+
+inline constexpr float kDefaultSpeedF = 1.05F;
+inline constexpr int32_t kDefaultStepsI = 8;
 
 // Pause inserted between streaming iterations to avoid busy-spinning.
 inline constexpr int32_t kStreamPause = 200; // [ms]
@@ -38,15 +40,11 @@ inline constexpr float kAudioSilenceThreshold = 0.0005F;
 // Partitioning cost weights (identical scheme to Kokoro).
 namespace partitioning {
 inline constexpr int64_t kTokenDiscountFactor = 1;
-inline constexpr int64_t kTokenDiscountRange = 300;
+inline constexpr int64_t kTokenDiscountRange = 128;
 
-inline constexpr uint64_t kEosMinBreaksCost = 1;
-inline constexpr uint64_t kPauseMinBreaksCost = 3;
-inline constexpr uint64_t kWhiteMinBreaksCost = 1000;
-
-inline constexpr uint64_t kEosMinLatencyCost = 5;
-inline constexpr uint64_t kPauseMinLatencyCost = 18;
-inline constexpr uint64_t kWhiteMinLatencyCost = 1000;
+inline constexpr uint64_t kEosCost = 5;
+inline constexpr uint64_t kPauseCost = 18;
+inline constexpr uint64_t kWhiteCost = 1000;
 } // namespace partitioning
 
 } // namespace rnexecutorch::models::text_to_speech::supertonic::params

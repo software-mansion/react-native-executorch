@@ -2,6 +2,9 @@
 #include "Params.h"
 #include "Utils.h"
 
+#include "../common/Constants.h"
+#include "../common/Utils.h"
+
 #include <algorithm>
 #include <fstream>
 #include <phonemis/utils/strings.h>
@@ -11,6 +14,9 @@
 #include <thread>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
+
+namespace common_constants = ::rnexecutorch::models::text_to_speech::constants;
+namespace common_utils = ::rnexecutorch::models::text_to_speech::utils;
 
 Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
                const std::string &lexiconSource,
@@ -36,6 +42,13 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
                       neuralModelSource.empty()
                           ? std::nullopt
                           : std::make_optional(neuralModelSource)}}),
+      partitioner_(TextPartitionerConfig{
+          .eosCost = params::partitioning::kEosCost,
+          .pauseCost = params::partitioning::kPauseCost,
+          .whiteCost = params::partitioning::kWhiteCost,
+          .tokenDiscountFactor = params::partitioning::kTokenDiscountFactor,
+          .tokenDiscountRange = params::partitioning::kTokenDiscountRange,
+      }),
       durationPredictor_(durationPredictorSource, context_, callInvoker_),
       synthesizer_(synthesizerSource, context_, callInvoker_) {
   // Populate the voice array by reading given file
@@ -119,8 +132,7 @@ std::vector<float> Kokoro::generate(std::u32string input, float speed,
 
   // Divide the phonemes string into substrings, minimizing the amount of
   // breaks.
-  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit,
-                                          Partitioner::Mode::MIN_BREAKS);
+  auto partition = partitioner_.partition(phonemes, context_.inputTokensLimit);
 
   std::vector<float> audio = {};
   for (const auto &[offset, length] : partition.segments) {
@@ -200,8 +212,9 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
           std::min(inputTextBuffer_.size(), params::kMaxTextSize);
       auto eosIt = std::find_first_of(
           inputTextBuffer_.rbegin() + (inputTextBuffer_.size() - searchLimit),
-          inputTextBuffer_.rend(), constants::kEndOfSentenceCharacters.begin(),
-          constants::kEndOfSentenceCharacters.end());
+          inputTextBuffer_.rend(),
+          common_constants::kEndOfSentenceCharacters.begin(),
+          common_constants::kEndOfSentenceCharacters.end());
       size_t chunkSize = (eosIt != inputTextBuffer_.rend())
                              ? std::distance(eosIt, inputTextBuffer_.rend())
                              : 0;
@@ -237,8 +250,8 @@ void Kokoro::stream(std::shared_ptr<jsi::Function> callback, float speed,
         // Since we do not phonemize the entire input before partitioning, there
         // is a possibility that some segment might exceed the token limit after
         // phonemization. This is being handled later.
-        auto partition = partitioner_.partition(
-            buffer, context_.inputTokensLimit, Partitioner::Mode::MIN_LATENCY);
+        auto partition =
+            partitioner_.partition(buffer, context_.inputTokensLimit);
 
         for (size_t i = 0; i < partition.segments.size(); i++) {
           if (!isStreaming_) {
@@ -406,8 +419,8 @@ std::vector<float> Kokoro::synthesize(std::u32string_view phonemes, float speed,
   }
 
   // Now additional stripping of a (hopefully) pure silence.
-  audio =
-      utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
+  audio = common_utils::stripAudio(audio, paddingMs *
+                                              constants::kSamplesPerMilisecond);
 
   return {audio.begin(), audio.end()};
 }

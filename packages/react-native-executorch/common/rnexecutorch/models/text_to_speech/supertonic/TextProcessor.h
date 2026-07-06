@@ -8,22 +8,6 @@
 
 namespace rnexecutorch::models::text_to_speech::supertonic {
 
-/**
- * Port of ``supertonic_torch.pipeline.UnicodeProcessor``.
- *
- * Reproduces the exact preprocessing the model was trained with:
- *   1. Unicode NFKD normalization (see NfkdTable.h)
- *   2. emoji removal
- *   3. symbol normalization (dashes, smart quotes, ...)
- *   4. decorative-symbol removal
- *   5. abbreviation expansion (@, e.g., i.e.)
- *   6. punctuation-spacing fixes
- *   7. duplicate-quote collapsing
- *   8. whitespace cleanup
- *   9. trailing period insertion
- *   10. language-token wrapping: ``<lang>text</lang>``
- * then maps each codepoint through the unicode indexer to a token id.
- */
 class TextProcessor {
 public:
   /**
@@ -45,11 +29,6 @@ public:
    */
   TokenizedText process(std::u32string_view text,
                         std::string_view lang = {}) const;
-
-  /** Full preprocessing (steps 1-10) without tokenization — exposed for tests.
-   */
-  std::u32string preprocess(std::u32string_view text,
-                            std::string_view lang = {}) const;
 
   /** The default language used when a per-call lang is not supplied. */
   const std::string &defaultLang() const noexcept { return defaultLang_; }

@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Constants.h"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
-
-#include "Constants.h"
 
 namespace rnexecutorch::models::text_to_speech::supertonic {
 
@@ -19,10 +19,6 @@ using Token = int64_t;
  *   - ttl: text-to-latent style, shape [n_style(50) x style_dim(256)]
  *   - dp:  duration-predictor style, shape [dp_style_tokens(8) x
  * dp_style_dim(16)]
- *
- * Stored on disk (and downloaded from HF) as a flat little-endian float32 blob:
- * the 12800 ttl values followed by the 128 dp values (see
- * scripts/convert_voice.py).
  */
 struct Voice {
   std::array<float, constants::kStyleTtlSize> ttl{};

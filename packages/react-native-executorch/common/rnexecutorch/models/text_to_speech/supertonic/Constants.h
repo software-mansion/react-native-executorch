@@ -15,10 +15,8 @@ inline constexpr int32_t kSamplesPerMillisecond = kSamplingRate / 1000;
 inline constexpr int32_t kBaseChunkSize = 512;     // ae.base_chunk_size
 inline constexpr int32_t kChunkCompressFactor = 6; // ttl.chunk_compress_factor
 inline constexpr int32_t kLatentDim = 24;          // ttl.latent_dim
-// Waveform samples produced per latent frame (= base_chunk * ccf).
 inline constexpr int32_t kSamplesPerLatentFrame =
     kBaseChunkSize * kChunkCompressFactor; // 3072
-// Channel dim of the noisy latent fed to the vector estimator / vocoder.
 inline constexpr int32_t kLatentChannels =
     kLatentDim * kChunkCompressFactor; // 144
 
@@ -37,7 +35,7 @@ inline constexpr int32_t kTextEmbDim = 256;
 // --- Inference defaults / limits ------------------------------------------
 inline constexpr int32_t kDefaultTotalSteps = 8;
 inline constexpr int32_t kMinTotalSteps = 1;
-inline constexpr int32_t kMaxTotalSteps = 100;
+inline constexpr int32_t kMaxTotalSteps = 32;
 inline constexpr float kDefaultSpeed = 1.05F;
 inline constexpr float kMinValidSpeed = 0.7F;
 inline constexpr float kMaxValidSpeed = 2.0F;
@@ -50,21 +48,12 @@ inline constexpr size_t kMaxLatentFrames = 1000;
 // up to kMinTokens or truncated down to kMaxTokens to stay within the range the
 // .pte files were exported for (see scripts/export/export_xnnpack.py).
 inline constexpr size_t kMinTokens = 8;
-inline constexpr size_t kMaxTokens = 512;
+inline constexpr size_t kMaxTokens = 256;
 inline constexpr int64_t kPadToken =
     0; // valid embedding row; masked out anyway
 
 // Unicode indexer: fixed BMP-sized table; entry == -1 means unsupported.
 inline constexpr size_t kIndexerSize = 65536;
 inline constexpr int64_t kUnsupportedIndex = -1;
-
-// --- Special text characters (partitioning) -------------------------------
-inline const std::unordered_set<char32_t> kEndOfSentenceCharacters = {
-    U'.', U'?', U'!', U';', U'…', U'。', U'！', U'？',
-};
-
-inline const std::unordered_set<char32_t> kPauseCharacters = {
-    U',', U':', U'-', U'—', U'、', U'，',
-};
 
 } // namespace rnexecutorch::models::text_to_speech::supertonic::constants

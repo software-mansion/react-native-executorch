@@ -3,17 +3,20 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
-#include <random>
 #include <string>
 #include <vector>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
-#include "Partitioner.h"
-#include "Submodule.h"
+#include "../common/TextPartitioner.h"
+#include "DurationPredictor.h"
+#include "Params.h"
+#include "TextEncoder.h"
 #include "TextProcessor.h"
 #include "Types.h"
+#include "VectorEstimator.h"
+#include "Vocoder.h"
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 namespace rnexecutorch {
@@ -21,19 +24,6 @@ namespace models::text_to_speech::supertonic {
 
 using namespace facebook;
 
-/**
- * Supertonic 3 TTS.
- *
- * Mirrors the Kokoro RNE pipeline (offline `generate` + chunked `stream`) but
- * runs the Supertonic flow-matching stack: four ExecuTorch submodules driven in
- * order per segment —
- *   1. duration_predictor : (ids, style_dp, mask)                -> duration[s]
- *   2. text_encoder       : (ids, style_ttl, mask)               -> text_emb
- *   3. vector_estimator   : Euler flow-matching loop over noise  -> latent
- *   4. vocoder            : latent                               -> waveform
- * Text pre-processing (Unicode NFKD + indexer) and audio post-processing
- * (duration crop + silence strip) are done natively in C++.
- */
 class Supertonic {
 public:
   Supertonic(const std::string &lang, const std::string &unicodeIndexerSource,
@@ -53,8 +43,8 @@ public:
    *        needs no model reload.
    */
   std::vector<float> generate(std::u32string input,
-                              float speed = kDefaultSpeedF,
-                              int32_t totalSteps = kDefaultStepsI,
+                              float speed = params::kDefaultSpeedF,
+                              int32_t totalSteps = params::kDefaultStepsI,
                               std::string lang = "");
 
   /**
@@ -64,7 +54,8 @@ public:
    *        construction default).
    */
   void stream(std::shared_ptr<jsi::Function> callback,
-              float speed = kDefaultSpeedF, int32_t totalSteps = kDefaultStepsI,
+              float speed = params::kDefaultSpeedF,
+              int32_t totalSteps = params::kDefaultStepsI,
               bool stopOnEmptyBuffer = false, std::string lang = "");
 
   void streamInsert(std::u32string chunk) noexcept;
@@ -75,9 +66,6 @@ public:
   void unload() noexcept;
 
 private:
-  static constexpr float kDefaultSpeedF = 1.05F;
-  static constexpr int32_t kDefaultStepsI = 8;
-
   void loadVoice(const std::string &voiceSource);
 
   // Runs the four submodules for one already-partitioned text segment and
@@ -93,17 +81,14 @@ private:
 
   // --- Pipeline components (in order of use) ---
   TextProcessor textProcessor_;
-  Partitioner partitioner_;
-  Submodule durationPredictor_;
-  Submodule textEncoder_;
-  Submodule vectorEstimator_;
-  Submodule vocoder_;
+  TextPartitioner partitioner_;
+  DurationPredictor durationPredictor_;
+  TextEncoder textEncoder_;
+  VectorEstimator vectorEstimator_;
+  Vocoder vocoder_;
 
   // --- Voice ---
   Voice voice_;
-
-  // --- Noise sampling ---
-  std::mt19937 rng_;
 
   // --- Streaming buffer & control ---
   std::u32string inputTextBuffer_;

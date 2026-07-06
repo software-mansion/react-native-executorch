@@ -134,8 +134,8 @@ void TextProcessor::loadIndexer(const std::string &indexerSource) {
   indexer_ = j.get<std::vector<int32_t>>();
 }
 
-std::u32string TextProcessor::preprocess(std::u32string_view text,
-                                         std::string_view lang) const {
+TokenizedText TextProcessor::process(std::u32string_view text,
+                                     std::string_view lang) const {
   // 1. NFKD
   std::u32string s = normalizeNfkd(text);
 
@@ -225,16 +225,9 @@ std::u32string TextProcessor::preprocess(std::u32string_view text,
     s = std::move(wrapped);
   }
 
-  return s;
-}
-
-TokenizedText TextProcessor::process(std::u32string_view text,
-                                     std::string_view lang) const {
-  std::u32string pre = preprocess(text, lang);
-
   TokenizedText out;
-  out.ids.reserve(pre.size());
-  for (char32_t c : pre) {
+  out.ids.reserve(s.size());
+  for (char32_t c : s) {
     if (c >= constants::kIndexerSize) {
       continue; // unsupported (astral) codepoint
     }
@@ -245,6 +238,7 @@ TokenizedText TextProcessor::process(std::u32string_view text,
     out.ids.push_back(static_cast<Token>(id));
   }
   out.mask.assign(out.ids.size(), 1.0F);
+
   return out;
 }
 

@@ -60,8 +60,48 @@ const STEPS: ModelOption<number>[] = [
   { label: '16 (best quality)', value: 16 },
 ];
 
-// Supertonic renders audio at 44.1 kHz.
-const SAMPLE_RATE = 44100;
+// Kokoro: language-specific voices. Each voice bundles its own phonemizer
+// config, so only the voice picker is shown (no language/steps controls).
+const KOKORO_LANG_LABELS: Record<string, string> = {
+  en_us: '🇺🇸 US English',
+  en_gb: '🇬🇧 UK English',
+  fr: '🇫🇷 French',
+  es: '🇪🇸 Spanish',
+  it: '🇮🇹 Italian',
+  pt: '🇵🇹 Portuguese',
+  hi: '🇮🇳 Hindi',
+  pl: '🇵🇱 Polish',
+  de: '🇩🇪 German',
+};
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// `models.text_to_speech.kokoro.<lang>.<voice>` are factory functions
+// (`() => TextToSpeechModelConfig`); call them to get the actual configs.
+const kokoroVoicesByLang = models.text_to_speech.kokoro as unknown as Record<
+  string,
+  Record<string, () => TextToSpeechModelConfig>
+>;
+
+const KOKORO_VOICES: ModelOption<TextToSpeechModelConfig>[] = Object.entries(
+  kokoroVoicesByLang
+).flatMap(([lang, voices]) =>
+  Object.entries(voices).map(([name, factory]) => ({
+    label: `${KOKORO_LANG_LABELS[lang] ?? lang} · ${capitalize(name)}`,
+    value: factory(),
+  }))
+);
+
+type TtsModelType = 'supertonic' | 'kokoro';
+
+const TTS_MODEL_OPTIONS: ModelOption<TtsModelType>[] = [
+  { label: 'Supertonic', value: 'supertonic' },
+  { label: 'Kokoro', value: 'kokoro' },
+];
+
+// Supertonic renders at 44.1 kHz, Kokoro at 24 kHz.
+const SUPERTONIC_SAMPLE_RATE = 44100;
+const KOKORO_SAMPLE_RATE = 24000;
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -83,7 +123,7 @@ import ErrorBanner from '../components/ErrorBanner';
 const createAudioBufferFromVector = (
   audioVector: Float32Array,
   audioContext: AudioContext | null = null,
-  sampleRate: number = SAMPLE_RATE
+  sampleRate: number = SUPERTONIC_SAMPLE_RATE
 ): AudioBuffer => {
   if (audioContext == null) audioContext = new AudioContext({ sampleRate });
 
@@ -99,6 +139,8 @@ const createAudioBufferFromVector = (
 };
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
+  const [selectedTtsModel, setSelectedTtsModel] =
+    useState<TtsModelType>('supertonic');
   const [selectedSpeaker, setSelectedSpeaker] =
     useState<TextToSpeechModelConfig>(tts.m1());
   const [selectedLang, setSelectedLang] =
@@ -106,6 +148,19 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [totalSteps, setTotalSteps] = useState<number>(8);
 
   const model = useTextToSpeech(selectedSpeaker);
+
+  const sampleRate =
+    selectedTtsModel === 'supertonic'
+      ? SUPERTONIC_SAMPLE_RATE
+      : KOKORO_SAMPLE_RATE;
+
+  const handleSelectTtsModel = (type: TtsModelType) => {
+    if (type === selectedTtsModel) return;
+    setSelectedTtsModel(type);
+    setSelectedSpeaker(
+      type === 'supertonic' ? VOICES[0].value : KOKORO_VOICES[0].value
+    );
+  };
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -123,7 +178,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    const context = new AudioContext({ sampleRate: SAMPLE_RATE });
+    const context = new AudioContext({ sampleRate });
     audioContextRef.current = context;
     context.suspend();
 
@@ -138,7 +193,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       audioContextRef.current = null;
       gainNodeRef.current = null;
     };
-  }, []);
+  }, [sampleRate]);
 
   useEffect(() => {
     setReadyToGenerate(!model.isGenerating && model.isReady && !isPlaying);
@@ -165,7 +220,7 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           const audioBuffer = createAudioBufferFromVector(
             audioVec,
             audioContext,
-            SAMPLE_RATE
+            sampleRate
           );
 
           const source = (sourceRef.current =
@@ -192,8 +247,9 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
       await model.stream({
         text: inputText,
         speed: 1.0,
-        totalSteps,
-        lang: selectedLang,
+        ...(selectedTtsModel === 'supertonic'
+          ? { totalSteps, lang: selectedLang }
+          : {}),
         onNext,
         onEnd,
       });
@@ -235,28 +291,40 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
           <ModelPicker
+            label="Model"
+            models={TTS_MODEL_OPTIONS}
+            selectedModel={selectedTtsModel}
+            disabled={model.isGenerating || isPlaying}
+            onSelect={handleSelectTtsModel}
+          />
+
+          <ModelPicker
             label="Voice"
-            models={VOICES}
+            models={selectedTtsModel === 'supertonic' ? VOICES : KOKORO_VOICES}
             selectedModel={selectedSpeaker}
             disabled={model.isGenerating}
             onSelect={(m) => setSelectedSpeaker(m)}
           />
 
-          <ModelPicker
-            label="Language"
-            models={LANGUAGES}
-            selectedModel={selectedLang}
-            disabled={isPlaying}
-            onSelect={(l) => setSelectedLang(l)}
-          />
+          {selectedTtsModel === 'supertonic' && (
+            <>
+              <ModelPicker
+                label="Language"
+                models={LANGUAGES}
+                selectedModel={selectedLang}
+                disabled={isPlaying}
+                onSelect={(l) => setSelectedLang(l)}
+              />
 
-          <ModelPicker
-            label="Steps"
-            models={STEPS}
-            selectedModel={totalSteps}
-            disabled={isPlaying}
-            onSelect={(s) => setTotalSteps(s)}
-          />
+              <ModelPicker
+                label="Steps"
+                models={STEPS}
+                selectedModel={totalSteps}
+                disabled={isPlaying}
+                onSelect={(s) => setTotalSteps(s)}
+              />
+            </>
+          )}
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Enter text to synthesize</Text>
