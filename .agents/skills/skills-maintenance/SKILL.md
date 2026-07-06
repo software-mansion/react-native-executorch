@@ -22,10 +22,10 @@ Use this guide when you introduce, modify, or deprecate core codebase patterns, 
 2. **Proactively Update Affected Skills**:
    - Do not wait for the user to explicitly ask to update the skills. When a core API or idiom changes, update the relevant `SKILL.md` files as part of the implementation or refactoring task.
    - Specifically inspect:
-     - [add-native-extension](file:///Users/bhanc/workspace/react-native-executorch/.agents/skills/add-native-extension/SKILL.md) for C++ JSI & locking idioms.
-     - [add-task-pipeline](file:///Users/bhanc/workspace/react-native-executorch/.agents/skills/add-task-pipeline/SKILL.md) for TypeScript pipeline orchestration, pre-allocation, and lifecycle hooks.
-     - [model-schema-validation](file:///Users/bhanc/workspace/react-native-executorch/.agents/skills/model-schema-validation/SKILL.md) for schema verification constraints.
-     - [verify-and-build](file:///Users/bhanc/workspace/react-native-executorch/.agents/skills/verify-and-build/SKILL.md) for compilation and troubleshooting steps.
+     - [add-native-extension](../add-native-extension/SKILL.md) for C++ JSI & locking idioms.
+     - [add-task-pipeline](../add-task-pipeline/SKILL.md) for TypeScript pipeline orchestration, pre-allocation, and lifecycle hooks.
+     - [model-schema-validation](../model-schema-validation/SKILL.md) for schema verification constraints.
+     - [verify-and-build](../verify-and-build/SKILL.md) for compilation and troubleshooting steps.
 
 3. **Verify Example Correctness**:
    - Ensure all code blocks and examples in updated skills compile/work and match actual usage in the repository.
