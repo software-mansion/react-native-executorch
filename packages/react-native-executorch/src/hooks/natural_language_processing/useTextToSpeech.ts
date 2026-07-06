@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
   TextToSpeechInput,
@@ -28,6 +28,15 @@ export const useTextToSpeech = (
 
   const [moduleInstance, setModuleInstance] =
     useState<TextToSpeechModule | null>(null);
+
+  const serializedModel = useMemo(
+    () => JSON.stringify(model.model),
+    [model.model]
+  );
+  const serializedPhonemizerConfig = useMemo(
+    () => JSON.stringify(model.phonemizerConfig),
+    [model.phonemizerConfig]
+  );
 
   useEffect(() => {
     if (preventLoad) return;
@@ -64,12 +73,10 @@ export const useTextToSpeech = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     model.model.modelName,
-    // Source fields differ between kokoro and supertonic — stringify the whole
-    // model descriptor so a change to any source triggers a reload.
-    JSON.stringify(model.model),
+    serializedModel,
     model.voiceSource,
     model.lang,
-    JSON.stringify(model.phonemizerConfig),
+    serializedPhonemizerConfig,
     preventLoad,
   ]);
 

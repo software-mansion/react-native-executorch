@@ -172,7 +172,8 @@ export class TextToSpeechModule {
    * @param phonemize - kokoro only: if true (default) treats input as text and
    *                    converts it to phonemes; if false input is IPA phonemes.
    * @param totalSteps - supertonic only: number of flow-matching steps (default 8).
-   * @returns A promise resolving to the full audio waveform as a `Float32Array`.
+   * @param lang - Language override (defaults to model config).
+   * @returns A generated speech waveform.
    */
   public async forward(
     input: string,
