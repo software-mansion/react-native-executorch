@@ -57,19 +57,23 @@ namespace rnexecutorch::extensions::<domain>
 
 #### 2. Source (`cpp/extensions/<domain>/operations.cpp`)
 
-- Extract input and output tensors as `TensorHostObject` pointers.
-- Check bounds, shapes, types, and verify that the output tensor is **not the same instance** as the input (no unsafely managed in-place mutation).
-- Lock tensors using `std::shared_lock` (for inputs) and `std::unique_lock` (for outputs).
+- Validate, type-check, and extract input/output tensors using `tensor::fromJs`, specifying expected `DType` and shape constraints where possible.
+- Convert primitive parameters using `conversions::asType<T>`.
+- Prevent in-place mutations (aliasing) using `tensor::checkNotSameTensor`.
+- Lock tensors for thread-safe access using `tensor::tryLockShared` (for inputs) and `tensor::tryLockUnique` (for outputs), which also ensure the underlying memory buffer has not been disposed.
 
 ```cpp
 #include "operations.h"
-#include "core/tensor.h"
+#include "core/conversions.h"
+#include "core/tensor_helpers.h"
 #include <algorithm>
 
 namespace rnexecutorch::extensions::<domain>
 {
     namespace jsi = facebook::jsi;
-    using TensorHostObject = rnexecutorch::core::tensor::TensorHostObject;
+    namespace conversions = rnexecutorch::core::conversions;
+    namespace tensor = rnexecutorch::core::tensor;
+    using rnexecutorch::core::types::DType;
 
     void install_customOp(jsi::Runtime &rt, jsi::Object &module)
     {
@@ -82,47 +86,24 @@ namespace rnexecutorch::extensions::<domain>
                 throw jsi::JSError(rt, "Usage: customOp(src, dst, factor)");
             }
 
-            // 2. Validate input and output types
-            auto srcObj = args[0].asObject(rt);
-            auto dstObj = args[1].asObject(rt);
-            if (!srcObj.isHostObject<TensorHostObject>(rt) || !dstObj.isHostObject<TensorHostObject>(rt))
-            {
-                throw jsi::JSError(rt, "customOp: Arguments src and dst must be Tensors");
-            }
+            // 2. Validate, extract input/output tensors and check DType/Shape constraints using fromJs
+            auto src = tensor::fromJs(rt, "customOp: src", args[0], DType::float32, std::nullopt);
+            auto dst = tensor::fromJs(rt, "customOp: dst", args[1], DType::float32, src->shape_);
 
-            auto src = srcObj.getHostObject<TensorHostObject>(rt);
-            auto dst = dstObj.getHostObject<TensorHostObject>(rt);
-            double factor = args[2].asNumber();
+            // Extract and convert arguments using conversions::asType
+            double factor = conversions::asType<double>(rt, "customOp: factor", args[2]);
 
-            // 3. Prevent in-place mutations
-            if (src.get() == dst.get())
-            {
-                throw jsi::JSError(rt, "customOp: In-place operations (src == dst) are not supported.");
-            }
+            // 3. Prevent in-place mutations (aliasing)
+            tensor::checkNotSameTensor(rt, "customOp: src", src, "customOp: dst", dst);
 
-            // 4. Validate metadata compatibility
-            if (src->shape_ != dst->shape_ || src->dtype_ != dst->dtype_)
-            {
-                throw jsi::JSError(rt, "customOp: src and dst shape and dtype must match");
-            }
+            // 4. Lock underlying buffers and verify they aren't disposed
+            auto srcLock = tensor::tryLockShared(rt, "customOp: src", src);
+            auto dstLock = tensor::tryLockUnique(rt, "customOp: dst", dst);
 
-            // 5. Lock underlying buffers
-            std::shared_lock<std::shared_mutex> src_lock(src->mutex_, std::try_to_lock);
-            std::unique_lock<std::shared_mutex> dst_lock(dst->mutex_, std::try_to_lock);
-            if (!src_lock.owns_lock() || !dst_lock.owns_lock())
-            {
-                throw jsi::JSError(rt, "customOp: Tensors are currently in use");
-            }
-
-            if (!src->data_ || !dst->data_)
-            {
-                throw jsi::JSError(rt, "customOp: Tensor has been disposed");
-            }
-
-            // 6. Perform the computation
+            // 5. Perform the computation
             const float *srcData = reinterpret_cast<const float *>(src->data_.get());
             float *dstData = reinterpret_cast<float *>(dst->data_.get());
-            size_t size = src->size();
+            size_t size = src->numel_;
 
             for (size_t i = 0; i < size; ++i)
             {
@@ -201,8 +182,10 @@ When adding a native extension, verify that:
 
 - [ ] You only implemented in C++ if the operation takes `> 5%` of the total inference budget.
 - [ ] No JSI Tensors are implicitly allocated and returned in the C++ code.
-- [ ] Input and output tensors are locked using `std::shared_lock` and `std::unique_lock` respectively.
-- [ ] In-place mutation is explicitly prevented by checking that `src != dst`.
+- [ ] Input and output tensors are extracted and validated using `tensor::fromJs` with strict expected `DType` and shape constraints where possible.
+- [ ] Other primitive arguments are extracted and converted using `conversions::asType<T>`.
+- [ ] In-place mutation is explicitly prevented using `tensor::checkNotSameTensor`.
+- [ ] Input and output tensors are locked using `tensor::tryLockShared` and `tensor::tryLockUnique` respectively.
 - [ ] No default parameter values are defined in the C++ header/source files.
 - [ ] The custom operation install function is registered in both the domain `install` function and core [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
 - [ ] The TypeScript wrapper imports and uses `rnexecutorchJsi` instead of the global `__rnexecutorch_jsi__`.
