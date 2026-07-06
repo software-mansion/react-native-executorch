@@ -82,7 +82,7 @@ CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-exec
 
 ### 2. `check-cpp-warnings.sh` — clangd warning set
 
-Compiles staged (or explicitly passed) `cpp/` sources with the same flags clangd uses in the editor (from `compile_flags.txt` + `-W` flags in `.clangd`), so the editor and CI stay in sync.
+Compiles staged (or explicitly passed) `cpp/` sources with the same flags clangd uses in the editor (from `compile_flags.txt` + `-W` flags in `.clangd`), so the editor and CI stay in sync. Run from the package root (`packages/react-native-executorch/`):
 
 ```bash
 # The script takes file paths as positional arguments and exits 0 immediately
