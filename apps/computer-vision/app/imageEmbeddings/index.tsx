@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, ColorPalette } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
-import { useImageEmbeddings, useTextEmbeddings, models } from 'react-native-executorch';
+import { useImageEmbedder, useTextEmbedder, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage, skImageToBuffer } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -56,8 +56,8 @@ function ImageEmbeddingsContent() {
 
   // Zero-shot classification pairs a CLIP image encoder with the CLIP text
   // encoder and scores the image against each text label by embedding similarity.
-  const imageModel = useImageEmbeddings(selectedImageModel);
-  const textModel = useTextEmbeddings(models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT);
+  const imageModel = useImageEmbedder(selectedImageModel);
+  const textModel = useTextEmbedder(models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT);
 
   const ready = imageModel.isReady && textModel.isReady;
 
@@ -75,15 +75,15 @@ function ImageEmbeddingsContent() {
   };
 
   const classify = async () => {
-    if (!skiaImage || !ready || !imageModel.forward || !textModel.forward) return;
+    if (!skiaImage || !ready || !imageModel.embed || !textModel.embed) return;
     setIsProcessing(true);
     setError(null);
     try {
       const start = Date.now();
-      const imageEmbedding = await imageModel.forward(skImageToBuffer(skiaImage));
+      const imageEmbedding = await imageModel.embed(skImageToBuffer(skiaImage));
       const scored: { label: string; score: number }[] = [];
       for (const label of labels) {
-        const textEmbedding = await textModel.forward(label);
+        const textEmbedding = await textModel.embed(label);
         scored.push({ label, score: dot(imageEmbedding, textEmbedding) });
       }
       scored.sort((a, b) => b.score - a.score);

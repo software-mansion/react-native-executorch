@@ -8,16 +8,16 @@ import { wrapAsync } from '../../../core/runtime';
 import { loadTokenizer } from '../tokenizer';
 
 /**
- * Model configuration required to instantiate a text embeddings task runner.
+ * Model configuration required to instantiate a text embedder task runner.
  * @category Types
  */
-export type TextEmbeddingsModel = {
+export type TextEmbedderModel = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
 };
 
 /**
- * Creates a text embeddings runner for executing local Text Embedding models
+ * Creates a text embedder for executing local Text Embedding models
  * (e.g. sentence-transformers like all-MiniLM-L6-v2).
  *
  * It loads the tokenizer and model, validates the model input and output
@@ -28,15 +28,15 @@ export type TextEmbeddingsModel = {
  * normalization are baked into the exported `.pte`; this runner runs the forward
  * pass and returns the raw embedding vector.
  * @category Typescript API
- * @param config Text embeddings task configuration containing the model and
+ * @param config Text embedder task configuration containing the model and
  * tokenizer paths.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing the embedding and
  * disposal controls.
  */
-export async function createTextEmbeddings(
-  config: TextEmbeddingsModel,
+export async function createTextEmbedder(
+  config: TextEmbedderModel,
   runtime?: WorkletRuntime
 ): Promise<{
   /**
@@ -45,15 +45,16 @@ export async function createTextEmbeddings(
   dispose: () => void;
   /**
    * Asynchronously computes the embedding vector for the given input text.
+   * Inputs longer than the model's maximum sequence length are truncated.
    * @param input The input text to embed.
    * @returns A promise resolving to the embedding vector.
    */
-  forward: (input: string) => Promise<Float32Array>;
+  embed: (input: string) => Promise<Float32Array>;
   /**
-   * Synchronous version of {@link forward} to be executed directly on the
+   * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.
    */
-  forwardWorklet: (input: string) => Float32Array;
+  embedWorklet: (input: string) => Float32Array;
 }> {
   const { modelPath, tokenizerPath } = config;
   const [model, tokenizer] = await Promise.all([
@@ -83,12 +84,14 @@ export async function createTextEmbeddings(
     model.dispose();
   };
 
-  const forwardWorklet = (input: string): Float32Array => {
+  const embedWorklet = (input: string): Float32Array => {
     'worklet';
     const ids = tokenizer.encode(input);
     if (ids.length === 0) {
-      throw new Error('createTextEmbeddings: input tokenized to zero tokens');
+      throw new Error('createTextEmbedder: input tokenized to zero tokens');
     }
+    // Truncate inputs longer than the model's maximum sequence length; the
+    // model has no way to attend beyond it.
     const len = Math.min(ids.length, maxSeqLen);
 
     // Feed the exact token length with no padding. The model resizes its dynamic
@@ -102,18 +105,18 @@ export async function createTextEmbeddings(
       maskData[i] = 1n;
     }
 
-    const tokenIds = tensor('int64', [1, len], idsData);
-    const attentionMask = tensor('int64', [1, len], maskData);
+    const tTokenIds = tensor('int64', [1, len], idsData);
+    const tAttentionMask = tensor('int64', [1, len], maskData);
     try {
-      model.execute('forward', [tokenIds, attentionMask], [tEmbedding]);
+      model.execute('forward', [tTokenIds, tAttentionMask], [tEmbedding]);
       return tEmbedding.getData(new Float32Array(tEmbedding.numel));
     } finally {
-      tokenIds.dispose();
-      attentionMask.dispose();
+      tTokenIds.dispose();
+      tAttentionMask.dispose();
     }
   };
 
-  const forward = wrapAsync(forwardWorklet, runtime);
+  const embed = wrapAsync(embedWorklet, runtime);
 
-  return { forward, forwardWorklet, dispose };
+  return { embed, embedWorklet, dispose };
 }

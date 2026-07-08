@@ -9,16 +9,16 @@ import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
 
 /**
- * Model configuration required to instantiate an image embeddings task runner.
+ * Model configuration required to instantiate an image embedder task runner.
  * @category Types
  */
-export type ImageEmbeddingsModel = {
+export type ImageEmbedderModel = {
   readonly modelPath: string;
   readonly opts: ImagePreprocessorOptions;
 };
 
 /**
- * Creates an image embeddings runner for executing local Image Embedding
+ * Creates an image embedder for executing local Image Embedding
  * models (e.g. the image encoder of a CLIP model).
  *
  * It validates the model input and output requirements, pre-allocates the
@@ -27,14 +27,14 @@ export type ImageEmbeddingsModel = {
  * are baked into the exported `.pte`; this runner simply preprocesses the image,
  * runs the forward pass, and returns the raw embedding vector.
  * @category Typescript API
- * @param config Image embeddings task configuration containing path and options.
+ * @param config Image embedder task configuration containing path and options.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing the embedding and
  * disposal controls.
  */
-export async function createImageEmbeddings(
-  config: ImageEmbeddingsModel,
+export async function createImageEmbedder(
+  config: ImageEmbedderModel,
   runtime?: WorkletRuntime
 ): Promise<{
   /**
@@ -46,12 +46,12 @@ export async function createImageEmbeddings(
    * @param input The input image buffer.
    * @returns A promise resolving to the embedding vector.
    */
-  forward: (input: ImageBuffer) => Promise<Float32Array>;
+  embed: (input: ImageBuffer) => Promise<Float32Array>;
   /**
-   * Synchronous version of {@link forward} to be executed directly on the
+   * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.
    */
-  forwardWorklet: (input: ImageBuffer) => Float32Array;
+  embedWorklet: (input: ImageBuffer) => Float32Array;
 }> {
   const { modelPath, opts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -75,14 +75,14 @@ export async function createImageEmbeddings(
     model.dispose();
   };
 
-  const forwardWorklet = (input: ImageBuffer): Float32Array => {
+  const embedWorklet = (input: ImageBuffer): Float32Array => {
     'worklet';
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tEmbedding]);
     return tEmbedding.getData(new Float32Array(tEmbedding.numel));
   };
 
-  const forward = wrapAsync(forwardWorklet, runtime);
+  const embed = wrapAsync(embedWorklet, runtime);
 
-  return { forward, forwardWorklet, dispose };
+  return { embed, embedWorklet, dispose };
 }

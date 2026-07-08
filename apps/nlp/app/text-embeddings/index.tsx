@@ -9,13 +9,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useTextEmbeddings, models, type TextEmbeddingsModel } from 'react-native-executorch';
+import { useTextEmbedder, models, type TextEmbedderModel } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
-const MODELS: { label: string; value: TextEmbeddingsModel }[] = [
+const MODELS: { label: string; value: TextEmbedderModel }[] = [
   { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2 },
   { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2 },
   { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1 },
@@ -50,7 +50,7 @@ const isDisposedError = (msg: string) => /disposed/i.test(msg);
 
 function TextEmbeddingsContent() {
   const [selected, setSelected] = useState(0);
-  const { isReady, downloadProgress, error, forward } = useTextEmbeddings(MODELS[selected]!.value);
+  const { isReady, downloadProgress, error, embed } = useTextEmbedder(MODELS[selected]!.value);
 
   const [library, setLibrary] = useState<Entry[]>([]);
   const [input, setInput] = useState('');
@@ -60,11 +60,11 @@ function TextEmbeddingsContent() {
   const [runError, setRunError] = useState<string | null>(null);
   const [embedMs, setEmbedMs] = useState<number | null>(null);
 
-  const ready = isReady && !!forward;
+  const ready = isReady && !!embed;
 
   // Re-seed the library with starter sentences whenever the model changes.
   useEffect(() => {
-    if (!ready || !forward) return;
+    if (!ready || !embed) return;
     let cancelled = false;
     (async () => {
       setBusy(true);
@@ -72,7 +72,7 @@ function TextEmbeddingsContent() {
       try {
         const entries: Entry[] = [];
         for (const sentence of STARTER_SENTENCES) {
-          const embedding = await forward(sentence);
+          const embedding = await embed(sentence);
           if (cancelled) return;
           entries.push({ sentence, embedding });
         }
@@ -86,7 +86,7 @@ function TextEmbeddingsContent() {
     return () => {
       cancelled = true;
     };
-  }, [forward, ready]);
+  }, [embed, ready]);
 
   const selectModel = (i: number) => {
     if (i === selected) return;
@@ -98,12 +98,12 @@ function TextEmbeddingsContent() {
   };
 
   const findSimilar = async () => {
-    if (!forward || !input.trim() || library.length === 0) return;
+    if (!embed || !input.trim() || library.length === 0) return;
     setBusy(true);
     setRunError(null);
     try {
       const start = Date.now();
-      const q = await forward(input.trim());
+      const q = await embed(input.trim());
       setEmbedMs(Date.now() - start);
       const ranked = library
         .map(({ sentence, embedding }) => ({ sentence, similarity: cosine(q, embedding) }))
@@ -119,12 +119,12 @@ function TextEmbeddingsContent() {
   };
 
   const addToLibrary = async () => {
-    if (!forward || !input.trim()) return;
+    if (!embed || !input.trim()) return;
     setBusy(true);
     setRunError(null);
     try {
       const start = Date.now();
-      const embedding = await forward(input.trim());
+      const embedding = await embed(input.trim());
       setEmbedMs(Date.now() - start);
       setLibrary((prev) => [...prev, { sentence: input.trim(), embedding }]);
       setInput('');
