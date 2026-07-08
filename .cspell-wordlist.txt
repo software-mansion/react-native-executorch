@@ -279,4 +279,4 @@ thresholding
 binarization
 bugprone
 NOLINTNEXTLINE
-
+nullopt
