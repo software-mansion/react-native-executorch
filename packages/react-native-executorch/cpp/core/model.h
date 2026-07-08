@@ -1,12 +1,12 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "tensor_helpers.h"
 
 #include <jsi/jsi.h>
 
@@ -35,7 +35,7 @@ private:
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
 
-    std::unordered_map<std::string, std::vector<std::array<int64_t, 3>>> dynamicInputBounds_;
+    std::unordered_map<std::string, std::vector<core::tensor::SymbolicShape>> dynamicInputShapes_;
 };
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module);
