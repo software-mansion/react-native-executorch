@@ -183,7 +183,7 @@ When adding a native extension, verify that:
 - [ ] You only implemented in C++ if the operation takes `> 5%` of the total inference budget.
 - [ ] No JSI Tensors are implicitly allocated and returned in the C++ code.
 - [ ] Input and output tensors are extracted and validated using `tensor::fromJs` with strict expected `DType` and shape constraints where possible.
-- [ ] Other primitive arguments are extracted and converted using `conversions::asType<T>`.
+- [ ] Primitive arguments are extracted and converted using `conversions::asType<T>`.
 - [ ] In-place mutation is explicitly prevented using `tensor::checkNotSameTensor`.
 - [ ] Input and output tensors are locked using `tensor::tryLockShared` and `tensor::tryLockUnique` respectively.
 - [ ] No default parameter values are defined in the C++ header/source files.
