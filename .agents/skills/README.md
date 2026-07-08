@@ -9,3 +9,4 @@ This directory contains specialized skills (recipes) to guide contributors and A
 - [Add Task Pipeline](./add-task-pipeline/SKILL.md) — TypeScript task pipelines and React hooks.
 - [Model Schema Validation](./model-schema-validation/SKILL.md) — SymbolicTensor schemas and validation.
 - [Verify and Build](./verify-and-build/SKILL.md) — TypeScript typechecking, native rebuilding, and troubleshooting.
+- [Skills Maintenance](./skills-maintenance/SKILL.md) — Keeping skills synchronized with core primitives.
