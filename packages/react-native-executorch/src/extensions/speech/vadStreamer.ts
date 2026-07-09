@@ -1,11 +1,14 @@
 import type { Segment } from './tasks/vad';
 
-// Bound the streaming buffer so continuous input cannot grow it without limit.
-// When it exceeds the cap, only the most recent audio is kept (mirrors the
-// native streaming buffer trimming). Expressed in seconds and scaled by the
-// stream's sample rate.
-const MAX_BUFFER_SECONDS = 10;
-const RESERVE_SECONDS = 1; // kept after trimming
+// Detection runs over a bounded sliding window of the most recent audio rather
+// than the whole growing session. The streaming decision only depends on recent
+// context (whether speech is ongoing at the buffer end), and model cost scales
+// with window length — so a bounded window keeps per-tick latency flat and low
+// (~3x cheaper than a 10s buffer on device) instead of growing without limit.
+// 2.5s is well above FSMN's receptive field (~200ms) and the min-speech-duration
+// (250ms), so detection quality is unaffected. Expressed in seconds and scaled
+// by the stream's sample rate.
+const DETECTION_WINDOW_SECONDS = 2.5;
 
 /**
  * Options controlling the streaming detection loop.
@@ -63,8 +66,7 @@ export function createVadStreamer(
 ): VADStreamer {
   const timeout = options?.timeout ?? 100;
   const detectionMargin = options?.detectionMargin ?? 100;
-  const maxBufferSamples = MAX_BUFFER_SECONDS * sampleRate;
-  const reserveSamples = RESERVE_SECONDS * sampleRate;
+  const windowSamples = DETECTION_WINDOW_SECONDS * sampleRate;
 
   let buffer = new Float32Array(0);
   let running = false;
@@ -74,11 +76,12 @@ export function createVadStreamer(
 
   const insert = (chunk: Float32Array) => {
     // `buffer` is replaced (never mutated in place), so any snapshot handed to a
-    // running detection stays valid.
+    // running detection stays valid. Older audio beyond the detection window is
+    // dropped so the buffer — and each tick's model cost — stays bounded.
     const next = new Float32Array(buffer.length + chunk.length);
     next.set(buffer);
     next.set(chunk, buffer.length);
-    buffer = next.length > maxBufferSamples ? next.slice(next.length - reserveSamples) : next;
+    buffer = next.length > windowSamples ? next.slice(next.length - windowSamples) : next;
   };
 
   const tick = async () => {
