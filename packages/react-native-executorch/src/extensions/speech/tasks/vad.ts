@@ -4,6 +4,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
+import { frameWaveform } from '../ops';
 
 /**
  * Feature-extraction geometry describing how a raw waveform is turned into the
@@ -100,45 +101,6 @@ function hannWindow(size: number): Float32Array {
     window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / size));
   }
   return window;
-}
-
-// Slices the waveform into overlapping frames and applies mean-removal, a
-// pre-emphasis filter and a Hann window to each, writing the result into a
-// zero-padded `fftLength` buffer. Returns a flat `[numFrames * fftLength]`
-// array. Mirrors `VoiceActivityDetection::preprocess`.
-function frameWaveform(
-  waveform: Float32Array,
-  hann: Float32Array,
-  fc: VADFeatureConfig
-): Float32Array {
-  'worklet';
-  const { frameLength, hopLength, fftLength, preemphasis } = fc;
-  // Zero-padding that centers the window inside the padded frame.
-  const leftPad = Math.floor((fftLength - frameLength) / 2);
-  const numFrames = Math.floor((waveform.length - frameLength) / hopLength);
-  if (numFrames <= 0) return new Float32Array(0);
-
-  const frames = new Float32Array(numFrames * fftLength);
-  for (let f = 0; f < numFrames; f++) {
-    const base = f * fftLength + leftPad;
-    const start = f * hopLength;
-
-    let sum = 0;
-    for (let j = 0; j < frameLength; j++) {
-      const v = waveform[start + j]!;
-      frames[base + j] = v;
-      sum += v;
-    }
-    const mean = sum / frameLength;
-    for (let j = 0; j < frameLength; j++) frames[base + j]! -= mean;
-
-    // Pre-emphasis applied in reverse so each tap reads the raw previous sample.
-    for (let j = frameLength - 1; j > 0; j--) {
-      frames[base + j]! -= preemphasis * frames[base + j - 1]!;
-    }
-    for (let j = 0; j < frameLength; j++) frames[base + j]! *= hann[j]!;
-  }
-  return frames;
 }
 
 // Converts per-frame non-speech probabilities into padded speech segments in
@@ -280,13 +242,15 @@ export async function createVAD(
 
   // The output tensor is validated against the declared shape exactly, so it is
   // pre-allocated once at that shape. Its frame capacity caps the chunk size so
-  // a full chunk's output can never overflow it.
-  const tensors = [tensor('float32', outShape)] as const;
-  const [tOutput] = tensors;
+  // a full chunk's output can never overflow it. The Hann window is uploaded
+  // once and reused by the native framing op across every call.
+  const tensors = [
+    tensor('float32', outShape),
+    tensor('float32', [fc.frameLength], hannWindow(fc.frameLength)),
+  ] as const;
+  const [tOutput, tHann] = tensors;
   const outBuffer = new Float32Array(tOutput.numel);
   const chunkCapacity = Math.min(maxFrames, Math.floor(tOutput.numel / numClass));
-
-  const hann = hannWindow(fc.frameLength);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -298,30 +262,40 @@ export async function createVAD(
     if (waveform.length < fc.frameLength) return [];
 
     const opts: ResolvedOptions = { ...modelDefaults, ...options };
-    const frames = frameWaveform(waveform, hann, fc);
-    const numFrames = frames.length / fc.fftLength;
-    if (numFrames === 0) return [];
+    const numFrames = Math.floor((waveform.length - fc.frameLength) / fc.hopLength);
+    if (numFrames <= 0) return [];
 
     const scores = new Float32Array(numFrames);
-    let offset = 0;
-    while (offset < numFrames) {
-      const realFrames = Math.min(numFrames - offset, chunkCapacity);
-      const chunkFrames = Math.max(realFrames, fc.minFrames);
-      const chunkData = new Float32Array(chunkFrames * fc.fftLength);
-      const from = offset * fc.fftLength;
-      const to = (offset + realFrames) * fc.fftLength;
-      chunkData.set(frames.subarray(from, to));
-      const tInput = tensor('float32', [chunkFrames, fc.fftLength], chunkData);
-      try {
-        model.execute('forward', [tInput], [tOutput]);
-        tOutput.getData(outBuffer);
-        for (let i = 0; i < realFrames; i++) {
-          scores[offset + i] = outBuffer[i * numClass]!;
+    // Upload the waveform once; the native op frames slices of it per chunk.
+    const tWaveform = tensor('float32', [waveform.length], waveform);
+    try {
+      let offset = 0;
+      while (offset < numFrames) {
+        const realFrames = Math.min(numFrames - offset, chunkCapacity);
+        const chunkFrames = Math.max(realFrames, fc.minFrames);
+        const tInput = tensor('float32', [chunkFrames, fc.fftLength]);
+        try {
+          frameWaveform(
+            tWaveform,
+            tHann,
+            tInput,
+            offset * fc.hopLength,
+            realFrames,
+            fc.hopLength,
+            fc.preemphasis
+          );
+          model.execute('forward', [tInput], [tOutput]);
+          tOutput.getData(outBuffer);
+          for (let i = 0; i < realFrames; i++) {
+            scores[offset + i] = outBuffer[i * numClass]!;
+          }
+        } finally {
+          tInput.dispose();
         }
-      } finally {
-        tInput.dispose();
+        offset += realFrames;
       }
-      offset += realFrames;
+    } finally {
+      tWaveform.dispose();
     }
 
     const raw = scoresToSegments(scores, opts, fc.hopLength, hopLengthMs);
