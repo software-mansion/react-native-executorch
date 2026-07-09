@@ -1,6 +1,5 @@
 #include "TextProcessor.h"
 #include "Constants.h"
-#include "NfkdTable.h"
 
 #include <rnexecutorch/Error.h>
 
@@ -17,38 +16,7 @@ namespace rnexecutorch::models::text_to_speech::supertonic {
 
 namespace {
 
-// --- 1. NFKD normalization ------------------------------------------------
-
-void appendNfkd(std::u32string &out, char32_t cp) {
-  if (cp > 0xFFFF) { // astral plane: no table, pass through
-    out.push_back(cp);
-    return;
-  }
-  // Binary search the sorted entry table.
-  const auto *first = nfkd::kNfkdEntries;
-  const auto *last = nfkd::kNfkdEntries + nfkd::kNfkdEntryCount;
-  const auto *it = std::lower_bound(
-      first, last, cp,
-      [](const nfkd::NfkdEntry &e, char32_t v) { return e.src < v; });
-  if (it != last && it->src == cp) {
-    for (uint16_t i = 0; i < it->len; ++i) {
-      out.push_back(nfkd::kNfkdData[it->offset + i]);
-    }
-  } else {
-    out.push_back(cp);
-  }
-}
-
-std::u32string normalizeNfkd(std::u32string_view text) {
-  std::u32string out;
-  out.reserve(text.size());
-  for (char32_t cp : text) {
-    appendNfkd(out, cp);
-  }
-  return out;
-}
-
-// --- 2. Emoji removal -----------------------------------------------------
+// --- 1. Emoji removal -----------------------------------------------------
 
 bool isEmoji(char32_t c) {
   return (c >= 0x1F600 && c <= 0x1F64F) || (c >= 0x1F300 && c <= 0x1F5FF) ||
@@ -136,10 +104,8 @@ void TextProcessor::loadIndexer(const std::string &indexerSource) {
 
 TokenizedText TextProcessor::process(std::u32string_view text,
                                      std::string_view lang) const {
-  // 1. NFKD
-  std::u32string s = normalizeNfkd(text);
-
-  // 2-4. emoji removal, symbol normalization, decorative-symbol removal
+  // 1. emoji removal, symbol normalization, decorative-symbol removal
+  std::u32string s(text);
   const auto &repl = symbolReplacements();
   const auto &special = specialSymbols();
   std::u32string t;

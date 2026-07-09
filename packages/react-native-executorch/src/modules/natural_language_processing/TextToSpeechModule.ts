@@ -183,11 +183,17 @@ export class TextToSpeechModule {
     lang: string = ''
   ): Promise<Float32Array> {
     this.ensureLoaded('forward');
+    const normalized =
+      this.modelName === 'supertonic' ? input.normalize('NFKD') : input;
     if (this.modelName === 'supertonic') {
-      // (input, speed, totalSteps, lang) — lang '' falls back to the config default.
-      return await this.nativeModule.generate(input, speed, totalSteps, lang);
+      return await this.nativeModule.generate(
+        normalized,
+        speed,
+        totalSteps,
+        lang
+      );
     }
-    return await this.nativeModule.generate(input, speed, phonemize);
+    return await this.nativeModule.generate(normalized, speed, phonemize);
   }
 
   /**
@@ -274,7 +280,9 @@ export class TextToSpeechModule {
    * @param input - The text or phoneme fragment to append to the streaming buffer.
    */
   public streamInsert(input: string): void {
-    this.nativeModule.streamInsert(input);
+    const normalized =
+      this.modelName === 'supertonic' ? input.normalize('NFKD') : input;
+    this.nativeModule.streamInsert(normalized);
   }
 
   /**
