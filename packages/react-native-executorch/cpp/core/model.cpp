@@ -31,6 +31,17 @@ T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
     return std::move(result.get());
 }
 
+// Overload for JSI host-function contexts: surfaces the failure as a JS error
+// instead of a std::runtime_error. The plain overload above is for load-time
+// paths (e.g. the constructor) where no jsi::Runtime is available.
+template <typename T>
+T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
+    if (!result.ok()) {
+        throw jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
+    }
+    return std::move(result.get());
+}
+
 types::DType
 fromScalarType(jsi::Runtime &rt, const std::string &ctx, executorch::aten::ScalarType scalarType) {
     try {
@@ -229,7 +240,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "getMethodNames: Model has been disposed");
             }
 
-            auto methodNames = unwrap("getMethodNames", self->etModule_->method_names());
+            auto methodNames = unwrap(rt, "getMethodNames", self->etModule_->method_names());
 
             auto jsArray = jsi::Array(rt, methodNames.size());
             size_t index = 0;
@@ -262,40 +273,40 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "getMethodMeta: methodName", args[0]);
-            auto methodMeta = unwrap("getMethodMeta", self->etModule_->method_meta(methodName));
+            auto methodMeta = unwrap(rt, "getMethodMeta", self->etModule_->method_meta(methodName));
 
             auto inputTagsArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: input tag [{}]", i);
-                auto tag = unwrap(ctx, methodMeta.input_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
                 inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto outputTagsArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: output tag [{}]", i);
-                auto tag = unwrap(ctx, methodMeta.output_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.output_tag(i));
                 outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
             }
 
             auto usesBackendMap = jsi::Object(rt);
             for (size_t i = 0; i < methodMeta.num_backends(); ++i) {
                 auto ctx = std::format("getMethodMeta: backend name [{}]", i);
-                const auto *backendName = unwrap(ctx, methodMeta.get_backend_name(i));
+                const auto *backendName = unwrap(rt, ctx, methodMeta.get_backend_name(i));
                 usesBackendMap.setProperty(rt, backendName, methodMeta.uses_backend(backendName));
             }
 
             auto inputTensorMetaArray = jsi::Array(rt, methodMeta.num_inputs());
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: input tensor meta [{}]", i);
-                auto tensorMeta = unwrap(ctx, methodMeta.input_tensor_meta(i));
+                auto tensorMeta = unwrap(rt, ctx, methodMeta.input_tensor_meta(i));
                 inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
             auto outputTensorMetaArray = jsi::Array(rt, methodMeta.num_outputs());
             for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
                 auto ctx = std::format("getMethodMeta: output tensor meta [{}]", i);
-                auto tensorMeta = unwrap(ctx, methodMeta.output_tensor_meta(i));
+                auto tensorMeta = unwrap(rt, ctx, methodMeta.output_tensor_meta(i));
                 outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
             }
 
@@ -331,7 +342,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
-            auto methodMeta = unwrap("execute", self->etModule_->method_meta(methodName));
+            auto methodMeta = unwrap(rt, "execute", self->etModule_->method_meta(methodName));
 
             auto inputsArray = conversions::asType<jsi::Array>(rt, "execute: inputs", args[1]);
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
@@ -347,12 +358,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
                 auto ctx = std::format("execute: inputs[{}]", i);
-                auto tag = unwrap(ctx, methodMeta.input_tag(i));
+                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
                 auto val = inputsArray.getValueAtIndex(rt, i);
 
                 switch (tag) {
                 case executorch::runtime::Tag::Tensor: {
-                    auto tensorMeta = unwrap(ctx + ": tensor meta", methodMeta.input_tensor_meta(i));
+                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.input_tensor_meta(i));
                     auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
 
                     std::shared_ptr<TensorHostObject> tensorHostObject;
@@ -401,7 +412,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
 
-            auto result = unwrap(std::format("execute: Method '{}' failed (check getMethodMeta() "
+            auto result = unwrap(rt,
+                                 std::format("execute: Method '{}' failed (check getMethodMeta() "
                                              "for required backends and getRegisteredBackends() "
                                              "for registered ones)",
                                              methodName),
@@ -421,9 +433,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
                     auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
 
-                    auto tensorMeta = unwrap(ctx + ": tensor meta", methodMeta.output_tensor_meta(index));
+                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.output_tensor_meta(index));
                     auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
-                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
+                    // Validate the JS placeholder against the tensor's actual
+                    // produced shape rather than the static metadata, so methods
+                    // with dynamically-shaped outputs are handled correctly.
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, output.toTensor().sizes());
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. "

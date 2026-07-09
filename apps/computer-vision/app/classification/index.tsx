@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { commonStyles, ColorPalette } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, ColorPalette, theme } from '../../theme';
 import { useImage } from '@shopify/react-native-skia';
 import { useClassifier, models } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { getImage, skImageToBuffer } from '../../utils';
+import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -28,6 +29,7 @@ const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 function ClassificationContent() {
+  const insets = useSafeAreaInsets();
   const [selectedModel, setSelectedModel] = useState<any>(MODEL_OPTIONS[0].value);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -64,7 +66,20 @@ function ClassificationContent() {
     if (!sync) setIsProcessing(true);
     setError(null);
     try {
-      const buffer = skImageToBuffer(skiaImage);
+      const pixels = skiaImage.readPixels();
+      if (!pixels) {
+        throw new Error('Failed to read pixels from image');
+      }
+      if (!(pixels instanceof Uint8Array)) {
+        throw new Error('Expected Uint8Array from readPixels');
+      }
+      const buffer = {
+        data: pixels,
+        width: skiaImage.width(),
+        height: skiaImage.height(),
+        format: 'rgba' as const,
+        layout: 'hwc' as const,
+      };
       const start = Date.now();
       const output = sync
         ? classifyWorklet(buffer, { topk: 5 })
@@ -84,7 +99,10 @@ function ClassificationContent() {
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
     >
       <Text style={commonStyles.description}>
         Upload or capture an image to identify objects using a classifier.
