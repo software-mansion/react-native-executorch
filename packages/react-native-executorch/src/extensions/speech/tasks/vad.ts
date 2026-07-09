@@ -257,6 +257,13 @@ export async function createVAD(
    * or worklet thread.
    */
   detectWorklet: (waveform: Float32Array, options?: VADOptions) => Segment[];
+  /**
+   * BENCH-ONLY: amortized on-device timing of framing vs model.execute.
+   */
+  benchmark: (
+    waveform: Float32Array,
+    iters: number
+  ) => Promise<{ frames: number; framingMs: number; executeMs: number; sharePct: number }>;
 }> {
   const { modelPath, featureConfig: fc } = config;
   const samplesPerMs = fc.sampleRate / 1000;
@@ -331,5 +338,37 @@ export async function createVAD(
 
   const detect = wrapAsync(detectWorklet, runtime);
 
-  return { detect, detectWorklet, dispose };
+  // BENCH-ONLY: measure framing-only and execute-only cost, amortized over
+  // `iters` runs inside a single worklet call (avoids sub-ms clock resolution
+  // and cross-call state). Returns both timings and framing's share.
+  const benchmarkWorklet = (waveform: Float32Array, iters: number) => {
+    'worklet';
+    const now = () => (globalThis as any).performance?.now?.() ?? Date.now();
+
+    frameWaveform(waveform, hann, fc); // warm
+    let t = now();
+    for (let i = 0; i < iters; i++) frameWaveform(waveform, hann, fc);
+    const framingMs = (now() - t) / iters;
+
+    const frames = frameWaveform(waveform, hann, fc);
+    const total = Math.floor(frames.length / fc.fftLength);
+    const realFrames = Math.min(total, chunkCapacity);
+    const chunkFrames = Math.max(realFrames, fc.minFrames);
+    const chunkData = new Float32Array(chunkFrames * fc.fftLength);
+    chunkData.set(frames.subarray(0, realFrames * fc.fftLength));
+    const tInput = tensor('float32', [chunkFrames, fc.fftLength], chunkData);
+    try {
+      model.execute('forward', [tInput], [tOutput]); // warm
+      t = now();
+      for (let i = 0; i < iters; i++) model.execute('forward', [tInput], [tOutput]);
+      const executeMs = (now() - t) / iters;
+      const sharePct = (100 * framingMs) / (framingMs + executeMs);
+      return { frames: realFrames, framingMs, executeMs, sharePct };
+    } finally {
+      tInput.dispose();
+    }
+  };
+  const benchmark = wrapAsync(benchmarkWorklet, runtime);
+
+  return { detect, detectWorklet, dispose, benchmark };
 }

@@ -87,6 +87,7 @@ export function useVAD(config: VADModel, options?: { preventLoad?: boolean }) {
     localPath,
     detect: model?.detect,
     detectWorklet: model?.detectWorklet,
+    benchmark: model?.benchmark,
     stream,
     streamInsert,
     streamStop,

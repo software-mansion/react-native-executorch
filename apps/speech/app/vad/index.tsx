@@ -14,7 +14,7 @@ const SAMPLE_RATE = models.vad.FSMN_VAD.featureConfig.sampleRate;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
-  const { isReady, downloadProgress, error, stream, streamInsert, streamStop } = useVAD(
+  const { isReady, downloadProgress, error, stream, streamInsert, streamStop, benchmark } = useVAD(
     models.vad.FSMN_VAD
   );
 
@@ -84,6 +84,25 @@ function VADContent() {
     }
   };
 
+  const handleBenchmark = async () => {
+    if (!benchmark) return;
+    addLog('Benchmarking (10s buffer, 30 iters)…');
+    const n = 10 * SAMPLE_RATE;
+    const wave = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      wave[i] = Math.sin(i * 0.02) * 0.3 + (Math.random() - 0.5) * 0.05;
+    }
+    try {
+      const r = await benchmark(wave, 30);
+      addLog(
+        `framing=${r.framingMs.toFixed(2)}ms  execute=${r.executeMs.toFixed(2)}ms  ` +
+          `framing share=${r.sharePct.toFixed(1)}%  (${r.frames} frames)`
+      );
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const handleStop = async () => {
     await recorder.current.stop();
     streamStop();
@@ -135,6 +154,14 @@ function VADContent() {
             disabled={streamDisabled}
           />
         )}
+        <View style={styles.benchRow}>
+          <Button
+            title="Benchmark (framing vs execute)"
+            variant="secondary"
+            onPress={handleBenchmark}
+            disabled={!isReady || isStreaming}
+          />
+        </View>
       </View>
 
       <View style={styles.card}>
@@ -190,6 +217,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
   },
+  benchRow: { marginTop: 12, flexDirection: 'row' },
   visualizer: { alignItems: 'center', marginBottom: 20 },
   indicator: {
     width: 96,
