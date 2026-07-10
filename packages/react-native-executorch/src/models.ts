@@ -561,6 +561,18 @@ const CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_text_xnnpack_fp32.pte`,
   tokenizerPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
+// Asymmetric retrieval model: prefix queries with `query: ` (the default) and
+// passages with `document: ` via `embed(text, 'document: ')`.
+const LFM2_5_EMBEDDING_350M_EMBEDDINGS: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/xnnpack/lfm_2_5_embedding_350m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/tokenizer.json`,
+  prompt: 'query: ',
+};
+const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
+  modelPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/mlx/lfm_2_5_embedding_350m_mlx_int4.pte`,
+  tokenizerPath: `${BASE_URL}-lfm2.5-embedding-350m/${NEXT_VERSION_TAG}/tokenizer.json`,
+  prompt: 'query: ',
+};
 
 // =============================================================================
 // Image Embeddings
@@ -817,6 +829,11 @@ export const models = {
     CLIP_VIT_BASE_PATCH32_TEXT: {
       ...CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+    },
+    LFM2_5_EMBEDDING_350M: {
+      ...LFM2_5_EMBEDDING_350M_EMBEDDINGS,
+      XNNPACK_8DA4W: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
+      MLX_INT4: LFM2_5_EMBEDDING_350M_MLX_INT4,
     },
   },
   imageEmbeddings: {

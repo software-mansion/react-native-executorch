@@ -14,6 +14,13 @@ import { loadTokenizer } from '../tokenizer';
 export type TextEmbedderModel = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
+  /**
+   * Optional prompt prefix prepended to every input before tokenization. Some
+   * models are trained with a task instruction (e.g. LFM2.5-Embedding uses
+   * `'query: '` for queries and `'document: '` for passages). Can be overridden
+   * per call via the `prompt` argument of `embed` / `embedWorklet`.
+   */
+  readonly prompt?: string;
 };
 
 /**
@@ -47,16 +54,18 @@ export async function createTextEmbedder(
    * Asynchronously computes the embedding vector for the given input text.
    * Inputs longer than the model's maximum sequence length are truncated.
    * @param input The input text to embed.
+   * @param prompt Optional prompt prefix overriding the model's configured
+   * `prompt` for this call (e.g. `'query: '` vs `'document: '`).
    * @returns A promise resolving to the embedding vector.
    */
-  embed: (input: string) => Promise<Float32Array>;
+  embed: (input: string, prompt?: string) => Promise<Float32Array>;
   /**
    * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.
    */
-  embedWorklet: (input: string) => Float32Array;
+  embedWorklet: (input: string, prompt?: string) => Float32Array;
 }> {
-  const { modelPath, tokenizerPath } = config;
+  const { modelPath, tokenizerPath, prompt: defaultPrompt } = config;
   const [model, tokenizer] = await Promise.all([
     wrapAsync(loadModel, runtime)(modelPath),
     wrapAsync(loadTokenizer, runtime)(tokenizerPath),
@@ -84,9 +93,11 @@ export async function createTextEmbedder(
     model.dispose();
   };
 
-  const embedWorklet = (input: string): Float32Array => {
+  const embedWorklet = (input: string, prompt?: string): Float32Array => {
     'worklet';
-    const ids = tokenizer.encode(input);
+    // Prepend the per-call prompt override, else the model's configured prompt.
+    const text = (prompt ?? defaultPrompt ?? '') + input;
+    const ids = tokenizer.encode(text);
     if (ids.length === 0) {
       throw new Error('createTextEmbedder: input tokenized to zero tokens');
     }
