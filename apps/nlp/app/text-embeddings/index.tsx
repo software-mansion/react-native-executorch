@@ -15,7 +15,9 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
-const MODELS: { label: string; value: TextEmbedderModel }[] = [
+// `docPrompt` is applied to library sentences (passages); queries use the
+// model's configured prompt. Set only for asymmetric retrieval models.
+const MODELS: { label: string; value: TextEmbedderModel; docPrompt?: string }[] = [
   { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2 },
   { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2 },
   { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1 },
@@ -23,6 +25,11 @@ const MODELS: { label: string; value: TextEmbedderModel }[] = [
   { label: 'Paraphrase ML', value: models.textEmbeddings.PARAPHRASE_MULTILINGUAL_MINILM_L12_V2 },
   { label: 'DistilUSE ML', value: models.textEmbeddings.DISTILUSE_BASE_MULTILINGUAL_CASED_V2 },
   { label: 'CLIP Text', value: models.textEmbeddings.CLIP_VIT_BASE_PATCH32_TEXT },
+  {
+    label: 'LFM2.5',
+    value: models.textEmbeddings.LFM2_5_EMBEDDING_350M,
+    docPrompt: 'document: ',
+  },
 ];
 
 const STARTER_SENTENCES = [
@@ -51,6 +58,8 @@ const isDisposedError = (msg: string) => /disposed/i.test(msg);
 function TextEmbeddingsContent() {
   const [selected, setSelected] = useState(0);
   const { isReady, downloadProgress, error, embed } = useTextEmbedder(MODELS[selected]!.value);
+  // Passages use the model's document prompt (if any); queries use its default.
+  const docPrompt = MODELS[selected]!.docPrompt;
 
   const [library, setLibrary] = useState<Entry[]>([]);
   const [input, setInput] = useState('');
@@ -72,7 +81,7 @@ function TextEmbeddingsContent() {
       try {
         const entries: Entry[] = [];
         for (const sentence of STARTER_SENTENCES) {
-          const embedding = await embed(sentence);
+          const embedding = await embed(sentence, docPrompt);
           if (cancelled) return;
           entries.push({ sentence, embedding });
         }
@@ -86,7 +95,7 @@ function TextEmbeddingsContent() {
     return () => {
       cancelled = true;
     };
-  }, [embed, ready]);
+  }, [embed, ready, docPrompt]);
 
   const selectModel = (i: number) => {
     if (i === selected) return;
@@ -124,7 +133,7 @@ function TextEmbeddingsContent() {
     setRunError(null);
     try {
       const start = Date.now();
-      const embedding = await embed(input.trim());
+      const embedding = await embed(input.trim(), docPrompt);
       setEmbedMs(Date.now() - start);
       setLibrary((prev) => [...prev, { sentence: input.trim(), embedding }]);
       setInput('');
