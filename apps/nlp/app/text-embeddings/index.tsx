@@ -17,7 +17,13 @@ import { theme } from '../../theme';
 
 // `docPrompt` is applied to library sentences (passages); queries use the
 // model's configured prompt. Set only for asymmetric retrieval models.
-const MODELS: { label: string; value: TextEmbedderModel; docPrompt?: string }[] = [
+// `iosOnly` marks backends unavailable on Android (e.g. MLX is iOS-only).
+const MODELS: {
+  label: string;
+  value: TextEmbedderModel;
+  docPrompt?: string;
+  iosOnly?: boolean;
+}[] = [
   { label: 'MiniLM L6', value: models.textEmbeddings.ALL_MINILM_L6_V2 },
   { label: 'MPNet Base', value: models.textEmbeddings.ALL_MPNET_BASE_V2 },
   { label: 'MultiQA MiniLM', value: models.textEmbeddings.MULTI_QA_MINILM_L6_COS_V1 },
@@ -29,6 +35,12 @@ const MODELS: { label: string; value: TextEmbedderModel; docPrompt?: string }[] 
     label: 'LFM2.5',
     value: models.textEmbeddings.LFM2_5_EMBEDDING_350M,
     docPrompt: 'document: ',
+  },
+  {
+    label: 'LFM2.5 MLX',
+    value: models.textEmbeddings.LFM2_5_EMBEDDING_350M.MLX_INT4,
+    docPrompt: 'document: ',
+    iosOnly: true,
   },
 ];
 
@@ -176,17 +188,26 @@ function TextEmbeddingsContent() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipRow}
           >
-            {MODELS.map((m, i) => (
-              <TouchableOpacity
-                key={m.label}
-                style={[styles.chip, i === selected && styles.chipActive]}
-                onPress={() => selectModel(i)}
-              >
-                <Text style={[styles.chipText, i === selected && styles.chipTextActive]}>
-                  {m.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {MODELS.map((m, i) => {
+              const disabled = m.iosOnly && Platform.OS !== 'ios';
+              return (
+                <TouchableOpacity
+                  key={m.label}
+                  style={[
+                    styles.chip,
+                    i === selected && styles.chipActive,
+                    disabled && styles.chipDisabled,
+                  ]}
+                  onPress={() => selectModel(i)}
+                  disabled={disabled}
+                >
+                  <Text style={[styles.chipText, i === selected && styles.chipTextActive]}>
+                    {m.label}
+                    {disabled ? ' (iOS)' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
 
           <ModelStatus
@@ -338,6 +359,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.strongPrimary,
     borderColor: theme.colors.strongPrimary,
   },
+  chipDisabled: { opacity: 0.4 },
   chipText: { fontSize: 13, fontWeight: '600', color: theme.colors.textMuted },
   chipTextActive: { color: '#fff' },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#212529' },
