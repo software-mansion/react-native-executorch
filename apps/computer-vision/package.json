@@ -5,6 +5,8 @@
   "react-native-executorch": {
     "features": [
       "classification",
+      "imageEmbeddings",
+      "textEmbeddings",
       "instanceSegmentation",
       "keypointDetection",
       "objectDetection",
