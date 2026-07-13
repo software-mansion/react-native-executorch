@@ -22,12 +22,9 @@ namespace {
 
 // Returns the last non-space character of a view (for pause selection).
 char32_t lastMeaningfulChar(std::u32string_view s) {
-  for (auto it = s.rbegin(); it != s.rend(); ++it) {
-    if (*it != U' ') {
-      return *it;
-    }
-  }
-  return s.empty() ? U'.' : s.back();
+  auto it =
+      std::find_if(s.rbegin(), s.rend(), [](char32_t c) { return c != U' '; });
+  return it != s.rend() ? *it : s.empty() ? U'.' : s.back();
 }
 
 int32_t pauseMsFor(char32_t c) {
@@ -129,7 +126,7 @@ std::vector<float> Supertonic::synthesize(std::u32string_view text, float speed,
   // 2. Duration predictor.
   float durationSec =
       durationPredictor_.generate(tok.ids, tok.mask, voice_.dp, speed);
-  if (!(durationSec > 0.0F)) {
+  if (durationSec <= 0.0F) {
     return {};
   }
 
@@ -274,7 +271,7 @@ void Supertonic::stream(std::shared_ptr<jsi::Function> callback, float speed,
   }
 }
 
-void Supertonic::streamInsert(std::u32string chunk) noexcept {
+void Supertonic::streamInsert(std::u32string chunk) {
   std::scoped_lock<std::mutex> lock(inputTextBufferMutex_);
   inputTextBuffer_.append(chunk);
 }

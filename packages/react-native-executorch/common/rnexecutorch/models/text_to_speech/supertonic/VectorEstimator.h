@@ -25,8 +25,8 @@ public:
     int32_t L;             // Number of latent frames.
   };
 
-  VectorEstimator(const std::string &modelSource,
-                  std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit VectorEstimator(const std::string &modelSource,
+                           std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Computes latent frame geometry from the predicted duration, samples

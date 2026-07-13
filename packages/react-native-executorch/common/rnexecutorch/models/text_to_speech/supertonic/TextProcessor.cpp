@@ -18,7 +18,7 @@ namespace {
 
 // --- 1. Emoji removal -----------------------------------------------------
 
-bool isEmoji(char32_t c) {
+bool isEmoji(char32_t c) noexcept {
   return (c >= 0x1F600 && c <= 0x1F64F) || (c >= 0x1F300 && c <= 0x1F5FF) ||
          (c >= 0x1F680 && c <= 0x1F6FF) || (c >= 0x1F700 && c <= 0x1F77F) ||
          (c >= 0x1F780 && c <= 0x1F7FF) || (c >= 0x1F800 && c <= 0x1F8FF) ||
@@ -58,7 +58,7 @@ void replaceAll(std::u32string &s, std::u32string_view from,
   }
 }
 
-bool isAsciiSpace(char32_t c) {
+bool isAsciiSpace(char32_t c) noexcept {
   return c == U' ' || c == U'\t' || c == U'\n' || c == U'\r' || c == U'\f' ||
          c == U'\v';
 }
@@ -153,15 +153,13 @@ TokenizedText TextProcessor::process(std::u32string_view text,
     cleaned.reserve(s.size());
     bool prevSpace = false;
     for (char32_t c : s) {
-      if (isAsciiSpace(c)) {
-        if (!prevSpace) {
-          cleaned.push_back(U' ');
-        }
-        prevSpace = true;
-      } else {
-        cleaned.push_back(c);
-        prevSpace = false;
+      const bool space = isAsciiSpace(c);
+      if (space && prevSpace) {
+        continue;
       }
+
+      cleaned.push_back(space ? U' ' : c);
+      prevSpace = space;
     }
     size_t b = cleaned.find_first_not_of(U' ');
     size_t e = cleaned.find_last_not_of(U' ');

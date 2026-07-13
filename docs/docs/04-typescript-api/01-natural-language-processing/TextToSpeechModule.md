@@ -105,11 +105,11 @@ const audioContext = new AudioContext({ sampleRate: 44100 });
 
 try {
   const waveform = await tts.forward(
-    'Hello from ExecuTorch!',
-    1.0,
-    true,
-    8,
-    'en'
+    'Hello from ExecuTorch!', // Input text
+    1.0, // Speed
+    true, // Phonemize the input (Kokoro only)
+    8, // Number of steps (Supertonic only)
+    'en' // Language (Supertonic only)
   );
   // Kokoro: tts.forward('Hello from ExecuTorch!', 1.0)
 
@@ -141,21 +141,14 @@ const tts = await TextToSpeechModule.fromModelName(
   models.text_to_speech.supertonic.m1(),
   (progress) => console.log(progress)
 );
-// Kokoro:
-// const tts = await TextToSpeechModule.fromModelName(
-//   models.text_to_speech.kokoro.en_us.heart(),
-//   (progress) => console.log(progress)
-// );
 
 const audioContext = new AudioContext({ sampleRate: 44100 });
-// Kokoro: sampleRate: 24000
 
 try {
   for await (const chunk of tts.stream({
     text: 'This is a streaming test, with a sample input.',
     totalSteps: 8,
     lang: 'en',
-    // Kokoro: use speed: 1.0 instead of totalSteps/lang
   })) {
     // Play each chunk sequentially
     await new Promise<void>((resolve) => {

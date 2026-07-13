@@ -20,8 +20,8 @@ namespace rnexecutorch::models::text_to_speech::supertonic {
  */
 class TextEncoder : public BaseModel {
 public:
-  TextEncoder(const std::string &modelSource,
-              std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit TextEncoder(const std::string &modelSource,
+                       std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Produces a text embedding from token ids and style.

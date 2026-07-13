@@ -26,15 +26,20 @@ using namespace facebook;
 
 class Supertonic {
 public:
-  Supertonic(const std::string &lang, const std::string &unicodeIndexerSource,
-             const std::string &durationPredictorSource,
-             const std::string &textEncoderSource,
-             const std::string &vectorEstimatorSource,
-             const std::string &vocoderSource, const std::string &voiceSource,
-             std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit Supertonic(const std::string &lang,
+                      const std::string &unicodeIndexerSource,
+                      const std::string &durationPredictorSource,
+                      const std::string &textEncoderSource,
+                      const std::string &vectorEstimatorSource,
+                      const std::string &vocoderSource,
+                      const std::string &voiceSource,
+                      std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Synthesizes the full input in one pass.
+   *
+   * A theoretically const method, not marked as const for the purpose of
+   * compatibility with ET API and simplifying the code.
    * @param input UTF-32 text to synthesize.
    * @param speed playback speed multiplier.
    * @param totalSteps flow-matching steps (quality/latency trade-off).
@@ -58,7 +63,7 @@ public:
               int32_t totalSteps = params::kDefaultStepsI,
               bool stopOnEmptyBuffer = false, std::string lang = "");
 
-  void streamInsert(std::u32string chunk) noexcept;
+  void streamInsert(std::u32string chunk);
   void streamFlush() noexcept;
   void streamStop(bool instant) noexcept;
 

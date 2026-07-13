@@ -18,8 +18,8 @@ namespace rnexecutorch::models::text_to_speech::supertonic {
  */
 class DurationPredictor : public BaseModel {
 public:
-  DurationPredictor(const std::string &modelSource,
-                    std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit DurationPredictor(const std::string &modelSource,
+                             std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Predicts the duration of the utterance in seconds.

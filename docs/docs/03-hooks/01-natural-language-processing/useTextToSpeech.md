@@ -201,11 +201,8 @@ import { AudioContext } from 'react-native-audio-api';
 export default function App() {
   // Supertonic 3
   const tts = useTextToSpeech(models.text_to_speech.supertonic.m1());
-  // Kokoro:
-  // const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 
   const contextRef = useRef(new AudioContext({ sampleRate: 44100 }));
-  // Kokoro: sampleRate: 24000
 
   const generateStream = async () => {
     const ctx = contextRef.current;
@@ -214,7 +211,6 @@ export default function App() {
       text: "This is a longer text, which is being streamed chunk by chunk. Let's see how it works!",
       totalSteps: 8,
       lang: 'en',
-      // Kokoro: use speed: 1.0 instead of totalSteps/lang
       onNext: async (chunk) => {
         return new Promise((resolve) => {
           const buffer = ctx.createBuffer(1, chunk.length, ctx.sampleRate);

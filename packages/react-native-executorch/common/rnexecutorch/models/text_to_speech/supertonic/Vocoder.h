@@ -17,8 +17,8 @@ namespace rnexecutorch::models::text_to_speech::supertonic {
  */
 class Vocoder : public BaseModel {
 public:
-  Vocoder(const std::string &modelSource,
-          std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit Vocoder(const std::string &modelSource,
+                   std::shared_ptr<react::CallInvoker> callInvoker);
 
   /**
    * Decodes a latent vector into a waveform.

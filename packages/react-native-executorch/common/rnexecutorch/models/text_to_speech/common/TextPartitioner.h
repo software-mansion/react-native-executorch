@@ -75,7 +75,7 @@ public:
         segments; // Pairs of {offset, length} for each segment.
   };
 
-  TextPartitioner(const TextPartitionerConfig &config);
+  explicit TextPartitioner(const TextPartitionerConfig &config);
 
   /**
    * Partitions the input text into segments.

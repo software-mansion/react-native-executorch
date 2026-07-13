@@ -17,7 +17,8 @@ public:
    *        wrapper (e.g. "en"; "na" for unknown). Used whenever a per-call
    *        ``lang`` is not supplied. Empty disables wrapping.
    */
-  TextProcessor(const std::string &indexerSource, std::string defaultLang);
+  explicit TextProcessor(const std::string &indexerSource,
+                         std::string defaultLang);
 
   /**
    * Preprocess + tokenize a single text chunk.
