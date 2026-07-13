@@ -36,8 +36,6 @@ export function useTextEmbedder(config: TextEmbedderModel, options?: { preventLo
   return {
     isReady: !!model,
     error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    // The tokenizer is tiny relative to the model, so an average would misreport
-    // progress; surface the model download progress directly.
     downloadProgress: modelResource.downloadProgress,
     localPath: localModelPath,
     tokenizerPath: localTokenizerPath,

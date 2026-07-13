@@ -14,13 +14,7 @@ import { loadTokenizer } from '../tokenizer';
 export type TextEmbedderModel = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
-  /**
-   * Optional prompt prefix prepended to every input before tokenization. Some
-   * models are trained with a task instruction (e.g. LFM2.5-Embedding uses
-   * `'query: '` for queries and `'document: '` for passages). Can be overridden
-   * per call via the `prompt` argument of `embed` / `embedWorklet`.
-   */
-  readonly prompt?: string;
+  readonly defaultPrompt?: string;
 };
 
 /**
@@ -55,7 +49,7 @@ export async function createTextEmbedder(
    * Inputs longer than the model's maximum sequence length are truncated.
    * @param input The input text to embed.
    * @param prompt Optional prompt prefix overriding the model's configured
-   * `prompt` for this call (e.g. `'query: '` vs `'document: '`).
+   * `defaultPrompt` for this call.
    * @returns A promise resolving to the embedding vector.
    */
   embed: (input: string, prompt?: string) => Promise<Float32Array>;
@@ -65,7 +59,7 @@ export async function createTextEmbedder(
    */
   embedWorklet: (input: string, prompt?: string) => Float32Array;
 }> {
-  const { modelPath, tokenizerPath, prompt: defaultPrompt } = config;
+  const { modelPath, tokenizerPath, defaultPrompt } = config;
   const [model, tokenizer] = await Promise.all([
     wrapAsync(loadModel, runtime)(modelPath),
     wrapAsync(loadTokenizer, runtime)(tokenizerPath),
@@ -95,20 +89,13 @@ export async function createTextEmbedder(
 
   const embedWorklet = (input: string, prompt?: string): Float32Array => {
     'worklet';
-    // Prepend the per-call prompt override, else the model's configured prompt.
     const text = (prompt ?? defaultPrompt ?? '') + input;
     const ids = tokenizer.encode(text);
     if (ids.length === 0) {
       throw new Error('createTextEmbedder: input tokenized to zero tokens');
     }
-    // Truncate inputs longer than the model's maximum sequence length; the
-    // model has no way to attend beyond it.
     const len = Math.min(ids.length, maxSeqLen);
 
-    // Feed the exact token length with no padding. The model resizes its dynamic
-    // sequence input to match. Padding would change the result for pooling heads
-    // that are sensitive to it (e.g. DistilUSE's tanh projection). The attention
-    // mask is all ones since every position is a real token.
     const idsData = new BigInt64Array(len);
     const maskData = new BigInt64Array(len);
     for (let i = 0; i < len; i++) {

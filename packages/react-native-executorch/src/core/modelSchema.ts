@@ -158,7 +158,6 @@ function validateTags(
  * On success it returns the method's {@link ModelMethodMeta}, which can be used
  * to read concrete input/output tensor shapes for pre-allocating scratch
  * tensors.
- *
  * @remarks
  * A symbolic (string) input dimension here only relaxes *validation*. For a
  * dimension that must genuinely vary at runtime (e.g. sequence length), the
@@ -168,7 +167,7 @@ function validateTags(
  * bounds — ExecuTorch metadata only serializes the static upper bound, so the
  * runtime reads the active range from this companion. Without it, the method
  * only accepts the exact shape it was exported with. The reported upper bound is
- * still read from `meta.inputTensorMeta` (e.g. to truncate over-long inputs).
+ * still read from `meta.inputTensorMeta`.
  * @category Typescript API
  * @param model The compiled model to validate.
  * @param methodName The exported method name to validate (e.g. `'forward'`).

@@ -31,9 +31,6 @@ T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
     return std::move(result.get());
 }
 
-// Overload for JSI host-function contexts: surfaces the failure as a JS error
-// instead of a std::runtime_error. The plain overload above is for load-time
-// paths (e.g. the constructor) where no jsi::Runtime is available.
 template <typename T>
 T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
@@ -435,9 +432,6 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
                     auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.output_tensor_meta(index));
                     auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
-                    // Validate the JS placeholder against the tensor's actual
-                    // produced shape rather than the static metadata, so methods
-                    // with dynamically-shaped outputs are handled correctly.
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, output.toTensor().sizes());
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
