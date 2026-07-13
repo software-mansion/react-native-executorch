@@ -116,7 +116,8 @@ const FEATURE_MAP = {
   textToSpeech: { backends: ['xnnpack'], libs: ['phonemis'] },
   // FSMN VAD — xnnpack only.
   vad: { backends: ['xnnpack'], libs: [] },
-  textEmbeddings: { backends: ['xnnpack'], libs: [] },
+  // LFM2.5-Embedding ships an MLX iOS export alongside xnnpack.
+  textEmbeddings: { backends: ['xnnpack', 'mlx'], libs: [] },
   imageEmbeddings: { backends: ['xnnpack'], libs: ['opencv'] },
   // EfficientNet ships xnnpack + coreml.
   classification: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },

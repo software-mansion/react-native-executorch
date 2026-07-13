@@ -62,6 +62,20 @@ The `SymbolicTensor` helper supports specifying **Symbolic Shapes** where intege
 
 ---
 
+## ⚙️ Runtime Dynamic Dimensions: the `get_dynamic_dims_<methodName>` companion
+
+`SymbolicTensor` string symbols let the **validator** accept a range of shapes, but an ExecuTorch `.pte`'s metadata only serializes the **static upper bound** of a dynamic dimension — not its active `[min, max, step]` range. So for an input dimension that genuinely varies at runtime (e.g. a text model's sequence length), the model must be **exported with a companion method** that re-exposes the range to the runtime:
+
+* **Name**: `get_dynamic_dims_<methodName>` — e.g. `get_dynamic_dims_forward` for `forward`.
+* **Signature**: takes no arguments.
+* **Returns**: a list of outputs, one per `Tensor` input of the target method (scalar inputs are skipped), each a **2D `int32` tensor of shape `[rank, 3]`** whose rows are `[min, max, step]` constraints for that input's dimensions — e.g. `[1, 1, 1]` for a fixed dimension and `[1, maxTokens, 1]` for the dynamic one.
+
+At load time the C++ core (`Model::parseDynamicInputShapes`) reads this companion and validates inputs against the range; `model.execute` then accepts tensors at their exact runtime length. **Without the companion, a method falls back to exact per-dimension validation** — it only accepts the single shape it was exported with. So a `.pte` whose metadata reports `[1, 512]` but is meant to accept `[1, 1..512]` MUST ship `get_dynamic_dims_forward`, or variable-length inputs are rejected at runtime.
+
+This is an **export-side contract** (the export-scripts repo provides a `build_dynamic_dims_program` helper that emits the companion). The TypeScript task only declares the symbol via `SymbolicTensor` and reads the resulting upper bound from `meta.inputTensorMeta`.
+
+---
+
 ## 📋 Common Validation Recipes
 
 ### 1. Classification
