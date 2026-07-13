@@ -3130,6 +3130,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.5.9":
+  version: 0.5.9
+  resolution: "@huggingface/jinja@npm:0.5.9"
+  checksum: 10/8147f05df29b609ebb923f9e294f485897c5b5b92cddb1e41d8469b2992def242d9b536b8e9ca450a24a88fae0df6764986ab1248033f34edd4f5eb9dc2c4d78
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.13.0":
   version: 0.13.0
   resolution: "@humanwhocodes/config-array@npm:0.13.0"
@@ -12398,6 +12405,7 @@ __metadata:
   resolution: "react-native-executorch@workspace:packages/react-native-executorch"
   dependencies:
     "@babel/core": "npm:^7.25.1"
+    "@huggingface/jinja": "npm:^0.5.9"
     "@react-native/babel-preset": "npm:0.83.6"
     "@react-native/metro-config": "npm:^0.86.0"
     "@types/react": "npm:^19.1.12"
