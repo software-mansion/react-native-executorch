@@ -1,2 +1,1 @@
-export * from './tasks/vad';
-export * from './vadStreamer';
+export * from './tasks/fsmnVad';

@@ -75,6 +75,29 @@ export type Segment = {
   readonly end: number;
 };
 
+/**
+ * Options controlling a streaming detection session. Extends the per-call
+ * detection thresholds ({@link VADOptions}) with streaming-specific tuning.
+ * @category Types
+ * @property {number} [detectionMargin] - How recent (in milliseconds) the last
+ * detected speech segment must reach toward the end of the window for speech to
+ * still be considered ongoing. Defaults to `100`.
+ */
+export type VADStreamOptions = VADOptions & {
+  readonly detectionMargin?: number;
+};
+
+/**
+ * Emitted by the {@link VADStreamOptions} generator on every speech begin/end
+ * transition.
+ * @category Types
+ * @property {boolean} isSpeaking - `true` when speech has just started, `false`
+ * when it has just ended.
+ */
+export type VADStreamEvent = {
+  readonly isSpeaking: boolean;
+};
+
 // Resolved options with defaults applied. Kept separate so `detectWorklet` can
 // read every field unconditionally.
 type ResolvedOptions = Required<VADOptions>;
@@ -88,6 +111,18 @@ const DEFAULT_OPTIONS: ResolvedOptions = {
   speechPadMs: 30,
   mergeGapMs: 0,
 };
+
+// Streaming detection runs over a bounded sliding window of the most recent
+// audio rather than the whole growing session: the decision only depends on
+// recent context (whether speech is ongoing at the buffer end) and model cost
+// scales with window length, so a bounded window keeps per-tick latency flat and
+// low (~3x cheaper than a 10s buffer on device). 2.5s is well above FSMN's
+// receptive field (~200ms) and the min-speech duration (250ms), so quality is
+// unaffected.
+const DETECTION_WINDOW_SECONDS = 2.5;
+// Default recency (ms) the last detected segment must reach toward the window
+// end for speech to still count as ongoing.
+const DEFAULT_DETECTION_MARGIN_MS = 100;
 
 // A speech region measured in raw sample indices (internal to postprocessing).
 type SampleSegment = { start: number; end: number };
@@ -198,7 +233,7 @@ function mergeSegments(segments: SampleSegment[], maxMergeGap: number): SampleSe
  * @returns A promise resolving to an object containing detection and disposal
  * controls.
  */
-export async function createVAD(
+export async function createFsmnVad(
   config: VADModel,
   runtime?: WorkletRuntime
 ): Promise<{
@@ -219,6 +254,22 @@ export async function createVAD(
    * or worklet thread.
    */
   detectWorklet: (waveform: Float32Array, options?: VADOptions) => Segment[];
+  /**
+   * Starts a live streaming session and returns an async generator that yields
+   * a {@link VADStreamEvent} on every speech begin/end transition. Feed audio
+   * with {@link createFsmnVad}'s `streamInsert` and end the session with
+   * `streamStop`. Throws if a session is already in progress.
+   */
+  stream: (options?: VADStreamOptions) => AsyncGenerator<VADStreamEvent>;
+  /**
+   * Appends a mono audio chunk to the active streaming buffer and wakes the
+   * stream generator. Throws if no session is in progress.
+   */
+  streamInsert: (audioChunk: Float32Array) => void;
+  /**
+   * Stops the active streaming session. Throws if no session is in progress.
+   */
+  streamStop: () => void;
 }> {
   const { modelPath, featureConfig: fc } = config;
   const samplesPerMs = fc.sampleRate / 1000;
@@ -305,5 +356,87 @@ export async function createVAD(
 
   const detect = wrapAsync(detectWorklet, runtime);
 
-  return { detect, detectWorklet, dispose };
+  // --- Streaming ---
+  // Unified with the Whisper STT streaming structure (createWhisperSpeechToText):
+  // a pull-based async generator woken by `streamInsert`, with no wall-clock
+  // polling. Detection runs over a bounded sliding window (DETECTION_WINDOW_SECONDS)
+  // of the most recent audio so per-tick model cost stays flat.
+  const windowSamples = DETECTION_WINDOW_SECONDS * fc.sampleRate;
+  let isStreaming = false;
+  let streamBuffer = new Float32Array(0);
+  let totalInserted = 0;
+  let signal: (() => void) | null = null;
+
+  const streamInsert = (audioChunk: Float32Array): void => {
+    if (!isStreaming) {
+      throw new Error('Streaming is not in progress');
+    }
+    // `streamBuffer` is replaced (never mutated), so a snapshot handed to a
+    // running detection stays valid. Older audio beyond the detection window is
+    // dropped so each tick's model cost stays bounded.
+    const next = new Float32Array(streamBuffer.length + audioChunk.length);
+    next.set(streamBuffer);
+    next.set(audioChunk, streamBuffer.length);
+    streamBuffer = next.length > windowSamples ? next.slice(next.length - windowSamples) : next;
+    totalInserted += audioChunk.length;
+    signal?.();
+    signal = null;
+  };
+
+  const streamStop = (): void => {
+    if (!isStreaming) {
+      throw new Error('Streaming is not in progress');
+    }
+    isStreaming = false;
+    signal?.();
+    signal = null;
+  };
+
+  async function* stream(options?: VADStreamOptions): AsyncGenerator<VADStreamEvent> {
+    if (isStreaming) {
+      throw new Error('Streaming is already in progress');
+    }
+    isStreaming = true;
+    streamBuffer = new Float32Array(0);
+    totalInserted = 0;
+
+    const detectionMargin = options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS;
+    let lastProcessed = 0;
+    let speaking = false;
+
+    try {
+      while (isStreaming) {
+        // Run detection once per fresh audio arrival; otherwise sleep until the
+        // next `streamInsert` wakes us (event-driven, no polling).
+        if (totalInserted <= lastProcessed) {
+          await new Promise<void>((resolve) => (signal = resolve));
+          continue;
+        }
+
+        const snapshot = streamBuffer;
+        lastProcessed = totalInserted;
+        const segments = await detect(snapshot, options);
+        if (!isStreaming) break;
+
+        // Speech is ongoing if the last detected segment reaches close enough to
+        // the end of the window (within detectionMargin).
+        let nowSpeaking = false;
+        if (segments.length > 0) {
+          const bufferEndSec = snapshot.length / fc.sampleRate;
+          const diffMs = (bufferEndSec - segments[segments.length - 1]!.end) * 1000;
+          nowSpeaking = diffMs <= detectionMargin;
+        }
+
+        if (nowSpeaking !== speaking) {
+          speaking = nowSpeaking;
+          yield { isSpeaking: speaking };
+        }
+      }
+    } finally {
+      isStreaming = false;
+      signal = null;
+    }
+  }
+
+  return { dispose, detect, detectWorklet, stream, streamStop, streamInsert };
 }

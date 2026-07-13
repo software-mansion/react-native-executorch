@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { useVAD, models } from 'react-native-executorch';
+import { useFsmnVad, models } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 
@@ -14,7 +14,7 @@ const SAMPLE_RATE = models.vad.FSMN_VAD.featureConfig.sampleRate;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
-  const { isReady, downloadProgress, error, stream, streamInsert, streamStop } = useVAD(
+  const { isReady, downloadProgress, error, stream, streamInsert, streamStop } = useFsmnVad(
     models.vad.FSMN_VAD
   );
 
@@ -43,7 +43,7 @@ function VADContent() {
   }, []);
 
   const handleStart = async () => {
-    if (isStreaming || !isReady) return;
+    if (isStreaming || !isReady || !stream || !streamInsert || !streamStop) return;
 
     if (!hasMicPermission) {
       setRunError('Microphone permission denied. Please enable it in Settings.');
@@ -54,6 +54,19 @@ function VADContent() {
     setLogs([]);
     setIsStreaming(true);
     addLog('Starting VAD stream…');
+
+    // Start consuming the stream generator first so the session is active before
+    // the recorder can push audio through streamInsert.
+    const streamLoop = (async () => {
+      try {
+        for await (const { isSpeaking: speaking } of stream({ detectionMargin: 300 })) {
+          setIsSpeaking(speaking);
+          addLog(speaking ? 'Speech detected (begin)' : 'Silence detected (end)');
+        }
+      } catch (e) {
+        setRunError(e instanceof Error ? e.message : String(e));
+      }
+    })();
 
     recorder.current.onAudioReady(
       { sampleRate: SAMPLE_RATE, bufferLength: 1600, channelCount: 1 },
@@ -66,27 +79,22 @@ function VADContent() {
       if (started.status === 'error') {
         throw new Error(started.message);
       }
-
-      await stream({
-        onSpeechBegin: () => {
-          setIsSpeaking(true);
-          addLog('Speech detected (begin)');
-        },
-        onSpeechEnd: () => {
-          setIsSpeaking(false);
-          addLog('Silence detected (end)');
-        },
-        options: { timeout: 100, detectionMargin: 300 },
-      });
     } catch (e) {
       setRunError(e instanceof Error ? e.message : String(e));
+      streamStop();
       setIsStreaming(false);
     }
+
+    await streamLoop;
   };
 
   const handleStop = async () => {
     await recorder.current.stop();
-    streamStop();
+    try {
+      streamStop?.();
+    } catch {
+      // Session may already have ended; ignore.
+    }
     setIsStreaming(false);
     setIsSpeaking(false);
     addLog('VAD stream stopped');

@@ -6,7 +6,7 @@ import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetect
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
-import type { VADModel } from './extensions/speech/tasks/vad';
+import type { VADModel } from './extensions/speech/tasks/fsmnVad';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
