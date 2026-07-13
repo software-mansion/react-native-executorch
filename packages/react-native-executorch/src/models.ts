@@ -16,6 +16,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
+import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -911,6 +912,213 @@ const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotron
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
 
+// =============================================================================
+// LLMs
+// =============================================================================
+const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${VERSION_TAG}`;
+
+const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
+const LFM2_5_1_2B_XNNPACK_FP16: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
+const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+const LFM2_5_350M_XNNPACK_FP16: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+
+const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
+
+const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
+};
+const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
+  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`,
+  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
+};
+
+const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${VERSION_TAG}`;
+
+const LLAMA3_2_3B_SPINQUANT: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_3B_BF16: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_1B_SPINQUANT: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_1B_BF16: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+
+const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${VERSION_TAG}`;
+
+const SMOLLM2_135M_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_135M_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_360M_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_360M_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_1_7B_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_1_7B_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+
+const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${VERSION_TAG}`;
+
+const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_0_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_1_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+
+const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${VERSION_TAG}`;
+
+const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
+  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
+};
+const PHI4_MINI_XNNPACK_BF16: LLMModel = {
+  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_bf16.pte`,
+  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
+};
+
+const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${VERSION_TAG}`;
+
+const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_0_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_1_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+
+const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
+
+const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_0_6B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_1_7B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_4B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+
 /**
  * Registry of pre-configured ExecuTorch models.
  *
@@ -1375,11 +1583,113 @@ export const models = {
     /** WordPiece tokenizer URL for the `all-MiniLM-L6-v2` embedding model. */
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
   },
-
-  /**
-   * Text embedding models mapping sentences and documents into dense vector
-   * representations for semantic search and RAG.
-   */
+  llm: {
+    LFM2_5: {
+      '1_2B': {
+        ...LFM2_5_1_2B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
+        XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
+      },
+      '350M': {
+        ...LFM2_5_350M_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
+        XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
+      },
+    },
+    BIELIK_V3: {
+      '1_5B': {
+        ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
+        XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
+      },
+    },
+    LLAMA3_2: {
+      '1B': {
+        ...LLAMA3_2_1B_SPINQUANT,
+        XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
+        XNNPACK_BF16: LLAMA3_2_1B_BF16,
+      },
+      '3B': {
+        ...LLAMA3_2_3B_SPINQUANT,
+        XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
+        XNNPACK_BF16: LLAMA3_2_3B_BF16,
+      },
+    },
+    SMOLLM2: {
+      '135M': {
+        ...SMOLLM2_135M_8DA4W,
+        XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
+        XNNPACK_BF16: SMOLLM2_135M_BF16,
+      },
+      '360M': {
+        ...SMOLLM2_360M_8DA4W,
+        XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
+        XNNPACK_BF16: SMOLLM2_360M_BF16,
+      },
+      '1_7B': {
+        ...SMOLLM2_1_7B_8DA4W,
+        XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
+        XNNPACK_BF16: SMOLLM2_1_7B_BF16,
+      },
+    },
+    HAMMER2_1: {
+      '0_5B': {
+        ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
+        XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
+      },
+      '1_5B': {
+        ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
+        XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
+      },
+      '3B': {
+        ...HAMMER2_1_3B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
+        XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
+      },
+    },
+    PHI4_MINI: {
+      ...PHI4_MINI_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
+      XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
+    },
+    QWEN2_5: {
+      '0_5B': {
+        ...QWEN2_5_0_5B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
+      },
+      '1_5B': {
+        ...QWEN2_5_1_5B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
+      },
+      '3B': {
+        ...QWEN2_5_3B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
+      },
+    },
+    QWEN3: {
+      '0_6B': {
+        ...QWEN3_0_6B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
+      },
+      '1_7B': {
+        ...QWEN3_1_7B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
+      },
+      '4B': {
+        ...QWEN3_4B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
+        XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+      },
+    },
+  },
+>>>>>>> 3599f2c3a (feat: implement TypeScript wrapper and hook for LLM Chat Session)
   textEmbeddings: {
     /**
      * Compact 384-dimensional sentence transformer mapping text to a dense

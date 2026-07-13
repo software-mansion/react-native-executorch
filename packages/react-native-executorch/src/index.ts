@@ -6,6 +6,7 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useLLMChatSession';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/usePrivacyFilter';
 export * from './hooks/useImageEmbedder';
@@ -39,6 +40,7 @@ export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
+export * from './extensions/llm/tasks/llmChatSession';
 
 // Core primitives — for library builders and power users
 export * from './core/error';
@@ -53,6 +55,7 @@ export * as math from './extensions/math';
 export * as cv from './extensions/cv';
 export * as nlp from './extensions/nlp';
 export * as speech from './extensions/speech';
+export * as llm from './extensions/llm';
 
 // Utils
 export * from './utils';
