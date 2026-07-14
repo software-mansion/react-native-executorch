@@ -30,6 +30,7 @@
     "expo": "~56.0.9",
     "expo-build-properties": "~56.0.17",
     "expo-constants": "~56.0.17",
+    "expo-device": "~56.0.4",
     "expo-image-manipulator": "~56.0.18",
     "expo-image-picker": "~56.0.18",
     "expo-linking": "~56.0.13",
