@@ -49,6 +49,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="textToImage/index"
+        options={{
+          drawerLabel: 'Text to Image',
+          title: 'Text to Image',
+        }}
+      />
+      <Drawer.Screen
         name="segmentation/index"
         options={{
           drawerLabel: 'Semantic Segmentation',
