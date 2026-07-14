@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { URL_PREFIX, PREVIOUS_VERSION_TAG, VERSION_TAG } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
@@ -38,20 +39,50 @@ export const KOKORO_GERMAN = {
 };
 
 // Text to speech (tts) - Supertonic 3 model
-const SUPERTONIC_MODEL_ROOT = `${URL_PREFIX}-supertonic/${VERSION_TAG}/xnnpack`;
+const SUPERTONIC_MODEL_ROOT = `${URL_PREFIX}-supertonic/${VERSION_TAG}`;
+const SUPERTONIC_XNNPACK_ROOT = `${SUPERTONIC_MODEL_ROOT}/xnnpack`;
+const SUPERTONIC_MLX_ROOT = `${SUPERTONIC_MODEL_ROOT}/mlx`;
+
+const SUPERTONIC_BACKEND_ROOT =
+  Platform.OS === 'ios' ? SUPERTONIC_MLX_ROOT : SUPERTONIC_XNNPACK_ROOT;
+const SUPERTONIC_BACKEND_PREFIX =
+  Platform.OS === 'ios' ? 'mlx_fp32' : 'xnnpack_fp32';
 
 /**
  * Supertonic 3 — a multilingual (31 languages + `na` fallback) flow-matching
- * TTS. No phonemizer: text is mapped directly through a unicode indexer. Runs
- * four ExecuTorch submodules in sequence (duration predictor, text encoder,
- * vector estimator, vocoder) at 44.1 kHz.
  * @category Models - Text to Speech
  */
 export const SUPERTONIC = {
   modelName: 'supertonic' as const,
   unicodeIndexerSource: `${SUPERTONIC_MODEL_ROOT}/unicode_indexer.json`,
-  durationPredictorSource: `${SUPERTONIC_MODEL_ROOT}/duration_predictor.pte`,
-  textEncoderSource: `${SUPERTONIC_MODEL_ROOT}/text_encoder.pte`,
-  vectorEstimatorSource: `${SUPERTONIC_MODEL_ROOT}/vector_estimator.pte`,
-  vocoderSource: `${SUPERTONIC_MODEL_ROOT}/vocoder.pte`,
+  durationPredictorSource: `${SUPERTONIC_BACKEND_ROOT}/duration_predictor_${SUPERTONIC_BACKEND_PREFIX}.pte`,
+  textEncoderSource: `${SUPERTONIC_BACKEND_ROOT}/text_encoder_${SUPERTONIC_BACKEND_PREFIX}.pte`,
+  vectorEstimatorSource: `${SUPERTONIC_BACKEND_ROOT}/vector_estimator_${SUPERTONIC_BACKEND_PREFIX}.pte`,
+  vocoderSource: `${SUPERTONIC_BACKEND_ROOT}/vocoder_${SUPERTONIC_BACKEND_PREFIX}.pte`,
+};
+
+/**
+ * Supertonic 3 XNNPACK variant (Android default).
+ * @category Models - Text to Speech
+ */
+export const SUPERTONIC_XNNPACK = {
+  modelName: 'supertonic' as const,
+  unicodeIndexerSource: `${SUPERTONIC_MODEL_ROOT}/unicode_indexer.json`,
+  durationPredictorSource: `${SUPERTONIC_XNNPACK_ROOT}/duration_predictor_xnnpack_fp32.pte`,
+  textEncoderSource: `${SUPERTONIC_XNNPACK_ROOT}/text_encoder_xnnpack_fp32.pte`,
+  vectorEstimatorSource: `${SUPERTONIC_XNNPACK_ROOT}/vector_estimator_xnnpack_fp32.pte`,
+  vocoderSource: `${SUPERTONIC_XNNPACK_ROOT}/vocoder_xnnpack_fp32.pte`,
+};
+
+/**
+ * Supertonic 3 MLX variant (iOS default).
+ * @category Models - Text to Speech
+ */
+export const SUPERTONIC_MLX = {
+  modelName: 'supertonic' as const,
+  unicodeIndexerSource: `${SUPERTONIC_MODEL_ROOT}/unicode_indexer.json`,
+  durationPredictorSource: `${SUPERTONIC_MLX_ROOT}/duration_predictor_mlx_fp32.pte`,
+  textEncoderSource: `${SUPERTONIC_MLX_ROOT}/text_encoder_mlx_fp32.pte`,
+  vectorEstimatorSource: `${SUPERTONIC_MLX_ROOT}/vector_estimator_mlx_fp32.pte`,
+  vocoderSource: `${SUPERTONIC_MLX_ROOT}/vocoder_mlx_fp32.pte`,
 };

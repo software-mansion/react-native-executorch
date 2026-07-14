@@ -39,7 +39,8 @@ import {
   SUPERTONIC_FEMALE_4,
   SUPERTONIC_FEMALE_5,
 } from './tts/voices';
-import { TextToSpeechModelConfig } from '../types/tts';
+import { SUPERTONIC_XNNPACK, SUPERTONIC_MLX } from './tts/models';
+import { TextToSpeechModelConfig, TextToSpeechModelSources } from '../types/tts';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
@@ -218,6 +219,24 @@ function pair<D extends { modelName: string }, Q extends { modelName: string }>(
 // accessor so the call style stays consistent (`models.text_to_speech.en_us.heart()`).
 function tts<C extends TextToSpeechModelConfig>(c: C): () => C {
   return () => c;
+}
+
+type TTSBackendMap = Partial<Record<Backend, TextToSpeechModelSources>>;
+
+function ttsVariant(
+  baseConfig: TextToSpeechModelConfig,
+  modelVariants: TTSBackendMap,
+  platformDefaults: PlatformDefaults<Backend>,
+): (opts?: { backend?: Backend }) => TextToSpeechModelConfig {
+  return (opts = {}) => {
+    const variants: AnyVariantMap = {};
+    for (const b of Object.keys(modelVariants) as Backend[]) {
+      variants[b] = { base: { modelName: 'placeholder' } };
+    }
+    const backend = resolveBackend(variants, platformDefaults, opts.backend);
+    const model = modelVariants[backend];
+    return { ...baseConfig, model: model ?? baseConfig.model };
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -634,6 +653,11 @@ const WHISPER_SMALL_VARIANTS = whisperVariants(
   M.WHISPER_SMALL_TOKENIZER
 );
 
+const SUPERTONIC_MODEL_VARIANTS: TTSBackendMap = {
+  xnnpack: SUPERTONIC_XNNPACK,
+  mlx: SUPERTONIC_MLX,
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OCR — language-parameterized accessor.
 //
@@ -847,17 +871,48 @@ export const models = {
     },
     // Supertonic 3: a single multilingual model; each voice works for any of
     // the 31 supported languages (set via the config's `lang` field).
+    // MLX on iOS, XNNPACK on Android by default.
     supertonic: {
-      m1: tts(SUPERTONIC_MALE_1),
-      m2: tts(SUPERTONIC_MALE_2),
-      m3: tts(SUPERTONIC_MALE_3),
-      m4: tts(SUPERTONIC_MALE_4),
-      m5: tts(SUPERTONIC_MALE_5),
-      f1: tts(SUPERTONIC_FEMALE_1),
-      f2: tts(SUPERTONIC_FEMALE_2),
-      f3: tts(SUPERTONIC_FEMALE_3),
-      f4: tts(SUPERTONIC_FEMALE_4),
-      f5: tts(SUPERTONIC_FEMALE_5),
+      m1: ttsVariant(SUPERTONIC_MALE_1, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      m2: ttsVariant(SUPERTONIC_MALE_2, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      m3: ttsVariant(SUPERTONIC_MALE_3, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      m4: ttsVariant(SUPERTONIC_MALE_4, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      m5: ttsVariant(SUPERTONIC_MALE_5, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      f1: ttsVariant(SUPERTONIC_FEMALE_1, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      f2: ttsVariant(SUPERTONIC_FEMALE_2, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      f3: ttsVariant(SUPERTONIC_FEMALE_3, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      f4: ttsVariant(SUPERTONIC_FEMALE_4, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
+      f5: ttsVariant(SUPERTONIC_FEMALE_5, SUPERTONIC_MODEL_VARIANTS, {
+        ios: 'mlx',
+        android: 'xnnpack',
+      }),
     },
   },
   text_embedding: {
