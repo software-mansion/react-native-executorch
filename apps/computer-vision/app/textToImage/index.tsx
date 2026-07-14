@@ -22,8 +22,14 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_FP32,
   },
   {
-    label: 'SDXS-512-DreamShaper (XNNPACK 8DA4W)',
-    value: models.textToImage.SDXS_512_DREAMSHAPER.XNNPACK_8DA4W,
+    label: 'SDXS-512-DreamShaper (CoreML FP16)',
+    value: models.textToImage.SDXS_512_DREAMSHAPER.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    label: 'SDXS-512-DreamShaper (MLX INT4)',
+    value: models.textToImage.SDXS_512_DREAMSHAPER.MLX_INT4,
+    disabled: Platform.OS !== 'ios',
   },
 ];
 
@@ -36,9 +42,13 @@ function TextToImageContent() {
   const [latency, setLatency] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { isReady, downloadProgress, error: loadError, generate, generateWorklet } = useTextToImage(
-    selectedModel
-  );
+  const {
+    isReady,
+    downloadProgress,
+    error: loadError,
+    generate,
+    generateWorklet,
+  } = useTextToImage(selectedModel);
 
   const runGenerate = async (sync: boolean) => {
     if (!generate || !generateWorklet || !prompt.trim()) return;

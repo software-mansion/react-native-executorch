@@ -609,18 +609,19 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 // =============================================================================
 // Text to Image
 // =============================================================================
-// NOTE: the numeric fields below (initNoiseSigma, timestep, alphaCumprod,
-// predictionType, outAlpha/outBeta) are pinned during the `.pte` export by
-// numerically matching the reference diffusers output; the values here are the
-// SDXS defaults and are updated once the export is finalized.
+// The numeric fields below are pinned from the SDXS reference pipeline
+// (DEISMultistepScheduler, single step at t=999, epsilon prediction, TAESD
+// decoder). The single-step scheduler update is exactly linear in the latents
+// and the UNet output, so it is captured as (sampleCoeff, noiseCoeff). The
+// exported `decode` method emits RGB in [0,1], hence outAlpha=255, outBeta=0.
 const SDXS_512_DREAMSHAPER_OPTS = {
   imageSize: 512,
   latentChannels: 4,
   numInferenceSteps: 1,
   initNoiseSigma: 1.0,
   timestep: 999,
-  alphaCumprod: 0.00466,
-  predictionType: 'epsilon' as const,
+  sampleCoeff: 14.642591,
+  noiseCoeff: -14.579279,
   outAlpha: 255.0,
   outBeta: 0.0,
 };
@@ -630,8 +631,13 @@ const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsModel = {
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
   opts: SDXS_512_DREAMSHAPER_OPTS,
 };
-const SDXS_512_DREAMSHAPER_XNNPACK_8DA4W: SdxsModel = {
-  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_8da4w.pte`,
+const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsModel = {
+  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
+  tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
+  opts: SDXS_512_DREAMSHAPER_OPTS,
+};
+const SDXS_512_DREAMSHAPER_MLX_INT4: SdxsModel = {
+  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/mlx/sdxs_512_dreamshaper_mlx_int4.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
   opts: SDXS_512_DREAMSHAPER_OPTS,
 };
@@ -901,7 +907,8 @@ export const models = {
     SDXS_512_DREAMSHAPER: {
       ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
-      XNNPACK_8DA4W: SDXS_512_DREAMSHAPER_XNNPACK_8DA4W,
+      COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
+      MLX_INT4: SDXS_512_DREAMSHAPER_MLX_INT4,
     },
   },
 };

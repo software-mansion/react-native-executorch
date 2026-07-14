@@ -38,10 +38,14 @@ export type SdxsOptions = {
   readonly initNoiseSigma: number;
   /** The single training timestep fed to the UNet for the distilled step. */
   readonly timestep: number;
-  /** Cumulative alpha product at {@link timestep} (from the scheduler schedule). */
-  readonly alphaCumprod: number;
-  /** What the UNet output represents, which fixes the scheduler update formula. */
-  readonly predictionType: 'epsilon' | 'v_prediction' | 'sample';
+  /**
+   * Scheduler-step coefficients. For the distilled single step the DEIS update
+   * is exactly linear in the latents and the UNet output:
+   * `clean = sampleCoeff * latents + noiseCoeff * modelOutput`. Both are pinned
+   * from the reference scheduler during export.
+   */
+  readonly sampleCoeff: number;
+  readonly noiseCoeff: number;
   /** Per-channel or scalar scale applied to the decoder output when mapping to `[0..255]`. */
   readonly outAlpha: number | number[];
   /** Per-channel or scalar bias applied to the decoder output when mapping to `[0..255]`. */
@@ -101,23 +105,17 @@ function seededGaussian(size: number, seed: number): Float32Array {
 }
 
 // Single-step scheduler update: turns the UNet output into the clean latent that
-// is fed to the decoder. For a distilled 1-step model the update to t=0 reduces
-// to recovering x0 from the model prediction.
+// is fed to the decoder. For the distilled single step the DEIS update is exactly
+// linear in the latents and the model output.
 function toCleanLatents(
   latents: Float32Array,
   modelOutput: Float32Array,
   opts: SdxsOptions
 ): Float32Array {
   'worklet';
-  if (opts.predictionType === 'sample') return modelOutput;
-  const sqrtAlpha = Math.sqrt(opts.alphaCumprod);
-  const sqrtBeta = Math.sqrt(1 - opts.alphaCumprod);
   const out = new Float32Array(latents.length);
   for (let i = 0; i < latents.length; i++) {
-    out[i] =
-      opts.predictionType === 'v_prediction'
-        ? sqrtAlpha * latents[i]! - sqrtBeta * modelOutput[i]!
-        : (latents[i]! - sqrtBeta * modelOutput[i]!) / sqrtAlpha;
+    out[i] = opts.sampleCoeff * latents[i]! + opts.noiseCoeff * modelOutput[i]!;
   }
   return out;
 }
