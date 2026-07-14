@@ -55,7 +55,7 @@ function TextToImageContent() {
     if (!sync) setIsProcessing(true);
     setError(null);
     try {
-      const seed = Date.now() & 0x7fffffff;
+      const seed = Date.now() % 0x80000000;
       const start = Date.now();
       const output = sync ? generateWorklet(prompt, seed) : await generate(prompt, seed);
       setLatency(Date.now() - start);

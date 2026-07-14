@@ -293,3 +293,9 @@ TAESD
 mulberry
 cumprod
 Cumprod
+DEIS
+deis
+Coeff
+coeff
+Multistep
+multistep
