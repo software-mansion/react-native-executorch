@@ -1,6 +1,6 @@
 import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
-import { createFsmnVad, type VADModel } from '../extensions/speech/tasks/fsmnVad';
+import { createFsmnVad, type FsmnVadModel } from '../extensions/speech/tasks/fsmnVad';
 
 /**
  * React hook to load and run the FSMN Voice Activity Detection model.
@@ -18,7 +18,7 @@ import { createFsmnVad, type VADModel } from '../extensions/speech/tasks/fsmnVad
  * @returns An object containing the model's loading state, error, download
  * progress, one-shot detection functions, and streaming controls.
  */
-export function useFsmnVad(config: VADModel, options?: { preventLoad?: boolean }) {
+export function useFsmnVad(config: FsmnVadModel, options?: { preventLoad?: boolean }) {
   const { localPath, downloadProgress, downloadError } = useResourceDownload(
     config.modelPath,
     options?.preventLoad

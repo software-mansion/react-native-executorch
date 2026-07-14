@@ -60,7 +60,7 @@ export type VADOptions = {
  * @property {VADOptions} [defaultOptions] - Detection thresholds tuned for this
  * model; overridable per `detect` call. Falls back to the library defaults.
  */
-export type VADModel = {
+export type FsmnVadModel = {
   readonly modelPath: string;
   readonly featureConfig: VADFeatureConfig;
   readonly defaultOptions?: VADOptions;
@@ -98,12 +98,10 @@ export type VADStreamEvent = {
   readonly isSpeaking: boolean;
 };
 
-// Resolved options with defaults applied. Kept separate so `detectWorklet` can
-// read every field unconditionally.
 type ResolvedOptions = Required<VADOptions>;
 
 // Library fallback thresholds (Silero-style). A model may override any of these
-// via `VADModel.defaultOptions`, and callers via the `detect` options argument.
+// via `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
 const DEFAULT_OPTIONS: ResolvedOptions = {
   speechThreshold: 0.6,
   minSpeechDurationMs: 250,
@@ -112,16 +110,10 @@ const DEFAULT_OPTIONS: ResolvedOptions = {
   mergeGapMs: 0,
 };
 
-// Streaming detection runs over a bounded sliding window of the most recent
-// audio rather than the whole growing session: the decision only depends on
-// recent context (whether speech is ongoing at the buffer end) and model cost
-// scales with window length, so a bounded window keeps per-tick latency flat and
-// low (~3x cheaper than a 10s buffer on device). 2.5s is well above FSMN's
-// receptive field (~200ms) and the min-speech duration (250ms), so quality is
-// unaffected.
+// Detection runs over a bounded window of the most recent audio (not the whole
+// growing session): model cost scales with window length, and 2.5s already
+// exceeds FSMN's receptive field (~200ms) and the min-speech duration (250ms).
 const DETECTION_WINDOW_SECONDS = 2.5;
-// Default recency (ms) the last detected segment must reach toward the window
-// end for speech to still count as ongoing.
 const DEFAULT_DETECTION_MARGIN_MS = 100;
 
 // A speech region measured in raw sample indices (internal to postprocessing).
@@ -234,7 +226,7 @@ function mergeSegments(segments: SampleSegment[], maxMergeGap: number): SampleSe
  * controls.
  */
 export async function createFsmnVad(
-  config: VADModel,
+  config: FsmnVadModel,
   runtime?: WorkletRuntime
 ): Promise<{
   /**
@@ -356,11 +348,8 @@ export async function createFsmnVad(
 
   const detect = wrapAsync(detectWorklet, runtime);
 
-  // --- Streaming ---
-  // Unified with the Whisper STT streaming structure (createWhisperSpeechToText):
-  // a pull-based async generator woken by `streamInsert`, with no wall-clock
-  // polling. Detection runs over a bounded sliding window (DETECTION_WINDOW_SECONDS)
-  // of the most recent audio so per-tick model cost stays flat.
+  // Streaming mirrors the Whisper STT structure (createWhisperSpeechToText): a
+  // pull-based async generator woken by `streamInsert`, no wall-clock polling.
   const windowSamples = DETECTION_WINDOW_SECONDS * fc.sampleRate;
   let isStreaming = false;
   let streamBuffer = new Float32Array(0);
@@ -371,9 +360,8 @@ export async function createFsmnVad(
     if (!isStreaming) {
       throw new Error('Streaming is not in progress');
     }
-    // `streamBuffer` is replaced (never mutated), so a snapshot handed to a
-    // running detection stays valid. Older audio beyond the detection window is
-    // dropped so each tick's model cost stays bounded.
+    // Replace (never mutate) the buffer so a snapshot handed to a running
+    // detection stays valid, and drop audio beyond the detection window.
     const next = new Float32Array(streamBuffer.length + audioChunk.length);
     next.set(streamBuffer);
     next.set(audioChunk, streamBuffer.length);

@@ -6,7 +6,7 @@ import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetect
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
-import type { VADModel } from './extensions/speech/tasks/fsmnVad';
+import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVad';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -604,7 +604,7 @@ const FSMN_VAD_FEATURE_CONFIG = {
   preemphasis: 0.97,
   minFrames: 100,
 };
-const FSMN_VAD_XNNPACK_FP32: VADModel = {
+const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
   modelPath: `${BASE_URL}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
   featureConfig: FSMN_VAD_FEATURE_CONFIG,
 };
