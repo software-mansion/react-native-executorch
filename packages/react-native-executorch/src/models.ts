@@ -625,7 +625,7 @@ const SDXS_512_DREAMSHAPER_OPTS = {
   outAlpha: 255.0,
   outBeta: 0.0,
 };
-const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer/tokenizer.json`;
+const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
 const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
