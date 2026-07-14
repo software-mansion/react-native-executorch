@@ -39,12 +39,13 @@ export type SdxsOptions = {
   /** The single training timestep fed to the UNet for the distilled step. */
   readonly timestep: number;
   /**
-   * Scheduler-step coefficients. For the distilled single step the DEIS update
-   * is exactly linear in the latents and the UNet output:
-   * `clean = sampleCoeff * latents + noiseCoeff * modelOutput`. Both are pinned
-   * from the reference scheduler during export.
+   * Scheduler-step coefficient applied to the input latents. For the distilled
+   * single step the DEIS update is exactly linear in the latents and the UNet
+   * output — `clean = sampleCoeff * latents + noiseCoeff * modelOutput` — and
+   * both coefficients are pinned from the reference scheduler during export.
    */
   readonly sampleCoeff: number;
+  /** Scheduler-step coefficient applied to the UNet output (see {@link sampleCoeff}). */
   readonly noiseCoeff: number;
   /** Per-channel or scalar scale applied to the decoder output when mapping to `[0..255]`. */
   readonly outAlpha: number | number[];
@@ -60,7 +61,7 @@ export type SdxsOptions = {
  * a CLIP `tokenizer.json`.
  * @category Types
  */
-export type SdxsModel = {
+export type SdxsTextToImageModel = {
   /** Local path to the combined `encode`/`denoise`/`decode` `.pte` program. */
   readonly modelPath: string;
   /** Local path to the CLIP `tokenizer.json`. */
@@ -69,8 +70,6 @@ export type SdxsModel = {
   readonly opts: SdxsOptions;
 };
 
-// Encodes a prompt into a fixed-length token id buffer (BOS/EOS added by the
-// tokenizer.json post-processor), truncating or right-padding to CLIP_MAX_TOKENS.
 function encodePrompt(ids: number[]): BigInt64Array {
   'worklet';
   const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
@@ -80,9 +79,8 @@ function encodePrompt(ids: number[]): BigInt64Array {
   return tokens;
 }
 
-// Deterministic seeded standard-normal noise (mulberry32 + Box–Muller), so the
-// same (prompt, seed) reproduces the same image without relying on Math.random
-// being available on the worklet runtime.
+// Deterministic seeded standard-normal noise (mulberry32 + Box–Muller): a fixed
+// seed must reproduce the same image, and Math.random cannot be seeded.
 function seededGaussian(size: number, seed: number): Float32Array {
   'worklet';
   let state = seed >>> 0;
@@ -104,9 +102,6 @@ function seededGaussian(size: number, seed: number): Float32Array {
   return out;
 }
 
-// Single-step scheduler update: turns the UNet output into the clean latent that
-// is fed to the decoder. For the distilled single step the DEIS update is exactly
-// linear in the latents and the model output.
 function toCleanLatents(
   latents: Float32Array,
   modelOutput: Float32Array,
@@ -132,7 +127,7 @@ function toCleanLatents(
  * @returns A promise resolving to an object with generation and disposal controls.
  */
 export async function createSdxsTextToImage(
-  config: SdxsModel,
+  config: SdxsTextToImageModel,
   runtime?: WorkletRuntime
 ): Promise<{
   /** Releases all allocated native resources. */

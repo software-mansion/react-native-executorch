@@ -1,6 +1,9 @@
 import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
-import { createSdxsTextToImage, type SdxsModel } from '../extensions/cv/tasks/sdxsTextToImage';
+import {
+  createSdxsTextToImage,
+  type SdxsTextToImageModel,
+} from '../extensions/cv/tasks/sdxsTextToImage';
 
 /**
  * React hook to load and run the SDXS text-to-image pipeline.
@@ -16,7 +19,7 @@ import { createSdxsTextToImage, type SdxsModel } from '../extensions/cv/tasks/sd
  * @returns An object containing the model's loading state, error, download
  * progress, and generation functions.
  */
-export function useTextToImage(config: SdxsModel, options?: { preventLoad?: boolean }) {
+export function useTextToImage(config: SdxsTextToImageModel, options?: { preventLoad?: boolean }) {
   const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
   const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
 

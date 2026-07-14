@@ -5,7 +5,7 @@ import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSe
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
-import type { SdxsModel } from './extensions/cv/tasks/sdxsTextToImage';
+import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import {
@@ -626,17 +626,17 @@ const SDXS_512_DREAMSHAPER_OPTS = {
   outBeta: 0.0,
 };
 const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
-const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsModel = {
+const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
   opts: SDXS_512_DREAMSHAPER_OPTS,
 };
-const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsModel = {
+const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
   opts: SDXS_512_DREAMSHAPER_OPTS,
 };
-const SDXS_512_DREAMSHAPER_MLX_INT4: SdxsModel = {
+const SDXS_512_DREAMSHAPER_MLX_INT4: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/mlx/sdxs_512_dreamshaper_mlx_int4.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
   opts: SDXS_512_DREAMSHAPER_OPTS,
