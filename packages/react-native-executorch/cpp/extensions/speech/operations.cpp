@@ -1,8 +1,10 @@
 #include "operations.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
@@ -61,33 +63,32 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         const int64_t leftPad = (fftLength - frameLength) / 2;
-        const auto *wave = reinterpret_cast<const float *>(waveform->data_.get());
-        const auto *win = reinterpret_cast<const float *>(hann->data_.get());
-        auto *out = reinterpret_cast<float *>(dst->data_.get());
+        const auto flen = static_cast<std::size_t>(frameLength);
+        const std::span<const float> wave(reinterpret_cast<const float *>(waveform->data_.get()), waveform->numel_);
+        const std::span<const float> win(reinterpret_cast<const float *>(hann->data_.get()), hann->numel_);
+        const std::span<float> out(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
 
-        // Zero the full destination so both the intra-frame padding around each
-        // window and any trailing padding rows (numFrames < chunkFrames) are 0.
-        std::fill(out, out + dst->numel_, 0.0f);
+        // Zero the destination so intra-frame and trailing-row padding stay 0.
+        std::ranges::fill(out, 0.0f);
 
         for (int64_t f = 0; f < numFrames; ++f) {
-            float *base = out + f * fftLength + leftPad;
-            const float *start = wave + startSample + f * hopLength;
+            const auto frame = wave.subspan(static_cast<std::size_t>(startSample + f * hopLength), flen);
+            const auto base = out.subspan(static_cast<std::size_t>(f * fftLength + leftPad), flen);
 
-            // Pass 1: mean over the raw window.
             float sum = 0.0f;
-            for (int64_t j = 0; j < frameLength; ++j) {
-                sum += start[j];
+            for (const float sample : frame) {
+                sum += sample;
             }
             const float mean = sum / static_cast<float>(frameLength);
 
-            // Pass 2: fused mean-removal + pre-emphasis + Hann. Pre-emphasis of a
-            // mean-subtracted signal, `(raw[j]-mean) - c*(raw[j-1]-mean)`, equals
-            // `raw[j] - c*raw[j-1] - mean*(1-c)`, so every output reads only raw
-            // input samples — no serial dependency, and the loop vectorizes.
+            // Pre-emphasis of a mean-subtracted signal, (raw[j]-mean) -
+            // c*(raw[j-1]-mean), equals raw[j] - c*raw[j-1] - mean*(1-c), so each
+            // output reads only raw samples — no serial dependency, and the fused
+            // mean-removal + pre-emphasis + Hann loop vectorizes.
             const float meanBias = mean * (1.0f - preemphasis);
-            base[0] = (start[0] - mean) * win[0];
-            for (int64_t j = 1; j < frameLength; ++j) {
-                base[j] = (start[j] - preemphasis * start[j - 1] - meanBias) * win[j];
+            base[0] = (frame[0] - mean) * win[0];
+            for (std::size_t j = 1; j < flen; ++j) {
+                base[j] = (frame[j] - preemphasis * frame[j - 1] - meanBias) * win[j];
             }
         }
 
