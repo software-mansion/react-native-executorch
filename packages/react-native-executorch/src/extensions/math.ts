@@ -61,3 +61,56 @@ export function threshold(src: Tensor, dst: Tensor, thresholdVal: number): Tenso
   'worklet';
   return rnexecutorchJsi.math.threshold(src, dst, thresholdVal);
 }
+
+/**
+ * Creates a mulberry32 pseudo-random generator producing uniform values in
+ * `[0, 1)`. Unlike `Math.random` it accepts a seed, so a fixed seed yields a
+ * reproducible sequence.
+ * @category Typescript API
+ * @param seed The 32-bit seed for the generator.
+ * @returns A function returning the next uniform value in `[0, 1)`.
+ */
+export function mulberry32(seed: number): () => number {
+  'worklet';
+  // eslint-disable-next-line no-bitwise
+  let state = seed >>> 0;
+  return () => {
+    'worklet';
+    /* eslint-disable no-bitwise */
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    /* eslint-enable no-bitwise */
+  };
+}
+
+/**
+ * Draws normally distributed values using the Box–Muller transform over a
+ * caller-supplied uniform generator.
+ * @category Typescript API
+ * @param size The number of values to draw.
+ * @param uniform A generator of uniform values in `[0, 1)`, e.g. {@link mulberry32}.
+ * @param mean The mean of the distribution. Defaults to 0.
+ * @param std The standard deviation of the distribution. Defaults to 1.
+ * @returns A `Float32Array` of `size` normally distributed values.
+ */
+export function randomNormal(
+  size: number,
+  uniform: () => number,
+  mean: number = 0,
+  std: number = 1
+): Float32Array {
+  'worklet';
+  const out = new Float32Array(size);
+  for (let i = 0; i < size; i += 2) {
+    // Guard against log(0) when the generator returns exactly 0.
+    const u1 = Math.max(uniform(), 1e-7);
+    const u2 = uniform();
+    const mag = std * Math.sqrt(-2.0 * Math.log(u1));
+    out[i] = mean + mag * Math.cos(2.0 * Math.PI * u2);
+    if (i + 1 < size) out[i + 1] = mean + mag * Math.sin(2.0 * Math.PI * u2);
+  }
+  return out;
+}

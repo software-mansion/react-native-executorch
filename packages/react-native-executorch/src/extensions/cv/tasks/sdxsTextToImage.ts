@@ -1,10 +1,10 @@
-/* eslint-disable no-bitwise */
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
+import { mulberry32, randomNormal } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
 
 import type { ImageBuffer } from '../image';
@@ -70,51 +70,6 @@ export type SdxsTextToImageModel = {
   readonly opts: SdxsOptions;
 };
 
-function encodePrompt(ids: number[]): BigInt64Array {
-  'worklet';
-  const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
-  for (let i = 0; i < CLIP_MAX_TOKENS; i++) {
-    tokens[i] = BigInt(i < ids.length ? ids[i]! : CLIP_PAD_TOKEN_ID);
-  }
-  return tokens;
-}
-
-// Deterministic seeded standard-normal noise (mulberry32 + Box–Muller): a fixed
-// seed must reproduce the same image, and Math.random cannot be seeded.
-function seededGaussian(size: number, seed: number): Float32Array {
-  'worklet';
-  let state = seed >>> 0;
-  const next = () => {
-    state |= 0;
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  const out = new Float32Array(size);
-  for (let i = 0; i < size; i += 2) {
-    const u1 = Math.max(next(), 1e-7);
-    const u2 = next();
-    const mag = Math.sqrt(-2.0 * Math.log(u1));
-    out[i] = mag * Math.cos(2.0 * Math.PI * u2);
-    if (i + 1 < size) out[i + 1] = mag * Math.sin(2.0 * Math.PI * u2);
-  }
-  return out;
-}
-
-function toCleanLatents(
-  latents: Float32Array,
-  modelOutput: Float32Array,
-  opts: SdxsOptions
-): Float32Array {
-  'worklet';
-  const out = new Float32Array(latents.length);
-  for (let i = 0; i < latents.length; i++) {
-    out[i] = opts.sampleCoeff * latents[i]! + opts.noiseCoeff * modelOutput[i]!;
-  }
-  return out;
-}
-
 /**
  * Creates an SDXS text-to-image runner backed by a single multi-method `.pte`
  * program (`encode` / `denoise` / `decode`) and a CLIP tokenizer.
@@ -175,8 +130,6 @@ export async function createSdxsTextToImage(
     [SymbolicTensor('float32', [1, 3, imageSize, imageSize])]
   );
 
-  const latentNumel = latentChannels * latentSize * latentSize;
-
   const tensors = [
     tensor('int64', [1, CLIP_MAX_TOKENS]),
     tensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
@@ -190,17 +143,10 @@ export async function createSdxsTextToImage(
     tensor('uint8', [imageSize, imageSize, 4]),
   ] as const;
 
+  // prettier-ignore
   const [
-    tTokens,
-    tEmbeddings,
-    tTimestep,
-    tLatents,
-    tNoisePred,
-    tDecoded,
-    tReshape,
-    tUint8,
-    tChanLast,
-    tRgba,
+    tTokens, tEmbeddings, tTimestep, tLatents, tNoisePred,
+    tDecoded, tReshape, tUint8, tChanLast, tRgba
   ] = tensors;
 
   const dispose = () => {
@@ -212,30 +158,35 @@ export async function createSdxsTextToImage(
   const generateWorklet = (prompt: string, seed: number): ImageBuffer => {
     'worklet';
 
-    tTokens.setData(encodePrompt(tokenizer.encode(prompt)));
+    const ids = tokenizer.encode(prompt);
+    const tokens = new BigInt64Array(CLIP_MAX_TOKENS);
+    for (let i = 0; i < CLIP_MAX_TOKENS; i++) {
+      tokens[i] = BigInt(i < ids.length ? ids[i]! : CLIP_PAD_TOKEN_ID);
+    }
+    tTokens.setData(tokens);
     model.execute('encode', [tTokens], [tEmbeddings]);
 
-    const noise = seededGaussian(latentNumel, seed);
-    for (let i = 0; i < latentNumel; i++) noise[i]! *= opts.initNoiseSigma;
-    tLatents.setData(noise);
+    tLatents.setData(randomNormal(tLatents.numel, mulberry32(seed), 0, opts.initNoiseSigma));
 
     tTimestep.setData(new BigInt64Array([BigInt(opts.timestep)]));
     for (let step = 0; step < opts.numInferenceSteps; step++) {
       model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
-      const latents = tLatents.getData(new Float32Array(latentNumel));
-      const modelOutput = tNoisePred.getData(new Float32Array(latentNumel));
-      tLatents.setData(toCleanLatents(latents, modelOutput, opts));
+      const latents = tLatents.getData(new Float32Array(tLatents.numel));
+      const modelOutput = tNoisePred.getData(new Float32Array(tNoisePred.numel));
+      for (let i = 0; i < latents.length; i++) {
+        latents[i] = opts.sampleCoeff * latents[i]! + opts.noiseCoeff * modelOutput[i]!;
+      }
+      tLatents.setData(latents);
     }
 
     model.execute('decode', [tLatents], [tDecoded]);
 
-    const data = new Uint8Array(imageSize * imageSize * 4);
-    tDecoded
+    const data = tDecoded
       .copyTo(tReshape)
       .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
       .through(toChannelsLast, tChanLast)
       .through(cvtColor, tRgba, 'RGB2RGBA')
-      .getData(data);
+      .getData(new Uint8Array(imageSize * imageSize * 4));
 
     return { data, width: imageSize, height: imageSize, format: 'rgba', layout: 'hwc' };
   };
