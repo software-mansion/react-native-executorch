@@ -244,23 +244,20 @@ export async function createFsmnVoiceActivityDetector(
     [SymbolicTensor('float32', ['inFrames', 'fftLength'])],
     [SymbolicTensor('float32', [1, 'outFrames', 'classes'], ['outFrames', 'classes'])]
   );
-  const maxFrames = meta.inputTensorMeta[0]!.shape[0]!;
+  const chunkCapacity = meta.inputTensorMeta[0]!.shape[0]!;
   const fftLength = meta.inputTensorMeta[0]!.shape[1]!;
   const outShape = meta.outputTensorMeta[0]!.shape;
   const numClass = outShape[outShape.length - 1]!;
+  // The output frame count tracks the input's, so the output shape is the
+  // declared one with its frame dimension swapped per chunk (see below).
+  const outFramesDim = outShape.length - 2;
 
-  // The output tensor is validated against the declared shape exactly, so it is
-  // pre-allocated once at that shape. A chunk is capped by both the model's max
-  // input frames and that output tensor's frame capacity, so a full chunk's
-  // output can never overflow it. The Hann window is uploaded once and reused by
-  // the native framing op across every call.
-  const tensors = [
-    tensor('float32', outShape),
-    tensor('float32', [FRAME_LENGTH], hannWindow(FRAME_LENGTH)),
-  ] as const;
-  const [tOutput, tHann] = tensors;
-  const outBuffer = new Float32Array(tOutput.numel);
-  const chunkCapacity = Math.min(maxFrames, Math.floor(tOutput.numel / numClass));
+  // The Hann window is uploaded once and reused by the native framing op across
+  // every call. The output tensor cannot be pre-allocated here: this model's
+  // output is dynamic too, so `execute` validates it against the shape produced
+  // for the current chunk, not the model-declared maximum.
+  const tensors = [tensor('float32', [FRAME_LENGTH], hannWindow(FRAME_LENGTH))] as const;
+  const [tHann] = tensors;
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -285,12 +282,17 @@ export async function createFsmnVoiceActivityDetector(
       const startSample = offset * HOP_LENGTH;
       const sampleCount = (realFrames - 1) * HOP_LENGTH + FRAME_LENGTH;
 
+      const chunkOutShape = outShape.slice();
+      chunkOutShape[outFramesDim] = chunkFrames;
+
       const tWaveform = tensor(
         'float32',
         [sampleCount],
         waveform.subarray(startSample, startSample + sampleCount)
       );
       const tInput = tensor('float32', [chunkFrames, fftLength]);
+      const tOutput = tensor('float32', chunkOutShape);
+      const outBuffer = new Float32Array(tOutput.numel);
       try {
         extractFrames(tWaveform, tHann, tInput, {
           numFrames: realFrames,
@@ -298,12 +300,13 @@ export async function createFsmnVoiceActivityDetector(
           preemphasis: PREEMPHASIS,
         });
         model.execute('forward', [tInput], [tOutput]);
+        tOutput.getData(outBuffer);
       } finally {
+        tOutput.dispose();
         tInput.dispose();
         tWaveform.dispose();
       }
 
-      tOutput.getData(outBuffer);
       for (let i = 0; i < realFrames; i++) {
         scores[offset + i] = outBuffer[i * numClass]!;
       }
