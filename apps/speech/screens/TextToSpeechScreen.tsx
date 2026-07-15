@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -276,86 +277,93 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <FontAwesome name="chevron-left" size={20} color="#0f186e" />
-            </TouchableOpacity>
-            <SWMIcon width={60} height={60} />
-            <Text style={styles.headerText}>React Native ExecuTorch</Text>
-            <Text style={styles.headerText}>Text to Speech</Text>
-          </View>
+          <Pressable
+            style={styles.keyboardDismissPressable}
+            onPress={Keyboard.dismiss}
+          >
+            <View style={styles.header}>
+              <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                <FontAwesome name="chevron-left" size={20} color="#0f186e" />
+              </TouchableOpacity>
+              <SWMIcon width={60} height={60} />
+              <Text style={styles.headerText}>React Native ExecuTorch</Text>
+              <Text style={styles.headerText}>Text to Speech</Text>
+            </View>
 
-          <View style={styles.statusContainer}>
-            <Text>Status: {getModelStatus()}</Text>
-          </View>
-          <ErrorBanner message={error} onDismiss={() => setError(null)} />
+            <View style={styles.statusContainer}>
+              <Text>Status: {getModelStatus()}</Text>
+            </View>
+            <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
-          <ModelPicker
-            label="Model"
-            models={TTS_MODEL_OPTIONS}
-            selectedModel={selectedTtsModel}
-            disabled={model.isGenerating || isPlaying}
-            onSelect={handleSelectTtsModel}
-          />
-
-          <ModelPicker
-            label="Voice"
-            models={selectedTtsModel === 'supertonic' ? VOICES : KOKORO_VOICES}
-            selectedModel={selectedSpeaker}
-            disabled={model.isGenerating}
-            onSelect={(m) => setSelectedSpeaker(m)}
-          />
-
-          {selectedTtsModel === 'supertonic' && (
-            <>
-              <ModelPicker
-                label="Language"
-                models={LANGUAGES}
-                selectedModel={selectedLang}
-                disabled={isPlaying}
-                onSelect={(l) => setSelectedLang(l)}
-              />
-
-              <ModelPicker
-                label="Steps"
-                models={STEPS}
-                selectedModel={totalSteps}
-                disabled={isPlaying}
-                onSelect={(s) => setTotalSteps(s)}
-              />
-            </>
-          )}
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Enter text to synthesize</Text>
-            <TextInput
-              placeholder="Type something..."
-              placeholderTextColor="#aaa"
-              style={styles.textInput}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
+            <ModelPicker
+              label="Model"
+              models={TTS_MODEL_OPTIONS}
+              selectedModel={selectedTtsModel}
+              disabled={model.isGenerating || isPlaying}
+              onSelect={handleSelectTtsModel}
             />
-          </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              disabled={!readyToGenerate}
-              onPress={handlePlayAudio}
-              style={[styles.playButton, !readyToGenerate && styles.disabled]}
-            >
-              <FontAwesome
-                name={isPlaying ? 'volume-up' : 'play'}
-                size={20}
-                color="white"
+            <ModelPicker
+              label="Voice"
+              models={
+                selectedTtsModel === 'supertonic' ? VOICES : KOKORO_VOICES
+              }
+              selectedModel={selectedSpeaker}
+              disabled={model.isGenerating}
+              onSelect={(m) => setSelectedSpeaker(m)}
+            />
+
+            {selectedTtsModel === 'supertonic' && (
+              <>
+                <ModelPicker
+                  label="Language"
+                  models={LANGUAGES}
+                  selectedModel={selectedLang}
+                  disabled={isPlaying}
+                  onSelect={(l) => setSelectedLang(l)}
+                />
+
+                <ModelPicker
+                  label="Steps"
+                  models={STEPS}
+                  selectedModel={totalSteps}
+                  disabled={isPlaying}
+                  onSelect={(s) => setTotalSteps(s)}
+                />
+              </>
+            )}
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Enter text to synthesize</Text>
+              <TextInput
+                placeholder="Type something..."
+                placeholderTextColor="#aaa"
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
               />
-              <Text style={styles.buttonText}>
-                {isPlaying ? 'Playing...' : 'Generate & Play'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                disabled={!readyToGenerate}
+                onPress={handlePlayAudio}
+                style={[styles.playButton, !readyToGenerate && styles.disabled]}
+              >
+                <FontAwesome
+                  name={isPlaying ? 'volume-up' : 'play'}
+                  size={20}
+                  color="white"
+                />
+                <Text style={styles.buttonText}>
+                  {isPlaying ? 'Playing...' : 'Generate & Play'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -372,6 +380,9 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
     width: '100%',
+  },
+  keyboardDismissPressable: {
+    flex: 1,
   },
   header: {
     alignItems: 'center',
