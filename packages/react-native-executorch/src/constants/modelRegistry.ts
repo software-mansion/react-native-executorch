@@ -40,7 +40,10 @@ import {
   SUPERTONIC_FEMALE_5,
 } from './tts/voices';
 import { SUPERTONIC_XNNPACK, SUPERTONIC_MLX } from './tts/models';
-import { TextToSpeechModelConfig, TextToSpeechModelSources } from '../types/tts';
+import {
+  TextToSpeechModelConfig,
+  TextToSpeechModelSources,
+} from '../types/tts';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
@@ -226,7 +229,7 @@ type TTSBackendMap = Partial<Record<Backend, TextToSpeechModelSources>>;
 function ttsVariant(
   baseConfig: TextToSpeechModelConfig,
   modelVariants: TTSBackendMap,
-  platformDefaults: PlatformDefaults<Backend>,
+  platformDefaults: PlatformDefaults<Backend>
 ): (opts?: { backend?: Backend }) => TextToSpeechModelConfig {
   return (opts = {}) => {
     const variants: AnyVariantMap = {};
