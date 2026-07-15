@@ -609,37 +609,21 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 // =============================================================================
 // Text to Image
 // =============================================================================
-// The numeric fields below are pinned from the SDXS reference pipeline
-// (DEISMultistepScheduler, single step at t=999, epsilon prediction, TAESD
-// decoder). The single-step scheduler update is exactly linear in the latents
-// and the UNet output, so it is captured as (sampleCoeff, noiseCoeff). The
-// exported `decode` method emits RGB in [0,1], hence outAlpha=255, outBeta=0.
-const SDXS_512_DREAMSHAPER_OPTS = {
-  imageSize: 512,
-  latentChannels: 4,
-  numInferenceSteps: 1,
-  initNoiseSigma: 1.0,
-  timestep: 999,
-  sampleCoeff: 14.642591,
-  noiseCoeff: -14.579279,
-  outAlpha: 255.0,
-  outBeta: 0.0,
-};
+// These variants differ only in which `.pte` they load. Everything else about
+// the pipeline (shapes, scheduler and decoder scalars) is fixed by the export
+// and is pinned as constants in `sdxsTextToImage.ts`.
 const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
 const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
-  opts: SDXS_512_DREAMSHAPER_OPTS,
 };
 const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
-  opts: SDXS_512_DREAMSHAPER_OPTS,
 };
 const SDXS_512_DREAMSHAPER_MLX_INT4: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/mlx/sdxs_512_dreamshaper_mlx_int4.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
-  opts: SDXS_512_DREAMSHAPER_OPTS,
 };
 
 // =============================================================================

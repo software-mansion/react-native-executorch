@@ -14,44 +14,36 @@ import { toChannelsLast, normalize, cvtColor } from '../ops/image';
 // encoder (77 tokens, 768 hidden), a UNet operating on 4-channel latents at
 // 1/8 resolution, and a TAESD tiny decoder. Unlike the classic pipeline it is a
 // distilled, single-step model run without classifier-free guidance, so there
-// is no unconditional branch and (by default) a single denoising step.
+// is no unconditional branch and no denoising loop.
+//
+// Every value below is fixed by the exported program rather than being a knob:
+// the shapes are static in the `.pte`, and the scheduler/decoder scalars are
+// pinned during export by numerically matching the reference diffusers output.
+// They are therefore constants here instead of per-model options — all shipped
+// variants (XNNPACK / CoreML / MLX) differ only by which `.pte` they load.
 const CLIP_MAX_TOKENS = 77;
 const CLIP_HIDDEN_SIZE = 768;
 // CLIP pad/eot token id (`<|endoftext|>`). Used to pad the token sequence to a
 // fixed length when the tokenizer.json does not enforce a padding strategy.
 const CLIP_PAD_TOKEN_ID = 49407;
 
-/**
- * Model-specific configuration for the SDXS text-to-image pipeline. These
- * constants describe how the exported program behaves and are pinned during the
- * `.pte` export by numerically matching the reference diffusers output.
- * @category Types
- */
-export type SdxsOptions = {
-  /** Output image side length in pixels (SDXS: 512). */
-  readonly imageSize: number;
-  /** Number of latent channels (SDXS: 4). */
-  readonly latentChannels: number;
-  /** Number of denoising steps (SDXS is distilled to 1). */
-  readonly numInferenceSteps: number;
-  /** Standard deviation of the initial latent noise (scheduler `init_noise_sigma`). */
-  readonly initNoiseSigma: number;
-  /** The single training timestep fed to the UNet for the distilled step. */
-  readonly timestep: number;
-  /**
-   * Scheduler-step coefficient applied to the input latents. For the distilled
-   * single step the DEIS update is exactly linear in the latents and the UNet
-   * output — `clean = sampleCoeff * latents + noiseCoeff * modelOutput` — and
-   * both coefficients are pinned from the reference scheduler during export.
-   */
-  readonly sampleCoeff: number;
-  /** Scheduler-step coefficient applied to the UNet output (see {@link sampleCoeff}). */
-  readonly noiseCoeff: number;
-  /** Per-channel or scalar scale applied to the decoder output when mapping to `[0..255]`. */
-  readonly outAlpha: number | number[];
-  /** Per-channel or scalar bias applied to the decoder output when mapping to `[0..255]`. */
-  readonly outBeta: number | number[];
-};
+const IMAGE_SIZE = 512;
+const LATENT_CHANNELS = 4;
+// The UNet operates at 1/8 of the image resolution.
+const LATENT_SIZE = IMAGE_SIZE / 8;
+// Scheduler `init_noise_sigma`: the initial latents are standard normal.
+const INIT_NOISE_SIGMA = 1.0;
+// The single training timestep the model was distilled for.
+const TIMESTEP = 999;
+// At the distilled single step the DEIS update collapses to an exactly linear
+// combination of the latents and the UNet output:
+// `clean = SAMPLE_COEFF * latents + NOISE_COEFF * modelOutput`. These hold only
+// for one step at TIMESTEP — re-applying them would not be a valid schedule.
+const SAMPLE_COEFF = 14.642591;
+const NOISE_COEFF = -14.579279;
+// The exported `decode` emits RGB in [0,1], so mapping to [0..255] is a plain scale.
+const OUT_ALPHA = 255.0;
+const OUT_BETA = 0.0;
 
 /**
  * Model configuration required to instantiate the SDXS text-to-image runner.
@@ -66,8 +58,6 @@ export type SdxsTextToImageModel = {
   readonly modelPath: string;
   /** Local path to the CLIP `tokenizer.json`. */
   readonly tokenizerPath: string;
-  /** Model-specific pipeline configuration. */
-  readonly opts: SdxsOptions;
 };
 
 /**
@@ -77,7 +67,7 @@ export type SdxsTextToImageModel = {
  * It validates the exported method schemas, pre-allocates the static execution
  * tensors, and registers disposal hooks that release all native memory.
  * @category Typescript API
- * @param config SDXS pipeline configuration containing model/tokenizer paths and options.
+ * @param config SDXS pipeline configuration containing the model and tokenizer paths.
  * @param runtime Optional worklet runtime thread on which to run generation.
  * @returns A promise resolving to an object with generation and disposal controls.
  */
@@ -100,12 +90,9 @@ export async function createSdxsTextToImage(
    */
   generateWorklet: (prompt: string, seed: number) => ImageBuffer;
 }> {
-  const { modelPath, tokenizerPath, opts } = config;
+  const { modelPath, tokenizerPath } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
-
-  const { imageSize, latentChannels } = opts;
-  const latentSize = Math.floor(imageSize / 8);
 
   validateModelSchema(
     model,
@@ -117,30 +104,30 @@ export async function createSdxsTextToImage(
     model,
     'denoise',
     [
-      SymbolicTensor('float32', [1, latentChannels, latentSize, latentSize]),
+      SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
       SymbolicTensor('int64', [1]),
       SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
     ],
-    [SymbolicTensor('float32', [1, latentChannels, latentSize, latentSize])]
+    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])]
   );
   validateModelSchema(
     model,
     'decode',
-    [SymbolicTensor('float32', [1, latentChannels, latentSize, latentSize])],
-    [SymbolicTensor('float32', [1, 3, imageSize, imageSize])]
+    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])],
+    [SymbolicTensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE])]
   );
 
   const tensors = [
     tensor('int64', [1, CLIP_MAX_TOKENS]),
     tensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
     tensor('int64', [1]),
-    tensor('float32', [1, latentChannels, latentSize, latentSize]),
-    tensor('float32', [1, latentChannels, latentSize, latentSize]),
-    tensor('float32', [1, 3, imageSize, imageSize]),
-    tensor('float32', [3, imageSize, imageSize]),
-    tensor('uint8', [3, imageSize, imageSize]),
-    tensor('uint8', [imageSize, imageSize, 3]),
-    tensor('uint8', [imageSize, imageSize, 4]),
+    tensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
+    tensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
+    tensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE]),
+    tensor('float32', [3, IMAGE_SIZE, IMAGE_SIZE]),
+    tensor('uint8', [3, IMAGE_SIZE, IMAGE_SIZE]),
+    tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 3]),
+    tensor('uint8', [IMAGE_SIZE, IMAGE_SIZE, 4]),
   ] as const;
 
   // prettier-ignore
@@ -166,29 +153,27 @@ export async function createSdxsTextToImage(
     tTokens.setData(tokens);
     model.execute('encode', [tTokens], [tEmbeddings]);
 
-    tLatents.setData(randomNormal(tLatents.numel, mulberry32(seed), 0, opts.initNoiseSigma));
+    tLatents.setData(randomNormal(tLatents.numel, mulberry32(seed), 0, INIT_NOISE_SIGMA));
+    tTimestep.setData(new BigInt64Array([BigInt(TIMESTEP)]));
+    model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
 
-    tTimestep.setData(new BigInt64Array([BigInt(opts.timestep)]));
-    for (let step = 0; step < opts.numInferenceSteps; step++) {
-      model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
-      const latents = tLatents.getData(new Float32Array(tLatents.numel));
-      const modelOutput = tNoisePred.getData(new Float32Array(tNoisePred.numel));
-      for (let i = 0; i < latents.length; i++) {
-        latents[i] = opts.sampleCoeff * latents[i]! + opts.noiseCoeff * modelOutput[i]!;
-      }
-      tLatents.setData(latents);
+    const latents = tLatents.getData(new Float32Array(tLatents.numel));
+    const modelOutput = tNoisePred.getData(new Float32Array(tNoisePred.numel));
+    for (let i = 0; i < latents.length; i++) {
+      latents[i] = SAMPLE_COEFF * latents[i]! + NOISE_COEFF * modelOutput[i]!;
     }
+    tLatents.setData(latents);
 
     model.execute('decode', [tLatents], [tDecoded]);
 
     const data = tDecoded
       .copyTo(tReshape)
-      .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
+      .through(normalize, tUint8, { alpha: OUT_ALPHA, beta: OUT_BETA })
       .through(toChannelsLast, tChanLast)
       .through(cvtColor, tRgba, 'RGB2RGBA')
-      .getData(new Uint8Array(imageSize * imageSize * 4));
+      .getData(new Uint8Array(IMAGE_SIZE * IMAGE_SIZE * 4));
 
-    return { data, width: imageSize, height: imageSize, format: 'rgba', layout: 'hwc' };
+    return { data, width: IMAGE_SIZE, height: IMAGE_SIZE, format: 'rgba', layout: 'hwc' };
   };
 
   const generate = wrapAsync(generateWorklet, runtime);
