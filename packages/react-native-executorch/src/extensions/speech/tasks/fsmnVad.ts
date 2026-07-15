@@ -98,11 +98,9 @@ export type VADStreamEvent = {
   readonly isSpeaking: boolean;
 };
 
-type ResolvedOptions = Required<VADOptions>;
-
-// Library fallback thresholds (Silero-style). A model may override any of these
-// via `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
-const DEFAULT_OPTIONS: ResolvedOptions = {
+// Library fallback thresholds. A model may override any of these via
+// `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
+const DEFAULT_OPTIONS: Required<VADOptions> = {
   speechThreshold: 0.6,
   minSpeechDurationMs: 250,
   minSilenceDurationMs: 100,
@@ -115,9 +113,6 @@ const DEFAULT_OPTIONS: ResolvedOptions = {
 // exceeds FSMN's receptive field (~200ms) and the min-speech duration (250ms).
 const DETECTION_WINDOW_SECONDS = 2.5;
 const DEFAULT_DETECTION_MARGIN_MS = 100;
-
-// A speech region measured in raw sample indices (internal to postprocessing).
-type SampleSegment = { start: number; end: number };
 
 // Periodic Hann window used to reduce spectral leakage on each frame. Ported
 // from `dsp::hannWindow` (periodic definition, divides by `size`).
@@ -136,17 +131,17 @@ function hannWindow(size: number): Float32Array {
 // so the speech probability is `1 - scores[i]`.
 function scoresToSegments(
   scores: Float32Array,
-  opts: ResolvedOptions,
+  opts: Required<VADOptions>,
   hopLength: number,
   hopLengthMs: number
-): SampleSegment[] {
+): Segment[] {
   'worklet';
   const threshold = opts.speechThreshold;
   const minSpeechHops = Math.floor(opts.minSpeechDurationMs / hopLengthMs);
   const minSilenceHops = Math.floor(opts.minSilenceDurationMs / hopLengthMs);
   const speechPadHops = Math.floor(opts.speechPadMs / hopLengthMs);
 
-  const segments: SampleSegment[] = [];
+  const segments: Segment[] = [];
   let triggered = false;
   let startSegment = -1;
   let potentialStart = -1;
@@ -178,27 +173,23 @@ function scoresToSegments(
   }
   if (triggered) segments.push({ start: startSegment, end: scores.length });
 
-  for (const segment of segments) {
-    segment.start = (segment.start > speechPadHops ? segment.start - speechPadHops : 0) * hopLength;
-    segment.end = Math.min(segment.end + speechPadHops, scores.length) * hopLength;
-  }
-  return segments;
+  return segments.map((segment) => ({
+    start: (segment.start > speechPadHops ? segment.start - speechPadHops : 0) * hopLength,
+    end: Math.min(segment.end + speechPadHops, scores.length) * hopLength,
+  }));
 }
 
 // Merges adjacent segments separated by a gap of at most `maxMergeGap` samples.
 // Mirrors `utils::mergeSegments`.
-function mergeSegments(segments: SampleSegment[], maxMergeGap: number): SampleSegment[] {
+function mergeSegments(segments: Segment[], maxMergeGap: number): Segment[] {
   'worklet';
-  if (segments.length === 0) return segments;
-
-  const merged: SampleSegment[] = [{ start: segments[0]!.start, end: segments[0]!.end }];
-  for (let i = 1; i < segments.length; i++) {
-    const last = merged[merged.length - 1]!;
-    const current = segments[i]!;
-    if (current.start < last.end || current.start - last.end <= maxMergeGap) {
-      last.end = Math.max(last.end, current.end);
+  const merged: Segment[] = [];
+  for (const current of segments) {
+    const last = merged[merged.length - 1];
+    if (last && (current.start < last.end || current.start - last.end <= maxMergeGap)) {
+      merged[merged.length - 1] = { start: last.start, end: Math.max(last.end, current.end) };
     } else {
-      merged.push({ start: current.start, end: current.end });
+      merged.push(current);
     }
   }
   return merged;
@@ -266,7 +257,7 @@ export async function createFsmnVad(
   const { modelPath, featureConfig: fc } = config;
   const samplesPerMs = fc.sampleRate / 1000;
   const hopLengthMs = fc.hopLength / samplesPerMs;
-  const modelDefaults: ResolvedOptions = { ...DEFAULT_OPTIONS, ...config.defaultOptions };
+  const modelDefaults: Required<VADOptions> = { ...DEFAULT_OPTIONS, ...config.defaultOptions };
 
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
@@ -304,7 +295,7 @@ export async function createFsmnVad(
     'worklet';
     if (waveform.length < fc.frameLength) return [];
 
-    const opts: ResolvedOptions = { ...modelDefaults, ...options };
+    const opts: Required<VADOptions> = { ...modelDefaults, ...options };
     const numFrames = Math.floor((waveform.length - fc.frameLength) / fc.hopLength);
     if (numFrames <= 0) return [];
 
@@ -328,12 +319,13 @@ export async function createFsmnVad(
             fc.preemphasis
           );
           model.execute('forward', [tInput], [tOutput]);
-          tOutput.getData(outBuffer);
-          for (let i = 0; i < realFrames; i++) {
-            scores[offset + i] = outBuffer[i * numClass]!;
-          }
         } finally {
           tInput.dispose();
+        }
+
+        tOutput.getData(outBuffer);
+        for (let i = 0; i < realFrames; i++) {
+          scores[offset + i] = outBuffer[i * numClass]!;
         }
         offset += realFrames;
       }

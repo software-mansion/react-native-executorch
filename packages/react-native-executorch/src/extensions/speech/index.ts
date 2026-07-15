@@ -1,1 +1,1 @@
-export * from './tasks/fsmnVad';
+export * from './ops';

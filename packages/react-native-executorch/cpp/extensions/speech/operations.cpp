@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <span>
 
 #include "core/tensor.h"
@@ -27,43 +26,39 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, "Usage: frameWaveform(waveform, hann, dst, startSample, numFrames, hopLength, preemphasis)");
         }
 
-        auto waveform = tensor::fromJs(rt, "frameWaveform: waveform", args[0], DType::float32, std::nullopt);
-        auto hann = tensor::fromJs(rt, "frameWaveform: hann", args[1], DType::float32, std::nullopt);
-        auto dst = tensor::fromJs(rt, "frameWaveform: dst", args[2], DType::float32, std::nullopt);
-        auto startSample = conversions::asType<int64_t>(rt, "frameWaveform: startSample", args[3]);
-        auto numFrames = conversions::asType<int64_t>(rt, "frameWaveform: numFrames", args[4]);
-        auto hopLength = conversions::asType<int64_t>(rt, "frameWaveform: hopLength", args[5]);
-        auto preemphasis = static_cast<float>(conversions::asType<double>(rt, "frameWaveform: preemphasis", args[6]));
+        auto waveform = tensor::fromJs(rt, "frameWaveform: waveform", args[0], DType::float32, {"length"});
+        auto hann = tensor::fromJs(rt, "frameWaveform: hann", args[1], DType::float32, {"frameLength"});
+        auto dst = tensor::fromJs(rt, "frameWaveform: dst", args[2], DType::float32, {"frames", "fftLength"});
+        auto startSample = conversions::asType<uint64_t>(rt, "frameWaveform: startSample", args[3]);
+        auto numFrames = conversions::asType<uint64_t>(rt, "frameWaveform: numFrames", args[4]);
+        auto hopLength = conversions::asType<uint64_t>(rt, "frameWaveform: hopLength", args[5]);
+        auto preemphasis = conversions::asType<float>(rt, "frameWaveform: preemphasis", args[6]);
 
+        tensor::checkNotSameTensor(rt, "frameWaveform: waveform", waveform, "frameWaveform: hann", hann);
         tensor::checkNotSameTensor(rt, "frameWaveform: waveform", waveform, "frameWaveform: dst", dst);
         tensor::checkNotSameTensor(rt, "frameWaveform: hann", hann, "frameWaveform: dst", dst);
         auto waveLock = tensor::tryLockShared(rt, "frameWaveform: waveform", waveform);
         auto hannLock = tensor::tryLockShared(rt, "frameWaveform: hann", hann);
         auto dstLock = tensor::tryLockUnique(rt, "frameWaveform: dst", dst);
 
-        if (dst->shape_.size() != 2) {
-            throw jsi::JSError(rt, "frameWaveform: dst must be 2D [frames, fftLength]");
-        }
-        const auto frameLength = static_cast<int64_t>(hann->numel_);
-        const int64_t chunkFrames = dst->shape_[0];
-        const int64_t fftLength = dst->shape_[1];
+        const auto frameLength = hann->numel_;
+        const auto chunkFrames = static_cast<uint64_t>(dst->shape_[0]);
+        const auto fftLength = static_cast<uint64_t>(dst->shape_[1]);
         if (frameLength > fftLength) {
             throw jsi::JSError(rt, "frameWaveform: hann length exceeds dst fftLength");
         }
-        if (numFrames < 0 || numFrames > chunkFrames) {
+        if (numFrames > chunkFrames) {
             throw jsi::JSError(rt, "frameWaveform: numFrames out of dst frame capacity");
         }
 
-        const auto waveLen = static_cast<int64_t>(waveform->numel_);
         if (numFrames > 0) {
-            const int64_t lastSample = startSample + (numFrames - 1) * hopLength + frameLength - 1;
-            if (startSample < 0 || lastSample >= waveLen) {
+            const uint64_t lastSample = startSample + (numFrames - 1) * hopLength + frameLength - 1;
+            if (lastSample >= waveform->numel_) {
                 throw jsi::JSError(rt, "frameWaveform: frame window out of waveform bounds");
             }
         }
 
-        const int64_t leftPad = (fftLength - frameLength) / 2;
-        const auto flen = static_cast<std::size_t>(frameLength);
+        const auto leftPad = (fftLength - frameLength) / 2;
         const std::span<const float> wave(reinterpret_cast<const float *>(waveform->data_.get()), waveform->numel_);
         const std::span<const float> win(reinterpret_cast<const float *>(hann->data_.get()), hann->numel_);
         const std::span<float> out(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
@@ -71,9 +66,9 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
         // Zero the destination so intra-frame and trailing-row padding stay 0.
         std::ranges::fill(out, 0.0f);
 
-        for (int64_t f = 0; f < numFrames; ++f) {
-            const auto frame = wave.subspan(static_cast<std::size_t>(startSample + f * hopLength), flen);
-            const auto base = out.subspan(static_cast<std::size_t>(f * fftLength + leftPad), flen);
+        for (uint64_t f = 0; f < numFrames; ++f) {
+            const auto frame = wave.subspan(static_cast<std::size_t>(startSample + f * hopLength), frameLength);
+            const auto base = out.subspan(static_cast<std::size_t>(f * fftLength + leftPad), frameLength);
 
             float sum = 0.0f;
             for (const float sample : frame) {
@@ -87,7 +82,7 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
             // mean-removal + pre-emphasis + Hann loop vectorizes.
             const float meanBias = mean * (1.0f - preemphasis);
             base[0] = (frame[0] - mean) * win[0];
-            for (std::size_t j = 1; j < flen; ++j) {
+            for (std::size_t j = 1; j < frameLength; ++j) {
                 base[j] = (frame[j] - preemphasis * frame[j - 1] - meanBias) * win[j];
             }
         }

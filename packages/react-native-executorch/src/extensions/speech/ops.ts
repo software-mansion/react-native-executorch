@@ -2,7 +2,7 @@ import { rnexecutorchJsi } from '../../native/bridge';
 import { type Tensor } from '../../core/tensor';
 
 /**
- * Native framing op: slices a mono `waveform` into `numFrames` overlapping
+ * Slices a mono `waveform` into `numFrames` overlapping
  * frames starting at sample `startSample`, applying per-frame mean-removal, a
  * pre-emphasis filter and the `hann` window, and writing each frame into a
  * zero-padded row of `dst` (shape `[frames, fftLength]`). `dst` is fully zeroed
