@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
   TextToSpeechInput,
@@ -28,6 +28,15 @@ export const useTextToSpeech = (
 
   const [moduleInstance, setModuleInstance] =
     useState<TextToSpeechModule | null>(null);
+
+  const serializedModel = useMemo(
+    () => JSON.stringify(model.model),
+    [model.model]
+  );
+  const serializedPhonemizerConfig = useMemo(
+    () => JSON.stringify(model.phonemizerConfig),
+    [model.phonemizerConfig]
+  );
 
   useEffect(() => {
     if (preventLoad) return;
@@ -64,10 +73,10 @@ export const useTextToSpeech = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     model.model.modelName,
-    model.model.durationPredictorSource,
-    model.model.synthesizerSource,
+    serializedModel,
     model.voiceSource,
-    model.phonemizerConfig,
+    model.lang,
+    serializedPhonemizerConfig,
     preventLoad,
   ]);
 
@@ -92,7 +101,9 @@ export const useTextToSpeech = (
       return await instance.forward(
         input.text ?? '',
         input.speed ?? 1.0,
-        input.phonemize ?? true
+        input.phonemize ?? true,
+        input.totalSteps ?? 8,
+        input.lang ?? ''
       );
     } finally {
       setIsGenerating(false);
@@ -115,6 +126,8 @@ export const useTextToSpeech = (
         for await (const audio of instance.stream({
           speed: input.speed ?? 1.0,
           phonemize: input.phonemize ?? true,
+          totalSteps: input.totalSteps ?? 8,
+          lang: input.lang,
           stopAutomatically: input.stopAutomatically ?? true,
         })) {
           if (input.onNext) {

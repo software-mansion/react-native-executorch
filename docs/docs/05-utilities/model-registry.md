@@ -20,23 +20,23 @@ Each leaf is a **function**. Call it (optionally with `{ quant, backend }`) to g
 
 `models` is grouped by capability. Each leaf is a callable accessor.
 
-| Group                   | Examples                                                                                                                                                                                                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `llm`                   | `llama3_2_3b`, `qwen3_4b`, `smollm2_1_1_7b`, `phi_4_mini_4b`, `bielik_v3_0_1_5b`, `lfm2_5_1_2b_instruct`, `lfm2_5_vl_1_6b`, `lfm2_5_vl_450m`, …                                                                                                                                             |
-| `classification`        | `efficientnet_v2_s`                                                                                                                                                                                                                                                                         |
-| `privacy_filter`        | `openai`, `nemotron`                                                                                                                                                                                                                                                                        |
-| `object_detection`      | `ssdlite_320_mobilenet_v3_large`, `yolo26n` … `yolo26x`, `rf_detr_nano`                                                                                                                                                                                                                     |
-| `pose_estimation`       | `yolo26n`, `rfdetr_keypoint_preview` _(beta)_                                                                                                                                                                                                                                               |
-| `semantic_segmentation` | `deeplab_v3_resnet50`, `lraspp_mobilenet_v3_large`, `fcn_resnet101`, `selfie_segmentation`, …                                                                                                                                                                                               |
-| `instance_segmentation` | `yolo26n` … `yolo26x`, `rf_detr_nano`, `fastsam_s`, `fastsam_x`                                                                                                                                                                                                                             |
-| `style_transfer`        | `candy`, `mosaic`, `rain_princess`, `udnie`                                                                                                                                                                                                                                                 |
-| `speech_to_text`        | `whisper_tiny_en`, `whisper_base`, `whisper_small_en`, …                                                                                                                                                                                                                                    |
-| `text_to_speech`        | nested by model family + language: `kokoro.en_us.{heart, river, sarah, adam, …}`, `kokoro.en_gb.{emma, daniel}`, `kokoro.fr.siwis`, `kokoro.es.{dora, alex}`, `kokoro.it.{sara, nicola}`, `kokoro.pt.{dora, santa}`, `kokoro.hi.{alpha, omega, psi}`, `kokoro.pl.mateusz`, `kokoro.de.anna` |
-| `text_embedding`        | `all_minilm_l6_v2`, `all_mpnet_base_v2`, `clip_vit_base_patch32_text`, …                                                                                                                                                                                                                    |
-| `image_embedding`       | `clip_vit_base_patch32_image`                                                                                                                                                                                                                                                               |
-| `image_generation`      | `bk_sdm_tiny_vpred_256`, `bk_sdm_tiny_vpred_512`                                                                                                                                                                                                                                            |
-| `vad`                   | `fsmn_vad`                                                                                                                                                                                                                                                                                  |
-| `ocr`                   | nested by detector: `craft({ language: 'en' })` — see [§OCR](#ocr) below                                                                                                                                                                                                                    |
+| Group                   | Examples                                                                                                                                                                                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `llm`                   | `llama3_2_3b`, `qwen3_4b`, `smollm2_1_1_7b`, `phi_4_mini_4b`, `bielik_v3_0_1_5b`, `lfm2_5_1_2b_instruct`, `lfm2_5_vl_1_6b`, `lfm2_5_vl_450m`, …                                                                                                                                                                 |
+| `classification`        | `efficientnet_v2_s`                                                                                                                                                                                                                                                                                             |
+| `privacy_filter`        | `openai`, `nemotron`                                                                                                                                                                                                                                                                                            |
+| `object_detection`      | `ssdlite_320_mobilenet_v3_large`, `yolo26n` … `yolo26x`, `rf_detr_nano`                                                                                                                                                                                                                                         |
+| `pose_estimation`       | `yolo26n`, `rfdetr_keypoint_preview` _(beta)_                                                                                                                                                                                                                                                                   |
+| `semantic_segmentation` | `deeplab_v3_resnet50`, `lraspp_mobilenet_v3_large`, `fcn_resnet101`, `selfie_segmentation`, …                                                                                                                                                                                                                   |
+| `instance_segmentation` | `yolo26n` … `yolo26x`, `rf_detr_nano`, `fastsam_s`, `fastsam_x`                                                                                                                                                                                                                                                 |
+| `style_transfer`        | `candy`, `mosaic`, `rain_princess`, `udnie`                                                                                                                                                                                                                                                                     |
+| `speech_to_text`        | `whisper_tiny_en`, `whisper_base`, `whisper_small_en`, …                                                                                                                                                                                                                                                        |
+| `text_to_speech`        | nested by model family: `kokoro.en_us.{heart, river, sarah, adam, …}`, `kokoro.en_gb.{emma, daniel}`, `kokoro.fr.siwis`, `kokoro.es.{dora, alex}`, `kokoro.it.{sara, nicola}`, `kokoro.pt.{dora, santa}`, `kokoro.hi.{alpha, omega, psi}`, `kokoro.pl.mateusz`, `kokoro.de.anna`, `supertonic.{m1..m5, f1..f5}` |
+| `text_embedding`        | `all_minilm_l6_v2`, `all_mpnet_base_v2`, `clip_vit_base_patch32_text`, …                                                                                                                                                                                                                                        |
+| `image_embedding`       | `clip_vit_base_patch32_image`                                                                                                                                                                                                                                                                                   |
+| `image_generation`      | `bk_sdm_tiny_vpred_256`, `bk_sdm_tiny_vpred_512`                                                                                                                                                                                                                                                                |
+| `vad`                   | `fsmn_vad`                                                                                                                                                                                                                                                                                                      |
+| `ocr`                   | nested by detector: `craft({ language: 'en' })` — see [§OCR](#ocr) below                                                                                                                                                                                                                                        |
 
 ## Options
 
@@ -91,16 +91,24 @@ const styled = useStyleTransfer({
 
 ### Text-to-speech
 
-`text_to_speech` is grouped by model family then by language code (`kokoro.en_us`, `kokoro.en_gb`, `kokoro.fr`, `kokoro.es`, `kokoro.it`, `kokoro.pt`, `kokoro.hi`, `kokoro.pl`, `kokoro.de`). Each leaf returns a complete Kokoro preset bundling the model, voice, and phonemizer — pass the whole result to `useTextToSpeech`. The `kokoro` level reserves room for a future TTS family without forcing a breaking rename.
+`text_to_speech` is grouped by model family:
+
+- **`kokoro.*`** — grouped by language code (`kokoro.en_us`, `kokoro.en_gb`, `kokoro.fr`, …). Each leaf returns a complete Kokoro preset bundling the model, voice, and phonemizer — pass the whole result to `useTextToSpeech`.
+- **`supertonic`** — a single multilingual model with 10 built-in voices (`supertonic.{m1..m5, f1..f5}`). No phonemizer needed; language is selected per-call.
 
 ```typescript
 import { models, useTextToSpeech } from 'react-native-executorch';
 
+// Kokoro — language-specific voice bundles
 const tts = useTextToSpeech(models.text_to_speech.kokoro.en_us.heart());
 // Other languages:
 //   models.text_to_speech.kokoro.en_gb.emma()
 //   models.text_to_speech.kokoro.fr.siwis()
 //   models.text_to_speech.kokoro.pl.mateusz()
+
+// Supertonic 3 — multilingual, any voice works for any language
+const tts2 = useTextToSpeech(models.text_to_speech.supertonic.m1());
+// Available voices: m1, m2, m3, m4, m5, f1, f2, f3, f4, f5
 ```
 
 ### OCR

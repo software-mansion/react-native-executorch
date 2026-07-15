@@ -6,11 +6,22 @@ import { RnExecutorchError } from '../errors/errorUtils';
  * Each model name maps to its required fields.
  * @category Types
  */
-export type TextToSpeechModelSources = {
-  modelName: 'kokoro';
-  durationPredictorSource: ResourceSource;
-  synthesizerSource: ResourceSource;
-};
+export type TextToSpeechModelSources =
+  | {
+      modelName: 'kokoro';
+      durationPredictorSource: ResourceSource;
+      synthesizerSource: ResourceSource;
+    }
+  | {
+      // Supertonic 3: four ExecuTorch submodules driven in order, plus a
+      // unicode indexer for text preprocessing.
+      modelName: 'supertonic';
+      unicodeIndexerSource: ResourceSource;
+      durationPredictorSource: ResourceSource;
+      textEncoderSource: ResourceSource;
+      vectorEstimatorSource: ResourceSource;
+      vocoderSource: ResourceSource;
+    };
 
 /**
  * Union of all built-in Text to Speech model names.
@@ -65,16 +76,57 @@ export interface TextToSpeechPhonemizerConfig {
 }
 
 /**
+ * Language codes supported by the Supertonic 3 model's `<lang>` token.
+ * Use `'na'` for unknown / unsupported languages.
+ * @category Types
+ */
+export type TextToSpeechSupertonicLanguage =
+  | 'ar'
+  | 'bg'
+  | 'cs'
+  | 'da'
+  | 'de'
+  | 'el'
+  | 'en'
+  | 'es'
+  | 'fi'
+  | 'fr'
+  | 'hi'
+  | 'hr'
+  | 'hu'
+  | 'id'
+  | 'it'
+  | 'ja'
+  | 'ko'
+  | 'ms'
+  | 'nl'
+  | 'no'
+  | 'pl'
+  | 'pt'
+  | 'ro'
+  | 'ru'
+  | 'sk'
+  | 'sv'
+  | 'sw'
+  | 'ta'
+  | 'th'
+  | 'tl'
+  | 'tr'
+  | 'na';
+
+/**
  * Configuration for a specific model and voice in a Text-to-Speech module.
  * @category Types
  * @property {TextToSpeechModelSources} model - The model sources and identifiers.
  * @property {ResourceSource} voiceSource - The resource containing the voice-specific tensor stored in a binary format.
- * @property {TextToSpeechPhonemizerConfig} phonemizerConfig - The phonemizer configuration to be used with this voice.
+ * @property {TextToSpeechPhonemizerConfig} [phonemizerConfig] - Phonemizer configuration. Required for `kokoro`, unused by `supertonic`.
+ * @property {TextToSpeechSupertonicLanguage} [lang] - Language token for `supertonic` (default `'na'`). Unused by `kokoro`.
  */
 export interface TextToSpeechModelConfig {
   model: TextToSpeechModelSources;
   voiceSource: ResourceSource;
-  phonemizerConfig: TextToSpeechPhonemizerConfig;
+  phonemizerConfig?: TextToSpeechPhonemizerConfig;
+  lang?: TextToSpeechSupertonicLanguage;
 }
 
 /**
@@ -88,7 +140,16 @@ export interface TextToSpeechModelConfig {
 export interface TextToSpeechInput {
   text?: string;
   speed?: number;
+  /** kokoro only: treat input as text (true) or IPA phonemes (false). */
   phonemize?: boolean;
+  /** supertonic only: number of flow-matching steps (default 8). */
+  totalSteps?: number;
+  /**
+   * supertonic only: language token for this call (e.g. `'en'`, `'na'`).
+   * Overrides the config's `lang` for this synthesis without reloading the
+   * model. Defaults to the config's `lang` (or `'na'`).
+   */
+  lang?: TextToSpeechSupertonicLanguage;
 }
 
 /**

@@ -36,24 +36,6 @@ inline constexpr int32_t kSamplingRate =
     24000; // Corresponds to Kokoro's model audio frequency
 inline constexpr int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
-// Special text characters
-inline const std::unordered_set<char32_t> kEndOfSentenceCharacters = {
-    U'.', U'?', U'!', U';',
-    U'…', // Ellipsis
-    U'|', // ASCII Pipe (often used as Hindi Purna Viram)
-    U'।', // Hindi Purna Viram (U+0964)
-    U'॥', // Hindi Deergh Viram (U+0965)
-    U'¿', // Spanish Inverted Question Mark (U+00BF)
-    U'¡', // Spanish Inverted Exclamation Mark (U+00A1)
-};
-
-inline const std::unordered_set<char32_t> kPauseCharacters = {
-    U',', U':', U'-',
-    U'—', // Em Dash (U+2014)
-    U'«', // Left Guillemet (U+00AB)
-    U'»', // Right Guillemet (U+00BB)
-};
-
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;
 inline const std::unordered_map<char32_t, Token> kVocab = {

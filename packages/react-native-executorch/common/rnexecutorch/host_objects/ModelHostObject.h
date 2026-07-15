@@ -219,7 +219,9 @@ public:
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
+    if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro> ||
+                  meta::SameAs<
+                      Model, models::text_to_speech::supertonic::Supertonic>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,

@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "../common/TextPartitioner.h"
 #include "DurationPredictor.h"
-#include "Partitioner.h"
 #include "Synthesizer.h"
 #include "Types.h"
 #include <phonemis/base/pipeline.h>
@@ -99,7 +99,7 @@ private:
   // --- Model Components ---
   // Arranged in order of appearance in the generation pipeline
   phonemis::Pipeline phonemizer_;
-  Partitioner partitioner_;
+  ::rnexecutorch::models::text_to_speech::TextPartitioner partitioner_;
   DurationPredictor durationPredictor_;
   Synthesizer synthesizer_;
 

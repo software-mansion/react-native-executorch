@@ -8,10 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import {
-  models,
-  useVAD 
-} from 'react-native-executorch';
+import { models, useVAD } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import SWMIcon from '../assets/swm_icon.svg';

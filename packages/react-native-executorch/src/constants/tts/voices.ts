@@ -1,9 +1,15 @@
 import { TextToSpeechModelConfig } from '../../types/tts';
-import { PREVIOUS_VERSION_TAG, URL_PREFIX } from '../versions';
-import { KOKORO_STANDARD, KOKORO_POLISH, KOKORO_GERMAN } from './models';
+import { PREVIOUS_VERSION_TAG, URL_PREFIX, VERSION_TAG } from '../versions';
+import {
+  KOKORO_STANDARD,
+  KOKORO_POLISH,
+  KOKORO_GERMAN,
+  SUPERTONIC,
+} from './models';
 
 // Common prefixes - voices & phonemization data
 const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/voices`;
+const SUPERTONIC_VOICE_PREFIX = `${URL_PREFIX}-supertonic/${VERSION_TAG}/voices`;
 const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/phonemizer`;
 
 const KOKORO_PHONEMIZER_EN_US_PREFIX = `${KOKORO_PHONEMIZER_PREFIX}/en-us`;
@@ -300,3 +306,34 @@ export const KOKORO_GERMAN_FEMALE_ANNA = {
     neuralModelSource: KOKORO_PHONEMIZER_DE_MODEL,
   },
 } as TextToSpeechModelConfig;
+
+// Supertonic voices. Supertonic is multilingual — the same voice works for any
+// language; set the `<lang>` token via the config's `lang` field (default
+// 'en'). The 10 built-in voices are M1..M5 (male) and F1..F5 (female).
+const supertonicVoice = (name: string) =>
+  ({
+    model: SUPERTONIC,
+    voiceSource: `${SUPERTONIC_VOICE_PREFIX}/${name}.bin`,
+    lang: 'en' as const,
+  }) as TextToSpeechModelConfig;
+
+/** @category TTS Supported Voices */
+export const SUPERTONIC_MALE_1 = supertonicVoice('M1');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_MALE_2 = supertonicVoice('M2');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_MALE_3 = supertonicVoice('M3');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_MALE_4 = supertonicVoice('M4');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_MALE_5 = supertonicVoice('M5');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_FEMALE_1 = supertonicVoice('F1');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_FEMALE_2 = supertonicVoice('F2');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_FEMALE_3 = supertonicVoice('F3');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_FEMALE_4 = supertonicVoice('F4');
+/** @category TTS Supported Voices */
+export const SUPERTONIC_FEMALE_5 = supertonicVoice('F5');

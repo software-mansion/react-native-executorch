@@ -4,6 +4,7 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import {
   TextToSpeechModelConfig,
+  TextToSpeechModelName,
   TextToSpeechModelSources,
   TextToSpeechStreamingInput,
 } from '../../types/tts';
@@ -15,10 +16,12 @@ import { Logger } from '../../common/Logger';
  */
 export class TextToSpeechModule {
   private nativeModule: any;
+  private modelName: TextToSpeechModelName;
   private isStreaming: boolean = false;
 
-  private constructor(nativeModule: unknown) {
+  private constructor(nativeModule: unknown, modelName: TextToSpeechModelName) {
     this.nativeModule = nativeModule;
+    this.modelName = modelName;
   }
 
   /**
@@ -32,15 +35,63 @@ export class TextToSpeechModule {
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<TextToSpeechModule> {
     try {
-      const nativeModule = await TextToSpeechModule.loadKokoro(
-        config,
-        onDownloadProgress
-      );
-      return new TextToSpeechModule(nativeModule);
+      const modelName = config.model.modelName;
+      const nativeModule =
+        modelName === 'supertonic'
+          ? await TextToSpeechModule.loadSupertonic(config, onDownloadProgress)
+          : await TextToSpeechModule.loadKokoro(config, onDownloadProgress);
+      return new TextToSpeechModule(nativeModule, modelName);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
     }
+  }
+
+  private static async loadSupertonic(
+    config: TextToSpeechModelConfig,
+    onDownloadProgressCallback: (progress: number) => void
+  ): Promise<unknown> {
+    const { model, voiceSource, lang } = config;
+    const supertonic = model as Extract<
+      TextToSpeechModelSources,
+      { modelName: 'supertonic' }
+    >;
+
+    const paths = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      supertonic.unicodeIndexerSource,
+      supertonic.durationPredictorSource,
+      supertonic.textEncoderSource,
+      supertonic.vectorEstimatorSource,
+      supertonic.vocoderSource,
+      voiceSource
+    );
+
+    const [indexer, duration, textEncoder, vectorEstimator, vocoder, voice] =
+      paths;
+    if (
+      !indexer ||
+      !duration ||
+      !textEncoder ||
+      !vectorEstimator ||
+      !vocoder ||
+      !voice
+    ) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'Supertonic: missing required model paths.'
+      );
+    }
+
+    return await global.loadTextToSpeechSupertonic(
+      lang ?? 'na',
+      indexer,
+      duration,
+      textEncoder,
+      vectorEstimator,
+      vocoder,
+      voice
+    );
   }
 
   private static async loadKokoro(
@@ -48,6 +99,12 @@ export class TextToSpeechModule {
     onDownloadProgressCallback: (progress: number) => void
   ): Promise<unknown> {
     const { model, voiceSource, phonemizerConfig } = config;
+    if (!phonemizerConfig) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidArgument,
+        'Kokoro: phonemizerConfig is required.'
+      );
+    }
     const kokoroModel = model as Extract<
       TextToSpeechModelSources,
       { modelName: 'kokoro' }
@@ -109,31 +166,47 @@ export class TextToSpeechModule {
   }
 
   /**
-   * Synthesizes the provided input (text or IPA phonemes) into speech.
-   * @param input - The input text or phonemes to be synthesized.
+   * Synthesizes the provided input into speech.
+   * @param input - The input text (or IPA phonemes for kokoro) to be synthesized.
    * @param speed - Playback speed multiplier (default: 1.0).
-   * @param phonemize - If true (default), treats input as text and converts it to phonemes.
-   *                    If false, input is treated as phonemes.
-   * @returns A promise resolving to the full audio waveform as a `Float32Array`.
+   * @param phonemize - kokoro only: if true (default) treats input as text and
+   *                    converts it to phonemes; if false input is IPA phonemes.
+   * @param totalSteps - supertonic only: number of flow-matching steps (default 8).
+   * @param lang - Language override (defaults to model config).
+   * @returns A generated speech waveform.
    */
   public async forward(
     input: string,
     speed: number = 1.0,
-    phonemize: boolean = true
+    phonemize: boolean = true,
+    totalSteps: number = 8,
+    lang: string = ''
   ): Promise<Float32Array> {
     this.ensureLoaded('forward');
-    return await this.nativeModule.generate(input, speed, phonemize);
+    const normalized =
+      this.modelName === 'supertonic' ? input.normalize('NFKD') : input;
+    if (this.modelName === 'supertonic') {
+      return await this.nativeModule.generate(
+        normalized,
+        speed,
+        totalSteps,
+        lang
+      );
+    }
+    return await this.nativeModule.generate(normalized, speed, phonemize);
   }
 
   /**
    * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   * @param input - Input object containing optional speed, phonemize flag and stopAutomatically flag.
+   * @param input - Input object containing optional speed, phonemize / totalSteps and stopAutomatically flag.
    * @yields An audio chunk generated during synthesis.
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *stream({
     speed = 1.0,
     phonemize = true,
+    totalSteps = 8,
+    lang,
     stopAutomatically = true,
   }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
     const queue: Float32Array[] = [];
@@ -149,17 +222,33 @@ export class TextToSpeechModule {
       waiter = null;
     };
 
+    const onChunk = (audio: number[]) => {
+      queue.push(new Float32Array(audio));
+      wake();
+    };
+
+    // Native stream signatures differ per model:
+    //   kokoro:     (cb, speed, phonemize, stopAutomatically)
+    //   supertonic: (cb, speed, totalSteps, stopAutomatically, lang)
+    const nativeStream = () =>
+      this.modelName === 'supertonic'
+        ? this.nativeModule.stream(
+            onChunk,
+            speed,
+            totalSteps,
+            stopAutomatically,
+            lang ?? ''
+          )
+        : this.nativeModule.stream(
+            onChunk,
+            speed,
+            phonemize,
+            stopAutomatically
+          );
+
     (async () => {
       try {
-        await this.nativeModule.stream(
-          (audio: number[]) => {
-            queue.push(new Float32Array(audio));
-            wake();
-          },
-          speed,
-          phonemize,
-          stopAutomatically
-        );
+        await nativeStream();
         nativeStreamFinished = true;
         wake();
       } catch (e) {
@@ -191,7 +280,9 @@ export class TextToSpeechModule {
    * @param input - The text or phoneme fragment to append to the streaming buffer.
    */
   public streamInsert(input: string): void {
-    this.nativeModule.streamInsert(input);
+    const normalized =
+      this.modelName === 'supertonic' ? input.normalize('NFKD') : input;
+    this.nativeModule.streamInsert(normalized);
   }
 
   /**

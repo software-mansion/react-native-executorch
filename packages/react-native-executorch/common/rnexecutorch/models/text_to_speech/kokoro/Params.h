@@ -33,9 +33,16 @@ inline constexpr int32_t kStreamPause = 200;
  * (ms).
  */
 inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
-    {U'.', 375}, {U'?', 500}, {U'!', 250}, {U';', 400}, {U'…', 600}, // Ellipsis
-    {U',', 130}, {U':', 250}, {U'-', 200}, {U'—', 250}, // Em Dash (slightly
-                                                        // longer than hyphen)
+    {U'.', 375},
+    {U'?', 500},
+    {U'!', 250},
+    {U';', 400},
+    {U'…', 600}, // Ellipsis
+    {U',', 130},
+    {U':', 250},
+    {U'-', 200},
+    {U'—', 250}, // Em Dash (slightly
+                 // longer than hyphen)
     {U'|', 375}, // ASCII Pipe (treated as full stop)
     {U'।', 375}, // Hindi Purna Viram
     {U'॥', 500}, // Hindi Deergh Viram (typically longer than Purna Viram)
@@ -53,49 +60,18 @@ inline constexpr int32_t kDefaultPause = 0; // [ms]
 
 // Audio cropping related hyperparameters
 namespace cropping {
-/**
- * The audio cropping algorithm is a moving average variant.
- * This value controls the number of steps in moving average.
- */
 inline constexpr uint32_t kAudioCroppingSteps = 10;
-
-/**
- * Determines silent audio fragments in audio cropping algorithm.
- * The audio fragment is considered as a silence, if the moving average with K
- * steps does not exceed this threshold.
- */
 inline constexpr float kAudioSilenceThreshold = 0.005F;
 } // namespace cropping
 
 // Partitioning related hyperparameters
 namespace partitioning {
-/**
- * Used in latency-focused partitioning variant. Decides on
- * how much more are big latencies in the beginning phase of
- * an input text penalized.
- */
 inline constexpr int64_t kTokenDiscountFactor = 1;
-
-/**
- * Used in latency-focused partitioning variant. Decides on
- * how quickly latency penalties (linearly interpolated) evaporate
- * with each processed token.
- * For example, using kTokenDiscountRange = 128 means that after reaching
- * 128 tokens, the latency is completely omited and not penalized.
- */
 inline constexpr int64_t kTokenDiscountRange = 128;
 
-/**
- * A set of weights used by partition algorithm to penalize dividing sentences
- * on different breakpoints.
- */
-inline constexpr uint64_t kEosMinBreaksCost = 1;
-inline constexpr uint64_t kPauseMinBreaksCost = 3;
-inline constexpr uint64_t kWhiteMinBreaksCost = 1000;
-
-inline constexpr uint64_t kEosMinLatencyCost = 5;
-inline constexpr uint64_t kPauseMinLatencyCost = 18;
-inline constexpr uint64_t kWhiteMinLatencyCost = 1000;
+inline constexpr uint64_t kEosCost = 5;
+inline constexpr uint64_t kPauseCost = 18;
+inline constexpr uint64_t kWhiteCost = 1000;
 
 } // namespace partitioning
 
