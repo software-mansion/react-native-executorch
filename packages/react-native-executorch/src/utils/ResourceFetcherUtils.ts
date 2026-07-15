@@ -3,6 +3,8 @@ import {
   DOWNLOAD_EVENT_ENDPOINT,
   LIB_VERSION,
 } from '../constants/resourceFetcher';
+import DeviceInfo from 'react-native-device-info';
+import { Platform } from 'react-native';
 /**
  * Http status codes
  * @category Types
@@ -194,10 +196,12 @@ export namespace ResourceFetcherUtils {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          modelName: getModelNameFromUri(uri),
+          bundleId: DeviceInfo.getBundleId(),
           countryCode: getCountryCode(),
           isEmulator: isEmulator(),
-          libVersion: LIB_VERSION,
+          libVersion: require('../../package.json').version,
+          modelName: getModelNameFromUri(uri),
+          system: Platform.OS,
         }),
       });
     } catch (e) {}
