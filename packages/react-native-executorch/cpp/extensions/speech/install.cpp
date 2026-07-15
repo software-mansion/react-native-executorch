@@ -7,7 +7,7 @@ namespace jsi = facebook::jsi;
 void install(jsi::Runtime &rt, jsi::Object &module) {
     jsi::Object speechModule(rt);
 
-    install_frameWaveform(rt, speechModule);
+    install_extractFrames(rt, speechModule);
 
     module.setProperty(rt, "speech", speechModule);
 }

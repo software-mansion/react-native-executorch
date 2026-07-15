@@ -19,42 +19,43 @@ using rnexecutorch::core::types::DType;
 // a zero-padded row of `dst`. Mirrors the reference FSMN-VAD feature extraction.
 // The whole per-frame inner loop dominates the VAD pipeline (~85% of a detect()
 // call on device), so it lives in native code per the extension guidelines.
-void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "frameWaveform";
+void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "extractFrames";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 7) {
-            throw jsi::JSError(rt, "Usage: frameWaveform(waveform, hann, dst, startSample, numFrames, hopLength, preemphasis)");
+        if (count != 4) {
+            throw jsi::JSError(rt, "Usage: extractFrames(waveform, hann, dst, options)");
         }
 
-        auto waveform = tensor::fromJs(rt, "frameWaveform: waveform", args[0], DType::float32, {"length"});
-        auto hann = tensor::fromJs(rt, "frameWaveform: hann", args[1], DType::float32, {"frameLength"});
-        auto dst = tensor::fromJs(rt, "frameWaveform: dst", args[2], DType::float32, {"frames", "fftLength"});
-        auto startSample = conversions::asType<uint64_t>(rt, "frameWaveform: startSample", args[3]);
-        auto numFrames = conversions::asType<uint64_t>(rt, "frameWaveform: numFrames", args[4]);
-        auto hopLength = conversions::asType<uint64_t>(rt, "frameWaveform: hopLength", args[5]);
-        auto preemphasis = conversions::asType<float>(rt, "frameWaveform: preemphasis", args[6]);
+        auto waveform = tensor::fromJs(rt, "extractFrames: waveform", args[0], DType::float32, {"length"});
+        auto hann = tensor::fromJs(rt, "extractFrames: hann", args[1], DType::float32, {"frameLength"});
+        auto dst = tensor::fromJs(rt, "extractFrames: dst", args[2], DType::float32, {"frames", "fftLength"});
 
-        tensor::checkNotSameTensor(rt, "frameWaveform: waveform", waveform, "frameWaveform: hann", hann);
-        tensor::checkNotSameTensor(rt, "frameWaveform: waveform", waveform, "frameWaveform: dst", dst);
-        tensor::checkNotSameTensor(rt, "frameWaveform: hann", hann, "frameWaveform: dst", dst);
-        auto waveLock = tensor::tryLockShared(rt, "frameWaveform: waveform", waveform);
-        auto hannLock = tensor::tryLockShared(rt, "frameWaveform: hann", hann);
-        auto dstLock = tensor::tryLockUnique(rt, "frameWaveform: dst", dst);
+        auto options = conversions::asType<jsi::Object>(rt, "extractFrames: options", args[3]);
+        auto numFrames = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames", options, "numFrames");
+        auto hopLength = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames", options, "hopLength");
+        auto preemphasis = conversions::getRequiredProperty<float>(rt, "extractFrames", options, "preemphasis");
+
+        tensor::checkNotSameTensor(rt, "extractFrames: waveform", waveform, "extractFrames: hann", hann);
+        tensor::checkNotSameTensor(rt, "extractFrames: waveform", waveform, "extractFrames: dst", dst);
+        tensor::checkNotSameTensor(rt, "extractFrames: hann", hann, "extractFrames: dst", dst);
+        auto waveLock = tensor::tryLockShared(rt, "extractFrames: waveform", waveform);
+        auto hannLock = tensor::tryLockShared(rt, "extractFrames: hann", hann);
+        auto dstLock = tensor::tryLockUnique(rt, "extractFrames: dst", dst);
 
         const auto frameLength = hann->numel_;
         const auto chunkFrames = static_cast<uint64_t>(dst->shape_[0]);
         const auto fftLength = static_cast<uint64_t>(dst->shape_[1]);
         if (frameLength > fftLength) {
-            throw jsi::JSError(rt, "frameWaveform: hann length exceeds dst fftLength");
+            throw jsi::JSError(rt, "extractFrames: hann length exceeds dst fftLength");
         }
         if (numFrames > chunkFrames) {
-            throw jsi::JSError(rt, "frameWaveform: numFrames out of dst frame capacity");
+            throw jsi::JSError(rt, "extractFrames: numFrames out of dst frame capacity");
         }
 
         if (numFrames > 0) {
-            const uint64_t lastSample = startSample + (numFrames - 1) * hopLength + frameLength - 1;
+            const uint64_t lastSample = (numFrames - 1) * hopLength + frameLength - 1;
             if (lastSample >= waveform->numel_) {
-                throw jsi::JSError(rt, "frameWaveform: frame window out of waveform bounds");
+                throw jsi::JSError(rt, "extractFrames: frame window out of waveform bounds");
             }
         }
 
@@ -67,7 +68,7 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
         std::ranges::fill(out, 0.0f);
 
         for (uint64_t f = 0; f < numFrames; ++f) {
-            const auto frame = wave.subspan(static_cast<std::size_t>(startSample + f * hopLength), frameLength);
+            const auto frame = wave.subspan(static_cast<std::size_t>(f * hopLength), frameLength);
             const auto base = out.subspan(static_cast<std::size_t>(f * fftLength + leftPad), frameLength);
 
             float sum = 0.0f;
@@ -90,6 +91,6 @@ void install_frameWaveform(jsi::Runtime &rt, jsi::Object &module) {
         return jsi::Value(rt, args[2]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 7, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
 }
 } // namespace rnexecutorch::extensions::speech

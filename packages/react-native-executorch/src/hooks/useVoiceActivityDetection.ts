@@ -1,30 +1,36 @@
 import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
-import { createFsmnVad, type FsmnVadModel } from '../extensions/speech/tasks/fsmnVad';
+import {
+  createFsmnVoiceActivityDetector,
+  type FsmnVadModel,
+} from '../extensions/speech/tasks/fsmnVoiceActivityDetection';
 
 /**
- * React hook to load and run the FSMN Voice Activity Detection model.
+ * React hook to load and run a Voice Activity Detection model.
  *
  * This hook manages downloading (if it's a remote URL) and loading the model
  * file, compiling it, tracking download progress and compilation errors, and
  * cleaning up native model memory when the component unmounts or configuration
- * changes. Streaming state lives inside the task (see {@link createFsmnVad}), so
- * the hook exposes its `stream` / `streamInsert` / `streamStop` methods directly.
+ * changes. The rolling-window state driven by `push` lives inside the task (see
+ * {@link createFsmnVoiceActivityDetector}), so it is exposed here directly.
  * @category Hooks
  * @param config The VAD model configuration.
  * @param options Hook options.
  * @param options.preventLoad If true, prevents downloading and compiling the
  * model.
  * @returns An object containing the model's loading state, error, download
- * progress, one-shot detection functions, and streaming controls.
+ * progress, one-shot detection functions, and live detection controls.
  */
-export function useFsmnVad(config: FsmnVadModel, options?: { preventLoad?: boolean }) {
+export function useVoiceActivityDetection(
+  config: FsmnVadModel,
+  options?: { preventLoad?: boolean }
+) {
   const { localPath, downloadProgress, downloadError } = useResourceDownload(
     config.modelPath,
     options?.preventLoad
   );
   const { model, error } = useModel(
-    createFsmnVad,
+    createFsmnVoiceActivityDetector,
     localPath ? { ...config, modelPath: localPath } : null,
     [localPath]
   );
@@ -36,8 +42,7 @@ export function useFsmnVad(config: FsmnVadModel, options?: { preventLoad?: boole
     localPath,
     detect: model?.detect,
     detectWorklet: model?.detectWorklet,
-    stream: model?.stream,
-    streamInsert: model?.streamInsert,
-    streamStop: model?.streamStop,
+    push: model?.push,
+    resetStream: model?.resetStream,
   };
 }

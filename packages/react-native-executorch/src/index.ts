@@ -8,7 +8,7 @@ export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
-export * from './hooks/useFsmnVad';
+export * from './hooks/useVoiceActivityDetection';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -26,7 +26,7 @@ export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
-export * from './extensions/speech/tasks/fsmnVad';
+export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';

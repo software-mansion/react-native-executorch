@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { useFsmnVad, models } from 'react-native-executorch';
+import {
+  useVoiceActivityDetection,
+  models,
+  FSMN_VAD_SAMPLE_RATE_HZ,
+} from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 
@@ -10,11 +14,11 @@ import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
 // Record at the model's expected sample rate rather than hardcoding it.
-const SAMPLE_RATE = models.vad.FSMN_VAD.featureConfig.sampleRate;
+const SAMPLE_RATE = FSMN_VAD_SAMPLE_RATE_HZ;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
-  const { isReady, downloadProgress, error, stream, streamInsert, streamStop } = useFsmnVad(
+  const { isReady, downloadProgress, error, push, resetStream } = useVoiceActivityDetection(
     models.vad.FSMN_VAD
   );
 
@@ -43,7 +47,7 @@ function VADContent() {
   }, []);
 
   const handleStart = async () => {
-    if (isStreaming || !isReady || !stream || !streamInsert || !streamStop) return;
+    if (isStreaming || !isReady || !push || !resetStream) return;
 
     if (!hasMicPermission) {
       setRunError('Microphone permission denied. Please enable it in Settings.');
@@ -55,22 +59,19 @@ function VADContent() {
     setIsStreaming(true);
     addLog('Starting VAD stream…');
 
-    // Start consuming the stream generator first so the session is active before
-    // the recorder can push audio through streamInsert.
-    const streamLoop = (async () => {
-      try {
-        for await (const { isSpeaking: speaking } of stream({ detectionMargin: 300 })) {
-          setIsSpeaking(speaking);
-          addLog(speaking ? 'Speech detected (begin)' : 'Silence detected (end)');
-        }
-      } catch (e) {
-        setRunError(e instanceof Error ? e.message : String(e));
-      }
-    })();
-
+    resetStream();
     recorder.current.onAudioReady(
       { sampleRate: SAMPLE_RATE, bufferLength: 1600, channelCount: 1 },
-      ({ buffer }) => streamInsert(buffer.getChannelData(0))
+      ({ buffer }) => {
+        const event = push(buffer.getChannelData(0), { detectionMargin: 300 });
+        if (event === 'speechStart') {
+          setIsSpeaking(true);
+          addLog('Speech detected (begin)');
+        } else if (event === 'speechEnd') {
+          setIsSpeaking(false);
+          addLog('Silence detected (end)');
+        }
+      }
     );
 
     try {
@@ -81,20 +82,13 @@ function VADContent() {
       }
     } catch (e) {
       setRunError(e instanceof Error ? e.message : String(e));
-      streamStop();
       setIsStreaming(false);
     }
-
-    await streamLoop;
   };
 
   const handleStop = async () => {
     await recorder.current.stop();
-    try {
-      streamStop?.();
-    } catch {
-      // Session may already have ended; ignore.
-    }
+    resetStream?.();
     setIsStreaming(false);
     setIsSpeaking(false);
     addLog('VAD stream stopped');
