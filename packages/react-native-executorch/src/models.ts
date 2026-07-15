@@ -621,10 +621,10 @@ const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
   tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
 };
-const SDXS_512_DREAMSHAPER_MLX_INT4: SdxsTextToImageModel = {
-  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/mlx/sdxs_512_dreamshaper_mlx_int4.pte`,
-  tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
-};
+// No MLX variant: the MLX backend does not support `aten.native_group_norm`,
+// which a diffusion UNet uses in every ResBlock, so `denoise` fragments into 28
+// subgraphs and thrashes the GPU/CPU boundary. Measured ~3x slower than CoreML
+// on device, at every dtype (the split is structural, not quantization-related).
 
 // =============================================================================
 // Tokenizers
@@ -892,7 +892,6 @@ export const models = {
       ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
-      MLX_INT4: SDXS_512_DREAMSHAPER_MLX_INT4,
     },
   },
 };

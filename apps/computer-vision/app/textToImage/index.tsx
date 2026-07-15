@@ -17,9 +17,8 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
 
-// The CoreML and MLX variants delegate to the Apple Neural Engine / GPU, which
-// are not available on the iOS Simulator (CoreML fails to compile the UNet and
-// MLX has no Metal device), so they are only offered on a physical iOS device.
+// The CoreML variant delegates to hardware the iOS Simulator does not provide
+// (it fails to compile the UNet there), so it is only offered on a physical device.
 const isPhysicalIos = Platform.OS === 'ios' && Device.isDevice;
 
 const MODEL_OPTIONS: ModelOption[] = [
@@ -30,11 +29,6 @@ const MODEL_OPTIONS: ModelOption[] = [
   {
     label: 'SDXS-512-DreamShaper (CoreML FP16)',
     value: models.textToImage.SDXS_512_DREAMSHAPER.COREML_FP16,
-    disabled: !isPhysicalIos,
-  },
-  {
-    label: 'SDXS-512-DreamShaper (MLX INT4)',
-    value: models.textToImage.SDXS_512_DREAMSHAPER.MLX_INT4,
     disabled: !isPhysicalIos,
   },
 ];
