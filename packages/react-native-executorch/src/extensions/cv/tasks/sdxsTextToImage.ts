@@ -4,7 +4,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
-import { mulberry32, randomNormal } from '../../math';
+import { randomNormal } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
 
 import type { ImageBuffer } from '../image';
@@ -153,7 +153,7 @@ export async function createSdxsTextToImage(
     tTokens.setData(tokens);
     model.execute('encode', [tTokens], [tEmbeddings]);
 
-    tLatents.setData(randomNormal(tLatents.numel, mulberry32(seed), 0, INIT_NOISE_SIGMA));
+    tLatents.setData(randomNormal(tLatents.numel, { std: INIT_NOISE_SIGMA, seed }));
     tTimestep.setData(new BigInt64Array([BigInt(TIMESTEP)]));
     model.execute('denoise', [tLatents, tTimestep, tEmbeddings], [tNoisePred]);
 

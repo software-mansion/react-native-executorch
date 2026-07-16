@@ -609,9 +609,6 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 // =============================================================================
 // Text to Image
 // =============================================================================
-// These variants differ only in which `.pte` they load. Everything else about
-// the pipeline (shapes, scheduler and decoder scalars) is fixed by the export
-// and is pinned as constants in `sdxsTextToImage.ts`.
 const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
 const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsTextToImageModel = {
   modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,

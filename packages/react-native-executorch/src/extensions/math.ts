@@ -87,22 +87,24 @@ export function mulberry32(seed: number): () => number {
 }
 
 /**
- * Draws normally distributed values using the Box–Muller transform over a
- * caller-supplied uniform generator.
+ * Draws normally distributed values using the Box–Muller transform, seeded via
+ * {@link mulberry32} so a fixed `seed` reproduces the same sequence.
  * @category Typescript API
  * @param size The number of values to draw.
- * @param uniform A generator of uniform values in `[0, 1)`, e.g. {@link mulberry32}.
- * @param mean The mean of the distribution. Defaults to 0.
- * @param std The standard deviation of the distribution. Defaults to 1.
+ * @param options Distribution parameters.
+ * @param options.mean The mean of the distribution. Defaults to 0.
+ * @param options.std The standard deviation of the distribution. Defaults to 1.
+ * @param options.seed The seed for the underlying generator. Defaults to 0.
  * @returns A `Float32Array` of `size` normally distributed values.
  */
 export function randomNormal(
   size: number,
-  uniform: () => number,
-  mean: number = 0,
-  std: number = 1
+  options?: { mean?: number; std?: number; seed?: number }
 ): Float32Array {
   'worklet';
+  const mean = options?.mean ?? 0;
+  const std = options?.std ?? 1;
+  const uniform = mulberry32(options?.seed ?? 0);
   const out = new Float32Array(size);
   for (let i = 0; i < size; i += 2) {
     // Guard against log(0) when the generator returns exactly 0.

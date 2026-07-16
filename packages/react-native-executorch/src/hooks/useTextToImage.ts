@@ -38,7 +38,7 @@ export function useTextToImage(config: SdxsTextToImageModel, options?: { prevent
   return {
     isReady: !!model,
     error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    downloadProgress: (modelResource.downloadProgress + tokenizerResource.downloadProgress) / 2,
+    downloadProgress: modelResource.downloadProgress,
     generate: model?.generate,
     generateWorklet: model?.generateWorklet,
   };
