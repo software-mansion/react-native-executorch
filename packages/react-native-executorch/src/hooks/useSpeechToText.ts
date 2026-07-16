@@ -60,6 +60,7 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
     isReady: !!model,
     error,
     downloadProgress: modelResource.downloadProgress,
+    localPath: modelResource.localPath,
     transcribe: model?.transcribe,
     transcribeWorklet: model?.transcribeWorklet,
     stream: model?.stream,

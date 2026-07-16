@@ -74,6 +74,7 @@ export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
 
 /**
  * Paths and metadata required to instantiate a Whisper speech-to-text model.
+ * @category Types
  */
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly modelPath: string;
