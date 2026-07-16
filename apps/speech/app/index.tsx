@@ -14,6 +14,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('vad/')}>
           <Text style={styles.buttonText}>Voice Activity Detection</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('stt/')}>
+          <Text style={styles.buttonText}>Speech-to-Text (ASR)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

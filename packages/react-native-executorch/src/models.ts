@@ -9,6 +9,10 @@ import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import {
+  type WhisperSttModel,
+  WHISPER_LANGUAGES,
+} from './extensions/speech/tasks/whisperSpeechToText';
+import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
   PASCAL_VOC_LABELS,
@@ -607,6 +611,75 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 };
 
 // =============================================================================
+// Speech-To-Text
+// =============================================================================
+const WHISPER_TINY_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_tiny_en_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+const WHISPER_TINY_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_tiny_en_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+
+const WHISPER_TINY_XNNPACK_FP32: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_tiny_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-tiny/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+const WHISPER_TINY_COREML_FP16: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_tiny_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-tiny/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+
+const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_en_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-base-en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_en_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-base-en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+
+const WHISPER_BASE_XNNPACK_FP32: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-base/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+const WHISPER_BASE_COREML_FP16: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-base/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+
+const WHISPER_SMALL_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_en_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-small-en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+const WHISPER_SMALL_EN_COREML_FP16: WhisperSttModel<'en'> = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_en_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-small-en/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: ['en'],
+};
+
+const WHISPER_SMALL_XNNPACK_FP32: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_xnnpack_fp32.pte',
+  tokenizerPath: `${BASE_URL}-whisper-small/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+const WHISPER_SMALL_COREML_FP16: WhisperSttModel = {
+  modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_coreml_fp16.pte',
+  tokenizerPath: `${BASE_URL}-whisper-small/${VERSION_TAG}/tokenizer.json`,
+  supportedLanguages: WHISPER_LANGUAGES,
+};
+
+// =============================================================================
 // Text to Image
 // =============================================================================
 const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
@@ -829,6 +902,44 @@ export const models = {
     FSMN_VAD: {
       ...FSMN_VAD_XNNPACK_FP32,
       XNNPACK_FP32: FSMN_VAD_XNNPACK_FP32,
+    },
+  },
+  speechToText: {
+    WHISPER: {
+      ...WHISPER_TINY_XNNPACK_FP32,
+      TINY: {
+        ...WHISPER_TINY_XNNPACK_FP32,
+        XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
+        COREML_FP16: WHISPER_TINY_COREML_FP16,
+      },
+      BASE: {
+        ...WHISPER_BASE_XNNPACK_FP32,
+        XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
+        COREML_FP16: WHISPER_BASE_COREML_FP16,
+      },
+      SMALL: {
+        ...WHISPER_SMALL_XNNPACK_FP32,
+        XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
+        COREML_FP16: WHISPER_SMALL_COREML_FP16,
+      },
+      EN: {
+        ...WHISPER_TINY_EN_XNNPACK_FP32,
+        TINY: {
+          ...WHISPER_TINY_EN_XNNPACK_FP32,
+          XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
+          COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
+        },
+        BASE: {
+          ...WHISPER_BASE_EN_XNNPACK_FP32,
+          XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
+          COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
+        },
+        SMALL: {
+          ...WHISPER_SMALL_EN_XNNPACK_FP32,
+          XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
+          COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
+        },
+      },
     },
   },
   tokenizer: {

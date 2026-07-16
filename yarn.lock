@@ -14096,6 +14096,7 @@ __metadata:
     react-native-device-info: "npm:^15.0.2"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
+    react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.31.1"
     react-native-reanimated: "npm:4.4.0"
     react-native-safe-area-context: "npm:~5.7.0"

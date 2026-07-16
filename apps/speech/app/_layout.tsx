@@ -27,6 +27,13 @@ export default function Layout() {
           title: 'Voice Activity Detection',
         }}
       />
+      <Drawer.Screen
+        name="stt/index"
+        options={{
+          drawerLabel: 'Speech-to-Text (ASR)',
+          title: 'Speech-to-Text (ASR)',
+        }}
+      />
     </Drawer>
   );
 }

@@ -30,6 +30,7 @@
     "react-native-device-info": "^15.0.2",
     "react-native-drawer-layout": "^4.2.2",
     "react-native-executorch": "workspace:*",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.31.1",
     "react-native-reanimated": "4.4.0",
     "react-native-safe-area-context": "~5.7.0",
