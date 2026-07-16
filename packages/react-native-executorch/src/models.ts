@@ -596,6 +596,13 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
 // =============================================================================
 const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
   modelPath: `${BASE_URL}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn_vad_xnnpack_fp32.pte`,
+  defaultOptions: {
+    speechThreshold: 0.6,
+    minSpeechDurationMs: 250,
+    minSilenceDurationMs: 100,
+    speechPadMs: 30,
+    mergeGapMs: 0,
+  },
 };
 
 // =============================================================================

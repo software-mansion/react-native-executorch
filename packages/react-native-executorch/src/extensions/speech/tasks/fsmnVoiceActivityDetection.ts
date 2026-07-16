@@ -52,26 +52,17 @@ export type VadOptions = {
   readonly mergeGapMs?: number;
 };
 
-// Library fallback thresholds. A model may override any of these via
-// `FsmnVadModel.defaultOptions`, and callers via the `detectVoice` options argument.
-const DEFAULT_VAD_OPTIONS: Required<VadOptions> = {
-  speechThreshold: 0.6,
-  minSpeechDurationMs: 250,
-  minSilenceDurationMs: 100,
-  speechPadMs: 30,
-  mergeGapMs: 0,
-};
-
 /**
  * Model configuration required to instantiate an FSMN-VAD task runner.
  * @category Types
  * @property {string} modelPath - Local path or remote URL of the `.pte` model.
- * @property {VadOptions} [defaultOptions] - Detection thresholds tuned for this
- * model; overridable per `detectVoice` call. Falls back to the library defaults.
+ * @property {Required<VadOptions>} defaultOptions - Detection thresholds tuned
+ * for this model, overridable per `detectVoice` call. Defined alongside the
+ * model in the `models` registry so the defaults are discoverable there.
  */
 export type FsmnVadModel = {
   readonly modelPath: string;
-  readonly defaultOptions?: VadOptions;
+  readonly defaultOptions: Required<VadOptions>;
 };
 
 /**
@@ -223,8 +214,7 @@ export async function createFsmnVoiceActivityDetector(
    */
   resetStream: () => void;
 }> {
-  const { modelPath } = config;
-  const modelDefaults: Required<VadOptions> = { ...DEFAULT_VAD_OPTIONS, ...config.defaultOptions };
+  const { modelPath, defaultOptions } = config;
 
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
@@ -254,7 +244,7 @@ export async function createFsmnVoiceActivityDetector(
 
   const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
     'worklet';
-    const opts: Required<VadOptions> = { ...modelDefaults, ...options };
+    const opts: Required<VadOptions> = { ...defaultOptions, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
     if (numFrames <= 0) return [];
 
