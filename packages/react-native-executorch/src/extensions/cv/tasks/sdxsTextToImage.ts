@@ -16,15 +16,11 @@ import { toChannelsLast, normalize, cvtColor } from '../ops/image';
 // distilled, single-step model run without classifier-free guidance, so there
 // is no unconditional branch and no denoising loop.
 //
-// Every value below is fixed by the exported program rather than being a knob:
-// the shapes are static in the `.pte`, and the scheduler/decoder scalars are
-// pinned during export by numerically matching the reference diffusers output.
-// They are therefore constants here instead of per-model options — all shipped
-// variants (XNNPACK / CoreML / MLX) differ only by which `.pte` they load.
+// The values below are fixed by the exported program (static shapes, and
+// scheduler/decoder scalars pinned during export), so they are constants here
+// rather than per-model options.
 const CLIP_MAX_TOKENS = 77;
 const CLIP_HIDDEN_SIZE = 768;
-// CLIP pad/eot token id (`<|endoftext|>`). Used to pad the token sequence to a
-// fixed length when the tokenizer.json does not enforce a padding strategy.
 const CLIP_PAD_TOKEN_ID = 49407;
 
 const IMAGE_SIZE = 512;
@@ -33,36 +29,28 @@ const LATENT_CHANNELS = 4;
 const LATENT_SIZE = IMAGE_SIZE / 8;
 // Scheduler `init_noise_sigma`: the initial latents are standard normal.
 const INIT_NOISE_SIGMA = 1.0;
-// The single training timestep the model was distilled for.
-const TIMESTEP = 999;
+
 // At the distilled single step the DEIS update collapses to an exactly linear
 // combination of the latents and the UNet output:
 // `clean = SAMPLE_COEFF * latents + NOISE_COEFF * modelOutput`. These hold only
 // for one step at TIMESTEP — re-applying them would not be a valid schedule.
+const TIMESTEP = 999;
 const SAMPLE_COEFF = 14.642591;
 const NOISE_COEFF = -14.579279;
-// The exported `decode` emits RGB in [0,1], so mapping to [0..255] is a plain scale.
-const OUT_ALPHA = 255.0;
-const OUT_BETA = 0.0;
 
 /**
  * Model configuration required to instantiate the SDXS text-to-image runner.
- *
- * The pipeline ships as a single `.pte` program exporting three methods —
- * `encode` (text encoder), `denoise` (UNet) and `decode` (TAESD decoder) — plus
- * a CLIP `tokenizer.json`.
  * @category Types
  */
 export type SdxsTextToImageModel = {
-  /** Local path to the combined `encode`/`denoise`/`decode` `.pte` program. */
+  /** Local path to the model `.pte`. */
   readonly modelPath: string;
   /** Local path to the CLIP `tokenizer.json`. */
   readonly tokenizerPath: string;
 };
 
 /**
- * Creates an SDXS text-to-image runner backed by a single multi-method `.pte`
- * program (`encode` / `denoise` / `decode`) and a CLIP tokenizer.
+ * Creates an SDXS text-to-image runner.
  *
  * It validates the exported method schemas, pre-allocates the static execution
  * tensors, and registers disposal hooks that release all native memory.
@@ -81,14 +69,15 @@ export async function createSdxsTextToImage(
    * Generates an image from a text prompt.
    * @param prompt The text prompt describing the desired image.
    * @param seed Seed for the initial latent noise (same seed → same image).
+   * Defaults to a time-based value so omitting it yields a fresh image each call.
    * @returns A promise resolving to the generated RGBA image buffer.
    */
-  generate: (prompt: string, seed: number) => Promise<ImageBuffer>;
+  generate: (prompt: string, seed?: number) => Promise<ImageBuffer>;
   /**
    * Synchronous version of {@link generate} to be executed directly on the
    * caller or worklet thread.
    */
-  generateWorklet: (prompt: string, seed: number) => ImageBuffer;
+  generateWorklet: (prompt: string, seed?: number) => ImageBuffer;
 }> {
   const { modelPath, tokenizerPath } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -142,7 +131,7 @@ export async function createSdxsTextToImage(
     model.dispose();
   };
 
-  const generateWorklet = (prompt: string, seed: number): ImageBuffer => {
+  const generateWorklet = (prompt: string, seed: number = Date.now()): ImageBuffer => {
     'worklet';
 
     const ids = tokenizer.encode(prompt);
@@ -168,7 +157,7 @@ export async function createSdxsTextToImage(
 
     const data = tDecoded
       .copyTo(tReshape)
-      .through(normalize, tUint8, { alpha: OUT_ALPHA, beta: OUT_BETA })
+      .through(normalize, tUint8, { alpha: 255.0 })
       .through(toChannelsLast, tChanLast)
       .through(cvtColor, tRgba, 'RGB2RGBA')
       .getData(new Uint8Array(IMAGE_SIZE * IMAGE_SIZE * 4));
