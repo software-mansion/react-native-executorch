@@ -5,18 +5,21 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
-import { loadTokenizer } from '../../nlp/tokenizer';
+
 import { argmax } from '../../../extensions/math';
-import { type VadOptions, type Segment } from './fsmnVoiceActivityDetection';
+import { loadTokenizer } from '../../nlp/tokenizer';
+import {
+  createFsmnVoiceActivityDetector,
+  type VadStreamOptions,
+} from './fsmnVoiceActivityDetection';
 
 export const WHISPER_SAMPLE_RATE_HZ = 16000;
 
 const MAX_SEQ_LEN = 128;
 const MIN_CHUNK_SIZE = 201;
 const CHUNK_LENGTH_SECONDS = 29;
-const CHUNK_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ;
+const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ;
 const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ;
-const STRIDE_SIZE = WHISPER_SAMPLE_RATE_HZ;
 
 // prettier-ignore
 export const WHISPER_LANGUAGES = [
@@ -36,16 +39,16 @@ export type WhisperLanguage = (typeof WHISPER_LANGUAGES)[number];
 
 export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
   readonly language: L;
-  readonly vad?: {
-    readonly detectWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
-  };
-  readonly vadOptions?: VadOptions;
 };
+
+export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
+  WhisperSttOptions<L> & { readonly vadOptions?: VadStreamOptions };
 
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly supportedLanguages: readonly L[];
+  readonly fsmnVoiceActivityDetectorPath: string;
 };
 
 export async function createWhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
@@ -67,16 +70,22 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   ) => string;
 
   stream: (
-    options: WhisperSttOptions<L>
+    options: WhisperStreamOptions<L>
   ) => AsyncGenerator<{ committed: string; nonCommitted: string }>;
 
   streamStop: () => void;
 
   streamInsert: (audioChunk: Float32Array) => void;
 }> {
-  const { modelPath, tokenizerPath, supportedLanguages } = config;
+  const {
+    modelPath,
+    tokenizerPath,
+    supportedLanguages,
+    fsmnVoiceActivityDetectorPath: fsmnVadPath,
+  } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
+  const voiceDetector = await createFsmnVoiceActivityDetector({ modelPath: fsmnVadPath }, runtime);
 
   const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
   const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
@@ -103,17 +112,18 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   );
 
   const tensors = [
-    tensor('int64', [1]),
-    tensor('int64', [1, 1]),
-    tensor('int32', [1, 1, 1]),
-    tensor('float32', [1, encSeqLen, encStateDim]),
-    tensor('float32', [1, 1, tokenizer.getVocabSize()]),
+    tensor('int64', [1]), // tPosition
+    tensor('int64', [1, 1]), // tToken
+    tensor('int32', [1, 1, 1]), // tArgmax
+    tensor('float32', [1, encSeqLen, encStateDim]), //tEncodings
+    tensor('float32', [1, 1, tokenizer.getVocabSize()]), // tLogits
   ] as const;
 
   const [tPosition, tToken, tArgmax, tEncodings, tLogits] = tensors;
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
+    voiceDetector.dispose();
     tokenizer.dispose();
     model.dispose();
   };
@@ -143,7 +153,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     let offset = 0;
 
     while (offset < audio.length) {
-      const audioChunk = audio.slice(offset, Math.min(offset + CHUNK_SIZE, audio.length));
+      const audioChunk = audio.slice(offset, Math.min(offset + BUFFER_SIZE, audio.length));
       if (audioChunk.length < MIN_CHUNK_SIZE) {
         break;
       }
@@ -157,10 +167,9 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
 
       let nextToken = eotToken;
       let position = promptTokens.length;
-
       promptTokens.forEach((token, pos) => (nextToken = decode(token, pos)));
-      const generated: number[] = [];
 
+      const generated: number[] = [];
       while (generated.length < maxNewTokens && nextToken !== eotToken) {
         generated.push(nextToken);
         if (onToken) {
@@ -171,7 +180,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       }
 
       text += tokenizer.decode(generated);
-      offset += CHUNK_SIZE;
+      offset += BUFFER_SIZE;
     }
 
     return text.trim();
@@ -203,7 +212,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   };
 
   async function* stream(
-    options: WhisperSttOptions<L>
+    options: WhisperStreamOptions<L>
   ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
     if (isStreaming) {
       throw new Error('Streaming is already in progress');
@@ -211,6 +220,9 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     isStreaming = true;
     audioBuffer = new Float32Array(0);
 
+    voiceDetector.resetStream();
+
+    let isSpeaking = false;
     let currentText = '';
     let committedText = '';
     let processedLength = 0;
@@ -231,28 +243,44 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
           continue;
         }
 
+        const newSamples = audioBuffer.slice(processedLength);
         processedLength = audioBuffer.length;
-        const audioToProcess = audioBuffer.slice(0, processedLength);
 
-        if (options.vad && options.vad.detectWorklet) {
-          const latestChunk = audioToProcess.slice(Math.max(0, processedLength - STRIDE_SIZE));
-          const segments = options.vad.detectWorklet(latestChunk, options.vadOptions);
-          if (segments.length === 0) {
+        const event = voiceDetector.push(newSamples, options.vadOptions);
+        switch (event) {
+          case 'speechStart':
+            isSpeaking = true;
+            break;
+          case 'speechEnd':
+            isSpeaking = false;
+            currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
             commit();
             yield { committed: committedText, nonCommitted: '' };
             continue;
-          }
         }
 
-        currentText = await transcribe(audioToProcess, options);
-        if (processedLength >= BUFFER_SIZE) {
-          commit();
+        if (isSpeaking) {
+          currentText = await transcribe(audioBuffer.slice(0, processedLength), options);
+          if (processedLength >= BUFFER_SIZE) commit();
+          yield { committed: committedText, nonCommitted: currentText };
+        } else {
+          const retainSamples = Math.min(audioBuffer.length, STRIDE_SIZE);
+          audioBuffer = audioBuffer.slice(audioBuffer.length - retainSamples);
+          processedLength = audioBuffer.length;
+          yield { committed: committedText, nonCommitted: '' };
         }
-        yield { committed: committedText, nonCommitted: currentText };
+      }
+
+      if (isSpeaking && audioBuffer.length >= MIN_CHUNK_SIZE) {
+        currentText = await transcribe(audioBuffer, options);
+        commit();
+        yield { committed: committedText, nonCommitted: '' };
       }
     } finally {
-      isStreaming = false;
       signal = null;
+      isStreaming = false;
+      voiceDetector.resetStream();
+      audioBuffer = new Float32Array(0);
     }
   }
 
