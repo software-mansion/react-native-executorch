@@ -1,5 +1,5 @@
-import { rnexecutorchJsi } from '../../native/bridge';
-import { type Tensor } from '../../core/tensor';
+import { rnexecutorchJsi } from '../../../native/bridge';
+import { type Tensor } from '../../../core/tensor';
 
 /**
  * Options controlling how {@link extractFrames} slices and filters the waveform.

@@ -4,7 +4,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
-import { extractFrames } from '../ops';
+import { extractFrames } from '../utils/vadUtils';
 
 /**
  * Sample rate (Hz) the FSMN-VAD model expects its input waveform to be at.
@@ -22,9 +22,9 @@ const PREEMPHASIS = 0.97;
 const MIN_FRAMES = 100; // fewest frames the model accepts per forward pass
 const SAMPLES_PER_MS = FSMN_VAD_SAMPLE_RATE_HZ / 1000;
 const HOP_LENGTH_MS = HOP_LENGTH / SAMPLES_PER_MS;
-// `push` detects over a bounded 2.5s window of the most recent audio: model cost
-// scales with window length, and 2.5s already exceeds FSMN's receptive field
-// (~200ms) and the min-speech duration (250ms).
+// `detectVoiceOnStream` detects over a bounded 2.5s window of the most recent
+// audio: model cost scales with window length, and 2.5s already exceeds FSMN's
+// receptive field (~200ms) and the min-speech duration (250ms).
 const DETECTION_WINDOW_SECONDS = 2.5;
 const WINDOW_SAMPLES = DETECTION_WINDOW_SECONDS * FSMN_VAD_SAMPLE_RATE_HZ;
 const DEFAULT_DETECTION_MARGIN_MS = 100;
@@ -84,8 +84,8 @@ export type Segment = {
 };
 
 /**
- * Options controlling live detection via `push`. Extends the per-call detection
- * thresholds ({@link VadOptions}).
+ * Options controlling live detection via `detectVoiceOnStream`. Extends the
+ * per-call detection thresholds ({@link VadOptions}).
  * @category Types
  * @property {number} [detectionMargin] - How recent (in milliseconds) the last
  * detected speech segment must reach toward the end of the window for speech to
@@ -96,7 +96,7 @@ export type VadStreamOptions = VadOptions & {
 };
 
 /**
- * A speech-activity transition reported by `push`.
+ * A speech-activity transition reported by `detectVoiceOnStream`.
  * @category Types
  */
 export type VadEvent = 'speechStart' | 'speechEnd';
@@ -213,14 +213,14 @@ export async function createFsmnVoiceActivityDetector(
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
-   * otherwise `null`. Designed to be driven straight from a recorder callback.
-   * Detection runs synchronously on the calling thread (a few ms).
+   * otherwise `undefined`. Designed to be driven straight from a recorder
+   * callback. Detection runs synchronously on the calling thread (a few ms).
    * @param chunk The newly captured audio samples.
    * @param options Optional overrides of the detection thresholds and margin.
    */
-  push: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | null;
+  detectVoiceOnStream: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | undefined;
   /**
-   * Clears the rolling window and speaking state used by {@link push}.
+   * Clears the rolling window and speaking state used by {@link detectVoiceOnStream}.
    */
   resetStream: () => void;
 }> {
@@ -305,7 +305,10 @@ export async function createFsmnVoiceActivityDetector(
   let window = new Float32Array(0);
   let wasSpeaking = false;
 
-  const push = (chunk: Float32Array, options?: VadStreamOptions): VadEvent | null => {
+  const detectVoiceOnStream = (
+    chunk: Float32Array,
+    options?: VadStreamOptions
+  ): VadEvent | undefined => {
     const next = new Float32Array(window.length + chunk.length);
     next.set(window);
     next.set(chunk, window.length);
@@ -321,7 +324,7 @@ export async function createFsmnVoiceActivityDetector(
       isSpeaking = diffMs <= (options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS);
     }
 
-    if (isSpeaking === wasSpeaking) return null;
+    if (isSpeaking === wasSpeaking) return undefined;
     wasSpeaking = isSpeaking;
     return isSpeaking ? 'speechStart' : 'speechEnd';
   };
@@ -331,5 +334,5 @@ export async function createFsmnVoiceActivityDetector(
     wasSpeaking = false;
   };
 
-  return { dispose, detectVoice, detectVoiceWorklet, push, resetStream };
+  return { dispose, detectVoice, detectVoiceWorklet, detectVoiceOnStream, resetStream };
 }

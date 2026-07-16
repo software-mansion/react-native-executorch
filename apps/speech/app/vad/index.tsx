@@ -14,9 +14,8 @@ const SAMPLE_RATE = FSMN_VAD_SAMPLE_RATE_HZ;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
-  const { isReady, downloadProgress, error, push, resetStream } = useVoiceActivityDetector(
-    models.voiceActivityDetection.FSMN_VAD
-  );
+  const { isReady, downloadProgress, error, detectVoiceOnStream, resetStream } =
+    useVoiceActivityDetector(models.voiceActivityDetection.FSMN_VAD);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -43,7 +42,7 @@ function VADContent() {
   }, []);
 
   const handleStart = async () => {
-    if (isStreaming || !isReady || !push || !resetStream) return;
+    if (isStreaming || !isReady || !detectVoiceOnStream || !resetStream) return;
 
     if (!hasMicPermission) {
       setRunError('Microphone permission denied. Please enable it in Settings.');
@@ -59,7 +58,7 @@ function VADContent() {
     recorder.current.onAudioReady(
       { sampleRate: SAMPLE_RATE, bufferLength: 1600, channelCount: 1 },
       ({ buffer }) => {
-        const event = push(buffer.getChannelData(0), { detectionMargin: 300 });
+        const event = detectVoiceOnStream(buffer.getChannelData(0), { detectionMargin: 300 });
         if (event === 'speechStart') {
           setIsSpeaking(true);
           addLog('Speech detected (begin)');

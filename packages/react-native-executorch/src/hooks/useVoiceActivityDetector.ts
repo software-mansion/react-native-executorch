@@ -41,7 +41,7 @@ export function useVoiceActivityDetector(
     localPath,
     detectVoice: model?.detectVoice,
     detectVoiceWorklet: model?.detectVoiceWorklet,
-    push: model?.push,
+    detectVoiceOnStream: model?.detectVoiceOnStream,
     resetStream: model?.resetStream,
   };
 }
