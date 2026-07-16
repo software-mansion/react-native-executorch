@@ -1,9 +1,11 @@
+import { Platform } from 'react-native';
 import { ResourceSource } from '..';
 import { getModelNameForUrl } from '../constants/modelUrls';
 import {
   DOWNLOAD_EVENT_ENDPOINT,
   LIB_VERSION,
 } from '../constants/resourceFetcher';
+import DeviceInfo from 'react-native-device-info';
 
 /**
  * Http status codes
@@ -233,10 +235,12 @@ export namespace ResourceFetcherUtils {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          modelName: getModelNameFromUri(uri),
+          bundleId: DeviceInfo.getBundleId(),
           countryCode: getCountryCode(),
           isEmulator: isEmulator(),
           libVersion: LIB_VERSION,
+          modelName: getModelNameFromUri(uri),
+          system: Platform.OS,
         }),
       });
     } catch (e) {}

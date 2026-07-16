@@ -1,7 +1,4 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const {
-  wrapWithAudioAPIMetroConfig,
-} = require('react-native-audio-api/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
@@ -19,4 +16,4 @@ config.resolver = {
 
 config.resolver.assetExts.push('pte');
 
-module.exports = wrapWithAudioAPIMetroConfig(config);
+module.exports = config;
