@@ -6,19 +6,28 @@ import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../ops';
 
-/** Sample rate (Hz) the FSMN-VAD model expects its input waveform to be at. */
+/**
+ * Sample rate (Hz) the FSMN-VAD model expects its input waveform to be at.
+ * @category Constants
+ */
 export const FSMN_VAD_SAMPLE_RATE_HZ = 16000;
 
-// Feature-extraction geometry baked into the exported FSMN-VAD `.pte`. These are
-// properties of the model rather than user-tunable knobs, so they live here and
-// not in the `models` registry; `fftLength` is read from the model metadata.
+// Model + pipeline constants. The feature-extraction geometry (frame/hop/etc.)
+// is baked into the exported FSMN-VAD `.pte` — properties of the model, not
+// user-tunable knobs — so it lives here rather than in the `models` registry;
+// `fftLength` is read from the model metadata.
 const FRAME_LENGTH = 400; // 25 ms analysis window
 const HOP_LENGTH = 160; // 10 ms between windows
 const PREEMPHASIS = 0.97;
 const MIN_FRAMES = 100; // fewest frames the model accepts per forward pass
-
 const SAMPLES_PER_MS = FSMN_VAD_SAMPLE_RATE_HZ / 1000;
 const HOP_LENGTH_MS = HOP_LENGTH / SAMPLES_PER_MS;
+// `push` detects over a bounded 2.5s window of the most recent audio: model cost
+// scales with window length, and 2.5s already exceeds FSMN's receptive field
+// (~200ms) and the min-speech duration (250ms).
+const DETECTION_WINDOW_SECONDS = 2.5;
+const WINDOW_SAMPLES = DETECTION_WINDOW_SECONDS * FSMN_VAD_SAMPLE_RATE_HZ;
+const DEFAULT_DETECTION_MARGIN_MS = 100;
 
 /**
  * Tunable thresholds controlling how per-frame speech probabilities are turned
@@ -41,6 +50,16 @@ export type VadOptions = {
   readonly minSilenceDurationMs?: number;
   readonly speechPadMs?: number;
   readonly mergeGapMs?: number;
+};
+
+// Library fallback thresholds. A model may override any of these via
+// `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
+const DEFAULT_VAD_OPTIONS: Required<VadOptions> = {
+  speechThreshold: 0.6,
+  minSpeechDurationMs: 250,
+  minSilenceDurationMs: 100,
+  speechPadMs: 30,
+  mergeGapMs: 0,
 };
 
 /**
@@ -82,24 +101,8 @@ export type VadStreamOptions = VadOptions & {
  */
 export type VadEvent = 'speechStart' | 'speechEnd';
 
-// Library fallback thresholds. A model may override any of these via
-// `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
-const DEFAULT_OPTIONS: Required<VadOptions> = {
-  speechThreshold: 0.6,
-  minSpeechDurationMs: 250,
-  minSilenceDurationMs: 100,
-  speechPadMs: 30,
-  mergeGapMs: 0,
-};
-
-// `push` detects over a bounded window of the most recent audio (not the whole
-// growing session): model cost scales with window length, and 2.5s already
-// exceeds FSMN's receptive field (~200ms) and the min-speech duration (250ms).
-const DETECTION_WINDOW_SECONDS = 2.5;
-const DEFAULT_DETECTION_MARGIN_MS = 100;
-
-// Periodic Hann window used to reduce spectral leakage on each frame. Ported
-// from `dsp::hannWindow` (periodic definition, divides by `size`).
+// Periodic Hann window applied to each frame to reduce spectral leakage before
+// the model consumes it. See https://en.wikipedia.org/wiki/Hann_function.
 function hannWindow(size: number): Float32Array {
   'worklet';
   const window = new Float32Array(size);
@@ -175,15 +178,10 @@ function postprocess(scores: Float32Array, opts: Required<VadOptions>): Segment[
 /**
  * Creates a Voice Activity Detection runner for the FSMN-VAD model.
  *
- * It loads the model, validates its input/output signature, pre-allocates the
- * static output tensor and registers a disposal hook. The whole pipeline —
- * feature extraction, chunked inference and segment postprocessing — runs in
- * TypeScript on top of the core `model.execute` primitive.
- *
- * The model exposes a dynamic frame dimension: each forward pass accepts
- * `[frames, fftLength]` (up to the model-declared maximum) and returns per-frame
- * class probabilities. Long inputs are split into chunks; a short final chunk is
- * zero-padded up to the model minimum and its padding scores are discarded.
+ * It loads the model, validates its input/output signature and registers a
+ * disposal hook. The whole pipeline — feature extraction, chunked inference and
+ * segment postprocessing — runs in TypeScript on top of the core `model.execute`
+ * primitive.
  * @category Typescript API
  * @param config VAD task configuration containing the model path.
  * @param runtime Optional worklet runtime thread on which to run the model
@@ -216,9 +214,7 @@ export async function createFsmnVoiceActivityDetector(
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
    * otherwise `null`. Designed to be driven straight from a recorder callback.
-   * Detection runs synchronously on the calling thread (a few ms). The rolling
-   * window is required: one short chunk is far too short to satisfy
-   * `minSpeechDurationMs` on its own.
+   * Detection runs synchronously on the calling thread (a few ms).
    * @param chunk The newly captured audio samples.
    * @param options Optional overrides of the detection thresholds and margin.
    */
@@ -229,33 +225,26 @@ export async function createFsmnVoiceActivityDetector(
   resetStream: () => void;
 }> {
   const { modelPath } = config;
-  const modelDefaults: Required<VadOptions> = { ...DEFAULT_OPTIONS, ...config.defaultOptions };
+  const modelDefaults: Required<VadOptions> = { ...DEFAULT_VAD_OPTIONS, ...config.defaultOptions };
 
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  // Input is [frames, fftLength] with a dynamic frame count; output is per-frame
-  // class probabilities, either [1, frames, classes] or [frames, classes], where
-  // class 0 is the non-speech class. The input and output frame symbols are
-  // deliberately distinct: a symbol only binds within a single tensor, so the
-  // two cannot be cross-constrained here.
+  // Input is [frames, fftLength] with a dynamic frame count; the output is
+  // [1, frames, classes] where class 0 is the non-speech class. The output frame
+  // count matches the input at runtime, but ExecuTorch metadata only reports the
+  // static upper bound, so the per-call output tensor is sized explicitly below.
   const meta = validateModelSchema(
     model,
     'forward',
-    [SymbolicTensor('float32', ['inFrames', 'fftLength'])],
-    [SymbolicTensor('float32', [1, 'outFrames', 'classes'], ['outFrames', 'classes'])]
+    [SymbolicTensor('float32', ['frames', 'fftLength'])],
+    [SymbolicTensor('float32', [1, 'frames', 'classes'])]
   );
-  const chunkCapacity = meta.inputTensorMeta[0]!.shape[0]!;
+  const maxFrames = meta.inputTensorMeta[0]!.shape[0]!;
   const fftLength = meta.inputTensorMeta[0]!.shape[1]!;
-  const outShape = meta.outputTensorMeta[0]!.shape;
-  const numClass = outShape[outShape.length - 1]!;
-  // The output frame count tracks the input's, so the output shape is the
-  // declared one with its frame dimension swapped per chunk (see below).
-  const outFramesDim = outShape.length - 2;
+  const numClass = meta.outputTensorMeta[0]!.shape[2]!;
 
   // The Hann window is uploaded once and reused by the native framing op across
-  // every call. The output tensor cannot be pre-allocated here: this model's
-  // output is dynamic too, so `execute` validates it against the shape produced
-  // for the current chunk, not the model-declared maximum.
+  // every call.
   const tensors = [tensor('float32', [FRAME_LENGTH], hannWindow(FRAME_LENGTH))] as const;
   const [tHann] = tensors;
 
@@ -266,8 +255,6 @@ export async function createFsmnVoiceActivityDetector(
 
   const detectWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
     'worklet';
-    if (waveform.length < FRAME_LENGTH) return [];
-
     const opts: Required<VadOptions> = { ...modelDefaults, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
     if (numFrames <= 0) return [];
@@ -275,15 +262,12 @@ export async function createFsmnVoiceActivityDetector(
     const scores = new Float32Array(numFrames);
     let offset = 0;
     while (offset < numFrames) {
-      const realFrames = Math.min(numFrames - offset, chunkCapacity);
+      const realFrames = Math.min(numFrames - offset, maxFrames);
       // The model needs at least MIN_FRAMES rows, so a short final chunk is
       // zero-padded up to it and its padding scores are discarded below.
       const chunkFrames = Math.max(realFrames, MIN_FRAMES);
       const startSample = offset * HOP_LENGTH;
       const sampleCount = (realFrames - 1) * HOP_LENGTH + FRAME_LENGTH;
-
-      const chunkOutShape = outShape.slice();
-      chunkOutShape[outFramesDim] = chunkFrames;
 
       const tWaveform = tensor(
         'float32',
@@ -291,7 +275,7 @@ export async function createFsmnVoiceActivityDetector(
         waveform.subarray(startSample, startSample + sampleCount)
       );
       const tInput = tensor('float32', [chunkFrames, fftLength]);
-      const tOutput = tensor('float32', chunkOutShape);
+      const tOutput = tensor('float32', [1, chunkFrames, numClass]);
       const outBuffer = new Float32Array(tOutput.numel);
       try {
         extractFrames(tWaveform, tHann, tInput, {
@@ -318,34 +302,33 @@ export async function createFsmnVoiceActivityDetector(
 
   const detect = wrapAsync(detectWorklet, runtime);
 
-  const windowSamples = DETECTION_WINDOW_SECONDS * FSMN_VAD_SAMPLE_RATE_HZ;
   let window = new Float32Array(0);
-  let isSpeaking = false;
+  let wasSpeaking = false;
 
   const push = (chunk: Float32Array, options?: VadStreamOptions): VadEvent | null => {
     const next = new Float32Array(window.length + chunk.length);
     next.set(window);
     next.set(chunk, window.length);
-    window = next.length > windowSamples ? next.slice(next.length - windowSamples) : next;
+    window = next.length > WINDOW_SAMPLES ? next.slice(next.length - WINDOW_SAMPLES) : next;
 
     // Speech is ongoing if the last detected segment reaches close enough to the
     // end of the window (within detectionMargin).
     const segments = detectWorklet(window, options);
-    let speaking = false;
+    let isSpeaking = false;
     if (segments.length > 0) {
       const windowEndSec = window.length / FSMN_VAD_SAMPLE_RATE_HZ;
       const diffMs = (windowEndSec - segments[segments.length - 1]!.end) * 1000;
-      speaking = diffMs <= (options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS);
+      isSpeaking = diffMs <= (options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS);
     }
 
-    if (speaking === isSpeaking) return null;
-    isSpeaking = speaking;
-    return speaking ? 'speechStart' : 'speechEnd';
+    if (isSpeaking === wasSpeaking) return null;
+    wasSpeaking = isSpeaking;
+    return isSpeaking ? 'speechStart' : 'speechEnd';
   };
 
   const resetStream = () => {
     window = new Float32Array(0);
-    isSpeaking = false;
+    wasSpeaking = false;
   };
 
   return { dispose, detect, detectWorklet, push, resetStream };

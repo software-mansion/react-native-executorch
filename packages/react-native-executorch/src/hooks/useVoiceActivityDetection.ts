@@ -11,8 +11,7 @@ import {
  * This hook manages downloading (if it's a remote URL) and loading the model
  * file, compiling it, tracking download progress and compilation errors, and
  * cleaning up native model memory when the component unmounts or configuration
- * changes. The rolling-window state driven by `push` lives inside the task (see
- * {@link createFsmnVoiceActivityDetector}), so it is exposed here directly.
+ * changes.
  * @category Hooks
  * @param config The VAD model configuration.
  * @param options Hook options.

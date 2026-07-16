@@ -14,11 +14,6 @@ namespace conversions = rnexecutorch::core::conversions;
 namespace tensor = rnexecutorch::core::tensor;
 using rnexecutorch::core::types::DType;
 
-// Slices a mono waveform into overlapping frames, applying per-frame
-// mean-removal, a pre-emphasis filter and a Hann window, writing each frame into
-// a zero-padded row of `dst`. Mirrors the reference FSMN-VAD feature extraction.
-// The whole per-frame inner loop dominates the VAD pipeline (~85% of a detect()
-// call on device), so it lives in native code per the extension guidelines.
 void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractFrames";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
