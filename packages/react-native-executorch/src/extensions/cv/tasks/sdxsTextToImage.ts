@@ -15,10 +15,6 @@ import { toChannelsLast, normalize, cvtColor } from '../ops/image';
 // 1/8 resolution, and a TAESD tiny decoder. Unlike the classic pipeline it is a
 // distilled, single-step model run without classifier-free guidance, so there
 // is no unconditional branch and no denoising loop.
-//
-// The values below are fixed by the exported program (static shapes, and
-// scheduler/decoder scalars pinned during export), so they are constants here
-// rather than per-model options.
 const CLIP_MAX_TOKENS = 77;
 const CLIP_HIDDEN_SIZE = 768;
 const CLIP_PAD_TOKEN_ID = 49407;
