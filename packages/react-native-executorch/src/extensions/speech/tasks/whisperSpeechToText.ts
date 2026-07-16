@@ -13,14 +13,23 @@ import {
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
 
+/**
+ * Sample rate (Hz) Whisper models expect their input waveform to be at.
+ * @category Constants
+ */
 export const WHISPER_SAMPLE_RATE_HZ = 16000;
 
-const MAX_SEQ_LEN = 128;
-const MIN_CHUNK_SIZE = 201;
-const CHUNK_LENGTH_SECONDS = 29;
-const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ;
-const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ;
+const MAX_SEQ_LEN = 128; // maximum decoder output tokens per chunk
+const MIN_CHUNK_SIZE = 201; // shortest audio slice (samples) the model was exported for
+const CHUNK_LENGTH_SECONDS = 29; // Whisper's fixed context window length
+const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ; // overlap between consecutive chunks (1s)
+const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ; // samples per full chunk
 
+/**
+ * BCP-47 language codes supported by Whisper multilingual models. English-only
+ * model variants only accept `'en'`.
+ * @category Constants
+ */
 // prettier-ignore
 export const WHISPER_LANGUAGES = [
   'en', 'zh', 'de', 'es', 'ru', 'ko', 'fr', 'ja', 'pt', 'tr',
@@ -35,15 +44,37 @@ export const WHISPER_LANGUAGES = [
   'mg', 'as', 'tt', 'haw', 'ln', 'ha', 'ba', 'jw', 'su', 'yue'
 ] as const;
 
+/**
+ * Union type of all BCP-47 language codes supported by Whisper. Derived from
+ * {@link WHISPER_LANGUAGES}.
+ * @category Types
+ */
 export type WhisperLanguage = (typeof WHISPER_LANGUAGES)[number];
 
+/**
+ * Options passed to a single transcription call.
+ * @category Types
+ * @property language - BCP-47 language code of the spoken audio. Must be one of
+ * the {@link WhisperLanguage} values declared in the model's
+ * `supportedLanguages` list.
+ */
 export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
   readonly language: L;
 };
 
+/**
+ * Options for the live-streaming transcription API.
+ * Extends {@link WhisperSttOptions} with optional VAD tuning.
+ * @category Types
+ * @property vadOptions - Fine-tuning knobs forwarded to the FSMN voice-activity
+ * detector. Omit to use the detector's built-in defaults.
+ */
 export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
   WhisperSttOptions<L> & { readonly vadOptions?: VadStreamOptions };
 
+/**
+ * Paths and metadata required to instantiate a Whisper speech-to-text model.
+ */
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
@@ -51,30 +82,73 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly fsmnVoiceActivityDetectorPath: string;
 };
 
+/**
+ * Loads a Whisper model and returns a set of transcription helpers.
+ * @category Typescript API
+ * @param config Model paths and supported-language metadata. See {@link
+ * WhisperSttModel}.
+ * @param runtime Optional worklet runtime thread on which to run the model
+ * execution.
+ * @returns A promise resolving to an object containing transcription and
+ * disposal controls.
+ */
 export async function createWhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
+  /**
+   * Releases all allocated native resources.
+   */
   dispose: () => void;
 
+  /**
+   * Asynchronously transcribes a pre-recorded mono waveform sampled at
+   * {@link WHISPER_SAMPLE_RATE_HZ}.
+   * @param audio Raw 16 kHz mono PCM samples.
+   * @param options Transcription options.
+   * @param onToken Optional callback fired on the RN thread for each decoded
+   * token.
+   * @returns A promise resolving to the full transcript string.
+   */
   transcribe: (
     audio: Float32Array,
     options: WhisperSttOptions<L>,
     onToken?: (token: string) => void
   ) => Promise<string>;
 
+  /**
+   * Synchronous version of {@link transcribe} to be executed directly on the
+   * caller or worklet thread.
+   */
   transcribeWorklet: (
     audio: Float32Array,
     options: WhisperSttOptions<L>,
     onToken?: (token: string) => void
   ) => string;
 
+  /**
+   * Async generator for real-time microphone transcription. Feed audio with
+   * {@link streamInsert} and stop with {@link streamStop}. Yields `{ committed,
+   * nonCommitted }` on every VAD or transcription event: `committed` is the
+   * finalized transcript so far; `nonCommitted` is the in-progress text that
+   * may still change.
+   * @param options Stream options (language and optional VAD tuning).
+   */
   stream: (
     options: WhisperStreamOptions<L>
   ) => AsyncGenerator<{ committed: string; nonCommitted: string }>;
 
+  /**
+   * Signals the {@link stream} generator to finalize the current segment and
+   * return. Safe to call even when streaming is not active.
+   */
   streamStop: () => void;
 
+  /**
+   * Appends a new PCM chunk to the live streaming buffer consumed by
+   * {@link stream}. Ignored when streaming is not active.
+   * @param audioChunk The newly captured audio samples.
+   */
   streamInsert: (audioChunk: Float32Array) => void;
 }> {
   const {
@@ -172,9 +246,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       const generated: number[] = [];
       while (generated.length < maxNewTokens && nextToken !== eotToken) {
         generated.push(nextToken);
-        if (onToken) {
-          scheduleOnRN(onToken, tokenizer.decode([nextToken]));
-        }
+        if (onToken) scheduleOnRN(onToken, tokenizer.decode([nextToken]));
         nextToken = decode(nextToken, position);
         position++;
       }
