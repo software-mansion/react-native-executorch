@@ -114,7 +114,6 @@ function hannWindow(size: number): Float32Array {
 
 // Turns per-frame non-speech probabilities into speech segments in seconds:
 // threshold with hysteresis, pad both ends, then merge near-adjacent regions.
-// Mirrors `VoiceActivityDetection::postprocess` + `utils::mergeSegments`.
 // `scores[i]` holds the non-speech probability of frame `i`, so the speech
 // probability is `1 - scores[i]`.
 function postprocess(scores: Float32Array, opts: Required<VadOptions>): Segment[] {
