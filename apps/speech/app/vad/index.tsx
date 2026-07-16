@@ -1,10 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import {
-  useVoiceActivityDetection,
-  models,
-  FSMN_VAD_SAMPLE_RATE_HZ,
-} from 'react-native-executorch';
+import { useVoiceActivityDetector, models, FSMN_VAD_SAMPLE_RATE_HZ } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 
@@ -18,8 +14,8 @@ const SAMPLE_RATE = FSMN_VAD_SAMPLE_RATE_HZ;
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
-  const { isReady, downloadProgress, error, push, resetStream } = useVoiceActivityDetection(
-    models.vad.FSMN_VAD
+  const { isReady, downloadProgress, error, push, resetStream } = useVoiceActivityDetector(
+    models.voiceActivityDetection.FSMN_VAD
   );
 
   const [isStreaming, setIsStreaming] = useState(false);

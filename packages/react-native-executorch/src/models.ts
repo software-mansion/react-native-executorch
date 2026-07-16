@@ -804,7 +804,7 @@ export const models = {
       },
     },
   },
-  vad: {
+  voiceActivityDetection: {
     FSMN_VAD: {
       ...FSMN_VAD_XNNPACK_FP32,
       XNNPACK_FP32: FSMN_VAD_XNNPACK_FP32,

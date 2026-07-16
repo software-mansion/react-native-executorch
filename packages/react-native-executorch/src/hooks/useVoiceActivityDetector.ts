@@ -20,7 +20,7 @@ import {
  * @returns An object containing the model's loading state, error, download
  * progress, one-shot detection functions, and live detection controls.
  */
-export function useVoiceActivityDetection(
+export function useVoiceActivityDetector(
   config: FsmnVadModel,
   options?: { preventLoad?: boolean }
 ) {
@@ -39,8 +39,8 @@ export function useVoiceActivityDetection(
     error: downloadError || error,
     downloadProgress,
     localPath,
-    detect: model?.detect,
-    detectWorklet: model?.detectWorklet,
+    detectVoice: model?.detectVoice,
+    detectVoiceWorklet: model?.detectVoiceWorklet,
     push: model?.push,
     resetStream: model?.resetStream,
   };

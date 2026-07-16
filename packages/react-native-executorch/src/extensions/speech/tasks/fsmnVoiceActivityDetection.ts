@@ -53,7 +53,7 @@ export type VadOptions = {
 };
 
 // Library fallback thresholds. A model may override any of these via
-// `FsmnVadModel.defaultOptions`, and callers via the `detect` options argument.
+// `FsmnVadModel.defaultOptions`, and callers via the `detectVoice` options argument.
 const DEFAULT_VAD_OPTIONS: Required<VadOptions> = {
   speechThreshold: 0.6,
   minSpeechDurationMs: 250,
@@ -67,7 +67,7 @@ const DEFAULT_VAD_OPTIONS: Required<VadOptions> = {
  * @category Types
  * @property {string} modelPath - Local path or remote URL of the `.pte` model.
  * @property {VadOptions} [defaultOptions] - Detection thresholds tuned for this
- * model; overridable per `detect` call. Falls back to the library defaults.
+ * model; overridable per `detectVoice` call. Falls back to the library defaults.
  */
 export type FsmnVadModel = {
   readonly modelPath: string;
@@ -204,12 +204,12 @@ export async function createFsmnVoiceActivityDetector(
    * @param options Optional per-call overrides of the detection thresholds.
    * @returns A promise resolving to the detected speech segments, in seconds.
    */
-  detect: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
+  detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
   /**
-   * Synchronous version of {@link detect} to be executed directly on the caller
+   * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
    */
-  detectWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
+  detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
@@ -253,7 +253,7 @@ export async function createFsmnVoiceActivityDetector(
     model.dispose();
   };
 
-  const detectWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
+  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
     'worklet';
     const opts: Required<VadOptions> = { ...modelDefaults, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
@@ -300,7 +300,7 @@ export async function createFsmnVoiceActivityDetector(
     return postprocess(scores, opts);
   };
 
-  const detect = wrapAsync(detectWorklet, runtime);
+  const detectVoice = wrapAsync(detectVoiceWorklet, runtime);
 
   let window = new Float32Array(0);
   let wasSpeaking = false;
@@ -313,7 +313,7 @@ export async function createFsmnVoiceActivityDetector(
 
     // Speech is ongoing if the last detected segment reaches close enough to the
     // end of the window (within detectionMargin).
-    const segments = detectWorklet(window, options);
+    const segments = detectVoiceWorklet(window, options);
     let isSpeaking = false;
     if (segments.length > 0) {
       const windowEndSec = window.length / FSMN_VAD_SAMPLE_RATE_HZ;
@@ -331,5 +331,5 @@ export async function createFsmnVoiceActivityDetector(
     wasSpeaking = false;
   };
 
-  return { dispose, detect, detectWorklet, push, resetStream };
+  return { dispose, detectVoice, detectVoiceWorklet, push, resetStream };
 }

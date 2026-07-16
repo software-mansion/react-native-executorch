@@ -8,7 +8,7 @@ export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
-export * from './hooks/useVoiceActivityDetection';
+export * from './hooks/useVoiceActivityDetector';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
