@@ -127,7 +127,7 @@ export async function createSdxsTextToImage(
     model.dispose();
   };
 
-  const generateWorklet = (prompt: string, seed: number = Date.now()): ImageBuffer => {
+  const generateWorklet = (prompt: string, seed?: number): ImageBuffer => {
     'worklet';
 
     const ids = tokenizer.encode(prompt);

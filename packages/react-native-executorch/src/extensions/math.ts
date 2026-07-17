@@ -94,7 +94,8 @@ export function mulberry32(seed: number): () => number {
  * @param options Distribution parameters.
  * @param options.mean The mean of the distribution. Defaults to 0.
  * @param options.std The standard deviation of the distribution. Defaults to 1.
- * @param options.seed The seed for the underlying generator. Defaults to 0.
+ * @param options.seed The seed for the underlying generator. Defaults to a
+ * time-based value, so omitting it produces different values each call.
  * @returns A `Float32Array` of `size` normally distributed values.
  */
 export function randomNormal(
@@ -104,7 +105,7 @@ export function randomNormal(
   'worklet';
   const mean = options?.mean ?? 0;
   const std = options?.std ?? 1;
-  const uniform = mulberry32(options?.seed ?? 0);
+  const uniform = mulberry32(options?.seed ?? Date.now());
   const out = new Float32Array(size);
   for (let i = 0; i < size; i += 2) {
     // Guard against log(0) when the generator returns exactly 0.

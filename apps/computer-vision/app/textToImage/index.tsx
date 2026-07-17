@@ -55,9 +55,8 @@ function TextToImageContent() {
     if (!sync) setIsProcessing(true);
     setError(null);
     try {
-      const seed = Date.now() % 0x80000000;
       const start = Date.now();
-      const output = sync ? generateWorklet(prompt, seed) : await generate(prompt, seed);
+      const output = sync ? generateWorklet(prompt) : await generate(prompt);
       setLatency(Date.now() - start);
 
       const outData = Skia.Data.fromBytes(output.data);

@@ -296,6 +296,5 @@ Cumprod
 DEIS
 deis
 Coeff
-coeff
 Multistep
 multistep
