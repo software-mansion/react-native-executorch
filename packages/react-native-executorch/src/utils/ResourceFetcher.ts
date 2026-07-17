@@ -138,8 +138,10 @@ export class ResourceFetcher {
      * @remarks
      * **REQUIRED**: Used internally for reading configuration files (e.g., tokenizer configs).
      */
+    // Reference the class by name: `this` inside a static-field arrow gets
+    // rebound to module scope by Babel under RN's hermes transform profiles.
     readAsString: async (path: string) => {
-      return this.getAdapter().readAsString(path);
+      return ResourceFetcher.getAdapter().readAsString(path);
     },
   };
 }
