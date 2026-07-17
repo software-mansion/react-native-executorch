@@ -58,7 +58,7 @@ jobs:
             -scheme llm \
             -sdk iphonesimulator \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             build \
             CODE_SIGNING_ALLOWED=NO \
             -jobs $(sysctl -n hw.ncpu) \
