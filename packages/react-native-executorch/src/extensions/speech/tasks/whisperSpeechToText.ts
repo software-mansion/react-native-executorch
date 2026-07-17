@@ -10,6 +10,7 @@ import { argmax } from '../../../extensions/math';
 import { loadTokenizer } from '../../nlp/tokenizer';
 import {
   createFsmnVoiceActivityDetector,
+  type FsmnVadModel,
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
 
@@ -80,7 +81,7 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly supportedLanguages: readonly L[];
-  readonly fsmnVoiceActivityDetectorPath: string;
+  readonly fsmnVadModel: FsmnVadModel;
 };
 
 /**
@@ -152,15 +153,10 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    */
   streamInsert: (audioChunk: Float32Array) => void;
 }> {
-  const {
-    modelPath,
-    tokenizerPath,
-    supportedLanguages,
-    fsmnVoiceActivityDetectorPath: fsmnVadPath,
-  } = config;
+  const { modelPath, tokenizerPath, supportedLanguages, fsmnVadModel } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
-  const voiceDetector = await createFsmnVoiceActivityDetector({ modelPath: fsmnVadPath }, runtime);
+  const voiceDetector = await createFsmnVoiceActivityDetector(fsmnVadModel, runtime);
 
   const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
   const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
@@ -319,7 +315,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
         const newSamples = audioBuffer.slice(processedLength);
         processedLength = audioBuffer.length;
 
-        const event = voiceDetector.push(newSamples, options.vadOptions);
+        const event = voiceDetector.detectVoiceOnStream(newSamples, options.vadOptions);
         switch (event) {
           case 'speechStart':
             isSpeaking = true;
