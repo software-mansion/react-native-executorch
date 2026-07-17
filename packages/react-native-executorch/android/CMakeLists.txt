@@ -26,6 +26,7 @@ find_package(ReactAndroid REQUIRED CONFIG)
 file(GLOB CORE_SOURCES   ${CPP_DIR}/core/*.cpp)
 file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
+file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
 
 set(RNE_SOURCES
@@ -33,6 +34,7 @@ set(RNE_SOURCES
     ${CORE_SOURCES}
     ${MATH_SOURCES}
     ${NLP_SOURCES}
+    ${SPEECH_SOURCES}
     cpp-adapter.cpp
 )
 
