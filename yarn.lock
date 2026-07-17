@@ -6799,6 +6799,7 @@ __metadata:
     expo: "npm:~56.0.9"
     expo-build-properties: "npm:~56.0.17"
     expo-constants: "npm:~56.0.17"
+    expo-device: "npm:~56.0.4"
     expo-image-manipulator: "npm:~56.0.18"
     expo-image-picker: "npm:~56.0.18"
     expo-linking: "npm:~56.0.13"
@@ -8117,6 +8118,17 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 10/cb5e61a1ddfc0f5beda9d08e77bfe12d3af2b511708bebadfab1b16738ad84c4eaa531cadf33a4ddf89a1077e8e3db598f1712743eb0440f11c8ce4f76dc3bb2
+  languageName: node
+  linkType: hard
+
+"expo-device@npm:~56.0.4":
+  version: 56.0.4
+  resolution: "expo-device@npm:56.0.4"
+  dependencies:
+    ua-parser-js: "npm:^0.7.33"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/a044854cb2fd188055ba206ea4ff51d6a54474a7f9317acf775d3af35a03c17531ca0e917af49f6dbb546662e6fabbd19667b99936cf217e85e01c78ea33819c
   languageName: node
   linkType: hard
 
@@ -14697,6 +14709,15 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/5d416ad4f2ea564f515a3f919e901edbfa4b497cc17dd325c5726046c3eef7ed22d1f59c787267d478311f6f0a265ff790f8a6c7e9df3ea3471458f5ec81e8b7
+  languageName: node
+  linkType: hard
+
+"ua-parser-js@npm:^0.7.33":
+  version: 0.7.41
+  resolution: "ua-parser-js@npm:0.7.41"
+  bin:
+    ua-parser-js: script/cli.js
+  checksum: 10/e41306332d8ace098d51a644a3ba95522ddfc04243727a3c0419efcdf486c8f868c3af8e6a56f6aa86bdc26e6b893abb0b2bde0c9e1a1625a183dfdf839cac82
   languageName: node
   linkType: hard
 

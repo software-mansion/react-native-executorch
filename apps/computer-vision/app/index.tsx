@@ -23,6 +23,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('styleTransfer/')}>
           <Text style={styles.buttonText}>Style Transfer</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('textToImage/')}>
+          <Text style={styles.buttonText}>Text to Image</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('segmentation/')}>
           <Text style={styles.buttonText}>Semantic Segmentation</Text>
         </TouchableOpacity>

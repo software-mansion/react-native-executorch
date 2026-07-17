@@ -5,6 +5,7 @@ import type { SemanticSegmentationModel } from './extensions/cv/tasks/semanticSe
 import type { KeypointDetectorModel } from './extensions/cv/tasks/keypointDetection';
 import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegmentation';
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
+import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import {
@@ -606,6 +607,19 @@ const FSMN_VAD_XNNPACK_FP32: FsmnVadModel = {
 };
 
 // =============================================================================
+// Text to Image
+// =============================================================================
+const SDXS_512_DREAMSHAPER_TOKENIZER = `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/tokenizer.json`;
+const SDXS_512_DREAMSHAPER_XNNPACK_FP32: SdxsTextToImageModel = {
+  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/xnnpack/sdxs_512_dreamshaper_xnnpack_fp32.pte`,
+  tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
+};
+const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
+  modelPath: `${BASE_URL}-sdxs-512-dreamshaper/${NEXT_VERSION_TAG}/coreml/sdxs_512_dreamshaper_coreml_fp16.pte`,
+  tokenizerPath: SDXS_512_DREAMSHAPER_TOKENIZER,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -864,6 +878,13 @@ export const models = {
       ...CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8,
+    },
+  },
+  textToImage: {
+    SDXS_512_DREAMSHAPER: {
+      ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
+      XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
+      COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
     },
   },
 };
