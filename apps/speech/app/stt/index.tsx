@@ -5,6 +5,7 @@ import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
+import { ModelPicker } from '../../components/ModelPicker';
 import { theme } from '../../theme';
 
 const MODELS = [
@@ -107,26 +108,13 @@ export default function STTScreen() {
   return (
     <ScreenWrapper>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Model Selector */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Whisper Model</Text>
-          <View style={styles.pickerRow}>
-            {MODELS.map((item) => {
-              const isSelected = item.config === selectedModel.config;
-              return (
-                <TouchableOpacity
-                  key={item.name}
-                  style={[styles.chip, isSelected && styles.chipSelected]}
-                  onPress={() => setSelectedModel(item)}
-                  disabled={isModelBusy}
-                >
-                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <ModelPicker
+            label="Whisper Model"
+            options={MODELS.map((m) => ({ label: m.name, value: m, disabled: isModelBusy }))}
+            selectedValue={selectedModel}
+            onValueChange={setSelectedModel}
+          />
         </View>
 
         {runError && (
@@ -186,16 +174,6 @@ const styles = StyleSheet.create({
     color: theme.colors.strongPrimary,
     marginBottom: 12,
   },
-  pickerRow: { flexDirection: 'row', gap: 8 },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: theme.colors.border,
-  },
-  chipSelected: { backgroundColor: theme.colors.accent },
-  chipText: { color: theme.colors.textSecondary, fontSize: 13 },
-  chipTextSelected: { color: '#fff', fontWeight: 'bold' },
   errorContainer: {
     padding: 12,
     backgroundColor: '#ffdddd',
