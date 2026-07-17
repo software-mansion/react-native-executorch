@@ -151,7 +151,12 @@ namespace rnexecutorch::extensions::<domain>
 
 ### Step 3: TypeScript Bridge & Wrappers
 
-Under `src/extensions/<domain>.ts` or `src/extensions/<domain>/index.ts`:
+**Where the wrapper file goes — general vs. model-specific ops:**
+
+- **Domain-general ops** (reusable across every task in the domain, e.g. `image_ops`, `box_ops`) go in the domain's shared op files (`src/extensions/<domain>/ops.ts`), re-exported from `src/extensions/<domain>/index.ts`.
+- **Model- or task-specific ops** (only meaningful to one model/pipeline, e.g. FSMN-VAD framing) **must** go under `src/extensions/<domain>/utils/<name>.ts` — one file per model/task, named for it (e.g. `vadUtils.ts`, `supertonicUtils.ts`). Keep them out of the shared `ops.ts` so it stays a home for genuinely reusable ops, and group each model's helpers together under `utils/`. Re-export them from the domain `index.ts` too so power users can reach them.
+
+Then, in that wrapper file:
 
 - **Use the `rnexecutorchJsi` Symbol**: You must import and interact with native bindings using the `rnexecutorchJsi` symbol exported from [src/native/bridge.ts](../../../packages/react-native-executorch/src/native/bridge.ts). **Do not** reference the global `__rnexecutorch_jsi__` directly throughout your wrapper files.
 - Expose the TypeScript wrapper.
@@ -188,5 +193,6 @@ When adding a native extension, verify that:
 - [ ] Input and output tensors are locked using `tensor::tryLockShared` and `tensor::tryLockUnique` respectively.
 - [ ] No default parameter values are defined in the C++ header/source files.
 - [ ] The custom operation install function is registered in both the domain `install` function and core [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
+- [ ] The TypeScript wrapper lives in the right place: domain-general ops in the shared `ops.ts`, model-/task-specific ops under `src/extensions/<domain>/utils/<name>.ts`.
 - [ ] The TypeScript wrapper imports and uses `rnexecutorchJsi` instead of the global `__rnexecutorch_jsi__`.
 - [ ] The TypeScript wrapper is marked with the `"worklet";` directive and defines all default parameter values.

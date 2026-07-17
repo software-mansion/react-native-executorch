@@ -278,3 +278,8 @@ binarization
 bugprone
 NOLINTNEXTLINE
 nullopt
+
+hann
+preemphasis
+coeff
+Silero
