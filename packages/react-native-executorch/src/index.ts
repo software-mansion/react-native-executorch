@@ -9,6 +9,7 @@ export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
+export * from './hooks/useTextToImage';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -24,6 +25,7 @@ export * from './extensions/cv/tasks/instanceSegmentation';
 export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
+export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';

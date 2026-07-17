@@ -118,13 +118,37 @@ const meta = validateModelSchema(
 );
 ```
 
+### 4. Single-Model Pipeline (fully static export)
+
+When a pipeline targets exactly one model whose `.pte` is exported with fully static shapes (e.g. `sdxsTextToImage`), the shapes are constants of the export contract. Validate each method against those constants — do **not** invent symbols for dimensions that cannot vary, and do **not** thread the shapes through task options:
+
+```typescript
+const IMAGE_SIZE = 512;
+const LATENT_CHANNELS = 4;
+const LATENT_SIZE = IMAGE_SIZE / 8;
+
+validateModelSchema(
+  model,
+  'denoise',
+  [
+    SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
+    SymbolicTensor('int64', [1]),
+    SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
+  ],
+  [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])]
+);
+```
+
+A rigid `.pte` contract is an argument **for** validating, not against it: the stricter the contract, the cheaper and more precise the assertion. Validation is load-time only (it costs nothing per inference) and converts a stale, corrupt, or wrongly re-exported `.pte` into a readable TypeScript error instead of a native crash or silently garbage output. This matters most for pipelines shipping several separately-exported backend variants (XNNPACK / CoreML / MLX), where one variant can break while the others stay healthy.
+
 ---
 
 ## 🚫 Avoid / Anti-Patterns
 
 * **Do NOT write imperative size/type checks manually:** Avoid writing custom shape/type assertion blocks (e.g., `if (tensor.shape[0] !== 1)`). Always use the declarative `validateModelSchema` utility, which reports unified, readable mismatch errors.
-* **Do NOT use hardcoded integers for dynamic dimensions:** If a shape can vary (e.g., dynamic height, width, or batch sizes), use a string symbol (like `'H'`, `'W'`, `'N'`) to allow dynamic matching.
+* **Do NOT use hardcoded integers for dynamic dimensions:** If a shape can vary (e.g., dynamic height, width, or batch sizes), use a string symbol (like `'H'`, `'W'`, `'N'`) to allow dynamic matching. Conversely, a dimension that genuinely cannot vary *should* be a hardcoded integer — reserve symbols for real variability.
 * **Do NOT skip validation at startup:** Always validate the model schema *before* creating pre-allocated static tensors, preventing native memory crashes from mismatched layouts.
+* **Do NOT skip validation just because the pipeline supports a single model:** "The `.pte` must be very specific anyway" is a reason to assert the exact contract, not to trust it. See Recipe 4.
 
 ---
 
@@ -132,6 +156,7 @@ const meta = validateModelSchema(
 
 When specifying model schema validations, verify that:
 - [ ] Schema validation is performed immediately after model loading and before tensor initialization.
-- [ ] All dynamic dimensions (e.g., dynamic box counts, channels-last heights/widths) are defined as string symbols.
+- [ ] All dynamic dimensions (e.g., dynamic box counts, channels-last heights/widths) are defined as string symbols, and dimensions fixed by the export are plain integers.
+- [ ] Single-model pipelines with static exports still validate, asserting against the task file's shape constants rather than skipping validation or routing shapes through options.
 - [ ] Multiple shape variations are provided to `SymbolicTensor` if channels-first and channels-last layouts are both supported.
 - [ ] Input and output constraints map accurately to standard model specifications (e.g. dense logits, standard bounding boxes layouts).

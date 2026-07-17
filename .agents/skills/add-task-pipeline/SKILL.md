@@ -56,7 +56,20 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 5. **PTE Model Export & Optimizations**:
    - **Shift Heavy Ops to PyTorch**: Push complex tensor reshaping, data normalization, activations (e.g. `softmax`), or bounding box decoding into the PyTorch model itself so they execute on native backends (e.g., XNNPACK or CoreML).
    - **Balance Optimization with Generalization**: Keep contracts generic (e.g., normal dense logits, standard bounding box layouts like `xyxy`/`xywh`, standard floating-point arrays).
-   - Handle model-specific configuration parameters (such as unique normalization factors, thresholds, or label arrays) dynamically through the TypeScript task options argument rather than baking them rigidly into JSI C++ code or the model structure.
+   - Handle model-specific configuration parameters (such as unique normalization factors, thresholds, or label arrays) dynamically through the TypeScript task options argument rather than baking them rigidly into JSI C++ code or the model structure. This rule contrasts TypeScript options against values baked into C++ or the model; to choose between a TypeScript **option** and a TypeScript **constant**, see Principle 6.
+
+6. **Options vs. Constants (bucket by who varies the value)**:
+   - Every parameter belongs in exactly one of three places. Decide by asking *who varies this, and when*:
+
+     | The value...                                                                         | Lives as                                                       | Example                                                        |
+     | ------------------------------------------------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- |
+     | Varies across the shipped models/variants of the pipeline                             | A task **option**, set per-model in `models.ts`                 | Whisper `tiny`/`base`/`small` sizes; normalization factors; labels |
+     | Is fixed by the model architecture or the `.pte` export contract, identical for every shipped variant | A **`const`** in the task file, beside the code that reads it   | Static tensor shapes; export-pinned scheduler/decoder scalars   |
+     | Is a per-call choice made by the app developer                                        | An **argument** to the worklet executor                         | `threshold`, `seed`, `prompt`                                   |
+
+   - **A parameter with exactly one valid value is not an option — it is a constant.** For single-model pipelines (e.g. `sdxsTextToImage`), exposing export-pinned scalars or static shapes as options advertises knobs that either fail schema validation or silently corrupt output when touched. Prefer a `const` with a comment naming *why* the value is fixed.
+   - **Corollary (a quick smell test):** if every variant in `models.ts` passes an *identical* options object, those fields are not configuration — move them into the task file as constants and shrink the model type to the paths that actually differ.
+   - Do not keep a loop, parameter, or code path solely because it *looks* more general. If the surrounding math is only valid for one value (e.g. coefficients pinned to a single distilled timestep), the generality is fake and the parameter is a correctness trap.
 
 ## 🚫 Avoid / Anti-Patterns
 
@@ -65,6 +78,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 - **Do NOT leak raw Tensors to consumers:** The returned methods must never return raw `Tensor` objects to the API consumer. Always convert output data to standard JavaScript values/objects before returning.
 - **Do NOT cross thread boundaries unnecessarily:** Minimize passing heavy objects between JS and the Worklet thread to avoid serialization overhead.
 - **Do NOT treat the `.pte` model as an unchangeable black box:** Reshape the model's inputs and outputs during the PyTorch export phase to make the mobile client pipeline as lightweight as possible. Do not make input/output contracts so specific that they break extensibility.
+- **Do NOT expose export-pinned values as options:** If a value is fixed by the `.pte` (static shapes, scalars pinned during export by matching a reference implementation), make it a `const` in the task file. Surfacing it in `models.ts` duplicates it across every variant entry and implies a knob that only ever has one valid value. See Principle 6.
 
 ---
 
@@ -215,5 +229,7 @@ When adding a task pipeline or React hook, verify that:
 - [ ] The constructor contains exactly two inner functions (the `dispose` function and the worklet executor).
 - [ ] Auxiliary helpers are defined outside the constructor and marked with the `'worklet';` directive if run on the worklet runtime.
 - [ ] Raw `Tensor` objects are never returned to the consumer.
-- [ ] Data configurations (e.g. thresholds, labels) are configurable dynamically via the TypeScript task options.
+- [ ] Data configurations that genuinely vary across models (e.g. thresholds, labels) are configurable dynamically via the TypeScript task options.
+- [ ] Every parameter is bucketed per Principle 6: varies across variants → option; fixed by the export → `const` in the task file; per-call choice → executor argument.
+- [ ] No exposed option has exactly one valid value, and no two `models.ts` variants pass an identical options object.
 - [ ] The React Hook utilizes `useModel` and properly returns progress, ready state, errors, and task execution bindings.
