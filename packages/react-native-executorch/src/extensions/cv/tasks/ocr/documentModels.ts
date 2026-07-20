@@ -51,14 +51,14 @@ export type DocumentModelsConfig = {
 
 type ImagePreprocessor = ReturnType<typeof createImagePreprocessor>;
 
-// Index of the max value in `arr[offset, offset+len)`. Shared by orientation + table.
-function argmaxRange(arr: ArrayLike<number>, offset: number, len: number): number {
+// Index of the max value in `arr`. Shared by orientation + table.
+function argmax(arr: ArrayLike<number>): number {
   'worklet';
   let index = 0;
-  let best = arr[offset]!;
-  for (let i = 1; i < len; i++) {
-    if (arr[offset + i]! > best) {
-      best = arr[offset + i]!;
+  let best = arr[0]!;
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i]! > best) {
+      best = arr[i]!;
       index = i;
     }
   }
@@ -79,7 +79,7 @@ function detectPageOrientation(
   const tInput = preprocessor.processTensor(page, format);
   model.execute('orientation', [tInput], [tOri]);
   tOri.getData(oriBuf);
-  const cls = argmaxRange(oriBuf, 0, oriBuf.length);
+  const cls = argmax(oriBuf);
   const best = oriBuf[cls]!;
   let sumExp = 0;
   for (let i = 0; i < oriBuf.length; i++) {
@@ -183,7 +183,7 @@ function recognizeTableStructure(
   for (let step = 0; step < maxSteps; step++) {
     model.execute('table_decode_step', [tFeatures, tHidden, tOnehot], [tProbs, tNewHidden]);
     tProbs.getData(state.probsBuf);
-    const tok = argmaxRange(state.probsBuf, 0, state.probsBuf.length);
+    const tok = argmax(state.probsBuf);
     if (tok === eosTokenId) {
       break;
     }

@@ -50,8 +50,9 @@ const SNAP_DOWN_TOLERANCE = 0.1;
 // shrinks content, only the range max can.
 function snapUpDim(size: number, range: DimRange): number {
   'worklet';
-  const steps = Math.ceil(Math.max(0, size - range.min) / Math.max(1, range.step));
-  return Math.min(range.min + steps * Math.max(1, range.step), range.max);
+  const step = Math.max(1, range.step);
+  const steps = Math.ceil(Math.max(0, size - range.min) / step);
+  return Math.min(range.min + steps * step, range.max);
 }
 
 // Largest legal detector input size (NCHW, dim 2 = H, dim 3 = W) that avoids
