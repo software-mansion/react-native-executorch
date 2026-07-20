@@ -45,65 +45,72 @@ export interface PiiEntity {
   readonly endToken: number;
 }
 
+// Label role classes. Anything that isn't a well-formed `X-entity` tag (and the
+// literal "O") is treated as background, matching the BIOES grammar below.
+const CLASS_O = 0;
+const CLASS_B = 1;
+const CLASS_I = 2;
+const CLASS_E = 3;
+const CLASS_S = 4;
+
 /**
- * Pre-computed BIOES grammar tables consumed by {@link viterbiDecode}.
+ * Pre-computed BIOES grammar consumed by {@link viterbiDecode}.
  *
- * `transitionScore[i * numLabels + j]` holds the bias for a valid `i -> j`
- * transition, or `-inf` for an invalid one (so the inner loop can skip it with
- * a single comparison). `validStart[j]` is `true` iff label `j` is a legal
- * first-token label (`O`, `B-x`, or `S-x`).
+ * Rather than an `N x N` transition matrix, the grammar is stored as the small
+ * set of groups the transition rules actually depend on. Under BIOES every
+ * target's best predecessor comes from one of three group maxima — the best
+ * background state, the best span-closing (`E-`/`S-`) state, or, per entity,
+ * the best of that entity's `B-`/`I-` states — which is what lets the decode
+ * step run in `O(numLabels + numEntities)` instead of `O(numLabels^2)`.
  * @category Types
  */
 export interface Grammar {
-  readonly transitionScore: Float32Array;
-  readonly validStart: boolean[];
   readonly numLabels: number;
+  readonly numEntities: number;
+  /** Role class per label (`CLASS_O`/`B`/`I`/`E`/`S`). */
+  readonly labelClass: Int8Array;
+  /** Entity group id per label; `-1` for background labels. */
+  readonly entityOf: Int32Array;
+  /** Indices of all background (`O`-class) labels. */
+  readonly oLabels: Int32Array;
+  /** Indices of all span-closing (`E-`/`S-`) labels. */
+  readonly esLabels: Int32Array;
+  /** Per entity, the index of its `B-` label, or `-1`. */
+  readonly bOf: Int32Array;
+  /** Per entity, the index of its `I-` label, or `-1`. */
+  readonly iOf: Int32Array;
+  /** `true` iff the label is a legal first-token label (`O`, `B-x`, `S-x`). */
+  readonly validStart: boolean[];
+  readonly biases: Required<ViterbiBiases>;
 }
 
-interface LabelRole {
-  readonly prefix: string; // 'O' | 'B' | 'I' | 'E' | 'S'
-  readonly entity: string;
-}
-
-function classifyLabel(name: string): LabelRole {
-  if (name === 'O' || name.length === 0) return { prefix: 'O', entity: '' };
-  if (name.length < 2 || name[1] !== '-') return { prefix: 'O', entity: '' };
-  return { prefix: name[0]!, entity: name.slice(2) };
-}
-
-// BIOES grammar:
-//   O / E-X / S-X -> O | B-* | S-*
-//   B-X / I-X     -> I-X | E-X  (same entity type)
-function isValidTransition(prev: LabelRole, next: LabelRole): boolean {
-  if (prev.prefix === 'O' || prev.prefix === 'E' || prev.prefix === 'S') {
-    return next.prefix === 'O' || next.prefix === 'B' || next.prefix === 'S';
+function classOf(name: string): number {
+  if (name.length < 2 || name[1] !== '-') return CLASS_O;
+  switch (name[0]) {
+    case 'B':
+      return CLASS_B;
+    case 'I':
+      return CLASS_I;
+    case 'E':
+      return CLASS_E;
+    case 'S':
+      return CLASS_S;
+    default:
+      return CLASS_O;
   }
-  if (prev.prefix === 'B' || prev.prefix === 'I') {
-    return (next.prefix === 'I' || next.prefix === 'E') && next.entity === prev.entity;
-  }
-  return false;
-}
-
-function biasFor(prev: LabelRole, next: LabelRole, b: Required<ViterbiBiases>): number {
-  if (prev.prefix === 'O' && next.prefix === 'O') return b.backgroundStay;
-  if (prev.prefix === 'O' && (next.prefix === 'B' || next.prefix === 'S'))
-    return b.backgroundToStart;
-  if ((prev.prefix === 'E' || prev.prefix === 'S') && next.prefix === 'O') return b.endToBackground;
-  if ((prev.prefix === 'E' || prev.prefix === 'S') && (next.prefix === 'B' || next.prefix === 'S'))
-    return b.endToStart;
-  if ((prev.prefix === 'B' || prev.prefix === 'I') && next.prefix === 'I')
-    return b.insideToContinue;
-  if ((prev.prefix === 'B' || prev.prefix === 'I') && next.prefix === 'E') return b.insideToEnd;
-  return 0;
 }
 
 /**
- * Builds the fused BIOES transition/validity tables for a label space. Called
- * once at pipeline construction (not on the worklet thread), so the per-token
- * decode loop only reads the pre-computed {@link Grammar}.
+ * Builds the grouped BIOES grammar for a label space. Called once at pipeline
+ * construction (not on the worklet thread), so the per-token decode loop only
+ * reads the pre-computed {@link Grammar}.
+ *
+ * The encoded grammar is:
+ * - `O` / `E-x` / `S-x` -> `O` | `B-y` | `S-y`
+ * - `B-x` / `I-x` -> `I-x` | `E-x` (same entity)
  * @param labelNames BIOES label list; index 0 must be `'O'`.
  * @param biases Optional transition biases; missing fields default to `0`.
- * @returns The pre-computed grammar tables.
+ * @returns The pre-computed grammar.
  */
 export function buildGrammar(labelNames: readonly string[], biases?: ViterbiBiases): Grammar {
   const resolved: Required<ViterbiBiases> = {
@@ -116,22 +123,55 @@ export function buildGrammar(labelNames: readonly string[], biases?: ViterbiBias
   };
 
   const n = labelNames.length;
-  const roles = labelNames.map(classifyLabel);
-
-  // transitionScore[i*n + j]: bias for valid transitions, -inf for invalid.
-  const transitionScore = new Float32Array(n * n).fill(NEG_INF);
+  const labelClass = new Int8Array(n);
+  const entityOf = new Int32Array(n).fill(-1);
   const validStart: boolean[] = new Array(n).fill(false);
+  const oLabels: number[] = [];
+  const esLabels: number[] = [];
+  const entityIds = new Map<string, number>();
+
   for (let i = 0; i < n; i++) {
-    const prev = roles[i]!;
-    validStart[i] = prev.prefix === 'O' || prev.prefix === 'B' || prev.prefix === 'S';
-    for (let j = 0; j < n; j++) {
-      if (isValidTransition(prev, roles[j]!)) {
-        transitionScore[i * n + j] = biasFor(prev, roles[j]!, resolved);
-      }
+    const name = labelNames[i]!;
+    const cls = classOf(name);
+    labelClass[i] = cls;
+    validStart[i] = cls === CLASS_O || cls === CLASS_B || cls === CLASS_S;
+
+    if (cls === CLASS_O) {
+      oLabels.push(i);
+      continue;
     }
+    const entity = name.slice(2);
+    let id = entityIds.get(entity);
+    if (id === undefined) {
+      id = entityIds.size;
+      entityIds.set(entity, id);
+    }
+    entityOf[i] = id;
+    if (cls === CLASS_E || cls === CLASS_S) esLabels.push(i);
   }
 
-  return { transitionScore, validStart, numLabels: n };
+  const numEntities = entityIds.size;
+  const bOf = new Int32Array(numEntities).fill(-1);
+  const iOf = new Int32Array(numEntities).fill(-1);
+  for (let i = 0; i < n; i++) {
+    const e = entityOf[i]!;
+    if (e < 0) continue;
+    if (labelClass[i] === CLASS_B) bOf[e] = i;
+    else if (labelClass[i] === CLASS_I) iOf[e] = i;
+  }
+
+  return {
+    numLabels: n,
+    numEntities,
+    labelClass,
+    entityOf,
+    oLabels: Int32Array.from(oLabels),
+    esLabels: Int32Array.from(esLabels),
+    bOf,
+    iOf,
+    validStart,
+    biases: resolved,
+  };
 }
 
 /**
@@ -152,12 +192,15 @@ export function viterbiDecode(
   const n = grammar.numLabels;
   if (validLen <= 0) return new Int32Array(0);
 
-  const trans = grammar.transitionScore;
+  const { labelClass, entityOf, oLabels, esLabels, bOf, iOf, numEntities, biases: b } = grammar;
   let dp = new Float32Array(n);
   let dpNext = new Float32Array(n);
   // bp[t*n + j]: best predecessor of label j at step t. Row 0 is unused
   // (traceback starts at t = 1).
   const bp = new Int32Array(validLen * n);
+  // Per-entity best of {B-x, I-x}, the only predecessors an I-x/E-x can have.
+  const maxInside = new Float32Array(numEntities);
+  const argInside = new Int32Array(numEntities);
 
   for (let j = 0; j < n; j++) {
     dp[j] = grammar.validStart[j] ? logits[j]! : NEG_INF;
@@ -165,21 +208,93 @@ export function viterbiDecode(
 
   for (let t = 1; t < validLen; t++) {
     const rowOffset = t * n;
+
+    // Every background/span-opening target shares the same two candidate
+    // predecessors, so resolve them once per token rather than per label.
+    let maxO = NEG_INF;
+    let argO = 0;
+    for (let k = 0; k < oLabels.length; k++) {
+      const i = oLabels[k]!;
+      if (dp[i]! > maxO) {
+        maxO = dp[i]!;
+        argO = i;
+      }
+    }
+    let maxES = NEG_INF;
+    let argES = 0;
+    for (let k = 0; k < esLabels.length; k++) {
+      const i = esLabels[k]!;
+      if (dp[i]! > maxES) {
+        maxES = dp[i]!;
+        argES = i;
+      }
+    }
+
+    let bestO = NEG_INF;
+    let argBestO = 0;
+    let bestStart = NEG_INF;
+    let argBestStart = 0;
+    if (maxO > NEG_INF) {
+      bestO = maxO + b.backgroundStay;
+      argBestO = argO;
+      bestStart = maxO + b.backgroundToStart;
+      argBestStart = argO;
+    }
+    if (maxES > NEG_INF) {
+      const toO = maxES + b.endToBackground;
+      if (toO > bestO) {
+        bestO = toO;
+        argBestO = argES;
+      }
+      const toStart = maxES + b.endToStart;
+      if (toStart > bestStart) {
+        bestStart = toStart;
+        argBestStart = argES;
+      }
+    }
+
+    for (let e = 0; e < numEntities; e++) {
+      let m = NEG_INF;
+      let arg = 0;
+      const bi = bOf[e]!;
+      if (bi >= 0 && dp[bi]! > m) {
+        m = dp[bi]!;
+        arg = bi;
+      }
+      const ii = iOf[e]!;
+      if (ii >= 0 && dp[ii]! > m) {
+        m = dp[ii]!;
+        arg = ii;
+      }
+      maxInside[e] = m;
+      argInside[e] = arg;
+    }
+
     for (let j = 0; j < n; j++) {
-      let best = NEG_INF;
-      let bestPrev = 0;
-      for (let i = 0; i < n; i++) {
-        const tr = trans[i * n + j]!;
-        if (tr <= NEG_INF / 2) continue;
-        const candidate = dp[i]! + tr;
-        if (candidate > best) {
-          best = candidate;
-          bestPrev = i;
+      const cls = labelClass[j]!;
+      let best: number;
+      let bestPrev: number;
+      if (cls === CLASS_O) {
+        best = bestO;
+        bestPrev = argBestO;
+      } else if (cls === CLASS_B || cls === CLASS_S) {
+        best = bestStart;
+        bestPrev = argBestStart;
+      } else {
+        const e = entityOf[j]!;
+        const m = maxInside[e]!;
+        if (m > NEG_INF) {
+          best = m + (cls === CLASS_I ? b.insideToContinue : b.insideToEnd);
+          bestPrev = argInside[e]!;
+        } else {
+          best = NEG_INF;
+          bestPrev = 0;
         }
       }
-      dpNext[j] = best === NEG_INF ? NEG_INF : best + logits[rowOffset + j]!;
+      dpNext[j] = best <= NEG_INF ? NEG_INF : best + logits[rowOffset + j]!;
       bp[rowOffset + j] = bestPrev;
     }
+
     const swap = dp;
     dp = dpNext;
     dpNext = swap;
