@@ -23,7 +23,7 @@ export const WHISPER_SAMPLE_RATE_HZ = 16000;
 const MAX_SEQ_LEN = 128; // maximum decoder output tokens per chunk
 const MIN_CHUNK_SIZE = 201; // shortest audio slice (samples) the model was exported for
 const CHUNK_LENGTH_SECONDS = 29; // Whisper's fixed context window length
-const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ; // overlap between consecutive chunks (1s)
+const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ; // minimum new samples before processing and retain-window size during silence (1s)
 const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ; // samples per full chunk
 
 /**
