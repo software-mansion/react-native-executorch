@@ -214,16 +214,15 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   ): string => {
     'worklet';
 
-    if (!isEnglishOnly && !supportedLanguages.includes(options.language as L)) {
-      throw new Error(
-        `Whisper: language "${options.language}" is not supported by this model. ` +
-          `Supported languages: ${supportedLanguages.join(', ')}`
-      );
-    }
-
     const promptTokenStrings = isEnglishOnly
       ? ['<|startoftranscript|>', '<|notimestamps|>']
       : ['<|startoftranscript|>', `<|${options.language}|>`, '<|transcribe|>', '<|notimestamps|>'];
+
+    if (!isEnglishOnly && tokenizer.tokenToId(`<|${options.language}|>`) === undefined) {
+      throw new Error(
+        `Language "${options.language}" is not recognized by this model's tokenizer.`
+      );
+    }
     const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token)!);
     const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
 
