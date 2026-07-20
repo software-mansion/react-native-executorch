@@ -73,7 +73,7 @@ const MODELS = [
   },
 ];
 
-export default function STTAudioScreen() {
+function STTAudioContent() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]!);
   const [status, setStatus] = useState<string>('Idle');
   const [url, setUrl] = useState('https://models.silero.ai/vad_models/en.wav');
@@ -116,6 +116,7 @@ export default function STTAudioScreen() {
       setAudioText(text);
       setStatus('Done');
     } catch (err) {
+      console.error('STT Audio transcription error:', err);
       const errMsg = err instanceof Error ? err.message : String(err);
       setRunError(errMsg);
       setStatus('Error');
@@ -134,69 +135,72 @@ export default function STTAudioScreen() {
   const isModelBusy = status.includes('...');
 
   return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.card}>
+        <ModelPicker
+          label="Whisper Model"
+          options={MODELS.map((m) => ({
+            label: m.name,
+            value: m,
+            disabled: isModelBusy || !!m.disabled,
+          }))}
+          selectedValue={selectedModel}
+          onValueChange={setSelectedModel}
+        />
+        <ModelStatus
+          isReady={isSttReady}
+          downloadProgress={downloadProgress}
+          error={modelError ? modelError.message : null}
+          modelTypeLabel="Whisper model"
+        />
+      </View>
+
+      {runError && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{runError}</Text>
+        </View>
+      )}
+
+      {/* Audio Link Panel */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Transcribe Audio File</Text>
+        <TextInput
+          style={styles.input}
+          value={url}
+          onChangeText={setUrl}
+          placeholder="Audio URL (e.g. .wav)"
+          placeholderTextColor={theme.colors.textMuted}
+          editable={!isTranscribing}
+        />
+        <View style={styles.buttonContainer}>
+          {!isTranscribing ? (
+            <TouchableOpacity
+              style={[styles.button, (!isSttReady || !url) && styles.buttonDisabled]}
+              onPress={startTranscribing}
+              disabled={!isSttReady || !url}
+            >
+              <Text style={styles.buttonText}>Transcribe Audio File</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={stopTranscribing}>
+              <Text style={styles.buttonText}>Stop Transcription</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <Text style={styles.resultHeader}>Transcription Output:</Text>
+        <View style={styles.textOutputContainer}>
+          <Text style={styles.committedText}>{audioText}</Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+export default function STTAudioScreen() {
+  return (
     <ScreenWrapper>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <ModelPicker
-            label="Whisper Model"
-            options={MODELS.map((m) => ({
-              label: m.name,
-              value: m,
-              disabled: isModelBusy || !!m.disabled,
-            }))}
-            selectedValue={selectedModel}
-            onValueChange={setSelectedModel}
-          />
-          <ModelStatus
-            isReady={isSttReady}
-            downloadProgress={downloadProgress}
-            error={modelError ? modelError.message : null}
-            modelTypeLabel="Whisper model"
-          />
-        </View>
-
-        {runError && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{runError}</Text>
-          </View>
-        )}
-
-        {/* Audio Link Panel */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Transcribe Audio File</Text>
-          <TextInput
-            style={styles.input}
-            value={url}
-            onChangeText={setUrl}
-            placeholder="Audio URL (e.g. .wav)"
-            placeholderTextColor={theme.colors.textMuted}
-            editable={!isTranscribing}
-          />
-          <View style={styles.buttonContainer}>
-            {!isTranscribing ? (
-              <TouchableOpacity
-                style={[styles.button, (!isSttReady || !url) && styles.buttonDisabled]}
-                onPress={startTranscribing}
-                disabled={!isSttReady || !url}
-              >
-                <Text style={styles.buttonText}>Transcribe Audio File</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.button, styles.buttonStop]}
-                onPress={stopTranscribing}
-              >
-                <Text style={styles.buttonText}>Stop Transcription</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <Text style={styles.resultHeader}>Transcription Output:</Text>
-          <View style={styles.textOutputContainer}>
-            <Text style={styles.committedText}>{audioText}</Text>
-          </View>
-        </View>
-      </ScrollView>
+      <STTAudioContent />
     </ScreenWrapper>
   );
 }

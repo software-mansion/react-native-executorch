@@ -68,7 +68,7 @@ const MODELS = [
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
-export default function STTScreen() {
+function STTContent() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]!);
   const [status, setStatus] = useState<string>('Idle');
   const [committedText, setCommittedText] = useState('');
@@ -155,63 +155,69 @@ export default function STTScreen() {
   const isMicDisabled = isSimulator || !isSttReady;
 
   return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.card}>
+        <ModelPicker
+          label="Whisper Model"
+          options={MODELS.map((m) => ({
+            label: m.name,
+            value: m,
+            disabled: isModelBusy || !!m.disabled,
+          }))}
+          selectedValue={selectedModel}
+          onValueChange={setSelectedModel}
+        />
+        <ModelStatus
+          isReady={isSttReady}
+          downloadProgress={downloadProgress}
+          error={modelError ? modelError.message : null}
+          modelTypeLabel="Whisper model"
+        />
+      </View>
+
+      {runError && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{runError}</Text>
+        </View>
+      )}
+
+      {/* Live Mic Panel */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Live Microphone Gated STT</Text>
+        <View style={styles.buttonContainer}>
+          {!isRecording ? (
+            <TouchableOpacity
+              style={[styles.button, isMicDisabled && styles.buttonDisabled]}
+              onPress={startRecording}
+              disabled={isMicDisabled}
+            >
+              <Text style={styles.buttonText}>Start Streaming</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={stopRecording}>
+              <Text style={styles.buttonText}>Stop Streaming</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <Text style={styles.resultHeader}>Transcription Output:</Text>
+        <View style={styles.textOutputContainer}>
+          <Text style={styles.committedText}>
+            {committedText}
+            {nonCommittedText ? (
+              <Text style={styles.nonCommittedText}> {nonCommittedText}</Text>
+            ) : null}
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
+export default function STTScreen() {
+  return (
     <ScreenWrapper>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <ModelPicker
-            label="Whisper Model"
-            options={MODELS.map((m) => ({
-              label: m.name,
-              value: m,
-              disabled: isModelBusy || !!m.disabled,
-            }))}
-            selectedValue={selectedModel}
-            onValueChange={setSelectedModel}
-          />
-          <ModelStatus
-            isReady={isSttReady}
-            downloadProgress={downloadProgress}
-            error={modelError ? modelError.message : null}
-            modelTypeLabel="Whisper model"
-          />
-        </View>
-
-        {runError && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{runError}</Text>
-          </View>
-        )}
-
-        {/* Live Mic Panel */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Live Microphone Gated STT</Text>
-          <View style={styles.buttonContainer}>
-            {!isRecording ? (
-              <TouchableOpacity
-                style={[styles.button, isMicDisabled && styles.buttonDisabled]}
-                onPress={startRecording}
-                disabled={isMicDisabled}
-              >
-                <Text style={styles.buttonText}>Start Streaming</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={stopRecording}>
-                <Text style={styles.buttonText}>Stop Streaming</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <Text style={styles.resultHeader}>Transcription Output:</Text>
-          <View style={styles.textOutputContainer}>
-            <Text style={styles.committedText}>
-              {committedText}
-              {nonCommittedText ? (
-                <Text style={styles.nonCommittedText}> {nonCommittedText}</Text>
-              ) : null}
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
+      <STTContent />
     </ScreenWrapper>
   );
 }
