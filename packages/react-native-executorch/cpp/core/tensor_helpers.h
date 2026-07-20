@@ -29,7 +29,9 @@ struct RangeDim {
     std::optional<int32_t> step;
 };
 
-using SymbolicShape = std::vector<std::variant<int32_t, std::string, RangeDim>>;
+/** One axis of a {@link SymbolicShape}: a fixed size, a named symbol, or a {@link RangeDim}. */
+using SymbolicDim = std::variant<int32_t, std::string, RangeDim>;
+using SymbolicShape = std::vector<SymbolicDim>;
 
 /**
  * A set of complete legal input shapes for a tensor input, used by
@@ -144,7 +146,7 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
 inline std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype,
-       std::initializer_list<std::variant<int32_t, std::string, RangeDim>> expectedShape) {
+       std::initializer_list<SymbolicDim> expectedShape) {
     return fromJs(rt, name, value, expectedDtype, std::optional<SymbolicShape>(expectedShape));
 }
 } // namespace rnexecutorch::core::tensor

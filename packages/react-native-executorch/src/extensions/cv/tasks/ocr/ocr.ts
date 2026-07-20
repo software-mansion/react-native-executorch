@@ -6,8 +6,8 @@ import { wrapAsync } from '../../../../core/runtime';
 import { IMAGENET_NORM } from '../../../../constants';
 
 import type { ImageBuffer } from '../../image';
-import { rotate, cropImageBuffer, FORMAT_CHANNELS, type NormalizeOptions } from '../../ops/image';
-import { boundsOfPoints } from '../../ops/quad';
+import { rotate, crop, FORMAT_CHANNELS, type NormalizeOptions } from '../../ops/image';
+import { boundsOfPoints, quadFromBounds } from '../../ops/quad';
 import type { BoundingBox } from '../../ops/boxes';
 import type { TextBoxExtractor } from './detectors';
 import {
@@ -25,8 +25,6 @@ import {
 } from '../objectDetection';
 import { createDocumentModels, fillTableCells, type DocumentModelsConfig } from './documentModels';
 
-export type { Quad } from '../../ops/quad';
-export type { NormalizeOptions } from '../../ops/image';
 export type { OcrDetection } from './engine';
 
 /**
@@ -40,7 +38,11 @@ export type OcrModelOptions = {
   readonly charset: string | readonly string[];
   /** Maps raw `detect` outputs to quads: {@link craftExtractBoxes} / {@link dbnetExtractBoxes}. */
   readonly extractBoxes: TextBoxExtractor;
-  /** Drop detections below this recognition confidence. Default 0. */
+  /**
+   * Drop detections below this recognition confidence. Default 0. Confidence is
+   * the mean per-timestep max probability, so this requires the recognizer to
+   * export a softmaxed head (values in `[0,1]`); on raw logits it is meaningless.
+   */
   readonly minConfidence?: number;
   /** Detector norm on uint8 RGB. Default ImageNet; must match the model's training norm. */
   readonly detectorNorm?: NormalizeOptions;
@@ -85,7 +87,11 @@ export type OcrModel<L = never> = {
  * @category Types
  */
 export type RunOcrOptions = {
-  /** Also read upright glyph stacks (vertical text) — extra compute. */
+  /**
+   * Also read upright glyph stacks (vertical text) — extra compute. Fully
+   * supported with CRAFT; partial with DBNet (glyph columns are still read, but
+   * the stacked-box char-level re-detection split is skipped).
+   */
   readonly vertical?: boolean;
   /** Height/width ratio above which a box is a vertical stack. Default 1.5. */
   readonly tallCropRatio?: number;
@@ -186,7 +192,7 @@ export async function createOcr<L = never>(
   // Contract validation can throw; a bad config must not leak the model.
   let engine!: OcrEngine;
   try {
-    const contract = resolveOcrContract(model, ocrOpts.charset);
+    const contract = resolveOcrContract(model, ocrOpts.charset, ocrOpts.extractBoxes);
     engine = {
       model,
       extractBoxes: ocrOpts.extractBoxes,
@@ -320,10 +326,16 @@ export async function createOcr<L = never>(
         return { detections, blocks, regions: [], image: img };
       }
 
-      // The layout path reads from `img` crops only; the corrected page tensor
-      // is no longer needed, so free it before the per-region OCR loop.
-      correctedPage?.dispose();
-      correctedPage = null;
+      // The layout path crops each region natively out of a live page tensor,
+      // straight into the recognizer — no JS crop + re-upload per region. Reuse
+      // the corrected page tensor if we made one; otherwise upload `img` once.
+      // Ownership stays with `correctedPage` so the outer `finally` frees it.
+      const ch = FORMAT_CHANNELS[img.format];
+      if (!correctedPage) {
+        correctedPage = tensor('uint8', [img.height, img.width, ch]);
+        correctedPage.setData(img.data);
+      }
+      const pageTensor = correctedPage;
 
       const regions = layout.detectObjectsWorklet(img);
       const blocks: DocumentBlock<L>[] = [];
@@ -333,29 +345,56 @@ export async function createOcr<L = never>(
           continue;
         }
         const isTable = String(region.label) === tableLabel;
-        const { xmin, ymin } = region.box;
-        const crop = cropImageBuffer(img, region.box);
-        // Each region is OCR'd on its own crop for better dense-page recall; the
-        // lines are offset back to page coordinates.
-        const lines = runOcrPass(engine, crop, options).map((d) => ({
-          ...d,
-          quad: d.quad.map((p) => ({ x: p.x + xmin, y: p.y + ymin })),
-        }));
-        if (lines.length === 0 && !isTable) {
+        const xmin = Math.max(0, Math.min(Math.round(region.box.xmin), img.width));
+        const ymin = Math.max(0, Math.min(Math.round(region.box.ymin), img.height));
+        const xmax = Math.max(0, Math.min(Math.round(region.box.xmax), img.width));
+        const ymax = Math.max(0, Math.min(Math.round(region.box.ymax), img.height));
+        if (xmax <= xmin || ymax <= ymin) {
           continue;
         }
-        detections.push(...lines);
-        let block = makeBlock<L>(region.label, region.box, region.confidence, lines, isTable);
-        if (isTable && documentModels && useTables) {
-          const skeleton = documentModels.recognizeTableWorklet(crop);
-          block = { ...block, tableHtml: fillTableCells(skeleton, block.lines) };
+        // Each region is OCR'd on its own crop for better dense-page recall; the
+        // lines are offset back to page coordinates. The table encoder reads the
+        // same crop tensor, so it stays alive until the region is fully handled.
+        const cropT = tensor('uint8', [ymax - ymin, xmax - xmin, ch]);
+        try {
+          crop(pageTensor, cropT, { format: 'xyxy', xmin, ymin, xmax, ymax });
+          const lines = runOcrPassOnTensor(
+            engine,
+            cropT,
+            xmax - xmin,
+            ymax - ymin,
+            img.format,
+            options
+          ).map((d) => ({
+            ...d,
+            quad: d.quad.map((p) => ({ x: p.x + xmin, y: p.y + ymin })),
+          }));
+          if (lines.length === 0 && !isTable) {
+            continue;
+          }
+          detections.push(...lines);
+          let block = makeBlock<L>(region.label, region.box, region.confidence, lines, isTable);
+          if (isTable && documentModels && useTables) {
+            const skeleton = documentModels.recognizeTableWorklet(cropT, img.format);
+            block = { ...block, tableHtml: fillTableCells(skeleton, block.lines) };
+          }
+          blocks.push(block);
+        } finally {
+          cropT.dispose();
         }
-        blocks.push(block);
       }
-      blocks.sort((a, b) => a.bbox.ymin - b.bbox.ymin || a.bbox.xmin - b.bbox.xmin);
-      // Flat `detections` are ordered the same way as the whole-page path, rather
-      // than left in region-detection order.
-      return { detections: orderByReadingOrder(detections), blocks, regions, image: img };
+      // Order blocks with the same column-aware reading order as the flat
+      // detections, so the two views of a multi-column page agree (a naive
+      // y-then-x sort interleaves columns).
+      const orderedBlocks = orderByReadingOrder(
+        blocks.map((block) => ({ block, quad: quadFromBounds(block.bbox) }))
+      ).map((w) => w.block);
+      return {
+        detections: orderByReadingOrder(detections),
+        blocks: orderedBlocks,
+        regions,
+        image: img,
+      };
     } finally {
       correctedPage?.dispose();
     }

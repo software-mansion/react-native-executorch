@@ -652,123 +652,25 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
 };
 
 // OCR-family repos tag as `0.9.0` (no `v` prefix — they tag differently from the
-// classic model repos that use VERSION_TAG).
+// classic model repos that use VERSION_TAG). The recognizer repos and the
+// document-pipeline repos (doclayout, paddle-helpers) are versioned separately
+// upstream and can diverge, so they get distinct constants even at the same value.
 const OCR_REVISION = 'resolve/0.9.0';
-// TODO(models): pp-doclayout-v3 and paddle-helpers are not yet tagged 0.9.0 —
-// they exist only on `main`. Move this to `resolve/0.9.0` once those tags ship.
-const DOC_PIPELINE_REVISION = 'resolve/main';
+const DOC_PIPELINE_REVISION = 'resolve/0.9.0';
 
-// English
-const EASYOCR_ENGLISH_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/english/EasyOCR_english_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.english },
-};
-const EASYOCR_ENGLISH_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/english/EasyOCR_english_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.english },
-};
-const EASYOCR_ENGLISH_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/english/EasyOCR_english_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.english },
-};
-
-// Cyrillic
-const EASYOCR_CYRILLIC_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/cyrillic/EasyOCR_cyrillic_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.cyrillic },
-};
-const EASYOCR_CYRILLIC_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/cyrillic/EasyOCR_cyrillic_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.cyrillic },
-};
-const EASYOCR_CYRILLIC_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/cyrillic/EasyOCR_cyrillic_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.cyrillic },
-};
-
-// Latin
-const EASYOCR_LATIN_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/latin/EasyOCR_latin_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.latin },
-};
-const EASYOCR_LATIN_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/latin/EasyOCR_latin_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.latin },
-};
-const EASYOCR_LATIN_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/latin/EasyOCR_latin_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.latin },
-};
-
-// Japanese
-const EASYOCR_JAPANESE_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/japanese/EasyOCR_japanese_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.japanese },
-};
-const EASYOCR_JAPANESE_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/japanese/EasyOCR_japanese_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.japanese },
-};
-const EASYOCR_JAPANESE_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/japanese/EasyOCR_japanese_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.japanese },
-};
-
-// Simplified Chinese
-const EASYOCR_ZH_SIM_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/zh_sim/EasyOCR_zh_sim_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.zh_sim },
-};
-const EASYOCR_ZH_SIM_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/zh_sim/EasyOCR_zh_sim_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.zh_sim },
-};
-const EASYOCR_ZH_SIM_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/zh_sim/EasyOCR_zh_sim_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.zh_sim },
-};
-
-// Korean
-const EASYOCR_KOREAN_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/korean/EasyOCR_korean_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.korean },
-};
-const EASYOCR_KOREAN_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/korean/EasyOCR_korean_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.korean },
-};
-const EASYOCR_KOREAN_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/korean/EasyOCR_korean_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.korean },
-};
-
-// Telugu
-const EASYOCR_TELUGU_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/telugu/EasyOCR_telugu_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.telugu },
-};
-const EASYOCR_TELUGU_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/telugu/EasyOCR_telugu_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.telugu },
-};
-const EASYOCR_TELUGU_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/telugu/EasyOCR_telugu_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.telugu },
-};
-
-// Kannada
-const EASYOCR_KANNADA_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/kannada/EasyOCR_kannada_xnnpack.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.kannada },
-};
-const EASYOCR_KANNADA_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/kannada/EasyOCR_kannada_coreml.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.kannada },
-};
-const EASYOCR_KANNADA_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/kannada/EasyOCR_kannada_vulkan.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset: alphabets.kannada },
-};
+const makeEasyOcr = (
+  lang: string,
+  backend: string,
+  charset: string | readonly string[]
+): OcrModel => ({
+  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/${lang}/EasyOCR_${lang}_${backend}.pte`,
+  ocrOpts: { ...EASYOCR_OPTS, charset },
+});
+const easyOcr = (lang: string, charset: string | readonly string[]) => ({
+  XNNPACK: makeEasyOcr(lang, 'xnnpack', charset),
+  COREML: makeEasyOcr(lang, 'coreml', charset),
+  VULKAN: makeEasyOcr(lang, 'vulkan', charset),
+});
 
 const PADDLE_PPOCRV6_XNNPACK: OcrModel = {
   modelPath: `${BASE_URL}-pp-ocrv6/${OCR_REVISION}/PP-OCRv6_xnnpack.pte`,
@@ -812,17 +714,22 @@ const PP_DOCLAYOUT_VULKAN: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
 // =============================================================================
 // Document helper models - PaddleHelpers (orientation / dewarp / table structure)
 // =============================================================================
+const SLANET_TABLE = {
+  structureVocab: SLANET_STRUCTURE_VOCAB,
+  eosTokenId: SLANET_STRUCTURE_VOCAB.indexOf('eos'),
+  maxSteps: 501, // decoder step cap — SLANet's longest table structure
+};
 const PP_HELPERS_XNNPACK: DocumentModelsConfig = {
   modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_xnnpack.pte`,
-  table: { structureVocab: SLANET_STRUCTURE_VOCAB, eosTokenId: 49, maxSteps: 501 },
+  table: SLANET_TABLE,
 };
 const PP_HELPERS_COREML: DocumentModelsConfig = {
   modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_coreml.pte`,
-  table: { structureVocab: SLANET_STRUCTURE_VOCAB, eosTokenId: 49, maxSteps: 501 },
+  table: SLANET_TABLE,
 };
 const PP_HELPERS_VULKAN: DocumentModelsConfig = {
   modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_vulkan.pte`,
-  table: { structureVocab: SLANET_STRUCTURE_VOCAB, eosTokenId: 49, maxSteps: 501 },
+  table: SLANET_TABLE,
 };
 
 /**
@@ -1090,46 +997,14 @@ export const models = {
   },
   ocr: {
     EASYOCR: {
-      ENGLISH: {
-        XNNPACK: EASYOCR_ENGLISH_XNNPACK,
-        COREML: EASYOCR_ENGLISH_COREML,
-        VULKAN: EASYOCR_ENGLISH_VULKAN,
-      },
-      CYRILLIC: {
-        XNNPACK: EASYOCR_CYRILLIC_XNNPACK,
-        COREML: EASYOCR_CYRILLIC_COREML,
-        VULKAN: EASYOCR_CYRILLIC_VULKAN,
-      },
-      LATIN: {
-        XNNPACK: EASYOCR_LATIN_XNNPACK,
-        COREML: EASYOCR_LATIN_COREML,
-        VULKAN: EASYOCR_LATIN_VULKAN,
-      },
-      JAPANESE: {
-        XNNPACK: EASYOCR_JAPANESE_XNNPACK,
-        COREML: EASYOCR_JAPANESE_COREML,
-        VULKAN: EASYOCR_JAPANESE_VULKAN,
-      },
-      ZH_SIM: {
-        XNNPACK: EASYOCR_ZH_SIM_XNNPACK,
-        COREML: EASYOCR_ZH_SIM_COREML,
-        VULKAN: EASYOCR_ZH_SIM_VULKAN,
-      },
-      KOREAN: {
-        XNNPACK: EASYOCR_KOREAN_XNNPACK,
-        COREML: EASYOCR_KOREAN_COREML,
-        VULKAN: EASYOCR_KOREAN_VULKAN,
-      },
-      TELUGU: {
-        XNNPACK: EASYOCR_TELUGU_XNNPACK,
-        COREML: EASYOCR_TELUGU_COREML,
-        VULKAN: EASYOCR_TELUGU_VULKAN,
-      },
-      KANNADA: {
-        XNNPACK: EASYOCR_KANNADA_XNNPACK,
-        COREML: EASYOCR_KANNADA_COREML,
-        VULKAN: EASYOCR_KANNADA_VULKAN,
-      },
+      ENGLISH: easyOcr('english', alphabets.english),
+      CYRILLIC: easyOcr('cyrillic', alphabets.cyrillic),
+      LATIN: easyOcr('latin', alphabets.latin),
+      JAPANESE: easyOcr('japanese', alphabets.japanese),
+      ZH_SIM: easyOcr('zh_sim', alphabets.zh_sim),
+      KOREAN: easyOcr('korean', alphabets.korean),
+      TELUGU: easyOcr('telugu', alphabets.telugu),
+      KANNADA: easyOcr('kannada', alphabets.kannada),
     },
     PADDLE: {
       PPOCRV6_SMALL: {

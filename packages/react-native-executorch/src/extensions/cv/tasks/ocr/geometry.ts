@@ -95,7 +95,10 @@ function fitLineToShortestSides(b: Box): {
     m1 = { x: m1.y, y: m1.x };
     m2 = { x: m2.y, y: m2.x };
   }
-  const slope = (m2.y - m1.y) / (m2.x - m1.x);
+  // Coincident midpoints (degenerate box) leave dx = 0; fall back to a flat line
+  // rather than propagating Infinity/NaN into every candidate distance.
+  const dx = m2.x - m1.x;
+  const slope = Math.abs(dx) < 1e-6 ? 0 : (m2.y - m1.y) / dx;
   return { slope, intercept: m1.y - slope * m1.x, isVertical };
 }
 
@@ -175,17 +178,8 @@ const mergeBoxes = (a: Box, b: Box): Box => {
 // Merges CRAFT component boxes into reading lines: greedily take the largest box,
 // fit a line through its short sides, absorb the nearest aligned box of similar
 // height, repeat; drop lines too small to read. Reading order is derived later.
-//
-// `consumed[]` marks boxes already pulled into a line (an O(1) alternative to
-// splicing the array). Candidates for a line are gathered once per line state
-// (findLineCandidates) and walked nearest-first — a rejected box is just skipped
-// to the next, and only a successful merge (which refits the line) re-gathers.
-// This keeps the greedy behavior identical while cutting the old O(n³) re-scan to
-// O(n² log n).
-//
-// ponytail: O(n² log n) greedy merge — negligible for the ~50–300 boxes a page
-// yields; index the candidates in a spatial grid for near-linear typical case if
-// box counts ever explode (dense documents).
+// `consumed[]` marks boxes already pulled into a line; candidates are gathered
+// once per line state and re-gathered only after a successful merge refits it.
 export function groupBoxes(input: Box[]): Box[] {
   'worklet';
   const boxes = [...input].sort((a, b) => maxSide(b) - maxSide(a));
@@ -204,8 +198,11 @@ export function groupBoxes(input: Box[]): Box[] {
       lineAngle = isVertical ? -90 : (Math.atan(slope) * 180) / Math.PI;
       const candidates = findLineCandidates(boxes, consumed, current, isVertical, slope, intercept);
       let mergedOne = false;
-      for (const cand of candidates) {
-        let candidate = boxes[cand.index]!;
+      for (const candidateEntry of candidates) {
+        let candidate = boxes[candidateEntry.index]!;
+        // Only re-orient a candidate the detector emitted (near-)axis-aligned
+        // (angle ≈ 0 or 90, within the epsilon below) onto the seed's line; a box
+        // with any real skew already carries its own angle and is left as-is.
         if (
           (Math.abs(candidate.angle - 90) < 1e-3 && !isVertical) ||
           (Math.abs(candidate.angle) < 1e-3 && isVertical)
@@ -215,11 +212,11 @@ export function groupBoxes(input: Box[]): Box[] {
         const gap = minDistanceBetween(candidate, current);
         const currentHeight = minSide(current);
         if (
-          gap < DISTANCE_THRESHOLD * cand.height &&
-          Math.abs(currentHeight - cand.height) < cand.height * HEIGHT_THRESHOLD
+          gap < DISTANCE_THRESHOLD * candidateEntry.height &&
+          Math.abs(currentHeight - candidateEntry.height) < candidateEntry.height * HEIGHT_THRESHOLD
         ) {
           current = mergeBoxes(current, candidate);
-          consumed[cand.index] = true;
+          consumed[candidateEntry.index] = true;
           mergedOne = true;
           break; // line grew — refit and re-gather
         }
@@ -228,8 +225,9 @@ export function groupBoxes(input: Box[]): Box[] {
         break;
       }
     }
-    current.angle = lineAngle;
-    merged.push(current);
+    // Push a fresh box rather than writing `angle` through to `current` — for an
+    // unmerged seed `current` is still the caller's input element.
+    merged.push({ ...current, angle: lineAngle });
   }
   return merged.filter((b) => minSide(b) > MIN_SHORT_SIDE && maxSide(b) > MIN_LONG_SIDE);
 }
@@ -245,8 +243,11 @@ export function boxToQuad(b: Box): Quad {
 }
 
 // Parses a detector's flat box array — 5 per box: x0,y0,x1,y1,angle.
-export function boxesFromFlat(flat: number[]): Box[] {
+export function boxesFromFlat(flat: readonly number[]): Box[] {
   'worklet';
+  if (flat.length % 5 !== 0) {
+    throw new Error(`boxesFromFlat: expected a multiple of 5 values, got ${flat.length}.`);
+  }
   const boxes: Box[] = [];
   for (let i = 0; i + 4 < flat.length; i += 5) {
     boxes.push({
@@ -305,7 +306,9 @@ export function orderByReadingOrder<T extends { quad: Quad }>(items: T[]): T[] {
   edges.sort((a, b) => a.x - b.x || b.delta - a.delta);
   const cuts: number[] = [];
   let coverage = 0;
-  let gutterStart = 0;
+  // Seed to the first (leftmost) edge, not 0, so a page whose leftmost box starts
+  // well inside a left margin doesn't read that margin as an empty column gutter.
+  let gutterStart = edges.length > 0 ? edges[0]!.x : 0;
   for (const edge of edges) {
     const before = coverage;
     coverage += edge.delta;

@@ -211,7 +211,8 @@ parseEnumInputShapes(executorch::extension::Module &module, const std::string &m
     const auto ctx = companion + ": ";
 
     auto methodNames = unwrap(ctx + "failed to get method names", module.method_names());
-    if (methodName == companion || !methodNames.contains(companion)) {
+    // Skip companion methods themselves, and any method without a companion.
+    if (methodName.starts_with("get_enum_shapes_") || !methodNames.contains(companion)) {
         return std::nullopt;
     }
 
@@ -266,6 +267,10 @@ parseEnumInputShapes(executorch::extension::Module &module, const std::string &m
         }
 
         const auto numShapes = shapeTensor.size(0);
+        if (numShapes < 1) {
+            throw std::runtime_error(
+                std::format("{}output[{}] declares an empty enumerated shape set", ctx, tensorIndex));
+        }
         const auto *data = shapeTensor.const_data_ptr<int32_t>();
         tensor::EnumeratedShapes shapes;
         shapes.reserve(static_cast<size_t>(numShapes));
@@ -297,32 +302,55 @@ parseEnumInputShapes(executorch::extension::Module &module, const std::string &m
     return enumeratedShapes;
 }
 
-// Encodes one resolved input constraint onto a JS object, discriminated by the
-// field it sets: `dims` (dynamic ranges) or `shapes` (enumerated set). Overloaded
-// on the ShapeConstraint alternatives so the accessor can std::visit them.
-void encodeConstraint(jsi::Runtime &rt, jsi::Object &out, const tensor::SymbolicShape &shape) {
-    auto dims = jsi::Array(rt, shape.size());
-    for (size_t axis = 0; axis < shape.size(); ++axis) {
-        const auto &range = std::get<tensor::RangeDim>(shape[axis]);
-        auto dim = jsi::Object(rt);
-        dim.setProperty(rt, "min", static_cast<double>(range.min));
-        dim.setProperty(rt, "max", static_cast<double>(range.max));
-        dim.setProperty(rt, "step", static_cast<double>(range.step.value_or(1)));
-        dims.setValueAtIndex(rt, axis, dim);
-    }
-    out.setProperty(rt, "dims", dims);
-}
-
-void encodeConstraint(jsi::Runtime &rt, jsi::Object &out, const tensor::EnumeratedShapes &enumeratedShapes) {
-    auto shapes = jsi::Array(rt, enumeratedShapes.size());
-    for (size_t s = 0; s < enumeratedShapes.size(); ++s) {
-        auto shapeArr = jsi::Array(rt, enumeratedShapes[s].size());
-        for (size_t axis = 0; axis < enumeratedShapes[s].size(); ++axis) {
-            shapeArr.setValueAtIndex(rt, axis, static_cast<double>(enumeratedShapes[s][axis]));
+// Encodes one resolved input constraint onto a JS object: `dims` for dynamic
+// per-dimension ranges, `shapes` for an enumerated set.
+void encodeConstraint(jsi::Runtime &rt, jsi::Object &out, const tensor::ShapeConstraint &constraint) {
+    if (const auto *shape = std::get_if<tensor::SymbolicShape>(&constraint)) {
+        auto dims = jsi::Array(rt, shape->size());
+        for (size_t axis = 0; axis < shape->size(); ++axis) {
+            // A SymbolicDim is a range, a fixed size, or a named symbol. Encode a
+            // fixed axis as a degenerate [v, v] range. A named symbol has no numeric
+            // range the runtime resolves it lazily, so we degrade rather than throw
+            // (introspection must not hard-fail on a model execute() handles fine):
+            // emit [0,0] placeholders tagged with the symbol name.
+            int32_t min = 0;
+            int32_t max = 0;
+            int32_t step = 1;
+            const std::string *symbolName = nullptr;
+            const auto &sdim = (*shape)[axis];
+            if (const auto *range = std::get_if<tensor::RangeDim>(&sdim)) {
+                min = range->min;
+                max = range->max;
+                step = range->step.value_or(1);
+            } else if (const auto *fixed = std::get_if<int32_t>(&sdim)) {
+                min = max = *fixed;
+            } else if (const auto *named = std::get_if<std::string>(&sdim)) {
+                symbolName = named;
+            }
+            auto dim = jsi::Object(rt);
+            dim.setProperty(rt, "min", static_cast<double>(min));
+            dim.setProperty(rt, "max", static_cast<double>(max));
+            dim.setProperty(rt, "step", static_cast<double>(step));
+            if (symbolName != nullptr) {
+                dim.setProperty(rt, "symbol", jsi::String::createFromUtf8(rt, *symbolName));
+            }
+            dims.setValueAtIndex(rt, axis, dim);
         }
-        shapes.setValueAtIndex(rt, s, shapeArr);
+        out.setProperty(rt, "kind", jsi::String::createFromUtf8(rt, "range"));
+        out.setProperty(rt, "dims", dims);
+    } else if (const auto *shapes = std::get_if<tensor::EnumeratedShapes>(&constraint)) {
+        auto arr = jsi::Array(rt, shapes->size());
+        for (size_t s = 0; s < shapes->size(); ++s) {
+            const auto &oneShape = (*shapes)[s];
+            auto shapeArr = jsi::Array(rt, oneShape.size());
+            for (size_t axis = 0; axis < oneShape.size(); ++axis) {
+                shapeArr.setValueAtIndex(rt, axis, static_cast<double>(oneShape[axis]));
+            }
+            arr.setValueAtIndex(rt, s, shapeArr);
+        }
+        out.setProperty(rt, "kind", jsi::String::createFromUtf8(rt, "enum"));
+        out.setProperty(rt, "shapes", arr);
     }
-    out.setProperty(rt, "shapes", shapes);
 }
 } // namespace
 
@@ -486,11 +514,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 throw jsi::JSError(rt, "getInputShapeConstraints: Usage: getInputShapeConstraints(methodName)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "getInputShapeConstraints: Model is currently in use");
-            }
-
+            std::lock_guard<std::mutex> lock(self->mutex_);
             if (!self->etModule_) {
                 throw jsi::JSError(rt, "getInputShapeConstraints: Model has been disposed");
             }
@@ -502,37 +526,34 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             const std::vector<tensor::ShapeConstraint> *constraints =
                 it != self->inputShapeConstraints_.end() ? &it->second : nullptr;
 
-            // One entry per tensor input, aligned with getMethodMeta().inputTensorMeta.
-            size_t numTensorInputs = 0;
+            // Collect the tensor-input indices once (aligned with
+            // getMethodMeta().inputTensorMeta); input_tag is a lookup not worth
+            // repeating per input.
+            std::vector<size_t> tensorInputs;
             for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto ctx = std::format("getInputShapeConstraints: input tag [{}]", i);
+                auto ctx = std::format("getInputShapeConstraints('{}'): input tag [{}]", methodName, i);
                 if (unwrap(rt, ctx, methodMeta.input_tag(i)) == executorch::runtime::Tag::Tensor) {
-                    ++numTensorInputs;
+                    tensorInputs.push_back(i);
                 }
             }
 
-            auto jsArray = jsi::Array(rt, numTensorInputs);
-            size_t outIndex = 0;
-            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto ctx = std::format("getInputShapeConstraints: input [{}]", i);
-                if (unwrap(rt, ctx, methodMeta.input_tag(i)) != executorch::runtime::Tag::Tensor) {
-                    continue;
-                }
-
+            auto jsArray = jsi::Array(rt, tensorInputs.size());
+            for (size_t outIndex = 0; outIndex < tensorInputs.size(); ++outIndex) {
+                const size_t i = tensorInputs[outIndex];
+                auto ctx = std::format("getInputShapeConstraints('{}'): input [{}]", methodName, i);
                 auto entry = jsi::Object(rt);
                 if (constraints != nullptr) {
-                    std::visit([&](const auto &c) { encodeConstraint(rt, entry, c); }, (*constraints)[i]);
+                    encodeConstraint(rt, entry, (*constraints)[i]);
                 } else {
-                    // No companion: report the single static shape.
                     auto tensorMeta = unwrap(rt, ctx, methodMeta.input_tensor_meta(i));
                     auto shapeArr = jsi::Array(rt, tensorMeta.sizes().size());
                     for (size_t axis = 0; axis < tensorMeta.sizes().size(); ++axis) {
                         shapeArr.setValueAtIndex(rt, axis, static_cast<double>(tensorMeta.sizes()[axis]));
                     }
+                    entry.setProperty(rt, "kind", jsi::String::createFromUtf8(rt, "static"));
                     entry.setProperty(rt, "shape", shapeArr);
                 }
                 jsArray.setValueAtIndex(rt, outIndex, std::move(entry));
-                ++outIndex;
             }
             return jsArray;
         };

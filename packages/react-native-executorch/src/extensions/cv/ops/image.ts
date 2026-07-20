@@ -1,6 +1,6 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
-import type { ImageBuffer, ImageFormat } from '../image';
+import type { ImageFormat } from '../image';
 import type { Quad } from './quad';
 import type { BoundingBox } from './boxes';
 
@@ -230,10 +230,7 @@ export function rotate(src: Tensor, dst: Tensor, degCW: number): Tensor {
 /**
  * Options for {@link rectifyQuad}. `contentWidth` is the rectified content's width
  * (px) in the canvas; `align` (default `'left'`) and `padMode`/`padValue` (default
- * constant `0`) place and fill it. `offsetX` (default `-1` = use `align`) pins the
- * content at an exact x, and `clear` (default `true`) wipes the canvas first —
- * pass `offsetX` with `clear: false` to compose successive rectified regions into
- * one canvas (e.g. a glyph strip).
+ * constant `0`) place and fill it.
  * @category Types
  */
 export type RectifyQuadOptions = {
@@ -241,8 +238,6 @@ export type RectifyQuadOptions = {
   readonly align?: 'left' | 'center';
   readonly padMode?: 'constant' | 'cornerMean';
   readonly padValue?: number;
-  readonly offsetX?: number;
-  readonly clear?: boolean;
 };
 
 /**
@@ -263,19 +258,13 @@ export function rectifyQuad(
   opts: RectifyQuadOptions
 ): Tensor {
   'worklet';
-  // The native op takes the corners as a flat 8-number array (cheap JSI marshaling).
-  // prettier-ignore
-  const flat = [
-    quad[0]!.x, quad[0]!.y, quad[1]!.x, quad[1]!.y,
-    quad[2]!.x, quad[2]!.y, quad[3]!.x, quad[3]!.y,
-  ];
+  // The native op takes the corners as a flat [x0,y0,..,x3,y3] array.
+  const flat = quad.flatMap((p) => [p.x, p.y]);
   return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
     contentWidth: opts.contentWidth,
     align: opts.align ?? 'left',
     padMode: opts.padMode ?? 'constant',
     padValue: opts.padValue ?? 0,
-    offsetX: opts.offsetX ?? -1,
-    clear: opts.clear ?? true,
   });
 }
 
@@ -296,27 +285,23 @@ export function warpByGrid(src: Tensor, grid: Tensor, dst: Tensor): Tensor {
 }
 
 /**
- * Crops an axis-aligned `xyxy` region out of an image buffer as a plain pixel
- * slice (same format and layout). A pure row-wise copy — not a native op.
+ * Crops an axis-aligned `xyxy` region of the source tensor into the pre-allocated
+ * `dst` (a native `cv::Mat` ROI copy). `dst` must be sized `[ymax-ymin, xmax-xmin, C]`
+ * (both rounded/clamped to the source bounds). Unlike {@link restrictToBox}, this
+ * changes the shape; stays on-device (no JS buffer round-trip).
  * @category Typescript API
- * @param input The source image buffer.
- * @param bbox The crop region in `xyxy` pixels.
- * @returns The cropped image buffer.
+ * @param src The source image tensor (HWC).
+ * @param dst The pre-allocated destination tensor, sized to the clamped box.
+ * @param box The crop region in `xyxy` pixels.
+ * @returns The destination tensor `dst`.
  */
-export function cropImageBuffer(input: ImageBuffer, bbox: BoundingBox<'xyxy'>): ImageBuffer {
+export function crop(src: Tensor, dst: Tensor, box: BoundingBox<'xyxy'>): Tensor {
   'worklet';
-  const { data, width, height, format } = input;
-  const channels = FORMAT_CHANNELS[format];
-  const x0 = Math.max(0, Math.min(Math.round(bbox.xmin), width));
-  const y0 = Math.max(0, Math.min(Math.round(bbox.ymin), height));
-  const x1 = Math.max(0, Math.min(Math.round(bbox.xmax), width));
-  const y1 = Math.max(0, Math.min(Math.round(bbox.ymax), height));
-  const cropWidth = Math.max(1, x1 - x0);
-  const cropHeight = Math.max(1, y1 - y0);
-  const out = new Uint8Array(cropWidth * cropHeight * channels);
-  for (let y = 0; y < cropHeight; y++) {
-    const rowStart = ((y0 + y) * width + x0) * channels;
-    out.set(data.subarray(rowStart, rowStart + cropWidth * channels), y * cropWidth * channels);
-  }
-  return { data: out, width: cropWidth, height: cropHeight, format, layout: input.layout };
+  // Round here so the box matches a `Math.round`-sized `dst`; native clamps to bounds.
+  return rnexecutorchJsi.cv.crop(src, dst, [
+    Math.round(box.xmin),
+    Math.round(box.ymin),
+    Math.round(box.xmax),
+    Math.round(box.ymax),
+  ]);
 }

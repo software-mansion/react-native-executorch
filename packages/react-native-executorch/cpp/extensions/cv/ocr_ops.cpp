@@ -214,8 +214,10 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         float maxX = 0;
         float maxY = 0;
         for (int32_t k = 0; k < 4; ++k) {
-            const float px = std::clamp(c[static_cast<std::size_t>(k)].x, 0.0f, static_cast<float>(w));
-            const float py = std::clamp(c[static_cast<std::size_t>(k)].y, 0.0f, static_cast<float>(h));
+            // Clamp to the last valid pixel index (w-1/h-1), not w/h — a corner at
+            // exactly w or h is one past the last column/row.
+            const float px = std::clamp(c[static_cast<std::size_t>(k)].x, 0.0f, static_cast<float>(w - 1));
+            const float py = std::clamp(c[static_cast<std::size_t>(k)].y, 0.0f, static_cast<float>(h - 1));
             q[static_cast<std::size_t>(k)] = {px, py};
             minX = std::min(minX, px);
             minY = std::min(minY, py);

@@ -491,10 +491,8 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 
-// ------------------------------- warpByGrid --------------------------------
-// Warp `src` through a backward sampling field (torch grid_sample step of a
-// geometric dewarp) into `dst` via cv::remap. grid is [..,2,gH,gW], normalized
-// to [-1,1] with align_corners=true (channel 0 = x, 1 = y).
+// Warp `src` through a grid_sample-style backward field into `dst` via cv::remap.
+// grid is [..,2,gH,gW] in [-1,1] with align_corners=true (channel 0 = x, 1 = y).
 void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "warpByGrid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
@@ -510,9 +508,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         tensor::checkNotSameTensor(rt, "warpByGrid: src", src, "warpByGrid: dst", dst);
         tensor::checkNotSameTensor(rt, "warpByGrid: grid", grid, "warpByGrid: dst", dst);
 
-        // grid is the torch grid_sample field [..,2,gH,gW], channel 0 = x, 1 = y,
-        // normalized to [-1,1] with align_corners=true. Its rank varies, so it can't
-        // be expressed as a single fromJs shape — check the [..,2,gH,gW] tail here.
+        // Grid rank varies, so fromJs can't constrain it; check the [..,2,gH,gW] tail here.
         const auto &gs = grid->shape_;
         if (gs.size() < 3 || gs[gs.size() - 3] != 2) {
             throw jsi::JSError(rt, "warpByGrid: grid must be [..,2,gH,gW]");
@@ -527,7 +523,18 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t channels = src->shape_[2];
         const int32_t gridH = gs[gs.size() - 2];
         const int32_t gridW = gs[gs.size() - 1];
-        const int32_t plane = gridH * gridW; // grid is tiny (~45x45); no int32 overflow
+        const int32_t plane = gridH * gridW;
+        // Require exactly 2*gH*gW elements — [2,gH,gW], or an equivalent with
+        // batch dims of 1 (e.g. [1,2,gH,gW]). The sampler reads channels 0 and 1
+        // of a single plane, so a real batch > 1 would silently use batch 0 and a
+        // smaller buffer would read out of bounds.
+        size_t numel = 1;
+        for (const auto d : gs) {
+            numel *= static_cast<size_t>(d);
+        }
+        if (numel != static_cast<size_t>(2) * static_cast<size_t>(plane)) {
+            throw jsi::JSError(rt, "warpByGrid: grid must have exactly 2*gH*gW elements ([2,gH,gW], batch > 1 not supported)");
+        }
         const auto *g = reinterpret_cast<const float *>(grid->data_.get());
 
         // Bilinearly sample channel `c` of the low-res grid at fractional (gx, gy).
@@ -578,10 +585,62 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
 }
 
-// ------------------------------- rectifyQuad ----------------------------------
+// Copy an axis-aligned [x0,y0,x1,y1] region of `src` into the pre-sized `dst` — a
+// shape-changing crop via a native cv::Mat ROI copy (unlike restrictToBox, which
+// masks in place at the same size). `dst` must be sized [y1-y0, x1-x0, C].
+void install_crop(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "crop";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args,
+                     size_t count) -> jsi::Value {
+        if (count != 3) {
+            throw jsi::JSError(rt, "Usage: crop(src, dst, [x0, y0, x1, y1])");
+        }
+        auto src = tensor::fromJs(rt, "crop: src", args[0], std::nullopt, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "crop: dst", args[1], src->dtype_, {"H'", "W'", src->shape_[2]});
+        tensor::checkNotSameTensor(rt, "crop: src", src, "crop: dst", dst);
+
+        const auto boxArr = conversions::asType<jsi::Array>(rt, "crop: box", args[2]);
+        if (boxArr.length(rt) != 4) {
+            throw jsi::JSError(rt, "crop: box must be [x0, y0, x1, y1]");
+        }
+        const int32_t srcH = src->shape_[0];
+        const int32_t srcW = src->shape_[1];
+        const int32_t channels = src->shape_[2];
+        const int32_t x0 = std::clamp(conversions::asType<int32_t>(rt, "crop: box", boxArr.getValueAtIndex(rt, 0)), 0, srcW);
+        const int32_t y0 = std::clamp(conversions::asType<int32_t>(rt, "crop: box", boxArr.getValueAtIndex(rt, 1)), 0, srcH);
+        const int32_t x1 = std::clamp(conversions::asType<int32_t>(rt, "crop: box", boxArr.getValueAtIndex(rt, 2)), 0, srcW);
+        const int32_t y1 = std::clamp(conversions::asType<int32_t>(rt, "crop: box", boxArr.getValueAtIndex(rt, 3)), 0, srcH);
+        const int32_t cropW = x1 - x0;
+        const int32_t cropH = y1 - y0;
+        if (cropW <= 0 || cropH <= 0) {
+            throw jsi::JSError(rt, "crop: box does not intersect the image");
+        }
+        if (dst->shape_[0] != cropH || dst->shape_[1] != cropW) {
+            throw jsi::JSError(rt, "crop: dst must be sized [" + std::to_string(cropH) + ", " +
+                                       std::to_string(cropW) + ", C] for the clamped box");
+        }
+
+        auto srcLock = tensor::tryLockShared(rt, "crop: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "crop: dst", dst);
+
+        int cvType{};
+        try {
+            cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
+        } catch (const std::exception &e) {
+            throw jsi::JSError(rt, "crop: " + std::string(e.what()));
+        }
+
+        const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
+        ::cv::Mat dstMat(cropH, cropW, cvType, dst->data_.get());
+        srcMat(::cv::Rect(x0, y0, cropW, cropH)).copyTo(dstMat);
+
+        return jsi::Value(rt, args[1]);
+    };
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+}
+
 // Perspective-crop an oriented quad of `src` into the `dst` canvas (crop +
-// resize-to-height + pad/align). Used by the OCR recognizer to normalize a
-// detected text box into the fixed recognizer canvas.
+// resize-to-height + pad/align) — normalizes a detected text box for the recognizer.
 void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "rectifyQuad";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
@@ -610,10 +669,6 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
         const auto padMode = conversions::getRequiredProperty<std::string>(rt, "rectifyQuad: options", opts, "padMode");
         const auto padValue = conversions::getRequiredProperty<double>(rt, "rectifyQuad: options", opts, "padValue");
         const auto align = conversions::getRequiredProperty<std::string>(rt, "rectifyQuad: options", opts, "align");
-        // offsetX >= 0 places content at that x (overriding align); clear=false skips
-        // wiping dst first, so successive warps compose into one canvas (glyph strips).
-        const auto offsetXOpt = conversions::getRequiredProperty<int32_t>(rt, "rectifyQuad: options", opts, "offsetX");
-        const auto clear = conversions::getRequiredProperty<bool>(rt, "rectifyQuad: options", opts, "clear");
 
         std::array<::cv::Point2f, 4> quad;
         for (std::size_t i = 0; i < 4; ++i) {
@@ -657,18 +712,10 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
                 padColor = ::cv::Scalar::all(padValue);
             }
 
-            if (clear) {
-                dstMat.setTo(padColor);
-            }
-            int32_t offsetX = offsetXOpt;
-            if (offsetX < 0) {
-                offsetX = (align == "center") ? (canvasW - contentWidth) / 2 : 0;
-            }
-            if (offsetX < canvasW) {
-                const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
-                content(::cv::Rect(0, 0, copyW, recH))
-                    .copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
-            }
+            dstMat.setTo(padColor);
+            const int32_t offsetX = (align == "center") ? (canvasW - contentWidth) / 2 : 0;
+            const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
+            content(::cv::Rect(0, 0, copyW, recH)).copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
         } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::string("rectifyQuad: OpenCV error: ") + e.what());
         }

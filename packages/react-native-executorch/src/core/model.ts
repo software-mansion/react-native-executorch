@@ -87,24 +87,37 @@ export type DimRange = {
   readonly max: number;
   /** The increment between consecutive legal sizes (>= 1). */
   readonly step: number;
+  /**
+   * Set when the dimension is a named symbolic size with no numeric bound the
+   * runtime resolves at execution time. `min`/`max` are then placeholders (0) and
+   * the dimension cannot be pre-resolved from metadata alone.
+   */
+  readonly symbol?: string;
 };
 
 /**
- * The resolved shape constraint of a single tensor input, discriminated by which
- * field is present:
+ * An enumerated set of whole legal input shapes — enumerated-shape backends
+ * (e.g. CoreML) accept only these exact shapes. Mirrors the native
+ * `EnumeratedShapes`.
+ * @category Types
+ */
+export type EnumeratedShapes = readonly (readonly number[])[];
+
+/**
+ * The resolved shape constraint of a single tensor input, discriminated by
+ * `kind`:
  *
- * - `dims` — dynamic per-dimension ranges (from a `get_dynamic_dims_<method>`
- *   companion).
- * - `shapes` — an enumerated set of whole shapes (from a
- *   `get_enum_shapes_<method>` companion; enumerated-shape backends such as
- *   CoreML).
- * - `shape` — a single static shape (no companion).
+ * - `range` — per-dimension {@link DimRange} ranges (from a
+ *   `get_dynamic_dims_<method>` companion).
+ * - `enum` — {@link EnumeratedShapes} whole shapes (from a
+ *   `get_enum_shapes_<method>` companion).
+ * - `static` — a single static shape (no companion).
  * @category Types
  */
 export type InputShapeConstraint =
-  | { readonly dims: DimRange[] }
-  | { readonly shapes: number[][] }
-  | { readonly shape: number[] };
+  | { readonly kind: 'range'; readonly dims: readonly DimRange[] }
+  | { readonly kind: 'enum'; readonly shapes: EnumeratedShapes }
+  | { readonly kind: 'static'; readonly shape: readonly number[] };
 
 /**
  * A compiled, ready-to-run ExecuTorch model loaded into native memory.

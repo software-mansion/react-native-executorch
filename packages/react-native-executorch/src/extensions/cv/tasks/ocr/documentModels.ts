@@ -6,7 +6,7 @@ import { validateModelSchema, SymbolicTensor } from '../../../../core/modelSchem
 import { wrapAsync } from '../../../../core/runtime';
 
 import { IMAGENET_NORM } from '../../../../constants';
-import type { ImageBuffer, ImageFormat } from '../../image';
+import type { ImageFormat } from '../../image';
 import { FORMAT_CHANNELS, warpByGrid } from '../../ops/image';
 import { boundsOfPoints } from '../../ops/quad';
 import { createImagePreprocessor } from '../preprocessing';
@@ -133,6 +133,9 @@ function dewarpPage(
   const tDst = tensor('uint8', [h, w, ch]);
   try {
     warpByGrid(page, tGrid, tDst);
+    // Known cost: materializes both full frames to JS just to sample ~3% of one
+    // channel for the variance ratio — ~70MB of copies on a 12MP page. Fine while
+    // dewarp is opt-in and rare; move the variance into a native op if it gets hot.
     const out = new Uint8Array(w * h * ch);
     const src = new Uint8Array(w * h * ch);
     tDst.getData(out);
@@ -170,14 +173,19 @@ function recognizeTableStructure(
   preprocessor: ImagePreprocessor,
   state: TableDecodeState,
   tableConfig: TableConfig,
-  input: ImageBuffer
+  page: Tensor,
+  format: ImageFormat
 ): string {
   'worklet';
   const { structureVocab, eosTokenId, maxSteps } = tableConfig;
   const { tFeatures, tHidden, tOnehot, tProbs, tNewHidden } = state;
-  const tInput = preprocessor.process(input);
+  const tInput = preprocessor.processTensor(page, format);
   model.execute('table_encode', [tInput], [tFeatures]);
   tHidden.setData(state.zeroHidden);
+  // First step feeds an all-zero one-hot, not a 'sos' (index-0) one-hot: the
+  // exported decoder embeds its own start token, so the first real input is the
+  // zero vector. (Validated on-device — a 'sos' one-hot here would offset every
+  // decoded token by one. Revisit if a re-export changes the decoder's start.)
   tOnehot.setData(state.zeroVocab);
   let html = '';
   for (let step = 0; step < maxSteps; step++) {
@@ -203,6 +211,9 @@ function recognizeTableStructure(
 // mean — matches how table cells distribute (tight within a row/col, gaps between).
 function clusterByGaps(values: readonly number[], k: number): number[] {
   'worklet';
+  if (k < 1) {
+    return [];
+  }
   const sorted = [...values].sort((a, b) => a - b);
   if (sorted.length <= k) {
     return sorted;
@@ -225,6 +236,9 @@ function clusterByGaps(values: readonly number[], k: number): number[] {
 
 // Fills a table skeleton's cells with a region's OCR lines, assigning each line's
 // box center to its nearest row/column cluster (document-order fallback if no grid).
+// Known limit: a line whose center falls inside a rowspan's vertical extent lands
+// on a row where that column has no <td> (the span occupies it), so its text is
+// dropped — occupancy is tracked, content routing into spanned cells is not.
 export function fillTableCells(html: string, lines: readonly OcrDetection[]): string {
   'worklet';
   const rowCount = (html.match(/<tr>/g) ?? []).length;
@@ -232,50 +246,72 @@ export function fillTableCells(html: string, lines: readonly OcrDetection[]): st
   const rowRegex = /<tr>([\s\S]*?)<\/tr>/g;
   let row: RegExpExecArray | null;
   while ((row = rowRegex.exec(html)) !== null) {
-    colCount = Math.max(colCount, (row[1]!.match(/<td/g) ?? []).length);
+    let cols = 0;
+    for (const td of row[1]!.match(/<td[^>]*>/g) ?? []) {
+      cols += Number((td.match(/colspan="(\d+)"/) ?? [])[1] ?? 1);
+    }
+    colCount = Math.max(colCount, cols);
   }
-  // Cell texts in row-major (skeleton) order. Without a usable grid, fall back to
-  // document order; otherwise assign each line's box center to its nearest
-  // row/column cluster.
-  let cellTexts: string[];
   if (rowCount === 0 || colCount === 0 || lines.length === 0) {
-    cellTexts = lines.map((l) => l.text);
-  } else {
-    const centersX: number[] = [];
-    const centersY: number[] = [];
-    for (const line of lines) {
-      const box = boundsOfPoints(line.quad, 'xyxy');
-      centersX.push((box.xmin + box.xmax) / 2);
-      centersY.push((box.ymin + box.ymax) / 2);
-    }
-    const rowCenters = clusterByGaps(centersY, rowCount);
-    const colCenters = clusterByGaps(centersX, colCount);
-    const grid: string[][] = Array.from({ length: rowCenters.length }, () =>
-      new Array<string>(colCenters.length).fill('')
-    );
-    for (let i = 0; i < lines.length; i++) {
-      const r = rowCenters.reduce(
-        (best, center, j) =>
-          Math.abs(centersY[i]! - center) < Math.abs(centersY[i]! - rowCenters[best]!) ? j : best,
-        0
-      );
-      const c = colCenters.reduce(
-        (best, center, j) =>
-          Math.abs(centersX[i]! - center) < Math.abs(centersX[i]! - colCenters[best]!) ? j : best,
-        0
-      );
-      grid[r]![c] = `${grid[r]![c]!} ${lines[i]!.text}`.trim();
-    }
-    cellTexts = grid.flat();
+    let cell = 0;
+    const texts = lines.map((l) => l.text);
+    // Matches empty `<td…></td>` cells only — assumes the decoder emits the fused
+    // empty-cell token, which the current SLANet vocab does. A vocab that emitted
+    // pre-filled cells would need this widened.
+    return html.replace(/<td([^>]*)><\/td>/g, (_match, attrs) => {
+      const text = cell < texts.length ? texts[cell]! : '';
+      cell++;
+      return `<td${attrs}>${text}</td>`;
+    });
   }
 
-  // Fill the decoded skeleton's empty cells in order, preserving each cell's tag
-  // and span attributes rather than rebuilding the table from scratch.
-  let cell = 0;
-  return html.replace(/<td([^>]*)><\/td>/g, (_match, attrs) => {
-    const text = cell < cellTexts.length ? cellTexts[cell]! : '';
-    cell++;
-    return `<td${attrs}>${text}</td>`;
+  const centersX: number[] = [];
+  const centersY: number[] = [];
+  for (const line of lines) {
+    const box = boundsOfPoints(line.quad, 'xyxy');
+    centersX.push((box.xmin + box.xmax) / 2);
+    centersY.push((box.ymin + box.ymax) / 2);
+  }
+  const rowCenters = clusterByGaps(centersY, rowCount);
+  const colCenters = clusterByGaps(centersX, colCount);
+  const grid: string[][] = Array.from({ length: rowCenters.length }, () =>
+    new Array<string>(colCenters.length).fill('')
+  );
+  for (let i = 0; i < lines.length; i++) {
+    const r = rowCenters.reduce(
+      (best, center, j) =>
+        Math.abs(centersY[i]! - center) < Math.abs(centersY[i]! - rowCenters[best]!) ? j : best,
+      0
+    );
+    const c = colCenters.reduce(
+      (best, center, j) =>
+        Math.abs(centersX[i]! - center) < Math.abs(centersX[i]! - colCenters[best]!) ? j : best,
+      0
+    );
+    grid[r]![c] = `${grid[r]![c]!} ${lines[i]!.text}`.trim();
+  }
+
+  const occupied: boolean[][] = [];
+  let rowIdx = -1;
+  return html.replace(/<tr>|<td([^>]*)><\/td>/g, (match, attrs) => {
+    if (attrs === undefined) {
+      rowIdx++;
+      return match;
+    }
+    let c = 0;
+    while (occupied[rowIdx]?.[c]) {
+      c++;
+    }
+    const colspan = Number((attrs.match(/colspan="(\d+)"/) ?? [])[1] ?? 1);
+    const rowspan = Number((attrs.match(/rowspan="(\d+)"/) ?? [])[1] ?? 1);
+    for (let dr = 0; dr < rowspan; dr++) {
+      const rr = rowIdx + dr;
+      occupied[rr] ??= [];
+      for (let dc = 0; dc < colspan; dc++) {
+        occupied[rr]![c + dc] = true;
+      }
+    }
+    return `<td${attrs}>${grid[rowIdx]?.[c] ?? ''}</td>`;
   });
 }
 
@@ -376,7 +412,7 @@ export async function createDocumentModels(
   dispose: () => void;
   detectOrientationWorklet: (page: Tensor, format: ImageFormat) => Orientation;
   dewarpWorklet: (page: Tensor, format: ImageFormat) => Tensor;
-  recognizeTableWorklet: (input: ImageBuffer) => string;
+  recognizeTableWorklet: (page: Tensor, format: ImageFormat) => string;
 }> {
   const { modelPath, table } = config;
   const dewarpMinVarianceRatio = config.dewarpMinVarianceRatio ?? DEFAULT_DEWARP_MIN_VARIANCE_RATIO;
@@ -451,12 +487,12 @@ export async function createDocumentModels(
       'worklet';
       return dewarpPage(model, dewarpPreprocessor, tGrid, page, format, dewarpMinVarianceRatio);
     };
-    const recognizeTableWorklet = (input: ImageBuffer): string => {
+    const recognizeTableWorklet = (page: Tensor, format: ImageFormat): string => {
       'worklet';
       if (!tablePreprocessor || !decodeState || !table) {
         throw new Error('DocumentModels: table recognition was not configured.');
       }
-      return recognizeTableStructure(model, tablePreprocessor, decodeState, table, input);
+      return recognizeTableStructure(model, tablePreprocessor, decodeState, table, page, format);
     };
 
     return { dispose, detectOrientationWorklet, dewarpWorklet, recognizeTableWorklet };

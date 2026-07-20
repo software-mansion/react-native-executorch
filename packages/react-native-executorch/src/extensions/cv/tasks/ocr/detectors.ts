@@ -15,6 +15,19 @@ import { boxesFromFlat, groupBoxes, boxToQuad } from './geometry';
  */
 export type TextBoxExtractor = {
   /**
+   * The detector input dims (W and H) must be a multiple of this — the pipeline
+   * snaps the letterbox size up to it before allocating, so `outputShapes` never
+   * receives a size it must reject. Default 1 (no alignment). CRAFT needs 2 (its
+   * heatmap is half-resolution).
+   */
+  readonly inputAlignment?: number;
+  /**
+   * Whether `extract(.., charLevel=true)` yields per-glyph boxes. When false the
+   * stacked-text (vertical) pass skips its char-level re-detection split and reads
+   * those boxes horizontally instead. Default false.
+   */
+  readonly supportsCharLevel?: boolean;
+  /**
    * The `float32` output tensor shapes the `detect` method produces for a given
    * detector input size, so the caller can pre-allocate them. One shape per
    * `detect` output, in order.
@@ -69,6 +82,10 @@ export function makeCraftExtractBoxes(opts: CraftExtractOptions = {}): TextBoxEx
   const linkThreshold = opts.linkThreshold ?? 0.4;
   const lowTextThreshold = opts.lowTextThreshold ?? 0.7;
   return {
+    // Half-resolution heatmap: input dims must be even. The pipeline snaps to
+    // this, so the guard below only ever fires on a hand-rolled caller.
+    inputAlignment: 2,
+    supportsCharLevel: true,
     outputShapes: ({ width, height }) => {
       'worklet';
       if (width % 2 !== 0 || height % 2 !== 0) {

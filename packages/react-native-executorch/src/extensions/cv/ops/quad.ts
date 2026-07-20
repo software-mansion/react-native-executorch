@@ -59,7 +59,26 @@ export function boundsOfPoints<F extends BoxFormat>(
         w: xmax - xmin,
         h: ymax - ymin,
       } as BoundingBox<F>;
+    default:
+      throw new Error(`boundsOfPoints: unsupported box format '${format}'.`);
   }
+}
+
+/**
+ * Builds the axis-aligned bounding quad (ordered TL,TR,BR,BL) of an `xyxy` box —
+ * the corner-ordering counterpart of an axis-aligned {@link BoundingBox}.
+ * @category Typescript API
+ * @param box The `xyxy` box.
+ * @returns The four corners, ordered TL, TR, BR, BL.
+ */
+export function quadFromBounds(box: BoundingBox<'xyxy'>): Quad {
+  'worklet';
+  return [
+    { x: box.xmin, y: box.ymin },
+    { x: box.xmax, y: box.ymin },
+    { x: box.xmax, y: box.ymax },
+    { x: box.xmin, y: box.ymax },
+  ];
 }
 
 /**
@@ -75,41 +94,20 @@ export function orderQuad(points: readonly Point[]): Quad {
   if (points.length !== 4) {
     return [...points];
   }
-  let topLeft = 0;
-  let topRight = 0;
-  let bottomRight = 0;
-  let bottomLeft = 0;
-  let minSum = points[0]!.x + points[0]!.y;
-  let maxSum = minSum;
-  let minDiff = points[0]!.y - points[0]!.x;
-  let maxDiff = minDiff;
-  for (let i = 1; i < 4; i++) {
-    const sum = points[i]!.x + points[i]!.y;
-    const diff = points[i]!.y - points[i]!.x;
-    if (sum < minSum) {
-      minSum = sum;
-      topLeft = i;
-    }
-    if (sum > maxSum) {
-      maxSum = sum;
-      bottomRight = i;
-    }
-    if (diff < minDiff) {
-      minDiff = diff;
-      topRight = i;
-    }
-    if (diff > maxDiff) {
-      maxDiff = diff;
-      bottomLeft = i;
-    }
-  }
+  // TL/BR are the corners with the min/max coordinate sum; TR/BL the min/max
+  // difference (y − x). indexOfMin/Max break ties on the lowest index.
+  const sum = points.map((p) => p.x + p.y);
+  const diff = points.map((p) => p.y - p.x);
+  const indexOfMin = (a: number[]) => a.indexOf(Math.min(...a));
+  const indexOfMax = (a: number[]) => a.indexOf(Math.max(...a));
+  const corners = [indexOfMin(sum), indexOfMin(diff), indexOfMax(sum), indexOfMax(diff)]; // TL, TR, BR, BL
   // Degenerate quads (duplicate or collinear corners) can map two roles to the
-  // same point; the sum/diff heuristic is meaningless there, so return the points
+  // same point; the heuristic is meaningless there, so return the points
   // unchanged and let the resulting near-zero-size box be dropped downstream.
-  if (new Set([topLeft, topRight, bottomRight, bottomLeft]).size !== 4) {
+  if (new Set(corners).size !== 4) {
     return [...points];
   }
-  return [points[topLeft]!, points[topRight]!, points[bottomRight]!, points[bottomLeft]!];
+  return corners.map((i) => points[i]!);
 }
 
 /**
@@ -244,8 +242,11 @@ export function boundingQuadOf(quads: readonly Quad[]): Quad {
  * @param flat The flat number array from a native detector decode.
  * @returns The parsed quads.
  */
-export function quadsFromFlat(flat: number[]): Quad[] {
+export function quadsFromFlat(flat: readonly number[]): Quad[] {
   'worklet';
+  if (flat.length % 8 !== 0) {
+    throw new Error(`quadsFromFlat: expected a multiple of 8 values, got ${flat.length}.`);
+  }
   const quads: Quad[] = [];
   for (let i = 0; i < flat.length; i += 8) {
     quads.push([

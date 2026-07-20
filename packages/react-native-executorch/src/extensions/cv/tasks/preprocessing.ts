@@ -15,6 +15,7 @@ import {
 
 /**
  * Options for configuring the image preprocessor pipeline.
+ * @category Types
  */
 export type ImagePreprocessorOptions = {
   readonly resizeMode: ResizeMode;
@@ -31,6 +32,7 @@ export type ImagePreprocessorOptions = {
  * normalize, and copy raw image buffers into target tensors matching model
  * input shapes. All intermediate scratch tensors are pre-allocated and safely
  * disposed of when calling `dispose()`.
+ * @category Typescript API
  * @param opts Normalization scaling coefficients, interpolation algorithms, and
  * crop/resize modes.
  * @param outputShape Expected output shape of the model input tensor (must

@@ -42,50 +42,79 @@ export type OcrDetection = {
 
 // ─── Input size resolution ───────────────────────────────────────────────────
 
-// A target this fraction above a smaller legal size snaps DOWN to it, so a
+// In the enumerated-shapes branch of resolveDetectorSize, an image at most this
+// fraction larger than a smaller legal shape still snaps DOWN to it, so a
 // marginal overflow doesn't force the next much-larger enumerated shape.
 const SNAP_DOWN_TOLERANCE = 0.1;
 
-// Snap a size UP to the smallest legal `min + k*step` (clamped to max); never
-// shrinks content, only the range max can.
-function snapUpDim(size: number, range: DimRange): number {
+// Snap a size UP to the smallest legal `min + k*step` that is also a multiple of
+// `align` (clamped to max); never shrinks content, only the range max can. `align`
+// (default 1) lets an extractor require even/aligned dims (e.g. CRAFT needs 2).
+function snapUpDim(size: number, range: DimRange, align = 1): number {
   'worklet';
   const step = Math.max(1, range.step);
-  const steps = Math.ceil(Math.max(0, size - range.min) / step);
-  return Math.min(range.min + steps * step, range.max);
+  let steps = Math.ceil(Math.max(0, size - range.min) / step);
+  for (;;) {
+    const target = range.min + steps * step;
+    if (target > range.max) {
+      break;
+    }
+    if (target % align === 0) {
+      return target;
+    }
+    steps++;
+  }
+  // Overflow: largest legal lattice point `min + k*step <= max` that is aligned
+  // (plain `max` may not sit on the step lattice, nor be a multiple of align).
+  const maxSteps = Math.floor((range.max - range.min) / step);
+  for (let k = maxSteps; k >= 0; k--) {
+    const target = range.min + k * step;
+    if (target % align === 0) {
+      return target;
+    }
+  }
+  // No aligned size fits the range; return the largest legal one (the extractor's
+  // own guard will surface the misconfiguration).
+  return range.min + maxSteps * step;
 }
 
 // Largest legal detector input size (NCHW, dim 2 = H, dim 3 = W) that avoids
-// upscaling: dynamic ranges snap H/W independently; an enumerated set picks the
-// best-scale shape; a static shape is used as-is.
+// upscaling where the constraint allows (an enumerated set whose shapes all
+// exceed the image must upscale): dynamic ranges snap H/W independently; an
+// enumerated set picks the best-scale shape; a static shape is used as-is.
 function resolveDetectorSize(
   constraint: InputShapeConstraint,
   imgWidth: number,
-  imgHeight: number
+  imgHeight: number,
+  align: number
 ): { detW: number; detH: number } {
   'worklet';
-  if ('dims' in constraint) {
+  if (constraint.kind === 'range') {
     const hRange = constraint.dims[2]!;
     const wRange = constraint.dims[3]!;
     const scale = Math.min(1, hRange.max / imgHeight, wRange.max / imgWidth);
     return {
-      detW: snapUpDim(Math.round(imgWidth * scale), wRange),
-      detH: snapUpDim(Math.round(imgHeight * scale), hRange),
+      detW: snapUpDim(Math.round(imgWidth * scale), wRange, align),
+      detH: snapUpDim(Math.round(imgHeight * scale), hRange, align),
     };
   }
-  if ('shape' in constraint) {
+  if (constraint.kind === 'static') {
     return { detW: constraint.shape[3]!, detH: constraint.shape[2]! };
   }
   // Among enumerated shapes whose downscale is within tolerance prefer the
   // smallest area (fastest); otherwise take the least downscale (most detail).
+  if (constraint.shapes.length === 0) {
+    throw new Error('OCR: detector declares an empty enumerated input-shape set.');
+  }
+  const minScale = 1 / (1 + SNAP_DOWN_TOLERANCE);
   let best: readonly number[] | null = null;
   let bestScale = -Infinity;
   let bestArea = Infinity;
   for (const shape of constraint.shapes) {
     const scale = Math.min(shape[2]! / imgHeight, shape[3]! / imgWidth);
     const area = shape[2]! * shape[3]!;
-    const withinTolerance = scale >= 1 / (1 + SNAP_DOWN_TOLERANCE);
-    const bestWithinTolerance = bestScale >= 1 / (1 + SNAP_DOWN_TOLERANCE);
+    const withinTolerance = scale >= minScale;
+    const bestWithinTolerance = bestScale >= minScale;
     const better = withinTolerance
       ? !bestWithinTolerance || area < bestArea
       : !bestWithinTolerance && scale > bestScale;
@@ -99,13 +128,20 @@ function resolveDetectorSize(
 }
 
 // Recognizer input width (NCHW dim 3): smallest legal width ≥ desired content, so
-// snapping never squishes (only the constraint max can).
-function resolveRecWidth(constraint: InputShapeConstraint, desiredWidth: number): number {
+// snapping never squishes (only the constraint max can). `align` (the CTC
+// width-to-timestep stride) constrains a dynamic range to stride-aligned widths so
+// the pre-sized probs tensor always matches; static/enum widths are stride-aligned
+// by the contract check, so `align` doesn't apply there.
+function resolveRecWidth(
+  constraint: InputShapeConstraint,
+  desiredWidth: number,
+  align: number
+): number {
   'worklet';
-  if ('dims' in constraint) {
-    return snapUpDim(desiredWidth, constraint.dims[3]!);
+  if (constraint.kind === 'range') {
+    return snapUpDim(desiredWidth, constraint.dims[3]!, align);
   }
-  if ('shape' in constraint) {
+  if (constraint.kind === 'static') {
     return constraint.shape[3]!;
   }
   // Smallest enumerated width that fits the desired content, else the largest.
@@ -166,7 +202,8 @@ function detectQuads(
   'worklet';
   const numChannels = FORMAT_CHANNELS[format];
   const toRgbCode = FORMAT_CONVERSION[format].rgb;
-  const { detW, detH } = resolveDetectorSize(engine.det.constraint, width, height);
+  const align = Math.max(1, engine.extractBoxes.inputAlignment ?? 1);
+  const { detW, detH } = resolveDetectorSize(engine.det.constraint, width, height, align);
   // Resolve output shapes before allocating — the extractor may throw (CRAFT on
   // odd dims), and nothing must leak on that path.
   const outputShapes = engine.extractBoxes.outputShapes({ width: detW, height: detH });
@@ -239,12 +276,12 @@ function recognizeNarrowQuad(
   quad: Quad
 ): { text: string; conf: number } {
   'worklet';
-  const { recH, maxW, widthConstraint, padValue, padMode } = engine.rec;
+  const { recH, maxW, widthConstraint, outStride, padValue, padMode } = engine.rec;
   const size = quadSize(quad);
   // Aspect-preserving width of the content at recognizer height (>= 1 px).
   const aspectWidth = Math.max(1, Math.round((recH * size.width) / Math.max(1, size.height)));
   const contentW = Math.min(aspectWidth, maxW);
-  const snappedW = resolveRecWidth(widthConstraint, contentW);
+  const snappedW = resolveRecWidth(widthConstraint, contentW, outStride);
   const tCanvas = tensor('uint8', [recH, snappedW, REC_CHANNELS]);
   try {
     rectifyQuad(src, tCanvas, quad, {
@@ -270,6 +307,9 @@ function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: stri
   if (desiredW <= maxW * WIDE_SQUISH_TOLERANCE) {
     return recognizeNarrowQuad(engine, src, quad);
   }
+  // Known limitation: segments abut with no overlap, so a glyph straddling a cut
+  // can be mangled/dropped at the seam. An overlap margin + de-dup would fix it;
+  // acceptable for now since a line this wide is the rare case.
   const segments = splitWideQuad(quad, Math.ceil(desiredW / maxW));
   let text = '';
   let weightedConf = 0;
@@ -292,7 +332,7 @@ function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: stri
 // individually drops that bias. A box the detector merged from several stacked
 // letters is first split into ~square cells. Confidence is the length-weighted
 // mean; null when nothing usable.
-function recognizeGlyphStrip(
+function recognizeGlyphColumn(
   engine: OcrEngine,
   src: Tensor,
   glyphs: readonly Quad[]
@@ -362,7 +402,7 @@ function readStackedBox(
       boxSrc = cvtColor(tBoxRaw, tRecBox, toRgbCode);
     }
     const glyphs = charQuads.map((q) => orderQuad(q)).sort((a, b) => a[0]!.y - b[0]!.y);
-    return recognizeGlyphStrip(engine, boxSrc, glyphs);
+    return recognizeGlyphColumn(engine, boxSrc, glyphs);
   } finally {
     tBoxRaw.dispose();
     tRecBox?.dispose();
@@ -495,16 +535,19 @@ export function runOcrPassOnTensor(
       return orderByReadingOrder(detections);
     }
 
+    // The stacked-box path re-detects glyphs char-level; only extractors that
+    // support that mode take it — others read the tall box horizontally.
+    const canReadStacks = engine.extractBoxes.supportsCharLevel ?? false;
     const { stacks, singles } = groupVerticalStacks(ordered);
     for (const stack of stacks) {
-      const strip = recognizeGlyphStrip(engine, recSrc, stack);
-      if (strip) {
-        pushDetection(detections, verticalMinConf, strip.text, strip.conf, boundingQuadOf(stack));
+      const column = recognizeGlyphColumn(engine, recSrc, stack);
+      if (column) {
+        pushDetection(detections, verticalMinConf, column.text, column.conf, boundingQuadOf(stack));
       }
     }
     for (const orderedQuad of singles) {
       const size = quadSize(orderedQuad);
-      if (size.height >= size.width * tallCropRatio) {
+      if (canReadStacks && size.height >= size.width * tallCropRatio) {
         const stacked = readStackedBox(engine, page, format, orderedQuad, size, budget);
         if (stacked) {
           pushDetection(detections, verticalMinConf, stacked.text, stacked.conf, orderedQuad);
@@ -554,12 +597,15 @@ export function runOcrPass(
  * @param model The loaded fused detect/recognize model.
  * @param charsetOption The recognizer charset (string = one codepoint per index;
  * array = taken verbatim).
+ * @param extractBoxes The detector's box extractor — its alignment/char-level
+ * capabilities are validated against the model's detect input constraint.
  * @returns The model-derived detect/recognize contract ({@link OcrEngine} minus
  * the run options `createOcr` adds).
  */
 export function resolveOcrContract(
   model: Model,
-  charsetOption: string | readonly string[]
+  charsetOption: string | readonly string[],
+  extractBoxes: TextBoxExtractor
 ): {
   det: Omit<OcrEngine['det'], 'norm'>;
   rec: Omit<OcrEngine['rec'], 'norm' | 'padValue' | 'padMode'>;
@@ -575,6 +621,33 @@ export function resolveOcrContract(
     [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
     Array.from({ length: outCount }, () => SymbolicTensor())
   );
+  const detConstraint = model.getInputShapeConstraints('detect')[0]!;
+  // Reject a detector size the runtime can't resolve or the extractor can't decode
+  // — at load, not per run. A dynamic range is snapped to the extractor's alignment
+  // at run time, so it only needs numeric H/W; static/enum shapes must already be
+  // aligned, else `outputShapes` would throw on every run.
+  const detAlign = Math.max(1, extractBoxes.inputAlignment ?? 1);
+  if (detConstraint.kind === 'range') {
+    for (const dim of [2, 3]) {
+      const symbol = detConstraint.dims[dim]!.symbol;
+      if (symbol !== undefined) {
+        throw new Error(
+          `OCR: detector input dimension ${dim} is the named symbolic size '${symbol}', which ` +
+            `can't be resolved to a concrete input size.`
+        );
+      }
+    }
+  } else if (detAlign > 1) {
+    const shapes = detConstraint.kind === 'static' ? [detConstraint.shape] : detConstraint.shapes;
+    for (const shape of shapes) {
+      if (shape[2]! % detAlign !== 0 || shape[3]! % detAlign !== 0) {
+        throw new Error(
+          `OCR: detector input shape [${shape.join(', ')}] has H or W not a multiple of the ` +
+            `extractor's required alignment (${detAlign}); it would fail decode on every run.`
+        );
+      }
+    }
+  }
 
   const recMeta = validateModelSchema(
     model,
@@ -583,13 +656,24 @@ export function resolveOcrContract(
     [SymbolicTensor('float32', [1, 'T', 'V'])]
   );
   const widthConstraint = model.getInputShapeConstraints('recognize')[0]!;
+  // A named symbolic recognizer dim has no numeric bound the pipeline can size to.
+  if (widthConstraint.kind === 'range') {
+    for (const [dim, range] of widthConstraint.dims.entries()) {
+      if (range.symbol !== undefined) {
+        throw new Error(
+          `OCR: recognizer input dimension ${dim} is the named symbolic size '${range.symbol}', ` +
+            `which the pipeline can't resolve. Export it with a numeric range or fixed size.`
+        );
+      }
+    }
+  }
   // [min, max] extent of each NCHW input dim: a dynamic range gives them
   // directly, a static shape has min === max, an enumerated set reduces across
   // its shapes.
   const extents: readonly (readonly [number, number])[] =
-    'dims' in widthConstraint
+    widthConstraint.kind === 'range'
       ? widthConstraint.dims.map((d) => [d.min, d.max] as const)
-      : 'shape' in widthConstraint
+      : widthConstraint.kind === 'static'
         ? widthConstraint.shape.map((s) => [s, s] as const)
         : widthConstraint.shapes[0]!.map((_, dim) =>
             widthConstraint.shapes.reduce<readonly [number, number]>(
@@ -627,12 +711,56 @@ export function resolveOcrContract(
     );
   }
   // The recognizer reduces the input width onto the CTC time axis by a fixed
-  // factor; derive it from the model's static (width, timesteps) so the probs
-  // output can be pre-allocated for any legal width.
-  const outStride = recMeta.inputTensorMeta[0]!.shape[3]! / outShape[1]!;
+  // integer factor; derive it from the model's static (width, timesteps) so the
+  // probs output can be pre-allocated for any legal width. This is a hard model
+  // contract: T must scale linearly with width. A non-integer ratio means the
+  // convolution stack pads/rounds and the linear assumption would mis-size it.
+  const recInputWidth = recMeta.inputTensorMeta[0]!.shape[3]!;
+  const recTimesteps = outShape[1]!;
+  if (recInputWidth % recTimesteps !== 0) {
+    throw new Error(
+      `OCR: recognizer input width (${recInputWidth}) must be an exact multiple of its CTC ` +
+        `timesteps (${recTimesteps}) — the pipeline assumes a fixed width-to-timestep stride.`
+    );
+  }
+  const outStride = recInputWidth / recTimesteps;
+
+  // `recognizeCanvas` pre-allocates the probs tensor as [1, snappedW/outStride, V],
+  // so the width the runtime picks must sit on the stride lattice (a multiple of
+  // outStride). For a range, `resolveRecWidth` snaps to a stride-aligned width, so
+  // we only need the range to admit ONE (residues mod outStride repeat with period
+  // ≤ outStride, so scanning that many lattice steps is exhaustive). For static/enum
+  // the runtime picks a declared width verbatim, so every candidate must be aligned.
+  let widthsLegal: boolean;
+  if (widthConstraint.kind === 'range') {
+    const range = widthConstraint.dims[3]!;
+    const step = Math.max(1, range.step);
+    widthsLegal = false;
+    for (let k = 0; k <= outStride; k++) {
+      const w = range.min + k * step;
+      if (w > range.max) {
+        break;
+      }
+      if (w % outStride === 0) {
+        widthsLegal = true;
+        break;
+      }
+    }
+  } else if (widthConstraint.kind === 'static') {
+    widthsLegal = widthConstraint.shape[3]! % outStride === 0;
+  } else {
+    widthsLegal = widthConstraint.shapes.every((s) => s[3]! % outStride === 0);
+  }
+  if (!widthsLegal) {
+    throw new Error(
+      `OCR: the recognizer width constraint is incompatible with the CTC width-to-timestep ` +
+        `stride (${outStride}) — no width the runtime would pick lands on the stride lattice, ` +
+        `so the probs tensor can't be pre-sized.`
+    );
+  }
 
   return {
-    det: { constraint: model.getInputShapeConstraints('detect')[0]! },
+    det: { constraint: detConstraint },
     rec: { recH, maxW, widthConstraint, outStride, vocab: vocabSize },
     charset,
   };

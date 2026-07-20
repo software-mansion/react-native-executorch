@@ -163,6 +163,19 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
         }
     }
 
-    throw jsi::JSError(rt, std::format("{} shape does not match any of the model's enumerated input shapes", name));
+    const auto join = [](const std::vector<int32_t> &dims) {
+        std::string s;
+        for (size_t axis = 0; axis < dims.size(); ++axis) {
+            s += (axis ? ", " : "");
+            s += std::to_string(dims[axis]);
+        }
+        return s;
+    };
+    std::string legal;
+    for (const auto &candidate : enumeratedShapes) {
+        legal += " [" + join(candidate) + "]";
+    }
+    throw jsi::JSError(rt, std::format("{} shape [{}] does not match any enumerated input shape; legal:{}",
+                                       name, join(shape), legal));
 }
 } // namespace rnexecutorch::core::tensor

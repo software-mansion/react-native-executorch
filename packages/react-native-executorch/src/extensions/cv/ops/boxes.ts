@@ -73,8 +73,23 @@ export function scaleBox<F extends BoxFormat>(
   }
 ): BoundingBox<F> {
   'worklet';
-  // Both resize maps are affine, so a span scales exactly as the difference of
-  // two mapped points.
+  const { from, to, resizeMode } = opts;
+
+  let scaleX: number;
+  let scaleY: number;
+  switch (resizeMode) {
+    case 'letterbox': {
+      const scale = Math.min(from.width / to.width, from.height / to.height);
+      scaleX = scale;
+      scaleY = scale;
+      break;
+    }
+    case 'stretch':
+      scaleX = from.width / to.width;
+      scaleY = from.height / to.height;
+      break;
+  }
+
   switch (box.format) {
     case 'xyxy': {
       const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
@@ -89,24 +104,22 @@ export function scaleBox<F extends BoxFormat>(
     }
     case 'xywh': {
       const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
-      const pFar = scalePoint({ x: box.xmin + box.w, y: box.ymin + box.h }, opts);
       return {
         format: 'xywh',
         xmin: pMin.x,
         ymin: pMin.y,
-        w: pFar.x - pMin.x,
-        h: pFar.y - pMin.y,
+        w: box.w / scaleX,
+        h: box.h / scaleY,
       } as BoundingBox<F>;
     }
     case 'cxcywh': {
       const pCenter = scalePoint({ x: box.cx, y: box.cy }, opts);
-      const pFar = scalePoint({ x: box.cx + box.w, y: box.cy + box.h }, opts);
       return {
         format: 'cxcywh',
         cx: pCenter.x,
         cy: pCenter.y,
-        w: pFar.x - pCenter.x,
-        h: pFar.y - pCenter.y,
+        w: box.w / scaleX,
+        h: box.h / scaleY,
       } as BoundingBox<F>;
     }
   }

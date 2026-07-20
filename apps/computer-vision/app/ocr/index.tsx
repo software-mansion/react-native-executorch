@@ -8,6 +8,7 @@ import {
   type OcrDetection,
   type DocumentBlock,
   type OcrModel,
+  type DocLayoutLabel,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
@@ -15,8 +16,6 @@ import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
-
-const PREVIEW_HEIGHT = 280;
 
 type BackendKey = 'XNNPACK' | 'VULKAN' | 'COREML';
 const ALL_MODELS: { label: string; backend: BackendKey; base: OcrModel; platforms: string[] }[] = [
@@ -64,23 +63,46 @@ const MODEL_OPTIONS: ModelOption[] = OCR_MODELS.map((m, i) => ({ label: m.label,
 type Cell = { text: string; colspan: number };
 
 // Parse the filled SLANet structure HTML into rows of cells for rendering.
+// A rowspan becomes spacer cells on the rows below so columns stay aligned.
 function parseTable(html: string): Cell[][] {
-  const rows: Cell[][] = [];
+  const raw: { text: string; colspan: number; rowspan: number }[][] = [];
   const trRe = /<tr>([\s\S]*?)<\/tr>/g;
   let tr: RegExpExecArray | null;
   while ((tr = trRe.exec(html))) {
-    const cells: Cell[] = [];
+    const cells: { text: string; colspan: number; rowspan: number }[] = [];
     const tdRe = /<td([^>]*)>([\s\S]*?)<\/td>/g;
     let td: RegExpExecArray | null;
     while ((td = tdRe.exec(tr[1]!))) {
       cells.push({
         text: td[2] ?? '',
         colspan: Number(/colspan="(\d+)"/.exec(td[1] ?? '')?.[1] ?? 1),
+        rowspan: Number(/rowspan="(\d+)"/.exec(td[1] ?? '')?.[1] ?? 1),
       });
     }
-    rows.push(cells);
+    raw.push(cells);
   }
-  return rows;
+  const out: Cell[][] = raw.map(() => []);
+  const occupied: boolean[][] = [];
+  for (let r = 0; r < raw.length; r++) {
+    let c = 0;
+    const spacer = () => {
+      out[r]!.push({ text: '', colspan: 1 });
+      c++;
+    };
+    for (const cell of raw[r]!) {
+      while (occupied[r]?.[c]) spacer();
+      out[r]!.push({ text: cell.text, colspan: cell.colspan });
+      for (let dr = 1; dr < cell.rowspan; dr++) {
+        occupied[r + dr] ??= [];
+        for (let dc = 0; dc < cell.colspan; dc++) {
+          occupied[r + dr]![c + dc] = true;
+        }
+      }
+      c += cell.colspan;
+    }
+    while (occupied[r]?.[c]) spacer();
+  }
+  return out;
 }
 
 function TableView({ html }: { html: string }) {
@@ -116,7 +138,7 @@ function OCRContent() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [detections, setDetections] = useState<OcrDetection[]>([]);
-  const [blocks, setBlocks] = useState<DocumentBlock<string>[]>([]);
+  const [blocks, setBlocks] = useState<DocumentBlock<DocLayoutLabel>[]>([]);
   // The corrected frame the result boxes are relative to (for the overlay).
   const [processed, setProcessed] = useState<SkImage | null>(null);
   const [wallMs, setWallMs] = useState<number | null>(null);
@@ -131,7 +153,7 @@ function OCRContent() {
     ...(documentOn ? { documentModels: models.documentModels.PP_HELPERS[selected.backend] } : {}),
   };
 
-  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr<string>(config);
+  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr<DocLayoutLabel>(config);
 
   const resetResults = () => {
     setDetections([]);
@@ -148,8 +170,8 @@ function OCRContent() {
         setImageUri(uri);
         resetResults();
       }
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -158,7 +180,12 @@ function OCRContent() {
     setIsProcessing(true);
     setError(null);
     try {
-      const pixels = skiaImage.readPixels();
+      const pixels = skiaImage.readPixels(0, 0, {
+        width: skiaImage.width(),
+        height: skiaImage.height(),
+        colorType: ColorType.RGBA_8888,
+        alphaType: AlphaType.Unpremul,
+      });
       if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
       const start = Date.now();
       const out = await runOcr(
@@ -185,14 +212,16 @@ function OCRContent() {
           width: frame.width,
           height: frame.height,
           colorType: ColorType.RGBA_8888,
-          alphaType: AlphaType.Premul,
+          // Match the AlphaType readPixels used above — the pipeline keeps alpha
+          // as-is, so a mismatched mode here would tint anything with transparency.
+          alphaType: AlphaType.Unpremul,
         },
         Skia.Data.fromBytes(frame.data),
         frame.width * 4
       );
       setProcessed(frameImage ?? null);
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsProcessing(false);
     }
@@ -201,6 +230,7 @@ function OCRContent() {
   const activeError = loadError ? String(loadError) : error;
   const boxes = useMemo(() => detections.map((d) => d.quad), [detections]);
   const showBlocks = layoutOn && blocks.length > 0;
+  const busy = isProcessing || !isReady;
 
   return (
     <ScrollView
@@ -228,18 +258,21 @@ function OCRContent() {
         value={vertical}
         onChange={setVertical}
         hint="read upright stacked columns"
+        disabled={busy}
       />
       <Toggle
         label="Layout (blocks)"
         value={layoutOn}
         onChange={setLayoutOn}
         hint="group into reading-ordered regions"
+        disabled={busy}
       />
       <Toggle
         label="Document helpers"
         value={documentOn}
         onChange={setDocumentOn}
         hint="orientation, table structure, dewarp"
+        disabled={busy}
       />
       {documentOn && (
         <>
@@ -248,6 +281,7 @@ function OCRContent() {
             value={orientation}
             onChange={setOrientation}
             indent
+            disabled={busy}
           />
           <Toggle
             label="Table structure"
@@ -255,6 +289,7 @@ function OCRContent() {
             onChange={setTables}
             indent
             hint="needs Layout on"
+            disabled={busy}
           />
           <Toggle
             label="Dewarp"
@@ -262,6 +297,7 @@ function OCRContent() {
             onChange={setDewarp}
             indent
             hint="flattens curved/bent pages — not angled shots"
+            disabled={busy}
           />
         </>
       )}
@@ -275,7 +311,6 @@ function OCRContent() {
 
       <ImageViewport
         skiaImage={processed ?? skiaImage}
-        height={PREVIEW_HEIGHT}
         boxes={boxes}
         onPressPlaceholder={() => handlePick(false)}
       />
@@ -352,12 +387,14 @@ function Toggle({
   onChange,
   hint,
   indent,
+  disabled,
 }: {
   label: string;
   value: boolean;
   onChange: (v: boolean) => void;
   hint?: string;
   indent?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <View style={[styles.toggleRow, indent && styles.toggleIndent]}>
@@ -365,7 +402,7 @@ function Toggle({
         <Text style={styles.toggleLabel}>{label}</Text>
         {hint ? <Text style={styles.toggleHint}>{hint}</Text> : null}
       </View>
-      <Switch value={value} onValueChange={onChange} />
+      <Switch value={value} onValueChange={onChange} disabled={disabled} />
     </View>
   );
 }
