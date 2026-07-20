@@ -641,13 +641,13 @@ const WHISPER_TINY_COREML_FP16: WhisperSttModel = {
 
 const WHISPER_BASE_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_en_xnnpack_fp32.pte',
-  tokenizerPath: `${BASE_URL}-whisper-base-en/${VERSION_TAG}/tokenizer.json`,
+  tokenizerPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   fsmnVadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_BASE_EN_COREML_FP16: WhisperSttModel<'en'> = {
   modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_base_en_coreml_fp16.pte',
-  tokenizerPath: `${BASE_URL}-whisper-base-en/${VERSION_TAG}/tokenizer.json`,
+  tokenizerPath: `${BASE_URL}-whisper-base.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   fsmnVadModel: FSMN_VAD_XNNPACK_FP32,
 };
@@ -667,13 +667,13 @@ const WHISPER_BASE_COREML_FP16: WhisperSttModel = {
 
 const WHISPER_SMALL_EN_XNNPACK_FP32: WhisperSttModel<'en'> = {
   modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_en_xnnpack_fp32.pte',
-  tokenizerPath: `${BASE_URL}-whisper-small-en/${VERSION_TAG}/tokenizer.json`,
+  tokenizerPath: `${BASE_URL}-whisper-small.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   fsmnVadModel: FSMN_VAD_XNNPACK_FP32,
 };
 const WHISPER_SMALL_EN_COREML_FP16: WhisperSttModel<'en'> = {
   modelPath: 'https://huggingface.co/bhanc/scratch/resolve/main/whisper_small_en_coreml_fp16.pte',
-  tokenizerPath: `${BASE_URL}-whisper-small-en/${VERSION_TAG}/tokenizer.json`,
+  tokenizerPath: `${BASE_URL}-whisper-small.en/${VERSION_TAG}/tokenizer.json`,
   supportedLanguages: ['en'],
   fsmnVadModel: FSMN_VAD_XNNPACK_FP32,
 };

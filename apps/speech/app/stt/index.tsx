@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Platform, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSpeechToText, models, WHISPER_SAMPLE_RATE_HZ } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
@@ -16,6 +16,52 @@ const MODELS = [
   {
     name: 'Tiny English (CoreML)',
     config: models.speechToText.WHISPER.EN.TINY.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Base English (CPU)',
+    config: models.speechToText.WHISPER.EN.BASE.XNNPACK_FP32,
+  },
+  {
+    name: 'Base English (CoreML)',
+    config: models.speechToText.WHISPER.EN.BASE.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Small English (CPU)',
+    config: models.speechToText.WHISPER.EN.SMALL.XNNPACK_FP32,
+  },
+  {
+    name: 'Small English (CoreML)',
+    config: models.speechToText.WHISPER.EN.SMALL.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Tiny Multilingual (CPU)',
+    config: models.speechToText.WHISPER.TINY.XNNPACK_FP32,
+  },
+  {
+    name: 'Tiny Multilingual (CoreML)',
+    config: models.speechToText.WHISPER.TINY.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Base Multilingual (CPU)',
+    config: models.speechToText.WHISPER.BASE.XNNPACK_FP32,
+  },
+  {
+    name: 'Base Multilingual (CoreML)',
+    config: models.speechToText.WHISPER.BASE.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Small Multilingual (CPU)',
+    config: models.speechToText.WHISPER.SMALL.XNNPACK_FP32,
+  },
+  {
+    name: 'Small Multilingual (CoreML)',
+    config: models.speechToText.WHISPER.SMALL.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
   },
 ];
 
@@ -111,7 +157,11 @@ export default function STTScreen() {
         <View style={styles.card}>
           <ModelPicker
             label="Whisper Model"
-            options={MODELS.map((m) => ({ label: m.name, value: m, disabled: isModelBusy }))}
+            options={MODELS.map((m) => ({
+              label: m.name,
+              value: m,
+              disabled: isModelBusy || !!m.disabled,
+            }))}
             selectedValue={selectedModel}
             onValueChange={setSelectedModel}
           />
