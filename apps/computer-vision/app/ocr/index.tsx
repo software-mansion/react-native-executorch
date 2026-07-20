@@ -261,7 +261,7 @@ function OCRContent() {
             value={dewarp}
             onChange={setDewarp}
             indent
-            hint="warped photos only"
+            hint="flattens curved/bent pages — not angled shots"
           />
         </>
       )}
