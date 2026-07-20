@@ -284,18 +284,22 @@ function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: stri
   return { text, conf: weight === 0 ? 0 : weightedConf / weight };
 }
 
-// Recognizes glyph quads as one line: each glyph warped upright to recognizer
-// height and placed side by side in one canvas, then read in a single pass. Tall
-// glyph boxes are first split into ~square cells. Null when nothing usable.
+// Reads a vertical stack of glyph quads top-to-bottom: each glyph is recognized
+// on its OWN and the single-char results joined. Composing the glyphs into one
+// horizontal strip makes the recognizer hallucinate a word out of a non-word
+// column (its context was trained on horizontal words); reading them
+// individually drops that bias. A box the detector merged from several stacked
+// letters is first split into ~square cells. Confidence is the length-weighted
+// mean; null when nothing usable.
 function recognizeGlyphStrip(
   engine: OcrEngine,
   src: Tensor,
   glyphs: readonly Quad[]
 ): { text: string; conf: number } | null {
   'worklet';
-  const { recH, maxW, widthConstraint, padValue, padMode } = engine.rec;
-  const cells: { quad: Quad; width: number }[] = [];
-  let totalW = 0;
+  let text = '';
+  let weightedConf = 0;
+  let weight = 0;
   for (const glyph of glyphs) {
     const glyphSize = quadSize(glyph);
     if (glyphSize.width < 1 || glyphSize.height < 1) {
@@ -307,41 +311,15 @@ function recognizeGlyphStrip(
       if (cellSize.width < 1 || cellSize.height < 1) {
         continue;
       }
-      const aspectWidth = Math.max(
-        1,
-        Math.round((recH * cellSize.width) / Math.max(1, cellSize.height))
-      );
-      const width = Math.min(aspectWidth, maxW);
-      cells.push({ quad: cell, width });
-      totalW += width;
-    }
-  }
-  if (cells.length === 0) {
-    return null;
-  }
-  const snappedW = resolveRecWidth(widthConstraint, Math.min(totalW, maxW));
-  const tCanvas = tensor('uint8', [recH, snappedW, REC_CHANNELS]);
-  try {
-    // First warp clears + pads the canvas; the rest compose in with `clear: false`.
-    let xOff = 0;
-    for (let i = 0; i < cells.length; i++) {
-      if (xOff >= snappedW) {
-        break;
+      const r = recognizeNarrowQuad(engine, src, cell);
+      if (r.text.length > 0) {
+        text += r.text;
+        weightedConf += r.conf * r.text.length;
+        weight += r.text.length;
       }
-      rectifyQuad(src, tCanvas, cells[i]!.quad, {
-        contentWidth: cells[i]!.width,
-        offsetX: xOff,
-        clear: i === 0,
-        padMode,
-        padValue,
-      });
-      xOff += cells[i]!.width;
     }
-    const { text, conf } = recognizeCanvas(engine, tCanvas, snappedW);
-    return text.length > 0 ? { text, conf } : null;
-  } finally {
-    tCanvas.dispose();
   }
+  return weight === 0 ? null : { text, conf: weightedConf / weight };
 }
 
 // Reads one tall box the detector merged from stacked glyphs: crop upright,
