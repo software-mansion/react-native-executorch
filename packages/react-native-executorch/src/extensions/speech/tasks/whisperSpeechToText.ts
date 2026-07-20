@@ -27,7 +27,7 @@ const STRIDE_SIZE = 1 * WHISPER_SAMPLE_RATE_HZ; // overlap between consecutive c
 const BUFFER_SIZE = CHUNK_LENGTH_SECONDS * WHISPER_SAMPLE_RATE_HZ; // samples per full chunk
 
 /**
- * BCP-47 language codes supported by Whisper multilingual models. English-only
+ * Language codes supported by Whisper multilingual models. English-only
  * model variants only accept `'en'`.
  * @category Constants
  */
@@ -46,7 +46,7 @@ export const WHISPER_LANGUAGES = [
 ] as const;
 
 /**
- * Union type of all BCP-47 language codes supported by Whisper. Derived from
+ * Union type of all language codes supported by Whisper. Derived from
  * {@link WHISPER_LANGUAGES}.
  * @category Types
  */
@@ -55,7 +55,7 @@ export type WhisperLanguage = (typeof WHISPER_LANGUAGES)[number];
 /**
  * Options passed to a single transcription call.
  * @category Types
- * @property language - BCP-47 language code of the spoken audio. Must be one of
+ * @property language - Whisper language code of the spoken audio. Must be one of
  * the {@link WhisperLanguage} values declared in the model's
  * `supportedLanguages` list.
  */
