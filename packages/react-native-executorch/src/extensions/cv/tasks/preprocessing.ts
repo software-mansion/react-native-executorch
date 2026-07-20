@@ -1,7 +1,7 @@
 import { tensor, type Tensor } from '../../../core/tensor';
 import { matchShape } from '../../../core/modelSchema';
 
-import type { ImageBuffer } from '../image';
+import type { ImageBuffer, ImageFormat } from '../image';
 import {
   type ResizeMode,
   type InterpolationMethod,
@@ -15,7 +15,6 @@ import {
 
 /**
  * Options for configuring the image preprocessor pipeline.
- * @category Types
  */
 export type ImagePreprocessorOptions = {
   readonly resizeMode: ResizeMode;
@@ -32,7 +31,6 @@ export type ImagePreprocessorOptions = {
  * normalize, and copy raw image buffers into target tensors matching model
  * input shapes. All intermediate scratch tensors are pre-allocated and safely
  * disposed of when calling `dispose()`.
- * @category Typescript API
  * @param opts Normalization scaling coefficients, interpolation algorithms, and
  * crop/resize modes.
  * @param outputShape Expected output shape of the model input tensor (must
@@ -56,6 +54,16 @@ export function createImagePreprocessor(
    * data.
    */
   process: (input: ImageBuffer) => Tensor;
+  /**
+   * Like {@link process}, but reads from a full-res image tensor (`[H, W, C]`,
+   * uint8) already on-device instead of an `ImageBuffer`, avoiding the raw-data
+   * copy. `format` supplies the source channel count and color conversion. The
+   * returned tensor is preprocessor-managed (do not dispose).
+   * @param src The full-res source image tensor in HWC layout.
+   * @param format The pixel format of `src` (for channels + color conversion).
+   * @returns A reference to the managed output tensor.
+   */
+  processTensor: (src: Tensor, format: ImageFormat) => Tensor;
   /**
    * Releases all allocated native resources.
    */
@@ -114,5 +122,27 @@ export function createImagePreprocessor(
     return tOutput;
   };
 
-  return { process, dispose };
+  const processTensor = (src: Tensor, format: ImageFormat): Tensor => {
+    'worklet';
+    const numChannels = FORMAT_CHANNELS[format];
+    const colorCode = FORMAT_CONVERSION[format].rgb;
+    const tResize = tensor('uint8', [targetH, targetW, numChannels]);
+    try {
+      src
+        .through(resize, tResize, {
+          mode: resizeMode,
+          interpolation: interpolation,
+          padValue: padValue,
+        })
+        .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
+        .through(toChannelsFirst, tChanFirst)
+        .through(normalize, tNorm, { alpha, beta })
+        .copyTo(tOutput);
+    } finally {
+      tResize.dispose();
+    }
+    return tOutput;
+  };
+
+  return { process, processTensor, dispose };
 }

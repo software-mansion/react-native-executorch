@@ -1,6 +1,8 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
-import type { ImageFormat } from '../image';
+import type { ImageBuffer, ImageFormat } from '../image';
+import type { Quad } from './quad';
+import type { BoundingBox } from './boxes';
 
 /**
  * Supported color conversion code presets (similar to OpenCV).
@@ -208,4 +210,113 @@ export function applyColormap(
 ): Tensor {
   'worklet';
   return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
+}
+
+/**
+ * Rotates `src` clockwise by `degCW` degrees (90, 180, or 270) into the
+ * pre-allocated `dst`. A 90/270 rotation swaps width and height, so `dst` must be
+ * sized with `src`'s height and width transposed.
+ * @category Typescript API
+ * @param src The source image tensor (HWC).
+ * @param dst The destination tensor, pre-sized for the rotation.
+ * @param degCW The clockwise rotation in degrees: 90, 180, or 270.
+ * @returns The destination tensor `dst`.
+ */
+export function rotate(src: Tensor, dst: Tensor, degCW: number): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.rotate(src, dst, degCW);
+}
+
+/**
+ * Options for {@link rectifyQuad}. `contentWidth` is the rectified content's width
+ * (px) in the canvas; `align` (default `'left'`) and `padMode`/`padValue` (default
+ * constant `0`) place and fill it. `offsetX` (default `-1` = use `align`) pins the
+ * content at an exact x, and `clear` (default `true`) wipes the canvas first —
+ * pass `offsetX` with `clear: false` to compose successive rectified regions into
+ * one canvas (e.g. a glyph strip).
+ * @category Types
+ */
+export type RectifyQuadOptions = {
+  readonly contentWidth: number;
+  readonly align?: 'left' | 'center';
+  readonly padMode?: 'constant' | 'cornerMean';
+  readonly padValue?: number;
+  readonly offsetX?: number;
+  readonly clear?: boolean;
+};
+
+/**
+ * Rectifies an oriented quad region of `src` into the flat pre-allocated canvas
+ * `dst` — perspective crop + resize-to-height + pad in one native pass. An
+ * axis-aligned bbox is a 4-corner quad; pass its corners to rectify a box.
+ * @category Typescript API
+ * @param src The source image tensor (HWC uint8).
+ * @param dst The pre-allocated destination canvas (HWC uint8).
+ * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
+ * @param opts Content width, alignment, and padding.
+ * @returns The destination tensor `dst`.
+ */
+export function rectifyQuad(
+  src: Tensor,
+  dst: Tensor,
+  quad: Quad,
+  opts: RectifyQuadOptions
+): Tensor {
+  'worklet';
+  // The native op takes the corners as a flat 8-number array (cheap JSI marshaling).
+  // prettier-ignore
+  const flat = [
+    quad[0]!.x, quad[0]!.y, quad[1]!.x, quad[1]!.y,
+    quad[2]!.x, quad[2]!.y, quad[3]!.x, quad[3]!.y,
+  ];
+  return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
+    contentWidth: opts.contentWidth,
+    align: opts.align ?? 'left',
+    padMode: opts.padMode ?? 'constant',
+    padValue: opts.padValue ?? 0,
+    offsetX: opts.offsetX ?? -1,
+    clear: opts.clear ?? true,
+  });
+}
+
+/**
+ * Warps `src` through a backward sampling field (`torch.grid_sample`-style — the
+ * grid gives, per output pixel, where to read from in `src`) into the
+ * pre-allocated `dst`, natively via `cv::remap`.
+ * @category Typescript API
+ * @param src The source image tensor (HWC uint8).
+ * @param grid The sampling field (`float32`, `[..,2,gH,gW]`, channel 0 = x, 1 = y,
+ * normalized to `[-1, 1]` with `align_corners=true`).
+ * @param dst The pre-allocated destination, same shape/dtype as `src`.
+ * @returns The destination tensor `dst`.
+ */
+export function warpByGrid(src: Tensor, grid: Tensor, dst: Tensor): Tensor {
+  'worklet';
+  return rnexecutorchJsi.cv.warpByGrid(src, grid, dst);
+}
+
+/**
+ * Crops an axis-aligned `xyxy` region out of an image buffer as a plain pixel
+ * slice (same format and layout). A pure row-wise copy — not a native op.
+ * @category Typescript API
+ * @param input The source image buffer.
+ * @param bbox The crop region in `xyxy` pixels.
+ * @returns The cropped image buffer.
+ */
+export function cropImageBuffer(input: ImageBuffer, bbox: BoundingBox<'xyxy'>): ImageBuffer {
+  'worklet';
+  const { data, width, height, format } = input;
+  const channels = FORMAT_CHANNELS[format];
+  const x0 = Math.max(0, Math.min(Math.round(bbox.xmin), width));
+  const y0 = Math.max(0, Math.min(Math.round(bbox.ymin), height));
+  const x1 = Math.max(0, Math.min(Math.round(bbox.xmax), width));
+  const y1 = Math.max(0, Math.min(Math.round(bbox.ymax), height));
+  const cropWidth = Math.max(1, x1 - x0);
+  const cropHeight = Math.max(1, y1 - y0);
+  const out = new Uint8Array(cropWidth * cropHeight * channels);
+  for (let y = 0; y < cropHeight; y++) {
+    const rowStart = ((y0 + y) * width + x0) * channels;
+    out.set(data.subarray(rowStart, rowStart + cropWidth * channels), y * cropWidth * channels);
+  }
+  return { data: out, width: cropWidth, height: cropHeight, format, layout: input.layout };
 }

@@ -76,6 +76,37 @@ export type ModelMethodMeta = {
 };
 
 /**
+ * The legal range of a single dynamic input dimension: any size
+ * `min + k * step` within `[min, max]`.
+ * @category Types
+ */
+export type DimRange = {
+  /** The smallest legal size for this dimension. */
+  readonly min: number;
+  /** The largest legal size for this dimension. */
+  readonly max: number;
+  /** The increment between consecutive legal sizes (>= 1). */
+  readonly step: number;
+};
+
+/**
+ * The resolved shape constraint of a single tensor input, discriminated by which
+ * field is present:
+ *
+ * - `dims` — dynamic per-dimension ranges (from a `get_dynamic_dims_<method>`
+ *   companion).
+ * - `shapes` — an enumerated set of whole shapes (from a
+ *   `get_enum_shapes_<method>` companion; enumerated-shape backends such as
+ *   CoreML).
+ * - `shape` — a single static shape (no companion).
+ * @category Types
+ */
+export type InputShapeConstraint =
+  | { readonly dims: DimRange[] }
+  | { readonly shapes: number[][] }
+  | { readonly shape: number[] };
+
+/**
  * A compiled, ready-to-run ExecuTorch model loaded into native memory.
  *
  * A `Model` exposes the raw ExecuTorch execution interface. It is intentionally
@@ -103,6 +134,16 @@ export interface Model {
    * @returns The {@link ModelMethodMeta} for the requested method.
    */
   getMethodMeta(methodName: string): ModelMethodMeta;
+
+  /**
+   * Returns the shape constraint of each tensor input of a method, resolved at
+   * load from the model's `get_dynamic_dims_<method>` / `get_enum_shapes_<method>`
+   * companions (or the single static shape when neither is present). One entry
+   * per tensor input, in the same order as `getMethodMeta().inputTensorMeta`.
+   * @param methodName The name of the exported method to inspect.
+   * @returns The per-tensor-input shape constraints.
+   */
+  getInputShapeConstraints(methodName: string): InputShapeConstraint[];
 
   /**
    * Executes a named model method synchronously.

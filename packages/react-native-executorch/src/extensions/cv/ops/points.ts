@@ -10,8 +10,9 @@ export type Point = {
 };
 
 /**
- * Helper function to scale a 2D point based on resize mode and resolution
- * changes.
+ * Maps a `from`-space coordinate (e.g. model input pixels) back into `to`-space
+ * (e.g. original image pixels), inverting the aspect-preserving letterbox or the
+ * per-axis stretch the source was produced with.
  * @category Utils
  * @param point The original coordinate point to scale.
  * @param opts Options detailing the scaling factors and resize mode.
@@ -30,18 +31,15 @@ export function scalePoint(
   }
 ): Point {
   'worklet';
-  const { from, to, resizeMode } = opts;
-  switch (resizeMode) {
+  const { from, to } = opts;
+  switch (opts.resizeMode) {
     case 'letterbox': {
       const scale = Math.min(from.width / to.width, from.height / to.height);
-      const offsetX = (from.width - to.width * scale) / 2.0;
-      const offsetY = (from.height - to.height * scale) / 2.0;
+      const offsetX = (from.width - to.width * scale) / 2;
+      const offsetY = (from.height - to.height * scale) / 2;
       return { x: (point.x - offsetX) / scale, y: (point.y - offsetY) / scale };
     }
-    case 'stretch': {
-      const scaleX = from.width / to.width;
-      const scaleY = from.height / to.height;
-      return { x: point.x / scaleX, y: point.y / scaleY };
-    }
+    case 'stretch':
+      return { x: (point.x * to.width) / from.width, y: (point.y * to.height) / from.height };
   }
 }
