@@ -48,6 +48,8 @@ export type OcrModelOptions = {
   readonly recognizerNorm?: NormalizeOptions;
   /** Recognizer canvas padding fill. Default 128 (neutral gray). */
   readonly recognizerPadValue?: number;
+  /** Strip padding fill: `'constant'` (default) or `'cornerMean'` (background-matched). */
+  readonly recognizerPadMode?: 'constant' | 'cornerMean';
   /**
    * Custom decode replacing greedy CTC; receives softmaxed `[1,T,V]` probs. Must
    * be a worklet. The probs tensor is pre-allocated from the recognizer's fixed
@@ -191,6 +193,7 @@ export async function createOcr<L = never>(
         ...contract.rec,
         norm: ocrOpts.recognizerNorm ?? RECOGNIZER_NORM,
         padValue: ocrOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE,
+        padMode: ocrOpts.recognizerPadMode ?? 'constant',
       },
       charset: contract.charset,
       minConfidence: ocrOpts.minConfidence ?? 0,

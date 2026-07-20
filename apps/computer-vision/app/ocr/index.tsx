@@ -18,9 +18,6 @@ import { Button } from '../../components/Button';
 
 const PREVIEW_HEIGHT = 280;
 
-// Hosted base OCR models, downloaded + cached on-device by `useOcr`. Backends per
-// platform: XNNPACK runs everywhere, Vulkan on Android, CoreML on iOS. The layout
-// and document-helper models (added by the toggles below) use the same backend.
 type BackendKey = 'XNNPACK' | 'VULKAN' | 'COREML';
 const ALL_MODELS: { label: string; backend: BackendKey; base: OcrModel; platforms: string[] }[] = [
   {
@@ -115,15 +112,12 @@ function OCRContent() {
   const [documentOn, setDocumentOn] = useState(false);
   const [orientation, setOrientation] = useState(true);
   const [tables, setTables] = useState(true);
-  // Off by default: dewarp corrects photographed, physically-warped pages; on a
-  // flat screenshot it has nothing to fix and visibly distorts clean text.
-  const [dewarp, setDewarp] = useState(false);
+  const [dewarp, setDewarp] = useState(false); // off: only helps warped photos
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [detections, setDetections] = useState<OcrDetection[]>([]);
   const [blocks, setBlocks] = useState<DocumentBlock<string>[]>([]);
-  // The frame the result boxes are relative to (orientation/dewarp may move it
-  // away from the original), so the overlay lines up.
+  // The corrected frame the result boxes are relative to (for the overlay).
   const [processed, setProcessed] = useState<SkImage | null>(null);
   const [wallMs, setWallMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,8 +125,6 @@ function OCRContent() {
   const selected = OCR_MODELS[selectedIdx]!;
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  // `useOcr` downloads + caches each enabled model. layout / document helpers are
-  // added only when toggled; orientation/dewarp are per-run (no reload to toggle).
   const config = {
     ...selected.base,
     ...(layoutOn ? { layout: models.layoutDetection.PP_DOCLAYOUT[selected.backend] } : {}),
@@ -187,8 +179,6 @@ function OCRContent() {
       setWallMs(Date.now() - start);
       setDetections(out.detections);
       setBlocks(out.blocks);
-      // Show the frame the boxes are relative to (orientation/dewarp may have
-      // rotated/warped it) so the overlaid boxes align.
       const frame = out.image;
       const frameImage = Skia.Image.MakeImage(
         {
@@ -209,7 +199,6 @@ function OCRContent() {
   };
 
   const activeError = loadError ? String(loadError) : error;
-  // Overlay the precise per-line quads (always present, in the corrected frame).
   const boxes = useMemo(() => detections.map((d) => d.quad), [detections]);
   const showBlocks = layoutOn && blocks.length > 0;
 

@@ -238,7 +238,7 @@ function recognizeNarrowQuad(
   quad: Quad
 ): { text: string; conf: number } {
   'worklet';
-  const { recH, maxW, widthConstraint, padValue } = engine.rec;
+  const { recH, maxW, widthConstraint, padValue, padMode } = engine.rec;
   const size = quadSize(quad);
   // Aspect-preserving width of the content at recognizer height (>= 1 px).
   const aspectWidth = Math.max(1, Math.round((recH * size.width) / Math.max(1, size.height)));
@@ -249,7 +249,7 @@ function recognizeNarrowQuad(
     rectifyQuad(src, tCanvas, quad, {
       contentWidth: contentW,
       align: 'left',
-      padMode: 'constant',
+      padMode,
       padValue,
     });
     return recognizeCanvas(engine, tCanvas, snappedW);
@@ -293,7 +293,7 @@ function recognizeGlyphStrip(
   glyphs: readonly Quad[]
 ): { text: string; conf: number } | null {
   'worklet';
-  const { recH, maxW, widthConstraint, padValue } = engine.rec;
+  const { recH, maxW, widthConstraint, padValue, padMode } = engine.rec;
   const cells: { quad: Quad; width: number }[] = [];
   let totalW = 0;
   for (const glyph of glyphs) {
@@ -332,7 +332,7 @@ function recognizeGlyphStrip(
         contentWidth: cells[i]!.width,
         offsetX: xOff,
         clear: i === 0,
-        padMode: 'constant',
+        padMode,
         padValue,
       });
       xOff += cells[i]!.width;
@@ -419,6 +419,9 @@ export type OcrEngine = {
     readonly vocab: number;
     readonly norm: NormalizeOptions;
     readonly padValue: number;
+    // How the strip's unused width is filled: flat `padValue`, or the content's
+    // corner-mean background (avoids a seam some recognizers read as a glyph).
+    readonly padMode: 'constant' | 'cornerMean';
   };
   readonly charset: string[];
   readonly minConfidence: number;
@@ -589,7 +592,7 @@ export function resolveOcrContract(
   charsetOption: string | readonly string[]
 ): {
   det: Omit<OcrEngine['det'], 'norm'>;
-  rec: Omit<OcrEngine['rec'], 'norm' | 'padValue'>;
+  rec: Omit<OcrEngine['rec'], 'norm' | 'padValue' | 'padMode'>;
   charset: string[];
 } {
   // Validate the detect input is RGB [1,3,H,W]; wildcard the outputs (count from

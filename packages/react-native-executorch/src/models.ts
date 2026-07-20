@@ -641,6 +641,7 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 const EASYOCR_OPTS: Omit<OcrModelOptions, 'charset'> = {
   extractBoxes: craftExtractBoxes,
   detectorNorm: IMAGENET_NORM,
+  recognizerPadMode: 'cornerMean',
 };
 
 const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
