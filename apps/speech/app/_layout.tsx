@@ -30,8 +30,15 @@ export default function Layout() {
       <Drawer.Screen
         name="stt/index"
         options={{
-          drawerLabel: 'Speech-to-Text (ASR)',
-          title: 'Speech-to-Text (ASR)',
+          drawerLabel: 'Live Transcription (Mic)',
+          title: 'Live Transcription (Mic)',
+        }}
+      />
+      <Drawer.Screen
+        name="stt-audio/index"
+        options={{
+          drawerLabel: 'Transcribe Audio File',
+          title: 'Transcribe Audio File',
         }}
       />
     </Drawer>

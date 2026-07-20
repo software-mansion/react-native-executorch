@@ -15,7 +15,10 @@ export default function Home() {
           <Text style={styles.buttonText}>Voice Activity Detection</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('stt/')}>
-          <Text style={styles.buttonText}>Speech-to-Text (ASR)</Text>
+          <Text style={styles.buttonText}>Live Transcription (Mic)</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('stt-audio/')}>
+          <Text style={styles.buttonText}>Transcribe Audio File</Text>
         </TouchableOpacity>
       </View>
     </View>
