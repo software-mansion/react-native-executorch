@@ -25,8 +25,8 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
   options?: { preventLoad?: boolean }
 ) {
-  const fsmnVadModelPath = config.fsmnVadModel.modelPath;
-  const vadResource = useResourceDownload(fsmnVadModelPath, options?.preventLoad);
+  const vadModelPath = config.vadModel.modelPath;
+  const vadResource = useResourceDownload(vadModelPath, options?.preventLoad);
   const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
   const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
 
@@ -40,7 +40,7 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
         ...config,
         modelPath: localModelPath!,
         tokenizerPath: localTokenizerPath!,
-        fsmnVadModel: { ...config.fsmnVadModel, modelPath: localVadPath! },
+        vadModel: { ...config.vadModel, modelPath: localVadPath! },
       }
     : null;
 
@@ -63,6 +63,7 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
     localPath: modelResource.localPath,
     transcribe: model?.transcribe,
     transcribeWorklet: model?.transcribeWorklet,
+    transcribeStop: model?.transcribeStop,
     stream: model?.stream,
     streamInsert: model?.streamInsert,
     streamStop: model?.streamStop,

@@ -1,5 +1,5 @@
 import type { WorkletRuntime } from 'react-native-worklets';
-import { scheduleOnRN } from 'react-native-worklets';
+import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
@@ -67,7 +67,7 @@ export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
  * Options for the live-streaming transcription API.
  * Extends {@link WhisperSttOptions} with optional VAD tuning.
  * @category Types
- * @property vadOptions - Fine-tuning knobs forwarded to the FSMN voice-activity
+ * @property vadOptions - Fine-tuning knobs forwarded to the voice-activity
  * detector. Omit to use the detector's built-in defaults.
  */
 export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
@@ -81,7 +81,7 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly supportedLanguages: readonly L[];
-  readonly fsmnVadModel: FsmnVadModel;
+  readonly vadModel: FsmnVadModel;
 };
 
 /**
@@ -129,6 +129,11 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   ) => string;
 
   /**
+   * Interrupts and stops any active transcription call.
+   */
+  transcribeStop: () => void;
+
+  /**
    * Async generator for real-time microphone transcription. Feed audio with
    * {@link streamInsert} and stop with {@link streamStop}. Yields `{ committed,
    * nonCommitted }` on every VAD or transcription event: `committed` is the
@@ -153,10 +158,10 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    */
   streamInsert: (audioChunk: Float32Array) => void;
 }> {
-  const { modelPath, tokenizerPath, supportedLanguages, fsmnVadModel } = config;
+  const { modelPath, tokenizerPath, supportedLanguages, vadModel } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
-  const voiceDetector = await createFsmnVoiceActivityDetector(fsmnVadModel, runtime);
+  const voiceDetector = await createFsmnVoiceActivityDetector(vadModel, runtime);
 
   const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
   const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
@@ -191,6 +196,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   ] as const;
 
   const [tPosition, tToken, tArgmax, tEncodings, tLogits] = tensors;
+  const isCancelled = createSynchronizable(false);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -213,15 +219,14 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     onToken?: (token: string) => void
   ): string => {
     'worklet';
+    isCancelled.setBlocking(false);
 
     const promptTokenStrings = isEnglishOnly
       ? ['<|startoftranscript|>', '<|notimestamps|>']
       : ['<|startoftranscript|>', `<|${options.language}|>`, '<|transcribe|>', '<|notimestamps|>'];
 
     if (!isEnglishOnly && tokenizer.tokenToId(`<|${options.language}|>`) === undefined) {
-      throw new Error(
-        `Language "${options.language}" is not recognized by this model's tokenizer.`
-      );
+      throw new Error(`Language "${options.language}" is not recognized.`);
     }
     const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token));
     const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
@@ -230,6 +235,8 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     let offset = 0;
 
     while (offset < audio.length) {
+      if (isCancelled.getBlocking()) break;
+
       const audioChunk = audio.slice(offset, Math.min(offset + BUFFER_SIZE, audio.length));
       if (audioChunk.length < MIN_CHUNK_SIZE) {
         break;
@@ -248,6 +255,8 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
 
       const generated: number[] = [];
       while (generated.length < maxNewTokens && nextToken !== eotToken) {
+        if (isCancelled.getBlocking()) break;
+
         generated.push(nextToken);
         if (onToken) scheduleOnRN(onToken, tokenizer.decode([nextToken]));
         nextToken = decode(nextToken, position);
@@ -262,6 +271,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   };
 
   const transcribe = wrapAsync(transcribeWorklet, runtime);
+  const transcribeStop = () => isCancelled.setBlocking(true);
 
   let isStreaming = false;
   let audioBuffer = new Float32Array(0);
@@ -359,5 +369,13 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     }
   }
 
-  return { dispose, transcribe, transcribeWorklet, stream, streamStop, streamInsert };
+  return {
+    dispose,
+    transcribe,
+    transcribeWorklet,
+    transcribeStop,
+    stream,
+    streamStop,
+    streamInsert,
+  };
 }
