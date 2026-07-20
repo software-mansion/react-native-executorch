@@ -34,6 +34,13 @@ export default function Layout() {
           title: 'Text Embeddings',
         }}
       />
+      <Drawer.Screen
+        name="privacy-filter/index"
+        options={{
+          drawerLabel: 'Privacy Filter',
+          title: 'Privacy Filter',
+        }}
+      />
     </Drawer>
   );
 }

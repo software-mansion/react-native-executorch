@@ -7,6 +7,7 @@ import type { InstanceSegmenterModel } from './extensions/cv/tasks/instanceSegme
 import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
+import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import {
@@ -22,6 +23,8 @@ import {
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
+  PRIVACY_FILTER_OPENAI_LABELS,
+  PRIVACY_FILTER_NEMOTRON_LABELS,
   type ImageNet1KLabel,
   type PascalVocLabel,
   type CocoClass,
@@ -766,6 +769,38 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
 };
 
 // =============================================================================
+// Privacy Filter
+// =============================================================================
+// Token-level PII detectors over a BIOES label space. Both presets share the
+// o200k tokenizer, so the pipeline's default pad token id applies; only the
+// label space differs between them.
+const PRIVACY_FILTER_OPENAI_TOKENIZER = `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/tokenizer.json`;
+const PRIVACY_FILTER_OPENAI_OPTS = { labelNames: PRIVACY_FILTER_OPENAI_LABELS };
+const PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W: PrivacyFilterModel = {
+  modelPath: `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
+  tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
+  privacyFilterOpts: PRIVACY_FILTER_OPENAI_OPTS,
+};
+const PRIVACY_FILTER_OPENAI_MLX_INT4: PrivacyFilterModel = {
+  modelPath: `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
+  tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
+  privacyFilterOpts: PRIVACY_FILTER_OPENAI_OPTS,
+};
+
+const PRIVACY_FILTER_NEMOTRON_TOKENIZER = `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/tokenizer.json`;
+const PRIVACY_FILTER_NEMOTRON_OPTS = { labelNames: PRIVACY_FILTER_NEMOTRON_LABELS };
+const PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W: PrivacyFilterModel = {
+  modelPath: `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
+  tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
+  privacyFilterOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
+};
+const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel = {
+  modelPath: `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
+  tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
+  privacyFilterOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -1308,6 +1343,30 @@ export const models = {
       ...LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       XNNPACK_8DA4W: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       MLX_INT4: LFM2_5_EMBEDDING_350M_MLX_INT4,
+    },
+  },
+
+  /**
+   * Token-level PII detection models over a BIOES label space.
+   */
+  privacyFilter: {
+    /**
+     * OpenAI-style detector covering 8 common PII types (name, email, phone,
+     * address, and similar). Compact label space, best for general redaction.
+     */
+    OPENAI: {
+      ...PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
+      MLX_INT4: PRIVACY_FILTER_OPENAI_MLX_INT4,
+    },
+    /**
+     * Nemotron-based detector covering 55 fine-grained PII types. Larger label
+     * space for stricter compliance-oriented redaction.
+     */
+    NEMOTRON: {
+      ...PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
+      MLX_INT8: PRIVACY_FILTER_NEMOTRON_MLX_INT8,
     },
   },
 
