@@ -223,7 +223,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
         `Language "${options.language}" is not recognized by this model's tokenizer.`
       );
     }
-    const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token)!);
+    const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token));
     const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
 
     let text = '';
