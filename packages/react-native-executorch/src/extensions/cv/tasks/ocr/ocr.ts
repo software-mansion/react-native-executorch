@@ -91,7 +91,7 @@ export type RunOcrOptions = {
   readonly tallCropRatio?: number;
   /** Max stacked-box re-detection passes per page. Default 8. */
   readonly maxRedetections?: number;
-  /** Drop vertical reads below this confidence. Default 0 (keep all — they run lower than horizontal). */
+  /** Drop vertical reads below this confidence. Default 0.4; set 0 to keep all. */
   readonly verticalMinConfidence?: number;
   /** Rotate the page upright first. No-op without loaded `documentModels`; defaults to its config flag. */
   readonly orientation?: boolean;

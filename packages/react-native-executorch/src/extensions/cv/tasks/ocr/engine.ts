@@ -372,9 +372,9 @@ function readStackedBox(
 
 const TALL_CROP_RATIO = 1.5;
 const MAX_VERTICAL_REDETECTIONS = 8;
-// Vertical reads are lower-confidence than horizontal, so they default to no gate
-// (show everything); a per-run `verticalMinConfidence` raises it to filter junk.
-const DEFAULT_VERTICAL_MIN_CONFIDENCE = 0;
+// Vertical reads are hallucination-prone, so they default to a modest gate; a
+// per-run `verticalMinConfidence` tunes it (0 keeps everything).
+const DEFAULT_VERTICAL_MIN_CONFIDENCE = 0.4;
 
 /**
  * The resolved, model-level state one detect → recognize pass needs — the model
