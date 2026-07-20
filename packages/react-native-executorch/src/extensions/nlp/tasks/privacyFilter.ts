@@ -14,10 +14,6 @@ import {
   type ViterbiBiases,
 } from '../utils/privacyFilterUtils';
 
-// Both shipped presets tokenize with o200k, where <|endoftext|> (199999)
-// doubles as the pad and eos token. It is a property of the tokenizer rather
-// than a per-variant knob, so it lives here as the default; custom fine-tunes
-// built on a different tokenizer override it via `privacyFilterOpts`.
 const DEFAULT_PAD_TOKEN_ID = 199999;
 
 /**
@@ -111,11 +107,6 @@ export async function createPrivacyFilter(
     wrapAsync(loadTokenizer, runtime)(tokenizerPath),
   ]);
 
-  // Token classification models take the token ids and the attention mask, both
-  // int64 of shape [1, window], and emit per-token logits over the label space,
-  // batched or not. The window is fixed by the export, hence a symbol shared
-  // across the shapes rather than a hardcoded size; asserting `numLabels` here
-  // is what catches a label list that doesn't match the model's head.
   const numLabels = labelNames.length;
   const meta = validateModelSchema(
     model,

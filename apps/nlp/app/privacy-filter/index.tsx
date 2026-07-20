@@ -21,20 +21,15 @@ import { Button } from '../../components/Button';
 import { theme } from '../../theme';
 
 /* cspell:disable */
-// Sample tuned for the OpenAI base model — exercises the 8 entity types it
-// recognizes (person, email, phone, account_number, address, date, url, secret).
 const OPENAI_SAMPLE = `My name is Sarah Chen and I work as a senior engineer at Acme Corp. You can reach me at sarah.chen@acmecorp.io or call my direct line at (415) 923-0847. For billing inquiries, my account number is ACC-8821-4490-3371.
 
 I've been living at 17 Birchwood Lane, Portland, OR 97201 since October 3rd, 2019. My personal website is https://sarahchen.dev. My date of birth is June 12, 1991, and this message contains a confidential API key: sk-T93kXpLm2NvBqR7dYwZ4.`;
 
-// Sample tuned for the OpenMed Nemotron model — covers categories the base
-// OpenAI model doesn't have (medical, financial, technical, demographic).
 const NEMOTRON_SAMPLE = `Patient intake for Maria Lopez, female, age 47, blood type O+, born 1978-05-12. MRN 994-2210-AB; health plan beneficiary number HPBN-552-9931. SSN 412-55-7821. Occupation: registered nurse.
 
 Reach her at maria.lopez@example.com or +1 (415) 555-0142. Address: 84 Cedar Hill Road, Berkeley, CA 94703. Visa ending 4992-1133-7820-4419, CVV 884. Bank routing 021000089. Workstation MAC 3C:22:FB:8E:01:9A, IPv4 10.0.42.118.`;
 /* cspell:enable */
 
-// `iosOnly` marks backends unavailable on Android (MLX is iOS-only).
 const MODELS: { label: string; value: PrivacyFilterModel; sample: string; iosOnly?: boolean }[] = [
   { label: 'OpenAI (8 types)', value: models.privacyFilter.OPENAI, sample: OPENAI_SAMPLE },
   {
@@ -52,7 +47,6 @@ const MODELS: { label: string; value: PrivacyFilterModel; sample: string; iosOnl
   },
 ];
 
-// Stable per-label color so the same entity type highlights consistently.
 const HIGHLIGHTS = ['#ffd8a8', '#b2f2bb', '#a5d8ff', '#eebefa', '#ffc9c9', '#c0eb75', '#99e9f2'];
 function colorForLabel(label: string): string {
   let hash = 0;
