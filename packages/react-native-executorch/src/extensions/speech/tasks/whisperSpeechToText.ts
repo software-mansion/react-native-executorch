@@ -214,6 +214,13 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   ): string => {
     'worklet';
 
+    if (!isEnglishOnly && !supportedLanguages.includes(options.language as L)) {
+      throw new Error(
+        `Whisper: language "${options.language}" is not supported by this model. ` +
+          `Supported languages: ${supportedLanguages.join(', ')}`
+      );
+    }
+
     const promptTokenStrings = isEnglishOnly
       ? ['<|startoftranscript|>', '<|notimestamps|>']
       : ['<|startoftranscript|>', `<|${options.language}|>`, '<|transcribe|>', '<|notimestamps|>'];
