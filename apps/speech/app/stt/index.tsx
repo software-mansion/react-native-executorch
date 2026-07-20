@@ -6,6 +6,7 @@ import DeviceInfo from 'react-native-device-info';
 
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
+import { ModelStatus } from '../../components/ModelStatus';
 import { theme } from '../../theme';
 
 const MODELS = [
@@ -80,6 +81,8 @@ export default function STTScreen() {
     stream,
     streamInsert,
     streamStop,
+    downloadProgress,
+    error: modelError,
   } = useSpeechToText(selectedModel.config);
 
   const recorderRef = useRef<AudioRecorder | null>(null);
@@ -164,6 +167,12 @@ export default function STTScreen() {
             }))}
             selectedValue={selectedModel}
             onValueChange={setSelectedModel}
+          />
+          <ModelStatus
+            isReady={isSttReady}
+            downloadProgress={downloadProgress}
+            error={modelError ? modelError.message : null}
+            modelTypeLabel="Whisper model"
           />
         </View>
 
