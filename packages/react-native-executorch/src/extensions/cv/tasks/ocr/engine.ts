@@ -372,8 +372,9 @@ function readStackedBox(
 
 const TALL_CROP_RATIO = 1.5;
 const MAX_VERTICAL_REDETECTIONS = 8;
-// Vertical reads are lower-confidence and opt-in, so they skip the drop-score gate.
-const VERTICAL_MIN_CONFIDENCE = 0;
+// Vertical reads are lower-confidence than horizontal, so they default to no gate
+// (show everything); a per-run `verticalMinConfidence` raises it to filter junk.
+const DEFAULT_VERTICAL_MIN_CONFIDENCE = 0;
 
 /**
  * The resolved, model-level state one detect → recognize pass needs — the model
@@ -415,6 +416,7 @@ type OcrPassOptions = {
   readonly vertical?: boolean;
   readonly tallCropRatio?: number;
   readonly maxRedetections?: number;
+  readonly verticalMinConfidence?: number;
 };
 
 function pushDetection(
@@ -457,6 +459,7 @@ export function runOcrPassOnTensor(
   const vertical = options?.vertical ?? false;
   const tallCropRatio = options?.tallCropRatio ?? TALL_CROP_RATIO;
   const maxRedetections = options?.maxRedetections ?? MAX_VERTICAL_REDETECTIONS;
+  const verticalMinConf = options?.verticalMinConfidence ?? DEFAULT_VERTICAL_MIN_CONFIDENCE;
   const toRgbCode = FORMAT_CONVERSION[format].rgb;
 
   let tRecImage: Tensor | null = null;
@@ -495,13 +498,7 @@ export function runOcrPassOnTensor(
     for (const stack of stacks) {
       const strip = recognizeGlyphStrip(engine, recSrc, stack);
       if (strip) {
-        pushDetection(
-          detections,
-          VERTICAL_MIN_CONFIDENCE,
-          strip.text,
-          strip.conf,
-          boundingQuadOf(stack)
-        );
+        pushDetection(detections, verticalMinConf, strip.text, strip.conf, boundingQuadOf(stack));
       }
     }
     for (const orderedQuad of singles) {
@@ -509,13 +506,7 @@ export function runOcrPassOnTensor(
       if (size.height >= size.width * tallCropRatio) {
         const stacked = readStackedBox(engine, page, format, orderedQuad, size, budget);
         if (stacked) {
-          pushDetection(
-            detections,
-            VERTICAL_MIN_CONFIDENCE,
-            stacked.text,
-            stacked.conf,
-            orderedQuad
-          );
+          pushDetection(detections, verticalMinConf, stacked.text, stacked.conf, orderedQuad);
           continue;
         }
       }
