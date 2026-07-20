@@ -114,6 +114,7 @@ function OCRContent() {
   const [layoutOn, setLayoutOn] = useState(false);
   const [documentOn, setDocumentOn] = useState(false);
   const [orientation, setOrientation] = useState(true);
+  const [tables, setTables] = useState(true);
   // Off by default: dewarp corrects photographed, physically-warped pages; on a
   // flat screenshot it has nothing to fix and visibly distorts clean text.
   const [dewarp, setDewarp] = useState(false);
@@ -176,7 +177,12 @@ function OCRContent() {
           format: 'rgba' as const,
           layout: 'hwc' as const,
         },
-        { vertical, orientation: documentOn && orientation, dewarp: documentOn && dewarp }
+        {
+          vertical,
+          orientation: documentOn && orientation,
+          dewarp: documentOn && dewarp,
+          tables: documentOn && tables,
+        }
       );
       setWallMs(Date.now() - start);
       setDetections(out.detections);
@@ -253,6 +259,13 @@ function OCRContent() {
             value={orientation}
             onChange={setOrientation}
             indent
+          />
+          <Toggle
+            label="Table structure"
+            value={tables}
+            onChange={setTables}
+            indent
+            hint="needs Layout on"
           />
           <Toggle
             label="Dewarp"

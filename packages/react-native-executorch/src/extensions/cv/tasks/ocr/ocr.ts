@@ -89,8 +89,12 @@ export type RunOcrOptions = {
   readonly tallCropRatio?: number;
   /** Max stacked-box re-detection passes per page. Default 8. */
   readonly maxRedetections?: number;
+  /** Rotate the page upright first. No-op without loaded `documentModels`; defaults to its config flag. */
   readonly orientation?: boolean;
+  /** Flatten a physically-warped page first. No-op without loaded `documentModels`; defaults to its config flag. */
   readonly dewarp?: boolean;
+  /** Recognize table structure in table regions. Needs loaded `documentModels` (with a table config) + layout. Default true. */
+  readonly tables?: boolean;
 };
 
 /**
@@ -233,6 +237,9 @@ export async function createOcr<L = never>(
     // the engine takes it directly — the orientation/dewarp fields it ignores.
     const useOrientation = !!documentModels && (options?.orientation ?? defaultOrientation);
     const useDewarp = !!documentModels && (options?.dewarp ?? defaultDewarp);
+    // Tables are on whenever the model supports them (unlike orientation/dewarp,
+    // which are opt-in) — a per-run `tables: false` skips the recognizer.
+    const useTables = hasTable && (options?.tables ?? true);
 
     // Orientation / dewarp produce the corrected frame all coordinates are
     // relative to; without them the frame is the input unchanged. When a corrected
@@ -334,7 +341,7 @@ export async function createOcr<L = never>(
         }
         detections.push(...lines);
         let block = makeBlock<L>(region.label, region.box, region.confidence, lines, isTable);
-        if (isTable && documentModels && hasTable) {
+        if (isTable && documentModels && useTables) {
           const skeleton = documentModels.recognizeTableWorklet(crop);
           block = { ...block, tableHtml: fillTableCells(skeleton, block.lines) };
         }
