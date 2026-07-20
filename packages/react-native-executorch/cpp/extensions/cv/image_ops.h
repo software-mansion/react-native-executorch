@@ -9,4 +9,7 @@ void install_toChannelsFirst(facebook::jsi::Runtime &rt, facebook::jsi::Object &
 void install_toChannelsLast(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 void install_normalize(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 void install_applyColormap(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+void install_rotate(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+void install_warpByGrid(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
+void install_rectifyQuad(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::extensions::cv::image_ops

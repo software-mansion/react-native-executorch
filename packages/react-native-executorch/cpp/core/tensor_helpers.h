@@ -32,6 +32,23 @@ struct RangeDim {
 using SymbolicShape = std::vector<std::variant<int32_t, std::string, RangeDim>>;
 
 /**
+ * A set of complete legal input shapes for a tensor input, used by
+ * enumerated-shape backends (e.g. CoreML) that accept only specific whole
+ * shapes rather than a continuous range. Unlike RangeDim, which constrains a
+ * single dimension, an enumerated set is a cross-dimensional constraint: a
+ * concrete shape must equal one entry exactly.
+ */
+using EnumeratedShapes = std::vector<std::vector<int32_t>>;
+
+/**
+ * The resolved shape constraint for a single tensor input: either dynamic
+ * per-dimension ranges ({@link SymbolicShape}) or an enumerated set of whole
+ * shapes ({@link EnumeratedShapes}). A method's inputs are uniformly one kind or
+ * the other — a single method cannot mix both.
+ */
+using ShapeConstraint = std::variant<SymbolicShape, EnumeratedShapes>;
+
+/**
  * Tries to acquire a shared (read) lock on the underlying tensor resource.
  * Throws a facebook::jsi::JSError if the lock is currently held uniquely by
  * another thread or if the tensor has already been disposed.
@@ -87,6 +104,17 @@ void checkNotSameTensor(jsi::Runtime &rt,
 std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype, const std::optional<SymbolicShape> &expectedShape);
+
+/**
+ * @overload
+ *
+ * Validates the tensor's concrete shape against an enumerated set: the shape
+ * must equal one of `enumeratedShapes` exactly (enumerated-shape backends).
+ * Throws a facebook::jsi::JSError listing the legal shapes on mismatch.
+ */
+std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype, const EnumeratedShapes &enumeratedShapes);
 
 /**
  * @overload

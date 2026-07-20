@@ -7,6 +7,7 @@
 #include <optional>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "dtype.h"
@@ -188,6 +189,141 @@ parseDynamicInputShapes(executorch::extension::Module &module, const std::string
 
     return dynamicShapes;
 }
+
+/**
+ * Parses enumerated input-shape constraints for the inputs of a module method.
+ *
+ * Mirrors parseDynamicInputShapes for enumerated-shape backends (e.g. CoreML,
+ * which accepts only a fixed set of whole shapes rather than a continuous
+ * range). The .pte must export a companion method "get_enum_shapes_<methodName>"
+ * that takes no arguments and returns one output per Tag::Tensor input; each
+ * output is a 2D int32 tensor of shape [numShapes, rank] whose rows are the
+ * legal whole shapes for that input.
+ *
+ * @return A vector aligned 1-to-1 with the method's inputs (empty entries for
+ *         non-tensor inputs), or std::nullopt if the companion is not defined.
+ */
+std::optional<std::vector<tensor::EnumeratedShapes>>
+parseEnumInputShapes(executorch::extension::Module &module, const std::string &methodName) {
+    using executorch::aten::ScalarType;
+
+    const auto companion = std::format("get_enum_shapes_{}", methodName);
+    const auto ctx = companion + ": ";
+
+    auto methodNames = unwrap(ctx + "failed to get method names", module.method_names());
+    if (methodName == companion || !methodNames.contains(companion)) {
+        return std::nullopt;
+    }
+
+    auto methodMeta = unwrap(std::format("{}failed to get meta for method '{}'", ctx, methodName),
+                             module.method_meta(methodName));
+
+    size_t expectedTensorInputs = 0;
+    for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
+        auto tag = unwrap(std::format("{}failed to get tag for input [{}]", ctx, i), methodMeta.input_tag(i));
+        if (tag == executorch::runtime::Tag::Tensor) {
+            expectedTensorInputs++;
+        }
+    }
+
+    auto result = unwrap(ctx + "failed to execute", module.execute(companion));
+    if (result.size() != expectedTensorInputs) {
+        throw std::runtime_error(std::format("{}number of outputs returned ({}) does not match the number of "
+                                             "tensor inputs declared by method '{}' ({})",
+                                             ctx, result.size(), methodName, expectedTensorInputs));
+    }
+
+    std::vector<tensor::EnumeratedShapes> enumeratedShapes;
+    enumeratedShapes.reserve(methodMeta.num_inputs());
+    size_t tensorIndex = 0;
+
+    for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
+        auto tag = unwrap(std::format("{}failed to get tag for input [{}]", ctx, i),
+                          methodMeta.input_tag(i));
+
+        if (tag != executorch::runtime::Tag::Tensor) {
+            // Emplace an empty set for non-tensor inputs to keep 1-to-1 index
+            // alignment between enumeratedShapes and the model's inputs vector.
+            enumeratedShapes.emplace_back();
+            continue;
+        }
+
+        const auto &out = result.at(tensorIndex);
+        if (!out.isTensor()) {
+            throw std::runtime_error(std::format("{}output[{}] is not a tensor", ctx, tensorIndex));
+        }
+
+        auto inputMeta = unwrap(std::format("{}failed to get tensor meta for input [{}]", ctx, i),
+                                methodMeta.input_tensor_meta(i));
+        const auto rank = inputMeta.sizes().size();
+        const auto shapeTensor = out.toTensor();
+
+        if (shapeTensor.dim() != 2 || shapeTensor.size(1) != static_cast<ssize_t>(rank) ||
+            shapeTensor.scalar_type() != ScalarType::Int) {
+            throw std::runtime_error(std::format("{}output[{}] expected to be a 2D int32_t tensor of shape "
+                                                 "[numShapes, {}]",
+                                                 ctx, tensorIndex, rank));
+        }
+
+        const auto numShapes = shapeTensor.size(0);
+        const auto *data = shapeTensor.const_data_ptr<int32_t>();
+        tensor::EnumeratedShapes shapes;
+        shapes.reserve(static_cast<size_t>(numShapes));
+
+        for (ssize_t s = 0; s < numShapes; ++s) {
+            std::vector<int32_t> dims;
+            dims.reserve(rank);
+            for (size_t axis = 0; axis < rank; ++axis) {
+                const auto dim = data[static_cast<size_t>(s) * rank + axis];
+                if (dim < 1) {
+                    throw std::runtime_error(std::format("{}output[{}], shape {} axis {} is invalid: "
+                                                         "expected dim >= 1 but got {}",
+                                                         ctx, tensorIndex, s, axis, dim));
+                }
+                if (dim > inputMeta.sizes()[axis]) {
+                    throw std::runtime_error(std::format("{}output[{}], shape {} axis {} ({}) exceeds "
+                                                         "model metadata upper limit ({})",
+                                                         ctx, tensorIndex, s, axis, dim, inputMeta.sizes()[axis]));
+                }
+                dims.push_back(dim);
+            }
+            shapes.push_back(std::move(dims));
+        }
+
+        enumeratedShapes.push_back(std::move(shapes));
+        ++tensorIndex;
+    }
+
+    return enumeratedShapes;
+}
+
+// Encodes one resolved input constraint onto a JS object, discriminated by the
+// field it sets: `dims` (dynamic ranges) or `shapes` (enumerated set). Overloaded
+// on the ShapeConstraint alternatives so the accessor can std::visit them.
+void encodeConstraint(jsi::Runtime &rt, jsi::Object &out, const tensor::SymbolicShape &shape) {
+    auto dims = jsi::Array(rt, shape.size());
+    for (size_t axis = 0; axis < shape.size(); ++axis) {
+        const auto &range = std::get<tensor::RangeDim>(shape[axis]);
+        auto dim = jsi::Object(rt);
+        dim.setProperty(rt, "min", static_cast<double>(range.min));
+        dim.setProperty(rt, "max", static_cast<double>(range.max));
+        dim.setProperty(rt, "step", static_cast<double>(range.step.value_or(1)));
+        dims.setValueAtIndex(rt, axis, dim);
+    }
+    out.setProperty(rt, "dims", dims);
+}
+
+void encodeConstraint(jsi::Runtime &rt, jsi::Object &out, const tensor::EnumeratedShapes &enumeratedShapes) {
+    auto shapes = jsi::Array(rt, enumeratedShapes.size());
+    for (size_t s = 0; s < enumeratedShapes.size(); ++s) {
+        auto shapeArr = jsi::Array(rt, enumeratedShapes[s].size());
+        for (size_t axis = 0; axis < enumeratedShapes[s].size(); ++axis) {
+            shapeArr.setValueAtIndex(rt, axis, static_cast<double>(enumeratedShapes[s][axis]));
+        }
+        shapes.setValueAtIndex(rt, s, shapeArr);
+    }
+    out.setProperty(rt, "shapes", shapes);
+}
 } // namespace
 
 namespace rnexecutorch::core::model {
@@ -208,9 +344,30 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     auto methodNames = unwrap("Failed to get method names", etModule_->method_names());
     for (const auto &methodName : methodNames) {
         auto dynamicShapes = parseDynamicInputShapes(*etModule_, methodName);
-        if (dynamicShapes) {
-            dynamicInputShapes_.emplace(methodName, std::move(*dynamicShapes));
+        auto enumShapes = parseEnumInputShapes(*etModule_, methodName);
+
+        if (dynamicShapes && enumShapes) {
+            throw std::runtime_error(std::format(
+                "Method '{}' declares both get_dynamic_dims_{} and get_enum_shapes_{} companions; "
+                "a method must use a single shape-constraint kind, not both.",
+                methodName, methodName, methodName));
         }
+
+        std::vector<tensor::ShapeConstraint> constraints;
+        if (dynamicShapes) {
+            constraints.reserve(dynamicShapes->size());
+            for (auto &shape : *dynamicShapes) {
+                constraints.emplace_back(std::move(shape));
+            }
+        } else if (enumShapes) {
+            constraints.reserve(enumShapes->size());
+            for (auto &shape : *enumShapes) {
+                constraints.emplace_back(std::move(shape));
+            }
+        } else {
+            continue;
+        }
+        inputShapeConstraints_.emplace(methodName, std::move(constraints));
     }
 }
 
@@ -322,6 +479,66 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getMethodMeta"), 1, fnBody);
     }
 
+    if (nameStr == "getInputShapeConstraints") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (count != 1) {
+                throw jsi::JSError(rt, "getInputShapeConstraints: Usage: getInputShapeConstraints(methodName)");
+            }
+
+            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                throw jsi::JSError(rt, "getInputShapeConstraints: Model is currently in use");
+            }
+
+            if (!self->etModule_) {
+                throw jsi::JSError(rt, "getInputShapeConstraints: Model has been disposed");
+            }
+
+            auto methodName = conversions::asType<std::string>(rt, "getInputShapeConstraints: methodName", args[0]);
+            auto methodMeta = unwrap(rt, "getInputShapeConstraints", self->etModule_->method_meta(methodName));
+
+            const auto it = self->inputShapeConstraints_.find(methodName);
+            const std::vector<tensor::ShapeConstraint> *constraints =
+                it != self->inputShapeConstraints_.end() ? &it->second : nullptr;
+
+            // One entry per tensor input, aligned with getMethodMeta().inputTensorMeta.
+            size_t numTensorInputs = 0;
+            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
+                auto ctx = std::format("getInputShapeConstraints: input tag [{}]", i);
+                if (unwrap(rt, ctx, methodMeta.input_tag(i)) == executorch::runtime::Tag::Tensor) {
+                    ++numTensorInputs;
+                }
+            }
+
+            auto jsArray = jsi::Array(rt, numTensorInputs);
+            size_t outIndex = 0;
+            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
+                auto ctx = std::format("getInputShapeConstraints: input [{}]", i);
+                if (unwrap(rt, ctx, methodMeta.input_tag(i)) != executorch::runtime::Tag::Tensor) {
+                    continue;
+                }
+
+                auto entry = jsi::Object(rt);
+                if (constraints != nullptr) {
+                    std::visit([&](const auto &c) { encodeConstraint(rt, entry, c); }, (*constraints)[i]);
+                } else {
+                    // No companion: report the single static shape.
+                    auto tensorMeta = unwrap(rt, ctx, methodMeta.input_tensor_meta(i));
+                    auto shapeArr = jsi::Array(rt, tensorMeta.sizes().size());
+                    for (size_t axis = 0; axis < tensorMeta.sizes().size(); ++axis) {
+                        shapeArr.setValueAtIndex(rt, axis, static_cast<double>(tensorMeta.sizes()[axis]));
+                    }
+                    entry.setProperty(rt, "shape", shapeArr);
+                }
+                jsArray.setValueAtIndex(rt, outIndex, std::move(entry));
+                ++outIndex;
+            }
+            return jsArray;
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getInputShapeConstraints"), 1, fnBody);
+    }
+
     if (nameStr == "execute") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
@@ -364,9 +581,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
 
                     std::shared_ptr<TensorHostObject> tensorHostObject;
-                    if (self->dynamicInputShapes_.contains(methodName)) {
-                        auto expectedShape = self->dynamicInputShapes_[methodName][i];
-                        tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, expectedShape);
+                    if (self->inputShapeConstraints_.contains(methodName)) {
+                        tensorHostObject = std::visit(
+                            [&](const auto &constraint) {
+                                return tensor::fromJs(rt, ctx, val, expectedDtype, constraint);
+                            },
+                            self->inputShapeConstraints_[methodName][i]);
                     } else {
                         tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
                     }
@@ -500,6 +720,7 @@ std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Ru
     properties.push_back(jsi::PropNameID::forAscii(rt, "path"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodNames"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodMeta"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "getInputShapeConstraints"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "execute"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return properties;

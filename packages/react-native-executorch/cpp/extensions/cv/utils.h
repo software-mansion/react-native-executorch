@@ -1,8 +1,10 @@
 #pragma once
 
 #include "core/dtype.h"
+#include <jsi/jsi.h>
 #include <opencv2/core.hpp>
 #include <stdexcept>
+#include <string>
 
 namespace rnexecutorch::extensions::cv {
 

@@ -129,4 +129,40 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
 
     return tensor;
 }
+
+std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype, const EnumeratedShapes &enumeratedShapes) {
+
+    auto obj = conversions::asType<jsi::Object>(rt, name, value);
+    if (!obj.isHostObject<TensorHostObject>(rt)) {
+        throw jsi::JSError(rt, name + " must be a Tensor");
+    }
+
+    auto tensor = obj.getHostObject<TensorHostObject>(rt);
+    const auto &dtype = tensor->dtype_;
+    const auto &shape = tensor->shape_;
+
+    if (expectedDtype && dtype != *expectedDtype) {
+        throw jsi::JSError(rt, std::format("{} must be of type {}", name, types::toString(*expectedDtype)));
+    }
+
+    for (const auto &candidate : enumeratedShapes) {
+        if (candidate.size() != shape.size()) {
+            continue;
+        }
+        bool matches = true;
+        for (size_t axis = 0; axis < shape.size(); ++axis) {
+            if (candidate[axis] != shape[axis]) {
+                matches = false;
+                break;
+            }
+        }
+        if (matches) {
+            return tensor;
+        }
+    }
+
+    throw jsi::JSError(rt, std::format("{} shape does not match any of the model's enumerated input shapes", name));
+}
 } // namespace rnexecutorch::core::tensor
