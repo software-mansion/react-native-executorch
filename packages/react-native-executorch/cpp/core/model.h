@@ -35,7 +35,7 @@ private:
     std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
 
-    std::unordered_map<std::string, std::vector<core::tensor::SymbolicShape>> dynamicInputShapes_;
+    std::unordered_map<std::string, std::vector<core::tensor::ShapeConstraint>> inputShapeConstraints_;
 };
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module);

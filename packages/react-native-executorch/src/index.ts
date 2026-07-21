@@ -31,23 +31,10 @@ export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 
 // Core primitives — for library builders and power users
-export { tensor } from './core/tensor';
-export type { DType, Tensor } from './core/tensor';
-
-export { loadModel } from './core/model';
-export type {
-  Model,
-  ModelInput,
-  ModelOutput,
-  TensorMeta,
-  ModelMethodMeta,
-  ExecuTorchTag,
-} from './core/model';
-
-export { validateModelSchema, SymbolicTensor, matchShape } from './core/modelSchema';
-export type { ValueConstraint, TensorConstraint, SymbolicShape } from './core/modelSchema';
-
-export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
+export * from './core/tensor';
+export * from './core/model';
+export * from './core/modelSchema';
+export * from './core/runtime';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';

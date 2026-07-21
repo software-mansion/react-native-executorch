@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateModelSchema, SymbolicTensor, Dynamic } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../utils/vadUtils';
 
@@ -225,8 +225,8 @@ export async function createFsmnVoiceActivityDetector(
   const meta = validateModelSchema(
     model,
     'forward',
-    [SymbolicTensor('float32', ['frames', 'fftLength'])],
-    [SymbolicTensor('float32', [1, 'frames', 'classes'])]
+    [SymbolicTensor('float32', [Dynamic('frames'), 'fftLength'])],
+    [SymbolicTensor('float32', [1, Dynamic('frames'), 'classes'])]
   );
   const maxFrames = meta.inputTensorMeta[0]!.shape[0]!;
   const fftLength = meta.inputTensorMeta[0]!.shape[1]!;

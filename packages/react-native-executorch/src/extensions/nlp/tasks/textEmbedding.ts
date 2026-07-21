@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateModelSchema, SymbolicTensor, Dynamic } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
@@ -70,7 +70,7 @@ export async function createTextEmbedder(
   const meta = validateModelSchema(
     model,
     'forward',
-    [SymbolicTensor('int64', [1, 'L']), SymbolicTensor('int64', [1, 'L'])],
+    [SymbolicTensor('int64', [1, Dynamic('L')]), SymbolicTensor('int64', [1, Dynamic('L')])],
     [SymbolicTensor('float32', [1, 'D'], ['D'])]
   );
   // The models are exported with a dynamic sequence dimension; the declared size

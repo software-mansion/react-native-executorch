@@ -64,6 +64,45 @@ std::string shapeToString(const SymbolicShape &shape) {
     }
     return "[" + s + "]";
 }
+
+std::optional<std::string> validateShape(const std::vector<int32_t> &shape, const SymbolicShape &expectedShape) {
+    if (shape.size() != expectedShape.size()) {
+        return std::format("expected {} dimensions, got {}", expectedShape.size(), shape.size());
+    }
+
+    std::unordered_map<std::string, int32_t> symbolToConcrete;
+
+    for (size_t i = 0; i < expectedShape.size(); ++i) {
+        const auto &dim = expectedShape.at(i);
+
+        if (std::holds_alternative<int32_t>(dim)) {
+            const auto expected = std::get<int32_t>(dim);
+            if (shape[i] != expected) {
+                return std::format("dim {} mismatch: expected {}, got {}", i, expected, shape[i]);
+            }
+        } else if (std::holds_alternative<std::string>(dim)) {
+            const auto &symbol = std::get<std::string>(dim);
+            if (symbolToConcrete.contains(symbol) && shape[i] != symbolToConcrete[symbol]) {
+                return std::format("dim {} mismatch: expected {} (symbol {}), got {}",
+                                   i, symbolToConcrete[symbol], symbol, shape[i]);
+            }
+            symbolToConcrete[symbol] = shape[i];
+        } else {
+            const auto &rangeDim = std::get<RangeDim>(dim);
+            if (shape[i] < rangeDim.min) {
+                return std::format("dim {} out of range: {} < min {}", i, shape[i], rangeDim.min);
+            }
+            if (shape[i] > rangeDim.max) {
+                return std::format("dim {} out of range: {} > max {}", i, shape[i], rangeDim.max);
+            }
+            if (rangeDim.step && (shape[i] - rangeDim.min) % *rangeDim.step != 0) {
+                return std::format("dim {} must be min({}) + k*step({}), got {}",
+                                   i, rangeDim.min, *rangeDim.step, shape[i]);
+            }
+        }
+    }
+    return std::nullopt;
+}
 } // namespace
 
 std::shared_ptr<TensorHostObject>
@@ -87,44 +126,56 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
         return tensor;
     }
 
-    if (shape.size() != expectedShape->size()) {
-        throw jsi::JSError(rt, std::format("{} must have shape {} (expected {} dimensions, got {})",
-                                           name, shapeToString(*expectedShape), expectedShape->size(), shape.size()));
+    auto err = validateShape(shape, *expectedShape);
+    if (err) {
+        throw jsi::JSError(rt, std::format("{} must have shape {} ({})",
+                                           name, shapeToString(*expectedShape), *err));
     }
 
-    std::unordered_map<std::string, int32_t> symbolToConcrete;
+    return tensor;
+}
 
-    for (size_t i = 0; i < expectedShape->size(); ++i) {
-        const auto &dim = expectedShape->at(i);
+std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype, const std::vector<SymbolicShape> &expectedShapes) {
 
-        if (std::holds_alternative<int32_t>(dim)) {
-            const auto expected = std::get<int32_t>(dim);
-            if (shape[i] != expected) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
-                                                   name, shapeToString(*expectedShape), i, expected, shape[i]));
-            }
-        } else if (std::holds_alternative<std::string>(dim)) {
-            const auto &symbol = std::get<std::string>(dim);
-            if (symbolToConcrete.contains(symbol) && shape[i] != symbolToConcrete[symbol]) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
-                                                   name, shapeToString(*expectedShape), i, symbolToConcrete[symbol], shape[i]));
-            }
-            symbolToConcrete[symbol] = shape[i];
-        } else {
-            const auto &rangeDim = std::get<RangeDim>(dim);
-            if (shape[i] < rangeDim.min) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
-                                                   name, shapeToString(*expectedShape), i, shape[i], rangeDim.min));
-            }
-            if (shape[i] > rangeDim.max) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
-                                                   name, shapeToString(*expectedShape), i, shape[i], rangeDim.max));
-            }
-            if (rangeDim.step && (shape[i] - rangeDim.min) % *rangeDim.step != 0) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
-                                                   name, shapeToString(*expectedShape), i, rangeDim.min, *rangeDim.step, shape[i]));
-            }
+    auto obj = conversions::asType<jsi::Object>(rt, name, value);
+    if (!obj.isHostObject<TensorHostObject>(rt)) {
+        throw jsi::JSError(rt, name + " must be a Tensor");
+    }
+
+    auto tensor = obj.getHostObject<TensorHostObject>(rt);
+    const auto &dtype = tensor->dtype_;
+    const auto &shape = tensor->shape_;
+
+    if (expectedDtype && dtype != *expectedDtype) {
+        throw jsi::JSError(rt, std::format("{} must be of type {}", name, types::toString(*expectedDtype)));
+    }
+
+    if (expectedShapes.empty()) {
+        return tensor;
+    }
+
+    std::vector<std::string> errors;
+    bool matched = false;
+    for (const auto &allowedShape : expectedShapes) {
+        auto err = validateShape(shape, allowedShape);
+        if (!err) {
+            matched = true;
+            break;
         }
+        errors.push_back(std::format("{} ({})", shapeToString(allowedShape), *err));
+    }
+
+    if (!matched) {
+        std::string errMsg = std::format("{} must match one of the allowed shapes:\n", name);
+        for (const auto &err : errors) {
+            errMsg += std::format("- {}\n", err);
+        }
+        if (!errMsg.empty()) {
+            errMsg.pop_back();
+        }
+        throw jsi::JSError(rt, errMsg);
     }
 
     return tensor;

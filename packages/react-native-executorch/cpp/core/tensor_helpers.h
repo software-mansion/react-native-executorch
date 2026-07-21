@@ -29,7 +29,9 @@ struct RangeDim {
     std::optional<int32_t> step;
 };
 
-using SymbolicShape = std::vector<std::variant<int32_t, std::string, RangeDim>>;
+using SymbolicDim = std::variant<int32_t, std::string, RangeDim>;
+using SymbolicShape = std::vector<SymbolicDim>;
+using ShapeConstraint = std::variant<SymbolicShape, std::vector<SymbolicShape>>;
 
 /**
  * Tries to acquire a shared (read) lock on the underlying tensor resource.
@@ -91,6 +93,17 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
 /**
  * @overload
  *
+ * Extracts, type-checks, and shape-validates a TensorHostObject from a JSI
+ * Value parameter against a list of alternative shapes. The tensor shape must
+ * match at least one of the shapes in the list.
+ */
+std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype, const std::vector<SymbolicShape> &expectedShapes);
+
+/**
+ * @overload
+ *
  * Convenience wrapper that accepts any concrete C++ range as the expected shape
  * (e.g. std::vector<int32_t>).
  *
@@ -116,7 +129,23 @@ fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
 inline std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
        std::optional<DType> expectedDtype,
-       std::initializer_list<std::variant<int32_t, std::string, RangeDim>> expectedShape) {
+       std::initializer_list<SymbolicDim> expectedShape) {
     return fromJs(rt, name, value, expectedDtype, std::optional<SymbolicShape>(expectedShape));
+}
+
+/**
+ * @overload
+ *
+ * Convenience wrapper that accepts a variant ShapeConstraint (either a single
+ * shape or a list of alternative shapes) and routes it to the correct overload.
+ */
+inline std::shared_ptr<TensorHostObject>
+fromJs(jsi::Runtime &rt, const std::string &name, const jsi::Value &value,
+       std::optional<DType> expectedDtype, const ShapeConstraint &shapeConstraint) {
+    if (std::holds_alternative<SymbolicShape>(shapeConstraint)) {
+        std::optional<SymbolicShape> shape = std::get<SymbolicShape>(shapeConstraint);
+        return fromJs(rt, name, value, expectedDtype, shape);
+    }
+    return fromJs(rt, name, value, expectedDtype, std::get<std::vector<SymbolicShape>>(shapeConstraint));
 }
 } // namespace rnexecutorch::core::tensor
