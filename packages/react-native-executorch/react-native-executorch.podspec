@@ -55,6 +55,10 @@ Pod::Spec.new do |s|
     "common/**/*.{cpp,c,h,hpp}",
   ]
 
+  s.resource_bundles = {
+    'RnExecutorchPrivacyInfo' => ['ios/PrivacyInfo.xcprivacy'],
+  }
+
   s.libraries = "z"
   s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
   # Exclude file with tests to not introduce gtest dependency.

@@ -107,6 +107,8 @@ declare global {
   ) => Promise<any>;
   // eslint-disable-next-line camelcase
   var __rne_isEmulator: boolean;
+  // eslint-disable-next-line camelcase
+  var __rne_bundleId: string;
 }
 // eslint-disable no-var
 
@@ -127,7 +129,8 @@ if (
   global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
   global.loadVerticalOCR == null ||
-  global.__rne_isEmulator == null
+  global.__rne_isEmulator == null ||
+  global.__rne_bundleId == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
