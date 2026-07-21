@@ -27,12 +27,22 @@ const MODELS = [
     disabled: Platform.OS !== 'ios',
   },
   {
+    name: 'Tiny English (MLX)',
+    config: models.speechToText.WHISPER.EN.TINY.MLX_BF16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
     name: 'Base English (CPU)',
     config: models.speechToText.WHISPER.EN.BASE.XNNPACK_FP32,
   },
   {
     name: 'Base English (CoreML)',
     config: models.speechToText.WHISPER.EN.BASE.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Base English (MLX)',
+    config: models.speechToText.WHISPER.EN.BASE.MLX_BF16,
     disabled: Platform.OS !== 'ios',
   },
   {
@@ -45,12 +55,22 @@ const MODELS = [
     disabled: Platform.OS !== 'ios',
   },
   {
+    name: 'Small English (MLX)',
+    config: models.speechToText.WHISPER.EN.SMALL.MLX_BF16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
     name: 'Tiny Multilingual (CPU)',
     config: models.speechToText.WHISPER.TINY.XNNPACK_FP32,
   },
   {
     name: 'Tiny Multilingual (CoreML)',
     config: models.speechToText.WHISPER.TINY.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Tiny Multilingual (MLX)',
+    config: models.speechToText.WHISPER.TINY.MLX_BF16,
     disabled: Platform.OS !== 'ios',
   },
   {
@@ -63,12 +83,22 @@ const MODELS = [
     disabled: Platform.OS !== 'ios',
   },
   {
+    name: 'Base Multilingual (MLX)',
+    config: models.speechToText.WHISPER.BASE.MLX_BF16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
     name: 'Small Multilingual (CPU)',
     config: models.speechToText.WHISPER.SMALL.XNNPACK_FP32,
   },
   {
     name: 'Small Multilingual (CoreML)',
     config: models.speechToText.WHISPER.SMALL.COREML_FP16,
+    disabled: Platform.OS !== 'ios',
+  },
+  {
+    name: 'Small Multilingual (MLX)',
+    config: models.speechToText.WHISPER.SMALL.MLX_BF16,
     disabled: Platform.OS !== 'ios',
   },
 ];
