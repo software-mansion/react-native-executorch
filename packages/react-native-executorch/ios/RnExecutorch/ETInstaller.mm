@@ -43,8 +43,10 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
     }
   };
   bool isEmulator = TARGET_OS_SIMULATOR;
+  NSString *nsBundleId = [[NSBundle mainBundle] bundleIdentifier];
+  std::string bundleId = nsBundleId ? nsBundleId.UTF8String : "";
   rnexecutorch::RnExecutorchInstaller::injectJSIBindings(
-      jsiRuntime, jsCallInvoker, fetchUrl, isEmulator);
+      jsiRuntime, jsCallInvoker, fetchUrl, isEmulator, bundleId);
 
   NSLog(@"Successfully installed JSI bindings for react-native-executorch!");
   return @true;
