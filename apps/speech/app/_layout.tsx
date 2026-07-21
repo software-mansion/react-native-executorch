@@ -28,14 +28,14 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
-        name="stt/index"
+        name="microphone-transcription/index"
         options={{
           drawerLabel: 'Live Transcription (Mic)',
           title: 'Live Transcription (Mic)',
         }}
       />
       <Drawer.Screen
-        name="stt-audio/index"
+        name="audio-file-transcription/index"
         options={{
           drawerLabel: 'Transcribe Audio File',
           title: 'Transcribe Audio File',
