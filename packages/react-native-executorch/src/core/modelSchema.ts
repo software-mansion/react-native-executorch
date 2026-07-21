@@ -1,5 +1,5 @@
-import { type DType } from './tensor';
-import { type Model, type ExecuTorchTag, type ModelMethodMeta, type TensorMeta } from './model';
+import type { DType } from './tensor';
+import type { Model, ExecuTorchTag, ModelMethodMeta, TensorMeta } from './model';
 
 /**
  * A named symbolic dimension that acts as a wildcard during shape matching.
