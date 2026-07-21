@@ -36,8 +36,8 @@ export const Static = (symbol: string): StaticDim => ({ kind: 'static', symbol }
 
 /**
  * Creates a {@link DynamicDim} — like {@link Static} but additionally asserts
- * that the model exports a companion method (`get_dynamic_dims_<method>` or
- * `get_enumerated_dims_<method>`).
+ * that the model exports a companion method declaring the runtime-enforced
+ * range of this dimension. See {@link validateModelSchema}.
  * @category Typescript API
  * @param symbol The symbolic name for this dynamic dimension.
  * @returns A {@link DynamicDim}.
@@ -204,7 +204,7 @@ function validateTags(
  * - For tensor slots: that the dtype and shape (if specified) satisfy the
  *   {@link TensorConstraint}.
  * - That when any tensor input uses {@link Dynamic}, the target method has a
- *   companion method on the model.
+ *   companion method on the model (see below).
  *
  * Companion methods (one per target method, named by replacing `<method>` with
  * the actual method name):
