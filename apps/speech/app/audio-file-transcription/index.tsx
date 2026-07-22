@@ -105,6 +105,7 @@ const MODELS = [
 
 function STTAudioContent() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]!);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [status, setStatus] = useState<string>('Idle');
   const [url, setUrl] = useState('https://models.silero.ai/vad_models/en.wav');
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -118,6 +119,8 @@ function STTAudioContent() {
     downloadProgress,
     error: modelError,
   } = useSpeechToText(selectedModel.config);
+
+  const supportedLanguages = selectedModel.config.supportedLanguages;
 
   useEffect(() => {
     return () => {
@@ -139,7 +142,7 @@ function STTAudioContent() {
       setStatus('Transcribing...');
 
       let currentText = '';
-      const text = await transcribe(samples, { language: 'en' }, (token) => {
+      const text = await transcribe(samples, { language: selectedLanguage as any }, (token) => {
         currentText += token;
         setAudioText(currentText);
       });
@@ -175,7 +178,10 @@ function STTAudioContent() {
             disabled: isModelBusy || !!m.disabled,
           }))}
           selectedValue={selectedModel}
-          onValueChange={setSelectedModel}
+          onValueChange={(m) => {
+            setSelectedModel(m);
+            setSelectedLanguage(m.config.supportedLanguages[0]!);
+          }}
         />
         <ModelStatus
           isReady={isSttReady}
@@ -183,6 +189,18 @@ function STTAudioContent() {
           error={modelError ? modelError.message : null}
           modelTypeLabel="Whisper model"
         />
+        {supportedLanguages.length > 1 && (
+          <ModelPicker
+            label="Language"
+            options={supportedLanguages.map((lang) => ({
+              label: lang,
+              value: lang,
+              disabled: isModelBusy,
+            }))}
+            selectedValue={selectedLanguage}
+            onValueChange={setSelectedLanguage}
+          />
+        )}
       </View>
 
       {runError && (

@@ -100,6 +100,7 @@ const isSimulator = DeviceInfo.isEmulatorSync();
 
 function STTContent() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]!);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [status, setStatus] = useState<string>('Idle');
   const [committedText, setCommittedText] = useState('');
   const [nonCommittedText, setNonCommittedText] = useState('');
@@ -114,6 +115,8 @@ function STTContent() {
     downloadProgress,
     error: modelError,
   } = useSpeechToText(selectedModel.config);
+
+  const supportedLanguages = selectedModel.config.supportedLanguages;
 
   const recorderRef = useRef<AudioRecorder | null>(null);
 
@@ -140,7 +143,7 @@ function STTContent() {
 
     (async () => {
       try {
-        const textStream = stream({ language: 'en' });
+        const textStream = stream({ language: selectedLanguage as any });
         for await (const result of textStream) {
           setCommittedText(result.committed);
           setNonCommittedText(result.nonCommitted);
@@ -195,7 +198,10 @@ function STTContent() {
             disabled: isModelBusy || !!m.disabled,
           }))}
           selectedValue={selectedModel}
-          onValueChange={setSelectedModel}
+          onValueChange={(m) => {
+            setSelectedModel(m);
+            setSelectedLanguage(m.config.supportedLanguages[0]!);
+          }}
         />
         <ModelStatus
           isReady={isSttReady}
@@ -203,6 +209,18 @@ function STTContent() {
           error={modelError ? modelError.message : null}
           modelTypeLabel="Whisper model"
         />
+        {supportedLanguages.length > 1 && (
+          <ModelPicker
+            label="Language"
+            options={supportedLanguages.map((lang) => ({
+              label: lang,
+              value: lang,
+              disabled: isModelBusy,
+            }))}
+            selectedValue={selectedLanguage}
+            onValueChange={setSelectedLanguage}
+          />
+        )}
       </View>
 
       {runError && (
