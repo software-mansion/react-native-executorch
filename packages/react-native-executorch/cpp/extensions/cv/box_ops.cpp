@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <format>
 #include <numeric>
 #include <optional>
 #include <shared_mutex>
+#include <span>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -60,9 +62,13 @@ NmsType parseNmsType(const std::string &s) {
     throw std::invalid_argument("unsupported nmsType '" + s + "'");
 }
 
-std::array<float, 4> decodeToXyxy(
-    float a, float b, float c, float d,
-    BoxFormat format) {
+constexpr size_t kBoxCoords = 4;
+
+std::array<float, kBoxCoords> decodeToXyxy(std::span<const float, kBoxCoords> box, BoxFormat format) {
+    const float a = box[0];
+    const float b = box[1];
+    const float c = box[2];
+    const float d = box[3];
     switch (format) {
     case BoxFormat::XYXY:
         return {a, b, c, d};
@@ -104,14 +110,20 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         std::int32_t numAnchors = scores->shape_[0];
-        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
-        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
+        const std::span<const float> boxesData(reinterpret_cast<const float *>(boxes->data_.get()), boxes->numel_);
+        const std::span<const float> scoresData(reinterpret_cast<const float *>(scores->data_.get()), scores->numel_);
+
+        // Coordinates of anchor `i` occupy the i-th 4-element row of `boxesData`.
+        auto boxAt = [boxesData](std::int32_t index) -> std::span<const float, kBoxCoords> {
+            return std::span<const float, kBoxCoords>(
+                boxesData.subspan(static_cast<size_t>(index) * kBoxCoords, kBoxCoords));
+        };
 
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(static_cast<size_t>(numAnchors));
 
-        for (size_t idx = 0; std::cmp_less(idx, numAnchors); ++idx) {
-            float score = scoresPtr[idx];
+        for (std::int32_t idx = 0; idx < numAnchors; ++idx) {
+            const float score = scoresData[static_cast<size_t>(idx)];
 
             if (score >= confidenceThreshold) {
                 candidates.emplace_back(idx, score);
@@ -134,12 +146,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
             std::int32_t idxI = candidates[i].first;
 
-            auto [xminA, yminA, xmaxA, ymaxA] = decodeToXyxy(
-                boxesPtr[idxI * 4 + 0],
-                boxesPtr[idxI * 4 + 1],
-                boxesPtr[idxI * 4 + 2],
-                boxesPtr[idxI * 4 + 3],
-                boxFormat);
+            auto [xminA, yminA, xmaxA, ymaxA] = decodeToXyxy(boxAt(idxI), boxFormat);
 
             const float areaA = (xmaxA - xminA) * (ymaxA - yminA);
 
@@ -152,12 +159,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
                 std::int32_t idxJ = candidates[j].first;
 
-                auto [xminB, yminB, xmaxB, ymaxB] = decodeToXyxy(
-                    boxesPtr[idxJ * 4 + 0],
-                    boxesPtr[idxJ * 4 + 1],
-                    boxesPtr[idxJ * 4 + 2],
-                    boxesPtr[idxJ * 4 + 3],
-                    boxFormat);
+                auto [xminB, yminB, xmaxB, ymaxB] = decodeToXyxy(boxAt(idxJ), boxFormat);
 
                 const float areaB = (xmaxB - xminB) * (ymaxB - yminB);
 
@@ -220,7 +222,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         auto dstLock = tensor::tryLockUnique(rt, "restrictToBox: dst", dst);
 
         auto boxVec = conversions::asVector<float>(rt, "restrictToBox: boxTuple", args[2]);
-        if (boxVec.size() != 4) {
+        if (boxVec.size() != kBoxCoords) {
             throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
         }
 
@@ -232,12 +234,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
             throw jsi::JSError(rt, std::format("restrictToBox: {}", e.what()));
         }
 
-        float a = boxVec[0];
-        float b = boxVec[1];
-        float c = boxVec[2];
-        float d = boxVec[3];
-
-        auto [xmin, ymin, xmax, ymax] = decodeToXyxy(a, b, c, d, boxFormat);
+        auto [xmin, ymin, xmax, ymax] = decodeToXyxy(std::span<const float, kBoxCoords>(boxVec), boxFormat);
 
         int32_t H = src->shape_[0];
         int32_t W = src->shape_[1];
