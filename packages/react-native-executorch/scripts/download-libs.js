@@ -122,8 +122,8 @@ const FEATURE_MAP = {
   // Multimodal LLMs add vulkan (Gemma-3-multimodal ships a Vulkan export) and
   // mlx (Gemma 4 ships an MLX iOS export); the vision encoder needs opencv.
   multimodalLLM: { backends: ['xnnpack', 'mlx', 'vulkan'], libs: ['opencv'] },
-  // Privacy filter classifiers — xnnpack only.
-  privacyFilter: { backends: ['xnnpack'], libs: [] },
+  // Privacy filter classifiers ship xnnpack + an MLX iOS export.
+  privacyFilter: { backends: ['xnnpack', 'mlx'], libs: [] },
   // Whisper ships xnnpack + coreml.
   speechToText: { backends: ['xnnpack', 'coreml'], libs: [] },
   // Kokoro ships xnnpack only.
