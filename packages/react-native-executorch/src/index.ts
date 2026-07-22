@@ -9,6 +9,7 @@ export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
+export * from './hooks/useSpeechToText';
 export * from './hooks/useTextToImage';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
@@ -29,6 +30,7 @@ export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
+export * from './extensions/speech/tasks/whisperSpeechToText';
 
 // Core primitives — for library builders and power users
 export { tensor } from './core/tensor';
