@@ -581,6 +581,7 @@ function whisperVariants<const N extends string, const IsML extends boolean>(
   isMultilingual: IsML,
   xnnpackUrl: string,
   coremlUrl: string,
+  mlxUrl: string,
   tokenizerUrl: string
 ) {
   return {
@@ -610,6 +611,19 @@ function whisperVariants<const N extends string, const IsML extends boolean>(
         tokenizerSource: string;
       },
     },
+    mlx: {
+      base: {
+        modelName,
+        isMultilingual,
+        modelSource: mlxUrl,
+        tokenizerSource: tokenizerUrl,
+      } as {
+        modelName: N;
+        isMultilingual: IsML;
+        modelSource: string;
+        tokenizerSource: string;
+      },
+    },
   };
 }
 
@@ -618,6 +632,7 @@ const WHISPER_TINY_EN_VARIANTS = whisperVariants(
   false,
   M.WHISPER_TINY_EN_MODEL_XNNPACK,
   M.WHISPER_TINY_EN_MODEL_COREML,
+  M.WHISPER_TINY_EN_MODEL_MLX,
   M.WHISPER_TINY_EN_TOKENIZER
 );
 const WHISPER_BASE_EN_VARIANTS = whisperVariants(
@@ -625,6 +640,7 @@ const WHISPER_BASE_EN_VARIANTS = whisperVariants(
   false,
   M.WHISPER_BASE_EN_MODEL_XNNPACK,
   M.WHISPER_BASE_EN_MODEL_COREML,
+  M.WHISPER_BASE_EN_MODEL_MLX,
   M.WHISPER_BASE_EN_TOKENIZER
 );
 const WHISPER_SMALL_EN_VARIANTS = whisperVariants(
@@ -632,6 +648,7 @@ const WHISPER_SMALL_EN_VARIANTS = whisperVariants(
   false,
   M.WHISPER_SMALL_EN_MODEL_XNNPACK,
   M.WHISPER_SMALL_EN_MODEL_COREML,
+  M.WHISPER_SMALL_EN_MODEL_MLX,
   M.WHISPER_SMALL_EN_TOKENIZER
 );
 const WHISPER_TINY_VARIANTS = whisperVariants(
@@ -639,6 +656,7 @@ const WHISPER_TINY_VARIANTS = whisperVariants(
   true,
   M.WHISPER_TINY_MODEL_XNNPACK,
   M.WHISPER_TINY_MODEL_COREML,
+  M.WHISPER_TINY_MODEL_MLX,
   M.WHISPER_TINY_TOKENIZER
 );
 const WHISPER_BASE_VARIANTS = whisperVariants(
@@ -646,6 +664,7 @@ const WHISPER_BASE_VARIANTS = whisperVariants(
   true,
   M.WHISPER_BASE_MODEL_XNNPACK,
   M.WHISPER_BASE_MODEL_COREML,
+  M.WHISPER_BASE_MODEL_MLX,
   M.WHISPER_BASE_TOKENIZER
 );
 const WHISPER_SMALL_VARIANTS = whisperVariants(
@@ -653,6 +672,7 @@ const WHISPER_SMALL_VARIANTS = whisperVariants(
   true,
   M.WHISPER_SMALL_MODEL_XNNPACK,
   M.WHISPER_SMALL_MODEL_COREML,
+  M.WHISPER_SMALL_MODEL_MLX,
   M.WHISPER_SMALL_TOKENIZER
 );
 
@@ -820,12 +840,12 @@ export const models = {
     udnie: variant(STYLE_TRANSFER_UDNIE_VARIANTS),
   },
   speech_to_text: {
-    whisper_tiny_en: variant(WHISPER_TINY_EN_VARIANTS),
-    whisper_base_en: variant(WHISPER_BASE_EN_VARIANTS),
-    whisper_small_en: variant(WHISPER_SMALL_EN_VARIANTS),
-    whisper_tiny: variant(WHISPER_TINY_VARIANTS),
-    whisper_base: variant(WHISPER_BASE_VARIANTS),
-    whisper_small: variant(WHISPER_SMALL_VARIANTS),
+    whisper_tiny_en: variant(WHISPER_TINY_EN_VARIANTS, { ios: 'mlx' }),
+    whisper_base_en: variant(WHISPER_BASE_EN_VARIANTS, { ios: 'mlx' }),
+    whisper_small_en: variant(WHISPER_SMALL_EN_VARIANTS, { ios: 'mlx' }),
+    whisper_tiny: variant(WHISPER_TINY_VARIANTS, { ios: 'mlx' }),
+    whisper_base: variant(WHISPER_BASE_VARIANTS, { ios: 'mlx' }),
+    whisper_small: variant(WHISPER_SMALL_VARIANTS, { ios: 'mlx' }),
   },
   // Kokoro presets bundle model + voice + phonemizer per language. They go
   // through `useTextToSpeech` directly — pick one and pass it as the `model`.

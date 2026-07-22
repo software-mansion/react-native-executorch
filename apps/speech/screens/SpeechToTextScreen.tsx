@@ -23,7 +23,7 @@ const speechToText = models.speech_to_text;
 const vad = models.vad;
 
 const isSimulator = DeviceInfo.isEmulatorSync();
-const backend = Platform.OS === 'ios' && !isSimulator ? 'coreml' : 'xnnpack';
+const backend = Platform.OS === 'ios' && !isSimulator ? 'mlx' : 'xnnpack';
 
 type STTModelSources = SpeechToTextProps['model'];
 
