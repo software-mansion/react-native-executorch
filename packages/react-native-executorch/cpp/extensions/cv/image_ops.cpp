@@ -2,9 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
+#include <cstddef>
+#include <cstdint>
 #include <format>
 #include <optional>
+#include <span>
 #include <stdexcept>
 #include <utility>
 
@@ -261,10 +263,12 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
 
             const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
             const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-            uint8_t *dstPtr = dst->data_.get();
+            const size_t planeBytes = hw * elemSize;
+            const std::span<uint8_t> dstBytes(dst->data_.get(), dst->size_);
 
             for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-                std::memcpy(dstPtr + i * hw * elemSize, channels[i].data, hw * elemSize);
+                const std::span<const uint8_t> plane(channels[i].data, planeBytes);
+                std::ranges::copy(plane, dstBytes.subspan(i * planeBytes, planeBytes).begin());
             }
         } catch (const std::exception &e) {
             throw jsi::JSError(rt, "toChannelsFirst: " + std::string(e.what()));
@@ -299,11 +303,12 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
 
             const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
             const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
-            uint8_t *srcPtr = src->data_.get();
+            const size_t planeBytes = hw * elemSize;
+            const std::span<uint8_t> srcBytes(src->data_.get(), src->size_);
 
             std::vector<::cv::Mat> channels;
             for (size_t i = 0; std::cmp_less(i, srcC); ++i) {
-                channels.emplace_back(srcH, srcW, cvDepth, srcPtr + i * hw * elemSize);
+                channels.emplace_back(srcH, srcW, cvDepth, srcBytes.subspan(i * planeBytes, planeBytes).data());
             }
 
             ::cv::Mat dstMat(srcH, srcW, CV_MAKETYPE(cvDepth, srcC), dst->data_.get());
@@ -362,13 +367,18 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
 
             const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
             const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
-            uint8_t *srcPtr = src->data_.get();
-            uint8_t *dstPtr = dst->data_.get();
+            const std::span<uint8_t> srcBytes(src->data_.get(), src->size_);
+            const std::span<uint8_t> dstBytes(dst->data_.get(), dst->size_);
 
             const size_t plane = static_cast<size_t>(h) * static_cast<size_t>(w);
+            const size_t srcPlaneBytes = plane * srcElemSize;
+            const size_t dstPlaneBytes = plane * dstElemSize;
+
             for (size_t ch = 0; std::cmp_less(ch, c); ++ch) {
-                const ::cv::Mat srcChannel(h, w, srcDepthType, srcPtr + ch * plane * srcElemSize);
-                ::cv::Mat dstChannel(h, w, dstDepthType, dstPtr + ch * plane * dstElemSize);
+                const ::cv::Mat srcChannel(h, w, srcDepthType,
+                                           srcBytes.subspan(ch * srcPlaneBytes, srcPlaneBytes).data());
+                ::cv::Mat dstChannel(h, w, dstDepthType,
+                                     dstBytes.subspan(ch * dstPlaneBytes, dstPlaneBytes).data());
 
                 srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
             }
@@ -411,21 +421,18 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
             }
         }
 
-        const size_t pixels = src->numel_;
+        const std::span<const int32_t> srcData(reinterpret_cast<const int32_t *>(src->data_.get()), src->numel_);
+        const std::span<uint8_t> dstData(dst->data_.get(), dst->numel_);
 
-        const auto *srcData = reinterpret_cast<const int32_t *>(src->data_.get());
-        uint8_t *dstData = dst->data_.get();
-
-        for (size_t i = 0; i < pixels; ++i) {
+        for (size_t i = 0; i < srcData.size(); ++i) {
             const int32_t idx = srcData[i];
             if (idx < 0 || std::cmp_greater_equal(idx, numColors)) {
                 throw jsi::JSError(rt, "applyColormap: tensor contains class index (" +
                                            std::to_string(idx) + ") that exceeds provided colormap size (" +
                                            std::to_string(numColors) + ")");
             }
-            for (size_t c = 0; c < numRgbaChannels; ++c) {
-                dstData[i * numRgbaChannels + c] = lut[static_cast<size_t>(idx)][c];
-            }
+            std::ranges::copy(lut[static_cast<size_t>(idx)],
+                              dstData.subspan(i * numRgbaChannels, numRgbaChannels).begin());
         }
 
         return jsi::Value(rt, args[1]);
