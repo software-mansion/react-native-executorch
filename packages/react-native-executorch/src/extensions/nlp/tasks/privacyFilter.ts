@@ -115,7 +115,6 @@ export async function createPrivacyFilter(
     [SymbolicTensor('float32', [1, 'S', numLabels], ['S', numLabels])]
   );
   const windowSize = meta.inputTensorMeta[0]!.shape[1]!;
-  const outShape = meta.outputTensorMeta[0]!.shape;
   if (windowSize < 2) {
     throw new Error(
       `createPrivacyFilter: expected a forward window of at least 2 tokens, got ${windowSize}.`
@@ -130,17 +129,40 @@ export async function createPrivacyFilter(
   const stride = Math.floor(windowSize / 2);
   const edgeMargin = Math.floor(windowSize / 4);
 
-  // prettier-ignore
-  const tensors = [
-    tensor('int64', [1, windowSize]),
-    tensor('int64', [1, windowSize]),
-    tensor('float32', outShape),
-  ] as const;
+  // A model exported with dynamic sequence length carries a companion method
+  // holding the active [min, max, step] range; without it the method only
+  // accepts the exact shape it was exported with, so every window must be
+  // padded to `windowSize`. When it is present, a window is instead sized to
+  // the tokens it actually holds, which is the dominant cost: the MoE runs all
+  // experts per token, so inference is linear in sequence length and a short
+  // input otherwise pays for a full window of padding.
+  const isDynamic = model.getMethodNames().includes('get_dynamic_dims_forward');
+  // Lengths are rounded up to a bucket so a handful of tensor shapes cover any
+  // input; tensors have an immutable shape, so each distinct length would
+  // otherwise mean another native allocation.
+  // The slots are built here, on the JS runtime, and only indexed inside the
+  // worklet: calling a host closure from the worklet runtime would be a remote
+  // call, which cannot happen synchronously.
+  const LENGTH_BUCKET = 32;
+  const bucketLengths: number[] = [];
+  if (isDynamic) {
+    for (let len = LENGTH_BUCKET; len < windowSize; len += LENGTH_BUCKET) {
+      bucketLengths.push(len);
+    }
+  }
+  bucketLengths.push(windowSize);
 
-  const [tInputIds, tAttentionMask, tLogits] = tensors;
+  const bucketTensors = bucketLengths.map(
+    (len) =>
+      [
+        tensor('int64', [1, len]),
+        tensor('int64', [1, len]),
+        tensor('float32', [1, len, numLabels]),
+      ] as const
+  );
 
   const dispose = () => {
-    tensors.forEach((t) => t.dispose());
+    bucketTensors.forEach((entry) => entry.forEach((t) => t.dispose()));
     tokenizer.dispose();
     model.dispose();
   };
@@ -152,12 +174,23 @@ export async function createPrivacyFilter(
     if (totalTokens === 0) return [];
 
     const predictedLabels = new Int32Array(totalTokens);
-    const idsData = new BigInt64Array(windowSize);
-    const maskData = new BigInt64Array(windowSize);
-    const logits = new Float32Array(tLogits.numel);
 
     for (let windowStart = 0; windowStart < totalTokens; windowStart += stride) {
       const validLen = Math.min(windowSize, totalTokens - windowStart);
+
+      let slot = bucketLengths.length - 1;
+      for (let b = 0; b < bucketLengths.length; b++) {
+        if (bucketLengths[b]! >= validLen) {
+          slot = b;
+          break;
+        }
+      }
+      const runLen = bucketLengths[slot]!;
+      const [tInputIds, tAttentionMask, tLogits] = bucketTensors[slot]!;
+
+      const idsData = new BigInt64Array(runLen);
+      const maskData = new BigInt64Array(runLen);
+      const logits = new Float32Array(tLogits.numel);
 
       idsData.fill(padTokenId);
       maskData.fill(0n);

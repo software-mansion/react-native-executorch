@@ -774,28 +774,28 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
 // Token-level PII detectors over a BIOES label space. Both presets share the
 // o200k tokenizer, so the pipeline's default pad token id applies; only the
 // label space differs between them.
-const PRIVACY_FILTER_OPENAI_TOKENIZER = `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/tokenizer.json`;
+const PRIVACY_FILTER_OPENAI_TOKENIZER = `${BASE_URL}-privacy-filter-openai/${NEXT_VERSION_TAG}/tokenizer.json`;
 const PRIVACY_FILTER_OPENAI_OPTS = { labelNames: PRIVACY_FILTER_OPENAI_LABELS };
 const PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W: PrivacyFilterModel = {
-  modelPath: `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
+  modelPath: `${BASE_URL}-privacy-filter-openai/${NEXT_VERSION_TAG}/xnnpack/privacy_filter_openai_xnnpack_8da4w.pte`,
   tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
   privacyFilterOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
 const PRIVACY_FILTER_OPENAI_MLX_INT4: PrivacyFilterModel = {
-  modelPath: `${BASE_URL}-privacy-filter-openai/${VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
+  modelPath: `${BASE_URL}-privacy-filter-openai/${NEXT_VERSION_TAG}/mlx/privacy_filter_openai_mlx_int4.pte`,
   tokenizerPath: PRIVACY_FILTER_OPENAI_TOKENIZER,
   privacyFilterOpts: PRIVACY_FILTER_OPENAI_OPTS,
 };
 
-const PRIVACY_FILTER_NEMOTRON_TOKENIZER = `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/tokenizer.json`;
+const PRIVACY_FILTER_NEMOTRON_TOKENIZER = `${BASE_URL}-privacy-filter-nemotron/${NEXT_VERSION_TAG}/tokenizer.json`;
 const PRIVACY_FILTER_NEMOTRON_OPTS = { labelNames: PRIVACY_FILTER_NEMOTRON_LABELS };
 const PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W: PrivacyFilterModel = {
-  modelPath: `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
+  modelPath: `${BASE_URL}-privacy-filter-nemotron/${NEXT_VERSION_TAG}/xnnpack/privacy_filter_nemotron_xnnpack_8da4w.pte`,
   tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
   privacyFilterOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
 const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel = {
-  modelPath: `${BASE_URL}-privacy-filter-nemotron/${VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
+  modelPath: `${BASE_URL}-privacy-filter-nemotron/${NEXT_VERSION_TAG}/mlx/privacy_filter_nemotron_mlx_int8.pte`,
   tokenizerPath: PRIVACY_FILTER_NEMOTRON_TOKENIZER,
   privacyFilterOpts: PRIVACY_FILTER_NEMOTRON_OPTS,
 };
