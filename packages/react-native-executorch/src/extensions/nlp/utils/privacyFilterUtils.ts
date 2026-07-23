@@ -181,12 +181,18 @@ export function buildGrammar(labelNames: readonly string[], biases?: ViterbiBias
  * @param logits Flat row-major logits; row `t` starts at `t * numLabels`.
  * @param validLen Number of leading token rows to decode.
  * @param grammar Pre-computed grammar tables from {@link buildGrammar}.
+ * @param constrainEnd When `true`, the decoded sequence is forced to end on a
+ * valid BIOES terminal (`O`/`E-x`/`S-x`) rather than an open span (`B-x`/`I-x`).
+ * Pass `true` only when this slice ends where the text ends; a slice cut mid-span
+ * (e.g. an interior sliding window) should leave this `false`. Defaults to
+ * `false`.
  * @returns The most likely label id per token.
  */
 export function viterbiDecode(
   logits: Float32Array,
   validLen: number,
-  grammar: Grammar
+  grammar: Grammar,
+  constrainEnd: boolean = false
 ): Int32Array {
   'worklet';
   const n = grammar.numLabels;
@@ -300,14 +306,23 @@ export function viterbiDecode(
     dpNext = swap;
   }
 
-  let bestEnd = 0;
-  let bestScore = dp[0]!;
-  for (let j = 1; j < n; j++) {
+  // Pick the highest-scoring final state. When `constrainEnd` is set, restrict
+  // it to a valid BIOES terminal (background or a span-closing E-/S-) so the
+  // sequence cannot end on an unclosed B-/I-. `O` is always both a valid
+  // terminal and reachable, so a constrained end always finds a candidate.
+  let bestEnd = -1;
+  let bestScore = NEG_INF;
+  for (let j = 0; j < n; j++) {
+    if (constrainEnd) {
+      const cls = labelClass[j]!;
+      if (cls !== CLASS_O && cls !== CLASS_E && cls !== CLASS_S) continue;
+    }
     if (dp[j]! > bestScore) {
       bestScore = dp[j]!;
       bestEnd = j;
     }
   }
+  if (bestEnd < 0) bestEnd = 0;
 
   const path = new Int32Array(validLen);
   path[validLen - 1] = bestEnd;
@@ -332,6 +347,17 @@ export function labelEntityType(labelId: number, labelNames: readonly string[]):
   return dash === -1 ? '' : name.slice(dash + 1);
 }
 
+// A BIOES span-opening tag: `B-x` (begin of a multi-token span) or `S-x` (a
+// single-token span). Used to split two adjacent same-entity spans that would
+// otherwise look like one contiguous run. Kept self-contained (rather than
+// reusing `classOf`) so it is safe to call from the worklet thread.
+function isSpanOpener(labelId: number, labelNames: readonly string[]): boolean {
+  'worklet';
+  if (labelId <= 0 || labelId >= labelNames.length) return false;
+  const name = labelNames[labelId]!;
+  return name.length >= 2 && name[1] === '-' && (name[0] === 'B' || name[0] === 'S');
+}
+
 /**
  * A contiguous run of same-entity tokens, before text decoding.
  * @category Types
@@ -343,8 +369,11 @@ export interface TokenSpan {
 }
 
 /**
- * Collapses a per-token label id sequence into contiguous same-entity spans,
- * skipping background (`O`) tokens.
+ * Collapses a per-token label id sequence into same-entity spans, skipping
+ * background (`O`) tokens. A span runs from an opener token through the
+ * following same-entity tokens, but stops before the next opener (`B-x`/`S-x`)
+ * so two adjacent same-type entities (e.g. `S-x` then `B-x E-x`) stay separate
+ * rather than merging into one run.
  * @param predictedLabels Per-token predicted label ids.
  * @param labelNames The BIOES label list.
  * @returns The detected token spans in order.
@@ -364,7 +393,11 @@ export function extractSpans(
       continue;
     }
     let j = i + 1;
-    while (j < total && labelEntityType(predictedLabels[j]!, labelNames) === entity) {
+    while (
+      j < total &&
+      labelEntityType(predictedLabels[j]!, labelNames) === entity &&
+      !isSpanOpener(predictedLabels[j]!, labelNames)
+    ) {
       j++;
     }
     spans.push({ start: i, end: j, entity });

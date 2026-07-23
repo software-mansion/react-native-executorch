@@ -204,9 +204,13 @@ export async function createPrivacyFilter(
       model.execute('forward', [tInputIds, tAttentionMask], [tLogits]);
       tLogits.getData(logits);
 
-      const path = viterbiDecode(logits, validLen, grammar);
-
+      // Only the final window ends where the text ends, so only it should be
+      // forced to close on a valid BIOES terminal (O/E/S); a mid-document
+      // window may legitimately be cut through an open span, and its boundary
+      // predictions are discarded and re-decoded by the next window anyway.
       const isLast = windowStart + windowSize >= totalTokens;
+      const path = viterbiDecode(logits, validLen, grammar, isLast);
+
       const writeFrom = windowStart === 0 ? 0 : edgeMargin;
       const writeTo = Math.min(isLast ? validLen : windowSize - edgeMargin, validLen);
       for (let i = writeFrom; i < writeTo; i++) {
