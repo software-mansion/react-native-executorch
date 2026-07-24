@@ -1,11 +1,20 @@
 /* eslint-disable no-bitwise */
+import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import { triggerDownloadEvent, triggerHuggingFaceDownloadCounter } from './telemetry';
 
-// Persistent, per-app directory where downloaded model assets are cached. We use
-// DocumentDir rather than CacheDir so the OS won't evict large models between
-// runs, forcing a costly re-download.
-const RNE_DIRECTORY = `${RNBlobUtil.fs.dirs.DocumentDir}/react-native-executorch`;
+const IS_ANDROID = Platform.OS === 'android';
+
+// Persistent, per-app directory where downloaded model assets are cached.
+//   iOS: internal DocumentDir (not CacheDir) so the OS won't evict large models
+//        between runs and force a costly re-download.
+//   Android: the app-private EXTERNAL files dir (getExternalFilesDir), so the
+//        system DownloadManager can write there and same-volume moves stay cheap
+//        even for multi-GB files. Falls back to DocumentDir if unmounted.
+const ANDROID_DIRECTORY = RNBlobUtil.fs.dirs.SDCardDir || RNBlobUtil.fs.dirs.DocumentDir;
+const RNE_DIRECTORY = IS_ANDROID
+  ? `${ANDROID_DIRECTORY}/react-native-executorch`
+  : `${RNBlobUtil.fs.dirs.DocumentDir}/react-native-executorch`;
 
 /**
  * Progress callback reporting overall completion as a fraction in `[0, 1]`.
@@ -21,8 +30,8 @@ export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
   onProgress?: DownloadProgressCallback;
   /**
-   * Aborts the download. Bytes fetched so far are kept on disk so a later
-   * {@link download} of the same source resumes instead of restarting.
+   * Aborts the download. On iOS the bytes fetched so far are kept on disk so a
+   * later {@link download} of the same source resumes instead of restarting.
    */
   signal?: AbortSignal;
 }
@@ -79,15 +88,10 @@ interface DownloadOneCallbacks {
 }
 
 /**
- * Downloads a single remote file into the cache with HTTP-Range resume support.
- * Returns the local path. `canResume` is set to `false` on an internal retry to
- * avoid recursing forever when partial-file assembly fails.
+ * Downloads a single remote file into the cache, dispatching to the
+ * platform-appropriate backend. Returns the local path.
  */
-async function downloadOne(
-  url: string,
-  cb: DownloadOneCallbacks,
-  canResume = true
-): Promise<string> {
+async function downloadOne(url: string, cb: DownloadOneCallbacks): Promise<string> {
   const dest = cachePathFor(url);
 
   // Cache hit — nothing to download.
@@ -97,14 +101,83 @@ async function downloadOne(
     return dest;
   }
 
-  // Count this actual (non-cached) fetch once — not on the internal retry.
-  if (canResume) {
-    triggerHuggingFaceDownloadCounter(url);
-    triggerDownloadEvent(url);
-  }
+  // Count this actual (non-cached) fetch once.
+  triggerHuggingFaceDownloadCounter(url);
+  triggerDownloadEvent(url);
 
   await RNBlobUtil.fs.mkdir(RNE_DIRECTORY).catch(() => {});
 
+  return IS_ANDROID ? downloadViaDownloadManager(url, dest, cb) : downloadViaStream(url, dest, cb);
+}
+
+/**
+ * Android backend: the system DownloadManager streams to app-private external
+ * storage. Unlike blob-util's in-process reader it handles files larger than
+ * 2 GB, keeps downloading while the app is backgrounded or killed, and resumes
+ * across transient network drops on its own — so no manual Range logic here.
+ */
+async function downloadViaDownloadManager(
+  url: string,
+  dest: string,
+  cb: DownloadOneCallbacks
+): Promise<string> {
+  const tmp = `${dest}.downloading`;
+  await RNBlobUtil.fs.unlink(tmp).catch(() => {});
+
+  if (cb.signal?.aborted) throw abortError();
+
+  const task = RNBlobUtil.config({
+    addAndroidDownloads: {
+      useDownloadManager: true,
+      path: tmp,
+      notification: false,
+      mediaScannable: false,
+      mime: 'application/octet-stream',
+    },
+  }).fetch('GET', url);
+
+  const onAbort = () => task.cancel();
+  cb.signal?.addEventListener('abort', onAbort);
+
+  // DownloadManager reports total as -1 until the size is known; forward the
+  // received byte count regardless so byte-weighted progress still advances.
+  task.progress({ count: 100 }, (received, total) => {
+    const recv = Number(received);
+    const tot = Number(total);
+    cb.onBytes?.(recv, tot > 0 ? tot : recv);
+  });
+
+  try {
+    await task;
+  } catch (e) {
+    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
+    throw cb.signal?.aborted ? abortError() : e;
+  } finally {
+    cb.signal?.removeEventListener('abort', onAbort);
+  }
+
+  // DownloadManager doesn't surface an HTTP status; an empty file means failure.
+  const size = await fileSize(tmp);
+  if (size <= 0) {
+    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
+    throw new Error(`Download of ${url} failed (empty response).`);
+  }
+  await RNBlobUtil.fs.mv(tmp, dest);
+  return dest;
+}
+
+/**
+ * iOS backend: blob-util streams via NSURLSession straight to disk. Interrupted
+ * downloads resume from a `.partial` file via an HTTP Range request. `canResume`
+ * is set to `false` on an internal retry to avoid recursing forever if
+ * partial-file assembly ever fails.
+ */
+async function downloadViaStream(
+  url: string,
+  dest: string,
+  cb: DownloadOneCallbacks,
+  canResume = true
+): Promise<string> {
   const part = `${dest}.partial`;
   if (!canResume) await RNBlobUtil.fs.unlink(part).catch(() => {});
   const offset = canResume ? await fileSize(part) : 0;
@@ -169,7 +242,7 @@ async function downloadOne(
     // once as a plain full download so correctness never depends on resume.
     await RNBlobUtil.fs.unlink(part).catch(() => {});
     await RNBlobUtil.fs.unlink(target).catch(() => {});
-    if (canResume) return downloadOne(url, cb, false);
+    if (canResume) return downloadViaStream(url, dest, cb, false);
     throw assemblyErr;
   }
 }
@@ -179,9 +252,10 @@ async function downloadOne(
  * resolves with their local file paths.
  *
  * Local paths (anything not starting with `http`) are returned unchanged.
- * Remote files are streamed to disk with resume support: an interrupted
- * download continues from where it stopped on the next call rather than
- * restarting. When several sources are passed, overall progress is weighted by
+ * Remote files are downloaded to a persistent cache: on Android via the system
+ * DownloadManager (handles multi-GB files and continues in the background), on
+ * iOS via a streaming request that resumes an interrupted download from where
+ * it stopped. When several sources are passed, overall progress is weighted by
  * their byte sizes so a large model isn't reported the same as a tiny
  * tokenizer.
  * @category Fetching
