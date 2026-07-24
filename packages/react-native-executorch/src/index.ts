@@ -14,6 +14,9 @@ export * from './hooks/useTextToImage';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
+// Resource fetching — imperative download API
+export * from './fetcher';
+
 // Constants
 export { models } from './models';
 export * as constants from './constants';

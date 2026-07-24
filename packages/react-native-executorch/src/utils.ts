@@ -1,7 +1,7 @@
 import { rnexecutorchJsi } from './native/bridge';
 import { loadModel } from './core/model';
 import type { ModelSpec, ConcreteDim } from './core/schema';
-import RNFS from 'react-native-fs';
+import RNBlobUtil from 'react-native-blob-util';
 
 /**
  * Retrieves the names of all ExecuTorch backends compiled and registered in the
@@ -23,7 +23,6 @@ export function getRegisteredBackends(): string[] {
  * (inputs/outputs shapes, types, and tags), and deletes the temporary file
  * before returning.
  * @category Utils
- * @experimental Subject to change once the temporary react-native-fs dependency is replaced. See [Issue #1253](https://github.com/software-mansion/react-native-executorch/issues/1253).
  * @param source The remote HTTP URL or local path to the `.pte` model file.
  * @returns A promise resolving to an object containing the model source,
  * method signature metadata, and per-method backend usage.
@@ -37,8 +36,10 @@ export async function inspectModel(source: string): Promise<{
   let downloaded = false;
 
   if (source.startsWith('http')) {
-    localPath = `${RNFS.TemporaryDirectoryPath}/inspect_model_${Date.now()}.pte`;
-    await RNFS.downloadFile({ fromUrl: source, toFile: localPath }).promise;
+    // Throwaway download to a temp path — inspection shouldn't populate the
+    // persistent resource cache, so we don't go through `download()`.
+    localPath = `${RNBlobUtil.fs.dirs.CacheDir}/inspect_model_${Date.now()}.pte`;
+    await RNBlobUtil.config({ path: localPath }).fetch('GET', source);
     downloaded = true;
   }
 
@@ -52,7 +53,7 @@ export async function inspectModel(source: string): Promise<{
       model.dispose();
     }
     if (downloaded) {
-      await RNFS.unlink(localPath).catch(() => {});
+      await RNBlobUtil.fs.unlink(localPath).catch(() => {});
     }
   }
 }
