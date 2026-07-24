@@ -87,10 +87,8 @@ interface DownloadOneCallbacks {
   signal?: AbortSignal;
 }
 
-/**
- * Downloads a single remote file into the cache, dispatching to the
- * platform-appropriate backend. Returns the local path.
- */
+// Downloads a single remote file into the cache, dispatching to the
+// platform-appropriate backend. Returns the local path.
 async function downloadOne(url: string, cb: DownloadOneCallbacks): Promise<string> {
   const dest = cachePathFor(url);
 
@@ -110,12 +108,10 @@ async function downloadOne(url: string, cb: DownloadOneCallbacks): Promise<strin
   return IS_ANDROID ? downloadViaDownloadManager(url, dest, cb) : downloadViaStream(url, dest, cb);
 }
 
-/**
- * Android backend: the system DownloadManager streams to app-private external
- * storage. Unlike blob-util's in-process reader it handles files larger than
- * 2 GB, keeps downloading while the app is backgrounded or killed, and resumes
- * across transient network drops on its own — so no manual Range logic here.
- */
+// Android backend: the system DownloadManager streams to app-private external
+// storage. Unlike blob-util's in-process reader it handles files larger than
+// 2 GB, keeps downloading while the app is in the background or killed, and
+// resumes across transient network drops on its own — so no manual Range logic.
 async function downloadViaDownloadManager(
   url: string,
   dest: string,
@@ -166,12 +162,10 @@ async function downloadViaDownloadManager(
   return dest;
 }
 
-/**
- * iOS backend: blob-util streams via NSURLSession straight to disk. Interrupted
- * downloads resume from a `.partial` file via an HTTP Range request. `canResume`
- * is set to `false` on an internal retry to avoid recursing forever if
- * partial-file assembly ever fails.
- */
+// iOS backend: blob-util streams via the iOS URL session straight to disk.
+// Interrupted downloads resume from a `.partial` file via an HTTP Range request.
+// `canResume` is set to `false` on an internal retry to avoid recursing forever
+// if partial-file assembly ever fails.
 async function downloadViaStream(
   url: string,
   dest: string,
@@ -258,7 +252,7 @@ async function downloadViaStream(
  * it stopped. When several sources are passed, overall progress is weighted by
  * their byte sizes so a large model isn't reported the same as a tiny
  * tokenizer.
- * @category Fetching
+ * @category Utils
  * @param source A single URL/local path, or an array of them.
  * @param options Progress and cancellation options.
  * @returns The local path (for a single source) or paths (for an array),

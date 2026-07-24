@@ -8,9 +8,7 @@ const DOWNLOAD_EVENT_ENDPOINT = 'https://ai.swmansion.com/telemetry/downloads/ap
 // See https://github.com/software-mansion/react-native-executorch/issues/1291
 const LIB_VERSION = '0.0.0';
 
-/**
- * Whether the given URL points to a Software Mansion Hugging Face repo.
- */
+// Whether the given URL points to a Software Mansion Hugging Face repo.
 function isSwmHuggingFaceRepo(url: URL): boolean {
   return url.host === 'huggingface.co' && url.pathname.startsWith('/software-mansion');
 }
