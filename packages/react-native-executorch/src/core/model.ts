@@ -1,5 +1,6 @@
 import { rnexecutorchJsi } from '../native/bridge';
 import type { DType, Tensor } from './tensor';
+import type { ModelSpec, ConcreteDim } from './schema';
 
 declare const modelBrand: unique symbol;
 
@@ -89,6 +90,8 @@ export type ModelMethodMeta = {
 export interface Model {
   /** The local filesystem path of the `.pte` model file. */
   readonly path: string;
+  /** The exported spec of this model. */
+  readonly spec: ModelSpec<ConcreteDim>;
 
   /**
    * Returns the list of exported method names available on this model (e.g.
