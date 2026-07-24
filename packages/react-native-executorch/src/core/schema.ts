@@ -20,7 +20,7 @@ export type TensorConstraint<D extends SymbolicDim> = {
 
 export type ValueConstraint<D extends SymbolicDim> =
   | TensorConstraint<D>
-  | { readonly kind: Exclude<ExecuTorchTag, 'Tensor' | 'ListTensor'> };
+  | { readonly kind: Exclude<ExecuTorchTag, 'Tensor'> };
 
 export type MethodSignature<D extends SymbolicDim> = {
   inputs: ValueConstraint<D>[];
@@ -84,17 +84,22 @@ type MatchResult =
 
 const ok = (bindings: SymbolBindings): MatchResult => ({ ok: true, bindings });
 const err = (error: string): MatchResult => ({ ok: false, error });
-const rangesEqual = (r1: Range, r2: Range) => {
+const rangesEqual = (r1: Range, r2: Range): boolean => {
   return r1.min === r2.min && r1.max === r2.max && r1.step === r2.step;
 };
 
-function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, bindings: SymbolBindings, ctx: string) {
+function matchDim(
+  sDim: SymbolicDim,
+  cDim: ConcreteDim,
+  bindings: SymbolBindings,
+  ctx: string
+): MatchResult {
   if ('symbol' in sDim) {
     if (bindings.some((b) => b.symbolic.symbol === sDim.symbol && b.symbolic.kind !== sDim.kind)) {
       // returning err(...) here would treat a self-contradictory schema as a
       // simple match failure and move on to the next variant.
       throw new Error(
-        `Invalid schema ${ctx}: Symbol ${sDim.symbol} is used as both 'static' and 'dynamic'`
+        `Invalid schema ${ctx}: ${sDim.symbol} is used as both 'static' and 'dynamic'`
       );
     }
   }
@@ -116,7 +121,10 @@ function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, bindings: SymbolBindings
   if (sDim.kind === 'static' && cDim.kind === 'constant') {
     const existing = bindings.find((binding) => binding.symbolic.symbol === sDim.symbol);
     if (existing) {
-      if (existing.concrete.kind === 'constant' && cDim.value !== existing.concrete.value) {
+      if (existing.concrete.kind !== 'constant') {
+        throw new Error(`Matcher error ${ctx}: 'static' was matched to 'range'`);
+      }
+      if (cDim.value !== existing.concrete.value) {
         return err(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings`);
       }
       return ok(bindings);
@@ -127,7 +135,10 @@ function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, bindings: SymbolBindings
   if (sDim.kind === 'dynamic' && cDim.kind === 'range') {
     const existing = bindings.find((binding) => binding.symbolic.symbol === sDim.symbol);
     if (existing) {
-      if (existing.concrete.kind === 'range' && !rangesEqual(cDim.range, existing.concrete.range)) {
+      if (existing.concrete.kind !== 'range') {
+        throw new Error(`Matcher error ${ctx}: 'dynamic' was matched to 'constant'`);
+      }
+      if (!rangesEqual(cDim.range, existing.concrete.range)) {
         return err(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings`);
       }
       return ok(bindings);
@@ -198,7 +209,7 @@ function matchSignature(
   return ok(currentBindings);
 }
 
-export function matchSchema(
+function matchSchema(
   symbolicSchema: ModelSchema<SymbolicDim>,
   concreteSchema: ModelSchema<ConcreteDim>,
   ctx: string
@@ -254,7 +265,7 @@ export function matchSchema(
 export function validateSchema(
   symbolicVariants: ModelSchema<SymbolicDim>[],
   concreteSchema: ModelSchema<ConcreteDim>
-) {
+): Map<string, number | Range> {
   const errors: string[] = [];
 
   for (const [idx, symbolicSchema] of symbolicVariants.entries()) {
