@@ -1,305 +1,278 @@
-import { type DType } from './tensor';
+import type { DType } from './tensor';
+import type { ExecuTorchTag } from './model';
 
 export type Range = { min: number; max: number; step: number };
 
-export type TypedDim =
+export type ConcreteDim =
+  | { readonly kind: 'constant'; readonly value: number }
+  | { readonly kind: 'range'; readonly range: Range };
+
+export type SymbolicDim =
+  | ConcreteDim
   | { readonly kind: 'static'; readonly symbol: string }
-  | { readonly kind: 'dynamic'; readonly symbol: string; readonly range?: Range }
-  | { readonly kind: 'constant'; readonly value: number };
+  | { readonly kind: 'dynamic'; readonly symbol: string };
 
-export type TensorConstraint = {
+export type TensorConstraint<D extends SymbolicDim> = {
   readonly kind: 'Tensor';
-  readonly dtype?: DType;
-  readonly shape?: readonly TypedDim[];
+  readonly dtype: DType;
+  readonly shape: readonly D[];
 };
 
-export type ValueConstraint =
-  | TensorConstraint
-  | { readonly kind: 'None' }
-  | { readonly kind: 'Int' }
-  | { readonly kind: 'Double' }
-  | { readonly kind: 'Bool' }
-  | { readonly kind: 'String' };
+export type ValueConstraint<D extends SymbolicDim> =
+  | TensorConstraint<D>
+  | { readonly kind: Exclude<ExecuTorchTag, 'Tensor' | 'ListTensor'> };
 
-export type MethodSignature = { inputs: ValueConstraint[]; outputs: ValueConstraint[] };
-
-export type MethodOverloads = MethodSignature[];
-
-export type ModelSchema = Record<string, MethodOverloads>;
-
-export type SymbolicShape = readonly (number | string | TypedDim)[];
-
-export type SymbolBinding = {
-  readonly exp: Exclude<TypedDim, { kind: 'constant' }>;
-  readonly act: TypedDim;
+export type MethodSignature<D extends SymbolicDim> = {
+  inputs: ValueConstraint<D>[];
+  outputs: ValueConstraint<D>[];
 };
 
-export type SymbolBindings = readonly SymbolBinding[];
+export type MethodOverloads<D extends SymbolicDim> = readonly MethodSignature<D>[];
 
-export type MatchResult =
+export type ModelSchema<D extends SymbolicDim> = Record<string, MethodOverloads<D>>;
+
+export type SymbolicShape = readonly (number | string | SymbolicDim)[];
+
+export const S = (symbol: string): SymbolicDim => {
+  return { kind: 'static', symbol };
+};
+
+export const D = (symbol: string): SymbolicDim => {
+  return { kind: 'dynamic', symbol };
+};
+
+export const C = (value: number): ConcreteDim => {
+  if (value <= 0 || !Number.isInteger(value)) {
+    throw new Error(`Invalid value (${value}): must be a positive integer.`);
+  }
+  return { kind: 'constant', value };
+};
+
+export const R = (range: Range): ConcreteDim => {
+  if (range.min < 0) {
+    throw new Error(`Invalid range: dimension minimum cannot be negative.`);
+  }
+  if (range.max < range.min) {
+    throw new Error(`Invalid range [${range.min}, ${range.max}]: max cannot be less than min.`);
+  }
+  if (!Number.isInteger(range.min)) {
+    throw new Error(`Invalid range min (${range.min}): must be a non-negative integer.`);
+  }
+  if (!Number.isInteger(range.max)) {
+    throw new Error(`Invalid range max (${range.max}): must be a non-negative integer.`);
+  }
+  if (range.step <= 0 || !Number.isInteger(range.step)) {
+    throw new Error(`Invalid range step (${range.step}): must be a positive integer.`);
+  }
+  return { kind: 'range', range };
+};
+
+export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
+  const typedShape = shape.map((dim) => {
+    if (typeof dim === 'string') return S(dim);
+    if (typeof dim === 'number') return C(dim);
+    return dim;
+  });
+  return { kind: 'Tensor', dtype, shape: typedShape } as TensorConstraint<SymbolicDim>;
+};
+
+type SymbolBinding = { symbolic: Exclude<SymbolicDim, ConcreteDim>; concrete: ConcreteDim };
+type SymbolBindings = readonly SymbolBinding[];
+type MatchResult =
   | { readonly ok: true; readonly bindings: SymbolBindings }
   | { readonly ok: false; readonly error: string };
 
 const ok = (bindings: SymbolBindings): MatchResult => ({ ok: true, bindings });
 const err = (error: string): MatchResult => ({ ok: false, error });
-
-function validateRange(range: Range): void {
-  if (range.min < 0) {
-    throw new Error(`Invalid range min (${range.min}): dimension minimum cannot be negative.`);
-  }
-  if (range.max < range.min) {
-    throw new Error(`Invalid range [${range.min}, ${range.max}]: max cannot be less than min.`);
-  }
-  if (range.step <= 0) {
-    throw new Error(`Invalid range step (${range.step}): step must be a positive integer.`);
-  }
-}
-
-export const StaticDim = (symbol: string) => {
-  return { kind: 'static', symbol } as TypedDim;
+const rangesEqual = (r1: Range, r2: Range) => {
+  return r1.min === r2.min && r1.max === r2.max && r1.step === r2.step;
 };
 
-export const DynamicDim = (symbol: string, range?: Range) => {
-  if (range) validateRange(range);
-  return { kind: 'dynamic', symbol, range } as TypedDim;
-};
-
-export const ConstantDim = (value: number) => {
-  if (value <= 0 || !Number.isInteger(value)) {
-    throw new Error(`Invalid value (${value}): must be a positive integer.`);
-  }
-  return { kind: 'constant', value } as TypedDim;
-};
-
-export const SymbolicTensor = (dtype?: DType, shape?: SymbolicShape) => {
-  const typedShape = shape?.map((dim) => {
-    if (typeof dim === 'string') return StaticDim(dim);
-    if (typeof dim === 'number') return ConstantDim(dim);
-    return dim;
-  });
-  return { kind: 'Tensor', dtype, shape: typedShape } as TensorConstraint;
-};
-
-function rangesEqual(range1?: Range, range2?: Range): boolean {
-  if (range1 === range2) return true;
-  if (!range1 || !range2) return false;
-  return range1.min === range2.min && range1.max === range2.max && range1.step === range2.step;
-}
-
-function dimsEqual(dim1: TypedDim, dim2: TypedDim): boolean {
-  if (dim1.kind === 'static' && dim2.kind === 'static') {
-    return dim1.symbol === dim2.symbol;
-  }
-  if (dim1.kind === 'dynamic' && dim2.kind === 'dynamic') {
-    return dim1.symbol === dim2.symbol && rangesEqual(dim1.range, dim2.range);
-  }
-  if (dim1.kind === 'constant' && dim2.kind === 'constant') {
-    return dim1.value === dim2.value;
-  }
-  return false;
-}
-
-function matchDim(exp: TypedDim, act: TypedDim, bindings: SymbolBindings, ctx: string) {
-  if ('symbol' in act) {
-    for (const b of bindings) {
-      if ('symbol' in b.act && act.symbol === b.act.symbol && !dimsEqual(act, b.act)) {
-        return err(`${ctx}: Actual '${act.symbol}' is used inconsistently across signatures.`);
-      }
+function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, bindings: SymbolBindings, ctx: string) {
+  if ('symbol' in sDim) {
+    if (bindings.some((b) => b.symbolic.symbol === sDim.symbol && b.symbolic.kind !== sDim.kind)) {
+      // returning err(...) here would treat a self-contradictory schema as a
+      // simple match failure and move on to the next variant.
+      throw new Error(
+        `Invalid schema ${ctx}: Symbol ${sDim.symbol} is used as both 'static' and 'dynamic'`
+      );
     }
   }
 
-  if ('symbol' in exp) {
-    for (const b of bindings) {
-      if (exp.symbol === b.exp.symbol && !dimsEqual(exp, b.exp)) {
-        return err(`${ctx}: Expected '${exp.symbol}' is used inconsistently across signatures.`);
-      }
-    }
-  }
-
-  // [constant, constant]
-  if (exp.kind === 'constant' && act.kind === 'constant') {
-    if (exp.value !== act.value) {
+  if (sDim.kind === 'constant' && cDim.kind === 'constant') {
+    if (sDim.value !== cDim.value) {
       return err(`${ctx}: Constant dimension value mismatch.`);
     }
     return ok(bindings);
   }
 
-  // [static, *]
-  if (exp.kind === 'static') {
-    const existing = bindings.find((b) => b.exp.symbol === exp.symbol);
-    if (existing) {
-      if (!dimsEqual(existing.act, act)) {
-        return err(`${ctx}: Static '${exp.symbol}' has inconsistent bindings.`);
-      }
-      return ok(bindings);
-    }
-    return ok([...bindings, { exp, act }]);
-  }
-
-  // [constant, dynamic]
-  if (exp.kind === 'constant' && act.kind === 'dynamic') {
-    if (!act.range) {
-      return err(`${ctx}: Actual dynamic dimension '${act.symbol}' has an unspecified range.`);
-    }
-    if (exp.value < act.range.min || act.range.max < exp.value) {
-      return err(`${ctx}: Constant ${exp.value} falls outside dynamic range.`);
-    }
-    if ((exp.value - act.range.min) % act.range.step !== 0) {
-      return err(`${ctx}: Constant ${exp.value} does not align with range step.`);
+  if (sDim.kind === 'range' && cDim.kind === 'range') {
+    if (!rangesEqual(sDim.range, cDim.range)) {
+      return err(`${ctx}: Range dimension mismatch`);
     }
     return ok(bindings);
   }
 
-  // [dynamic, dynamic]
-  if (exp.kind === 'dynamic' && act.kind === 'dynamic') {
-    const existing = bindings.find((b) => b.exp.symbol === exp.symbol);
+  if (sDim.kind === 'static' && cDim.kind === 'constant') {
+    const existing = bindings.find((binding) => binding.symbolic.symbol === sDim.symbol);
     if (existing) {
-      if (!dimsEqual(existing.act, act)) {
-        return err(`${ctx}: Dynamic '${exp.symbol}' has inconsistent bindings.`);
+      if (existing.concrete.kind === 'constant' && cDim.value !== existing.concrete.value) {
+        return err(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings`);
       }
       return ok(bindings);
     }
-
-    if (exp.range) {
-      if (!act.range) {
-        return err(`${ctx}: Actual dynamic '${act.symbol}' has an unspecified range.`);
-      }
-      if (exp.range.min < act.range.min || exp.range.max > act.range.max) {
-        return err(`${ctx}: Expected range exceeds accepted actual range.`);
-      }
-      if ((exp.range.min - act.range.min) % act.range.step !== 0) {
-        return err(`${ctx}: Expected min does not align with actual range step.`);
-      }
-      if (exp.range.step % act.range.step !== 0) {
-        return err(`${ctx}: Expected step is not a multiple of accepted step.`);
-      }
-    }
-
-    return ok([...bindings, { exp, act }]);
+    return ok([...bindings, { symbolic: sDim, concrete: cDim }]);
   }
 
-  return err(`${ctx}: cannot match expected ${exp.kind} with actual ${act.kind}.`);
+  if (sDim.kind === 'dynamic' && cDim.kind === 'range') {
+    const existing = bindings.find((binding) => binding.symbolic.symbol === sDim.symbol);
+    if (existing) {
+      if (existing.concrete.kind === 'range' && !rangesEqual(cDim.range, existing.concrete.range)) {
+        return err(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings`);
+      }
+      return ok(bindings);
+    }
+    return ok([...bindings, { symbolic: sDim, concrete: cDim }]);
+  }
+
+  return err(`${ctx}: Cannot match symbolic ${sDim.kind} with concrete ${cDim.kind}.`);
 }
 
 function matchSignature(
-  expSgn: MethodSignature,
-  actSgn: MethodSignature,
-  initialBindings: SymbolBindings = [],
-  ctx: string = ''
+  symbolicSgn: MethodSignature<SymbolicDim>,
+  concreteSgn: MethodSignature<ConcreteDim>,
+  bindings: SymbolBindings,
+  ctx: string
 ): MatchResult {
-  if (expSgn.inputs.length !== actSgn.inputs.length) {
+  if (symbolicSgn.inputs.length !== concreteSgn.inputs.length) {
     return err(`${ctx}: Input count mismatch.`);
   }
-  if (expSgn.outputs.length !== actSgn.outputs.length) {
+  if (symbolicSgn.outputs.length !== concreteSgn.outputs.length) {
     return err(`${ctx}: Output count mismatch.`);
   }
 
-  const expConstraints = [...expSgn.inputs, ...expSgn.outputs];
-  const actConstraints = [...actSgn.inputs, ...actSgn.outputs];
-  const numConstraints = expConstraints.length;
+  const symbolicConstraints = [...symbolicSgn.inputs, ...symbolicSgn.outputs];
+  const concreteConstraints = [...concreteSgn.inputs, ...concreteSgn.outputs];
+  const numConstraints = symbolicConstraints.length;
 
-  let currentBindings = initialBindings;
+  let currentBindings = bindings;
 
   for (let c = 0; c < numConstraints; ++c) {
-    const isInput = c < expSgn.inputs.length;
-    const constraintIdx = isInput ? c : c - expSgn.inputs.length;
+    const isInput = c < symbolicSgn.inputs.length;
+    const constraintIdx = isInput ? c : c - concreteSgn.inputs.length;
     const constraintCtx = `${ctx} ${isInput ? 'input' : 'output'} #${constraintIdx}`;
 
-    const expConstr = expConstraints[c]!;
-    const actConstr = actConstraints[c]!;
+    const symbolicConstr = symbolicConstraints[c]!;
+    const concreteConstr = concreteConstraints[c]!;
 
-    if (expConstr.kind !== actConstr.kind) {
+    if (symbolicConstr.kind !== concreteConstr.kind) {
       return err(`${constraintCtx}: Constraint kind mismatch.`);
     }
 
-    if (expConstr.kind !== 'Tensor' && actConstr.kind !== 'Tensor') continue;
+    if (symbolicConstr.kind !== 'Tensor' && concreteConstr.kind !== 'Tensor') continue;
 
-    const expTensor = expConstr as TensorConstraint;
-    const actTensor = actConstr as TensorConstraint;
+    const symbolicTensor = symbolicConstr as TensorConstraint<SymbolicDim>;
+    const concreteTensor = concreteConstr as TensorConstraint<ConcreteDim>;
 
-    // Unspecified expTensor.dtype means "whatever dtype actual gives me"
-    if (expTensor.dtype && expTensor.dtype !== actTensor.dtype) {
+    if (symbolicTensor.dtype !== concreteTensor.dtype) {
       return err(`${constraintCtx}: DType mismatch.`);
     }
 
-    // Unspecified expTensor.shape means "whatever shape actual gives me"
-    if (!expTensor.shape) continue;
-
-    // Unspecified actTensor.shape means "we don't know", throws because there is no way to check it
-    if (!actTensor.shape) {
-      return err(`${constraintCtx}: Actual tensor shape is missing.`);
-    }
-
-    if (expTensor.shape.length !== actTensor.shape.length) {
+    if (symbolicTensor.shape.length !== concreteTensor.shape.length) {
       return err(`${constraintCtx}: Rank mismatch.`);
     }
 
-    const rank = expTensor.shape.length;
+    const rank = symbolicTensor.shape.length;
+
     for (let d = 0; d < rank; ++d) {
-      const expDim = expTensor.shape[d]!;
-      const actDim = actTensor.shape[d]!;
+      const sDim = symbolicTensor.shape[d]!;
+      const cDim = concreteTensor.shape[d]!;
       const dimCtx = `${constraintCtx} Tensor dim #${d}`;
-      const dimResult = matchDim(expDim, actDim, currentBindings, dimCtx);
-      if (!dimResult.ok) {
-        return dimResult;
-      }
-      currentBindings = dimResult.bindings;
+
+      const result = matchDim(sDim, cDim, currentBindings, dimCtx);
+      if (!result.ok) return result;
+      currentBindings = result.bindings;
     }
   }
 
   return ok(currentBindings);
 }
 
-export function matchSchema(expectedSchema: ModelSchema, actualSchema: ModelSchema): MatchResult {
-  for (const methodName in expectedSchema) {
-    if (!actualSchema[methodName]) {
-      return err(`Method '${methodName}' not found in actual schema.`);
+export function matchSchema(
+  symbolicSchema: ModelSchema<SymbolicDim>,
+  concreteSchema: ModelSchema<ConcreteDim>,
+  ctx: string
+): MatchResult {
+  const methodNames = Object.keys(symbolicSchema);
+  for (const methodName of methodNames) {
+    if (!concreteSchema[methodName]) {
+      return err(`${ctx}: Method '${methodName}' not found in actual schema.`);
     }
   }
 
-  const methodNames = Object.keys(expectedSchema);
+  const match = (nameIdx: number, sOverloadIdx: number, bindings: SymbolBindings): MatchResult => {
+    if (nameIdx >= methodNames.length) {
+      return ok(bindings);
+    }
 
-  const match = (idx: number, bindings: SymbolBindings): MatchResult => {
-    if (idx >= methodNames.length) return ok(bindings);
+    const methodName = methodNames[nameIdx]!;
+    const sOverloads = symbolicSchema[methodName]!;
 
-    const methodName = methodNames[idx]!;
-    const expOverloads = expectedSchema[methodName]!;
-    const actOverloads = actualSchema[methodName]!;
+    if (sOverloadIdx >= sOverloads.length) {
+      return match(nameIdx + 1, 0, bindings);
+    }
+
+    const cOverloads = concreteSchema[methodName]!;
+    const sOverload = sOverloads[sOverloadIdx]!;
 
     const errors: string[] = [];
 
-    for (let e = 0; e < expOverloads.length; ++e) {
-      for (let a = 0; a < actOverloads.length; ++a) {
-        const sigCtx = `Method '${methodName}' (exp overload #${e}, act overload #${a})`;
-        const sigResult = matchSignature(expOverloads[e]!, actOverloads[a]!, bindings, sigCtx);
+    for (const [idx, cOverload] of cOverloads.entries()) {
+      const overloadCtx = `${ctx}: Method '${methodName}' (symbolic overload #${sOverloadIdx}, concrete overload #${idx})`;
 
-        if (sigResult.ok) {
-          const nextResult = match(idx + 1, sigResult.bindings);
-          if (nextResult.ok) {
-            return nextResult;
-          }
-          errors.push(nextResult.error);
-        } else {
-          errors.push(sigResult.error);
-        }
+      const sgnResult = matchSignature(sOverload, cOverload, bindings, overloadCtx);
+      if (!sgnResult.ok) {
+        errors.push(sgnResult.error);
+        continue;
       }
+
+      const matchResult = match(nameIdx, sOverloadIdx + 1, sgnResult.bindings);
+      if (!matchResult.ok) {
+        errors.push(matchResult.error);
+        continue;
+      }
+
+      return matchResult;
     }
 
-    return err(`Method '${methodName}' failed overload matching:\n  - ` + errors.join('\n  - '));
+    return err(`${ctx}: Method '${methodName}' failed matching:\n  - ` + errors.join('\n  - '));
   };
 
-  return match(0, []);
+  return match(0, 0, []);
 }
 
-export function validateSchema(expectedVariants: ModelSchema[], actualSchema: ModelSchema) {
+export function validateSchema(
+  symbolicVariants: ModelSchema<SymbolicDim>[],
+  concreteSchema: ModelSchema<ConcreteDim>
+) {
   const errors: string[] = [];
 
-  for (let i = 0; i < expectedVariants.length; ++i) {
-    const result = matchSchema(expectedVariants[i]!, actualSchema);
-    if (result.ok) {
-      return actualSchema;
+  for (const [idx, symbolicSchema] of symbolicVariants.entries()) {
+    const result = matchSchema(symbolicSchema, concreteSchema, `Variant ${idx}`);
+    if (!result.ok) {
+      errors.push(result.error);
+      continue;
     }
-    errors.push(`Variant ${i}:\n${result.error}`);
+    return new Map<string, number | Range>(
+      result.bindings.map((binding) => {
+        switch (binding.concrete.kind) {
+          case 'constant':
+            return [binding.symbolic.symbol, binding.concrete.value];
+          case 'range':
+            return [binding.symbolic.symbol, binding.concrete.range];
+        }
+      })
+    );
   }
 
   throw new Error(`Model schema doesn't match any of the provided variants:\n` + errors.join('\n'));
