@@ -13,19 +13,22 @@ export type Tokenizer = {
 
   /**
    * Encodes a string into token ids (special tokens are added according to the
-   * tokenizer.json post_processor).
+   * tokenizer.json post_processor). Token ids are returned as an `Int32Array`
+   * so that, when the tokenizer runs on a background worklet runtime, the
+   * result is transferred to the caller thread as a single ArrayBuffer copy
+   * rather than serialized element by element (which is costly for long texts).
    * @param text The input text to tokenize.
    * @returns The encoded token ids.
    */
-  encode(text: string): number[];
+  encode(text: string): Int32Array;
 
   /**
    * Decodes token ids back into a string.
-   * @param tokens The token ids to decode.
+   * @param tokens The token ids to decode, as returned by {@link encode}.
    * @param skipSpecialTokens Whether to omit special tokens. Defaults to `true`.
    * @returns The decoded text.
    */
-  decode(tokens: number[], skipSpecialTokens?: boolean): string;
+  decode(tokens: Int32Array, skipSpecialTokens?: boolean): string;
 
   /**
    * @returns The size of the tokenizer's vocabulary.

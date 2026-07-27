@@ -94,7 +94,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto tokens = unwrap(rt, "encode: Failed to encode input",
                                  self->tokenizer_->encode(text, kNumAddedBosTokens, kNumAddedEosTokens));
 
-            return conversions::toJsiArray(rt, tokens);
+            return conversions::toJsiTypedArray<int32_t>(rt, tokens);
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "encode"), 1, fnBody);
     }
@@ -121,7 +121,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "decode: Tokenizer has been disposed");
             }
 
-            auto tokens = conversions::asVector<uint64_t>(rt, "decode: tokens", args[0]);
+            auto tokens = conversions::fromJsiTypedArray<int32_t, uint64_t>(rt, "decode: tokens", args[0]);
 
             if (tokens.empty()) {
                 return jsi::String::createFromUtf8(rt, "");

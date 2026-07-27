@@ -258,12 +258,12 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
         if (isCancelled.getBlocking()) break;
 
         generated.push(nextToken);
-        if (onToken) scheduleOnRN(onToken, tokenizer.decode([nextToken]));
+        if (onToken) scheduleOnRN(onToken, tokenizer.decode(Int32Array.of(nextToken)));
         nextToken = decode(nextToken, position);
         position++;
       }
 
-      text += tokenizer.decode(generated);
+      text += tokenizer.decode(Int32Array.from(generated));
       offset += BUFFER_SIZE;
     }
 
