@@ -1,6 +1,6 @@
 import { rnexecutorchJsi } from '../native/bridge';
 import type { DType, Tensor } from './tensor';
-import type { ModelSpec, ConcreteDim } from './schema';
+import type { ExecuTorchTag, ModelSpec, ConcreteDim } from './schema';
 
 declare const modelBrand: unique symbol;
 
@@ -22,33 +22,16 @@ export type ModelOutput = Tensor | number | boolean | null;
  */
 export type TensorMeta = {
   /** The name associated with this tensor slot (may be empty). */
-  name: string;
+  readonly name: string;
   /** The number of dimensions. */
-  ndim: number;
+  readonly ndim: number;
   /** The total byte size of the tensor buffer. */
-  nbytes: number;
+  readonly nbytes: number;
   /** The element data type. */
-  dtype: DType;
+  readonly dtype: DType;
   /** The concrete size of each dimension (e.g. `[1, 3, 224, 224]`). */
-  shape: number[];
+  readonly shape: number[];
 };
-
-/**
- * The ExecuTorch value-tag that classifies the runtime type of a model input or
- * output slot.
- * @category Types
- */
-export type ExecuTorchTag =
-  | 'None'
-  | 'Tensor'
-  | 'Int'
-  | 'Double'
-  | 'Bool'
-  | 'String'
-  | 'ListBool'
-  | 'ListDouble'
-  | 'ListInt'
-  | 'ListTensor';
 
 /**
  * Metadata describing a single exported method of an ExecuTorch model.
@@ -56,24 +39,24 @@ export type ExecuTorchTag =
  */
 export type ModelMethodMeta = {
   /** The exported method name (e.g. `'forward'`). */
-  name: string;
+  readonly name: string;
   /** The total number of input arguments the method accepts. */
-  numInputs: number;
+  readonly numInputs: number;
   /** The total number of output values the method returns. */
-  numOutputs: number;
+  readonly numOutputs: number;
   /** Runtime value-tags for each input slot, in order. */
-  inputTags: ExecuTorchTag[];
+  readonly inputTags: readonly ExecuTorchTag[];
   /** Runtime value-tags for each output slot, in order. */
-  outputTags: ExecuTorchTag[];
+  readonly outputTags: readonly ExecuTorchTag[];
   /**
    * A map from backend name to a boolean indicating whether this method
    * delegates to that backend.
    */
-  usesBackend: Record<string, boolean>;
+  readonly usesBackend: Record<string, boolean>;
   /** Detailed tensor metadata for every input tensor slot, in order. */
-  inputTensorMeta: TensorMeta[];
+  readonly inputTensorMeta: readonly TensorMeta[];
   /** Detailed tensor metadata for every output tensor slot, in order. */
-  outputTensorMeta: TensorMeta[];
+  readonly outputTensorMeta: readonly TensorMeta[];
 };
 
 /**
@@ -97,7 +80,7 @@ export interface Model {
    * Returns the list of exported method names available on this model (e.g.
    * `['forward']`).
    */
-  getMethodNames(): string[];
+  getMethodNames(): readonly string[];
 
   /**
    * Returns detailed metadata for the specified exported method, including

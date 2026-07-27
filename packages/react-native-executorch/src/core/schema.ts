@@ -8,33 +8,46 @@
  * - **allowed** (`SymbolicDim`) — written by a pipeline to state which models
  *   it can work with. Dimensions may be named symbols: `static` symbols bind
  *   to constant dimensions, `dynamic` symbols to ranges or enums, and reusing
- *   a symbol requires every occurrence to bind to the same domain (nothing
- *   more — symbol reuse implies no runtime relation). Several allowed specs
- *   can be passed as variants; matching any one of them is enough.
+ *   a symbol requires every occurrence to bind to the same domain. Several
+ *   allowed specs can be passed as variants; matching any one of them is
+ *   enough.
  * - **exported** (`ConcreteDim`) — derived from an exported model's metadata,
  *   stating what the model actually provides.
  *
- * Two different validations must not be confused:
- * - **Spec validation** (this module, {@link validateSpec}) — a static,
- *   load-time check that an exported spec satisfies an allowed spec. Dimension
- *   domains must match exactly (symbol binding), and the exported spec must
- *   declare exactly the allowed spec's runtime constraints. Constraints are
- *   matched as declarations only: whether they actually hold is not, and
- *   cannot be, checked here.
- * - **Runtime validation** (the native runtime, not this module) — at
- *   execution time the runtime checks the shapes of concrete tensors against
- *   the dimensions and enforces the declared runtime constraints.
+ * **Dimension domains vs runtime values.** The central distinction of this
+ * module is between a dimension's *domain* and its *runtime value*. The
+ * domain is the set of values the dimension may take: `constant` is a
+ * singleton (the value is fully known statically), while `range` and `enum`
+ * are proper sets that only narrow the possibilities. The runtime value is
+ * the actual size of the dimension for a concrete tensor in one given
+ * execution — a single element drawn from the domain.
  *
- * Note that only equality constraints on static dimensions are fully decided
- * by spec validation: a constant dimension has exactly one possible value,
- * so equal constants are equal at runtime — no enforcement left. Linear
- * constraints, in contrast, are never evaluated against dimensions here —
- * they are matched as declarations even between constants, so checking them
- * always remains with the runtime.
+ * Accordingly, two different validations must not be confused:
+ * - **Spec validation** (this module, {@link validateSpec}) — a static,
+ *   load-time check that an exported spec satisfies an allowed spec. It only
+ *   ever compares domains: symbols bind to domains (repeated symbols to the
+ *   same one), and constraints are matched as declarations. Domain equality
+ *   says nothing about runtime values — two dimensions with the same domain
+ *   may still take different values in an execution.
+ * - **Runtime validation** (the native runtime, not this module) — at
+ *   execution time the runtime checks that every concrete tensor shape lies
+ *   within the declared domains and enforces the declared runtime
+ *   constraints.
+ *
+ * Runtime constraints are statements about runtime values, not domains: an
+ * equality constraint requires its dimensions' values to coincide in any
+ * given execution, and a linear constraint requires them to satisfy
+ * `lhs = a * rhs + b`. Since spec validation only sees domains, it cannot
+ * decide whether such a relation holds — the exported spec must simply
+ * declare exactly the allowed spec's constraints (1-to-1, no missing, no
+ * extras). The only exception is degenerate: a constant domain has exactly
+ * one possible value, so an equality constraint between constants is fully
+ * decided statically — equal constants are equal at runtime. Linear
+ * constraints, in contrast, are never evaluated against domains here, even
+ * between constants.
  * @packageDocumentation
  */
 import type { DType } from './tensor';
-import type { ExecuTorchTag } from './model';
 
 // ========================================================
 // Parameter specs
@@ -82,6 +95,23 @@ export type TensorSpec<Dim extends SymbolicDim> = {
   readonly dtype: DType;
   readonly shape: readonly Dim[];
 };
+
+/**
+ * The ExecuTorch value-tag that classifies the runtime type of a model input or
+ * output slot.
+ * @category Types
+ */
+export type ExecuTorchTag =
+  | 'None'
+  | 'Tensor'
+  | 'Int'
+  | 'Double'
+  | 'Bool'
+  | 'String'
+  | 'ListBool'
+  | 'ListDouble'
+  | 'ListInt'
+  | 'ListTensor';
 
 /**
  * Spec of a single input or output parameter of a method — either a
