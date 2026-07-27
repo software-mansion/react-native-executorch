@@ -1,6 +1,6 @@
 import { rnexecutorchJsi } from '../native/bridge';
-import type { DType, Tensor } from './tensor';
-import type { ExecuTorchTag, ModelSpec, ConcreteDim } from './schema';
+import type { Tensor } from './tensor';
+import type { ModelSpec, ConcreteDim } from './schema';
 
 declare const modelBrand: unique symbol;
 
@@ -17,49 +17,6 @@ export type ModelInput = Tensor | number | boolean | null;
 export type ModelOutput = Tensor | number | boolean | null;
 
 /**
- * Metadata describing a single tensor slot (input or output) of a model method.
- * @category Types
- */
-export type TensorMeta = {
-  /** The name associated with this tensor slot (may be empty). */
-  readonly name: string;
-  /** The number of dimensions. */
-  readonly ndim: number;
-  /** The total byte size of the tensor buffer. */
-  readonly nbytes: number;
-  /** The element data type. */
-  readonly dtype: DType;
-  /** The concrete size of each dimension (e.g. `[1, 3, 224, 224]`). */
-  readonly shape: number[];
-};
-
-/**
- * Metadata describing a single exported method of an ExecuTorch model.
- * @category Types
- */
-export type ModelMethodMeta = {
-  /** The exported method name (e.g. `'forward'`). */
-  readonly name: string;
-  /** The total number of input arguments the method accepts. */
-  readonly numInputs: number;
-  /** The total number of output values the method returns. */
-  readonly numOutputs: number;
-  /** Runtime value-tags for each input slot, in order. */
-  readonly inputTags: readonly ExecuTorchTag[];
-  /** Runtime value-tags for each output slot, in order. */
-  readonly outputTags: readonly ExecuTorchTag[];
-  /**
-   * A map from backend name to a boolean indicating whether this method
-   * delegates to that backend.
-   */
-  readonly usesBackend: Record<string, boolean>;
-  /** Detailed tensor metadata for every input tensor slot, in order. */
-  readonly inputTensorMeta: readonly TensorMeta[];
-  /** Detailed tensor metadata for every output tensor slot, in order. */
-  readonly outputTensorMeta: readonly TensorMeta[];
-};
-
-/**
  * A compiled, ready-to-run ExecuTorch model loaded into native memory.
  *
  * A `Model` exposes the raw ExecuTorch execution interface. It is intentionally
@@ -73,22 +30,10 @@ export type ModelMethodMeta = {
 export interface Model {
   /** The local filesystem path of the `.pte` model file. */
   readonly path: string;
-  /** The exported spec of this model. */
-  readonly spec: ModelSpec<ConcreteDim>;
-
-  /**
-   * Returns the list of exported method names available on this model (e.g.
-   * `['forward']`).
-   */
-  getMethodNames(): readonly string[];
-
-  /**
-   * Returns detailed metadata for the specified exported method, including
-   * input/output tags, tensor shapes, dtype, and backend delegation info.
-   * @param methodName The name of the exported method to inspect.
-   * @returns The {@link ModelMethodMeta} for the requested method.
-   */
-  getMethodMeta(methodName: string): ModelMethodMeta;
+  /** The exported schema of this model. */
+  readonly schema: ModelSpec<ConcreteDim>;
+  /** ExecuTorch backends used by a given method. */
+  readonly backends: Record<string, readonly string[]>;
 
   /**
    * Executes a named model method synchronously.

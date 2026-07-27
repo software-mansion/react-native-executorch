@@ -58,7 +58,7 @@ import type { DType } from './tensor';
  * to `max` in increments of `step`.
  * @category Types
  */
-export type Range = { min: number; max: number; step: number };
+export type Range = { readonly min: number; readonly max: number; readonly step: number };
 
 /**
  * A single dimension with a fully known domain:
@@ -133,7 +133,7 @@ export type ParamSpec<Dim extends SymbolicDim> =
  * @category Types
  */
 export type DimRef = {
-  readonly io: 'input' | 'output';
+  readonly parameterSide: 'input' | 'output';
   readonly tensorIdx: number;
   readonly dimIdx: number;
 };
@@ -192,6 +192,10 @@ export type MethodSpec<Dim extends SymbolicDim> = {
  */
 export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>;
 
+// ========================================================
+// Dim helper functions
+// ========================================================
+
 /**
  * Shape notation accepted by {@link SymbolicTensor}: numbers become
  * {@link ConstantDim}, strings become {@link StaticDim}, and
@@ -199,10 +203,6 @@ export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>
  * @category Types
  */
 export type SymbolicShape = readonly (number | string | SymbolicDim)[];
-
-// ========================================================
-// Dim helper functions
-// ========================================================
 
 /**
  * Creates a static symbolic dimension. Static symbols bind to constant
@@ -438,7 +438,11 @@ function matchModelSpecsSymbols(
 // ========================================================
 
 function refsEqual(r1: DimRef, r2: DimRef): boolean {
-  return r1.io === r2.io && r1.tensorIdx === r2.tensorIdx && r1.dimIdx === r2.dimIdx;
+  return (
+    r1.parameterSide === r2.parameterSide &&
+    r1.tensorIdx === r2.tensorIdx &&
+    r1.dimIdx === r2.dimIdx
+  );
 }
 
 function constraintsEqual(c1: RuntimeConstraint, c2: RuntimeConstraint): boolean {
@@ -470,7 +474,7 @@ function constraintsEqual(c1: RuntimeConstraint, c2: RuntimeConstraint): boolean
 
 function resolveDim<D extends SymbolicDim>(methodSpec: MethodSpec<D>, ref: DimRef): D {
   let tensorSpecs: TensorSpec<D>[];
-  switch (ref.io) {
+  switch (ref.parameterSide) {
     case 'input':
       tensorSpecs = methodSpec.inputs.filter((v): v is TensorSpec<D> => v.kind === 'Tensor');
       break;

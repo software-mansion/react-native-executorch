@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "dtype.h"
+#include "schema.h"
 #include "tensor_helpers.h"
 
 #include <jsi/jsi.h>
@@ -20,8 +21,6 @@
 
 namespace {
 namespace jsi = facebook::jsi;
-namespace types = rnexecutorch::core::types;
-namespace tensor = rnexecutorch::core::tensor;
 
 template <typename T>
 T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
@@ -39,155 +38,6 @@ T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T
     return std::move(result.get());
 }
 
-types::DType
-fromScalarType(jsi::Runtime &rt, const std::string &ctx, executorch::aten::ScalarType scalarType) {
-    try {
-        return types::fromScalarType(scalarType);
-    } catch (const std::exception &e) {
-        throw jsi::JSError(rt, ctx + ": Unsupported tensor dtype: " + e.what());
-    }
-}
-
-jsi::Object tensorMetaToJs(jsi::Runtime &rt, const executorch::runtime::TensorInfo &tensorMeta) {
-    auto jsTensorMeta = jsi::Object(rt);
-    jsTensorMeta.setProperty(rt, "name", jsi::String::createFromUtf8(rt, std::string(tensorMeta.name())));
-    jsTensorMeta.setProperty(rt, "ndim", static_cast<double>(tensorMeta.sizes().size()));
-    jsTensorMeta.setProperty(rt, "nbytes", static_cast<double>(tensorMeta.nbytes()));
-
-    try {
-        auto dtypeStr = types::toString(types::fromScalarType(tensorMeta.scalar_type()));
-        jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, dtypeStr));
-    } catch (const std::exception &) {
-        jsTensorMeta.setProperty(rt, "dtype", jsi::String::createFromUtf8(rt, "not supported"));
-    }
-
-    auto jsShapeArray = jsi::Array(rt, tensorMeta.sizes().size());
-    for (size_t i = 0; i < tensorMeta.sizes().size(); ++i) {
-        jsShapeArray.setValueAtIndex(rt, i, static_cast<double>(tensorMeta.sizes()[i]));
-    }
-    jsTensorMeta.setProperty(rt, "shape", jsShapeArray);
-
-    return jsTensorMeta;
-}
-
-/**
- * Parses compile-time dynamic dimension constraints for the inputs of a module
- * method.
- *
- * @note This is a temporary workaround. ExecuTorch (.pte) model metadata
- * natively serializes only the static upper-bound limits of dynamic/symbolic
- * dimensions, and does not expose the active dynamic range (min, max, step) at
- * runtime.
- *
- * To use this feature, the .pte model must be exported with a companion method
- * named "get_dynamic_dims_<methodName>" (e.g., "get_dynamic_dims_forward").
- *
- * Python export requirements:
- * 1. The companion method must take no arguments.
- * 2. It must return a list of outputs matching the number of Tag::Tensor inputs
- *    of the target method (scalar inputs are excluded).
- * 3. Each output must be a 2D int32 tensor of shape [rank, 3], where each row
- *    represents [min, max, step] constraints for the corresponding dimension of
- *    that input tensor.
- *
- * @param module The ExecuTorch extension module to query.
- * @param methodName The name of the target module method (e.g. "forward").
- * @return A vector of SymbolicShape objects, or std::nullopt if the companion
- *         method is not defined. If returned, the vector's size is guaranteed
- *         to equal methodMeta.num_inputs(), containing parsed SymbolicShapes
- *         for tensor inputs and empty SymbolicShapes for non-tensor inputs.
- */
-std::optional<std::vector<tensor::SymbolicShape>>
-parseDynamicInputShapes(executorch::extension::Module &module, const std::string &methodName) {
-    using executorch::aten::ScalarType;
-
-    const auto getDynamicShapesMethodName = std::format("get_dynamic_dims_{}", methodName);
-    const auto ctx = getDynamicShapesMethodName + ": ";
-
-    auto methodNames = unwrap(ctx + "failed to get method names", module.method_names());
-    if (methodName == getDynamicShapesMethodName ||
-        !methodNames.contains(getDynamicShapesMethodName)) {
-        return std::nullopt;
-    }
-
-    auto methodMeta = unwrap(std::format("{}failed to get meta for method '{}'", ctx, methodName),
-                             module.method_meta(methodName));
-
-    size_t expectedTensorInputs = 0;
-    for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-        auto tag = unwrap(std::format("{}failed to get tag for input [{}]", ctx, i), methodMeta.input_tag(i));
-        if (tag == executorch::runtime::Tag::Tensor) {
-            expectedTensorInputs++;
-        }
-    }
-
-    auto result = unwrap(ctx + "failed to execute", module.execute(getDynamicShapesMethodName));
-    if (result.size() != expectedTensorInputs) {
-        throw std::runtime_error(std::format("{}number of outputs returned ({}) does not match the number of "
-                                             "tensor inputs declared by method '{}' ({})",
-                                             ctx, result.size(), methodName, expectedTensorInputs));
-    }
-
-    std::vector<tensor::SymbolicShape> dynamicShapes;
-    dynamicShapes.reserve(methodMeta.num_inputs());
-    size_t tensorIndex = 0;
-
-    for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-        auto tag = unwrap(std::format("{}failed to get tag for input [{}]", ctx, i),
-                          methodMeta.input_tag(i));
-
-        if (tag != executorch::runtime::Tag::Tensor) {
-            // Emplace an empty shape for non-tensor inputs to maintain a 1-to-1
-            // index alignment between dynamicShapes and the model's inputs vector.
-            dynamicShapes.emplace_back();
-            continue;
-        }
-
-        const auto &out = result.at(tensorIndex);
-        if (!out.isTensor()) {
-            throw std::runtime_error(std::format("{}output[{}] is not a tensor", ctx, tensorIndex));
-        }
-
-        auto inputMeta = unwrap(std::format("{}failed to get tensor meta for input [{}]", ctx, i),
-                                methodMeta.input_tensor_meta(i));
-        const auto rank = inputMeta.sizes().size();
-        const auto shapeTensor = out.toTensor();
-
-        if (shapeTensor.dim() != 2 || shapeTensor.size(1) != 3 ||
-            shapeTensor.size(0) != static_cast<ssize_t>(rank) ||
-            shapeTensor.scalar_type() != ScalarType::Int) {
-            throw std::runtime_error(std::format("{}output[{}] expected to be a 2D int32_t tensor of shape [{}, 3]",
-                                                 ctx, tensorIndex, rank));
-        }
-
-        const auto *shape = shapeTensor.const_data_ptr<int32_t>();
-        tensor::SymbolicShape symbolicShape;
-        symbolicShape.reserve(rank);
-
-        for (size_t axis = 0; axis < rank; ++axis) {
-            const auto minDim = shape[axis * 3 + 0];
-            const auto maxDim = shape[axis * 3 + 1];
-            const auto step = shape[axis * 3 + 2];
-            if (minDim < 0 || maxDim < minDim || step < 1) {
-                throw std::runtime_error(std::format("{}output[{}], axis {} is invalid: "
-                                                     "expected 0 <= min <= max and step >= 1 but got [{}, {}, {}]",
-                                                     ctx, tensorIndex, axis, minDim, maxDim, step));
-            }
-            if (maxDim > inputMeta.sizes()[axis]) {
-                throw std::runtime_error(std::format("{}output[{}], axis {} max dimension ({}) "
-                                                     "exceeds model metadata upper limit ({})",
-                                                     ctx, tensorIndex, axis, maxDim, inputMeta.sizes()[axis]));
-            }
-
-            symbolicShape.emplace_back(tensor::RangeDim{.min = minDim, .max = maxDim, .step = step});
-        }
-
-        dynamicShapes.push_back(std::move(symbolicShape));
-        ++tensorIndex;
-    }
-
-    return dynamicShapes;
-}
 } // namespace
 
 namespace rnexecutorch::core::model {
@@ -196,21 +46,43 @@ namespace conversions = rnexecutorch::core::conversions;
 
 using rnexecutorch::core::tensor::TensorHostObject;
 
+constexpr auto kSchemaMethod = "get_model_schema";
+
 ModelHostObject::ModelHostObject(const std::string &modelPath)
     : modelPath_(modelPath),
       etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
+
     auto error = etModule_->load();
     if (!etModule_->is_loaded()) {
         const std::string errorMsg = executorch::runtime::to_string(error);
         throw std::runtime_error(std::format("Failed to load model: {}", errorMsg));
     }
 
-    auto methodNames = unwrap("Failed to get method names", etModule_->method_names());
-    for (const auto &methodName : methodNames) {
-        auto dynamicShapes = parseDynamicInputShapes(*etModule_, methodName);
-        if (dynamicShapes) {
-            dynamicInputShapes_.emplace(methodName, std::move(*dynamicShapes));
+    const auto methodNames = unwrap("loadModel", etModule_->method_names());
+    schema::ModelSpec overrideSpec;
+
+    if (methodNames.contains(kSchemaMethod)) {
+        auto ctx = std::format("loadModel: {}", kSchemaMethod);
+        auto result = unwrap(ctx, etModule_->execute(kSchemaMethod));
+
+        if (result.empty() || result[0].tag != executorch::runtime::Tag::String) {
+            throw std::runtime_error(std::format("{} must return a single string value", ctx));
         }
+
+        auto jsonStr = std::string(result[0].toString());
+        overrideSpec = schema::parseModelSpecJson(ctx, jsonStr);
+    }
+
+    for (const auto &methodName : methodNames) {
+        auto methodMeta = unwrap("loadModel", etModule_->method_meta(methodName));
+        spec_[methodName] = schema::methodSpecFromMetadata(methodMeta);
+        backends_[methodName] = schema::getUsedBackends(methodMeta);
+
+        if (overrideSpec.contains(methodName)) {
+            spec_[methodName] = std::move(overrideSpec[methodName]);
+        }
+
+        schema::validateSpecAgainstMeta(spec_[methodName], methodMeta, methodName);
     }
 }
 
@@ -221,105 +93,12 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
         return jsi::String::createFromUtf8(rt, modelPath_);
     }
 
-    if (nameStr == "getMethodNames") {
-        auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
-            if (count != 0) {
-                throw jsi::JSError(rt, "getMethodNames: Usage: getMethodNames()");
-            }
-
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "getMethodNames: Model is currently in use");
-            }
-
-            if (!self->etModule_) {
-                throw jsi::JSError(rt, "getMethodNames: Model has been disposed");
-            }
-
-            auto methodNames = unwrap(rt, "getMethodNames", self->etModule_->method_names());
-
-            auto jsArray = jsi::Array(rt, methodNames.size());
-            size_t index = 0;
-            for (const auto &methodName : methodNames) {
-                jsArray.setValueAtIndex(rt, index, jsi::String::createFromUtf8(rt, methodName));
-                ++index;
-            }
-
-            return jsArray;
-        };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getMethodNames"), 0, fnBody);
+    if (nameStr == "schema") {
+        return schema::modelSpecToJs(rt, spec_);
     }
 
-    if (nameStr == "getMethodMeta") {
-        auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-            using executorch::runtime::tag_to_string;
-
-            if (count != 1) {
-                throw jsi::JSError(rt, "getMethodMeta: Usage: getMethodMeta(methodName)");
-            }
-
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "getMethodMeta: Model is currently in use");
-            }
-
-            if (!self->etModule_) {
-                throw jsi::JSError(rt, "getMethodMeta: Model has been disposed");
-            }
-
-            auto methodName = conversions::asType<std::string>(rt, "getMethodMeta: methodName", args[0]);
-            auto methodMeta = unwrap(rt, "getMethodMeta", self->etModule_->method_meta(methodName));
-
-            auto inputTagsArray = jsi::Array(rt, methodMeta.num_inputs());
-            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto ctx = std::format("getMethodMeta: input tag [{}]", i);
-                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
-                inputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
-            }
-
-            auto outputTagsArray = jsi::Array(rt, methodMeta.num_outputs());
-            for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
-                auto ctx = std::format("getMethodMeta: output tag [{}]", i);
-                auto tag = unwrap(rt, ctx, methodMeta.output_tag(i));
-                outputTagsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, tag_to_string(tag)));
-            }
-
-            auto usesBackendMap = jsi::Object(rt);
-            for (size_t i = 0; i < methodMeta.num_backends(); ++i) {
-                auto ctx = std::format("getMethodMeta: backend name [{}]", i);
-                const auto *backendName = unwrap(rt, ctx, methodMeta.get_backend_name(i));
-                usesBackendMap.setProperty(rt, backendName, methodMeta.uses_backend(backendName));
-            }
-
-            auto inputTensorMetaArray = jsi::Array(rt, methodMeta.num_inputs());
-            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
-                auto ctx = std::format("getMethodMeta: input tensor meta [{}]", i);
-                auto tensorMeta = unwrap(rt, ctx, methodMeta.input_tensor_meta(i));
-                inputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
-            }
-
-            auto outputTensorMetaArray = jsi::Array(rt, methodMeta.num_outputs());
-            for (size_t i = 0; i < methodMeta.num_outputs(); ++i) {
-                auto ctx = std::format("getMethodMeta: output tensor meta [{}]", i);
-                auto tensorMeta = unwrap(rt, ctx, methodMeta.output_tensor_meta(i));
-                outputTensorMetaArray.setValueAtIndex(rt, i, tensorMetaToJs(rt, tensorMeta));
-            }
-
-            auto jsMeta = jsi::Object(rt);
-            jsMeta.setProperty(rt, "name", jsi::String::createFromUtf8(rt, methodMeta.name()));
-            jsMeta.setProperty(rt, "numInputs", static_cast<double>(methodMeta.num_inputs()));
-            jsMeta.setProperty(rt, "numOutputs", static_cast<double>(methodMeta.num_outputs()));
-            jsMeta.setProperty(rt, "inputTags", inputTagsArray);
-            jsMeta.setProperty(rt, "outputTags", outputTagsArray);
-            jsMeta.setProperty(rt, "usesBackend", usesBackendMap);
-            jsMeta.setProperty(rt, "inputTensorMeta", inputTensorMetaArray);
-            jsMeta.setProperty(rt, "outputTensorMeta", outputTensorMetaArray);
-
-            return jsMeta;
-        };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getMethodMeta"), 1, fnBody);
+    if (nameStr == "backends") {
+        return schema::backendsToJs(rt, backends_);
     }
 
     if (nameStr == "execute") {
@@ -339,44 +118,39 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
-            auto methodMeta = unwrap(rt, "execute", self->etModule_->method_meta(methodName));
+            if (!self->spec_.contains(methodName)) {
+                throw jsi::JSError(rt, std::format("execute: Unknown method '{}'", methodName));
+            }
+            const auto &methodSpec = self->spec_.at(methodName);
 
             auto inputsArray = conversions::asType<jsi::Array>(rt, "execute: inputs", args[1]);
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
-            if (inputsArray.size(rt) != methodMeta.num_inputs()) {
-                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs: got {}, expected {}",
-                                                   inputsArray.size(rt), methodMeta.num_inputs()));
+            if (inputsArray.size(rt) != methodSpec.inputs.size()) {
+                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs"));
             }
 
-            std::vector<executorch::runtime::EValue> inputs(methodMeta.num_inputs());
+            std::vector<executorch::runtime::EValue> inputs(methodSpec.inputs.size());
             std::vector<std::unique_lock<std::shared_mutex>> tensorLocks;
             std::unordered_set<TensorHostObject *> lockedTensors;
+            std::vector<std::vector<int32_t>> inputShapes;
 
-            for (size_t i = 0; i < methodMeta.num_inputs(); ++i) {
+            for (size_t i = 0; i < methodSpec.inputs.size(); ++i) {
                 auto ctx = std::format("execute: inputs[{}]", i);
-                auto tag = unwrap(rt, ctx, methodMeta.input_tag(i));
+                auto tag = methodSpec.inputs[i].tag;
                 auto val = inputsArray.getValueAtIndex(rt, i);
 
                 switch (tag) {
                 case executorch::runtime::Tag::Tensor: {
-                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.input_tensor_meta(i));
-                    auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
-
-                    std::shared_ptr<TensorHostObject> tensorHostObject;
-                    if (self->dynamicInputShapes_.contains(methodName)) {
-                        auto expectedShape = self->dynamicInputShapes_[methodName][i];
-                        tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, expectedShape);
-                    } else {
-                        tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, tensorMeta.sizes());
-                    }
+                    const auto &tSpec = methodSpec.inputs[i];
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, tSpec.dtype, tSpec.shape);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
                                                "The same tensor was passed multiple times.");
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
-                    inputs[i] = tensorHostObject->tensor_;
+                    inputShapes.push_back(tensorHostObject->shape_);
                     break;
                 }
                 case executorch::runtime::Tag::Double:
@@ -397,6 +171,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 }
             }
 
+            schema::validateRuntimeConstraints(rt, methodSpec.runtimeConstraints, inputShapes,
+                                               std::format("execute: method '{}'", methodName));
+
             auto startTime = std::chrono::high_resolution_clock::now();
             auto executeResult = self->etModule_->execute(methodName, inputs);
             auto finishTime = std::chrono::high_resolution_clock::now();
@@ -409,15 +186,19 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
 
-            auto result = unwrap(rt,
-                                 std::format("execute: Method '{}' failed (check getMethodMeta() "
-                                             "for required backends and getRegisteredBackends() "
-                                             "for registered ones)",
-                                             methodName),
-                                 std::move(executeResult));
+            const auto *error = "execute: Method '{}' failed. Check the following common pitfalls:"
+                                "\n- Make sure that the backends used by the model (`model.backends`)"
+                                "\n  are registered in ExecuTorch runtime (`getRegisteredBackends`)."
+                                "\n- If your model requires specific runtime constraints or dynamic shapes"
+                                "\n  (e.g. equality of certain dynamic dimensions), make sure you exported"
+                                "\n  it with '{}' companion method that returns JSON string with dynamic"
+                                "\n  model spec that overrides the default one constructed from ExecuTorch"
+                                "\n  metadata which only contain the static upper bounds of tensor dimension"
+                                "\n  and do not contain information about runtime constraints.";
+            auto result = unwrap(rt, std::format(error, methodName, kSchemaMethod), std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
-            size_t index = 0;
+            size_t outputIdx = 0;
             size_t tensorOutputIdx = 0;
 
             for (const auto &output : result) {
@@ -430,9 +211,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
                     auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
 
-                    auto tensorMeta = unwrap(rt, ctx + ": tensor meta", methodMeta.output_tensor_meta(index));
-                    auto expectedDtype = fromScalarType(rt, ctx, tensorMeta.scalar_type());
-                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, expectedDtype, output.toTensor().sizes());
+                    auto dtype = types::fromScalarType(output.toTensor().dtype());
+                    auto shape = output.toTensor().sizes();
+                    auto tensorHostObject = tensor::fromJs(rt, ctx, val, dtype, shape);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
                         throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
@@ -443,28 +224,28 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                 output.toTensor().const_data_ptr(),
                                 output.toTensor().nbytes());
 
-                    jsOutputArray.setValueAtIndex(rt, index, val);
+                    jsOutputArray.setValueAtIndex(rt, outputIdx, val);
                     ++tensorOutputIdx;
                     break;
                 }
                 case executorch::runtime::Tag::Double:
-                    jsOutputArray.setValueAtIndex(rt, index, output.toDouble());
+                    jsOutputArray.setValueAtIndex(rt, outputIdx, output.toDouble());
                     break;
                 case executorch::runtime::Tag::Int:
-                    jsOutputArray.setValueAtIndex(rt, index, static_cast<double>(output.toInt()));
+                    jsOutputArray.setValueAtIndex(rt, outputIdx, static_cast<double>(output.toInt()));
                     break;
                 case executorch::runtime::Tag::Bool:
-                    jsOutputArray.setValueAtIndex(rt, index, output.toBool());
+                    jsOutputArray.setValueAtIndex(rt, outputIdx, output.toBool());
                     break;
                 case executorch::runtime::Tag::None:
-                    jsOutputArray.setValueAtIndex(rt, index, jsi::Value::null());
+                    jsOutputArray.setValueAtIndex(rt, outputIdx, jsi::Value::null());
                     break;
                 default:
                     throw jsi::JSError(rt, std::format("execute: Unsupported return type: {}",
                                                        executorch::runtime::tag_to_string(output.tag)));
                 }
 
-                ++index;
+                ++outputIdx;
             }
 
             return jsOutputArray;
@@ -498,8 +279,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 std::vector<facebook::jsi::PropNameID> ModelHostObject::getPropertyNames(jsi::Runtime &rt) {
     std::vector<facebook::jsi::PropNameID> properties;
     properties.push_back(jsi::PropNameID::forAscii(rt, "path"));
-    properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodNames"));
-    properties.push_back(jsi::PropNameID::forAscii(rt, "getMethodMeta"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "schema"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "backends"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "execute"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return properties;
