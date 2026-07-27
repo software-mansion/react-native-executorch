@@ -151,6 +151,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
                     inputShapes.push_back(tensorHostObject->shape_);
+                    inputs[i] = tensorHostObject->tensor_;
                     break;
                 }
                 case executorch::runtime::Tag::Double:
