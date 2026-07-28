@@ -63,12 +63,14 @@ export async function createStyleTransfer(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous image style transfer on the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the styled image buffer.
    */
   transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
+
   /**
    * Synchronous version of {@link transferStyle} to be executed directly on the
    * caller or worklet thread.

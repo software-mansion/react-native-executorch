@@ -46,12 +46,14 @@ export async function createImageEmbedder(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Asynchronously computes the embedding vector for the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the embedding vector.
    */
   embed: (input: ImageBuffer) => Promise<Float32Array>;
+
   /**
    * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.

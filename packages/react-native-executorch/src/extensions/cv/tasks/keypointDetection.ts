@@ -168,6 +168,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous keypoint and bounding box detection on the given
    * input image.
@@ -183,6 +184,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => Promise<KeypointDetection<F, L>[]>;
+
   /**
    * Synchronous version of {@link detectKeypoints} to be executed directly on
    * the caller or worklet thread.
@@ -206,11 +208,12 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
 
   const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
   const inpShape = [1, 3, targetH, targetW];
+  const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, 3] };
 
   const tensors = [
-    tensor('float32', [N, 4]),
-    tensor('float32', [N]),
-    tensor('float32', [N, landmarks.length, 3]),
+    tensor('float32', outShape.boxes),
+    tensor('float32', outShape.scores),
+    tensor('float32', outShape.keypoints),
   ] as const;
 
   const [tBoxes, tScores, tKeypoints] = tensors;

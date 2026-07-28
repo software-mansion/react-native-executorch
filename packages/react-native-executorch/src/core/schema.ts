@@ -133,7 +133,7 @@ export type ParamSpec<Dim extends SymbolicDim> =
  * @category Types
  */
 export type DimRef = {
-  readonly parameterSide: 'input' | 'output';
+  readonly paramSide: 'input' | 'output';
   readonly tensorIdx: number;
   readonly dimIdx: number;
 };
@@ -447,11 +447,7 @@ function matchModelSpecsSymbols(
 // ========================================================
 
 function refsEqual(r1: DimRef, r2: DimRef): boolean {
-  return (
-    r1.parameterSide === r2.parameterSide &&
-    r1.tensorIdx === r2.tensorIdx &&
-    r1.dimIdx === r2.dimIdx
-  );
+  return r1.paramSide === r2.paramSide && r1.tensorIdx === r2.tensorIdx && r1.dimIdx === r2.dimIdx;
 }
 
 function constraintsEqual(c1: RuntimeConstraint, c2: RuntimeConstraint): boolean {
@@ -483,7 +479,7 @@ function constraintsEqual(c1: RuntimeConstraint, c2: RuntimeConstraint): boolean
 
 function resolveDim<D extends SymbolicDim>(methodSpec: MethodSpec<D>, ref: DimRef): D {
   let tensorSpecs: TensorSpec<D>[];
-  switch (ref.parameterSide) {
+  switch (ref.paramSide) {
     case 'input':
       tensorSpecs = methodSpec.inputs.filter((v): v is TensorSpec<D> => v.kind === 'Tensor');
       break;

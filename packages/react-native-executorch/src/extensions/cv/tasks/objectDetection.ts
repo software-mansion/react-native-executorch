@@ -85,6 +85,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * @param input The input image buffer.
    * @param options Configuration options for object detection.
@@ -98,6 +99,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => Promise<ObjectDetection<F, L>[]>;
+
   /**
    * Synchronous version of {@link detectObjects} to be executed directly on the
    * caller or worklet thread.
@@ -125,12 +127,12 @@ export async function createObjectDetector<F extends BoxFormat, L>(
 
   const [N, H, W] = dims.constant('N', 'H', 'W');
   const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShapes = { boxes: [N, 4], scores: [N], classes: [N] };
+  const outShape = { boxes: [N, 4], scores: [N], classes: [N] };
 
   const tensors = [
-    tensor('float32', outShapes.boxes),
-    tensor('float32', outShapes.scores),
-    tensor('float32', outShapes.classes),
+    tensor('float32', outShape.boxes),
+    tensor('float32', outShape.scores),
+    tensor('float32', outShape.classes),
   ] as const;
 
   const [tBoxes, tScores, tClasses] = tensors;

@@ -95,6 +95,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Runs semantic segmentation asynchronously.
    *
@@ -120,6 +121,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => Promise<SemanticSegmentationResult<L>>;
+
   /**
    * Runs semantic segmentation synchronously.
    * @see {@link segment} for details.

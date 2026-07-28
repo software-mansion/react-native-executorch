@@ -69,6 +69,7 @@ export async function createClassifier<L>(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous image classification on the given input image.
    * @param input The input image buffer.
@@ -79,6 +80,7 @@ export async function createClassifier<L>(
    * confidence.
    */
   classify: (input: ImageBuffer, options?: { topk?: number }) => Promise<Classification<L>[]>;
+
   /**
    * Synchronous version of {@link classify} to be executed directly on the
    * caller or worklet thread.

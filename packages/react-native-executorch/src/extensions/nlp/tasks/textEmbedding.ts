@@ -47,6 +47,7 @@ export async function createTextEmbedder(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Asynchronously computes the embedding vector for the given input text.
    * Inputs longer than the model's maximum sequence length are truncated.
@@ -56,6 +57,7 @@ export async function createTextEmbedder(
    * @returns A promise resolving to the embedding vector.
    */
   embed: (input: string, prompt?: string) => Promise<Float32Array>;
+
   /**
    * Synchronous version of {@link embed} to be executed directly on the
    * caller or worklet thread.

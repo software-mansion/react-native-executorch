@@ -149,13 +149,13 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
   const [N, H, W, maskH, maskW] = dims.constant('N', 'H', 'W', 'MH', 'MW');
   const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShapes = { boxes: [N, 4], scores: [N], classes: [N], masks: [N, maskH, maskW] };
+  const outShape = { boxes: [N, 4], scores: [N], classes: [N], masks: [N, maskH, maskW] };
 
   const tensors = [
-    tensor('float32', outShapes.boxes),
-    tensor('float32', outShapes.scores),
-    tensor('float32', outShapes.classes),
-    tensor('float32', outShapes.masks),
+    tensor('float32', outShape.boxes),
+    tensor('float32', outShape.scores),
+    tensor('float32', outShape.classes),
+    tensor('float32', outShape.masks),
     tensor('float32', [maskH, maskW, 1]),
   ] as const;
 

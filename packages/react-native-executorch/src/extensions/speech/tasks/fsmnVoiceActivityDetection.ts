@@ -190,6 +190,7 @@ export async function createFsmnVoiceActivityDetector(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Asynchronously detects speech segments within a mono waveform sampled at
    * {@link FSMN_VAD_SAMPLE_RATE_HZ}.
@@ -198,11 +199,13 @@ export async function createFsmnVoiceActivityDetector(
    * @returns A promise resolving to the detected speech segments, in seconds.
    */
   detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
+
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
    */
   detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
+
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
@@ -212,6 +215,7 @@ export async function createFsmnVoiceActivityDetector(
    * @param options Optional overrides of the detection thresholds and margin.
    */
   detectVoiceOnStream: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | undefined;
+
   /**
    * Clears the rolling window and speaking state used by {@link detectVoiceOnStream}.
    */
