@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, DynamicDim as Dyn, method, f32, constr } from '../../../core/schema';
+import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
 
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../utils/vadUtils';
@@ -234,13 +234,7 @@ export async function createFsmnVoiceActivityDetector(
     default: method(
       'forward', // prettier-ignore
       [f32(Dyn('frames'), 'fftLen')],
-      [f32(1, Dyn('frames'), 'classes')],
-      [
-        constr.eq(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
-        ),
-      ]
+      [f32(1, Dyn('frames'), 'classes')]
     ),
   });
   const [numClasses, fftLength] = dims.constant('classes', 'fftLen');
