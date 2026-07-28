@@ -8,6 +8,21 @@ const DOWNLOAD_EVENT_ENDPOINT = 'https://ai.swmansion.com/telemetry/downloads/ap
 // See https://github.com/software-mansion/react-native-executorch/issues/1291
 const LIB_VERSION = '0.0.0';
 
+// Anonymous analytics are on by default; apps opt out via setTelemetryEnabled.
+let telemetryEnabled = true;
+
+/**
+ * Enables or disables the anonymous download analytics sent to Software Mansion.
+ * Analytics are enabled by default; call `setTelemetryEnabled(false)` (e.g. once
+ * at app startup) to opt out. This does not affect the Hugging Face download
+ * counter, a standard model-download stat that always fires.
+ * @category Utils
+ * @param enabled Whether to send anonymous download analytics.
+ */
+export function setTelemetryEnabled(enabled: boolean): void {
+  telemetryEnabled = enabled;
+}
+
 // Whether the given URL points to a Software Mansion Hugging Face repo.
 function isSwmHuggingFaceRepo(url: URL): boolean {
   return url.host === 'huggingface.co' && url.pathname.startsWith('/software-mansion');
@@ -56,11 +71,13 @@ function getModelNameFromUri(uri: string): string {
 }
 
 /**
- * Sends an anonymous download event to the Software Mansion analytics endpoint.
- * Fire-and-forget; never throws and never blocks the download.
+ * Sends an anonymous download event to the Software Mansion analytics endpoint,
+ * unless the app has opted out via {@link setTelemetryEnabled}. Fire-and-forget;
+ * never throws and never blocks the download.
  * @param uri The URI of the downloaded resource.
  */
 export function triggerDownloadEvent(uri: string): void {
+  if (!telemetryEnabled) return;
   try {
     fetch(DOWNLOAD_EVENT_ENDPOINT, {
       method: 'POST',
