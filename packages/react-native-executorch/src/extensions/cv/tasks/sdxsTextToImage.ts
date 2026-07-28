@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, i64, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { randomNormal } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
@@ -79,28 +79,29 @@ export async function createSdxsTextToImage(
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
 
-  validateModelSchema(
-    model,
-    'encode',
-    [SymbolicTensor('int64', [1, CLIP_MAX_TOKENS])],
-    [SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE])]
-  );
-  validateModelSchema(
-    model,
-    'denoise',
-    [
-      SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
-      SymbolicTensor('int64', [1]),
-      SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
-    ],
-    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])]
-  );
-  validateModelSchema(
-    model,
-    'decode',
-    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])],
-    [SymbolicTensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE])]
-  );
+  validateSpec(model.schema, {
+    default: {
+      ...method(
+        'encode', // prettier-ignore
+        [i64(1, CLIP_MAX_TOKENS)],
+        [f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)]
+      ),
+      ...method(
+        'denoise',
+        [
+          f32(1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE),
+          i64(1),
+          f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE),
+        ],
+        [f32(1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE)]
+      ),
+      ...method(
+        'decode',
+        [f32(1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE)],
+        [f32(1, 3, IMAGE_SIZE, IMAGE_SIZE)]
+      ),
+    },
+  });
 
   const tensors = [
     tensor('int64', [1, CLIP_MAX_TOKENS]),

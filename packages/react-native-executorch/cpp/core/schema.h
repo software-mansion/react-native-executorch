@@ -15,6 +15,28 @@
 #include <executorch/runtime/core/tag.h>
 #include <executorch/runtime/executor/method_meta.h>
 
+/**
+ * Model spec types and validation.
+ *
+ * This module is the C++ counterpart of `src/core/schema.ts`. Both files
+ * define the same data model (MethodSpec, ParamSpec, ConcreteDim, etc.)
+ * and validation logic, but serve different roles:
+ *
+ * - **schema.ts** — validates *allowed* (symbolic) specs written by pipeline
+ *   authors against *exported* (concrete) specs. Handles symbol binding,
+ *   dim-domain matching, and 1-to-1 constraint matching. Runs in JS.
+ *
+ * - **schema.cpp / schema.h** — validates exported specs at load time against
+ *   ExecuTorch MethodMeta (dtype, rank, static shape). Also validates runtime
+ *   constraint values before execution. Runs in native C++.
+ *
+ * The exported spec originates as JSON from the companion `get_model_schema`
+ * method (or is derived from MethodMeta when absent). It is parsed by
+ * `parseModelSpecJson` (C++) and also passed to `validateSpec` (TS) for
+ * allowed-spec matching.
+ *
+ * @see src/core/schema.ts for the TypeScript validation layer.
+ */
 namespace rnexecutorch::core::schema {
 namespace jsi = facebook::jsi;
 
@@ -61,8 +83,8 @@ struct ParamSpec {
 // ========================================================
 
 /// Whether the referenced tensor dimension belongs to an input or output.
-enum class ParameterSide { input,
-                           output };
+enum class ParamSide { input,
+                       output };
 
 /**
  * Reference to a single tensor dimension of a method's input or output.
@@ -70,7 +92,7 @@ enum class ParameterSide { input,
  * with ExecuTorch's `inputTensorMeta` / `outputTensorMeta` ordering.
  */
 struct DimRef {
-    ParameterSide side = ParameterSide::input;
+    ParamSide side = ParamSide::input;
     int32_t tensorIdx = 0;
     int32_t dimIdx = 0;
 };
@@ -194,14 +216,17 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
  * @param methodName Method name for error messages.
  * @throws std::runtime_error on any mismatch.
  */
-void validateSpecAgainstMeta(const MethodSpec &spec,
-                             const executorch::runtime::MethodMeta &meta,
-                             const std::string &methodName);
+void validateSpec(const MethodSpec &spec,
+                  const executorch::runtime::MethodMeta &meta,
+                  const std::string &ctx);
 
 /**
  * Validates runtime constraints on input tensors before execution.
- * Only input-only constraints are checked; constraints referencing outputs
- * are skipped (ExecuTorch validates output shapes internally).
+ * Only input-only constraints are checked. Constraints referencing outputs
+ * are skipped because ExecuTorch constructs the output tensors internally,
+ * guaranteeing they satisfy the declared constraints by construction.
+ * After execution, the output shapes are validated separately against the
+ * shapes returned by ExecuTorch when copying data to the user-provided buffers.
  *
  * @param rt The JSI runtime instance (for error reporting).
  * @param constraints The constraints to validate.

@@ -1,5 +1,4 @@
 import { tensor, type Tensor } from '../../../core/tensor';
-import { matchShape } from '../../../core/modelSchema';
 
 import type { ImageBuffer } from '../image';
 import {
@@ -69,15 +68,11 @@ export function createImagePreprocessor(
   dispose: () => void;
 } {
   const numRgbChannels = 3;
-  const expectedShapes = [
-    [numRgbChannels, 'H', 'W'],
-    [1, numRgbChannels, 'H', 'W'],
-  ] as const;
-
-  if (!matchShape(outputShape, ...expectedShapes)) {
+  const isRank3 = outputShape.length === 3 && outputShape[0] === numRgbChannels;
+  const isRank4 = outputShape.length === 4 && outputShape[1] === numRgbChannels;
+  if (!isRank3 && !isRank4) {
     throw new Error(
-      `preprocessor: got shape [${outputShape}], required one of: ` +
-        `${expectedShapes.map((s) => `[${s.join(',')}]`).join(' | ')}`
+      `preprocessor: got shape [${outputShape}], expected [${numRgbChannels}, H, W] or [1, ${numRgbChannels}, H, W]`
     );
   }
 

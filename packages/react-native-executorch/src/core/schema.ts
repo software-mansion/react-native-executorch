@@ -193,7 +193,7 @@ export type MethodSpec<Dim extends SymbolicDim> = {
 export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>;
 
 // ========================================================
-// Dim helper functions
+// Helper functions
 // ========================================================
 
 /**
@@ -297,6 +297,20 @@ export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
   return { kind: 'Tensor', dtype, shape: typedShape } as TensorSpec<SymbolicDim>;
 };
 
+export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape);
+export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
+export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
+export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
+
+export function method(
+  name: string,
+  inputs: ParamSpec<SymbolicDim>[],
+  outputs: ParamSpec<SymbolicDim>[],
+  constraints?: RuntimeConstraint[]
+): Record<string, MethodSpec<SymbolicDim>> {
+  return { [name]: { inputs, outputs, runtimeConstraints: constraints ?? [] } };
+}
+
 // ========================================================
 // Parameter spec validation
 // ========================================================
@@ -313,12 +327,7 @@ function choicesEqual(c1: readonly number[], c2: readonly number[]): boolean {
   return s1.size === s2.size && [...s1].every((elem) => s2.has(elem));
 }
 
-function matchDim(
-  sDim: SymbolicDim,
-  cDim: ConcreteDim,
-  bindings: SymbolBindings,
-  ctx: string
-): void {
+function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, dims: SymbolBindings, ctx: string): void {
   if (sDim.kind === 'constant' && cDim.kind === 'constant') {
     if (sDim.value !== cDim.value) {
       throw new Error(`${ctx}: Constant dimension mismatch.`);
@@ -341,30 +350,30 @@ function matchDim(
   }
 
   if (sDim.kind === 'static' && cDim.kind === 'constant') {
-    const bind = bindings.get(sDim.symbol);
+    const bind = dims.get(sDim.symbol);
     if (bind) {
       if (bind.kind !== 'constant' || bind.value !== cDim.value) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent dims.`);
       }
       return;
     }
-    bindings.set(sDim.symbol, cDim);
+    dims.set(sDim.symbol, cDim);
     return;
   }
 
   if (sDim.kind === 'dynamic' && (cDim.kind === 'range' || cDim.kind === 'enum')) {
-    const bind = bindings.get(sDim.symbol);
+    const bind = dims.get(sDim.symbol);
     if (bind) {
       const consistentRange =
         bind.kind === 'range' && cDim.kind === 'range' && rangesEqual(bind.range, cDim.range);
       const consistentEnum =
         bind.kind === 'enum' && cDim.kind === 'enum' && choicesEqual(bind.choices, cDim.choices);
       if (!consistentRange && !consistentEnum) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent dims.`);
       }
       return;
     }
-    bindings.set(sDim.symbol, cDim);
+    dims.set(sDim.symbol, cDim);
     return;
   }
 
@@ -374,7 +383,7 @@ function matchDim(
 function matchMethodSpecs(
   allowedMethodSpec: MethodSpec<SymbolicDim>,
   exportedMethodSpec: MethodSpec<ConcreteDim>,
-  bindings: SymbolBindings,
+  dims: SymbolBindings,
   ctx: string
 ): void {
   if (allowedMethodSpec.inputs.length !== exportedMethodSpec.inputs.length) {
@@ -414,7 +423,7 @@ function matchMethodSpecs(
 
     for (let d = 0; d < allowedTensorSpec.shape.length; ++d) {
       const dimCtx = `${paramSpecCtx} Tensor dim #${d}`;
-      matchDim(allowedTensorSpec.shape[d]!, exportedTensorSpec.shape[d]!, bindings, dimCtx);
+      matchDim(allowedTensorSpec.shape[d]!, exportedTensorSpec.shape[d]!, dims, dimCtx);
     }
   }
 }
@@ -422,14 +431,14 @@ function matchMethodSpecs(
 function matchModelSpecsSymbols(
   allowedModelSpec: ModelSpec<SymbolicDim>,
   exportedModelSpec: ModelSpec<ConcreteDim>,
-  bindings: SymbolBindings
+  dims: SymbolBindings
 ): void {
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
       throw new Error(`Method '${methodName}' not found in exported model spec.`);
     }
-    matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, bindings, `Method '${methodName}'`);
+    matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, dims, `Method '${methodName}'`);
   }
 }
 
@@ -526,7 +535,7 @@ function matchRuntimeConstraints(
 // Spec validation
 // ========================================================
 
-function verifySymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void {
+function validateSymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void {
   const symbolKinds = new Map<string, 'static' | 'dynamic'>();
 
   for (const methodSpec of Object.values(modelSpec)) {
@@ -546,7 +555,7 @@ function verifySymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void {
   }
 }
 
-function verifyConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
+function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
   for (const [methodName, methodSpec] of Object.entries(modelSpec)) {
     for (const [idx, constraint] of methodSpec.runtimeConstraints.entries()) {
       const ctx = `Method '${methodName}' constraint ${idx}`;
@@ -570,12 +579,81 @@ function verifyConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
   }
 }
 
+function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
+  for (const [methodName, methodSpec] of Object.entries(modelSpec)) {
+    const allParams = [...methodSpec.inputs, ...methodSpec.outputs];
+    for (const [p, param] of allParams.entries()) {
+      if (param.kind !== 'Tensor') continue;
+
+      const isInput = p < methodSpec.inputs.length;
+      const label = isInput ? 'input' : 'output';
+      const paramIdx = isInput ? p : p - methodSpec.inputs.length;
+
+      for (const [d, dim] of param.shape.entries()) {
+        const ctx = `Method '${methodName}' ${label} #${paramIdx} dim #${d}`;
+
+        if (dim.kind === 'constant') {
+          if (dim.value <= 0 || !Number.isInteger(dim.value)) {
+            throw new Error(`${ctx}: constant dim must be a positive integer.`);
+          }
+        }
+        if (dim.kind === 'range') {
+          if (dim.range.min < 0 || !Number.isInteger(dim.range.min)) {
+            throw new Error(`${ctx}: range min must be a non-negative integer.`);
+          }
+          if (dim.range.max < dim.range.min || !Number.isInteger(dim.range.max)) {
+            throw new Error(`${ctx}: range max must be >= min.`);
+          }
+          if (dim.range.step <= 0 || !Number.isInteger(dim.range.step)) {
+            throw new Error(`${ctx}: range step must be a positive integer.`);
+          }
+        }
+        if (dim.kind === 'enum') {
+          if (dim.choices.length === 0) {
+            throw new Error(`${ctx}: enum must have at least one choice.`);
+          }
+          if (dim.choices.some((c) => c <= 0 || !Number.isInteger(c))) {
+            throw new Error(`${ctx}: enum choices must be positive integers.`);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Result of validating an exported model spec against allowed variants.
+ * @typeParam V The variant key type.
+ */
+export type SpecMatch<K extends PropertyKey = PropertyKey> = {
+  /** Key of the matched variant. */
+  readonly variant: K;
+  /**
+   * Returns the concrete value for a symbol.
+   * @param name The symbol name.
+   * @param kind Expected dimension kind — determines the return type. Omit to
+   * get the raw {@link ConcreteDim} when the kind is not known upfront.
+   * @throws {Error} If the symbol is not found or has a different kind.
+   */
+  dim(name: string, kind: 'constant'): number;
+  dim(name: string, kind: 'range'): Range;
+  dim(name: string, kind: 'enum'): readonly number[];
+  dim(name: string): ConcreteDim;
+
+  dims: {
+    any<S extends string[]>(...names: S): { [I in keyof S]: ConcreteDim };
+    enum<S extends string[]>(...names: S): { [I in keyof S]: readonly number[] };
+    range<S extends string[]>(...names: S): { [I in keyof S]: Range };
+    constant<S extends string[]>(...names: S): { [I in keyof S]: number };
+  };
+};
+
 /**
  * Validates that an exported (concrete) model spec satisfies at least one of
  * the allowed (symbolic) model specs — variants are tried in order and the
  * first match wins. For a variant to match:
  * - Every method exists in the exported spec and its signature matches,
- *   binding each symbol to a constant value (static) or a range/enum
+ *   dim each symbol to a constant value (static) or a range/enum
  *   (dynamic). Repeated symbols must bind consistently across the whole spec.
  * - The exported spec declares exactly the same runtime constraints per
  *   method (1-to-1, no missing, no extras). Constraints are matched as
@@ -583,28 +661,64 @@ function verifyConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
  *
  * Authoring bugs in an allowed spec (conflicting symbol kinds, invalid
  * constraint coefficients or references) throw immediately, before matching.
- * @param allowedModelSpecs The allowed model spec variants to try in order.
  * @param exportedModelSpec The exported model spec to validate against.
- * @returns The symbol bindings of the first matching variant.
+ * @param allowedModelSpecs The allowed model spec variants keyed by name.
+ * @returns A {@link SpecMatch} with the matched variant key and dim
+ * accessors.
  * @throws {Error} A human-readable description of why every variant failed.
  */
-export function validateSpec(
-  allowedModelSpecs: readonly ModelSpec<SymbolicDim>[],
-  exportedModelSpec: ModelSpec<ConcreteDim>
-): SymbolBindings {
-  allowedModelSpecs.forEach(verifySymbolKindConsistency);
-  allowedModelSpecs.forEach(verifyConstraintCorrectness);
+export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
+  exportedModelSpec: ModelSpec<ConcreteDim>,
+  allowedModelSpecs: T
+): SpecMatch<keyof T> {
+  const entries = Object.entries(allowedModelSpecs);
+
+  for (const spec of Object.values(allowedModelSpecs)) {
+    validateSymbolKindConsistency(spec);
+    validateConstraintCorrectness(spec);
+    validateDimDomains(spec);
+  }
+  validateDimDomains(exportedModelSpec);
+  validateConstraintCorrectness(exportedModelSpec);
 
   const errors: string[] = [];
 
-  for (const [idx, allowedModelSpec] of allowedModelSpecs.entries()) {
+  for (const [key, allowedModelSpec] of entries) {
     try {
-      const bindings: SymbolBindings = new Map();
-      matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, bindings);
+      const dims: SymbolBindings = new Map();
+      matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, dims);
       matchRuntimeConstraints(allowedModelSpec, exportedModelSpec);
-      return bindings;
+
+      const dimFn = (name: string, kind?: string): any => {
+        const dim = dims.get(name);
+        if (!dim) {
+          throw new Error(`Symbol '${name}' not found in dims.`);
+        }
+        if (kind && dim.kind !== kind) {
+          throw new Error(`Symbol '${name}' is '${dim.kind}', expected '${kind}'.`);
+        }
+        if (dim.kind === 'constant') return dim.value;
+        if (dim.kind === 'range') return dim.range;
+        if (dim.kind === 'enum') return dim.choices;
+        return dim;
+      };
+
+      const createAccessor = (kind?: string) => {
+        return (...names: string[]): any => names.map((name) => dimFn(name, kind));
+      };
+
+      return {
+        variant: key,
+        dim: dimFn,
+        dims: {
+          any: createAccessor(),
+          enum: createAccessor('enum'),
+          range: createAccessor('range'),
+          constant: createAccessor('constant'),
+        },
+      };
     } catch (e: any) {
-      errors.push(`Variant ${idx}: ${e.message}`);
+      errors.push(`Variant '${key}': ${e.message}`);
       continue;
     }
   }

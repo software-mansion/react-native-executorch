@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -195,27 +195,22 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
   const { modelPath, modelOpts } = config;
   const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
-    [
-      SymbolicTensor('float32', ['N', 4]),
-      SymbolicTensor('float32', ['N']),
-      SymbolicTensor('float32', ['N', landmarks.length, 3]),
-    ]
-  );
 
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const numAnchors = meta.outputTensorMeta[0]!.shape[0]!;
+  const { dims } = validateSpec(model.schema, {
+    default: method(
+      'forward',
+      [f32(1, 3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
+    ),
+  });
 
-  const targetH = inpShape.at(-2)!;
-  const targetW = inpShape.at(-1)!;
+  const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
+  const inpShape = [1, 3, targetH, targetW];
 
   const tensors = [
-    tensor('float32', [numAnchors, 4]),
-    tensor('float32', [numAnchors]),
-    tensor('float32', [numAnchors, landmarks.length, 3]),
+    tensor('float32', [N, 4]),
+    tensor('float32', [N]),
+    tensor('float32', [N, landmarks.length, 3]),
   ] as const;
 
   const [tBoxes, tScores, tKeypoints] = tensors;

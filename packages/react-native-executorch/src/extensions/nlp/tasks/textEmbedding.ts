@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, DynamicDim as Dyn, method, i64, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
@@ -70,16 +70,22 @@ export async function createTextEmbedder(
 
   // Text embedding models take two int64 inputs: the token ids and the
   // attention mask, both of shape [1, sequence_length].
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('int64', [1, 'L']), SymbolicTensor('int64', [1, 'L'])],
-    [SymbolicTensor('float32', [1, 'D'], ['D'])]
-  );
-  // The models are exported with a dynamic sequence dimension; the declared size
-  // is the upper bound, used only to truncate over-long inputs.
-  const maxSeqLen = meta.inputTensorMeta[0]!.shape[1]!;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+      [f32(1, 'D')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+      [f32('D')]
+    ),
+  });
+
+  const [seqLen] = dims.range('L');
+  const [D] = dims.constant('D');
+  const outShape = { batched: [1, D], unbatched: [D] }[variant];
 
   const tensors = [tensor('float32', outShape)] as const;
   const [tEmbedding] = tensors;
@@ -97,7 +103,7 @@ export async function createTextEmbedder(
     if (ids.length === 0) {
       throw new Error('createTextEmbedder: input tokenized to zero tokens');
     }
-    const len = Math.min(ids.length, maxSeqLen);
+    const len = Math.min(ids.length, seqLen.max);
 
     const idsData = new BigInt64Array(len);
     const maskData = new BigInt64Array(len);

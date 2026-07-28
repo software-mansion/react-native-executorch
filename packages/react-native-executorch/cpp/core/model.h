@@ -36,8 +36,8 @@ private:
     schema::ModelSpec spec_;
     std::unordered_map<std::string, std::vector<std::string>> backends_;
 
-    std::unique_ptr<executorch::extension::Module> etModule_;
     std::mutex mutex_;
+    std::unique_ptr<executorch::extension::Module> etModule_;
 };
 
 void install_loadModel(jsi::Runtime &rt, jsi::Object &module);

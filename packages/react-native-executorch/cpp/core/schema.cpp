@@ -1,5 +1,6 @@
 #include "schema.h"
 
+#include <algorithm>
 #include <format>
 #include <utility>
 
@@ -81,16 +82,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnumDim, choices)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DimRef, side, tensorIdx, dimIdx)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EqualityConstraint, dims)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LinearConstraint, dimLhs, dimRhs, coefficients)
-NLOHMANN_JSON_SERIALIZE_ENUM(ParameterSide, {
-                                                {ParameterSide::input, "input"},
-                                                {ParameterSide::output, "output"},
-                                            })
-NLOHMANN_JSON_SERIALIZE_ENUM(types::DType, {
-                                               {types::DType::uint8, "uint8"},
-                                               {types::DType::int32, "int32"},
-                                               {types::DType::int64, "int64"},
-                                               {types::DType::float32, "float32"},
-                                           })
+NLOHMANN_JSON_SERIALIZE_ENUM(ParamSide, {{ParamSide::input, "input"}, {ParamSide::output, "output"}})
 
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
 void from_json(const json &j, ConcreteDim &d) {
@@ -122,14 +114,16 @@ void to_json(json &j, const ConcreteDim &d) {
 void from_json(const json &j, ParamSpec &p) {
     p.tag = j.at("kind").get<Tag>();
     if (p.tag == Tag::Tensor) {
-        p.dtype = j.at("dtype").get<types::DType>();
+        p.dtype = types::parseDType(j.at("dtype").get<std::string>());
         p.shape = j.at("shape").get<std::vector<ConcreteDim>>();
     }
 }
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
 void to_json(json &j, const ParamSpec &p) {
     if (p.tag == Tag::Tensor) {
-        j = json::object({{"kind", "Tensor"}, {"dtype", p.dtype}, {"shape", p.shape}});
+        // DType is (de)serialized via its string helpers — a JSON macro for it
+        // would have to live in namespace `types` for ADL to find it.
+        j = json::object({{"kind", "Tensor"}, {"dtype", types::toString(p.dtype)}, {"shape", p.shape}});
     } else {
         j = json::object({{"kind", p.tag}});
     }
@@ -188,7 +182,7 @@ jsi::Value jsonToJs(jsi::Runtime &rt, const json &j) {
     case json::value_t::number_float:
         return jsi::Value(j.get<double>());
     case json::value_t::string:
-        return jsi::String::createFromUtf8(rt, j.get<std::string>());
+        return jsi::Value(jsi::String::createFromUtf8(rt, j.get<std::string>()));
     case json::value_t::array: {
         auto arr = jsi::Array(rt, j.size());
         size_t i = 0;
@@ -281,7 +275,7 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
     for (size_t i = 0; i < methodMeta.num_backends(); ++i) {
         auto ctx = std::format("getUsedBackends: backend [{}]", i);
         const auto *name = unwrap(ctx, methodMeta.get_backend_name(i));
-        if (methodMeta.uses_backend(name)) {
+        if (methodMeta.uses_backend(name) && std::ranges::find(backends, name) == backends.end()) {
             backends.emplace_back(name);
         }
     }
@@ -294,131 +288,158 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
 
 namespace {
 
-void validateParamAgainstMeta(const ParamSpec &param,
-                              const executorch::runtime::TensorInfo &tensorMeta,
-                              const std::string &ctx) {
-    auto metaDtype = types::fromScalarType(tensorMeta.scalar_type());
-    if (param.dtype != metaDtype) {
-        throw std::runtime_error(std::format("{}: dtype mismatch: schema has '{}', metadata has '{}",
-                                             ctx, types::toString(param.dtype), types::toString(metaDtype)));
+void validateConcreteDim(const ConcreteDim &dim, const std::string &ctx) {
+    if (const auto *c = std::get_if<int32_t>(&dim)) {
+        if (*c <= 0) {
+            throw std::runtime_error(std::format("{}: constant dim must be positive", ctx));
+        }
     }
-    auto metaShape = tensorMeta.sizes();
-    if (param.shape.size() != metaShape.size()) {
-        throw std::runtime_error(std::format("{}: rank mismatch: schema has {}, metadata has {}",
-                                             ctx, param.shape.size(), metaShape.size()));
+    if (const auto *r = std::get_if<RangeDim>(&dim)) {
+        if (r->min < 0) {
+            throw std::runtime_error(std::format("{}: range min must be non-negative", ctx));
+        }
+        if (r->max < r->min) {
+            throw std::runtime_error(std::format("{}: range max must be >= min", ctx));
+        }
+        if (r->step <= 0) {
+            throw std::runtime_error(std::format("{}: range step must be positive", ctx));
+        }
     }
-    for (size_t d = 0; d < param.shape.size(); ++d) {
-        if (const auto *c = std::get_if<int32_t>(&param.shape[d])) {
-            if (*c != metaShape[d]) {
-                throw std::runtime_error(std::format("{}: shape[{}] mismatch: schema has {}, metadata has {}",
-                                                     ctx, d, *c, metaShape[d]));
+    if (const auto *e = std::get_if<EnumDim>(&dim)) {
+        if (e->choices.empty()) {
+            throw std::runtime_error(std::format("{}: enum must have at least one choice", ctx));
+        }
+        for (const auto &choice : e->choices) {
+            if (choice <= 0) {
+                throw std::runtime_error(std::format("{}: enum choices must be positive", ctx));
             }
         }
     }
 }
 
-void validateDimRefAgainstSpec(const DimRef &ref,
-                               size_t numTensorInputs, size_t numTensorOutputs,
-                               const std::vector<size_t> &inputRanks,
-                               const std::vector<size_t> &outputRanks,
-                               const std::string &ctx) {
-    bool isInput = (ref.side == ParameterSide::input);
-    size_t numTensors = isInput ? numTensorInputs : numTensorOutputs;
-    const auto &ranks = isInput ? inputRanks : outputRanks;
-    if (std::cmp_greater_equal(ref.tensorIdx, numTensors)) {
-        throw std::runtime_error(std::format("{}: DimRef tensorIdx {} out of range (have {} {} tensors)",
-                                             ctx, ref.tensorIdx, numTensors, isInput ? "input" : "output"));
+void validateSpecDimDomains(const MethodSpec &spec, const std::string &ctx) {
+    auto validateParams = [&](const std::vector<ParamSpec> &params, const char *label) {
+        for (size_t i = 0; i < params.size(); ++i) {
+            if (params[i].tag != Tag::Tensor) {
+                continue;
+            }
+            for (size_t d = 0; d < params[i].shape.size(); ++d) {
+                auto dctx = std::format("{} {}[{}] dim[{}]", ctx, label, i, d);
+                validateConcreteDim(params[i].shape[d], dctx);
+            }
+        }
+    };
+    validateParams(spec.inputs, "input");
+    validateParams(spec.outputs, "output");
+}
+
+void validateTensorParam(const ParamSpec &param,
+                         const executorch::runtime::TensorInfo &tensorMeta,
+                         const std::string &ctx) {
+    auto metaDtype = types::fromScalarType(tensorMeta.scalar_type());
+    if (param.dtype != metaDtype) {
+        throw std::runtime_error(std::format("{}: dtype mismatch", ctx));
     }
-    if (std::cmp_greater_equal(ref.dimIdx, ranks[static_cast<size_t>(ref.tensorIdx)])) {
-        throw std::runtime_error(std::format("{}: DimRef dimIdx {} out of range for tensor (rank {})",
-                                             ctx, ref.dimIdx, ranks[static_cast<size_t>(ref.tensorIdx)]));
+
+    auto metaShape = tensorMeta.sizes();
+    if (param.shape.size() != metaShape.size()) {
+        throw std::runtime_error(std::format("{}: rank mismatch", ctx));
+    }
+
+    for (size_t d = 0; d < param.shape.size(); ++d) {
+        if (std::holds_alternative<int32_t>(param.shape[d]) &&
+            std::get<int32_t>(param.shape[d]) != metaShape[d]) {
+            throw std::runtime_error(std::format("{}: shape[{}] mismatch", ctx, d));
+        }
     }
 }
 
-void validateConstraintsAgainstSpec(const MethodSpec &spec, const std::string &methodName) {
-    size_t numTensorInputs = 0;
-    std::vector<size_t> inputRanks;
-    for (const auto &p : spec.inputs) {
+void validateDimRef(const DimRef &ref,
+                    const std::vector<size_t> &inputRanks,
+                    const std::vector<size_t> &outputRanks,
+                    const std::string &ctx) {
+    bool isInput = (ref.side == ParamSide::input);
+    const auto &ranks = isInput ? inputRanks : outputRanks;
+    if (std::cmp_greater_equal(ref.tensorIdx, ranks.size())) {
+        throw std::runtime_error(std::format("{}: tensorIdx {} out of range", ctx, ref.tensorIdx));
+    }
+    if (std::cmp_greater_equal(ref.dimIdx, ranks[static_cast<size_t>(ref.tensorIdx)])) {
+        throw std::runtime_error(std::format("{}: dimIdx {} out of range", ctx, ref.dimIdx));
+    }
+}
+
+std::vector<size_t> gatherTensorRanks(const std::vector<ParamSpec> &params) {
+    std::vector<size_t> ranks;
+    for (const auto &p : params) {
         if (p.tag == Tag::Tensor) {
-            inputRanks.push_back(p.shape.size());
-            ++numTensorInputs;
+            ranks.push_back(p.shape.size());
         }
     }
-    size_t numTensorOutputs = 0;
-    std::vector<size_t> outputRanks;
-    for (const auto &p : spec.outputs) {
-        if (p.tag == Tag::Tensor) {
-            outputRanks.push_back(p.shape.size());
-            ++numTensorOutputs;
-        }
-    }
+    return ranks;
+}
+
+void validateConstraintSpecs(const MethodSpec &spec, const std::string &ctx) {
+    auto inputRanks = gatherTensorRanks(spec.inputs);
+    auto outputRanks = gatherTensorRanks(spec.outputs);
 
     for (size_t i = 0; i < spec.runtimeConstraints.size(); ++i) {
-        auto ctx = std::format("loadModel: method '{}' constraint[{}]", methodName, i);
+        auto cctx = std::format("{} constraint[{}]", ctx, i);
         const auto &constraint = spec.runtimeConstraints[i];
 
         if (const auto *eq = std::get_if<EqualityConstraint>(&constraint)) {
             if (eq->dims.size() < 2) {
-                throw std::runtime_error(std::format("{}: equality constraint requires at least two dims", ctx));
+                throw std::runtime_error(std::format("{}: equality needs at least two dims", cctx));
             }
             for (const auto &dim : eq->dims) {
-                validateDimRefAgainstSpec(dim, numTensorInputs, numTensorOutputs,
-                                          inputRanks, outputRanks, ctx);
+                validateDimRef(dim, inputRanks, outputRanks, cctx);
             }
-        } else if (const auto *lin = std::get_if<LinearConstraint>(&constraint)) {
-            validateDimRefAgainstSpec(lin->dimLhs, numTensorInputs, numTensorOutputs,
-                                      inputRanks, outputRanks, ctx + " dimLhs");
-            validateDimRefAgainstSpec(lin->dimRhs, numTensorInputs, numTensorOutputs,
-                                      inputRanks, outputRanks, ctx + " dimRhs");
+        }
+
+        if (const auto *lin = std::get_if<LinearConstraint>(&constraint)) {
+            validateDimRef(lin->dimLhs, inputRanks, outputRanks, cctx);
+            validateDimRef(lin->dimRhs, inputRanks, outputRanks, cctx);
+        }
+    }
+}
+
+void validateParamsAgainstMeta(const std::vector<ParamSpec> &params,
+                               bool isInput,
+                               const executorch::runtime::MethodMeta &meta,
+                               const std::string &ctx) {
+    for (size_t i = 0; i < params.size(); ++i) {
+        auto pctx = std::format("{} {}[{}]", ctx, isInput ? "input" : "output", i);
+        auto tagResult = isInput ? unwrap(pctx, meta.input_tag(i))
+                                 : unwrap(pctx, meta.output_tag(i));
+
+        if (params[i].tag != tagResult) {
+            throw std::runtime_error(std::format("{}: tag mismatch", pctx));
+        }
+
+        if (tagResult == Tag::Tensor) {
+            auto tensorMeta = isInput ? unwrap(pctx, meta.input_tensor_meta(i))
+                                      : unwrap(pctx, meta.output_tensor_meta(i));
+            validateTensorParam(params[i], tensorMeta, pctx);
         }
     }
 }
 
 } // namespace
 
-void validateSpecAgainstMeta(const MethodSpec &spec,
-                             const executorch::runtime::MethodMeta &meta,
-                             const std::string &methodName) {
+void validateSpec(const MethodSpec &spec,
+                  const executorch::runtime::MethodMeta &meta,
+                  const std::string &ctx) {
+
     if (spec.inputs.size() != meta.num_inputs()) {
-        throw std::runtime_error(std::format("loadModel: method '{}' input count mismatch: "
-                                             "schema has {}, metadata has {}",
-                                             methodName, spec.inputs.size(), meta.num_inputs()));
+        throw std::runtime_error(std::format("{}: input count mismatch", ctx));
     }
     if (spec.outputs.size() != meta.num_outputs()) {
-        throw std::runtime_error(std::format("loadModel: method '{}' output count mismatch: "
-                                             "schema has {}, metadata has {}",
-                                             methodName, spec.outputs.size(), meta.num_outputs()));
+        throw std::runtime_error(std::format("{}: output count mismatch", ctx));
     }
 
-    for (size_t i = 0; i < spec.inputs.size(); ++i) {
-        auto ctx = std::format("loadModel: method '{}' input[{}]", methodName, i);
-        auto metaTag = unwrap(ctx, meta.input_tag(i));
-        if (spec.inputs[i].tag != metaTag) {
-            throw std::runtime_error(std::format("{}: tag mismatch: schema has '{}', metadata has '{}",
-                                                 ctx, executorch::runtime::tag_to_string(spec.inputs[i].tag),
-                                                 executorch::runtime::tag_to_string(metaTag)));
-        }
-        if (metaTag == Tag::Tensor) {
-            auto tensorMeta = unwrap(ctx, meta.input_tensor_meta(i));
-            validateParamAgainstMeta(spec.inputs[i], tensorMeta, ctx);
-        }
-    }
-
-    for (size_t i = 0; i < spec.outputs.size(); ++i) {
-        auto ctx = std::format("loadModel: method '{}' output[{}]", methodName, i);
-        auto metaTag = unwrap(ctx, meta.output_tag(i));
-        if (spec.outputs[i].tag != metaTag) {
-            throw std::runtime_error(std::format("{}: tag mismatch: schema has '{}', metadata has '{}",
-                                                 ctx, executorch::runtime::tag_to_string(spec.outputs[i].tag),
-                                                 executorch::runtime::tag_to_string(metaTag)));
-        }
-        if (metaTag == Tag::Tensor) {
-            auto tensorMeta = unwrap(ctx, meta.output_tensor_meta(i));
-            validateParamAgainstMeta(spec.outputs[i], tensorMeta, ctx);
-        }
-    }
-
-    validateConstraintsAgainstSpec(spec, methodName);
+    validateSpecDimDomains(spec, ctx);
+    validateParamsAgainstMeta(spec.inputs, /*isInput=*/true, meta, ctx);
+    validateParamsAgainstMeta(spec.outputs, /*isInput=*/false, meta, ctx);
+    validateConstraintSpecs(spec, ctx);
 }
 
 namespace {
@@ -435,40 +456,34 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
                                 const std::vector<std::vector<int32_t>> &inputShapes,
                                 const std::string &ctx) {
     for (size_t i = 0; i < constraints.size(); ++i) {
-        const auto &constraint = constraints[i];
         auto cctx = std::format("{} constraint[{}]", ctx, i);
 
-        if (const auto *eq = std::get_if<EqualityConstraint>(&constraint)) {
-            if (eq->dims.size() < 2) {
-                continue;
-            }
-            // Skip if any dim references an output — ExecuTorch validates output shapes
-            if (std::ranges::any_of(eq->dims,
-                                    [](const auto &d) { return d.side == ParameterSide::output; })) {
-                continue;
-            }
-            int32_t first = getInputDimValue(eq->dims[0], inputShapes);
-            for (size_t j = 1; j < eq->dims.size(); ++j) {
-                int32_t val = getInputDimValue(eq->dims[j], inputShapes);
-                if (val != first) {
-                    throw jsi::JSError(rt, std::format("{}: equality constraint violated: "
-                                                       "expected all dims to be {}, got {}",
-                                                       cctx, first, val));
+        if (const auto *eq = std::get_if<EqualityConstraint>(&constraints[i])) {
+            std::vector<int32_t> inputVals;
+            for (const auto &d : eq->dims) {
+                if (d.side == ParamSide::input) {
+                    inputVals.push_back(getInputDimValue(d, inputShapes));
                 }
             }
-        } else if (const auto *lin = std::get_if<LinearConstraint>(&constraint)) {
-            if (lin->dimLhs.side == ParameterSide::output ||
-                lin->dimRhs.side == ParameterSide::output) {
+            if (inputVals.size() < 2) {
+                continue;
+            }
+            for (size_t j = 1; j < inputVals.size(); ++j) {
+                if (inputVals[j] != inputVals[0]) {
+                    throw jsi::JSError(rt, std::format("{}: equality constraint violated", cctx));
+                }
+            }
+        }
+
+        if (const auto *lin = std::get_if<LinearConstraint>(&constraints[i])) {
+            if (lin->dimLhs.side == ParamSide::output ||
+                lin->dimRhs.side == ParamSide::output) {
                 continue;
             }
             int32_t lhs = getInputDimValue(lin->dimLhs, inputShapes);
             int32_t rhs = getInputDimValue(lin->dimRhs, inputShapes);
-            int32_t expected = lin->coefficients[0] * rhs + lin->coefficients[1];
-            if (lhs != expected) {
-                throw jsi::JSError(rt, std::format("{}: linear constraint violated: "
-                                                   "expected {} = {} * {} + {}",
-                                                   cctx, lhs, lin->coefficients[0], rhs,
-                                                   lin->coefficients[1]));
+            if (lhs != lin->coefficients[0] * rhs + lin->coefficients[1]) {
+                throw jsi::JSError(rt, std::format("{}: linear constraint violated", cctx));
             }
         }
     }

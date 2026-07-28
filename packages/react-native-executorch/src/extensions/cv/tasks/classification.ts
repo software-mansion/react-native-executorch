@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { softmax } from '../../math';
@@ -88,25 +88,31 @@ export async function createClassifier<L>(
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'N'], ['N'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 'N')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32('N')]
+    ),
+  });
 
-  const numLabels = outShape[outShape.length - 1]!;
-  if (modelOpts.labels.length !== numLabels) {
+  const [N, H, W] = dims.constant('N', 'H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { batched: [1, N], unbatched: [N] }[variant];
+
+  if (modelOpts.labels.length !== N) {
     throw new Error(
-      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${numLabels}).`
+      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${N}).`
     );
   }
 
-  // prettier-ignore
   const tensors = [
-    tensor('float32', outShape),
+    tensor('float32', outShape), // prettier-ignore
     tensor('float32', outShape),
   ] as const;
 
@@ -130,9 +136,8 @@ export async function createClassifier<L>(
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tLogits]);
 
-    // prettier-ignore
     const probas = tLogits
-      .through(softmax, tProbas)
+      .through(softmax, tProbas) // prettier-ignore
       .getData(new Float32Array(tProbas.numel));
 
     return Array.from(probas)

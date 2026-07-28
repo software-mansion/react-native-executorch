@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ResizeMode } from '../ops/image';
@@ -110,29 +110,27 @@ export async function createObjectDetector<F extends BoxFormat, L>(
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [
-      SymbolicTensor('float32', ['N', 4]),
-      SymbolicTensor('float32', ['N']),
-      SymbolicTensor('float32', ['N']),
-    ]
-  );
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N')]
+    ),
+  });
 
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outBoxesShape = meta.outputTensorMeta[0]!.shape;
-  const outScoresShape = meta.outputTensorMeta[1]!.shape;
-  const outClassesShape = meta.outputTensorMeta[2]!.shape;
-
-  const targetH = inpShape.at(-2)!;
-  const targetW = inpShape.at(-1)!;
+  const [N, H, W] = dims.constant('N', 'H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShapes = { boxes: [N, 4], scores: [N], classes: [N] };
 
   const tensors = [
-    tensor('float32', outBoxesShape),
-    tensor('float32', outScoresShape),
-    tensor('float32', outClassesShape),
+    tensor('float32', outShapes.boxes),
+    tensor('float32', outShapes.scores),
+    tensor('float32', outShapes.classes),
   ] as const;
 
   const [tBoxes, tScores, tClasses] = tensors;
@@ -191,7 +189,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
         label,
         confidence,
         box: scaleBox(decodeBox([a, b, c, d], boxFormat), {
-          from: { width: targetW, height: targetH },
+          from: { width: W, height: H },
           to: { width: input.width, height: input.height },
           ...modelOpts,
         }),
