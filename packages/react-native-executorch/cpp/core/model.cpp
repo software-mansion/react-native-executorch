@@ -46,8 +46,6 @@ namespace conversions = rnexecutorch::core::conversions;
 
 using rnexecutorch::core::tensor::TensorHostObject;
 
-constexpr auto kSchemaMethod = "get_model_schema";
-
 ModelHostObject::ModelHostObject(const std::string &modelPath)
     : modelPath_(modelPath),
       etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
@@ -59,11 +57,12 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     }
 
     const auto methodNames = unwrap("loadModel", etModule_->method_names());
+    const auto *const getSchemaMethod = "get_model_schema";
     schema::ModelSpec overrideSpec;
 
-    if (methodNames.contains(kSchemaMethod)) {
-        auto ctx = std::format("loadModel: '{}'", kSchemaMethod);
-        auto result = unwrap(ctx, etModule_->execute(kSchemaMethod));
+    if (methodNames.contains(getSchemaMethod)) {
+        auto ctx = std::format("loadModel: '{}'", getSchemaMethod);
+        auto result = unwrap(ctx, etModule_->execute(getSchemaMethod));
 
         if (result.empty() || result[0].tag != executorch::runtime::Tag::String) {
             throw std::runtime_error(std::format("{} must return a single string value", ctx));
@@ -188,23 +187,24 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
 
-            const auto *error = "execute: Method '{}' failed.\n"
-                                "\n"
-                                "Common causes:\n"
-                                "  1. Backend not registered\n"
-                                "     Ensure backends from `model.backends` are registered\n"
-                                "     in the ExecuTorch runtime.\n"
-                                "\n"
-                                "  2. Shape/constraint mismatch\n"
-                                "     If the model uses dynamic shapes or runtime constraints\n"
-                                "     (e.g. equality between dimensions), export a companion\n"
-                                "     '{}' method returning a JSON model spec\n"
-                                "     (see `src/core/schema.ts` for the JSON structure).\n"
-                                "\n"
-                                "     Without it, validation falls back to static metadata\n"
-                                "     from ExecuTorch which only contains upper bounds and\n"
-                                "     does not capture runtime constraints.";
-            auto result = unwrap(rt, std::vformat(error, std::make_format_args(methodName, kSchemaMethod)), std::move(executeResult));
+            auto result = unwrap(rt, std::format("execute: Method '{}' failed.\n"
+                                                 "\n"
+                                                 "Common causes:\n"
+                                                 "  1. Backend not registered\n"
+                                                 "     Ensure backends from `model.backends` are registered\n"
+                                                 "     in the ExecuTorch runtime.\n"
+                                                 "\n"
+                                                 "  2. Shape/constraint mismatch\n"
+                                                 "     If the model uses dynamic shapes or runtime constraints\n"
+                                                 "     (e.g. equality between dimensions), export a companion\n"
+                                                 "     method returning a JSON model spec\n"
+                                                 "     (see `src/core/schema.ts` for the JSON structure).\n"
+                                                 "\n"
+                                                 "     Without it, validation falls back to static metadata\n"
+                                                 "     from ExecuTorch which only contains upper bounds and\n"
+                                                 "     does not capture runtime constraints.",
+                                                 methodName),
+                                 std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
             size_t outputIdx = 0;

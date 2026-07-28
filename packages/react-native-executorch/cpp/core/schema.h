@@ -30,10 +30,9 @@
  *   ExecuTorch MethodMeta (dtype, rank, static shape). Also validates runtime
  *   constraint values before execution. Runs in native C++.
  *
- * The exported spec originates as JSON from the companion `get_model_schema`
- * method (or is derived from MethodMeta when absent). It is parsed by
- * `parseModelSpecJson` (C++) and also passed to `validateSpec` (TS) for
- * allowed-spec matching.
+ * The exported spec originates as JSON from the companion method (or is derived
+ * from MethodMeta when absent). It is parsed by `parseModelSpecJson` (C++) and
+ * also passed to `validateSpec` (TS) for allowed-spec matching.
  *
  * @see src/core/schema.ts for the TypeScript validation layer.
  */
