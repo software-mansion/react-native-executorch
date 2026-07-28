@@ -1,8 +1,6 @@
 import { getModelNameForUrl } from '../constants/modelUrls';
-import {
-  DOWNLOAD_EVENT_ENDPOINT,
-  LIB_VERSION,
-} from '../constants/resourceFetcher';
+import { DOWNLOAD_EVENT_ENDPOINT } from '../constants/resourceFetcher';
+import { Platform } from 'react-native';
 /**
  * Http status codes
  * @category Types
@@ -174,6 +172,10 @@ export namespace ResourceFetcherUtils {
     return global.__rne_isEmulator;
   }
 
+  export function getBundleId(): string {
+    return global.__rne_bundleId;
+  }
+
   function getModelNameFromUri(uri: string): string {
     const knownName = getModelNameForUrl(uri);
     if (knownName) {
@@ -189,18 +191,18 @@ export namespace ResourceFetcherUtils {
    * @param uri - The URI of the downloaded resource.
    */
   export function triggerDownloadEvent(uri: string) {
-    try {
-      fetch(DOWNLOAD_EVENT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          modelName: getModelNameFromUri(uri),
-          countryCode: getCountryCode(),
-          isEmulator: isEmulator(),
-          libVersion: LIB_VERSION,
-        }),
-      });
-    } catch (e) {}
+    fetch(DOWNLOAD_EVENT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bundleId: getBundleId(),
+        countryCode: getCountryCode(),
+        isEmulator: isEmulator(),
+        libVersion: require('../../package.json').version,
+        modelName: getModelNameFromUri(uri),
+        system: Platform.OS,
+      }),
+    }).catch((_) => {});
   }
 
   /**

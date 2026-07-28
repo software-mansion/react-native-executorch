@@ -60,6 +60,10 @@ Pod::Spec.new do |s|
     "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
   ]
 
+  s.resource_bundles = {
+    'RnExecutorchPrivacyInfo' => ['ios/PrivacyInfo.xcprivacy'],
+  }
+
   s.libraries = "z"
   s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
 
