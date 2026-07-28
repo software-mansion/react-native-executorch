@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <format>
 #include <optional>
 #include <string>
@@ -113,6 +114,42 @@ std::vector<T> asVector(jsi::Runtime &rt, const std::string &ctx, const jsi::Val
 }
 
 /**
+ * Reads a JS TypedArray into a std::vector<T> by copying its backing
+ * ArrayBuffer in a single memcpy. Unlike asVector, elements are not boxed
+ * through JSI one by one. The bytes are interpreted as-is, so T must match the
+ * TypedArray's element type (e.g. int32_t for an Int32Array); if the caller
+ * needs a different element type it should reinterpret the result explicitly,
+ * e.g. std::vector<uint64_t>(v.begin(), v.end()).
+ *
+ * @tparam T The element type; the buffer's bytes are read directly as T.
+ * @param rt The JSI runtime instance.
+ * @param ctx Context description used for error messages.
+ * @param val The JSI value (must be a TypedArray / have a `buffer`).
+ * @return A std::vector containing the elements.
+ */
+template <typename T>
+std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+    static_assert(std::is_arithmetic_v<T>, "fromJsiTypedArray requires an arithmetic type");
+
+    auto obj = asType<jsi::Object>(rt, ctx, val);
+    auto buffer = getRequiredProperty<jsi::ArrayBuffer>(rt, ctx, obj, "buffer");
+
+    const size_t byteOffset = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteOffset").value_or(0);
+    const size_t byteLength = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteLength").value_or(buffer.size(rt));
+
+    if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
+        throw jsi::JSError(rt, ctx + " has out-of-bounds byteOffset/byteLength for its ArrayBuffer");
+    }
+    if (byteLength % sizeof(T) != 0) {
+        throw jsi::JSError(rt, std::format("{}: byteLength is not a multiple of sizeof(T)={}", ctx, sizeof(T)));
+    }
+
+    std::vector<T> vec(byteLength / sizeof(T));
+    std::memcpy(vec.data(), buffer.data(rt) + byteOffset, byteLength);
+    return vec;
+}
+
+/**
  * Converts a std::vector of values to a new facebook::jsi::Array.
  * Handles strings, booleans, and numeric types appropriately.
  *
@@ -134,6 +171,70 @@ jsi::Array toJsiArray(jsi::Runtime &rt, const std::vector<T> &vec) {
         }
     }
     return arr;
+}
+
+template <typename>
+inline constexpr bool kAlwaysFalse = false;
+
+/**
+ * Maps an arithmetic C++ type to the name of the JS TypedArray constructor whose
+ * elements have the same layout (e.g. int32_t -> "Int32Array"). 64-bit integers
+ * are intentionally unsupported: their JS counterparts (BigInt64Array) hold
+ * bigints rather than numbers.
+ */
+template <typename Storage>
+constexpr const char *jsiTypedArrayName() {
+    if constexpr (std::is_same_v<Storage, int8_t>) {
+        return "Int8Array";
+    } else if constexpr (std::is_same_v<Storage, uint8_t>) {
+        return "Uint8Array";
+    } else if constexpr (std::is_same_v<Storage, int16_t>) {
+        return "Int16Array";
+    } else if constexpr (std::is_same_v<Storage, uint16_t>) {
+        return "Uint16Array";
+    } else if constexpr (std::is_same_v<Storage, int32_t>) {
+        return "Int32Array";
+    } else if constexpr (std::is_same_v<Storage, uint32_t>) {
+        return "Uint32Array";
+    } else if constexpr (std::is_same_v<Storage, float>) {
+        return "Float32Array";
+    } else if constexpr (std::is_same_v<Storage, double>) {
+        return "Float64Array";
+    } else {
+        static_assert(kAlwaysFalse<Storage>, "Unsupported TypedArray element type");
+    }
+}
+
+/**
+ * Converts a std::vector<T> to a JS TypedArray backed by an ArrayBuffer. This
+ * is far cheaper to move across worklet runtime boundaries than toJsiArray:
+ * react-native-worklets clones the underlying ArrayBuffer with a single memcpy
+ * instead of serializing each element individually, which matters for long
+ * sequences (e.g. token ids). Read it back with fromJsiTypedArray.
+ *
+ * @tparam T The vector element type, which also selects the JS view
+ * (e.g. int32_t -> Int32Array).
+ * @param rt The JSI runtime instance.
+ * @param vec The source vector to convert.
+ * @return A new JS TypedArray containing the elements from the vector.
+ */
+template <typename T>
+jsi::Object toJsiTypedArray(jsi::Runtime &rt, const std::vector<T> &vec) {
+    static_assert(std::is_arithmetic_v<T>, "toJsiTypedArray requires an arithmetic type");
+    const size_t byteLength = vec.size() * sizeof(T);
+    auto arrayBuffer = rt.global()
+                           .getPropertyAsFunction(rt, "ArrayBuffer")
+                           .callAsConstructor(rt, static_cast<double>(byteLength))
+                           .asObject(rt);
+
+    if (!vec.empty()) {
+        std::memcpy(arrayBuffer.getArrayBuffer(rt).data(rt), vec.data(), byteLength);
+    }
+
+    return rt.global()
+        .getPropertyAsFunction(rt, jsiTypedArrayName<T>())
+        .callAsConstructor(rt, arrayBuffer)
+        .asObject(rt);
 }
 
 } // namespace rnexecutorch::core::conversions
