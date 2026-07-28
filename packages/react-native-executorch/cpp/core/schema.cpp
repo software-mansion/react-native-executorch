@@ -79,7 +79,7 @@ T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(RangeDim, min, max, step)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnumDim, choices)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DimRef, side, tensorIdx, dimIdx)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DimRef, paramSide, tensorIdx, dimIdx)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EqualityConstraint, dims)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LinearConstraint, dimLhs, dimRhs, coefficients)
 NLOHMANN_JSON_SERIALIZE_ENUM(ParamSide, {{ParamSide::input, "input"}, {ParamSide::output, "output"}})
@@ -358,7 +358,7 @@ void validateDimRef(const DimRef &ref,
                     const std::vector<size_t> &inputRanks,
                     const std::vector<size_t> &outputRanks,
                     const std::string &ctx) {
-    bool isInput = (ref.side == ParamSide::input);
+    bool isInput = (ref.paramSide == ParamSide::input);
     const auto &ranks = isInput ? inputRanks : outputRanks;
     if (std::cmp_greater_equal(ref.tensorIdx, ranks.size())) {
         throw std::runtime_error(std::format("{}: tensorIdx {} out of range", ctx, ref.tensorIdx));
@@ -461,7 +461,7 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
         if (const auto *eq = std::get_if<EqualityConstraint>(&constraints[i])) {
             std::vector<int32_t> inputVals;
             for (const auto &d : eq->dims) {
-                if (d.side == ParamSide::input) {
+                if (d.paramSide == ParamSide::input) {
                     inputVals.push_back(getInputDimValue(d, inputShapes));
                 }
             }
@@ -476,8 +476,8 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
         }
 
         if (const auto *lin = std::get_if<LinearConstraint>(&constraints[i])) {
-            if (lin->dimLhs.side == ParamSide::output ||
-                lin->dimRhs.side == ParamSide::output) {
+            if (lin->dimLhs.paramSide == ParamSide::output ||
+                lin->dimRhs.paramSide == ParamSide::output) {
                 continue;
             }
             int32_t lhs = getInputDimValue(lin->dimLhs, inputShapes);

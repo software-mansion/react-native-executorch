@@ -129,7 +129,7 @@ enum class ParamSide { input,
  * with ExecuTorch's `inputTensorMeta` / `outputTensorMeta` ordering.
  */
 struct DimRef {
-    ParamSide side = ParamSide::input;
+    ParamSide paramSide = ParamSide::input;
     int32_t tensorIdx = 0;
     int32_t dimIdx = 0;
 };
