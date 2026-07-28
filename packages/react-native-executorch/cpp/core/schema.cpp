@@ -78,7 +78,6 @@ T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
 // ========================================================
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(RangeDim, min, max, step)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EnumDim, choices)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DimRef, paramSide, tensorIdx, dimIdx)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EqualityConstraint, dims)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LinearConstraint, dimLhs, dimRhs, coefficients)
@@ -92,7 +91,7 @@ void from_json(const json &j, ConcreteDim &d) {
     } else if (kind == "range") {
         d = j.at("range").get<RangeDim>();
     } else if (kind == "enum") {
-        d = j.at("choices").get<EnumDim>();
+        d = EnumDim{.choices = j.at("choices").get<std::vector<int32_t>>()};
     } else {
         throw std::runtime_error(std::format("unsupported dim kind '{}'", kind));
     }
@@ -106,7 +105,7 @@ void to_json(json &j, const ConcreteDim &d) {
         j = json::object({{"kind", "range"}, {"range", *r}});
     }
     if (const auto *e = std::get_if<EnumDim>(&d)) {
-        j = json::object({{"kind", "enum"}, {"choices", *e}});
+        j = json::object({{"kind", "enum"}, {"choices", e->choices}});
     }
 }
 

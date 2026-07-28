@@ -82,7 +82,7 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
             spec_[methodName] = std::move(overrideSpec[methodName]);
         }
 
-        schema::validateSpec(spec_[methodName], methodMeta, ctx);
+        schema::validateSpec(spec_[methodName], methodMeta, ctx + " metadata validation");
     }
 }
 
