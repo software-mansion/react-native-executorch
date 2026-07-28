@@ -16,25 +16,63 @@
 #include <executorch/runtime/executor/method_meta.h>
 
 /**
- * Model spec types and validation.
+ * Model spec types, JSON parsing/serialization, and validation.
  *
  * This module is the C++ counterpart of `src/core/schema.ts`. Both files
- * define the same data model (MethodSpec, ParamSpec, ConcreteDim, etc.)
- * and validation logic, but serve different roles:
+ * define the exact same structural data model (`ModelSpec`, `MethodSpec`,
+ * `ParamSpec`, `ConcreteDim`, `RuntimeConstraint`, etc.) and validation
+ * semantics, but operate at different phases of the lifecycle:
  *
- * - **schema.ts** — validates *allowed* (symbolic) specs written by pipeline
- *   authors against *exported* (concrete) specs. Handles symbol binding,
- *   dim-domain matching, and 1-to-1 constraint matching. Runs in JS.
+ * - **schema.ts (TypeScript)** — Validates *allowed* (symbolic) specs written by
+ *   pipeline authors against *exported* (concrete) specs. Handles symbol binding,
+ *   dimension domain matching, and 1-to-1 constraint matching. Runs in JavaScript/TypeScript.
  *
- * - **schema.cpp / schema.h** — validates exported specs at load time against
- *   ExecuTorch MethodMeta (dtype, rank, static shape). Also validates runtime
- *   constraint values before execution. Runs in native C++.
+ * - **schema.h / schema.cpp (Native C++)** — Parses exported JSON specs, validates
+ *   them at model load time against ExecuTorch `MethodMeta`, and performs dynamic
+ *   shape and constraint validation prior to model execution. Runs in native C++.
+
+ * Model specifications originate from one of two sources at load time:
+ * 1. **Optional JSON Companion Method**: When a `.pte` model binary exports the
+ *    companion method `rnexecutorch::core::model::kGetModelSchemaMethod`,
+ *    `ModelHostObject` calls it to retrieve a JSON string. This string is
+ *    parsed by `parseModelSpecJson` into a `ModelSpec` containing rich dynamic
+ *    dimension domains (`RangeDim`, `EnumDim`) and `RuntimeConstraint`s.
+ * 2. **Fallback MethodMeta**: If companion is absent, `methodSpecFromMetadata`
+ *    derives a basic `ModelSpec` directly from static ExecuTorch `MethodMeta`
+ *    (where all dimensions are static `int32_t` constants and no constraints
+ *    are present).
  *
- * The exported spec originates as JSON from the companion method (or is derived
- * from MethodMeta when absent). It is parsed by `parseModelSpecJson` (C++) and
- * also passed to `validateSpec` (TS) for allowed-spec matching.
+ * The types defined in `schema.h` mirror their TypeScript counterparts in
+ * `src/core/schema.ts`:
+
+ * Validation in C++ occurs in two distinct phases:
+ *
+ * 1. **Load-Time Spec Validation (`validateSpec`)**:
+ *    Executed inside `ModelHostObject` constructor when loading a model. It checks
+ *    the parsed exported spec (`MethodSpec`) against ExecuTorch's `MethodMeta` metadata.
+ *    Verifies that parameter counts, primitive tags, tensor `DType`s, and static shape
+ *    dimensions match ExecuTorch's compiled program requirements.
+ *
+ * 2. **Dynamic Runtime Validation (`validateRuntimeConstraints`)**:
+ *    Executed natively in C++ inside `ModelHostObject::execute` immediately prior to
+ *    running model inference. It inspects the actual concrete dimensions of user-provided
+ *    input tensors and asserts that:
+ *    - Dynamic dimensions fall within their declared domains (`RangeDim`
+ *      min/max/step or `EnumDim` choices).
+ *    - `EqualityConstraint`: Referenced input tensor dimensions evaluate to
+ *      identical integer values.
+ *    - `LinearConstraint`: Referenced input dimensions satisfy `dimLhs == a *
+ *      dimRhs + b`.
+ *
+ *    *Note on Output Dimension References*: Pre-execution validation only checks
+ *    constraints over input dimensions (`ParamSide::input`). References to output
+ *    dimensions (`ParamSide::output`) are skipped prior to execution (for `EqualityConstraint`,
+ *    output dimension references are filtered out; for `LinearConstraint`, constraints referencing
+ *    an output dimension are skipped). After execution, concrete output shapes produced by
+ *    ExecuTorch are verified when copying data into user-provided output buffers.
  *
  * @see src/core/schema.ts for the TypeScript validation layer.
+ * @see rnexecutorch::core::model::kGetModelSchemaMethod for the companion method constant.
  */
 namespace rnexecutorch::core::schema {
 namespace jsi = facebook::jsi;
@@ -118,7 +156,7 @@ struct LinearConstraint {
 /**
  * A requirement on the runtime values of a method's tensor dimensions: the
  * concrete tensors passed to and produced by the method must satisfy it in
- * any given execution. Matched as a declaration during spec validation.
+ * any given execution.
  */
 using RuntimeConstraint = std::variant<EqualityConstraint, LinearConstraint>;
 
@@ -147,10 +185,10 @@ using ModelSpec = std::unordered_map<std::string, MethodSpec>;
 // ========================================================
 
 /**
- * Parses a JSON-encoded ModelSpec<ConcreteDim> using nlohmann/json, validating
- * every value (positive constants, ordered range bounds, known kinds and tags,
- * in-range indices). Throws std::runtime_error with `ctx` context on invalid
- * JSON or a malformed spec.
+ * Parses a JSON-encoded ModelSpec into a C++ `ModelSpec` structure using
+ * nlohmann::json. Throws `std::runtime_error` with `ctx` context on invalid
+ * JSON syntax or unrecognized kinds and tags. Semantic validation against model
+ * metadata is performed separately by `validateSpec`.
  *
  * @param ctx Context description used for error messages.
  * @param json The JSON string to parse.
@@ -206,30 +244,40 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
 // ========================================================
 
 /**
- * Validates a MethodSpec against ExecuTorch MethodMeta at load time.
- * Checks input/output counts, tags, tensor dtypes, and static shape dimensions.
- * Dynamic dimensions are skipped.
+ * Validates a MethodSpec against ExecuTorch MethodMeta at load time. Performs
+ * the following checks:
+ * 1. Dimension domain validity: positive constant values, ordered range bounds
+ *    (`min > 0`, `max >= min`, `step > 0`), and non-empty positive enum
+ *    choices.
+ * 2. Parameter metadata matching: input/output counts, parameter primitive
+ *    tags, tensor `DType`s, tensor ranks, and exact values of static constant
+ *    dimensions against ExecuTorch `MethodMeta` (dynamic dimensions are
+ *    skipped).
+ * 3. Constraint structure: verifies `EqualityConstraint` has at least 2
+ *    dimensions and all `DimRef` tensor and dimension indices are within valid
+ *    input/output rank bounds.
  *
  * @param spec The method spec to validate.
  * @param meta The method metadata from the .pte program.
- * @param methodName Method name for error messages.
- * @throws std::runtime_error on any mismatch.
+ * @param ctx Context string for error messages.
+ * @throws std::runtime_error on any mismatch or invalid spec.
  */
 void validateSpec(const MethodSpec &spec,
                   const executorch::runtime::MethodMeta &meta,
                   const std::string &ctx);
 
 /**
- * Validates runtime constraints on input tensors before execution.
- * Only input-only constraints are checked. Constraints referencing outputs
- * are skipped because ExecuTorch constructs the output tensors internally,
- * guaranteeing they satisfy the declared constraints by construction.
- * After execution, the output shapes are validated separately against the
- * shapes returned by ExecuTorch when copying data to the user-provided buffers.
+ * Validates runtime constraints against actual concrete input tensor shapes before execution.
+ *
+ * References to output dimensions (`ParamSide::output`) are skipped prior to
+ * execution (for `EqualityConstraint`, output dimension references are filtered
+ * out; for `LinearConstraint`, constraints referencing an output dimension are
+ * skipped). After execution, concrete output shapes produced by ExecuTorch are
+ * verified when copying data into user-provided output buffers.
  *
  * @param rt The JSI runtime instance (for error reporting).
- * @param constraints The constraints to validate.
- * @param inputShapes Per-tensor input shapes (indexed by DimRef.tensorIdx).
+ * @param constraints The list of runtime constraints to validate.
+ * @param inputShapes Per-tensor input shapes (indexed by `DimRef.tensorIdx`).
  * @param ctx Context string for error messages (e.g. method name).
  * @throws jsi::JSError on constraint violation.
  */

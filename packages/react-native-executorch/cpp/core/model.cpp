@@ -57,12 +57,11 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     }
 
     const auto methodNames = unwrap("loadModel", etModule_->method_names());
-    const auto *const getSchemaMethod = "get_model_schema";
     schema::ModelSpec overrideSpec;
 
-    if (methodNames.contains(getSchemaMethod)) {
-        auto ctx = std::format("loadModel: '{}'", getSchemaMethod);
-        auto result = unwrap(ctx, etModule_->execute(getSchemaMethod));
+    if (methodNames.contains(kGetModelSchemaMethod)) {
+        auto ctx = std::format("loadModel: '{}'", kGetModelSchemaMethod);
+        auto result = unwrap(ctx, etModule_->execute(kGetModelSchemaMethod));
 
         if (result.empty() || result[0].tag != executorch::runtime::Tag::String) {
             throw std::runtime_error(std::format("{} must return a single string value", ctx));

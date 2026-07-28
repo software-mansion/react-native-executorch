@@ -185,8 +185,8 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       ),
       ...method(
         'decode',
-        [i64(1, 'Tokens'), i64('Tokens'), f32(1, 'SeqLen', 'StateDim')],
-        [f32(1, 'Tokens', 'VocabSize')]
+        [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
+        [f32(1, 1, 'VocabSize')]
       ),
     },
   });
