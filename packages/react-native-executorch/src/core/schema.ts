@@ -639,11 +639,12 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
 
 /**
  * Result of validating an exported model spec against allowed variants.
- * @typeParam V The variant key type.
+ * @typeParam K The variant key type.
  */
 export type SpecMatch<K extends PropertyKey = PropertyKey> = {
   /** Key of the matched variant. */
   readonly variant: K;
+
   /**
    * Returns the concrete value for a symbol.
    * @param name The symbol name.
@@ -654,12 +655,53 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
   dim(name: string, kind: 'constant'): number;
   dim(name: string, kind: 'range'): Range;
   dim(name: string, kind: 'enum'): readonly number[];
+  dim(name: string, kind: 'dynamic'): Exclude<ConcreteDim, { kind: 'constant' }>;
   dim(name: string): ConcreteDim;
 
+  /**
+   * Batch accessors for retrieving multiple symbol dimensions at once as typed tuples.
+   */
   dims: {
+    /**
+     * Retrieves concrete dimension objects for multiple symbols.
+     * @param names Symbol names to retrieve.
+     * @returns A tuple of {@link ConcreteDim} objects corresponding to `names`.
+     * @throws {Error} If any symbol is not found.
+     */
     any<S extends string[]>(...names: S): { [I in keyof S]: ConcreteDim };
+
+    /**
+     * Retrieves choice arrays for multiple enumerated dynamic symbols.
+     * @param names Symbol names expected to be enum dimensions.
+     * @returns A tuple of choice arrays corresponding to `names`.
+     * @throws {Error} If any symbol is not found or is not an enum dimension.
+     */
     enum<S extends string[]>(...names: S): { [I in keyof S]: readonly number[] };
+
+    /**
+     * Retrieves range objects for multiple dynamic symbols.
+     * @param names Symbol names expected to be range dimensions.
+     * @returns A tuple of {@link Range} objects corresponding to `names`.
+     * @throws {Error} If any symbol is not found or is not a range dimension.
+     */
     range<S extends string[]>(...names: S): { [I in keyof S]: Range };
+
+    /**
+     * Retrieves dynamic dimension objects (range or enum) for multiple symbols.
+     * @param names Symbol names expected to be dynamic dimensions (range or enum).
+     * @returns A tuple of dynamic {@link ConcreteDim} objects corresponding to `names`.
+     * @throws {Error} If any symbol is not found or is a constant dimension.
+     */
+    dynamic<S extends string[]>(
+      ...names: S
+    ): { [I in keyof S]: Exclude<ConcreteDim, { kind: 'constant' }> };
+
+    /**
+     * Retrieves constant numeric values for multiple static symbols.
+     * @param names Symbol names expected to be constant dimensions.
+     * @returns A tuple of numbers corresponding to `names`.
+     * @throws {Error} If any symbol is not found or is not a constant dimension.
+     */
     constant<S extends string[]>(...names: S): { [I in keyof S]: number };
   };
 };
@@ -710,8 +752,16 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
         if (!dim) {
           throw new Error(`Symbol '${name}' not found in dims.`);
         }
-        if (kind && dim.kind !== kind) {
-          throw new Error(`Symbol '${name}' is '${dim.kind}', expected '${kind}'.`);
+        if (kind) {
+          if (kind === 'dynamic') {
+            if (dim.kind === 'constant') {
+              throw new Error(`Symbol '${name}' is 'constant', expected 'dynamic'.`);
+            }
+            return dim;
+          }
+          if (dim.kind !== kind) {
+            throw new Error(`Symbol '${name}' is '${dim.kind}', expected '${kind}'.`);
+          }
         }
         if (dim.kind === 'constant') return dim.value;
         if (dim.kind === 'range') return dim.range;
@@ -730,6 +780,7 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
           any: createAccessor(),
           enum: createAccessor('enum'),
           range: createAccessor('range'),
+          dynamic: createAccessor('dynamic'),
           constant: createAccessor('constant'),
         },
       };
