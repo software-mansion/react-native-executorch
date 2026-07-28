@@ -13,12 +13,9 @@ export type Tokenizer = {
 
   /**
    * Encodes a string into token ids (special tokens are added according to the
-   * tokenizer.json post_processor). Token ids are returned as an `Int32Array`
-   * so that, when the tokenizer runs on a background worklet runtime, the
-   * result is transferred to the caller thread as a single ArrayBuffer copy
-   * rather than serialized element by element (which is costly for long texts).
+   * tokenizer.json post_processor).
    * @param text The input text to tokenize.
-   * @returns The encoded token ids.
+   * @returns The encoded token ids as an `Int32Array`.
    */
   encode(text: string): Int32Array;
 

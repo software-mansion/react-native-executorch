@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <format>
 #include <optional>
 #include <string>
@@ -113,45 +114,38 @@ std::vector<T> asVector(jsi::Runtime &rt, const std::string &ctx, const jsi::Val
 }
 
 /**
- * Reads a JS TypedArray into a std::vector by copying its backing ArrayBuffer
- * in a single pass. Unlike asVector, elements are not boxed through JSI one by
- * one. Pairs with toJsiTypedArray so that numeric arrays can cross worklet
- * runtime boundaries as a cheap ArrayBuffer clone rather than an element-by-
- * element serialization.
+ * Reads a JS TypedArray into a std::vector<T> by copying its backing
+ * ArrayBuffer in a single memcpy. Unlike asVector, elements are not boxed
+ * through JSI one by one. The bytes are interpreted as-is, so T must match the
+ * TypedArray's element type (e.g. int32_t for an Int32Array); if the caller
+ * needs a different element type it should reinterpret the result explicitly,
+ * e.g. std::vector<uint64_t>(v.begin(), v.end()).
  *
- * @tparam Storage The element type of the TypedArray's storage (e.g. int32_t
- * for an Int32Array). Determines how the backing buffer bytes are interpreted.
- * @tparam T The target vector element type; each storage element is cast to it.
- * Defaults to Storage.
+ * @tparam T The element type; the buffer's bytes are read directly as T.
  * @param rt The JSI runtime instance.
  * @param ctx Context description used for error messages.
- * @param val The JSI value (must be a TypedArray whose element size is
- * sizeof(Storage)).
- * @return A std::vector containing the converted elements.
+ * @param val The JSI value (must be a TypedArray / have a `buffer`).
+ * @return A std::vector containing the elements.
  */
-template <typename Storage, typename T = Storage>
+template <typename T>
 std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
-    static_assert(std::is_arithmetic_v<Storage>, "fromJsiTypedArray requires an arithmetic storage type");
+    static_assert(std::is_arithmetic_v<T>, "fromJsiTypedArray requires an arithmetic type");
+
     auto obj = asType<jsi::Object>(rt, ctx, val);
-    if (!obj.hasProperty(rt, "buffer")) {
-        throw jsi::JSError(rt, ctx + " must be a TypedArray");
+    auto buffer = getRequiredProperty<jsi::ArrayBuffer>(rt, ctx, obj, "buffer");
+
+    const size_t byteOffset = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteOffset").value_or(0);
+    const size_t byteLength = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteLength").value_or(buffer.size(rt));
+
+    if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
+        throw jsi::JSError(rt, ctx + " has out-of-bounds byteOffset/byteLength for its ArrayBuffer");
     }
-    if (getRequiredProperty<uint64_t>(rt, ctx, obj, "BYTES_PER_ELEMENT") != sizeof(Storage)) {
-        throw jsi::JSError(rt, ctx + " has an unexpected element size");
+    if (byteLength % sizeof(T) != 0) {
+        throw jsi::JSError(rt, std::format("{}: byteLength is not a multiple of sizeof(T)={}", ctx, sizeof(T)));
     }
-    auto buffer = asType<jsi::ArrayBuffer>(rt, ctx, obj.getProperty(rt, "buffer"));
-    const auto byteOffset = static_cast<size_t>(getOptionalProperty<uint64_t>(rt, ctx, obj, "byteOffset").value_or(0));
-    const auto length = static_cast<size_t>(getRequiredProperty<uint64_t>(rt, ctx, obj, "length"));
-    if (byteOffset + length * sizeof(Storage) > buffer.size(rt)) {
-        throw jsi::JSError(rt, ctx + " is out of bounds for its backing ArrayBuffer");
-    }
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast): reading the typed array's raw storage
-    const auto *src = reinterpret_cast<const Storage *>(buffer.data(rt) + byteOffset);
-    std::vector<T> vec;
-    vec.reserve(length);
-    for (size_t i = 0; i < length; ++i) {
-        vec.push_back(static_cast<T>(src[i]));
-    }
+
+    std::vector<T> vec(byteLength / sizeof(T));
+    std::memcpy(vec.data(), buffer.data(rt) + byteOffset, byteLength);
     return vec;
 }
 
@@ -212,35 +206,33 @@ constexpr const char *jsiTypedArrayName() {
 }
 
 /**
- * Converts a std::vector to a JS TypedArray backed by an ArrayBuffer. This is
- * far cheaper to move across worklet runtime boundaries than toJsiArray:
+ * Converts a std::vector<T> to a JS TypedArray backed by an ArrayBuffer. This
+ * is far cheaper to move across worklet runtime boundaries than toJsiArray:
  * react-native-worklets clones the underlying ArrayBuffer with a single memcpy
  * instead of serializing each element individually, which matters for long
  * sequences (e.g. token ids). Read it back with fromJsiTypedArray.
  *
- * @tparam Storage The element type of the resulting TypedArray's storage, which
- * also selects the JS view (e.g. int32_t -> Int32Array).
- * @tparam T The source vector element type; each value is cast to Storage.
- * Defaults to Storage.
+ * @tparam T The vector element type, which also selects the JS view
+ * (e.g. int32_t -> Int32Array).
  * @param rt The JSI runtime instance.
  * @param vec The source vector to convert.
  * @return A new JS TypedArray containing the elements from the vector.
  */
-template <typename Storage, typename T = Storage>
+template <typename T>
 jsi::Object toJsiTypedArray(jsi::Runtime &rt, const std::vector<T> &vec) {
-    static_assert(std::is_arithmetic_v<Storage>, "toJsiTypedArray requires an arithmetic storage type");
-    const size_t byteLength = vec.size() * sizeof(Storage);
+    static_assert(std::is_arithmetic_v<T>, "toJsiTypedArray requires an arithmetic type");
+    const size_t byteLength = vec.size() * sizeof(T);
     auto arrayBuffer = rt.global()
                            .getPropertyAsFunction(rt, "ArrayBuffer")
                            .callAsConstructor(rt, static_cast<double>(byteLength))
                            .asObject(rt);
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast): writing directly into the typed array's storage
-    auto *dst = reinterpret_cast<Storage *>(arrayBuffer.getArrayBuffer(rt).data(rt));
-    for (size_t i = 0; i < vec.size(); ++i) {
-        dst[i] = static_cast<Storage>(vec[i]);
+
+    if (!vec.empty()) {
+        std::memcpy(arrayBuffer.getArrayBuffer(rt).data(rt), vec.data(), byteLength);
     }
+
     return rt.global()
-        .getPropertyAsFunction(rt, jsiTypedArrayName<Storage>())
+        .getPropertyAsFunction(rt, jsiTypedArrayName<T>())
         .callAsConstructor(rt, arrayBuffer)
         .asObject(rt);
 }

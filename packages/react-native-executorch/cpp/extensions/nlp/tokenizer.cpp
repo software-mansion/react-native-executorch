@@ -94,7 +94,8 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto tokens = unwrap(rt, "encode: Failed to encode input",
                                  self->tokenizer_->encode(text, kNumAddedBosTokens, kNumAddedEosTokens));
 
-            return conversions::toJsiTypedArray<int32_t>(rt, tokens);
+            // Token ids are non-negative and well below 2^31, so int32 is lossless.
+            return conversions::toJsiTypedArray(rt, std::vector<int32_t>(tokens.begin(), tokens.end()));
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "encode"), 1, fnBody);
     }
@@ -121,7 +122,8 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "decode: Tokenizer has been disposed");
             }
 
-            auto tokens = conversions::fromJsiTypedArray<int32_t, uint64_t>(rt, "decode: tokens", args[0]);
+            auto ids = conversions::fromJsiTypedArray<int32_t>(rt, "decode: tokens", args[0]);
+            std::vector<uint64_t> tokens(ids.begin(), ids.end());
 
             if (tokens.empty()) {
                 return jsi::String::createFromUtf8(rt, "");
