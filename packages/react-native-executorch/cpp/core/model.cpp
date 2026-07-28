@@ -56,11 +56,11 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
         throw std::runtime_error(std::format("Failed to load model: {}", errorMsg));
     }
 
-    const auto methodNames = unwrap("loadModel", etModule_->method_names());
+    const auto methodNames = unwrap("method names", etModule_->method_names());
     schema::ModelSpec overrideSpec;
 
     if (methodNames.contains(kGetModelSchemaMethod)) {
-        auto ctx = std::format("loadModel: '{}'", kGetModelSchemaMethod);
+        auto ctx = std::format("Execute '{}'", kGetModelSchemaMethod);
         auto result = unwrap(ctx, etModule_->execute(kGetModelSchemaMethod));
 
         if (result.empty() || result[0].tag != executorch::runtime::Tag::String) {
@@ -72,7 +72,9 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     }
 
     for (const auto &methodName : methodNames) {
-        auto methodMeta = unwrap("loadModel", etModule_->method_meta(methodName));
+        auto ctx = std::format("Method '{}'", methodName);
+        auto methodMeta = unwrap(ctx, etModule_->method_meta(methodName));
+
         spec_[methodName] = schema::methodSpecFromMetadata(methodMeta);
         backends_[methodName] = schema::getUsedBackends(methodMeta);
 
@@ -80,7 +82,6 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
             spec_[methodName] = std::move(overrideSpec[methodName]);
         }
 
-        auto ctx = std::format("loadModel: method '{}'", methodName);
         schema::validateSpec(spec_[methodName], methodMeta, ctx);
     }
 }
