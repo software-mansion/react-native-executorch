@@ -34,9 +34,11 @@ export * from './extensions/speech/tasks/whisperSpeechToText';
 
 // Core primitives — for library builders and power users
 export * from './core/model';
-export * from './core/schema';
 export * from './core/tensor';
 export * from './core/runtime';
+
+export type * from './core/schema';
+export * as schema from './core/schema';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';

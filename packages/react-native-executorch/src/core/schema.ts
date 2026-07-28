@@ -302,56 +302,15 @@ export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
 export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
 export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
 
-/**
- * Creates an input dimension reference for runtime constraints.
- * @param tensorIdx Index of the input tensor parameter.
- * @param dimIdx Index of the dimension within the tensor shape.
- * @returns The dimension reference.
- */
-export const inp = (tensorIdx: number, dimIdx: number): DimRef => ({
-  paramSide: 'input',
-  tensorIdx,
-  dimIdx,
-});
-
-/**
- * Creates an output dimension reference for runtime constraints.
- * @param tensorIdx Index of the output tensor parameter.
- * @param dimIdx Index of the dimension within the tensor shape.
- * @returns The dimension reference.
- */
-export const out = (tensorIdx: number, dimIdx: number): DimRef => ({
-  paramSide: 'output',
-  tensorIdx,
-  dimIdx,
-});
-
-/**
- * Creates an equality constraint requiring the referenced dimensions to coincide.
- * @param dims The dimension references to constrain.
- * @returns The equality constraint.
- */
-export const eq = (...dims: DimRef[]): EqualityConstraint => ({ kind: 'equality', dims });
-
-/**
- * Creates a linear constraint: `lhs = a * rhs + b`.
- * @param dimLhs Left-hand side dimension reference.
- * @param dimRhs Right-hand side dimension reference.
- * @param a Multiplicative coefficient.
- * @param b Additive constant offset. Defaults to 0.
- * @returns The linear constraint.
- */
-export const linear = (
-  dimLhs: DimRef,
-  dimRhs: DimRef,
-  a: number,
-  b: number = 0
-): LinearConstraint => ({
-  kind: 'linear',
-  dimLhs,
-  dimRhs,
-  coefficients: [a, b],
-});
+/** Helper namespace for declaring runtime constraints. */
+export const constr = {
+  eq: (...dims: DimRef[]): EqualityConstraint => {
+    return { kind: 'equality', dims };
+  },
+  linear: (dimLhs: DimRef, dimRhs: DimRef, a: number, b: number = 0): LinearConstraint => {
+    return { kind: 'linear', dimLhs, dimRhs, coefficients: [a, b] };
+  },
+};
 
 /**
  * Constructs a method specification mapping a method name to its parameter

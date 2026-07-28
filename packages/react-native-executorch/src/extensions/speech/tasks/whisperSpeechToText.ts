@@ -4,16 +4,7 @@ import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { wrapAsync } from '../../../core/runtime';
-import {
-  f32,
-  i64,
-  method,
-  validateSpec,
-  DynamicDim as Dyn,
-  eq,
-  inp,
-  out,
-} from '../../../core/schema';
+import { f32, i64, method, validateSpec, DynamicDim as Dyn } from '../../../core/schema';
 
 import { argmax } from '../../../extensions/math';
 import { loadTokenizer } from '../../nlp/tokenizer';
@@ -195,8 +186,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       ...method(
         'decode',
         [i64(1, 'Tokens'), i64('Tokens'), f32(1, 'SeqLen', 'StateDim')],
-        [f32(1, 'Tokens', 'VocabSize')],
-        [eq(inp(0, 1), inp(1, 0), out(0, 1))]
+        [f32(1, 'Tokens', 'VocabSize')]
       ),
     },
   });
