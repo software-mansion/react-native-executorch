@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, DynamicDim as Dyn, method, i64, f32 } from '../../../core/schema';
+import { validateSpec, DynamicDim as Dyn, method, i64, f32, eq, inp } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
@@ -76,12 +76,14 @@ export async function createTextEmbedder(
     batched: method(
       'forward', // prettier-ignore
       [i64(1, Dyn('L')), i64(1, Dyn('L'))],
-      [f32(1, 'D')]
+      [f32(1, 'D')],
+      [eq(inp(0, 1), inp(1, 1))]
     ),
     unbatched: method(
       'forward', // prettier-ignore
       [i64(1, Dyn('L')), i64(1, Dyn('L'))],
-      [f32('D')]
+      [f32('D')],
+      [eq(inp(0, 1), inp(1, 1))]
     ),
   });
 

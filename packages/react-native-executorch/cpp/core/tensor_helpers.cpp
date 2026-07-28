@@ -51,23 +51,21 @@ namespace {
 std::string shapeToString(const SymbolicShape &shape) {
     std::string s;
     for (const auto &dim : shape) {
-        if (std::holds_alternative<std::string>(dim)) {
-            s += std::get<std::string>(dim);
+        if (const auto *str = std::get_if<std::string>(&dim)) {
+            s += *str;
         }
-        if (std::holds_alternative<int32_t>(dim)) {
-            s += std::to_string(std::get<int32_t>(dim));
+        if (const auto *val = std::get_if<int32_t>(&dim)) {
+            s += std::to_string(*val);
         }
-        if (std::holds_alternative<schema::RangeDim>(dim)) {
-            auto range = std::get<schema::RangeDim>(dim);
-            s += std::format("[{}..{}:{}]", range.min, range.max, range.step);
+        if (const auto *range = std::get_if<schema::RangeDim>(&dim)) {
+            s += std::format("[{}..{}:{}]", range->min, range->max, range->step);
         }
-        if (std::holds_alternative<schema::EnumDim>(dim)) {
-            auto enumeration = std::get<schema::EnumDim>(dim);
+        if (const auto *enumeration = std::get_if<schema::EnumDim>(&dim)) {
             s += "{";
-            for (const auto choice : enumeration.choices) {
+            for (const auto choice : enumeration->choices) {
                 s += std::to_string(choice) + ",";
             }
-            if (!enumeration.choices.empty()) {
+            if (!enumeration->choices.empty()) {
                 s.pop_back();
             }
             s += "}";
@@ -112,36 +110,35 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
     for (size_t i = 0; i < expectedShape->size(); ++i) {
         const auto &dim = expectedShape->at(i);
 
-        if (std::holds_alternative<std::string>(dim)) {
-            const auto &symbol = std::get<std::string>(dim);
-            if (symbolBinding.contains(symbol) && symbolBinding[symbol] != shape[i]) {
-                throw jsi::JSError(rt, "");
+        if (const auto *symbol = std::get_if<std::string>(&dim)) {
+            if (symbolBinding.contains(*symbol) && symbolBinding[*symbol] != shape[i]) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
+                                                   ctx, shapeToString(*expectedShape), *symbol, symbolBinding[*symbol], shape[i]));
             }
-            symbolBinding[symbol] = shape[i];
+            symbolBinding[*symbol] = shape[i];
         }
-        if (std::holds_alternative<int32_t>(dim)) {
-            if (shape[i] != std::get<int32_t>(dim)) {
-                throw jsi::JSError(rt, "");
+        if (const auto *val = std::get_if<int32_t>(&dim)) {
+            if (shape[i] != *val) {
+                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
+                                                   ctx, shapeToString(*expectedShape), i, *val, shape[i]));
             }
         }
-        if (std::holds_alternative<schema::RangeDim>(dim)) {
-            auto range = std::get<schema::RangeDim>(dim);
-            if (shape[i] < range.min) {
+        if (const auto *range = std::get_if<schema::RangeDim>(&dim)) {
+            if (shape[i] < range->min) {
                 throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
-                                                   ctx, shapeToString(*expectedShape), i, shape[i], range.min));
+                                                   ctx, shapeToString(*expectedShape), i, shape[i], range->min));
             }
-            if (shape[i] > range.max) {
+            if (shape[i] > range->max) {
                 throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
-                                                   ctx, shapeToString(*expectedShape), i, shape[i], range.max));
+                                                   ctx, shapeToString(*expectedShape), i, shape[i], range->max));
             }
-            if ((shape[i] - range.min) % range.step != 0) {
+            if ((shape[i] - range->min) % range->step != 0) {
                 throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
-                                                   ctx, shapeToString(*expectedShape), i, range.min, range.step, shape[i]));
+                                                   ctx, shapeToString(*expectedShape), i, range->min, range->step, shape[i]));
             }
         }
-        if (std::holds_alternative<schema::EnumDim>(dim)) {
-            auto enumeration = std::get<schema::EnumDim>(dim);
-            if (std::ranges::find(enumeration.choices, shape[i]) == enumeration.choices.end()) {
+        if (const auto *enumeration = std::get_if<schema::EnumDim>(&dim)) {
+            if (std::ranges::find(enumeration->choices, shape[i]) == enumeration->choices.end()) {
                 throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} not allowed: got {})",
                                                    ctx, shapeToString(*expectedShape), i, shape[i]));
             }
