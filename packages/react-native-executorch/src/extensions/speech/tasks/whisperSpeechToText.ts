@@ -180,7 +180,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     default: {
       ...method(
         'encode', // prettier-ignore
-        [f32(Dyn('T_audio'))],
+        [f32(Dyn('T_audio'))], // Internally, model always pads audio to the maximum duration.
         [f32(1, 'SeqLen', 'StateDim')]
       ),
       ...method(
