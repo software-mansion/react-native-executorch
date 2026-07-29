@@ -293,7 +293,7 @@ export const RangeDim = (min: number, max: number, step?: number): ConcreteDim =
   if (!Number.isInteger(max)) {
     throw new Error(`Invalid range max (${max}): must be a non-negative integer.`);
   }
-  if (step && (step <= 0 || !Number.isInteger(step))) {
+  if (step !== undefined && (step <= 0 || !Number.isInteger(step))) {
     throw new Error(`Invalid range step (${step}): must be a positive integer.`);
   }
   return { kind: 'range', range: { min, max, step: step ?? 1 } };
