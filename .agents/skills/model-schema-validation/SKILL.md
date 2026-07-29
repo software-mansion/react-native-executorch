@@ -34,11 +34,32 @@ import {
 } from '../../../core/schema';
 
 const { variant, dims } = validateSpec(model.schema, {
-  batched: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 'N')]),
-  unbatched: method('forward', [f32(3, 'H', 'W')], [f32('N')]),
+  batched: method(
+    'forward',
+    [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+    [f32(1, 'D')],
+    [
+      constr.eq(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
+  ),
+  unbatched: method(
+    'forward',
+    [i64(Dyn('L')), i64(Dyn('L'))],
+    [f32('D')],
+    [
+      constr.eq(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 0 }
+      ),
+    ]
+  ),
 });
 
-const [N, H, W] = dims.constant('N', 'H', 'W');
+const [D] = dims.constant('D');
+const L = dims.range('L');
 ```
 
 ### Key Schema Utilities from `src/core/schema.ts`:
@@ -52,11 +73,13 @@ const [N, H, W] = dims.constant('N', 'H', 'W');
   - **`constr.eq(...dims)`**: Creates an equality constraint requiring the referenced dimensions to take the exact same value at runtime.
   - **`constr.linear(lhs, rhs, a, b)`**: Creates a linear constraint `lhs = a * rhs + b`.
 - **`validateSpec(exportedSchema, allowedVariants)`**: Compares the model's exported schema against named variants and returns `{ variant, dim, dims }`.
-- **Symbol Accessors (`dims`)**:
+- **Symbol Accessors (`dims` & `dim`)**:
   - `dims.constant('N', 'H')`: Extracts constant values for symbols as numbers.
   - `dims.range('S')`: Extracts range domains `{ min, max, step }`.
   - `dims.enum('E')`: Extracts enum choices `readonly number[]`.
-  - `dims.any('D')`: Extracts raw `ConcreteDim`.
+  - `dims.dynamic('L')`: Extracts dynamic `range` or `enum` as raw `ConcreteDim`.
+  - `dims.any('D')`: Extracts raw dimension value (`number`, `Range`, `readonly number[]`, or `ConcreteDim`).
+  - `dim('N')`: Extracts value for a single symbol.
 
 ---
 
