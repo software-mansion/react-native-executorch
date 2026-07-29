@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <jsi/jsi.h>
@@ -20,6 +21,9 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 
 private:
+    [[nodiscard]] std::unique_lock<std::mutex> tryLockUnique(facebook::jsi::Runtime &rt,
+                                                             std::string_view context);
+
     std::string tokenizerPath_;
     std::unique_ptr<tokenizers::HFTokenizer> tokenizer_;
     std::mutex mutex_;

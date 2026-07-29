@@ -67,6 +67,18 @@ TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
     }
 }
 
+std::unique_lock<std::mutex> TokenizerHostObject::tryLockUnique(jsi::Runtime &rt,
+                                                               std::string_view context) {
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        throw jsi::JSError(rt, std::format("{} is currently in use", context));
+    }
+    if (!tokenizer_) {
+        throw jsi::JSError(rt, std::format("{} has been disposed", context));
+    }
+    return lock;
+}
+
 jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
     auto nameStr = name.utf8(rt);
 
@@ -81,14 +93,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "encode: Usage: encode(text)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "encode: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "encode: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "encode: Tokenizer");
 
             auto text = conversions::asType<std::string>(rt, "encode: text", args[0]);
             auto tokens = unwrap(rt, "encode: Failed to encode input",
@@ -113,14 +118,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 skipSpecialTokens = conversions::asType<bool>(rt, "decode: skipSpecialTokens", args[1]);
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "decode: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "decode: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "decode: Tokenizer");
 
             auto ids = conversions::fromJsiTypedArray<int32_t>(rt, "decode: tokens", args[0]);
             std::vector<uint64_t> tokens(ids.begin(), ids.end());
@@ -144,14 +142,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "getVocabSize: Usage: getVocabSize()");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "getVocabSize: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "getVocabSize: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "getVocabSize: Tokenizer");
 
             return static_cast<double>(self->tokenizer_->vocab_size());
         };
@@ -165,14 +156,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "idToToken: Usage: idToToken(id)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "idToToken: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "idToToken: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "idToToken: Tokenizer");
 
             auto tokenId = conversions::asType<uint64_t>(rt, "idToToken: id", args[0]);
             auto token = unwrap(rt, "idToToken: Failed to convert id to token",
@@ -190,14 +174,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw jsi::JSError(rt, "tokenToId: Usage: tokenToId(token)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "tokenToId: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "tokenToId: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "tokenToId: Tokenizer");
 
             auto token = conversions::asType<std::string>(rt, "tokenToId: token", args[0]);
             auto tokenId = unwrap(rt, "tokenToId: Failed to convert token to id",
