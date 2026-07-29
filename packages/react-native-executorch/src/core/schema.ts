@@ -45,6 +45,25 @@
  * decided statically — equal constants are equal at runtime. Linear
  * constraints, in contrast, are never evaluated against domains here, even
  * between constants.
+ *
+ * **Exported spec source.** An exported model's `ModelSpec<ConcreteDim>`
+ * is populated at load time from one of two sources:
+ *
+ * 1. **ExecuTorch `MethodMeta`** (default) — when the `.pte` only carries
+ *    static metadata, every dimension domain is `constant`. This is
+ *    sufficient for models whose input/output shapes are fully fixed at
+ *    export time.
+ *
+ * 2. **Companion `get_model_schema` method** — for models whose tensors
+ *    have dynamic or enumerated dimensions (e.g. variable-length sequences)
+ *    or that declare runtime constraints, the `.pte` exports a method named
+ *    `get_model_schema` that returns a JSON-encoded `ModelSpec<ConcreteDim>`
+ *    string. The native loader calls this method after loading the model and
+ *    merges the result into `model.schema`, overlaying precise `range`,
+ *    `enum`, and `RuntimeConstraint` entries onto the base `MethodMeta`.
+ *    Only methods that actually need overrides need to appear in the JSON;
+ *    methods absent from the companion spec are kept as-is from
+ *    `MethodMeta`.
  * @packageDocumentation
  */
 import type { DType } from './tensor';
