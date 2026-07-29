@@ -21,10 +21,6 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 
 private:
-    // Non-blocking try-lock on mutex_ that also checks the tokenizer is still
-    // alive, throwing a facebook::jsi::JSError prefixed with `context` on
-    // contention ("... is currently in use") or after dispose ("... has been
-    // disposed").
     [[nodiscard]] std::unique_lock<std::mutex> tryLockUnique(facebook::jsi::Runtime &rt,
                                                              std::string_view context);
 
