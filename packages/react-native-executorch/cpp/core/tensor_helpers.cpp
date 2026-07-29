@@ -48,28 +48,34 @@ void checkNotSameTensor(jsi::Runtime &rt,
 }
 
 namespace {
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 std::string shapeToString(const SymbolicShape &shape) {
     std::string s;
     for (const auto &dim : shape) {
-        if (const auto *str = std::get_if<std::string>(&dim)) {
-            s += *str;
-        }
-        if (const auto *val = std::get_if<int32_t>(&dim)) {
-            s += std::to_string(*val);
-        }
-        if (const auto *range = std::get_if<schema::RangeDim>(&dim)) {
-            s += std::format("[{}..{}:{}]", range->min, range->max, range->step);
-        }
-        if (const auto *enumeration = std::get_if<schema::EnumDim>(&dim)) {
-            s += "{";
-            for (const auto choice : enumeration->choices) {
-                s += std::to_string(choice) + ",";
-            }
-            if (!enumeration->choices.empty()) {
-                s.pop_back();
-            }
-            s += "}";
-        }
+        // clang-format off
+        std::visit(overloaded{
+            [&](const std::string &str) { s += str; },
+            [&](int32_t val) { s += std::to_string(val); },
+            [&](const schema::RangeDim &range) {
+                s += std::format("[{}..{}:{}]", range.min, range.max, range.step);
+            },
+            [&](const schema::EnumDim &enumeration) {
+                s += "{";
+                for (const auto choice : enumeration.choices) {
+                    s += std::to_string(choice) + ",";
+                }
+                if (!enumeration.choices.empty()) {
+                    s.pop_back();
+                }
+                s += "}";
+            },
+        }, dim);
+        // clang-format on
         s += ",";
     }
     if (!shape.empty()) {
@@ -110,39 +116,43 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
     for (size_t i = 0; i < expectedShape->size(); ++i) {
         const auto &dim = expectedShape->at(i);
 
-        if (const auto *symbol = std::get_if<std::string>(&dim)) {
-            if (symbolBinding.contains(*symbol) && symbolBinding[*symbol] != shape[i]) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
-                                                   ctx, shapeToString(*expectedShape), *symbol, symbolBinding[*symbol], shape[i]));
-            }
-            symbolBinding[*symbol] = shape[i];
-        }
-        if (const auto *val = std::get_if<int32_t>(&dim)) {
-            if (shape[i] != *val) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
-                                                   ctx, shapeToString(*expectedShape), i, *val, shape[i]));
-            }
-        }
-        if (const auto *range = std::get_if<schema::RangeDim>(&dim)) {
-            if (shape[i] < range->min) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
-                                                   ctx, shapeToString(*expectedShape), i, shape[i], range->min));
-            }
-            if (shape[i] > range->max) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
-                                                   ctx, shapeToString(*expectedShape), i, shape[i], range->max));
-            }
-            if ((shape[i] - range->min) % range->step != 0) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
-                                                   ctx, shapeToString(*expectedShape), i, range->min, range->step, shape[i]));
-            }
-        }
-        if (const auto *enumeration = std::get_if<schema::EnumDim>(&dim)) {
-            if (std::ranges::find(enumeration->choices, shape[i]) == enumeration->choices.end()) {
-                throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} not allowed: got {})",
-                                                   ctx, shapeToString(*expectedShape), i, shape[i]));
-            }
-        }
+        // clang-format off
+        std::visit(overloaded{
+            [&](const std::string &symbol) {
+                if (symbolBinding.contains(symbol) && symbolBinding[symbol] != shape[i]) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
+                                                       ctx, shapeToString(*expectedShape), symbol, symbolBinding[symbol], shape[i]));
+                }
+                symbolBinding[symbol] = shape[i];
+            },
+            [&](int32_t val) {
+                if (shape[i] != val) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
+                                                       ctx, shapeToString(*expectedShape), i, val, shape[i]));
+                }
+            },
+            [&](const schema::RangeDim &range) {
+                if (shape[i] < range.min) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
+                                                       ctx, shapeToString(*expectedShape), i, shape[i], range.min));
+                }
+                if (shape[i] > range.max) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
+                                                       ctx, shapeToString(*expectedShape), i, shape[i], range.max));
+                }
+                if ((shape[i] - range.min) % range.step != 0) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
+                                                       ctx, shapeToString(*expectedShape), i, range.min, range.step, shape[i]));
+                }
+            },
+            [&](const schema::EnumDim &enumeration) {
+                if (std::ranges::find(enumeration.choices, shape[i]) == enumeration.choices.end()) {
+                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} not allowed: got {})",
+                                                       ctx, shapeToString(*expectedShape), i, shape[i]));
+                }
+            },
+        }, dim);
+        // clang-format on
     }
 
     return tensor;

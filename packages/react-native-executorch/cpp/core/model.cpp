@@ -127,7 +127,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
             if (inputsArray.size(rt) != methodSpec.inputs.size()) {
-                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs"));
+                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs: got {}, expected {}",
+                                                   inputsArray.size(rt), methodSpec.inputs.size()));
             }
 
             std::vector<executorch::runtime::EValue> inputs(methodSpec.inputs.size());

@@ -250,9 +250,9 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
  *    (`min > 0`, `max >= min`, `step > 0`), and non-empty positive enum
  *    choices.
  * 2. Parameter metadata matching: input/output counts, parameter primitive
- *    tags, tensor `DType`s, tensor ranks, and exact values of static constant
- *    dimensions against ExecuTorch `MethodMeta` (dynamic dimensions are
- *    skipped).
+ *    tags, tensor `DType`s, tensor ranks, exact values of static constant
+ *    dimensions, and dynamic dimension upper bounds (`RangeDim` max and
+ *    `EnumDim` choices <= compiled `MethodMeta` allocation bound).
  * 3. Constraint structure: verifies `EqualityConstraint` has at least 2
  *    dimensions and all `DimRef` tensor and dimension indices are within valid
  *    input/output rank bounds.

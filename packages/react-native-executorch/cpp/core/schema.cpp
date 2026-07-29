@@ -63,6 +63,11 @@ using nlohmann::json;
 
 namespace {
 
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+
 template <typename T>
 T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
@@ -98,15 +103,13 @@ void from_json(const json &j, ConcreteDim &d) {
 }
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
 void to_json(json &j, const ConcreteDim &d) {
-    if (const auto *c = std::get_if<int32_t>(&d)) {
-        j = json::object({{"kind", "constant"}, {"value", *c}});
-    }
-    if (const auto *r = std::get_if<RangeDim>(&d)) {
-        j = json::object({{"kind", "range"}, {"range", *r}});
-    }
-    if (const auto *e = std::get_if<EnumDim>(&d)) {
-        j = json::object({{"kind", "enum"}, {"choices", e->choices}});
-    }
+    // clang-format off
+    std::visit(overloaded{
+        [&](int32_t c) { j = json::object({{"kind", "constant"}, {"value", c}}); },
+        [&](const RangeDim &r) { j = json::object({{"kind", "range"}, {"range", r}}); },
+        [&](const EnumDim &e) { j = json::object({{"kind", "enum"}, {"choices", e.choices}}); },
+    }, d);
+    // clang-format on
 }
 
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
@@ -141,15 +144,17 @@ void from_json(const json &j, RuntimeConstraint &c) {
 }
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
 void to_json(json &j, const RuntimeConstraint &c) {
-    if (const auto *eq = std::get_if<EqualityConstraint>(&c)) {
-        j = json::object({{"kind", "equality"}, {"dims", eq->dims}});
-    }
-    if (const auto *lin = std::get_if<LinearConstraint>(&c)) {
-        j = json::object({{"kind", "linear"},
-                          {"dimLhs", lin->dimLhs},
-                          {"dimRhs", lin->dimRhs},
-                          {"coefficients", lin->coefficients}});
-    }
+    // clang-format off
+    std::visit(overloaded{
+        [&](const EqualityConstraint &eq) { j = json::object({{"kind", "equality"}, {"dims", eq.dims}}); },
+        [&](const LinearConstraint &lin) {
+            j = json::object({{"kind", "linear"},
+                              {"dimLhs", lin.dimLhs},
+                              {"dimRhs", lin.dimRhs},
+                              {"coefficients", lin.coefficients}});
+        },
+    }, c);
+    // clang-format on
 }
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MethodSpec, inputs, outputs, runtimeConstraints)
@@ -228,13 +233,12 @@ jsi::Object backendsToJs(jsi::Runtime &rt,
 namespace {
 
 ParamSpec tensorMetaToParamSpec(const executorch::runtime::TensorInfo &tensorMeta) {
-    ParamSpec p{.tag = Tag::Tensor, .dtype = types::fromScalarType(tensorMeta.scalar_type())};
     const auto sizes = tensorMeta.sizes();
-    p.shape.reserve(sizes.size());
-    for (const auto size : sizes) {
-        p.shape.emplace_back(size);
-    }
-    return p;
+    return ParamSpec{
+        .tag = Tag::Tensor,
+        .dtype = types::fromScalarType(tensorMeta.scalar_type()),
+        .shape = std::vector<ConcreteDim>(sizes.begin(), sizes.end()),
+    };
 }
 
 } // namespace
@@ -288,32 +292,36 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
 namespace {
 
 void validateConcreteDim(const ConcreteDim &dim, const std::string &ctx) {
-    if (const auto *c = std::get_if<int32_t>(&dim)) {
-        if (*c <= 0) {
-            throw std::runtime_error(std::format("{}: constant dim must be positive", ctx));
-        }
-    }
-    if (const auto *r = std::get_if<RangeDim>(&dim)) {
-        if (r->min < 0) {
-            throw std::runtime_error(std::format("{}: range min must be non-negative", ctx));
-        }
-        if (r->max < r->min) {
-            throw std::runtime_error(std::format("{}: range max must be >= min", ctx));
-        }
-        if (r->step <= 0) {
-            throw std::runtime_error(std::format("{}: range step must be positive", ctx));
-        }
-    }
-    if (const auto *e = std::get_if<EnumDim>(&dim)) {
-        if (e->choices.empty()) {
-            throw std::runtime_error(std::format("{}: enum must have at least one choice", ctx));
-        }
-        for (const auto &choice : e->choices) {
-            if (choice <= 0) {
-                throw std::runtime_error(std::format("{}: enum choices must be positive", ctx));
+    // clang-format off
+    std::visit(overloaded{
+        [&](int32_t c) {
+            if (c <= 0) {
+                throw std::runtime_error(std::format("{}: constant dim must be positive", ctx));
             }
-        }
-    }
+        },
+        [&](const RangeDim &r) {
+            if (r.min < 0) {
+                throw std::runtime_error(std::format("{}: range min must be non-negative", ctx));
+            }
+            if (r.max < r.min) {
+                throw std::runtime_error(std::format("{}: range max must be >= min", ctx));
+            }
+            if (r.step <= 0) {
+                throw std::runtime_error(std::format("{}: range step must be positive", ctx));
+            }
+        },
+        [&](const EnumDim &e) {
+            if (e.choices.empty()) {
+                throw std::runtime_error(std::format("{}: enum must have at least one choice", ctx));
+            }
+            for (const auto &choice : e.choices) {
+                if (choice <= 0) {
+                    throw std::runtime_error(std::format("{}: enum choices must be positive", ctx));
+                }
+            }
+        },
+    }, dim);
+    // clang-format on
 }
 
 void validateSpecDimDomains(const MethodSpec &spec, const std::string &ctx) {
@@ -346,10 +354,31 @@ void validateTensorParam(const ParamSpec &param,
     }
 
     for (size_t d = 0; d < param.shape.size(); ++d) {
-        if (std::holds_alternative<int32_t>(param.shape[d]) &&
-            std::get<int32_t>(param.shape[d]) != metaShape[d]) {
-            throw std::runtime_error(std::format("{}: shape[{}] mismatch", ctx, d));
-        }
+        auto bound = static_cast<int32_t>(metaShape[d]);
+        // clang-format off
+        std::visit(overloaded{
+            [&](int32_t c) {
+                if (c != bound) {
+                    throw std::runtime_error(std::format("{}: shape[{}] mismatch", ctx, d));
+                }
+            },
+            [&](const RangeDim &r) {
+                if (r.max > bound) {
+                    throw std::runtime_error(std::format("{}: shape[{}] range max {} exceeds compiled bound {}",
+                                                        ctx, d, r.max, bound));
+                }
+            },
+            [&](const EnumDim &e) {
+                for (const auto choice : e.choices) {
+                    if (choice > bound) {
+                        throw std::runtime_error(std::format("{}: shape[{}] enum choice {} exceeds compiled bound {}",
+                                                            ctx, d, choice, bound));
+                    }
+                }
+            },
+        },
+        param.shape[d]);
+        // clang-format on
     }
 }
 
@@ -385,19 +414,22 @@ void validateConstraintSpecs(const MethodSpec &spec, const std::string &ctx) {
         auto cctx = std::format("{} constraint[{}]", ctx, i);
         const auto &constraint = spec.runtimeConstraints[i];
 
-        if (const auto *eq = std::get_if<EqualityConstraint>(&constraint)) {
-            if (eq->dims.size() < 2) {
-                throw std::runtime_error(std::format("{}: equality needs at least two dims", cctx));
-            }
-            for (const auto &dim : eq->dims) {
-                validateDimRef(dim, inputRanks, outputRanks, cctx);
-            }
-        }
-
-        if (const auto *lin = std::get_if<LinearConstraint>(&constraint)) {
-            validateDimRef(lin->dimLhs, inputRanks, outputRanks, cctx);
-            validateDimRef(lin->dimRhs, inputRanks, outputRanks, cctx);
-        }
+        // clang-format off
+        std::visit(overloaded{
+            [&](const EqualityConstraint &eq) {
+                if (eq.dims.size() < 2) {
+                    throw std::runtime_error(std::format("{}: equality needs at least two dims", cctx));
+                }
+                for (const auto &dim : eq.dims) {
+                    validateDimRef(dim, inputRanks, outputRanks, cctx);
+                }
+            },
+            [&](const LinearConstraint &lin) {
+                validateDimRef(lin.dimLhs, inputRanks, outputRanks, cctx);
+                validateDimRef(lin.dimRhs, inputRanks, outputRanks, cctx);
+            },
+        }, constraint);
+        // clang-format on
     }
 }
 
@@ -457,34 +489,37 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
     for (size_t i = 0; i < constraints.size(); ++i) {
         auto cctx = std::format("{} constraint[{}]", ctx, i);
 
-        if (const auto *eq = std::get_if<EqualityConstraint>(&constraints[i])) {
-            std::vector<int32_t> inputVals;
-            for (const auto &d : eq->dims) {
-                if (d.paramSide == ParamSide::input) {
-                    inputVals.push_back(getInputDimValue(d, inputShapes));
+        // clang-format off
+        std::visit(overloaded{
+            [&](const EqualityConstraint &eq) {
+                std::vector<int32_t> inputVals;
+                for (const auto &d : eq.dims) {
+                    if (d.paramSide == ParamSide::input) {
+                        inputVals.push_back(getInputDimValue(d, inputShapes));
+                    }
                 }
-            }
-            if (inputVals.size() < 2) {
-                continue;
-            }
-            for (size_t j = 1; j < inputVals.size(); ++j) {
-                if (inputVals[j] != inputVals[0]) {
-                    throw jsi::JSError(rt, std::format("{}: equality constraint violated", cctx));
+                if (inputVals.size() < 2) {
+                    return;
                 }
-            }
-        }
-
-        if (const auto *lin = std::get_if<LinearConstraint>(&constraints[i])) {
-            if (lin->dimLhs.paramSide == ParamSide::output ||
-                lin->dimRhs.paramSide == ParamSide::output) {
-                continue;
-            }
-            int32_t lhs = getInputDimValue(lin->dimLhs, inputShapes);
-            int32_t rhs = getInputDimValue(lin->dimRhs, inputShapes);
-            if (lhs != lin->coefficients[0] * rhs + lin->coefficients[1]) {
-                throw jsi::JSError(rt, std::format("{}: linear constraint violated", cctx));
-            }
-        }
+                for (size_t j = 1; j < inputVals.size(); ++j) {
+                    if (inputVals[j] != inputVals[0]) {
+                        throw jsi::JSError(rt, std::format("{}: equality constraint violated", cctx));
+                    }
+                }
+            },
+            [&](const LinearConstraint &lin) {
+                if (lin.dimLhs.paramSide == ParamSide::output ||
+                    lin.dimRhs.paramSide == ParamSide::output) {
+                    return;
+                }
+                int32_t lhs = getInputDimValue(lin.dimLhs, inputShapes);
+                int32_t rhs = getInputDimValue(lin.dimRhs, inputShapes);
+                if (lhs != lin.coefficients[0] * rhs + lin.coefficients[1]) {
+                    throw jsi::JSError(rt, std::format("{}: linear constraint violated", cctx));
+                }
+            },
+        }, constraints[i]);
+        // clang-format on
     }
 }
 
