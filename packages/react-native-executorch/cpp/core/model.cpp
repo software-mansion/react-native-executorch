@@ -200,11 +200,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                  "     (e.g. equality between dimensions), export a companion\n"
                                                  "     method returning a JSON model spec\n"
                                                  "     (see `src/core/schema.ts` for the JSON structure).\n"
-                                                 "\n"
                                                  "     Without it, validation falls back to static metadata\n"
                                                  "     from ExecuTorch which only contains upper bounds and\n"
                                                  "     does not capture runtime constraints.",
-                                                 methodName),
+                                                 "\n", "Error:", methodName),
                                  std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
