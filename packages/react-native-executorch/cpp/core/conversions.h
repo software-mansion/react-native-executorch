@@ -138,7 +138,8 @@ std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const
     const size_t byteLength = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteLength").value_or(buffer.size(rt));
 
     if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-        throw jsi::JSError(rt, ctx + " has out-of-bounds byteOffset/byteLength for its ArrayBuffer");
+        throw jsi::JSError(rt, std::format("{}: out-of-bounds byteOffset ({}) or byteLength ({}) for ArrayBuffer of size {}",
+                                           ctx, byteOffset, byteLength, buffer.size(rt)));
     }
     if (byteLength % sizeof(T) != 0) {
         throw jsi::JSError(rt, std::format("{}: byteLength is not a multiple of sizeof(T)={}", ctx, sizeof(T)));
@@ -148,6 +149,9 @@ std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const
     std::memcpy(vec.data(), buffer.data(rt) + byteOffset, byteLength);
     return vec;
 }
+
+template <typename>
+inline constexpr bool kAlwaysFalse = false;
 
 /**
  * Converts a std::vector of values to a new facebook::jsi::Array.
@@ -165,16 +169,15 @@ jsi::Array toJsiArray(jsi::Runtime &rt, const std::vector<T> &vec) {
         if constexpr (std::is_same_v<T, std::string>) {
             arr.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, vec[i]));
         } else if constexpr (std::is_same_v<T, bool>) {
-            arr.setValueAtIndex(rt, i, jsi::Value(vec[i]));
-        } else {
+            arr.setValueAtIndex(rt, i, jsi::Value(static_cast<bool>(vec[i])));
+        } else if constexpr (std::is_arithmetic_v<T>) {
             arr.setValueAtIndex(rt, i, jsi::Value(static_cast<double>(vec[i])));
+        } else {
+            static_assert(kAlwaysFalse<T>, "Unsupported vector element type for toJsiArray");
         }
     }
     return arr;
 }
-
-template <typename>
-inline constexpr bool kAlwaysFalse = false;
 
 /**
  * Maps an arithmetic C++ type to the name of the JS TypedArray constructor whose

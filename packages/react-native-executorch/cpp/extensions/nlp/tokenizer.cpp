@@ -62,13 +62,13 @@ TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
-        throw std::runtime_error("Failed to load tokenizer from '" + tokenizerPath_ +
-                                 "': " + toString(error));
+        throw std::runtime_error(std::format("Failed to load tokenizer from '{}': {}",
+                                             tokenizerPath_, toString(error)));
     }
 }
 
 std::unique_lock<std::mutex> TokenizerHostObject::tryLockUnique(jsi::Runtime &rt,
-                                                               std::string_view context) {
+                                                                std::string_view context) {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     if (!lock.owns_lock()) {
         throw jsi::JSError(rt, std::format("{} is currently in use", context));
