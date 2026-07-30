@@ -206,6 +206,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                  "     from ExecuTorch which only contains upper bounds and\n"
                                                  "     does not capture runtime constraints.\n"
                                                  "\n"
+                                                 "  3. Bad model export\n"
+                                                 "     The model export itself might be broken or invalid.\n"
+                                                 "\n"
                                                  "Error",
                                                  methodName),
                                  std::move(executeResult));
