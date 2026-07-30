@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <span>
 
 #include "core/tensor.h"
@@ -41,16 +42,20 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
         const auto chunkFrames = static_cast<uint64_t>(dst->shape_[0]);
         const auto fftLength = static_cast<uint64_t>(dst->shape_[1]);
         if (frameLength > fftLength) {
-            throw jsi::JSError(rt, "extractFrames: hann length exceeds dst fftLength");
+            throw jsi::JSError(rt, std::format("extractFrames: hann length ({}) exceeds dst fftLength ({})",
+                                               frameLength, fftLength));
         }
         if (numFrames > chunkFrames) {
-            throw jsi::JSError(rt, "extractFrames: numFrames out of dst frame capacity");
+            throw jsi::JSError(rt, std::format("extractFrames: numFrames ({}) exceeds dst frame capacity ({})",
+                                               numFrames, chunkFrames));
         }
 
         if (numFrames > 0) {
             const uint64_t lastSample = (numFrames - 1) * hopLength + frameLength - 1;
             if (lastSample >= waveform->numel_) {
-                throw jsi::JSError(rt, "extractFrames: frame window out of waveform bounds");
+                throw jsi::JSError(rt, std::format("extractFrames: frame window (last sample index {})"
+                                                   " exceeds waveform bounds (numel {})",
+                                                   lastSample, waveform->numel_));
             }
         }
 
