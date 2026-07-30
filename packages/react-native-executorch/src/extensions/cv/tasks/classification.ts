@@ -14,14 +14,19 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from './prepro
  * vocabulary.
  * @category Types
  */
-export type ClassifierOptions<L> = ImagePreprocessorOptions & { readonly labels: readonly L[] };
+export type ClassifierOptions<L> = ImagePreprocessorOptions & {
+  /** Array of class labels matching the model's output vocabulary. */
+  readonly labels: readonly L[];
+};
 
 /**
  * Model configuration required to instantiate a classifier task runner.
  * @category Types
  */
 export type ClassifierModel<L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Image preprocessor and vocabulary options. */
   readonly opts: ClassifierOptions<L>;
 };
 
@@ -30,7 +35,9 @@ export type ClassifierModel<L> = {
  * @category Types
  */
 export type Classification<L> = {
+  /** Predicted class label. */
   readonly label: L;
+  /** Confidence score of the prediction (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 

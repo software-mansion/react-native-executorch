@@ -130,9 +130,16 @@ export function scaleBox<F extends BoxFormat>(
  * @category Types
  */
 export type NmsOptions = {
+  /** Bounding box format (`xyxy`, `cxcywh`, etc.). */
   readonly boxFormat: BoxFormat;
+  /** IoU threshold for suppressing overlapping boxes. */
   readonly iouThreshold: number;
+  /** Minimum confidence score threshold for filtering candidate boxes. */
   readonly confidenceThreshold: number;
+  /**
+   * NMS algorithm variant (`standard` for hard suppression, `weighted` for soft
+   * coordinate averaging).
+   */
   readonly nmsType: 'standard' | 'weighted';
 };
 
@@ -142,7 +149,13 @@ export type NmsOptions = {
  * @category Utils
  * @param boxes Bounding boxes coordinate tensor.
  * @param scores Bounding boxes confidence scores tensor.
- * @param opts Options configure NMS thresholds and execution mode.
+ * @param opts Options configuring NMS thresholds and execution mode.
+ * @param opts.boxFormat Bounding box format (`xyxy`, `cxcywh`, etc.).
+ * @param opts.iouThreshold Intersection over Union (IoU) threshold for
+ * suppression.
+ * @param opts.confidenceThreshold Minimum confidence score for candidate
+ * selection.
+ * @param opts.nmsType Suppression algorithm mode (`standard` or `weighted`).
  * @returns The resulting indices of the non-suppressed boxes:
  * - For `standard` NMS: A 1D array of indices (`number[]`) representing the
  *   selected boxes.

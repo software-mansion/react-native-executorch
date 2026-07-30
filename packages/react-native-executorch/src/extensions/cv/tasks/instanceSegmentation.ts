@@ -31,11 +31,17 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for input images. */
   readonly resizeMode: 'stretch';
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
+  /** Bounding box format exported by the model (`xyxy`, `cxcywh`, etc.). */
   readonly boxFormat: F;
+  /** Default IoU threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default probability threshold for mask values. */
   readonly defaultMaskThreshold: number;
+  /** Default minimum confidence score threshold for detected instances. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -46,7 +52,9 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
  * @typeParam L The label type.
  */
 export type InstanceSegmenterModel<F extends BoxFormat, L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Instance segmenter options. */
   readonly opts: InstanceSegmenterOptions<F, L>;
 };
 
@@ -58,9 +66,13 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
  * @typeParam L The label type.
  */
 export type InstanceSegmentationResult<F extends BoxFormat, L> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Binary segmentation mask buffer cropped to the instance bounding box. */
   readonly mask: ImageBuffer;
+  /** Predicted instance class label. */
   readonly label: L;
+  /** Confidence score of the instance detection (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -93,10 +105,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * Performs asynchronous instance segmentation on the given input image.
    * @param input The input image buffer.
    * @param options Execution override options.
-   * @param options.confidenceThreshold Override for the minimum confidence
-   * threshold.
-   * @param options.iouThreshold Override for the IoU threshold in NMS.
-   * @param options.maskThreshold Override for the mask binarization threshold.
+   * @param options.confidenceThreshold Minimum confidence threshold. If
+   * omitted, uses `opts.defaultConfidenceThreshold`.
+   * @param options.iouThreshold IoU threshold in NMS. If omitted, uses
+   * `opts.defaultIouThreshold`.
+   * @param options.maskThreshold Mask binarization threshold. If omitted,
+   * uses `opts.defaultMaskThreshold`.
    * @returns A promise resolving to a list of detected instances.
    */
   segmentInstances: (

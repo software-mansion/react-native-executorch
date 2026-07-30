@@ -19,9 +19,13 @@ import {
  * @category Types
  */
 export type ImagePreprocessorOptions = {
+  /** Resize algorithm mode (`stretch`, `letterbox`, `crop`). */
   readonly resizeMode: ResizeMode;
+  /** Pixel interpolation method (`linear`, `lanczos`, etc.). */
   readonly interpolation: InterpolationMethod;
+  /** Normalization scaling coefficients. */
   readonly normalizeOpts: NormalizeOptions;
+  /** Optional background fill value used when letterboxing. */
   readonly padValue?: number;
 };
 

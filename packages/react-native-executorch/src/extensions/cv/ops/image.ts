@@ -74,8 +74,11 @@ export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'li
  * @category Types
  */
 export type ResizeOptions = {
+  /** Resize algorithm mode (`stretch`, `letterbox`, `crop`). */
   readonly mode?: ResizeMode;
+  /** Background fill value used when letterboxing. */
   readonly padValue?: number;
+  /** Pixel interpolation method. */
   readonly interpolation?: InterpolationMethod;
 };
 
@@ -84,7 +87,9 @@ export type ResizeOptions = {
  * @category Types
  */
 export type NormalizeOptions = {
+  /** Multiplicative scaling coefficient(s). */
   readonly alpha?: number | readonly number[];
+  /** Additive offset coefficient(s). */
   readonly beta?: number | readonly number[];
 };
 
@@ -99,6 +104,11 @@ export type NormalizeOptions = {
  * to. `dst` must be in HWC layout and its number of channels must match `src`.
  * Shape [H',W',C].
  * @param opts Configuration options for resizing.
+ * @param opts.mode Resize algorithm mode (`stretch`, `letterbox`, `crop`).
+ * Defaults to `'stretch'`.
+ * @param opts.interpolation Pixel interpolation method (`linear`, `lanczos`,
+ * etc.). Defaults to `'lanczos'`.
+ * @param opts.padValue Fill value for letterboxing. Defaults to `0`.
  * @returns The destination tensor containing the resized image.
  */
 export function resize(src: Tensor, dst: Tensor, opts?: ResizeOptions): Tensor {
@@ -173,6 +183,9 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  * @param dst The pre-allocated destination tensor to write the normalized
  * values to. `dst` must have the same shape as `src`. Shape [C,H,W].
  * @param opts Normalization scaling coefficients.
+ * @param opts.alpha Multiplicative scaling coefficient(s). Defaults to
+ * `1 / 255.0`.
+ * @param opts.beta Additive offset coefficient(s). Defaults to `0.0`.
  * @returns The destination tensor containing the normalized image.
  */
 export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Tensor {

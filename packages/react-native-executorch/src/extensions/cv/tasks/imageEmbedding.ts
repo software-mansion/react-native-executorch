@@ -13,7 +13,9 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from './prepro
  * @category Types
  */
 export type ImageEmbedderModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Image preprocessor options. */
   readonly opts: ImagePreprocessorOptions;
 };
 

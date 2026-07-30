@@ -55,11 +55,13 @@ export type WhisperLanguage = (typeof WHISPER_LANGUAGES)[number];
 /**
  * Options passed to a single transcription call.
  * @category Types
- * @property language - Whisper language code of the spoken audio. Must be one of
- * the {@link WhisperLanguage} values declared in the model's
- * `supportedLanguages` list.
  */
 export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
+  /**
+   * Whisper language code of the spoken audio. Must be one of
+   * the {@link WhisperLanguage} values declared in the model's
+   * `supportedLanguages` list.
+   */
   readonly language: L;
 };
 
@@ -67,20 +69,28 @@ export type WhisperSttOptions<L extends WhisperLanguage = WhisperLanguage> = {
  * Options for the live-streaming transcription API.
  * Extends {@link WhisperSttOptions} with optional VAD tuning.
  * @category Types
- * @property vadOptions - Fine-tuning knobs forwarded to the voice-activity
- * detector. Omit to use the detector's built-in defaults.
  */
 export type WhisperStreamOptions<L extends WhisperLanguage = WhisperLanguage> =
-  WhisperSttOptions<L> & { readonly vadOptions?: VadStreamOptions };
+  WhisperSttOptions<L> & {
+    /**
+     * Fine-tuning knobs forwarded to the voice-activity detector. Omit to use
+     * built-in defaults.
+     */
+    readonly vadOptions?: VadStreamOptions;
+  };
 
 /**
  * Paths and metadata required to instantiate a Whisper speech-to-text model.
  * @category Types
  */
 export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
+  /** Local path or remote URL of the `.pte` model. */
   readonly modelPath: string;
+  /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
+  /** List of supported language codes for this model. */
   readonly supportedLanguages: readonly L[];
+  /** VAD model configuration used for speech segmentation. */
   readonly vadModel: FsmnVadModel;
 };
 

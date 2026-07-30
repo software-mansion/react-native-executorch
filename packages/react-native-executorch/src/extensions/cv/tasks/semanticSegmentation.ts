@@ -23,8 +23,11 @@ import { sigmoid, argmax } from '../../math';
  * @category Types
  */
 export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+  /** Resize mode for input images. */
   readonly resizeMode: 'stretch';
+  /** Interpolation method used when resizing output masks back to input image dimensions. */
   readonly outInterpolation: InterpolationMethod;
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
 };
 
@@ -33,7 +36,9 @@ export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resize
  * @category Types
  */
 export type SemanticSegmenterModel<L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Semantic segmenter options. */
   readonly opts: SemanticSegmenterOptions<L>;
 };
 
@@ -48,7 +53,9 @@ export type ColorMap<L extends PropertyKey> = Record<L, [number, number, number,
  * @category Types
  */
 export type SemanticSegmentationResult<L extends PropertyKey> = {
+  /** Generated output RGBA image buffer containing the colored segmentation mask. */
   buffer: ImageBuffer;
+  /** Applied color map mapping each class label to its RGBA tuple. */
   colormap?: ColorMap<L>;
 };
 

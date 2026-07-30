@@ -21,8 +21,11 @@ import {
  * @category Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+  /** Resize mode for input images. */
   readonly resizeMode: 'stretch';
+  /** Normalization options for postprocessing output tensors back to uint8 pixel values. */
   readonly outNormalizeOpts: NormalizeOptions;
+  /** Interpolation method used when resizing output styled images to input dimensions. */
   readonly outInterpolation: InterpolationMethod;
 };
 
@@ -31,7 +34,9 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
  * @category Types
  */
 export type StyleTransferModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Style transfer preprocessor and postprocessor options. */
   readonly opts: StyleTransferOptions;
 };
 

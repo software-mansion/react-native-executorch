@@ -21,10 +21,15 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for preprocessing input images (`stretch` or `letterbox`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
+  /** Bounding box format exported by the model (`xyxy`, `cxcywh`, etc.). */
   readonly boxFormat: F;
+  /** Default IoU threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default minimum confidence score threshold for detections. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -33,7 +38,9 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
  * @category Types
  */
 export type ObjectDetectorModel<F extends BoxFormat, L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Object detector preprocessor and threshold options. */
   readonly opts: ObjectDetectorOptions<F, L>;
 };
 
@@ -42,8 +49,11 @@ export type ObjectDetectorModel<F extends BoxFormat, L> = {
  * @category Types
  */
 export type ObjectDetection<F extends BoxFormat, L> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Predicted object class label. */
   readonly label: L;
+  /** Confidence score of the detection (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -72,12 +82,12 @@ export async function createObjectDetector<F extends BoxFormat, L>(
    */
   dispose: () => void;
   /**
-   * Performs asynchronous object detection on the given input image.
    * @param input The input image buffer.
    * @param options Configuration options for object detection.
-   * @param options.confidenceThreshold Minimum confidence score for returned
-   * detections.
-   * @param options.iouThreshold Non-maximum suppression IoU threshold.
+   * @param options.confidenceThreshold Minimum confidence score threshold. If
+   * omitted, uses `opts.defaultConfidenceThreshold`.
+   * @param options.iouThreshold Non-maximum suppression IoU threshold. If
+   * omitted, uses `opts.defaultIouThreshold`.
    * @returns A promise resolving to the list of object detections.
    */
   detectObjects: (
