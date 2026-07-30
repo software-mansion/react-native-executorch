@@ -34,7 +34,7 @@ export function useClassifier<L>(config: ClassifierModel<L>, options?: { prevent
     error: downloadError || error,
     downloadProgress,
     localPath,
-    labels: config.classifierOpts.labels,
+    labels: config.opts.labels,
     classify: model?.classify,
     classifyWorklet: model?.classifyWorklet,
   };

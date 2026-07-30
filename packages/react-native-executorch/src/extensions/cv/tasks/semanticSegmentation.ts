@@ -22,7 +22,7 @@ import { sigmoid, argmax } from '../../math';
  * vocabulary.
  * @category Types
  */
-export type SemanticSegmentationOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
   readonly resizeMode: 'stretch';
   readonly outInterpolation: InterpolationMethod;
   readonly labels: readonly L[];
@@ -32,9 +32,9 @@ export type SemanticSegmentationOptions<L> = Omit<ImagePreprocessorOptions, 'res
  * Model configuration required to instantiate a segmenter task runner.
  * @category Types
  */
-export type SemanticSegmentationModel<L> = {
+export type SemanticSegmenterModel<L> = {
   readonly modelPath: string;
-  readonly opts: SemanticSegmentationOptions<L>;
+  readonly opts: SemanticSegmenterOptions<L>;
 };
 
 /**
@@ -77,7 +77,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
  * disposal controls.
  */
 export async function createSemanticSegmenter<L extends PropertyKey = string>(
-  config: SemanticSegmentationModel<L>,
+  config: SemanticSegmenterModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
   /**

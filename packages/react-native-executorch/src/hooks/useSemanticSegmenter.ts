@@ -2,7 +2,7 @@ import { useModel } from './useModel';
 import { useResourceDownload } from './useResourceDownload';
 import {
   createSemanticSegmenter,
-  type SemanticSegmentationModel,
+  type SemanticSegmenterModel,
 } from '../extensions/cv/tasks/semanticSegmentation';
 
 /**
@@ -22,7 +22,7 @@ import {
  * progress, and segmentation functions.
  */
 export function useSemanticSegmenter<L extends PropertyKey = string>(
-  config: SemanticSegmentationModel<L>,
+  config: SemanticSegmenterModel<L>,
   options?: { preventLoad?: boolean }
 ) {
   const { localPath, downloadProgress, downloadError } = useResourceDownload(
