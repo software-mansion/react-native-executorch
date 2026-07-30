@@ -53,7 +53,8 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     auto error = etModule_->load();
     if (!etModule_->is_loaded()) {
         const std::string errorMsg = executorch::runtime::to_string(error);
-        throw std::runtime_error(std::format("Failed to load model: {}", errorMsg));
+        throw std::runtime_error(std::format("Failed to load model from '{}': {}",
+                                             modelPath_, errorMsg));
     }
 
     const auto methodNames = unwrap("method names", etModule_->method_names());
@@ -127,8 +128,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
             if (inputsArray.size(rt) != methodSpec.inputs.size()) {
-                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs: got {}, expected {}",
-                                                   inputsArray.size(rt), methodSpec.inputs.size()));
+                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs of method '{}': got {}, expected {}",
+                                                   methodName, inputsArray.size(rt), methodSpec.inputs.size()));
             }
 
             std::vector<executorch::runtime::EValue> inputs(methodSpec.inputs.size());
@@ -202,8 +203,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                                                  "     (see `src/core/schema.ts` for the JSON structure).\n"
                                                  "     Without it, validation falls back to static metadata\n"
                                                  "     from ExecuTorch which only contains upper bounds and\n"
-                                                 "     does not capture runtime constraints.",
-                                                 "\n", "Error:", methodName),
+                                                 "     does not capture runtime constraints.\n"
+                                                 "\n"
+                                                 "Error",
+                                                 methodName),
                                  std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
@@ -214,7 +217,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 switch (output.tag) {
                 case executorch::runtime::Tag::Tensor: {
                     if (tensorOutputIdx >= outputTensorsArray.size(rt)) {
-                        throw jsi::JSError(rt, "execute: Not enough tensor output placeholders in outputTensors");
+                        throw jsi::JSError(rt, std::format("execute: Not enough tensor output placeholders in outputTensors"
+                                                           " (provided {}, expected at least {})",
+                                                           outputTensorsArray.size(rt), tensorOutputIdx + 1));
                     }
 
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);

@@ -99,7 +99,7 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
     const auto &shape = tensor->shape_;
 
     if (expectedDtype && dtype != *expectedDtype) {
-        throw jsi::JSError(rt, std::format("{} must be of type {}", ctx, types::toString(*expectedDtype)));
+        throw jsi::JSError(rt, std::format("{} must be of type {} (got {})", ctx, types::toString(*expectedDtype), types::toString(dtype)));
     }
 
     if (!expectedShape) {

@@ -345,12 +345,14 @@ void validateTensorParam(const ParamSpec &param,
                          const std::string &ctx) {
     auto metaDtype = types::fromScalarType(tensorMeta.scalar_type());
     if (param.dtype != metaDtype) {
-        throw std::runtime_error(std::format("{}: dtype mismatch", ctx));
+        throw std::runtime_error(std::format("{}: dtype mismatch (spec type '{}' != compiled metadata type '{}')",
+                                             ctx, types::toString(param.dtype), types::toString(metaDtype)));
     }
 
     auto metaShape = tensorMeta.sizes();
     if (param.shape.size() != metaShape.size()) {
-        throw std::runtime_error(std::format("{}: rank mismatch", ctx));
+        throw std::runtime_error(std::format("{}: rank mismatch (spec rank {} != compiled metadata rank {})",
+                                             ctx, param.shape.size(), metaShape.size()));
     }
 
     for (size_t d = 0; d < param.shape.size(); ++d) {
@@ -359,7 +361,8 @@ void validateTensorParam(const ParamSpec &param,
         std::visit(overloaded{
             [&](int32_t c) {
                 if (c != bound) {
-                    throw std::runtime_error(std::format("{}: shape[{}] mismatch", ctx, d));
+                    throw std::runtime_error(std::format("{}: shape[{}] mismatch (spec constant {} != compiled bound {})",
+                                                       ctx, d, c, bound));
                 }
             },
             [&](const RangeDim &r) {
@@ -443,7 +446,9 @@ void validateParamsAgainstMeta(const std::vector<ParamSpec> &params,
                                  : unwrap(pctx, meta.output_tag(i));
 
         if (params[i].tag != tagResult) {
-            throw std::runtime_error(std::format("{}: tag mismatch", pctx));
+            throw std::runtime_error(std::format("{}: tag mismatch (spec tag {} != compiled metadata tag {})",
+                                                 pctx, executorch::runtime::tag_to_string(params[i].tag),
+                                                 executorch::runtime::tag_to_string(tagResult)));
         }
 
         if (tagResult == Tag::Tensor) {
@@ -461,10 +466,12 @@ void validateSpec(const MethodSpec &spec,
                   const std::string &ctx) {
 
     if (spec.inputs.size() != meta.num_inputs()) {
-        throw std::runtime_error(std::format("{}: input count mismatch", ctx));
+        throw std::runtime_error(std::format("{}: input count mismatch (spec has {}, model metadata has {})",
+                                             ctx, spec.inputs.size(), meta.num_inputs()));
     }
     if (spec.outputs.size() != meta.num_outputs()) {
-        throw std::runtime_error(std::format("{}: output count mismatch", ctx));
+        throw std::runtime_error(std::format("{}: output count mismatch (spec has {}, model metadata has {})",
+                                             ctx, spec.outputs.size(), meta.num_outputs()));
     }
 
     validateSpecDimDomains(spec, ctx);
@@ -503,7 +510,8 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
                 }
                 for (size_t j = 1; j < inputVals.size(); ++j) {
                     if (inputVals[j] != inputVals[0]) {
-                        throw jsi::JSError(rt, std::format("{}: equality constraint violated", cctx));
+                        throw jsi::JSError(rt, std::format("{}: equality constraint violated (dimension value {} != {})",
+                                                           cctx, inputVals[0], inputVals[j]));
                     }
                 }
             },
@@ -515,7 +523,8 @@ void validateRuntimeConstraints(jsi::Runtime &rt,
                 int32_t lhs = getInputDimValue(lin.dimLhs, inputShapes);
                 int32_t rhs = getInputDimValue(lin.dimRhs, inputShapes);
                 if (lhs != lin.coefficients[0] * rhs + lin.coefficients[1]) {
-                    throw jsi::JSError(rt, std::format("{}: linear constraint violated", cctx));
+                    throw jsi::JSError(rt, std::format("{}: linear constraint violated (LHS {} != {} * RHS {} + {})",
+                                                       cctx, lhs, lin.coefficients[0], rhs, lin.coefficients[1]));
                 }
             },
         }, constraints[i]);
