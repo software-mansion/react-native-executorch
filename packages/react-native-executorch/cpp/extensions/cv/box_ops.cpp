@@ -44,7 +44,7 @@ BoxFormat parseBoxFormat(const std::string &s) {
     if (s == "cxcywh") {
         return BoxFormat::CXCYWH;
     }
-    throw std::invalid_argument("unsupported boxFormat '" + s + "'");
+    throw std::invalid_argument(std::format("unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", s));
 }
 
 enum class NmsType {
@@ -59,7 +59,7 @@ NmsType parseNmsType(const std::string &s) {
     if (s == "weighted") {
         return NmsType::Weighted;
     }
-    throw std::invalid_argument("unsupported nmsType '" + s + "'");
+    throw std::invalid_argument(std::format("unsupported nmsType '{}'. Expected 'standard' or 'weighted'", s));
 }
 
 constexpr size_t kBoxCoords = 4;
@@ -223,7 +223,8 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
 
         auto boxVec = conversions::asVector<float>(rt, "restrictToBox: boxTuple", args[2]);
         if (boxVec.size() != kBoxCoords) {
-            throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
+            throw jsi::JSError(rt, std::format("restrictToBox: boxTuple must contain exactly 4 coordinates (got {})",
+                                               boxVec.size()));
         }
 
         auto boxFormatStr = conversions::asType<std::string>(rt, "restrictToBox: format", args[3]);

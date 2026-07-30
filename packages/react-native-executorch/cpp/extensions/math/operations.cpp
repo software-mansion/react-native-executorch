@@ -73,7 +73,8 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw jsi::JSError(rt, "softmax: axis is out of range");
+            throw jsi::JSError(rt, std::format("softmax: axis {} out of range for tensor of rank {}",
+                                               axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 
@@ -152,7 +153,8 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw jsi::JSError(rt, "argmax: axis is out of range");
+            throw jsi::JSError(rt, std::format("argmax: axis {} out of range for tensor of rank {}",
+                                               axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 

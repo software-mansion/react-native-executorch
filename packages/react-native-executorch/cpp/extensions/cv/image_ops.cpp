@@ -41,7 +41,9 @@ int interpToFlag(const std::string &interp) {
     if (interp == "lanczos") {
         return ::cv::INTER_LANCZOS4;
     }
-    throw std::invalid_argument("unsupported interpolation '" + interp + "'");
+    throw std::invalid_argument(std::format("unsupported interpolation '{}'. Expected"
+                                            " 'nearest', 'area', 'linear', 'cubic', or 'lanczos'",
+                                            interp));
 }
 
 struct FitBox {
@@ -189,7 +191,9 @@ int codeToColorConversionFlag(const std::string &code) {
     if (code == "GRAY2BGRA") {
         return ::cv::COLOR_GRAY2BGRA;
     }
-    throw std::invalid_argument("cvtColor: unsupported color conversion code '" + code + "'");
+    throw std::invalid_argument(std::format("cvtColor: unsupported color conversion code '{}'."
+                                            " Common values are 'RGB2BGR', 'BGR2RGB', 'RGBA2RGB', 'RGB2GRAY', etc.",
+                                            code));
 }
 } // namespace
 
@@ -414,7 +418,8 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         for (size_t i = 0; i < numColors; ++i) {
             auto colorVec = conversions::asVector<uint8_t>(rt, "applyColormap: colormap entry", colormapArray.getValueAtIndex(rt, i));
             if (colorVec.size() != numRgbaChannels) {
-                throw jsi::JSError(rt, "applyColormap: colormap entry must be an RGBA color array of size 4");
+                throw jsi::JSError(rt, std::format("applyColormap: colormap entry must be an RGBA color array of size 4 (got size {})",
+                                                   colorVec.size()));
             }
             for (size_t c = 0; c < numRgbaChannels; ++c) {
                 lut[i][c] = colorVec[c];
