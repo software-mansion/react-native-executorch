@@ -13,6 +13,7 @@ import {
   cvtColor,
   resize,
   type InterpolationMethod,
+  type NormalizeOptions,
 } from '../ops/image';
 
 /**
@@ -21,8 +22,7 @@ import {
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
   readonly resizeMode: 'stretch';
-  readonly outAlpha: number | number[];
-  readonly outBeta: number | number[];
+  readonly outNormalizeOpts: NormalizeOptions;
   readonly outInterpolation: InterpolationMethod;
 };
 
@@ -108,7 +108,7 @@ export async function createStyleTransfer(
     try {
       tOutput
         .copyTo(tReshape)
-        .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
+        .through(normalize, tUint8, opts.outNormalizeOpts)
         .through(toChannelsLast, tChanLast)
         .through(cvtColor, tRgba, 'RGB2RGBA')
         .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })

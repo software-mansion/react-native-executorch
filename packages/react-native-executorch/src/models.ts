@@ -38,8 +38,7 @@ const NEXT_VERSION_TAG = 'resolve/v0.10.0';
 const EFFICIENTNET_V2_S_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   labels: IMAGENET1K_LABELS,
 };
 const EFFICIENTNET_V2_S_XNNPACK_INT8: ClassifierModel<ImageNet1KLabel> = {
@@ -61,10 +60,8 @@ const EFFICIENTNET_V2_S_COREML_FP16: ClassifierModel<ImageNet1KLabel> = {
 const STYLE_TRANSFER_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
-  outAlpha: 255.0,
-  outBeta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
+  outNormalizeOpts: { alpha: 255.0, beta: 0.0 },
   outInterpolation: 'lanczos' as const,
 };
 const STYLE_TRANSFER_CANDY_XNNPACK_FP32: StyleTransferModel = {
@@ -141,8 +138,7 @@ const SELFIE_SEGMENTATION_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'p
     labels: ['background', 'person'] as const,
     resizeMode: 'stretch',
     interpolation: 'linear',
-    alpha: 1 / 255.0,
-    beta: 0.0,
+    normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
     outInterpolation: 'lanczos',
   },
 };
@@ -152,7 +148,7 @@ const LRASPP_MOBILENET_V3_LARGE_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
   outInterpolation: 'lanczos' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
 };
 const LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-lraspp/${VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_fp32.pte`,
@@ -168,7 +164,7 @@ const DEEPLAB_V3_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
   outInterpolation: 'lanczos' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
 };
 const DEEPLAB_V3_RESNET50_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-deeplab-v3/${NEXT_VERSION_TAG}/xnnpack/deeplab_v3_resnet50_xnnpack_fp32.pte`,
@@ -200,7 +196,7 @@ const FCN_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
   outInterpolation: 'lanczos' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
 };
 const FCN_RESNET50_XNNPACK_FP32: SemanticSegmenterModel<PascalVocLabel> = {
   modelPath: `${BASE_URL}-fcn/${NEXT_VERSION_TAG}/xnnpack/fcn_resnet50_xnnpack_fp32.pte`,
@@ -227,8 +223,7 @@ const SSDLITE320_MOBILENET_V3_LARGE_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.55,
 };
@@ -250,7 +245,7 @@ const RFDETR_NANO_DETECTOR_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.55,
 };
@@ -268,8 +263,7 @@ const YOLO26_DETECTOR_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'letterbox' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultConfidenceThreshold: 0.25,
   defaultIouThreshold: 0.7,
 };
@@ -348,8 +342,7 @@ const BLAZEFACE_XNNPACK_FP32: KeypointDetectorModel<'xyxy', BlazeFaceLandmark> =
     boxFormat: 'xyxy',
     resizeMode: 'letterbox',
     interpolation: 'linear',
-    alpha: 1 / 127.5,
-    beta: -1.0,
+    normalizeOpts: { alpha: 1 / 127.5, beta: -1.0 },
     defaultIouThreshold: 0.3,
     defaultConfidenceThreshold: 0.75,
     landmarks: BLAZEFACE_LANDMARKS,
@@ -360,8 +353,7 @@ const YOLO26_POSE_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'letterbox' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultIouThreshold: 0.7,
   defaultConfidenceThreshold: 0.25,
   landmarks: COCO_LANDMARKS,
@@ -383,7 +375,7 @@ const RFDETR_KEYPOINT_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
   defaultIouThreshold: 0.55,
   defaultConfidenceThreshold: 0.5,
   landmarks: COCO_LANDMARKS,
@@ -409,8 +401,7 @@ const FASTSAM_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.9,
   defaultMaskThreshold: 0.5,
@@ -445,7 +436,7 @@ const RFDETR_NANO_SEG_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  ...IMAGENET_NORM,
+  normalizeOpts: IMAGENET_NORM,
   defaultConfidenceThreshold: 0.5,
   defaultIouThreshold: 0.55,
   defaultMaskThreshold: 0.5,
@@ -464,8 +455,7 @@ const YOLO26_SEG_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultConfidenceThreshold: 0.25,
   defaultIouThreshold: 0.7,
   defaultMaskThreshold: 0.5,
@@ -584,8 +574,7 @@ const LFM2_5_EMBEDDING_350M_MLX_INT4: TextEmbedderModel = {
 const CLIP_IMAGE_EMBEDDINGS_OPTS = {
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
 };
 const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`,

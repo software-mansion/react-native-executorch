@@ -5,6 +5,7 @@ import type { ImageBuffer } from '../image';
 import {
   type ResizeMode,
   type InterpolationMethod,
+  type NormalizeOptions,
   FORMAT_CONVERSION,
   FORMAT_CHANNELS,
   resize,
@@ -20,8 +21,7 @@ import {
 export type ImagePreprocessorOptions = {
   readonly resizeMode: ResizeMode;
   readonly interpolation: InterpolationMethod;
-  readonly alpha: number | readonly number[];
-  readonly beta: number | readonly number[];
+  readonly normalizeOpts: NormalizeOptions;
   readonly padValue?: number;
 };
 
@@ -84,7 +84,7 @@ export function createImagePreprocessor(
   ] as const;
 
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
-  const { resizeMode, interpolation, alpha, beta, padValue } = opts;
+  const { resizeMode, interpolation, normalizeOpts, padValue } = opts;
 
   const dispose = () => tensors.forEach((t) => t.dispose());
   const process = (input: ImageBuffer): Tensor => {
@@ -105,7 +105,7 @@ export function createImagePreprocessor(
         })
         .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
         .through(toChannelsFirst, tChanFirst)
-        .through(normalize, tNorm, { alpha, beta })
+        .through(normalize, tNorm, normalizeOpts)
         .copyTo(tOutput);
     } finally {
       tInput.dispose();
