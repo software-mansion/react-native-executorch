@@ -54,9 +54,9 @@ export type ColorMap<L extends PropertyKey> = Record<L, [number, number, number,
  */
 export type SemanticSegmentationResult<L extends PropertyKey> = {
   /** Generated output RGBA image buffer containing the colored segmentation mask. */
-  buffer: ImageBuffer;
+  readonly buffer: ImageBuffer;
   /** Applied color map mapping each class label to its RGBA tuple. */
-  colormap?: ColorMap<L>;
+  readonly colormap?: ColorMap<L>;
 };
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {

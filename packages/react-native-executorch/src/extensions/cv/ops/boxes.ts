@@ -8,9 +8,24 @@ import { scalePoint } from './points';
  * @category Types
  */
 export type BoxMap = {
-  xyxy: { xmin: number; ymin: number; xmax: number; ymax: number };
-  xywh: { xmin: number; ymin: number; w: number; h: number };
-  cxcywh: { cx: number; cy: number; w: number; h: number };
+  xyxy: {
+    readonly xmin: number;
+    readonly ymin: number;
+    readonly xmax: number;
+    readonly ymax: number;
+  };
+  xywh: {
+    readonly xmin: number;
+    readonly ymin: number;
+    readonly w: number;
+    readonly h: number;
+  };
+  cxcywh: {
+    readonly cx: number;
+    readonly cy: number;
+    readonly w: number;
+    readonly h: number;
+  };
 };
 
 /**
