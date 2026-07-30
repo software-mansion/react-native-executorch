@@ -64,6 +64,12 @@
  *    Only methods that actually need overrides need to appear in the JSON;
  *    methods absent from the companion spec are kept as-is from
  *    `MethodMeta`.
+ *
+ *    **Tip for model export:**
+ *    Embed the companion schema method during ExecuTorch compilation in Python
+ *    by passing `constant_methods={"get_model_schema": schema_json}` when
+ *    lowering with `to_edge_transform_and_lower(...)` where `schema_json` is
+ *    the JSON string encoding the model's `ModelSpec<ConcreteDim>`.
  * @packageDocumentation
  */
 import type { DType } from './tensor';
@@ -366,7 +372,12 @@ function choicesEqual(c1: readonly number[], c2: readonly number[]): boolean {
   return s1.size === s2.size && [...s1].every((elem) => s2.has(elem));
 }
 
-function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, dims: SymbolBindings, ctx: string): void {
+function matchDim(
+  sDim: SymbolicDim,
+  cDim: ConcreteDim,
+  bindings: SymbolBindings,
+  ctx: string
+): void {
   if (sDim.kind === 'constant' && cDim.kind === 'constant') {
     if (sDim.value !== cDim.value) {
       throw new Error(`${ctx}: Constant dimension mismatch.`);
@@ -389,30 +400,30 @@ function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, dims: SymbolBindings, ct
   }
 
   if (sDim.kind === 'static' && cDim.kind === 'constant') {
-    const bind = dims.get(sDim.symbol);
+    const bind = bindings.get(sDim.symbol);
     if (bind) {
       if (bind.kind !== 'constant' || bind.value !== cDim.value) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent dims.`);
+        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
       }
       return;
     }
-    dims.set(sDim.symbol, cDim);
+    bindings.set(sDim.symbol, cDim);
     return;
   }
 
   if (sDim.kind === 'dynamic' && (cDim.kind === 'range' || cDim.kind === 'enum')) {
-    const bind = dims.get(sDim.symbol);
+    const bind = bindings.get(sDim.symbol);
     if (bind) {
       const consistentRange =
         bind.kind === 'range' && cDim.kind === 'range' && rangesEqual(bind.range, cDim.range);
       const consistentEnum =
         bind.kind === 'enum' && cDim.kind === 'enum' && choicesEqual(bind.choices, cDim.choices);
       if (!consistentRange && !consistentEnum) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent dims.`);
+        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
       }
       return;
     }
-    dims.set(sDim.symbol, cDim);
+    bindings.set(sDim.symbol, cDim);
     return;
   }
 
@@ -422,7 +433,7 @@ function matchDim(sDim: SymbolicDim, cDim: ConcreteDim, dims: SymbolBindings, ct
 function matchMethodSpecs(
   allowedMethodSpec: MethodSpec<SymbolicDim>,
   exportedMethodSpec: MethodSpec<ConcreteDim>,
-  dims: SymbolBindings,
+  bindings: SymbolBindings,
   ctx: string
 ): void {
   if (allowedMethodSpec.inputs.length !== exportedMethodSpec.inputs.length) {
@@ -462,7 +473,7 @@ function matchMethodSpecs(
 
     for (let d = 0; d < allowedTensorSpec.shape.length; ++d) {
       const dimCtx = `${paramSpecCtx} Tensor dim #${d}`;
-      matchDim(allowedTensorSpec.shape[d]!, exportedTensorSpec.shape[d]!, dims, dimCtx);
+      matchDim(allowedTensorSpec.shape[d]!, exportedTensorSpec.shape[d]!, bindings, dimCtx);
     }
   }
 }
@@ -470,14 +481,14 @@ function matchMethodSpecs(
 function matchModelSpecsSymbols(
   allowedModelSpec: ModelSpec<SymbolicDim>,
   exportedModelSpec: ModelSpec<ConcreteDim>,
-  dims: SymbolBindings
+  bindings: SymbolBindings
 ): void {
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
       throw new Error(`Method '${methodName}' not found in exported model spec.`);
     }
-    matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, dims, `Method '${methodName}'`);
+    matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, bindings, `Method '${methodName}'`);
   }
 }
 
@@ -730,7 +741,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
  * the allowed (symbolic) model specs — variants are tried in order and the
  * first match wins. For a variant to match:
  * - Every method exists in the exported spec and its signature matches,
- *   dim each symbol to a constant value (static) or a range/enum
+ *   binding each symbol to a constant value (static) or a range/enum
  *   (dynamic). Repeated symbols must bind consistently across the whole spec.
  * - The exported spec declares exactly the same runtime constraints per
  *   method (1-to-1, no missing, no extras). Constraints are matched as
@@ -762,14 +773,14 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
 
   for (const [key, allowedModelSpec] of entries) {
     try {
-      const dims: SymbolBindings = new Map();
-      matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, dims);
+      const bindings: SymbolBindings = new Map();
+      matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, bindings);
       matchRuntimeConstraints(allowedModelSpec, exportedModelSpec);
 
       const dimFn = (name: string, kind?: string): any => {
-        const dim = dims.get(name);
+        const dim = bindings.get(name);
         if (!dim) {
-          throw new Error(`Symbol '${name}' not found in dims.`);
+          throw new Error(`Symbol '${name}' not found in bindings.`);
         }
         if (kind) {
           if (kind === 'dynamic') {
