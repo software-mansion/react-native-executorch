@@ -298,3 +298,11 @@ deis
 Coeff
 Multistep
 multistep
+Picabia
+Picabia's
+atrous
+Convolutional
+Roboflow
+Ultralytics
+
+
