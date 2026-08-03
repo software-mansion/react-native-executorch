@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/software-mansion/react-native-executorch/main/docs/static/img/logo-horizontal-dark.svg">
-    <img src="https://raw.githubusercontent.com/software-mansion/react-native-executorch/main/docs/static/img/logo-horizontal.svg" alt="React Native ExecuTorch" width="55%">
+    <source media="(prefers-color-scheme: dark)" srcset="../docs/static/img/logo-vertical-dark.svg">
+    <img src="../docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch" width="320">
   </picture>
 </div>
 
