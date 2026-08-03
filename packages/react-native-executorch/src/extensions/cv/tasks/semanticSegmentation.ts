@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -95,6 +95,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Runs semantic segmentation asynchronously.
    *
@@ -120,6 +121,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => Promise<SemanticSegmentationResult<L>>;
+
   /**
    * Runs semantic segmentation synchronously.
    * @see {@link segment} for details.
@@ -132,18 +134,22 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'K', 'H', 'W'], ['K', 'H', 'W'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 'K', 'H', 'W')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32('K', 'H', 'W')]
+    ),
+  });
 
-  const nClasses = outShape.at(-3)!;
-  const targetH = outShape.at(-2)!;
-  const targetW = outShape.at(-1)!;
+  const [nClasses, H, W] = dims.constant('K', 'H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { batched: [1, nClasses, H, W], unbatched: [nClasses, H, W] }[variant];
 
   // Generate highly distinct, high-contrast colors, see:
   // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
@@ -160,11 +166,11 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
 
   const tensors = [
     tensor('float32', outShape),
-    tensor('float32', [nClasses, targetH, targetW]),
-    tensor('float32', [nClasses, targetH, targetW]),
-    tensor('float32', [targetH, targetW, nClasses]),
-    tensor(nClasses > 1 ? 'int32' : 'uint8', [targetH, targetW, 1]),
-    tensor('uint8', [targetH, targetW, 4]),
+    tensor('float32', [nClasses, H, W]),
+    tensor('float32', [nClasses, H, W]),
+    tensor('float32', [H, W, nClasses]),
+    tensor(nClasses > 1 ? 'int32' : 'uint8', [H, W, 1]),
+    tensor('uint8', [H, W, 4]),
   ] as const;
 
   const [tOutput, tReshape, tSigmoid, tChanLast, tMask, tRgba] = tensors;

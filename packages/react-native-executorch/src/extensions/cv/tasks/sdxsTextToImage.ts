@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, i64, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { randomNormal } from '../../math';
 import { loadTokenizer } from '../../nlp/tokenizer';
@@ -21,10 +21,9 @@ const CLIP_PAD_TOKEN_ID = 49407;
 
 const IMAGE_SIZE = 512;
 const LATENT_CHANNELS = 4;
-// The UNet operates at 1/8 of the image resolution.
-const LATENT_SIZE = IMAGE_SIZE / 8;
-// Scheduler `init_noise_sigma`: the initial latents are standard normal.
-const INIT_NOISE_SIGMA = 1.0;
+const LATENT_SIZE = IMAGE_SIZE / 8; // The UNet operates at 1/8 of the image resolution.
+const LATENT_SHAPE = [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE];
+const INIT_NOISE_SIGMA = 1.0; // Scheduler's initial latents are standard normal.
 
 // At the distilled single step the DEIS update collapses to an exactly linear
 // combination of the latents and the UNet output:
@@ -61,6 +60,7 @@ export async function createSdxsTextToImage(
 ): Promise<{
   /** Releases all allocated native resources. */
   dispose: () => void;
+
   /**
    * Generates an image from a text prompt.
    * @param prompt The text prompt describing the desired image.
@@ -69,6 +69,7 @@ export async function createSdxsTextToImage(
    * @returns A promise resolving to the generated RGBA image buffer.
    */
   generate: (prompt: string, seed?: number) => Promise<ImageBuffer>;
+
   /**
    * Synchronous version of {@link generate} to be executed directly on the
    * caller or worklet thread.
@@ -79,35 +80,32 @@ export async function createSdxsTextToImage(
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const tokenizer = await wrapAsync(loadTokenizer, runtime)(tokenizerPath);
 
-  validateModelSchema(
-    model,
-    'encode',
-    [SymbolicTensor('int64', [1, CLIP_MAX_TOKENS])],
-    [SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE])]
-  );
-  validateModelSchema(
-    model,
-    'denoise',
-    [
-      SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
-      SymbolicTensor('int64', [1]),
-      SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
-    ],
-    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])]
-  );
-  validateModelSchema(
-    model,
-    'decode',
-    [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])],
-    [SymbolicTensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE])]
-  );
+  validateSpec(model.schema, {
+    default: {
+      ...method(
+        'encode', // prettier-ignore
+        [i64(1, CLIP_MAX_TOKENS)],
+        [f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)]
+      ),
+      ...method(
+        'denoise',
+        [f32(...LATENT_SHAPE), i64(1), f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE)],
+        [f32(...LATENT_SHAPE)]
+      ),
+      ...method(
+        'decode', // prettier-ignore
+        [f32(...LATENT_SHAPE)],
+        [f32(1, 3, IMAGE_SIZE, IMAGE_SIZE)]
+      ),
+    },
+  });
 
   const tensors = [
     tensor('int64', [1, CLIP_MAX_TOKENS]),
     tensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
     tensor('int64', [1]),
-    tensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
-    tensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
+    tensor('float32', LATENT_SHAPE),
+    tensor('float32', LATENT_SHAPE),
     tensor('float32', [1, 3, IMAGE_SIZE, IMAGE_SIZE]),
     tensor('float32', [3, IMAGE_SIZE, IMAGE_SIZE]),
     tensor('uint8', [3, IMAGE_SIZE, IMAGE_SIZE]),

@@ -3,8 +3,8 @@ import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
 import { wrapAsync } from '../../../core/runtime';
+import { f32, i64, method, validateSpec, DynamicDim as Dyn } from '../../../core/schema';
 
 import { argmax } from '../../../extensions/math';
 import { loadTokenizer } from '../../nlp/tokenizer';
@@ -176,32 +176,28 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   const eotToken = tokenizer.tokenToId('<|endoftext|>')!;
   const isEnglishOnly = supportedLanguages.length === 1 && supportedLanguages[0] === 'en';
 
-  const encMeta = validateModelSchema(
-    model,
-    'encode',
-    [SymbolicTensor('float32', ['T_audio'])],
-    [SymbolicTensor('float32', [1, 'Seq', 'State'])]
-  );
+  const { dims } = validateSpec(model.schema, {
+    default: {
+      ...method(
+        'encode', // prettier-ignore
+        [f32(Dyn('T_audio'))], // Internally, model always pads audio to the maximum duration.
+        [f32(1, 'SeqLen', 'StateDim')]
+      ),
+      ...method(
+        'decode',
+        [i64(1, 1), i64(1), f32(1, 'SeqLen', 'StateDim')],
+        [f32(1, 1, 'VocabSize')]
+      ),
+    },
+  });
 
-  const encSeqLen = encMeta.outputTensorMeta[0]!.shape[1]!;
-  const encStateDim = encMeta.outputTensorMeta[0]!.shape[2]!;
-
-  validateModelSchema(
-    model,
-    'decode',
-    [
-      SymbolicTensor('int64', [1, 'Tokens']),
-      SymbolicTensor('int64', ['Tokens']),
-      SymbolicTensor('float32', [1, encSeqLen, encStateDim]),
-    ],
-    [SymbolicTensor('float32', [1, 'Tokens', 'Vocab'])]
-  );
+  const [seqLen, stateDim] = dims.constant('SeqLen', 'StateDim');
 
   const tensors = [
     tensor('int64', [1]), // tPosition
     tensor('int64', [1, 1]), // tToken
     tensor('int32', [1, 1, 1]), // tArgmax
-    tensor('float32', [1, encSeqLen, encStateDim]), //tEncodings
+    tensor('float32', [1, seqLen, stateDim]), //tEncodings
     tensor('float32', [1, 1, tokenizer.getVocabSize()]), // tLogits
   ] as const;
 

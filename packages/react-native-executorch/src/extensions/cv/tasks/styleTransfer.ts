@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -63,12 +63,14 @@ export async function createStyleTransfer(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous image style transfer on the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the styled image buffer.
    */
   transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
+
   /**
    * Synchronous version of {@link transferStyle} to be executed directly on the
    * caller or worklet thread.
@@ -78,24 +80,29 @@ export async function createStyleTransfer(
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 3, 'H', 'W')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32(3, 'H', 'W')]
+    ),
+  });
 
-  const targetH = outShape.at(-2)!;
-  const targetW = outShape.at(-1)!;
+  const [H, W] = dims.constant('H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = inpShape;
 
   const tensors = [
     tensor('float32', outShape),
-    tensor('float32', [3, targetH, targetW]),
-    tensor('uint8', [3, targetH, targetW]),
-    tensor('uint8', [targetH, targetW, 3]),
-    tensor('uint8', [targetH, targetW, 4]),
+    tensor('float32', [3, H, W]),
+    tensor('uint8', [3, H, W]),
+    tensor('uint8', [H, W, 3]),
+    tensor('uint8', [H, W, 4]),
   ] as const;
 
   const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
