@@ -1,10 +1,11 @@
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../docs/static/img/logo-vertical-dark.svg">
-    <img src="../docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch" width="320">
+    <img src="../docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch" width="260">
   </picture>
 </div>
 
+<br />
 <br />
 
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-1&n=1)
