@@ -150,6 +150,7 @@ std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const
     return vec;
 }
 
+/** Helper constant for static_assert in dependent template contexts. */
 template <typename>
 inline constexpr bool kAlwaysFalse = false;
 
