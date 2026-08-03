@@ -38,7 +38,11 @@ export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resize
 export type SemanticSegmenterModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Semantic segmenter options. */
+  /**
+   * Image preprocessing, output mask interpolation, and label
+   * vocabulary {@link SemanticSegmenterOptions}. `resizeMode`
+   * is fixed to `'stretch'`.
+   */
   readonly modelOpts: SemanticSegmenterOptions<L>;
 };
 

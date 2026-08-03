@@ -74,7 +74,7 @@ export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'li
  * @category Types
  */
 export type ResizeOptions = {
-  /** Resize algorithm mode {@link ResizeMode}. */
+  /** How the image is resized {@link ResizeMode}. */
   readonly mode?: ResizeMode;
   /** Background fill value used when letterboxing. */
   readonly padValue?: number;
@@ -87,9 +87,12 @@ export type ResizeOptions = {
  * @category Types
  */
 export type NormalizeOptions = {
-  /** Multiplicative scaling coefficient(s). */
+  /**
+   * Multiplicative coefficient applied as `pixel * alpha`. Single value for
+   * uniform scaling, array for per-channel.
+   */
   readonly alpha?: number | readonly number[];
-  /** Additive offset coefficient(s). */
+  /** Additive offset applied as `pixel * alpha + beta`. Single value or per-channel array. */
   readonly beta?: number | readonly number[];
 };
 

@@ -35,7 +35,7 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
   readonly resizeMode: 'stretch';
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
-  /** Bounding box format {@link BoxFormat}. */
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
   /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
@@ -54,7 +54,11 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
 export type InstanceSegmenterModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Instance segmenter options. */
+  /**
+   * Image preprocessing, label vocabulary, bounding box format,
+   * and default NMS/mask/confidence thresholds
+   * {@link InstanceSegmenterOptions}.
+   */
   readonly modelOpts: InstanceSegmenterOptions<F, L>;
 };
 

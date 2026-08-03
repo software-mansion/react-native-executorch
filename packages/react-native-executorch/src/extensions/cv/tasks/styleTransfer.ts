@@ -36,7 +36,11 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
 export type StyleTransferModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Style transfer preprocessor and postprocessor options. */
+  /**
+   * Input preprocessing and output postprocessing
+   * {@link StyleTransferOptions} (normalization back to uint8,
+   * interpolation). `resizeMode` is fixed to `'stretch'`.
+   */
   readonly modelOpts: StyleTransferOptions;
 };
 

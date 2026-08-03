@@ -25,7 +25,7 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
-  /** Bounding box format {@link BoxFormat}. */
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
   /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
@@ -40,7 +40,11 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
 export type ObjectDetectorModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Object detector preprocessor and threshold options. */
+  /**
+   * Image preprocessing, label vocabulary, and default
+   * NMS/confidence thresholds {@link ObjectDetectorOptions}.
+   * Used as fallbacks when per-call overrides are omitted.
+   */
   readonly modelOpts: ObjectDetectorOptions<F, L>;
 };
 

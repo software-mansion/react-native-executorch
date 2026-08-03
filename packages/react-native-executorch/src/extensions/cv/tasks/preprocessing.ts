@@ -19,9 +19,12 @@ import {
  * @category Types
  */
 export type ImagePreprocessorOptions = {
-  /** Resize algorithm mode {@link ResizeMode}. */
+  /**
+   * How the input image is resized to match the model's expected
+   * dimensions {@link ResizeMode}.
+   */
   readonly resizeMode: ResizeMode;
-  /** Pixel interpolation method {@link InterpolationMethod}. */
+  /** Algorithm used when resizing {@link InterpolationMethod}. `'linear'` is a good default. */
   readonly interpolation: InterpolationMethod;
   /** Normalization scaling coefficients. */
   readonly normalizeOpts: NormalizeOptions;

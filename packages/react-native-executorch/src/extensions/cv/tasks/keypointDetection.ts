@@ -24,7 +24,7 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
 > & {
   /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
-  /** Bounding box format {@link BoxFormat}. */
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
   /** Array of landmark names matching the model output keypoint locations. */
   readonly landmarks: readonly L[];
@@ -41,7 +41,11 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Keypoint detector options. */
+  /**
+   * Image preprocessing, landmark names, bounding box format,
+   * and default NMS/confidence thresholds
+   * {@link KeypointDetectorOptions}.
+   */
   readonly modelOpts: KeypointDetectorOptions<F, L>;
 };
 

@@ -26,7 +26,11 @@ export type ClassifierOptions<L> = ImagePreprocessorOptions & {
 export type ClassifierModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  /** Image preprocessor and vocabulary options. */
+  /**
+   * Image preprocessing and label vocabulary
+   * {@link ClassifierOptions}. The `labels` array length must
+   * match the model's output dimension.
+   */
   readonly modelOpts: ClassifierOptions<L>;
 };
 

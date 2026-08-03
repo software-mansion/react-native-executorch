@@ -145,7 +145,7 @@ export function scaleBox<F extends BoxFormat>(
  * @category Types
  */
 export type NmsOptions = {
-  /** Bounding box format {@link BoxFormat}. */
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: BoxFormat;
   /** Intersection over Union (IoU) threshold for suppressing overlapping boxes. */
   readonly iouThreshold: number;
