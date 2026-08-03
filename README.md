@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/static/img/logo-vertical-dark.svg">
+    <img src="docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch" width="260">
+  </picture>
 </div>
 
-
-<div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch
-  </h1>
-</div>
+<br />
+<br />
 
 <div align="center">
   <a href="https://swm-delivery.com/www/delivery/ck-slug.php?zoneid=zone-gh-react-native-executorch-1&n=1"><img src="https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1" /></a>
@@ -72,7 +72,7 @@ The minimal supported version are:
 
 React Native ExecuTorch is powering [Private Mind](https://privatemind.swmansion.com/), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
-<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+<img width="2720" height="1085" alt="Private Mind promo" src="docs/static/img/private-mind-promo.png" />
 
 ## Quickstart - Running LFM2.5
 

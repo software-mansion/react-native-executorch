@@ -1,11 +1,12 @@
 <div align="center">
-  <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../docs/static/img/logo-vertical-dark.svg">
+    <img src="../docs/static/img/logo-vertical.svg" alt="React Native ExecuTorch" width="260">
+  </picture>
 </div>
 
-<div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch
-  </h1>
-</div>
+<br />
+<br />
 
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-1&n=1)
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-2?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-2&n=1)
@@ -69,7 +70,7 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 
 React Native ExecuTorch को [Private Mind](https://privatemind.swmansion.com/) का समर्थन प्राप्त है, जो एक गोपनीयता-पहले मोबाइल AI ऐप है जो [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) और [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) पर उपलब्ध है।
 
-<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+<img width="2720" height="1085" alt="Private Mind promo" src="../docs/static/img/private-mind-promo.png" />
 
 ## त्वरित शुरुआत - LFM2.5 चलाना
 
