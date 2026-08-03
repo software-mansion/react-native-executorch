@@ -21,7 +21,7 @@ import {
  * @category Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
-  /** Resize mode for input images. */
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
   /** Normalization options for postprocessing output tensors back to uint8 pixel values. */
   readonly outNormalizeOpts: NormalizeOptions;
