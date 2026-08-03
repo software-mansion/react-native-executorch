@@ -1,11 +1,8 @@
 <div align="center">
-  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
-</div>
-
-
-<div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch
-  </h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/software-mansion/react-native-executorch/main/docs/static/img/logo-horizontal-dark.svg">
+    <img src="https://raw.githubusercontent.com/software-mansion/react-native-executorch/main/docs/static/img/logo-horizontal.svg" alt="React Native ExecuTorch" width="55%">
+  </picture>
 </div>
 
 <div align="center">
