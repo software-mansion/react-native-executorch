@@ -12,8 +12,11 @@ import { loadTokenizer } from '../tokenizer';
  * @category Types
  */
 export type TextEmbedderModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Local path or remote URL of the tokenizer file. */
   readonly tokenizerPath: string;
+  /** Optional default prompt prefix added to input text before embedding. */
   readonly defaultPrompt?: string;
 };
 

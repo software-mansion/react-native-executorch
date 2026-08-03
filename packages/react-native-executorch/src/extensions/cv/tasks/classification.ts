@@ -14,15 +14,24 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from './prepro
  * vocabulary.
  * @category Types
  */
-export type ClassifierOptions<L> = ImagePreprocessorOptions & { readonly labels: readonly L[] };
+export type ClassifierOptions<L> = ImagePreprocessorOptions & {
+  /** Array of class labels matching the model's output vocabulary. */
+  readonly labels: readonly L[];
+};
 
 /**
  * Model configuration required to instantiate a classifier task runner.
  * @category Types
  */
 export type ClassifierModel<L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly classifierOpts: ClassifierOptions<L>;
+  /**
+   * Image preprocessing and label vocabulary
+   * {@link ClassifierOptions}. The `labels` array length must
+   * match the model's output dimension.
+   */
+  readonly modelOpts: ClassifierOptions<L>;
 };
 
 /**
@@ -30,7 +39,9 @@ export type ClassifierModel<L> = {
  * @category Types
  */
 export type Classification<L> = {
+  /** Predicted class label. */
   readonly label: L;
+  /** Confidence score of the prediction (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -74,7 +85,7 @@ export async function createClassifier<L>(
    */
   classifyWorklet: (input: ImageBuffer, options?: { topk?: number }) => Classification<L>[];
 }> {
-  const { modelPath, classifierOpts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -87,9 +98,9 @@ export async function createClassifier<L>(
   const outShape = meta.outputTensorMeta[0]!.shape;
 
   const numLabels = outShape[outShape.length - 1]!;
-  if (classifierOpts.labels.length !== numLabels) {
+  if (modelOpts.labels.length !== numLabels) {
     throw new Error(
-      `Classifier labels length (${classifierOpts.labels.length}) must match model output dimension (${numLabels}).`
+      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${numLabels}).`
     );
   }
 
@@ -100,7 +111,7 @@ export async function createClassifier<L>(
   ] as const;
 
   const [tLogits, tProbas] = tensors;
-  const preprocessor = createImagePreprocessor(classifierOpts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -125,7 +136,7 @@ export async function createClassifier<L>(
       .getData(new Float32Array(tProbas.numel));
 
     return Array.from(probas)
-      .map((confidence, index) => ({ confidence, label: classifierOpts.labels[index]! }))
+      .map((confidence, index) => ({ confidence, label: modelOpts.labels[index]! }))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, options?.topk);
   };

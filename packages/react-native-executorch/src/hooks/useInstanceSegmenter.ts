@@ -44,6 +44,6 @@ export function useInstanceSegmenter<F extends BoxFormat, L>(
     localPath,
     segmentInstances: model?.segmentInstances,
     segmentInstancesWorklet: model?.segmentInstancesWorklet,
-    labels: config.opts.labels,
+    labels: config.modelOpts.labels,
   };
 }

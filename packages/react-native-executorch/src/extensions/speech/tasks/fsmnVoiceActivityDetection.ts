@@ -33,35 +33,35 @@ const DEFAULT_DETECTION_MARGIN_MS = 100;
  * Tunable thresholds controlling how per-frame speech probabilities are turned
  * into speech {@link Segment}s.
  * @category Types
- * @property {number} [speechThreshold] - Minimum speech probability (0-1) for a
- * frame to count as speech. Defaults to `0.6`.
- * @property {number} [minSpeechDurationMs] - Minimum duration a region must stay
- * above the threshold to open a segment. Defaults to `250`.
- * @property {number} [minSilenceDurationMs] - Minimum duration below the
- * threshold required to close a segment. Defaults to `100`.
- * @property {number} [speechPadMs] - Padding added to both ends of every
- * detected segment. Defaults to `30`.
- * @property {number} [mergeGapMs] - Segments closer than this gap are merged
- * into one. Defaults to `0`.
  */
 export type VadOptions = {
+  /** Minimum speech probability (0-1) for a frame to count as speech. */
   readonly speechThreshold?: number;
+  /**
+   * Minimum duration a region must stay above the threshold to open a
+   * segment.
+   */
   readonly minSpeechDurationMs?: number;
+  /** Minimum duration below threshold required to close a segment. */
   readonly minSilenceDurationMs?: number;
+  /** Padding added to both ends of every detected segment. */
   readonly speechPadMs?: number;
+  /** Segments closer than this gap are merged into one. */
   readonly mergeGapMs?: number;
 };
 
 /**
  * Model configuration required to instantiate an FSMN-VAD task runner.
  * @category Types
- * @property {string} modelPath - Local path or remote URL of the `.pte` model.
- * @property {Required<VadOptions>} defaultOptions - Detection thresholds tuned
- * for this model, overridable per `detectVoice` call. Defined alongside the
- * model in the `models` registry so the defaults are discoverable there.
  */
 export type FsmnVadModel = {
+  /** Local path or remote URL of the `.pte` model. */
   readonly modelPath: string;
+  /**
+   * Detection thresholds tuned for this model, overridable per `detectVoice`
+   * call. Defined alongside the model in the `models` registry so defaults
+   * are discoverable there.
+   */
   readonly defaultOptions: Required<VadOptions>;
 };
 
@@ -70,7 +70,9 @@ export type FsmnVadModel = {
  * @category Types
  */
 export type Segment = {
+  /** Start time of the speech segment in seconds. */
   readonly start: number;
+  /** End time of the speech segment in seconds. */
   readonly end: number;
 };
 
@@ -78,11 +80,12 @@ export type Segment = {
  * Options controlling live detection via `detectVoiceOnStream`. Extends the
  * per-call detection thresholds ({@link VadOptions}).
  * @category Types
- * @property {number} [detectionMargin] - How recent (in milliseconds) the last
- * detected speech segment must reach toward the end of the window for speech to
- * still be considered ongoing. Defaults to `100`.
  */
 export type VadStreamOptions = VadOptions & {
+  /**
+   * How recent (in milliseconds) the last detected speech segment must reach
+   * toward the end of the window for speech to still be considered ongoing.
+   */
   readonly detectionMargin?: number;
 };
 

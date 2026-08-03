@@ -5,6 +5,7 @@ import type { ImageBuffer } from '../image';
 import {
   type ResizeMode,
   type InterpolationMethod,
+  type NormalizeOptions,
   FORMAT_CONVERSION,
   FORMAT_CHANNELS,
   resize,
@@ -18,10 +19,16 @@ import {
  * @category Types
  */
 export type ImagePreprocessorOptions = {
+  /**
+   * How the input image is resized to match the model's expected
+   * dimensions {@link ResizeMode}.
+   */
   readonly resizeMode: ResizeMode;
+  /** Algorithm used when resizing {@link InterpolationMethod}. `'linear'` is a good default. */
   readonly interpolation: InterpolationMethod;
-  readonly alpha: number | readonly number[];
-  readonly beta: number | readonly number[];
+  /** Normalization scaling coefficients. */
+  readonly normalizeOpts: NormalizeOptions;
+  /** Optional background fill value used when letterboxing. */
   readonly padValue?: number;
 };
 
@@ -84,7 +91,7 @@ export function createImagePreprocessor(
   ] as const;
 
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
-  const { resizeMode, interpolation, alpha, beta, padValue } = opts;
+  const { resizeMode, interpolation, normalizeOpts, padValue } = opts;
 
   const dispose = () => tensors.forEach((t) => t.dispose());
   const process = (input: ImageBuffer): Tensor => {
@@ -105,7 +112,7 @@ export function createImagePreprocessor(
         })
         .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
         .through(toChannelsFirst, tChanFirst)
-        .through(normalize, tNorm, { alpha, beta })
+        .through(normalize, tNorm, normalizeOpts)
         .copyTo(tOutput);
     } finally {
       tInput.dispose();

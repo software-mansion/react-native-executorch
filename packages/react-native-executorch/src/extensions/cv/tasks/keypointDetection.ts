@@ -22,10 +22,15 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
+  /** Array of landmark names matching the model output keypoint locations. */
   readonly landmarks: readonly L[];
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default minimum confidence score threshold for keypoint detections. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -34,8 +39,14 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
  * @category Types
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: KeypointDetectorOptions<F, L>;
+  /**
+   * Image preprocessing, landmark names, bounding box format,
+   * and default NMS/confidence thresholds
+   * {@link KeypointDetectorOptions}.
+   */
+  readonly modelOpts: KeypointDetectorOptions<F, L>;
 };
 
 /**
@@ -51,8 +62,11 @@ export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly conf
  * @category Types
  */
 export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Overall confidence score of the detection (between 0.0 and 1.0). */
   readonly confidence: number;
+  /** Map of landmark names to their scaled pixel coordinates and individual confidence scores. */
   readonly landmarks: Landmarks<L>;
 };
 
@@ -160,9 +174,9 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    * @param input The input image buffer.
    * @param options Configuration options for keypoint detection.
    * @param options.confidenceThreshold Minimum confidence score for a
-   * detection. If omitted, uses the model default.
+   * detection. If omitted, uses `modelOpts.defaultConfidenceThreshold`.
    * @param options.iouThreshold Intersection over Union (IoU) threshold for
-   * NMS. If omitted, uses the model default.
+   * NMS. If omitted, uses `modelOpts.defaultIouThreshold`.
    * @returns A promise resolving to the list of keypoint detections.
    */
   detectKeypoints: (
@@ -178,8 +192,8 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => KeypointDetection<F, L>[];
 }> {
-  const { modelPath, opts } = config;
-  const { landmarks } = opts;
+  const { modelPath, modelOpts } = config;
+  const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const meta = validateModelSchema(
     model,
@@ -205,7 +219,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
   ] as const;
 
   const [tBoxes, tScores, tKeypoints] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -221,11 +235,12 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tKeypoints]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     return postprocess(tBoxes, tScores, tKeypoints, {
-      ...opts,
+      ...modelOpts,
       iouThreshold,
       confidenceThreshold,
       from: { width: targetW, height: targetH },
