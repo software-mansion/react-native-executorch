@@ -23,7 +23,7 @@ enum class DType {
  * @return The corresponding DType enum value.
  * @throws std::invalid_argument If the string does not match any known DType.
  */
-DType parseDType(const std::string &s);
+DType dtypeFromString(const std::string &s);
 
 /**
  * Converts a DType enum value to its string representation.
@@ -31,7 +31,7 @@ DType parseDType(const std::string &s);
  * @param dtype The DType enum value to convert.
  * @return The string representation of the data type.
  */
-std::string toString(DType dtype);
+std::string dtypeToString(DType dtype);
 
 /**
  * Converts a DType enum value to the corresponding ExecuTorch ScalarType.
@@ -39,7 +39,7 @@ std::string toString(DType dtype);
  * @param dtype The DType enum value to convert.
  * @return The corresponding ExecuTorch ScalarType.
  */
-executorch::aten::ScalarType toScalarType(DType dtype);
+executorch::aten::ScalarType dtypeToScalarType(DType dtype);
 
 /**
  * Converts an ExecuTorch ScalarType to the corresponding DType enum value.
@@ -48,7 +48,7 @@ executorch::aten::ScalarType toScalarType(DType dtype);
  * @return The corresponding DType enum value.
  * @throws std::invalid_argument If the ScalarType is not supported.
  */
-DType fromScalarType(executorch::aten::ScalarType st);
+DType dtypeFromScalarType(executorch::aten::ScalarType st);
 
 /**
  * Returns the byte size of a single element for the specified DType.

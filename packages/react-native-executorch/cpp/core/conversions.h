@@ -179,6 +179,7 @@ jsi::Array toJsiArray(jsi::Runtime &rt, const std::vector<T> &vec) {
     }
     return arr;
 }
+
 /**
  * Maps an arithmetic C++ type to the name of the JS TypedArray constructor whose
  * elements have the same layout (e.g. int32_t -> "Int32Array"). 64-bit integers
