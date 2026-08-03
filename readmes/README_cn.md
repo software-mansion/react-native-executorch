@@ -70,7 +70,7 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 
 React Native ExecuTorch 为 [Private Mind](https://privatemind.swmansion.com/) 提供了动力，这是一款以隐私优先的移动 AI 应用程序，可在 [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) 和 [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) 上获得。
 
-<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+<img width="2720" height="1085" alt="Private Mind promo" src="../docs/static/img/private-mind-promo.png" />
 
 ## 快速入门 - 运行 LFM2.5
 

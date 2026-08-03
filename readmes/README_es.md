@@ -70,7 +70,7 @@ Las versiones mínimas compatibles son:
 
 React Native ExecuTorch impulsa [Private Mind](https://privatemind.swmansion.com/), una aplicación móvil de IA centrada en la privacidad disponible en [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) y [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
-<img width="2720" height="1085" alt="Promoción de Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
+<img width="2720" height="1085" alt="Promoción de Private Mind" src="../docs/static/img/private-mind-promo.png" />
 
 ## Inicio rápido - Ejecutar LFM2.5
 
