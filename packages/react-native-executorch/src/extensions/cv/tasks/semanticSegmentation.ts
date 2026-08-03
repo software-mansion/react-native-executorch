@@ -23,7 +23,7 @@ import { sigmoid, argmax } from '../../math';
  * @category Types
  */
 export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
-  /** Resize mode for input images. */
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
   /** Interpolation method used when resizing output masks back to input image dimensions. */
   readonly outInterpolation: InterpolationMethod;

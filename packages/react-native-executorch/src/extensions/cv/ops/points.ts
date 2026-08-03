@@ -17,8 +17,8 @@ export type Point = {
  * @param opts Options detailing the scaling factors and resize mode.
  * @param opts.from The source bounds (e.g. model input dimensions).
  * @param opts.to The destination bounds (e.g. original image dimensions).
- * @param opts.resizeMode The mode used to resize the image ('letterbox' or
- * 'stretch').
+ * @param opts.resizeMode The mode used to resize the image {@link ResizeMode}
+ * (excluding `'crop'`).
  * @returns The scaled coordinate point.
  */
 export function scalePoint(

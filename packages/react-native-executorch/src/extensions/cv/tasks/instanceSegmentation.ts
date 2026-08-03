@@ -31,13 +31,13 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for input images. */
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
-  /** Bounding box format exported by the model (`xyxy`, `cxcywh`, etc.). */
+  /** Bounding box format {@link BoxFormat}. */
   readonly boxFormat: F;
-  /** Default IoU threshold for Non-Maximum Suppression (NMS). */
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
   /** Default probability threshold for mask values. */
   readonly defaultMaskThreshold: number;
@@ -107,7 +107,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * @param options Execution override options.
    * @param options.confidenceThreshold Minimum confidence threshold. If
    * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold IoU threshold in NMS. If omitted, uses
+   * @param options.iouThreshold Intersection over Union (IoU) threshold in NMS. If omitted, uses
    * `modelOpts.defaultIouThreshold`.
    * @param options.maskThreshold Mask binarization threshold. If omitted,
    * uses `modelOpts.defaultMaskThreshold`.

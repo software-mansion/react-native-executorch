@@ -8,7 +8,7 @@ import { type Tensor } from '../../../core/tensor';
 export type ExtractFramesOptions = {
   /** Number of audio frames to extract and write into the destination tensor. */
   readonly numFrames: number;
-  /** Samples between consecutive frames. */
+  /** Number of samples between consecutive frames. */
   readonly hopLength: number;
   /** Pre-emphasis filter coefficient. */
   readonly preemphasis: number;

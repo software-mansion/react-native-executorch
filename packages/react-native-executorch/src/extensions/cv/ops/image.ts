@@ -74,11 +74,11 @@ export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'li
  * @category Types
  */
 export type ResizeOptions = {
-  /** Resize algorithm mode (`stretch`, `letterbox`, `crop`). */
+  /** Resize algorithm mode {@link ResizeMode}. */
   readonly mode?: ResizeMode;
   /** Background fill value used when letterboxing. */
   readonly padValue?: number;
-  /** Pixel interpolation method. */
+  /** Pixel interpolation method {@link InterpolationMethod}. */
   readonly interpolation?: InterpolationMethod;
 };
 
@@ -96,18 +96,17 @@ export type NormalizeOptions = {
 /**
  * Resizes an image tensor from a source dimension to a destination dimension.
  *
- * Supports various resize modes (`stretch`, `letterbox`, `crop`) and
- * interpolation algorithms (`linear`, `lanczos`, etc.).
+ * Supports various {@link ResizeMode} and {@link InterpolationMethod} options.
  * @category Typescript API
  * @param src The source image tensor in HWC layout. Shape [H,W,C].
  * @param dst The pre-allocated destination tensor to write the resized image
  * to. `dst` must be in HWC layout and its number of channels must match `src`.
  * Shape [H',W',C].
  * @param opts Configuration options for resizing.
- * @param opts.mode Resize algorithm mode (`stretch`, `letterbox`, `crop`).
- * Defaults to `'stretch'`.
- * @param opts.interpolation Pixel interpolation method (`linear`, `lanczos`,
- * etc.). Defaults to `'lanczos'`.
+ * @param opts.mode The resize algorithm mode {@link ResizeMode}. Defaults to
+ * `'stretch'`.
+ * @param opts.interpolation The pixel interpolation method
+ * {@link InterpolationMethod}. Defaults to `'lanczos'`.
  * @param opts.padValue Fill value for letterboxing. Defaults to `0`.
  * @returns The destination tensor containing the resized image.
  */

@@ -19,9 +19,9 @@ import {
  * @category Types
  */
 export type ImagePreprocessorOptions = {
-  /** Resize algorithm mode (`stretch`, `letterbox`, `crop`). */
+  /** Resize algorithm mode {@link ResizeMode}. */
   readonly resizeMode: ResizeMode;
-  /** Pixel interpolation method (`linear`, `lanczos`, etc.). */
+  /** Pixel interpolation method {@link InterpolationMethod}. */
   readonly interpolation: InterpolationMethod;
   /** Normalization scaling coefficients. */
   readonly normalizeOpts: NormalizeOptions;

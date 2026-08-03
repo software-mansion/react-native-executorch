@@ -75,8 +75,8 @@ export function decodeBox<F extends BoxFormat>(
  * @param opts Options defining dimensions and resize modes.
  * @param opts.from The source bounds (e.g. model input dimensions).
  * @param opts.to The destination bounds (e.g. original image dimensions).
- * @param opts.resizeMode The mode used to resize the image ('letterbox' or
- * 'stretch').
+ * @param opts.resizeMode The mode used to resize the image {@link ResizeMode}
+ * (excluding `'crop'`).
  * @returns The scaled BoundingBox object.
  */
 export function scaleBox<F extends BoxFormat>(
@@ -145,9 +145,9 @@ export function scaleBox<F extends BoxFormat>(
  * @category Types
  */
 export type NmsOptions = {
-  /** Bounding box format (`xyxy`, `cxcywh`, etc.). */
+  /** Bounding box format {@link BoxFormat}. */
   readonly boxFormat: BoxFormat;
-  /** IoU threshold for suppressing overlapping boxes. */
+  /** Intersection over Union (IoU) threshold for suppressing overlapping boxes. */
   readonly iouThreshold: number;
   /** Minimum confidence score threshold for filtering candidate boxes. */
   readonly confidenceThreshold: number;
@@ -165,12 +165,12 @@ export type NmsOptions = {
  * @param boxes Bounding boxes coordinate tensor.
  * @param scores Bounding boxes confidence scores tensor.
  * @param opts Options configuring NMS thresholds and execution mode.
- * @param opts.boxFormat Bounding box format (`xyxy`, `cxcywh`, etc.).
+ * @param opts.boxFormat The bounding box format {@link BoxFormat}.
  * @param opts.iouThreshold Intersection over Union (IoU) threshold for
  * suppression.
  * @param opts.confidenceThreshold Minimum confidence score for candidate
  * selection.
- * @param opts.nmsType Suppression algorithm mode (`standard` or `weighted`).
+ * @param opts.nmsType The NMS algorithm variant {@link NmsOptions.nmsType}.
  * @returns The resulting indices of the non-suppressed boxes:
  * - For `standard` NMS: A 1D array of indices (`number[]`) representing the
  *   selected boxes.

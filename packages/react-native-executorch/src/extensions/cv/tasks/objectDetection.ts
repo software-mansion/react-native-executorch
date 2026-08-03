@@ -21,13 +21,13 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for preprocessing input images (`stretch` or `letterbox`). */
+  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
-  /** Bounding box format exported by the model (`xyxy`, `cxcywh`, etc.). */
+  /** Bounding box format {@link BoxFormat}. */
   readonly boxFormat: F;
-  /** Default IoU threshold for Non-Maximum Suppression (NMS). */
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
   /** Default minimum confidence score threshold for detections. */
   readonly defaultConfidenceThreshold: number;
@@ -86,7 +86,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
    * @param options Configuration options for object detection.
    * @param options.confidenceThreshold Minimum confidence score threshold. If
    * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Non-maximum suppression IoU threshold. If
+   * @param options.iouThreshold Intersection over Union (IoU) threshold. If
    * omitted, uses `modelOpts.defaultIouThreshold`.
    * @returns A promise resolving to the list of object detections.
    */
