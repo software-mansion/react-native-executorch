@@ -13,6 +13,7 @@ import {
   cvtColor,
   resize,
   type InterpolationMethod,
+  type NormalizeOptions,
 } from '../ops/image';
 
 /**
@@ -20,9 +21,11 @@ import {
  * @category Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
-  readonly outAlpha: number | number[];
-  readonly outBeta: number | number[];
+  /** Normalization options for postprocessing output tensors back to uint8 pixel values. */
+  readonly outNormalizeOpts: NormalizeOptions;
+  /** Interpolation method used when resizing output styled images to input dimensions. */
   readonly outInterpolation: InterpolationMethod;
 };
 
@@ -31,8 +34,14 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
  * @category Types
  */
 export type StyleTransferModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: StyleTransferOptions;
+  /**
+   * Input preprocessing and output postprocessing
+   * {@link StyleTransferOptions} (normalization back to uint8,
+   * interpolation). `resizeMode` is fixed to `'stretch'`.
+   */
+  readonly modelOpts: StyleTransferOptions;
 };
 
 /**
@@ -66,7 +75,7 @@ export async function createStyleTransfer(
    */
   transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -90,7 +99,7 @@ export async function createStyleTransfer(
   ] as const;
 
   const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -108,10 +117,10 @@ export async function createStyleTransfer(
     try {
       tOutput
         .copyTo(tReshape)
-        .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
+        .through(normalize, tUint8, modelOpts.outNormalizeOpts)
         .through(toChannelsLast, tChanLast)
         .through(cvtColor, tRgba, 'RGB2RGBA')
-        .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
+        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
         .getData(data);
     } finally {
       tResize.dispose();

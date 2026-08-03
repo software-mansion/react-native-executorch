@@ -4,13 +4,13 @@ import { type Tensor } from '../../../core/tensor';
 /**
  * Options controlling how {@link extractFrames} slices and filters the waveform.
  * @category Types
- * @property {number} numFrames - Number of frames to write (must be `<= dst.shape[0]`).
- * @property {number} hopLength - Samples between consecutive frames.
- * @property {number} preemphasis - Pre-emphasis filter coefficient.
  */
 export type ExtractFramesOptions = {
+  /** Number of audio frames to extract and write into the destination tensor. */
   readonly numFrames: number;
+  /** Number of samples between consecutive frames. */
   readonly hopLength: number;
+  /** Pre-emphasis filter coefficient. */
   readonly preemphasis: number;
 };
 
@@ -27,6 +27,10 @@ export type ExtractFramesOptions = {
  * @param hann Precomputed Hann window, shape `[frameLength]`.
  * @param dst Pre-allocated destination, shape `[frames, fftLength]`.
  * @param options Framing options.
+ * @param options.numFrames Number of frames to write (must not exceed `dst`
+ * tensor's first dimension `dst.shape[0]`).
+ * @param options.hopLength Number of audio samples between consecutive frames.
+ * @param options.preemphasis Pre-emphasis filter coefficient.
  * @returns The `dst` tensor, for convenience.
  */
 export function extractFrames(

@@ -31,11 +31,17 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default probability threshold for mask values. */
   readonly defaultMaskThreshold: number;
+  /** Default minimum confidence score threshold for detected instances. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -46,8 +52,14 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
  * @typeParam L The label type.
  */
 export type InstanceSegmenterModel<F extends BoxFormat, L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: InstanceSegmenterOptions<F, L>;
+  /**
+   * Image preprocessing, label vocabulary, bounding box format,
+   * and default NMS/mask/confidence thresholds
+   * {@link InstanceSegmenterOptions}.
+   */
+  readonly modelOpts: InstanceSegmenterOptions<F, L>;
 };
 
 /**
@@ -58,9 +70,13 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
  * @typeParam L The label type.
  */
 export type InstanceSegmentationResult<F extends BoxFormat, L> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Binary segmentation mask buffer cropped to the instance bounding box. */
   readonly mask: ImageBuffer;
+  /** Predicted instance class label. */
   readonly label: L;
+  /** Confidence score of the instance detection (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -93,10 +109,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * Performs asynchronous instance segmentation on the given input image.
    * @param input The input image buffer.
    * @param options Execution override options.
-   * @param options.confidenceThreshold Override for the minimum confidence
-   * threshold.
-   * @param options.iouThreshold Override for the IoU threshold in NMS.
-   * @param options.maskThreshold Override for the mask binarization threshold.
+   * @param options.confidenceThreshold Minimum confidence threshold. If
+   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
+   * @param options.iouThreshold Intersection over Union (IoU) threshold in NMS. If omitted, uses
+   * `modelOpts.defaultIouThreshold`.
+   * @param options.maskThreshold Mask binarization threshold. If omitted,
+   * uses `modelOpts.defaultMaskThreshold`.
    * @returns A promise resolving to a list of detected instances.
    */
   segmentInstances: (
@@ -113,7 +131,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
   ) => InstanceSegmentationResult<F, L>[];
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const meta = validateModelSchema(
     model,
@@ -149,7 +167,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
   const [tBoxes, tScores, tClasses, tAllMasks, tMask] = tensors;
 
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -165,16 +183,17 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const maskThreshold = options?.maskThreshold ?? opts.defaultMaskThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const maskThreshold = options?.maskThreshold ?? modelOpts.defaultMaskThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     const eps = 1e-7;
     const clampedMaskThreshold = Math.max(eps, Math.min(1 - eps, maskThreshold));
     const logitMaskThreshold = Math.log(clampedMaskThreshold / (1 - clampedMaskThreshold));
 
     const indices = nms(tBoxes, tScores, {
-      boxFormat: opts.boxFormat,
+      boxFormat: modelOpts.boxFormat,
       iouThreshold,
       confidenceThreshold,
       nmsType: 'standard',
@@ -199,12 +218,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
       for (const idx of indices) {
         const confidence = scores[idx]!;
         const classIdx = Math.round(classes[idx]!);
-        const label = opts.labels[classIdx];
+        const label = modelOpts.labels[classIdx];
 
         if (label === undefined) {
           throw new Error(
             `InstanceSegmenter: Predicted class index ${classIdx} is ` +
-              `out of bounds for labels array of size ${opts.labels.length}.`
+              `out of bounds for labels array of size ${modelOpts.labels.length}.`
           );
         }
 
@@ -213,7 +232,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
         const c = boxes[idx * 4 + 2]!;
         const d = boxes[idx * 4 + 3]!;
 
-        const box = scaleBox(decodeBox([a, b, c, d], opts.boxFormat), {
+        const box = scaleBox(decodeBox([a, b, c, d], modelOpts.boxFormat), {
           from: { width: targetW, height: targetH },
           to: { width: input.width, height: input.height },
           resizeMode: 'stretch',
