@@ -42,7 +42,7 @@ export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
     error: downloadError || error,
     downloadProgress,
     localPath,
-    landmarks: config.opts.landmarks,
+    landmarks: config.modelOpts.landmarks,
     detectKeypoints: model?.detectKeypoints,
     detectKeypointsWorklet: model?.detectKeypointsWorklet,
   };

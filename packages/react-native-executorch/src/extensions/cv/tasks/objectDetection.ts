@@ -41,7 +41,7 @@ export type ObjectDetectorModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Object detector preprocessor and threshold options. */
-  readonly opts: ObjectDetectorOptions<F, L>;
+  readonly modelOpts: ObjectDetectorOptions<F, L>;
 };
 
 /**
@@ -85,9 +85,9 @@ export async function createObjectDetector<F extends BoxFormat, L>(
    * @param input The input image buffer.
    * @param options Configuration options for object detection.
    * @param options.confidenceThreshold Minimum confidence score threshold. If
-   * omitted, uses `opts.defaultConfidenceThreshold`.
+   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
    * @param options.iouThreshold Non-maximum suppression IoU threshold. If
-   * omitted, uses `opts.defaultIouThreshold`.
+   * omitted, uses `modelOpts.defaultIouThreshold`.
    * @returns A promise resolving to the list of object detections.
    */
   detectObjects: (
@@ -103,7 +103,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => ObjectDetection<F, L>[];
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -132,9 +132,9 @@ export async function createObjectDetector<F extends BoxFormat, L>(
   ] as const;
 
   const [tBoxes, tScores, tClasses] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
-  const { boxFormat } = opts;
+  const { boxFormat } = modelOpts;
 
   const dispose = () => {
     preprocessor.dispose();
@@ -154,8 +154,9 @@ export async function createObjectDetector<F extends BoxFormat, L>(
     const scores = tScores.getData(new Float32Array(tScores.numel));
     const classes = tClasses.getData(new Float32Array(tClasses.numel));
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     const results: ObjectDetection<F, L>[] = [];
     const indices = nms(tBoxes, tScores, {
@@ -168,12 +169,12 @@ export async function createObjectDetector<F extends BoxFormat, L>(
     for (const index of indices) {
       const confidence = scores[index]!;
       const classIdx = Math.round(classes[index]!);
-      const label = opts.labels[classIdx];
+      const label = modelOpts.labels[classIdx];
 
       if (label === undefined) {
         throw new Error(
           `ObjectDetector: Predicted class index ${classIdx} is out of bounds for` +
-            `labels array of size ${opts.labels.length}.`
+            `labels array of size ${modelOpts.labels.length}.`
         );
       }
 
@@ -188,7 +189,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
         box: scaleBox(decodeBox([a, b, c, d], boxFormat), {
           from: { width: targetW, height: targetH },
           to: { width: input.width, height: input.height },
-          ...opts,
+          ...modelOpts,
         }),
       });
     }

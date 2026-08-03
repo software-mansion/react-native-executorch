@@ -42,7 +42,7 @@ export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = 
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Keypoint detector options. */
-  readonly opts: KeypointDetectorOptions<F, L>;
+  readonly modelOpts: KeypointDetectorOptions<F, L>;
 };
 
 /**
@@ -170,9 +170,9 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    * @param input The input image buffer.
    * @param options Configuration options for keypoint detection.
    * @param options.confidenceThreshold Minimum confidence score for a
-   * detection. If omitted, uses `opts.defaultConfidenceThreshold`.
+   * detection. If omitted, uses `modelOpts.defaultConfidenceThreshold`.
    * @param options.iouThreshold Intersection over Union (IoU) threshold for
-   * NMS. If omitted, uses `opts.defaultIouThreshold`.
+   * NMS. If omitted, uses `modelOpts.defaultIouThreshold`.
    * @returns A promise resolving to the list of keypoint detections.
    */
   detectKeypoints: (
@@ -188,8 +188,8 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => KeypointDetection<F, L>[];
 }> {
-  const { modelPath, opts } = config;
-  const { landmarks } = opts;
+  const { modelPath, modelOpts } = config;
+  const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const meta = validateModelSchema(
     model,
@@ -215,7 +215,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
   ] as const;
 
   const [tBoxes, tScores, tKeypoints] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -231,11 +231,12 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tKeypoints]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     return postprocess(tBoxes, tScores, tKeypoints, {
-      ...opts,
+      ...modelOpts,
       iouThreshold,
       confidenceThreshold,
       from: { width: targetW, height: targetH },

@@ -42,6 +42,6 @@ export function useSemanticSegmenter<L extends PropertyKey = string>(
     localPath,
     segment: model?.segment,
     segmentWorklet: model?.segmentWorklet,
-    labels: config.opts.labels,
+    labels: config.modelOpts.labels,
   };
 }

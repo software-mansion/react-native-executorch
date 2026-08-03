@@ -27,7 +27,7 @@ export type ClassifierModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Image preprocessor and vocabulary options. */
-  readonly opts: ClassifierOptions<L>;
+  readonly modelOpts: ClassifierOptions<L>;
 };
 
 /**
@@ -81,7 +81,7 @@ export async function createClassifier<L>(
    */
   classifyWorklet: (input: ImageBuffer, options?: { topk?: number }) => Classification<L>[];
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -94,9 +94,9 @@ export async function createClassifier<L>(
   const outShape = meta.outputTensorMeta[0]!.shape;
 
   const numLabels = outShape[outShape.length - 1]!;
-  if (opts.labels.length !== numLabels) {
+  if (modelOpts.labels.length !== numLabels) {
     throw new Error(
-      `Classifier labels length (${opts.labels.length}) must match model output dimension (${numLabels}).`
+      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${numLabels}).`
     );
   }
 
@@ -107,7 +107,7 @@ export async function createClassifier<L>(
   ] as const;
 
   const [tLogits, tProbas] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -132,7 +132,7 @@ export async function createClassifier<L>(
       .getData(new Float32Array(tProbas.numel));
 
     return Array.from(probas)
-      .map((confidence, index) => ({ confidence, label: opts.labels[index]! }))
+      .map((confidence, index) => ({ confidence, label: modelOpts.labels[index]! }))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, options?.topk);
   };

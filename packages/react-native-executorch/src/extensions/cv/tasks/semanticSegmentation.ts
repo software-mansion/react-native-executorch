@@ -39,7 +39,7 @@ export type SemanticSegmenterModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Semantic segmenter options. */
-  readonly opts: SemanticSegmenterOptions<L>;
+  readonly modelOpts: SemanticSegmenterOptions<L>;
 };
 
 /**
@@ -125,7 +125,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     colormap?: Partial<ColorMap<L>>
   ) => SemanticSegmentationResult<L>;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -143,14 +143,14 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
 
   // Generate highly distinct, high-contrast colors, see:
   // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-  const defaultColormap = opts.labels.map((_, i) => {
+  const defaultColormap = modelOpts.labels.map((_, i) => {
     if (i === 0) return [0, 0, 0, 0] as const;
     return [...hslToRgb((i * 137.5) % 360, 95, 50), 255] as const;
   });
 
-  if (nClasses > 1 && opts.labels.length !== nClasses) {
+  if (nClasses > 1 && modelOpts.labels.length !== nClasses) {
     throw new Error(
-      `Model outputs ${nClasses} classes, but ${opts.labels.length} labels were provided in the configuration.`
+      `Model outputs ${nClasses} classes, but ${modelOpts.labels.length} labels were provided in the configuration.`
     );
   }
 
@@ -164,7 +164,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   ] as const;
 
   const [tOutput, tReshape, tSigmoid, tChanLast, tMask, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -184,15 +184,15 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     if (nClasses > 1) {
       if (colormap) {
         returnColormap = Object.fromEntries(
-          opts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
+          modelOpts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
         ) as ColorMap<L>;
       } else {
         returnColormap = Object.fromEntries(
-          opts.labels.map((l, i) => [l, defaultColormap[i]!])
+          modelOpts.labels.map((l, i) => [l, defaultColormap[i]!])
         ) as ColorMap<L>;
       }
 
-      const colormapData = opts.labels.map((l) => returnColormap![l]);
+      const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
 
       tOutput
         .copyTo(tReshape)
@@ -212,7 +212,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     const tResize = tensor('uint8', [input.height, input.width, 4]);
     try {
       tRgba
-        .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
+        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
         .getData(data);
     } finally {
       tResize.dispose();

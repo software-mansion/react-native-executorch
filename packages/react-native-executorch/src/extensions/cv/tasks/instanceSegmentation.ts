@@ -55,7 +55,7 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Instance segmenter options. */
-  readonly opts: InstanceSegmenterOptions<F, L>;
+  readonly modelOpts: InstanceSegmenterOptions<F, L>;
 };
 
 /**
@@ -106,11 +106,11 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * @param input The input image buffer.
    * @param options Execution override options.
    * @param options.confidenceThreshold Minimum confidence threshold. If
-   * omitted, uses `opts.defaultConfidenceThreshold`.
+   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
    * @param options.iouThreshold IoU threshold in NMS. If omitted, uses
-   * `opts.defaultIouThreshold`.
+   * `modelOpts.defaultIouThreshold`.
    * @param options.maskThreshold Mask binarization threshold. If omitted,
-   * uses `opts.defaultMaskThreshold`.
+   * uses `modelOpts.defaultMaskThreshold`.
    * @returns A promise resolving to a list of detected instances.
    */
   segmentInstances: (
@@ -127,7 +127,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
   ) => InstanceSegmentationResult<F, L>[];
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
   const meta = validateModelSchema(
     model,
@@ -163,7 +163,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
 
   const [tBoxes, tScores, tClasses, tAllMasks, tMask] = tensors;
 
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -179,16 +179,17 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const maskThreshold = options?.maskThreshold ?? opts.defaultMaskThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const maskThreshold = options?.maskThreshold ?? modelOpts.defaultMaskThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     const eps = 1e-7;
     const clampedMaskThreshold = Math.max(eps, Math.min(1 - eps, maskThreshold));
     const logitMaskThreshold = Math.log(clampedMaskThreshold / (1 - clampedMaskThreshold));
 
     const indices = nms(tBoxes, tScores, {
-      boxFormat: opts.boxFormat,
+      boxFormat: modelOpts.boxFormat,
       iouThreshold,
       confidenceThreshold,
       nmsType: 'standard',
@@ -213,12 +214,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
       for (const idx of indices) {
         const confidence = scores[idx]!;
         const classIdx = Math.round(classes[idx]!);
-        const label = opts.labels[classIdx];
+        const label = modelOpts.labels[classIdx];
 
         if (label === undefined) {
           throw new Error(
             `InstanceSegmenter: Predicted class index ${classIdx} is ` +
-              `out of bounds for labels array of size ${opts.labels.length}.`
+              `out of bounds for labels array of size ${modelOpts.labels.length}.`
           );
         }
 
@@ -227,7 +228,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
         const c = boxes[idx * 4 + 2]!;
         const d = boxes[idx * 4 + 3]!;
 
-        const box = scaleBox(decodeBox([a, b, c, d], opts.boxFormat), {
+        const box = scaleBox(decodeBox([a, b, c, d], modelOpts.boxFormat), {
           from: { width: targetW, height: targetH },
           to: { width: input.width, height: input.height },
           resizeMode: 'stretch',

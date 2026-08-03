@@ -37,7 +37,7 @@ export type StyleTransferModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Style transfer preprocessor and postprocessor options. */
-  readonly opts: StyleTransferOptions;
+  readonly modelOpts: StyleTransferOptions;
 };
 
 /**
@@ -71,7 +71,7 @@ export async function createStyleTransfer(
    */
   transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -95,7 +95,7 @@ export async function createStyleTransfer(
   ] as const;
 
   const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -113,10 +113,10 @@ export async function createStyleTransfer(
     try {
       tOutput
         .copyTo(tReshape)
-        .through(normalize, tUint8, opts.outNormalizeOpts)
+        .through(normalize, tUint8, modelOpts.outNormalizeOpts)
         .through(toChannelsLast, tChanLast)
         .through(cvtColor, tRgba, 'RGB2RGBA')
-        .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
+        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
         .getData(data);
     } finally {
       tResize.dispose();

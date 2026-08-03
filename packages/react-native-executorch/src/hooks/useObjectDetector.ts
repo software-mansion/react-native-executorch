@@ -42,7 +42,7 @@ export function useObjectDetector<F extends BoxFormat, L>(
     error: downloadError || error,
     downloadProgress,
     localPath,
-    labels: config.opts.labels,
+    labels: config.modelOpts.labels,
     detectObjects: model?.detectObjects,
     detectObjectsWorklet: model?.detectObjectsWorklet,
   };

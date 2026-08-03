@@ -16,7 +16,7 @@ export type ImageEmbedderModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /** Image preprocessor options. */
-  readonly opts: ImagePreprocessorOptions;
+  readonly modelOpts: ImagePreprocessorOptions;
 };
 
 /**
@@ -55,7 +55,7 @@ export async function createImageEmbedder(
    */
   embedWorklet: (input: ImageBuffer) => Float32Array;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   const meta = validateModelSchema(
@@ -69,7 +69,7 @@ export async function createImageEmbedder(
 
   const tensors = [tensor('float32', outShape)] as const;
   const [tEmbedding] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
