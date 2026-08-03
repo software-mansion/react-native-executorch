@@ -29,7 +29,7 @@ TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, DType
       size_(numel_ * types::elementSize(dtype)) {
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
-    tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::toScalarType(dtype));
+    tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::dtypeToScalarType(dtype));
 }
 
 jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
@@ -40,7 +40,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
     }
 
     if (nameStr == "dtype") {
-        return jsi::String::createFromUtf8(rt, types::toString(dtype_));
+        return jsi::String::createFromUtf8(rt, types::dtypeToString(dtype_));
     }
 
     if (nameStr == "numel") {
@@ -253,7 +253,7 @@ void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         try {
-            const auto dtype = types::parseDType(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
+            const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
             return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype));
         } catch (const std::exception &e) {
             throw jsi::JSError(rt, std::format("createTensor: Error creating tensor: {}", e.what()));

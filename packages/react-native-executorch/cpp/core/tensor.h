@@ -26,17 +26,31 @@ namespace types = rnexecutorch::core::types;
 class TensorHostObject : public jsi::HostObject,
                          public std::enable_shared_from_this<TensorHostObject> {
 public:
+    /** Data type of the tensor elements. */
     const types::DType dtype_;
+    /** Dimensions (shape) of the tensor. */
     const std::vector<std::int32_t> shape_;
+    /** Total number of elements contained in the tensor. */
     const size_t numel_;
+    /** Total memory size of the tensor data buffer in bytes. */
     const size_t size_;
 
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
-    std::unique_ptr<std::uint8_t[]> data_;
+    /** Owning byte buffer holding the raw tensor data. */
+    std::unique_ptr<std::uint8_t[]> data_; // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
+    /** ExecuTorch TensorPtr instance wrapping the data buffer. */
     executorch::extension::TensorPtr tensor_;
 
+    /** Shared mutex guarding concurrent read/write access to the tensor data. */
     std::shared_mutex mutex_;
 
+    /**
+     * Constructs a TensorHostObject with the specified shape and data type.
+     *
+     * Allocates and zero-initializes the underlying memory buffer for the tensor data.
+     *
+     * @param shape The dimensions of the tensor.
+     * @param dtype The data type of the tensor elements.
+     */
     TensorHostObject(const std::vector<std::int32_t> &shape, types::DType dtype);
 
     jsi::Value get(jsi::Runtime &rt, const jsi::PropNameID &name) override;

@@ -229,7 +229,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
                     auto val = outputTensorsArray.getValueAtIndex(rt, tensorOutputIdx);
 
-                    auto dtype = types::fromScalarType(output.toTensor().dtype());
+                    auto dtype = types::dtypeFromScalarType(output.toTensor().dtype());
                     auto shape = output.toTensor().sizes();
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, dtype, shape);
 

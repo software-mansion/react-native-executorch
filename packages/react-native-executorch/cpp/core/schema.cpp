@@ -116,7 +116,7 @@ void to_json(json &j, const ConcreteDim &d) {
 void from_json(const json &j, ParamSpec &p) {
     p.tag = j.at("kind").get<Tag>();
     if (p.tag == Tag::Tensor) {
-        p.dtype = types::parseDType(j.at("dtype").get<std::string>());
+        p.dtype = types::dtypeFromString(j.at("dtype").get<std::string>());
         p.shape = j.at("shape").get<std::vector<ConcreteDim>>();
     }
 }
@@ -125,7 +125,7 @@ void to_json(json &j, const ParamSpec &p) {
     if (p.tag == Tag::Tensor) {
         // DType is (de)serialized via its string helpers — a JSON macro for it
         // would have to live in namespace `types` for ADL to find it.
-        j = json::object({{"kind", "Tensor"}, {"dtype", types::toString(p.dtype)}, {"shape", p.shape}});
+        j = json::object({{"kind", "Tensor"}, {"dtype", types::dtypeToString(p.dtype)}, {"shape", p.shape}});
     } else {
         j = json::object({{"kind", p.tag}});
     }
@@ -236,7 +236,7 @@ ParamSpec tensorMetaToParamSpec(const executorch::runtime::TensorInfo &tensorMet
     const auto sizes = tensorMeta.sizes();
     return ParamSpec{
         .tag = Tag::Tensor,
-        .dtype = types::fromScalarType(tensorMeta.scalar_type()),
+        .dtype = types::dtypeFromScalarType(tensorMeta.scalar_type()),
         .shape = std::vector<ConcreteDim>(sizes.begin(), sizes.end()),
     };
 }
@@ -343,10 +343,10 @@ void validateSpecDimDomains(const MethodSpec &spec, const std::string &ctx) {
 void validateTensorParam(const ParamSpec &param,
                          const executorch::runtime::TensorInfo &tensorMeta,
                          const std::string &ctx) {
-    auto metaDtype = types::fromScalarType(tensorMeta.scalar_type());
+    auto metaDtype = types::dtypeFromScalarType(tensorMeta.scalar_type());
     if (param.dtype != metaDtype) {
         throw std::runtime_error(std::format("{}: dtype mismatch (spec type '{}' != compiled metadata type '{}')",
-                                             ctx, types::toString(param.dtype), types::toString(metaDtype)));
+                                             ctx, types::dtypeToString(param.dtype), types::dtypeToString(metaDtype)));
     }
 
     auto metaShape = tensorMeta.sizes();
