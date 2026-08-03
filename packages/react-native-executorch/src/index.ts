@@ -33,23 +33,12 @@ export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 
 // Core primitives — for library builders and power users
-export { tensor } from './core/tensor';
-export type { DType, Tensor } from './core/tensor';
+export * from './core/model';
+export * from './core/tensor';
+export * from './core/runtime';
 
-export { loadModel } from './core/model';
-export type {
-  Model,
-  ModelInput,
-  ModelOutput,
-  TensorMeta,
-  ModelMethodMeta,
-  ExecuTorchTag,
-} from './core/model';
-
-export { validateModelSchema, SymbolicTensor, matchShape } from './core/modelSchema';
-export type { ValueConstraint, TensorConstraint, SymbolicShape } from './core/modelSchema';
-
-export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
+export type * from './core/schema';
+export * as schema from './core/schema';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';

@@ -2,7 +2,8 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
+
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../utils/vadUtils';
 
@@ -190,6 +191,7 @@ export async function createFsmnVoiceActivityDetector(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Asynchronously detects speech segments within a mono waveform sampled at
    * {@link FSMN_VAD_SAMPLE_RATE_HZ}.
@@ -198,11 +200,13 @@ export async function createFsmnVoiceActivityDetector(
    * @returns A promise resolving to the detected speech segments, in seconds.
    */
   detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
+
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
    */
   detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
+
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
    * that window and reports a {@link VadEvent} when speech starts or stops,
@@ -212,6 +216,7 @@ export async function createFsmnVoiceActivityDetector(
    * @param options Optional overrides of the detection thresholds and margin.
    */
   detectVoiceOnStream: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | undefined;
+
   /**
    * Clears the rolling window and speaking state used by {@link detectVoiceOnStream}.
    */
@@ -225,15 +230,15 @@ export async function createFsmnVoiceActivityDetector(
   // [1, frames, classes] where class 0 is the non-speech class. The output frame
   // count matches the input at runtime, but ExecuTorch metadata only reports the
   // static upper bound, so the per-call output tensor is sized explicitly below.
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', ['frames', 'fftLength'])],
-    [SymbolicTensor('float32', [1, 'frames', 'classes'])]
-  );
-  const maxFrames = meta.inputTensorMeta[0]!.shape[0]!;
-  const fftLength = meta.inputTensorMeta[0]!.shape[1]!;
-  const numClass = meta.outputTensorMeta[0]!.shape[2]!;
+  const { dims } = validateSpec(model.schema, {
+    default: method(
+      'forward', // prettier-ignore
+      [f32(Dyn('frames'), 'fftLen')],
+      [f32(1, Dyn('frames'), 'classes')]
+    ),
+  });
+  const [numClasses, fftLength] = dims.constant('classes', 'fftLen');
+  const maxFrames = dims.range('frames')[0].max;
 
   // The Hann window is uploaded once and reused by the native framing op across
   // every call.
@@ -267,7 +272,7 @@ export async function createFsmnVoiceActivityDetector(
         waveform.subarray(startSample, startSample + sampleCount)
       );
       const tInput = tensor('float32', [chunkFrames, fftLength]);
-      const tOutput = tensor('float32', [1, chunkFrames, numClass]);
+      const tOutput = tensor('float32', [1, chunkFrames, numClasses]);
       const outBuffer = new Float32Array(tOutput.numel);
       try {
         extractFrames(tWaveform, tHann, tInput, {
@@ -284,7 +289,7 @@ export async function createFsmnVoiceActivityDetector(
       }
 
       for (let i = 0; i < realFrames; i++) {
-        scores[offset + i] = outBuffer[i * numClass]!;
+        scores[offset + i] = outBuffer[i * numClasses]!;
       }
       offset += realFrames;
     }

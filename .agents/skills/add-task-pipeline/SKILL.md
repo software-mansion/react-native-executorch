@@ -59,17 +59,17 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
    - Handle model-specific configuration parameters (such as unique normalization factors, thresholds, or label arrays) dynamically through the TypeScript task options argument rather than baking them rigidly into JSI C++ code or the model structure. This rule contrasts TypeScript options against values baked into C++ or the model; to choose between a TypeScript **option** and a TypeScript **constant**, see Principle 6.
 
 6. **Options vs. Constants (bucket by who varies the value)**:
-   - Every parameter belongs in exactly one of three places. Decide by asking *who varies this, and when*:
+   - Every parameter belongs in exactly one of three places. Decide by asking _who varies this, and when_:
 
-     | The value...                                                                         | Lives as                                                       | Example                                                        |
-     | ------------------------------------------------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- |
-     | Varies across the shipped models/variants of the pipeline                             | A task **option**, set per-model in `models.ts`                 | Whisper `tiny`/`base`/`small` sizes; normalization factors; labels |
-     | Is fixed by the model architecture or the `.pte` export contract, identical for every shipped variant | A **`const`** in the task file, beside the code that reads it   | Static tensor shapes; export-pinned scheduler/decoder scalars   |
-     | Is a per-call choice made by the app developer                                        | An **argument** to the worklet executor                         | `threshold`, `seed`, `prompt`                                   |
+     | The value...                                                                                          | Lives as                                                      | Example                                                            |
+     | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------ |
+     | Varies across the shipped models/variants of the pipeline                                             | A task **option**, set per-model in `models.ts`               | Whisper `tiny`/`base`/`small` sizes; normalization factors; labels |
+     | Is fixed by the model architecture or the `.pte` export contract, identical for every shipped variant | A **`const`** in the task file, beside the code that reads it | Static tensor shapes; export-pinned scheduler/decoder scalars      |
+     | Is a per-call choice made by the app developer                                                        | An **argument** to the worklet executor                       | `threshold`, `seed`, `prompt`                                      |
 
-   - **A parameter with exactly one valid value is not an option — it is a constant.** For single-model pipelines (e.g. `sdxsTextToImage`), exposing export-pinned scalars or static shapes as options advertises knobs that either fail schema validation or silently corrupt output when touched. Prefer a `const` with a comment naming *why* the value is fixed.
-   - **Corollary (a quick smell test):** if every variant in `models.ts` passes an *identical* options object, those fields are not configuration — move them into the task file as constants and shrink the model type to the paths that actually differ.
-   - Do not keep a loop, parameter, or code path solely because it *looks* more general. If the surrounding math is only valid for one value (e.g. coefficients pinned to a single distilled timestep), the generality is fake and the parameter is a correctness trap.
+   - **A parameter with exactly one valid value is not an option — it is a constant.** For single-model pipelines (e.g. `sdxsTextToImage`), exposing export-pinned scalars or static shapes as options advertises knobs that either fail schema validation or silently corrupt output when touched. Prefer a `const` with a comment naming _why_ the value is fixed.
+   - **Corollary (a quick smell test):** if every variant in `models.ts` passes an _identical_ options object, those fields are not configuration — move them into the task file as constants and shrink the model type to the paths that actually differ.
+   - Do not keep a loop, parameter, or code path solely because it _looks_ more general. If the surrounding math is only valid for one value (e.g. coefficients pinned to a single distilled timestep), the generality is fake and the parameter is a correctness trap.
 
 ## 🚫 Avoid / Anti-Patterns
 
@@ -95,7 +95,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { type ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
@@ -137,15 +137,15 @@ export async function createMyTask(
   const { modelPath, taskOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  // Validate model schema
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 10], [10])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  // Validate model spec
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 10)]),
+    unbatched: method('forward', [f32(3, 'H', 'W')], [f32(10)]),
+  });
+
+  const [H, W] = dims.constant('H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { batched: [1, 10], unbatched: [10] }[variant];
 
   // 2. Pre-allocate static tensors
   const tensors = [tensor('float32', outShape)] as const;

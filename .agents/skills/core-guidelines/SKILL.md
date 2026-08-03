@@ -72,7 +72,7 @@ Use the following index to locate the specific procedural guides for your task:
 | **Add a new native operator or C++ binding** | [SKILL.md](../add-native-extension/SKILL.md)    | Procedural guide to implementing C++ functions, exposing them via JSI, and writing TypeScript bridge wrappers. |
 | **Create a task pipeline or hook**           | [SKILL.md](../add-task-pipeline/SKILL.md)       | Guide to building end-to-end TS pipelines (e.g. object detection) and exposing them via React hooks.           |
 | **Verify, rebuild, or troubleshoot changes** | [SKILL.md](../verify-and-build/SKILL.md)        | Workflows for rebuilding TS/C++ and resolving common JSI runtime errors.                                       |
-| **Validate model constraints & schemas**     | [SKILL.md](../model-schema-validation/SKILL.md) | Guide on specifying SymbolicTensor constraints and shapes for model signature validation.                      |
+| **Validate model constraints & schemas**     | [SKILL.md](../model-schema-validation/SKILL.md) | Guide on specifying model specs, dynamic shapes, and runtime constraints for model validation.                 |
 | **Maintain or refactor codebase patterns**   | [SKILL.md](../skills-maintenance/SKILL.md)      | Guide to keeping workspace skills in sync with codebase state to prevent documentation decay.                  |
 
 ---
