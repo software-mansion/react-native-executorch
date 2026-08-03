@@ -5,6 +5,8 @@
   </picture>
 </div>
 
+<br />
+
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-1?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-1&n=1)
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-2?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-2&n=1)
 [![Ad](https://swm-delivery.com/www/images/zone-gh-react-native-executorch-3?n=1)](https://swm-delivery.com/www/delivery/ck.php?zoneid=zone-gh-react-native-executorch-3&n=1)
