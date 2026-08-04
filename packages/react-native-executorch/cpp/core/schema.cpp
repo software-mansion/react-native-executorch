@@ -300,8 +300,8 @@ void validateConcreteDim(const ConcreteDim &dim, const std::string &ctx) {
             }
         },
         [&](const RangeDim &r) {
-            if (r.min < 0) {
-                throw std::runtime_error(std::format("{}: range min must be non-negative", ctx));
+            if (r.min <= 0) {
+                throw std::runtime_error(std::format("{}: range min must be positive", ctx));
             }
             if (r.max < r.min) {
                 throw std::runtime_error(std::format("{}: range max must be >= min", ctx));
