@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { rnexecutorchJsi } from '../native/bridge';
 
 // Anonymous download analytics endpoint.
 const DOWNLOAD_EVENT_ENDPOINT = 'https://ai.swmansion.com/telemetry/downloads/api/downloads';
@@ -55,10 +56,10 @@ function getCountryCode(): string {
   return 'UNKNOWN';
 }
 
-// Set by the native layer when running on a simulator/emulator, so dev traffic
-// can be filtered out server-side. Absent (⇒ false) until then.
+// Reported by the native installer (Android build props / TARGET_OS_SIMULATOR)
+// so development traffic can be filtered out server-side.
 function isEmulator(): boolean {
-  return (globalThis as { __rne_isEmulator?: boolean }).__rne_isEmulator === true;
+  return rnexecutorchJsi.isEmulator === true;
 }
 
 function getModelNameFromUri(uri: string): string {
