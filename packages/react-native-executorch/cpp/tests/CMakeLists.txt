@@ -154,6 +154,23 @@ add_library(rne_test_support STATIC support/JsiTestEnv.cpp)
 target_link_libraries(rne_test_support PUBLIC rne_under_test gtest gmock)
 target_include_directories(rne_test_support PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# --- Model fixture ----------------------------------------------------------
+# Suites that read ExecuTorch MethodMeta need a real .pte. It is downloaded
+# rather than committed (scripts/fetch-test-fixtures.sh), so the suites that
+# need it are dropped with a warning when it is absent instead of failing the
+# whole configure.
+set(MODEL_FIXTURE "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/selfie_segmentation_xnnpack_fp32.pte")
+if(EXISTS "${MODEL_FIXTURE}")
+  set(RNE_HAVE_MODEL_FIXTURE ON)
+  target_compile_definitions(rne_test_support PUBLIC
+    RNE_MODEL_FIXTURE="${MODEL_FIXTURE}")
+else()
+  set(RNE_HAVE_MODEL_FIXTURE OFF)
+  message(WARNING
+    "Model fixture missing, skipping the ModelTest suite. Fetch it with:\n"
+    "  scripts/fetch-test-fixtures.sh")
+endif()
+
 # --- Test binaries ----------------------------------------------------------
 enable_testing()
 include(GoogleTest)
@@ -170,6 +187,10 @@ set(TEST_SUITES
 
 if(RNE_TESTS_ENABLE_OPENCV)
   list(APPEND TEST_SUITES extensions/CvOpsTest.cpp)
+endif()
+
+if(RNE_HAVE_MODEL_FIXTURE)
+  list(APPEND TEST_SUITES core/ModelTest.cpp)
 endif()
 
 foreach(suite_path IN LISTS TEST_SUITES)

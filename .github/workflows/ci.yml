@@ -90,5 +90,11 @@ jobs:
         if: steps.deps-cache.outputs.cache-hit != 'true'
         run: scripts/build-native-test-deps.sh
 
+      # ~486 KB, pinned to an exact HF revision and checksum-verified. Fetched
+      # as its own step so a Hugging Face outage is an obvious failure rather
+      # than a confusing one inside the test run.
+      - name: Fetch .pte test fixtures
+        run: scripts/fetch-test-fixtures.sh
+
       - name: Run C++ unit tests
         run: scripts/run-native-tests.sh

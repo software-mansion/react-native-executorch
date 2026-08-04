@@ -46,6 +46,14 @@ if [ ! -f "${REPO_ROOT}/third-party/googletest/CMakeLists.txt" ]; then
   exit 1
 fi
 
+# The .pte fixture is small and the fetch is a checksum-verified no-op once it
+# is present, so provision it here rather than making it another manual step.
+# Set RNE_SKIP_FIXTURES=1 to work offline; the suites that need it are then
+# dropped from the build with a warning.
+if [ "${RNE_SKIP_FIXTURES:-}" != "1" ]; then
+  "${PACKAGE_DIR}/scripts/fetch-test-fixtures.sh"
+fi
+
 cmake -S "${PACKAGE_DIR}/cpp/tests" -B "${BUILD_DIR}" -GNinja \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
   -DRNE_TESTS_ENABLE_OPENCV="${ENABLE_OPENCV}"
