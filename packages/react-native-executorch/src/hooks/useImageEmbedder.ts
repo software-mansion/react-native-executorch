@@ -21,21 +21,17 @@ import {
  * progress, and embedding functions.
  */
 export function useImageEmbedder(config: ImageEmbedderModel, options?: { preventLoad?: boolean }) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createImageEmbedder,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createImageEmbedder, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
   };

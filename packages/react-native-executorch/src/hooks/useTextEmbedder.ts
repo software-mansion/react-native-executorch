@@ -19,26 +19,18 @@ import { createTextEmbedder, type TextEmbedderModel } from '../extensions/nlp/ta
  * progress, and embedding functions.
  */
 export function useTextEmbedder(config: TextEmbedderModel, options?: { preventLoad?: boolean }) {
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-
-  const { model, error } = useModel(
-    createTextEmbedder,
-    localModelPath && localTokenizerPath
-      ? { modelPath: localModelPath, tokenizerPath: localTokenizerPath }
-      : null,
-    [localModelPath, localTokenizerPath]
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
+    options?.preventLoad
   );
+  const { model, error } = useModel(createTextEmbedder, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
-    error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    downloadProgress: modelResource.downloadProgress,
-    localPath: localModelPath,
-    tokenizerPath: localTokenizerPath,
+    error: downloadError || error,
+    downloadProgress,
+    localPath: resource?.modelPath,
+    tokenizerPath: resource?.tokenizerPath,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
   };

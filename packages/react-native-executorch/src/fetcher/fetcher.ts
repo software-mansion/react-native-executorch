@@ -241,72 +241,132 @@ async function downloadViaStream(
   }
 }
 
-/**
- * Downloads one or more model resources into a persistent local cache and
- * resolves with their local file paths.
- *
- * Local paths (anything not starting with `http`) are returned unchanged.
- * Remote files are downloaded to a persistent cache: on Android via the system
- * DownloadManager (handles multi-GB files and continues in the background), on
- * iOS via a streaming request that resumes an interrupted download from where
- * it stopped. When several sources are passed, overall progress is weighted by
- * their byte sizes so a large model isn't reported the same as a tiny
- * tokenizer.
- * @category Utils
- * @param source A single URL/local path, or an array of them.
- * @param options Progress and cancellation options.
- * @returns The local path (for a single source) or paths (for an array),
- * matching the shape of `source`.
- */
-export function download(source: string, options?: DownloadOptions): Promise<string>;
-export function download(sources: string[], options?: DownloadOptions): Promise<string[]>;
-export async function download(
-  source: string | string[],
-  options: DownloadOptions = {}
-): Promise<string | string[]> {
-  const single = !Array.isArray(source);
-  const sources = single ? [source] : source;
+// Plain data containers we recurse into. Anything else (numbers, functions,
+// typed arrays, class instances) is left alone.
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
 
-  const remoteIndices = sources.map((s, i) => (isRemote(s) ? i : -1)).filter((i) => i >= 0);
+/**
+ * Walks a value and collects every distinct remote URL sitting on a string
+ * leaf. Deduplicating here means a URL repeated across fields is fetched once.
+ * @param node The value to walk.
+ * @param out Accumulator, so recursive calls share one set.
+ * @returns The set of remote URLs referenced by `node`.
+ */
+export function collectRemoteSources(node: unknown, out = new Set<string>()): Set<string> {
+  if (typeof node === 'string') {
+    if (isRemote(node)) out.add(node);
+  } else if (Array.isArray(node)) {
+    for (const item of node) collectRemoteSources(item, out);
+  } else if (isPlainObject(node)) {
+    for (const value of Object.values(node)) collectRemoteSources(value, out);
+  }
+  return out;
+}
+
+/**
+ * Rebuilds a value with every resolved URL replaced by its local path.
+ * Branches containing no resolved URL keep their original reference, so an
+ * untouched config comes back as-is and stays stable across React renders.
+ * @typeParam T The shape of the value being rewritten.
+ * @param node The value to rewrite.
+ * @param resolved Map of remote URL to downloaded local path.
+ * @returns `node` with resolved URLs swapped for local paths.
+ */
+export function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, string>): T {
+  if (typeof node === 'string') {
+    return (resolved.get(node) ?? node) as T;
+  }
+  if (Array.isArray(node)) {
+    let changed = false;
+    const next = node.map((item) => {
+      const mapped = substituteRemoteSources(item, resolved);
+      changed ||= mapped !== item;
+      return mapped;
+    });
+    return (changed ? next : node) as T;
+  }
+  if (isPlainObject(node)) {
+    let changed = false;
+    const next: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(node)) {
+      const mapped = substituteRemoteSources(value, resolved);
+      changed ||= mapped !== value;
+      next[key] = mapped;
+    }
+    return (changed ? next : node) as T;
+  }
+  return node;
+}
+
+/**
+ * Downloads the remote resources referenced by `source` into a persistent local
+ * cache and resolves with the same value, with every remote URL replaced by the
+ * local path it was downloaded to.
+ *
+ * `source` may be a single URL, or any nested structure of plain objects and
+ * arrays — typically a whole model config. Every string leaf that looks like an
+ * `http(s)` URL is downloaded; everything else (local paths, labels, numbers)
+ * is passed through untouched. The result therefore has exactly the same shape
+ * and type as the input and can be handed straight to a `create<Task>` factory:
+ *
+ * ```ts
+ * const model = await download(models.classification.EFFICIENTNET_V2_S.XNNPACK_FP32);
+ * const { classify, dispose } = await createClassifier(model);
+ * ```
+ *
+ * Downloads go to a persistent cache: on Android via the system DownloadManager
+ * (handles multi-GB files and continues in the background), on iOS via a
+ * streaming request that resumes an interrupted download from where it stopped.
+ * When a config references several files, overall progress is weighted by their
+ * byte sizes so a large model isn't reported the same as a tiny tokenizer.
+ * @category Utils
+ * @typeParam T The shape of the value being resolved.
+ * @param source A URL, a local path, or any nested object/array holding them.
+ * @param options Progress and cancellation options.
+ * @returns `source` with every remote URL replaced by its local file path.
+ */
+export async function download<T>(source: T, options: DownloadOptions = {}): Promise<T> {
+  const urls = [...collectRemoteSources(source)];
 
   // Nothing to fetch — every source is already a local path.
-  if (remoteIndices.length === 0) {
+  if (urls.length === 0) {
     options.onProgress?.(1);
-    return single ? sources[0]! : sources;
+    return source;
   }
 
   // Weight overall progress by real byte sizes so a 1 GB model isn't treated
   // like a 1 MB tokenizer. When any HEAD fails we fall back to equal weighting.
-  const sizes = await Promise.all(
-    sources.map((s, i) => (remoteIndices.includes(i) ? remoteSize(s) : Promise.resolve(0)))
-  );
-  const haveAllSizes = remoteIndices.every((i) => sizes[i]! > 0);
-  const total = haveAllSizes ? sizes.reduce((a, b) => a + b, 0) : remoteIndices.length;
+  const sizes = await Promise.all(urls.map(remoteSize));
+  const haveAllSizes = sizes.every((size) => size > 0);
+  const total = haveAllSizes ? sizes.reduce((a, b) => a + b, 0) : urls.length;
 
-  const received = new Array<number>(sources.length).fill(0);
+  const received = new Array<number>(urls.length).fill(0);
   const report = () => {
     if (!options.onProgress) return;
     const sum = received.reduce((a, b) => a + b, 0);
     options.onProgress(total > 0 ? Math.min(sum / total, 1) : 0);
   };
 
-  const results: string[] = [...sources];
+  const resolved = new Map<string, string>();
   await Promise.all(
-    remoteIndices.map((i) => {
-      const url = sources[i]!;
+    urls.map((url, i) =>
       // Telemetry fires inside downloadOne, only for genuine (non-cached) fetches.
-      return downloadOne(url, {
+      downloadOne(url, {
         signal: options.signal,
         onBytes: (recv, tot) => {
           received[i] = haveAllSizes ? recv : tot > 0 ? recv / tot : 0;
           report();
         },
       }).then((path) => {
-        results[i] = path;
-      });
-    })
+        resolved.set(url, path);
+      })
+    )
   );
 
   options.onProgress?.(1);
-  return single ? results[0]! : results;
+  return substituteRemoteSources(source, resolved);
 }

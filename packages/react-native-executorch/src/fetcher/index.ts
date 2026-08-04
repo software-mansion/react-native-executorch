@@ -1,3 +1,3 @@
-export { download } from './ResourceFetcher';
-export type { DownloadOptions, DownloadProgressCallback } from './ResourceFetcher';
+export { download } from './fetcher';
+export type { DownloadOptions, DownloadProgressCallback } from './fetcher';
 export { setTelemetryEnabled } from './telemetry';

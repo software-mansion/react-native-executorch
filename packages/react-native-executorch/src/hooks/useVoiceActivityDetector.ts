@@ -24,21 +24,17 @@ export function useVoiceActivityDetector(
   config: FsmnVadModel,
   options?: { preventLoad?: boolean }
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createFsmnVoiceActivityDetector,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     detectVoice: model?.detectVoice,
     detectVoiceWorklet: model?.detectVoiceWorklet,
     detectVoiceOnStream: model?.detectVoiceOnStream,

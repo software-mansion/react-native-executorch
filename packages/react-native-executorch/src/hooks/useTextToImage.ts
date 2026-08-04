@@ -20,25 +20,16 @@ import {
  * progress, and generation functions.
  */
 export function useTextToImage(config: SdxsTextToImageModel, options?: { preventLoad?: boolean }) {
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-  const isResourcesReady = !!(localModelPath && localTokenizerPath);
-
-  const { model, error } = useModel(
-    createSdxsTextToImage,
-    isResourcesReady
-      ? { ...config, modelPath: localModelPath!, tokenizerPath: localTokenizerPath! }
-      : null,
-    [localModelPath, localTokenizerPath]
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
+    options?.preventLoad
   );
+  const { model, error } = useModel(createSdxsTextToImage, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
-    error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    downloadProgress: modelResource.downloadProgress,
+    error: downloadError || error,
+    downloadProgress,
     generate: model?.generate,
     generateWorklet: model?.generateWorklet,
   };

@@ -19,21 +19,17 @@ import { createClassifier, type ClassifierModel } from '../extensions/cv/tasks/c
  * progress, and classification functions.
  */
 export function useClassifier<L>(config: ClassifierModel<L>, options?: { preventLoad?: boolean }) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createClassifier<L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createClassifier<L>, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     labels: config.modelOpts.labels,
     classify: model?.classify,
     classifyWorklet: model?.classifyWorklet,

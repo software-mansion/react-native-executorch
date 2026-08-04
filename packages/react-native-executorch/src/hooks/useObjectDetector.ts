@@ -27,21 +27,17 @@ export function useObjectDetector<F extends BoxFormat, L>(
   config: ObjectDetectorModel<F, L>,
   options?: { preventLoad?: boolean }
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createObjectDetector<F, L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createObjectDetector<F, L>, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     labels: config.modelOpts.labels,
     detectObjects: model?.detectObjects,
     detectObjectsWorklet: model?.detectObjectsWorklet,

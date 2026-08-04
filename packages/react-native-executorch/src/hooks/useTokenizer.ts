@@ -17,17 +17,17 @@ import { createTokenizer } from '../extensions/nlp/tasks/tokenization';
  * progress, and tokenization functions.
  */
 export function useTokenizer(tokenizerPath: string, options?: { preventLoad?: boolean }) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
     tokenizerPath,
     options?.preventLoad
   );
-  const { model, error } = useModel(createTokenizer, localPath ?? null, [localPath]);
+  const { model, error } = useModel(createTokenizer, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource,
     encode: model?.encode,
     decode: model?.decode,
     getVocabSize: model?.getVocabSize,

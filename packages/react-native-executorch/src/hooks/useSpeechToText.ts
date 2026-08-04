@@ -25,42 +25,19 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
   options?: { preventLoad?: boolean }
 ) {
-  const vadModelPath = config.vadModel.modelPath;
-  const vadResource = useResourceDownload(vadModelPath, options?.preventLoad);
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localVadPath = vadResource.localPath;
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-
-  const isResourcesReady = !!(localModelPath && localTokenizerPath && localVadPath);
-  const whisperConfig = isResourcesReady
-    ? {
-        ...config,
-        modelPath: localModelPath!,
-        tokenizerPath: localTokenizerPath!,
-        vadModel: { ...config.vadModel, modelPath: localVadPath! },
-      }
-    : null;
-
-  const { model, error: modelError } = useModel(createWhisperSpeechToText, whisperConfig, [
-    localVadPath,
-    localModelPath,
-    localTokenizerPath,
-  ]);
-
-  const error =
-    vadResource.downloadError ||
-    modelResource.downloadError ||
-    tokenizerResource.downloadError ||
-    modelError;
+  // Resolves the model, the tokenizer and the nested VAD model in one pass,
+  // with progress weighted across all three.
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
+    options?.preventLoad
+  );
+  const { model, error } = useModel(createWhisperSpeechToText, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
-    error,
-    downloadProgress: modelResource.downloadProgress,
-    localPath: modelResource.localPath,
+    error: downloadError || error,
+    downloadProgress,
+    localPath: resource?.modelPath,
     transcribe: model?.transcribe,
     transcribeWorklet: model?.transcribeWorklet,
     transcribeStop: model?.transcribeStop,

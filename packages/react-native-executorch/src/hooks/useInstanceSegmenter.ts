@@ -27,21 +27,17 @@ export function useInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
   options?: { preventLoad?: boolean }
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createInstanceSegmenter<F, L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     segmentInstances: model?.segmentInstances,
     segmentInstancesWorklet: model?.segmentInstancesWorklet,
     labels: config.modelOpts.labels,

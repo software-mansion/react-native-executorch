@@ -18,21 +18,17 @@ import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/t
  * progress, and style transfer functions.
  */
 export function useStyleTransfer(config: StyleTransferModel, options?: { preventLoad?: boolean }) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createStyleTransfer,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createStyleTransfer, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     transferStyle: model?.transferStyle,
     transferStyleWorklet: model?.transferStyleWorklet,
   };

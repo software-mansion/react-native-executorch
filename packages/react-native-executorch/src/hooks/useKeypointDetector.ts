@@ -27,21 +27,17 @@ export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,
   options?: { preventLoad?: boolean }
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createKeypointDetector<F, L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createKeypointDetector<F, L>, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     landmarks: config.modelOpts.landmarks,
     detectKeypoints: model?.detectKeypoints,
     detectKeypointsWorklet: model?.detectKeypointsWorklet,

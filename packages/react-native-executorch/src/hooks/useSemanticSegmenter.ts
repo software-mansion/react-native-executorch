@@ -25,21 +25,17 @@ export function useSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmenterModel<L>,
   options?: { preventLoad?: boolean }
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
+  const { resource, downloadProgress, downloadError } = useResourceDownload(
+    config,
     options?.preventLoad
   );
-  const { model, error } = useModel(
-    createSemanticSegmenter<L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { model, error } = useModel(createSemanticSegmenter<L>, resource ?? null, [resource]);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    localPath: resource?.modelPath,
     segment: model?.segment,
     segmentWorklet: model?.segmentWorklet,
     labels: config.modelOpts.labels,
