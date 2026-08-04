@@ -49,8 +49,12 @@ and `ctest -R MathOpsTest` targets a single suite.
 Two one-time provisioning steps, then the runner:
 
 ```bash
-# 1. ExecuTorch/OpenCV/tokenizer headers (shared with clang-tidy and clangd)
-RNET_HEADERS_ONLY=1 node scripts/download-libs.js
+# 1. ExecuTorch/OpenCV/tokenizer headers (shared with clang-tidy and clangd).
+#    This branch's package version (0.0.0) has no release of its own, so point
+#    the download at a libs release — the same one the CI job uses.
+RNET_HEADERS_ONLY=1 \
+  RNET_BASE_URL=https://github.com/software-mansion/react-native-executorch/releases/download/v0.10.0-libs \
+  node scripts/download-libs.js
 
 # 2. Hermes + a minimal ExecuTorch host build (~2 min, cached afterwards)
 scripts/build-native-test-deps.sh
@@ -71,9 +75,10 @@ with `RNE_TESTS_ENABLE_OPENCV=OFF` to skip that suite.
 - `HERMES_VERSION` should match `node_modules/react-native/sdks/.hermesversion`,
   so the tests run on the engine the apps run on.
 - `EXECUTORCH_VERSION` should match the ExecuTorch release that
-  `third-party/include` is vendored from. The tests compile against those
-  vendored headers and link these host-built libraries, so a drift between the
-  two shows up as a link error — noisy, but at least not silent.
+  `third-party/include` is vendored from — i.e. whichever libs release
+  `RNET_BASE_URL` points at above, currently ExecuTorch 1.3.1. The tests compile
+  against those vendored headers and link these host-built libraries, so a drift
+  between the two shows up as a link error — noisy, but at least not silent.
 
 ## What is deliberately not covered here
 

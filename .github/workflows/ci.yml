@@ -48,10 +48,11 @@ jobs:
         working-directory: packages/react-native-executorch
     env:
       # The package version on this branch is 0.0.0, which has no GitHub Release,
-      # so point the header download at the release that actually carries the
-      # rewrite's headers.tar.gz. Update this when the branch starts publishing
-      # its own versioned artifacts.
-      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.0.0-rewrite-libs-test
+      # so point the header download at the libs release that carries a
+      # headers.tar.gz. Keep this in sync with the ExecuTorch version pinned in
+      # scripts/build-native-test-deps.sh — the tests compile against these
+      # headers and link libraries built from that pin.
+      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.10.0-libs
     steps:
       - name: Checkout
         uses: actions/checkout@v6
