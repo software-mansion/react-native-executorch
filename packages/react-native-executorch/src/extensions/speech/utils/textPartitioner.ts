@@ -37,8 +37,12 @@ function sliceAtCuts(text: string, cutIndices: number[]): string[] {
  * @returns An array of partitioned text segments.
  */
 export function partition(text: string, limit: number): string[] {
-  if (!text || limit < MIN_PARTITION_LIMIT) {
-    return [text];
+  if (!text) {
+    return [];
+  }
+
+  if (limit < MIN_PARTITION_LIMIT) {
+    throw new Error(`partition: limit ${limit} is below minimum ${MIN_PARTITION_LIMIT}`);
   }
 
   const breakpoints: { idx: number; tag: Tag }[] = [];
@@ -49,10 +53,13 @@ export function partition(text: string, limit: number): string[] {
     ++charIdx;
   }
 
-  const n = breakpoints.length;
   const targetLength = Math.min(MAX_TARGET_PHRASE_LENGTH, limit * TARGET_LENGTH_RATIO);
-
-  if (n === 0) {
+  if (breakpoints.length === 0) {
+    if (text.length > limit) {
+      throw new Error(
+        `partition: text of length ${text.length} has no break points and exceeds limit ${limit}`
+      );
+    }
     return [text];
   }
 
@@ -83,8 +90,8 @@ export function partition(text: string, limit: number): string[] {
   //   cost(i, j) – penalty of slicing [j, i], combining:
   //     1. separator-type penalty at i (paragraph / eos vs. space)
   //     2. squared deviation of segment length from `targetLength`
-  const minCost = new Float32Array(n);
-  const predecessor = new Int32Array(n);
+  const minCost = new Float32Array(breakpoints.length);
+  const predecessor = new Int32Array(breakpoints.length);
 
   // jMin tracks the left bound of the sliding window. Because
   // breakpoints[i].idx increases monotonically, any predecessor j that exceeds
@@ -95,7 +102,7 @@ export function partition(text: string, limit: number): string[] {
   minCost.fill(Infinity);
   predecessor.fill(-2); // sentinel: breakpoint unreachable
 
-  for (let i = 0; i < n; ++i) {
+  for (let i = 0; i < breakpoints.length; ++i) {
     while (jMin < i && length(i, jMin) > limit) {
       ++jMin;
     }
@@ -108,12 +115,12 @@ export function partition(text: string, limit: number): string[] {
     }
   }
 
-  if (minCost[n - 1] === Infinity) {
+  if (minCost[breakpoints.length - 1] === Infinity) {
     throw new Error(`partition: text cannot be divided into chunks of length <= ${limit}`);
   }
 
   const cuts: number[] = [];
-  let i = n - 1;
+  let i = breakpoints.length - 1;
   while (i >= 0) {
     cuts.push(breakpoints[i]!.idx);
     i = predecessor[i]!;
