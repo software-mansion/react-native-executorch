@@ -5,10 +5,20 @@ on:
     - cron: '01 00 * * *' # Every day at 00:01 UTC
   workflow_dispatch:
     inputs:
-      latest-build:
-        description: 'Whether to publish as a latest build'
+      release-type:
+        description: 'Which npm dist-tag to publish under'
         required: true
-        type: boolean
+        type: choice
+        options:
+          - nightly # executorch-nightly, version suffixed with commit + date
+          - latest # current stable release
+          - legacy # maintenance release of an older line
+        default: nightly
+      dist-tag:
+        description: 'Publish under this exact dist-tag instead, e.g. v0.8 for a maintenance line (leave empty to use release-type)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write
@@ -31,6 +41,9 @@ jobs:
       EXECUTORCH_VERSION: PLACEHOLDER
       PACKAGE_NAME: PLACEHOLDER
       TAG: PLACEHOLDER
+      # `inputs` is empty on the scheduled run, which is always a nightly.
+      RELEASE_TYPE: ${{ inputs.release-type || 'nightly' }}
+      DIST_TAG_OVERRIDE: ${{ inputs.dist-tag || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -57,10 +70,29 @@ jobs:
 
       - name: Set tag
         run: |
-          if [[ "${{ inputs.latest-build }}" != "true" ]]; then
-            echo "TAG=executorch-nightly" >> $GITHUB_ENV
+          if [[ -n "$DIST_TAG_OVERRIDE" ]]; then
+            # The override only moves the dist-tag; the version still comes from
+            # release-type. Pairing it with nightly would publish a throwaway
+            # `x.y.z-nightly-<sha>-<date>` under a tag meant to be stable, which
+            # is never what you want - fail instead of guessing.
+            if [[ "$RELEASE_TYPE" == "nightly" ]]; then
+              echo "dist-tag override needs a stable build: set release-type to latest or legacy." >&2
+              exit 1
+            fi
+            # npm rejects a dist-tag that parses as a semver range, so require a
+            # leading letter. That also rules out bare versions like `0.8`.
+            if [[ ! "$DIST_TAG_OVERRIDE" =~ ^[a-zA-Z][a-zA-Z0-9._-]*$ ]]; then
+              echo "Invalid dist-tag: '$DIST_TAG_OVERRIDE' (expected e.g. v0.8)" >&2
+              exit 1
+            fi
+            echo "TAG=$DIST_TAG_OVERRIDE" >> $GITHUB_ENV
           else
-            echo "TAG=latest" >> $GITHUB_ENV
+            case "$RELEASE_TYPE" in
+              nightly) echo "TAG=executorch-nightly" >> $GITHUB_ENV ;;
+              latest)  echo "TAG=latest" >> $GITHUB_ENV ;;
+              legacy)  echo "TAG=legacy" >> $GITHUB_ENV ;;
+              *) echo "Unknown release type: $RELEASE_TYPE" >&2; exit 1 ;;
+            esac
           fi
 
       - name: Assert tag
@@ -71,7 +103,7 @@ jobs:
         id: build
         working-directory: ${{ env.EXECUTORCH_DIR }}
         run: |
-          if [[ "${{ inputs.latest-build }}" != "true" ]]; then
+          if [[ "$RELEASE_TYPE" == "nightly" ]]; then
             ./scripts/create-package.sh generate_nightly_version
           else
             ./scripts/create-package.sh
