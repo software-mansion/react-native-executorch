@@ -8,6 +8,7 @@ import type { ImageEmbedderModel } from './extensions/cv/tasks/imageEmbedding';
 import type { SdxsTextToImageModel } from './extensions/cv/tasks/sdxsTextToImage';
 import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
+import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
@@ -20,12 +21,14 @@ import {
   COCO_CLASSES_YOLO,
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
+  SUPERTONIC_DEFAULT_VOICE_NAMES,
   type ImageNet1KLabel,
   type PascalVocLabel,
   type CocoClass,
   type CocoClassYolo,
   type BlazeFaceLandmark,
   type CocoLandmark,
+  type SupertonicDefaultVoiceName,
 } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -730,6 +733,30 @@ const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
 };
 
 // =============================================================================
+// Text to Speech
+// =============================================================================
+const SUPERTONIC_3_LOCAL_DIR = '/Users/bhanc/workspace/export-scripts/supertonic3_xnnpack_fp32';
+const SUPERTONIC_HF_BASE_URL = 'https://huggingface.co/Supertone/supertonic-3/resolve/main';
+
+export const SUPERTONIC_VOICE_STYLES = Object.fromEntries(
+  SUPERTONIC_DEFAULT_VOICE_NAMES.map((name) => [
+    name,
+    `${SUPERTONIC_HF_BASE_URL}/voice_styles/${name}.json`,
+  ])
+) as Record<SupertonicDefaultVoiceName, string>;
+
+const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  modelPaths: {
+    durationPredictor: `${SUPERTONIC_3_LOCAL_DIR}/duration_predictor_xnnpack_fp32.pte`,
+    vectorEstimator: `${SUPERTONIC_3_LOCAL_DIR}/vector_estimator_xnnpack_fp32.pte`,
+    textEncoder: `${SUPERTONIC_3_LOCAL_DIR}/text_encoder_xnnpack_fp32.pte`,
+    vocoder: `${SUPERTONIC_3_LOCAL_DIR}/vocoder_xnnpack_fp32.pte`,
+  },
+  unicodeIndexerPath: `${SUPERTONIC_HF_BASE_URL}/onnx/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_VOICE_STYLES,
+};
+
+// =============================================================================
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
@@ -1304,6 +1331,19 @@ export const models = {
       ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
+    },
+  },
+
+  /**
+   * Text-to-Speech (TTS) models that synthesize audio waveforms from input text.
+   */
+  textToSpeech: {
+    /**
+     * Supertonic 3 multilingual flow-matching Text-to-Speech model.
+     */
+    SUPERTONIC: {
+      ...SUPERTONIC_3_XNNPACK_FP32,
+      XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
     },
   },
 };

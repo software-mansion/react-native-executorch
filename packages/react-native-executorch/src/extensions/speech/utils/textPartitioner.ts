@@ -1,12 +1,12 @@
 type Tag = 'eos' | 'pause' | 'whitespace';
 
 const EOS_PATTERN = /[.?!;…|।॥¿¡]/;
-const PAUSE_PATTERN = /[,:\-—«»]/;
+const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB]/;
 const WHITESPACE_PATTERN = /\s/;
 
 const MAX_TARGET_PHRASE_LENGTH = 120;
 const MIN_PARTITION_LIMIT = 10;
-const DEVIATION_SCALING = 0.05;
+const DEVIATION_SCALING = 0.01;
 const TARGET_LENGTH_RATIO = 0.5;
 const SEPARATOR_PENALTY: Record<Tag, number> = { eos: 5, pause: 18, whitespace: 1000 };
 

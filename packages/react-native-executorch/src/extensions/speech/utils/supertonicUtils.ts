@@ -23,12 +23,22 @@
  * SOFTWARE.
  */
 
+/**
+ * List of ISO language codes supported by Supertonic 3 for text synthesis conditioning.
+ * @category Constants
+ */
 // prettier-ignore
-export const SUPPORTED_LANGUAGES = [
+export const SUPERTONIC_SUPPORTED_LANGUAGES = [
   'ar', 'bg', 'cs', 'da', 'de', 'el', 'en', 'es', 'fi', 'fr', 'hi', 'hr',
   'hu', 'id', 'it', 'ja', 'ko', 'ms', 'nl', 'no', 'pl', 'pt', 'ro', 'ru',
   'sk', 'sv', 'sw', 'ta', 'th', 'tl', 'tr', 'na',
-];
+] as const;
+
+/**
+ * Supported Supertonic 3 ISO language code.
+ * @category Types
+ */
+export type SupertonicLanguage = (typeof SUPERTONIC_SUPPORTED_LANGUAGES)[number];
 
 // prettier-ignore
 const EMOJI_PATTERN = new RegExp(
@@ -102,7 +112,7 @@ export function preprocessText(text: string, lang?: string): string {
   }
 
   if (lang && lang !== 'na') {
-    if (!SUPPORTED_LANGUAGES.includes(lang)) {
+    if (!SUPERTONIC_SUPPORTED_LANGUAGES.includes(lang as SupertonicLanguage)) {
       throw new Error(`preprocessText: Unsupported language: ${lang}`);
     }
     processed = `<${lang}>${processed}</${lang}>`;
@@ -128,4 +138,32 @@ export function encodeText(text: string, indexer: readonly number[]): BigInt64Ar
     ids[i] = BigInt(id === -1 ? 0 : id);
   }
   return ids;
+}
+
+/**
+ * Parsed voice style tensors required by Supertonic 3 for style conditioning.
+ * @category Types
+ */
+export type SupertonicVoiceStyle = {
+  /** Text-to-latent style embedding tensor data of shape [1, 50, 256] (12,800 floats). */
+  readonly styleTtl: Float32Array;
+  /** Duration predictor style embedding tensor data of shape [1, 8, 16] (128 floats). */
+  readonly styleDp: Float32Array;
+};
+
+/**
+ * Parses raw JSON voice style object data into Float32Arrays.
+ * @category Utils
+ * @param json The parsed JSON voice style object.
+ * @returns Parsed SupertonicVoiceStyle containing styleTtl and styleDp Float32Arrays.
+ */
+export function parseVoiceStyle(json: any): SupertonicVoiceStyle {
+  'worklet';
+  if (!json?.style_ttl?.data || !json?.style_dp?.data) {
+    throw new Error('parseVoiceStyle: Invalid voice style JSON format.');
+  }
+  return {
+    styleDp: new Float32Array((json.style_dp.data as number[][][]).flat(2)),
+    styleTtl: new Float32Array((json.style_ttl.data as number[][][]).flat(2)),
+  };
 }
