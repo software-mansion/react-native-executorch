@@ -71,25 +71,18 @@ export function partition(text: string, limit: number): string[] {
   };
 
   // Forward DP Recurrence Relation
-  // ```
-  // minCost[i] = min cost of a valid partition ending with a cut at breakpoint i.
-  // minCost[i] = min_{jMin <= j < i} [ minCost[j] + cost(i, j) ]
-  // minCost[-1] = 0 (virtual starting point before any text, costing 0)
-  // ```
-  // Where:
-  // - i: the current breakpoint candidate where we consider making a cut.
-  // - j: a candidate predecessor breakpoint (the index of the previous cut).
-  // - jMin: the sliding lower bound index. Any predecessor j < jMin would
-  //   produce a segment between j and i that exceeds the hard `limit`
-  //   constraint.
-  // - minCost[j]: the optimal cost of partitioning the text from the start up
-  //   to breakpoint j.
-  // - cost(i, j): the penalty of slicing between j and i, which combines:
-  //     1. The penalty of the separator type at i (e.g. paragraph/eos break vs.
-  //        spaces).
-  //     2. The squared deviation of the segment's length from the optimal
-  //        `targetLength`.
-  // - .
+  //
+  //   minCost[-1] = 0   (virtual start, zero cost)
+  //   minCost[i]  = min_{jMin <= j < i} [ minCost[j] + cost(i, j) ]
+  //
+  // where:
+  //   i     – current breakpoint candidate (where we consider a cut).
+  //   j     – predecessor breakpoint index (the previous cut).
+  //   jMin  – sliding lower bound; any j < jMin would produce a segment
+  //           exceeding the hard `limit` constraint.
+  //   cost(i, j) – penalty of slicing [j, i], combining:
+  //     1. separator-type penalty at i (paragraph / eos vs. space)
+  //     2. squared deviation of segment length from `targetLength`
   const minCost = new Float32Array(n);
   const predecessor = new Int32Array(n);
 

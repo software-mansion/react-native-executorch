@@ -304,6 +304,8 @@ atrous
 Convolutional
 Roboflow
 Ultralytics
+supertone
+Supertone
 
 
 subtag

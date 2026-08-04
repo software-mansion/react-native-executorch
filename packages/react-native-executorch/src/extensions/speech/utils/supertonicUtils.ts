@@ -91,10 +91,11 @@ export function preprocessText(text: string, lang?: string): string {
     processed = processed.split(key).join(replacement);
   }
 
-  processed = processed.replace(EMOJI_PATTERN, '');
-  processed = processed.replace(DUPLICATE_QUOTES_PATTERN, '$1');
-  processed = processed.replace(WHITESPACE_PATTERN, ' ');
-  processed = processed.trim();
+  processed = processed
+    .replace(EMOJI_PATTERN, '')
+    .replace(DUPLICATE_QUOTES_PATTERN, '$1')
+    .replace(WHITESPACE_PATTERN, ' ')
+    .trim();
 
   if (!ENDING_PUNCTUATION_PATTERN.test(processed)) {
     processed += '.';
@@ -127,31 +128,4 @@ export function encodeText(text: string, indexer: readonly number[]): BigInt64Ar
     ids[i] = BigInt(id === -1 ? 0 : id);
   }
   return ids;
-}
-
-/**
- * Generates Gaussian (normal) random noise of the specified size on the worklet
- * thread using a standard Box-Muller transform.
- * @category Utils
- * @param size The number of random normal values to generate.
- * @returns The generated Float32Array.
- */
-export function generateGaussianNoise(size: number): Float32Array {
-  'worklet';
-  const noise = new Float32Array(size);
-  for (let i = 0; i < size; i += 2) {
-    let u1 = 0;
-    let u2 = 0;
-    while (u1 === 0) u1 = Math.random();
-    while (u2 === 0) u2 = Math.random();
-
-    const r = Math.sqrt(-2.0 * Math.log(u1));
-    const theta = 2.0 * Math.PI * u2;
-
-    noise[i] = r * Math.cos(theta);
-    if (i + 1 < size) {
-      noise[i + 1] = r * Math.sin(theta);
-    }
-  }
-  return noise;
 }
