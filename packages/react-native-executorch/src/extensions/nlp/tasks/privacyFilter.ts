@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, DynamicDim as Dyn, method, i64, f32, constr } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
@@ -108,13 +108,38 @@ export async function createPrivacyFilter(
   ]);
 
   const numLabels = labelNames.length;
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('int64', [1, 'S']), SymbolicTensor('int64', [1, 'S'])],
-    [SymbolicTensor('float32', [1, 'S', numLabels], ['S', numLabels])]
-  );
-  const windowSize = meta.inputTensorMeta[0]!.shape[1]!;
+  // Token classifiers take the token ids and the attention mask, both
+  // [1, sequence_length], and emit one logit row per token over the configured
+  // label space. The sequence length is shared by both inputs and the logits,
+  // so it must take the same value in every call. Models exported for a single
+  // window length bind `S` to that constant; models exported with a dynamic
+  // sequence length bind it to the accepted range.
+  const seqLenIsShared = [
+    constr.eq(
+      { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+      { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+      { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
+    ),
+  ];
+  const { variant, dim } = validateSpec(model.schema, {
+    dynamic: method(
+      'forward', // prettier-ignore
+      [i64(1, Dyn('S')), i64(1, Dyn('S'))],
+      [f32(1, Dyn('S'), numLabels)],
+      seqLenIsShared
+    ),
+    static: method(
+      'forward', // prettier-ignore
+      [i64(1, 'S'), i64(1, 'S')],
+      [f32(1, 'S', numLabels)]
+    ),
+  });
+
+  // A statically exported model accepts exactly one sequence length; a
+  // dynamically exported one accepts a whole range, whose upper bound is the
+  // widest window the model can see at once.
+  const seqLenRange = variant === 'dynamic' ? dim('S', 'range') : null;
+  const windowSize = seqLenRange ? seqLenRange.max : dim('S', 'constant');
   if (windowSize < 2) {
     throw new Error(
       `createPrivacyFilter: expected a forward window of at least 2 tokens, got ${windowSize}.`
@@ -129,14 +154,12 @@ export async function createPrivacyFilter(
   const stride = Math.floor(windowSize / 2);
   const edgeMargin = Math.floor(windowSize / 4);
 
-  // A model exported with dynamic sequence length carries a companion method
-  // holding the active [min, max, step] range; without it the method only
-  // accepts the exact shape it was exported with, so every window must be
-  // padded to `windowSize`. When it is present, a window is instead sized to
-  // the tokens it actually holds, which is the dominant cost: the MoE runs all
-  // experts per token, so inference is linear in sequence length and a short
-  // input otherwise pays for a full window of padding.
-  const isDynamic = model.getMethodNames().includes('get_dynamic_dims_forward');
+  // A statically exported method only accepts the exact shape it was exported
+  // with, so every window must be padded to `windowSize`. A dynamic one lets a
+  // window instead be sized to the tokens it actually holds, which is the
+  // dominant cost: the MoE runs all experts per token, so inference is linear
+  // in sequence length and a short input otherwise pays for a full window of
+  // padding.
   // Lengths are rounded up to a bucket so a handful of tensor shapes cover any
   // input; tensors have an immutable shape, so each distinct length would
   // otherwise mean another native allocation.
@@ -145,9 +168,13 @@ export async function createPrivacyFilter(
   // call, which cannot happen synchronously.
   const LENGTH_BUCKET = 32;
   const bucketLengths: number[] = [];
-  if (isDynamic) {
-    for (let len = LENGTH_BUCKET; len < windowSize; len += LENGTH_BUCKET) {
-      bucketLengths.push(len);
+  if (seqLenRange) {
+    // Every bucket boundary has to be a length the model actually accepts, so
+    // the nominal bucket is rounded up onto the exported range's grid and the
+    // boundaries are walked from its lower bound.
+    const bucket = Math.ceil(LENGTH_BUCKET / seqLenRange.step) * seqLenRange.step;
+    for (let len = seqLenRange.min; len < windowSize; len += bucket) {
+      if (len > 0) bucketLengths.push(len);
     }
   }
   bucketLengths.push(windowSize);
