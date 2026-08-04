@@ -25,8 +25,11 @@ fi
 if [ "$#" -gt 0 ]; then
   files=("$@")
 else
+  # cpp/tests is excluded: its sources need the Hermes and GoogleTest headers
+  # that only scripts/build-native-test-deps.sh provisions, which is not one of
+  # this script's prerequisites. Pass test files explicitly to check them anyway.
   files=()
-  while IFS= read -r f; do files+=("$f"); done < <(find cpp -name '*.cpp' | sort)
+  while IFS= read -r f; do files+=("$f"); done < <(find cpp -path cpp/tests -prune -o -name '*.cpp' -print | sort)
 fi
 
 if [ "${#files[@]}" -eq 0 ]; then

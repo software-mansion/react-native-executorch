@@ -39,3 +39,55 @@ jobs:
 
       - name: Build all packages
         run: yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare
+
+  native-tests:
+    name: C++ unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/react-native-executorch
+    env:
+      # The package version on this branch is 0.0.0, which has no GitHub Release,
+      # so point the header download at the release that actually carries the
+      # rewrite's headers.tar.gz. Update this when the branch starts publishing
+      # its own versioned artifacts.
+      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.0.0-rewrite-libs-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Only googletest is needed; the other submodules are unrelated to the
+      # host test build.
+      - name: Check out googletest
+        run: git submodule update --init --depth 1 third-party/googletest
+        working-directory: ${{ github.workspace }}
+
+      # download-libs.js is dependency-free, so this job needs node but not a
+      # yarn install.
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install build tooling
+        run: sudo apt-get update && sudo apt-get install -y ninja-build libopencv-dev
+        working-directory: ${{ github.workspace }}
+
+      - name: Provision third-party headers
+        run: RNET_HEADERS_ONLY=1 node scripts/download-libs.js
+
+      # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
+      # when scripts/build-native-test-deps.sh changes those pins.
+      - name: Cache native test dependencies
+        id: deps-cache
+        uses: actions/cache@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
+
+      - name: Build native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: scripts/build-native-test-deps.sh
+
+      - name: Run C++ unit tests
+        run: scripts/run-native-tests.sh
