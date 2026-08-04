@@ -108,6 +108,23 @@ file(GLOB ET_RE2_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/re2/
 file(GLOB ET_ABSEIL_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/abseil-cpp/absl/*/*.a")
 file(GLOB ET_JSON_LIBS "${ET_BUILD_DIR}/extension/llm/tokenizers/third-party/*/lib*.a")
 
+# Attach them to et_tokenizers rather than to each test executable, so CMake
+# emits them *after* libtokenizers.a. GNU ld resolves archives left to right and
+# only pulls members that satisfy an already-undefined symbol, so listing re2
+# ahead of its consumer silently produces undefined references at link time;
+# Apple's linker searches regardless of order, which hides this on macOS.
+#
+# --start-group additionally lets the linker rescan the set, covering the
+# reference cycles between the abseil archives (the glob above cannot order them
+# topologically). It is a GNU ld feature; Apple's linker neither needs nor
+# accepts it.
+set(TOKENIZER_DEP_LIBS ${ET_RE2_LIBS} ${ET_ABSEIL_LIBS} ${ET_JSON_LIBS})
+if(NOT APPLE AND TOKENIZER_DEP_LIBS)
+  set(TOKENIZER_DEP_LIBS "-Wl,--start-group" ${TOKENIZER_DEP_LIBS} "-Wl,--end-group")
+endif()
+set_property(TARGET et_tokenizers APPEND PROPERTY
+  INTERFACE_LINK_LIBRARIES ${TOKENIZER_DEP_LIBS})
+
 # --- Sources under test -----------------------------------------------------
 # Mirrors android/CMakeLists.txt: core/math/nlp/speech always, cv behind the
 # OpenCV flag. Built as one static library so every test binary shares it.
@@ -127,13 +144,24 @@ set(RNE_SOURCES
 # only in the `libopencv-dev` meta-package, which hard-depends on the viz and
 # contrib modules and so drags in VTK, OpenMPI and ~220 packages. The fallback
 # lets CI install just libopencv-{core,imgproc}-dev instead.
+# Sets RNE_OPENCV_INCLUDE_DIRS in the caller's scope; the include directories are
+# deliberately kept off the rne_opencv target so the caller can place them ahead
+# of third-party/include (see the note where they are applied).
 function(rne_find_opencv)
   add_library(rne_opencv INTERFACE)
 
   find_package(OpenCV QUIET COMPONENTS core imgproc)
   if(OpenCV_FOUND)
     message(STATUS "OpenCV: using CMake package ${OpenCV_VERSION}")
-    target_include_directories(rne_opencv INTERFACE ${OpenCV_INCLUDE_DIRS})
+    # OpenCV's imported targets mark their include directory SYSTEM, which would
+    # put it on -isystem — searched only after the vendored opencv2 headers.
+    # Clearing that keeps it on -I, where it takes precedence.
+    foreach(lib IN LISTS OpenCV_LIBS)
+      if(TARGET ${lib})
+        set_target_properties(${lib} PROPERTIES IMPORTED_NO_SYSTEM ON)
+      endif()
+    endforeach()
+    set(RNE_OPENCV_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS} PARENT_SCOPE)
     target_link_libraries(rne_opencv INTERFACE ${OpenCV_LIBS})
     return()
   endif()
@@ -153,7 +181,7 @@ function(rne_find_opencv)
   endif()
 
   message(STATUS "OpenCV: using ${OPENCV_CORE_LIB}")
-  target_include_directories(rne_opencv INTERFACE "${OPENCV_INCLUDE_DIR}")
+  set(RNE_OPENCV_INCLUDE_DIRS "${OPENCV_INCLUDE_DIR}" PARENT_SCOPE)
   target_link_libraries(rne_opencv INTERFACE "${OPENCV_CORE_LIB}" "${OPENCV_IMGPROC_LIB}")
 endfunction()
 
@@ -164,8 +192,14 @@ endif()
 
 add_library(rne_under_test STATIC ${RNE_SOURCES})
 
-target_include_directories(rne_under_test PUBLIC
-  "${CPP_DIR}"
+target_include_directories(rne_under_test PUBLIC "${CPP_DIR}")
+
+# Vendored third-party headers are SYSTEM, matching compile_flags.txt: it keeps
+# their warnings (e.g. ExecuTorch's deprecated members) out of our build output,
+# and it puts them on -isystem, which is searched only after every -I. That is
+# what lets the installed OpenCV's -I below take precedence over the opencv2
+# headers that also live under ${INCLUDE_DIR}.
+target_include_directories(rne_under_test SYSTEM PUBLIC
   "${INCLUDE_DIR}"
   "${INCLUDE_DIR}/executorch/extension/llm/tokenizers/include"
   "${INCLUDE_DIR}/executorch/extension/llm/tokenizers/third-party/json/include"
@@ -183,6 +217,22 @@ endif()
 if(RNE_TESTS_ENABLE_OPENCV)
   target_compile_definitions(rne_under_test PUBLIC RNE_ENABLE_OPENCV)
   target_link_libraries(rne_under_test PUBLIC rne_opencv)
+
+  # third-party/include ships its own opencv2/ headers (currently 4.13) for the
+  # Android/iOS builds, which link matching vendored libraries. On the host we
+  # link whatever OpenCV is installed, so those headers must not win the include
+  # search, or we compile against one version and link another: Ubuntu's 4.6 has
+  # no cvtColor(..., AlgorithmHint) overload, which 4.10+ headers resolve to, and
+  # the mismatch surfaces only as an undefined symbol at link time.
+  #
+  # Added as a plain -I (not via the linked target, which would make it
+  # -isystem): every -I is searched before every -isystem, so this reliably wins
+  # over the vendored opencv2 headers regardless of listed order.
+  if(NOT RNE_OPENCV_INCLUDE_DIRS)
+    message(FATAL_ERROR "OpenCV include directory not resolved; cannot order it "
+                        "ahead of the vendored opencv2 headers.")
+  endif()
+  target_include_directories(rne_under_test PUBLIC ${RNE_OPENCV_INCLUDE_DIRS})
 endif()
 
 # --- Test support -----------------------------------------------------------
@@ -232,6 +282,8 @@ endif()
 foreach(suite_path IN LISTS TEST_SUITES)
   get_filename_component(suite_name "${suite_path}" NAME_WE)
   add_executable(${suite_name} "${suite_path}")
-  target_link_libraries(${suite_name} PRIVATE rne_test_support gtest_main ${ET_RE2_LIBS} ${ET_ABSEIL_LIBS} ${ET_JSON_LIBS})
+  # re2/abseil come in transitively via et_tokenizers, which places them after
+  # their consumer — see the note by TOKENIZER_DEP_LIBS.
+  target_link_libraries(${suite_name} PRIVATE rne_test_support gtest_main)
   gtest_discover_tests(${suite_name} DISCOVERY_TIMEOUT 60)
 endforeach()

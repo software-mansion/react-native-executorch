@@ -92,9 +92,13 @@ jobs:
 
       # Hermes and ExecuTorch are pinned to exact tags, so the cache only misses
       # when scripts/build-native-test-deps.sh changes those pins.
-      - name: Cache native test dependencies
+      #
+      # Split restore/save rather than actions/cache: the combined action only
+      # saves in a post step when the job succeeds, so a failing test would throw
+      # away the ~9 min dependency build and rebuild it on every retry.
+      - name: Restore native test dependencies
         id: deps-cache
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: packages/react-native-executorch/.native-test-deps
           key: ${{ runner.os }}-native-test-deps-${{ hashFiles('packages/react-native-executorch/scripts/build-native-test-deps.sh') }}
@@ -102,6 +106,13 @@ jobs:
       - name: Build native test dependencies
         if: steps.deps-cache.outputs.cache-hit != 'true'
         run: scripts/build-native-test-deps.sh
+
+      - name: Save native test dependencies
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: packages/react-native-executorch/.native-test-deps
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
 
       # ~486 KB, pinned to an exact HF revision and checksum-verified. Fetched
       # as its own step so a Hugging Face outage is an obvious failure rather
