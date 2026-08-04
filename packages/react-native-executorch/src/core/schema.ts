@@ -290,14 +290,14 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
  * @throws {Error} If the range bounds or step are not valid positive integers.
  */
 export const RangeDim = (min: number, max: number, step?: number): ConcreteDim => {
-  if (min < 0 || !Number.isInteger(min)) {
-    throw new Error(`Invalid range min (${min}): must be a non-negative integer.`);
+  if (min <= 0 || !Number.isInteger(min)) {
+    throw new Error(`Invalid range min (${min}): must be a positive integer.`);
   }
   if (max < min) {
     throw new Error(`Invalid range [${min}, ${max}]: max cannot be less than min.`);
   }
   if (!Number.isInteger(max)) {
-    throw new Error(`Invalid range max (${max}): must be a non-negative integer.`);
+    throw new Error(`Invalid range max (${max}): must be a positive integer.`);
   }
   if (step !== undefined && (step <= 0 || !Number.isInteger(step))) {
     throw new Error(`Invalid range step (${step}): must be a positive integer.`);
@@ -644,8 +644,8 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
           }
         }
         if (dim.kind === 'range') {
-          if (dim.range.min < 0 || !Number.isInteger(dim.range.min)) {
-            throw new Error(`${ctx}: range min must be a non-negative integer.`);
+          if (dim.range.min <= 0 || !Number.isInteger(dim.range.min)) {
+            throw new Error(`${ctx}: range min must be a positive integer.`);
           }
           if (dim.range.max < dim.range.min || !Number.isInteger(dim.range.max)) {
             throw new Error(`${ctx}: range max must be >= min.`);
