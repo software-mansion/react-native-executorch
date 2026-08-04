@@ -121,8 +121,44 @@ set(RNE_SOURCES
   "${CPP_DIR}/RnExecutorch.cpp"
   ${CORE_SOURCES} ${MATH_SOURCES} ${NLP_SOURCES} ${SPEECH_SOURCES})
 
+# The cv extension uses only core and imgproc. Prefer OpenCV's CMake package
+# when it is installed (Homebrew, or a full distro OpenCV), but fall back to
+# locating the two libraries directly: on Debian/Ubuntu OpenCVConfig.cmake ships
+# only in the `libopencv-dev` meta-package, which hard-depends on the viz and
+# contrib modules and so drags in VTK, OpenMPI and ~220 packages. The fallback
+# lets CI install just libopencv-{core,imgproc}-dev instead.
+function(rne_find_opencv)
+  add_library(rne_opencv INTERFACE)
+
+  find_package(OpenCV QUIET COMPONENTS core imgproc)
+  if(OpenCV_FOUND)
+    message(STATUS "OpenCV: using CMake package ${OpenCV_VERSION}")
+    target_include_directories(rne_opencv INTERFACE ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(rne_opencv INTERFACE ${OpenCV_LIBS})
+    return()
+  endif()
+
+  find_path(OPENCV_INCLUDE_DIR
+    NAMES opencv2/core.hpp
+    PATH_SUFFIXES opencv4)
+  find_library(OPENCV_CORE_LIB NAMES opencv_core)
+  find_library(OPENCV_IMGPROC_LIB NAMES opencv_imgproc)
+
+  if(NOT OPENCV_INCLUDE_DIR OR NOT OPENCV_CORE_LIB OR NOT OPENCV_IMGPROC_LIB)
+    message(FATAL_ERROR
+      "OpenCV (core + imgproc) not found. Install it with:\n"
+      "  brew install opencv\n"
+      "  apt-get install libopencv-core-dev libopencv-imgproc-dev\n"
+      "or configure with -DRNE_TESTS_ENABLE_OPENCV=OFF to skip the cv suite.")
+  endif()
+
+  message(STATUS "OpenCV: using ${OPENCV_CORE_LIB}")
+  target_include_directories(rne_opencv INTERFACE "${OPENCV_INCLUDE_DIR}")
+  target_link_libraries(rne_opencv INTERFACE "${OPENCV_CORE_LIB}" "${OPENCV_IMGPROC_LIB}")
+endfunction()
+
 if(RNE_TESTS_ENABLE_OPENCV)
-  find_package(OpenCV REQUIRED COMPONENTS core imgproc)
+  rne_find_opencv()
   list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
 endif()
 
@@ -146,7 +182,7 @@ endif()
 
 if(RNE_TESTS_ENABLE_OPENCV)
   target_compile_definitions(rne_under_test PUBLIC RNE_ENABLE_OPENCV)
-  target_link_libraries(rne_under_test PUBLIC ${OpenCV_LIBS})
+  target_link_libraries(rne_under_test PUBLIC rne_opencv)
 endif()
 
 # --- Test support -----------------------------------------------------------

@@ -65,9 +65,21 @@ scripts/run-native-tests.sh
 scripts/run-native-tests.sh -R MathOpsTest   # extra args go to ctest
 ```
 
-Requires `cmake`, `ninja` and — for the `cv` suite — OpenCV
-(`brew install opencv` / `apt-get install libopencv-dev`). Without OpenCV, run
-with `RNE_TESTS_ENABLE_OPENCV=OFF` to skip that suite.
+Requires `cmake`, `ninja` and — for the `cv` suite — OpenCV's core and imgproc
+modules:
+
+```bash
+brew install opencv                                          # macOS
+apt-get install libopencv-core-dev libopencv-imgproc-dev     # Debian/Ubuntu
+```
+
+Without OpenCV, run with `RNE_TESTS_ENABLE_OPENCV=OFF` to skip that suite.
+
+Note the deliberately narrow apt packages. `libopencv-dev` is a meta-package
+that hard-depends on the viz and contrib modules, so it drags in VTK, OpenMPI
+and ~220 packages — it took over 50 minutes on a throttled CI mirror. Since
+`OpenCVConfig.cmake` ships only in that meta-package, the build prefers OpenCV's
+CMake package when present and otherwise locates the two libraries directly.
 
 ## Keeping the pins honest
 

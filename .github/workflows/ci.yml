@@ -43,6 +43,9 @@ jobs:
   native-tests:
     name: C++ unit tests
     runs-on: ubuntu-latest
+    # Well clear of a cold run (dependency build ~2 min) but far below the 6 h
+    # default, so a stalled download fails with logs instead of hanging.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: packages/react-native-executorch
@@ -70,9 +73,19 @@ jobs:
         with:
           node-version-file: .nvmrc
 
+      # Only the two OpenCV modules the cv extension uses. The `libopencv-dev`
+      # meta-package hard-depends on the viz and contrib modules, which pull VTK,
+      # OpenMPI and ~220 packages — over 50 minutes on a throttled mirror.
+      # OpenCVConfig.cmake ships only in that meta-package, so cpp/tests
+      # falls back to locating the libraries directly.
       - name: Install build tooling
-        run: sudo apt-get update && sudo apt-get install -y ninja-build libopencv-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build libopencv-core-dev libopencv-imgproc-dev
         working-directory: ${{ github.workspace }}
+        env:
+          DEBIAN_FRONTEND: noninteractive
 
       - name: Provision third-party headers
         run: RNET_HEADERS_ONLY=1 node scripts/download-libs.js
