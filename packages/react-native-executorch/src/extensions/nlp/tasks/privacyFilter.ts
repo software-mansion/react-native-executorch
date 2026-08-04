@@ -111,9 +111,9 @@ export async function createPrivacyFilter(
   // Token classifiers take the token ids and the attention mask, both
   // [1, sequence_length], and emit one logit row per token over the configured
   // label space. The sequence length is shared by both inputs and the logits,
-  // so it must take the same value in every call. Models exported for a single
-  // window length bind `S` to that constant; models exported with a dynamic
-  // sequence length bind it to the accepted range.
+  // so it must take the same value in every call. The XNNPACK exports declare
+  // it dynamic, binding `S` to the accepted range; the MLX ones are exported
+  // for a single window length, binding `S` to that constant.
   const seqLenIsShared = [
     constr.eq(
       { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
@@ -154,12 +154,12 @@ export async function createPrivacyFilter(
   const stride = Math.floor(windowSize / 2);
   const edgeMargin = Math.floor(windowSize / 4);
 
-  // A statically exported method only accepts the exact shape it was exported
-  // with, so every window must be padded to `windowSize`. A dynamic one lets a
-  // window instead be sized to the tokens it actually holds, which is the
-  // dominant cost: the MoE runs all experts per token, so inference is linear
-  // in sequence length and a short input otherwise pays for a full window of
-  // padding.
+  // The XNNPACK exports carry a dynamic sequence dim, so a window there is
+  // sized to the tokens it actually holds. That is the dominant cost: the MoE
+  // runs every expert on every token, so inference is linear in sequence length
+  // and a short input would otherwise pay for a full window of padding. The MLX
+  // exports are static and only accept the one shape they were exported with,
+  // so every window is padded up to `windowSize`.
   // Lengths are rounded up to a bucket so a handful of tensor shapes cover any
   // input; tensors have an immutable shape, so each distinct length would
   // otherwise mean another native allocation.
