@@ -26,6 +26,9 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Transcribe Audio File</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-to-speech/')}>
+          <Text style={styles.buttonText}>Text-to-Speech (SuperTonic)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
