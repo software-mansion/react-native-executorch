@@ -22,6 +22,12 @@ export function getRegisteredBackends(): string[] {
  * temporary local file, reads its configuration and method signatures
  * (inputs/outputs shapes, types, and tags), and deletes the temporary file
  * before returning.
+ *
+ * That download is deliberately throwaway: it does not go through
+ * {@link download}, so the file never enters the persistent resource cache and
+ * is not reused. Inspecting a remote model therefore re-downloads it on every
+ * call and leaves nothing behind — call {@link download} first and inspect the
+ * returned local path if you also intend to run the model.
  * @category Utils
  * @param source The remote HTTP URL or local path to the `.pte` model file.
  * @returns A promise resolving to an object containing the model source,
