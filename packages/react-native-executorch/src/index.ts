@@ -10,7 +10,7 @@ export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
 export * from './hooks/useSpeechToText';
-export * from './hooks/useSupertonicTextToSpeech';
+export * from './hooks/useTextToSpeech';
 export * from './hooks/useTextToImage';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';

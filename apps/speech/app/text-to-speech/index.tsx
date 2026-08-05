@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import {
-  useSupertonicTextToSpeech,
+  useTextToSpeech,
   models,
   SUPERTONIC_SAMPLE_RATE,
   SUPERTONIC_SUPPORTED_LANGUAGES,
@@ -74,8 +74,9 @@ function TTSContent() {
   const queueSourceRef = useRef<AudioBufferQueueSourceNode | null>(null);
   const isPlayingRef = useRef(false);
 
-  const { isReady, downloadProgress, error, synthesize, synthesizeStop } =
-    useSupertonicTextToSpeech(models.textToSpeech.SUPERTONIC[selectedModel]);
+  const { isReady, downloadProgress, error, synthesize, synthesizeStop } = useTextToSpeech(
+    models.textToSpeech.SUPERTONIC[selectedModel]
+  );
 
   const getAudioContext = useCallback(async () => {
     if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
