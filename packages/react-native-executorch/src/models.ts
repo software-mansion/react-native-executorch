@@ -735,25 +735,34 @@ const SDXS_512_DREAMSHAPER_COREML_FP16: SdxsTextToImageModel = {
 // =============================================================================
 // Text to Speech
 // =============================================================================
-const SUPERTONIC_3_LOCAL_DIR = '/Users/bhanc/workspace/export-scripts/supertonic3_xnnpack_fp32';
-const SUPERTONIC_HF_BASE_URL = 'https://huggingface.co/Supertone/supertonic-3/resolve/main';
-
-export const SUPERTONIC_VOICE_STYLES = Object.fromEntries(
-  SUPERTONIC_DEFAULT_VOICE_NAMES.map((name) => [
-    name,
-    `${SUPERTONIC_HF_BASE_URL}/voice_styles/${name}.json`,
-  ])
-) as Record<SupertonicDefaultVoiceName, string>;
+const SUPERTONIC_DEFAULT_VOICE_STYLES = SUPERTONIC_DEFAULT_VOICE_NAMES.reduce(
+  (acc, name) => ({
+    ...acc,
+    [name]: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/voice_styles/${name}.json`,
+  }),
+  {} as Record<SupertonicDefaultVoiceName, string>
+);
 
 const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   modelPaths: {
-    durationPredictor: `${SUPERTONIC_3_LOCAL_DIR}/duration_predictor_xnnpack_fp32.pte`,
-    vectorEstimator: `${SUPERTONIC_3_LOCAL_DIR}/vector_estimator_xnnpack_fp32.pte`,
-    textEncoder: `${SUPERTONIC_3_LOCAL_DIR}/text_encoder_xnnpack_fp32.pte`,
-    vocoder: `${SUPERTONIC_3_LOCAL_DIR}/vocoder_xnnpack_fp32.pte`,
+    durationPredictor: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/duration_predictor_xnnpack_fp32.pte`,
+    vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vector_estimator_xnnpack_fp32.pte`,
+    textEncoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/text_encoder_xnnpack_fp32.pte`,
+    vocoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vocoder_xnnpack_fp32.pte`,
   },
-  unicodeIndexerPath: `${SUPERTONIC_HF_BASE_URL}/onnx/unicode_indexer.json`,
-  voiceStyles: SUPERTONIC_VOICE_STYLES,
+  unicodeIndexerPath: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
+};
+
+const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  modelPaths: {
+    durationPredictor: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/duration_predictor_mlx_fp32.pte`,
+    vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/vector_estimator_mlx_fp32.pte`,
+    textEncoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/text_encoder_mlx_fp32.pte`,
+    vocoder: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/vocoder_mlx_fp32.pte`,
+  },
+  unicodeIndexerPath: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/unicode_indexer.json`,
+  voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
 };
 
 // =============================================================================
@@ -1344,6 +1353,7 @@ export const models = {
     SUPERTONIC: {
       ...SUPERTONIC_3_XNNPACK_FP32,
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
+      MLX_FP32: SUPERTONIC_3_MLX_FP32,
     },
   },
 };
