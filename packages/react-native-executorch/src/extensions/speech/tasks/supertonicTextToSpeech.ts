@@ -30,7 +30,7 @@ const BASE_CHUNK_SIZE = 512; // vocoder decompresses each latent frame into this
 const CHUNK_COMPRESS_FACTOR = 6; // latent frames packed per chunk
 const CHUNK_SIZE = BASE_CHUNK_SIZE * CHUNK_COMPRESS_FACTOR; // 3072 audio samples per latent step
 
-const LATENT_DIM = 24 * CHUNK_COMPRESS_FACTOR; // 144 — latent channels (ldim * compress)
+const LATENT_DIM = 24 * CHUNK_COMPRESS_FACTOR; // 144 — latent channels
 const TEXT_EMB_DIM = 256;
 const STYLE_DP_SHAPE = [1, 8, 16] as const; // duration predictor style: 8 prototypes × 16 dims
 const STYLE_TTL_SHAPE = [1, 50, 256] as const; // text-to-latent style: 50 tokens × 256 dims
