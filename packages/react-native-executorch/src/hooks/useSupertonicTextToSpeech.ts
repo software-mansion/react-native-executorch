@@ -65,7 +65,14 @@ export function useSupertonicTextToSpeech<K extends PropertyKey>(
       }
     : null;
 
-  const { model, error } = useModel(createSupertonicTextToSpeech, localConfig, [isReady]);
+  const configKey = localConfig
+    ? JSON.stringify(localConfig.modelPaths) + localConfig.unicodeIndexerPath
+    : null;
+
+  const { model, error } = useModel(createSupertonicTextToSpeech, localConfig, [
+    isReady,
+    configKey,
+  ]);
 
   const downloadProgress =
     (dpRes.downloadProgress +

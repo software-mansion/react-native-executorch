@@ -52,8 +52,14 @@ const STEPS_OPTIONS = [
   { label: '12', value: 12 },
 ];
 
+const MODEL_OPTIONS = [
+  { label: 'XNNPACK (CPU)', value: 'XNNPACK_FP32' as const },
+  { label: 'MLX (Apple Silicon)', value: 'MLX_FP32' as const },
+];
+
 function TTSContent() {
   const [text, setText] = useState(SAMPLE_TEXT);
+  const [selectedModel, setSelectedModel] = useState<'XNNPACK_FP32' | 'MLX_FP32'>('XNNPACK_FP32');
   const [selectedVoice, setSelectedVoice] = useState<constants.SupertonicDefaultVoiceName>('F1');
   const [selectedLang, setSelectedLang] = useState<SupertonicLanguage>('en');
   const [speed, setSpeed] = useState(1.05);
@@ -69,10 +75,10 @@ function TTSContent() {
   const isPlayingRef = useRef(false);
 
   const { isReady, downloadProgress, error, synthesize, synthesizeStop } =
-    useSupertonicTextToSpeech(models.textToSpeech.SUPERTONIC);
+    useSupertonicTextToSpeech(models.textToSpeech.SUPERTONIC[selectedModel]);
 
   const getAudioContext = useCallback(async () => {
-    if (!audioCtxRef.current) {
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
       audioCtxRef.current = new AudioContext({ sampleRate: SUPERTONIC_SAMPLE_RATE });
     }
     if (audioCtxRef.current.state === 'suspended') {
@@ -95,7 +101,10 @@ function TTSContent() {
     return () => {
       synthesizeStop?.();
       stopAudioQueue();
-      audioCtxRef.current?.close().catch(() => {});
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
     };
   }, [stopAudioQueue, synthesizeStop]);
 
@@ -208,8 +217,17 @@ function TTSContent() {
         </View>
       )}
 
-      {/* Voice & Language Picker */}
+      {/* Model & Voice & Language Picker */}
       <View style={styles.card}>
+        <ModelPicker
+          label="Backend"
+          options={MODEL_OPTIONS.map((m) => ({
+            ...m,
+            disabled: isBusy,
+          }))}
+          selectedValue={selectedModel}
+          onValueChange={setSelectedModel}
+        />
         <ModelPicker
           label="Voice"
           options={VOICE_OPTIONS.map((v) => ({
