@@ -31,7 +31,7 @@ export function useImageEmbedder(config: ImageEmbedderModel, options?: { prevent
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
   };

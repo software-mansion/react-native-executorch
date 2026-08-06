@@ -35,7 +35,7 @@ export function useSemanticSegmenter<L extends PropertyKey = string>(
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     segment: model?.segment,
     segmentWorklet: model?.segmentWorklet,
     labels: config.modelOpts.labels,

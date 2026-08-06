@@ -1,7 +1,7 @@
 /* eslint-disable no-bitwise */
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
-import { triggerDownloadEvent, triggerHuggingFaceDownloadCounter } from './telemetry';
+import * as telemetry from './telemetry';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -17,23 +17,23 @@ const RNE_DIRECTORY = IS_ANDROID
   : `${RNBlobUtil.fs.dirs.DocumentDir}/react-native-executorch`;
 
 /**
- * Progress callback reporting overall completion as a fraction in `[0, 1]`.
- * @category Types
- */
-export type DownloadProgressCallback = (progress: number) => void;
-
-/**
  * Options controlling a {@link download} call.
  * @category Types
  */
 export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
-  onProgress?: DownloadProgressCallback;
+  onProgress?: (progress: number) => void;
   /**
    * Aborts the download. On iOS the bytes fetched so far are kept on disk so a
    * later {@link download} of the same source resumes instead of restarting.
    */
   signal?: AbortSignal;
+  /**
+   * Re-downloads every remote source even when it is already cached, replacing
+   * the cached copy. Use to recover from a corrupted file or to pick up a model
+   * that changed behind a stable URL.
+   */
+  forceDownload?: boolean;
 }
 
 // djb2 — cheap, dependency-free hash used to derive a stable cache key per URL.
@@ -80,42 +80,121 @@ function abortError(): Error {
   return err;
 }
 
-interface DownloadOneCallbacks {
+type OnBytes = (received: number, total: number) => void;
+
+interface DownloadUrlCallbacks {
   // Reports absolute received/total bytes for this file, including any bytes
   // already present from a previous partial download.
-  onBytes?: (received: number, total: number) => void;
+  onBytes?: OnBytes;
   signal?: AbortSignal;
+  forceDownload?: boolean;
 }
+
+// A download that is currently running, shared by every caller that asked for
+// the same URL while it was in flight.
+interface InFlightDownload {
+  promise: Promise<string>;
+  // Progress is fanned out to every joined caller.
+  listeners: Set<OnBytes>;
+  // Drives the underlying request; aborted only once every caller has left.
+  controller: AbortController;
+  callers: number;
+}
+
+const inFlight = new Map<string, InFlightDownload>();
 
 // Downloads a single remote file into the cache, dispatching to the
 // platform-appropriate backend. Returns the local path.
-async function downloadOne(url: string, cb: DownloadOneCallbacks): Promise<string> {
+//
+// Concurrent calls for the same URL share one request: without this, both would
+// miss the cache check, double-count the download in telemetry, and write the
+// same temporary file — on Android the second one's opening `unlink` would
+// delete the first one's partially downloaded data.
+async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<string> {
+  if (cb.signal?.aborted) throw abortError();
+
   const dest = cachePathFor(url);
 
-  // Cache hit — nothing to download.
-  if (await RNBlobUtil.fs.exists(dest)) {
+  if (cb.forceDownload) {
+    // Drop the cached copy so the checks below fall through to a real fetch.
+    // A download already in flight hasn't written `dest` yet, so joining it
+    // still yields freshly fetched bytes.
+    await RNBlobUtil.fs.unlink(dest).catch(() => {});
+  } else if (await RNBlobUtil.fs.exists(dest)) {
+    // Cache hit — nothing to download.
     const size = await fileSize(dest);
     cb.onBytes?.(size, size);
     return dest;
   }
 
-  // Count this actual (non-cached) fetch once.
-  triggerHuggingFaceDownloadCounter(url);
-  triggerDownloadEvent(url);
+  // Skip an entry whose last caller just left: it is already unwinding, so
+  // joining it would hand this caller someone else's cancellation.
+  const existing = inFlight.get(url);
+  if (existing && !existing.controller.signal.aborted) return joinDownload(existing, cb);
+
+  const entry: InFlightDownload = {
+    promise: Promise.resolve(''),
+    listeners: new Set(),
+    controller: new AbortController(),
+    callers: 0,
+  };
+  entry.promise = startDownload(url, dest, entry).finally(() => {
+    inFlight.delete(url);
+  });
+  inFlight.set(url, entry);
+
+  return joinDownload(entry, cb);
+}
+
+// Runs the actual request, fanning progress out to everyone who joined.
+async function startDownload(url: string, dest: string, entry: InFlightDownload): Promise<string> {
+  // Count this actual (non-cached) fetch once, no matter how many callers share it.
+  telemetry.triggerHuggingFaceDownloadCounter(url);
+  telemetry.triggerDownloadEvent(url);
 
   await RNBlobUtil.fs.mkdir(RNE_DIRECTORY).catch(() => {});
 
-  return IS_ANDROID ? downloadViaDownloadManager(url, dest, cb) : downloadViaStream(url, dest, cb);
+  const cb: DownloadUrlCallbacks = {
+    signal: entry.controller.signal,
+    onBytes: (received, total) => {
+      for (const listener of entry.listeners) listener(received, total);
+    },
+  };
+
+  return IS_ANDROID
+    ? downloadUrlViaAndroidDownloadManager(url, dest, cb)
+    : downloadUrlViaIosStream(url, dest, cb);
+}
+
+// Attaches one caller to a shared download. The caller's own signal only
+// detaches it — the request itself is cancelled once the last caller leaves.
+function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promise<string> {
+  entry.callers += 1;
+  if (cb.onBytes) entry.listeners.add(cb.onBytes);
+
+  return new Promise<string>((resolve, reject) => {
+    const onAbort = () => {
+      if (cb.onBytes) entry.listeners.delete(cb.onBytes);
+      entry.callers -= 1;
+      if (entry.callers === 0) entry.controller.abort();
+      reject(abortError());
+    };
+    cb.signal?.addEventListener('abort', onAbort);
+
+    entry.promise.then(resolve, reject).finally(() => {
+      cb.signal?.removeEventListener('abort', onAbort);
+    });
+  });
 }
 
 // Android backend: the system DownloadManager streams to app-private external
 // storage. Unlike blob-util's in-process reader it handles files larger than
 // 2 GB, keeps downloading while the app is in the background or killed, and
 // resumes across transient network drops on its own — so no manual Range logic.
-async function downloadViaDownloadManager(
+async function downloadUrlViaAndroidDownloadManager(
   url: string,
   dest: string,
-  cb: DownloadOneCallbacks
+  cb: DownloadUrlCallbacks
 ): Promise<string> {
   const tmp = `${dest}.downloading`;
   await RNBlobUtil.fs.unlink(tmp).catch(() => {});
@@ -166,10 +245,10 @@ async function downloadViaDownloadManager(
 // Interrupted downloads resume from a `.partial` file via an HTTP Range request.
 // `canResume` is set to `false` on an internal retry to avoid recursing forever
 // if partial-file assembly ever fails.
-async function downloadViaStream(
+async function downloadUrlViaIosStream(
   url: string,
   dest: string,
-  cb: DownloadOneCallbacks,
+  cb: DownloadUrlCallbacks,
   canResume = true
 ): Promise<string> {
   const part = `${dest}.partial`;
@@ -236,7 +315,7 @@ async function downloadViaStream(
     // once as a plain full download so correctness never depends on resume.
     await RNBlobUtil.fs.unlink(part).catch(() => {});
     await RNBlobUtil.fs.unlink(target).catch(() => {});
-    if (canResume) return downloadViaStream(url, dest, cb, false);
+    if (canResume) return downloadUrlViaIosStream(url, dest, cb, false);
     throw assemblyErr;
   }
 }
@@ -253,17 +332,22 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * Walks a value and collects every distinct remote URL sitting on a string
  * leaf. Deduplicating here means a URL repeated across fields is fetched once.
  * @param node The value to walk.
- * @param out Accumulator, so recursive calls share one set.
  * @returns The set of remote URLs referenced by `node`.
  */
-export function collectRemoteSources(node: unknown, out = new Set<string>()): Set<string> {
-  if (typeof node === 'string') {
-    if (isRemote(node)) out.add(node);
-  } else if (Array.isArray(node)) {
-    for (const item of node) collectRemoteSources(item, out);
-  } else if (isPlainObject(node)) {
-    for (const value of Object.values(node)) collectRemoteSources(value, out);
-  }
+export function collectRemoteSources(node: unknown): Set<string> {
+  const out = new Set<string>();
+
+  const visit = (current: unknown): void => {
+    if (typeof current === 'string') {
+      if (isRemote(current)) out.add(current);
+    } else if (Array.isArray(current)) {
+      for (const item of current) visit(item);
+    } else if (isPlainObject(current)) {
+      for (const value of Object.values(current)) visit(value);
+    }
+  };
+
+  visit(node);
   return out;
 }
 
@@ -354,9 +438,10 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   const resolved = new Map<string, string>();
   await Promise.all(
     urls.map((url, i) =>
-      // Telemetry fires inside downloadOne, only for genuine (non-cached) fetches.
-      downloadOne(url, {
+      // Telemetry fires inside downloadUrl, only for genuine (non-cached) fetches.
+      downloadUrl(url, {
         signal: options.signal,
+        forceDownload: options.forceDownload,
         onBytes: (recv, tot) => {
           received[i] = haveAllSizes ? recv : tot > 0 ? recv / tot : 0;
           report();

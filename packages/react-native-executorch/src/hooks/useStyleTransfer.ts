@@ -28,7 +28,7 @@ export function useStyleTransfer(config: StyleTransferModel, options?: { prevent
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     transferStyle: model?.transferStyle,
     transferStyleWorklet: model?.transferStyleWorklet,
   };

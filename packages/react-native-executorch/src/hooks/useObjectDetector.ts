@@ -37,7 +37,7 @@ export function useObjectDetector<F extends BoxFormat, L>(
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     labels: config.modelOpts.labels,
     detectObjects: model?.detectObjects,
     detectObjectsWorklet: model?.detectObjectsWorklet,

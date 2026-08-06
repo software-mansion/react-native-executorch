@@ -29,7 +29,7 @@ export function useClassifier<L>(config: ClassifierModel<L>, options?: { prevent
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     labels: config.modelOpts.labels,
     classify: model?.classify,
     classifyWorklet: model?.classifyWorklet,

@@ -37,7 +37,7 @@ export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     landmarks: config.modelOpts.landmarks,
     detectKeypoints: model?.detectKeypoints,
     detectKeypointsWorklet: model?.detectKeypointsWorklet,

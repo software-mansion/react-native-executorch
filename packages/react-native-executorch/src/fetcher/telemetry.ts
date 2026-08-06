@@ -12,6 +12,13 @@ const LIB_VERSION = '0.0.0';
 // Anonymous analytics are on by default; apps opt out via setTelemetryEnabled.
 let telemetryEnabled = true;
 
+// Telemetry must never break a download, so every failure is swallowed. Surface
+// it in development so a genuinely broken payload doesn't go unnoticed.
+function warn(message: string, error: unknown): void {
+  // eslint-disable-next-line no-console
+  if (__DEV__) console.warn(`[RNE Telemetry] ${message}:`, error);
+}
+
 /**
  * Enables or disables the anonymous download analytics sent to Software Mansion.
  * Analytics are enabled by default; call `setTelemetryEnabled(false)` (e.g. once
@@ -43,8 +50,12 @@ export function triggerHuggingFaceDownloadCounter(uri: string): void {
     if (!isSwmHuggingFaceRepo(url)) return;
     const base = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
     // Fire-and-forget; its success is irrelevant to the download itself.
-    fetch(`${base}resolve/main/config.json`, { method: 'HEAD' }).catch(() => {});
-  } catch {}
+    fetch(`${base}resolve/main/config.json`, { method: 'HEAD' }).catch((e) => {
+      warn('Hugging Face download counter request failed', e);
+    });
+  } catch (e) {
+    warn('Failed to trigger the Hugging Face download counter', e);
+  }
 }
 
 function getCountryCode(): string {
@@ -52,21 +63,18 @@ function getCountryCode(): string {
     const locale = Intl.DateTimeFormat().resolvedOptions().locale;
     const region = locale.split('-').pop();
     if (region && region.length === 2) return region.toUpperCase();
-  } catch {}
+  } catch (e) {
+    warn('Failed to resolve the country code', e);
+  }
   return 'UNKNOWN';
-}
-
-// Reported by the native installer (Android build props / TARGET_OS_SIMULATOR)
-// so development traffic can be filtered out server-side.
-function isEmulator(): boolean {
-  return rnexecutorchJsi.isEmulator === true;
 }
 
 function getModelNameFromUri(uri: string): string {
   try {
     const filename = new URL(uri).pathname.split('/').pop() ?? uri;
     return filename.replace(/\.[^.]+$/, '');
-  } catch {
+  } catch (e) {
+    warn('Failed to derive the model name from the URI', e);
     return uri;
   }
 }
@@ -86,10 +94,16 @@ export function triggerDownloadEvent(uri: string): void {
       body: JSON.stringify({
         modelName: getModelNameFromUri(uri),
         countryCode: getCountryCode(),
-        isEmulator: isEmulator(),
+        // Set by the native installer (Android build props / TARGET_OS_SIMULATOR)
+        // so development traffic can be filtered out server-side.
+        isEmulator: rnexecutorchJsi.isEmulator,
         platform: Platform.OS,
         libVersion: LIB_VERSION,
       }),
-    }).catch(() => {});
-  } catch {}
+    }).catch((e) => {
+      warn('Download event request failed', e);
+    });
+  } catch (e) {
+    warn('Failed to send the download event', e);
+  }
 }

@@ -37,7 +37,7 @@ export function useInstanceSegmenter<F extends BoxFormat, L>(
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     segmentInstances: model?.segmentInstances,
     segmentInstancesWorklet: model?.segmentInstancesWorklet,
     labels: config.modelOpts.labels,

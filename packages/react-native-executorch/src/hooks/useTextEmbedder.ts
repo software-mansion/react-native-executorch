@@ -29,8 +29,7 @@ export function useTextEmbedder(config: TextEmbedderModel, options?: { preventLo
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
-    tokenizerPath: resource?.tokenizerPath,
+    resource,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
   };

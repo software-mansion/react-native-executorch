@@ -27,7 +27,7 @@ export function useTokenizer(tokenizerPath: string, options?: { preventLoad?: bo
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource,
+    resource,
     encode: model?.encode,
     decode: model?.decode,
     getVocabSize: model?.getVocabSize,

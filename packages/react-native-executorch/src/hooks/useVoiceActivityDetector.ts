@@ -34,7 +34,7 @@ export function useVoiceActivityDetector(
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath: resource?.modelPath,
+    resource,
     detectVoice: model?.detectVoice,
     detectVoiceWorklet: model?.detectVoiceWorklet,
     detectVoiceOnStream: model?.detectVoiceOnStream,
