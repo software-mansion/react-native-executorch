@@ -1,6 +1,6 @@
 import type { WorkletRuntime } from 'react-native-worklets';
 
-import RNFS from 'react-native-fs';
+import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
@@ -242,13 +242,13 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
   });
 
   // Parse unicode indexer JSON
-  const indexStr = await RNFS.readFile(config.unicodeIndexerPath, 'utf8'); // TODO: change after #1328 lands
+  const indexStr = await RNBlobUtil.fs.readFile(config.unicodeIndexerPath, 'utf8');
   const indexer: readonly number[] = JSON.parse(indexStr);
 
   // Pre-parse voice styles map into memory
   const parsedVoiceStyles = {} as Record<K, SupertonicVoiceStyle>;
   for (const [key, path] of Object.entries(config.voiceStyles) as [K, string][]) {
-    const jsonStr = await RNFS.readFile(path, 'utf8'); // TODO: change after #1328 lands
+    const jsonStr = await RNBlobUtil.fs.readFile(path, 'utf8');
     parsedVoiceStyles[key] = parseVoiceStyle(JSON.parse(jsonStr));
   }
 
