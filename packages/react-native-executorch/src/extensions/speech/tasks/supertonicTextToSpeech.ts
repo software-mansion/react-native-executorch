@@ -8,7 +8,8 @@ import { validateSpec, method, i64, f32, DynamicDim as Dyn, constr } from '../..
 import { wrapAsync } from '../../../core/runtime';
 import { randomNormal } from '../../math';
 import {
-  preprocessText,
+  cleanText,
+  formatChunk,
   encodeText,
   parseVoiceStyle,
   SUPERTONIC_SUPPORTED_LANGUAGES,
@@ -40,6 +41,7 @@ const DEFAULT_TOTAL_STEPS = 8;
 const DEFAULT_SPEED = 1.05;
 const MIN_SPEED = 0.7;
 const MAX_SPEED = 2.0;
+const MAX_CHUNK_LENGTH_CAP = 240;
 
 function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
   switch (lang) {
@@ -48,7 +50,7 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
     case 'ja':
       return 120;
     default:
-      return 300;
+      return MAX_CHUNK_LENGTH_CAP;
   }
 }
 
@@ -369,14 +371,19 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
         : parsedVoiceStyles[options.voiceStyle];
 
     const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
-    const textChunks = partition(text, maxChunkLength);
+    if (maxChunkLength > MAX_CHUNK_LENGTH_CAP) {
+      throw new Error(`synthesize: maxChunkLength cannot exceed ${MAX_CHUNK_LENGTH_CAP}.`);
+    }
+
+    const cleanedText = cleanText(text);
+    const textChunks = partition(cleanedText, maxChunkLength);
 
     isSynthesizing = true;
     try {
       for (const [chunkIndex, rawChunk] of textChunks.entries()) {
         if (!isSynthesizing) break;
 
-        const textChunk = preprocessText(rawChunk, options.lang);
+        const textChunk = formatChunk(rawChunk, options.lang);
         const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
         yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
       }

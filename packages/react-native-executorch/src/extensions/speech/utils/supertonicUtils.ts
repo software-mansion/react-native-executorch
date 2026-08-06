@@ -86,13 +86,13 @@ const DUPLICATE_QUOTES_PATTERN = /([`'""])\1+/g;
 const ENDING_PUNCTUATION_PATTERN = /[.!?;:,'")\]}…。」』】〉》›»]$/;
 
 /**
- * Normalizes and cleans raw input text using character mappings.
+ * Normalizes unicode, replaces symbols/abbreviations, strips emojis, and cleans whitespace.
+ * Should be run on full input text prior to chunk partitioning.
  * @category Utils
  * @param text The raw input text.
- * @param lang The language code.
- * @returns The preprocessed text.
+ * @returns The normalized clean text.
  */
-export function preprocessText(text: string, lang?: string): string {
+export function cleanText(text: string): string {
   'worklet';
 
   let processed = text.normalize('NFKD');
@@ -101,11 +101,25 @@ export function preprocessText(text: string, lang?: string): string {
     processed = processed.split(key).join(replacement);
   }
 
-  processed = processed
+  return processed
     .replace(EMOJI_PATTERN, '')
     .replace(DUPLICATE_QUOTES_PATTERN, '$1')
     .replace(WHITESPACE_PATTERN, ' ')
     .trim();
+}
+
+/**
+ * Formats a single text chunk by ensuring ending punctuation and wrapping with language tags.
+ * Should be run on individual partitioned text chunks.
+ * @category Utils
+ * @param chunk The partitioned text chunk.
+ * @param lang The language code.
+ * @returns The formatted chunk ready for model input.
+ */
+export function formatChunk(chunk: string, lang?: string): string {
+  'worklet';
+
+  let processed = chunk.trim();
 
   if (!ENDING_PUNCTUATION_PATTERN.test(processed)) {
     processed += '.';
@@ -113,12 +127,24 @@ export function preprocessText(text: string, lang?: string): string {
 
   if (lang && lang !== 'na') {
     if (!SUPERTONIC_SUPPORTED_LANGUAGES.includes(lang as SupertonicLanguage)) {
-      throw new Error(`preprocessText: Unsupported language: ${lang}`);
+      throw new Error(`formatChunk: Unsupported language: ${lang}`);
     }
     processed = `<${lang}>${processed}</${lang}>`;
   }
 
   return processed;
+}
+
+/**
+ * Convenience wrapper combining {@link cleanText} and {@link formatChunk}.
+ * @category Utils
+ * @param text The raw input text.
+ * @param lang The language code.
+ * @returns The preprocessed text.
+ */
+export function preprocessText(text: string, lang?: string): string {
+  'worklet';
+  return formatChunk(cleanText(text), lang);
 }
 
 /**

@@ -53,15 +53,11 @@ export function partition(text: string, limit: number): string[] {
     ++charIdx;
   }
 
-  const targetLength = Math.min(MAX_TARGET_PHRASE_LENGTH, limit * TARGET_LENGTH_RATIO);
-  if (breakpoints.length === 0) {
-    if (text.length > limit) {
-      throw new Error(
-        `partition: text of length ${text.length} has no break points and exceeds limit ${limit}`
-      );
-    }
-    return [text];
+  if (breakpoints.length === 0 || breakpoints[breakpoints.length - 1]!.idx < text.length - 1) {
+    breakpoints.push({ idx: text.length - 1, tag: 'eos' });
   }
+
+  const targetLength = Math.min(MAX_TARGET_PHRASE_LENGTH, limit * TARGET_LENGTH_RATIO);
 
   const length = (currBreakIdx: number, prevBreakIdx: number): number => {
     if (prevBreakIdx < 0) return breakpoints[currBreakIdx]!.idx + 1; // no previous cuts
