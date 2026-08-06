@@ -22,7 +22,7 @@ export function useStyleTransfer(config: StyleTransferModel, options?: { prevent
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createStyleTransfer, resource ?? null, [resource]);
+  const { model, error } = useModel(createStyleTransfer, resource ?? null);
 
   return {
     isReady: !!model,

@@ -23,7 +23,7 @@ export function useClassifier<L>(config: ClassifierModel<L>, options?: { prevent
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createClassifier<L>, resource ?? null, [resource]);
+  const { model, error } = useModel(createClassifier<L>, resource ?? null);
 
   return {
     isReady: !!model,

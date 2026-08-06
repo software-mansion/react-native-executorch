@@ -21,7 +21,7 @@ export function useTokenizer(tokenizerPath: string, options?: { preventLoad?: bo
     tokenizerPath,
     options?.preventLoad
   );
-  const { model, error } = useModel(createTokenizer, resource ?? null, [resource]);
+  const { model, error } = useModel(createTokenizer, resource ?? null);
 
   return {
     isReady: !!model,

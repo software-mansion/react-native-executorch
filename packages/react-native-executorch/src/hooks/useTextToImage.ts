@@ -24,7 +24,7 @@ export function useTextToImage(config: SdxsTextToImageModel, options?: { prevent
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createSdxsTextToImage, resource ?? null, [resource]);
+  const { model, error } = useModel(createSdxsTextToImage, resource ?? null);
 
   return {
     isReady: !!model,

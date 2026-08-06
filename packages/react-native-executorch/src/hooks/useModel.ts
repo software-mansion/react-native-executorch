@@ -14,15 +14,15 @@ import { useEffect, useState } from 'react';
  * @param createModel An asynchronous factory function to instantiate the
  * model/task.
  * @param config The configuration to pass to `createModel`, or `null` if the
- * model shouldn't be loaded yet.
- * @param deps Dependency array specifying when to re-create the model.
+ * model shouldn't be loaded yet. The model is re-created whenever this
+ * reference changes, so pass a value that is stable across renders (for
+ * instance the `resource` returned by {@link useResourceDownload}).
  * @returns An object containing the loaded model instance and any instantiation
  * error.
  */
 export function useModel<TConfig, TModel extends { dispose: () => void }>(
   createModel: (config: TConfig) => Promise<TModel>,
-  config: TConfig | null,
-  deps: React.DependencyList
+  config: TConfig | null
 ) {
   const [model, setModel] = useState<TModel | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -56,8 +56,10 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
       isMounted = false;
       instance?.dispose();
     };
+    // `createModel` is a module-level factory, so `config` alone decides when
+    // the instance has to be rebuilt.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [config]);
 
   return { model, error };
 }

@@ -25,7 +25,7 @@ export function useImageEmbedder(config: ImageEmbedderModel, options?: { prevent
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createImageEmbedder, resource ?? null, [resource]);
+  const { model, error } = useModel(createImageEmbedder, resource ?? null);
 
   return {
     isReady: !!model,

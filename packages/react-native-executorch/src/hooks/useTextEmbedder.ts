@@ -23,7 +23,7 @@ export function useTextEmbedder(config: TextEmbedderModel, options?: { preventLo
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createTextEmbedder, resource ?? null, [resource]);
+  const { model, error } = useModel(createTextEmbedder, resource ?? null);
 
   return {
     isReady: !!model,

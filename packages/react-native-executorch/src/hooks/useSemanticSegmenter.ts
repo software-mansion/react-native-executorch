@@ -29,7 +29,7 @@ export function useSemanticSegmenter<L extends PropertyKey = string>(
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createSemanticSegmenter<L>, resource ?? null, [resource]);
+  const { model, error } = useModel(createSemanticSegmenter<L>, resource ?? null);
 
   return {
     isReady: !!model,

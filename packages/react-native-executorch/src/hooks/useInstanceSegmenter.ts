@@ -31,7 +31,7 @@ export function useInstanceSegmenter<F extends BoxFormat, L>(
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource ?? null, [resource]);
+  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource ?? null);
 
   return {
     isReady: !!model,

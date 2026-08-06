@@ -340,7 +340,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * @param node The value to walk.
  * @returns The set of remote URLs referenced by `node`.
  */
-export function collectRemoteSources(node: unknown): Set<string> {
+function collectRemoteSources(node: unknown): Set<string> {
   const out = new Set<string>();
 
   const visit = (current: unknown): void => {
@@ -366,7 +366,7 @@ export function collectRemoteSources(node: unknown): Set<string> {
  * @param resolved Map of remote URL to downloaded local path.
  * @returns `node` with resolved URLs swapped for local paths.
  */
-export function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, string>): T {
+function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, string>): T {
   if (typeof node === 'string') {
     return (resolved.get(node) ?? node) as T;
   }

@@ -1,10 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  download,
-  collectRemoteSources,
-  substituteRemoteSources,
-  AbortError,
-} from '../fetcher/fetcher';
+import { useState, useEffect, useMemo } from 'react';
+import { download, AbortError } from '../fetcher/fetcher';
 
 /**
  * React hook to manage downloading and local caching of the remote resources
@@ -18,9 +13,11 @@ import {
  * files, weighted by size, and interrupted downloads resume on the next attempt
  * instead of restarting.
  *
- * `resource` only changes when the set of remote URLs changes; edits to other
- * fields of `config` (labels, thresholds) don't trigger a re-download and are
- * picked up the next time those URLs are re-resolved.
+ * Work is keyed on the *value* of `config` rather than its identity, so passing
+ * an inline object is safe. Any change to the config resolves again, which is
+ * cheap for the files themselves (already-cached URLs are a no-op) but does
+ * rebuild whatever pipeline consumes `resource` — correct, since `create<Task>`
+ * factories bake their options in at construction time.
  * @category Hooks
  * @typeParam T The shape of the value being resolved.
  * @param config The value whose remote URLs should be resolved to local paths.
@@ -30,39 +27,33 @@ import {
  * percentage, and any download error.
  */
 export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
-  const [resolved, setResolved] = useState<ReadonlyMap<string, string>>();
+  const [resource, setResource] = useState<T>();
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadError, setDownloadError] = useState<Error | null>(null);
 
-  // Downloading is keyed purely on the URLs referenced by `config`, so passing
-  // an inline config object doesn't restart the download on every render.
-  const sourcesKey = useMemo(() => [...collectRemoteSources(config)].sort().join('\n'), [config]);
-
-  // Read at substitution time only, so unrelated config edits don't re-download.
-  const configRef = useRef(config);
-  configRef.current = config;
+  // Configs are plain JSON data, so serializing is a sound structural identity
+  // and keeps an inline `config` object from re-running the effect every render.
+  const configKey = useMemo(() => JSON.stringify(config), [config]);
 
   useEffect(() => {
-    setResolved(undefined);
+    setResource(undefined);
     setDownloadProgress(0);
     setDownloadError(null);
 
     if (preventLoad) return;
 
-    const urls = sourcesKey ? sourcesKey.split('\n') : [];
-
     let isMounted = true;
     const controller = new AbortController();
 
-    download(urls, {
+    download(config, {
       signal: controller.signal,
       onProgress: (progress) => {
         if (isMounted) setDownloadProgress(progress * 100);
       },
     })
-      .then((paths) => {
+      .then((resolved) => {
         if (!isMounted) return;
-        setResolved(new Map(urls.map((url, i) => [url, paths[i]!])));
+        setResource(resolved);
         setDownloadProgress(100);
       })
       .catch((e) => {
@@ -74,12 +65,9 @@ export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
       isMounted = false;
       controller.abort();
     };
-  }, [sourcesKey, preventLoad]);
-
-  const resource = useMemo(
-    () => (resolved ? substituteRemoteSources(configRef.current, resolved) : undefined),
-    [resolved]
-  );
+    // `config` is intentionally tracked by value through `configKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, preventLoad]);
 
   return { resource, downloadProgress, downloadError };
 }

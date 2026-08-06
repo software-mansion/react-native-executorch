@@ -31,7 +31,7 @@ export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createWhisperSpeechToText, resource ?? null, [resource]);
+  const { model, error } = useModel(createWhisperSpeechToText, resource ?? null);
 
   return {
     isReady: !!model,

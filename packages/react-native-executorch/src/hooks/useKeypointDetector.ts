@@ -31,7 +31,7 @@ export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createKeypointDetector<F, L>, resource ?? null, [resource]);
+  const { model, error } = useModel(createKeypointDetector<F, L>, resource ?? null);
 
   return {
     isReady: !!model,

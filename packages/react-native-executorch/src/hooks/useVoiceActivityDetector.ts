@@ -28,7 +28,7 @@ export function useVoiceActivityDetector(
     config,
     options?.preventLoad
   );
-  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource ?? null, [resource]);
+  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource ?? null);
 
   return {
     isReady: !!model,
