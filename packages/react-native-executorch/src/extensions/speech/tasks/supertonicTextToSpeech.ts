@@ -39,8 +39,8 @@ const STYLE_TTL_SHAPE = [1, 50, 256] as const; // text-to-latent style: 50 token
 // Synthesis Execution Defaults & Boundaries
 const DEFAULT_TOTAL_STEPS = 8;
 const DEFAULT_SPEED = 1.05;
-const MIN_SPEED = 0.7;
-const MAX_SPEED = 2.0;
+const MIN_SPEED = 0.8;
+const MAX_SPEED = 1.2;
 const MAX_CHUNK_LENGTH_CAP = 240;
 
 function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {

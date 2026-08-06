@@ -35,14 +35,12 @@ const LANGUAGE_OPTIONS = SUPERTONIC_SUPPORTED_LANGUAGES.map((lang) => ({
 }));
 
 const SPEED_OPTIONS = [
-  { label: '0.7x', value: 0.7 },
+  { label: '0.8x', value: 0.8 },
   { label: '0.85x', value: 0.85 },
   { label: '1.0x', value: 1.0 },
   { label: '1.05x', value: 1.05 },
   { label: '1.10x', value: 1.1 },
   { label: '1.2x', value: 1.2 },
-  { label: '1.5x', value: 1.5 },
-  { label: '2.0x', value: 2.0 },
 ];
 
 const STEPS_OPTIONS = [
