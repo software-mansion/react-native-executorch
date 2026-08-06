@@ -1,20 +1,77 @@
 type Tag = 'eos' | 'pause' | 'whitespace';
 
+// Punctuation Regex Patterns
 const EOS_PATTERN = /[.?!;…|।॥¿¡]/;
 const PAUSE_PATTERN = /[,:\u2014\u00AB\u00BB]/;
 const WHITESPACE_PATTERN = /\s/;
 
+// Standard Partitioning Constants
 const MAX_TARGET_PHRASE_LENGTH = 120;
 const MIN_PARTITION_LIMIT = 10;
 const DEVIATION_SCALING = 0.01;
 const TARGET_LENGTH_RATIO = 0.5;
-const SEPARATOR_PENALTY: Record<Tag, number> = { eos: 5, pause: 18, whitespace: 1000 };
+
+// TTFA Optimization Constants
+const INITIAL_TARGET_LENGTH_RATIO = 0.15;
+const RAMP_CHARACTER_COUNT = 150;
+const INITIAL_SHORT_DEVIATION_SCALE = 0.1;
+
+// Separator Breakpoint Penalties (eos = sentence end, pause = comma/colon, whitespace = word space)
+const DEFAULT_SEPARATOR_PENALTY: Record<Tag, number> = { eos: 5, pause: 80, whitespace: 1000 };
+
+/**
+ * Configuration options for text partitioning.
+ * @category Types
+ */
+export type PartitionOptions = {
+  /**
+   * Whether to prioritize shorter initial segment lengths and scale up
+   * progressively to minimize Time To First Audio (TTFA).
+   * @default false
+   */
+  readonly prioritizeInitialTtfa?: boolean;
+
+  /**
+   * Scaling multiplier for the length deviation penalty when the first segment
+   * is shorter than target length. Lower values reduce the length penalty for
+   * short initial chunks when prioritizeInitialTtfa is true.
+   * @default 0.1
+   */
+  readonly initialShortDeviationScale?: number;
+
+  /**
+   * Custom separator penalties for breakpoint tag types ('eos', 'pause',
+   * 'whitespace'). Default: { eos: 5, pause: 80, whitespace: 1000 }.
+   */
+  readonly separatorPenalties?: {
+    readonly eos?: number;
+    readonly pause?: number;
+    readonly whitespace?: number;
+  };
+};
 
 function tagFromChar(char: string): Tag | undefined {
   if (EOS_PATTERN.test(char)) return 'eos';
   if (PAUSE_PATTERN.test(char)) return 'pause';
   if (WHITESPACE_PATTERN.test(char)) return 'whitespace';
   return;
+}
+
+function getTargetLength(
+  startCharIdx: number,
+  limit: number,
+  prioritizeInitialTtfa: boolean
+): number {
+  const maxTarget = Math.min(MAX_TARGET_PHRASE_LENGTH, limit * TARGET_LENGTH_RATIO);
+  if (!prioritizeInitialTtfa) {
+    return maxTarget;
+  }
+  const minTarget = Math.min(
+    maxTarget,
+    Math.max(MIN_PARTITION_LIMIT * 2.5, limit * INITIAL_TARGET_LENGTH_RATIO)
+  );
+  const progress = Math.min(1.0, startCharIdx / RAMP_CHARACTER_COUNT);
+  return minTarget + (maxTarget - minTarget) * progress;
 }
 
 function sliceAtCuts(text: string, cutIndices: number[]): string[] {
@@ -34,9 +91,10 @@ function sliceAtCuts(text: string, cutIndices: number[]): string[] {
  * @category Utils
  * @param text The input text to partition.
  * @param limit The character limit per partition.
+ * @param options Optional configuration for TTFA prioritization and custom penalties.
  * @returns An array of partitioned text segments.
  */
-export function partition(text: string, limit: number): string[] {
+export function partition(text: string, limit: number, options?: PartitionOptions): string[] {
   if (!text) {
     return [];
   }
@@ -44,6 +102,15 @@ export function partition(text: string, limit: number): string[] {
   if (limit < MIN_PARTITION_LIMIT) {
     throw new Error(`partition: limit ${limit} is below minimum ${MIN_PARTITION_LIMIT}`);
   }
+
+  const prioritizeInitialTtfa = options?.prioritizeInitialTtfa ?? false;
+  const initialShortDeviationScale =
+    options?.initialShortDeviationScale ?? INITIAL_SHORT_DEVIATION_SCALE;
+  const separatorPenalty: Record<Tag, number> = {
+    eos: options?.separatorPenalties?.eos ?? DEFAULT_SEPARATOR_PENALTY.eos,
+    pause: options?.separatorPenalties?.pause ?? DEFAULT_SEPARATOR_PENALTY.pause,
+    whitespace: options?.separatorPenalties?.whitespace ?? DEFAULT_SEPARATOR_PENALTY.whitespace,
+  };
 
   const breakpoints: { idx: number; tag: Tag }[] = [];
   let charIdx = 0;
@@ -57,8 +124,6 @@ export function partition(text: string, limit: number): string[] {
     breakpoints.push({ idx: text.length - 1, tag: 'eos' });
   }
 
-  const targetLength = Math.min(MAX_TARGET_PHRASE_LENGTH, limit * TARGET_LENGTH_RATIO);
-
   const length = (currBreakIdx: number, prevBreakIdx: number): number => {
     if (prevBreakIdx < 0) return breakpoints[currBreakIdx]!.idx + 1; // no previous cuts
     return breakpoints[currBreakIdx]!.idx - breakpoints[prevBreakIdx]!.idx;
@@ -67,10 +132,18 @@ export function partition(text: string, limit: number): string[] {
   const cost = (currBreakIdx: number, prevBreakIdx: number): number => {
     const len = length(currBreakIdx, prevBreakIdx);
     if (len > limit) return Infinity;
-    return (
-      SEPARATOR_PENALTY[breakpoints[currBreakIdx]!.tag] +
-      DEVIATION_SCALING * (len - targetLength) ** 2
-    );
+
+    const startCharIdx = prevBreakIdx < 0 ? 0 : breakpoints[prevBreakIdx]!.idx + 1;
+    const targetLength = getTargetLength(startCharIdx, limit, prioritizeInitialTtfa);
+
+    const isFirstChunk = prevBreakIdx < 0;
+    const diff = len - targetLength;
+    const devScale =
+      prioritizeInitialTtfa && isFirstChunk && diff < 0
+        ? DEVIATION_SCALING * initialShortDeviationScale
+        : DEVIATION_SCALING;
+
+    return separatorPenalty[breakpoints[currBreakIdx]!.tag] + devScale * diff ** 2;
   };
 
   // Forward DP Recurrence Relation
