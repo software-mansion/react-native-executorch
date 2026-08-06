@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createWhisperSpeechToText,
   type WhisperSttModel,
@@ -15,22 +15,17 @@ import {
  * unmounts or configuration changes.
  * @category Hooks
  * @param config The Whisper speech-to-text model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and transcription functions.
  */
 export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
-  options?: { preventLoad?: boolean }
+  options?: ResourceOptions
 ) {
   // Resolves the model, the tokenizer and the nested VAD model in one pass,
   // with progress weighted across all three.
-  const { resource, downloadProgress, downloadError } = useResourceDownload(
-    config,
-    options?.preventLoad
-  );
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
   const { model, error } = useModel(createWhisperSpeechToText, resource ?? null);
 
   return {

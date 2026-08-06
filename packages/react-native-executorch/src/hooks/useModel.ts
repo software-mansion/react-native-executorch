@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 /**
  * React hook to instantiate and compile a model pipeline with automatic
@@ -14,9 +14,9 @@ import { useEffect, useState } from 'react';
  * @param createModel An asynchronous factory function to instantiate the
  * model/task.
  * @param config The configuration to pass to `createModel`, or `null` if the
- * model shouldn't be loaded yet. The model is re-created whenever this
- * reference changes, so pass a value that is stable across renders (for
- * instance the `resource` returned by {@link useResourceDownload}).
+ * model shouldn't be loaded yet. It is tracked by value, so the model is
+ * re-created whenever the config's contents change and passing an inline object
+ * is safe.
  * @returns An object containing the loaded model instance and any instantiation
  * error.
  */
@@ -26,6 +26,10 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
 ) {
   const [model, setModel] = useState<TModel | null>(null);
   const [error, setError] = useState<Error | null>(null);
+
+  // Configs are plain JSON data, so serializing is a sound structural identity
+  // and keeps an inline `config` object from rebuilding the model every render.
+  const configKey = useMemo(() => JSON.stringify(config), [config]);
 
   useEffect(() => {
     if (!config) {
@@ -56,10 +60,10 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
       isMounted = false;
       instance?.dispose();
     };
-    // `createModel` is a module-level factory, so `config` alone decides when
-    // the instance has to be rebuilt.
+    // `createModel` is a module-level factory, so the config alone decides when
+    // the instance has to be rebuilt, and it is tracked by value via `configKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config]);
+  }, [configKey]);
 
   return { model, error };
 }

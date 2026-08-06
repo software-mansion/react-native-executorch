@@ -2,6 +2,22 @@ import { useState, useEffect, useMemo } from 'react';
 import { download, AbortError } from '../fetcher/fetcher';
 
 /**
+ * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
+ * built on top of it.
+ * @category Types
+ */
+export interface ResourceOptions {
+  /** If true, prevents checks and downloads, resetting the hook state. */
+  preventLoad?: boolean;
+  /**
+   * Re-downloads every remote source even when it is already cached, replacing
+   * the cached copy. Use to recover from a corrupted file or to pick up a model
+   * that changed behind a stable URL.
+   */
+  forceDownload?: boolean;
+}
+
+/**
  * React hook to manage downloading and local caching of the remote resources
  * (e.g. `.pte` models) referenced by a value.
  *
@@ -21,12 +37,13 @@ import { download, AbortError } from '../fetcher/fetcher';
  * @category Hooks
  * @typeParam T The shape of the value being resolved.
  * @param config The value whose remote URLs should be resolved to local paths.
- * @param preventLoad If true, prevents checks and downloads, resetting the hook
- * state.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the resolved value, the download progress
  * percentage, and any download error.
  */
-export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
+export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
+  const { preventLoad, forceDownload } = options ?? {};
+
   const [resource, setResource] = useState<T>();
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadError, setDownloadError] = useState<Error | null>(null);
@@ -47,6 +64,7 @@ export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
 
     download(config, {
       signal: controller.signal,
+      forceDownload,
       onProgress: (progress) => {
         if (isMounted) setDownloadProgress(progress * 100);
       },
@@ -67,7 +85,7 @@ export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
     };
     // `config` is intentionally tracked by value through `configKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configKey, preventLoad]);
+  }, [configKey, preventLoad, forceDownload]);
 
   return { resource, downloadProgress, downloadError };
 }

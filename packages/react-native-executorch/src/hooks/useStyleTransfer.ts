@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/tasks/styleTransfer';
 
 /**
@@ -11,17 +11,12 @@ import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/t
  * changes.
  * @category Hooks
  * @param config The style transfer model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and style transfer functions.
  */
-export function useStyleTransfer(config: StyleTransferModel, options?: { preventLoad?: boolean }) {
-  const { resource, downloadProgress, downloadError } = useResourceDownload(
-    config,
-    options?.preventLoad
-  );
+export function useStyleTransfer(config: StyleTransferModel, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
   const { model, error } = useModel(createStyleTransfer, resource ?? null);
 
   return {

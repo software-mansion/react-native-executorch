@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import { createTokenizer } from '../extensions/nlp/tasks/tokenization';
 
 /**
@@ -10,17 +10,12 @@ import { createTokenizer } from '../extensions/nlp/tasks/tokenization';
  * cleaning up native memory when the component unmounts or the source changes.
  * @category Hooks
  * @param tokenizerPath A remote URL or local path to a `tokenizer.json` file.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and loading the
- * tokenizer.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the tokenizer's loading state, error, download
  * progress, and tokenization functions.
  */
-export function useTokenizer(tokenizerPath: string, options?: { preventLoad?: boolean }) {
-  const { resource, downloadProgress, downloadError } = useResourceDownload(
-    tokenizerPath,
-    options?.preventLoad
-  );
+export function useTokenizer(tokenizerPath: string, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(tokenizerPath, options);
   const { model, error } = useModel(createTokenizer, resource ?? null);
 
   return {
