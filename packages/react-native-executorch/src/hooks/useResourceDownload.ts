@@ -1,110 +1,91 @@
-/* eslint-disable no-bitwise */
-import { useState, useEffect } from 'react';
-import RNFS from 'react-native-fs';
-
-const djb2 = (s: string): number => {
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) {
-    h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0;
-  }
-  return h;
-};
+import { useState, useEffect, useMemo } from 'react';
+import { download, AbortError } from '../fetcher/fetcher';
 
 /**
- * React hook to manage downloading and local caching of remote resources (e.g.
- * `.pte` models).
+ * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
+ * built on top of it.
+ * @category Types
+ */
+export interface ResourceOptions {
+  /** If true, prevents checks and downloads, resetting the hook state. */
+  preventLoad?: boolean;
+  /**
+   * Re-downloads every remote source even when it is already cached, replacing
+   * the cached copy. Use to recover from a corrupted file or to pick up a model
+   * that changed behind a stable URL.
+   */
+  forceDownload?: boolean;
+}
+
+/**
+ * React hook to manage downloading and local caching of the remote resources
+ * (e.g. `.pte` models) referenced by a value.
  *
- * If the source is a remote URL starting with `http`, the hook checks the local
- * filesystem cache for a matching file. If cached, it immediately returns the
- * local file path. If not cached, it starts downloading the file to the
- * application cache directory, reporting download progress (0-100) and any
- * network/disk errors.
+ * `config` may be a single URL or any nested object/array holding them —
+ * typically a whole model config. Every remote URL found inside is downloaded
+ * into the persistent resource cache (cache hits resolve immediately) and
+ * replaced by its local path, so `resource` mirrors `config` exactly and can be
+ * passed straight to a `create<Task>` factory. Progress is reported across all
+ * files, weighted by size, and interrupted downloads resume on the next attempt
+ * instead of restarting.
+ *
+ * Work is keyed on the *value* of `config` rather than its identity, so passing
+ * an inline object is safe. Any change to the config resolves again, which is
+ * cheap for the files themselves (already-cached URLs are a no-op) but does
+ * rebuild whatever pipeline consumes `resource` — correct, since `create<Task>`
+ * factories bake their options in at construction time.
  * @category Hooks
- * @experimental Subject to change once the temporary react-native-fs dependency is replaced.
- * See [Issue #1253](https://github.com/software-mansion/react-native-executorch/issues/1253).
- * @param source The remote URL or local path to the resource. If it's already a
- * local path, it is returned immediately as is.
- * @param preventLoad If true, prevents checks and downloads, resetting the hook
- * state.
- * @returns An object containing the local file path, the download progress
+ * @typeParam T The shape of the value being resolved.
+ * @param config The value whose remote URLs should be resolved to local paths.
+ * @param options Load and caching options. See {@link ResourceOptions}.
+ * @returns An object containing the resolved value, the download progress
  * percentage, and any download error.
  */
-export function useResourceDownload(source?: string, preventLoad?: boolean) {
-  const [localPath, setLocalPath] = useState<string>();
+export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
+  const { preventLoad, forceDownload } = options ?? {};
+
+  const [resource, setResource] = useState<T>();
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadError, setDownloadError] = useState<Error | null>(null);
 
+  // Configs are plain JSON data, so serializing is a sound structural identity
+  // and keeps an inline `config` object from re-running the effect every render.
+  const configKey = useMemo(() => JSON.stringify(config), [config]);
+
   useEffect(() => {
-    setLocalPath(undefined);
+    setResource(undefined);
     setDownloadProgress(0);
     setDownloadError(null);
 
     if (preventLoad) return;
 
-    if (!source) {
-      setDownloadProgress(100);
-      return;
-    }
-
-    if (!source.startsWith('http')) {
-      setLocalPath(source);
-      setDownloadProgress(100);
-      return;
-    }
-
     let isMounted = true;
-    const urlWithoutQuery = source.split('?')[0]!;
-    const basename = urlWithoutQuery.split('/').pop() ?? 'model';
-    const dest = `${RNFS.CachesDirectoryPath}/${djb2(urlWithoutQuery)}_${basename}`;
-    const uid = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const tmp = `${dest}.${uid}.partial`;
+    const controller = new AbortController();
 
-    RNFS.exists(dest).then((exists) => {
-      if (!isMounted) return;
-
-      if (exists) {
-        setLocalPath(dest);
+    download(config, {
+      signal: controller.signal,
+      forceDownload,
+      onProgress: (progress) => {
+        if (isMounted) setDownloadProgress(progress * 100);
+      },
+    })
+      .then((resolved) => {
+        if (!isMounted) return;
+        setResource(resolved);
         setDownloadProgress(100);
-        return;
-      }
-
-      RNFS.downloadFile({
-        fromUrl: source,
-        toFile: tmp,
-        progressInterval: 100,
-        begin: () => {
-          if (isMounted) setDownloadProgress(0);
-        },
-        progress: (r: any) => {
-          if (isMounted)
-            setDownloadProgress(r.contentLength > 0 ? (r.bytesWritten / r.contentLength) * 100 : 0);
-        },
       })
-        .promise.then(async (res) => {
-          if (res.statusCode && res.statusCode >= 400) {
-            throw new Error(`Download failed with HTTP status ${res.statusCode}`);
-          }
-          try {
-            await RNFS.moveFile(tmp, dest);
-          } catch (err) {
-            if (!(await RNFS.exists(dest))) throw err;
-            await RNFS.unlink(tmp).catch(() => {});
-          }
-          if (isMounted) {
-            setLocalPath(dest);
-            setDownloadProgress(100);
-          }
-        })
-        .catch((e) => {
-          RNFS.unlink(tmp).catch(() => {});
-          if (isMounted) setDownloadError(e instanceof Error ? e : new Error(String(e)));
-        });
-    });
+      .catch((e) => {
+        if (!isMounted || e instanceof AbortError) return;
+        setDownloadError(e instanceof Error ? e : new Error(String(e)));
+      });
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
-  }, [source, preventLoad]);
+    // `config` is intentionally tracked by value through `configKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, preventLoad, forceDownload]);
 
-  return { localPath, downloadProgress, downloadError };
+  return { resource, downloadProgress, downloadError };
 }

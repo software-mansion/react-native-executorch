@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createFsmnVoiceActivityDetector,
   type FsmnVadModel,
@@ -14,31 +14,19 @@ import {
  * changes.
  * @category Hooks
  * @param config The VAD model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, one-shot detection functions, and live detection controls.
  */
-export function useVoiceActivityDetector(
-  config: FsmnVadModel,
-  options?: { preventLoad?: boolean }
-) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
-  const { model, error } = useModel(
-    createFsmnVoiceActivityDetector,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+export function useVoiceActivityDetector(config: FsmnVadModel, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createFsmnVoiceActivityDetector, resource ?? null);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    resource,
     detectVoice: model?.detectVoice,
     detectVoiceWorklet: model?.detectVoiceWorklet,
     detectVoiceOnStream: model?.detectVoiceOnStream,

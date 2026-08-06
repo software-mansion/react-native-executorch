@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createSemanticSegmenter,
   type SemanticSegmenterModel,
@@ -15,31 +15,22 @@ import {
  * @category Hooks
  * @typeParam L The type representing the segmentation labels.
  * @param config The semantic segmentation model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and segmentation functions.
  */
 export function useSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmenterModel<L>,
-  options?: { preventLoad?: boolean }
+  options?: ResourceOptions
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
-  const { model, error } = useModel(
-    createSemanticSegmenter<L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createSemanticSegmenter<L>, resource ?? null);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    resource,
     segment: model?.segment,
     segmentWorklet: model?.segmentWorklet,
     labels: config.modelOpts.labels,

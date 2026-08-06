@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createSdxsTextToImage,
   type SdxsTextToImageModel,
@@ -14,31 +14,19 @@ import {
  * configuration changes.
  * @category Hooks
  * @param config The SDXS model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and generation functions.
  */
-export function useTextToImage(config: SdxsTextToImageModel, options?: { preventLoad?: boolean }) {
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-  const isResourcesReady = !!(localModelPath && localTokenizerPath);
-
-  const { model, error } = useModel(
-    createSdxsTextToImage,
-    isResourcesReady
-      ? { ...config, modelPath: localModelPath!, tokenizerPath: localTokenizerPath! }
-      : null,
-    [localModelPath, localTokenizerPath]
-  );
+export function useTextToImage(config: SdxsTextToImageModel, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createSdxsTextToImage, resource ?? null);
 
   return {
     isReady: !!model,
-    error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    downloadProgress: modelResource.downloadProgress,
+    error: downloadError || error,
+    downloadProgress,
+    resource,
     generate: model?.generate,
     generateWorklet: model?.generateWorklet,
   };

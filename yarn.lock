@@ -6234,10 +6234,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-64@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "base-64@npm:0.1.0"
-  checksum: 10/5a42938f82372ab5392cbacc85a5a78115cbbd9dbef9f7540fa47d78763a3a8bd7d598475f0d92341f66285afd377509851a9bb5c67bbecb89686e9255d5b3eb
+"base-64@npm:1.0.0":
+  version: 1.0.0
+  resolution: "base-64@npm:1.0.0"
+  checksum: 10/d10b64a1fc9b2c5a5f39f1ce1e6c9d1c5b249222bbfa3a0604c592d90623caf74419983feadd8a170f27dc0c3389704f72faafa3e645aeb56bfc030c93ff074a
   languageName: node
   linkType: hard
 
@@ -6806,6 +6806,7 @@ __metadata:
     expo-router: "npm:~56.2.9"
     react: "npm:19.2.3"
     react-native: "npm:0.85.3"
+    react-native-blob-util: "npm:^0.24.0"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.31.1"
@@ -9036,6 +9037,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob@npm:13.0.6, glob@npm:^13.0.0":
+  version: 13.0.6
+  resolution: "glob@npm:13.0.6"
+  dependencies:
+    minimatch: "npm:^10.2.2"
+    minipass: "npm:^7.1.3"
+    path-scurry: "npm:^2.0.2"
+  checksum: 10/201ad69e5f0aa74e1d8c00a481581f8b8c804b6a4fbfabeeb8541f5d756932800331daeba99b58fb9e4cd67e12ba5a7eba5b82fb476691588418060b84353214
+  languageName: node
+  linkType: hard
+
 "glob@npm:^10.5.0":
   version: 10.5.0
   resolution: "glob@npm:10.5.0"
@@ -9049,17 +9061,6 @@ __metadata:
   bin:
     glob: dist/esm/bin.mjs
   checksum: 10/ab3bccfefcc0afaedbd1f480cd0c4a2c0e322eb3f0aa7ceaa31b3f00b825069f17cf0f1fc8b6f256795074b903f37c0ade37ddda6a176aa57f1c2bbfe7240653
-  languageName: node
-  linkType: hard
-
-"glob@npm:^13.0.0":
-  version: 13.0.6
-  resolution: "glob@npm:13.0.6"
-  dependencies:
-    minimatch: "npm:^10.2.2"
-    minipass: "npm:^7.1.3"
-    path-scurry: "npm:^2.0.2"
-  checksum: 10/201ad69e5f0aa74e1d8c00a481581f8b8c804b6a4fbfabeeb8541f5d756932800331daeba99b58fb9e4cd67e12ba5a7eba5b82fb476691588418060b84353214
   languageName: node
   linkType: hard
 
@@ -11921,6 +11922,7 @@ __metadata:
     expo-router: "npm:~56.2.9"
     react: "npm:19.2.3"
     react-native: "npm:0.85.3"
+    react-native-blob-util: "npm:^0.24.0"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.31.1"
@@ -12794,6 +12796,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-blob-util@npm:^0.24.0":
+  version: 0.24.10
+  resolution: "react-native-blob-util@npm:0.24.10"
+  dependencies:
+    base-64: "npm:1.0.0"
+    glob: "npm:13.0.6"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/3999fbe4c856fd45f09248a80c324c5cd464d9774c705138e864e06d8dab826d2be1ccba25beea09ce1352b66922094eef35435612d5b5e9bde5443803f0269a
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.40.18":
   version: 0.40.18
   resolution: "react-native-builder-bob@npm:0.40.18"
@@ -12943,33 +12958,17 @@ __metadata:
     del-cli: "npm:^6.0.0"
     react: "npm:19.2.0"
     react-native: "npm:0.83.6"
+    react-native-blob-util: "npm:^0.24.0"
     react-native-builder-bob: "npm:^0.40.18"
-    react-native-fs: "npm:^2.20.0"
     react-native-worklets: "npm:0.9.1"
     typescript: "npm:~5.9.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-    react-native-fs: ^2.20.0
+    react-native-blob-util: ^0.24.0
     react-native-worklets: "*"
   languageName: unknown
   linkType: soft
-
-"react-native-fs@npm:^2.20.0":
-  version: 2.20.0
-  resolution: "react-native-fs@npm:2.20.0"
-  dependencies:
-    base-64: "npm:^0.1.0"
-    utf8: "npm:^3.0.0"
-  peerDependencies:
-    react-native: "*"
-    react-native-windows: "*"
-  peerDependenciesMeta:
-    react-native-windows:
-      optional: true
-  checksum: 10/372e59f55d5e544e87093d832896fa3d56ba9802ca140c17b4b8903afe047714e022d3b1a2ddf18d744cb7f4f973593c8083641db9ae0768688b1390078d67a2
-  languageName: node
-  linkType: hard
 
 "react-native-gesture-handler@npm:~2.31.1":
   version: 2.31.2
@@ -14093,6 +14092,7 @@ __metadata:
     react: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-audio-api: "npm:0.13.1"
+    react-native-blob-util: "npm:^0.24.0"
     react-native-device-info: "npm:^15.0.2"
     react-native-drawer-layout: "npm:^4.2.2"
     react-native-executorch: "workspace:*"
@@ -14904,13 +14904,6 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
-  languageName: node
-  linkType: hard
-
-"utf8@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "utf8@npm:3.0.0"
-  checksum: 10/31d19c4faacbb65b09ebc1c21c32b20bdb0919c6f6773cee5001b99bb83f8e503e7233c08fc71ebb34f7cfebd95cec3243b81d90176097aa2f286cccb4ce866e
   languageName: node
   linkType: hard
 

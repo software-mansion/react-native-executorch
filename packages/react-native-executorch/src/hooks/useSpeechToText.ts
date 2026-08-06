@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createWhisperSpeechToText,
   type WhisperSttModel,
@@ -15,52 +15,24 @@ import {
  * unmounts or configuration changes.
  * @category Hooks
  * @param config The Whisper speech-to-text model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and transcription functions.
  */
 export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
-  options?: { preventLoad?: boolean }
+  options?: ResourceOptions
 ) {
-  const vadModelPath = config.vadModel.modelPath;
-  const vadResource = useResourceDownload(vadModelPath, options?.preventLoad);
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localVadPath = vadResource.localPath;
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-
-  const isResourcesReady = !!(localModelPath && localTokenizerPath && localVadPath);
-  const whisperConfig = isResourcesReady
-    ? {
-        ...config,
-        modelPath: localModelPath!,
-        tokenizerPath: localTokenizerPath!,
-        vadModel: { ...config.vadModel, modelPath: localVadPath! },
-      }
-    : null;
-
-  const { model, error: modelError } = useModel(createWhisperSpeechToText, whisperConfig, [
-    localVadPath,
-    localModelPath,
-    localTokenizerPath,
-  ]);
-
-  const error =
-    vadResource.downloadError ||
-    modelResource.downloadError ||
-    tokenizerResource.downloadError ||
-    modelError;
+  // Resolves the model, the tokenizer and the nested VAD model in one pass,
+  // with progress weighted across all three.
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createWhisperSpeechToText, resource ?? null);
 
   return {
     isReady: !!model,
-    error,
-    downloadProgress: modelResource.downloadProgress,
-    localPath: modelResource.localPath,
+    error: downloadError || error,
+    downloadProgress,
+    resource,
     transcribe: model?.transcribe,
     transcribeWorklet: model?.transcribeWorklet,
     transcribeStop: model?.transcribeStop,
