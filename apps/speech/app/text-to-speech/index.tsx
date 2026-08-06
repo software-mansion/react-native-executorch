@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { Platform, View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import {
   useTextToSpeech,
   models,
@@ -54,7 +54,7 @@ const STEPS_OPTIONS = [
 
 const MODEL_OPTIONS = [
   { label: 'XNNPACK (CPU)', value: 'XNNPACK_FP32' as const },
-  { label: 'MLX (Apple Silicon)', value: 'MLX_FP32' as const },
+  { label: 'MLX (Apple Silicon)', value: 'MLX_FP32' as const, disabled: Platform.OS !== 'ios' },
 ];
 
 function TTSContent() {
