@@ -88,7 +88,7 @@ export type SupertonicTtsOptions<K extends PropertyKey> = {
    * {@link SupertonicVoiceStyle} object.
    */
   readonly voiceStyle: K | SupertonicVoiceStyle;
-  /** Speech speed factor (range: 0.7 to 2.0). */
+  /** Speech speed factor (range: 0.8 to 1.2). */
   readonly speed?: number;
   /** Number of flow-matching denoising steps. */
   readonly totalSteps?: number;
