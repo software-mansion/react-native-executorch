@@ -330,7 +330,11 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
       const audio = tWav.getData(new Float32Array(tWav.numel));
 
-      return { audio, sampleRate: SUPERTONIC_SAMPLE_RATE, duration: durationSec };
+      return {
+        audio,
+        sampleRate: SUPERTONIC_SAMPLE_RATE,
+        duration: audio.length / SUPERTONIC_SAMPLE_RATE,
+      };
     } finally {
       auxTensors.forEach((t) => t.dispose());
     }
