@@ -1,5 +1,5 @@
 import type { WorkletRuntime } from 'react-native-worklets';
-import { createSynchronizable } from 'react-native-worklets';
+
 import RNFS from 'react-native-fs';
 
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -336,13 +336,19 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
   const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
 
-  const isCancelled = createSynchronizable(false);
-  const synthesizeStop = () => isCancelled.setBlocking(true);
+  let isSynthesizing = false;
+  const synthesizeStop = (): void => {
+    isSynthesizing = false;
+  };
 
   async function* synthesize(
     text: string,
     options: SupertonicTtsOptions<K>
   ): AsyncGenerator<SupertonicTtsChunk> {
+    if (isSynthesizing) {
+      throw new Error('synthesize: Synthesis is already in progress.');
+    }
+
     if (!text || !text.trim()) {
       throw new Error('synthesize: Input text cannot be empty.');
     }
@@ -360,16 +366,19 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
         ? options.voiceStyle
         : parsedVoiceStyles[options.voiceStyle];
 
-    isCancelled.setBlocking(false);
-
     const textChunks = partition(text, maxChunkLength);
 
-    for (const [chunkIndex, rawChunk] of textChunks.entries()) {
-      if (isCancelled.getBlocking()) break;
+    isSynthesizing = true;
+    try {
+      for (const [chunkIndex, rawChunk] of textChunks.entries()) {
+        if (!isSynthesizing) break;
 
-      const textChunk = preprocessText(rawChunk, options.lang);
-      const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
-      yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
+        const textChunk = preprocessText(rawChunk, options.lang);
+        const audioChunk = await synthesizeChunk(textChunk, { voiceStyle, speed, totalSteps });
+        yield { ...audioChunk, chunkIndex, totalChunks: textChunks.length };
+      }
+    } finally {
+      isSynthesizing = false;
     }
   }
 
