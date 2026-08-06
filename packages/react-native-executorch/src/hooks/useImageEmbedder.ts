@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createImageEmbedder,
   type ImageEmbedderModel,
@@ -14,28 +14,19 @@ import {
  * changes.
  * @category Hooks
  * @param config The image embedder model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and embedding functions.
  */
-export function useImageEmbedder(config: ImageEmbedderModel, options?: { preventLoad?: boolean }) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
-  const { model, error } = useModel(
-    createImageEmbedder,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+export function useImageEmbedder(config: ImageEmbedderModel, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createImageEmbedder, resource ?? null);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    resource,
     embed: model?.embed,
     embedWorklet: model?.embedWorklet,
   };
