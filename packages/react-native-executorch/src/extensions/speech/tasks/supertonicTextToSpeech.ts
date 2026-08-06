@@ -45,6 +45,8 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
   switch (lang) {
     case 'ko':
       return 120;
+    case 'ja':
+      return 120;
     default:
       return 300;
   }
