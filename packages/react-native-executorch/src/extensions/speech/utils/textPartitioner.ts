@@ -50,7 +50,7 @@ export function partition(text: string, limit: number): string[] {
   for (const char of text) {
     const t = tagFromChar(char);
     if (t) breakpoints.push({ idx: charIdx, tag: t });
-    ++charIdx;
+    charIdx += char.length;
   }
 
   if (breakpoints.length === 0 || breakpoints[breakpoints.length - 1]!.idx < text.length - 1) {
