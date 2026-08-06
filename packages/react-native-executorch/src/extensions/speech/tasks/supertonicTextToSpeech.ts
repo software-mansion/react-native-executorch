@@ -359,13 +359,16 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
     }
 
     const totalSteps = options.totalSteps ?? DEFAULT_TOTAL_STEPS;
-    const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
+    if (!Number.isInteger(totalSteps) || totalSteps <= 0) {
+      throw new Error('synthesize: totalSteps must be a positive integer.');
+    }
 
     const voiceStyle =
       typeof options.voiceStyle === 'object'
         ? options.voiceStyle
         : parsedVoiceStyles[options.voiceStyle];
 
+    const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
     const textChunks = partition(text, maxChunkLength);
 
     isSynthesizing = true;
