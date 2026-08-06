@@ -19,6 +19,7 @@ import {
  * @returns An object containing the model's loading state, error, download progress,
  * and synthesis functions.
  */
+// TODO: change after #1328 lands
 export function useTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
   options?: { preventLoad?: boolean }

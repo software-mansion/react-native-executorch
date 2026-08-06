@@ -242,13 +242,13 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
   });
 
   // Parse unicode indexer JSON
-  const indexStr = await RNFS.readFile(config.unicodeIndexerPath, 'utf8');
+  const indexStr = await RNFS.readFile(config.unicodeIndexerPath, 'utf8'); // TODO: change after #1328 lands
   const indexer: readonly number[] = JSON.parse(indexStr);
 
   // Pre-parse voice styles map into memory
   const parsedVoiceStyles = {} as Record<K, SupertonicVoiceStyle>;
   for (const [key, path] of Object.entries(config.voiceStyles) as [K, string][]) {
-    const jsonStr = await RNFS.readFile(path, 'utf8');
+    const jsonStr = await RNFS.readFile(path, 'utf8'); // TODO: change after #1328 lands
     parsedVoiceStyles[key] = parseVoiceStyle(JSON.parse(jsonStr));
   }
 
