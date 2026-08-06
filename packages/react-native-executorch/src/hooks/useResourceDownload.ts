@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { download, collectRemoteSources, substituteRemoteSources } from '../fetcher/fetcher';
+import {
+  download,
+  collectRemoteSources,
+  substituteRemoteSources,
+  AbortError,
+} from '../fetcher/fetcher';
 
 /**
  * React hook to manage downloading and local caching of the remote resources
@@ -61,7 +66,7 @@ export function useResourceDownload<T>(config: T, preventLoad?: boolean) {
         setDownloadProgress(100);
       })
       .catch((e) => {
-        if (!isMounted || e?.name === 'AbortError') return;
+        if (!isMounted || e instanceof AbortError) return;
         setDownloadError(e instanceof Error ? e : new Error(String(e)));
       });
 

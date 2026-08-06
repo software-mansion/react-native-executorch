@@ -74,10 +74,16 @@ async function remoteSize(url: string): Promise<number> {
   }
 }
 
-function abortError(): Error {
-  const err = new Error('The download was aborted.');
-  err.name = 'AbortError';
-  return err;
+/**
+ * Raised when a {@link download} is cancelled through its `signal`. Internal:
+ * consumers should keep matching on `error.name === 'AbortError'`, which stays
+ * the standard `AbortSignal` contract.
+ */
+export class AbortError extends Error {
+  constructor(message = 'The download was aborted.') {
+    super(message);
+    this.name = 'AbortError';
+  }
 }
 
 type OnBytes = (received: number, total: number) => void;
@@ -111,7 +117,7 @@ const inFlight = new Map<string, InFlightDownload>();
 // same temporary file — on Android the second one's opening `unlink` would
 // delete the first one's partially downloaded data.
 async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<string> {
-  if (cb.signal?.aborted) throw abortError();
+  if (cb.signal?.aborted) throw new AbortError();
 
   const dest = cachePathFor(url);
 
@@ -177,7 +183,7 @@ function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promis
       if (cb.onBytes) entry.listeners.delete(cb.onBytes);
       entry.callers -= 1;
       if (entry.callers === 0) entry.controller.abort();
-      reject(abortError());
+      reject(new AbortError());
     };
     cb.signal?.addEventListener('abort', onAbort);
 
@@ -199,7 +205,7 @@ async function downloadUrlViaAndroidDownloadManager(
   const tmp = `${dest}.downloading`;
   await RNBlobUtil.fs.unlink(tmp).catch(() => {});
 
-  if (cb.signal?.aborted) throw abortError();
+  if (cb.signal?.aborted) throw new AbortError();
 
   const task = RNBlobUtil.config({
     addAndroidDownloads: {
@@ -226,7 +232,7 @@ async function downloadUrlViaAndroidDownloadManager(
     await task;
   } catch (e) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw cb.signal?.aborted ? abortError() : e;
+    throw cb.signal?.aborted ? new AbortError() : e;
   } finally {
     cb.signal?.removeEventListener('abort', onAbort);
   }
@@ -263,7 +269,7 @@ async function downloadUrlViaIosStream(
   const headers: Record<string, string> = {};
   if (offset > 0) headers.Range = `bytes=${offset}-`;
 
-  if (cb.signal?.aborted) throw abortError();
+  if (cb.signal?.aborted) throw new AbortError();
 
   const task = RNBlobUtil.config({ path: target, fileCache: true }).fetch('GET', url, headers);
   const onAbort = () => task.cancel();
@@ -283,7 +289,7 @@ async function downloadUrlViaIosStream(
     // Network drop / cancel. Keep the fresh partial for a future resume, but
     // discard a resumed chunk — its offset assumptions may not hold.
     if (offset > 0) await RNBlobUtil.fs.unlink(target).catch(() => {});
-    throw cb.signal?.aborted ? abortError() : e;
+    throw cb.signal?.aborted ? new AbortError() : e;
   } finally {
     cb.signal?.removeEventListener('abort', onAbort);
   }
