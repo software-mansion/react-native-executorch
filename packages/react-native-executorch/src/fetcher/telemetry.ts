@@ -58,11 +58,25 @@ export function triggerHuggingFaceDownloadCounter(uri: string): void {
   }
 }
 
+// Extracts the region from the device locale, or 'UNKNOWN' when it carries
+// none. Taking the last subtag would misread a language-only locale as a
+// region: 'de' would report DE, 'uk' would report UK (which most maps draw as
+// the United Kingdom) and 'sv' would report SV, El Salvador. Dropping the
+// language subtag up front makes those report UNKNOWN, which is filterable,
+// rather than a plausible-looking country that is simply wrong.
 function getCountryCode(): string {
   try {
     const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-    const region = locale.split('-').pop();
-    if (region && region.length === 2) return region.toUpperCase();
+    const [, ...subtags] = locale.split('-');
+    for (const subtag of subtags) {
+      // A singleton ('u', 'x', ...) opens the extension section, e.g. the
+      // '-u-ca-gregory' in 'de-DE-u-ca-gregory'. No region subtag past here.
+      if (subtag.length === 1) break;
+      // In BCP 47 a two-letter subtag after the language is always the region,
+      // and a three-digit one is a UN M.49 area such as '419' (Latin America).
+      if (/^[a-z]{2}$/i.test(subtag)) return subtag.toUpperCase();
+      if (/^\d{3}$/.test(subtag)) return subtag;
+    }
   } catch (e) {
     warn('Failed to resolve the country code', e);
   }
