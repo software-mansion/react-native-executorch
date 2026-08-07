@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/dtype.h"
+#include "core/error.h"
 #include <opencv2/core.hpp>
 #include <stdexcept>
 
@@ -24,7 +25,7 @@ inline int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     case rnexecutorch::core::types::DType::int64:
         break;
     }
-    throw std::invalid_argument("unsupported dtype");
+    throw core::error::CodedError(core::error::ErrorCode::InvalidArgument, "unsupported dtype");
 }
 
 } // namespace rnexecutorch::extensions::cv

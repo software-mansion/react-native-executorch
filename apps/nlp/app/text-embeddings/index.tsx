@@ -14,6 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
+import { describeError, isDisposedError } from '../../errors';
 
 // `docPrompt` is applied to library sentences (passages); queries use the
 // model's configured prompt. Set only for asymmetric retrieval models.
@@ -65,8 +66,6 @@ const cosine = (a: Float32Array, b: Float32Array) => {
 type Entry = { sentence: string; embedding: Float32Array };
 type Match = { sentence: string; similarity: number };
 
-const isDisposedError = (msg: string) => /disposed/i.test(msg);
-
 function TextEmbeddingsContent() {
   const [selected, setSelected] = useState(0);
   const { isReady, downloadProgress, error, embed } = useTextEmbedder(MODELS[selected]!.value);
@@ -98,8 +97,8 @@ function TextEmbeddingsContent() {
           entries.push({ sentence, embedding });
         }
         setLibrary(entries);
-      } catch (e: any) {
-        if (!cancelled) setRunError(e?.message ?? String(e));
+      } catch (e) {
+        if (!cancelled) setRunError(describeError(e));
       } finally {
         if (!cancelled) setBusy(false);
       }
@@ -131,9 +130,9 @@ function TextEmbeddingsContent() {
         .sort((a, b) => b.similarity - a.similarity);
       setQueryText(input.trim());
       setMatches(ranked);
-    } catch (e: any) {
-      const msg = e?.message ?? String(e);
-      if (!isDisposedError(msg)) setRunError(msg);
+    } catch (e) {
+      // A model disposed mid-flight (screen teardown, model switch) is expected.
+      if (!isDisposedError(e)) setRunError(describeError(e));
     } finally {
       setBusy(false);
     }
@@ -150,9 +149,8 @@ function TextEmbeddingsContent() {
       setLibrary((prev) => [...prev, { sentence: input.trim(), embedding }]);
       setInput('');
       setMatches(null);
-    } catch (e: any) {
-      const msg = e?.message ?? String(e);
-      if (!isDisposedError(msg)) setRunError(msg);
+    } catch (e) {
+      if (!isDisposedError(e)) setRunError(describeError(e));
     } finally {
       setBusy(false);
     }
@@ -213,7 +211,7 @@ function TextEmbeddingsContent() {
           <ModelStatus
             isReady={isReady}
             downloadProgress={downloadProgress}
-            error={error ? error.message : null}
+            error={error ? describeError(error) : null}
             modelTypeLabel="model"
           />
         </View>

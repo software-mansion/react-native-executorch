@@ -11,39 +11,45 @@
 #include "core/schema.h"
 #include "dtype.h"
 
+#include "core/error.h"
+namespace {
+using rnexecutorch::core::error::CodedError;
+using rnexecutorch::core::error::ErrorCode;
+} // namespace
+
 namespace rnexecutorch::core::tensor {
 namespace types = rnexecutorch::core::types;
 namespace conversions = rnexecutorch::core::conversions;
 
 std::shared_lock<std::shared_mutex>
-tryLockShared(jsi::Runtime &rt, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor) {
+tryLockShared(jsi::Runtime & /*rt*/, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor) {
     std::shared_lock<std::shared_mutex> lock(tensor->mutex_, std::try_to_lock);
     if (!lock.owns_lock()) {
-        throw jsi::JSError(rt, std::format("{} tensor is currently in use", ctx));
+        throw CodedError(ErrorCode::ResourceBusy, std::format("{} tensor is currently in use", ctx));
     }
     if (!tensor->data_) {
-        throw jsi::JSError(rt, std::format("{} tensor has been disposed", ctx));
+        throw CodedError(ErrorCode::ResourceDisposed, std::format("{} tensor has been disposed", ctx));
     }
     return lock;
 }
 
 std::unique_lock<std::shared_mutex>
-tryLockUnique(jsi::Runtime &rt, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor) {
+tryLockUnique(jsi::Runtime & /*rt*/, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor) {
     std::unique_lock<std::shared_mutex> lock(tensor->mutex_, std::try_to_lock);
     if (!lock.owns_lock()) {
-        throw jsi::JSError(rt, std::format("{} tensor is currently in use", ctx));
+        throw CodedError(ErrorCode::ResourceBusy, std::format("{} tensor is currently in use", ctx));
     }
     if (!tensor->data_) {
-        throw jsi::JSError(rt, std::format("{} tensor has been disposed", ctx));
+        throw CodedError(ErrorCode::ResourceDisposed, std::format("{} tensor has been disposed", ctx));
     }
     return lock;
 }
 
-void checkNotSameTensor(jsi::Runtime &rt,
+void checkNotSameTensor(jsi::Runtime & /*rt*/,
                         const std::string &ctx1, const std::shared_ptr<TensorHostObject> &t1,
                         const std::string &ctx2, const std::shared_ptr<TensorHostObject> &t2) {
     if (t1 == t2) {
-        throw jsi::JSError(rt, std::format("{} and {} cannot be the same tensor", ctx1, ctx2));
+        throw CodedError(ErrorCode::InvalidArgument, std::format("{} and {} cannot be the same tensor", ctx1, ctx2));
     }
 }
 
@@ -91,7 +97,7 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
 
     auto obj = conversions::asType<jsi::Object>(rt, ctx, value);
     if (!obj.isHostObject<TensorHostObject>(rt)) {
-        throw jsi::JSError(rt, ctx + " must be a Tensor");
+        throw CodedError(ErrorCode::InvalidArgument, ctx + " must be a Tensor");
     }
 
     auto tensor = obj.getHostObject<TensorHostObject>(rt);
@@ -99,8 +105,8 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
     const auto &shape = tensor->shape_;
 
     if (expectedDtype && dtype != *expectedDtype) {
-        throw jsi::JSError(rt, std::format("{} must be of type {} (got {})",
-                                           ctx, types::dtypeToString(*expectedDtype), types::dtypeToString(dtype)));
+        throw CodedError(ErrorCode::InvalidArgument, std::format("{} must be of type {} (got {})",
+                                                                 ctx, types::dtypeToString(*expectedDtype), types::dtypeToString(dtype)));
     }
 
     if (!expectedShape) {
@@ -108,8 +114,8 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
     }
 
     if (shape.size() != expectedShape->size()) {
-        throw jsi::JSError(rt, std::format("{} must have shape {} (expected {} dimensions, got {})",
-                                           ctx, shapeToString(*expectedShape), expectedShape->size(), shape.size()));
+        throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (expected {} dimensions, got {})",
+                                                                 ctx, shapeToString(*expectedShape), expectedShape->size(), shape.size()));
     }
 
     std::unordered_map<std::string, int32_t> symbolBinding;
@@ -121,34 +127,34 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
         std::visit(overloaded{
             [&](const std::string &symbol) {
                 if (symbolBinding.contains(symbol) && symbolBinding[symbol] != shape[i]) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
                                                        ctx, shapeToString(*expectedShape), symbol, symbolBinding[symbol], shape[i]));
                 }
                 symbolBinding[symbol] = shape[i];
             },
             [&](int32_t val) {
                 if (shape[i] != val) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
                                                        ctx, shapeToString(*expectedShape), i, val, shape[i]));
                 }
             },
             [&](const schema::RangeDim &range) {
                 if (shape[i] < range.min) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (dim {} out of range: {} < min {})",
                                                        ctx, shapeToString(*expectedShape), i, shape[i], range.min));
                 }
                 if (shape[i] > range.max) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (dim {} out of range: {} > max {})",
                                                        ctx, shapeToString(*expectedShape), i, shape[i], range.max));
                 }
                 if ((shape[i] - range.min) % range.step != 0) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
                                                        ctx, shapeToString(*expectedShape), i, range.min, range.step, shape[i]));
                 }
             },
             [&](const schema::EnumDim &enumeration) {
                 if (std::ranges::find(enumeration.choices, shape[i]) == enumeration.choices.end()) {
-                    throw jsi::JSError(rt, std::format("{} must have shape {} (dim {} not allowed: got {})",
+                    throw CodedError(ErrorCode::InvalidArgument, std::format("{} must have shape {} (dim {} not allowed: got {})",
                                                        ctx, shapeToString(*expectedShape), i, shape[i]));
                 }
             },

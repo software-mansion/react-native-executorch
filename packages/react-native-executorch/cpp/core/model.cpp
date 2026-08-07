@@ -103,11 +103,11 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
-                throw CodedError(ErrorCode::ModelBusy, "execute: Model is currently in use");
+                throw CodedError(ErrorCode::ResourceBusy, "execute: Model is currently in use");
             }
 
             if (!self->etModule_) {
-                throw CodedError(ErrorCode::ModelDisposed, "execute: Model has been disposed");
+                throw CodedError(ErrorCode::ResourceDisposed, "execute: Model has been disposed");
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
@@ -281,7 +281,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             std::unique_lock<std::mutex> lock(self->mutex_);
 
             if (!self->etModule_) {
-                throw CodedError(ErrorCode::ModelDisposed, "dispose: Model has already been disposed");
+                throw CodedError(ErrorCode::ResourceDisposed, "dispose: Model has already been disposed");
             }
 
             self->etModule_.reset();

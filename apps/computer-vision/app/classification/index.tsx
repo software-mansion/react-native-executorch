@@ -11,6 +11,7 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
+import { describeError, isBusyError } from '../../errors';
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
@@ -56,8 +57,8 @@ function ClassificationContent() {
         setResults([]);
         setLatency(null);
       }
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      setError(describeError(e));
     }
   };
 
@@ -74,14 +75,19 @@ function ClassificationContent() {
 
       setLatency(Date.now() - start);
       setResults(output);
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      // Tapping again while a run is in flight is normal here, and on the sync
+      // worklet path it surfaces straight from native. Drop it rather than
+      // flashing an error at the user. This works identically for `classify`
+      // and `classifyWorklet`: both carry `code` across their respective
+      // boundaries.
+      if (!isBusyError(e)) setError(describeError(e));
     } finally {
       if (!sync) setIsProcessing(false);
     }
   };
 
-  const activeError = loadError ? String(loadError) : error;
+  const activeError = loadError ? describeError(loadError) : error;
 
   return (
     <ScrollView

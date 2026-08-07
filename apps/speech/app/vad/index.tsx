@@ -8,6 +8,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
+import { describeError } from '../../errors';
 
 // Record at the model's expected sample rate rather than hardcoding it.
 const SAMPLE_RATE = FSMN_VAD_SAMPLE_RATE_HZ;
@@ -76,7 +77,7 @@ function VADContent() {
         throw new Error(started.message);
       }
     } catch (e) {
-      setRunError(e instanceof Error ? e.message : String(e));
+      setRunError(describeError(e));
       setIsStreaming(false);
     }
   };
@@ -102,7 +103,7 @@ function VADContent() {
         <ModelStatus
           isReady={isReady}
           downloadProgress={downloadProgress}
-          error={error ? error.message : null}
+          error={error ? describeError(error) : null}
           modelTypeLabel="VAD model"
         />
       </View>

@@ -17,6 +17,7 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
+import { describeError } from '../../errors';
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
@@ -87,8 +88,8 @@ function StyleTransferContent() {
         setShowOriginal(false);
         setLatency(null);
       }
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      setError(describeError(e));
     }
   };
 
@@ -118,14 +119,14 @@ function StyleTransferContent() {
       } else {
         throw new Error('Failed to decode styled image in Skia');
       }
-    } catch (e: any) {
-      setError(e.message || String(e));
+    } catch (e) {
+      setError(describeError(e));
     } finally {
       if (!sync) setIsProcessing(false);
     }
   };
 
-  const activeError = loadError ? String(loadError) : error;
+  const activeError = loadError ? describeError(loadError) : error;
   const activeImage = showOriginal ? skiaImage : (styledImage ?? skiaImage);
 
   return (

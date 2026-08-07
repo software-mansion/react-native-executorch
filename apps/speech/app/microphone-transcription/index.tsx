@@ -8,6 +8,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { theme } from '../../theme';
+import { describeError } from '../../errors';
 
 const MODELS = [
   {
@@ -149,8 +150,7 @@ function STTContent() {
           setNonCommittedText(result.nonCommitted);
         }
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : String(err);
-        setRunError(errMsg);
+        setRunError(describeError(err));
       }
     })();
 
@@ -206,7 +206,7 @@ function STTContent() {
         <ModelStatus
           isReady={isSttReady}
           downloadProgress={downloadProgress}
-          error={modelError ? modelError.message : null}
+          error={modelError ? describeError(modelError) : null}
           modelTypeLabel="Whisper model"
         />
         {supportedLanguages.length > 1 && (
