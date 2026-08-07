@@ -73,6 +73,7 @@
  * @packageDocumentation
  */
 import type { DType } from './tensor';
+import { RnExecutorchError, RnExecutorchErrorCode } from '../errors';
 
 // ========================================================
 // Parameter specs
@@ -260,7 +261,10 @@ export const DynamicDim = (symbol: string): SymbolicDim => {
  */
 export const ConstantDim = (value: number): ConcreteDim => {
   if (value <= 0 || !Number.isInteger(value)) {
-    throw new Error(`Invalid value (${value}): must be a positive integer.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid value (${value}): must be a positive integer.`
+    );
   }
   return { kind: 'constant', value };
 };
@@ -274,7 +278,10 @@ export const ConstantDim = (value: number): ConcreteDim => {
  */
 export const EnumDim = (choices: readonly number[]): ConcreteDim => {
   if (choices.some((dim) => dim <= 0 || !Number.isInteger(dim))) {
-    throw new Error(`Invalid enum choice: must be a positive integer`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid enum choice: must be a positive integer`
+    );
   }
   return { kind: 'enum', choices };
 };
@@ -291,16 +298,28 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
  */
 export const RangeDim = (min: number, max: number, step?: number): ConcreteDim => {
   if (min <= 0 || !Number.isInteger(min)) {
-    throw new Error(`Invalid range min (${min}): must be a positive integer.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid range min (${min}): must be a positive integer.`
+    );
   }
   if (max < min) {
-    throw new Error(`Invalid range [${min}, ${max}]: max cannot be less than min.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid range [${min}, ${max}]: max cannot be less than min.`
+    );
   }
   if (!Number.isInteger(max)) {
-    throw new Error(`Invalid range max (${max}): must be a positive integer.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid range max (${max}): must be a positive integer.`
+    );
   }
   if (step !== undefined && (step <= 0 || !Number.isInteger(step))) {
-    throw new Error(`Invalid range step (${step}): must be a positive integer.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.InvalidArgument,
+      `Invalid range step (${step}): must be a positive integer.`
+    );
   }
   return { kind: 'range', range: { min, max, step: step ?? 1 } };
 };
@@ -380,21 +399,30 @@ function matchDim(
 ): void {
   if (sDim.kind === 'constant' && cDim.kind === 'constant') {
     if (sDim.value !== cDim.value) {
-      throw new Error(`${ctx}: Constant dimension mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${ctx}: Constant dimension mismatch.`
+      );
     }
     return;
   }
 
   if (sDim.kind === 'range' && cDim.kind === 'range') {
     if (!rangesEqual(sDim.range, cDim.range)) {
-      throw new Error(`${ctx}: Range dimension mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${ctx}: Range dimension mismatch.`
+      );
     }
     return;
   }
 
   if (sDim.kind === 'enum' && cDim.kind === 'enum') {
     if (!choicesEqual(sDim.choices, cDim.choices)) {
-      throw new Error(`${ctx}: Enum dimension mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${ctx}: Enum dimension mismatch.`
+      );
     }
     return;
   }
@@ -403,7 +431,10 @@ function matchDim(
     const bind = bindings.get(sDim.symbol);
     if (bind) {
       if (bind.kind !== 'constant' || bind.value !== cDim.value) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelSchemaMismatch,
+          `${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`
+        );
       }
       return;
     }
@@ -419,7 +450,10 @@ function matchDim(
       const consistentEnum =
         bind.kind === 'enum' && cDim.kind === 'enum' && choicesEqual(bind.choices, cDim.choices);
       if (!consistentRange && !consistentEnum) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelSchemaMismatch,
+          `${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`
+        );
       }
       return;
     }
@@ -427,7 +461,10 @@ function matchDim(
     return;
   }
 
-  throw new Error(`${ctx}: Cannot match symbolic '${sDim.kind}' with concrete '${cDim.kind}'.`);
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.ModelSchemaMismatch,
+    `${ctx}: Cannot match symbolic '${sDim.kind}' with concrete '${cDim.kind}'.`
+  );
 }
 
 function matchMethodSpecs(
@@ -437,10 +474,16 @@ function matchMethodSpecs(
   ctx: string
 ): void {
   if (allowedMethodSpec.inputs.length !== exportedMethodSpec.inputs.length) {
-    throw new Error(`${ctx}: Input count mismatch.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ModelSchemaMismatch,
+      `${ctx}: Input count mismatch.`
+    );
   }
   if (allowedMethodSpec.outputs.length !== exportedMethodSpec.outputs.length) {
-    throw new Error(`${ctx}: Output count mismatch.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ModelSchemaMismatch,
+      `${ctx}: Output count mismatch.`
+    );
   }
 
   const allowedParamSpecs = [...allowedMethodSpec.inputs, ...allowedMethodSpec.outputs];
@@ -455,7 +498,10 @@ function matchMethodSpecs(
     const exportedParamSpec = exportedParamSpecs[p]!;
 
     if (allowedParamSpec.kind !== exportedParamSpec.kind) {
-      throw new Error(`${paramSpecCtx}: Param spec kind mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${paramSpecCtx}: Param spec kind mismatch.`
+      );
     }
 
     if (allowedParamSpec.kind !== 'Tensor') continue;
@@ -464,11 +510,17 @@ function matchMethodSpecs(
     const exportedTensorSpec = exportedParamSpec as TensorSpec<ConcreteDim>;
 
     if (allowedTensorSpec.dtype !== exportedTensorSpec.dtype) {
-      throw new Error(`${paramSpecCtx}: DType mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${paramSpecCtx}: DType mismatch.`
+      );
     }
 
     if (allowedTensorSpec.shape.length !== exportedTensorSpec.shape.length) {
-      throw new Error(`${paramSpecCtx}: Rank mismatch.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `${paramSpecCtx}: Rank mismatch.`
+      );
     }
 
     for (let d = 0; d < allowedTensorSpec.shape.length; ++d) {
@@ -486,7 +538,10 @@ function matchModelSpecsSymbols(
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
-      throw new Error(`Method '${methodName}' not found in exported model spec.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `Method '${methodName}' not found in exported model spec.`
+      );
     }
     matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, bindings, `Method '${methodName}'`);
   }
@@ -540,12 +595,18 @@ function resolveDim<D extends SymbolicDim>(methodSpec: MethodSpec<D>, ref: DimRe
 
   const tensorSpec = tensorSpecs[ref.tensorIdx];
   if (!tensorSpec) {
-    throw new Error(`Invalid DimRef (${JSON.stringify(ref)}): tensor index out of range.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ModelSchemaMismatch,
+      `Invalid DimRef (${JSON.stringify(ref)}): tensor index out of range.`
+    );
   }
 
   const dim = tensorSpec.shape[ref.dimIdx];
   if (!dim) {
-    throw new Error(`Invalid DimRef (${JSON.stringify(ref)}): dimension index out of range.`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ModelSchemaMismatch,
+      `Invalid DimRef (${JSON.stringify(ref)}): dimension index out of range.`
+    );
   }
 
   return dim;
@@ -558,7 +619,10 @@ function matchRuntimeConstraints(
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
-      throw new Error(`Method '${methodName}' not found in exported model spec.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `Method '${methodName}' not found in exported model spec.`
+      );
     }
 
     const unclaimed = [...exportedMethodSpec.runtimeConstraints];
@@ -566,13 +630,19 @@ function matchRuntimeConstraints(
     for (const [idx, constraint] of allowedMethodSpec.runtimeConstraints.entries()) {
       const find = unclaimed.findIndex((c) => constraintsEqual(c, constraint));
       if (find === -1) {
-        throw new Error(`Constraint ${idx}: Not declared by the exported model spec.`);
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelSchemaMismatch,
+          `Constraint ${idx}: Not declared by the exported model spec.`
+        );
       }
       unclaimed.splice(find, 1);
     }
 
     if (unclaimed.length > 0) {
-      throw new Error(`'${methodName}': Exported spec declares unexpected runtime constraints`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelSchemaMismatch,
+        `'${methodName}': Exported spec declares unexpected runtime constraints`
+      );
     }
   }
 }
@@ -593,7 +663,10 @@ function validateSymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void 
 
         const existing = symbolKinds.get(dim.symbol);
         if (existing && existing !== dim.kind) {
-          throw new Error(`Invalid spec: '${dim.symbol}' is used as both 'static' and 'dynamic'.`);
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelSchemaMismatch,
+            `Invalid spec: '${dim.symbol}' is used as both 'static' and 'dynamic'.`
+          );
         }
         symbolKinds.set(dim.symbol, dim.kind);
       }
@@ -609,7 +682,10 @@ function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void 
       if (constraint.kind === 'linear') {
         const [A, B] = constraint.coefficients;
         if (!Number.isInteger(A) || !Number.isInteger(B)) {
-          throw new Error(`${ctx}: Coefficients must be integers.`);
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelSchemaMismatch,
+            `${ctx}: Coefficients must be integers.`
+          );
         }
         resolveDim(methodSpec, constraint.dimLhs);
         resolveDim(methodSpec, constraint.dimRhs);
@@ -617,7 +693,10 @@ function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void 
 
       if (constraint.kind === 'equality') {
         if (constraint.dims.length < 2) {
-          throw new Error(`${ctx}: Equality requires at least two dimensions.`);
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelSchemaMismatch,
+            `${ctx}: Equality requires at least two dimensions.`
+          );
         }
         constraint.dims.forEach((ref) => resolveDim(methodSpec, ref));
       }
@@ -640,26 +719,44 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
 
         if (dim.kind === 'constant') {
           if (dim.value <= 0 || !Number.isInteger(dim.value)) {
-            throw new Error(`${ctx}: constant dim must be a positive integer.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: constant dim must be a positive integer.`
+            );
           }
         }
         if (dim.kind === 'range') {
           if (dim.range.min <= 0 || !Number.isInteger(dim.range.min)) {
-            throw new Error(`${ctx}: range min must be a positive integer.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: range min must be a positive integer.`
+            );
           }
           if (dim.range.max < dim.range.min || !Number.isInteger(dim.range.max)) {
-            throw new Error(`${ctx}: range max must be >= min.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: range max must be >= min.`
+            );
           }
           if (dim.range.step <= 0 || !Number.isInteger(dim.range.step)) {
-            throw new Error(`${ctx}: range step must be a positive integer.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: range step must be a positive integer.`
+            );
           }
         }
         if (dim.kind === 'enum') {
           if (dim.choices.length === 0) {
-            throw new Error(`${ctx}: enum must have at least one choice.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: enum must have at least one choice.`
+            );
           }
           if (dim.choices.some((c) => c <= 0 || !Number.isInteger(c))) {
-            throw new Error(`${ctx}: enum choices must be positive integers.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `${ctx}: enum choices must be positive integers.`
+            );
           }
         }
       }
@@ -780,17 +877,26 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
       const dimFn = (name: string, kind?: string): any => {
         const dim = bindings.get(name);
         if (!dim) {
-          throw new Error(`Symbol '${name}' not found in bindings.`);
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelSchemaMismatch,
+            `Symbol '${name}' not found in bindings.`
+          );
         }
         if (kind) {
           if (kind === 'dynamic') {
             if (dim.kind === 'constant') {
-              throw new Error(`Symbol '${name}' is 'constant', expected 'dynamic'.`);
+              throw new RnExecutorchError(
+                RnExecutorchErrorCode.ModelSchemaMismatch,
+                `Symbol '${name}' is 'constant', expected 'dynamic'.`
+              );
             }
             return dim;
           }
           if (dim.kind !== kind) {
-            throw new Error(`Symbol '${name}' is '${dim.kind}', expected '${kind}'.`);
+            throw new RnExecutorchError(
+              RnExecutorchErrorCode.ModelSchemaMismatch,
+              `Symbol '${name}' is '${dim.kind}', expected '${kind}'.`
+            );
           }
         }
         if (dim.kind === 'constant') return dim.value;
@@ -820,5 +926,8 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
     }
   }
 
-  throw new Error(`Spec doesn't match any of the provided variants:\n - ${errors.join('\n - ')}`);
+  throw new RnExecutorchError(
+    RnExecutorchErrorCode.ModelSchemaMismatch,
+    `Spec doesn't match any of the provided variants:\n - ${errors.join('\n - ')}`
+  );
 }

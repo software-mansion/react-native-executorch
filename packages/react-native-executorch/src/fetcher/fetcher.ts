@@ -2,6 +2,7 @@
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import * as telemetry from './telemetry';
+import { RnExecutorchError, RnExecutorchErrorCode } from '../errors';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -75,13 +76,15 @@ async function remoteSize(url: string): Promise<number> {
 }
 
 /**
- * Raised when a {@link download} is cancelled through its `signal`. Internal:
- * consumers should keep matching on `error.name === 'AbortError'`, which stays
- * the standard `AbortSignal` contract.
+ * Raised when a {@link download} is cancelled through its `signal`.
+ *
+ * Carries {@link RnExecutorchErrorCode.DownloadAborted} like every other library
+ * error, while keeping `name === 'AbortError'` so code matching the standard
+ * `AbortSignal` contract keeps working.
  */
-export class AbortError extends Error {
+export class AbortError extends RnExecutorchError {
   constructor(message = 'The download was aborted.') {
-    super(message);
+    super(RnExecutorchErrorCode.DownloadAborted, message);
     this.name = 'AbortError';
   }
 }
@@ -241,7 +244,10 @@ async function downloadUrlViaAndroidDownloadManager(
   const size = await fileSize(tmp);
   if (size <= 0) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw new Error(`Download of ${url} failed (empty response).`);
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.DownloadFailed,
+      `Download of ${url} failed (empty response).`
+    );
   }
   await RNBlobUtil.fs.mv(tmp, dest);
   return dest;
@@ -300,7 +306,10 @@ async function downloadUrlViaIosStream(
       await RNBlobUtil.fs.unlink(target).catch(() => {});
     } else if (status >= 400) {
       await RNBlobUtil.fs.unlink(target).catch(() => {});
-      throw new Error(`Download of ${url} failed with HTTP status ${status}.`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadFailed,
+        `Download of ${url} failed with HTTP status ${status}.`
+      );
     } else if (offset > 0) {
       if (status === 206) {
         // Server honored the range: append the new bytes onto the partial.
