@@ -74,6 +74,19 @@ module.exports = {
       },
     },
     {
+      // The JSDoc rules exist to keep the generated API reference complete.
+      // Test helpers are not part of that surface, and requiring a tag per
+      // parameter on a three-line fixture crowds out the prose that explains
+      // why the fixture exists.
+      files: ['packages/react-native-executorch/__tests__/**/*.{ts,tsx}'],
+      rules: {
+        'jsdoc/require-param': 'off',
+        'jsdoc/require-param-description': 'off',
+        'jsdoc/require-returns': 'off',
+        'jsdoc/require-returns-description': 'off',
+      },
+    },
+    {
       files: ['**/*.md'],
       processor: 'markdown/markdown',
     },
