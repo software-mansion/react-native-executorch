@@ -220,6 +220,16 @@ const { dims } = validateSpec(model.schema, {
 
 ---
 
+## ⚠️ Failure Codes
+
+`validateSpec` and the native spec validation raise `RnExecutorchErrorCode.ModelSchemaMismatch`
+(the spec-builder helpers `ConstantDim` / `RangeDim` / `EnumDim` raise `InvalidArgument` for
+their own arguments). A runtime constraint violated by the tensors actually passed to
+`execute` raises `InvalidArgument`, not `ModelSchemaMismatch`: the model is fine, the call
+is not. See the [Error Handling Skill](../error-handling/SKILL.md).
+
+---
+
 ## 📋 Verification Checklist
 
 When specifying model schema validations, verify that:
@@ -229,3 +239,4 @@ When specifying model schema validations, verify that:
 - [ ] Symbol values are extracted using `dims.constant(...)`, `dims.range(...)`, or `dims.enum(...)`.
 - [ ] Multiple shape variants (e.g. `batched` vs `unbatched`) are provided when supported.
 - [ ] Input and output constraints map accurately to model specifications.
+- [ ] New validation failures throw `ModelSchemaMismatch` (or `InvalidArgument` when the caller's own arguments are at fault), never a bare `Error`.

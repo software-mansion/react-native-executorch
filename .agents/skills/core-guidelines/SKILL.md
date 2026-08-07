@@ -73,6 +73,7 @@ Use the following index to locate the specific procedural guides for your task:
 | **Create a task pipeline or hook**           | [SKILL.md](../add-task-pipeline/SKILL.md)       | Guide to building end-to-end TS pipelines (e.g. object detection) and exposing them via React hooks.           |
 | **Verify, rebuild, or troubleshoot changes** | [SKILL.md](../verify-and-build/SKILL.md)        | Workflows for rebuilding TS/C++ and resolving common JSI runtime errors.                                       |
 | **Validate model constraints & schemas**     | [SKILL.md](../model-schema-validation/SKILL.md) | Guide on specifying model specs, dynamic shapes, and runtime constraints for model validation.                 |
+| **Throw, catch, or classify an error**       | [SKILL.md](../error-handling/SKILL.md)          | Error codes, the two throw forms (worklet vs not), C++ `CodedError`/`guarded`, and adding a code.              |
 | **Maintain or refactor codebase patterns**   | [SKILL.md](../skills-maintenance/SKILL.md)      | Guide to keeping workspace skills in sync with codebase state to prevent documentation decay.                  |
 
 ---
@@ -81,6 +82,7 @@ Use the following index to locate the specific procedural guides for your task:
 
 - **Worklets**: Ensure all TypeScript functions directly wrapping native JSI calls start with the `"worklet";` directive so they are compatible with worklet-based libraries (e.g., React Native Reanimated).
 - **Options Parameter Naming**: Always name function and method options parameters `options` (not `opts`, `optsObj`, `taskOpts`, or `chunkOpts`). Using `Opts` as a type or property suffix (e.g. `ModelOpts`, `TaskOpts`, `modelOpts`) is acceptable.
+- **Errors**: Every failure the library raises carries an `RnExecutorchErrorCode`. Use `new RnExecutorchError(...)` in normal TypeScript, `rnExecutorchError(...)` inside worklets (a class instance cannot cross a worklet boundary), and `CodedError` + `error::guarded(...)` in C++. Never branch on message text. See the [Error Handling Skill](../error-handling/SKILL.md).
 - **Memory Management**: When writing native C++ code with JSI, pay close attention to JSI reference management and handle ExecuTorch lifecycle states safely.
 - **Keep Core Clean**: Always build on top of core primitives. Do not modify files in `cpp/core/` or `src/core/` unless you are fixing a bug in the foundational runtime.
 
