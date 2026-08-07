@@ -21,12 +21,10 @@
 #include <executorch/runtime/core/tag.h>
 
 namespace {
-namespace jsi = facebook::jsi;
-namespace error = rnexecutorch::core::error;
 
-using error::CodedError;
-using error::ErrorCode;
-using error::unwrapEt;
+using rnexecutorch::core::error::CodedError;
+using rnexecutorch::core::error::ErrorCode;
+using rnexecutorch::core::error::unwrapEt;
 
 } // namespace
 

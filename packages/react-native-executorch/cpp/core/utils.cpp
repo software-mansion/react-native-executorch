@@ -5,22 +5,19 @@
 #include <executorch/runtime/backend/interface.h>
 #include <executorch/runtime/core/error.h>
 
+#include "core/error.h"
+
 #if defined(__ANDROID__)
 #include <sys/system_properties.h>
 #elif defined(__APPLE__)
 #include <TargetConditionals.h>
-
-#include "core/error.h"
-namespace {
-namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::CodedError;
-using rnexecutorch::core::error::ErrorCode;
-} // namespace
-
 #endif
 
 namespace rnexecutorch::core::utils {
 namespace jsi = facebook::jsi;
+
+using rnexecutorch::core::error::CodedError;
+using rnexecutorch::core::error::ErrorCode;
 
 namespace {
 // Detects an Android emulator / iOS simulator. On Android no single property
