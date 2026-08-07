@@ -9,6 +9,13 @@
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
 
+#include "core/error.h"
+namespace {
+namespace error = rnexecutorch::core::error;
+using rnexecutorch::core::error::CodedError;
+using rnexecutorch::core::error::ErrorCode;
+} // namespace
+
 namespace rnexecutorch::extensions::speech {
 namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
@@ -19,7 +26,7 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractFrames";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw jsi::JSError(rt, "Usage: extractFrames(waveform, hann, dst, options)");
+            throw CodedError(ErrorCode::InvalidArgument, "Usage: extractFrames(waveform, hann, dst, options)");
         }
 
         auto waveform = tensor::fromJs(rt, "extractFrames: waveform", args[0], DType::float32, {"length"});
@@ -42,20 +49,20 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
         const auto chunkFrames = static_cast<uint64_t>(dst->shape_[0]);
         const auto fftLength = static_cast<uint64_t>(dst->shape_[1]);
         if (frameLength > fftLength) {
-            throw jsi::JSError(rt, std::format("extractFrames: hann length ({}) exceeds dst fftLength ({})",
-                                               frameLength, fftLength));
+            throw CodedError(ErrorCode::InvalidArgument, std::format("extractFrames: hann length ({}) exceeds dst fftLength ({})",
+                                                                     frameLength, fftLength));
         }
         if (numFrames > chunkFrames) {
-            throw jsi::JSError(rt, std::format("extractFrames: numFrames ({}) exceeds dst frame capacity ({})",
-                                               numFrames, chunkFrames));
+            throw CodedError(ErrorCode::InvalidArgument, std::format("extractFrames: numFrames ({}) exceeds dst frame capacity ({})",
+                                                                     numFrames, chunkFrames));
         }
 
         if (numFrames > 0) {
             const uint64_t lastSample = (numFrames - 1) * hopLength + frameLength - 1;
             if (lastSample >= waveform->numel_) {
-                throw jsi::JSError(rt, std::format("extractFrames: frame window (last sample index {})"
-                                                   " exceeds waveform bounds (numel {})",
-                                                   lastSample, waveform->numel_));
+                throw CodedError(ErrorCode::InvalidArgument, std::format("extractFrames: frame window (last sample index {})"
+                                                                         " exceeds waveform bounds (numel {})",
+                                                                         lastSample, waveform->numel_));
             }
         }
 
@@ -91,6 +98,6 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
         return jsi::Value(rt, args[2]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
 }
 } // namespace rnexecutorch::extensions::speech

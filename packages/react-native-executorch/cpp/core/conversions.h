@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "core/error.h"
 #include <jsi/jsi.h>
 
 namespace rnexecutorch::core::conversions {
@@ -61,7 +62,7 @@ DECLARE_ASTYPE_SPECIALIZATION(jsi::ArrayBuffer);
 template <typename T>
 T getRequiredProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Object &obj, const std::string &propName) {
     if (!obj.hasProperty(rt, propName.c_str())) {
-        throw jsi::JSError(rt, std::format("{}: option '{}' is required", ctx, propName));
+        throw core::error::CodedError(core::error::ErrorCode::InvalidArgument, std::format("{}: option '{}' is required", ctx, propName));
     }
     return asType<T>(rt, std::format("{}: option '{}'", ctx, propName), obj.getProperty(rt, propName.c_str()));
 }
@@ -138,11 +139,11 @@ std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const
     const size_t byteLength = getOptionalProperty<uint64_t>(rt, ctx, obj, "byteLength").value_or(buffer.size(rt));
 
     if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-        throw jsi::JSError(rt, std::format("{}: out-of-bounds byteOffset ({}) or byteLength ({}) for ArrayBuffer of size {}",
-                                           ctx, byteOffset, byteLength, buffer.size(rt)));
+        throw core::error::CodedError(core::error::ErrorCode::InvalidArgument, std::format("{}: out-of-bounds byteOffset ({}) or byteLength ({}) for ArrayBuffer of size {}",
+                                                                                           ctx, byteOffset, byteLength, buffer.size(rt)));
     }
     if (byteLength % sizeof(T) != 0) {
-        throw jsi::JSError(rt, std::format("{}: byteLength is not a multiple of sizeof(T)={}", ctx, sizeof(T)));
+        throw core::error::CodedError(core::error::ErrorCode::InvalidArgument, std::format("{}: byteLength is not a multiple of sizeof(T)={}", ctx, sizeof(T)));
     }
 
     std::vector<T> vec(byteLength / sizeof(T));

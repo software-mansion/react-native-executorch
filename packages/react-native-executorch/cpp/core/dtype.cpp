@@ -1,6 +1,12 @@
 #include "dtype.h"
 #include <stdexcept>
 
+#include "core/error.h"
+namespace {
+using rnexecutorch::core::error::CodedError;
+using rnexecutorch::core::error::ErrorCode;
+} // namespace
+
 namespace rnexecutorch::core::types {
 DType dtypeFromString(const std::string &s) {
     if (s == "uint8") {
@@ -15,7 +21,7 @@ DType dtypeFromString(const std::string &s) {
     if (s == "float32") {
         return DType::float32;
     }
-    throw std::invalid_argument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
+    throw CodedError(ErrorCode::InvalidArgument, "Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
 }
 
 std::string dtypeToString(DType dtype) {
@@ -55,7 +61,7 @@ DType dtypeFromScalarType(executorch::aten::ScalarType st) {
     case executorch::aten::ScalarType::Float:
         return DType::float32;
     default:
-        throw std::invalid_argument("Unsupported ScalarType");
+        throw CodedError(ErrorCode::InvalidArgument, "Unsupported ScalarType");
     }
 }
 

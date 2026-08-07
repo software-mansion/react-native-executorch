@@ -57,15 +57,16 @@ export const errorDefinitions = {
    */
   ModelLoadFailed: 20,
   /**
-   * The model was used after `dispose()`. The instance cannot be revived —
-   * create a new one.
+   * A model, tensor, or tokenizer was used after `dispose()`. The instance
+   * cannot be revived — create a new one.
    */
-  ModelDisposed: 21,
+  ResourceDisposed: 21,
   /**
-   * The model is already executing. Only one run at a time is allowed per
-   * instance; wait for the in-flight run to settle or use a second instance.
+   * The model, tensor, or tokenizer is already in use by another operation.
+   * Only one at a time is allowed per instance; wait for the in-flight
+   * operation to settle or use a second instance.
    */
-  ModelBusy: 22,
+  ResourceBusy: 22,
   /**
    * The loaded model's inputs, outputs, or method names do not match the
    * contract the task requires. Check the model against the documented I/O
