@@ -41,6 +41,13 @@ export default function Layout() {
           title: 'Transcribe Audio File',
         }}
       />
+      <Drawer.Screen
+        name="text-to-speech/index"
+        options={{
+          drawerLabel: 'Text-to-Speech (SuperTonic)',
+          title: 'Text-to-Speech (SuperTonic)',
+        }}
+      />
     </Drawer>
   );
 }
