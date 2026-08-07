@@ -1,0 +1,117 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`public API surface exports one hook per user-facing task 1`] = `
+[
+  "useClassifier",
+  "useImageEmbedder",
+  "useInstanceSegmenter",
+  "useKeypointDetector",
+  "useModel",
+  "useObjectDetector",
+  "useResourceDownload",
+  "useSemanticSegmenter",
+  "useSpeechToText",
+  "useStyleTransfer",
+  "useTextEmbedder",
+  "useTextToImage",
+  "useTokenizer",
+  "useVoiceActivityDetector",
+]
+`;
+
+exports[`public API surface matches the recorded contents of each namespace 1`] = `
+{
+  "constants": [
+    "BLAZEFACE_LANDMARKS",
+    "COCO_CLASSES",
+    "COCO_CLASSES_YOLO",
+    "COCO_LANDMARKS",
+    "IMAGENET1K_LABELS",
+    "IMAGENET_NORM",
+    "PASCAL_VOC_LABELS",
+  ],
+  "cv": [
+    "boxes",
+    "image",
+    "points",
+  ],
+  "math": [
+    "argmax",
+    "mulberry32",
+    "randomNormal",
+    "sigmoid",
+    "softmax",
+    "threshold",
+  ],
+  "nlp": [
+    "loadTokenizer",
+  ],
+  "schema": [
+    "ConstantDim",
+    "DynamicDim",
+    "EnumDim",
+    "RangeDim",
+    "StaticDim",
+    "SymbolicTensor",
+    "constr",
+    "f32",
+    "i32",
+    "i64",
+    "method",
+    "ui8",
+    "validateSpec",
+  ],
+  "speech": [
+    "extractFrames",
+  ],
+}
+`;
+
+exports[`public API surface matches the recorded export list 1`] = `
+[
+  "FSMN_VAD_SAMPLE_RATE_HZ",
+  "WHISPER_LANGUAGES",
+  "WHISPER_SAMPLE_RATE_HZ",
+  "constants",
+  "createClassifier",
+  "createFsmnVoiceActivityDetector",
+  "createImageEmbedder",
+  "createInstanceSegmenter",
+  "createKeypointDetector",
+  "createObjectDetector",
+  "createSdxsTextToImage",
+  "createSemanticSegmenter",
+  "createStyleTransfer",
+  "createTextEmbedder",
+  "createTokenizer",
+  "createWhisperSpeechToText",
+  "cv",
+  "defaultWorkletRuntime",
+  "download",
+  "getRegisteredBackends",
+  "inspectModel",
+  "loadModel",
+  "math",
+  "models",
+  "nlp",
+  "schema",
+  "setTelemetryEnabled",
+  "speech",
+  "tensor",
+  "useClassifier",
+  "useImageEmbedder",
+  "useInstanceSegmenter",
+  "useKeypointDetector",
+  "useModel",
+  "useObjectDetector",
+  "useResourceDownload",
+  "useSemanticSegmenter",
+  "useSpeechToText",
+  "useStyleTransfer",
+  "useTextEmbedder",
+  "useTextToImage",
+  "useTokenizer",
+  "useVoiceActivityDetector",
+  "wrapAsync",
+]
+`;
