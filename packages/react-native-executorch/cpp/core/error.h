@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <optional>
 #include <stdexcept>
@@ -25,10 +26,10 @@ namespace jsi = facebook::jsi;
  */
 class CodedError : public std::runtime_error {
 public:
-    CodedError(ErrorCode code, const std::string &message)
+    explicit CodedError(ErrorCode code, const std::string &message)
         : std::runtime_error(message), code(code) {}
 
-    CodedError(ErrorCode code, const std::string &message, executorch::runtime::Error etError)
+    explicit CodedError(ErrorCode code, const std::string &message, executorch::runtime::Error etError)
         : std::runtime_error(message), code(code), etCode(static_cast<int32_t>(etError)) {}
 
     ErrorCode code;
@@ -107,7 +108,7 @@ template <typename T>
 T unwrapEt(ErrorCode code, const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
         throw CodedError(code,
-                         ctx + ": " + executorch::runtime::to_string(result.error()),
+                         std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())),
                          result.error());
     }
     return std::move(result.get());
