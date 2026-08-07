@@ -17,7 +17,6 @@
 
 #include "core/error.h"
 namespace {
-namespace error = rnexecutorch::core::error;
 using rnexecutorch::core::error::CodedError;
 using rnexecutorch::core::error::ErrorCode;
 } // namespace
