@@ -74,6 +74,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 ## 🚫 Avoid / Anti-Patterns
 
 - **Do NOT access tensors by index:** Avoid using `tensors[0]` or `tensors[1]` throughout the function body. Always destructure and name them explicitly.
+- **Do NOT name options parameters `opts`:** Always name options function parameters `options` (e.g. `options?: { threshold?: number }`). Suffixes like `Opts` for types or properties (e.g. `MyTaskOptions`, `ModelOpts`, `modelOpts`) are acceptable.
 - **Do NOT define extra inner helper functions:** You must define **exactly two** inner functions inside the `create<Task>` constructor: the `dispose` function and the task `worklet` executor function. **Push back hard against implementing any other helper closures inside the constructor scope.** Placing other helper functions (especially those that are called from inside the worklet and use the `create<Task>` scope variables) inside `create<Task>` creates implicit dependencies and closures that capture variables, making the code extremely difficult to reason about and debug.
 - **Do NOT leak raw Tensors to consumers:** The returned methods must never return raw `Tensor` objects to the API consumer. Always convert output data to standard JavaScript values/objects before returning.
 - **Do NOT cross thread boundaries unnecessarily:** Minimize passing heavy objects between JS and the Worklet thread to avoid serialization overhead.

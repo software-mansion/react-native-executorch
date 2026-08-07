@@ -105,20 +105,20 @@ export type NormalizeOptions = {
  * @param dst The pre-allocated destination tensor to write the resized image
  * to. `dst` must be in HWC layout and its number of channels must match `src`.
  * Shape [H',W',C].
- * @param opts Configuration options for resizing.
- * @param opts.mode The resize algorithm mode {@link ResizeMode}. Defaults to
+ * @param options Configuration options for resizing.
+ * @param options.mode The resize algorithm mode {@link ResizeMode}. Defaults to
  * `'stretch'`.
- * @param opts.interpolation The pixel interpolation method
+ * @param options.interpolation The pixel interpolation method
  * {@link InterpolationMethod}. Defaults to `'lanczos'`.
- * @param opts.padValue Fill value for letterboxing. Defaults to `0`.
+ * @param options.padValue Fill value for letterboxing. Defaults to `0`.
  * @returns The destination tensor containing the resized image.
  */
-export function resize(src: Tensor, dst: Tensor, opts?: ResizeOptions): Tensor {
+export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tensor {
   'worklet';
   return rnexecutorchJsi.cv.resize(src, dst, {
-    mode: opts?.mode ?? 'stretch',
-    interpolation: opts?.interpolation ?? 'lanczos',
-    padValue: opts?.padValue ?? 0,
+    mode: options?.mode ?? 'stretch',
+    interpolation: options?.interpolation ?? 'lanczos',
+    padValue: options?.padValue ?? 0,
   });
 }
 
@@ -184,19 +184,19 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  * @param src The source image tensor in CHW layout. Shape [C,H,W].
  * @param dst The pre-allocated destination tensor to write the normalized
  * values to. `dst` must have the same shape as `src`. Shape [C,H,W].
- * @param opts Normalization scaling coefficients.
- * @param opts.alpha Multiplicative scaling coefficient(s). Defaults to
+ * @param options Normalization scaling coefficients.
+ * @param options.alpha Multiplicative scaling coefficient(s). Defaults to
  * `1 / 255.0`.
- * @param opts.beta Additive offset coefficient(s). Defaults to `0.0`.
+ * @param options.beta Additive offset coefficient(s). Defaults to `0.0`.
  * @returns The destination tensor containing the normalized image.
  */
-export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Tensor {
+export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions): Tensor {
   'worklet';
   const defaultNormalizeOptions = {
     alpha: 1 / 255.0,
     beta: 0.0,
   } as const;
-  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...opts });
+  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...options });
 }
 
 /**
