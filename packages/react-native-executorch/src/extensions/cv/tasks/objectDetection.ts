@@ -9,6 +9,7 @@ import type { ResizeMode } from '../ops/image';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
 import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/boxes';
+import { rnExecutorchError, RnExecutorchErrorCode } from '../../../errors';
 
 export type { BoxFormat };
 
@@ -176,7 +177,8 @@ export async function createObjectDetector<F extends BoxFormat, L>(
       const label = modelOpts.labels[classIdx];
 
       if (label === undefined) {
-        throw new Error(
+        throw rnExecutorchError(
+          RnExecutorchErrorCode.InvalidArgument,
           `ObjectDetector: Predicted class index ${classIdx} is out of bounds for` +
             `labels array of size ${modelOpts.labels.length}.`
         );

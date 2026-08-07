@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "dtype.h"
+#include "error.h"
 #include "schema.h"
 #include "tensor_helpers.h"
 
@@ -21,22 +22,11 @@
 
 namespace {
 namespace jsi = facebook::jsi;
+namespace error = rnexecutorch::core::error;
 
-template <typename T>
-T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
-    if (!result.ok()) {
-        throw std::runtime_error(std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
-    }
-    return std::move(result.get());
-}
-
-template <typename T>
-T unwrap(jsi::Runtime &rt, const std::string &ctx, executorch::runtime::Result<T> result) {
-    if (!result.ok()) {
-        throw jsi::JSError(rt, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
-    }
-    return std::move(result.get());
-}
+using error::CodedError;
+using error::ErrorCode;
+using error::unwrapEt;
 
 } // namespace
 
@@ -50,22 +40,24 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
     : modelPath_(modelPath),
       etModule_(std::make_unique<executorch::extension::Module>(modelPath)) {
 
-    auto error = etModule_->load();
+    auto loadError = etModule_->load();
     if (!etModule_->is_loaded()) {
-        const std::string errorMsg = executorch::runtime::to_string(error);
-        throw std::runtime_error(std::format("Failed to load model from '{}': {}",
-                                             modelPath_, errorMsg));
+        const std::string errorMsg = executorch::runtime::to_string(loadError);
+        throw CodedError(ErrorCode::ModelLoadFailed,
+                         std::format("Failed to load model from '{}': {}", modelPath_, errorMsg),
+                         loadError);
     }
 
-    const auto methodNames = unwrap("method names", etModule_->method_names());
+    const auto methodNames = unwrapEt(ErrorCode::ModelLoadFailed, "method names", etModule_->method_names());
     schema::ModelSpec overrideSpec;
 
     if (methodNames.contains(kGetModelSchemaMethod)) {
         auto ctx = std::format("Execute '{}'", kGetModelSchemaMethod);
-        auto result = unwrap(ctx, etModule_->execute(kGetModelSchemaMethod));
+        auto result = unwrapEt(ErrorCode::ModelLoadFailed, ctx, etModule_->execute(kGetModelSchemaMethod));
 
         if (result.empty() || result[0].tag != executorch::runtime::Tag::String) {
-            throw std::runtime_error(std::format("{} must return a single string value", ctx));
+            throw CodedError(ErrorCode::ModelSchemaMismatch,
+                             std::format("{} must return a single string value", ctx));
         }
 
         auto jsonStr = std::string(result[0].toString());
@@ -74,7 +66,7 @@ ModelHostObject::ModelHostObject(const std::string &modelPath)
 
     for (const auto &methodName : methodNames) {
         auto ctx = std::format("Method '{}'", methodName);
-        auto methodMeta = unwrap(ctx, etModule_->method_meta(methodName));
+        auto methodMeta = unwrapEt(ErrorCode::ModelLoadFailed, ctx, etModule_->method_meta(methodName));
 
         spec_[methodName] = schema::methodSpecFromMetadata(methodMeta);
         backends_[methodName] = schema::getUsedBackends(methodMeta);
@@ -106,21 +98,21 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 3) {
-                throw jsi::JSError(rt, "execute: Usage: execute(methodName, inputs, outputTensors)");
+                throw CodedError(ErrorCode::InvalidArgument, "execute: Usage: execute(methodName, inputs, outputTensors)");
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "execute: Model is currently in use");
+                throw CodedError(ErrorCode::ModelBusy, "execute: Model is currently in use");
             }
 
             if (!self->etModule_) {
-                throw jsi::JSError(rt, "execute: Model has been disposed");
+                throw CodedError(ErrorCode::ModelDisposed, "execute: Model has been disposed");
             }
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
             if (!self->spec_.contains(methodName)) {
-                throw jsi::JSError(rt, std::format("execute: Unknown method '{}'", methodName));
+                throw CodedError(ErrorCode::ModelSchemaMismatch, std::format("execute: Unknown method '{}'", methodName));
             }
             const auto &methodSpec = self->spec_.at(methodName);
 
@@ -128,8 +120,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
             if (inputsArray.size(rt) != methodSpec.inputs.size()) {
-                throw jsi::JSError(rt, std::format("execute: Incorrect size for inputs of method '{}': got {}, expected {}",
-                                                   methodName, inputsArray.size(rt), methodSpec.inputs.size()));
+                throw CodedError(ErrorCode::ModelSchemaMismatch,
+                                 std::format("execute: Incorrect size for inputs of method '{}': got {}, expected {}",
+                                             methodName, inputsArray.size(rt), methodSpec.inputs.size()));
             }
 
             std::vector<executorch::runtime::EValue> inputs(methodSpec.inputs.size());
@@ -148,8 +141,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, tSpec.dtype, tSpec.shape);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
-                        throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
-                                               "The same tensor was passed multiple times.");
+                        throw CodedError(ErrorCode::InvalidArgument, "execute: Tensor aliasing detected. "
+                                                                     "The same tensor was passed multiple times.");
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
                     inputShapes.push_back(tensorHostObject->shape_);
@@ -169,8 +162,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     inputs[i] = executorch::runtime::EValue();
                     break;
                 default:
-                    throw jsi::JSError(rt, std::format("{}: Unsupported input type: {}",
-                                                       ctx, executorch::runtime::tag_to_string(tag)));
+                    throw CodedError(ErrorCode::ModelSchemaMismatch,
+                                     std::format("{}: Unsupported input type: {}",
+                                                 ctx, executorch::runtime::tag_to_string(tag)));
                 }
             }
 
@@ -189,29 +183,30 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             logFn.callWithThis(rt, consoleObj, {jsi::String::createFromUtf8(rt, info)});
 #endif
 
-            auto result = unwrap(rt, std::format("execute: Method '{}' failed.\n"
-                                                 "\n"
-                                                 "Common causes:\n"
-                                                 "  1. Backend not registered\n"
-                                                 "     Ensure backends from `model.backends` are registered\n"
-                                                 "     in the ExecuTorch runtime\n"
-                                                 "     (use `getRegisteredBackends()` to check registered backends).\n"
-                                                 "\n"
-                                                 "  2. Shape/constraint mismatch\n"
-                                                 "     If the model uses dynamic shapes or runtime constraints\n"
-                                                 "     (e.g. equality between dimensions), export a companion\n"
-                                                 "     method returning a JSON model spec\n"
-                                                 "     (see `src/core/schema.ts` for the JSON structure).\n"
-                                                 "     Without it, validation falls back to static metadata\n"
-                                                 "     from ExecuTorch which only contains upper bounds and\n"
-                                                 "     does not capture runtime constraints.\n"
-                                                 "\n"
-                                                 "  3. Bad model export\n"
-                                                 "     The model export itself might be broken or invalid.\n"
-                                                 "\n"
-                                                 "Error",
-                                                 methodName),
-                                 std::move(executeResult));
+            auto result = unwrapEt(ErrorCode::ExecutionFailed,
+                                   std::format("execute: Method '{}' failed.\n"
+                                               "\n"
+                                               "Common causes:\n"
+                                               "  1. Backend not registered\n"
+                                               "     Ensure backends from `model.backends` are registered\n"
+                                               "     in the ExecuTorch runtime\n"
+                                               "     (use `getRegisteredBackends()` to check registered backends).\n"
+                                               "\n"
+                                               "  2. Shape/constraint mismatch\n"
+                                               "     If the model uses dynamic shapes or runtime constraints\n"
+                                               "     (e.g. equality between dimensions), export a companion\n"
+                                               "     method returning a JSON model spec\n"
+                                               "     (see `src/core/schema.ts` for the JSON structure).\n"
+                                               "     Without it, validation falls back to static metadata\n"
+                                               "     from ExecuTorch which only contains upper bounds and\n"
+                                               "     does not capture runtime constraints.\n"
+                                               "\n"
+                                               "  3. Bad model export\n"
+                                               "     The model export itself might be broken or invalid.\n"
+                                               "\n"
+                                               "Error",
+                                               methodName),
+                                   std::move(executeResult));
 
             auto jsOutputArray = jsi::Array(rt, result.size());
             size_t outputIdx = 0;
@@ -221,9 +216,10 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                 switch (output.tag) {
                 case executorch::runtime::Tag::Tensor: {
                     if (tensorOutputIdx >= outputTensorsArray.size(rt)) {
-                        throw jsi::JSError(rt, std::format("execute: Not enough tensor output placeholders in outputTensors"
-                                                           " (provided {}, expected at least {})",
-                                                           outputTensorsArray.size(rt), tensorOutputIdx + 1));
+                        throw CodedError(ErrorCode::InvalidArgument,
+                                         std::format("execute: Not enough tensor output placeholders in outputTensors"
+                                                     " (provided {}, expected at least {})",
+                                                     outputTensorsArray.size(rt), tensorOutputIdx + 1));
                     }
 
                     auto ctx = std::format("execute: outputTensors[{}]", tensorOutputIdx);
@@ -234,8 +230,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     auto tensorHostObject = tensor::fromJs(rt, ctx, val, dtype, shape);
 
                     if (!lockedTensors.insert(tensorHostObject.get()).second) {
-                        throw jsi::JSError(rt, "execute: Tensor aliasing detected. "
-                                               "The same tensor was passed multiple times.");
+                        throw CodedError(ErrorCode::InvalidArgument, "execute: Tensor aliasing detected. "
+                                                                     "The same tensor was passed multiple times.");
                     }
                     tensorLocks.emplace_back(tensor::tryLockUnique(rt, ctx, tensorHostObject));
                     std::memcpy(tensorHostObject->data_.get(),
@@ -262,8 +258,9 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     jsOutputArray.setValueAtIndex(rt, outputIdx, jsi::String::createFromUtf8(rt, std::string(output.toString())));
                     break;
                 default:
-                    throw jsi::JSError(rt, std::format("execute: Unsupported return type: {}",
-                                                       executorch::runtime::tag_to_string(output.tag)));
+                    throw CodedError(ErrorCode::ModelSchemaMismatch,
+                                     std::format("execute: Unsupported return type: {}",
+                                                 executorch::runtime::tag_to_string(output.tag)));
                 }
 
                 ++outputIdx;
@@ -271,27 +268,27 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             return jsOutputArray;
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "execute"), 3, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "execute"), 3, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw jsi::JSError(rt, "dispose: Usage: dispose()");
+                throw CodedError(ErrorCode::InvalidArgument, "dispose: Usage: dispose()");
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_);
 
             if (!self->etModule_) {
-                throw jsi::JSError(rt, "dispose: Model has already been disposed");
+                throw CodedError(ErrorCode::ModelDisposed, "dispose: Model has already been disposed");
             }
 
             self->etModule_.reset();
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
     }
 
     return jsi::Value::undefined();
@@ -311,17 +308,13 @@ void install_loadModel(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadModel";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
-            throw jsi::JSError(rt, "loadModel: Usage: loadModel(path)");
+            throw CodedError(ErrorCode::InvalidArgument, "loadModel: Usage: loadModel(path)");
         }
 
         auto modelPath = conversions::asType<std::string>(rt, "loadModel: path", args[0]);
-        try {
-            return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath));
-        } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::format("loadModel: {}", e.what()));
-        }
+        return jsi::Object::createFromHostObject(rt, std::make_shared<ModelHostObject>(modelPath));
     };
-    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, fnBody);
+    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody));
 
     module.setProperty(rt, name, fn);
 }

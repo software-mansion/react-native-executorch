@@ -18,6 +18,9 @@ export * from './hooks/useModel';
 // Resource fetching — imperative download API
 export * from './fetcher';
 
+// Errors
+export * from './errors';
+
 // Constants
 export { models } from './models';
 export * as constants from './constants';

@@ -5,123 +5,109 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const REPO_ROOT = path.join(__dirname, '..');
+const PACKAGE_ROOT = path.join(REPO_ROOT, 'packages/react-native-executorch');
 
+const BANNER = [
+  'Auto-generated from scripts/errors.config.ts',
+  "DO NOT EDIT MANUALLY - run 'yarn codegen:errors' to regenerate",
+];
+
+/**
+ * Pulls the JSDoc comment attached to each error name out of the config so the
+ * generated enums carry the same documentation as the source of truth.
+ * @returns Error name to its doc comment body.
+ */
 function extractComments(): Map<string, string> {
   const configPath = path.join(__dirname, 'errors.config.ts');
   const content = fs.readFileSync(configPath, 'utf-8');
   const comments = new Map<string, string>();
 
-  // Match JSDoc comments followed by error name
-  const commentPattern = /\/\*\*?\s*([\s\S]*?)\s*\*\/\s*(\w+):/g;
+  const commentPattern = /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(\w+):/g;
   let match;
 
   while ((match = commentPattern.exec(content)) !== null) {
-    const commentText = match[1]
+    const lines = match[1]
       .split('\n')
-      .map((line) => line.replace(/^\s*\*\s?/, '').trim())
-      .filter((line) => line.length > 0)
-      .join('\n   * ');
-    const errorName = match[2];
-    comments.set(errorName, commentText);
+      .map((line) => line.replace(/^\s*\*\s?/, '').trimEnd())
+      .filter((line) => line.length > 0);
+    comments.set(match[2], lines.join('\n'));
   }
 
   return comments;
 }
 
+function renderDocComment(comment: string | undefined, indent: string): string {
+  if (!comment) return '';
+  const body = comment
+    .split('\n')
+    .map((line) => `${indent} * ${line}`.trimEnd())
+    .join('\n');
+  return `${indent}/**\n${body}\n${indent} */\n`;
+}
+
 function generateCppEnum() {
   const comments = extractComments();
-
-  // Filter out ExecuTorch mapped errors (0x00-0x32) for C++
-  const execuTorchErrorCodes = new Set([
-    'Ok',
-    'Internal',
-    'InvalidState',
-    'EndOfMethod',
-    'AlreadyLoaded',
-    'NotSupported',
-    'NotImplemented',
-    'InvalidArgument',
-    'InvalidType',
-    'OperatorMissing',
-    'NotFound',
-    'MemoryAllocationFailed',
-    'AccessFailed',
-    'InvalidProgram',
-    'InvalidExternalData',
-    'OutOfResources',
-    'DelegateInvalidCompatibility',
-    'DelegateMemoryAllocationFailed',
-    'DelegateInvalidHandle',
-  ]);
-
   const entries = Object.entries(errorDefinitions)
-    .filter(([name]) => !execuTorchErrorCodes.has(name))
-    .map(([name, code]) => {
-      const comment = comments.get(name);
-      if (comment) {
-        return `  /**\n   * ${comment}\n   */\n  ${name} = ${code},`;
-      }
-      return `  ${name} = ${code},`;
-    })
+    .map(([name, code]) => `${renderDocComment(comments.get(name), '    ')}    ${name} = ${code},`)
     .join('\n');
 
   const cpp = `#pragma once
 
-// Auto-generated from scripts/errors.config.ts
-// DO NOT EDIT MANUALLY - Run 'yarn codegen:errors' to regenerate
+${BANNER.map((line) => `// ${line}`).join('\n')}
 
 #include <cstdint>
 
-namespace rnexecutorch {
+namespace rnexecutorch::core::error {
 
-enum class RnExecutorchErrorCode : int32_t {
+/**
+ * Machine-readable error codes surfaced to JavaScript as \`RnExecutorchError.code\`.
+ *
+ * Kept deliberately small: a code exists so a caller can branch on it. Errors
+ * coming out of the ExecuTorch runtime keep their own numbering and travel in
+ * the separate \`etCode\` field.
+ */
+enum class ErrorCode : int32_t {
 ${entries}
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::core::error
 `;
 
-  const outputPath = path.join(
-    REPO_ROOT,
-    'packages/react-native-executorch/common/rnexecutorch/ErrorCodes.h'
-  );
+  const outputPath = path.join(PACKAGE_ROOT, 'cpp/core/error_codes.h');
   fs.writeFileSync(outputPath, cpp);
-  console.log(`Generated C++ enum: ${outputPath}`);
+  console.log(`Generated C++ enum: ${path.relative(REPO_ROOT, outputPath)}`);
 }
 
 function generateTypeScriptEnum() {
   const comments = extractComments();
   const entries = Object.entries(errorDefinitions)
-    .map(([name, code]) => {
-      const comment = comments.get(name);
-      if (comment) {
-        return `  /**\n   * ${comment}\n   */\n  ${name} = ${code},`;
-      }
-      return `  ${name} = ${code},`;
-    })
+    .map(([name, code]) => `${renderDocComment(comments.get(name), '  ')}  ${name} = ${code},`)
     .join('\n');
 
-  const ts = `// Auto-generated from scripts/errors.config.ts
-// DO NOT EDIT MANUALLY - Run 'yarn codegen:errors' to regenerate
+  const ts = `${BANNER.map((line) => `// ${line}`).join('\n')}
 
+/**
+ * Machine-readable classification of a {@link RnExecutorchError}.
+ *
+ * Branch on this rather than on the error message: messages are written for
+ * humans and change freely between releases, codes do not.
+ * @category Errors
+ */
 export enum RnExecutorchErrorCode {
 ${entries}
 }
 `;
 
-  const outputPath = path.join(
-    REPO_ROOT,
-    'packages/react-native-executorch/src/errors/ErrorCodes.ts'
-  );
+  const outputPath = path.join(PACKAGE_ROOT, 'src/errors/codes.ts');
   fs.writeFileSync(outputPath, ts);
-  console.log(`Generated TypeScript enum: ${outputPath}`);
+  console.log(`Generated TypeScript enum: ${path.relative(REPO_ROOT, outputPath)}`);
 }
 
 function main() {
   console.log('Generating error code enums...\n');
   generateCppEnum();
   generateTypeScriptEnum();
-  console.log('\n✨ Done!');
+  console.log('\nDone.');
 }
 
 main();
