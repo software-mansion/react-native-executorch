@@ -75,6 +75,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 - **Do NOT access tensors by index:** Avoid using `tensors[0]` or `tensors[1]` throughout the function body. Always destructure and name them explicitly.
 - **Do NOT define extra inner helper functions:** You must define **exactly two** inner functions inside the `create<Task>` constructor: the `dispose` function and the task `worklet` executor function. **Push back hard against implementing any other helper closures inside the constructor scope.** Placing other helper functions (especially those that are called from inside the worklet and use the `create<Task>` scope variables) inside `create<Task>` creates implicit dependencies and closures that capture variables, making the code extremely difficult to reason about and debug.
+- **Do NOT throw bare `Error`:** Every failure needs an `RnExecutorchErrorCode`. Use `new RnExecutorchError(code, msg)` in the `create<Task>` body and `rnExecutorchError(code, msg)` inside the worklet executor, since a class instance cannot cross a worklet boundary. See the [Error Handling Skill](../error-handling/SKILL.md).
 - **Do NOT leak raw Tensors to consumers:** The returned methods must never return raw `Tensor` objects to the API consumer. Always convert output data to standard JavaScript values/objects before returning.
 - **Do NOT cross thread boundaries unnecessarily:** Minimize passing heavy objects between JS and the Worklet thread to avoid serialization overhead.
 - **Do NOT treat the `.pte` model as an unchangeable black box:** Reshape the model's inputs and outputs during the PyTorch export phase to make the mobile client pipeline as lightweight as possible. Do not make input/output contracts so specific that they break extensibility.
@@ -229,6 +230,8 @@ When adding a task pipeline or React hook, verify that:
 - [ ] The constructor contains exactly two inner functions (the `dispose` function and the worklet executor).
 - [ ] Auxiliary helpers are defined outside the constructor and marked with the `'worklet';` directive if run on the worklet runtime.
 - [ ] Raw `Tensor` objects are never returned to the consumer.
+- [ ] Every throw carries an `RnExecutorchErrorCode`: `new RnExecutorchError(...)` outside worklets, `rnExecutorchError(...)` inside them.
+- [ ] The hook's `error` stays typed as `RnExecutorchError | null` so consumers can read `code` without casting.
 - [ ] Data configurations that genuinely vary across models (e.g. thresholds, labels) are configurable dynamically via the TypeScript task options.
 - [ ] Every parameter is bucketed per Principle 6: varies across variants → option; fixed by the export → `const` in the task file; per-call choice → executor argument.
 - [ ] No exposed option has exactly one valid value, and no two `models.ts` variants pass an identical options object.
