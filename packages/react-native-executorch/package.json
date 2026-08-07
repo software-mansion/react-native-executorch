@@ -86,7 +86,7 @@
     "react": "*",
     "react-native": "*",
     "react-native-blob-util": "^0.24.0",
-    "react-native-worklets": "*"
+    "react-native-worklets": "^0.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.1",
@@ -98,7 +98,7 @@
     "react-native": "0.83.6",
     "react-native-blob-util": "^0.24.0",
     "react-native-builder-bob": "^0.40.18",
-    "react-native-worklets": "0.9.1",
+    "react-native-worklets": "0.10.3",
     "typescript": "~5.9.2"
   },
   "react-native-builder-bob": {
