@@ -26,6 +26,7 @@ Use this guide when you introduce, modify, or deprecate core codebase patterns, 
      - [add-task-pipeline](../add-task-pipeline/SKILL.md) for TypeScript pipeline orchestration, pre-allocation, and lifecycle hooks.
      - [model-schema-validation](../model-schema-validation/SKILL.md) for schema verification constraints.
      - [verify-and-build](../verify-and-build/SKILL.md) for compilation and troubleshooting steps.
+     - [add-api-tests](../add-api-tests/SKILL.md) for the TypeScript test suites and the fake native runtime.
 
 3. **Verify Example Correctness**:
    - Ensure all code blocks and examples in updated skills compile/work and match actual usage in the repository.

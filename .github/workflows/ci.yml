@@ -122,3 +122,21 @@ jobs:
 
       - name: Run C++ unit tests
         run: scripts/run-native-tests.sh
+
+  api-tests:
+    name: TypeScript API tests
+    runs-on: ubuntu-latest
+    # A full run takes a few seconds; this only has to catch a hang.
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      # No native libraries, no simulator, no `.pte` download - the suites run
+      # against the fake JSI runtime in `__tests__/support/`, so the setup
+      # action's TypeScript-only install is all this job needs.
+      - name: Run TypeScript API tests
+        run: yarn workspace react-native-executorch test --ci
