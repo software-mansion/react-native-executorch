@@ -9,9 +9,9 @@
     ]
   },
   "scripts": {
-    "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --topological-dev run prepare",
-    "lint": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --parallel run lint",
-    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-bare-resource-fetcher --exclude react-native-executorch-expo-resource-fetcher --exclude react-native-executorch-webrtc --parallel run typecheck",
+    "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare",
+    "lint": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run lint",
+    "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck",
     "postinstall": "patch-package"
   },
   "private": true,
