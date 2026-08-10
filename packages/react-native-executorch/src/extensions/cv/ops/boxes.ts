@@ -72,23 +72,23 @@ export function decodeBox<F extends BoxFormat>(
  * @category Utils
  * @typeParam F Bounding box coordinate format.
  * @param box The original BoundingBox.
- * @param opts Options defining dimensions and resize modes.
- * @param opts.from The source bounds (e.g. model input dimensions).
- * @param opts.to The destination bounds (e.g. original image dimensions).
- * @param opts.resizeMode The mode used to resize the image {@link ResizeMode}
+ * @param options Options defining dimensions and resize modes.
+ * @param options.from The source bounds (e.g. model input dimensions).
+ * @param options.to The destination bounds (e.g. original image dimensions).
+ * @param options.resizeMode The mode used to resize the image {@link ResizeMode}
  * (excluding `'crop'`).
  * @returns The scaled BoundingBox object.
  */
 export function scaleBox<F extends BoxFormat>(
   box: BoundingBox<F>,
-  opts: {
+  options: {
     readonly from: { readonly width: number; readonly height: number };
     readonly to: { readonly width: number; readonly height: number };
     readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   }
 ): BoundingBox<F> {
   'worklet';
-  const { from, to, resizeMode } = opts;
+  const { from, to, resizeMode } = options;
 
   let scaleX: number;
   let scaleY: number;
@@ -107,8 +107,8 @@ export function scaleBox<F extends BoxFormat>(
 
   switch (box.format) {
     case 'xyxy': {
-      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
-      const pMax = scalePoint({ x: box.xmax, y: box.ymax }, opts);
+      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, options);
+      const pMax = scalePoint({ x: box.xmax, y: box.ymax }, options);
       return {
         format: 'xyxy',
         xmin: pMin.x,
@@ -118,7 +118,7 @@ export function scaleBox<F extends BoxFormat>(
       } as BoundingBox<F>;
     }
     case 'xywh': {
-      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, opts);
+      const pMin = scalePoint({ x: box.xmin, y: box.ymin }, options);
       return {
         format: 'xywh',
         xmin: pMin.x,
@@ -128,7 +128,7 @@ export function scaleBox<F extends BoxFormat>(
       } as BoundingBox<F>;
     }
     case 'cxcywh': {
-      const pCenter = scalePoint({ x: box.cx, y: box.cy }, opts);
+      const pCenter = scalePoint({ x: box.cx, y: box.cy }, options);
       return {
         format: 'cxcywh',
         cx: pCenter.x,
@@ -164,13 +164,13 @@ export type NmsOptions = {
  * @category Utils
  * @param boxes Bounding boxes coordinate tensor.
  * @param scores Bounding boxes confidence scores tensor.
- * @param opts Options configuring NMS thresholds and execution mode.
- * @param opts.boxFormat The bounding box format {@link BoxFormat}.
- * @param opts.iouThreshold Intersection over Union (IoU) threshold for
+ * @param options Options configuring NMS thresholds and execution mode.
+ * @param options.boxFormat The bounding box format {@link BoxFormat}.
+ * @param options.iouThreshold Intersection over Union (IoU) threshold for
  * suppression.
- * @param opts.confidenceThreshold Minimum confidence score for candidate
+ * @param options.confidenceThreshold Minimum confidence score for candidate
  * selection.
- * @param opts.nmsType The NMS algorithm variant {@link NmsOptions.nmsType}.
+ * @param options.nmsType The NMS algorithm variant {@link NmsOptions.nmsType}.
  * @returns The resulting indices of the non-suppressed boxes:
  * - For `standard` NMS: A 1D array of indices (`number[]`) representing the
  *   selected boxes.
@@ -182,16 +182,16 @@ export type NmsOptions = {
 export function nms(
   boxes: Tensor,
   scores: Tensor,
-  opts: NmsOptions & { readonly nmsType: 'standard' }
+  options: NmsOptions & { readonly nmsType: 'standard' }
 ): number[];
 export function nms(
   boxes: Tensor,
   scores: Tensor,
-  opts: NmsOptions & { readonly nmsType: 'weighted' }
+  options: NmsOptions & { readonly nmsType: 'weighted' }
 ): number[][];
-export function nms(boxes: Tensor, scores: Tensor, opts: NmsOptions): number[] | number[][] {
+export function nms(boxes: Tensor, scores: Tensor, options: NmsOptions): number[] | number[][] {
   'worklet';
-  return rnexecutorchJsi.cv.nms(boxes, scores, opts);
+  return rnexecutorchJsi.cv.nms(boxes, scores, options);
 }
 
 /**

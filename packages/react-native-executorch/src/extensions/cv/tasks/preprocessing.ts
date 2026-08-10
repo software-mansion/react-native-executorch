@@ -39,7 +39,7 @@ export type ImagePreprocessorOptions = {
  * input shapes. All intermediate scratch tensors are pre-allocated and safely
  * disposed of when calling `dispose()`.
  * @category Typescript API
- * @param opts Normalization scaling coefficients, interpolation algorithms, and
+ * @param options Normalization scaling coefficients, interpolation algorithms, and
  * crop/resize modes.
  * @param outputShape Expected output shape of the model input tensor (must
  * match `[1, 3, H, W]` or `[3, H, W]`).
@@ -47,7 +47,7 @@ export type ImagePreprocessorOptions = {
  * method.
  */
 export function createImagePreprocessor(
-  opts: ImagePreprocessorOptions,
+  options: ImagePreprocessorOptions,
   outputShape: number[]
 ): {
   /**
@@ -86,7 +86,7 @@ export function createImagePreprocessor(
   ] as const;
 
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
-  const { resizeMode, interpolation, normalizeOpts, padValue } = opts;
+  const { resizeMode, interpolation, normalizeOpts, padValue } = options;
 
   const dispose = () => tensors.forEach((t) => t.dispose());
   const process = (input: ImageBuffer): Tensor => {

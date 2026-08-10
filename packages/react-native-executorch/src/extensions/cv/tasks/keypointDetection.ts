@@ -77,14 +77,14 @@ export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
  * @param tBoxes Bounding boxes tensor output from inference.
  * @param tScores Scores tensor output from inference.
  * @param tKeypoints Keypoints tensor output from inference.
- * @param opts Post-processing configuration options.
+ * @param options Post-processing configuration options.
  * @returns Structured keypoint detection results list.
  */
 function postprocess<F extends BoxFormat, L extends PropertyKey>(
   tBoxes: Tensor,
   tScores: Tensor,
   tKeypoints: Tensor,
-  opts: {
+  options: {
     readonly from: { readonly width: number; readonly height: number };
     readonly to: { readonly width: number; readonly height: number };
     readonly boxFormat: F;
@@ -96,7 +96,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
 ): KeypointDetection<F, L>[] {
   'worklet';
 
-  const nmsGroups = nms(tBoxes, tScores, { ...opts, nmsType: 'weighted' });
+  const nmsGroups = nms(tBoxes, tScores, { ...options, nmsType: 'weighted' });
 
   const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
   const scores = tScores.getData(new Float32Array(tScores.numel));
@@ -107,7 +107,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
   for (const group of nmsGroups) {
     const totalScore = group.reduce((total, idx) => total + (scores[idx] ?? 0), 0);
     const weightedBox = new Float32Array(4);
-    const weightedKpt = new Float32Array(opts.landmarks.length * 3);
+    const weightedKpt = new Float32Array(options.landmarks.length * 3);
 
     for (const idx of group) {
       const score = totalScore === 0 ? 1 / group.length : scores[idx]!;
@@ -115,7 +115,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
         weightedBox[i] = v + score * boxes[idx * 4 + i]!;
       });
       weightedKpt.forEach((v, i) => {
-        weightedKpt[i] = v + score * keypoints[idx * opts.landmarks.length * 3 + i]!;
+        weightedKpt[i] = v + score * keypoints[idx * options.landmarks.length * 3 + i]!;
       });
     }
 
@@ -129,11 +129,11 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     }
 
     const [a, b, c, d] = weightedBox;
-    const box = scaleBox(decodeBox([a!, b!, c!, d!], opts.boxFormat), opts);
+    const box = scaleBox(decodeBox([a!, b!, c!, d!], options.boxFormat), options);
     const landmarks = {} as Landmarks<L>;
 
-    for (const [i, key] of opts.landmarks.entries()) {
-      const point = scalePoint({ x: weightedKpt[i * 3]!, y: weightedKpt[i * 3 + 1]! }, opts);
+    for (const [i, key] of options.landmarks.entries()) {
+      const point = scalePoint({ x: weightedKpt[i * 3]!, y: weightedKpt[i * 3 + 1]! }, options);
       const confidence = weightedKpt[i * 3 + 2]!;
       landmarks[key] = { ...point, confidence };
     }

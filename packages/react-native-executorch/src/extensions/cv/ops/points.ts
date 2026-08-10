@@ -14,23 +14,23 @@ export type Point = {
  * changes.
  * @category Utils
  * @param point The original coordinate point to scale.
- * @param opts Options detailing the scaling factors and resize mode.
- * @param opts.from The source bounds (e.g. model input dimensions).
- * @param opts.to The destination bounds (e.g. original image dimensions).
- * @param opts.resizeMode The mode used to resize the image {@link ResizeMode}
+ * @param options Options detailing the scaling factors and resize mode.
+ * @param options.from The source bounds (e.g. model input dimensions).
+ * @param options.to The destination bounds (e.g. original image dimensions).
+ * @param options.resizeMode The mode used to resize the image {@link ResizeMode}
  * (excluding `'crop'`).
  * @returns The scaled coordinate point.
  */
 export function scalePoint(
   point: Point,
-  opts: {
+  options: {
     readonly from: { readonly width: number; readonly height: number };
     readonly to: { readonly width: number; readonly height: number };
     readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   }
 ): Point {
   'worklet';
-  const { from, to, resizeMode } = opts;
+  const { from, to, resizeMode } = options;
   switch (resizeMode) {
     case 'letterbox': {
       const scale = Math.min(from.width / to.width, from.height / to.height);
