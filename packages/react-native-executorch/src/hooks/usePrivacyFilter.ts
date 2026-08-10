@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createPrivacyFilter,
   type PrivacyFilterModel,
@@ -15,34 +15,20 @@ import {
  * @category Hooks
  * @param config The privacy filter model configuration (model and tokenizer
  * paths plus the label space options).
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and detection functions.
  */
-export function usePrivacyFilter(config: PrivacyFilterModel, options?: { preventLoad?: boolean }) {
-  const modelResource = useResourceDownload(config.modelPath, options?.preventLoad);
-  const tokenizerResource = useResourceDownload(config.tokenizerPath, options?.preventLoad);
-
-  const localModelPath = modelResource.localPath;
-  const localTokenizerPath = tokenizerResource.localPath;
-
-  const { model, error } = useModel(
-    createPrivacyFilter,
-    localModelPath && localTokenizerPath
-      ? { ...config, modelPath: localModelPath, tokenizerPath: localTokenizerPath }
-      : null,
-    [localModelPath, localTokenizerPath]
-  );
+export function usePrivacyFilter(config: PrivacyFilterModel, options?: ResourceOptions) {
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createPrivacyFilter, resource ?? null);
 
   return {
     isReady: !!model,
-    error: modelResource.downloadError || tokenizerResource.downloadError || error,
-    downloadProgress: modelResource.downloadProgress,
-    localPath: localModelPath,
-    tokenizerPath: localTokenizerPath,
-    detect: model?.detect,
-    detectWorklet: model?.detectWorklet,
+    error: downloadError || error,
+    downloadProgress,
+    resource,
+    detectPii: model?.detectPii,
+    detectPiiWorklet: model?.detectPiiWorklet,
   };
 }

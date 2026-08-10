@@ -97,7 +97,7 @@ function buildSegments(source: string, entities: PiiEntity[]): Segment[] {
 function PrivacyFilterContent() {
   const [selected, setSelected] = useState(0);
   const active = MODELS[selected]!;
-  const { isReady, downloadProgress, error, detect } = usePrivacyFilter(active.value);
+  const { isReady, downloadProgress, error, detectPii } = usePrivacyFilter(active.value);
 
   const [text, setText] = useState(active.sample);
   const [entities, setEntities] = useState<PiiEntity[] | null>(null);
@@ -105,7 +105,7 @@ function PrivacyFilterContent() {
   const [runError, setRunError] = useState<string | null>(null);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
 
-  const ready = isReady && !!detect;
+  const ready = isReady && !!detectPii;
   const segments = useMemo(
     () => (entities ? buildSegments(text, entities) : null),
     [text, entities]
@@ -121,13 +121,13 @@ function PrivacyFilterContent() {
   };
 
   const run = async () => {
-    if (!detect || !text.trim()) return;
+    if (!detectPii || !text.trim()) return;
     setBusy(true);
     setRunError(null);
     setEntities(null);
     try {
       const startedAt = Date.now();
-      const found = await detect(text);
+      const found = await detectPii(text);
       setInferenceMs(Date.now() - startedAt);
       setEntities(found);
     } catch (e: any) {

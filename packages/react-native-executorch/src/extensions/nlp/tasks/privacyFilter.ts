@@ -20,31 +20,38 @@ const DEFAULT_PAD_TOKEN_ID = 199999;
  * Options describing a privacy filter model's label space and decoding
  * behavior.
  * @category Types
- * @property {readonly string[]} labelNames - BIOES label list matching the
- * model's `id2label` mapping exactly; index 0 must be `'O'`.
- * @property {ViterbiBiases} [viterbiBiases] - Transition biases applied while
- * decoding. Defaults to neutral (validity-only) Viterbi.
- * @property {number} [padTokenId] - Token id used to pad the final window.
- * Defaults to the o200k `<|endoftext|>` id.
  */
 export type PrivacyFilterOptions = {
+  /**
+   * BIOES label list matching the model's `id2label` mapping exactly; index 0
+   * must be `'O'`.
+   */
   readonly labelNames: readonly string[];
+  /**
+   * Transition biases applied while decoding. Defaults to neutral
+   * (validity-only) Viterbi.
+   */
   readonly viterbiBiases?: ViterbiBiases;
+  /**
+   * Token id used to pad the final window of a static (fixed-length) model.
+   * Defaults to the o200k `<|endoftext|>` id.
+   */
   readonly padTokenId?: number;
 };
 
 /**
  * Model configuration required to instantiate a privacy filter task runner.
  * @category Types
- * @property {string} modelPath - Local path or remote URL of the `.pte` model.
- * @property {string} tokenizerPath - Local path or remote URL of the matching
- * `tokenizer.json`.
- * @property {PrivacyFilterOptions} privacyFilterOpts - Label space and decoding
- * options, defined alongside the model in the `models` registry.
  */
 export type PrivacyFilterModel = {
+  /** Local path or remote URL of the `.pte` model. */
   readonly modelPath: string;
+  /** Local path or remote URL of the matching `tokenizer.json`. */
   readonly tokenizerPath: string;
+  /**
+   * Label space and decoding options, defined alongside the model in the
+   * `models` registry.
+   */
   readonly privacyFilterOpts: PrivacyFilterOptions;
 };
 
@@ -55,9 +62,8 @@ export type { PiiEntity, ViterbiBiases };
  * information (PII) spans in text.
  *
  * It loads the tokenizer and model, validates the `forward` signature against
- * the configured label space, pre-computes the BIOES grammar tables,
- * pre-allocates the static execution tensors, and registers clean disposal
- * hooks to clear all native memory.
+ * the configured label space, pre-computes the BIOES grammar tables, and
+ * registers clean disposal hooks to clear all native memory.
  *
  * Works with any privacy-filter-style model exporting
  * `forward(input_ids, attention_mask) -> logits` over a BIOES label space.
@@ -81,17 +87,19 @@ export async function createPrivacyFilter(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Asynchronously detects PII entity spans in the given text.
    * @param input The text to scan for PII.
    * @returns A promise resolving to the detected entity spans, in order.
    */
-  detect: (input: string) => Promise<PiiEntity[]>;
+  detectPii: (input: string) => Promise<PiiEntity[]>;
+
   /**
-   * Synchronous version of {@link detect} to be executed directly on the
+   * Synchronous version of {@link detectPii} to be executed directly on the
    * caller or worklet thread.
    */
-  detectWorklet: (input: string) => PiiEntity[];
+  detectPiiWorklet: (input: string) => PiiEntity[];
 }> {
   const { modelPath, tokenizerPath, privacyFilterOpts } = config;
   const { labelNames } = privacyFilterOpts;
@@ -159,42 +167,19 @@ export async function createPrivacyFilter(
   // runs every expert on every token, so inference is linear in sequence length
   // and a short input would otherwise pay for a full window of padding. The MLX
   // exports are static and only accept the one shape they were exported with,
-  // so every window is padded up to `windowSize`.
-  // Lengths are rounded up to a bucket so a handful of tensor shapes cover any
-  // input; tensors have an immutable shape, so each distinct length would
-  // otherwise mean another native allocation.
-  // The slots are built here, on the JS runtime, and only indexed inside the
-  // worklet: calling a host closure from the worklet runtime would be a remote
-  // call, which cannot happen synchronously.
-  const LENGTH_BUCKET = 32;
-  const bucketLengths: number[] = [];
-  if (seqLenRange) {
-    // Every bucket boundary has to be a length the model actually accepts, so
-    // the nominal bucket is rounded up onto the exported range's grid and the
-    // boundaries are walked from its lower bound.
-    const bucket = Math.ceil(LENGTH_BUCKET / seqLenRange.step) * seqLenRange.step;
-    for (let len = seqLenRange.min; len < windowSize; len += bucket) {
-      if (len > 0) bucketLengths.push(len);
-    }
-  }
-  bucketLengths.push(windowSize);
-
-  const bucketTensors = bucketLengths.map(
-    (len) =>
-      [
-        tensor('int64', [1, len]),
-        tensor('int64', [1, len]),
-        tensor('float32', [1, len, numLabels]),
-      ] as const
-  );
+  // so every window is padded up to `windowSize`. A dynamic window still has to
+  // land on a length the model accepts, i.e. the exported range's `min + k*step`
+  // grid; these primitives let the worklet round onto it without a host call.
+  const isDynamic = seqLenRange !== null;
+  const rangeMin = seqLenRange ? seqLenRange.min : windowSize;
+  const rangeStep = seqLenRange ? seqLenRange.step : 1;
 
   const dispose = () => {
-    bucketTensors.forEach((entry) => entry.forEach((t) => t.dispose()));
     tokenizer.dispose();
     model.dispose();
   };
 
-  const detectWorklet = (input: string): PiiEntity[] => {
+  const detectPiiWorklet = (input: string): PiiEntity[] => {
     'worklet';
     const ids = tokenizer.encode(input);
     const totalTokens = ids.length;
@@ -204,32 +189,36 @@ export async function createPrivacyFilter(
 
     for (let windowStart = 0; windowStart < totalTokens; windowStart += stride) {
       const validLen = Math.min(windowSize, totalTokens - windowStart);
-
-      let slot = bucketLengths.length - 1;
-      for (let b = 0; b < bucketLengths.length; b++) {
-        if (bucketLengths[b]! >= validLen) {
-          slot = b;
-          break;
-        }
-      }
-      const runLen = bucketLengths[slot]!;
-      const [tInputIds, tAttentionMask, tLogits] = bucketTensors[slot]!;
+      // A static model only accepts the full window, so it is padded to it; a
+      // dynamic one runs the exact token count, rounded up onto its accepted
+      // `min + k*step` grid. Tensors are allocated per window rather than
+      // pooled: allocation is orders of magnitude cheaper than the inference it
+      // feeds, and it avoids holding a tensor per bucket for the model's life.
+      const wanted = Math.max(validLen, rangeMin);
+      const runLen = isDynamic
+        ? Math.min(windowSize, rangeMin + Math.ceil((wanted - rangeMin) / rangeStep) * rangeStep)
+        : windowSize;
 
       const idsData = new BigInt64Array(runLen);
       const maskData = new BigInt64Array(runLen);
-      const logits = new Float32Array(tLogits.numel);
-
       idsData.fill(padTokenId);
-      maskData.fill(0n);
       for (let i = 0; i < validLen; i++) {
         idsData[i] = BigInt(ids[windowStart + i]!);
         maskData[i] = 1n;
       }
-      tInputIds.setData(idsData);
-      tAttentionMask.setData(maskData);
+      const tInputIds = tensor('int64', [1, runLen], idsData);
+      const tAttentionMask = tensor('int64', [1, runLen], maskData);
+      const tLogits = tensor('float32', [1, runLen, numLabels]);
 
-      model.execute('forward', [tInputIds, tAttentionMask], [tLogits]);
-      tLogits.getData(logits);
+      let logits: Float32Array;
+      try {
+        model.execute('forward', [tInputIds, tAttentionMask], [tLogits]);
+        logits = tLogits.getData(new Float32Array(tLogits.numel));
+      } finally {
+        tInputIds.dispose();
+        tAttentionMask.dispose();
+        tLogits.dispose();
+      }
 
       // Only the final window ends where the text ends, so only it should be
       // forced to close on a valid BIOES terminal (O/E/S); a mid-document
@@ -255,7 +244,7 @@ export async function createPrivacyFilter(
     }));
   };
 
-  const detect = wrapAsync(detectWorklet, runtime);
+  const detectPii = wrapAsync(detectPiiWorklet, runtime);
 
-  return { detect, detectWorklet, dispose };
+  return { detectPii, detectPiiWorklet, dispose };
 }

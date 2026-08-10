@@ -1,18 +1,21 @@
 // Privacy-filter-specific helpers: BIOES grammar construction and constrained
-// Viterbi decoding over per-token logits, plus span extraction. These live
-// under `utils/` (not the shared `ops.ts`) because they are only meaningful to
-// the privacy filter pipeline. The transformer forward pass dominates the
-// inference budget, so this decoding is written in pure TypeScript rather than
-// a native op (see the `add-native-extension` skill's Amdahl's-law rule).
+// Viterbi decoding over per-token logits, plus span extraction. The decoder is
+// our own implementation of the standard Viterbi algorithm, constrained to
+// valid BIOES transitions and calibrated by the biases published alongside the
+// models. The transformer forward pass dominates the inference budget, so this
+// decoding is written in pure TypeScript rather than a native op (see the
+// `add-native-extension` skill's Amdahl's-law rule).
 
-const NEG_INF = -1e30;
+const NEG_INF = Number.NEGATIVE_INFINITY;
 
 /**
  * Six Viterbi transition biases matching the openai/privacy-filter
- * `viterbi_calibration.json` schema. Each value is added to the decoder score
- * whenever the corresponding BIOES transition is taken. Positive values
- * encourage the transition; negative values discourage it. Every field
- * defaults to `0` (a neutral, validity-only Viterbi).
+ * `viterbi_calibration.json` schema (hosted at
+ * https://huggingface.co/software-mansion/react-native-executorch-privacy-filter-openai/blob/main/viterbi_calibration.json).
+ * Each value is added to the decoder score whenever the corresponding BIOES
+ * transition is taken. Positive values encourage the transition; negative
+ * values discourage it. Every field defaults to `0` (a neutral, validity-only
+ * Viterbi).
  * @category Types
  */
 export interface ViterbiBiases {
@@ -65,7 +68,9 @@ const CLASS_S = 4;
  * @category Types
  */
 export interface Grammar {
+  /** Total number of labels, i.e. `1 + 4 * numEntities`. */
   readonly numLabels: number;
+  /** Number of entity types (each contributing its `B`/`I`/`E`/`S` labels). */
   readonly numEntities: number;
   /** Role class per label (`CLASS_O`/`B`/`I`/`E`/`S`). */
   readonly labelClass: Int8Array;
@@ -81,6 +86,7 @@ export interface Grammar {
   readonly iOf: Int32Array;
   /** `true` iff the label is a legal first-token label (`O`, `B-x`, `S-x`). */
   readonly validStart: boolean[];
+  /** Transition biases, with every optional field resolved to its default. */
   readonly biases: Required<ViterbiBiases>;
 }
 
