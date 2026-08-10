@@ -5,7 +5,9 @@
  * and extracts them into third-party/ so the existing CMakeLists.txt / podspec
  * can find them at build time without any other changes.
  *
- * Artifact layout on GitHub Releases (per version tag, e.g. v0.9.0):
+ * Artifacts are versioned independently of the npm package and live on their own
+ * GitHub Release tagged `v${nativeLibsVersion}-libs` (pinned via `nativeLibsVersion`
+ * in package.json). Artifact layout on that release (e.g. tag v0.10.0-libs):
  *
  *   headers.tar.gz                   -- ExecuTorch + c10 + torch + tokenizers + opencv
  *                                       headers (platform-independent; always downloaded)
@@ -76,11 +78,23 @@ const { execSync } = require('child_process');
 
 // ---- Config ----------------------------------------------------------------
 
-const PACKAGE_VERSION = require('../package.json').version;
+// The native artifacts are versioned independently of the npm package: they
+// live on their own GitHub Release tagged `v${LIBS_VERSION}-libs` and are pinned
+// here via `nativeLibsVersion` in package.json. The two lines coincide on a minor
+// cut (core v0.10.0 <-> libs v0.10.0-libs) but drift on patches — a core-only fix
+// keeps the pin (no re-upload), an assets-only fix bumps the pin in a core
+// release. The `-libs` suffix keeps the tags distinct when the numbers match.
+const LIBS_VERSION = require('../package.json').nativeLibsVersion;
+if (!process.env.RNET_BASE_URL && !LIBS_VERSION) {
+  throw new Error(
+    '[react-native-executorch] Missing "nativeLibsVersion" in package.json — cannot resolve the ' +
+      'native artifacts release. Set it to the libs version to pin, or set RNET_BASE_URL to override.'
+  );
+}
 const GITHUB_REPO = 'software-mansion/react-native-executorch';
 const BASE_URL =
   process.env.RNET_BASE_URL ||
-  `https://github.com/${GITHUB_REPO}/releases/download/v${PACKAGE_VERSION}`;
+  `https://github.com/${GITHUB_REPO}/releases/download/v${LIBS_VERSION}-libs`;
 
 const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const THIRD_PARTY_DIR = path.join(PACKAGE_ROOT, 'third-party');
@@ -89,7 +103,7 @@ const DEFAULT_CACHE_DIR = path.join(
   require('os').homedir(),
   '.cache',
   'react-native-executorch',
-  PACKAGE_VERSION
+  LIBS_VERSION
 );
 const CACHE_DIR = process.env.RNET_LIBS_CACHE_DIR || DEFAULT_CACHE_DIR;
 
