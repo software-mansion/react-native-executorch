@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <format>
 #include <functional>
 #include <optional>
 #include <stdexcept>
@@ -9,82 +8,112 @@
 #include <utility>
 
 #include <executorch/runtime/core/error.h>
-#include <executorch/runtime/core/result.h>
 #include <jsi/jsi.h>
-
-#include "error_codes.h"
 
 namespace rnexecutorch::core::error {
 namespace jsi = facebook::jsi;
 
 /**
- * An exception carrying a machine-readable ErrorCode.
- *
- * Thrown by the layers that have no jsi::Runtime to hand (constructors, helpers,
- * worker threads). `guard` turns it into a coded JavaScript Error at the JSI
- * boundary, so the code survives all the way to the application's catch block.
+ * Mirrors the `RnExecuTorchErrorCode` union in `src/core/error.ts`, which is the
+ * source of truth. Keep the two in sync by hand, the same way the rest of the
+ * TS/JSI interface is mirrored.
  */
-class CodedError : public std::runtime_error {
+enum class RnExecuTorchErrorCode {
+    LoadFailed,
+    ExecutionFailed,
+    SchemaMismatch,
+    InvalidArgument,
+    InvalidState,
+    ResourceDisposed,
+    ResourceBusy,
+    DownloadFailed,
+    DownloadAborted,
+    Unknown
+};
+
+constexpr const char *errorCodeToString(RnExecuTorchErrorCode code) {
+    switch (code) {
+    case RnExecuTorchErrorCode::LoadFailed:
+        return "LOAD_FAILED";
+    case RnExecuTorchErrorCode::ExecutionFailed:
+        return "EXECUTION_FAILED";
+    case RnExecuTorchErrorCode::SchemaMismatch:
+        return "SCHEMA_MISMATCH";
+    case RnExecuTorchErrorCode::InvalidArgument:
+        return "INVALID_ARGUMENT";
+    case RnExecuTorchErrorCode::InvalidState:
+        return "INVALID_STATE";
+    case RnExecuTorchErrorCode::ResourceDisposed:
+        return "RESOURCE_DISPOSED";
+    case RnExecuTorchErrorCode::ResourceBusy:
+        return "RESOURCE_BUSY";
+    case RnExecuTorchErrorCode::DownloadFailed:
+        return "DOWNLOAD_FAILED";
+    case RnExecuTorchErrorCode::DownloadAborted:
+        return "DOWNLOAD_ABORTED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+/**
+ * The exception every failure in the native layer is raised as.
+ *
+ * Native code never throws a jsi::JSError directly. `guarded` is the only place
+ * that turns an exception into a JavaScript value, so a code can never be lost
+ * on the way out.
+ */
+class RnExecuTorchException : public std::runtime_error {
 public:
-    explicit CodedError(ErrorCode code, const std::string &message)
-        : std::runtime_error(message), code(code) {}
+    explicit RnExecuTorchException(RnExecuTorchErrorCode code, const std::string &message)
+        : std::runtime_error(message), code_(code) {}
 
-    explicit CodedError(ErrorCode code, const std::string &message, executorch::runtime::Error etError)
-        : std::runtime_error(message), code(code), etCode(static_cast<int32_t>(etError)) {}
+    explicit RnExecuTorchException(RnExecuTorchErrorCode code, const std::string &message,
+                                   executorch::runtime::Error etError)
+        : std::runtime_error(message), code_(code),
+          etRuntimeErrorCode_(static_cast<int32_t>(etError)) {}
 
-    ErrorCode code;
+    RnExecuTorchErrorCode code_;
     /**
      * The originating executorch::runtime::Error, when the failure came out of
-     * the ExecuTorch runtime. Kept apart from `code` so upstream's numbering
+     * the ExecuTorch runtime. Kept apart from `code_` so upstream's numbering
      * stays independent of ours.
      */
-    std::optional<int32_t> etCode;
+    std::optional<int32_t> etRuntimeErrorCode_;
 };
 
 /**
- * Builds a JavaScript `Error` with `code` (and `etCode`) properties attached.
- *
- * These are the fields `toRnExecutorchError` on the TypeScript side reads to
- * rebuild an `RnExecutorchError`. A plain object shape is used rather than a
- * host object so the error survives being passed between worklet runtimes.
+ * Throws `e` into JavaScript as an Error carrying `name`, `code`, and (when the
+ * failure came from the ExecuTorch runtime) `etRuntimeErrorCode`. These are the
+ * fields `isRnExecuTorchError` on the TypeScript side reads.
  */
-jsi::Value makeJsError(jsi::Runtime &rt, ErrorCode code, const std::string &message,
-                       std::optional<int32_t> etCode = std::nullopt);
-
-/**
- * Throws a coded JavaScript Error. Use from inside a JSI host function.
- */
-[[noreturn]] void throwJs(jsi::Runtime &rt, ErrorCode code, const std::string &message,
-                          std::optional<int32_t> etCode = std::nullopt);
+[[noreturn]] void throwJsiRnExecuTorchError(jsi::Runtime &rt, const RnExecuTorchException &e);
 
 /**
  * Runs `fn`, translating anything it throws into a coded JavaScript Error.
- *
- * Wrap every JSI host function body in this: without it a `CodedError` raised
- * deeper in the native stack would reach JavaScript as an uncoded `Error`, or
- * as a hard crash for exception types JSI does not handle.
  */
 template <typename Fn>
 auto guard(jsi::Runtime &rt, Fn &&fn) -> decltype(fn()) {
     try {
         return std::forward<Fn>(fn)();
-    } catch (const CodedError &e) {
-        throw jsi::JSError(rt, makeJsError(rt, e.code, e.what(), e.etCode));
+    } catch (const RnExecuTorchException &e) {
+        throwJsiRnExecuTorchError(rt, e);
     } catch (const jsi::JSError &) {
         // Already a JavaScript value, and possibly one thrown by user code
         // called back into. Pass it through untouched.
         throw;
     } catch (const std::exception &e) {
-        throw jsi::JSError(rt, makeJsError(rt, ErrorCode::Internal, e.what()));
+        throwJsiRnExecuTorchError(rt, RnExecuTorchException(RnExecuTorchErrorCode::Unknown, e.what()));
     } catch (...) {
-        throw jsi::JSError(rt, makeJsError(rt, ErrorCode::Internal, "Unknown native error"));
+        throwJsiRnExecuTorchError(
+            rt, RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "Unknown native exception occurred"));
     }
 }
 
 /**
- * Wraps a JSI host function so that anything thrown inside it — including a
- * CodedError raised deeper in the native stack — reaches JavaScript as a coded
- * Error.
+ * Wraps a JSI host function so that anything thrown inside it, including an
+ * RnExecuTorchException raised deeper in the native stack, reaches JavaScript
+ * as a coded Error.
  *
  * Apply this at every `createFromHostFunction` call site. Doing it here rather
  * than inside each body keeps the guarantee in one place: a body that forgets
@@ -95,23 +124,6 @@ inline jsi::HostFunctionType guarded(jsi::HostFunctionType fn) {
                                 const jsi::Value *args, size_t count) -> jsi::Value {
         return guard(rt, [&] { return fn(rt, thisVal, args, count); });
     };
-}
-
-/**
- * Unwraps an ExecuTorch Result, throwing a CodedError that carries both our
- * `code` and the underlying ExecuTorch error when it failed.
- *
- * @param code The RNE classification to report the failure as.
- * @param ctx A short prefix naming the operation, e.g. "loadModel".
- */
-template <typename T>
-T unwrapEt(ErrorCode code, const std::string &ctx, executorch::runtime::Result<T> result) {
-    if (!result.ok()) {
-        throw CodedError(code,
-                         std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())),
-                         result.error());
-    }
-    return std::move(result.get());
 }
 
 } // namespace rnexecutorch::core::error

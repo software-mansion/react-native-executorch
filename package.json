@@ -12,8 +12,7 @@
     "prepare": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --topological-dev run prepare",
     "lint": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run lint",
     "typecheck": "yarn workspaces foreach --all --exclude react-native-executorch-webrtc --parallel run typecheck",
-    "postinstall": "patch-package",
-    "codegen:errors": "npx ts-node scripts/generate-errors.ts"
+    "postinstall": "patch-package"
   },
   "private": true,
   "devDependencies": {

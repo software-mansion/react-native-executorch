@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { RnExecutorchError, toRnExecutorchError } from '../errors';
 
 /**
  * React hook to instantiate and compile a model pipeline with automatic
@@ -26,7 +25,7 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
   config: TConfig | null
 ) {
   const [model, setModel] = useState<TModel | null>(null);
-  const [error, setError] = useState<RnExecutorchError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   // Configs are plain JSON data, so serializing is a sound structural identity
   // and keeps an inline `config` object from rebuilding the model every render.
@@ -54,7 +53,7 @@ export function useModel<TConfig, TModel extends { dispose: () => void }>(
         }
       })
       .catch((e) => {
-        if (isMounted) setError(toRnExecutorchError(e));
+        if (isMounted) setError(e instanceof Error ? e : new Error(String(e)));
       });
 
     return () => {

@@ -25,7 +25,7 @@ inline int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     case rnexecutorch::core::types::DType::int64:
         break;
     }
-    throw core::error::CodedError(core::error::ErrorCode::InvalidArgument, "unsupported dtype");
+    throw core::error::RnExecuTorchException(core::error::RnExecuTorchErrorCode::InvalidArgument, "unsupported dtype");
 }
 
 } // namespace rnexecutorch::extensions::cv

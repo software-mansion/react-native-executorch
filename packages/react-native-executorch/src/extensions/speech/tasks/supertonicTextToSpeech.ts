@@ -17,6 +17,7 @@ import {
   type SupertonicLanguage,
 } from '../utils/supertonicUtils';
 import { partition } from '../utils/textPartitioner';
+import { RnExecuTorchError } from '../../../core/error';
 
 export { SUPERTONIC_SUPPORTED_LANGUAGES, type SupertonicVoiceStyle, type SupertonicLanguage };
 
@@ -352,21 +353,27 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
     options: SupertonicTtsOptions<K>
   ): AsyncGenerator<SupertonicTtsChunk> {
     if (isSynthesizing) {
-      throw new Error('synthesize: Synthesis is already in progress.');
+      throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
     }
 
     if (!text || !text.trim()) {
-      throw new Error('synthesize: Input text cannot be empty.');
+      throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: Input text cannot be empty.');
     }
 
     const speed = options.speed ?? DEFAULT_SPEED;
     if (speed < MIN_SPEED || speed > MAX_SPEED) {
-      throw new Error(`synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`
+      );
     }
 
     const totalSteps = options.totalSteps ?? DEFAULT_TOTAL_STEPS;
     if (!Number.isInteger(totalSteps) || totalSteps <= 0) {
-      throw new Error('synthesize: totalSteps must be a positive integer.');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        'synthesize: totalSteps must be a positive integer.'
+      );
     }
 
     const voiceStyle =
@@ -376,7 +383,10 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
 
     const maxChunkLength = options.maxChunkLength ?? getDefaultMaxChunkLength(options.lang);
     if (maxChunkLength > MAX_CHUNK_LENGTH_CAP) {
-      throw new Error(`synthesize: maxChunkLength cannot exceed ${MAX_CHUNK_LENGTH_CAP}.`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `synthesize: maxChunkLength cannot exceed ${MAX_CHUNK_LENGTH_CAP}.`
+      );
     }
 
     const cleanedText = cleanText(text);

@@ -16,7 +16,6 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
-import { describeError } from '../../errors';
 
 // The CoreML variant delegates to hardware the iOS Simulator does not provide
 // (it fails to compile the UNet there), so it is only offered on a physical device.
@@ -73,14 +72,14 @@ function TextToImageContent() {
       } else {
         throw new Error('Failed to decode generated image in Skia');
       }
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     } finally {
       if (!sync) setIsProcessing(false);
     }
   };
 
-  const activeError = loadError ? describeError(loadError) : error;
+  const activeError = loadError ? String(loadError) : error;
 
   return (
     <ScrollView

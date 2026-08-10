@@ -12,7 +12,6 @@ import {
 import { inspectModel, type ConcreteDim, type ParamSpec } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ColorPalette } from '../../theme';
-import { describeError } from '../../errors';
 
 type InspectionResult = Awaited<ReturnType<typeof inspectModel>>;
 
@@ -46,8 +45,8 @@ function InspectContent() {
     try {
       const res = await inspectModel(targetUrl.trim());
       setResult(res);
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     } finally {
       setLoading(false);
     }

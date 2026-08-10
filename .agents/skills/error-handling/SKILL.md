@@ -1,9 +1,9 @@
 ---
 name: error-handling
-description: Use when throwing, catching, or classifying errors anywhere in the library (TypeScript, worklets, C++/JSI), when adding a new error code, or when surfacing failures in the example apps.
+description: Use when throwing, catching, or classifying errors anywhere in the library (TypeScript, worklets, C++/JSI), or when adding a new error code.
 metadata:
   id: error_handling
-  scope: src/errors/*, cpp/core/error.*, scripts/errors.config.ts
+  scope: src/core/error.ts, cpp/core/error.*
 ---
 
 # Skill: Error Handling
@@ -14,49 +14,27 @@ the code; the message is for humans and may be reworded in any release.
 **Never make control flow depend on message text.** A regex over `e.message` is the exact
 failure this design exists to prevent.
 
+`src/core/error.ts` is the source of truth. `cpp/core/error.h` mirrors it **by hand**, the
+same way the rest of the TS/JSI interface is mirrored (DType definitions, schema types, host object
+interfaces). Nothing here is generated. If you add a code, add it in both files.
+
 ---
 
-## 🚦 The Two Throw Forms
+## 🚦 Throwing
 
-Which one you use depends on **where the code runs**, not on what went wrong.
-
-| Where you are                                                      | Throw with                             |
-| :----------------------------------------------------------------- | :------------------------------------- |
-| Normal TypeScript (task setup, `create<Task>` body, hooks, schema) | `new RnExecutorchError(code, message)` |
-| Inside a `'worklet';` function                                     | `rnExecutorchError(code, message)`     |
-| C++                                                                | `throw CodedError(ErrorCode::X, msg)`  |
-
-Worklet runtimes are separate JavaScript runtimes. A value thrown on one does not keep
-its class identity, prototype chain, or stack when it travels to another, so
-`rnExecutorchError()` returns a plain `Error` with the fields attached instead of a class
-instance. `wrapAsync` rebuilds a real `RnExecutorchError` once the value is back on the
-React Native runtime.
+One factory, usable everywhere including inside worklets:
 
 ```typescript
-import { RnExecutorchError, RnExecutorchErrorCode, rnExecutorchError } from '../../../errors';
+import { RnExecuTorchError } from '../../../core/error';
 
-export async function createMyTask(config: MyTaskModel) {
-  // Runs on the RN runtime: the class is fine here.
-  if (config.taskOpts.labels.length !== N) {
-    throw new RnExecutorchError(
-      RnExecutorchErrorCode.InvalidArgument,
-      `Labels length (${config.taskOpts.labels.length}) must match model output dimension (${N}).`
-    );
-  }
-
-  const runTaskWorklet = (input: ImageBuffer, options?: { topk?: number }) => {
-    'worklet';
-    // Inside a worklet: plain-data form only.
-    if (options?.topk !== undefined && options.topk < 0) {
-      throw rnExecutorchError(
-        RnExecutorchErrorCode.InvalidArgument,
-        `topk must be non-negative, got ${options.topk}`
-      );
-    }
-    // ...
-  };
-}
+throw RnExecuTorchError('INVALID_ARGUMENT', `topk must be non-negative, got ${topk}`);
 ```
+
+`RnExecuTorchError` is a function, not a class. Worklet runtimes are separate JavaScript
+runtimes and a value thrown on one does not keep its class identity or prototype chain
+when it travels to another, so a class would only survive some of the paths that throw.
+The factory returns a plain `Error` with `name`, `code`, and optionally
+`etRuntimeErrorCode` attached, which is exactly what crosses every boundary intact.
 
 Write messages the way the rest of the codebase does: prefix with the function name and
 include the offending values (`` `execute: Unknown method '${methodName}'` ``). The code
@@ -66,65 +44,44 @@ says what class of problem it is; the message says which values caused it.
 
 ## 🎣 Catching
 
-Prefer `isRnExecutorchError(e)` over `instanceof RnExecutorchError`. Both work for errors
-from `async` APIs and hooks, but only the former also works inside worklets and for values
-that crossed a JSI boundary, where class identity is gone.
+`isRnExecuTorchError(err, code?)` narrows, and takes an optional code so you rarely need a
+second comparison:
 
 ```typescript
-import { isRnExecutorchError, RnExecutorchErrorCode } from '../errors';
+import { isRnExecuTorchError } from '../core/error';
 
 try {
   await classifier.classify(image);
 } catch (e) {
-  if (isRnExecutorchError(e) && e.code === RnExecutorchErrorCode.ResourceBusy) {
-    return; // a run is already in flight, drop this attempt
-  }
+  if (isRnExecuTorchError(e, 'RESOURCE_BUSY')) return; // a run is already in flight
   throw e;
 }
 ```
 
-`toRnExecutorchError(e)` normalizes any caught value into a real `RnExecutorchError`. Call
-it at the boundary where errors surface to application code (after a worklet result comes
-back, or in a hook's `catch`). Values that already carry a code keep it; anything else
-becomes `Internal` with the original preserved as `cause`.
-
-Because codes are numeric and shared with the native side, **a `switch` on `e.code` must
-always have a `default` branch.**
+It is duck-typed and marked `'worklet'`, so it works on both runtimes and on values that
+crossed the JSI boundary.
 
 ---
 
 ## 🔢 The Code Set
 
-`scripts/errors.config.ts` is the single source of truth. `yarn codegen:errors` generates
-`src/errors/codes.ts` and `cpp/core/error_codes.h` from it, and CI fails on drift.
+```text
+LOAD_FAILED  EXECUTION_FAILED  SCHEMA_MISMATCH  INVALID_ARGUMENT  INVALID_STATE
+RESOURCE_DISPOSED  RESOURCE_BUSY  DOWNLOAD_FAILED  DOWNLOAD_ABORTED  UNKNOWN
+```
 
-| Code                  | Use for                                                             |
-| :-------------------- | :------------------------------------------------------------------ |
-| `Internal`            | Unclassified, plus third-party throwables reaching the boundary     |
-| `InvalidArgument`     | An argument to a public API is out of range or malformed            |
-| `InvalidState`        | Operation invalid in the current lifecycle state                    |
-| `NotSupported`        | Feature, backend, platform, or language unavailable here            |
-| `FileAccessFailed`    | Reading or writing a local file failed                              |
-| `ModelLoadFailed`     | The `.pte` could not be loaded (carries `etCode`)                   |
-| `ResourceDisposed`    | A model, tensor, or tokenizer was used after `dispose()`            |
-| `ResourceBusy`        | A model, tensor, or tokenizer is already in use                     |
-| `ModelSchemaMismatch` | The model's I/O does not match the contract the task requires       |
-| `ExecutionFailed`     | The ExecuTorch runtime failed executing a method (carries `etCode`) |
-| `TokenizerError`      | Tokenizer load, encode, or decode failure                           |
-| `DownloadFailed`      | Network failure, HTTP error, or interrupted transfer                |
-| `DownloadAborted`     | Cancelled through an `AbortSignal`                                  |
+The set is deliberately coarse. **A distinct code earns its place only when an app can
+genuinely recover differently from it** (retry a download, wait for a busy resource,
+re-create a disposed one). Everything else is a category that exists so crash reporters
+can group failures, and the detail belongs in the message.
 
-**Before adding a code, apply the test: would a caller plausibly write a different `catch`
-branch for this than for every code already listed?** If not, it is a message, not a code.
-Put the detail in the message instead. The set is deliberately small.
+Concretely: do not add a code for a specific subsystem (a tokenizer failure is
+`EXECUTION_FAILED` or `LOAD_FAILED`) or for a variant of "the caller got it wrong"
+(`INVALID_ARGUMENT` already covers unsupported languages, bad ranges, and wrong types).
+Subdividing non-recoverable failures buys nothing over the message.
 
-If you do add one:
-
-- Append at the end of the relevant block. **Never renumber or reuse a value**, they are
-  what crosses the JSI and worklet boundaries.
-- Run `yarn codegen:errors` and commit both generated files.
-- Do not mirror ExecuTorch runtime errors into this enum. They keep their own numbering
-  and travel in the separate `etCode` field.
+Adding one means editing `VALID_ERROR_CODES` in `src/core/error.ts` **and** both the
+`RnExecuTorchErrorCode` enum and `errorCodeToString` in `cpp/core/error.h`.
 
 ---
 
@@ -132,13 +89,12 @@ If you do add one:
 
 Two rules, both mandatory:
 
-1. **Throw `CodedError`, never a raw `jsi::JSError` / `std::runtime_error` /
-   `std::invalid_argument`.** A native exception without a code reaches JavaScript
-   carrying nothing and degrades to `Internal`.
-2. **Wrap every host function registration in `error::guarded(...)`.** This is what turns
-   a `CodedError` raised anywhere in the native stack into a JS `Error` carrying `code`.
-   Without it the code is lost, including on the synchronous worklet path that
-   VisionCamera frame processors use, which has no `wrapAsync` fallback.
+1. **Never throw `jsi::JSError` from library code.** Throw `RnExecuTorchException`.
+   `guarded` is the only place that turns an exception into a JavaScript value, so a code
+   cannot be lost on the way out.
+2. **Wrap every host function registration in `error::guarded(...)`.** Without it the code
+   is lost, including on the synchronous worklet path that VisionCamera frame processors
+   use, which has no `wrapAsync` fallback.
 
 ```cpp
 #include "core/error.h"
@@ -149,14 +105,15 @@ namespace jsi = facebook::jsi;
 // OMIT this alias inside rnexecutorch::core::*, where unqualified `error`
 // already resolves to rnexecutorch::core::error (clang-tidy fails on a dead alias).
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::CodedError;
-using rnexecutorch::core::error::ErrorCode;
+using rnexecutorch::core::error::RnExecuTorchErrorCode;
+using rnexecutorch::core::error::RnExecuTorchException;
 
 void install_customOp(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "customOp";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw CodedError(ErrorCode::InvalidArgument, "Usage: customOp(src, dst, factor)");
+            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument,
+                                        "Usage: customOp(src, dst, factor)");
         }
         // ...
         return jsi::Value(rt, args[1]);
@@ -169,13 +126,10 @@ void install_customOp(jsi::Runtime &rt, jsi::Object &module) {
 } // namespace
 ```
 
-Other helpers in `cpp/core/error.h`:
-
-- `error::unwrapEt(code, ctx, result)` unwraps an `executorch::runtime::Result`, attaching
-  both your code and the underlying ExecuTorch error as `etCode`. Use it instead of
-  hand-rolled `unwrap` templates.
-- `error::throwJs(rt, code, msg)` throws a coded JS error directly when you already hold a
-  `jsi::Runtime`.
+`RnExecuTorchException` has a second constructor taking an `executorch::runtime::Error`,
+which travels to JS as `etRuntimeErrorCode` for diagnostics. Unwrapping an ExecuTorch
+`Result` is done with a small file-local `unwrap` helper (see `cpp/core/model.cpp`), not a
+shared utility.
 
 `guard` deliberately lets an existing `jsi::JSError` pass through untouched, so an error
 thrown by an app's own callback (for example inside `tensor.through(fn)`) is never
@@ -190,22 +144,9 @@ macOS-only local syntax check will not catch it.
 
 ## 📱 Example Apps
 
-Apps must not format library errors inline. Each app has an `errors.ts` exporting
-`describeError(e)`, `isBusyError(e)`, and `isDisposedError(e)`. Use them:
-
-```typescript
-import { describeError, isBusyError } from '../../errors';
-
-try {
-  const output = await classify(buffer);
-} catch (e) {
-  // Tapping again mid-run is normal, do not flash an error at the user.
-  if (!isBusyError(e)) setError(describeError(e));
-}
-```
-
-Add a new user-facing branch to `describeError` rather than re-deriving a message at the
-call site, and keep the three copies in `apps/*/errors.ts` in sync.
+Leave error handling in `apps/` alone. They are a testing ground, so failures should be
+surfaced raw (`e.message`, `String(e)`) rather than translated into friendly copy. See
+issue #1288 for the separate discussion about splitting user-facing examples out.
 
 ---
 
@@ -213,14 +154,12 @@ call site, and keep the three copies in `apps/*/errors.ts` in sync.
 
 - **Do NOT branch on message text.** No `/disposed/i.test(msg)`, no `msg.includes(...)`.
   Use the code.
-- **Do NOT throw bare `Error` / `jsi::JSError`** from library code. Every throw site gets
-  a code.
-- **Do NOT construct `RnExecutorchError` inside a worklet.** Use `rnExecutorchError()`.
-- **Do NOT add a code that no caller would branch on.** Enrich the message instead.
-- **Do NOT hand-edit** `src/errors/codes.ts` or `cpp/core/error_codes.h`. They are
-  generated; edit `scripts/errors.config.ts` and re-run the codegen.
-- **Do NOT widen a hook's error type back to `Error`.** Hooks expose
-  `RnExecutorchError | null` so consumers can reach `code` without casting.
+- **Do NOT throw bare `Error` or `jsi::JSError`** from library code.
+- **Do NOT make `RnExecuTorchError` a class.** It has to survive worklet boundaries.
+- **Do NOT add a code for a failure an app cannot recover from differently.** Enrich the
+  message instead.
+- **Do NOT generate the codes.** They are mirrored by hand, like the rest of the TS/JSI
+  interface.
 
 ---
 
@@ -228,12 +167,11 @@ call site, and keep the three copies in `apps/*/errors.ts` in sync.
 
 When adding or changing error handling, verify that:
 
-- [ ] Every new throw site carries an `RnExecutorchErrorCode`.
-- [ ] Throws inside `'worklet';` functions use `rnExecutorchError()`, not `new RnExecutorchError()`.
-- [ ] C++ throws use `CodedError`, and no raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
+- [ ] Every new throw site uses `RnExecuTorchError('CODE', message)` (TS) or `RnExecuTorchException` (C++).
+- [ ] No raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
 - [ ] Every new `createFromHostFunction` registration is wrapped in `error::guarded(...)`.
 - [ ] The `namespace error = ...` alias is present in `extensions::*` and absent in `core::*`.
 - [ ] `#include "core/error.h"` and its `using` declarations sit at file scope, outside any preprocessor branch.
-- [ ] Catch sites use `isRnExecutorchError` (not `instanceof`) and any `switch` on `code` has a `default`.
-- [ ] Any new code passed the "would a caller branch on this?" test, was appended without renumbering, and `yarn codegen:errors` was run and both generated files committed.
-- [ ] Example apps route failures through `describeError` rather than formatting inline.
+- [ ] Catch sites use `isRnExecuTorchError(e, 'CODE')` rather than matching on the message.
+- [ ] Any new code was justified by a distinct recovery path, and added to `src/core/error.ts` **and** `cpp/core/error.h` (enum + `errorCodeToString`).
+- [ ] Error handling in `apps/` was left surfacing raw errors.
