@@ -111,13 +111,13 @@ function hannWindow(size: number): Float32Array {
 // threshold with hysteresis, pad both ends, then merge near-adjacent regions.
 // `scores[i]` holds the non-speech probability of frame `i`, so the speech
 // probability is `1 - scores[i]`.
-function postprocess(scores: Float32Array, opts: Required<VadOptions>): Segment[] {
+function postprocess(scores: Float32Array, options: Required<VadOptions>): Segment[] {
   'worklet';
-  const threshold = opts.speechThreshold;
-  const minSpeechHops = Math.floor(opts.minSpeechDurationMs / HOP_LENGTH_MS);
-  const minSilenceHops = Math.floor(opts.minSilenceDurationMs / HOP_LENGTH_MS);
-  const speechPadHops = Math.floor(opts.speechPadMs / HOP_LENGTH_MS);
-  const maxMergeGapHops = opts.mergeGapMs / HOP_LENGTH_MS;
+  const threshold = options.speechThreshold;
+  const minSpeechHops = Math.floor(options.minSpeechDurationMs / HOP_LENGTH_MS);
+  const minSilenceHops = Math.floor(options.minSilenceDurationMs / HOP_LENGTH_MS);
+  const speechPadHops = Math.floor(options.speechPadMs / HOP_LENGTH_MS);
+  const maxMergeGapHops = options.mergeGapMs / HOP_LENGTH_MS;
 
   // Threshold with hysteresis: a region must stay above the threshold for
   // `minSpeechHops` to open a segment, and below it for `minSilenceHops` to
@@ -252,7 +252,7 @@ export async function createFsmnVoiceActivityDetector(
 
   const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
     'worklet';
-    const opts: Required<VadOptions> = { ...defaultOptions, ...options };
+    const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
     if (numFrames <= 0) return [];
 
@@ -294,7 +294,7 @@ export async function createFsmnVoiceActivityDetector(
       offset += realFrames;
     }
 
-    return postprocess(scores, opts);
+    return postprocess(scores, mergedOpts);
   };
 
   const detectVoice = wrapAsync(detectVoiceWorklet, runtime);
