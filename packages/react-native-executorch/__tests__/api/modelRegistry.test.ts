@@ -20,10 +20,26 @@ const isObject = (value: unknown): value is Node =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * A leaf that a `create<Task>` factory could be handed: it names a model file.
+ * A leaf that a `create<Task>` factory could be handed: it names its model
+ * file, or — for a pipeline assembled from several `.pte` files, like
+ * Supertonic TTS — the record of them.
  */
 const isConfig = (value: unknown): value is Node =>
-  isObject(value) && typeof value.modelPath === 'string';
+  isObject(value) &&
+  (typeof value.modelPath === 'string' ||
+    (isObject(value.modelPaths) &&
+      Object.values(value.modelPaths).every((path) => typeof path === 'string')));
+
+/**
+ * The model file(s) a config names, as one comparable identity.
+ */
+const modelPathsOf = (config: Node): string =>
+  typeof config.modelPath === 'string'
+    ? config.modelPath
+    : Object.values(config.modelPaths as Node)
+        .map(String)
+        .sort()
+        .join('|');
 
 /**
  * A backend variant key, e.g. `XNNPACK_FP32`. Size keys (`TINY`) look the same.
@@ -170,10 +186,10 @@ describe('models registry — structure', () => {
     expect(variants).toContain(defaults);
   });
 
-  it.each(allGroups)('$label gives every variant a distinct model path', ({ group }) => {
+  it.each(allGroups)('$label gives every variant distinct model files', ({ group }) => {
     const paths = Object.entries(group)
       .filter(([key, value]) => isUpperKey(key) && isConfig(value))
-      .map(([, value]) => (value as Node).modelPath);
+      .map(([, value]) => modelPathsOf(value as Node));
 
     expect(new Set(paths).size).toBe(paths.length);
   });
