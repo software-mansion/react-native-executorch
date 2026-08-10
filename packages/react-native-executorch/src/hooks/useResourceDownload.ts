@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { download, AbortError } from '../fetcher/fetcher';
-import { RnExecutorchError, toRnExecutorchError } from '../errors';
+import { download } from '../fetcher/fetcher';
+import { isRnExecuTorchError } from '../core/error';
 
 /**
  * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
@@ -47,7 +47,7 @@ export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
 
   const [resource, setResource] = useState<T>();
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [downloadError, setDownloadError] = useState<RnExecutorchError | null>(null);
+  const [downloadError, setDownloadError] = useState<Error | null>(null);
 
   // Configs are plain JSON data, so serializing is a sound structural identity
   // and keeps an inline `config` object from re-running the effect every render.
@@ -76,8 +76,8 @@ export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
         setDownloadProgress(100);
       })
       .catch((e) => {
-        if (!isMounted || e instanceof AbortError) return;
-        setDownloadError(toRnExecutorchError(e));
+        if (!isMounted || isRnExecuTorchError(e, 'DOWNLOAD_ABORTED')) return;
+        setDownloadError(e instanceof Error ? e : new Error(String(e)));
       });
 
     return () => {

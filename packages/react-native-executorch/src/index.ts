@@ -18,9 +18,6 @@ export * from './hooks/useModel';
 // Resource fetching — imperative download API
 export * from './fetcher';
 
-// Errors
-export * from './errors';
-
 // Constants
 export { models } from './models';
 export * as constants from './constants';
@@ -41,6 +38,7 @@ export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 
 // Core primitives — for library builders and power users
+export * from './core/error';
 export * from './core/model';
 export * from './core/tensor';
 export * from './core/runtime';

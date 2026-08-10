@@ -1,4 +1,4 @@
-import { RnExecutorchError, RnExecutorchErrorCode } from '../errors';
+import { RnExecuTorchError } from '../core/error';
 
 const globalObj = globalThis as any;
 
@@ -10,8 +10,5 @@ if (!globalObj.__rnexecutorch_jsi__) {
 export const rnexecutorchJsi = globalObj.__rnexecutorch_jsi__;
 
 if (!rnexecutorchJsi) {
-  throw new RnExecutorchError(
-    RnExecutorchErrorCode.Internal,
-    "JSI global object '__rnexecutorch_jsi__' is not registered."
-  );
+  throw RnExecuTorchError('UNKNOWN', "JSI global object '__rnexecutorch_jsi__' is not registered.");
 }

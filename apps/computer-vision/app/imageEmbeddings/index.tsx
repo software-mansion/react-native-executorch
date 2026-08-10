@@ -11,7 +11,6 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
-import { describeError } from '../../errors';
 
 const IMAGE_MODEL_OPTIONS: ModelOption[] = [
   {
@@ -70,8 +69,8 @@ function ImageEmbeddingsContent() {
       setImageUri(uri);
       setResults([]);
       setLatency(null);
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     }
   };
 
@@ -90,8 +89,8 @@ function ImageEmbeddingsContent() {
       scored.sort((a, b) => b.score - a.score);
       setLatency(Date.now() - start);
       setResults(scored);
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     } finally {
       setIsProcessing(false);
     }
@@ -111,9 +110,9 @@ function ImageEmbeddingsContent() {
   };
 
   const activeError = imageModel.error
-    ? describeError(imageModel.error)
+    ? String(imageModel.error)
     : textModel.error
-      ? describeError(textModel.error)
+      ? String(textModel.error)
       : error;
 
   return (

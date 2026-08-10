@@ -15,7 +15,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker } from '../../components/ModelPicker';
 import { ModelStatus } from '../../components/ModelStatus';
 import { theme } from '../../theme';
-import { describeError } from '../../errors';
 
 const MODELS = [
   {
@@ -151,7 +150,8 @@ function STTAudioContent() {
       setStatus('Done');
     } catch (err) {
       console.error('STT Audio transcription error:', err);
-      setRunError(describeError(err));
+      const errMsg = err instanceof Error ? err.message : String(err);
+      setRunError(errMsg);
       setStatus('Error');
     } finally {
       setIsTranscribing(false);
@@ -186,7 +186,7 @@ function STTAudioContent() {
         <ModelStatus
           isReady={isSttReady}
           downloadProgress={downloadProgress}
-          error={modelError ? describeError(modelError) : null}
+          error={modelError ? modelError.message : null}
           modelTypeLabel="Whisper model"
         />
         {supportedLanguages.length > 1 && (

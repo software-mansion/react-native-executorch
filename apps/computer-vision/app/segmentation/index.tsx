@@ -17,7 +17,6 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
-import { describeError } from '../../errors';
 
 const SEGMENTATION_OPTIONS: ModelOption[] = [
   {
@@ -80,8 +79,8 @@ function SegmentationContent() {
         setLatency(null);
         setSegmentationImage(null);
       }
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     }
   };
 
@@ -112,15 +111,15 @@ function SegmentationContent() {
         throw new Error('Failed to create overlay image from output data');
       }
       setSegmentationImage(nextImage);
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     } finally {
       isProcessingRef.current = false;
       setIsProcessing(false);
     }
   };
 
-  const activeError = loadError ? describeError(loadError) : error;
+  const activeError = loadError ? String(loadError) : error;
 
   return (
     <ScrollView

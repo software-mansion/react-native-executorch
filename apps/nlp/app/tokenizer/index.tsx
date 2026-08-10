@@ -5,7 +5,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 import { theme } from '../../theme';
-import { describeError } from '../../errors';
 
 type Check = { label: string; detail: string; pass: boolean };
 
@@ -78,9 +77,9 @@ function TokenizerContent() {
           checks: nextChecks.map((c) => ({ label: c.label, pass: c.pass, detail: c.detail })),
         })
       );
-    } catch (e) {
-      console.log('[TokenizerTest] ERROR', describeError(e));
-      setRunError(describeError(e));
+    } catch (e: any) {
+      console.log('[TokenizerTest] ERROR', e?.message ?? String(e));
+      setRunError(e?.message ?? String(e));
     } finally {
       setRunning(false);
     }
@@ -109,7 +108,7 @@ function TokenizerContent() {
         <ModelStatus
           isReady={isReady}
           downloadProgress={downloadProgress}
-          error={error ? describeError(error) : null}
+          error={error ? error.message : null}
           modelTypeLabel="tokenizer"
         />
 

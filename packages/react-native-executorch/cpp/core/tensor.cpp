@@ -17,8 +17,8 @@
 
 #include "core/error.h"
 namespace {
-using rnexecutorch::core::error::CodedError;
-using rnexecutorch::core::error::ErrorCode;
+using rnexecutorch::core::error::RnExecuTorchErrorCode;
+using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
 namespace rnexecutorch::core::tensor {
@@ -57,7 +57,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1 && count != 2) {
-                throw CodedError(ErrorCode::InvalidArgument, "copyTo: Usage: copyTo(dst, options?)");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "copyTo: Usage: copyTo(dst, options?)");
             }
 
             auto dst = tensor::fromJs(rt, "copyTo: dst", args[0], std::nullopt, std::nullopt);
@@ -73,21 +73,21 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             size_t offset = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "offset").value_or(0);
             if (offset > self->numel_) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("copyTo: offset {} is out of bounds for src tensor of size {} elements",
-                                                                         offset, self->numel_));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("copyTo: offset {} is out of bounds for src tensor of size {} elements",
+                                                                                                offset, self->numel_));
             }
 
             size_t length = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "length").value_or(self->numel_ - offset);
             if (length > self->numel_ - offset) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("copyTo: length {} is out of bounds for offset {} of src tensor (numel {})",
-                                                                         length, offset, self->numel_));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("copyTo: length {} is out of bounds for offset {} of src tensor (numel {})",
+                                                                                                length, offset, self->numel_));
             }
 
             const auto elemSize = types::elementSize(self->dtype_);
 
             if (length * elemSize != dst->size_) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("copyTo: size mismatch between copy size ({} bytes) and dst tensor size ({} bytes)",
-                                                                         length * elemSize, dst->size_));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("copyTo: size mismatch between copy size ({} bytes) and dst tensor size ({} bytes)",
+                                                                                                length * elemSize, dst->size_));
             }
 
             std::memcpy(dst->data_.get(), self->data_.get() + (offset * elemSize), length * elemSize);
@@ -101,7 +101,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw CodedError(ErrorCode::InvalidArgument, "setData: Usage: setData(array)");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "setData: Usage: setData(array)");
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "setData: array", args[0]);
@@ -112,13 +112,13 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto lock = tryLockUnique(rt, "setData: self", self);
 
             if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("setData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
-                                                                         byteOffset, byteLength, buffer.size(rt)));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("setData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
+                                                                                                byteOffset, byteLength, buffer.size(rt)));
             }
 
             if (byteLength != self->size_) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("setData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
-                                                                         byteLength, self->size_));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("setData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
+                                                                                                byteLength, self->size_));
             }
 
             std::memcpy(self->data_.get(), buffer.data(rt) + byteOffset, byteLength);
@@ -132,7 +132,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw CodedError(ErrorCode::InvalidArgument, "getData: Usage: getData(array)");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "getData: Usage: getData(array)");
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "getData: array", args[0]);
@@ -143,13 +143,13 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto lock = tryLockShared(rt, "getData: self", self);
 
             if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("getData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
-                                                                         byteOffset, byteLength, buffer.size(rt)));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("getData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
+                                                                                                byteOffset, byteLength, buffer.size(rt)));
             }
 
             if (byteLength != self->size_) {
-                throw CodedError(ErrorCode::InvalidArgument, std::format("getData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
-                                                                         byteLength, self->size_));
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("getData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
+                                                                                                byteLength, self->size_));
             }
 
             std::memcpy(buffer.data(rt) + byteOffset, self->data_.get(), byteLength);
@@ -163,7 +163,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1) {
-                throw CodedError(ErrorCode::InvalidArgument, "through: Usage: through(fn, ...args)");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "through: Usage: through(fn, ...args)");
             }
 
             auto fn = conversions::asType<jsi::Function>(rt, "through: fn", args[0]);
@@ -185,7 +185,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 2) {
-                throw CodedError(ErrorCode::InvalidArgument, "throughIf: Usage: throughIf(pred, fn, ...args)");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "throughIf: Usage: throughIf(pred, fn, ...args)");
             }
 
             const bool pred = conversions::asType<bool>(rt, "throughIf: pred", args[0]);
@@ -212,13 +212,13 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw CodedError(ErrorCode::InvalidArgument, "dispose: Usage: dispose()");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "dispose: Usage: dispose()");
             }
 
             std::unique_lock<std::shared_mutex> lock(self->mutex_);
 
             if (!self->data_) {
-                throw CodedError(ErrorCode::ResourceDisposed, "dispose: Tensor has already been disposed");
+                throw RnExecuTorchException(RnExecuTorchErrorCode::ResourceDisposed, "dispose: Tensor has already been disposed");
             }
 
             self->tensor_.reset();
@@ -250,19 +250,19 @@ void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createTensor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw CodedError(ErrorCode::InvalidArgument, "createTensor: Usage: createTensor(shape, dtype)");
+            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "createTensor: Usage: createTensor(shape, dtype)");
         }
 
         auto shape = conversions::asVector<int32_t>(rt, "createTensor: shape", args[0]);
         if (std::ranges::any_of(shape, [](auto dim) { return dim <= 0; })) {
-            throw CodedError(ErrorCode::InvalidArgument, "createTensor: Shape dimensions must be positive integers");
+            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "createTensor: Shape dimensions must be positive integers");
         }
 
         try {
             const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
             return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype));
         } catch (const std::exception &e) {
-            throw CodedError(ErrorCode::Internal, std::format("createTensor: Error creating tensor: {}", e.what()));
+            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, std::format("createTensor: Error creating tensor: {}", e.what()));
         }
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody));

@@ -1,3 +1,4 @@
+import { RnExecuTorchError } from '../../../core/error';
 type Tag = 'eos' | 'pause' | 'whitespace';
 
 // Punctuation Regex Patterns
@@ -100,7 +101,10 @@ export function partition(text: string, limit: number, options?: PartitionOption
   }
 
   if (limit < MIN_PARTITION_LIMIT) {
-    throw new Error(`partition: limit ${limit} is below minimum ${MIN_PARTITION_LIMIT}`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `partition: limit ${limit} is below minimum ${MIN_PARTITION_LIMIT}`
+    );
   }
 
   const prioritizeInitialTtfa = options?.prioritizeInitialTtfa ?? false;
@@ -185,7 +189,10 @@ export function partition(text: string, limit: number, options?: PartitionOption
   }
 
   if (minCost[breakpoints.length - 1] === Infinity) {
-    throw new Error(`partition: text cannot be divided into chunks of length <= ${limit}`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `partition: text cannot be divided into chunks of length <= ${limit}`
+    );
   }
 
   const cuts: number[] = [];

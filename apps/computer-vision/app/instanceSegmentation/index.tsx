@@ -22,7 +22,6 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { LatencyIndicator } from '../../components/LatencyIndicator';
 import { Button } from '../../components/Button';
 import { BoundingBox } from '../../components/BoundingBox';
-import { describeError } from '../../errors';
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
@@ -115,8 +114,8 @@ function InstanceSegmentationContent() {
         setLatency(null);
         setMasks([]);
       }
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     }
   };
 
@@ -160,8 +159,8 @@ function InstanceSegmentationContent() {
         }
       }
       setMasks(nextMasks);
-    } catch (e) {
-      setError(describeError(e));
+    } catch (e: any) {
+      setError(e.message || String(e));
     } finally {
       isProcessingRef.current = false;
       if (!sync) setIsProcessing(false);
@@ -185,7 +184,7 @@ function InstanceSegmentationContent() {
     scaleY = scale;
   }
 
-  const activeError = loadError ? describeError(loadError) : error;
+  const activeError = loadError ? String(loadError) : error;
 
   return (
     <ScrollView

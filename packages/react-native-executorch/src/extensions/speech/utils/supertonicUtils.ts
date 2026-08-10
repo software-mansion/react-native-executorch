@@ -1,3 +1,4 @@
+import { RnExecuTorchError } from '../../../core/error';
 /**
  * Ported from supertone-inc/supertonic (MIT License)
  * Source: https://github.com/supertone-inc/supertonic
@@ -127,7 +128,7 @@ export function formatChunk(chunk: string, lang?: string): string {
 
   if (lang && lang !== 'na') {
     if (!SUPERTONIC_SUPPORTED_LANGUAGES.includes(lang as SupertonicLanguage)) {
-      throw new Error(`formatChunk: Unsupported language: ${lang}`);
+      throw RnExecuTorchError('INVALID_ARGUMENT', `formatChunk: Unsupported language: ${lang}`);
     }
     processed = `<${lang}>${processed}</${lang}>`;
   }
@@ -186,7 +187,7 @@ export type SupertonicVoiceStyle = {
 export function parseVoiceStyle(json: any): SupertonicVoiceStyle {
   'worklet';
   if (!json?.style_ttl?.data || !json?.style_dp?.data) {
-    throw new Error('parseVoiceStyle: Invalid voice style JSON format.');
+    throw RnExecuTorchError('LOAD_FAILED', 'parseVoiceStyle: Invalid voice style JSON format.');
   }
   return {
     styleDp: new Float32Array((json.style_dp.data as number[][][]).flat(2)),
