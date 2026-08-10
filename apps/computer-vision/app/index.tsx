@@ -41,6 +41,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('inspect/')}>
           <Text style={styles.buttonText}>Model Inspector</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('errorTest/')}>
+          <Text style={styles.buttonText}>Error Test</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

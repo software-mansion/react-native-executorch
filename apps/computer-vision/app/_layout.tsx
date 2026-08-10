@@ -83,6 +83,13 @@ export default function Layout() {
           title: 'Model Inspector',
         }}
       />
+      <Drawer.Screen
+        name="errorTest/index"
+        options={{
+          drawerLabel: 'Error Test',
+          title: 'Error Propagation Test',
+        }}
+      />
     </Drawer>
   );
 }
