@@ -25,7 +25,7 @@ public:
      * Constructs a TokenizerHostObject by loading a HuggingFace tokenizer configuration file.
      *
      * @param tokenizerPath File system path to the tokenizer configuration file.
-     * @throws core::error::RnExecuTorchException with code ExecutionFailed if
+     * @throws core::error::RnExecuTorchException with code LoadFailed if
      * loading the tokenizer fails.
      */
     explicit TokenizerHostObject(std::string tokenizerPath);

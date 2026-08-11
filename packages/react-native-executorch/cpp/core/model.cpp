@@ -117,7 +117,7 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
 
             auto methodName = conversions::asType<std::string>(rt, "execute: methodName", args[0]);
             if (!self->spec_.contains(methodName)) {
-                throw error::SchemaMismatch(std::format("execute: Unknown method '{}'", methodName));
+                throw error::InvalidArgument(std::format("execute: Unknown method '{}'", methodName));
             }
             const auto &methodSpec = self->spec_.at(methodName);
 
@@ -125,8 +125,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
             auto outputTensorsArray = conversions::asType<jsi::Array>(rt, "execute: outputTensors", args[2]);
 
             if (inputsArray.size(rt) != methodSpec.inputs.size()) {
-                throw error::SchemaMismatch(std::format("execute: Incorrect size for inputs of method '{}': got {}, expected {}",
-                                                        methodName, inputsArray.size(rt), methodSpec.inputs.size()));
+                throw error::InvalidArgument(std::format("execute: Incorrect size for inputs of method '{}': got {}, expected {}",
+                                                         methodName, inputsArray.size(rt), methodSpec.inputs.size()));
             }
 
             std::vector<executorch::runtime::EValue> inputs(methodSpec.inputs.size());
@@ -166,8 +166,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     inputs[i] = executorch::runtime::EValue();
                     break;
                 default:
-                    throw error::SchemaMismatch(std::format("{}: Unsupported input type: {}",
-                                                            ctx, executorch::runtime::tag_to_string(tag)));
+                    throw error::InvalidArgument(std::format("{}: Unsupported input type: {}",
+                                                             ctx, executorch::runtime::tag_to_string(tag)));
                 }
             }
 
@@ -260,8 +260,8 @@ jsi::Value ModelHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
                     jsOutputArray.setValueAtIndex(rt, outputIdx, jsi::String::createFromUtf8(rt, std::string(output.toString())));
                     break;
                 default:
-                    throw error::SchemaMismatch(std::format("execute: Unsupported return type: {}",
-                                                            executorch::runtime::tag_to_string(output.tag)));
+                    throw error::ExecutionFailed(std::format("execute: Unsupported return type: {}",
+                                                             executorch::runtime::tag_to_string(output.tag)));
                 }
 
                 ++outputIdx;

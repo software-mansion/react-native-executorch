@@ -747,7 +747,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
    * @param name The symbol name.
    * @param kind Expected dimension kind — determines the return type. Omit to
    * get the raw {@link ConcreteDim} when the kind is not known upfront.
-   * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the
    * symbol is not found or has a different kind.
    */
   dim(name: string, kind: 'constant'): number;
@@ -764,7 +764,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves concrete dimension objects for multiple symbols.
      * @param names Symbol names to retrieve.
      * @returns A tuple of {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
      * symbol is not found.
      */
     any<S extends string[]>(...names: S): { [I in keyof S]: ConcreteDim };
@@ -773,7 +773,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves choice arrays for multiple enumerated dynamic symbols.
      * @param names Symbol names expected to be enum dimensions.
      * @returns A tuple of choice arrays corresponding to `names`.
-     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
      * symbol is not found or is not an enum dimension.
      */
     enum<S extends string[]>(...names: S): { [I in keyof S]: readonly number[] };
@@ -782,7 +782,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves range objects for multiple dynamic symbols.
      * @param names Symbol names expected to be range dimensions.
      * @returns A tuple of {@link Range} objects corresponding to `names`.
-     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
      * symbol is not found or is not a range dimension.
      */
     range<S extends string[]>(...names: S): { [I in keyof S]: Range };
@@ -791,7 +791,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves dynamic dimension objects (range or enum) for multiple symbols.
      * @param names Symbol names expected to be dynamic dimensions (range or enum).
      * @returns A tuple of dynamic {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
      * symbol is not found or is a constant dimension.
      */
     dynamic<S extends string[]>(
@@ -802,7 +802,7 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves constant numeric values for multiple static symbols.
      * @param names Symbol names expected to be constant dimensions.
      * @returns A tuple of numbers corresponding to `names`.
-     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
      * symbol is not found or is not a constant dimension.
      */
     constant<S extends string[]>(...names: S): { [I in keyof S]: number };
@@ -854,13 +854,13 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
       const dimFn = (name: string, kind?: string): any => {
         const dim = bindings.get(name);
         if (!dim) {
-          throw RnExecuTorchError('SCHEMA_MISMATCH', `Symbol '${name}' not found in bindings.`);
+          throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
         }
         if (kind) {
           if (kind === 'dynamic') {
             if (dim.kind === 'constant') {
               throw RnExecuTorchError(
-                'SCHEMA_MISMATCH',
+                'INVALID_ARGUMENT',
                 `Symbol '${name}' is 'constant', expected 'dynamic'.`
               );
             }
@@ -868,7 +868,7 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
           }
           if (dim.kind !== kind) {
             throw RnExecuTorchError(
-              'SCHEMA_MISMATCH',
+              'INVALID_ARGUMENT',
               `Symbol '${name}' is '${dim.kind}', expected '${kind}'.`
             );
           }

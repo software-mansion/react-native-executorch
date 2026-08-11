@@ -67,8 +67,8 @@ TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
-        throw error::ExecutionFailed(std::format("Failed to load tokenizer from '{}': {}",
-                                                 tokenizerPath_, toString(error)));
+        throw error::LoadFailed(std::format("Failed to load tokenizer from '{}': {}",
+                                            tokenizerPath_, toString(error)));
     }
 }
 
