@@ -1,8 +1,10 @@
 #include "dtype.h"
 #include <stdexcept>
 
+#include "core/error.h"
+
 namespace rnexecutorch::core::types {
-DType parseDType(const std::string &s) {
+DType dtypeFromString(const std::string &s) {
     if (s == "uint8") {
         return DType::uint8;
     }
@@ -15,10 +17,10 @@ DType parseDType(const std::string &s) {
     if (s == "float32") {
         return DType::float32;
     }
-    throw std::invalid_argument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
+    throw error::InvalidArgument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
 }
 
-std::string toString(DType dtype) {
+std::string dtypeToString(DType dtype) {
     switch (dtype) {
     case DType::uint8:
         return "uint8";
@@ -31,7 +33,7 @@ std::string toString(DType dtype) {
     }
 }
 
-executorch::aten::ScalarType toScalarType(DType dtype) {
+executorch::aten::ScalarType dtypeToScalarType(DType dtype) {
     switch (dtype) {
     case DType::uint8:
         return executorch::aten::ScalarType::Byte;
@@ -44,7 +46,7 @@ executorch::aten::ScalarType toScalarType(DType dtype) {
     }
 }
 
-DType fromScalarType(executorch::aten::ScalarType st) {
+DType dtypeFromScalarType(executorch::aten::ScalarType st) {
     switch (st) {
     case executorch::aten::ScalarType::Byte:
         return DType::uint8;
@@ -55,7 +57,7 @@ DType fromScalarType(executorch::aten::ScalarType st) {
     case executorch::aten::ScalarType::Float:
         return DType::float32;
     default:
-        throw std::invalid_argument("Unsupported ScalarType");
+        throw error::InvalidArgument("Unsupported ScalarType");
     }
 }
 

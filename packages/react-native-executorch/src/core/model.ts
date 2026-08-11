@@ -1,5 +1,6 @@
 import { rnexecutorchJsi } from '../native/bridge';
-import type { DType, Tensor } from './tensor';
+import type { Tensor } from './tensor';
+import type { ModelSpec, ConcreteDim } from './schema';
 
 declare const modelBrand: unique symbol;
 
@@ -13,111 +14,7 @@ export type ModelInput = Tensor | number | boolean | null;
  * A value returned from a model's `execute` method.
  * @category Types
  */
-export type ModelOutput = Tensor | number | boolean | null;
-
-/**
- * Metadata describing a single tensor slot (input or output) of a model method.
- * @category Types
- */
-export type TensorMeta = {
-  /** The name associated with this tensor slot (may be empty). */
-  name: string;
-  /** The number of dimensions. */
-  ndim: number;
-  /** The total byte size of the tensor buffer. */
-  nbytes: number;
-  /** The element data type. */
-  dtype: DType;
-  /** The concrete size of each dimension (e.g. `[1, 3, 224, 224]`). */
-  shape: number[];
-};
-
-/**
- * The ExecuTorch value-tag that classifies the runtime type of a model input or
- * output slot.
- * @category Types
- */
-export type ExecuTorchTag =
-  | 'None'
-  | 'Tensor'
-  | 'Int'
-  | 'Double'
-  | 'Bool'
-  | 'String'
-  | 'ListBool'
-  | 'ListDouble'
-  | 'ListInt'
-  | 'ListTensor';
-
-/**
- * Metadata describing a single exported method of an ExecuTorch model.
- * @category Types
- */
-export type ModelMethodMeta = {
-  /** The exported method name (e.g. `'forward'`). */
-  name: string;
-  /** The total number of input arguments the method accepts. */
-  numInputs: number;
-  /** The total number of output values the method returns. */
-  numOutputs: number;
-  /** Runtime value-tags for each input slot, in order. */
-  inputTags: ExecuTorchTag[];
-  /** Runtime value-tags for each output slot, in order. */
-  outputTags: ExecuTorchTag[];
-  /**
-   * A map from backend name to a boolean indicating whether this method
-   * delegates to that backend.
-   */
-  usesBackend: Record<string, boolean>;
-  /** Detailed tensor metadata for every input tensor slot, in order. */
-  inputTensorMeta: TensorMeta[];
-  /** Detailed tensor metadata for every output tensor slot, in order. */
-  outputTensorMeta: TensorMeta[];
-};
-
-/**
- * The legal range of a single dynamic input dimension: any size
- * `min + k * step` within `[min, max]`.
- * @category Types
- */
-export type DimRange = {
-  /** The smallest legal size for this dimension. */
-  readonly min: number;
-  /** The largest legal size for this dimension. */
-  readonly max: number;
-  /** The increment between consecutive legal sizes (>= 1). */
-  readonly step: number;
-  /**
-   * Set when the dimension is a named symbolic size with no numeric bound the
-   * runtime resolves at execution time. `min`/`max` are then placeholders (0) and
-   * the dimension cannot be pre-resolved from metadata alone.
-   */
-  readonly symbol?: string;
-};
-
-/**
- * An enumerated set of whole legal input shapes — enumerated-shape backends
- * (e.g. CoreML) accept only these exact shapes. Mirrors the native
- * `EnumeratedShapes`.
- * @category Types
- */
-export type EnumeratedShapes = readonly (readonly number[])[];
-
-/**
- * The resolved shape constraint of a single tensor input, discriminated by
- * `kind`:
- *
- * - `range` — per-dimension {@link DimRange} ranges (from a
- *   `get_dynamic_dims_<method>` companion).
- * - `enum` — {@link EnumeratedShapes} whole shapes (from a
- *   `get_enum_shapes_<method>` companion).
- * - `static` — a single static shape (no companion).
- * @category Types
- */
-export type InputShapeConstraint =
-  | { readonly kind: 'range'; readonly dims: readonly DimRange[] }
-  | { readonly kind: 'enum'; readonly shapes: EnumeratedShapes }
-  | { readonly kind: 'static'; readonly shape: readonly number[] };
+export type ModelOutput = Tensor | number | boolean | string | null;
 
 /**
  * A compiled, ready-to-run ExecuTorch model loaded into native memory.
@@ -133,30 +30,10 @@ export type InputShapeConstraint =
 export interface Model {
   /** The local filesystem path of the `.pte` model file. */
   readonly path: string;
-
-  /**
-   * Returns the list of exported method names available on this model (e.g.
-   * `['forward']`).
-   */
-  getMethodNames(): string[];
-
-  /**
-   * Returns detailed metadata for the specified exported method, including
-   * input/output tags, tensor shapes, dtype, and backend delegation info.
-   * @param methodName The name of the exported method to inspect.
-   * @returns The {@link ModelMethodMeta} for the requested method.
-   */
-  getMethodMeta(methodName: string): ModelMethodMeta;
-
-  /**
-   * Returns the shape constraint of each tensor input of a method, resolved at
-   * load from the model's `get_dynamic_dims_<method>` / `get_enum_shapes_<method>`
-   * companions (or the single static shape when neither is present). One entry
-   * per tensor input, in the same order as `getMethodMeta().inputTensorMeta`.
-   * @param methodName The name of the exported method to inspect.
-   * @returns The per-tensor-input shape constraints.
-   */
-  getInputShapeConstraints(methodName: string): InputShapeConstraint[];
+  /** The exported schema of this model. */
+  readonly schema: ModelSpec<ConcreteDim>;
+  /** ExecuTorch backends used by a given method. */
+  readonly backends: Record<string, readonly string[]>;
 
   /**
    * Executes a named model method synchronously.

@@ -1301,6 +1301,22 @@ export type BlazeFaceLandmark = (typeof BLAZEFACE_LANDMARKS)[number];
  * @category Types
  */
 export type CocoLandmark = (typeof COCO_LANDMARKS)[number];
+
+/**
+ * Default Supertonic voice names array.
+ * @category Constants
+ */
+// prettier-ignore
+export const SUPERTONIC_DEFAULT_VOICE_NAMES = [
+  'F1', 'F2', 'F3', 'F4', 'F5',
+  'M1', 'M2', 'M3', 'M4', 'M5',
+] as const;
+
+/**
+ * Type representing a valid Supertonic default voice name.
+ * @category Types
+ */
+export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)[number];
 export { alphabets, PPOCR_SYMBOLS } from './extensions/cv/tasks/ocr/charsets';
 
 /**

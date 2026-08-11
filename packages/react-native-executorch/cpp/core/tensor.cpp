@@ -15,6 +15,8 @@
 
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 
+#include "core/error.h"
+
 namespace rnexecutorch::core::tensor {
 namespace types = rnexecutorch::core::types;
 namespace conversions = rnexecutorch::core::conversions;
@@ -29,7 +31,7 @@ TensorHostObject::TensorHostObject(const std::vector<std::int32_t> &shape, DType
       size_(numel_ * types::elementSize(dtype)) {
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays): owning runtime-sized byte buffer
     data_ = std::make_unique<std::uint8_t[]>(size_);
-    tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::toScalarType(dtype));
+    tensor_ = executorch::extension::from_blob(data_.get(), shape_, types::dtypeToScalarType(dtype));
 }
 
 jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
@@ -40,7 +42,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
     }
 
     if (nameStr == "dtype") {
-        return jsi::String::createFromUtf8(rt, types::toString(dtype_));
+        return jsi::String::createFromUtf8(rt, types::dtypeToString(dtype_));
     }
 
     if (nameStr == "numel") {
@@ -51,7 +53,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1 && count != 2) {
-                throw jsi::JSError(rt, "copyTo: Usage: copyTo(dst, options?)");
+                throw error::InvalidArgument("copyTo: Usage: copyTo(dst, options?)");
             }
 
             auto dst = tensor::fromJs(rt, "copyTo: dst", args[0], std::nullopt, std::nullopt);
@@ -64,34 +66,38 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             if (count == 2) {
                 optsObj = conversions::asType<jsi::Object>(rt, "copyTo: options", args[1]);
             }
+
             size_t offset = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "offset").value_or(0);
             if (offset > self->numel_) {
-                throw jsi::JSError(rt, "copyTo: offset is out of bounds for src tensor");
+                throw error::InvalidArgument(std::format("copyTo: offset {} is out of bounds for src tensor of size {} elements",
+                                                         offset, self->numel_));
             }
 
             size_t length = getOptionalProperty<uint64_t>(rt, "copyTo: options", optsObj, "length").value_or(self->numel_ - offset);
             if (length > self->numel_ - offset) {
-                throw jsi::JSError(rt, "copyTo: length is out of bounds for the given offset of the src tensor");
+                throw error::InvalidArgument(std::format("copyTo: length {} is out of bounds for offset {} of src tensor (numel {})",
+                                                         length, offset, self->numel_));
             }
 
             const auto elemSize = types::elementSize(self->dtype_);
 
             if (length * elemSize != dst->size_) {
-                throw jsi::JSError(rt, "copyTo: size mismatch between copy byte size and dst tensor size");
+                throw error::InvalidArgument(std::format("copyTo: size mismatch between copy size ({} bytes) and dst tensor size ({} bytes)",
+                                                         length * elemSize, dst->size_));
             }
 
             std::memcpy(dst->data_.get(), self->data_.get() + (offset * elemSize), length * elemSize);
 
             return jsi::Value(rt, args[0]);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "copyTo"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "copyTo"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "setData") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw jsi::JSError(rt, "setData: Usage: setData(array)");
+                throw error::InvalidArgument("setData: Usage: setData(array)");
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "setData: array", args[0]);
@@ -102,26 +108,27 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto lock = tryLockUnique(rt, "setData: self", self);
 
             if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-                throw jsi::JSError(rt, "setData: Out of bounds offset/length for buffer");
+                throw error::InvalidArgument(std::format("setData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
+                                                         byteOffset, byteLength, buffer.size(rt)));
             }
 
             if (byteLength != self->size_) {
-                throw jsi::JSError(rt, std::format("setData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
-                                                   byteLength, self->size_));
+                throw error::InvalidArgument(std::format("setData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
+                                                         byteLength, self->size_));
             }
 
             std::memcpy(self->data_.get(), buffer.data(rt) + byteOffset, byteLength);
 
             return jsi::Value(rt, thisVal);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "setData"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "setData"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "getData") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw jsi::JSError(rt, "getData: Usage: getData(array)");
+                throw error::InvalidArgument("getData: Usage: getData(array)");
             }
 
             auto dataObj = conversions::asType<jsi::Object>(rt, "getData: array", args[0]);
@@ -132,26 +139,27 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             auto lock = tryLockShared(rt, "getData: self", self);
 
             if (byteOffset > buffer.size(rt) || byteLength > buffer.size(rt) - byteOffset) {
-                throw jsi::JSError(rt, "getData: Out of bounds offset/length for buffer");
+                throw error::InvalidArgument(std::format("getData: Out of bounds offset ({}) or length ({}) for buffer of size {}",
+                                                         byteOffset, byteLength, buffer.size(rt)));
             }
 
             if (byteLength != self->size_) {
-                throw jsi::JSError(rt, std::format("getData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
-                                                   byteLength, self->size_));
+                throw error::InvalidArgument(std::format("getData: Data size mismatch: TypedArray is {} bytes, but Tensor requires {} bytes.",
+                                                         byteLength, self->size_));
             }
 
             std::memcpy(buffer.data(rt) + byteOffset, self->data_.get(), byteLength);
 
             return jsi::Value(rt, args[0]);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getData"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getData"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "through") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1) {
-                throw jsi::JSError(rt, "through: Usage: through(fn, ...args)");
+                throw error::InvalidArgument("through: Usage: through(fn, ...args)");
             }
 
             auto fn = conversions::asType<jsi::Function>(rt, "through: fn", args[0]);
@@ -166,14 +174,14 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());
         };
 
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "through"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "through"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "throughIf") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 2) {
-                throw jsi::JSError(rt, "throughIf: Usage: throughIf(pred, fn, ...args)");
+                throw error::InvalidArgument("throughIf: Usage: throughIf(pred, fn, ...args)");
             }
 
             const bool pred = conversions::asType<bool>(rt, "throughIf: pred", args[0]);
@@ -193,20 +201,20 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
             return fn.call(rt, static_cast<const jsi::Value *>(fnArgs.data()), fnArgs.size());
         };
 
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "throughIf"), 2, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "throughIf"), 2, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw jsi::JSError(rt, "dispose: Usage: dispose()");
+                throw error::InvalidArgument("dispose: Usage: dispose()");
             }
 
             std::unique_lock<std::shared_mutex> lock(self->mutex_);
 
             if (!self->data_) {
-                throw jsi::JSError(rt, "dispose: Tensor has already been disposed");
+                throw error::ResourceDisposed("dispose: Tensor has already been disposed");
             }
 
             self->tensor_.reset();
@@ -214,7 +222,7 @@ jsi::Value TensorHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) 
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
     }
 
     return jsi::Value::undefined();
@@ -238,22 +246,22 @@ void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createTensor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "createTensor: Usage: createTensor(shape, dtype)");
+            throw error::InvalidArgument("createTensor: Usage: createTensor(shape, dtype)");
         }
 
         auto shape = conversions::asVector<int32_t>(rt, "createTensor: shape", args[0]);
         if (std::ranges::any_of(shape, [](auto dim) { return dim <= 0; })) {
-            throw jsi::JSError(rt, "createTensor: Shape dimensions must be positive integers");
+            throw error::InvalidArgument("createTensor: Shape dimensions must be positive integers");
         }
 
         try {
-            const auto dtype = types::parseDType(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
+            const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
             return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype));
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::format("createTensor: Error creating tensor: {}", e.what()));
+            throw error::Unknown(std::format("createTensor: Error creating tensor: {}", e.what()));
         }
     };
-    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody);
+    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody));
 
     module.setProperty(rt, name, fn);
 }

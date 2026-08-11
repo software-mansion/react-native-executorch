@@ -2,27 +2,37 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { softmax } from '../../math';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring an image classifier preprocessor and label
  * vocabulary.
  * @category Types
  */
-export type ClassifierOptions<L> = ImagePreprocessorOptions & { readonly labels: readonly L[] };
+export type ClassifierOptions<L> = ImagePreprocessorOptions & {
+  /** Array of class labels matching the model's output vocabulary. */
+  readonly labels: readonly L[];
+};
 
 /**
  * Model configuration required to instantiate a classifier task runner.
  * @category Types
  */
 export type ClassifierModel<L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly classifierOpts: ClassifierOptions<L>;
+  /**
+   * Image preprocessing and label vocabulary
+   * {@link ClassifierOptions}. The `labels` array length must
+   * match the model's output dimension.
+   */
+  readonly modelOpts: ClassifierOptions<L>;
 };
 
 /**
@@ -30,7 +40,9 @@ export type ClassifierModel<L> = {
  * @category Types
  */
 export type Classification<L> = {
+  /** Predicted class label. */
   readonly label: L;
+  /** Confidence score of the prediction (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -58,6 +70,7 @@ export async function createClassifier<L>(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous image classification on the given input image.
    * @param input The input image buffer.
@@ -68,39 +81,47 @@ export async function createClassifier<L>(
    * confidence.
    */
   classify: (input: ImageBuffer, options?: { topk?: number }) => Promise<Classification<L>[]>;
+
   /**
    * Synchronous version of {@link classify} to be executed directly on the
    * caller or worklet thread.
    */
   classifyWorklet: (input: ImageBuffer, options?: { topk?: number }) => Classification<L>[];
 }> {
-  const { modelPath, classifierOpts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'N'], ['N'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 'N')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32('N')]
+    ),
+  });
 
-  const numLabels = outShape[outShape.length - 1]!;
-  if (classifierOpts.labels.length !== numLabels) {
-    throw new Error(
-      `Classifier labels length (${classifierOpts.labels.length}) must match model output dimension (${numLabels}).`
+  const [N, H, W] = dims.constant('N', 'H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { batched: [1, N], unbatched: [N] }[variant];
+
+  if (modelOpts.labels.length !== N) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${N}).`
     );
   }
 
-  // prettier-ignore
   const tensors = [
-    tensor('float32', outShape),
+    tensor('float32', outShape), // prettier-ignore
     tensor('float32', outShape),
   ] as const;
 
   const [tLogits, tProbas] = tensors;
-  const preprocessor = createImagePreprocessor(classifierOpts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -114,18 +135,20 @@ export async function createClassifier<L>(
   ): Classification<L>[] => {
     'worklet';
     if (options?.topk !== undefined && options.topk < 0) {
-      throw new Error(`Classifier topk option must be non-negative`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Classifier topk option must be non-negative, got ${options.topk}`
+      );
     }
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tLogits]);
 
-    // prettier-ignore
     const probas = tLogits
-      .through(softmax, tProbas)
+      .through(softmax, tProbas) // prettier-ignore
       .getData(new Float32Array(tProbas.numel));
 
     return Array.from(probas)
-      .map((confidence, index) => ({ confidence, label: classifierOpts.labels[index]! }))
+      .map((confidence, index) => ({ confidence, label: modelOpts.labels[index]! }))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, options?.topk);
   };

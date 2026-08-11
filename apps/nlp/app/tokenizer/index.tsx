@@ -15,7 +15,7 @@ function TokenizerContent() {
   const [text, setText] = useState('Hello world');
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
-  const [ids, setIds] = useState<number[] | null>(null);
+  const [ids, setIds] = useState<Int32Array | null>(null);
   const [roundTrip, setRoundTrip] = useState<string | null>(null);
   const [vocabSize, setVocabSize] = useState<number | null>(null);
   const [checks, setChecks] = useState<Check[]>([]);
@@ -71,7 +71,7 @@ function TokenizerContent() {
         JSON.stringify({
           allPass: nextChecks.every((c) => c.pass),
           input: text,
-          ids: tokenIds,
+          ids: Array.from(tokenIds),
           decoded,
           vocab,
           checks: nextChecks.map((c) => ({ label: c.label, pass: c.pass, detail: c.detail })),

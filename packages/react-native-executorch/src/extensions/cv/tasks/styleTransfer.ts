@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -13,6 +13,7 @@ import {
   cvtColor,
   resize,
   type InterpolationMethod,
+  type NormalizeOptions,
 } from '../ops/image';
 
 /**
@@ -20,9 +21,11 @@ import {
  * @category Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
-  readonly outAlpha: number | number[];
-  readonly outBeta: number | number[];
+  /** Normalization options for postprocessing output tensors back to uint8 pixel values. */
+  readonly outNormalizeOpts: NormalizeOptions;
+  /** Interpolation method used when resizing output styled images to input dimensions. */
   readonly outInterpolation: InterpolationMethod;
 };
 
@@ -31,8 +34,14 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
  * @category Types
  */
 export type StyleTransferModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: StyleTransferOptions;
+  /**
+   * Input preprocessing and output postprocessing
+   * {@link StyleTransferOptions} (normalization back to uint8,
+   * interpolation). `resizeMode` is fixed to `'stretch'`.
+   */
+  readonly modelOpts: StyleTransferOptions;
 };
 
 /**
@@ -54,43 +63,50 @@ export async function createStyleTransfer(
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous image style transfer on the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the styled image buffer.
    */
   transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
+
   /**
    * Synchronous version of {@link transferStyle} to be executed directly on the
    * caller or worklet thread.
    */
   transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 3, 'H', 'W')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32(3, 'H', 'W')]
+    ),
+  });
 
-  const targetH = outShape.at(-2)!;
-  const targetW = outShape.at(-1)!;
+  const [H, W] = dims.constant('H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = inpShape;
 
   const tensors = [
     tensor('float32', outShape),
-    tensor('float32', [3, targetH, targetW]),
-    tensor('uint8', [3, targetH, targetW]),
-    tensor('uint8', [targetH, targetW, 3]),
-    tensor('uint8', [targetH, targetW, 4]),
+    tensor('float32', [3, H, W]),
+    tensor('uint8', [3, H, W]),
+    tensor('uint8', [H, W, 3]),
+    tensor('uint8', [H, W, 4]),
   ] as const;
 
   const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -108,10 +124,10 @@ export async function createStyleTransfer(
     try {
       tOutput
         .copyTo(tReshape)
-        .through(normalize, tUint8, { alpha: opts.outAlpha, beta: opts.outBeta })
+        .through(normalize, tUint8, modelOpts.outNormalizeOpts)
         .through(toChannelsLast, tChanLast)
         .through(cvtColor, tRgba, 'RGB2RGBA')
-        .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
+        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
         .getData(data);
     } finally {
       tResize.dispose();

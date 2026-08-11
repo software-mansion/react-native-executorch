@@ -79,6 +79,8 @@ CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-exec
 
 - Requires ExecuTorch headers provisioned under `third-party/include` and `yarn install` (for JSI headers).
 - Any finding fails the run (`--warnings-as-errors`). Suppress a deliberate, reviewed finding with `// NOLINTNEXTLINE(check-name)` rather than relaxing the shared config.
+- **Homebrew LLVM is newer than CI's clang-tidy and reports checks CI does not have.** Before "fixing" a local finding, copy the unmodified base-branch version of the file in under a temp name and lint that too. A finding that also fires there is pre-existing and is not yours to fix in your PR.
+- **A local macOS-only syntax check cannot see platform-conditional code.** Anything inside `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` compiles locally and can still fail CI on another target. Check by eye that new includes and `using` declarations sit at file scope, outside every preprocessor branch.
 
 ### 2. `check-cpp-warnings.sh` — clangd warning set
 
@@ -175,6 +177,7 @@ This project does **not** bundle local `.pte` model files inside the React Nativ
 - **Do NOT run code without verification:** Do not test TypeScript changes in the app without first running `yarn typecheck` (verify types) and `yarn prepare` (build target bundles).
 - **Do NOT skip native rebuilds after C++ edits:** If any C++ files or config bindings are added/modified, do not attempt to run the app without executing `pod install` (for iOS) or letting Gradle sync (for Android).
 - **Do NOT run `lint:cpp` with the system `clang-tidy`**: Use the Homebrew LLVM binary: `CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy yarn workspace react-native-executorch lint:cpp`.
+- **Do NOT trust a green macOS-only syntax check for platform-conditional C++:** see the clang-tidy notes above.
 - **Do NOT log complex objects inside worklets:** Avoid passing complex circular objects directly to `console.log()` inside functions annotated with `'worklet';` as it can hang or crash the worklet runtime thread.
 - **Do NOT bundle local `.pte` files in the repository:** Do not commit heavy model binaries to the git repository. Always host them on Hugging Face and register their metadata in `src/models.ts`.
 

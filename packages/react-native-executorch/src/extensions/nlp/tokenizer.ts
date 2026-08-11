@@ -15,17 +15,17 @@ export type Tokenizer = {
    * Encodes a string into token ids (special tokens are added according to the
    * tokenizer.json post_processor).
    * @param text The input text to tokenize.
-   * @returns The encoded token ids.
+   * @returns The encoded token ids as an `Int32Array`.
    */
-  encode(text: string): number[];
+  encode(text: string): Int32Array;
 
   /**
    * Decodes token ids back into a string.
-   * @param tokens The token ids to decode.
+   * @param tokens The token ids to decode, as returned by {@link encode}.
    * @param skipSpecialTokens Whether to omit special tokens. Defaults to `true`.
    * @returns The decoded text.
    */
-  decode(tokens: number[], skipSpecialTokens?: boolean): string;
+  decode(tokens: Int32Array, skipSpecialTokens?: boolean): string;
 
   /**
    * @returns The size of the tokenizer's vocabulary.

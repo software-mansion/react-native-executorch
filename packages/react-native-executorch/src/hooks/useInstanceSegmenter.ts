@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createInstanceSegmenter,
   type InstanceSegmenterModel,
@@ -17,33 +17,24 @@ import {
  * @typeParam F The bounding box format.
  * @typeParam L The class labels type.
  * @param config The instance segmentation model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and segmentation functions.
  */
 export function useInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
-  options?: { preventLoad?: boolean }
+  options?: ResourceOptions
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
-  const { model, error } = useModel(
-    createInstanceSegmenter<F, L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource ?? null);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
+    resource,
     segmentInstances: model?.segmentInstances,
     segmentInstancesWorklet: model?.segmentInstancesWorklet,
-    labels: config.opts.labels,
+    labels: config.modelOpts.labels,
   };
 }

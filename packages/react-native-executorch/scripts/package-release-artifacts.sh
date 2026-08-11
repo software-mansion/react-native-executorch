@@ -35,16 +35,17 @@
 #   cd dist-artifacts && python3 -m http.server 8080
 #   RNET_BASE_URL=http://localhost:8080 INIT_CWD=<repo-root> node scripts/download-libs.js
 #
-# Option B — GitHub pre-release:
-#   gh release create v0.9.0-libs-test --prerelease --title "libs test" \
+# Option B — throwaway GitHub pre-release (uses a -test suffix so it never
+# collides with the real v${nativeLibsVersion}-libs assets release):
+#   gh release create v0.10.0-libs-test --prerelease --title "libs test" \
 #     --notes "Test release, will be deleted." \
 #     --repo software-mansion/react-native-executorch
-#   gh release upload v0.9.0-libs-test dist-artifacts/* \
+#   gh release upload v0.10.0-libs-test dist-artifacts/* \
 #     --repo software-mansion/react-native-executorch
-#   RNET_BASE_URL=https://github.com/software-mansion/react-native-executorch/releases/download/v0.9.0-libs-test \
+#   RNET_BASE_URL=https://github.com/software-mansion/react-native-executorch/releases/download/v0.10.0-libs-test \
 #     INIT_CWD=<repo-root> node scripts/download-libs.js
 #   # cleanup:
-#   gh release delete v0.9.0-libs-test --repo software-mansion/react-native-executorch --yes
+#   gh release delete v0.10.0-libs-test --repo software-mansion/react-native-executorch --yes
 
 set -euo pipefail
 
@@ -55,9 +56,14 @@ IOS_DIR="$PACKAGE_ROOT/third-party/ios"
 OUT="$PACKAGE_ROOT/dist-artifacts"
 
 INCLUDE_DIR="$PACKAGE_ROOT/third-party/include"
-VERSION=$(node -p "require('$PACKAGE_ROOT/package.json').version")
+# Artifacts are versioned independently of the npm package (see download-libs.js).
+# The pin lives in package.json:nativeLibsVersion and the release is tagged
+# v${nativeLibsVersion}-libs — the `-libs` suffix keeps it distinct from the core
+# release tag (v${version}) when the two numbers coincide.
+LIBS_VERSION=$(node -p "require('$PACKAGE_ROOT/package.json').nativeLibsVersion")
+TAG="v$LIBS_VERSION-libs"
 
-echo "Packaging release artifacts for v$VERSION"
+echo "Packaging release artifacts for $TAG"
 mkdir -p "$OUT"
 
 # ---- Helpers ----------------------------------------------------------------
@@ -255,5 +261,11 @@ echo ""
 echo "Done. Artifacts written to dist-artifacts/:"
 ls -lh "$OUT"
 echo ""
-echo "Upload these files to the GitHub Release for v$VERSION:"
-echo "  https://github.com/software-mansion/react-native-executorch/releases/tag/v$VERSION"
+echo "Publish these to the $TAG assets release:"
+echo "  # first cut (pre-release while the native surface is still settling):"
+echo "  gh release create $TAG dist-artifacts/* --prerelease \\"
+echo "    --title '$TAG' --notes 'Native lib artifacts for react-native-executorch $LIBS_VERSION.' \\"
+echo "    --repo software-mansion/react-native-executorch"
+echo "  # when the surface is final, promote it to a full release:"
+echo "  gh release edit $TAG --prerelease=false --repo software-mansion/react-native-executorch"
+echo "  https://github.com/software-mansion/react-native-executorch/releases/tag/$TAG"

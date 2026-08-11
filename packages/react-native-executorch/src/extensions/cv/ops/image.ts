@@ -76,8 +76,11 @@ export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'li
  * @category Types
  */
 export type ResizeOptions = {
+  /** How the image is resized {@link ResizeMode}. */
   readonly mode?: ResizeMode;
+  /** Background fill value used when letterboxing. */
   readonly padValue?: number;
+  /** Pixel interpolation method {@link InterpolationMethod}. */
   readonly interpolation?: InterpolationMethod;
 };
 
@@ -86,29 +89,38 @@ export type ResizeOptions = {
  * @category Types
  */
 export type NormalizeOptions = {
+  /**
+   * Multiplicative coefficient applied as `pixel * alpha`. Single value for
+   * uniform scaling, array for per-channel.
+   */
   readonly alpha?: number | readonly number[];
+  /** Additive offset applied as `pixel * alpha + beta`. Single value or per-channel array. */
   readonly beta?: number | readonly number[];
 };
 
 /**
  * Resizes an image tensor from a source dimension to a destination dimension.
  *
- * Supports various resize modes (`stretch`, `letterbox`, `crop`) and
- * interpolation algorithms (`linear`, `lanczos`, etc.).
+ * Supports various {@link ResizeMode} and {@link InterpolationMethod} options.
  * @category Typescript API
  * @param src The source image tensor in HWC layout. Shape [H,W,C].
  * @param dst The pre-allocated destination tensor to write the resized image
  * to. `dst` must be in HWC layout and its number of channels must match `src`.
  * Shape [H',W',C].
- * @param opts Configuration options for resizing.
+ * @param options Configuration options for resizing.
+ * @param options.mode The resize algorithm mode {@link ResizeMode}. Defaults to
+ * `'stretch'`.
+ * @param options.interpolation The pixel interpolation method
+ * {@link InterpolationMethod}. Defaults to `'lanczos'`.
+ * @param options.padValue Fill value for letterboxing. Defaults to `0`.
  * @returns The destination tensor containing the resized image.
  */
-export function resize(src: Tensor, dst: Tensor, opts?: ResizeOptions): Tensor {
+export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tensor {
   'worklet';
   return rnexecutorchJsi.cv.resize(src, dst, {
-    mode: opts?.mode ?? 'stretch',
-    interpolation: opts?.interpolation ?? 'lanczos',
-    padValue: opts?.padValue ?? 0,
+    mode: options?.mode ?? 'stretch',
+    interpolation: options?.interpolation ?? 'lanczos',
+    padValue: options?.padValue ?? 0,
   });
 }
 
@@ -174,16 +186,19 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  * @param src The source image tensor in CHW layout. Shape [C,H,W].
  * @param dst The pre-allocated destination tensor to write the normalized
  * values to. `dst` must have the same shape as `src`. Shape [C,H,W].
- * @param opts Normalization scaling coefficients.
+ * @param options Normalization scaling coefficients.
+ * @param options.alpha Multiplicative scaling coefficient(s). Defaults to
+ * `1 / 255.0`.
+ * @param options.beta Additive offset coefficient(s). Defaults to `0.0`.
  * @returns The destination tensor containing the normalized image.
  */
-export function normalize(src: Tensor, dst: Tensor, opts?: NormalizeOptions): Tensor {
+export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions): Tensor {
   'worklet';
   const defaultNormalizeOptions = {
     alpha: 1 / 255.0,
     beta: 0.0,
   } as const;
-  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...opts });
+  return rnexecutorchJsi.cv.normalize(src, dst, { ...defaultNormalizeOptions, ...options });
 }
 
 /**

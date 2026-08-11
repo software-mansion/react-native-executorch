@@ -9,10 +9,15 @@ export * from './hooks/useTokenizer';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
+export * from './hooks/useSpeechToText';
+export * from './hooks/useTextToSpeech';
 export * from './hooks/useTextToImage';
 export * from './hooks/useOcr';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
+
+// Resource fetching — imperative download API
+export * from './fetcher';
 
 // Constants
 export { models } from './models';
@@ -30,6 +35,8 @@ export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
+export * from './extensions/speech/tasks/whisperSpeechToText';
+export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/cv/tasks/ocr/ocr';
 export * from './extensions/cv/tasks/ocr/detectors';
 export type { Quad } from './extensions/cv/ops/quad';
@@ -38,26 +45,13 @@ export type { DocLayoutLabel } from './constants';
 export type { DocumentModelsConfig, TableConfig } from './extensions/cv/tasks/ocr/documentModels';
 
 // Core primitives — for library builders and power users
-export { tensor } from './core/tensor';
-export type { DType, Tensor } from './core/tensor';
+export * from './core/error';
+export * from './core/model';
+export * from './core/tensor';
+export * from './core/runtime';
 
-export { loadModel } from './core/model';
-export type {
-  Model,
-  ModelInput,
-  ModelOutput,
-  TensorMeta,
-  DimRange,
-  EnumeratedShapes,
-  InputShapeConstraint,
-  ModelMethodMeta,
-  ExecuTorchTag,
-} from './core/model';
-
-export { validateModelSchema, SymbolicTensor, matchShape } from './core/modelSchema';
-export type { ValueConstraint, TensorConstraint, SymbolicShape } from './core/modelSchema';
-
-export { defaultWorkletRuntime, wrapAsync } from './core/runtime';
+export type * from './core/schema';
+export * as schema from './core/schema';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';

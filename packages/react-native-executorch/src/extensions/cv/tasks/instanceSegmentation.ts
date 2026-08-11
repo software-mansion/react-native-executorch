@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -17,6 +17,7 @@ import {
   type BoundingBox,
   type BoxFormat,
 } from '../ops/boxes';
+import { RnExecuTorchError } from '../../../core/error';
 
 export type { BoxFormat };
 
@@ -31,11 +32,17 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default probability threshold for mask values. */
   readonly defaultMaskThreshold: number;
+  /** Default minimum confidence score threshold for detected instances. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -46,8 +53,14 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
  * @typeParam L The label type.
  */
 export type InstanceSegmenterModel<F extends BoxFormat, L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: InstanceSegmenterOptions<F, L>;
+  /**
+   * Image preprocessing, label vocabulary, bounding box format,
+   * and default NMS/mask/confidence thresholds
+   * {@link InstanceSegmenterOptions}.
+   */
+  readonly modelOpts: InstanceSegmenterOptions<F, L>;
 };
 
 /**
@@ -58,9 +71,13 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
  * @typeParam L The label type.
  */
 export type InstanceSegmentationResult<F extends BoxFormat, L> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Binary segmentation mask buffer cropped to the instance bounding box. */
   readonly mask: ImageBuffer;
+  /** Predicted instance class label. */
   readonly label: L;
+  /** Confidence score of the instance detection (between 0.0 and 1.0). */
   readonly confidence: number;
 };
 
@@ -93,10 +110,12 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * Performs asynchronous instance segmentation on the given input image.
    * @param input The input image buffer.
    * @param options Execution override options.
-   * @param options.confidenceThreshold Override for the minimum confidence
-   * threshold.
-   * @param options.iouThreshold Override for the IoU threshold in NMS.
-   * @param options.maskThreshold Override for the mask binarization threshold.
+   * @param options.confidenceThreshold Minimum confidence threshold. If
+   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
+   * @param options.iouThreshold Intersection over Union (IoU) threshold in NMS. If omitted, uses
+   * `modelOpts.defaultIouThreshold`.
+   * @param options.maskThreshold Mask binarization threshold. If omitted,
+   * uses `modelOpts.defaultMaskThreshold`.
    * @returns A promise resolving to a list of detected instances.
    */
   segmentInstances: (
@@ -113,43 +132,37 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
   ) => InstanceSegmentationResult<F, L>[];
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [
-      SymbolicTensor('float32', ['N', 4]),
-      SymbolicTensor('float32', ['N']),
-      SymbolicTensor('float32', ['N']),
-      SymbolicTensor('float32', ['N', 'MH', 'MW']),
-    ]
-  );
 
-  const inpShape = meta.inputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward',
+      [f32(1, 3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
+    ),
+    unbatched: method(
+      'forward',
+      [f32(3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
+    ),
+  });
 
-  const outBoxesShape = meta.outputTensorMeta[0]!.shape;
-  const outScoresShape = meta.outputTensorMeta[1]!.shape;
-  const outClassesShape = meta.outputTensorMeta[2]!.shape;
-  const outMasksShape = meta.outputTensorMeta[3]!.shape;
-
-  const maskH = outMasksShape[1]!;
-  const maskW = outMasksShape[2]!;
-  const targetH = inpShape.at(-2)!;
-  const targetW = inpShape.at(-1)!;
+  const [N, H, W, maskH, maskW] = dims.constant('N', 'H', 'W', 'MH', 'MW');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { boxes: [N, 4], scores: [N], classes: [N], masks: [N, maskH, maskW] };
 
   const tensors = [
-    tensor('float32', outBoxesShape),
-    tensor('float32', outScoresShape),
-    tensor('float32', outClassesShape),
-    tensor('float32', outMasksShape),
+    tensor('float32', outShape.boxes),
+    tensor('float32', outShape.scores),
+    tensor('float32', outShape.classes),
+    tensor('float32', outShape.masks),
     tensor('float32', [maskH, maskW, 1]),
   ] as const;
 
   const [tBoxes, tScores, tClasses, tAllMasks, tMask] = tensors;
 
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -165,16 +178,17 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const maskThreshold = options?.maskThreshold ?? opts.defaultMaskThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const maskThreshold = options?.maskThreshold ?? modelOpts.defaultMaskThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     const eps = 1e-7;
     const clampedMaskThreshold = Math.max(eps, Math.min(1 - eps, maskThreshold));
     const logitMaskThreshold = Math.log(clampedMaskThreshold / (1 - clampedMaskThreshold));
 
     const indices = nms(tBoxes, tScores, {
-      boxFormat: opts.boxFormat,
+      boxFormat: modelOpts.boxFormat,
       iouThreshold,
       confidenceThreshold,
       nmsType: 'standard',
@@ -199,12 +213,13 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
       for (const idx of indices) {
         const confidence = scores[idx]!;
         const classIdx = Math.round(classes[idx]!);
-        const label = opts.labels[classIdx];
+        const label = modelOpts.labels[classIdx];
 
         if (label === undefined) {
-          throw new Error(
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
             `InstanceSegmenter: Predicted class index ${classIdx} is ` +
-              `out of bounds for labels array of size ${opts.labels.length}.`
+              `out of bounds for labels array of size ${modelOpts.labels.length}.`
           );
         }
 
@@ -213,8 +228,8 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
         const c = boxes[idx * 4 + 2]!;
         const d = boxes[idx * 4 + 3]!;
 
-        const box = scaleBox(decodeBox([a, b, c, d], opts.boxFormat), {
-          from: { width: targetW, height: targetH },
+        const box = scaleBox(decodeBox([a, b, c, d], modelOpts.boxFormat), {
+          from: { width: W, height: H },
           to: { width: input.width, height: input.height },
           resizeMode: 'stretch',
         });

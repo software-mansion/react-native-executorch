@@ -9,6 +9,11 @@
 
 #include <pytorch/tokenizers/error.h>
 
+#include "core/error.h"
+namespace {
+namespace error = rnexecutorch::core::error;
+} // namespace
+
 namespace rnexecutorch::extensions::nlp::tokenizer {
 namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
@@ -49,9 +54,9 @@ std::string toString(tokenizers::Error error) {
 }
 
 template <typename T>
-T unwrap(jsi::Runtime &rt, const std::string &ctx, tokenizers::Result<T> result) {
+T unwrap(const std::string &ctx, tokenizers::Result<T> result) {
     if (!result.ok()) {
-        throw jsi::JSError(rt, std::format("{}: {}", ctx, toString(result.error())));
+        throw error::ExecutionFailed(std::format("{}: {}", ctx, toString(result.error())));
     }
     return std::move(result.get());
 }
@@ -62,9 +67,21 @@ TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
-        throw std::runtime_error("Failed to load tokenizer from '" + tokenizerPath_ +
-                                 "': " + toString(error));
+        throw error::LoadFailed(std::format("Failed to load tokenizer from '{}': {}",
+                                            tokenizerPath_, toString(error)));
     }
+}
+
+std::unique_lock<std::mutex> TokenizerHostObject::tryLockUnique(jsi::Runtime & /*rt*/,
+                                                                std::string_view context) {
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        throw error::ResourceBusy(std::format("{} is currently in use", context));
+    }
+    if (!tokenizer_) {
+        throw error::ResourceDisposed(std::format("{} has been disposed", context));
+    }
+    return lock;
 }
 
 jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
@@ -78,32 +95,26 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw jsi::JSError(rt, "encode: Usage: encode(text)");
+                throw error::InvalidArgument("encode: Usage: encode(text)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "encode: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "encode: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "encode: Tokenizer");
 
             auto text = conversions::asType<std::string>(rt, "encode: text", args[0]);
-            auto tokens = unwrap(rt, "encode: Failed to encode input",
+            auto tokens = unwrap("encode: Failed to encode input",
                                  self->tokenizer_->encode(text, kNumAddedBosTokens, kNumAddedEosTokens));
 
-            return conversions::toJsiArray(rt, tokens);
+            // Token ids are non-negative and well below 2^31, so int32 is lossless.
+            return conversions::toJsiTypedArray(rt, std::vector<int32_t>(tokens.begin(), tokens.end()));
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "encode"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "encode"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "decode") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1 || count > 2) {
-                throw jsi::JSError(rt, "decode: Usage: decode(tokens, skipSpecialTokens?)");
+                throw error::InvalidArgument("decode: Usage: decode(tokens, skipSpecialTokens?)");
             }
 
             // skipSpecialTokens is optional and defaults to true.
@@ -112,118 +123,91 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 skipSpecialTokens = conversions::asType<bool>(rt, "decode: skipSpecialTokens", args[1]);
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "decode: Tokenizer is currently in use");
-            }
+            auto lock = self->tryLockUnique(rt, "decode: Tokenizer");
 
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "decode: Tokenizer has been disposed");
-            }
-
-            auto tokens = conversions::asVector<uint64_t>(rt, "decode: tokens", args[0]);
+            auto ids = conversions::fromJsiTypedArray<int32_t>(rt, "decode: tokens", args[0]);
+            std::vector<uint64_t> tokens(ids.begin(), ids.end());
 
             if (tokens.empty()) {
                 return jsi::String::createFromUtf8(rt, "");
             }
 
-            auto text = unwrap(rt, "decode: Failed to decode tokens",
+            auto text = unwrap("decode: Failed to decode tokens",
                                self->tokenizer_->decode(tokens, skipSpecialTokens));
 
             return jsi::String::createFromUtf8(rt, text);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "decode"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "decode"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "getVocabSize") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw jsi::JSError(rt, "getVocabSize: Usage: getVocabSize()");
+                throw error::InvalidArgument("getVocabSize: Usage: getVocabSize()");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "getVocabSize: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "getVocabSize: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "getVocabSize: Tokenizer");
 
             return static_cast<double>(self->tokenizer_->vocab_size());
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getVocabSize"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getVocabSize"), 0, error::guarded(fnBody));
     }
 
     if (nameStr == "idToToken") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw jsi::JSError(rt, "idToToken: Usage: idToToken(id)");
+                throw error::InvalidArgument("idToToken: Usage: idToToken(id)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "idToToken: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "idToToken: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "idToToken: Tokenizer");
 
             auto tokenId = conversions::asType<uint64_t>(rt, "idToToken: id", args[0]);
-            auto token = unwrap(rt, "idToToken: Failed to convert id to token",
+            auto token = unwrap("idToToken: Failed to convert id to token",
                                 self->tokenizer_->id_to_piece(tokenId));
 
             return jsi::String::createFromUtf8(rt, token);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "idToToken"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "idToToken"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "tokenToId") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw jsi::JSError(rt, "tokenToId: Usage: tokenToId(token)");
+                throw error::InvalidArgument("tokenToId: Usage: tokenToId(token)");
             }
 
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "tokenToId: Tokenizer is currently in use");
-            }
-
-            if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "tokenToId: Tokenizer has been disposed");
-            }
+            auto lock = self->tryLockUnique(rt, "tokenToId: Tokenizer");
 
             auto token = conversions::asType<std::string>(rt, "tokenToId: token", args[0]);
-            auto tokenId = unwrap(rt, "tokenToId: Failed to convert token to id",
+            auto tokenId = unwrap("tokenToId: Failed to convert token to id",
                                   self->tokenizer_->piece_to_id(token));
 
             return static_cast<double>(tokenId);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "tokenToId"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "tokenToId"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw jsi::JSError(rt, "dispose: Usage: dispose()");
+                throw error::InvalidArgument("dispose: Usage: dispose()");
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_);
 
             if (!self->tokenizer_) {
-                throw jsi::JSError(rt, "dispose: Tokenizer has already been disposed");
+                throw error::ResourceDisposed("dispose: Tokenizer has already been disposed");
             }
 
             self->tokenizer_.reset();
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
     }
 
     return jsi::Value::undefined();
@@ -245,7 +229,7 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadTokenizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
-            throw jsi::JSError(rt, "loadTokenizer: Usage: loadTokenizer(path)");
+            throw error::InvalidArgument("loadTokenizer: Usage: loadTokenizer(path)");
         }
 
         auto tokenizerPath = conversions::asType<std::string>(rt, "loadTokenizer: path", args[0]);
@@ -253,10 +237,10 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
             auto tokenizerInstance = std::make_shared<TokenizerHostObject>(tokenizerPath);
             return jsi::Object::createFromHostObject(rt, tokenizerInstance);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::format("loadTokenizer: {}", e.what()));
+            throw error::ExecutionFailed(std::format("loadTokenizer: {}", e.what()));
         }
     };
-    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, fnBody);
+    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody));
 
     module.setProperty(rt, name, fn);
 }

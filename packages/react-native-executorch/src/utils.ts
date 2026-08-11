@@ -1,6 +1,7 @@
 import { rnexecutorchJsi } from './native/bridge';
-import { loadModel, type ModelMethodMeta } from './core/model';
-import RNFS from 'react-native-fs';
+import { loadModel } from './core/model';
+import type { ModelSpec, ConcreteDim } from './core/schema';
+import RNBlobUtil from 'react-native-blob-util';
 
 /**
  * Retrieves the names of all ExecuTorch backends compiled and registered in the
@@ -21,22 +22,30 @@ export function getRegisteredBackends(): string[] {
  * temporary local file, reads its configuration and method signatures
  * (inputs/outputs shapes, types, and tags), and deletes the temporary file
  * before returning.
+ *
+ * That download is deliberately throwaway: it does not go through
+ * {@link download}, so the file never enters the persistent resource cache and
+ * is not reused. Inspecting a remote model therefore re-downloads it on every
+ * call and leaves nothing behind — call {@link download} first and inspect the
+ * returned local path if you also intend to run the model.
  * @category Utils
- * @experimental Subject to change once the temporary react-native-fs dependency is replaced. See [Issue #1253](https://github.com/software-mansion/react-native-executorch/issues/1253).
  * @param source The remote HTTP URL or local path to the `.pte` model file.
- * @returns A promise resolving to an object containing the model source and
- * method signature metadata.
+ * @returns A promise resolving to an object containing the model source,
+ * method signature metadata, and per-method backend usage.
  */
 export async function inspectModel(source: string): Promise<{
   source: string;
-  methods: { name: string; meta: ModelMethodMeta }[];
+  schema: ModelSpec<ConcreteDim>;
+  backends: Record<string, readonly string[]>;
 }> {
   let localPath = source;
   let downloaded = false;
 
   if (source.startsWith('http')) {
-    localPath = `${RNFS.TemporaryDirectoryPath}/inspect_model_${Date.now()}.pte`;
-    await RNFS.downloadFile({ fromUrl: source, toFile: localPath }).promise;
+    // Throwaway download to a temp path — inspection shouldn't populate the
+    // persistent resource cache, so we don't go through `download()`.
+    localPath = `${RNBlobUtil.fs.dirs.CacheDir}/inspect_model_${Date.now()}.pte`;
+    await RNBlobUtil.config({ path: localPath }).fetch('GET', source);
     downloaded = true;
   }
 
@@ -44,21 +53,13 @@ export async function inspectModel(source: string): Promise<{
 
   try {
     model = loadModel(localPath);
-    const methodNames = model.getMethodNames();
-
-    const methods: { name: string; meta: ModelMethodMeta }[] = [];
-    for (const method of methodNames) {
-      const meta = model.getMethodMeta(method);
-      methods.push({ name: method, meta });
-    }
-
-    return { source, methods };
+    return { source, schema: model.schema, backends: model.backends };
   } finally {
     if (model) {
       model.dispose();
     }
     if (downloaded) {
-      await RNFS.unlink(localPath).catch(() => {});
+      await RNBlobUtil.fs.unlink(localPath).catch(() => {});
     }
   }
 }

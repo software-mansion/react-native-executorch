@@ -15,7 +15,7 @@ import {
   type InstanceSegmentationResult,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { getImage } from '../../utils';
+import { getImage, skImageToBuffer } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
@@ -128,20 +128,7 @@ function InstanceSegmentationContent() {
     setError(null);
 
     try {
-      const pixels = skiaImage.readPixels();
-      if (!pixels) {
-        throw new Error('Failed to read pixels from image');
-      }
-      if (!(pixels instanceof Uint8Array)) {
-        throw new Error('Expected Uint8Array from readPixels');
-      }
-      const buffer = {
-        data: pixels,
-        width: skiaImage.width(),
-        height: skiaImage.height(),
-        format: 'rgba' as const,
-        layout: 'hwc' as const,
-      };
+      const buffer = skImageToBuffer(skiaImage);
 
       const start = Date.now();
       const output = (

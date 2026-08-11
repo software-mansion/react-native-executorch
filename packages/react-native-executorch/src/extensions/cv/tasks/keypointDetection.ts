@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -22,10 +22,15 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
+  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+  /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
+  /** Array of landmark names matching the model output keypoint locations. */
   readonly landmarks: readonly L[];
+  /** Default Intersection over Union (IoU) threshold for Non-Maximum Suppression (NMS). */
   readonly defaultIouThreshold: number;
+  /** Default minimum confidence score threshold for keypoint detections. */
   readonly defaultConfidenceThreshold: number;
 };
 
@@ -34,8 +39,14 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
  * @category Types
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: KeypointDetectorOptions<F, L>;
+  /**
+   * Image preprocessing, landmark names, bounding box format,
+   * and default NMS/confidence thresholds
+   * {@link KeypointDetectorOptions}.
+   */
+  readonly modelOpts: KeypointDetectorOptions<F, L>;
 };
 
 /**
@@ -51,8 +62,11 @@ export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly conf
  * @category Types
  */
 export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
+  /** Scaled bounding box coordinates matching the input image resolution. */
   readonly box: BoundingBox<F>;
+  /** Overall confidence score of the detection (between 0.0 and 1.0). */
   readonly confidence: number;
+  /** Map of landmark names to their scaled pixel coordinates and individual confidence scores. */
   readonly landmarks: Landmarks<L>;
 };
 
@@ -63,14 +77,14 @@ export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
  * @param tBoxes Bounding boxes tensor output from inference.
  * @param tScores Scores tensor output from inference.
  * @param tKeypoints Keypoints tensor output from inference.
- * @param opts Post-processing configuration options.
+ * @param options Post-processing configuration options.
  * @returns Structured keypoint detection results list.
  */
 function postprocess<F extends BoxFormat, L extends PropertyKey>(
   tBoxes: Tensor,
   tScores: Tensor,
   tKeypoints: Tensor,
-  opts: {
+  options: {
     readonly from: { readonly width: number; readonly height: number };
     readonly to: { readonly width: number; readonly height: number };
     readonly boxFormat: F;
@@ -82,7 +96,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
 ): KeypointDetection<F, L>[] {
   'worklet';
 
-  const nmsGroups = nms(tBoxes, tScores, { ...opts, nmsType: 'weighted' });
+  const nmsGroups = nms(tBoxes, tScores, { ...options, nmsType: 'weighted' });
 
   const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
   const scores = tScores.getData(new Float32Array(tScores.numel));
@@ -93,7 +107,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
   for (const group of nmsGroups) {
     const totalScore = group.reduce((total, idx) => total + (scores[idx] ?? 0), 0);
     const weightedBox = new Float32Array(4);
-    const weightedKpt = new Float32Array(opts.landmarks.length * 3);
+    const weightedKpt = new Float32Array(options.landmarks.length * 3);
 
     for (const idx of group) {
       const score = totalScore === 0 ? 1 / group.length : scores[idx]!;
@@ -101,7 +115,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
         weightedBox[i] = v + score * boxes[idx * 4 + i]!;
       });
       weightedKpt.forEach((v, i) => {
-        weightedKpt[i] = v + score * keypoints[idx * opts.landmarks.length * 3 + i]!;
+        weightedKpt[i] = v + score * keypoints[idx * options.landmarks.length * 3 + i]!;
       });
     }
 
@@ -115,11 +129,11 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
     }
 
     const [a, b, c, d] = weightedBox;
-    const box = scaleBox(decodeBox([a!, b!, c!, d!], opts.boxFormat), opts);
+    const box = scaleBox(decodeBox([a!, b!, c!, d!], options.boxFormat), options);
     const landmarks = {} as Landmarks<L>;
 
-    for (const [i, key] of opts.landmarks.entries()) {
-      const point = scalePoint({ x: weightedKpt[i * 3]!, y: weightedKpt[i * 3 + 1]! }, opts);
+    for (const [i, key] of options.landmarks.entries()) {
+      const point = scalePoint({ x: weightedKpt[i * 3]!, y: weightedKpt[i * 3 + 1]! }, options);
       const confidence = weightedKpt[i * 3 + 2]!;
       landmarks[key] = { ...point, confidence };
     }
@@ -154,21 +168,23 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Performs asynchronous keypoint and bounding box detection on the given
    * input image.
    * @param input The input image buffer.
    * @param options Configuration options for keypoint detection.
    * @param options.confidenceThreshold Minimum confidence score for a
-   * detection. If omitted, uses the model default.
+   * detection. If omitted, uses `modelOpts.defaultConfidenceThreshold`.
    * @param options.iouThreshold Intersection over Union (IoU) threshold for
-   * NMS. If omitted, uses the model default.
+   * NMS. If omitted, uses `modelOpts.defaultIouThreshold`.
    * @returns A promise resolving to the list of keypoint detections.
    */
   detectKeypoints: (
     input: ImageBuffer,
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => Promise<KeypointDetection<F, L>[]>;
+
   /**
    * Synchronous version of {@link detectKeypoints} to be executed directly on
    * the caller or worklet thread.
@@ -178,34 +194,30 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     options?: { confidenceThreshold?: number; iouThreshold?: number }
   ) => KeypointDetection<F, L>[];
 }> {
-  const { modelPath, opts } = config;
-  const { landmarks } = opts;
+  const { modelPath, modelOpts } = config;
+  const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
-    [
-      SymbolicTensor('float32', ['N', 4]),
-      SymbolicTensor('float32', ['N']),
-      SymbolicTensor('float32', ['N', landmarks.length, 3]),
-    ]
-  );
 
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const numAnchors = meta.outputTensorMeta[0]!.shape[0]!;
+  const { dims } = validateSpec(model.schema, {
+    default: method(
+      'forward',
+      [f32(1, 3, 'H', 'W')],
+      [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
+    ),
+  });
 
-  const targetH = inpShape.at(-2)!;
-  const targetW = inpShape.at(-1)!;
+  const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
+  const inpShape = [1, 3, targetH, targetW];
+  const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, 3] };
 
   const tensors = [
-    tensor('float32', [numAnchors, 4]),
-    tensor('float32', [numAnchors]),
-    tensor('float32', [numAnchors, landmarks.length, 3]),
+    tensor('float32', outShape.boxes),
+    tensor('float32', outShape.scores),
+    tensor('float32', outShape.keypoints),
   ] as const;
 
   const [tBoxes, tScores, tKeypoints] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     preprocessor.dispose();
@@ -221,11 +233,12 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tBoxes, tScores, tKeypoints]);
 
-    const iouThreshold = options?.iouThreshold ?? opts.defaultIouThreshold;
-    const confidenceThreshold = options?.confidenceThreshold ?? opts.defaultConfidenceThreshold;
+    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+    const confidenceThreshold =
+      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
 
     return postprocess(tBoxes, tScores, tKeypoints, {
-      ...opts,
+      ...modelOpts,
       iouThreshold,
       confidenceThreshold,
       from: { width: targetW, height: targetH },

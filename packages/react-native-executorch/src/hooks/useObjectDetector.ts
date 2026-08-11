@@ -1,5 +1,5 @@
 import { useModel } from './useModel';
-import { useResourceDownload } from './useResourceDownload';
+import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createObjectDetector,
   type ObjectDetectorModel,
@@ -17,32 +17,23 @@ import {
  * @typeParam L The type representing the object class labels.
  * @typeParam F The bounding box format.
  * @param config The object detection model configuration.
- * @param options Hook options.
- * @param options.preventLoad If true, prevents downloading and compiling the
- * model.
+ * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and object detection functions.
  */
 export function useObjectDetector<F extends BoxFormat, L>(
   config: ObjectDetectorModel<F, L>,
-  options?: { preventLoad?: boolean }
+  options?: ResourceOptions
 ) {
-  const { localPath, downloadProgress, downloadError } = useResourceDownload(
-    config.modelPath,
-    options?.preventLoad
-  );
-  const { model, error } = useModel(
-    createObjectDetector<F, L>,
-    localPath ? { ...config, modelPath: localPath } : null,
-    [localPath]
-  );
+  const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
+  const { model, error } = useModel(createObjectDetector<F, L>, resource ?? null);
 
   return {
     isReady: !!model,
     error: downloadError || error,
     downloadProgress,
-    localPath,
-    labels: config.opts.labels,
+    resource,
+    labels: config.modelOpts.labels,
     detectObjects: model?.detectObjects,
     detectObjectsWorklet: model?.detectObjectsWorklet,
   };

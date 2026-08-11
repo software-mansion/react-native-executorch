@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
@@ -16,15 +16,19 @@ import {
   type InterpolationMethod,
 } from '../ops/image';
 import { sigmoid, argmax } from '../../math';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring a semantic segmenter preprocessor and label
  * vocabulary.
  * @category Types
  */
-export type SemanticSegmentationOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
+  /** Resize mode for input images. Must be `'stretch'`. */
   readonly resizeMode: 'stretch';
+  /** Interpolation method used when resizing output masks back to input image dimensions. */
   readonly outInterpolation: InterpolationMethod;
+  /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
 };
 
@@ -32,9 +36,15 @@ export type SemanticSegmentationOptions<L> = Omit<ImagePreprocessorOptions, 'res
  * Model configuration required to instantiate a segmenter task runner.
  * @category Types
  */
-export type SemanticSegmentationModel<L> = {
+export type SemanticSegmenterModel<L> = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
-  readonly opts: SemanticSegmentationOptions<L>;
+  /**
+   * Image preprocessing, output mask interpolation, and label
+   * vocabulary {@link SemanticSegmenterOptions}. `resizeMode`
+   * is fixed to `'stretch'`.
+   */
+  readonly modelOpts: SemanticSegmenterOptions<L>;
 };
 
 /**
@@ -48,8 +58,10 @@ export type ColorMap<L extends PropertyKey> = Record<L, [number, number, number,
  * @category Types
  */
 export type SemanticSegmentationResult<L extends PropertyKey> = {
-  buffer: ImageBuffer;
-  colormap?: ColorMap<L>;
+  /** Generated output RGBA image buffer containing the colored segmentation mask. */
+  readonly buffer: ImageBuffer;
+  /** Applied color map mapping each class label to its RGBA tuple. */
+  readonly colormap?: ColorMap<L>;
 };
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
@@ -77,13 +89,14 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
  * disposal controls.
  */
 export async function createSemanticSegmenter<L extends PropertyKey = string>(
-  config: SemanticSegmentationModel<L>,
+  config: SemanticSegmenterModel<L>,
   runtime?: WorkletRuntime
 ): Promise<{
   /**
    * Releases all allocated native resources.
    */
   dispose: () => void;
+
   /**
    * Runs semantic segmentation asynchronously.
    *
@@ -109,6 +122,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => Promise<SemanticSegmentationResult<L>>;
+
   /**
    * Runs semantic segmentation synchronously.
    * @see {@link segment} for details.
@@ -118,46 +132,51 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     colormap?: Partial<ColorMap<L>>
   ) => SemanticSegmentationResult<L>;
 }> {
-  const { modelPath, opts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
-  const meta = validateModelSchema(
-    model,
-    'forward',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'K', 'H', 'W'], ['K', 'H', 'W'])]
-  );
-  const inpShape = meta.inputTensorMeta[0]!.shape;
-  const outShape = meta.outputTensorMeta[0]!.shape;
+  const { variant, dims } = validateSpec(model.schema, {
+    batched: method(
+      'forward', // prettier-ignore
+      [f32(1, 3, 'H', 'W')],
+      [f32(1, 'K', 'H', 'W')]
+    ),
+    unbatched: method(
+      'forward', // prettier-ignore
+      [f32(3, 'H', 'W')],
+      [f32('K', 'H', 'W')]
+    ),
+  });
 
-  const nClasses = outShape.at(-3)!;
-  const targetH = outShape.at(-2)!;
-  const targetW = outShape.at(-1)!;
+  const [nClasses, H, W] = dims.constant('K', 'H', 'W');
+  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+  const outShape = { batched: [1, nClasses, H, W], unbatched: [nClasses, H, W] }[variant];
 
   // Generate highly distinct, high-contrast colors, see:
   // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-  const defaultColormap = opts.labels.map((_, i) => {
+  const defaultColormap = modelOpts.labels.map((_, i) => {
     if (i === 0) return [0, 0, 0, 0] as const;
     return [...hslToRgb((i * 137.5) % 360, 95, 50), 255] as const;
   });
 
-  if (nClasses > 1 && opts.labels.length !== nClasses) {
-    throw new Error(
-      `Model outputs ${nClasses} classes, but ${opts.labels.length} labels were provided in the configuration.`
+  if (nClasses > 1 && modelOpts.labels.length !== nClasses) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Model outputs ${nClasses} classes, but ${modelOpts.labels.length} labels were provided in the configuration.`
     );
   }
 
   const tensors = [
     tensor('float32', outShape),
-    tensor('float32', [nClasses, targetH, targetW]),
-    tensor('float32', [nClasses, targetH, targetW]),
-    tensor('float32', [targetH, targetW, nClasses]),
-    tensor(nClasses > 1 ? 'int32' : 'uint8', [targetH, targetW, 1]),
-    tensor('uint8', [targetH, targetW, 4]),
+    tensor('float32', [nClasses, H, W]),
+    tensor('float32', [nClasses, H, W]),
+    tensor('float32', [H, W, nClasses]),
+    tensor(nClasses > 1 ? 'int32' : 'uint8', [H, W, 1]),
+    tensor('uint8', [H, W, 4]),
   ] as const;
 
   const [tOutput, tReshape, tSigmoid, tChanLast, tMask, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(opts, inpShape);
+  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
 
   const dispose = () => {
     tensors.forEach((t) => t.dispose());
@@ -177,15 +196,15 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     if (nClasses > 1) {
       if (colormap) {
         returnColormap = Object.fromEntries(
-          opts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
+          modelOpts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
         ) as ColorMap<L>;
       } else {
         returnColormap = Object.fromEntries(
-          opts.labels.map((l, i) => [l, defaultColormap[i]!])
+          modelOpts.labels.map((l, i) => [l, defaultColormap[i]!])
         ) as ColorMap<L>;
       }
 
-      const colormapData = opts.labels.map((l) => returnColormap![l]);
+      const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
 
       tOutput
         .copyTo(tReshape)
@@ -205,7 +224,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
     const tResize = tensor('uint8', [input.height, input.width, 4]);
     try {
       tRgba
-        .through(resize, tResize, { mode: 'stretch', interpolation: opts.outInterpolation })
+        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
         .getData(data);
     } finally {
       tResize.dispose();

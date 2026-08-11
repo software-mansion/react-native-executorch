@@ -14,6 +14,21 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('vad/')}>
           <Text style={styles.buttonText}>Voice Activity Detection</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('microphone-transcription/')}
+        >
+          <Text style={styles.buttonText}>Live Transcription (Mic)</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('audio-file-transcription/')}
+        >
+          <Text style={styles.buttonText}>Transcribe Audio File</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-to-speech/')}>
+          <Text style={styles.buttonText}>Text-to-Speech (SuperTonic)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

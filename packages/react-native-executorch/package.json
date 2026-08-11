@@ -1,6 +1,7 @@
 {
   "name": "react-native-executorch",
   "version": "0.0.0",
+  "nativeLibsVersion": "0.10.0",
   "description": "An easy way to run AI models in React Native with ExecuTorch",
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
@@ -85,8 +86,8 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-fs": "^2.20.0",
-    "react-native-worklets": "*"
+    "react-native-blob-util": "^0.24.0",
+    "react-native-worklets": "^0.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.1",
@@ -96,9 +97,9 @@
     "del-cli": "^6.0.0",
     "react": "19.2.0",
     "react-native": "0.83.6",
+    "react-native-blob-util": "^0.24.0",
     "react-native-builder-bob": "^0.40.18",
-    "react-native-fs": "^2.20.0",
-    "react-native-worklets": "0.9.1",
+    "react-native-worklets": "0.10.3",
     "typescript": "~5.9.2"
   },
   "react-native-builder-bob": {

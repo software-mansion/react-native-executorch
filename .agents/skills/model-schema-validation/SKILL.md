@@ -1,162 +1,241 @@
 ---
 name: model-schema-validation
-description: Use when defining SymbolicTensor constraints, validating ExecuTorch model shapes, checking method signatures, or verifying dynamic tensor dimensions.
+description: Use when defining model spec constraints, validating ExecuTorch model shapes, checking method signatures, or resolving dimension symbols.
 metadata:
   id: model_schema_validation
-  scope: src/core/modelSchema.ts, src/extensions/*/tasks/*
+  scope: src/core/schema.ts, src/extensions/*/tasks/*
 ---
 
 # Skill: Model Schema Validation Guide
 
-Use this guide to define and enforce structural constraints (shapes and data types) on loaded ExecuTorch `.pte` models using `validateModelSchema`.
+Use this guide to define and enforce structural constraints (shapes, data types, runtime constraints) on loaded ExecuTorch `.pte` models using `validateSpec`.
 
 ---
 
-## 🔍 Why Validate Model Schemas?
+## 🔍 Why Validate Model Specs?
 
-Every ExecuTorch model exposes metadata about its execution methods (typically `'forward'`), including:
-* Input and output argument counts.
-* The expected types (primitives like `number`/`boolean` or `Tensor`).
-* The data type (`float32`, `int32`, etc.) and the shape arrays of tensors.
+Every ExecuTorch model exposes a `schema` (`ModelSpec<ConcreteDim>`), derived either from standard ExecuTorch `MethodMeta` at load time or from an exported `get_model_schema` companion method returning a JSON model spec.
 
-To prevent runtime crashes and memory allocation mismatches in C++, the TypeScript task pipeline must validate that the provided model matches its expected execution signature *before* allocating static tensors or executing inference.
+To prevent runtime crashes, type mismatches, and memory allocation errors in C++, TypeScript task pipelines validate the loaded model's exported schema against allowed spec variants using `validateSpec` _before_ allocating static tensors or executing inference.
 
 ---
 
 ## 🛠️ Validation API Reference
 
 ```typescript
-import { validateModelSchema, SymbolicTensor } from '../../../core/modelSchema';
+import {
+  validateSpec,
+  method,
+  f32,
+  i64,
+  i32,
+  DynamicDim as Dyn,
+  constr,
+} from '../../../core/schema';
 
-const meta = validateModelSchema(
-  model,
-  methodName,
-  expectedInputs,
-  expectedOutputs
-);
+const { variant, dims } = validateSpec(model.schema, {
+  batched: method(
+    'forward',
+    [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+    [f32(1, 'D')],
+    [
+      constr.eq(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
+      ),
+    ]
+  ),
+  unbatched: method(
+    'forward',
+    [i64(Dyn('L')), i64(Dyn('L'))],
+    [f32('D')],
+    [
+      constr.eq(
+        { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
+        { paramSide: 'input', tensorIdx: 1, dimIdx: 0 }
+      ),
+    ]
+  ),
+});
+
+const [D] = dims.constant('D');
+const L = dims.range('L');
 ```
 
-### Constraints Types:
-* **Primitives**: `'number' | 'boolean' | 'null'`
-* **Tensors**: Defined via the `SymbolicTensor(dtype?, ...shapes)` helper.
+### Key Schema Utilities from `src/core/schema.ts`:
+
+- **`method(name, inputs, outputs, runtimeConstraints?)`**: Constructs a method specification.
+- **`f32(...)` / `i64(...)` / `i32(...)` / `ui8(...)`**: Shorthand helpers for tensor parameter specs.
+- **`StaticDim('symbol')` / String Literals**: Strings passed to shape helpers (e.g. `'H'`, `'W'`) automatically map to `StaticDim`, acting as **static dimension wildcards**. They bind strictly to `constant` positive integer dimensions in the exported spec.
+- **`DynamicDim('symbol')` (or `Dyn('symbol')`)**: Creates a dynamic dimension symbol. Must be used when a dimension genuinely varies at runtime and binds to a `range` or `enum` domain in the exported spec.
+- **Constraint Helpers (`constr`)**:
+  - **`DimRef` Object Literal (`{ paramSide: 'input' | 'output', tensorIdx, dimIdx }`)**: Explicit reference to a tensor's dimension.
+  - **`constr.eq(...dims)`**: Creates an equality constraint requiring the referenced dimensions to take the exact same value at runtime.
+  - **`constr.linear(lhs, rhs, a, b)`**: Creates a linear constraint `lhs = a * rhs + b`.
+- **`validateSpec(exportedSchema, allowedVariants)`**: Compares the model's exported schema against named variants and returns `{ variant, dim, dims }`.
+- **Symbol Accessors (`dims` & `dim`)**:
+  - `dims.constant('N', 'H')`: Extracts constant values for symbols as numbers.
+  - `dims.range('S')`: Extracts range domains `{ min, max, step }`.
+  - `dims.enum('E')`: Extracts enum choices `readonly number[]`.
+  - `dims.dynamic('L')`: Extracts dynamic `range` or `enum` as raw `ConcreteDim`.
+  - `dims.any('D')`: Extracts raw dimension value (`number`, `Range`, `readonly number[]`, or `ConcreteDim`).
+  - `dim('N')`: Extracts value for a single symbol.
 
 ---
 
 ## 📏 Symbolic Dimensions & Dynamic Shapes
 
-Tensors often support dynamic dimensions (such as varying image sizes `'H'`, `'W'` or dynamic batch/prediction counts `'N'`).
-The `SymbolicTensor` helper supports specifying **Symbolic Shapes** where integers are static matching constraints, and string names act as runtime variables.
+Tensors can have static dimensions (integers), static symbol wildcards (strings), or dynamic symbols (`DynamicDim`).
+The `validateSpec` utility matches allowed variants in order:
 
-### How Symbolic Matching Works:
 1. **Numbers (Static Match)**:
-   If a dimension is defined as a number, the loaded model's tensor dimension must match that exact integer.
-   * *Example*: `[1, 3, 'H', 'W']` requires the batch dimension to be exactly `1`, and channels to be exactly `3`.
+   Must match the exact static integer in the exported spec.
 
-2. **Strings (Symbolic Match)**:
-   If a dimension is defined as a string (e.g., `'H'`), the validator binds the actual dimension size to that symbol name.
-   * *Symbolic Constraint Rules*: Within a single tensor, if a symbol (e.g., `'H'`) appears multiple times, the corresponding dimensions must be equal.
+2. **Strings / `StaticDim` (Static Wildcard Match)**:
+   Binds string symbol names (e.g. `'H'`) to static constant integers in the exported spec. Repeated occurrences of the same static symbol must bind to the same constant value.
 
-3. **Multiple Alternative Shapes**:
-   You can provide multiple shape variations to `SymbolicTensor` to support models compiled in different layouts (e.g., channels-first vs. channels-last).
-   * *Example*: `SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])` allows either 4D or 3D float32 layouts.
+3. **`DynamicDim` (Dynamic Domain Match)**:
+   Binds dynamic symbol names to `range` or `enum` domains in the exported spec.
+
+4. **Variant Selection**:
+   Specify multiple variant keys in `validateSpec` (e.g. `batched` vs `unbatched`). The validator tests variants sequentially and returns the first matching key and bound symbols.
 
 ---
 
-## ⚙️ Runtime Dynamic Dimensions: the `get_dynamic_dims_<methodName>` companion
+## 🔀 Dimension Domains vs. Runtime Constraints
 
-`SymbolicTensor` string symbols let the **validator** accept a range of shapes, but an ExecuTorch `.pte`'s metadata only serializes the **static upper bound** of a dynamic dimension — not its active `[min, max, step]` range. So for an input dimension that genuinely varies at runtime (e.g. a text model's sequence length), the model must be **exported with a companion method** that re-exposes the range to the runtime:
+Understanding the distinction between a dimension's **domain** and its **runtime value** is central to schema design and validation:
 
-* **Name**: `get_dynamic_dims_<methodName>` — e.g. `get_dynamic_dims_forward` for `forward`.
-* **Signature**: takes no arguments.
-* **Returns**: a list of outputs, one per `Tensor` input of the target method (scalar inputs are skipped), each a **2D `int32` tensor of shape `[rank, 3]`** whose rows are `[min, max, step]` constraints for that input's dimensions — e.g. `[1, 1, 1]` for a fixed dimension and `[1, maxTokens, 1]` for the dynamic one.
+### 1. Dimension Domains & Domain Matching
 
-At load time the C++ core (`Model::parseDynamicInputShapes`) reads this companion and validates inputs against the range; `model.execute` then accepts tensors at their exact runtime length. **Without the companion, a method falls back to exact per-dimension validation** — it only accepts the single shape it was exported with. So a `.pte` whose metadata reports `[1, 512]` but is meant to accept `[1, 1..512]` MUST ship `get_dynamic_dims_forward`, or variable-length inputs are rejected at runtime.
+- **Dimension Domain**: The set of values a dimension may take:
+  - `constant`: Exactly `value` (a singleton integer).
+  - `range`: Any value between `min` and `max` stepping by `step`.
+  - `enum`: Any value listed in `choices`.
+- **Runtime Value**: The concrete integer size of a tensor's dimension in a specific execution call.
+- **Domain Matching (`validateSpec`)**:
+  - `validateSpec` performs static, load-time domain matching.
+  - Dynamic symbols (`DynamicDim('S')`) bind to exported dimension domains. Reusing a symbol (`'S'`) across tensor inputs or outputs requires every occurrence to bind to the **exact same domain**.
+  - ⚠️ **Key Rule**: Binding to the same domain does **NOT** mean runtime values coincide! Two dimensions bound to the same domain (e.g., both having range `1..512`) may take _different_ runtime values in a single execution (e.g. length 10 and length 25).
 
-This is an **export-side contract** (the export-scripts repo provides a `build_dynamic_dims_program` helper that emits the companion). The TypeScript task only declares the symbol via `SymbolicTensor` and reads the resulting upper bound from `meta.inputTensorMeta`.
+### 2. Runtime Constraints (`constr.eq` & `constr.linear`)
+
+- **Runtime Constraints**: Declarations about the **runtime values** of tensor dimensions during execution:
+  - **Equality Constraint (`constr.eq(...)`)**: Requires all referenced dimensions to take the exact same runtime value in any execution call.
+    ```typescript
+    method(
+      'forward',
+      [f32('B', Dyn('S1')), f32('B', Dyn('S2'))],
+      [f32('B', Dyn('S1'))],
+      [
+        constr.eq(
+          { paramSide: 'input', tensorIdx: 0, dimIdx: 0 },
+          { paramSide: 'input', tensorIdx: 1, dimIdx: 0 }
+        ),
+      ]
+    );
+    ```
+  - **Linear Constraint (`constr.linear(...)`)**: Requires two dimensions to satisfy `dimLhs = a * dimRhs + b` at runtime.
+- **Validation & Enforcement**:
+  - `validateSpec` verifies that the exported model spec declares the exact same runtime constraints (1-to-1 declaration match).
+  - Native C++ validates input runtime constraints before invoking `model.execute()`.
+
+---
+
+## ⚙️ Companion JSON Spec (`get_model_schema`)
+
+For models with runtime dynamic dimensions or runtime constraints (equality/linear relations between dimensions), the `.pte` model exports a companion method named `get_model_schema` returning a JSON string representation of `ModelSpec<ConcreteDim>`.
+
+When `get_model_schema` is present, the C++ loader parses it to populate `model.schema` with exact `RangeDim` / `EnumDim` domains and runtime constraints. Without it, `model.schema` is populated strictly from static ExecuTorch `MethodMeta`.
 
 ---
 
 ## 📋 Common Validation Recipes
 
-### 1. Classification
-Accepts an image tensor and outputs a 2D class probabilities array:
-```typescript
-const meta = validateModelSchema(
-  model,
-  'forward',
-  [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])], // Input
-  [SymbolicTensor('float32', [1, 'N'], ['N'])]                  // Output: logits / probs
-);
+### 1. Classification (Batched vs Unbatched)
 
-const inpShape = meta.inputTensorMeta[0]!.shape;
-const outShape = meta.outputTensorMeta[0]!.shape;
+Accepts an image tensor and outputs class probabilities:
+
+```typescript
+const { variant, dims } = validateSpec(model.schema, {
+  batched: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 'N')]),
+  unbatched: method('forward', [f32(3, 'H', 'W')], [f32('N')]),
+});
+
+const [N, H, W] = dims.constant('N', 'H', 'W');
+const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+const outShape = { batched: [1, N], unbatched: [N] }[variant];
 ```
 
 ### 2. Image-to-Image / Style Transfer
+
 Accepts an image tensor and returns a modified image tensor with identical dimensions:
-```typescript
-const meta = validateModelSchema(
-  model,
-  'forward',
-  [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])], // Input
-  [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])]  // Output
-);
-```
-
-### 3. Object Detection (Dynamic Boxes Count)
-Accepts an image tensor, and outputs boxes, scores, and class labels for `N` dynamic detections:
-```typescript
-const meta = validateModelSchema(
-  model,
-  'forward',
-  [SymbolicTensor('float32', [1, 3, 'H', 'W'], [3, 'H', 'W'])],
-  [
-    SymbolicTensor('float32', ['N', 4]), // Bounding boxes (xyxy / xywh)
-    SymbolicTensor('float32', ['N']),    // Prediction confidence scores
-    SymbolicTensor('float32', ['N']),    // Predicted class labels
-  ]
-);
-```
-
-### 4. Single-Model Pipeline (fully static export)
-
-When a pipeline targets exactly one model whose `.pte` is exported with fully static shapes (e.g. `sdxsTextToImage`), the shapes are constants of the export contract. Validate each method against those constants — do **not** invent symbols for dimensions that cannot vary, and do **not** thread the shapes through task options:
 
 ```typescript
-const IMAGE_SIZE = 512;
-const LATENT_CHANNELS = 4;
-const LATENT_SIZE = IMAGE_SIZE / 8;
+const { dims } = validateSpec(model.schema, {
+  default: method('forward', [f32(1, 3, 'H', 'W')], [f32(1, 3, 'H', 'W')]),
+});
 
-validateModelSchema(
-  model,
-  'denoise',
-  [
-    SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE]),
-    SymbolicTensor('int64', [1]),
-    SymbolicTensor('float32', [1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE]),
-  ],
-  [SymbolicTensor('float32', [1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE])]
-);
+const [H, W] = dims.constant('H', 'W');
 ```
 
-A rigid `.pte` contract is an argument **for** validating, not against it: the stricter the contract, the cheaper and more precise the assertion. Validation is load-time only (it costs nothing per inference) and converts a stale, corrupt, or wrongly re-exported `.pte` into a readable TypeScript error instead of a native crash or silently garbage output. This matters most for pipelines shipping several separately-exported backend variants (XNNPACK / CoreML / MLX), where one variant can break while the others stay healthy.
+### 3. Object Detection (Dynamic Box Count)
+
+Accepts an image tensor, and outputs boxes, scores, and class labels for `N` detections:
+
+```typescript
+const { dims } = validateSpec(model.schema, {
+  default: method('forward', [f32(1, 3, 'H', 'W')], [f32('N', 4), f32('N'), f32('N')]),
+});
+
+const [N, H, W] = dims.constant('N', 'H', 'W');
+```
+
+### 4. Single-Model Pipeline (Fully Static Export)
+
+Assert exact shape constants from the task file:
+
+```typescript
+const { dims } = validateSpec(model.schema, {
+  default: method(
+    'denoise',
+    [
+      f32(1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE),
+      i64(1),
+      f32(1, CLIP_MAX_TOKENS, CLIP_HIDDEN_SIZE),
+    ],
+    [f32(1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE)]
+  ),
+});
+```
 
 ---
 
 ## 🚫 Avoid / Anti-Patterns
 
-* **Do NOT write imperative size/type checks manually:** Avoid writing custom shape/type assertion blocks (e.g., `if (tensor.shape[0] !== 1)`). Always use the declarative `validateModelSchema` utility, which reports unified, readable mismatch errors.
-* **Do NOT use hardcoded integers for dynamic dimensions:** If a shape can vary (e.g., dynamic height, width, or batch sizes), use a string symbol (like `'H'`, `'W'`, `'N'`) to allow dynamic matching. Conversely, a dimension that genuinely cannot vary *should* be a hardcoded integer — reserve symbols for real variability.
-* **Do NOT skip validation at startup:** Always validate the model schema *before* creating pre-allocated static tensors, preventing native memory crashes from mismatched layouts.
-* **Do NOT skip validation just because the pipeline supports a single model:** "The `.pte` must be very specific anyway" is a reason to assert the exact contract, not to trust it. See Recipe 4.
+- **Do NOT write manual imperative shape/type checks:** Always use declarative `validateSpec` variants which report unified, readable mismatch errors.
+- **Do NOT use hardcoded integers for dynamic dimensions:** Use string symbols (like `'H'`, `'W'`, `'N'`) for dynamic dimensions. Conversely, fixed export dimensions should be integers.
+- **Do NOT skip validation at startup:** Validate `model.schema` before allocating static tensors.
+- **Do NOT skip validation for single-model pipelines:** Single-model pipelines should still validate against task shape constants.
+
+---
+
+## ⚠️ Failure Codes
+
+`validateSpec` and the native spec validation raise `SCHEMA_MISMATCH` (the spec-builder
+helpers `ConstantDim` / `RangeDim` / `EnumDim` raise `INVALID_ARGUMENT` for their own
+arguments). A runtime constraint violated by the tensors actually passed to `execute`
+raises `INVALID_ARGUMENT`, not `SCHEMA_MISMATCH`: the model is fine, the call is not. See the [Error Handling Skill](../error-handling/SKILL.md).
 
 ---
 
 ## 📋 Verification Checklist
 
 When specifying model schema validations, verify that:
-- [ ] Schema validation is performed immediately after model loading and before tensor initialization.
-- [ ] All dynamic dimensions (e.g., dynamic box counts, channels-last heights/widths) are defined as string symbols, and dimensions fixed by the export are plain integers.
-- [ ] Single-model pipelines with static exports still validate, asserting against the task file's shape constants rather than skipping validation or routing shapes through options.
-- [ ] Multiple shape variations are provided to `SymbolicTensor` if channels-first and channels-last layouts are both supported.
-- [ ] Input and output constraints map accurately to standard model specifications (e.g. dense logits, standard bounding boxes layouts).
+
+- [ ] Schema validation is performed immediately after model loading and before tensor initialization using `validateSpec(model.schema, { ... })`.
+- [ ] Dynamic dimensions are defined as string symbols, while fixed dimensions are plain integers.
+- [ ] Symbol values are extracted using `dims.constant(...)`, `dims.range(...)`, or `dims.enum(...)`.
+- [ ] Multiple shape variants (e.g. `batched` vs `unbatched`) are provided when supported.
+- [ ] Input and output constraints map accurately to model specifications.
+- [ ] New validation failures throw `SCHEMA_MISMATCH` (or `INVALID_ARGUMENT` when the caller's own arguments are at fault), never a bare `Error`.

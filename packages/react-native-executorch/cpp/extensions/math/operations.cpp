@@ -2,12 +2,20 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
+#include <span>
 #include <utility>
 
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
+
+#include "core/error.h"
+namespace {
+namespace error = rnexecutorch::core::error;
+} // namespace
 
 namespace rnexecutorch::extensions::math {
 namespace jsi = facebook::jsi;
@@ -20,7 +28,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "sigmoid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "Usage: sigmoid(src, dst)");
+            throw error::InvalidArgument("Usage: sigmoid(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "sigmoid: src", args[0], DType::float32, std::nullopt);
@@ -30,25 +38,24 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
         auto srcLock = tensor::tryLockShared(rt, "sigmoid: src", src);
         auto dstLock = tensor::tryLockUnique(rt, "sigmoid: dst", dst);
 
-        const auto countElements = src->numel_;
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
+        const std::span<float> dstData(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
 
-        for (size_t i = 0; i < countElements; ++i) {
-            dstData[i] = 1.0f / (1.0f + std::exp(-srcData[i]));
-        }
+        std::ranges::transform(srcData, dstData.begin(), [](const float value) {
+            return 1.0f / (1.0f + std::exp(-value));
+        });
 
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody)));
 }
 
 void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: softmax(src, dst, axis)");
+            throw error::InvalidArgument("Usage: softmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "softmax: src", args[0], DType::float32, std::nullopt);
@@ -59,7 +66,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         auto dstLock = tensor::tryLockUnique(rt, "softmax: dst", dst);
 
         if (src->shape_.empty()) {
-            throw jsi::JSError(rt, "softmax: src must have at least one dimension");
+            throw error::InvalidArgument("softmax: src must have at least one dimension");
         }
 
         int axis = conversions::asType<int32_t>(rt, "softmax: axis", args[2]);
@@ -71,16 +78,17 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw jsi::JSError(rt, "softmax: axis is out of range");
+            throw error::InvalidArgument(std::format("softmax: axis {} out of range for tensor of rank {}",
+                                                     axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
+        const std::span<float> dstData(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
-            throw jsi::JSError(rt, "softmax: axis dimension must be greater than zero");
+            throw error::InvalidArgument("softmax: axis dimension must be greater than zero");
         }
 
         size_t outer = 1;
@@ -93,24 +101,30 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
+        // Elements along `axis` are strided by `inner`, so a lane spans from its
+        // first element to its last: (axisDim - 1) * inner + 1 elements.
+        const size_t laneSize = (axisDim - 1) * inner + 1;
+
         for (size_t outerIndex = 0; outerIndex < outer; ++outerIndex) {
             for (size_t innerIndex = 0; innerIndex < inner; ++innerIndex) {
                 const size_t base = outerIndex * axisDim * inner + innerIndex;
+                const auto srcLane = srcData.subspan(base, laneSize);
+                const auto dstLane = dstData.subspan(base, laneSize);
 
                 float maxValue = -std::numeric_limits<float>::infinity();
                 for (size_t axisIndex = 0; axisIndex < axisDim; ++axisIndex) {
-                    maxValue = std::max(maxValue, srcData[base + axisIndex * inner]);
+                    maxValue = std::max(maxValue, srcLane[axisIndex * inner]);
                 }
 
                 float sum = 0.0f;
                 for (size_t axisIndex = 0; axisIndex < axisDim; ++axisIndex) {
-                    const float value = std::exp(srcData[base + axisIndex * inner] - maxValue);
-                    dstData[base + axisIndex * inner] = value;
+                    const float value = std::exp(srcLane[axisIndex * inner] - maxValue);
+                    dstLane[axisIndex * inner] = value;
                     sum += value;
                 }
 
                 for (size_t axisIndex = 0; axisIndex < axisDim; ++axisIndex) {
-                    dstData[base + axisIndex * inner] /= sum;
+                    dstLane[axisIndex * inner] /= sum;
                 }
             }
         }
@@ -118,14 +132,14 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: argmax(src, dst, axis)");
+            throw error::InvalidArgument("Usage: argmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "argmax: src", args[0], DType::float32, std::nullopt);
@@ -144,21 +158,22 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw jsi::JSError(rt, "argmax: axis is out of range");
+            throw error::InvalidArgument(std::format("argmax: axis {} out of range for tensor of rank {}",
+                                                     axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 
         auto dstExpectedShape = src->shape_;
         dstExpectedShape[axisIdx] = 1;
         if (dst->shape_ != dstExpectedShape) {
-            throw jsi::JSError(rt, "argmax: dst shape must match src shape but with axis dimension 1");
+            throw error::InvalidArgument("argmax: dst shape must match src shape but with axis dimension 1");
         }
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
+        const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
-            throw jsi::JSError(rt, "argmax: axis dimension must be greater than zero");
+            throw error::InvalidArgument("argmax: axis dimension must be greater than zero");
         }
 
         size_t outer = 1;
@@ -170,16 +185,22 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             inner *= static_cast<size_t>(src->shape_[i]);
         }
 
-        auto *dstData = reinterpret_cast<int32_t *>(dst->data_.get());
+        const std::span<int32_t> dstData(reinterpret_cast<int32_t *>(dst->data_.get()), dst->numel_);
+
+        // Elements along `axis` are strided by `inner`, so a lane spans from its
+        // first element to its last: (axisDim - 1) * inner + 1 elements.
+        const size_t laneSize = (axisDim - 1) * inner + 1;
 
         // DO NOT swap loop order. This structure intentionally prioritizes the
         // most common case (axis = -1, inner = 1) for sequential access.
         for (size_t o = 0; o < outer; ++o) {
             for (size_t i = 0; i < inner; ++i) {
+                const auto srcLane = srcData.subspan(o * axisDim * inner + i, laneSize);
+
                 float maxVal = -std::numeric_limits<float>::infinity();
                 int32_t maxIdx = 0;
                 for (size_t d = 0; d < axisDim; ++d) {
-                    const float val = srcData[o * axisDim * inner + d * inner + i];
+                    const float val = srcLane[d * inner];
                     if (val > maxVal) {
                         maxVal = val;
                         maxIdx = static_cast<int32_t>(d);
@@ -191,14 +212,14 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
 
         return jsi::Value(rt, args[1]);
     };
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: threshold(src, dst, threshold)");
+            throw error::InvalidArgument("Usage: threshold(src, dst, threshold)");
         }
 
         auto src = tensor::fromJs(rt, "threshold: src", args[0], DType::float32, std::nullopt);
@@ -210,17 +231,17 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
 
         auto thresholdVal = conversions::asType<float>(rt, "threshold: threshold", args[2]);
 
-        const auto *srcData = reinterpret_cast<const float *>(src->data_.get());
-        auto *dstData = reinterpret_cast<float *>(dst->data_.get());
+        const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
+        const std::span<float> dstData(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
 
-        for (size_t i = 0; i < src->numel_; ++i) {
-            dstData[i] = (srcData[i] >= thresholdVal) ? 1.0f : 0.0f;
-        }
+        std::ranges::transform(srcData, dstData.begin(), [thresholdVal](const float value) {
+            return (value >= thresholdVal) ? 1.0f : 0.0f;
+        });
 
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::math

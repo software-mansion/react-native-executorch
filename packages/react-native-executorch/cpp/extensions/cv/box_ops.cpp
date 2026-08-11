@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <format>
 #include <numeric>
 #include <optional>
 #include <shared_mutex>
+#include <span>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -17,6 +19,10 @@
 #include "utils.h"
 
 #include <opencv2/core.hpp>
+
+#include "core/error.h"
+
+namespace error = rnexecutorch::core::error;
 
 namespace rnexecutorch::extensions::cv::box_ops {
 namespace jsi = facebook::jsi;
@@ -32,7 +38,7 @@ enum class BoxFormat {
     CXCYWH
 };
 
-BoxFormat parseBoxFormat(const std::string &s) {
+BoxFormat parseBoxFormat(const std::string &ctx, const std::string &s) {
     if (s == "xyxy") {
         return BoxFormat::XYXY;
     }
@@ -42,7 +48,7 @@ BoxFormat parseBoxFormat(const std::string &s) {
     if (s == "cxcywh") {
         return BoxFormat::CXCYWH;
     }
-    throw std::invalid_argument("unsupported boxFormat '" + s + "'");
+    throw error::InvalidArgument(std::format("{}: unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", ctx, s));
 }
 
 enum class NmsType {
@@ -50,19 +56,23 @@ enum class NmsType {
     Weighted
 };
 
-NmsType parseNmsType(const std::string &s) {
+NmsType parseNmsType(const std::string &ctx, const std::string &s) {
     if (s == "standard") {
         return NmsType::Standard;
     }
     if (s == "weighted") {
         return NmsType::Weighted;
     }
-    throw std::invalid_argument("unsupported nmsType '" + s + "'");
+    throw error::InvalidArgument(std::format("{}: unsupported nmsType '{}'. Expected 'standard' or 'weighted'", ctx, s));
 }
 
-std::array<float, 4> decodeToXyxy(
-    float a, float b, float c, float d,
-    BoxFormat format) {
+constexpr size_t kBoxCoords = 4;
+
+std::array<float, kBoxCoords> decodeToXyxy(std::span<const float, kBoxCoords> box, BoxFormat format) {
+    const float a = box[0];
+    const float b = box[1];
+    const float c = box[2];
+    const float d = box[3];
     switch (format) {
     case BoxFormat::XYXY:
         return {a, b, c, d};
@@ -78,7 +88,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "nms";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 3) {
-            throw jsi::JSError(rt, "Usage: nms(boxes, scores, options)");
+            throw error::InvalidArgument("Usage: nms(boxes, scores, options)");
         }
 
         auto boxes = tensor::fromJs(rt, "nms: boxes", args[0], DType::float32, {"N", 4});
@@ -94,24 +104,24 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         auto iouThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "iouThreshold");
         auto confidenceThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "confidenceThreshold");
 
-        NmsType nmsType{};
-        BoxFormat boxFormat{};
-        try {
-            nmsType = parseNmsType(nmsTypeStr);
-            boxFormat = parseBoxFormat(boxFormatStr);
-        } catch (const std::invalid_argument &e) {
-            throw jsi::JSError(rt, std::format("nms: {}", e.what()));
-        }
+        NmsType nmsType = parseNmsType("nms", nmsTypeStr);
+        BoxFormat boxFormat = parseBoxFormat("nms", boxFormatStr);
 
         std::int32_t numAnchors = scores->shape_[0];
-        const auto *boxesPtr = reinterpret_cast<const float *>(boxes->data_.get());
-        const auto *scoresPtr = reinterpret_cast<const float *>(scores->data_.get());
+        const std::span<const float> boxesData(reinterpret_cast<const float *>(boxes->data_.get()), boxes->numel_);
+        const std::span<const float> scoresData(reinterpret_cast<const float *>(scores->data_.get()), scores->numel_);
+
+        // Coordinates of anchor `i` occupy the i-th 4-element row of `boxesData`.
+        auto boxAt = [boxesData](std::int32_t index) -> std::span<const float, kBoxCoords> {
+            return std::span<const float, kBoxCoords>(
+                boxesData.subspan(static_cast<size_t>(index) * kBoxCoords, kBoxCoords));
+        };
 
         std::vector<std::pair<std::int32_t, float>> candidates;
         candidates.reserve(static_cast<size_t>(numAnchors));
 
-        for (size_t idx = 0; std::cmp_less(idx, numAnchors); ++idx) {
-            float score = scoresPtr[idx];
+        for (std::int32_t idx = 0; idx < numAnchors; ++idx) {
+            const float score = scoresData[static_cast<size_t>(idx)];
 
             if (score >= confidenceThreshold) {
                 candidates.emplace_back(idx, score);
@@ -134,12 +144,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
             std::int32_t idxI = candidates[i].first;
 
-            auto [xminA, yminA, xmaxA, ymaxA] = decodeToXyxy(
-                boxesPtr[idxI * 4 + 0],
-                boxesPtr[idxI * 4 + 1],
-                boxesPtr[idxI * 4 + 2],
-                boxesPtr[idxI * 4 + 3],
-                boxFormat);
+            auto [xminA, yminA, xmaxA, ymaxA] = decodeToXyxy(boxAt(idxI), boxFormat);
 
             const float areaA = (xmaxA - xminA) * (ymaxA - yminA);
 
@@ -152,12 +157,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
 
                 std::int32_t idxJ = candidates[j].first;
 
-                auto [xminB, yminB, xmaxB, ymaxB] = decodeToXyxy(
-                    boxesPtr[idxJ * 4 + 0],
-                    boxesPtr[idxJ * 4 + 1],
-                    boxesPtr[idxJ * 4 + 2],
-                    boxesPtr[idxJ * 4 + 3],
-                    boxFormat);
+                auto [xminB, yminB, xmaxB, ymaxB] = decodeToXyxy(boxAt(idxJ), boxFormat);
 
                 const float areaB = (xmaxB - xminB) * (ymaxB - yminB);
 
@@ -202,14 +202,14 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         }
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "restrictToBox";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw jsi::JSError(rt, "Usage: restrictToBox(src, dst, boxTuple, format)");
+            throw error::InvalidArgument("Usage: restrictToBox(src, dst, boxTuple, format)");
         }
 
         auto src = tensor::fromJs(rt, "restrictToBox: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -220,24 +220,15 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         auto dstLock = tensor::tryLockUnique(rt, "restrictToBox: dst", dst);
 
         auto boxVec = conversions::asVector<float>(rt, "restrictToBox: boxTuple", args[2]);
-        if (boxVec.size() != 4) {
-            throw jsi::JSError(rt, "restrictToBox: boxTuple must contain exactly 4 coordinates");
+        if (boxVec.size() != kBoxCoords) {
+            throw error::InvalidArgument(std::format("restrictToBox: boxTuple must contain exactly 4 coordinates (got {})",
+                                                     boxVec.size()));
         }
 
         auto boxFormatStr = conversions::asType<std::string>(rt, "restrictToBox: format", args[3]);
-        BoxFormat boxFormat{};
-        try {
-            boxFormat = parseBoxFormat(boxFormatStr);
-        } catch (const std::invalid_argument &e) {
-            throw jsi::JSError(rt, std::format("restrictToBox: {}", e.what()));
-        }
+        BoxFormat boxFormat = parseBoxFormat("restrictToBox", boxFormatStr);
 
-        float a = boxVec[0];
-        float b = boxVec[1];
-        float c = boxVec[2];
-        float d = boxVec[3];
-
-        auto [xmin, ymin, xmax, ymax] = decodeToXyxy(a, b, c, d, boxFormat);
+        auto [xmin, ymin, xmax, ymax] = decodeToXyxy(std::span<const float, kBoxCoords>(boxVec), boxFormat);
 
         int32_t H = src->shape_[0];
         int32_t W = src->shape_[1];
@@ -269,13 +260,13 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
                 srcMat(roi).copyTo(dstMat(roi));
             }
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, "restrictToBox: " + std::string(e.what()));
+            throw error::Unknown("restrictToBox: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::box_ops

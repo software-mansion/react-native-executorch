@@ -9,11 +9,24 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { inspectModel, type TensorMeta } from 'react-native-executorch';
+import { inspectModel, type ConcreteDim, type ParamSpec } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ColorPalette } from '../../theme';
 
 type InspectionResult = Awaited<ReturnType<typeof inspectModel>>;
+
+const formatDim = (dim: ConcreteDim): string => {
+  switch (dim.kind) {
+    case 'constant':
+      return `${dim.value}`;
+    case 'range':
+      return dim.range.step !== 1
+        ? `${dim.range.min}..${dim.range.max} (step ${dim.range.step})`
+        : `${dim.range.min}..${dim.range.max}`;
+    case 'enum':
+      return dim.choices.join(' | ');
+  }
+};
 
 function InspectContent() {
   const [url, setUrl] = useState('');
@@ -39,27 +52,32 @@ function InspectContent() {
     }
   };
 
-  const renderTensorList = (tensors: TensorMeta[] | undefined, title: string) => {
-    if (!tensors || tensors.length === 0) return null;
+  const renderParamList = (
+    params: readonly ParamSpec<ConcreteDim>[] | undefined,
+    title: string
+  ) => {
+    if (!params || params.length === 0) return null;
     return (
       <View style={styles.tensorsSection}>
         <Text style={styles.tensorsSectionTitle}>{title}</Text>
-        {tensors.map((tensor, idx) => (
+        {params.map((param, idx) => (
           <View key={idx} style={styles.tensorCard}>
             <View style={styles.tensorHeader}>
-              <Text style={styles.tensorName}>
-                {tensor.name || `${title.slice(0, -1)} #${idx}`}
-              </Text>
-              <Text style={styles.tensorDtype}>{tensor.dtype}</Text>
-            </View>
-            <View style={styles.tensorDetails}>
-              <Text style={styles.tensorDetailText}>
-                Shape: <Text style={styles.tensorDetailValue}>[{tensor.shape.join(', ')}]</Text>
-              </Text>
-              <Text style={styles.tensorDetailText}>
-                Bytes: <Text style={styles.tensorDetailValue}>{tensor.nbytes}</Text>
+              <Text style={styles.tensorName}>#{idx}</Text>
+              <Text style={styles.tensorDtype}>
+                {param.kind === 'Tensor' ? param.dtype : param.kind}
               </Text>
             </View>
+            {param.kind === 'Tensor' && (
+              <View style={styles.tensorDetails}>
+                <Text style={styles.tensorDetailText}>
+                  Shape:{' '}
+                  <Text style={styles.tensorDetailValue}>
+                    [{param.shape.map(formatDim).join(', ')}]
+                  </Text>
+                </Text>
+              </View>
+            )}
           </View>
         ))}
       </View>
@@ -113,12 +131,12 @@ function InspectContent() {
           <Text style={styles.sourceLabel}>Source URL:</Text>
           <Text style={styles.sourceValue}>{result.source}</Text>
 
-          <Text style={styles.methodsTitle}>Methods ({result.methods.length})</Text>
+          <Text style={styles.methodsTitle}>Methods ({Object.keys(result.schema).length})</Text>
 
-          {result.methods.map((method, mIdx) => (
-            <View key={mIdx} style={styles.methodContainer}>
+          {Object.entries(result.schema).map(([methodName, spec]) => (
+            <View key={methodName} style={styles.methodContainer}>
               <View style={styles.methodHeader}>
-                <Text style={styles.methodName}>{method.name}</Text>
+                <Text style={styles.methodName}>{methodName}</Text>
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>Method</Text>
                 </View>
@@ -126,35 +144,30 @@ function InspectContent() {
 
               <View style={styles.statsRow}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statVal}>{method.meta.numInputs}</Text>
+                  <Text style={styles.statVal}>{spec.inputs.length}</Text>
                   <Text style={styles.statLabel}>Inputs</Text>
                 </View>
                 <View style={styles.statBox}>
-                  <Text style={styles.statVal}>{method.meta.numOutputs}</Text>
+                  <Text style={styles.statVal}>{spec.outputs.length}</Text>
                   <Text style={styles.statLabel}>Outputs</Text>
                 </View>
               </View>
 
-              {method.meta.usesBackend && Object.keys(method.meta.usesBackend).length > 0 && (
+              {(result.backends[methodName]?.length ?? 0) > 0 && (
                 <View style={styles.metaSection}>
                   <Text style={styles.metaSectionTitle}>Backends Used:</Text>
                   <View style={styles.tagRow}>
-                    {Object.entries(method.meta.usesBackend).map(([backend, used]) => (
-                      <View
-                        key={backend}
-                        style={[styles.tag, used ? styles.tagActive : styles.tagInactive]}
-                      >
-                        <Text style={used ? styles.tagActiveText : styles.tagInactiveText}>
-                          {backend}: {used ? 'Yes' : 'No'}
-                        </Text>
+                    {result.backends[methodName]?.map((backend) => (
+                      <View key={backend} style={[styles.tag, styles.tagActive]}>
+                        <Text style={styles.tagActiveText}>{backend}</Text>
                       </View>
                     ))}
                   </View>
                 </View>
               )}
 
-              {renderTensorList(method.meta.inputTensorMeta, 'Input Tensors')}
-              {renderTensorList(method.meta.outputTensorMeta, 'Output Tensors')}
+              {renderParamList(spec.inputs, 'Inputs')}
+              {renderParamList(spec.outputs, 'Outputs')}
             </View>
           ))}
         </View>
