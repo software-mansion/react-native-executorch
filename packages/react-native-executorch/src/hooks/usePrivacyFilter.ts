@@ -13,15 +13,20 @@ import {
  * and cleaning up native memory when the component unmounts or the
  * configuration changes.
  * @category Hooks
+ * @typeParam Label The model's BIOES label space, narrowing the detected entity
+ * types when a concrete `models` registry entry is passed.
  * @param config The privacy filter model configuration (model and tokenizer
  * paths plus the label space options).
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and detection functions.
  */
-export function usePrivacyFilter(config: PrivacyFilterModel, options?: ResourceOptions) {
+export function usePrivacyFilter<Label extends string>(
+  config: PrivacyFilterModel<Label>,
+  options?: ResourceOptions
+) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createPrivacyFilter, resource ?? null);
+  const { model, error } = useModel(createPrivacyFilter<Label>, resource ?? null);
 
   return {
     isReady: !!model,

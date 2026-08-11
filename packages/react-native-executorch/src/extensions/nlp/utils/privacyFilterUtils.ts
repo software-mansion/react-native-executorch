@@ -3,8 +3,7 @@
 // our own implementation of the standard Viterbi algorithm, constrained to
 // valid BIOES transitions and calibrated by the biases published alongside the
 // models. The transformer forward pass dominates the inference budget, so this
-// decoding is written in pure TypeScript rather than a native op (see the
-// `add-native-extension` skill's Amdahl's-law rule).
+// decoding is written in pure TypeScript.
 
 const NEG_INF = Number.NEGATIVE_INFINITY;
 
@@ -34,12 +33,24 @@ export interface ViterbiBiases {
 }
 
 /**
- * A single detected PII entity span.
+ * The bare entity type carried by a BIOES label space: everything after the
+ * `B-`/`I-`/`E-`/`S-` prefix (`'O'` and any unprefixed label contribute
+ * nothing). Lets a model's concrete label list narrow {@link PiiEntity.label}
+ * to just that model's entity types instead of an arbitrary string.
  * @category Types
  */
-export interface PiiEntity {
+export type PiiEntityType<Label extends string> =
+  Label extends `${'B' | 'I' | 'E' | 'S'}-${infer Entity}` ? Entity : never;
+
+/**
+ * A single detected PII entity span.
+ * @category Types
+ * @typeParam Label The entity type, narrowed to a specific model's entity types
+ * when known (see {@link PiiEntityType}), or `string` for an arbitrary model.
+ */
+export interface PiiEntity<Label extends string = string> {
   /** Entity type, e.g. `private_person`, `private_email`, `secret`. */
-  readonly label: string;
+  readonly label: Label;
   /** Decoded text of the span (whitespace trimmed). */
   readonly text: string;
   /** Inclusive start token index in the original (unpadded) tokenization. */

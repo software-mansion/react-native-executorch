@@ -11,39 +11,42 @@ import {
   extractSpans,
   viterbiDecode,
   type PiiEntity,
+  type PiiEntityType,
   type ViterbiBiases,
 } from '../utils/privacyFilterUtils';
-
-const DEFAULT_PAD_TOKEN_ID = 199999;
 
 /**
  * Options describing a privacy filter model's label space and decoding
  * behavior.
  * @category Types
+ * @typeParam Label The model's BIOES label space, defined alongside the model
+ * in the `models` registry.
  */
-export type PrivacyFilterOptions = {
+export type PrivacyFilterOptions<Label extends string = string> = {
   /**
    * BIOES label list matching the model's `id2label` mapping exactly; index 0
    * must be `'O'`.
    */
-  readonly labelNames: readonly string[];
+  readonly labelNames: readonly Label[];
   /**
    * Transition biases applied while decoding. Defaults to neutral
    * (validity-only) Viterbi.
    */
   readonly viterbiBiases?: ViterbiBiases;
   /**
-   * Token id used to pad the final window of a static (fixed-length) model.
-   * Defaults to the o200k `<|endoftext|>` id.
+   * Token id used to pad the final window of a static (fixed-length) model,
+   * masked out via the attention mask. For the o200k tokenizer this is the
+   * `<|endoftext|>` id.
    */
-  readonly padTokenId?: number;
+  readonly padTokenId: number;
 };
 
 /**
  * Model configuration required to instantiate a privacy filter task runner.
  * @category Types
+ * @typeParam Label The model's BIOES label space.
  */
-export type PrivacyFilterModel = {
+export type PrivacyFilterModel<Label extends string = string> = {
   /** Local path or remote URL of the `.pte` model. */
   readonly modelPath: string;
   /** Local path or remote URL of the matching `tokenizer.json`. */
@@ -52,10 +55,10 @@ export type PrivacyFilterModel = {
    * Label space and decoding options, defined alongside the model in the
    * `models` registry.
    */
-  readonly privacyFilterOpts: PrivacyFilterOptions;
+  readonly modelOpts: PrivacyFilterOptions<Label>;
 };
 
-export type { PiiEntity, ViterbiBiases };
+export type { PiiEntity, PiiEntityType, ViterbiBiases };
 
 /**
  * Creates a privacy filter runner that detects personally identifiable
@@ -79,8 +82,8 @@ export type { PiiEntity, ViterbiBiases };
  * @returns A promise resolving to an object containing detection and disposal
  * controls.
  */
-export async function createPrivacyFilter(
-  config: PrivacyFilterModel,
+export async function createPrivacyFilter<Label extends string>(
+  config: PrivacyFilterModel<Label>,
   runtime?: WorkletRuntime
 ): Promise<{
   /**
@@ -93,16 +96,16 @@ export async function createPrivacyFilter(
    * @param input The text to scan for PII.
    * @returns A promise resolving to the detected entity spans, in order.
    */
-  detectPii: (input: string) => Promise<PiiEntity[]>;
+  detectPii: (input: string) => Promise<PiiEntity<PiiEntityType<Label>>[]>;
 
   /**
    * Synchronous version of {@link detectPii} to be executed directly on the
    * caller or worklet thread.
    */
-  detectPiiWorklet: (input: string) => PiiEntity[];
+  detectPiiWorklet: (input: string) => PiiEntity<PiiEntityType<Label>>[];
 }> {
-  const { modelPath, tokenizerPath, privacyFilterOpts } = config;
-  const { labelNames } = privacyFilterOpts;
+  const { modelPath, tokenizerPath, modelOpts } = config;
+  const { labelNames } = modelOpts;
 
   if (labelNames.length === 0 || labelNames[0] !== 'O') {
     throw new Error(
@@ -154,8 +157,8 @@ export async function createPrivacyFilter(
     );
   }
 
-  const padTokenId = BigInt(privacyFilterOpts.padTokenId ?? DEFAULT_PAD_TOKEN_ID);
-  const grammar = buildGrammar(labelNames, privacyFilterOpts.viterbiBiases);
+  const padTokenId = BigInt(modelOpts.padTokenId);
+  const grammar = buildGrammar(labelNames, modelOpts.viterbiBiases);
   // Consecutive windows overlap by half; predictions within `edgeMargin` of a
   // window boundary are re-predicted by the neighboring window with more
   // context on that side, and the more centered prediction wins.
@@ -179,7 +182,7 @@ export async function createPrivacyFilter(
     model.dispose();
   };
 
-  const detectPiiWorklet = (input: string): PiiEntity[] => {
+  const detectPiiWorklet = (input: string): PiiEntity<PiiEntityType<Label>>[] => {
     'worklet';
     const ids = tokenizer.encode(input);
     const totalTokens = ids.length;
@@ -237,7 +240,9 @@ export async function createPrivacyFilter(
     }
 
     return extractSpans(predictedLabels, labelNames).map((span) => ({
-      label: span.entity,
+      // `extractSpans` derives the entity string from `labelNames` at runtime,
+      // so it is one of this model's entity types by construction.
+      label: span.entity as PiiEntityType<Label>,
       text: tokenizer.decode(ids.slice(span.start, span.end), true).trim(),
       startToken: span.start,
       endToken: span.end,

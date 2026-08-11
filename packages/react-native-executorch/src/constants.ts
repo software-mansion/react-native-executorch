@@ -1321,10 +1321,8 @@ export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)
 // followed by four prefix variants (B/I/E/S) per entity type, in the entity
 // order below. The resulting arrays must match each model's id2label mapping
 // exactly — the pipeline uses the array index as the label id.
-const bioesLabels = (entities: readonly string[]) => [
-  'O',
-  ...entities.flatMap((e) => [`B-${e}`, `I-${e}`, `E-${e}`, `S-${e}`]),
-];
+const bioesLabels = <Entity extends string>(entities: readonly Entity[]) =>
+  ['O', ...entities.flatMap((e) => [`B-${e}`, `I-${e}`, `E-${e}`, `S-${e}`] as const)] as const;
 
 /**
  * Label space for the openai/privacy-filter base model (8 entity types, 33
@@ -1341,6 +1339,13 @@ export const PRIVACY_FILTER_OPENAI_LABELS = bioesLabels([
   'private_url',
   'secret',
 ]);
+
+/**
+ * A single BIOES label from the openai/privacy-filter label space (`'O'` or a
+ * `B-`/`I-`/`E-`/`S-` prefixed entity).
+ * @category Constants
+ */
+export type PrivacyFilterOpenaiLabel = (typeof PRIVACY_FILTER_OPENAI_LABELS)[number];
 
 /**
  * Label space for the OpenMed/privacy-filter-nemotron model (55 entity types,
@@ -1405,3 +1410,10 @@ export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
   'user_name',
   'vehicle_identifier',
 ]);
+
+/**
+ * A single BIOES label from the OpenMed/privacy-filter-nemotron label space
+ * (`'O'` or a `B-`/`I-`/`E-`/`S-` prefixed entity).
+ * @category Constants
+ */
+export type PrivacyFilterNemotronLabel = (typeof PRIVACY_FILTER_NEMOTRON_LABELS)[number];
