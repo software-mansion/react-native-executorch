@@ -4,6 +4,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, DynamicDim as Dyn, method, i64, f32, constr } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { RnExecuTorchError } from '../../../core/error';
 
 import { loadTokenizer } from '../tokenizer';
 import {
@@ -85,6 +86,10 @@ export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
  * execution.
  * @returns A promise resolving to an object containing detection and disposal
  * controls.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `labelNames` is
+ * empty or does not start with `'O'`.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model's
+ * `forward` window is smaller than 2 tokens.
  */
 export async function createPrivacyFilter<Label extends string>(
   config: PrivacyFilterModel<Label>,
@@ -112,7 +117,8 @@ export async function createPrivacyFilter<Label extends string>(
   const { labelNames } = modelOpts;
 
   if (labelNames.length === 0 || labelNames[0] !== 'O') {
-    throw new Error(
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
       "createPrivacyFilter: labelNames must be non-empty and start with 'O' at index 0."
     );
   }
@@ -156,7 +162,8 @@ export async function createPrivacyFilter<Label extends string>(
   const seqLenRange = variant === 'dynamic' ? dim('S', 'range') : null;
   const windowSize = seqLenRange ? seqLenRange.max : dim('S', 'constant');
   if (windowSize < 2) {
-    throw new Error(
+    throw RnExecuTorchError(
+      'SCHEMA_MISMATCH',
       `createPrivacyFilter: expected a forward window of at least 2 tokens, got ${windowSize}.`
     );
   }
