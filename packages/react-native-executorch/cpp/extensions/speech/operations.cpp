@@ -12,8 +12,6 @@
 #include "core/error.h"
 namespace {
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
 namespace rnexecutorch::extensions::speech {
@@ -26,7 +24,7 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractFrames";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: extractFrames(waveform, hann, dst, options)");
+            throw error::InvalidArgument("Usage: extractFrames(waveform, hann, dst, options)");
         }
 
         auto waveform = tensor::fromJs(rt, "extractFrames: waveform", args[0], DType::float32, {"length"});
@@ -49,20 +47,20 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
         const auto chunkFrames = static_cast<uint64_t>(dst->shape_[0]);
         const auto fftLength = static_cast<uint64_t>(dst->shape_[1]);
         if (frameLength > fftLength) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("extractFrames: hann length ({}) exceeds dst fftLength ({})",
-                                                                                            frameLength, fftLength));
+            throw error::InvalidArgument(std::format("extractFrames: hann length ({}) exceeds dst fftLength ({})",
+                                                     frameLength, fftLength));
         }
         if (numFrames > chunkFrames) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("extractFrames: numFrames ({}) exceeds dst frame capacity ({})",
-                                                                                            numFrames, chunkFrames));
+            throw error::InvalidArgument(std::format("extractFrames: numFrames ({}) exceeds dst frame capacity ({})",
+                                                     numFrames, chunkFrames));
         }
 
         if (numFrames > 0) {
             const uint64_t lastSample = (numFrames - 1) * hopLength + frameLength - 1;
             if (lastSample >= waveform->numel_) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("extractFrames: frame window (last sample index {})"
-                                                                                                " exceeds waveform bounds (numel {})",
-                                                                                                lastSample, waveform->numel_));
+                throw error::InvalidArgument(std::format("extractFrames: frame window (last sample index {})"
+                                                         " exceeds waveform bounds (numel {})",
+                                                         lastSample, waveform->numel_));
             }
         }
 

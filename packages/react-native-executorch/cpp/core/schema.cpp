@@ -10,10 +10,10 @@
 #include "dtype.h"
 
 #include "core/error.h"
-namespace {
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
-} // namespace
+
+// The nlohmann adl_serializer specializations below sit outside rnexecutorch::core,
+// where unqualified `error` does not resolve.
+namespace error = rnexecutorch::core::error;
 
 namespace nlohmann {
 template <>
@@ -53,7 +53,7 @@ struct adl_serializer<executorch::runtime::Tag> {
         if (s == "ListTensor") {
             return executorch::runtime::Tag::ListTensor;
         }
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("unknown param kind '{}'", s));
+        throw error::SchemaMismatch(std::format("unknown param kind '{}'", s));
     }
     static void to_json(json &j, executorch::runtime::Tag t) {
         j = executorch::runtime::tag_to_string(t);
@@ -77,7 +77,7 @@ struct overloaded : Ts... {
 template <typename T>
 T unwrap(const std::string &ctx, executorch::runtime::Result<T> result) {
     if (!result.ok()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
+        throw error::SchemaMismatch(std::format("{}: {}", ctx, executorch::runtime::to_string(result.error())));
     }
     return std::move(result.get());
 }
@@ -104,7 +104,7 @@ void from_json(const json &j, ConcreteDim &d) {
     } else if (kind == "enum") {
         d = EnumDim{.choices = j.at("choices").get<std::vector<int32_t>>()};
     } else {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("unsupported dim kind '{}'", kind));
+        throw error::SchemaMismatch(std::format("unsupported dim kind '{}'", kind));
     }
 }
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
@@ -145,7 +145,7 @@ void from_json(const json &j, RuntimeConstraint &c) {
     } else if (kind == "linear") {
         c = j.get<LinearConstraint>();
     } else {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("unknown constraint kind '{}'", kind));
+        throw error::SchemaMismatch(std::format("unknown constraint kind '{}'", kind));
     }
 }
 // NOLINTNEXTLINE(misc-use-internal-linkage): ADL requires external linkage.
@@ -173,7 +173,7 @@ ModelSpec parseModelSpecJson(const std::string &ctx, const std::string &jsonStr)
     try {
         return json::parse(jsonStr).get<ModelSpec>();
     } catch (const std::exception &e) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: {}", ctx, e.what()));
+        throw error::SchemaMismatch(std::format("{}: {}", ctx, e.what()));
     }
 }
 
@@ -302,27 +302,27 @@ void validateConcreteDim(const ConcreteDim &dim, const std::string &ctx) {
     std::visit(overloaded{
         [&](int32_t c) {
             if (c <= 0) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: constant dim must be positive", ctx));
+                throw error::SchemaMismatch(std::format("{}: constant dim must be positive", ctx));
             }
         },
         [&](const RangeDim &r) {
             if (r.min <= 0) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: range min must be positive", ctx));
+                throw error::SchemaMismatch(std::format("{}: range min must be positive", ctx));
             }
             if (r.max < r.min) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: range max must be >= min", ctx));
+                throw error::SchemaMismatch(std::format("{}: range max must be >= min", ctx));
             }
             if (r.step <= 0) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: range step must be positive", ctx));
+                throw error::SchemaMismatch(std::format("{}: range step must be positive", ctx));
             }
         },
         [&](const EnumDim &e) {
             if (e.choices.empty()) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: enum must have at least one choice", ctx));
+                throw error::SchemaMismatch(std::format("{}: enum must have at least one choice", ctx));
             }
             for (const auto &choice : e.choices) {
                 if (choice <= 0) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: enum choices must be positive", ctx));
+                    throw error::SchemaMismatch(std::format("{}: enum choices must be positive", ctx));
                 }
             }
         },
@@ -351,14 +351,14 @@ void validateTensorParam(const ParamSpec &param,
                          const std::string &ctx) {
     auto metaDtype = types::dtypeFromScalarType(tensorMeta.scalar_type());
     if (param.dtype != metaDtype) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: dtype mismatch (spec type '{}' != compiled metadata type '{}')",
-                                                                                       ctx, types::dtypeToString(param.dtype), types::dtypeToString(metaDtype)));
+        throw error::SchemaMismatch(std::format("{}: dtype mismatch (spec type '{}' != compiled metadata type '{}')",
+                                                ctx, types::dtypeToString(param.dtype), types::dtypeToString(metaDtype)));
     }
 
     auto metaShape = tensorMeta.sizes();
     if (param.shape.size() != metaShape.size()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: rank mismatch (spec rank {} != compiled metadata rank {})",
-                                                                                       ctx, param.shape.size(), metaShape.size()));
+        throw error::SchemaMismatch(std::format("{}: rank mismatch (spec rank {} != compiled metadata rank {})",
+                                                ctx, param.shape.size(), metaShape.size()));
     }
 
     for (size_t d = 0; d < param.shape.size(); ++d) {
@@ -367,20 +367,20 @@ void validateTensorParam(const ParamSpec &param,
         std::visit(overloaded{
             [&](int32_t c) {
                 if (c != bound) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: shape[{}] mismatch (spec constant {} != compiled bound {})",
+                    throw error::SchemaMismatch(std::format("{}: shape[{}] mismatch (spec constant {} != compiled bound {})",
                                                        ctx, d, c, bound));
                 }
             },
             [&](const RangeDim &r) {
                 if (r.max > bound) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: shape[{}] range max {} exceeds compiled bound {}",
+                    throw error::SchemaMismatch(std::format("{}: shape[{}] range max {} exceeds compiled bound {}",
                                                         ctx, d, r.max, bound));
                 }
             },
             [&](const EnumDim &e) {
                 for (const auto choice : e.choices) {
                     if (choice > bound) {
-                        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: shape[{}] enum choice {} exceeds compiled bound {}",
+                        throw error::SchemaMismatch(std::format("{}: shape[{}] enum choice {} exceeds compiled bound {}",
                                                             ctx, d, choice, bound));
                     }
                 }
@@ -398,10 +398,10 @@ void validateDimRef(const DimRef &ref,
     bool isInput = (ref.paramSide == ParamSide::input);
     const auto &ranks = isInput ? inputRanks : outputRanks;
     if (std::cmp_greater_equal(ref.tensorIdx, ranks.size())) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: tensorIdx {} out of range", ctx, ref.tensorIdx));
+        throw error::SchemaMismatch(std::format("{}: tensorIdx {} out of range", ctx, ref.tensorIdx));
     }
     if (std::cmp_greater_equal(ref.dimIdx, ranks[static_cast<size_t>(ref.tensorIdx)])) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: dimIdx {} out of range", ctx, ref.dimIdx));
+        throw error::SchemaMismatch(std::format("{}: dimIdx {} out of range", ctx, ref.dimIdx));
     }
 }
 
@@ -427,7 +427,7 @@ void validateConstraintSpecs(const MethodSpec &spec, const std::string &ctx) {
         std::visit(overloaded{
             [&](const EqualityConstraint &eq) {
                 if (eq.dims.size() < 2) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: equality needs at least two dims", cctx));
+                    throw error::SchemaMismatch(std::format("{}: equality needs at least two dims", cctx));
                 }
                 for (const auto &dim : eq.dims) {
                     validateDimRef(dim, inputRanks, outputRanks, cctx);
@@ -452,9 +452,9 @@ void validateParamsAgainstMeta(const std::vector<ParamSpec> &params,
                                  : unwrap(pctx, meta.output_tag(i));
 
         if (params[i].tag != tagResult) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: tag mismatch (spec tag {} != compiled metadata tag {})",
-                                                                                           pctx, executorch::runtime::tag_to_string(params[i].tag),
-                                                                                           executorch::runtime::tag_to_string(tagResult)));
+            throw error::SchemaMismatch(std::format("{}: tag mismatch (spec tag {} != compiled metadata tag {})",
+                                                    pctx, executorch::runtime::tag_to_string(params[i].tag),
+                                                    executorch::runtime::tag_to_string(tagResult)));
         }
 
         if (tagResult == Tag::Tensor) {
@@ -472,12 +472,12 @@ void validateSpec(const MethodSpec &spec,
                   const std::string &ctx) {
 
     if (spec.inputs.size() != meta.num_inputs()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: input count mismatch (spec has {}, model metadata has {})",
-                                                                                       ctx, spec.inputs.size(), meta.num_inputs()));
+        throw error::SchemaMismatch(std::format("{}: input count mismatch (spec has {}, model metadata has {})",
+                                                ctx, spec.inputs.size(), meta.num_inputs()));
     }
     if (spec.outputs.size() != meta.num_outputs()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::SchemaMismatch, std::format("{}: output count mismatch (spec has {}, model metadata has {})",
-                                                                                       ctx, spec.outputs.size(), meta.num_outputs()));
+        throw error::SchemaMismatch(std::format("{}: output count mismatch (spec has {}, model metadata has {})",
+                                                ctx, spec.outputs.size(), meta.num_outputs()));
     }
 
     validateSpecDimDomains(spec, ctx);
@@ -516,7 +516,7 @@ void validateRuntimeConstraints(jsi::Runtime & /*rt*/,
                 }
                 for (size_t j = 1; j < inputVals.size(); ++j) {
                     if (inputVals[j] != inputVals[0]) {
-                        throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: equality constraint violated (dimension value {} != {})",
+                        throw error::InvalidArgument(std::format("{}: equality constraint violated (dimension value {} != {})",
                                                            cctx, inputVals[0], inputVals[j]));
                     }
                 }
@@ -529,7 +529,7 @@ void validateRuntimeConstraints(jsi::Runtime & /*rt*/,
                 int32_t lhs = getInputDimValue(lin.dimLhs, inputShapes);
                 int32_t rhs = getInputDimValue(lin.dimRhs, inputShapes);
                 if (lhs != lin.coefficients[0] * rhs + lin.coefficients[1]) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: linear constraint violated (LHS {} != {} * RHS {} + {})",
+                    throw error::InvalidArgument(std::format("{}: linear constraint violated (LHS {} != {} * RHS {} + {})",
                                                        cctx, lhs, lin.coefficients[0], rhs, lin.coefficients[1]));
                 }
             },

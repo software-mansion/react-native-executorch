@@ -15,8 +15,6 @@
 #include "core/error.h"
 namespace {
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
 namespace rnexecutorch::extensions::math {
@@ -30,7 +28,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "sigmoid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: sigmoid(src, dst)");
+            throw error::InvalidArgument("Usage: sigmoid(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "sigmoid: src", args[0], DType::float32, std::nullopt);
@@ -57,7 +55,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: softmax(src, dst, axis)");
+            throw error::InvalidArgument("Usage: softmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "softmax: src", args[0], DType::float32, std::nullopt);
@@ -68,7 +66,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
         auto dstLock = tensor::tryLockUnique(rt, "softmax: dst", dst);
 
         if (src->shape_.empty()) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "softmax: src must have at least one dimension");
+            throw error::InvalidArgument("softmax: src must have at least one dimension");
         }
 
         int axis = conversions::asType<int32_t>(rt, "softmax: axis", args[2]);
@@ -80,8 +78,8 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("softmax: axis {} out of range for tensor of rank {}",
-                                                                                            axis, rank));
+            throw error::InvalidArgument(std::format("softmax: axis {} out of range for tensor of rank {}",
+                                                     axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 
@@ -90,7 +88,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "softmax: axis dimension must be greater than zero");
+            throw error::InvalidArgument("softmax: axis dimension must be greater than zero");
         }
 
         size_t outer = 1;
@@ -141,7 +139,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: argmax(src, dst, axis)");
+            throw error::InvalidArgument("Usage: argmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "argmax: src", args[0], DType::float32, std::nullopt);
@@ -160,22 +158,22 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
             axis += rank;
         }
         if (axis < 0 || axis >= rank) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("argmax: axis {} out of range for tensor of rank {}",
-                                                                                            axis, rank));
+            throw error::InvalidArgument(std::format("argmax: axis {} out of range for tensor of rank {}",
+                                                     axis, rank));
         }
         const auto axisIdx = static_cast<size_t>(axis);
 
         auto dstExpectedShape = src->shape_;
         dstExpectedShape[axisIdx] = 1;
         if (dst->shape_ != dstExpectedShape) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "argmax: dst shape must match src shape but with axis dimension 1");
+            throw error::InvalidArgument("argmax: dst shape must match src shape but with axis dimension 1");
         }
 
         const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
 
         const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
         if (axisDim == 0) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "argmax: axis dimension must be greater than zero");
+            throw error::InvalidArgument("argmax: axis dimension must be greater than zero");
         }
 
         size_t outer = 1;
@@ -221,7 +219,7 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: threshold(src, dst, threshold)");
+            throw error::InvalidArgument("Usage: threshold(src, dst, threshold)");
         }
 
         auto src = tensor::fromJs(rt, "threshold: src", args[0], DType::float32, std::nullopt);

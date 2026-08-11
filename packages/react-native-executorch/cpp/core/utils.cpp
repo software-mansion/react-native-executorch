@@ -16,9 +16,6 @@
 namespace rnexecutorch::core::utils {
 namespace jsi = facebook::jsi;
 
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
-
 namespace {
 // Detects an Android emulator / iOS simulator. On Android no single property
 // covers every image, so we check three: the build fingerprint (`generic...`
@@ -83,7 +80,7 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
     const auto *name = "getExecuTorchRegisteredBackends";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
         if (count != 0) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: getExecuTorchRegisteredBackends()");
+            throw error::InvalidArgument("Usage: getExecuTorchRegisteredBackends()");
         }
 
         auto registeredCount = executorch::runtime::get_num_registered_backends();
@@ -92,7 +89,7 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
             auto backendName = executorch::runtime::get_backend_name(i);
             if (!backendName.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(backendName.error());
-                throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "Failed to get backend name: " + errorMsg);
+                throw error::Unknown("Failed to get backend name: " + errorMsg);
             }
             jsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, backendName.get()));
         }

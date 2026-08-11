@@ -80,8 +80,10 @@ Concretely: do not add a code for a specific subsystem (a tokenizer failure is
 (`INVALID_ARGUMENT` already covers unsupported languages, bad ranges, and wrong types).
 Subdividing non-recoverable failures buys nothing over the message.
 
-Adding one means editing `VALID_ERROR_CODES` in `src/core/error.ts` **and** both the
-`RnExecuTorchErrorCode` enum and `errorCodeToString` in `cpp/core/error.h`.
+Adding one means editing `VALID_ERROR_CODES` in `src/core/error.ts` **and** adding a single
+line to `FOR_ALL_RNEXECUTORCH_ERROR_CODES` in `cpp/core/error.h`. That X-macro list expands
+into the enum, the string mapping, and the factory functions at once, so the three cannot
+drift apart.
 
 ---
 
@@ -89,12 +91,14 @@ Adding one means editing `VALID_ERROR_CODES` in `src/core/error.ts` **and** both
 
 Two rules, both mandatory:
 
-1. **Never throw `jsi::JSError` from library code.** Throw `RnExecuTorchException`.
-   `guarded` is the only place that turns an exception into a JavaScript value, so a code
-   cannot be lost on the way out.
+1. **Never throw `jsi::JSError` from library code.** Throw through a factory, which builds an
+   `RnExecuTorchException`. `guarded` is the only place that turns an exception into a
+   JavaScript value, so a code cannot be lost on the way out.
 2. **Wrap every host function registration in `error::guarded(...)`.** Without it the code
    is lost, including on the synchronous worklet path that VisionCamera frame processors
    use, which has no `wrapAsync` fallback.
+
+There is one factory per code, so a throw site names the code and nothing else:
 
 ```cpp
 #include "core/error.h"
@@ -105,15 +109,12 @@ namespace jsi = facebook::jsi;
 // OMIT this alias inside rnexecutorch::core::*, where unqualified `error`
 // already resolves to rnexecutorch::core::error (clang-tidy fails on a dead alias).
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
 
 void install_customOp(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "customOp";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument,
-                                        "Usage: customOp(src, dst, factor)");
+            throw error::InvalidArgument("customOp: Usage: customOp(src, dst, factor)");
         }
         // ...
         return jsi::Value(rt, args[1]);
@@ -126,16 +127,21 @@ void install_customOp(jsi::Runtime &rt, jsi::Object &module) {
 } // namespace
 ```
 
-`RnExecuTorchException` has a second constructor taking an `executorch::runtime::Error`,
-which travels to JS as `etRuntimeErrorCode` for diagnostics. Unwrapping an ExecuTorch
-`Result` is done with a small file-local `unwrap` helper (see `cpp/core/model.cpp`), not a
-shared utility.
+The alias is the only preamble a file needs. Name `RnExecuTorchException` or
+`RnExecuTorchErrorCode` directly **only** where you genuinely need the type: a `catch`
+clause, or a helper that takes a code as a parameter (see `unwrap` in `cpp/core/model.cpp`).
+
+Every factory takes an optional second argument, an `executorch::runtime::Error`, which
+travels to JS as `etRuntimeErrorCode` for diagnostics: `error::ExecutionFailed(msg,
+result.error())`. Pass it only when the failure really came out of the ExecuTorch runtime.
+Unwrapping an ExecuTorch `Result` is done with a small file-local `unwrap` helper (see
+`cpp/core/model.cpp`), not a shared utility.
 
 `guard` deliberately lets an existing `jsi::JSError` pass through untouched, so an error
 thrown by an app's own callback (for example inside `tensor.through(fn)`) is never
 rewritten with our name and code.
 
-**Placement warning:** put `#include "core/error.h"` and the `using` declarations at file
+**Placement warning:** put `#include "core/error.h"` and the namespace alias at file
 scope, never inside an `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` branch. Code
 inside a platform branch compiles on your machine and breaks on every other target, and a
 macOS-only local syntax check will not catch it.
@@ -158,8 +164,9 @@ issue #1288 for the separate discussion about splitting user-facing examples out
 - **Do NOT make `RnExecuTorchError` a class.** It has to survive worklet boundaries.
 - **Do NOT add a code for a failure an app cannot recover from differently.** Enrich the
   message instead.
-- **Do NOT generate the codes.** They are mirrored by hand, like the rest of the TS/JSI
-  interface.
+- **Do NOT mirror the TS codes with a code generator.** The C++ side is written by hand,
+  like the rest of the TS/JSI interface. The X-macro inside `error.h` is not codegen: it
+  keeps three C++ declarations of one list in step, it does not read the TypeScript.
 - **Do NOT leave a stale `@throws`.** Doc comments naming `jsi::JSError`,
   `std::runtime_error`, or `std::invalid_argument` are wrong: nothing in the library throws
   those any more.
@@ -170,11 +177,12 @@ issue #1288 for the separate discussion about splitting user-facing examples out
 
 When adding or changing error handling, verify that:
 
-- [ ] Every new throw site uses `RnExecuTorchError('CODE', message)` (TS) or `RnExecuTorchException` (C++).
+- [ ] Every new throw site uses `RnExecuTorchError('CODE', message)` (TS) or `error::Code(message)` (C++).
 - [ ] No raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
 - [ ] Every new `createFromHostFunction` registration is wrapped in `error::guarded(...)`.
 - [ ] The `namespace error = ...` alias is present in `extensions::*` and absent in `core::*`.
-- [ ] `#include "core/error.h"` and its `using` declarations sit at file scope, outside any preprocessor branch.
+- [ ] `#include "core/error.h"` and the `namespace error = ...` alias sit at file scope, outside any preprocessor branch.
+- [ ] `RnExecuTorchException` / `RnExecuTorchErrorCode` are named only in a `catch` clause or a helper taking a code, never at a throw site.
 - [ ] Catch sites use `isRnExecuTorchError(e, 'CODE')` rather than matching on the message.
 - [ ] Every `@throws` on a function you touched names the exception **and its code**
       (`@throws error::RnExecuTorchException with code InvalidArgument if ...` in C++,

@@ -82,7 +82,7 @@ Use the following index to locate the specific procedural guides for your task:
 
 - **Worklets**: Ensure all TypeScript functions directly wrapping native JSI calls start with the `"worklet";` directive so they are compatible with worklet-based libraries (e.g., React Native Reanimated).
 - **Options Parameter Naming**: Always name function and method options parameters `options` (not `opts`, `optsObj`, `taskOpts`, or `chunkOpts`). Using `Opts` as a type or property suffix (e.g. `ModelOpts`, `TaskOpts`, `modelOpts`) is acceptable.
-- **Errors**: Every failure the library raises carries a string `code`. Use `RnExecuTorchError('CODE', msg)` in TypeScript (a function, not a class, so it survives worklet boundaries) and `RnExecuTorchException` + `error::guarded(...)` in C++. Never branch on message text. See the [Error Handling Skill](../error-handling/SKILL.md).
+- **Errors**: Every failure the library raises carries a string `code`. Use `RnExecuTorchError('CODE', msg)` in TypeScript (a function, not a class, so it survives worklet boundaries) and `error::InvalidArgument(msg)` + `error::guarded(...)` in C++. Never branch on message text. See the [Error Handling Skill](../error-handling/SKILL.md).
 - **Memory Management**: When writing native C++ code with JSI, pay close attention to JSI reference management and handle ExecuTorch lifecycle states safely.
 - **Keep Core Clean**: Always build on top of core primitives. Do not modify files in `cpp/core/` or `src/core/` unless you are fixing a bug in the foundational runtime.
 

@@ -12,8 +12,6 @@
 #include "core/error.h"
 namespace {
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
 namespace rnexecutorch::extensions::nlp::tokenizer {
@@ -58,7 +56,7 @@ std::string toString(tokenizers::Error error) {
 template <typename T>
 T unwrap(const std::string &ctx, tokenizers::Result<T> result) {
     if (!result.ok()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::ExecutionFailed, std::format("{}: {}", ctx, toString(result.error())));
+        throw error::ExecutionFailed(std::format("{}: {}", ctx, toString(result.error())));
     }
     return std::move(result.get());
 }
@@ -69,8 +67,8 @@ TokenizerHostObject::TokenizerHostObject(std::string tokenizerPath)
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()) {
     auto error = tokenizer_->load(tokenizerPath_);
     if (error != tokenizers::Error::Ok) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::ExecutionFailed, std::format("Failed to load tokenizer from '{}': {}",
-                                                                                        tokenizerPath_, toString(error)));
+        throw error::ExecutionFailed(std::format("Failed to load tokenizer from '{}': {}",
+                                                 tokenizerPath_, toString(error)));
     }
 }
 
@@ -78,10 +76,10 @@ std::unique_lock<std::mutex> TokenizerHostObject::tryLockUnique(jsi::Runtime & /
                                                                 std::string_view context) {
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     if (!lock.owns_lock()) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::ResourceBusy, std::format("{} is currently in use", context));
+        throw error::ResourceBusy(std::format("{} is currently in use", context));
     }
     if (!tokenizer_) {
-        throw RnExecuTorchException(RnExecuTorchErrorCode::ResourceDisposed, std::format("{} has been disposed", context));
+        throw error::ResourceDisposed(std::format("{} has been disposed", context));
     }
     return lock;
 }
@@ -97,7 +95,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "encode: Usage: encode(text)");
+                throw error::InvalidArgument("encode: Usage: encode(text)");
             }
 
             auto lock = self->tryLockUnique(rt, "encode: Tokenizer");
@@ -116,7 +114,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1 || count > 2) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "decode: Usage: decode(tokens, skipSpecialTokens?)");
+                throw error::InvalidArgument("decode: Usage: decode(tokens, skipSpecialTokens?)");
             }
 
             // skipSpecialTokens is optional and defaults to true.
@@ -146,7 +144,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "getVocabSize: Usage: getVocabSize()");
+                throw error::InvalidArgument("getVocabSize: Usage: getVocabSize()");
             }
 
             auto lock = self->tryLockUnique(rt, "getVocabSize: Tokenizer");
@@ -160,7 +158,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "idToToken: Usage: idToToken(id)");
+                throw error::InvalidArgument("idToToken: Usage: idToToken(id)");
             }
 
             auto lock = self->tryLockUnique(rt, "idToToken: Tokenizer");
@@ -178,7 +176,7 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "tokenToId: Usage: tokenToId(token)");
+                throw error::InvalidArgument("tokenToId: Usage: tokenToId(token)");
             }
 
             auto lock = self->tryLockUnique(rt, "tokenToId: Tokenizer");
@@ -196,13 +194,13 @@ jsi::Value TokenizerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "dispose: Usage: dispose()");
+                throw error::InvalidArgument("dispose: Usage: dispose()");
             }
 
             std::unique_lock<std::mutex> lock(self->mutex_);
 
             if (!self->tokenizer_) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::ResourceDisposed, "dispose: Tokenizer has already been disposed");
+                throw error::ResourceDisposed("dispose: Tokenizer has already been disposed");
             }
 
             self->tokenizer_.reset();
@@ -231,7 +229,7 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "loadTokenizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "loadTokenizer: Usage: loadTokenizer(path)");
+            throw error::InvalidArgument("loadTokenizer: Usage: loadTokenizer(path)");
         }
 
         auto tokenizerPath = conversions::asType<std::string>(rt, "loadTokenizer: path", args[0]);
@@ -239,7 +237,7 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
             auto tokenizerInstance = std::make_shared<TokenizerHostObject>(tokenizerPath);
             return jsi::Object::createFromHostObject(rt, tokenizerInstance);
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::ExecutionFailed, std::format("loadTokenizer: {}", e.what()));
+            throw error::ExecutionFailed(std::format("loadTokenizer: {}", e.what()));
         }
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody));

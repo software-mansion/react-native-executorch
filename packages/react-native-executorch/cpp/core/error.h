@@ -14,46 +14,48 @@ namespace rnexecutorch::core::error {
 namespace jsi = facebook::jsi;
 
 /**
- * Mirrors the `RnExecuTorchErrorCode` union in `src/core/error.ts`, which is the
- * source of truth. Keep the two in sync by hand, the same way the rest of the
- * TS/JSI interface is mirrored.
+ * The single list of error codes, mirroring the `RnExecuTorchErrorCode` union
+ * in `src/core/error.ts`, which is the source of truth. Keep the two in sync by
+ * hand, the same way the rest of the TS/JSI interface is mirrored.
+ *
+ * Adding a code here is all it takes: the enum, the string mapping, and the
+ * factory functions below are all expanded from this one list, so they cannot
+ * drift apart.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): X-macro keeps the enum, the string mapping, and the factories from drifting
+#define FOR_ALL_RNEXECUTORCH_ERROR_CODES(V)  \
+    V(LoadFailed, "LOAD_FAILED")             \
+    V(ExecutionFailed, "EXECUTION_FAILED")   \
+    V(SchemaMismatch, "SCHEMA_MISMATCH")     \
+    V(InvalidArgument, "INVALID_ARGUMENT")   \
+    V(InvalidState, "INVALID_STATE")         \
+    V(ResourceDisposed, "RESOURCE_DISPOSED") \
+    V(ResourceBusy, "RESOURCE_BUSY")         \
+    V(DownloadFailed, "DOWNLOAD_FAILED")     \
+    V(DownloadAborted, "DOWNLOAD_ABORTED")   \
+    V(Unknown, "UNKNOWN")
+
 enum class RnExecuTorchErrorCode {
-    LoadFailed,
-    ExecutionFailed,
-    SchemaMismatch,
-    InvalidArgument,
-    InvalidState,
-    ResourceDisposed,
-    ResourceBusy,
-    DownloadFailed,
-    DownloadAborted,
-    Unknown
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): helper macro for X-macro expansion
+#define DEFINE_ENUM(name, str) name,
+    FOR_ALL_RNEXECUTORCH_ERROR_CODES(DEFINE_ENUM)
+#undef DEFINE_ENUM
 };
 
+/**
+ * Maps a code to the string the JavaScript side matches on. Every enumerator is
+ * cased, so an unmapped code cannot silently reach JS as "UNKNOWN".
+ */
 constexpr const char *errorCodeToString(RnExecuTorchErrorCode code) {
     switch (code) {
-    case RnExecuTorchErrorCode::LoadFailed:
-        return "LOAD_FAILED";
-    case RnExecuTorchErrorCode::ExecutionFailed:
-        return "EXECUTION_FAILED";
-    case RnExecuTorchErrorCode::SchemaMismatch:
-        return "SCHEMA_MISMATCH";
-    case RnExecuTorchErrorCode::InvalidArgument:
-        return "INVALID_ARGUMENT";
-    case RnExecuTorchErrorCode::InvalidState:
-        return "INVALID_STATE";
-    case RnExecuTorchErrorCode::ResourceDisposed:
-        return "RESOURCE_DISPOSED";
-    case RnExecuTorchErrorCode::ResourceBusy:
-        return "RESOURCE_BUSY";
-    case RnExecuTorchErrorCode::DownloadFailed:
-        return "DOWNLOAD_FAILED";
-    case RnExecuTorchErrorCode::DownloadAborted:
-        return "DOWNLOAD_ABORTED";
-    default:
-        return "UNKNOWN";
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): helper macro for X-macro expansion
+#define DEFINE_CASE(name, str)        \
+    case RnExecuTorchErrorCode::name: \
+        return str;
+        FOR_ALL_RNEXECUTORCH_ERROR_CODES(DEFINE_CASE)
+#undef DEFINE_CASE
     }
+    return "UNKNOWN";
 }
 
 /**
@@ -62,6 +64,9 @@ constexpr const char *errorCodeToString(RnExecuTorchErrorCode code) {
  * Native code never throws a jsi::JSError directly. `guarded` is the only place
  * that turns an exception into a JavaScript value, so a code can never be lost
  * on the way out.
+ *
+ * Prefer the factory functions below (`error::InvalidArgument(...)`) over
+ * naming the constructor at a throw site.
  */
 class RnExecuTorchException : public std::runtime_error {
 public:
@@ -81,6 +86,21 @@ public:
      */
     std::optional<int32_t> etRuntimeErrorCode_;
 };
+
+/**
+ * One factory per code, so a throw site reads `throw error::InvalidArgument(msg)`
+ * instead of naming both the exception and the enum. Pass `etError` only when
+ * the failure actually came out of the ExecuTorch runtime.
+ */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage): helper macro for X-macro expansion
+#define DEFINE_FACTORY(name, str)                                                                         \
+    inline RnExecuTorchException name(const std::string &message,                                         \
+                                      std::optional<executorch::runtime::Error> etError = std::nullopt) { \
+        return etError ? RnExecuTorchException(RnExecuTorchErrorCode::name, message, *etError)            \
+                       : RnExecuTorchException(RnExecuTorchErrorCode::name, message);                     \
+    }
+FOR_ALL_RNEXECUTORCH_ERROR_CODES(DEFINE_FACTORY)
+#undef DEFINE_FACTORY
 
 /**
  * Throws `e` into JavaScript as an Error carrying `name`, `code`, and (when the
@@ -103,10 +123,9 @@ auto guard(jsi::Runtime &rt, Fn &&fn) -> decltype(fn()) {
         // called back into. Pass it through untouched.
         throw;
     } catch (const std::exception &e) {
-        throwJsiRnExecuTorchError(rt, RnExecuTorchException(RnExecuTorchErrorCode::Unknown, e.what()));
+        throwJsiRnExecuTorchError(rt, Unknown(e.what()));
     } catch (...) {
-        throwJsiRnExecuTorchError(
-            rt, RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "Unknown native exception occurred"));
+        throwJsiRnExecuTorchError(rt, Unknown("Unknown native exception occurred"));
     }
 }
 

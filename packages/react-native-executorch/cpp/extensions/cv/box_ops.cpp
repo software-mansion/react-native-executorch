@@ -21,11 +21,8 @@
 #include <opencv2/core.hpp>
 
 #include "core/error.h"
-namespace {
+
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
-} // namespace
 
 namespace rnexecutorch::extensions::cv::box_ops {
 namespace jsi = facebook::jsi;
@@ -51,7 +48,7 @@ BoxFormat parseBoxFormat(const std::string &ctx, const std::string &s) {
     if (s == "cxcywh") {
         return BoxFormat::CXCYWH;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", ctx, s));
+    throw error::InvalidArgument(std::format("{}: unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", ctx, s));
 }
 
 enum class NmsType {
@@ -66,7 +63,7 @@ NmsType parseNmsType(const std::string &ctx, const std::string &s) {
     if (s == "weighted") {
         return NmsType::Weighted;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: unsupported nmsType '{}'. Expected 'standard' or 'weighted'", ctx, s));
+    throw error::InvalidArgument(std::format("{}: unsupported nmsType '{}'. Expected 'standard' or 'weighted'", ctx, s));
 }
 
 constexpr size_t kBoxCoords = 4;
@@ -91,7 +88,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "nms";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: nms(boxes, scores, options)");
+            throw error::InvalidArgument("Usage: nms(boxes, scores, options)");
         }
 
         auto boxes = tensor::fromJs(rt, "nms: boxes", args[0], DType::float32, {"N", 4});
@@ -212,7 +209,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "restrictToBox";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: restrictToBox(src, dst, boxTuple, format)");
+            throw error::InvalidArgument("Usage: restrictToBox(src, dst, boxTuple, format)");
         }
 
         auto src = tensor::fromJs(rt, "restrictToBox: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -224,8 +221,8 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
 
         auto boxVec = conversions::asVector<float>(rt, "restrictToBox: boxTuple", args[2]);
         if (boxVec.size() != kBoxCoords) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("restrictToBox: boxTuple must contain exactly 4 coordinates (got {})",
-                                                                                            boxVec.size()));
+            throw error::InvalidArgument(std::format("restrictToBox: boxTuple must contain exactly 4 coordinates (got {})",
+                                                     boxVec.size()));
         }
 
         auto boxFormatStr = conversions::asType<std::string>(rt, "restrictToBox: format", args[3]);
@@ -263,7 +260,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
                 srcMat(roi).copyTo(dstMat(roi));
             }
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "restrictToBox: " + std::string(e.what()));
+            throw error::Unknown("restrictToBox: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);

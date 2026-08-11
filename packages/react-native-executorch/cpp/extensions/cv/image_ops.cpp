@@ -20,7 +20,6 @@
 #include "core/error.h"
 namespace {
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
 using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
@@ -48,9 +47,9 @@ int interpToFlag(const std::string &interp) {
     if (interp == "lanczos") {
         return ::cv::INTER_LANCZOS4;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("unsupported interpolation '{}'. Expected"
-                                                                                    " 'nearest', 'area', 'linear', 'cubic', or 'lanczos'",
-                                                                                    interp));
+    throw error::InvalidArgument(std::format("unsupported interpolation '{}'. Expected"
+                                             " 'nearest', 'area', 'linear', 'cubic', or 'lanczos'",
+                                             interp));
 }
 
 struct FitBox {
@@ -73,7 +72,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "resize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: resize(src, dst, options)");
+            throw error::InvalidArgument("Usage: resize(src, dst, options)");
         }
 
         auto src = tensor::fromJs(rt, "resize: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -100,7 +99,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
             interpFlag = interpToFlag(interp);
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "resize: " + std::string(e.what()));
+            throw error::Unknown("resize: " + std::string(e.what()));
         }
 
         try {
@@ -122,12 +121,12 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
                 ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
                 scaled(::cv::Rect(fit.offX, fit.offY, dstW, dstH)).copyTo(dstMat);
             } else {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
+                throw error::InvalidArgument("resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
             }
         } catch (const RnExecuTorchException &) {
             throw;
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "resize: " + std::string(e.what()));
+            throw error::Unknown("resize: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -198,9 +197,9 @@ int codeToColorConversionFlag(const std::string &code) {
     if (code == "GRAY2BGRA") {
         return ::cv::COLOR_GRAY2BGRA;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("cvtColor: unsupported color conversion code '{}'."
-                                                                                    " Common values are 'RGB2BGR', 'BGR2RGB', 'RGBA2RGB', 'RGB2GRAY', etc.",
-                                                                                    code));
+    throw error::InvalidArgument(std::format("cvtColor: unsupported color conversion code '{}'."
+                                             " Common values are 'RGB2BGR', 'BGR2RGB', 'RGBA2RGB', 'RGB2GRAY', etc.",
+                                             code));
 }
 } // namespace
 
@@ -208,7 +207,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "cvtColor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: cvtColor(src, dst, code)");
+            throw error::InvalidArgument("Usage: cvtColor(src, dst, code)");
         }
 
         auto src = tensor::fromJs(rt, "cvtColor: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -238,7 +237,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
 
             ::cv::cvtColor(srcMat, dstMat, flag);
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "cvtColor: " + std::string(e.what()));
+            throw error::Unknown("cvtColor: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -251,7 +250,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "toChannelsFirst";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: toChannelsFirst(src, dst)");
+            throw error::InvalidArgument("Usage: toChannelsFirst(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "toChannelsFirst: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -282,7 +281,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
                 std::ranges::copy(plane, dstBytes.subspan(i * planeBytes, planeBytes).begin());
             }
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "toChannelsFirst: " + std::string(e.what()));
+            throw error::Unknown("toChannelsFirst: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -295,7 +294,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "toChannelsLast";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: toChannelsLast(src, dst)");
+            throw error::InvalidArgument("Usage: toChannelsLast(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "toChannelsLast: src", args[0], std::nullopt, {"C", "H", "W"});
@@ -325,7 +324,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
             ::cv::Mat dstMat(srcH, srcW, CV_MAKETYPE(cvDepth, srcC), dst->data_.get());
             ::cv::merge(channels, dstMat);
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "toChannelsLast: " + std::string(e.what()));
+            throw error::Unknown("toChannelsLast: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -338,7 +337,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "normalize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: normalize(src, dst, options)");
+            throw error::InvalidArgument("Usage: normalize(src, dst, options)");
         }
 
         auto src = tensor::fromJs(rt, "normalize: src", args[0], std::nullopt, {"C", "H", "W"});
@@ -362,7 +361,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
             } else {
                 auto arr = conversions::asVector<double>(rt, std::format("normalize: options.{}", optName), val);
                 if (arr.size() != static_cast<size_t>(c)) {
-                    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("normalize: options.{} array length must be exactly equal to channels", optName));
+                    throw error::InvalidArgument(std::format("normalize: options.{} array length must be exactly equal to channels", optName));
                 }
                 result = std::move(arr);
             }
@@ -394,7 +393,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
                 srcChannel.convertTo(dstChannel, dstDepthType, alpha[ch], beta[ch]);
             }
         } catch (const std::exception &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, "normalize: " + std::string(e.what()));
+            throw error::Unknown("normalize: " + std::string(e.what()));
         }
 
         return jsi::Value(rt, args[1]);
@@ -407,7 +406,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "applyColormap";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Usage: applyColormap(src, dst, colormap)");
+            throw error::InvalidArgument("Usage: applyColormap(src, dst, colormap)");
         }
 
         auto colormapArray = conversions::asType<jsi::Array>(rt, "applyColormap: colormap", args[2]);
@@ -425,8 +424,8 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         for (size_t i = 0; i < numColors; ++i) {
             auto colorVec = conversions::asVector<uint8_t>(rt, "applyColormap: colormap entry", colormapArray.getValueAtIndex(rt, i));
             if (colorVec.size() != numRgbaChannels) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("applyColormap: colormap entry must be an RGBA color array of size 4 (got size {})",
-                                                                                                colorVec.size()));
+                throw error::InvalidArgument(std::format("applyColormap: colormap entry must be an RGBA color array of size 4 (got size {})",
+                                                         colorVec.size()));
             }
             for (size_t c = 0; c < numRgbaChannels; ++c) {
                 lut[i][c] = colorVec[c];
@@ -439,9 +438,9 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
         for (size_t i = 0; i < srcData.size(); ++i) {
             const int32_t idx = srcData[i];
             if (idx < 0 || std::cmp_greater_equal(idx, numColors)) {
-                throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "applyColormap: tensor contains class index (" +
-                                                                                        std::to_string(idx) + ") that exceeds provided colormap size (" +
-                                                                                        std::to_string(numColors) + ")");
+                throw error::InvalidArgument("applyColormap: tensor contains class index (" +
+                                             std::to_string(idx) + ") that exceeds provided colormap size (" +
+                                             std::to_string(numColors) + ")");
             }
             std::ranges::copy(lut[static_cast<size_t>(idx)],
                               dstData.subspan(i * numRgbaChannels, numRgbaChannels).begin());

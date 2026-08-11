@@ -2,10 +2,6 @@
 #include <stdexcept>
 
 #include "core/error.h"
-namespace {
-using rnexecutorch::core::error::RnExecuTorchErrorCode;
-using rnexecutorch::core::error::RnExecuTorchException;
-} // namespace
 
 namespace rnexecutorch::core::types {
 DType dtypeFromString(const std::string &s) {
@@ -21,7 +17,7 @@ DType dtypeFromString(const std::string &s) {
     if (s == "float32") {
         return DType::float32;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
+    throw error::InvalidArgument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', or 'float32'");
 }
 
 std::string dtypeToString(DType dtype) {
@@ -61,7 +57,7 @@ DType dtypeFromScalarType(executorch::aten::ScalarType st) {
     case executorch::aten::ScalarType::Float:
         return DType::float32;
     default:
-        throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, "Unsupported ScalarType");
+        throw error::InvalidArgument("Unsupported ScalarType");
     }
 }
 
