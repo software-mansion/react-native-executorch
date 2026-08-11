@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { download, AbortError } from '../fetcher/fetcher';
+import { download } from '../fetcher/fetcher';
+import { isRnExecuTorchError } from '../core/error';
 
 /**
  * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
@@ -75,7 +76,7 @@ export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
         setDownloadProgress(100);
       })
       .catch((e) => {
-        if (!isMounted || e instanceof AbortError) return;
+        if (!isMounted || isRnExecuTorchError(e, 'DOWNLOAD_ABORTED')) return;
         setDownloadError(e instanceof Error ? e : new Error(String(e)));
       });
 

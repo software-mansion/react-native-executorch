@@ -2,6 +2,7 @@ const path = require('path');
 
 const VALID_CATEGORIES = [
   'Constants',
+  'Errors',
   'Hooks',
   'Types',
   'Typescript API',

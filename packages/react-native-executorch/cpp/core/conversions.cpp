@@ -2,6 +2,8 @@
 #include <cmath>
 #include <limits>
 
+#include "core/error.h"
+
 namespace rnexecutorch::core::conversions {
 
 constexpr auto kMaxInt64Double = static_cast<double>(std::numeric_limits<int64_t>::max());
@@ -15,9 +17,9 @@ constexpr auto kMinUint8Double = static_cast<double>(std::numeric_limits<uint8_t
 constexpr auto kMaxUint8Double = static_cast<double>(std::numeric_limits<uint8_t>::max());
 
 template <>
-double asType<double>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+double asType<double>(jsi::Runtime & /*rt*/, const std::string &ctx, const jsi::Value &val) {
     if (!val.isNumber()) {
-        throw jsi::JSError(rt, ctx + " must be a number");
+        throw error::InvalidArgument(ctx + " must be a number");
     }
     return val.asNumber();
 }
@@ -31,7 +33,7 @@ template <>
 int32_t asType<int32_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
     if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinInt32Double || v > kMaxInt32Double) {
-        throw jsi::JSError(rt, ctx + " must be a 32-bit integer");
+        throw error::InvalidArgument(ctx + " must be a 32-bit integer");
     }
     return static_cast<int32_t>(v);
 }
@@ -40,7 +42,7 @@ template <>
 int64_t asType<int64_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
     if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinInt64Double || v >= kMaxInt64Double) {
-        throw jsi::JSError(rt, ctx + " must be a 64-bit integer");
+        throw error::InvalidArgument(ctx + " must be a 64-bit integer");
     }
     return static_cast<int64_t>(v);
 }
@@ -49,7 +51,7 @@ template <>
 uint64_t asType<uint64_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
     if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < 0.0 || v >= kMaxUint64Double) {
-        throw jsi::JSError(rt, ctx + " must be a non-negative integer");
+        throw error::InvalidArgument(ctx + " must be a non-negative integer");
     }
     return static_cast<uint64_t>(v);
 }
@@ -58,15 +60,15 @@ template <>
 uint8_t asType<uint8_t>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     double v = asType<double>(rt, ctx, val);
     if (std::isnan(v) || std::isinf(v) || v != std::trunc(v) || v < kMinUint8Double || v > kMaxUint8Double) {
-        throw jsi::JSError(rt, ctx + " must be an integer between 0 and 255");
+        throw error::InvalidArgument(ctx + " must be an integer between 0 and 255");
     }
     return static_cast<uint8_t>(v);
 }
 
 template <>
-bool asType<bool>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
+bool asType<bool>(jsi::Runtime & /*rt*/, const std::string &ctx, const jsi::Value &val) {
     if (!val.isBool()) {
-        throw jsi::JSError(rt, ctx + " must be a boolean");
+        throw error::InvalidArgument(ctx + " must be a boolean");
     }
     return val.asBool();
 }
@@ -74,7 +76,7 @@ bool asType<bool>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &va
 template <>
 std::string asType<std::string>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     if (!val.isString()) {
-        throw jsi::JSError(rt, ctx + " must be a string");
+        throw error::InvalidArgument(ctx + " must be a string");
     }
     return val.asString(rt).utf8(rt);
 }
@@ -87,7 +89,7 @@ jsi::Value asType<jsi::Value>(jsi::Runtime &rt, const std::string & /*ctx*/, con
 template <>
 jsi::ArrayBuffer asType<jsi::ArrayBuffer>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     if (!val.isObject() || !val.asObject(rt).isArrayBuffer(rt)) {
-        throw jsi::JSError(rt, ctx + " must be an ArrayBuffer");
+        throw error::InvalidArgument(ctx + " must be an ArrayBuffer");
     }
     return val.asObject(rt).getArrayBuffer(rt);
 }
@@ -95,7 +97,7 @@ jsi::ArrayBuffer asType<jsi::ArrayBuffer>(jsi::Runtime &rt, const std::string &c
 template <>
 jsi::Object asType<jsi::Object>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     if (!val.isObject()) {
-        throw jsi::JSError(rt, ctx + " must be an object");
+        throw error::InvalidArgument(ctx + " must be an object");
     }
     return val.asObject(rt);
 }
@@ -103,7 +105,7 @@ jsi::Object asType<jsi::Object>(jsi::Runtime &rt, const std::string &ctx, const 
 template <>
 jsi::Array asType<jsi::Array>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     if (!val.isObject() || !val.asObject(rt).isArray(rt)) {
-        throw jsi::JSError(rt, ctx + " must be an Array");
+        throw error::InvalidArgument(ctx + " must be an Array");
     }
     return val.asObject(rt).asArray(rt);
 }
@@ -111,7 +113,7 @@ jsi::Array asType<jsi::Array>(jsi::Runtime &rt, const std::string &ctx, const js
 template <>
 jsi::Function asType<jsi::Function>(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
     if (!val.isObject() || !val.asObject(rt).isFunction(rt)) {
-        throw jsi::JSError(rt, ctx + " must be a function");
+        throw error::InvalidArgument(ctx + " must be a function");
     }
     return val.asObject(rt).asFunction(rt);
 }

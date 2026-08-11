@@ -6,6 +6,7 @@ import { validateSpec, DynamicDim as Dyn, method, i64, f32, constr } from '../..
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Model configuration required to instantiate a text embedder task runner.
@@ -115,7 +116,10 @@ export async function createTextEmbedder(
     const text = (prompt ?? defaultPrompt ?? '') + input;
     const ids = tokenizer.encode(text);
     if (ids.length === 0) {
-      throw new Error('createTextEmbedder: input tokenized to zero tokens');
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        'createTextEmbedder: input tokenized to zero tokens'
+      );
     }
     const len = Math.min(ids.length, seqLen.max);
 

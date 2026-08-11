@@ -13,6 +13,7 @@ import {
   type FsmnVadModel,
   type VadStreamOptions,
 } from './fsmnVoiceActivityDetection';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Sample rate (Hz) Whisper models expect their input waveform to be at.
@@ -232,7 +233,10 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
       : ['<|startoftranscript|>', `<|${options.language}|>`, '<|transcribe|>', '<|notimestamps|>'];
 
     if (!isEnglishOnly && tokenizer.tokenToId(`<|${options.language}|>`) === undefined) {
-      throw new Error(`Language "${options.language}" is not recognized.`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Language "${options.language}" is not recognized.`
+      );
     }
     const promptTokens = promptTokenStrings.map((token) => tokenizer.tokenToId(token));
     const maxNewTokens = MAX_SEQ_LEN - promptTokens.length;
@@ -306,7 +310,7 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
     options: WhisperStreamOptions<L>
   ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
     if (isStreaming) {
-      throw new Error('Streaming is already in progress');
+      throw RnExecuTorchError('INVALID_STATE', 'Streaming is already in progress');
     }
     isStreaming = true;
     audioBuffer = new Float32Array(0);

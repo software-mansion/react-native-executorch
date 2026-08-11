@@ -17,6 +17,7 @@ import {
   type BoundingBox,
   type BoxFormat,
 } from '../ops/boxes';
+import { RnExecuTorchError } from '../../../core/error';
 
 export type { BoxFormat };
 
@@ -215,7 +216,8 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
         const label = modelOpts.labels[classIdx];
 
         if (label === undefined) {
-          throw new Error(
+          throw RnExecuTorchError(
+            'INVALID_ARGUMENT',
             `InstanceSegmenter: Predicted class index ${classIdx} is ` +
               `out of bounds for labels array of size ${modelOpts.labels.length}.`
           );
