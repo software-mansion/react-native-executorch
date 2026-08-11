@@ -5,7 +5,8 @@
   "react-native-executorch": {
     "features": [
       "tokenizer",
-      "textEmbeddings"
+      "textEmbeddings",
+      "privacyFilter"
     ]
   },
   "scripts": {

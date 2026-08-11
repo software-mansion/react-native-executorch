@@ -17,6 +17,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-embeddings/')}>
           <Text style={styles.buttonText}>Text Embeddings</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('privacy-filter/')}>
+          <Text style={styles.buttonText}>Privacy Filter</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
