@@ -16,6 +16,7 @@ import {
   type InterpolationMethod,
 } from '../ops/image';
 import { sigmoid, argmax } from '../../math';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring a semantic segmenter preprocessor and label
@@ -159,7 +160,8 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   });
 
   if (nClasses > 1 && modelOpts.labels.length !== nClasses) {
-    throw new Error(
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
       `Model outputs ${nClasses} classes, but ${modelOpts.labels.length} labels were provided in the configuration.`
     );
   }

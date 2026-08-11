@@ -12,6 +12,7 @@ import {
   toChannelsFirst,
   normalize,
 } from '../ops/image';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring the image preprocessor pipeline.
@@ -71,7 +72,8 @@ export function createImagePreprocessor(
   const isRank3 = outputShape.length === 3 && outputShape[0] === numRgbChannels;
   const isRank4 = outputShape.length === 4 && outputShape[1] === numRgbChannels;
   if (!isRank3 && !isRank4) {
-    throw new Error(
+    throw RnExecuTorchError(
+      'SCHEMA_MISMATCH',
       `preprocessor: got shape [${outputShape}], expected [${numRgbChannels}, H, W] or [1, ${numRgbChannels}, H, W]`
     );
   }

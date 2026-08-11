@@ -2,6 +2,7 @@
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import * as telemetry from './telemetry';
+import { RnExecuTorchError } from '../core/error';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -74,17 +75,9 @@ async function remoteSize(url: string): Promise<number> {
   }
 }
 
-/**
- * Raised when a {@link download} is cancelled through its `signal`. Internal:
- * consumers should keep matching on `error.name === 'AbortError'`, which stays
- * the standard `AbortSignal` contract.
- */
-export class AbortError extends Error {
-  constructor(message = 'The download was aborted.') {
-    super(message);
-    this.name = 'AbortError';
-  }
-}
+// Raised when a download is cancelled through its `signal`. Internal: callers
+// match on the DOWNLOAD_ABORTED code via isRnExecuTorchError.
+const abortError = () => RnExecuTorchError('DOWNLOAD_ABORTED', 'The download was aborted.');
 
 type OnBytes = (received: number, total: number) => void;
 
@@ -117,7 +110,7 @@ const inFlight = new Map<string, InFlightDownload>();
 // same temporary file — on Android the second one's opening `unlink` would
 // delete the first one's partially downloaded data.
 async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<string> {
-  if (cb.signal?.aborted) throw new AbortError();
+  if (cb.signal?.aborted) throw abortError();
 
   const dest = cachePathFor(url);
 
@@ -183,7 +176,7 @@ function joinDownload(entry: InFlightDownload, cb: DownloadUrlCallbacks): Promis
       if (cb.onBytes) entry.listeners.delete(cb.onBytes);
       entry.callers -= 1;
       if (entry.callers === 0) entry.controller.abort();
-      reject(new AbortError());
+      reject(abortError());
     };
     cb.signal?.addEventListener('abort', onAbort);
 
@@ -205,7 +198,7 @@ async function downloadUrlViaAndroidDownloadManager(
   const tmp = `${dest}.downloading`;
   await RNBlobUtil.fs.unlink(tmp).catch(() => {});
 
-  if (cb.signal?.aborted) throw new AbortError();
+  if (cb.signal?.aborted) throw abortError();
 
   const task = RNBlobUtil.config({
     addAndroidDownloads: {
@@ -232,7 +225,7 @@ async function downloadUrlViaAndroidDownloadManager(
     await task;
   } catch (e) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw cb.signal?.aborted ? new AbortError() : e;
+    throw cb.signal?.aborted ? abortError() : e;
   } finally {
     cb.signal?.removeEventListener('abort', onAbort);
   }
@@ -241,7 +234,7 @@ async function downloadUrlViaAndroidDownloadManager(
   const size = await fileSize(tmp);
   if (size <= 0) {
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
-    throw new Error(`Download of ${url} failed (empty response).`);
+    throw RnExecuTorchError('DOWNLOAD_FAILED', `Download of ${url} failed (empty response).`);
   }
   await RNBlobUtil.fs.mv(tmp, dest);
   return dest;
@@ -269,7 +262,7 @@ async function downloadUrlViaIosStream(
   const headers: Record<string, string> = {};
   if (offset > 0) headers.Range = `bytes=${offset}-`;
 
-  if (cb.signal?.aborted) throw new AbortError();
+  if (cb.signal?.aborted) throw abortError();
 
   const task = RNBlobUtil.config({ path: target, fileCache: true }).fetch('GET', url, headers);
   const onAbort = () => task.cancel();
@@ -289,7 +282,7 @@ async function downloadUrlViaIosStream(
     // Network drop / cancel. Keep the fresh partial for a future resume, but
     // discard a resumed chunk — its offset assumptions may not hold.
     if (offset > 0) await RNBlobUtil.fs.unlink(target).catch(() => {});
-    throw cb.signal?.aborted ? new AbortError() : e;
+    throw cb.signal?.aborted ? abortError() : e;
   } finally {
     cb.signal?.removeEventListener('abort', onAbort);
   }
@@ -300,7 +293,10 @@ async function downloadUrlViaIosStream(
       await RNBlobUtil.fs.unlink(target).catch(() => {});
     } else if (status >= 400) {
       await RNBlobUtil.fs.unlink(target).catch(() => {});
-      throw new Error(`Download of ${url} failed with HTTP status ${status}.`);
+      throw RnExecuTorchError(
+        'DOWNLOAD_FAILED',
+        `Download of ${url} failed with HTTP status ${status}.`
+      );
     } else if (offset > 0) {
       if (status === 206) {
         // Server honored the range: append the new bytes onto the partial.

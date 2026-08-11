@@ -30,6 +30,7 @@ Before writing any C++ code, ensure you adhere to the following principles:
 - **Do NOT return implicitly allocated JSI Tensors:** Never return newly created `TensorHostObject` instances from C++. This forces the JavaScript layer to reason about their garbage collection and manual lifetimes, leading to native memory leaks.
 - **Do NOT define default parameters in C++:** Native C++ functions must never define default argument values (e.g. `axis = -1`). Define all default values explicitly in the TypeScript wrapper layer instead.
 - **Do NOT perform in-place mutation without safety checks:** Never allow inputs and outputs to share the same underlying instance.
+- **Do NOT throw raw `jsi::JSError`, `std::runtime_error`, or `std::invalid_argument`:** They reach JavaScript with no error code. Throw `error::X(message)` and register through `error::guarded(...)`. See the [Error Handling Skill](../error-handling/SKILL.md).
 
 ---
 
@@ -61,10 +62,12 @@ namespace rnexecutorch::extensions::<domain>
 - Convert primitive parameters using `conversions::asType<T>`.
 - Prevent in-place mutations (aliasing) using `tensor::checkNotSameTensor`.
 - Lock tensors for thread-safe access using `tensor::tryLockShared` (for inputs) and `tensor::tryLockUnique` (for outputs), which also ensure the underlying memory buffer has not been disposed.
+- Raise every failure through a code factory, `error::X(message)`, and wrap the registration in `error::guarded(...)`, so the error reaches JavaScript with a `code`. See the [Error Handling Skill](../error-handling/SKILL.md).
 
 ```cpp
 #include "operations.h"
 #include "core/conversions.h"
+#include "core/error.h"
 #include "core/tensor_helpers.h"
 #include <algorithm>
 
@@ -73,6 +76,9 @@ namespace rnexecutorch::extensions::<domain>
     namespace jsi = facebook::jsi;
     namespace conversions = rnexecutorch::core::conversions;
     namespace tensor = rnexecutorch::core::tensor;
+    // Required under extensions::*; OMIT inside rnexecutorch::core::*, where
+    // unqualified `error` already resolves to the sibling namespace.
+    namespace error = rnexecutorch::core::error;
     using rnexecutorch::core::types::DType;
 
     void install_customOp(jsi::Runtime &rt, jsi::Object &module)
@@ -83,7 +89,7 @@ namespace rnexecutorch::extensions::<domain>
             // 1. Strict argument count validation (No default values here!)
             if (count != 3)
             {
-                throw jsi::JSError(rt, "Usage: customOp(src, dst, factor)");
+                throw error::InvalidArgument("customOp: Usage: customOp(src, dst, factor)");
             }
 
             // 2. Validate, extract input/output tensors and check DType/Shape constraints using fromJs
@@ -114,7 +120,9 @@ namespace rnexecutorch::extensions::<domain>
             return jsi::Value(rt, args[1]);
         };
 
-        module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+        // error::guarded turns any RnExecuTorchException raised in the native stack into a
+        // JS Error carrying `code`. Never register a bare fnBody.
+        module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
     }
 }
 ```
@@ -192,6 +200,9 @@ When adding a native extension, verify that:
 - [ ] In-place mutation is explicitly prevented using `tensor::checkNotSameTensor`.
 - [ ] Input and output tensors are locked using `tensor::tryLockShared` and `tensor::tryLockUnique` respectively.
 - [ ] No default parameter values are defined in the C++ header/source files.
+- [ ] Every failure is raised through a factory, `error::X(message)`; no raw `jsi::JSError` / `std::runtime_error` / `std::invalid_argument` was introduced.
+- [ ] The host function is registered through `error::guarded(fnBody)`, not a bare `fnBody`.
+- [ ] `#include "core/error.h"` and the `namespace error = ...` alias sit at file scope, outside any `#if defined(__ANDROID__)` / `#elif defined(__APPLE__)` branch.
 - [ ] The custom operation install function is registered in both the domain `install` function and core [cpp/RnExecutorch.cpp](../../../packages/react-native-executorch/cpp/RnExecutorch.cpp).
 - [ ] The TypeScript wrapper lives in the right place: domain-general ops in the shared `ops.ts`, model-/task-specific ops under `src/extensions/<domain>/utils/<name>.ts`.
 - [ ] The TypeScript wrapper imports and uses `rnexecutorchJsi` instead of the global `__rnexecutorch_jsi__`.

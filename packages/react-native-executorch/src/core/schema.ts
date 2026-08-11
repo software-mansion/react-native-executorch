@@ -73,6 +73,7 @@
  * @packageDocumentation
  */
 import type { DType } from './tensor';
+import { RnExecuTorchError } from './error';
 
 // ========================================================
 // Parameter specs
@@ -256,11 +257,15 @@ export const DynamicDim = (symbol: string): SymbolicDim => {
  * @category Typescript API
  * @param value The required dimension size.
  * @returns The concrete dimension.
- * @throws {Error} If `value` is not a positive integer.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `value`
+ * is not a positive integer.
  */
 export const ConstantDim = (value: number): ConcreteDim => {
   if (value <= 0 || !Number.isInteger(value)) {
-    throw new Error(`Invalid value (${value}): must be a positive integer.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Invalid value (${value}): must be a positive integer.`
+    );
   }
   return { kind: 'constant', value };
 };
@@ -270,11 +275,12 @@ export const ConstantDim = (value: number): ConcreteDim => {
  * @category Typescript API
  * @param choices The allowed dimension sizes.
  * @returns The concrete dimension.
- * @throws {Error} If any choice is not a positive integer.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+ * choice is not a positive integer.
  */
 export const EnumDim = (choices: readonly number[]): ConcreteDim => {
   if (choices.some((dim) => dim <= 0 || !Number.isInteger(dim))) {
-    throw new Error(`Invalid enum choice: must be a positive integer`);
+    throw RnExecuTorchError('INVALID_ARGUMENT', `Invalid enum choice: must be a positive integer`);
   }
   return { kind: 'enum', choices };
 };
@@ -287,20 +293,33 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
  * @param max The largest allowed dimension size.
  * @param step The increment between allowed sizes. Defaults to 1.
  * @returns The concrete dimension.
- * @throws {Error} If the range bounds or step are not valid positive integers.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the range
+ * bounds or step are not valid positive integers.
  */
 export const RangeDim = (min: number, max: number, step?: number): ConcreteDim => {
   if (min <= 0 || !Number.isInteger(min)) {
-    throw new Error(`Invalid range min (${min}): must be a positive integer.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Invalid range min (${min}): must be a positive integer.`
+    );
   }
   if (max < min) {
-    throw new Error(`Invalid range [${min}, ${max}]: max cannot be less than min.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Invalid range [${min}, ${max}]: max cannot be less than min.`
+    );
   }
   if (!Number.isInteger(max)) {
-    throw new Error(`Invalid range max (${max}): must be a positive integer.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Invalid range max (${max}): must be a positive integer.`
+    );
   }
   if (step !== undefined && (step <= 0 || !Number.isInteger(step))) {
-    throw new Error(`Invalid range step (${step}): must be a positive integer.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `Invalid range step (${step}): must be a positive integer.`
+    );
   }
   return { kind: 'range', range: { min, max, step: step ?? 1 } };
 };
@@ -380,21 +399,21 @@ function matchDim(
 ): void {
   if (sDim.kind === 'constant' && cDim.kind === 'constant') {
     if (sDim.value !== cDim.value) {
-      throw new Error(`${ctx}: Constant dimension mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Constant dimension mismatch.`);
     }
     return;
   }
 
   if (sDim.kind === 'range' && cDim.kind === 'range') {
     if (!rangesEqual(sDim.range, cDim.range)) {
-      throw new Error(`${ctx}: Range dimension mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Range dimension mismatch.`);
     }
     return;
   }
 
   if (sDim.kind === 'enum' && cDim.kind === 'enum') {
     if (!choicesEqual(sDim.choices, cDim.choices)) {
-      throw new Error(`${ctx}: Enum dimension mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Enum dimension mismatch.`);
     }
     return;
   }
@@ -403,7 +422,10 @@ function matchDim(
     const bind = bindings.get(sDim.symbol);
     if (bind) {
       if (bind.kind !== 'constant' || bind.value !== cDim.value) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw RnExecuTorchError(
+          'SCHEMA_MISMATCH',
+          `${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`
+        );
       }
       return;
     }
@@ -419,7 +441,10 @@ function matchDim(
       const consistentEnum =
         bind.kind === 'enum' && cDim.kind === 'enum' && choicesEqual(bind.choices, cDim.choices);
       if (!consistentRange && !consistentEnum) {
-        throw new Error(`${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`);
+        throw RnExecuTorchError(
+          'SCHEMA_MISMATCH',
+          `${ctx}: Symbol '${sDim.symbol}' has inconsistent bindings.`
+        );
       }
       return;
     }
@@ -427,7 +452,10 @@ function matchDim(
     return;
   }
 
-  throw new Error(`${ctx}: Cannot match symbolic '${sDim.kind}' with concrete '${cDim.kind}'.`);
+  throw RnExecuTorchError(
+    'SCHEMA_MISMATCH',
+    `${ctx}: Cannot match symbolic '${sDim.kind}' with concrete '${cDim.kind}'.`
+  );
 }
 
 function matchMethodSpecs(
@@ -437,10 +465,10 @@ function matchMethodSpecs(
   ctx: string
 ): void {
   if (allowedMethodSpec.inputs.length !== exportedMethodSpec.inputs.length) {
-    throw new Error(`${ctx}: Input count mismatch.`);
+    throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Input count mismatch.`);
   }
   if (allowedMethodSpec.outputs.length !== exportedMethodSpec.outputs.length) {
-    throw new Error(`${ctx}: Output count mismatch.`);
+    throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Output count mismatch.`);
   }
 
   const allowedParamSpecs = [...allowedMethodSpec.inputs, ...allowedMethodSpec.outputs];
@@ -455,7 +483,7 @@ function matchMethodSpecs(
     const exportedParamSpec = exportedParamSpecs[p]!;
 
     if (allowedParamSpec.kind !== exportedParamSpec.kind) {
-      throw new Error(`${paramSpecCtx}: Param spec kind mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${paramSpecCtx}: Param spec kind mismatch.`);
     }
 
     if (allowedParamSpec.kind !== 'Tensor') continue;
@@ -464,11 +492,11 @@ function matchMethodSpecs(
     const exportedTensorSpec = exportedParamSpec as TensorSpec<ConcreteDim>;
 
     if (allowedTensorSpec.dtype !== exportedTensorSpec.dtype) {
-      throw new Error(`${paramSpecCtx}: DType mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${paramSpecCtx}: DType mismatch.`);
     }
 
     if (allowedTensorSpec.shape.length !== exportedTensorSpec.shape.length) {
-      throw new Error(`${paramSpecCtx}: Rank mismatch.`);
+      throw RnExecuTorchError('SCHEMA_MISMATCH', `${paramSpecCtx}: Rank mismatch.`);
     }
 
     for (let d = 0; d < allowedTensorSpec.shape.length; ++d) {
@@ -486,7 +514,10 @@ function matchModelSpecsSymbols(
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
-      throw new Error(`Method '${methodName}' not found in exported model spec.`);
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `Method '${methodName}' not found in exported model spec.`
+      );
     }
     matchMethodSpecs(allowedMethodSpec, exportedMethodSpec, bindings, `Method '${methodName}'`);
   }
@@ -540,12 +571,18 @@ function resolveDim<D extends SymbolicDim>(methodSpec: MethodSpec<D>, ref: DimRe
 
   const tensorSpec = tensorSpecs[ref.tensorIdx];
   if (!tensorSpec) {
-    throw new Error(`Invalid DimRef (${JSON.stringify(ref)}): tensor index out of range.`);
+    throw RnExecuTorchError(
+      'SCHEMA_MISMATCH',
+      `Invalid DimRef (${JSON.stringify(ref)}): tensor index out of range.`
+    );
   }
 
   const dim = tensorSpec.shape[ref.dimIdx];
   if (!dim) {
-    throw new Error(`Invalid DimRef (${JSON.stringify(ref)}): dimension index out of range.`);
+    throw RnExecuTorchError(
+      'SCHEMA_MISMATCH',
+      `Invalid DimRef (${JSON.stringify(ref)}): dimension index out of range.`
+    );
   }
 
   return dim;
@@ -558,7 +595,10 @@ function matchRuntimeConstraints(
   for (const [methodName, allowedMethodSpec] of Object.entries(allowedModelSpec)) {
     const exportedMethodSpec = exportedModelSpec[methodName];
     if (!exportedMethodSpec) {
-      throw new Error(`Method '${methodName}' not found in exported model spec.`);
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `Method '${methodName}' not found in exported model spec.`
+      );
     }
 
     const unclaimed = [...exportedMethodSpec.runtimeConstraints];
@@ -566,13 +606,19 @@ function matchRuntimeConstraints(
     for (const [idx, constraint] of allowedMethodSpec.runtimeConstraints.entries()) {
       const find = unclaimed.findIndex((c) => constraintsEqual(c, constraint));
       if (find === -1) {
-        throw new Error(`Constraint ${idx}: Not declared by the exported model spec.`);
+        throw RnExecuTorchError(
+          'SCHEMA_MISMATCH',
+          `Constraint ${idx}: Not declared by the exported model spec.`
+        );
       }
       unclaimed.splice(find, 1);
     }
 
     if (unclaimed.length > 0) {
-      throw new Error(`'${methodName}': Exported spec declares unexpected runtime constraints`);
+      throw RnExecuTorchError(
+        'SCHEMA_MISMATCH',
+        `'${methodName}': Exported spec declares unexpected runtime constraints`
+      );
     }
   }
 }
@@ -593,7 +639,10 @@ function validateSymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void 
 
         const existing = symbolKinds.get(dim.symbol);
         if (existing && existing !== dim.kind) {
-          throw new Error(`Invalid spec: '${dim.symbol}' is used as both 'static' and 'dynamic'.`);
+          throw RnExecuTorchError(
+            'SCHEMA_MISMATCH',
+            `Invalid spec: '${dim.symbol}' is used as both 'static' and 'dynamic'.`
+          );
         }
         symbolKinds.set(dim.symbol, dim.kind);
       }
@@ -609,7 +658,7 @@ function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void 
       if (constraint.kind === 'linear') {
         const [A, B] = constraint.coefficients;
         if (!Number.isInteger(A) || !Number.isInteger(B)) {
-          throw new Error(`${ctx}: Coefficients must be integers.`);
+          throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Coefficients must be integers.`);
         }
         resolveDim(methodSpec, constraint.dimLhs);
         resolveDim(methodSpec, constraint.dimRhs);
@@ -617,7 +666,10 @@ function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void 
 
       if (constraint.kind === 'equality') {
         if (constraint.dims.length < 2) {
-          throw new Error(`${ctx}: Equality requires at least two dimensions.`);
+          throw RnExecuTorchError(
+            'SCHEMA_MISMATCH',
+            `${ctx}: Equality requires at least two dimensions.`
+          );
         }
         constraint.dims.forEach((ref) => resolveDim(methodSpec, ref));
       }
@@ -640,26 +692,41 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
 
         if (dim.kind === 'constant') {
           if (dim.value <= 0 || !Number.isInteger(dim.value)) {
-            throw new Error(`${ctx}: constant dim must be a positive integer.`);
+            throw RnExecuTorchError(
+              'SCHEMA_MISMATCH',
+              `${ctx}: constant dim must be a positive integer.`
+            );
           }
         }
         if (dim.kind === 'range') {
           if (dim.range.min <= 0 || !Number.isInteger(dim.range.min)) {
-            throw new Error(`${ctx}: range min must be a positive integer.`);
+            throw RnExecuTorchError(
+              'SCHEMA_MISMATCH',
+              `${ctx}: range min must be a positive integer.`
+            );
           }
           if (dim.range.max < dim.range.min || !Number.isInteger(dim.range.max)) {
-            throw new Error(`${ctx}: range max must be >= min.`);
+            throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: range max must be >= min.`);
           }
           if (dim.range.step <= 0 || !Number.isInteger(dim.range.step)) {
-            throw new Error(`${ctx}: range step must be a positive integer.`);
+            throw RnExecuTorchError(
+              'SCHEMA_MISMATCH',
+              `${ctx}: range step must be a positive integer.`
+            );
           }
         }
         if (dim.kind === 'enum') {
           if (dim.choices.length === 0) {
-            throw new Error(`${ctx}: enum must have at least one choice.`);
+            throw RnExecuTorchError(
+              'SCHEMA_MISMATCH',
+              `${ctx}: enum must have at least one choice.`
+            );
           }
           if (dim.choices.some((c) => c <= 0 || !Number.isInteger(c))) {
-            throw new Error(`${ctx}: enum choices must be positive integers.`);
+            throw RnExecuTorchError(
+              'SCHEMA_MISMATCH',
+              `${ctx}: enum choices must be positive integers.`
+            );
           }
         }
       }
@@ -680,7 +747,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
    * @param name The symbol name.
    * @param kind Expected dimension kind — determines the return type. Omit to
    * get the raw {@link ConcreteDim} when the kind is not known upfront.
-   * @throws {Error} If the symbol is not found or has a different kind.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the
+   * symbol is not found or has a different kind.
    */
   dim(name: string, kind: 'constant'): number;
   dim(name: string, kind: 'range'): Range;
@@ -696,7 +764,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves concrete dimension objects for multiple symbols.
      * @param names Symbol names to retrieve.
      * @returns A tuple of {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found.
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+     * symbol is not found.
      */
     any<S extends string[]>(...names: S): { [I in keyof S]: ConcreteDim };
 
@@ -704,7 +773,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves choice arrays for multiple enumerated dynamic symbols.
      * @param names Symbol names expected to be enum dimensions.
      * @returns A tuple of choice arrays corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not an enum dimension.
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+     * symbol is not found or is not an enum dimension.
      */
     enum<S extends string[]>(...names: S): { [I in keyof S]: readonly number[] };
 
@@ -712,7 +782,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves range objects for multiple dynamic symbols.
      * @param names Symbol names expected to be range dimensions.
      * @returns A tuple of {@link Range} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not a range dimension.
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+     * symbol is not found or is not a range dimension.
      */
     range<S extends string[]>(...names: S): { [I in keyof S]: Range };
 
@@ -720,7 +791,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves dynamic dimension objects (range or enum) for multiple symbols.
      * @param names Symbol names expected to be dynamic dimensions (range or enum).
      * @returns A tuple of dynamic {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is a constant dimension.
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+     * symbol is not found or is a constant dimension.
      */
     dynamic<S extends string[]>(
       ...names: S
@@ -730,7 +802,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves constant numeric values for multiple static symbols.
      * @param names Symbol names expected to be constant dimensions.
      * @returns A tuple of numbers corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not a constant dimension.
+     * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+     * symbol is not found or is not a constant dimension.
      */
     constant<S extends string[]>(...names: S): { [I in keyof S]: number };
   };
@@ -753,7 +826,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
  * @param allowedModelSpecs The allowed model spec variants keyed by name.
  * @returns A {@link SpecMatch} with the matched variant key and dim
  * accessors.
- * @throws {Error} A human-readable description of why every variant failed.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH`, describing
+ * why every variant failed.
  */
 export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
   exportedModelSpec: ModelSpec<ConcreteDim>,
@@ -780,17 +854,23 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
       const dimFn = (name: string, kind?: string): any => {
         const dim = bindings.get(name);
         if (!dim) {
-          throw new Error(`Symbol '${name}' not found in bindings.`);
+          throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
         }
         if (kind) {
           if (kind === 'dynamic') {
             if (dim.kind === 'constant') {
-              throw new Error(`Symbol '${name}' is 'constant', expected 'dynamic'.`);
+              throw RnExecuTorchError(
+                'INVALID_ARGUMENT',
+                `Symbol '${name}' is 'constant', expected 'dynamic'.`
+              );
             }
             return dim;
           }
           if (dim.kind !== kind) {
-            throw new Error(`Symbol '${name}' is '${dim.kind}', expected '${kind}'.`);
+            throw RnExecuTorchError(
+              'INVALID_ARGUMENT',
+              `Symbol '${name}' is '${dim.kind}', expected '${kind}'.`
+            );
           }
         }
         if (dim.kind === 'constant') return dim.value;
@@ -820,5 +900,8 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
     }
   }
 
-  throw new Error(`Spec doesn't match any of the provided variants:\n - ${errors.join('\n - ')}`);
+  throw RnExecuTorchError(
+    'SCHEMA_MISMATCH',
+    `Spec doesn't match any of the provided variants:\n - ${errors.join('\n - ')}`
+  );
 }

@@ -8,6 +8,7 @@ import { wrapAsync } from '../../../core/runtime';
 import { softmax } from '../../math';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring an image classifier preprocessor and label
@@ -108,7 +109,8 @@ export async function createClassifier<L>(
   const outShape = { batched: [1, N], unbatched: [N] }[variant];
 
   if (modelOpts.labels.length !== N) {
-    throw new Error(
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
       `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${N}).`
     );
   }
@@ -133,7 +135,10 @@ export async function createClassifier<L>(
   ): Classification<L>[] => {
     'worklet';
     if (options?.topk !== undefined && options.topk < 0) {
-      throw new Error(`Classifier topk option must be non-negative`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Classifier topk option must be non-negative, got ${options.topk}`
+      );
     }
     const tInput = preprocessor.process(input);
     model.execute('forward', [tInput], [tLogits]);

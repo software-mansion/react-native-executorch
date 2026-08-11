@@ -5,6 +5,8 @@
 #include <executorch/runtime/backend/interface.h>
 #include <executorch/runtime/core/error.h>
 
+#include "core/error.h"
+
 #if defined(__ANDROID__)
 #include <sys/system_properties.h>
 #elif defined(__APPLE__)
@@ -78,7 +80,7 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
     const auto *name = "getExecuTorchRegisteredBackends";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
         if (count != 0) {
-            throw jsi::JSError(rt, "Usage: getExecuTorchRegisteredBackends()");
+            throw error::InvalidArgument("Usage: getExecuTorchRegisteredBackends()");
         }
 
         auto registeredCount = executorch::runtime::get_num_registered_backends();
@@ -87,13 +89,13 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
             auto backendName = executorch::runtime::get_backend_name(i);
             if (!backendName.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(backendName.error());
-                throw jsi::JSError(rt, "Failed to get backend name: " + errorMsg);
+                throw error::Unknown("Failed to get backend name: " + errorMsg);
             }
             jsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, backendName.get()));
         }
         return jsArray;
     };
-    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 0, fnBody);
+    auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 0, error::guarded(fnBody));
 
     module.setProperty(rt, name, fn);
 }
