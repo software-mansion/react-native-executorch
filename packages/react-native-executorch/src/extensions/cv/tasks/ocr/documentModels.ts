@@ -424,7 +424,11 @@ export async function createDocumentModels(
     );
     created.push(orientationPreprocessor);
     const dewarpPreprocessor = createImagePreprocessor(
-      { resizeMode: 'stretch', interpolation: 'linear', normalizeOpts: { alpha: 1 / 255, beta: 0 } },
+      {
+        resizeMode: 'stretch',
+        interpolation: 'linear',
+        normalizeOpts: { alpha: 1 / 255, beta: 0 },
+      },
       s.dewarp.input
     );
     created.push(dewarpPreprocessor);

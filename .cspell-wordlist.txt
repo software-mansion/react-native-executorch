@@ -330,3 +330,5 @@ dewarped
 nums
 ocrv
 unclips
+NHWC
+SVTR

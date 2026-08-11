@@ -37,9 +37,7 @@ export type TextBoxExtractor = {
    * @param dim Symbol factory for every input-size-dependent dimension.
    * @returns One param spec per `detect` output, in order.
    */
-  readonly detectOutputSpec: (
-    dim: (symbol: string) => SymbolicDim
-  ) => ParamSpec<SymbolicDim>[];
+  readonly detectOutputSpec: (dim: (symbol: string) => SymbolicDim) => ParamSpec<SymbolicDim>[];
   /**
    * The `float32` output tensor shapes the `detect` method produces for a given
    * detector input size, so the caller can pre-allocate them. One shape per

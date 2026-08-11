@@ -666,7 +666,7 @@ function refsEqual(a: DimRef, b: DimRef): boolean {
 // feeds the result back into the allowed spec so `validateSpec` still matches the
 // constraint 1-to-1 and rejects any others the model may declare.
 function readCtcStride(schema: ModelSpec<ConcreteDim>): CtcStride {
-  const constraints = schema['recognize']?.runtimeConstraints ?? [];
+  const constraints = schema.recognize?.runtimeConstraints ?? [];
   const linear = constraints.find(
     (c): c is LinearConstraint =>
       c.kind === 'linear' &&
@@ -694,11 +694,7 @@ function readCtcStride(schema: ModelSpec<ConcreteDim>): CtcStride {
 
 // The exported domain of one tensor dimension. `validateSpec` has already proved
 // the method exists with this rank, so the lookup cannot miss.
-function exportedDim(
-  schema: ModelSpec<ConcreteDim>,
-  methodName: string,
-  ref: DimRef
-): ConcreteDim {
+function exportedDim(schema: ModelSpec<ConcreteDim>, methodName: string, ref: DimRef): ConcreteDim {
   const methodSpec = schema[methodName]!;
   const params = ref.paramSide === 'input' ? methodSpec.inputs : methodSpec.outputs;
   const tensors = params.filter((p): p is TensorSpec<ConcreteDim> => p.kind === 'Tensor');
