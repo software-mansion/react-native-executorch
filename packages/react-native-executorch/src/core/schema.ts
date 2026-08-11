@@ -257,7 +257,8 @@ export const DynamicDim = (symbol: string): SymbolicDim => {
  * @category Typescript API
  * @param value The required dimension size.
  * @returns The concrete dimension.
- * @throws {Error} If `value` is not a positive integer.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `value`
+ * is not a positive integer.
  */
 export const ConstantDim = (value: number): ConcreteDim => {
   if (value <= 0 || !Number.isInteger(value)) {
@@ -274,7 +275,8 @@ export const ConstantDim = (value: number): ConcreteDim => {
  * @category Typescript API
  * @param choices The allowed dimension sizes.
  * @returns The concrete dimension.
- * @throws {Error} If any choice is not a positive integer.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
+ * choice is not a positive integer.
  */
 export const EnumDim = (choices: readonly number[]): ConcreteDim => {
   if (choices.some((dim) => dim <= 0 || !Number.isInteger(dim))) {
@@ -291,7 +293,8 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
  * @param max The largest allowed dimension size.
  * @param step The increment between allowed sizes. Defaults to 1.
  * @returns The concrete dimension.
- * @throws {Error} If the range bounds or step are not valid positive integers.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the range
+ * bounds or step are not valid positive integers.
  */
 export const RangeDim = (min: number, max: number, step?: number): ConcreteDim => {
   if (min <= 0 || !Number.isInteger(min)) {
@@ -744,7 +747,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
    * @param name The symbol name.
    * @param kind Expected dimension kind — determines the return type. Omit to
    * get the raw {@link ConcreteDim} when the kind is not known upfront.
-   * @throws {Error} If the symbol is not found or has a different kind.
+   * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the
+   * symbol is not found or has a different kind.
    */
   dim(name: string, kind: 'constant'): number;
   dim(name: string, kind: 'range'): Range;
@@ -760,7 +764,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves concrete dimension objects for multiple symbols.
      * @param names Symbol names to retrieve.
      * @returns A tuple of {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found.
+     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * symbol is not found.
      */
     any<S extends string[]>(...names: S): { [I in keyof S]: ConcreteDim };
 
@@ -768,7 +773,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves choice arrays for multiple enumerated dynamic symbols.
      * @param names Symbol names expected to be enum dimensions.
      * @returns A tuple of choice arrays corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not an enum dimension.
+     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * symbol is not found or is not an enum dimension.
      */
     enum<S extends string[]>(...names: S): { [I in keyof S]: readonly number[] };
 
@@ -776,7 +782,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves range objects for multiple dynamic symbols.
      * @param names Symbol names expected to be range dimensions.
      * @returns A tuple of {@link Range} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not a range dimension.
+     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * symbol is not found or is not a range dimension.
      */
     range<S extends string[]>(...names: S): { [I in keyof S]: Range };
 
@@ -784,7 +791,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves dynamic dimension objects (range or enum) for multiple symbols.
      * @param names Symbol names expected to be dynamic dimensions (range or enum).
      * @returns A tuple of dynamic {@link ConcreteDim} objects corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is a constant dimension.
+     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * symbol is not found or is a constant dimension.
      */
     dynamic<S extends string[]>(
       ...names: S
@@ -794,7 +802,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
      * Retrieves constant numeric values for multiple static symbols.
      * @param names Symbol names expected to be constant dimensions.
      * @returns A tuple of numbers corresponding to `names`.
-     * @throws {Error} If any symbol is not found or is not a constant dimension.
+     * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if any
+     * symbol is not found or is not a constant dimension.
      */
     constant<S extends string[]>(...names: S): { [I in keyof S]: number };
   };
@@ -817,7 +826,8 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
  * @param allowedModelSpecs The allowed model spec variants keyed by name.
  * @returns A {@link SpecMatch} with the matched variant key and dim
  * accessors.
- * @throws {Error} A human-readable description of why every variant failed.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH`, describing
+ * why every variant failed.
  */
 export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
   exportedModelSpec: ModelSpec<ConcreteDim>,

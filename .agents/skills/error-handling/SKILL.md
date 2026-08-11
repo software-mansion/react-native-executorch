@@ -160,6 +160,9 @@ issue #1288 for the separate discussion about splitting user-facing examples out
   message instead.
 - **Do NOT generate the codes.** They are mirrored by hand, like the rest of the TS/JSI
   interface.
+- **Do NOT leave a stale `@throws`.** Doc comments naming `jsi::JSError`,
+  `std::runtime_error`, or `std::invalid_argument` are wrong: nothing in the library throws
+  those any more.
 
 ---
 
@@ -173,5 +176,8 @@ When adding or changing error handling, verify that:
 - [ ] The `namespace error = ...` alias is present in `extensions::*` and absent in `core::*`.
 - [ ] `#include "core/error.h"` and its `using` declarations sit at file scope, outside any preprocessor branch.
 - [ ] Catch sites use `isRnExecuTorchError(e, 'CODE')` rather than matching on the message.
+- [ ] Every `@throws` on a function you touched names the exception **and its code**
+      (`@throws error::RnExecuTorchException with code InvalidArgument if ...` in C++,
+      `@throws {RnExecuTorchError} With code \`INVALID_ARGUMENT\` if ...` in TypeScript).
 - [ ] Any new code was justified by a distinct recovery path, and added to `src/core/error.ts` **and** `cpp/core/error.h` (enum + `errorCodeToString`).
 - [ ] Error handling in `apps/` was left surfacing raw errors.

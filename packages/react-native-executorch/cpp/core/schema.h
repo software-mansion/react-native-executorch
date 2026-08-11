@@ -186,13 +186,14 @@ using ModelSpec = std::unordered_map<std::string, MethodSpec>;
 
 /**
  * Parses a JSON-encoded ModelSpec into a C++ `ModelSpec` structure using
- * nlohmann::json. Throws `std::runtime_error` with `ctx` context on invalid
- * JSON syntax or unrecognized kinds and tags. Semantic validation against model
- * metadata is performed separately by `validateSpec`.
+ * nlohmann::json. Semantic validation against model metadata is performed
+ * separately by `validateSpec`.
  *
  * @param ctx Context description used for error messages.
  * @param json The JSON string to parse.
  * @return The parsed model spec.
+ * @throws error::RnExecuTorchException with code SchemaMismatch, carrying
+ * `ctx`, on invalid JSON syntax or unrecognized kinds and tags.
  */
 ModelSpec parseModelSpecJson(const std::string &ctx, const std::string &json);
 
@@ -260,7 +261,8 @@ std::vector<std::string> getUsedBackends(const executorch::runtime::MethodMeta &
  * @param spec The method spec to validate.
  * @param meta The method metadata from the .pte program.
  * @param ctx Context string for error messages.
- * @throws std::runtime_error on any mismatch or invalid spec.
+ * @throws error::RnExecuTorchException with code SchemaMismatch on any
+ * mismatch or invalid spec.
  */
 void validateSpec(const MethodSpec &spec,
                   const executorch::runtime::MethodMeta &meta,
@@ -279,7 +281,8 @@ void validateSpec(const MethodSpec &spec,
  * @param constraints The list of runtime constraints to validate.
  * @param inputShapes Per-tensor input shapes (indexed by `DimRef.tensorIdx`).
  * @param ctx Context string for error messages (e.g. method name).
- * @throws jsi::JSError on constraint violation.
+ * @throws error::RnExecuTorchException with code InvalidArgument on constraint
+ * violation.
  */
 void validateRuntimeConstraints(jsi::Runtime &rt,
                                 const std::vector<RuntimeConstraint> &constraints,

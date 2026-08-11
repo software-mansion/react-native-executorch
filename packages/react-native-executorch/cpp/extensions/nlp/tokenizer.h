@@ -25,7 +25,8 @@ public:
      * Constructs a TokenizerHostObject by loading a HuggingFace tokenizer configuration file.
      *
      * @param tokenizerPath File system path to the tokenizer configuration file.
-     * @throws std::runtime_error If loading the tokenizer fails.
+     * @throws core::error::RnExecuTorchException with code ExecutionFailed if
+     * loading the tokenizer fails.
      */
     explicit TokenizerHostObject(std::string tokenizerPath);
 
@@ -35,11 +36,13 @@ public:
 private:
     /**
      * Tries to acquire a unique lock on the tokenizer's mutex.
-     * Throws a facebook::jsi::JSError with contextual error info if the lock cannot be acquired.
      *
      * @param rt The JSI runtime instance.
      * @param context Context description used to generate helpful error messages.
      * @return A unique lock protecting the tokenizer.
+     * @throws core::error::RnExecuTorchException with code ResourceBusy if the
+     * lock is currently held by another thread, or ResourceDisposed if the
+     * tokenizer has already been disposed.
      */
     [[nodiscard]] std::unique_lock<std::mutex> tryLockUnique(facebook::jsi::Runtime &rt,
                                                              std::string_view context);

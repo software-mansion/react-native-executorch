@@ -41,7 +41,7 @@ enum class BoxFormat {
     CXCYWH
 };
 
-BoxFormat parseBoxFormat(const std::string &s) {
+BoxFormat parseBoxFormat(const std::string &ctx, const std::string &s) {
     if (s == "xyxy") {
         return BoxFormat::XYXY;
     }
@@ -51,7 +51,7 @@ BoxFormat parseBoxFormat(const std::string &s) {
     if (s == "cxcywh") {
         return BoxFormat::CXCYWH;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", s));
+    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: unsupported boxFormat '{}'. Expected 'xyxy', 'xywh', or 'cxcywh'", ctx, s));
 }
 
 enum class NmsType {
@@ -59,14 +59,14 @@ enum class NmsType {
     Weighted
 };
 
-NmsType parseNmsType(const std::string &s) {
+NmsType parseNmsType(const std::string &ctx, const std::string &s) {
     if (s == "standard") {
         return NmsType::Standard;
     }
     if (s == "weighted") {
         return NmsType::Weighted;
     }
-    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("unsupported nmsType '{}'. Expected 'standard' or 'weighted'", s));
+    throw RnExecuTorchException(RnExecuTorchErrorCode::InvalidArgument, std::format("{}: unsupported nmsType '{}'. Expected 'standard' or 'weighted'", ctx, s));
 }
 
 constexpr size_t kBoxCoords = 4;
@@ -107,14 +107,8 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
         auto iouThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "iouThreshold");
         auto confidenceThreshold = conversions::getRequiredProperty<float>(rt, "nms: options", opts, "confidenceThreshold");
 
-        NmsType nmsType{};
-        BoxFormat boxFormat{};
-        try {
-            nmsType = parseNmsType(nmsTypeStr);
-            boxFormat = parseBoxFormat(boxFormatStr);
-        } catch (const std::invalid_argument &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, std::format("nms: {}", e.what()));
-        }
+        NmsType nmsType = parseNmsType("nms", nmsTypeStr);
+        BoxFormat boxFormat = parseBoxFormat("nms", boxFormatStr);
 
         std::int32_t numAnchors = scores->shape_[0];
         const std::span<const float> boxesData(reinterpret_cast<const float *>(boxes->data_.get()), boxes->numel_);
@@ -235,12 +229,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         auto boxFormatStr = conversions::asType<std::string>(rt, "restrictToBox: format", args[3]);
-        BoxFormat boxFormat{};
-        try {
-            boxFormat = parseBoxFormat(boxFormatStr);
-        } catch (const std::invalid_argument &e) {
-            throw RnExecuTorchException(RnExecuTorchErrorCode::Unknown, std::format("restrictToBox: {}", e.what()));
-        }
+        BoxFormat boxFormat = parseBoxFormat("restrictToBox", boxFormatStr);
 
         auto [xmin, ymin, xmax, ymax] = decodeToXyxy(std::span<const float, kBoxCoords>(boxVec), boxFormat);
 

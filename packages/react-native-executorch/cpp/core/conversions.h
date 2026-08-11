@@ -16,14 +16,15 @@ namespace rnexecutorch::core::conversions {
 namespace jsi = facebook::jsi;
 
 /**
- * Converts a facebook::jsi::Value to a specified target C++ or JSI type. Throws
- * a facebook::jsi::JSError with contextual error info if the conversion fails.
+ * Converts a facebook::jsi::Value to a specified target C++ or JSI type.
  *
  * @tparam T The target type to convert to.
  * @param rt The JSI runtime instance.
  * @param ctx Context description used to generate helpful error messages.
  * @param val The JSI value to convert.
  * @return The converted value of type T.
+ * @throws error::RnExecuTorchException with code InvalidArgument, carrying
+ * `ctx`, if the value is not convertible to T.
  */
 template <typename T>
 T asType(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) = delete;
@@ -49,8 +50,7 @@ DECLARE_ASTYPE_SPECIALIZATION(jsi::ArrayBuffer);
 
 /**
  * Retrieves a required property from a JSI object, converting it to the
- * specified type. Throws a facebook::jsi::JSError if the property is missing or
- * of an incorrect type.
+ * specified type.
  *
  * @tparam T The target type to convert the property to.
  * @param rt The JSI runtime instance.
@@ -58,6 +58,8 @@ DECLARE_ASTYPE_SPECIALIZATION(jsi::ArrayBuffer);
  * @param obj The JSI object containing the property.
  * @param propName The name of the property to retrieve.
  * @return The converted property value.
+ * @throws error::RnExecuTorchException with code InvalidArgument if the
+ * property is missing or of an incorrect type.
  */
 template <typename T>
 T getRequiredProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Object &obj, const std::string &propName) {
@@ -69,8 +71,7 @@ T getRequiredProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Objec
 
 /**
  * Retrieves an optional property from a JSI object, returning std::nullopt if
- * the property is missing, null, or undefined. Throws a facebook::jsi::JSError
- * if the property exists but cannot be converted to the target type.
+ * the property is missing, null, or undefined.
  *
  * @tparam T The target type to convert the property to if present.
  * @param rt The JSI runtime instance.
@@ -78,6 +79,8 @@ T getRequiredProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Objec
  * @param obj The JSI object containing the property.
  * @param propName The name of the property to retrieve.
  * @return An optional containing the converted property value, or std::nullopt.
+ * @throws error::RnExecuTorchException with code InvalidArgument if the
+ * property is present but cannot be converted to the target type.
  */
 template <typename T>
 std::optional<T> getOptionalProperty(jsi::Runtime &rt, const std::string &ctx, const jsi::Object &obj, const std::string &propName) {
@@ -101,6 +104,8 @@ std::optional<T> getOptionalProperty(jsi::Runtime &rt, const std::string &ctx, c
  * @param ctx Context description used for error messages.
  * @param val The JSI value (must be an Array).
  * @return A std::vector containing the converted elements.
+ * @throws error::RnExecuTorchException with code InvalidArgument if the value
+ * is not an Array or if any element fails to convert.
  */
 template <typename T>
 std::vector<T> asVector(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {
@@ -127,6 +132,9 @@ std::vector<T> asVector(jsi::Runtime &rt, const std::string &ctx, const jsi::Val
  * @param ctx Context description used for error messages.
  * @param val The JSI value (must be a TypedArray / have a `buffer`).
  * @return A std::vector containing the elements.
+ * @throws error::RnExecuTorchException with code InvalidArgument if the value
+ * is not a TypedArray, if the view lies outside its ArrayBuffer, or if its
+ * byte length is not a multiple of sizeof(T).
  */
 template <typename T>
 std::vector<T> fromJsiTypedArray(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &val) {

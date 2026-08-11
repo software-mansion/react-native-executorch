@@ -31,26 +31,28 @@ using SymbolicShape = std::vector<SymbolicDim>;
 
 /**
  * Tries to acquire a shared (read) lock on the underlying tensor resource.
- * Throws a facebook::jsi::JSError if the lock is currently held uniquely by
- * another thread or if the tensor has already been disposed.
  *
  * @param rt The JSI runtime instance.
  * @param name The name/context of the tensor for error messages.
  * @param tensor Shared pointer to the TensorHostObject.
  * @return A shared lock protecting the tensor data.
+ * @throws error::RnExecuTorchException with code ResourceBusy if the lock is
+ * currently held uniquely by another thread, or ResourceDisposed if the tensor
+ * has already been disposed.
  */
 [[nodiscard]] std::shared_lock<std::shared_mutex>
 tryLockShared(jsi::Runtime &rt, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor);
 
 /**
  * Tries to acquire a unique (write) lock on the underlying tensor resource.
- * Throws a facebook::jsi::JSError if the lock is currently held by another
- * thread or if the tensor has already been disposed.
  *
  * @param rt The JSI runtime instance.
  * @param ctx The name/context of the tensor for error messages.
  * @param tensor Shared pointer to the TensorHostObject.
  * @return A unique lock protecting the tensor data.
+ * @throws error::RnExecuTorchException with code ResourceBusy if the lock is
+ * currently held by another thread, or ResourceDisposed if the tensor has
+ * already been disposed.
  */
 [[nodiscard]] std::unique_lock<std::shared_mutex>
 tryLockUnique(jsi::Runtime &rt, const std::string &ctx, const std::shared_ptr<TensorHostObject> &tensor);
@@ -58,13 +60,14 @@ tryLockUnique(jsi::Runtime &rt, const std::string &ctx, const std::shared_ptr<Te
 /**
  * Validates that two JSI Tensor parameters do not point to the exact same
  * underlying TensorHostObject instance, preventing mutation aliasing issues.
- * Throws a facebook::jsi::JSError if they are the same tensor.
  *
  * @param rt The JSI runtime instance.
  * @param ctx1 Context name of the first tensor.
  * @param t1 The first tensor.
  * @param ctx2 Context name of the second tensor.
  * @param t2 The second tensor.
+ * @throws error::RnExecuTorchException with code InvalidArgument if both
+ * parameters refer to the same tensor.
  */
 void checkNotSameTensor(jsi::Runtime &rt,
                         const std::string &ctx1, const std::shared_ptr<TensorHostObject> &t1,
@@ -72,8 +75,7 @@ void checkNotSameTensor(jsi::Runtime &rt,
 
 /**
  * Extracts, type-checks, and shape-validates a TensorHostObject from a JSI
- * Value parameter. Throws a facebook::jsi::JSError with precise details if type
- * checking or shape validation fails.
+ * Value parameter.
  *
  * @param rt The JSI runtime instance.
  * @param ctx Parameter name for contextual error messages.
@@ -81,6 +83,9 @@ void checkNotSameTensor(jsi::Runtime &rt,
  * @param expectedDtype Optional expected DType constraint.
  * @param expectedShape Optional expected shape (SymbolicShape) constraint.
  * @return Shared pointer to the validated TensorHostObject.
+ * @throws error::RnExecuTorchException with code InvalidArgument, describing
+ * the offending value, if the value is not a Tensor or if type checking or
+ * shape validation fails.
  */
 std::shared_ptr<TensorHostObject>
 fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
