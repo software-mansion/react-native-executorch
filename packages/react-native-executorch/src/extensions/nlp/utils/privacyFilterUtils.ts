@@ -5,6 +5,8 @@
 // models. The transformer forward pass dominates the inference budget, so this
 // decoding is written in pure TypeScript.
 
+import type { Tokenizer } from '../tokenizer';
+
 const NEG_INF = Number.NEGATIVE_INFINITY;
 
 /**
@@ -57,6 +59,13 @@ export interface PiiEntity<Label extends string = string> {
   readonly startToken: number;
   /** Exclusive end token index. */
   readonly endToken: number;
+  /**
+   * Inclusive UTF-16 character index of the span in the original input, i.e.
+   * `input.slice(charStart, charEnd)` returns the span text (before trimming).
+   */
+  readonly charStart: number;
+  /** Exclusive UTF-16 character index of the span in the original input. */
+  readonly charEnd: number;
 }
 
 // Label role classes. Anything that isn't a well-formed `X-entity` tag (and the
@@ -421,4 +430,87 @@ export function extractSpans(
     i = j;
   }
   return spans;
+}
+
+/**
+ * Computes per-token UTF-16 character offsets into the original input, so a
+ * span of tokens `[start, end)` can be sliced back out of the source with
+ * `input.slice(offsets[start * 2], offsets[(end - 1) * 2 + 1])`.
+ *
+ * Assumes a byte-level BPE tokenizer with no lossy normalization (the openai
+ * and nemotron privacy filter presets satisfy this): decoding the full token
+ * sequence must reproduce the input string exactly. Under that guarantee, the
+ * length of `decode(ids[0..k])` is the character offset just past token `k-1`.
+ *
+ * Runs `ids.length` `decode` calls, each on a growing prefix. Cheap for the
+ * ~256-token windows the privacy filter operates on; keep in mind for larger
+ * sequences.
+ * @param tokenizer Same tokenizer instance used to produce `ids`.
+ * @param ids Token ids for the whole input.
+ * @returns A flat `[start0, end0, start1, end1, ...]` `Uint32Array` of length
+ * `2 * ids.length`.
+ */
+export function computeCharOffsets(tokenizer: Tokenizer, ids: Int32Array): Uint32Array {
+  'worklet';
+  const n = ids.length;
+  const offsets = new Uint32Array(n * 2);
+  let prev = 0;
+  for (let i = 0; i < n; i++) {
+    const cur = tokenizer.decode(ids.slice(0, i + 1), false).length;
+    offsets[i * 2] = prev;
+    offsets[i * 2 + 1] = cur;
+    prev = cur;
+  }
+  return offsets;
+}
+
+/**
+ * One run in a segmentation of source text: either a plain (uncovered) run or
+ * a labeled entity slice. Adjacent segments cover the input without gaps or
+ * overlaps; concatenating every `text` reproduces the input.
+ * @category Types
+ * @typeParam Label The entity label type; narrows to a specific model's
+ * entity types when known, or `string` for an arbitrary model.
+ */
+export type PiiSegment<Label extends string = string> =
+  | { readonly kind: 'plain'; readonly text: string }
+  | { readonly kind: 'entity'; readonly text: string; readonly label: Label };
+
+/**
+ * Splits `text` into an alternating sequence of plain runs and labeled entity
+ * runs, ready to render (e.g. highlight each entity, leave plain runs alone)
+ * without any client-side string matching.
+ *
+ * Entities must come from the same input `text` (their `charStart`/`charEnd`
+ * index into it) and must not overlap; the pipeline never emits overlapping
+ * spans, so the typical case is passing `detectPii`'s result straight through.
+ * Overlapping inputs are resolved first-wins by start position.
+ * @param text The original input the entities were detected in.
+ * @param entities Detected entity spans, in any order.
+ * @returns A flat list of plain and entity segments covering `text`.
+ */
+export function piiSegments<Label extends string>(
+  text: string,
+  entities: readonly PiiEntity<Label>[]
+): PiiSegment<Label>[] {
+  'worklet';
+  const ordered = entities
+    .slice()
+    .sort((a, b) => a.charStart - b.charStart)
+    .filter((e) => e.charEnd > e.charStart);
+
+  const segments: PiiSegment<Label>[] = [];
+  let cursor = 0;
+  for (const e of ordered) {
+    if (e.charStart < cursor) continue;
+    if (e.charStart > cursor) {
+      segments.push({ kind: 'plain', text: text.slice(cursor, e.charStart) });
+    }
+    segments.push({ kind: 'entity', text: text.slice(e.charStart, e.charEnd), label: e.label });
+    cursor = e.charEnd;
+  }
+  if (cursor < text.length) {
+    segments.push({ kind: 'plain', text: text.slice(cursor) });
+  }
+  return segments;
 }

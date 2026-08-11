@@ -12,7 +12,9 @@ import {
 import {
   usePrivacyFilter,
   models,
+  piiSegments,
   type PiiEntity,
+  type PiiSegment,
   type PrivacyFilterModel,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -56,44 +58,6 @@ function colorForLabel(label: string): string {
   return HIGHLIGHTS[hash]!;
 }
 
-type Segment = { text: string; label?: string };
-
-// The model reports token spans, so locate each detected string in the source
-// to highlight it. Longest-first avoids a short span landing inside a longer
-// one; each match is consumed so repeated values highlight independently.
-function buildSegments(source: string, entities: PiiEntity[]): Segment[] {
-  const taken: { start: number; end: number; label: string }[] = [];
-  const ordered = [...entities].sort((a, b) => b.text.length - a.text.length);
-
-  for (const entity of ordered) {
-    const needle = entity.text.trim();
-    if (needle.length === 0) continue;
-    let from = 0;
-    for (;;) {
-      const at = source.indexOf(needle, from);
-      if (at === -1) break;
-      const end = at + needle.length;
-      const overlaps = taken.some((t) => at < t.end && end > t.start);
-      if (!overlaps) {
-        taken.push({ start: at, end, label: entity.label });
-        break;
-      }
-      from = at + 1;
-    }
-  }
-
-  taken.sort((a, b) => a.start - b.start);
-  const segments: Segment[] = [];
-  let cursor = 0;
-  for (const span of taken) {
-    if (span.start > cursor) segments.push({ text: source.slice(cursor, span.start) });
-    segments.push({ text: source.slice(span.start, span.end), label: span.label });
-    cursor = span.end;
-  }
-  if (cursor < source.length) segments.push({ text: source.slice(cursor) });
-  return segments;
-}
-
 function PrivacyFilterContent() {
   const [selected, setSelected] = useState(0);
   const active = MODELS[selected]!;
@@ -106,8 +70,8 @@ function PrivacyFilterContent() {
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
 
   const ready = isReady && !!detectPii;
-  const segments = useMemo(
-    () => (entities ? buildSegments(text, entities) : null),
+  const segments: PiiSegment[] | null = useMemo(
+    () => (entities ? piiSegments(text, entities) : null),
     [text, entities]
   );
 
@@ -234,7 +198,7 @@ function PrivacyFilterContent() {
             <Text style={styles.sectionTitle}>Highlighted</Text>
             <Text style={styles.sampleText}>
               {segments.map((seg, i) =>
-                seg.label ? (
+                seg.kind === 'entity' ? (
                   <Text
                     key={i}
                     style={[styles.highlight, { backgroundColor: colorForLabel(seg.label) }]}

@@ -8,10 +8,13 @@ import { wrapAsync } from '../../../core/runtime';
 import { loadTokenizer } from '../tokenizer';
 import {
   buildGrammar,
+  computeCharOffsets,
   extractSpans,
+  piiSegments,
   viterbiDecode,
   type PiiEntity,
   type PiiEntityType,
+  type PiiSegment,
   type ViterbiBiases,
 } from '../utils/privacyFilterUtils';
 
@@ -58,7 +61,8 @@ export type PrivacyFilterModel<Label extends string = string> = {
   readonly modelOpts: PrivacyFilterOptions<Label>;
 };
 
-export type { PiiEntity, PiiEntityType, ViterbiBiases };
+export { piiSegments };
+export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
 
 /**
  * Creates a privacy filter runner that detects personally identifiable
@@ -239,6 +243,11 @@ export async function createPrivacyFilter<Label extends string>(
       if (isLast) break;
     }
 
+    // Char offsets are computed once per input so consumers can slice spans
+    // straight out of `input` (or feed the result to `piiSegments`) without
+    // having to re-find each entity in the source themselves.
+    const offsets = computeCharOffsets(tokenizer, ids);
+
     return extractSpans(predictedLabels, labelNames).map((span) => ({
       // `extractSpans` derives the entity string from `labelNames` at runtime,
       // so it is one of this model's entity types by construction.
@@ -246,6 +255,8 @@ export async function createPrivacyFilter<Label extends string>(
       text: tokenizer.decode(ids.slice(span.start, span.end), true).trim(),
       startToken: span.start,
       endToken: span.end,
+      charStart: offsets[span.start * 2]!,
+      charEnd: offsets[(span.end - 1) * 2 + 1]!,
     }));
   };
 
