@@ -1317,3 +1317,104 @@ export const SUPERTONIC_DEFAULT_VOICE_NAMES = [
  * @category Types
  */
 export type SupertonicDefaultVoiceName = (typeof SUPERTONIC_DEFAULT_VOICE_NAMES)[number];
+
+// BIOES tag scheme for the privacy filter models: one outside tag ("O")
+// followed by four prefix variants (B/I/E/S) per entity type, in the entity
+// order below. The resulting arrays must match each model's id2label mapping
+// exactly — the pipeline uses the array index as the label id.
+const bioesLabels = <Entity extends string>(entities: readonly Entity[]) =>
+  ['O', ...entities.flatMap((e) => [`B-${e}`, `I-${e}`, `E-${e}`, `S-${e}`] as const)] as const;
+
+/**
+ * Label space for the openai/privacy-filter base model (8 entity types, 33
+ * labels).
+ * @category Constants
+ */
+export const PRIVACY_FILTER_OPENAI_LABELS = bioesLabels([
+  'account_number',
+  'private_address',
+  'private_date',
+  'private_email',
+  'private_person',
+  'private_phone',
+  'private_url',
+  'secret',
+]);
+
+/**
+ * A single BIOES label from the openai/privacy-filter label space (`'O'` or a
+ * `B-`/`I-`/`E-`/`S-` prefixed entity).
+ * @category Constants
+ */
+export type PrivacyFilterOpenaiLabel = (typeof PRIVACY_FILTER_OPENAI_LABELS)[number];
+
+/**
+ * Label space for the OpenMed/privacy-filter-nemotron model (55 entity types,
+ * 221 labels). Source:
+ * https://huggingface.co/OpenMed/privacy-filter-nemotron/blob/main/config.json
+ * @category Constants
+ */
+export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
+  'account_number',
+  'age',
+  'api_key',
+  'bank_routing_number',
+  'biometric_identifier',
+  'blood_type',
+  'certificate_license_number',
+  'city',
+  'company_name',
+  'coordinate',
+  'country',
+  'county',
+  'credit_debit_card',
+  'customer_id',
+  'cvv',
+  'date',
+  'date_of_birth',
+  'date_time',
+  'device_identifier',
+  'education_level',
+  'email',
+  'employee_id',
+  'employment_status',
+  'fax_number',
+  'first_name',
+  'gender',
+  'health_plan_beneficiary_number',
+  'http_cookie',
+  'ipv4',
+  'ipv6',
+  'language',
+  'last_name',
+  'license_plate',
+  'mac_address',
+  'medical_record_number',
+  'national_id',
+  'occupation',
+  'password',
+  'phone_number',
+  'pin',
+  'political_view',
+  'postcode',
+  'race_ethnicity',
+  'religious_belief',
+  'sexuality',
+  'ssn',
+  'state',
+  'street_address',
+  'swift_bic',
+  'tax_id',
+  'time',
+  'unique_id',
+  'url',
+  'user_name',
+  'vehicle_identifier',
+]);
+
+/**
+ * A single BIOES label from the OpenMed/privacy-filter-nemotron label space
+ * (`'O'` or a `B-`/`I-`/`E-`/`S-` prefixed entity).
+ * @category Constants
+ */
+export type PrivacyFilterNemotronLabel = (typeof PRIVACY_FILTER_NEMOTRON_LABELS)[number];
