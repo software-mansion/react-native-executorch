@@ -142,7 +142,7 @@ export function createImagePreprocessor(
         })
         .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
         .through(toChannelsFirst, tChanFirst)
-        .through(normalize, tNorm, { alpha, beta })
+        .through(normalize, tNorm, normalizeOpts)
         .copyTo(tOutput);
     } finally {
       tResize.dispose();

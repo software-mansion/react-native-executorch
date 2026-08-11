@@ -839,22 +839,21 @@ const PP_DOCLAYOUT_OPTS = {
   boxFormat: 'xyxy' as const,
   resizeMode: 'stretch' as const,
   interpolation: 'linear' as const,
-  alpha: 1 / 255.0,
-  beta: 0.0,
+  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
   defaultConfidenceThreshold: 0.3,
   defaultIouThreshold: 1.0,
 };
 const PP_DOCLAYOUT_XNNPACK: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
   modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_xnnpack.pte`,
-  opts: PP_DOCLAYOUT_OPTS,
+  modelOpts: PP_DOCLAYOUT_OPTS,
 };
 const PP_DOCLAYOUT_COREML: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
   modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_coreml.pte`,
-  opts: PP_DOCLAYOUT_OPTS,
+  modelOpts: PP_DOCLAYOUT_OPTS,
 };
 const PP_DOCLAYOUT_VULKAN: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
   modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_vulkan.pte`,
-  opts: PP_DOCLAYOUT_OPTS,
+  modelOpts: PP_DOCLAYOUT_OPTS,
 };
 
 // =============================================================================

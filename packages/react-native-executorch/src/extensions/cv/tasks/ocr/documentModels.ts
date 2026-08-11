@@ -2,7 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../../core/tensor';
 import { loadModel, type Model } from '../../../../core/model';
-import { validateModelSchema, SymbolicTensor } from '../../../../core/modelSchema';
+import { validateSpec, method, f32 } from '../../../../core/schema';
 import { wrapAsync } from '../../../../core/runtime';
 
 import { IMAGENET_NORM } from '../../../../constants';
@@ -317,6 +317,9 @@ export function fillTableCells(html: string, lines: readonly OcrDetection[]): st
 
 // ===== Contract + factory ====================================================
 
+// The orientation head's class count: [0°, 90°, 180°, 270°] clockwise.
+const ORIENTATION_CLASSES = 4;
+
 // The tensor shapes the constructor pre-allocates from, grouped per model.
 type DocumentModelsShapes = {
   readonly orientation: { readonly input: number[]; readonly output: number[] };
@@ -330,75 +333,65 @@ type DocumentModelsShapes = {
 };
 
 // Validates orientation + dewarp always, and the table methods only when a table
-// vocab size is given. Returns the shapes to pre-allocate from. Throws on mismatch.
+// vocab size is given. Every method of this model is exported at a fixed size, so
+// each dimension binds to a static symbol; reusing a symbol across methods is what
+// enforces the model's internal agreements (the decoder's one-hot input vocab
+// equals its output vocab, its hidden state round-trips, and it consumes exactly
+// the features the encoder produces). Returns the shapes to pre-allocate from.
 function resolveDocumentModelsShapes(model: Model, tableVocabSize?: number): DocumentModelsShapes {
-  const oriMeta = validateModelSchema(
-    model,
-    'orientation',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'K'])]
-  );
-  const dewMeta = validateModelSchema(
-    model,
-    'dewarp',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 2, 'gH', 'gW'])]
-  );
-  const oriClasses = oriMeta.outputTensorMeta[0]!.shape[1]!;
-  if (oriClasses !== 4) {
-    throw new Error(
-      `DocumentModels: orientation head must output 4 classes ([0°, 90°, 180°, 270°]), ` +
-        `but the model declares ${oriClasses}.`
-    );
-  }
-  const base = {
-    orientation: {
-      input: oriMeta.inputTensorMeta[0]!.shape,
-      output: oriMeta.outputTensorMeta[0]!.shape,
-    },
-    dewarp: { input: dewMeta.inputTensorMeta[0]!.shape, grid: dewMeta.outputTensorMeta[0]!.shape },
+  const imageMethods = {
+    // 4 orientation classes, in [0°, 90°, 180°, 270°] order.
+    ...method('orientation', [f32(1, 3, 'oriH', 'oriW')], [f32(1, 4)]),
+    ...method('dewarp', [f32(1, 3, 'dewH', 'dewW')], [f32(1, 2, 'gridH', 'gridW')]),
   };
   if (tableVocabSize === undefined) {
-    return base;
+    const { dims } = validateSpec(model.schema, { default: imageMethods });
+    const [oriH, oriW, dewH, dewW, gridH, gridW] = dims.constant(
+      'oriH',
+      'oriW',
+      'dewH',
+      'dewW',
+      'gridH',
+      'gridW'
+    );
+    return {
+      orientation: { input: [1, 3, oriH, oriW], output: [1, ORIENTATION_CLASSES] },
+      dewarp: { input: [1, 3, dewH, dewW], grid: [1, 2, gridH, gridW] },
+    };
   }
 
-  const encMeta = validateModelSchema(
-    model,
-    'table_encode',
-    [SymbolicTensor('float32', [1, 3, 'H', 'W'])],
-    [SymbolicTensor('float32', [1, 'C', 'F'])]
+  const { dims } = validateSpec(model.schema, {
+    default: {
+      ...imageMethods,
+      ...method('table_encode', [f32(1, 3, 'tabH', 'tabW')], [f32(1, 'feat', 'featDim')]),
+      ...method(
+        'table_decode_step',
+        [f32(1, 'feat', 'featDim'), f32(1, 'hidden'), f32(1, tableVocabSize)],
+        [f32(1, tableVocabSize), f32(1, 'hidden')]
+      ),
+    },
+  });
+  const [oriH, oriW, dewH, dewW, gridH, gridW, tabH, tabW, feat, featDim, hidden] = dims.constant(
+    'oriH',
+    'oriW',
+    'dewH',
+    'dewW',
+    'gridH',
+    'gridW',
+    'tabH',
+    'tabW',
+    'feat',
+    'featDim',
+    'hidden'
   );
-  const decMeta = validateModelSchema(
-    model,
-    'table_decode_step',
-    [
-      SymbolicTensor('float32', [1, 'C', 'F']),
-      SymbolicTensor('float32', [1, 'H']),
-      SymbolicTensor('float32', [1, 'V']),
-    ],
-    [SymbolicTensor('float32', [1, 'V']), SymbolicTensor('float32', [1, 'H'])]
-  );
-  const probs = decMeta.outputTensorMeta[0]!.shape;
-  // The decoder feeds each token back as a one-hot input, so its one-hot input dim
-  // must equal its output vocab (matchShape maps `V` per tensor, not across them).
-  const onehotVocab = decMeta.inputTensorMeta[2]!.shape[1]!;
-  if (onehotVocab !== probs[1]!) {
-    throw new Error(
-      `DocumentModels: table one-hot input vocab (${onehotVocab}) must match output vocab (${probs[1]}).`
-    );
-  }
-  if (probs[1]! !== tableVocabSize) {
-    throw new Error(
-      `DocumentModels: structure vocab (${tableVocabSize}) must match the model token dim (${probs[1]}).`
-    );
-  }
   return {
-    ...base,
+    orientation: { input: [1, 3, oriH, oriW], output: [1, ORIENTATION_CLASSES] },
+    dewarp: { input: [1, 3, dewH, dewW], grid: [1, 2, gridH, gridW] },
     table: {
-      input: encMeta.inputTensorMeta[0]!.shape,
-      features: encMeta.outputTensorMeta[0]!.shape,
-      hidden: decMeta.outputTensorMeta[1]!.shape,
-      probs,
+      input: [1, 3, tabH, tabW],
+      features: [1, feat, featDim],
+      hidden: [1, hidden],
+      probs: [1, tableVocabSize],
     },
   };
 }
@@ -426,12 +419,12 @@ export async function createDocumentModels(
 
     // Orientation + dewarp are always available (their methods are always present).
     const orientationPreprocessor = createImagePreprocessor(
-      { resizeMode: 'stretch', interpolation: 'linear', ...IMAGENET_NORM },
+      { resizeMode: 'stretch', interpolation: 'linear', normalizeOpts: IMAGENET_NORM },
       s.orientation.input
     );
     created.push(orientationPreprocessor);
     const dewarpPreprocessor = createImagePreprocessor(
-      { resizeMode: 'stretch', interpolation: 'linear', alpha: 1 / 255, beta: 0 },
+      { resizeMode: 'stretch', interpolation: 'linear', normalizeOpts: { alpha: 1 / 255, beta: 0 } },
       s.dewarp.input
     );
     created.push(dewarpPreprocessor);
@@ -445,7 +438,7 @@ export async function createDocumentModels(
     let decodeState: TableDecodeState | null = null;
     if (table && s.table) {
       tablePreprocessor = createImagePreprocessor(
-        { resizeMode: 'stretch', interpolation: 'linear', ...IMAGENET_NORM },
+        { resizeMode: 'stretch', interpolation: 'linear', normalizeOpts: IMAGENET_NORM },
         s.table.input
       );
       created.push(tablePreprocessor);
