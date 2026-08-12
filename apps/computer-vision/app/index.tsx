@@ -1,13 +1,20 @@
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ColorPalette } from '../theme';
 import ExecutorchLogo from '../assets/icons/executorch.svg';
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    // The list is taller than the viewport on shorter phones, so it scrolls
+    // rather than running under the system navigation bar.
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + 20 }]}
+    >
       <ExecutorchLogo width={64} height={64} />
       <Text style={styles.headerText}>Select a demo model</Text>
       <View style={styles.buttonContainer}>
@@ -45,16 +52,20 @@ export default function Home() {
           <Text style={styles.buttonText}>Model Inspector</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingTop: 20,
   },
   headerText: {
     fontSize: 18,

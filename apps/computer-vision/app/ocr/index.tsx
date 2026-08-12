@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, Switch } from 'react-native';
-import { commonStyles, ColorPalette } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { commonStyles, ColorPalette, theme } from '../../theme';
 import { useImage, Skia, ColorType, AlphaType, type SkImage } from '@shopify/react-native-skia';
 import {
   useOcr,
@@ -18,47 +19,53 @@ import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 
 type BackendKey = 'XNNPACK' | 'VULKAN' | 'COREML';
-const ALL_MODELS: { label: string; backend: BackendKey; base: OcrModel; platforms: string[] }[] = [
+// Every variant is listed on both platforms; the ones the platform can't run are
+// shown disabled (CoreML is Apple-only, Vulkan is the Android GPU delegate).
+const isIos = Platform.OS === 'ios';
+const OCR_MODELS: { label: string; backend: BackendKey; base: OcrModel; disabled: boolean }[] = [
   {
     label: 'PaddleOCR (XNNPACK)',
     backend: 'XNNPACK',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
-    platforms: ['ios', 'android'],
+    disabled: false,
   },
   {
     label: 'PaddleOCR (Vulkan)',
     backend: 'VULKAN',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.VULKAN,
-    platforms: ['android'],
+    disabled: isIos,
   },
   {
     label: 'PaddleOCR (CoreML)',
     backend: 'COREML',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.COREML,
-    platforms: ['ios'],
+    disabled: !isIos,
   },
   {
     label: 'EasyOCR English (XNNPACK)',
     backend: 'XNNPACK',
     base: models.ocr.EASYOCR.ENGLISH.XNNPACK,
-    platforms: ['ios', 'android'],
+    disabled: false,
   },
   {
     label: 'EasyOCR English (Vulkan)',
     backend: 'VULKAN',
     base: models.ocr.EASYOCR.ENGLISH.VULKAN,
-    platforms: ['android'],
+    disabled: isIos,
   },
   {
     label: 'EasyOCR English (CoreML)',
     backend: 'COREML',
     base: models.ocr.EASYOCR.ENGLISH.COREML,
-    platforms: ['ios'],
+    disabled: !isIos,
   },
 ];
 
-const OCR_MODELS = ALL_MODELS.filter((m) => m.platforms.includes(Platform.OS));
-const MODEL_OPTIONS: ModelOption[] = OCR_MODELS.map((m, i) => ({ label: m.label, value: i }));
+const MODEL_OPTIONS: ModelOption[] = OCR_MODELS.map((m, i) => ({
+  label: m.label,
+  value: i,
+  disabled: m.disabled,
+}));
 
 type Cell = { text: string; colspan: number };
 
@@ -128,6 +135,7 @@ function TableView({ html }: { html: string }) {
 }
 
 function OCRContent() {
+  const insets = useSafeAreaInsets();
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [vertical, setVertical] = useState(false);
   const [layoutOn, setLayoutOn] = useState(false);
@@ -235,7 +243,10 @@ function OCRContent() {
   return (
     <ScrollView
       style={commonStyles.container}
-      contentContainerStyle={commonStyles.contentContainer}
+      contentContainerStyle={[
+        commonStyles.contentContainer,
+        { paddingBottom: insets.bottom + theme.spacing.large },
+      ]}
     >
       <Text style={commonStyles.description}>
         Detect and recognize text on-device. Turn on Layout to group text into reading-ordered
