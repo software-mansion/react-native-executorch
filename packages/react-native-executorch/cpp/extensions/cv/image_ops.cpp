@@ -456,7 +456,7 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "rotate";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: rotate(src, dst, degCW)");
+            throw error::InvalidArgument("Usage: rotate(src, dst, degCW)");
         }
 
         auto src = tensor::fromJs(rt, "rotate: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -472,7 +472,7 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         } else if (degCW == 270) {
             rotateCode = ::cv::ROTATE_90_COUNTERCLOCKWISE;
         } else {
-            throw jsi::JSError(rt, "rotate: degCW must be 90, 180, or 270");
+            throw error::InvalidArgument("rotate: degCW must be 90, 180, or 270");
         }
 
         const int32_t srcH = src->shape_[0];
@@ -484,9 +484,9 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t expH = swap ? srcW : srcH;
         const int32_t expW = swap ? srcH : srcW;
         if (dst->shape_[0] != expH || dst->shape_[1] != expW) {
-            throw jsi::JSError(rt, "rotate: dst must be sized [" + std::to_string(expH) + ", " +
-                                       std::to_string(expW) + ", C] for a " + std::to_string(degCW) +
-                                       " degree rotation");
+            throw error::InvalidArgument("rotate: dst must be sized [" + std::to_string(expH) + ", " +
+                                         std::to_string(expW) + ", C] for a " + std::to_string(degCW) +
+                                         " degree rotation");
         }
 
         auto srcLock = tensor::tryLockShared(rt, "rotate: src", src);
@@ -496,7 +496,7 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, "rotate: " + std::string(e.what()));
+            throw error::ExecutionFailed("rotate: " + std::string(e.what()));
         }
 
         const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
@@ -506,7 +506,7 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         return jsi::Value(rt, args[1]);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 // Warp `src` through a grid_sample-style backward field into `dst` via cv::remap.
@@ -515,7 +515,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "warpByGrid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: warpByGrid(src, grid, dst)");
+            throw error::InvalidArgument("Usage: warpByGrid(src, grid, dst)");
         }
 
         using DType = rnexecutorch::core::types::DType;
@@ -529,7 +529,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         // Grid rank varies, so fromJs can't constrain it; check the [..,2,gH,gW] tail here.
         const auto &gs = grid->shape_;
         if (gs.size() < 3 || gs[gs.size() - 3] != 2) {
-            throw jsi::JSError(rt, "warpByGrid: grid must be [..,2,gH,gW]");
+            throw error::InvalidArgument("warpByGrid: grid must be [..,2,gH,gW]");
         }
 
         auto srcLock = tensor::tryLockShared(rt, "warpByGrid: src", src);
@@ -551,7 +551,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
             numel *= static_cast<size_t>(d);
         }
         if (numel != static_cast<size_t>(2) * static_cast<size_t>(plane)) {
-            throw jsi::JSError(rt, "warpByGrid: grid must have exactly 2*gH*gW elements ([2,gH,gW], batch > 1 not supported)");
+            throw error::InvalidArgument("warpByGrid: grid must have exactly 2*gH*gW elements ([2,gH,gW], batch > 1 not supported)");
         }
         const auto *g = reinterpret_cast<const float *>(grid->data_.get());
 
@@ -596,11 +596,11 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         try {
             ::cv::remap(srcMat, dstMat, mapX, mapY, ::cv::INTER_LINEAR, ::cv::BORDER_REPLICATE);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::string("warpByGrid: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::string("warpByGrid: OpenCV error: ") + e.what());
         }
         return jsi::Value(rt, args[2]);
     };
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 // Copy an axis-aligned [x0,y0,x1,y1] region of `src` into the pre-sized `dst` — a
@@ -611,7 +611,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 3) {
-            throw jsi::JSError(rt, "Usage: crop(src, dst, [x0, y0, x1, y1])");
+            throw error::InvalidArgument("Usage: crop(src, dst, [x0, y0, x1, y1])");
         }
         auto src = tensor::fromJs(rt, "crop: src", args[0], std::nullopt, {"H", "W", "C"});
         auto dst = tensor::fromJs(rt, "crop: dst", args[1], src->dtype_, {"H'", "W'", src->shape_[2]});
@@ -619,7 +619,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
 
         const auto boxArr = conversions::asType<jsi::Array>(rt, "crop: box", args[2]);
         if (boxArr.length(rt) != 4) {
-            throw jsi::JSError(rt, "crop: box must be [x0, y0, x1, y1]");
+            throw error::InvalidArgument("crop: box must be [x0, y0, x1, y1]");
         }
         const int32_t srcH = src->shape_[0];
         const int32_t srcW = src->shape_[1];
@@ -631,11 +631,11 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t cropW = x1 - x0;
         const int32_t cropH = y1 - y0;
         if (cropW <= 0 || cropH <= 0) {
-            throw jsi::JSError(rt, "crop: box does not intersect the image");
+            throw error::InvalidArgument("crop: box does not intersect the image");
         }
         if (dst->shape_[0] != cropH || dst->shape_[1] != cropW) {
-            throw jsi::JSError(rt, "crop: dst must be sized [" + std::to_string(cropH) + ", " +
-                                       std::to_string(cropW) + ", C] for the clamped box");
+            throw error::InvalidArgument("crop: dst must be sized [" + std::to_string(cropH) + ", " +
+                                         std::to_string(cropW) + ", C] for the clamped box");
         }
 
         auto srcLock = tensor::tryLockShared(rt, "crop: src", src);
@@ -645,7 +645,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, "crop: " + std::string(e.what()));
+            throw error::ExecutionFailed("crop: " + std::string(e.what()));
         }
 
         const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
@@ -654,7 +654,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
 
         return jsi::Value(rt, args[1]);
     };
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
 // Perspective-crop an oriented quad of `src` into the `dst` canvas (crop +
@@ -664,7 +664,7 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 4) {
-            throw jsi::JSError(rt, "Usage: rectifyQuad(src, dst, quad, options)");
+            throw error::InvalidArgument("Usage: rectifyQuad(src, dst, quad, options)");
         }
         using DType = rnexecutorch::core::types::DType;
         auto src = tensor::fromJs(rt, "rectifyQuad: src", args[0], DType::uint8, {"H", "W", "C"});
@@ -674,7 +674,7 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
         const auto quadArr = conversions::asType<jsi::Array>(rt, "rectifyQuad: quad", args[2]);
         const auto opts = conversions::asType<jsi::Object>(rt, "rectifyQuad: options", args[3]);
         if (quadArr.length(rt) != 8) {
-            throw jsi::JSError(rt, "rectifyQuad: quad must have exactly 8 numbers (4 points)");
+            throw error::InvalidArgument("rectifyQuad: quad must have exactly 8 numbers (4 points)");
         }
 
         const int32_t channels = src->shape_[2];
@@ -735,13 +735,13 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
             const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
             content(::cv::Rect(0, 0, copyW, recH)).copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::string("rectifyQuad: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::string("rectifyQuad: OpenCV error: ") + e.what());
         }
         return jsi::Value(rt, args[1]);
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             4, fnBody));
+                                                             4, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::image_ops

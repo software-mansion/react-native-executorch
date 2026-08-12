@@ -12,8 +12,11 @@
 
 #include "core/conversions.h"
 #include "core/dtype.h"
+#include "core/error.h"
 #include "core/tensor.h"
 #include "core/tensor_helpers.h"
+
+namespace error = rnexecutorch::core::error;
 
 namespace rnexecutorch::extensions::cv::ocr_ops {
 namespace jsi = facebook::jsi;
@@ -268,7 +271,7 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "Usage: extractCraftTextBoxes(src, options)");
+            throw error::InvalidArgument("Usage: extractCraftTextBoxes(src, options)");
         }
         const char *ctx = "extractCraftTextBoxes";
         auto src = tensor::fromJs(rt, "extractCraftTextBoxes: src", args[0], DType::float32, std::nullopt);
@@ -279,12 +282,12 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
         // src is [1,Hd,Wd,2] or [Hd,Wd,2] interleaved (text, affinity), half-res.
         const auto &s = src->shape_;
         if (s.size() < 3 || s.back() != 2) {
-            throw jsi::JSError(rt, "extractCraftTextBoxes: src must be [..,Hd,Wd,2]");
+            throw error::InvalidArgument("extractCraftTextBoxes: src must be [..,Hd,Wd,2]");
         }
         const int32_t heatW = s[s.size() - 2];
         const int32_t heatH = s[s.size() - 3];
         if (static_cast<std::size_t>(heatW) * static_cast<std::size_t>(heatH) * 2 != src->numel_) {
-            throw jsi::JSError(rt, "extractCraftTextBoxes: src Hd*Wd*2 does not match numel");
+            throw error::InvalidArgument("extractCraftTextBoxes: src Hd*Wd*2 does not match numel");
         }
         const auto targetH = conversions::getRequiredProperty<double>(rt, ctx, opts, "targetHeight");
         const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
@@ -299,13 +302,13 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "lowTextThreshold")),
                 restoreRatio, charLevel);
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::string("extractCraftTextBoxes: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::string("extractCraftTextBoxes: OpenCV error: ") + e.what());
         }
         return boxesToArray(rt, boxes);
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             2, fnBody));
+                                                             2, error::guarded(fnBody)));
 }
 
 void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
@@ -313,7 +316,7 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "Usage: extractDbnetTextBoxes(src, options)");
+            throw error::InvalidArgument("Usage: extractDbnetTextBoxes(src, options)");
         }
         const char *ctx = "extractDbnetTextBoxes";
         auto src = tensor::fromJs(rt, "extractDbnetTextBoxes: src", args[0], DType::float32, std::nullopt);
@@ -324,12 +327,12 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
         // src is [1,1,H,W] or [H,W] probability map (full-res).
         const auto &s = src->shape_;
         if (s.size() < 2) {
-            throw jsi::JSError(rt, "extractDbnetTextBoxes: src must be [..,H,W]");
+            throw error::InvalidArgument("extractDbnetTextBoxes: src must be [..,H,W]");
         }
         const int32_t w = s[s.size() - 1];
         const int32_t h = s[s.size() - 2];
         if (static_cast<std::size_t>(w) * static_cast<std::size_t>(h) != src->numel_) {
-            throw jsi::JSError(rt, "extractDbnetTextBoxes: src H*W does not match numel");
+            throw error::InvalidArgument("extractDbnetTextBoxes: src H*W does not match numel");
         }
 
         std::vector<Quad> quads;
@@ -342,13 +345,13 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
         } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::string("extractDbnetTextBoxes: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::string("extractDbnetTextBoxes: OpenCV error: ") + e.what());
         }
         return quadsToArray(rt, quads);
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             2, fnBody));
+                                                             2, error::guarded(fnBody)));
 }
 
 // --------------------------- ctcGreedyDecode -------------------------------
@@ -360,21 +363,21 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
                      size_t count) -> jsi::Value {
         if (count != 1) {
-            throw jsi::JSError(rt, "Usage: ctcGreedyDecode(src)");
+            throw error::InvalidArgument("Usage: ctcGreedyDecode(src)");
         }
         auto src = tensor::fromJs(rt, "ctcGreedyDecode: src", args[0], DType::float32, std::nullopt);
         auto srcLock = tensor::tryLockShared(rt, "ctcGreedyDecode: src", src);
 
         const auto &s = src->shape_;
         if (s.size() < 2) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: src must be at least 2-D [..,T,V]");
+            throw error::InvalidArgument("ctcGreedyDecode: src must be at least 2-D [..,T,V]");
         }
         const int32_t vocab = s.back();
         if (vocab < 1) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: vocab dimension must be >= 1");
+            throw error::InvalidArgument("ctcGreedyDecode: vocab dimension must be >= 1");
         }
         if (src->numel_ % static_cast<std::size_t>(vocab) != 0) {
-            throw jsi::JSError(rt, "ctcGreedyDecode: numel must be a multiple of the vocab dim");
+            throw error::InvalidArgument("ctcGreedyDecode: numel must be a multiple of the vocab dim");
         }
         const int32_t timesteps = static_cast<int32_t>(src->numel_) / vocab;
         const auto *data = reinterpret_cast<const float *>(src->data_.get());
@@ -392,7 +395,7 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             1, fnBody));
+                                                             1, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::ocr_ops
