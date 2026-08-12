@@ -2,6 +2,7 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../../core/tensor';
 import { loadModel, type Model } from '../../../../core/model';
+import { RnExecuTorchError } from '../../../../core/error';
 import { validateSpec, method, f32 } from '../../../../core/schema';
 import { wrapAsync } from '../../../../core/runtime';
 
@@ -398,6 +399,8 @@ function resolveDocumentModelsShapes(model: Model, tableVocabSize?: number): Doc
 
 // Creates the document-helpers runner from one model file, loaded once. Each
 // capability is wired only when enabled in `config`. Internal to the OCR task.
+// Throws SCHEMA_MISMATCH if the loaded model does not carry the enabled
+// methods; `recognizeTableWorklet` throws INVALID_STATE without a table config.
 export async function createDocumentModels(
   config: DocumentModelsConfig,
   runtime?: WorkletRuntime
@@ -487,7 +490,10 @@ export async function createDocumentModels(
     const recognizeTableWorklet = (page: Tensor, format: ImageFormat): string => {
       'worklet';
       if (!tablePreprocessor || !decodeState || !table) {
-        throw new Error('DocumentModels: table recognition was not configured.');
+        throw RnExecuTorchError(
+          'INVALID_STATE',
+          'recognizeTableWorklet: these document models were loaded without a table config.'
+        );
       }
       return recognizeTableStructure(model, tablePreprocessor, decodeState, table, page, format);
     };

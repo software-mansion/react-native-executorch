@@ -1,7 +1,6 @@
 // OCR detect → recognize engine, internal to the OCR task. Worklet source order
 // matters: a referenced worklet must be defined above its callers.
 
-import { rnexecutorchJsi } from '../../../../native/bridge';
 import { tensor, type Tensor } from '../../../../core/tensor';
 import { RnExecuTorchError } from '../../../../core/error';
 import {
@@ -41,6 +40,7 @@ import {
   splitWideQuad,
   type Quad,
 } from '../../ops/quad';
+import { ctcGreedyDecode } from '../../utils/ocrUtils';
 import type { TextBoxExtractor } from './detectors';
 import { orderByReadingOrder, groupVerticalStacks } from './geometry';
 
@@ -222,7 +222,7 @@ function greedyCtcDecode(
   charset: readonly string[]
 ): { text: string; conf: number } {
   'worklet';
-  const flat = rnexecutorchJsi.cv.ctcGreedyDecode(probs) as number[];
+  const flat = ctcGreedyDecode(probs);
   let text = '';
   let last = -1;
   let probabilitySum = 0;
@@ -644,12 +644,12 @@ export function runOcrPass(
 ): OcrDetection[] {
   'worklet';
   const numChannels = FORMAT_CHANNELS[input.format];
-  const page = tensor('uint8', [input.height, input.width, numChannels]);
+  const tPage = tensor('uint8', [input.height, input.width, numChannels]);
   try {
-    page.setData(input.data);
-    return runOcrPassOnTensor(engine, page, input.width, input.height, input.format, options);
+    tPage.setData(input.data);
+    return runOcrPassOnTensor(engine, tPage, input.width, input.height, input.format, options);
   } finally {
-    page.dispose();
+    tPage.dispose();
   }
 }
 

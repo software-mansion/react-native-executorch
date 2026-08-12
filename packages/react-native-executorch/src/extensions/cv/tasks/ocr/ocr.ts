@@ -72,7 +72,7 @@ export type OcrModelOptions = {
  */
 export type OcrModel<L = never> = {
   readonly modelPath: string;
-  readonly ocrOpts: OcrModelOptions;
+  readonly modelOpts: OcrModelOptions;
   readonly layout?: ObjectDetectorModel<'xyxy', L>;
   readonly documentModels?: DocumentModelsConfig;
   /** Layout labels carrying no text — OCR skips these regions. Default `['image', 'chart', 'seal']`. */
@@ -236,6 +236,11 @@ function makeBlock<L>(
  * @param config Model path + OCR options + optional layout / document models.
  * @param runtime Optional worklet runtime thread.
  * @returns A promise resolving to recognition and disposal controls.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model's
+ * `detect`/`recognize` methods match none of the pipeline's spec variants.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the model declares
+ * a recognizer width-to-timestep relation the pipeline cannot satisfy, or if the
+ * charset is shorter than the recognizer's vocabulary.
  */
 export async function createOcr<L = never>(
   config: OcrModel<L>,
@@ -245,26 +250,26 @@ export async function createOcr<L = never>(
   runOcr: (input: ImageBuffer, options?: RunOcrOptions) => Promise<OcrResult<L>>;
   runOcrWorklet: (input: ImageBuffer, options?: RunOcrOptions) => OcrResult<L>;
 }> {
-  const { modelPath, ocrOpts } = config;
+  const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   // Contract validation can throw; a bad config must not leak the model.
   let engine!: OcrEngine;
   try {
-    const contract = resolveOcrContract(model, ocrOpts.charset, ocrOpts.extractBoxes);
+    const contract = resolveOcrContract(model, modelOpts.charset, modelOpts.extractBoxes);
     engine = {
       model,
-      extractBoxes: ocrOpts.extractBoxes,
-      det: { ...contract.det, norm: ocrOpts.detectorNorm ?? IMAGENET_NORM },
+      extractBoxes: modelOpts.extractBoxes,
+      det: { ...contract.det, norm: modelOpts.detectorNorm ?? IMAGENET_NORM },
       rec: {
         ...contract.rec,
-        norm: ocrOpts.recognizerNorm ?? RECOGNIZER_NORM,
-        padValue: ocrOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE,
-        padMode: ocrOpts.recognizerPadMode ?? 'constant',
+        norm: modelOpts.recognizerNorm ?? RECOGNIZER_NORM,
+        padValue: modelOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE,
+        padMode: modelOpts.recognizerPadMode ?? 'constant',
       },
       charset: contract.charset,
-      minConfidence: ocrOpts.minConfidence ?? 0,
-      decode: ocrOpts.decode,
+      minConfidence: modelOpts.minConfidence ?? 0,
+      decode: modelOpts.decode,
     };
   } catch (e) {
     model.dispose();
@@ -313,33 +318,33 @@ export async function createOcr<L = never>(
 
     // Orientation / dewarp produce the corrected frame all coordinates are
     // relative to; without them the frame is the input unchanged. When a corrected
-    // page tensor is produced it is kept alive (as `correctedPage`) so the
+    // page tensor is produced it is kept alive (as `tCorrectedPage`) so the
     // whole-page pass can read it directly instead of round-tripping through the
     // materialized `img` buffer; the outer `finally` disposes it.
     let img = input;
-    let correctedPage: Tensor | null = null;
+    let tCorrectedPage: Tensor | null = null;
     let pw = input.width;
     let ph = input.height;
     try {
       if ((useOrientation || useDewarp) && documentModels) {
         const ch = FORMAT_CHANNELS[input.format];
         let changed = false;
-        correctedPage = tensor('uint8', [input.height, input.width, ch]);
-        correctedPage.setData(input.data);
+        tCorrectedPage = tensor('uint8', [input.height, input.width, ch]);
+        tCorrectedPage.setData(input.data);
         if (useOrientation) {
-          const orientation = documentModels.detectOrientationWorklet(correctedPage, input.format);
+          const orientation = documentModels.detectOrientationWorklet(tCorrectedPage, input.format);
           const deg = ((360 - orientation.rotationCW) % 360) as 0 | 90 | 180 | 270;
           if (deg !== 0 && orientation.confidence >= orientationMinConfidence) {
             const swap = deg === 90 || deg === 270;
-            const rotated = tensor('uint8', [swap ? pw : ph, swap ? ph : pw, ch]);
+            const tRotated = tensor('uint8', [swap ? pw : ph, swap ? ph : pw, ch]);
             try {
-              rotate(correctedPage, rotated, deg);
+              rotate(tCorrectedPage, tRotated, deg);
             } catch (e) {
-              rotated.dispose(); // rotate threw before we adopted `rotated`
+              tRotated.dispose(); // rotate threw before we adopted `tRotated`
               throw e;
             }
-            correctedPage.dispose();
-            correctedPage = rotated;
+            tCorrectedPage.dispose();
+            tCorrectedPage = tRotated;
             changed = true;
             if (swap) {
               [pw, ph] = [ph, pw];
@@ -348,10 +353,10 @@ export async function createOcr<L = never>(
         }
         if (useDewarp) {
           // dewarp returns the input tensor unchanged when it declines the warp.
-          const dewarped = documentModels.dewarpWorklet(correctedPage, input.format);
-          if (dewarped !== correctedPage) {
-            correctedPage.dispose();
-            correctedPage = dewarped;
+          const tDewarped = documentModels.dewarpWorklet(tCorrectedPage, input.format);
+          if (tDewarped !== tCorrectedPage) {
+            tCorrectedPage.dispose();
+            tCorrectedPage = tDewarped;
             changed = true;
           }
         }
@@ -359,14 +364,14 @@ export async function createOcr<L = never>(
         // otherwise the input buffer is already that frame.
         if (changed) {
           const out = new Uint8Array(pw * ph * ch);
-          correctedPage.getData(out);
+          tCorrectedPage.getData(out);
           img = { data: out, width: pw, height: ph, format: input.format, layout: input.layout };
         }
       }
 
       if (!layout) {
-        const detections = correctedPage
-          ? runOcrPassOnTensor(engine, correctedPage, pw, ph, input.format, options)
+        const detections = tCorrectedPage
+          ? runOcrPassOnTensor(engine, tCorrectedPage, pw, ph, input.format, options)
           : runOcrPass(engine, img, options);
         const blocks = detections.length
           ? [
@@ -388,13 +393,13 @@ export async function createOcr<L = never>(
       // The layout path crops each region natively out of a live page tensor,
       // straight into the recognizer — no JS crop + re-upload per region. Reuse
       // the corrected page tensor if we made one; otherwise upload `img` once.
-      // Ownership stays with `correctedPage` so the outer `finally` frees it.
+      // Ownership stays with `tCorrectedPage` so the outer `finally` frees it.
       const ch = FORMAT_CHANNELS[img.format];
-      if (!correctedPage) {
-        correctedPage = tensor('uint8', [img.height, img.width, ch]);
-        correctedPage.setData(img.data);
+      if (!tCorrectedPage) {
+        tCorrectedPage = tensor('uint8', [img.height, img.width, ch]);
+        tCorrectedPage.setData(img.data);
       }
-      const pageTensor = correctedPage;
+      const tPage = tCorrectedPage;
 
       const regions = mergeContainedRegions(layout.detectObjectsWorklet(img), visualLabels);
       const blocks: DocumentBlock<L>[] = [];
@@ -414,12 +419,12 @@ export async function createOcr<L = never>(
         // Each region is OCR'd on its own crop for better dense-page recall; the
         // lines are offset back to page coordinates. The table encoder reads the
         // same crop tensor, so it stays alive until the region is fully handled.
-        const cropT = tensor('uint8', [ymax - ymin, xmax - xmin, ch]);
+        const tCrop = tensor('uint8', [ymax - ymin, xmax - xmin, ch]);
         try {
-          crop(pageTensor, cropT, { format: 'xyxy', xmin, ymin, xmax, ymax });
+          crop(tPage, tCrop, { format: 'xyxy', xmin, ymin, xmax, ymax });
           const lines = runOcrPassOnTensor(
             engine,
-            cropT,
+            tCrop,
             xmax - xmin,
             ymax - ymin,
             img.format,
@@ -434,12 +439,12 @@ export async function createOcr<L = never>(
           detections.push(...lines);
           let block = makeBlock<L>(region.label, region.box, region.confidence, lines, isTable);
           if (isTable && documentModels && useTables) {
-            const skeleton = documentModels.recognizeTableWorklet(cropT, img.format);
+            const skeleton = documentModels.recognizeTableWorklet(tCrop, img.format);
             block = { ...block, tableHtml: fillTableCells(skeleton, block.lines) };
           }
           blocks.push(block);
         } finally {
-          cropT.dispose();
+          tCrop.dispose();
         }
       }
       // Order blocks with the same column-aware reading order as the flat
@@ -455,7 +460,7 @@ export async function createOcr<L = never>(
         image: img,
       };
     } finally {
-      correctedPage?.dispose();
+      tCorrectedPage?.dispose();
     }
   };
 

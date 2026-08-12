@@ -1,3 +1,4 @@
+import { RnExecuTorchError } from '../../../core/error';
 import { scalePoint, type Point } from './points';
 import type { BoundingBox, BoxFormat } from './boxes';
 
@@ -60,7 +61,10 @@ export function boundsOfPoints<F extends BoxFormat>(
         h: ymax - ymin,
       } as BoundingBox<F>;
     default:
-      throw new Error(`boundsOfPoints: unsupported box format '${format}'.`);
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `boundsOfPoints: unsupported box format '${format}'.`
+      );
   }
 }
 
@@ -241,11 +245,16 @@ export function boundingQuadOf(quads: readonly Quad[]): Quad {
  * @category Typescript API
  * @param flat The flat number array from a native detector decode.
  * @returns The parsed quads.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `flat` is not a
+ * multiple of 8 values.
  */
 export function quadsFromFlat(flat: readonly number[]): Quad[] {
   'worklet';
   if (flat.length % 8 !== 0) {
-    throw new Error(`quadsFromFlat: expected a multiple of 8 values, got ${flat.length}.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `quadsFromFlat: expected a multiple of 8 values, got ${flat.length}.`
+    );
   }
   const quads: Quad[] = [];
   for (let i = 0; i < flat.length; i += 8) {

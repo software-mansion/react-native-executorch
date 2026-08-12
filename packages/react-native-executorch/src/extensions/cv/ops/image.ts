@@ -263,23 +263,23 @@ export type RectifyQuadOptions = {
  * @param src The source image tensor (HWC uint8).
  * @param dst The pre-allocated destination canvas (HWC uint8).
  * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
- * @param opts Content width, alignment, and padding.
+ * @param options Content width, alignment, and padding.
  * @returns The destination tensor `dst`.
  */
 export function rectifyQuad(
   src: Tensor,
   dst: Tensor,
   quad: Quad,
-  opts: RectifyQuadOptions
+  options: RectifyQuadOptions
 ): Tensor {
   'worklet';
   // The native op takes the corners as a flat [x0,y0,..,x3,y3] array.
   const flat = quad.flatMap((p) => [p.x, p.y]);
   return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
-    contentWidth: opts.contentWidth,
-    align: opts.align ?? 'left',
-    padMode: opts.padMode ?? 'constant',
-    padValue: opts.padValue ?? 0,
+    contentWidth: options.contentWidth,
+    align: options.align ?? 'left',
+    padMode: options.padMode ?? 'constant',
+    padValue: options.padValue ?? 0,
   });
 }
 

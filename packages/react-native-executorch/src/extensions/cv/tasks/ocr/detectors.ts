@@ -2,10 +2,11 @@
 // architecture's native detect output into quads. The pipeline is
 // model-agnostic — it just calls OcrModelOptions.extractBoxes.
 
-import { rnexecutorchJsi } from '../../../../native/bridge';
 import type { Tensor } from '../../../../core/tensor';
+import { RnExecuTorchError } from '../../../../core/error';
 import { f32, type ParamSpec, type SymbolicDim } from '../../../../core/schema';
 import { quadsFromFlat, type Quad } from '../../ops/quad';
+import { extractCraftTextBoxes, extractDbnetTextBoxes } from '../../utils/ocrUtils';
 import { boxesFromFlat, groupBoxes, boxToQuad } from './geometry';
 
 /**
@@ -84,14 +85,16 @@ export type CraftExtractOptions = {
  * (`outputs[0]` = `[1, Hd, Wd, 2]`), then line grouping + de-skew in TS —
  * per-glyph boxes when `charLevel`. Detector input dims must be even (half-res
  * heatmap). {@link craftExtractBoxes} is this with default thresholds.
- * @param opts Threshold overrides; omit for the built-in defaults.
+ * @param options Threshold overrides; omit for the built-in defaults.
  * @returns A {@link TextBoxExtractor} bound to those thresholds.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a caller asks for
+ * odd detector input dimensions.
  * @category Typescript API
  */
-export function makeCraftExtractBoxes(opts: CraftExtractOptions = {}): TextBoxExtractor {
-  const textThreshold = opts.textThreshold ?? 0.4;
-  const linkThreshold = opts.linkThreshold ?? 0.4;
-  const lowTextThreshold = opts.lowTextThreshold ?? 0.7;
+export function makeCraftExtractBoxes(options: CraftExtractOptions = {}): TextBoxExtractor {
+  const textThreshold = options.textThreshold ?? 0.4;
+  const linkThreshold = options.linkThreshold ?? 0.4;
+  const lowTextThreshold = options.lowTextThreshold ?? 0.7;
   return {
     // Half-resolution heatmap: input dims must be even. The pipeline snaps to
     // this, so the guard below only ever fires on a hand-rolled caller.
@@ -102,21 +105,23 @@ export function makeCraftExtractBoxes(opts: CraftExtractOptions = {}): TextBoxEx
     outputShapes: ({ width, height }) => {
       'worklet';
       if (width % 2 !== 0 || height % 2 !== 0) {
-        throw new Error(
-          'OCR: CRAFT detect input dimensions must be even (half-resolution heatmap).'
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          'craftExtractBoxes: detect input dimensions must be even ' +
+            `(half-resolution heatmap), got ${width}x${height}.`
         );
       }
       return [[1, height / 2, width / 2, 2]];
     },
     extract: (outputs, inputSize, charLevel) => {
       'worklet';
-      const flat = rnexecutorchJsi.cv.extractCraftTextBoxes(outputs[0]!, {
+      const flat = extractCraftTextBoxes(outputs[0]!, {
         textThreshold,
         linkThreshold,
         lowTextThreshold,
         targetHeight: inputSize.height,
         charLevel,
-      }) as number[];
+      });
       // Char-level glyphs are read individually, so they skip line grouping.
       const boxes = boxesFromFlat(flat);
       return (charLevel ? boxes : groupBoxes(boxes)).map(boxToQuad);
@@ -152,16 +157,16 @@ export type DbnetExtractOptions = {
  * Builds a DBNet box-extraction strategy: thresholds and unclips the full-res
  * post-sigmoid probability map (`outputs[0]` = `[1, 1, H, W]`) into oriented
  * quads. No char-level mode. {@link dbnetExtractBoxes} is this with defaults.
- * @param opts Threshold overrides; omit for the built-in defaults.
+ * @param options Threshold overrides; omit for the built-in defaults.
  * @returns A {@link TextBoxExtractor} bound to those thresholds.
  * @category Typescript API
  */
-export function makeDbnetExtractBoxes(opts: DbnetExtractOptions = {}): TextBoxExtractor {
-  const binThreshold = opts.binThreshold ?? 0.3;
-  const boxThreshold = opts.boxThreshold ?? 0.6;
-  const unclipRatio = opts.unclipRatio ?? 1.5;
-  const minBoxSide = opts.minBoxSide ?? 3;
-  const maxCandidates = opts.maxCandidates ?? 1000;
+export function makeDbnetExtractBoxes(options: DbnetExtractOptions = {}): TextBoxExtractor {
+  const binThreshold = options.binThreshold ?? 0.3;
+  const boxThreshold = options.boxThreshold ?? 0.6;
+  const unclipRatio = options.unclipRatio ?? 1.5;
+  const minBoxSide = options.minBoxSide ?? 3;
+  const maxCandidates = options.maxCandidates ?? 1000;
   return {
     // Full-resolution NCHW probability map: [1, 1, H, W].
     detectOutputSpec: (dim) => [f32(1, 1, dim('detOutH'), dim('detOutW'))],
@@ -171,13 +176,13 @@ export function makeDbnetExtractBoxes(opts: DbnetExtractOptions = {}): TextBoxEx
     },
     extract: (outputs) => {
       'worklet';
-      const flat = rnexecutorchJsi.cv.extractDbnetTextBoxes(outputs[0]!, {
+      const flat = extractDbnetTextBoxes(outputs[0]!, {
         binThreshold,
         boxThreshold,
         unclipRatio,
         minBoxSide,
         maxCandidates,
-      }) as number[];
+      });
       return quadsFromFlat(flat);
     },
   };

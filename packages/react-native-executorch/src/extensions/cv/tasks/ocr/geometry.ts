@@ -3,6 +3,7 @@
 // clustering. Pure functions — no tensors, no model. Worklet source order
 // matters (callee above caller).
 
+import { RnExecuTorchError } from '../../../../core/error';
 import type { Point } from '../../ops/points';
 import { boundsOfPoints, type Quad } from '../../ops/quad';
 
@@ -246,7 +247,10 @@ export function boxToQuad(b: Box): Quad {
 export function boxesFromFlat(flat: readonly number[]): Box[] {
   'worklet';
   if (flat.length % 5 !== 0) {
-    throw new Error(`boxesFromFlat: expected a multiple of 5 values, got ${flat.length}.`);
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `boxesFromFlat: expected a multiple of 5 values, got ${flat.length}.`
+    );
   }
   const boxes: Box[] = [];
   for (let i = 0; i + 4 < flat.length; i += 5) {

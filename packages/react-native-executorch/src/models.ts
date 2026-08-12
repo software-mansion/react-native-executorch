@@ -863,7 +863,7 @@ const makeEasyOcr = (
   modelPath:
     `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/${backend}/` +
     `easy_ocr_${lang}_${backend}_${EASYOCR_PRECISION[backend]}.pte`,
-  ocrOpts: { ...EASYOCR_OPTS, charset },
+  modelOpts: { ...EASYOCR_OPTS, charset },
 });
 const easyOcr = (lang: string, charset: string | readonly string[]) => ({
   XNNPACK: makeEasyOcr(lang, 'xnnpack', charset),
@@ -875,7 +875,7 @@ const ppOcrV6 = (backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
     `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
-  ocrOpts: PADDLE_PPOCRV6_OPTS,
+  modelOpts: PADDLE_PPOCRV6_OPTS,
 });
 const [PADDLE_PPOCRV6_XNNPACK, PADDLE_PPOCRV6_COREML, PADDLE_PPOCRV6_VULKAN] = OCR_BACKENDS.map(
   ppOcrV6
