@@ -1593,7 +1593,16 @@ export const models = {
     /** WordPiece tokenizer URL for the `all-MiniLM-L6-v2` embedding model. */
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
   },
+  /**
+   * Generative Large Language Models (LLMs) for instruction following,
+   * chat, text generation, and reasoning.
+   */
   llm: {
+    /**
+     * Liquid AI LFM 2.5 generative text model family (350M to 1.2B
+     * parameters) optimized for high-efficiency on-device chat and text
+     * generation.
+     */
     LFM2_5: {
       ...LFM2_5_1_2B_XNNPACK_8DA4W,
       P1_2B: {
@@ -1609,6 +1618,9 @@ export const models = {
         MLX_INT4: LFM2_5_350M_MLX_INT4,
       },
     },
+    /**
+     * Bielik v3 1.5B Polish and English instruction-tuned language model.
+     */
     BIELIK_V3: {
       ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
       P1_5B: {
@@ -1617,6 +1629,10 @@ export const models = {
         XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
       },
     },
+    /**
+     * Meta Llama 3.2 lightweight multilingual text generation model
+     * family (1B and 3B parameters).
+     */
     LLAMA3_2: {
       ...LLAMA3_2_1B_SPINQUANT,
       P1B: {
@@ -1630,6 +1646,10 @@ export const models = {
         XNNPACK_BF16: LLAMA3_2_3B_BF16,
       },
     },
+    /**
+     * Hugging Face SmolLM2 ultra-compact language model family (135M to
+     * 1.7B parameters).
+     */
     SMOLLM2: {
       ...SMOLLM2_1_7B_8DA4W,
       P135M: {
@@ -1648,6 +1668,10 @@ export const models = {
         XNNPACK_BF16: SMOLLM2_1_7B_BF16,
       },
     },
+    /**
+     * Hammer 2.1 function-calling and agentic tool-use language model
+     * family.
+     */
     HAMMER2_1: {
       ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
       P0_5B: {
@@ -1666,11 +1690,19 @@ export const models = {
         XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
       },
     },
+    /**
+     * Microsoft Phi-4 Mini 3.8B parameter lightweight reasoning language
+     * model.
+     */
     PHI4_MINI: {
       ...PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
     },
+    /**
+     * Alibaba Qwen 2.5 multilingual instruction-tuned language model
+     * family.
+     */
     QWEN2_5: {
       ...QWEN2_5_1_5B_XNNPACK_8DA4W,
       P0_5B: {
@@ -1689,6 +1721,10 @@ export const models = {
         XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
       },
     },
+    /**
+     * Alibaba Qwen 3 high-performance multilingual text generation model
+     * family.
+     */
     QWEN3: {
       ...QWEN3_1_7B_XNNPACK_8DA4W,
       P0_6B: {
