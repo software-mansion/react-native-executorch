@@ -797,19 +797,26 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
   detectorNorm: IMAGENET_NORM,
 };
 
-// OCR-family repos tag as `0.9.0` (no `v` prefix — they tag differently from the
-// classic model repos that use VERSION_TAG). The recognizer repos and the
-// document-pipeline repos (doclayout, paddle-helpers) are versioned separately
-// upstream and can diverge, so they get distinct constants even at the same value.
-const OCR_REVISION = 'resolve/0.9.0';
-const DOC_PIPELINE_REVISION = 'resolve/0.9.0';
+// EasyOCR ships int8 on both CPU/ANE; its Vulkan build is fp16-dominated (fp16
+// CRAFT on the GPU, int8 CRNN on XNNPACK). PP-OCRv6 keeps fp32 on XNNPACK — a
+// static-activation int8 detect computes garbage above ~960px at any calibration.
+const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
+const PPOCRV6_PRECISION = { xnnpack: 'fp32', coreml: 'int8', vulkan: 'fp16' } as const;
+// int8 loses whole boxes on PP-DocLayoutV3's RT-DETR head, so it stays unquantized.
+const DOCLAYOUT_PRECISION = { xnnpack: 'fp32', coreml: 'fp16', vulkan: 'fp16' } as const;
+const HELPERS_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
+
+type OcrBackend = keyof typeof EASYOCR_PRECISION;
+const OCR_BACKENDS = ['xnnpack', 'coreml', 'vulkan'] as const;
 
 const makeEasyOcr = (
   lang: string,
-  backend: string,
+  backend: OcrBackend,
   charset: string | readonly string[]
 ): OcrModel => ({
-  modelPath: `${BASE_URL}-easy-ocr/${OCR_REVISION}/${lang}/EasyOCR_${lang}_${backend}.pte`,
+  modelPath:
+    `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/${backend}/` +
+    `easy_ocr_${lang}_${backend}_${EASYOCR_PRECISION[backend]}.pte`,
   ocrOpts: { ...EASYOCR_OPTS, charset },
 });
 const easyOcr = (lang: string, charset: string | readonly string[]) => ({
@@ -818,18 +825,15 @@ const easyOcr = (lang: string, charset: string | readonly string[]) => ({
   VULKAN: makeEasyOcr(lang, 'vulkan', charset),
 });
 
-const PADDLE_PPOCRV6_XNNPACK: OcrModel = {
-  modelPath: `${BASE_URL}-pp-ocrv6/${OCR_REVISION}/PP-OCRv6_xnnpack.pte`,
+const ppOcrV6 = (backend: OcrBackend): OcrModel => ({
+  modelPath:
+    `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
+    `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
   ocrOpts: PADDLE_PPOCRV6_OPTS,
-};
-const PADDLE_PPOCRV6_COREML: OcrModel = {
-  modelPath: `${BASE_URL}-pp-ocrv6/${OCR_REVISION}/PP-OCRv6_coreml.pte`,
-  ocrOpts: PADDLE_PPOCRV6_OPTS,
-};
-const PADDLE_PPOCRV6_VULKAN: OcrModel = {
-  modelPath: `${BASE_URL}-pp-ocrv6/${OCR_REVISION}/PP-OCRv6_vulkan.pte`,
-  ocrOpts: PADDLE_PPOCRV6_OPTS,
-};
+});
+const [PADDLE_PPOCRV6_XNNPACK, PADDLE_PPOCRV6_COREML, PADDLE_PPOCRV6_VULKAN] = OCR_BACKENDS.map(
+  ppOcrV6
+) as [OcrModel, OcrModel, OcrModel];
 
 // =============================================================================
 // Document layout — PP-DocLayoutV3
@@ -843,18 +847,19 @@ const PP_DOCLAYOUT_OPTS = {
   defaultConfidenceThreshold: 0.3,
   defaultIouThreshold: 1.0,
 };
-const PP_DOCLAYOUT_XNNPACK: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
-  modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_xnnpack.pte`,
+const ppDocLayout = (backend: OcrBackend): ObjectDetectorModel<'xyxy', DocLayoutLabel> => ({
+  modelPath:
+    `${BASE_URL}-pp-doclayout-v3/${NEXT_VERSION_TAG}/${backend}/` +
+    `pp_doclayout_v3_${backend}_${DOCLAYOUT_PRECISION[backend]}.pte`,
   modelOpts: PP_DOCLAYOUT_OPTS,
-};
-const PP_DOCLAYOUT_COREML: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
-  modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_coreml.pte`,
-  modelOpts: PP_DOCLAYOUT_OPTS,
-};
-const PP_DOCLAYOUT_VULKAN: ObjectDetectorModel<'xyxy', DocLayoutLabel> = {
-  modelPath: `${BASE_URL}-pp-doclayout-v3/${DOC_PIPELINE_REVISION}/PP-DocLayoutV3_vulkan.pte`,
-  modelOpts: PP_DOCLAYOUT_OPTS,
-};
+});
+const [PP_DOCLAYOUT_XNNPACK, PP_DOCLAYOUT_COREML, PP_DOCLAYOUT_VULKAN] = OCR_BACKENDS.map(
+  ppDocLayout
+) as [
+  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
+  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
+  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
+];
 
 // =============================================================================
 // Document helper models - PaddleHelpers (orientation / dewarp / table structure)
@@ -864,18 +869,17 @@ const SLANET_TABLE = {
   eosTokenId: SLANET_STRUCTURE_VOCAB.indexOf('eos'),
   maxSteps: 501, // decoder step cap — SLANet's longest table structure
 };
-const PP_HELPERS_XNNPACK: DocumentModelsConfig = {
-  modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_xnnpack.pte`,
+const ppHelpers = (backend: OcrBackend): DocumentModelsConfig => ({
+  modelPath:
+    `${BASE_URL}-paddle-helpers/${NEXT_VERSION_TAG}/${backend}/` +
+    `paddle_helpers_${backend}_${HELPERS_PRECISION[backend]}.pte`,
   table: SLANET_TABLE,
-};
-const PP_HELPERS_COREML: DocumentModelsConfig = {
-  modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_coreml.pte`,
-  table: SLANET_TABLE,
-};
-const PP_HELPERS_VULKAN: DocumentModelsConfig = {
-  modelPath: `${BASE_URL}-paddle-helpers/${DOC_PIPELINE_REVISION}/PaddleHelpers_vulkan.pte`,
-  table: SLANET_TABLE,
-};
+});
+const [PP_HELPERS_XNNPACK, PP_HELPERS_COREML, PP_HELPERS_VULKAN] = OCR_BACKENDS.map(ppHelpers) as [
+  DocumentModelsConfig,
+  DocumentModelsConfig,
+  DocumentModelsConfig,
+];
 
 /**
  * Registry of pre-configured ExecuTorch models.
