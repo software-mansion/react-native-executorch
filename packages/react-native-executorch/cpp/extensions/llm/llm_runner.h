@@ -1,5 +1,9 @@
 #pragma once
 
+// Upstream ExecuTorch annotates experimental LLM APIs (TextLLMRunner, Stats, etc.)
+// with `ET_EXPERIMENTAL`, which expands to `[[deprecated("This API is experimental...")]]`.
+// We suppress -Wdeprecated-declarations so Clang does not fail builds on ExecuTorch's
+// experimental API tags.
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
