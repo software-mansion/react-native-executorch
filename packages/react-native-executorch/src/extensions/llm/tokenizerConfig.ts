@@ -1,3 +1,5 @@
+import { RnExecuTorchError } from '../../core/error';
+
 /** Model chat template configuration resolved from tokenizer config file. */
 export type TokenizerChatConfig = {
   readonly chatTemplate: string;
@@ -28,7 +30,10 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
   }
 
   if (typeof chatTemplate !== 'string') {
-    throw new Error('tokenizer_config.json does not contain a string `chat_template`');
+    throw RnExecuTorchError(
+      'LOAD_FAILED',
+      'tokenizer_config.json does not contain a string `chat_template`'
+    );
   }
 
   return {

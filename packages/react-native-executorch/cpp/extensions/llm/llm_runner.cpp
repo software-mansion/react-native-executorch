@@ -4,6 +4,7 @@
 
 #include "llm_runner.h"
 #include "core/conversions.h"
+#include "core/error.h"
 #include <executorch/extension/llm/runner/irunner.h>
 #include <executorch/extension/llm/runner/llm_runner_helper.h>
 #include <executorch/extension/llm/runner/multimodal_input.h>
@@ -12,6 +13,7 @@
 namespace rnexecutorch::extensions::llm {
 namespace jsi = facebook::jsi;
 namespace conversions = rnexecutorch::core::conversions;
+namespace error = rnexecutorch::core::error;
 
 namespace {
 jsi::Object statsToJSI(jsi::Runtime &rt, const executorch::extension::llm::Stats &stats) {
@@ -33,18 +35,18 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
       tokenizerPath_(tokenizerPath) {
     auto tokenizer = executorch::extension::llm::load_tokenizer(tokenizerPath);
     if (!tokenizer) {
-        throw std::runtime_error("LLMRunner: Failed to load runner tokenizer at path: " + tokenizerPath);
+        throw error::LoadFailed("LLMRunner: Failed to load runner tokenizer at path: " + tokenizerPath);
     }
 
     runner_ = executorch::extension::llm::create_text_llm_runner(modelPath, std::move(tokenizer));
     if (!runner_) {
-        throw std::runtime_error("LLMRunner: Failed to create text llm runner");
+        throw error::LoadFailed("LLMRunner: Failed to create text llm runner");
     }
 
     auto loadError = runner_->load();
     if (loadError != executorch::runtime::Error::Ok) {
         std::string errorMsg = executorch::runtime::to_string(loadError);
-        throw std::runtime_error("LLMRunner: Failed to load model: " + errorMsg);
+        throw error::LoadFailed("LLMRunner: Failed to load model: " + errorMsg, loadError);
     }
 }
 
@@ -63,7 +65,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1) {
-                throw jsi::JSError(rt, "LLMRunner.generate: Usage: generate(prompt, config?, onToken?)");
+                throw error::InvalidArgument("LLMRunner.generate: Usage: generate(prompt, config?, onToken?)");
             }
 
             std::string prompt = conversions::asType<std::string>(rt, "LLMRunner.generate: prompt", args[0]);
@@ -112,28 +114,28 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             // can still interrupt us.
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "LLMRunner.generate: Runner is already in use");
+                throw error::ResourceBusy("LLMRunner.generate: Runner is already in use");
             }
             if (!self->runner_) {
-                throw jsi::JSError(rt, "LLMRunner.generate: Runner has been disposed");
+                throw error::ResourceDisposed("LLMRunner.generate: Runner has been disposed");
             }
             auto error = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
 
             if (error != executorch::runtime::Error::Ok) {
                 std::string errorMsg = executorch::runtime::to_string(error);
-                throw jsi::JSError(rt, "LLMRunner.generate: Failed to generate: " + errorMsg);
+                throw error::ExecutionFailed("LLMRunner.generate: Failed to generate: " + errorMsg, error);
             }
 
             return statsToJSI(rt, *finalStats);
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "generate"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "generate"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "prefill") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1) {
-                throw jsi::JSError(rt, "LLMRunner.prefill: Usage: prefill(prompt)");
+                throw error::InvalidArgument("LLMRunner.prefill: Usage: prefill(prompt)");
             }
 
             std::string prompt = conversions::asType<std::string>(rt, "LLMRunner.prefill: prompt", args[0]);
@@ -141,44 +143,44 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             // Lock held for the whole call, same as generate().
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
-                throw jsi::JSError(rt, "LLMRunner.prefill: Runner is already in use");
+                throw error::ResourceBusy("LLMRunner.prefill: Runner is already in use");
             }
             if (!self->runner_) {
-                throw jsi::JSError(rt, "LLMRunner.prefill: Runner has been disposed");
+                throw error::ResourceDisposed("LLMRunner.prefill: Runner has been disposed");
             }
             auto result = self->runner_->prefill({executorch::extension::llm::make_text_input(prompt)});
             if (result.error() != executorch::runtime::Error::Ok) {
                 std::string errorMsg = executorch::runtime::to_string(result.error());
-                throw jsi::JSError(rt, "LLMRunner.prefill: Failed: " + errorMsg);
+                throw error::ExecutionFailed("LLMRunner.prefill: Failed: " + errorMsg, result.error());
             }
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "prefill"), 1, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "prefill"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "stop") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t /*count*/) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t /*count*/) -> jsi::Value {
             // Intentionally no mutex here: stop() is designed to be called
             // concurrently to interrupt an in-progress generate(). Taking the
             // lock would block until generate() finishes, defeating the point.
             // runner_ is only cleared by dispose() on this same (JS) thread,
             // so reading it lock-free here is safe.
             if (!self->runner_) {
-                throw jsi::JSError(rt, "LLMRunner.stop: Runner has been disposed");
+                throw error::ResourceDisposed("LLMRunner.stop: Runner has been disposed");
             }
             self->runner_->stop();
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "stop"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "stop"), 0, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw jsi::JSError(rt, "dispose: Usage: dispose()");
+                throw error::InvalidArgument("dispose: Usage: dispose()");
             }
 
             // Signal stop before locking so any in-progress generate() exits
@@ -194,7 +196,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, fnBody);
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
     }
 
     return jsi::Value::undefined();
@@ -215,20 +217,16 @@ void install_createLLMRunner(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createLLMRunner";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw jsi::JSError(rt, "createLLMRunner: Usage: createLLMRunner(modelPath, tokenizerPath)");
+            throw error::InvalidArgument("createLLMRunner: Usage: createLLMRunner(modelPath, tokenizerPath)");
         }
 
         auto modelPath = conversions::asType<std::string>(rt, "createLLMRunner: modelPath", args[0]);
         auto tokenizerPath = conversions::asType<std::string>(rt, "createLLMRunner: tokenizerPath", args[1]);
 
-        try {
-            auto runnerInstance = std::make_shared<LLMRunnerHostObject>(modelPath, tokenizerPath);
-            return jsi::Object::createFromHostObject(rt, runnerInstance);
-        } catch (const std::exception &e) {
-            throw jsi::JSError(rt, std::format("createLLMRunner: {}", e.what()));
-        }
+        auto runnerInstance = std::make_shared<LLMRunnerHostObject>(modelPath, tokenizerPath);
+        return jsi::Object::createFromHostObject(rt, runnerInstance);
     };
 
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, fnBody));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody)));
 }
 } // namespace rnexecutorch::extensions::llm

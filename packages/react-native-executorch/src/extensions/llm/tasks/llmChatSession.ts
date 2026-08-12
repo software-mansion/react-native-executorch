@@ -1,4 +1,5 @@
 import { scheduleOnRN, type WorkletRuntime } from 'react-native-worklets';
+import RNBlobUtil from 'react-native-blob-util';
 
 import { wrapAsync } from '../../../core/runtime';
 import {
@@ -8,7 +9,7 @@ import {
   type GenerationStats,
 } from '../llmRunner';
 import { createJinjaChatFormatter } from '../jinja';
-import type { TokenizerChatConfig } from '../tokenizerConfig';
+import { parseTokenizerConfig } from '../tokenizerConfig';
 
 export type { GenerationConfig, GenerationStats };
 
@@ -36,12 +37,6 @@ export type LLMChatSessionOptions = {
   readonly initialMessages?: readonly ChatMessage[];
   readonly generationConfig?: GenerationConfig;
   readonly stopTokens?: readonly string[];
-};
-
-/** Config package passed to instantiate an LLM chat session. */
-export type LLMChatSessionConfig = {
-  readonly model: Omit<LLMModel, 'tokenizerConfigPath'> & { tokenizerConfig: TokenizerChatConfig };
-  readonly options?: LLMChatSessionOptions;
 };
 
 /** Return wrapper holding generated response text and performance stats. */
@@ -93,20 +88,24 @@ function generateChatTurn(
 
 /**
  * Instantiates an LLM chat session using background thread execution.
- * @param config Chat session configuration and settings.
+ * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
+ * @param options Custom generation and state options.
  * @param runtime The worklet runtime thread to run native generation on.
  * @returns A Promise resolving to an LLMChatSession instance.
  */
 export async function createLLMChatSession(
-  config: LLMChatSessionConfig,
+  config: LLMModel,
+  options?: LLMChatSessionOptions,
   runtime?: WorkletRuntime
 ): Promise<LLMChatSession> {
-  const { model, options } = config;
-  const { modelPath, tokenizerPath, tokenizerConfig } = model;
+  const { modelPath, tokenizerPath, tokenizerConfigPath } = config;
 
   const initialMessages = options?.initialMessages ?? [];
   const defaultGenerationConfig = options?.generationConfig;
 
+  // Read and parse tokenizer_config.json
+  const configStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
+  const tokenizerConfig = parseTokenizerConfig(JSON.parse(configStr));
   const { chatTemplate, bosToken, eosToken } = tokenizerConfig;
 
   const format = createJinjaChatFormatter(chatTemplate, { bosToken });

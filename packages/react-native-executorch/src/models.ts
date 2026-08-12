@@ -1689,7 +1689,6 @@ export const models = {
       },
     },
   },
->>>>>>> 3599f2c3a (feat: implement TypeScript wrapper and hook for LLM Chat Session)
   textEmbeddings: {
     /**
      * Compact 384-dimensional sentence transformer mapping text to a dense
