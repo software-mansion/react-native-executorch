@@ -927,6 +927,11 @@ const LFM2_5_1_2B_XNNPACK_FP16: LLMModel = {
   tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
 };
+const LFM2_5_1_2B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
 const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
@@ -934,6 +939,11 @@ const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
 };
 const LFM2_5_350M_XNNPACK_FP16: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+const LFM2_5_350M_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
@@ -1585,65 +1595,72 @@ export const models = {
   },
   llm: {
     LFM2_5: {
-      '1_2B': {
+      ...LFM2_5_1_2B_XNNPACK_8DA4W,
+      P1_2B: {
         ...LFM2_5_1_2B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
         XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
+        MLX_INT4: LFM2_5_1_2B_MLX_INT4,
       },
-      '350M': {
+      P350M: {
         ...LFM2_5_350M_XNNPACK_8DA4W,
         XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
         XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
+        MLX_INT4: LFM2_5_350M_MLX_INT4,
       },
     },
     BIELIK_V3: {
-      '1_5B': {
+      ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      P1_5B: {
         ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
         XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
       },
     },
     LLAMA3_2: {
-      '1B': {
+      ...LLAMA3_2_1B_SPINQUANT,
+      P1B: {
         ...LLAMA3_2_1B_SPINQUANT,
         XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
         XNNPACK_BF16: LLAMA3_2_1B_BF16,
       },
-      '3B': {
+      P3B: {
         ...LLAMA3_2_3B_SPINQUANT,
         XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
         XNNPACK_BF16: LLAMA3_2_3B_BF16,
       },
     },
     SMOLLM2: {
-      '135M': {
+      ...SMOLLM2_1_7B_8DA4W,
+      P135M: {
         ...SMOLLM2_135M_8DA4W,
         XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
         XNNPACK_BF16: SMOLLM2_135M_BF16,
       },
-      '360M': {
+      P360M: {
         ...SMOLLM2_360M_8DA4W,
         XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
         XNNPACK_BF16: SMOLLM2_360M_BF16,
       },
-      '1_7B': {
+      P1_7B: {
         ...SMOLLM2_1_7B_8DA4W,
         XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
         XNNPACK_BF16: SMOLLM2_1_7B_BF16,
       },
     },
     HAMMER2_1: {
-      '0_5B': {
+      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      P0_5B: {
         ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
         XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
       },
-      '1_5B': {
+      P1_5B: {
         ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
         XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
       },
-      '3B': {
+      P3B: {
         ...HAMMER2_1_3B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
         XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
@@ -1655,34 +1672,36 @@ export const models = {
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
     },
     QWEN2_5: {
-      '0_5B': {
+      ...QWEN2_5_1_5B_XNNPACK_8DA4W,
+      P0_5B: {
         ...QWEN2_5_0_5B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
       },
-      '1_5B': {
+      P1_5B: {
         ...QWEN2_5_1_5B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
       },
-      '3B': {
+      P3B: {
         ...QWEN2_5_3B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
       },
     },
     QWEN3: {
-      '0_6B': {
+      ...QWEN3_1_7B_XNNPACK_8DA4W,
+      P0_6B: {
         ...QWEN3_0_6B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
       },
-      '1_7B': {
+      P1_7B: {
         ...QWEN3_1_7B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
       },
-      '4B': {
+      P4B: {
         ...QWEN3_4B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
