@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
