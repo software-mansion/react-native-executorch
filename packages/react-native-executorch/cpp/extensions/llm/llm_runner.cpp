@@ -255,7 +255,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             auto inputs = parsePrompt(rt, "LLMRunner.prefill", args[0], self->modalities_);
             auto result = self->runner_->prefill(inputs);
 
-            if (result.error() != executorch::runtime::Error::Ok) {
+            if (!result.ok()) {
                 std::string errorMsg = executorch::runtime::to_string(result.error());
                 throw error::ExecutionFailed(std::format("LLMRunner.prefill: Failed: {}", errorMsg), result.error());
             }

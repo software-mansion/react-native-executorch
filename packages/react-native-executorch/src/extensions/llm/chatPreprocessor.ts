@@ -206,7 +206,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
     const tail = renderedContent.slice(lastIndex);
     if (tail.length > 0) prompt.push(tail);
 
-    return prompt as unknown as Prompt;
+    return prompt;
   };
 
   return { dispose, process };
