@@ -220,6 +220,6 @@ export async function createLLMChatSession(
     stop,
     dispose,
     sendMessage,
-    getHistory: () => history,
+    getHistory: () => [...history],
   };
 }
