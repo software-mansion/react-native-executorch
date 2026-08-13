@@ -53,14 +53,14 @@ export type LLMGenerationResult<M extends Modality = never> = {
 };
 
 export type LLMChatSession<M extends Modality = never> = {
+  stop(): void;
   dispose(): void;
+  getHistory(): readonly ChatMessage<M>[];
   sendMessage(
     message: ChatMessageContent<M>,
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
   ): Promise<LLMGenerationResult<M>>;
-  getHistory(): readonly ChatMessage<M>[];
-  stop(): void;
 };
 
 function generateChatTurnWorklet<M extends Modality = never>(
@@ -130,6 +130,7 @@ export async function createLLMChatSession<M extends Modality = never>(
     runner.dispose();
     renderer.dispose();
   };
+
   const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
   const sendMessage = async (

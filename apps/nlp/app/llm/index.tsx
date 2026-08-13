@@ -62,7 +62,7 @@ function getFirstLeafModel(node: any): any {
 
 function LLMContent() {
   const [selectedModel, setSelectedModel] = useState<any>(
-    models.llm.LFM2_5.VL_450M ?? getFirstLeafModel(models.llm)
+    models.llm.LFM2_5_VL_450M ?? getFirstLeafModel(models.llm)
   );
   const [activeModel, setActiveModel] = useState<any>(null);
   const [forceDownload, setForceDownload] = useState(false);

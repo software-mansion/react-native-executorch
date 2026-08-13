@@ -1646,109 +1646,126 @@ export const models = {
    */
   llm: {
     /**
-     * Liquid AI LFM 2.5 generative text model family (350M to 1.2B
-     * parameters) optimized for high-efficiency on-device chat and text
-     * generation.
+     * Liquid AI LFM 2.5 1.2B general-purpose text model. Excellent for complex
+     * on-device reasoning, instruction following, and fast multi-turn chat.
      */
-    LFM2_5: {
+    LFM2_5_1_2B: {
       ...LFM2_5_1_2B_XNNPACK_8DA4W,
-      P1_2B: {
-        ...LFM2_5_1_2B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
-        XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
-        MLX_INT4: LFM2_5_1_2B_MLX_INT4,
-      },
-      P350M: {
-        ...LFM2_5_350M_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
-        XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
-        MLX_INT4: LFM2_5_350M_MLX_INT4,
-      },
-      VL_450M: {
-        ...LFM2_5_VL_450M_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
-        MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
-      },
-      VL_1_6B: {
-        ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
-      },
+      XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
+      XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
+      MLX_INT4: LFM2_5_1_2B_MLX_INT4,
     },
     /**
-     * Bielik v3 1.5B Polish and English instruction-tuned language model.
+     * Liquid AI LFM 2.5 350M ultra-compact text model. Best for low-latency text
+     * completion, quick responses, and resource-constrained devices.
      */
-    BIELIK_V3: {
+    LFM2_5_350M: {
+      ...LFM2_5_350M_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
+      XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
+      MLX_INT4: LFM2_5_350M_MLX_INT4,
+    },
+    /**
+     * Liquid AI LFM 2.5 450M vision-language model. Optimized for real-time
+     * visual QA, image description, and low-latency multimodal chat.
+     */
+    LFM2_5_VL_450M: {
+      ...LFM2_5_VL_450M_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
+      MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
+    },
+    /**
+     * Liquid AI LFM 2.5 1.6B vision-language model. Higher quality visual
+     * understanding, detailed image analysis, and complex multimodal tasks.
+     */
+    LFM2_5_VL_1_6B: {
+      ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+    },
+    /**
+     * Bielik v3 1.5B Polish & English language model. Fine-tuned specifically for
+     * native Polish fluency, grammar, and bilingual translation.
+     */
+    BIELIK_V3_1_5B: {
       ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
-      P1_5B: {
-        ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
-        XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
-      },
+      XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
     },
     /**
-     * Meta Llama 3.2 lightweight multilingual text generation model
-     * family (1B and 3B parameters).
+     * Meta Llama 3.2 1B multilingual text model. Ideal for lightweight mobile
+     * chat, summary generation, and multilingual prompt processing.
      */
-    LLAMA3_2: {
+    LLAMA3_2_1B: {
       ...LLAMA3_2_1B_SPINQUANT,
-      P1B: {
-        ...LLAMA3_2_1B_SPINQUANT,
-        XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
-        XNNPACK_BF16: LLAMA3_2_1B_BF16,
-      },
-      P3B: {
-        ...LLAMA3_2_3B_SPINQUANT,
-        XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
-        XNNPACK_BF16: LLAMA3_2_3B_BF16,
-      },
+      XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
+      XNNPACK_BF16: LLAMA3_2_1B_BF16,
     },
     /**
-     * Hugging Face SmolLM2 ultra-compact language model family (135M to
-     * 1.7B parameters).
+     * Meta Llama 3.2 3B multilingual text model. Strong instruction following,
+     * detailed content creation, and high-precision text reasoning.
      */
-    SMOLLM2: {
+    LLAMA3_2_3B: {
+      ...LLAMA3_2_3B_SPINQUANT,
+      XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
+      XNNPACK_BF16: LLAMA3_2_3B_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 135M sub-parameter model. Best for micro-footprint
+     * background tasks, simple text tagging, and instant autocomplete.
+     */
+    SMOLLM2_135M: {
+      ...SMOLLM2_135M_8DA4W,
+      XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
+      XNNPACK_BF16: SMOLLM2_135M_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 360M compact model. Balanced speed and intelligence
+     * for lightweight conversational assistants.
+     */
+    SMOLLM2_360M: {
+      ...SMOLLM2_360M_8DA4W,
+      XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
+      XNNPACK_BF16: SMOLLM2_360M_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 1.7B language model. Powerful general-purpose text
+     * generation, creative writing, and general knowledge Q&A.
+     */
+    SMOLLM2_1_7B: {
       ...SMOLLM2_1_7B_8DA4W,
-      P135M: {
-        ...SMOLLM2_135M_8DA4W,
-        XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
-        XNNPACK_BF16: SMOLLM2_135M_BF16,
-      },
-      P360M: {
-        ...SMOLLM2_360M_8DA4W,
-        XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
-        XNNPACK_BF16: SMOLLM2_360M_BF16,
-      },
-      P1_7B: {
-        ...SMOLLM2_1_7B_8DA4W,
-        XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
-        XNNPACK_BF16: SMOLLM2_1_7B_BF16,
-      },
+      XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
+      XNNPACK_BF16: SMOLLM2_1_7B_BF16,
     },
     /**
-     * Hammer 2.1 function-calling and agentic tool-use language model
-     * family.
+     * Hammer 2.1 0.5B function-calling model. Specialized for lightweight agentic
+     * tool calling, JSON extraction, and structured output parsing.
      */
-    HAMMER2_1: {
-      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
-      P0_5B: {
-        ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
-        XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
-      },
-      P1_5B: {
-        ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
-        XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
-      },
-      P3B: {
-        ...HAMMER2_1_3B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
-        XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
-      },
+    HAMMER2_1_0_5B: {
+      ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
     },
     /**
-     * Microsoft Phi-4 Mini 3.8B parameter lightweight reasoning language
-     * model.
+     * Hammer 2.1 1.5B function-calling model. Optimized for multi-tool agentic
+     * workflows, API function calling, and structured JSON schemas.
+     */
+    HAMMER2_1_1_5B: {
+      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
+    },
+    /**
+     * Hammer 2.1 3B function-calling model. High-capacity agentic reasoning,
+     * complex multi-step tool execution, and robust schema compliance.
+     */
+    HAMMER2_1_3B: {
+      ...HAMMER2_1_3B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
+    },
+    /**
+     * Microsoft Phi-4 Mini 3.8B reasoning model. Exceptional for math problem
+     * solving, logical reasoning, code synthesis, and analytical tasks.
      */
     PHI4_MINI: {
       ...PHI4_MINI_XNNPACK_8DA4W,
@@ -1756,62 +1773,74 @@ export const models = {
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 2.5 multilingual instruction-tuned language model
-     * family.
+     * Alibaba Qwen 2.5 0.5B multilingual model. Extremely efficient for fast
+     * multi-language translation and basic conversational chat.
      */
-    QWEN2_5: {
+    QWEN2_5_0_5B: {
+      ...QWEN2_5_0_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 2.5 1.5B multilingual model. Great for balanced multilingual
+     * chat, text summarization, and cross-lingual understanding.
+     */
+    QWEN2_5_1_5B: {
       ...QWEN2_5_1_5B_XNNPACK_8DA4W,
-      P0_5B: {
-        ...QWEN2_5_0_5B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
-      },
-      P1_5B: {
-        ...QWEN2_5_1_5B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
-      },
-      P3B: {
-        ...QWEN2_5_3B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
-      },
+      XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
     },
     /**
-     * Alibaba Qwen 3 high-performance multilingual text generation model
-     * family.
+     * Alibaba Qwen 2.5 3B multilingual model. High capability across 29+
+     * languages for complex translation, long-form writing, and Q&A.
      */
-    QWEN3: {
+    QWEN2_5_3B: {
+      ...QWEN2_5_3B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 3 0.6B next-gen text model. Low-latency multilingual model
+     * for fast turn-taking and concise response generation.
+     */
+    QWEN3_0_6B: {
+      ...QWEN3_0_6B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 3 1.7B next-gen text model. Versatile multilingual assistant
+     * for high-quality instruction following and knowledge retrieval.
+     */
+    QWEN3_1_7B: {
       ...QWEN3_1_7B_XNNPACK_8DA4W,
-      P0_6B: {
-        ...QWEN3_0_6B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
-      },
-      P1_7B: {
-        ...QWEN3_1_7B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
-      },
-      P4B: {
-        ...QWEN3_4B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
-        XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
-      },
+      XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
     },
     /**
-     * Google Gemma 4 lightweight generative language model family
-     * optimized for on-device use.
+     * Alibaba Qwen 3 4B high-capacity text model. Top-tier multilingual
+     * reasoning, technical content generation, and multi-turn dialogue.
      */
-    GEMMA4: {
+    QWEN3_4B: {
+      ...QWEN3_4B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+    },
+    /**
+     * Google Gemma 4 E2B generative text model. Built on Google's Gemini tech
+     * for high-fidelity instruction following and mobile assistance.
+     */
+    GEMMA4_E2B: {
       ...GEMMA4_E2B_XNNPACK_8DA4W,
-      E2B: {
-        ...GEMMA4_E2B_XNNPACK_8DA4W,
-        XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
-        MLX_INT4: GEMMA4_E2B_MLX_INT4,
-      },
+      XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
+      MLX_INT4: GEMMA4_E2B_MLX_INT4,
     },
   },
+
+  /**
+   * Text embedding models mapping sentences and documents into dense vector
+   * representations for semantic search and RAG.
+   */
   textEmbeddings: {
     /**
      * Compact 384-dimensional sentence transformer mapping text to a dense
