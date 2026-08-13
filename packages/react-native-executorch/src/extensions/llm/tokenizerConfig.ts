@@ -1,6 +1,9 @@
 import { RnExecuTorchError } from '../../core/error';
 
-/** Model chat template configuration resolved from tokenizer config file. */
+/**
+ * Model chat template configuration resolved from tokenizer config file.
+ * @category Types
+ */
 export type TokenizerChatConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
@@ -17,6 +20,7 @@ function resolveToken(token: unknown): string | undefined {
 
 /**
  * Parses raw JSON configuration from `tokenizer_config.json` into a normalized format.
+ * @category Utils
  * @param config Raw JSON object from tokenizer_config.json.
  * @returns A parsed TokenizerChatConfig object.
  */
