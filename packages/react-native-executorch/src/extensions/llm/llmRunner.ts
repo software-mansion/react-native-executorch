@@ -27,7 +27,7 @@ export type MediaInput =
   | { readonly kind: 'image'; readonly image: Tensor }
   | { readonly kind: 'audio'; readonly audio: Tensor };
 
-/** Supported input modality kinds. */
+/** Supported non-text input modality kinds. */
 export type Modality = MediaInput['kind'];
 
 /** Text or interleaved multimodal prompt input for an LLM runner. */
