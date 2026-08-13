@@ -827,7 +827,7 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // spelled out here (instead of relying on the IMAGENET_NORM default) because a
 // model whose export bakes normalization in must override it.
 // The recognizer charset is NOT bundled: each entry points `charsetPath` at the
-// `charset.txt` published beside its `.pte`, which the resource fetcher resolves
+// `charset.json` published beside its `.pte`, which the resource fetcher resolves
 // to a local path like any other model file. Inlining them would put ~86 KB of
 // CJK tables into every app that imports this registry, OCR or not.
 const EASYOCR_OPTS: OcrModelOptions = {
@@ -842,9 +842,11 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
   detectorNorm: IMAGENET_NORM,
 };
 
-// EasyOCR ships int8 on both CPU/ANE; its Vulkan build is fp16-dominated (fp16
-// CRAFT on the GPU, int8 CRNN on XNNPACK). PP-OCRv6 detects in int8 on XNNPACK
-// too, but keeps fp32 for recognition: int8 is lossy on the SVTR attention stack.
+// Every OCR export is mixed-precision, and the tag in the filename names the
+// DETECTOR's precision only: `pp_ocrv6_xnnpack_int8.pte` is an int8 DBNet paired
+// with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the SVTR
+// attention stack. EasyOCR ships int8 on both CPU/ANE; its Vulkan build is
+// fp16-dominated (fp16 CRAFT on the GPU, int8 CRNN on XNNPACK).
 const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 const PPOCRV6_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 
@@ -854,7 +856,7 @@ const makeEasyOcr = (lang: string, backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/${backend}/` +
     `easy_ocr_${lang}_${backend}_${EASYOCR_PRECISION[backend]}.pte`,
-  charsetPath: `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/charset.txt`,
+  charsetPath: `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/charset.json`,
   modelOpts: EASYOCR_OPTS,
 });
 const easyOcr = (lang: string) => ({
@@ -867,7 +869,7 @@ const makePpOcrV6 = (backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
     `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
-  charsetPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.txt`,
+  charsetPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`,
   modelOpts: PADDLE_PPOCRV6_OPTS,
 });
 const ppOcrV6 = {

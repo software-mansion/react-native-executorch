@@ -23,7 +23,8 @@ export type { OcrDetection } from './engine';
 export type OcrModelOptions = {
   /**
    * Recognizer charset (string = one codepoint per index; array = taken
-   * verbatim), overriding {@link OcrModel.charsetPath}. Every built-in preset
+   * verbatim), overriding {@link OcrModel.charsetPath}. Either way entry `i`
+   * labels logit `i + 1`, since logit 0 is the CTC blank. Every built-in preset
    * ships its charset beside the model instead, so this is only needed for a
    * custom export whose charset is not published as a file.
    */
@@ -90,13 +91,25 @@ async function readCharsetFile(charsetPath: string | undefined): Promise<readonl
       'createOcr: the model config must supply either `charsetPath` or `modelOpts.charset`.'
     );
   }
+  // A read that fails means the file is missing or unreadable — the same
+  // re-fetch-the-asset case the model file itself reports as LOAD_FAILED. Only
+  // the content being wrong is the caller's argument to fix.
+  let raw: string;
+  try {
+    raw = await readTextFile(charsetPath);
+  } catch (e) {
+    throw RnExecuTorchError(
+      'LOAD_FAILED',
+      `createOcr: could not read the charset at '${charsetPath}': ${e instanceof Error ? e.message : String(e)}`
+    );
+  }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(await readTextFile(charsetPath));
+    parsed = JSON.parse(raw);
   } catch (e) {
     throw RnExecuTorchError(
       'INVALID_ARGUMENT',
-      `createOcr: could not read the charset at '${charsetPath}': ${e instanceof Error ? e.message : String(e)}`
+      `createOcr: the charset at '${charsetPath}' is not valid JSON: ${e instanceof Error ? e.message : String(e)}`
     );
   }
   if (!Array.isArray(parsed) || parsed.some((entry) => typeof entry !== 'string')) {
@@ -120,8 +133,11 @@ async function readCharsetFile(charsetPath: string | undefined): Promise<readonl
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model's
  * `detect`/`recognize` methods match none of the pipeline's spec variants.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the model declares
- * a recognizer width-to-timestep relation the pipeline cannot satisfy, or if the
- * charset is shorter than the recognizer's vocabulary.
+ * a recognizer width-to-timestep relation the pipeline cannot satisfy, if the
+ * charset is shorter than the recognizer's vocabulary, or if the published
+ * charset file does not hold a JSON array of strings.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the charset file cannot
+ * be read from {@link OcrModel.charsetPath}.
  */
 export async function createOcr(
   config: OcrModel,
