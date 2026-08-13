@@ -62,9 +62,15 @@ export type ChatPreprocessorConfig = {
 
 /** Turn preprocessing options for ChatPreprocessor. */
 export type ChatProcessOptions = {
-  /** Whether this is the initial turn in the conversation (prepends BOS token if true). Defaults to `false`. */
+  /**
+   * Whether this is the initial turn in the conversation (prepends BOS token if
+   * true). Defaults to `false`.
+   */
   readonly isFirstTurn?: boolean;
-  /** Whether to append the assistant generation prompt (e.g. `<|im_start|>assistant\n`). Defaults to `true`. */
+  /**
+   * Whether to append the assistant generation prompt (e.g.
+   * `<|im_start|>assistant\n`). Defaults to `true`.
+   */
   readonly addGenerationPrompt?: boolean;
 };
 

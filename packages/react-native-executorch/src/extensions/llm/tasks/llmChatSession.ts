@@ -33,29 +33,74 @@ export type {
   LLMMediaPreprocessorConfig,
 };
 
+/**
+ * Model configuration required to instantiate an LLM chat session.
+ * @category Types
+ */
 export type LLMModel = {
+  /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
+  /** Local path or remote URL of the `tokenizer.json` file. */
   readonly tokenizerPath: string;
+  /** Local path or remote URL of the `tokenizer_config.json` file. */
   readonly tokenizerConfigPath: string;
+  /** Supported input non-text modalities (e.g. `['image']`). */
   readonly modalities?: readonly Modality[];
+  /** Media preprocessor configuration. */
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
+/**
+ * Options for configuring an LLM chat session.
+ * @category Types
+ */
 export type LLMChatSessionOptions = {
+  /** Initial conversation history to prefill into the model KV cache. */
   readonly initialMessages?: readonly ChatMessage[];
+  /** Default generation configuration options. */
   readonly generationConfig?: GenerationConfig;
+  /** Additional stop tokens that interrupt token generation. */
   readonly stopTokens?: readonly string[];
 };
 
+/**
+ * Generation result returned by an LLM chat turn.
+ * @category Types
+ */
 export type LLMGenerationResult = {
+  /** The generated assistant response text. */
   readonly response: ChatMessageContent;
+  /** Generation performance statistics. */
   readonly stats: GenerationStats;
 };
 
+/**
+ * Handle to an active LLM chat session.
+ * @category Types
+ */
 export type LLMChatSession = {
+  /**
+   * Interrupts and stops any active token generation call.
+   */
   stop(): void;
+
+  /**
+   * Releases native model memory and preprocessor resources.
+   */
   dispose(): void;
+
+  /**
+   * Returns the read-only conversation message history.
+   */
   getHistory(): readonly ChatMessage[];
+
+  /**
+   * Sends a user message or chat turn to the model and generates a response.
+   * @param message Message string, media payload array, or ChatMessage object.
+   * @param onToken Callback fired on the RN thread for each decoded token.
+   * @param genConfig Generation options overriding session defaults.
+   * @returns A promise resolving to the response and generation stats.
+   */
   sendMessage(
     message: ChatMessageContent | ChatMessage,
     onToken?: (token: string) => void,
