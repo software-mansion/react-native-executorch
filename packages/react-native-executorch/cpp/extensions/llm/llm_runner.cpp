@@ -1,23 +1,34 @@
-// Upstream ExecuTorch annotates experimental LLM APIs (TextLLMRunner, Stats, load_tokenizer,
-// create_text_llm_runner) with `ET_EXPERIMENTAL`, which expands to `[[deprecated("...")]]`.
-// We suppress -Wdeprecated-declarations so Clang does not fail builds on ExecuTorch's
-// experimental API tags.
+// Upstream ExecuTorch annotates experimental LLM APIs (MultimodalRunner, Stats,
+// load_tokenizer, create_multimodal_runner) with `ET_EXPERIMENTAL`, which
+// expands to `[[deprecated("...")]]`. We suppress -Wdeprecated-declarations so
+// Clang does not fail builds on ExecuTorch's experimental API tags.
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #include "llm_runner.h"
-#include "core/conversions.h"
-#include "core/error.h"
-#include <executorch/extension/llm/runner/irunner.h>
+
+#include <algorithm>
+#include <cstring>
+#include <format>
+
 #include <executorch/extension/llm/runner/llm_runner_helper.h>
 #include <executorch/extension/llm/runner/multimodal_input.h>
+#include <executorch/extension/llm/runner/multimodal_runner.h>
 #include <executorch/extension/llm/runner/stats.h>
+#include <executorch/runtime/core/error.h>
+
+#include "core/conversions.h"
+#include "core/error.h"
+#include "core/tensor_helpers.h"
 
 namespace rnexecutorch::extensions::llm {
 namespace jsi = facebook::jsi;
-namespace conversions = rnexecutorch::core::conversions;
 namespace error = rnexecutorch::core::error;
+namespace tensor = rnexecutorch::core::tensor;
+namespace conversions = rnexecutorch::core::conversions;
+
+using rnexecutorch::core::types::DType;
 
 namespace {
 jsi::Object statsToJSI(jsi::Runtime &rt, const executorch::extension::llm::Stats &stats) {
@@ -31,26 +42,93 @@ jsi::Object statsToJSI(jsi::Runtime &rt, const executorch::extension::llm::Stats
     obj.setProperty(rt, "modelLoadEndMs", static_cast<double>(stats.model_load_end_ms));
     return obj;
 }
+
+std::vector<executorch::extension::llm::MultimodalInput> parseMultimodalPromptArray(
+    jsi::Runtime &rt,
+    const std::string &ctx,
+    const jsi::Value &value,
+    const std::vector<std::string> &supportedModalities) {
+
+    auto arr = conversions::asType<jsi::Array>(rt, std::format("{}: prompt array", ctx), value);
+    size_t len = arr.length(rt);
+
+    std::vector<executorch::extension::llm::MultimodalInput> inputs;
+    inputs.reserve(len);
+
+    for (size_t i = 0; i < len; ++i) {
+        auto elem = arr.getValueAtIndex(rt, i);
+        if (elem.isString()) {
+            inputs.emplace_back(elem.asString(rt).utf8(rt));
+        } else if (elem.isObject()) {
+            auto mediaObj = elem.asObject(rt);
+            std::string itemCtx = std::format("{}[{}]", ctx, i);
+            auto kind = conversions::getRequiredProperty<std::string>(rt, itemCtx, mediaObj, "kind");
+
+            if (std::ranges::find(supportedModalities, kind) == supportedModalities.end()) {
+                throw error::InvalidArgument(std::format("{}: Modality '{}' is not supported "
+                                                         "by this runner instance",
+                                                         itemCtx, kind));
+            }
+
+            if (kind == "image") {
+                auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "image");
+                auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"C", "H", "W"});
+                auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
+
+                const auto &shape = tensorHost->shape_;
+                const auto C = shape[0];
+                const auto H = shape[1];
+                const auto W = shape[2];
+
+                std::vector<float> data(tensorHost->numel_);
+                std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
+                inputs.emplace_back(executorch::extension::llm::Image(std::move(data), W, H, C));
+            } else if (kind == "audio") {
+                auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "audio");
+                auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"batch", "n_bins", "n_frames"});
+                auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
+
+                const auto &shape = tensorHost->shape_;
+                const auto batchSize = shape[0];
+                const auto nBins = shape[1];
+                const auto nFrames = shape[2];
+
+                std::vector<float> data(tensorHost->numel_);
+                std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
+                inputs.emplace_back(executorch::extension::llm::Audio(std::move(data), batchSize, nBins, nFrames));
+            } else {
+                throw error::InvalidArgument(std::format("{}: Unsupported media kind '{}'", itemCtx, kind));
+            }
+        } else {
+            throw error::InvalidArgument(std::format("{}: Prompt array elements must be strings or media objects", ctx));
+        }
+    }
+
+    return inputs;
+}
 } // namespace
 
 LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
-                                         const std::string &tokenizerPath)
+                                         const std::string &tokenizerPath,
+                                         const std::vector<std::string> &modalities)
     : modelPath_(modelPath),
-      tokenizerPath_(tokenizerPath) {
+      tokenizerPath_(tokenizerPath),
+      modalities_(modalities) {
+
     auto tokenizer = executorch::extension::llm::load_tokenizer(tokenizerPath);
     if (!tokenizer) {
-        throw error::LoadFailed("LLMRunner: Failed to load runner tokenizer at path: " + tokenizerPath);
+        throw error::LoadFailed(std::format("LLMRunner: Failed to load runner tokenizer at path: {}", tokenizerPath));
     }
 
-    runner_ = executorch::extension::llm::create_text_llm_runner(modelPath, std::move(tokenizer));
+    runner_ = executorch::extension::llm::create_multimodal_runner(modelPath, std::move(tokenizer));
     if (!runner_) {
-        throw error::LoadFailed("LLMRunner: Failed to create text llm runner");
+        throw error::LoadFailed("LLMRunner: Failed to create llm runner");
     }
 
     auto loadError = runner_->load();
     if (loadError != executorch::runtime::Error::Ok) {
         std::string errorMsg = executorch::runtime::to_string(loadError);
-        throw error::LoadFailed("LLMRunner: Failed to load model: " + errorMsg, loadError);
+        throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadError);
     }
 }
 
@@ -65,14 +143,16 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         return jsi::String::createFromUtf8(rt, tokenizerPath_);
     }
 
+    if (nameStr == "modalities") {
+        return conversions::toJsiArray(rt, modalities_);
+    }
+
     if (nameStr == "generate") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count < 1) {
                 throw error::InvalidArgument("LLMRunner.generate: Usage: generate(prompt, config?, onToken?)");
             }
-
-            std::string prompt = conversions::asType<std::string>(rt, "LLMRunner.generate: prompt", args[0]);
 
             executorch::extension::llm::GenerationConfig config;
             if (count > 1 && !args[1].isUndefined() && !args[1].isNull()) {
@@ -123,11 +203,19 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             if (!self->runner_) {
                 throw error::ResourceDisposed("LLMRunner.generate: Runner has been disposed");
             }
-            auto error = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
 
-            if (error != executorch::runtime::Error::Ok) {
-                std::string errorMsg = executorch::runtime::to_string(error);
-                throw error::ExecutionFailed("LLMRunner.generate: Failed to generate: " + errorMsg, error);
+            auto genError = executorch::runtime::Error::Ok;
+            if (args[0].isString()) {
+                std::string prompt = args[0].asString(rt).utf8(rt);
+                genError = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
+            } else {
+                auto inputs = parseMultimodalPromptArray(rt, "LLMRunner.generate", args[0], self->modalities_);
+                genError = self->runner_->generate(inputs, config, tokenCallback, statsCallback);
+            }
+
+            if (genError != executorch::runtime::Error::Ok) {
+                std::string errorMsg = executorch::runtime::to_string(genError);
+                throw error::ExecutionFailed(std::format("LLMRunner.generate: Failed to generate: {}", errorMsg), genError);
             }
 
             return statsToJSI(rt, *finalStats);
@@ -142,8 +230,6 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw error::InvalidArgument("LLMRunner.prefill: Usage: prefill(prompt)");
             }
 
-            std::string prompt = conversions::asType<std::string>(rt, "LLMRunner.prefill: prompt", args[0]);
-
             // Lock held for the whole call, same as generate().
             std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
             if (!lock.owns_lock()) {
@@ -152,10 +238,14 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             if (!self->runner_) {
                 throw error::ResourceDisposed("LLMRunner.prefill: Runner has been disposed");
             }
-            auto result = self->runner_->prefill({executorch::extension::llm::make_text_input(prompt)});
+
+            auto result = args[0].isString()
+                              ? self->runner_->prefill(args[0].asString(rt).utf8(rt))
+                              : self->runner_->prefill(parseMultimodalPromptArray(rt, "LLMRunner.prefill", args[0], self->modalities_));
+
             if (result.error() != executorch::runtime::Error::Ok) {
                 std::string errorMsg = executorch::runtime::to_string(result.error());
-                throw error::ExecutionFailed("LLMRunner.prefill: Failed: " + errorMsg, result.error());
+                throw error::ExecutionFailed(std::format("LLMRunner.prefill: Failed: {}", errorMsg), result.error());
             }
 
             return jsi::Value::undefined();
@@ -210,6 +300,7 @@ std::vector<jsi::PropNameID> LLMRunnerHostObject::getPropertyNames(jsi::Runtime 
     std::vector<jsi::PropNameID> properties;
     properties.push_back(jsi::PropNameID::forAscii(rt, "modelPath"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "tokenizerPath"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "modalities"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "prefill"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "generate"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "stop"));
@@ -220,14 +311,19 @@ std::vector<jsi::PropNameID> LLMRunnerHostObject::getPropertyNames(jsi::Runtime 
 void install_createLLMRunner(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createLLMRunner";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 2) {
-            throw error::InvalidArgument("createLLMRunner: Usage: createLLMRunner(modelPath, tokenizerPath)");
+        if (count < 2 || count > 3) {
+            throw error::InvalidArgument("createLLMRunner: Usage: createLLMRunner(modelPath, tokenizerPath, modalities?)");
         }
 
         auto modelPath = conversions::asType<std::string>(rt, "createLLMRunner: modelPath", args[0]);
         auto tokenizerPath = conversions::asType<std::string>(rt, "createLLMRunner: tokenizerPath", args[1]);
 
-        auto runnerInstance = std::make_shared<LLMRunnerHostObject>(modelPath, tokenizerPath);
+        std::vector<std::string> modalities;
+        if (count > 2 && !args[2].isNull() && !args[2].isUndefined()) {
+            modalities = conversions::asVector<std::string>(rt, "createLLMRunner: modalities", args[2]);
+        }
+
+        auto runnerInstance = std::make_shared<LLMRunnerHostObject>(modelPath, tokenizerPath, std::move(modalities));
         return jsi::Object::createFromHostObject(rt, runnerInstance);
     };
 

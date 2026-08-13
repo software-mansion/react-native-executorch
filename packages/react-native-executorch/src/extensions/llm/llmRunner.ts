@@ -1,3 +1,4 @@
+import type { Tensor } from '../../core/tensor';
 import { rnexecutorchJsi } from '../../native/bridge';
 
 declare const llmRunnerBrand: unique symbol;
@@ -21,35 +22,49 @@ export type GenerationStats = {
   readonly modelLoadEndMs: number;
 };
 
-/** Handle to a native ExecuTorch text LLM runner. */
-export type LLMRunner = {
+/** Supported non-text media input objects (e.g. images, audio tensors). */
+export type MediaType =
+  | { readonly kind: 'image'; readonly image: Tensor }
+  | { readonly kind: 'audio'; readonly audio: Tensor };
+
+/** Supported input modality kinds. */
+export type Modality = MediaType['kind'];
+
+/** Text or interleaved multimodal prompt input for an LLM runner. */
+export type Prompt<M extends Modality = never> =
+  | string
+  | readonly (string | Extract<MediaType, { kind: M }>)[];
+
+/** Handle to a native ExecuTorch LLM runner. */
+export type LLMRunner<M extends Modality = never> = {
   /** Path to the local model file. */
   readonly modelPath: string;
-
   /** Path to the local tokenizer configuration file. */
   readonly tokenizerPath: string;
+  /** List of supported non-text input modalities for this runner (e.g. 'image', 'audio'). */
+  readonly modalities: readonly M[];
 
   /** Disposes the native LLM runner and releases the loaded model memory. */
   dispose(): void;
-
-  /**
-   * Prefills the runner with a prompt to build up the KV cache.
-   * @param prompt The prefill text prompt.
-   */
-  prefill(prompt: string): void;
 
   /** Interrupts and stops any active generation call on this runner. */
   stop(): void;
 
   /**
+   * Prefills the runner with a prompt to build up the KV cache.
+   * @param prompt The prefill text or multimodal prompt.
+   */
+  prefill(prompt: Prompt<M>): void;
+
+  /**
    * Generates text continuation from a prompt.
-   * @param prompt The text prompt to generate continuation for.
+   * @param prompt The text or multimodal prompt to generate continuation for.
    * @param config Generation configuration options.
    * @param onToken Callback function triggered whenever a new token is generated.
    * @returns Generation performance statistics.
    */
   generate(
-    prompt: string,
+    prompt: Prompt<M>,
     config?: GenerationConfig,
     onToken?: (token: string) => void
   ): GenerationStats;
@@ -62,12 +77,18 @@ export type LLMRunner = {
 };
 
 /**
- * Creates a native ExecuTorch Text LLM runner instance.
+ * Creates a native ExecuTorch LLM runner instance.
  * @param modelPath Path to the local .pte model file.
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. tokenizer.json).
+ * @param modalities List of supported input non-text modalities (e.g. `['image']`).
+ * Defaults to text-only.
  * @returns A native LLMRunner instance.
  */
-export function createLLMRunner(modelPath: string, tokenizerPath: string): LLMRunner {
+export function createLLMRunner<const Ms extends readonly Modality[] = []>(
+  modelPath: string,
+  tokenizerPath: string,
+  modalities?: Ms
+): LLMRunner<Ms[number]> {
   'worklet';
-  return rnexecutorchJsi.llm.createLLMRunner(modelPath, tokenizerPath) as LLMRunner;
+  return rnexecutorchJsi.llm.createLLMRunner(modelPath, tokenizerPath, modalities ?? []);
 }
