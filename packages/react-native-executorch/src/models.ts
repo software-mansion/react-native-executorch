@@ -1639,6 +1639,7 @@ export const models = {
     /** WordPiece tokenizer URL for the `all-MiniLM-L6-v2` embedding model. */
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
   },
+
   /**
    * Generative Large Language Models (LLMs) for instruction following,
    * chat, text generation, and reasoning.
