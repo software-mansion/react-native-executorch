@@ -135,6 +135,7 @@ function generateChatTurnWorklet(
 
 /**
  * Instantiates an LLM chat session using background thread execution.
+ * @category Typescript API
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
  * @param options Custom generation and state options.
  * @param runtime The worklet runtime thread to run native generation on.

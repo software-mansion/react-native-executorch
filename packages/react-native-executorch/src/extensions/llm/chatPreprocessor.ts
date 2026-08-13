@@ -6,15 +6,24 @@ import type { ImageBuffer } from '../cv';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../cv/tasks/preprocessing';
 import type { Modality, Prompt, MediaInput } from './llmRunner';
 
-/** High-level media payload input for chat turns. */
+/**
+ * High-level media payload input for chat turns.
+ * @category Types
+ */
 export type ChatMediaInput =
   | { readonly kind: 'image'; readonly image: ImageBuffer }
   | { readonly kind: 'audio'; readonly audio: unknown };
 
-/** Interleaved text and media content for a chat turn. */
+/**
+ * Interleaved text and media content for a chat turn.
+ * @category Types
+ */
 export type ChatMessageContent = string | readonly (string | ChatMediaInput)[];
 
-/** Conversation turn representing system, user, or assistant messages. */
+/**
+ * Conversation turn representing system, user, or assistant messages.
+ * @category Types
+ */
 export type ChatMessage = {
   /** Conversation role ('system', 'user', or 'assistant'). */
   readonly role: 'system' | 'user' | 'assistant';
@@ -22,7 +31,10 @@ export type ChatMessage = {
   readonly content: ChatMessageContent;
 };
 
-/** Sentinel token delimiters framing media placeholders in chat templates. */
+/**
+ * Sentinel token delimiters framing media placeholders in chat templates.
+ * @category Types
+ */
 export type LLMMediaTokenConfig = {
   /** Opening token delimiter (e.g. `<|image_start|>`). */
   readonly start: string;
@@ -30,7 +42,10 @@ export type LLMMediaTokenConfig = {
   readonly end: string;
 };
 
-/** Image preprocessing and sentinel token config for vision-language LLMs. */
+/**
+ * Image preprocessing and sentinel token config for vision-language LLMs.
+ * @category Types
+ */
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
   readonly token: LLMMediaTokenConfig;
@@ -40,19 +55,28 @@ export type LLMImagePreprocessorConfig = {
   readonly targetShape: readonly [number, number, number];
 };
 
-/** Audio preprocessing and sentinel token config for audio-language LLMs. */
+/**
+ * Audio preprocessing and sentinel token config for audio-language LLMs.
+ * @category Types
+ */
 export type LLMAudioPreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
   readonly token: LLMMediaTokenConfig;
 };
 
-/** Preprocessor configuration for media modalities. */
+/**
+ * Preprocessor configuration for media modalities.
+ * @category Types
+ */
 export type LLMMediaPreprocessorConfig = {
   readonly image?: LLMImagePreprocessorConfig;
   readonly audio?: LLMAudioPreprocessorConfig;
 };
 
-/** Options for instantiating a ChatPreprocessor. */
+/**
+ * Options for instantiating a ChatPreprocessor.
+ * @category Types
+ */
 export type ChatPreprocessorConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
@@ -60,7 +84,10 @@ export type ChatPreprocessorConfig = {
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
-/** Turn preprocessing options for ChatPreprocessor. */
+/**
+ * Turn preprocessing options for ChatPreprocessor.
+ * @category Types
+ */
 export type ChatProcessOptions = {
   /**
    * Whether this is the initial turn in the conversation (prepends BOS token if
@@ -76,6 +103,7 @@ export type ChatProcessOptions = {
 
 /**
  * Handles Jinja template formatting and media tensor preprocessing for chat turns.
+ * @category Typescript API
  * @param config Preprocessor configuration including template and preprocessor settings.
  * @returns Object with process and dispose methods.
  */
@@ -99,6 +127,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
   };
 
   const process = (message: ChatMessage, opts?: ChatProcessOptions): Prompt => {
+    'worklet';
     const isFirstTurn = opts?.isFirstTurn ?? false;
     const addGenerationPrompt = opts?.addGenerationPrompt ?? true;
 
