@@ -1,6 +1,8 @@
 import type { WorkletRuntime } from 'react-native-worklets';
+import RNBlobUtil from 'react-native-blob-util';
 
 import { loadModel } from '../../../../core/model';
+import { RnExecuTorchError } from '../../../../core/error';
 import { wrapAsync } from '../../../../core/runtime';
 import { IMAGENET_NORM } from '../../../../constants';
 
@@ -19,8 +21,13 @@ export type { OcrDetection } from './engine';
  * @category Types
  */
 export type OcrModelOptions = {
-  /** Recognizer charset (string = one codepoint per index; array = taken verbatim). */
-  readonly charset: string | readonly string[];
+  /**
+   * Recognizer charset (string = one codepoint per index; array = taken
+   * verbatim), overriding {@link OcrModel.charsetPath}. Every built-in preset
+   * ships its charset beside the model instead, so this is only needed for a
+   * custom export whose charset is not published as a file.
+   */
+  readonly charset?: string | readonly string[];
   /** Maps raw `detect` outputs to quads: {@link craftExtractBoxes} / {@link dbnetExtractBoxes}. */
   readonly extractBoxes: TextBoxExtractor;
   /**
@@ -60,11 +67,46 @@ export type OcrModelOptions = {
  */
 export type OcrModel = {
   readonly modelPath: string;
+  /**
+   * The recognizer charset published beside the model: a JSON array of strings,
+   * one per class, where `charset[i]` labels logit `i + 1` (logit 0 is the CTC
+   * blank). Resolved to a local path by the resource fetcher like `modelPath`.
+   * Ignored when `modelOpts.charset` is given; one of the two is required.
+   */
+  readonly charsetPath?: string;
   readonly modelOpts: OcrModelOptions;
 };
 
 const RECOGNIZER_NORM: NormalizeOptions = { alpha: 1 / 127.5, beta: -1 }; // (x/255 - 0.5)/0.5 -> [-1, 1]
 const RECOGNIZER_PAD_VALUE = 128; // neutral gray
+
+// Loads the charset published beside the model. Kept off the JS bundle on
+// purpose: the multilingual sets are tens of kilobytes each, and an app that
+// never runs OCR should not carry them.
+async function readCharsetFile(charsetPath: string | undefined): Promise<readonly string[]> {
+  if (charsetPath === undefined) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      'createOcr: the model config must supply either `charsetPath` or `modelOpts.charset`.'
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await RNBlobUtil.fs.readFile(charsetPath, 'utf8'));
+  } catch (e) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `createOcr: could not read the charset at '${charsetPath}': ${e instanceof Error ? e.message : String(e)}`
+    );
+  }
+  if (!Array.isArray(parsed) || parsed.some((entry) => typeof entry !== 'string')) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `createOcr: the charset at '${charsetPath}' must be a JSON array of strings.`
+    );
+  }
+  return parsed as readonly string[];
+}
 
 /**
  * Creates the OCR runner for detect → recognize models (EasyOCR / PaddleOCR):
@@ -104,13 +146,16 @@ export async function createOcr(
    */
   runOcrWorklet: (input: ImageBuffer) => OcrDetection[];
 }> {
-  const { modelPath, modelOpts } = config;
+  const { modelPath, charsetPath, modelOpts } = config;
+  // Read the charset before loading the model: it is the cheaper failure, and
+  // nothing needs disposing if the config is wrong.
+  const charset = modelOpts.charset ?? (await readCharsetFile(charsetPath));
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 
   // Contract validation can throw; a bad config must not leak the model.
   let engine!: OcrEngine;
   try {
-    const contract = resolveOcrContract(model, modelOpts.charset, modelOpts.extractBoxes);
+    const contract = resolveOcrContract(model, charset, modelOpts.extractBoxes);
     engine = {
       model,
       extractBoxes: modelOpts.extractBoxes,

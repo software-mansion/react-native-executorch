@@ -25,8 +25,6 @@ import {
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
-  alphabets,
-  PPOCR_SYMBOLS,
   PRIVACY_FILTER_OPENAI_LABELS,
   PRIVACY_FILTER_NEMOTRON_LABELS,
   type PrivacyFilterOpenaiLabel,
@@ -828,8 +826,11 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // the pipeline apply it before every `detect`, and callers never touch it. It is
 // spelled out here (instead of relying on the IMAGENET_NORM default) because a
 // model whose export bakes normalization in must override it.
-// The per-language charset is added by each model entry below.
-const EASYOCR_OPTS: Omit<OcrModelOptions, 'charset'> = {
+// The recognizer charset is NOT bundled: each entry points `charsetPath` at the
+// `charset.txt` published beside its `.pte`, which the resource fetcher resolves
+// to a local path like any other model file. Inlining them would put ~86 KB of
+// CJK tables into every app that imports this registry, OCR or not.
+const EASYOCR_OPTS: OcrModelOptions = {
   extractBoxes: craftExtractBoxes,
   detectorNorm: IMAGENET_NORM,
   recognizerPadMode: 'cornerMean',
@@ -838,7 +839,6 @@ const EASYOCR_OPTS: Omit<OcrModelOptions, 'charset'> = {
 const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
   extractBoxes: dbnetExtractBoxes,
   minConfidence: 0.5,
-  charset: PPOCR_SYMBOLS,
   detectorNorm: IMAGENET_NORM,
 };
 
@@ -850,26 +850,24 @@ const PPOCRV6_PRECISION = { xnnpack: 'fp32', coreml: 'int8', vulkan: 'fp16' } as
 
 type OcrBackend = keyof typeof EASYOCR_PRECISION;
 
-const makeEasyOcr = (
-  lang: string,
-  backend: OcrBackend,
-  charset: string | readonly string[]
-): OcrModel => ({
+const makeEasyOcr = (lang: string, backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/${backend}/` +
     `easy_ocr_${lang}_${backend}_${EASYOCR_PRECISION[backend]}.pte`,
-  modelOpts: { ...EASYOCR_OPTS, charset },
+  charsetPath: `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/charset.txt`,
+  modelOpts: EASYOCR_OPTS,
 });
-const easyOcr = (lang: string, charset: string | readonly string[]) => ({
-  XNNPACK: makeEasyOcr(lang, 'xnnpack', charset),
-  COREML: makeEasyOcr(lang, 'coreml', charset),
-  VULKAN: makeEasyOcr(lang, 'vulkan', charset),
+const easyOcr = (lang: string) => ({
+  XNNPACK: makeEasyOcr(lang, 'xnnpack'),
+  COREML: makeEasyOcr(lang, 'coreml'),
+  VULKAN: makeEasyOcr(lang, 'vulkan'),
 });
 
 const makePpOcrV6 = (backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
     `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
+  charsetPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.txt`,
   modelOpts: PADDLE_PPOCRV6_OPTS,
 });
 const ppOcrV6 = {
@@ -1497,14 +1495,14 @@ export const models = {
    */
   ocr: {
     EASYOCR: {
-      ENGLISH: easyOcr('english', alphabets.english),
-      CYRILLIC: easyOcr('cyrillic', alphabets.cyrillic),
-      LATIN: easyOcr('latin', alphabets.latin),
-      JAPANESE: easyOcr('japanese', alphabets.japanese),
-      ZH_SIM: easyOcr('zh_sim', alphabets.zh_sim),
-      KOREAN: easyOcr('korean', alphabets.korean),
-      TELUGU: easyOcr('telugu', alphabets.telugu),
-      KANNADA: easyOcr('kannada', alphabets.kannada),
+      ENGLISH: easyOcr('english'),
+      CYRILLIC: easyOcr('cyrillic'),
+      LATIN: easyOcr('latin'),
+      JAPANESE: easyOcr('japanese'),
+      ZH_SIM: easyOcr('zh_sim'),
+      KOREAN: easyOcr('korean'),
+      TELUGU: easyOcr('telugu'),
+      KANNADA: easyOcr('kannada'),
     },
     PADDLE: {
       PPOCRV6_SMALL: ppOcrV6,

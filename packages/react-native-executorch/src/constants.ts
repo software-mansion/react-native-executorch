@@ -1418,9 +1418,3 @@ export const PRIVACY_FILTER_NEMOTRON_LABELS = bioesLabels([
  * @category Constants
  */
 export type PrivacyFilterNemotronLabel = (typeof PRIVACY_FILTER_NEMOTRON_LABELS)[number];
-
-// The OCR recognizer charsets live next to the OCR task rather than being
-// defined here: each one is index-aligned with a specific model export, so it
-// is versioned with that export, not with the shared label spaces above. They
-// are re-exported so `constants` stays the single public surface for them.
-export { alphabets, PPOCR_SYMBOLS } from './extensions/cv/tasks/ocr/charsets';

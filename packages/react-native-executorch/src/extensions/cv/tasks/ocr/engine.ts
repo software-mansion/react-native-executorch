@@ -242,7 +242,7 @@ const WIDE_SQUISH_TOLERANCE = 1.15;
 // Degenerate-quad guard, in ORIGINAL IMAGE pixels and applied to every
 // detector's output after it is mapped back from detector space. Distinct from
 // DBNet's `minBoxSide`, which drops contour candidates in detector-input pixels
-// before they are unclipped — that one is a decode threshold, this one is the
+// before the unclip step — that one is a decode threshold, this one is the
 // last check before a quad is warped onto the recognizer canvas.
 const MIN_RECOGNIZABLE_SIDE = 3;
 
