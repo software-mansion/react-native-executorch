@@ -38,9 +38,12 @@ export type OcrModelOptions = {
   /** Strip padding fill: `'constant'` (default) or `'cornerMean'` (background-matched). */
   readonly recognizerPadMode?: 'constant' | 'cornerMean';
   /**
-   * Custom decode replacing greedy CTC; receives softmaxed `[1,T,V]` probs. Must
-   * be a worklet. The probs tensor is pre-allocated from the recognizer's
-   * width-to-timestep relation, so `T` always matches the run's input width.
+   * Custom decode replacing greedy CTC. Must be a worklet.
+   * @param probs Softmaxed recognizer output `[1, T, V]`, pre-allocated from the
+   * recognizer's width-to-timestep relation, so `T` always matches the run's
+   * input width. Owned by the pipeline — read it, do not dispose it.
+   * @param charset The resolved charset, index-aligned with the `V` axis.
+   * @returns The decoded line and its confidence in `[0, 1]`.
    */
   readonly decode?: (
     probs: Tensor,
@@ -68,7 +71,8 @@ const RECOGNIZER_PAD_VALUE = 128; // neutral gray
  * @category Typescript API
  * @param config Model path + OCR options.
  * @param runtime Optional worklet runtime thread.
- * @returns A promise resolving to recognition and disposal controls.
+ * @returns A promise resolving to an object containing recognition and disposal
+ * controls.
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model's
  * `detect`/`recognize` methods match none of the pipeline's spec variants.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the model declares
@@ -79,8 +83,23 @@ export async function createOcr(
   config: OcrModel,
   runtime?: WorkletRuntime
 ): Promise<{
+  /**
+   * Releases all allocated native resources.
+   */
   dispose: () => void;
+
+  /**
+   * Detects and recognizes every text line in the given image.
+   * @param input The input image buffer.
+   * @returns A promise resolving to the recognized lines in reading order
+   * (leftmost column top to bottom, then the next column).
+   */
   runOcr: (input: ImageBuffer) => Promise<OcrDetection[]>;
+
+  /**
+   * Synchronous version of {@link runOcr} to be executed directly on the
+   * caller or worklet thread.
+   */
   runOcrWorklet: (input: ImageBuffer) => OcrDetection[];
 }> {
   const { modelPath, modelOpts } = config;

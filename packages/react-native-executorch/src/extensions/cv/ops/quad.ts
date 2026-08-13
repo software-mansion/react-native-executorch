@@ -1,5 +1,5 @@
 import { RnExecuTorchError } from '../../../core/error';
-import { scalePoint, type Point } from './points';
+import { distance, interpolatePoint, scalePoint, type Point } from './points';
 import type { BoundingBox, BoxFormat } from './boxes';
 
 /**
@@ -9,16 +9,6 @@ import type { BoundingBox, BoxFormat } from './boxes';
  * @category Types
  */
 export type Quad = readonly Point[];
-
-const distance = (a: Point, b: Point): number => {
-  'worklet';
-  return Math.hypot(b.x - a.x, b.y - a.y);
-};
-
-const interpolatePoint = (a: Point, b: Point, t: number): Point => {
-  'worklet';
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-};
 
 /**
  * Computes the axis-aligned bounding box enclosing a set of points, in the

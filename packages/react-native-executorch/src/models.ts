@@ -823,8 +823,11 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // =============================================================================
 // OCR
 // =============================================================================
-// Both OCR families are exported WITHOUT baked input normalization and expect
-// standard ImageNet RGB norm applied client-side (see IMAGENET_NORM).
+// Both OCR families are exported WITHOUT baked input normalization, so the norm
+// is a property of the model rather than of the call: `detectorNorm` below makes
+// the pipeline apply it before every `detect`, and callers never touch it. It is
+// spelled out here (instead of relying on the IMAGENET_NORM default) because a
+// model whose export bakes normalization in must override it.
 // The per-language charset is added by each model entry below.
 const EASYOCR_OPTS: Omit<OcrModelOptions, 'charset'> = {
   extractBoxes: craftExtractBoxes,

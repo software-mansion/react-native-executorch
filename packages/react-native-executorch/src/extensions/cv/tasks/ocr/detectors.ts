@@ -12,7 +12,7 @@ import { boxesFromFlat, groupBoxes, boxToQuad } from './geometry';
 /**
  * A detector's box-extraction strategy. Plug a new detector architecture into the
  * OCR pipeline by supplying an object of this type (a built-in below, or your
- * own). Both methods MUST be worklets.
+ * own).
  * @category Types
  */
 export type TextBoxExtractor = {
@@ -36,7 +36,7 @@ export type TextBoxExtractor = {
   /**
    * The `float32` output tensor shapes the `detect` method produces for a given
    * detector input size, so the caller can pre-allocate them. One shape per
-   * `detect` output, in order.
+   * `detect` output, in order. Runs per pass, so it MUST be a worklet.
    * @param inputSize The detector input size the image was letterboxed to.
    * @returns One shape per `detect` output tensor.
    */
@@ -46,7 +46,7 @@ export type TextBoxExtractor = {
   }) => number[][];
   /**
    * Turns the model's `detect` output tensors into oriented {@link Quad}s in
-   * detector-input pixel space.
+   * detector-input pixel space. Runs per pass, so it MUST be a worklet.
    * @param outputs The model's `detect` output tensors, in order.
    * @param inputSize The detector input size the image was letterboxed to.
    * @returns Oriented quads (TL, TR, BR, BL) in detector-input pixel space.

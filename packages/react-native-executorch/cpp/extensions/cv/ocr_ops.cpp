@@ -52,7 +52,7 @@ std::optional<Box> boxFromComponent(const ::cv::Mat &textMap, const ::cv::Mat &l
     const int32_t w = stats.at<int32_t>(i, ::cv::CC_STAT_WIDTH);
     const int32_t h = stats.at<int32_t>(i, ::cv::CC_STAT_HEIGHT);
     const ::cv::Rect compRect(x, y, w, h);
-    ::cv::Mat mask = (labels(compRect) == i);
+    ::cv::Mat mask = labels(compRect) == i;
     double maxVal = 0.0;
     ::cv::minMaxLoc(textMap(compRect), nullptr, &maxVal, nullptr, nullptr, mask);
     if (maxVal < static_cast<double>(lowTextThreshold)) {
@@ -121,6 +121,7 @@ std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, floa
     comb.convertTo(binary, CV_8UC1);
     ::cv::Mat labels;
     ::cv::Mat stats;
+    // Required out-param of the only overload that returns stats; never read.
     ::cv::Mat centroids;
     const int32_t nLabels = ::cv::connectedComponentsWithStats(binary, labels, stats, centroids, 4);
 
@@ -216,12 +217,12 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         auto minY = static_cast<float>(h);
         float maxX = 0;
         float maxY = 0;
-        for (int32_t k = 0; k < 4; ++k) {
+        for (std::size_t k = 0; k < c.size(); ++k) {
             // Clamp to the last valid pixel index (w-1/h-1), not w/h — a corner at
             // exactly w or h is one past the last column/row.
-            const float px = std::clamp(c[static_cast<std::size_t>(k)].x, 0.0f, static_cast<float>(w - 1));
-            const float py = std::clamp(c[static_cast<std::size_t>(k)].y, 0.0f, static_cast<float>(h - 1));
-            q[static_cast<std::size_t>(k)] = {px, py};
+            const float px = std::clamp(c[k].x, 0.0f, static_cast<float>(w - 1));
+            const float py = std::clamp(c[k].y, 0.0f, static_cast<float>(h - 1));
+            q[k] = {px, py};
             minX = std::min(minX, px);
             minY = std::min(minY, py);
             maxX = std::max(maxX, px);
@@ -242,9 +243,9 @@ jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
     jsi::Array out(rt, quads.size() * 8);
     size_t idx = 0;
     for (const auto &q : quads) {
-        for (std::size_t k = 0; k < 4; ++k) {
-            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(q[k].x)));
-            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(q[k].y)));
+        for (const auto &p : q) {
+            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(p.x)));
+            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(p.y)));
         }
     }
     return out;

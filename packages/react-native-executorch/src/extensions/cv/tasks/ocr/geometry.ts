@@ -1,23 +1,17 @@
 // OCR box geometry: CRAFT component-box grouping + de-skew (ported from the
-// native path so box math lives in TS), reading order, and vertical-stack
-// clustering. Pure functions — no tensors, no model. Worklet source order
-// matters (callee above caller).
+// native path so box math lives in TS) and reading order. Pure functions — no
+// tensors, no model. Worklet source order matters (callee above caller).
 
 import { RnExecuTorchError } from '../../../../core/error';
-import type { Point } from '../../ops/points';
+import { distance, type Point } from '../../ops/points';
+import type { BoundingBox } from '../../ops/boxes';
 import { boundsOfPoints, type Quad } from '../../ops/quad';
 
 /**
- * An axis-aligned box (`x0,y0` = min corner, `x1,y1` = max) plus the rotation
- * angle (degrees) carried from the detector's rotated-rect.
+ * The repo's axis-aligned box plus the rotation angle (degrees) carried from the
+ * detector's rotated-rect.
  */
-export type Box = {
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-  angle: number;
-};
+export type Box = BoundingBox<'xyxy'> & { readonly angle: number };
 
 // ─── CRAFT box grouping ──────────────────────────────────────────────────────
 
@@ -32,11 +26,11 @@ const VERTICAL_THRESHOLD = 20; // |Δx| of short-side midpoints below this ⇒ v
 
 const boxWidth = (b: Box): number => {
   'worklet';
-  return b.x1 - b.x0;
+  return b.xmax - b.xmin;
 };
 const boxHeight = (b: Box): number => {
   'worklet';
-  return b.y1 - b.y0;
+  return b.ymax - b.ymin;
 };
 const minSide = (b: Box): number => {
   'worklet';
@@ -48,20 +42,16 @@ const maxSide = (b: Box): number => {
 };
 const center = (b: Box): Point => {
   'worklet';
-  return { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
-};
-const dist = (a: Point, b: Point): number => {
-  'worklet';
-  return Math.hypot(b.x - a.x, b.y - a.y);
+  return { x: (b.xmin + b.xmax) / 2, y: (b.ymin + b.ymax) / 2 };
 };
 
 function corners(b: Box): [Point, Point, Point, Point] {
   'worklet';
   return [
-    { x: b.x0, y: b.y0 },
-    { x: b.x1, y: b.y0 },
-    { x: b.x1, y: b.y1 },
-    { x: b.x0, y: b.y1 },
+    { x: b.xmin, y: b.ymin },
+    { x: b.xmax, y: b.ymin },
+    { x: b.xmax, y: b.ymax },
+    { x: b.xmin, y: b.ymax },
   ];
 }
 
@@ -86,7 +76,7 @@ function fitLineToShortestSides(b: Box): {
   const pts = corners(b);
   const sides = pts.map((p, i) => {
     const q = pts[(i + 1) % 4]!;
-    return { len: dist(p, q), mid: { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 } };
+    return { len: distance(p, q), mid: { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 } };
   });
   sides.sort((a, c) => a.len - c.len);
   let m1 = sides[0]!.mid;
@@ -108,18 +98,8 @@ function rotateBox(b: Box, angleDeg: number): Box {
   'worklet';
   const ctr = center(b);
   const rad = (angleDeg * Math.PI) / 180;
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const p of corners(b)) {
-    const r = rotateAround(p, ctr, rad);
-    minX = Math.min(minX, r.x);
-    minY = Math.min(minY, r.y);
-    maxX = Math.max(maxX, r.x);
-    maxY = Math.max(maxY, r.y);
-  }
-  return { x0: minX, y0: minY, x1: maxX, y1: maxY, angle: b.angle };
+  const rotated = corners(b).map((p) => rotateAround(p, ctr, rad));
+  return { ...boundsOfPoints(rotated, 'xyxy'), angle: b.angle };
 }
 
 function minDistanceBetween(a: Box, b: Box): number {
@@ -127,7 +107,7 @@ function minDistanceBetween(a: Box, b: Box): number {
   let md = Infinity;
   for (const c1 of corners(a)) {
     for (const c2 of corners(b)) {
-      md = Math.min(md, dist(c1, c2));
+      md = Math.min(md, distance(c1, c2));
     }
   }
   return md;
@@ -158,7 +138,7 @@ function findLineCandidates(
       ? Math.abs(pc.x - (slope * pc.y + intercept))
       : Math.abs(pc.y - (slope * pc.x + intercept));
     if (lineDistance < h * CENTER_THRESHOLD) {
-      out.push({ index: i, height: h, dist: dist(cc, pc) });
+      out.push({ index: i, height: h, dist: distance(cc, pc) });
     }
   }
   out.sort((a, b) => a.dist - b.dist || a.index - b.index);
@@ -168,10 +148,11 @@ function findLineCandidates(
 const mergeBoxes = (a: Box, b: Box): Box => {
   'worklet';
   return {
-    x0: Math.min(a.x0, b.x0),
-    y0: Math.min(a.y0, b.y0),
-    x1: Math.max(a.x1, b.x1),
-    y1: Math.max(a.y1, b.y1),
+    format: 'xyxy',
+    xmin: Math.min(a.xmin, b.xmin),
+    ymin: Math.min(a.ymin, b.ymin),
+    xmax: Math.max(a.xmax, b.xmax),
+    ymax: Math.max(a.ymax, b.ymax),
     angle: a.angle,
   };
 };
@@ -234,8 +215,8 @@ export function groupBoxes(input: Box[]): Box[] {
 }
 
 // De-skews a box into an oriented quad (rotate corners about the center by the box
-// angle). Near-vertical boxes (|angle| > 45°) stay upright, not laid flat, so a
-// glyph stack stays a tall quad for the vertical reader.
+// angle). Near-vertical boxes (|angle| > 45°) are left as they are: the detector's
+// rotated-rect angle is ambiguous there, and rotating would lay a tall box flat.
 export function boxToQuad(b: Box): Quad {
   'worklet';
   const boxCenter = center(b);
@@ -243,7 +224,7 @@ export function boxToQuad(b: Box): Quad {
   return corners(b).map((c) => rotateAround(c, boxCenter, rad));
 }
 
-// Parses a detector's flat box array — 5 per box: x0,y0,x1,y1,angle.
+// Parses a detector's flat box array — 5 per box: xmin,ymin,xmax,ymax,angle.
 export function boxesFromFlat(flat: readonly number[]): Box[] {
   'worklet';
   if (flat.length % 5 !== 0) {
@@ -255,10 +236,11 @@ export function boxesFromFlat(flat: readonly number[]): Box[] {
   const boxes: Box[] = [];
   for (let i = 0; i + 4 < flat.length; i += 5) {
     boxes.push({
-      x0: flat[i]!,
-      y0: flat[i + 1]!,
-      x1: flat[i + 2]!,
-      y1: flat[i + 3]!,
+      format: 'xyxy',
+      xmin: flat[i]!,
+      ymin: flat[i + 1]!,
+      xmax: flat[i + 2]!,
+      ymax: flat[i + 3]!,
       angle: flat[i + 4]!,
     });
   }

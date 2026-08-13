@@ -484,9 +484,9 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t expH = swap ? srcW : srcH;
         const int32_t expW = swap ? srcH : srcW;
         if (dst->shape_[0] != expH || dst->shape_[1] != expW) {
-            throw error::InvalidArgument("rotate: dst must be sized [" + std::to_string(expH) + ", " +
-                                         std::to_string(expW) + ", C] for a " + std::to_string(degCW) +
-                                         " degree rotation");
+            throw error::InvalidArgument(
+                std::format("rotate: dst must be sized [{}, {}, C] for a {} degree rotation", expH,
+                            expW, degCW));
         }
 
         auto srcLock = tensor::tryLockShared(rt, "rotate: src", src);
@@ -496,7 +496,7 @@ void install_rotate(jsi::Runtime &rt, jsi::Object &module) {
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed("rotate: " + std::string(e.what()));
+            throw error::ExecutionFailed(std::format("rotate: {}", e.what()));
         }
 
         const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
@@ -556,7 +556,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         const auto *g = reinterpret_cast<const float *>(grid->data_.get());
 
         // Bilinearly sample channel `c` of the low-res grid at fractional (gx, gy).
-        auto sampleGrid = [&](int32_t c, float gx, float gy) -> float {
+        auto sampleGrid = [g, gridW, gridH, plane](int32_t c, float gx, float gy) -> float {
             const int32_t x0 = std::clamp(static_cast<int32_t>(std::floor(gx)), 0, gridW - 1);
             const int32_t y0 = std::clamp(static_cast<int32_t>(std::floor(gy)), 0, gridH - 1);
             const int32_t x1 = std::min(x0 + 1, gridW - 1);
@@ -596,7 +596,7 @@ void install_warpByGrid(jsi::Runtime &rt, jsi::Object &module) {
         try {
             ::cv::remap(srcMat, dstMat, mapX, mapY, ::cv::INTER_LINEAR, ::cv::BORDER_REPLICATE);
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::string("warpByGrid: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::format("warpByGrid: OpenCV error: {}", e.what()));
         }
         return jsi::Value(rt, args[2]);
     };
@@ -634,8 +634,8 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
             throw error::InvalidArgument("crop: box does not intersect the image");
         }
         if (dst->shape_[0] != cropH || dst->shape_[1] != cropW) {
-            throw error::InvalidArgument("crop: dst must be sized [" + std::to_string(cropH) + ", " +
-                                         std::to_string(cropW) + ", C] for the clamped box");
+            throw error::InvalidArgument(
+                std::format("crop: dst must be sized [{}, {}, C] for the clamped box", cropH, cropW));
         }
 
         auto srcLock = tensor::tryLockShared(rt, "crop: src", src);
@@ -645,7 +645,7 @@ void install_crop(jsi::Runtime &rt, jsi::Object &module) {
         try {
             cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed("crop: " + std::string(e.what()));
+            throw error::ExecutionFailed(std::format("crop: {}", e.what()));
         }
 
         const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
@@ -735,7 +735,7 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
             const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
             content(::cv::Rect(0, 0, copyW, recH)).copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::string("rectifyQuad: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::format("rectifyQuad: OpenCV error: {}", e.what()));
         }
         return jsi::Value(rt, args[1]);
     };
