@@ -1,6 +1,6 @@
 import type { WorkletRuntime } from 'react-native-worklets';
-import RNBlobUtil from 'react-native-blob-util';
 
+import { readTextFile } from '../../../../fetcher/fetcher';
 import { loadModel } from '../../../../core/model';
 import { RnExecuTorchError } from '../../../../core/error';
 import { wrapAsync } from '../../../../core/runtime';
@@ -92,7 +92,7 @@ async function readCharsetFile(charsetPath: string | undefined): Promise<readonl
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(await RNBlobUtil.fs.readFile(charsetPath, 'utf8'));
+    parsed = JSON.parse(await readTextFile(charsetPath));
   } catch (e) {
     throw RnExecuTorchError(
       'INVALID_ARGUMENT',
