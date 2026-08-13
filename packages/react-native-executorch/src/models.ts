@@ -959,6 +959,12 @@ const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
 };
+const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+};
 
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
 
@@ -1646,6 +1652,10 @@ export const models = {
         ...LFM2_5_VL_450M_XNNPACK_8DA4W,
         XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
         MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
+      },
+      VL_1_6B: {
+        ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       },
     },
     /**
