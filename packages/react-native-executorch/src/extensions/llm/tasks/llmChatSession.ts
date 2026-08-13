@@ -16,7 +16,7 @@ import {
   type ChatMediaInput,
   type ChatMessageContent,
   type ChatMessage,
-  type LLMMediaPreprocessorConfig,
+  type MediaPreprocessorConfig,
   type ChatRendererConfig,
   type RenderOpts,
 } from '../chatRenderer';
@@ -28,7 +28,7 @@ export type {
   ChatMediaInput,
   ChatMessageContent,
   ChatMessage,
-  LLMMediaPreprocessorConfig,
+  MediaPreprocessorConfig,
   ChatRendererConfig,
   RenderOpts,
 };
@@ -38,7 +38,7 @@ export type LLMModel<M extends Modality = never> = {
   readonly tokenizerPath: string;
   readonly tokenizerConfigPath: string;
   readonly modalities?: readonly M[];
-  readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
+  readonly preprocessorConfig?: MediaPreprocessorConfig;
 };
 
 export type LLMChatSessionOptions<M extends Modality = never> = {
@@ -97,7 +97,7 @@ function generateChatTurnWorklet<M extends Modality = never>(
  */
 export async function createLLMChatSession<M extends Modality = never>(
   config: LLMModel<M>,
-  options?: LLMChatSessionOptions<M>,
+  options?: LLMChatSessionOptions<NoInfer<M>>,
   runtime?: WorkletRuntime
 ): Promise<LLMChatSession<M>> {
   const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } = config;

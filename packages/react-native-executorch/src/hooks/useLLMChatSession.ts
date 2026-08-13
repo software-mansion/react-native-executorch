@@ -21,11 +21,11 @@ import {
  */
 export function useLLMChatSession<M extends Modality = never>(
   config: LLMModel<M>,
-  options?: LLMChatSessionOptions<M> & ResourceOptions
+  options?: LLMChatSessionOptions<NoInfer<M>> & ResourceOptions
 ) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
   const { model: session, error } = useModel(
-    (res) => createLLMChatSession(res, options),
+    (res) => createLLMChatSession<M>(res, options),
     resource ?? null
   );
 

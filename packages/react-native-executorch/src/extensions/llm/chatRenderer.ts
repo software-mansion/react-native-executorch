@@ -7,14 +7,17 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from '../cv/ta
 import type { Modality, Prompt, MediaInput } from './llmRunner';
 
 /** High-level media payload types for chat messages. */
-export type ChatMediaInput =
-  | { readonly kind: 'image'; readonly image: ImageBuffer }
-  | { readonly kind: 'audio'; readonly audio: Float32Array };
+export type ChatMediaInputMap = {
+  image: { readonly kind: 'image'; readonly image: ImageBuffer };
+  audio: { readonly kind: 'audio'; readonly audio: unknown };
+};
+
+export type ChatMediaInput<M extends Modality = Modality> = ChatMediaInputMap[M];
 
 /** Interleaved multimodal content for high-level ChatMessages. */
 export type ChatMessageContent<M extends Modality = never> =
   | string
-  | readonly (string | Extract<ChatMediaInput, { kind: M }>)[];
+  | readonly (string | ChatMediaInput<M>)[];
 
 /** Message interface for chat history and inputs. */
 export type ChatMessage<M extends Modality = never> = {
@@ -22,7 +25,7 @@ export type ChatMessage<M extends Modality = never> = {
   readonly content: ChatMessageContent<M>;
 };
 
-export type LLMMediaPreprocessorConfig = {
+export type MediaPreprocessorConfig = {
   image?: {
     readonly token: { readonly start: string; readonly end: string };
     readonly preprocessorOpts: ImagePreprocessorOptions;
@@ -37,7 +40,7 @@ export type LLMMediaPreprocessorConfig = {
 export type ChatRendererConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
-  readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
+  readonly preprocessorConfig?: MediaPreprocessorConfig;
 };
 
 /** Turn rendering options for ChatRenderer. */
