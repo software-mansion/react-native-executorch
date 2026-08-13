@@ -843,10 +843,10 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
 };
 
 // EasyOCR ships int8 on both CPU/ANE; its Vulkan build is fp16-dominated (fp16
-// CRAFT on the GPU, int8 CRNN on XNNPACK). PP-OCRv6 keeps fp32 on XNNPACK — a
-// static-activation int8 detect computes garbage above ~960px at any calibration.
+// CRAFT on the GPU, int8 CRNN on XNNPACK). PP-OCRv6 detects in int8 on XNNPACK
+// too, but keeps fp32 for recognition: int8 is lossy on the SVTR attention stack.
 const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
-const PPOCRV6_PRECISION = { xnnpack: 'fp32', coreml: 'int8', vulkan: 'fp16' } as const;
+const PPOCRV6_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 
 type OcrBackend = keyof typeof EASYOCR_PRECISION;
 
@@ -1510,6 +1510,12 @@ export const models = {
       TELUGU: easyOcr('telugu'),
       KANNADA: easyOcr('kannada'),
     },
+    /**
+     * PP-OCRv6 small — DBNet detector plus an SVTR recognizer, one model for
+     * every language.
+     *
+     * On Android, `VULKAN` is the faster choice.
+     */
     PADDLE: {
       PPOCRV6_SMALL: ppOcrV6,
     },

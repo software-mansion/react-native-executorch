@@ -21,7 +21,7 @@ const OCR_MODELS: { label: string; base: OcrModel; disabled: boolean }[] = [
     disabled: false,
   },
   {
-    label: 'PaddleOCR (Vulkan)',
+    label: 'PaddleOCR (Vulkan, fastest)',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.VULKAN,
     disabled: isIos,
   },
