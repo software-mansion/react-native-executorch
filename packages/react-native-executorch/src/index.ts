@@ -33,6 +33,7 @@ export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
+export * from './extensions/llm/tasks/llmChatSession';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';
@@ -40,8 +41,6 @@ export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
-export * from './extensions/llm/tasks/llmChatSession';
-export type { ImageBuffer, ImageFormat } from './extensions/cv/image';
 
 // Core primitives — for library builders and power users
 export * from './core/error';
@@ -54,9 +53,9 @@ export * as schema from './core/schema';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';
+export * as llm from './extensions/llm';
 export * as nlp from './extensions/nlp';
 export * as speech from './extensions/speech';
-export * as llm from './extensions/llm';
 
 // Utils
 export * from './utils';

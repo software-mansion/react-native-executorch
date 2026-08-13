@@ -19,7 +19,7 @@ import {
   models,
   type ChatMessage,
   type GenerationStats,
-  type ImageBuffer,
+  cv,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { NestedModelPicker, findPath } from '../../components/ModelPicker';
@@ -105,7 +105,7 @@ function LLMContent() {
 
   const [attachedImage, setAttachedImage] = useState<{
     uri: string;
-    buffer: ImageBuffer;
+    buffer: cv.ImageBuffer;
     name: string;
   } | null>(null);
 
@@ -140,7 +140,7 @@ function LLMContent() {
         return;
       }
 
-      const buffer: ImageBuffer = {
+      const buffer: cv.ImageBuffer = {
         data: pixels,
         width: skImage.width(),
         height: skImage.height(),
