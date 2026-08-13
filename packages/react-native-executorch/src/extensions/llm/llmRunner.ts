@@ -23,17 +23,17 @@ export type GenerationStats = {
 };
 
 /** Supported non-text media input objects (e.g. images, audio tensors). */
-export type MediaType =
+export type MediaInput =
   | { readonly kind: 'image'; readonly image: Tensor }
   | { readonly kind: 'audio'; readonly audio: Tensor };
 
 /** Supported input modality kinds. */
-export type Modality = MediaType['kind'];
+export type Modality = MediaInput['kind'];
 
 /** Text or interleaved multimodal prompt input for an LLM runner. */
 export type Prompt<M extends Modality = never> =
   | string
-  | readonly (string | Extract<MediaType, { kind: M }>)[];
+  | readonly (string | Extract<MediaInput, { kind: M }>)[];
 
 /** Handle to a native ExecuTorch LLM runner. */
 export type LLMRunner<M extends Modality = never> = {
