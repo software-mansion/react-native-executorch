@@ -220,7 +220,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             } else {
                 auto inputs = parsePrompt(rt, "LLMRunner.generate", args[0], self->modalities_);
                 auto *multimodalRunner = dynamic_cast<executorch::extension::llm::MultimodalRunner *>(self->runner_.get());
-                if (!multimodalRunner) {
+                if (multimodalRunner == nullptr) {
                     throw error::InvalidArgument("LLMRunner.generate: Runner instance is not a multimodal model");
                 }
                 genError = multimodalRunner->generate(inputs, config, tokenCallback, statsCallback);
