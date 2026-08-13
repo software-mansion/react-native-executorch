@@ -15,12 +15,12 @@
 
 #include <jsi/jsi.h>
 
-#include <executorch/extension/llm/runner/multimodal_runner.h>
+#include <executorch/extension/llm/runner/irunner.h>
 
 namespace rnexecutorch::extensions::llm {
 /**
- * JSI HostObject wrapping an ExecuTorch Multimodal LLM runner instance
- * (`executorch::extension::llm::MultimodalRunner`).
+ * JSI HostObject wrapping an ExecuTorch LLM runner instance
+ * (`executorch::extension::llm::IRunner`).
  *
  * Exposes methods to JavaScript for prefilling prompt context, generating token
  * stream continuations, interrupting generation, and releasing native model memory.
@@ -44,8 +44,8 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 
 private:
-    /** Owning pointer to the underlying ExecuTorch MultimodalRunner instance. */
-    std::unique_ptr<executorch::extension::llm::MultimodalRunner> runner_;
+    /** Owning pointer to the underlying ExecuTorch IRunner instance. */
+    std::unique_ptr<executorch::extension::llm::IRunner> runner_;
     /** Mutex guarding concurrent access to prefill and generation operations. */
     std::mutex mutex_;
     /** File system path to the loaded `.pte` model binary. */

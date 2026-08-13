@@ -947,6 +947,18 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
   tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
+const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+};
+const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+};
 
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
 
@@ -1094,6 +1106,19 @@ const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
   modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
   tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+
+const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
+
+const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+const GEMMA4_E2B_MLX_INT4: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 
 const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
@@ -1617,6 +1642,11 @@ export const models = {
         XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
         MLX_INT4: LFM2_5_350M_MLX_INT4,
       },
+      VL_450M: {
+        ...LFM2_5_VL_450M_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
+        MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
+      },
     },
     /**
      * Bielik v3 1.5B Polish and English instruction-tuned language model.
@@ -1741,6 +1771,18 @@ export const models = {
         ...QWEN3_4B_XNNPACK_8DA4W,
         XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
         XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+      },
+    },
+    /**
+     * Google Gemma 4 lightweight generative language model family
+     * optimized for on-device use.
+     */
+    GEMMA4: {
+      ...GEMMA4_E2B_XNNPACK_8DA4W,
+      E2B: {
+        ...GEMMA4_E2B_XNNPACK_8DA4W,
+        XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
+        MLX_INT4: GEMMA4_E2B_MLX_INT4,
       },
     },
   },

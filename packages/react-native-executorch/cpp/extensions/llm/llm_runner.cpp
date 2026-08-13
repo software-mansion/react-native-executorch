@@ -16,6 +16,7 @@
 #include <executorch/extension/llm/runner/multimodal_input.h>
 #include <executorch/extension/llm/runner/multimodal_runner.h>
 #include <executorch/extension/llm/runner/stats.h>
+#include <executorch/extension/llm/runner/text_llm_runner.h>
 #include <executorch/runtime/core/error.h>
 
 #include "core/conversions.h"
@@ -43,13 +44,17 @@ jsi::Object statsToJSI(jsi::Runtime &rt, const executorch::extension::llm::Stats
     return obj;
 }
 
-std::vector<executorch::extension::llm::MultimodalInput> parseMultimodalPromptArray(
+std::vector<executorch::extension::llm::MultimodalInput> parsePrompt(
     jsi::Runtime &rt,
     const std::string &ctx,
     const jsi::Value &value,
     const std::vector<std::string> &supportedModalities) {
 
-    auto arr = conversions::asType<jsi::Array>(rt, std::format("{}: prompt array", ctx), value);
+    if (value.isString()) {
+        return {executorch::extension::llm::MultimodalInput(conversions::asType<std::string>(rt, ctx, value))};
+    }
+
+    auto arr = conversions::asType<jsi::Array>(rt, ctx, value);
     size_t len = arr.length(rt);
 
     std::vector<executorch::extension::llm::MultimodalInput> inputs;
@@ -57,50 +62,49 @@ std::vector<executorch::extension::llm::MultimodalInput> parseMultimodalPromptAr
 
     for (size_t i = 0; i < len; ++i) {
         auto elem = arr.getValueAtIndex(rt, i);
+        std::string itemCtx = std::format("{}[{}]", ctx, i);
+
         if (elem.isString()) {
-            inputs.emplace_back(elem.asString(rt).utf8(rt));
-        } else if (elem.isObject()) {
-            auto mediaObj = elem.asObject(rt);
-            std::string itemCtx = std::format("{}[{}]", ctx, i);
-            auto kind = conversions::getRequiredProperty<std::string>(rt, itemCtx, mediaObj, "kind");
+            inputs.emplace_back(conversions::asType<std::string>(rt, itemCtx, elem));
+            continue;
+        }
+        auto mediaObj = conversions::asType<jsi::Object>(rt, itemCtx, elem);
+        auto kind = conversions::getRequiredProperty<std::string>(rt, itemCtx, mediaObj, "kind");
 
-            if (std::ranges::find(supportedModalities, kind) == supportedModalities.end()) {
-                throw error::InvalidArgument(std::format("{}: Modality '{}' is not supported "
-                                                         "by this runner instance",
-                                                         itemCtx, kind));
-            }
+        if (std::ranges::find(supportedModalities, kind) == supportedModalities.end()) {
+            throw error::InvalidArgument(std::format("{}: Modality '{}' is not supported "
+                                                     "by this runner instance",
+                                                     itemCtx, kind));
+        }
 
-            if (kind == "image") {
-                auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "image");
-                auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"C", "H", "W"});
-                auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
+        if (kind == "image") {
+            auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "image");
+            auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"C", "H", "W"});
+            auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
 
-                const auto &shape = tensorHost->shape_;
-                const auto C = shape[0];
-                const auto H = shape[1];
-                const auto W = shape[2];
+            const auto &shape = tensorHost->shape_;
+            const auto C = shape[0];
+            const auto H = shape[1];
+            const auto W = shape[2];
 
-                std::vector<float> data(tensorHost->numel_);
-                std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
-                inputs.emplace_back(executorch::extension::llm::Image(std::move(data), W, H, C));
-            } else if (kind == "audio") {
-                auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "audio");
-                auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"batch", "n_bins", "n_frames"});
-                auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
+            std::vector<float> data(tensorHost->numel_);
+            std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
+            inputs.emplace_back(executorch::extension::llm::Image(std::move(data), W, H, C));
+        } else if (kind == "audio") {
+            auto tensorJs = conversions::getRequiredProperty<jsi::Value>(rt, itemCtx, mediaObj, "audio");
+            auto tensorHost = tensor::fromJs(rt, itemCtx, tensorJs, DType::float32, {"batch", "n_bins", "n_frames"});
+            auto tensorLock = tensor::tryLockShared(rt, itemCtx, tensorHost);
 
-                const auto &shape = tensorHost->shape_;
-                const auto batchSize = shape[0];
-                const auto nBins = shape[1];
-                const auto nFrames = shape[2];
+            const auto &shape = tensorHost->shape_;
+            const auto batchSize = shape[0];
+            const auto nBins = shape[1];
+            const auto nFrames = shape[2];
 
-                std::vector<float> data(tensorHost->numel_);
-                std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
-                inputs.emplace_back(executorch::extension::llm::Audio(std::move(data), batchSize, nBins, nFrames));
-            } else {
-                throw error::InvalidArgument(std::format("{}: Unsupported media kind '{}'", itemCtx, kind));
-            }
+            std::vector<float> data(tensorHost->numel_);
+            std::memcpy(data.data(), tensorHost->data_.get(), tensorHost->numel_ * sizeof(float));
+            inputs.emplace_back(executorch::extension::llm::Audio(std::move(data), batchSize, nBins, nFrames));
         } else {
-            throw error::InvalidArgument(std::format("{}: Prompt array elements must be strings or media objects", ctx));
+            throw error::InvalidArgument(std::format("{}: Unsupported media kind '{}'", itemCtx, kind));
         }
     }
 
@@ -120,7 +124,12 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
         throw error::LoadFailed(std::format("LLMRunner: Failed to load runner tokenizer at path: {}", tokenizerPath));
     }
 
-    runner_ = executorch::extension::llm::create_multimodal_runner(modelPath, std::move(tokenizer));
+    if (modalities_.empty()) {
+        runner_ = executorch::extension::llm::create_text_llm_runner(modelPath, std::move(tokenizer));
+    } else {
+        runner_ = executorch::extension::llm::create_multimodal_runner(modelPath, std::move(tokenizer));
+    }
+
     if (!runner_) {
         throw error::LoadFailed("LLMRunner: Failed to create llm runner");
     }
@@ -205,12 +214,13 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
             }
 
             auto genError = executorch::runtime::Error::Ok;
-            if (args[0].isString()) {
-                std::string prompt = args[0].asString(rt).utf8(rt);
+            if (self->modalities_.empty()) {
+                auto prompt = conversions::asType<std::string>(rt, "LLMRunner.generate: prompt", args[0]);
                 genError = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
             } else {
-                auto inputs = parseMultimodalPromptArray(rt, "LLMRunner.generate", args[0], self->modalities_);
-                genError = self->runner_->generate(inputs, config, tokenCallback, statsCallback);
+                auto inputs = parsePrompt(rt, "LLMRunner.generate", args[0], self->modalities_);
+                auto *multimodalRunner = dynamic_cast<executorch::extension::llm::MultimodalRunner *>(self->runner_.get());
+                genError = multimodalRunner->generate(inputs, config, tokenCallback, statsCallback);
             }
 
             if (genError != executorch::runtime::Error::Ok) {
@@ -239,9 +249,8 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw error::ResourceDisposed("LLMRunner.prefill: Runner has been disposed");
             }
 
-            auto result = args[0].isString()
-                              ? self->runner_->prefill(args[0].asString(rt).utf8(rt))
-                              : self->runner_->prefill(parseMultimodalPromptArray(rt, "LLMRunner.prefill", args[0], self->modalities_));
+            auto inputs = parsePrompt(rt, "LLMRunner.prefill", args[0], self->modalities_);
+            auto result = self->runner_->prefill(inputs);
 
             if (result.error() != executorch::runtime::Error::Ok) {
                 std::string errorMsg = executorch::runtime::to_string(result.error());

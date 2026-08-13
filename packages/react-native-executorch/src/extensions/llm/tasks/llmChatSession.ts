@@ -7,11 +7,12 @@ import {
   type LLMRunner,
   type GenerationConfig,
   type GenerationStats,
+  type Modality,
 } from '../llmRunner';
 import { createJinjaChatFormatter } from '../jinja';
 import { parseTokenizerConfig } from '../tokenizerConfig';
 
-export type { GenerationConfig, GenerationStats };
+export type { GenerationConfig, GenerationStats, Modality };
 
 /** Message interface for chat history and inputs. */
 export type ChatMessage = {
@@ -30,6 +31,7 @@ export type LLMModel = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly tokenizerConfigPath: string;
+  readonly modalities?: readonly Modality[];
 };
 
 /** Custom generation and state options for an LLM chat session. */
@@ -62,7 +64,7 @@ type SessionState = {
 };
 
 function generateChatTurn(
-  nativeRunner: LLMRunner,
+  nativeRunner: LLMRunner<any>,
   prompt: string,
   options: {
     readonly genConfig: GenerationConfig;
@@ -98,7 +100,7 @@ export async function createLLMChatSession(
   options?: LLMChatSessionOptions,
   runtime?: WorkletRuntime
 ): Promise<LLMChatSession> {
-  const { modelPath, tokenizerPath, tokenizerConfigPath } = config;
+  const { modelPath, tokenizerPath, tokenizerConfigPath, modalities } = config;
 
   const initialMessages = options?.initialMessages ?? [];
   const defaultGenerationConfig = options?.generationConfig;
@@ -112,7 +114,11 @@ export async function createLLMChatSession(
   const stopTokens = [...(options?.stopTokens ?? []), ...(eosToken ? [eosToken] : [])];
 
   const state: SessionState = { history: [] };
-  const nativeRunner = await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath);
+  const nativeRunner = await wrapAsync(createLLMRunner, runtime)(
+    modelPath,
+    tokenizerPath,
+    modalities
+  );
   const prefill = wrapAsync(nativeRunner.prefill, runtime);
 
   for (const msg of initialMessages) {
