@@ -31,12 +31,12 @@ const OCR_MODELS: { label: string; base: OcrModel; disabled: boolean }[] = [
     disabled: !isIos,
   },
   {
-    label: 'EasyOCR English (XNNPACK)',
+    label: 'EasyOCR English (XNNPACK, fastest)',
     base: models.ocr.EASYOCR.ENGLISH.XNNPACK,
     disabled: false,
   },
   {
-    label: 'EasyOCR English (Vulkan)',
+    label: 'EasyOCR English (Vulkan, best quality)',
     base: models.ocr.EASYOCR.ENGLISH.VULKAN,
     disabled: isIos,
   },

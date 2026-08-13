@@ -1494,6 +1494,12 @@ export const models = {
    * recognizer, run as one two-stage pipeline.
    */
   ocr: {
+    /**
+     * EasyOCR — CRAFT detector plus a per-language CRNN recognizer.
+     *
+     * On Android, pick `XNNPACK` for speed and `VULKAN` for quality on pages
+     * larger than ~800 px, where it reads text the faster detector gets wrong.
+     */
     EASYOCR: {
       ENGLISH: easyOcr('english'),
       CYRILLIC: easyOcr('cyrillic'),
