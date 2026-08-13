@@ -150,15 +150,11 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
         continue;
       }
 
-      if (modalities !== undefined && !modalities.includes(item.kind)) {
+      if (!modalities || !modalities.includes(item.kind)) {
         throw RnExecuTorchError(
           'INVALID_ARGUMENT',
           `Modality '${item.kind}' is not supported by this model instance.`
         );
-      }
-
-      if (!preprocessorConfig || !(item.kind in preprocessorConfig)) {
-        throw RnExecuTorchError('INVALID_ARGUMENT', `Modality '${item.kind}' not supported`);
       }
 
       if (item.kind === 'image' && 'image' in item) {
