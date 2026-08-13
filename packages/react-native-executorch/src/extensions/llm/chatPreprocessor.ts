@@ -157,7 +157,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
         );
       }
 
-      if (item.kind === 'image' && 'image' in item) {
+      if (item.kind === 'image') {
         if (!preprocessorConfig?.image || !imgPreprocessor || !imgShape) {
           throw RnExecuTorchError(
             'INVALID_ARGUMENT',
@@ -177,7 +177,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
         mediaInputs.push({ kind: 'image', image: tImage });
       }
 
-      if (item.kind === 'audio' && 'audio' in item) {
+      if (item.kind === 'audio') {
         throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio input not yet supported');
       }
     }
