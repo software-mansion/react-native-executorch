@@ -16,7 +16,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
-import type { LLMModel, LLMMediaPreprocessorConfig } from './extensions/llm/tasks/llmChatSession';
+import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -948,7 +948,7 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 
-const LFM2_5_VL_PREPROCESSOR_CONFIG: LLMMediaPreprocessorConfig = {
+const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   image: {
     token: { start: '<|image_start|>', end: '<|image_end|>' },
     targetShape: [3, 512, 512] as const,
