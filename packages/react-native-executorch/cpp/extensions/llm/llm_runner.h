@@ -23,18 +23,24 @@ namespace rnexecutorch::extensions::llm {
  * (`executorch::extension::llm::IRunner`).
  *
  * Exposes methods to JavaScript for prefilling prompt context, generating token
- * stream continuations, interrupting generation, and releasing native model memory.
+ * stream continuations, interrupting generation, and releasing native model
+ * memory.
  */
 class LLMRunnerHostObject : public facebook::jsi::HostObject,
                             public std::enable_shared_from_this<LLMRunnerHostObject> {
 public:
     /**
-     * Constructs an LLMRunnerHostObject by loading an ExecuTorch model binary and tokenizer.
+     * Constructs an LLMRunnerHostObject by loading an ExecuTorch model binary
+     * and tokenizer.
      *
-     * @param modelPath Absolute file system path to the `.pte` LLM model binary.
-     * @param tokenizerPath Absolute file system path to the local tokenizer configuration file (e.g. `tokenizer.json`).
-     * @param modalities Vector of supported input modality names (e.g. `{"image"}`).
-     * @throws core::error::RnExecuTorchException with code LoadFailed if loading the model or tokenizer fails.
+     * @param modelPath Absolute file system path to the `.pte` LLM model
+     * binary.
+     * @param tokenizerPath Absolute file system path to the local tokenizer
+     * configuration file (e.g. `tokenizer.json`).
+     * @param modalities Vector of supported input modality names (e.g.
+     * `{"image"}`).
+     * @throws core::error::RnExecuTorchException with code LoadFailed if
+     * loading the model or tokenizer fails.
      */
     LLMRunnerHostObject(const std::string &modelPath,
                         const std::string &tokenizerPath,
