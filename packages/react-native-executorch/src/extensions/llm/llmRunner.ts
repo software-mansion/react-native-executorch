@@ -22,36 +22,25 @@ export type GenerationStats = {
   readonly modelLoadEndMs: number;
 };
 
-/** Map of supported non-text media input modalities to native tensor payloads. */
-export type MediaInputMap = {
-  /** Image modality input holding a preprocessed float32 image tensor. */
-  image: { readonly kind: 'image'; readonly image: Tensor };
-  /** Audio modality input holding a preprocessed float32 audio waveform tensor. */
-  audio: { readonly kind: 'audio'; readonly audio: Tensor };
-};
-
 /** Supported non-text input modality keys (e.g. `'image'`, `'audio'`). */
-export type Modality = keyof MediaInputMap;
+export type Modality = 'image' | 'audio';
 
-/** Extracts native media input tensor objects for allowed modalities `M`. */
-export type MediaInput<M extends Modality = Modality> = MediaInputMap[M];
+/** Low-level non-text media input tensor payloads. */
+export type MediaInput =
+  | { readonly kind: 'image'; readonly image: Tensor }
+  | { readonly kind: 'audio'; readonly audio: Tensor };
 
-/**
- * Text or interleaved multimodal prompt input for a low-level LLM runner.
- * Restricts strictly to a single text string when `M` is `never`.
- */
-export type Prompt<M extends Modality = never> = [M] extends [never]
-  ? string
-  : string | readonly (string | MediaInput<M>)[];
+/** Text or interleaved multimodal prompt input for a low-level LLM runner. */
+export type Prompt = string | readonly (string | MediaInput)[];
 
 /** Handle to a native ExecuTorch LLM runner. */
-export type LLMRunner<M extends Modality = never> = {
+export type LLMRunner = {
   /** Path to the local model file. */
   readonly modelPath: string;
   /** Path to the local tokenizer configuration file. */
   readonly tokenizerPath: string;
   /** List of supported non-text input modalities for this runner (e.g. 'image', 'audio'). */
-  readonly modalities: readonly M[];
+  readonly modalities: readonly Modality[];
 
   /** Disposes the native LLM runner and releases the loaded model memory. */
   dispose(): void;
@@ -63,7 +52,7 @@ export type LLMRunner<M extends Modality = never> = {
    * Prefills the runner with a prompt to build up the KV cache.
    * @param prompt The prefill text or multimodal prompt.
    */
-  prefill(prompt: Prompt<M>): void;
+  prefill(prompt: Prompt): void;
 
   /**
    * Generates text continuation from a prompt.
@@ -73,7 +62,7 @@ export type LLMRunner<M extends Modality = never> = {
    * @returns Generation performance statistics.
    */
   generate(
-    prompt: Prompt<M>,
+    prompt: Prompt,
     config?: GenerationConfig,
     onToken?: (token: string) => void
   ): GenerationStats;
@@ -93,11 +82,11 @@ export type LLMRunner<M extends Modality = never> = {
  * Defaults to text-only.
  * @returns A native LLMRunner instance.
  */
-export function createLLMRunner<M extends Modality = never>(
+export function createLLMRunner(
   modelPath: string,
   tokenizerPath: string,
-  modalities?: readonly M[]
-): LLMRunner<M> {
+  modalities?: readonly Modality[]
+): LLMRunner {
   'worklet';
   return rnexecutorchJsi.llm.createLLMRunner(modelPath, tokenizerPath, modalities ?? []);
 }

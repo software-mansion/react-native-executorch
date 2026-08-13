@@ -33,45 +33,45 @@ export type {
   LLMMediaPreprocessorConfig,
 };
 
-export type LLMModel<M extends Modality = never> = {
+export type LLMModel = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly tokenizerConfigPath: string;
-  readonly modalities?: readonly M[];
-  readonly preprocessorConfig?: LLMMediaPreprocessorConfig<M>;
+  readonly modalities?: readonly Modality[];
+  readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
-export type LLMChatSessionOptions<M extends Modality = never> = {
-  readonly initialMessages?: readonly ChatMessage<M>[];
+export type LLMChatSessionOptions = {
+  readonly initialMessages?: readonly ChatMessage[];
   readonly generationConfig?: GenerationConfig;
   readonly stopTokens?: readonly string[];
 };
 
-export type LLMGenerationResult<M extends Modality = never> = {
-  readonly response: ChatMessageContent<M>;
+export type LLMGenerationResult = {
+  readonly response: ChatMessageContent;
   readonly stats: GenerationStats;
 };
 
-export type LLMChatSession<M extends Modality = never> = {
+export type LLMChatSession = {
   stop(): void;
   dispose(): void;
-  getHistory(): readonly ChatMessage<M>[];
+  getHistory(): readonly ChatMessage[];
   sendMessage(
-    message: ChatMessageContent<M>,
+    message: ChatMessageContent | ChatMessage,
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
-  ): Promise<LLMGenerationResult<M>>;
+  ): Promise<LLMGenerationResult>;
 };
 
-function generateChatTurnWorklet<M extends Modality = never>(
-  runner: LLMRunner<M>,
-  prompt: Prompt<M>,
+function generateChatTurnWorklet(
+  runner: LLMRunner,
+  prompt: Prompt,
   options: {
     readonly genConfig: GenerationConfig;
     readonly stopTokens: readonly string[];
     readonly onToken?: (token: string) => void;
   }
-): LLMGenerationResult<M> {
+): LLMGenerationResult {
   'worklet';
   const { genConfig, stopTokens, onToken } = options;
 
@@ -95,11 +95,11 @@ function generateChatTurnWorklet<M extends Modality = never>(
  * @param runtime The worklet runtime thread to run native generation on.
  * @returns A Promise resolving to an LLMChatSession instance.
  */
-export async function createLLMChatSession<M extends Modality = never>(
-  config: LLMModel<M>,
-  options?: LLMChatSessionOptions<NoInfer<M>>,
+export async function createLLMChatSession(
+  config: LLMModel,
+  options?: LLMChatSessionOptions,
   runtime?: WorkletRuntime
-): Promise<LLMChatSession<M>> {
+): Promise<LLMChatSession> {
   const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } = config;
 
   const initialMessages = options?.initialMessages ?? [];
@@ -111,11 +111,11 @@ export async function createLLMChatSession<M extends Modality = never>(
   const { chatTemplate, bosToken, eosToken } = tokenizerConfig;
 
   // Prepare messages' renderer
-  const renderer = createChatRenderer<M>({ chatTemplate, bosToken, preprocessorConfig });
+  const renderer = createChatRenderer({ chatTemplate, bosToken, modalities, preprocessorConfig });
   const stopTokens = [...(options?.stopTokens ?? []), ...(eosToken ? [eosToken] : [])];
 
   // Prepare runner
-  const history: ChatMessage<M>[] = [];
+  const history: ChatMessage[] = [];
   const runner = await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities);
   const prefill = wrapAsync(runner.prefill, runtime);
 
@@ -134,14 +134,20 @@ export async function createLLMChatSession<M extends Modality = never>(
   const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
   const sendMessage = async (
-    message: ChatMessageContent<M>,
+    message: ChatMessageContent | ChatMessage,
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
-  ): Promise<LLMGenerationResult<M>> => {
-    const userMsg = { role: 'user' as const, content: message };
-    const prompt = renderer.render(userMsg, { isFirst: history.length === 0, addGenPrompt: true });
+  ): Promise<LLMGenerationResult> => {
+    let msg: ChatMessage;
+    if (typeof message === 'object' && 'role' in message) {
+      msg = message;
+    } else {
+      msg = { role: 'user', content: message };
+    }
 
-    history.push(userMsg);
+    const prompt = renderer.render(msg, { isFirst: history.length === 0, addGenPrompt: true });
+
+    history.push(msg);
 
     const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, stopTokens, onToken };
     const { response, stats } = await generateChatTurn(runner, prompt, opts);

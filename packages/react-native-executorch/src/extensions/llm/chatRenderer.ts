@@ -6,31 +6,20 @@ import type { ImageBuffer } from '../cv';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../cv/tasks/preprocessing';
 import type { Modality, Prompt, MediaInput } from './llmRunner';
 
-/** Map of supported non-text media input modalities to high-level payloads. */
-export type ChatMediaInputMap = {
-  /** Image payload containing an uncompressed RGBA ImageBuffer. */
-  image: { readonly kind: 'image'; readonly image: ImageBuffer };
-  /** Audio payload containing an uncompressed audio sample array. */
-  audio: { readonly kind: 'audio'; readonly audio: unknown };
-};
+/** High-level media payload input for chat turns. */
+export type ChatMediaInput =
+  | { readonly kind: 'image'; readonly image: ImageBuffer }
+  | { readonly kind: 'audio'; readonly audio: unknown };
 
-/** Extracts high-level media payloads for allowed modalities `M`. */
-export type ChatMediaInput<M extends Modality = Modality> = ChatMediaInputMap[M];
-
-/**
- * Interleaved text and media content for a chat turn.
- * Restricts strictly to a single text string when `M` is `never`.
- */
-export type ChatMessageContent<M extends Modality = never> = [M] extends [never]
-  ? string
-  : string | readonly (string | ChatMediaInput<M>)[];
+/** Interleaved text and media content for a chat turn. */
+export type ChatMessageContent = string | readonly (string | ChatMediaInput)[];
 
 /** Conversation turn representing system, user, or assistant messages. */
-export type ChatMessage<M extends Modality = never> = {
+export type ChatMessage = {
   /** Conversation role ('system', 'user', or 'assistant'). */
   readonly role: 'system' | 'user' | 'assistant';
   /** Message content string or interleaved text and media payloads. */
-  readonly content: ChatMessageContent<M>;
+  readonly content: ChatMessageContent;
 };
 
 /** Sentinel token delimiters framing media placeholders in chat templates. */
@@ -57,25 +46,18 @@ export type LLMAudioPreprocessorConfig = {
   readonly token: LLMMediaTokenConfig;
 };
 
-/** Map of modality keys to their respective LLM preprocessor configs. */
-export type LLMMediaPreprocessorConfigMap = {
-  image: LLMImagePreprocessorConfig;
-  audio: LLMAudioPreprocessorConfig;
+/** Preprocessor configuration for media modalities. */
+export type LLMMediaPreprocessorConfig = {
+  readonly image?: LLMImagePreprocessorConfig;
+  readonly audio?: LLMAudioPreprocessorConfig;
 };
-
-/**
- * Preprocessor configuration for enabled modalities `M`.
- * Enabled modalities in `M` are REQUIRED; un-declared modalities are FORBIDDEN.
- */
-// prettier-ignore
-export type LLMMediaPreprocessorConfig<M extends Modality = never> =
-  Pick<LLMMediaPreprocessorConfigMap, M> & { [K in Exclude<Modality, M>]?: never };
 
 /** Options for instantiating a ChatRenderer. */
 export type ChatRendererConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
-  readonly preprocessorConfig?: Partial<LLMMediaPreprocessorConfigMap>;
+  readonly modalities?: readonly Modality[];
+  readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
 /** Turn rendering options for ChatRenderer. */
@@ -89,8 +71,8 @@ export type RenderOpts = {
  * @param config Renderer configuration including template and preprocessor settings.
  * @returns Object with render and dispose methods.
  */
-export function createChatRenderer<M extends Modality = never>(config: ChatRendererConfig) {
-  const { chatTemplate, preprocessorConfig, bosToken = '' } = config;
+export function createChatRenderer(config: ChatRendererConfig) {
+  const { chatTemplate, modalities, preprocessorConfig, bosToken = '' } = config;
   const template = new Template(chatTemplate);
 
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
@@ -108,7 +90,7 @@ export function createChatRenderer<M extends Modality = never>(config: ChatRende
     imgPreprocessor?.dispose();
   };
 
-  const render = (message: ChatMessage<M>, renderOpts?: RenderOpts): Prompt<M> => {
+  const render = (message: ChatMessage, renderOpts?: RenderOpts): Prompt => {
     const isFirst = renderOpts?.isFirst ?? false;
     const addGenPrompt = renderOpts?.addGenPrompt ?? false;
 
@@ -131,8 +113,11 @@ export function createChatRenderer<M extends Modality = never>(config: ChatRende
         continue;
       }
 
-      if (!preprocessorConfig || !(item.kind in preprocessorConfig)) {
-        throw RnExecuTorchError('INVALID_ARGUMENT', `Modality '${item.kind}' not supported`);
+      if (modalities !== undefined && !modalities.includes(item.kind)) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `Modality '${item.kind}' is not supported by this model instance.`
+        );
       }
 
       if (item.kind === 'image' && 'image' in item) {
@@ -184,7 +169,7 @@ export function createChatRenderer<M extends Modality = never>(config: ChatRende
     const tail = renderedContent.slice(lastIndex);
     if (tail.length > 0) prompt.push(tail);
 
-    return prompt as unknown as Prompt<M>;
+    return prompt as unknown as Prompt;
   };
 
   return { dispose, render };

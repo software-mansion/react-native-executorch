@@ -948,7 +948,7 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
 };
 
-const LFM2_5_VL_PREPROCESSOR_CONFIG: LLMMediaPreprocessorConfig<'image'> = {
+const LFM2_5_VL_PREPROCESSOR_CONFIG: LLMMediaPreprocessorConfig = {
   image: {
     token: { start: '<|image_start|>', end: '<|image_end|>' },
     targetShape: [3, 512, 512] as const,
@@ -959,21 +959,21 @@ const LFM2_5_VL_PREPROCESSOR_CONFIG: LLMMediaPreprocessorConfig<'image'> = {
     },
   },
 };
-const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel<'image'> = {
+const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
-const LFM2_5_VL_450M_MLX_INT4: LLMModel<'image'> = {
+const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
-const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel<'image'> = {
+const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
   tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
   tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,

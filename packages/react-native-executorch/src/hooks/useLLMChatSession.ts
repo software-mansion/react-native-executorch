@@ -2,7 +2,6 @@ import { useModel } from './useModel';
 import { useResourceDownload, type ResourceOptions } from './useResourceDownload';
 import {
   createLLMChatSession,
-  type Modality,
   type LLMModel,
   type LLMChatSessionOptions,
 } from '../extensions/llm/tasks/llmChatSession';
@@ -19,13 +18,13 @@ import {
  * @returns An object containing the session's loading state, error, download progress,
  * and chat functions.
  */
-export function useLLMChatSession<M extends Modality = never>(
-  config: LLMModel<M>,
-  options?: LLMChatSessionOptions<NoInfer<M>> & ResourceOptions
+export function useLLMChatSession(
+  config: LLMModel,
+  options?: LLMChatSessionOptions & ResourceOptions
 ) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
   const { model: session, error } = useModel(
-    (res) => createLLMChatSession<M>(res, options),
+    (res) => createLLMChatSession(res, options),
     resource ?? null
   );
 
