@@ -40,18 +40,18 @@ export type GenerationStats = {
 };
 
 /**
- * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
- * @category Types
- */
-export type Modality = 'image' | 'audio';
-
-/**
  * Low-level non-text media input tensor payloads.
  * @category Types
  */
 export type MediaInput =
   | { readonly kind: 'image'; readonly image: Tensor }
   | { readonly kind: 'audio'; readonly audio: Tensor };
+
+/**
+ * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
+ * @category Types
+ */
+export type Modality = MediaInput['kind'];
 
 /**
  * Text or interleaved multimodal prompt input for a low-level LLM runner.
