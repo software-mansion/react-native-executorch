@@ -16,9 +16,9 @@ import {
   type ChatMediaInput,
   type ChatMessageContent,
   type ChatMessage,
-  type MediaPreprocessorConfig,
-  type ChatRendererConfig,
-  type RenderOpts,
+  type LLMImagePreprocessorConfig,
+  type LLMAudioPreprocessorConfig,
+  type LLMMediaPreprocessorConfig,
 } from '../chatRenderer';
 
 export type {
@@ -28,9 +28,9 @@ export type {
   ChatMediaInput,
   ChatMessageContent,
   ChatMessage,
-  MediaPreprocessorConfig,
-  ChatRendererConfig,
-  RenderOpts,
+  LLMImagePreprocessorConfig,
+  LLMAudioPreprocessorConfig,
+  LLMMediaPreprocessorConfig,
 };
 
 export type LLMModel<M extends Modality = never> = {
@@ -38,7 +38,7 @@ export type LLMModel<M extends Modality = never> = {
   readonly tokenizerPath: string;
   readonly tokenizerConfigPath: string;
   readonly modalities?: readonly M[];
-  readonly preprocessorConfig?: MediaPreprocessorConfig;
+  readonly preprocessorConfig?: LLMMediaPreprocessorConfig<M>;
 };
 
 export type LLMChatSessionOptions<M extends Modality = never> = {

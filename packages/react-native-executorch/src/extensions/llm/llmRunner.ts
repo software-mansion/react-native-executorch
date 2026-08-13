@@ -22,18 +22,27 @@ export type GenerationStats = {
   readonly modelLoadEndMs: number;
 };
 
-/** Supported non-text media input objects (e.g. images, audio tensors). */
-export type MediaInput =
-  | { readonly kind: 'image'; readonly image: Tensor }
-  | { readonly kind: 'audio'; readonly audio: Tensor };
+/** Map of supported non-text media input modalities to native tensor payloads. */
+export type MediaInputMap = {
+  /** Image modality input holding a preprocessed float32 image tensor. */
+  image: { readonly kind: 'image'; readonly image: Tensor };
+  /** Audio modality input holding a preprocessed float32 audio waveform tensor. */
+  audio: { readonly kind: 'audio'; readonly audio: Tensor };
+};
 
-/** Supported non-text input modality kinds. */
-export type Modality = MediaInput['kind'];
+/** Supported non-text input modality keys (e.g. `'image'`, `'audio'`). */
+export type Modality = keyof MediaInputMap;
 
-/** Text or interleaved multimodal prompt input for an LLM runner. */
-export type Prompt<M extends Modality = never> =
-  | string
-  | readonly (string | Extract<MediaInput, { kind: M }>)[];
+/** Extracts native media input tensor objects for allowed modalities `M`. */
+export type MediaInput<M extends Modality = Modality> = MediaInputMap[M];
+
+/**
+ * Text or interleaved multimodal prompt input for a low-level LLM runner.
+ * Restricts strictly to a single text string when `M` is `never`.
+ */
+export type Prompt<M extends Modality = never> = [M] extends [never]
+  ? string
+  : string | readonly (string | MediaInput<M>)[];
 
 /** Handle to a native ExecuTorch LLM runner. */
 export type LLMRunner<M extends Modality = never> = {
@@ -84,11 +93,11 @@ export type LLMRunner<M extends Modality = never> = {
  * Defaults to text-only.
  * @returns A native LLMRunner instance.
  */
-export function createLLMRunner<const Ms extends readonly Modality[] = []>(
+export function createLLMRunner<M extends Modality = never>(
   modelPath: string,
   tokenizerPath: string,
-  modalities?: Ms
-): LLMRunner<Ms[number]> {
+  modalities?: readonly M[]
+): LLMRunner<M> {
   'worklet';
   return rnexecutorchJsi.llm.createLLMRunner(modelPath, tokenizerPath, modalities ?? []);
 }
