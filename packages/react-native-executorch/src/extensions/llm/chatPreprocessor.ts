@@ -114,7 +114,7 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
   let imgShape: [number, number, number] | undefined;
 
-  if (preprocessorConfig !== undefined && preprocessorConfig.image !== undefined) {
+  if (preprocessorConfig?.image !== undefined) {
     imgShape = [...preprocessorConfig.image.targetShape];
     imgPreprocessor = createImagePreprocessor(preprocessorConfig.image.preprocessorOpts, imgShape);
   }
