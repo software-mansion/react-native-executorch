@@ -14,8 +14,6 @@ export type CraftDecodeOptions = {
   readonly lowTextThreshold: number;
   /** Detector input height the heatmap was produced from, in pixels. */
   readonly targetHeight: number;
-  /** Emit one box per glyph instead of per linked component. */
-  readonly charLevel: boolean;
 };
 
 /**
@@ -43,11 +41,12 @@ export type DbnetDecodeOptions = {
  * @category Typescript API
  * @param heatmap The `detect` output, shape `[1, H/2, W/2, 2]` (region, affinity).
  * @param options Decode thresholds and the detector input height.
- * @returns A flat array, 5 numbers per box: `x0, y0, x1, y1, angle`.
+ * @returns A flat `Float32Array`, 5 numbers per box: `xmin, ymin, xmax, ymax,
+ * angle`.
  */
-export function extractCraftTextBoxes(heatmap: Tensor, options: CraftDecodeOptions): number[] {
+export function extractCraftTextBoxes(heatmap: Tensor, options: CraftDecodeOptions): Float32Array {
   'worklet';
-  return rnexecutorchJsi.cv.extractCraftTextBoxes(heatmap, options) as number[];
+  return rnexecutorchJsi.cv.extractCraftTextBoxes(heatmap, options) as Float32Array;
 }
 
 /**
@@ -57,14 +56,15 @@ export function extractCraftTextBoxes(heatmap: Tensor, options: CraftDecodeOptio
  * @category Typescript API
  * @param probabilityMap The `detect` output, shape `[1, 1, H, W]`, post-sigmoid.
  * @param options Decode thresholds.
- * @returns A flat array, 8 numbers per quad: `x0, y0, x1, y1, x2, y2, x3, y3`.
+ * @returns A flat `Float32Array`, 8 numbers per quad: `x0, y0, x1, y1, x2, y2,
+ * x3, y3`.
  */
 export function extractDbnetTextBoxes(
   probabilityMap: Tensor,
   options: DbnetDecodeOptions
-): number[] {
+): Float32Array {
   'worklet';
-  return rnexecutorchJsi.cv.extractDbnetTextBoxes(probabilityMap, options) as number[];
+  return rnexecutorchJsi.cv.extractDbnetTextBoxes(probabilityMap, options) as Float32Array;
 }
 
 /**
@@ -73,10 +73,10 @@ export function extractDbnetTextBoxes(
  * decode can reuse this and apply its own rules.
  * @category Typescript API
  * @param probs Softmaxed recognizer output, shape `[.., T, V]`.
- * @returns A flat array, 2 numbers per timestep: the argmax index and its
- * probability. Index 0 is the CTC blank.
+ * @returns A flat `Float32Array`, 2 numbers per timestep: the argmax index and
+ * its probability. Index 0 is the CTC blank.
  */
-export function ctcGreedyDecode(probs: Tensor): number[] {
+export function ctcGreedyDecode(probs: Tensor): Float32Array {
   'worklet';
-  return rnexecutorchJsi.cv.ctcGreedyDecode(probs) as number[];
+  return rnexecutorchJsi.cv.ctcGreedyDecode(probs) as Float32Array;
 }

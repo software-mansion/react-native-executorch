@@ -169,7 +169,7 @@ export function splitWideQuad(ordered: Quad, parts: number): Quad[] {
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `flat` is not a
  * multiple of 8 values.
  */
-export function quadsFromFlat(flat: readonly number[]): Quad[] {
+export function quadsFromFlat(flat: ArrayLike<number>): Quad[] {
   'worklet';
   if (flat.length % 8 !== 0) {
     throw RnExecuTorchError(

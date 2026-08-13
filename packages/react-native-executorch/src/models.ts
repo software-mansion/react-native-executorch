@@ -849,7 +849,6 @@ const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as
 const PPOCRV6_PRECISION = { xnnpack: 'fp32', coreml: 'int8', vulkan: 'fp16' } as const;
 
 type OcrBackend = keyof typeof EASYOCR_PRECISION;
-const OCR_BACKENDS = ['xnnpack', 'coreml', 'vulkan'] as const;
 
 const makeEasyOcr = (
   lang: string,
@@ -867,15 +866,17 @@ const easyOcr = (lang: string, charset: string | readonly string[]) => ({
   VULKAN: makeEasyOcr(lang, 'vulkan', charset),
 });
 
-const ppOcrV6 = (backend: OcrBackend): OcrModel => ({
+const makePpOcrV6 = (backend: OcrBackend): OcrModel => ({
   modelPath:
     `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
     `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
   modelOpts: PADDLE_PPOCRV6_OPTS,
 });
-const [PADDLE_PPOCRV6_XNNPACK, PADDLE_PPOCRV6_COREML, PADDLE_PPOCRV6_VULKAN] = OCR_BACKENDS.map(
-  ppOcrV6
-) as [OcrModel, OcrModel, OcrModel];
+const ppOcrV6 = {
+  XNNPACK: makePpOcrV6('xnnpack'),
+  COREML: makePpOcrV6('coreml'),
+  VULKAN: makePpOcrV6('vulkan'),
+};
 
 /**
  * Registry of pre-configured ExecuTorch models.
@@ -1506,11 +1507,7 @@ export const models = {
       KANNADA: easyOcr('kannada', alphabets.kannada),
     },
     PADDLE: {
-      PPOCRV6_SMALL: {
-        XNNPACK: PADDLE_PPOCRV6_XNNPACK,
-        VULKAN: PADDLE_PPOCRV6_VULKAN,
-        COREML: PADDLE_PPOCRV6_COREML,
-      },
+      PPOCRV6_SMALL: ppOcrV6,
     },
   },
 };

@@ -225,7 +225,7 @@ export function boxToQuad(b: Box): Quad {
 }
 
 // Parses a detector's flat box array — 5 per box: xmin,ymin,xmax,ymax,angle.
-export function boxesFromFlat(flat: readonly number[]): Box[] {
+export function boxesFromFlat(flat: ArrayLike<number>): Box[] {
   'worklet';
   if (flat.length % 5 !== 0) {
     throw RnExecuTorchError(
@@ -234,7 +234,7 @@ export function boxesFromFlat(flat: readonly number[]): Box[] {
     );
   }
   const boxes: Box[] = [];
-  for (let i = 0; i + 4 < flat.length; i += 5) {
+  for (let i = 0; i < flat.length; i += 5) {
     boxes.push({
       format: 'xyxy',
       xmin: flat[i]!,

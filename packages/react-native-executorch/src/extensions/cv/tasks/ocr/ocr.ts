@@ -25,8 +25,10 @@ export type OcrModelOptions = {
   readonly extractBoxes: TextBoxExtractor;
   /**
    * Drop detections below this recognition confidence. Default 0. Confidence is
-   * the mean per-timestep max probability, so this requires the recognizer to
-   * export a softmaxed head (values in `[0,1]`); on raw logits it is meaningless.
+   * the max probability averaged over the non-blank timesteps only (blanks
+   * dominate a padded strip, so averaging over all of them would read much
+   * lower). This requires the recognizer to export a softmaxed head (values in
+   * `[0,1]`); on raw logits it is meaningless.
    */
   readonly minConfidence?: number;
   /** Detector norm on uint8 RGB. Default ImageNet; must match the model's training norm. */

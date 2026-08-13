@@ -2,7 +2,6 @@ import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ImageFormat } from '../image';
 import type { Quad } from './quad';
-import type { BoundingBox } from './boxes';
 
 /**
  * Supported color conversion code presets (similar to OpenCV).
@@ -228,21 +227,6 @@ export function applyColormap(
 }
 
 /**
- * Rotates `src` clockwise by `degCW` degrees (90, 180, or 270) into the
- * pre-allocated `dst`. A 90/270 rotation swaps width and height, so `dst` must be
- * sized with `src`'s height and width transposed.
- * @category Typescript API
- * @param src The source image tensor (HWC).
- * @param dst The destination tensor, pre-sized for the rotation.
- * @param degCW The clockwise rotation in degrees: 90, 180, or 270.
- * @returns The destination tensor `dst`.
- */
-export function rotate(src: Tensor, dst: Tensor, degCW: number): Tensor {
-  'worklet';
-  return rnexecutorchJsi.cv.rotate(src, dst, degCW);
-}
-
-/**
  * Options for {@link rectifyQuad}. `contentWidth` is the rectified content's width
  * (px) in the canvas; `align` (default `'left'`) and `padMode`/`padValue` (default
  * constant `0`) place and fill it.
@@ -281,42 +265,4 @@ export function rectifyQuad(
     padMode: options.padMode ?? 'constant',
     padValue: options.padValue ?? 0,
   });
-}
-
-/**
- * Warps `src` through a backward sampling field (`torch.grid_sample`-style — the
- * grid gives, per output pixel, where to read from in `src`) into the
- * pre-allocated `dst`, natively via `cv::remap`.
- * @category Typescript API
- * @param src The source image tensor (HWC uint8).
- * @param grid The sampling field (`float32`, `[..,2,gH,gW]`, channel 0 = x, 1 = y,
- * normalized to `[-1, 1]` with `align_corners=true`).
- * @param dst The pre-allocated destination, same shape/dtype as `src`.
- * @returns The destination tensor `dst`.
- */
-export function warpByGrid(src: Tensor, grid: Tensor, dst: Tensor): Tensor {
-  'worklet';
-  return rnexecutorchJsi.cv.warpByGrid(src, grid, dst);
-}
-
-/**
- * Crops an axis-aligned `xyxy` region of the source tensor into the pre-allocated
- * `dst` (a native `cv::Mat` ROI copy). `dst` must be sized `[ymax-ymin, xmax-xmin, C]`
- * (both rounded/clamped to the source bounds). Unlike {@link restrictToBox}, this
- * changes the shape; stays on-device (no JS buffer round-trip).
- * @category Typescript API
- * @param src The source image tensor (HWC).
- * @param dst The pre-allocated destination tensor, sized to the clamped box.
- * @param box The crop region in `xyxy` pixels.
- * @returns The destination tensor `dst`.
- */
-export function crop(src: Tensor, dst: Tensor, box: BoundingBox<'xyxy'>): Tensor {
-  'worklet';
-  // Round here so the box matches a `Math.round`-sized `dst`; native clamps to bounds.
-  return rnexecutorchJsi.cv.crop(src, dst, [
-    Math.round(box.xmin),
-    Math.round(box.ymin),
-    Math.round(box.xmax),
-    Math.round(box.ymax),
-  ]);
 }

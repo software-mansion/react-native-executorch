@@ -239,8 +239,12 @@ function greedyCtcDecode(
 // anything wider is split and read piecewise (a hard clamp is unreadable).
 const WIDE_SQUISH_TOLERANCE = 1.15;
 
-// Boxes smaller than this (px, either side) aren't worth recognizing.
-const MIN_BOX_SIDE = 3;
+// Degenerate-quad guard, in ORIGINAL IMAGE pixels and applied to every
+// detector's output after it is mapped back from detector space. Distinct from
+// DBNet's `minBoxSide`, which drops contour candidates in detector-input pixels
+// before they are unclipped — that one is a decode threshold, this one is the
+// last check before a quad is warped onto the recognizer canvas.
+const MIN_RECOGNIZABLE_SIDE = 3;
 
 // The recognizer input is contractually RGB (enforced by resolveOcrContract).
 const REC_CHANNELS = 3;
@@ -449,7 +453,7 @@ export function runOcrPass(engine: OcrEngine, input: ImageBuffer): OcrDetection[
     for (const quad of quads) {
       const orderedQuad = orderQuad(quad);
       const size = quadSize(orderedQuad);
-      if (size.width < MIN_BOX_SIDE || size.height < MIN_BOX_SIDE) {
+      if (size.width < MIN_RECOGNIZABLE_SIDE || size.height < MIN_RECOGNIZABLE_SIDE) {
         continue;
       }
       const { text, conf } = recognizeQuad(engine, recSrc, orderedQuad);

@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <format>
 #include <jsi/jsi.h>
 #include <optional>
 #include <vector>
@@ -90,12 +91,11 @@ std::optional<Box> boxFromComponent(const ::cv::Mat &textMap, const ::cv::Mat &l
     return box;
 }
 
-// CRAFT text+affinity maps -> one component box each. charLevel=false ADDS
-// affinity to link adjacent glyphs into line-regions (keeping the rotated-rect
-// angle); charLevel=true SUBTRACTS it (+ erode/dilate) to break them into upright
-// per-glyph boxes (angle 0) for the stacked-column reader.
+// CRAFT text+affinity maps -> one component box each. Affinity is ADDED to the
+// text score, linking adjacent glyphs into line-regions that keep the
+// rotated-rect angle.
 std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, float textThreshold,
-                                float linkThreshold, float lowTextThreshold, bool charLevel) {
+                                float linkThreshold, float lowTextThreshold) {
     const int32_t imgH = textMap.rows;
     const int32_t imgW = textMap.cols;
     ::cv::Mat textScore;
@@ -104,18 +104,8 @@ std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, floa
     ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
                     ::cv::THRESH_BINARY);
 
-    ::cv::Mat comb;
-    if (charLevel) {
-        comb = textScore - affinityScore; // subtract to separate adjacent glyphs
-        ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_TOZERO);
-        ::cv::threshold(comb, comb, 1.0, 1.0, ::cv::THRESH_TRUNC);
-        ::cv::Mat kernel = ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(3, 3));
-        ::cv::erode(comb, comb, kernel, ::cv::Point(-1, -1), 1);
-        ::cv::dilate(comb, comb, kernel, ::cv::Point(-1, -1), 4);
-    } else {
-        comb = textScore + affinityScore; // add to link adjacent glyphs into lines
-        ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_BINARY);
-    }
+    ::cv::Mat comb = textScore + affinityScore;
+    ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_BINARY);
 
     ::cv::Mat binary;
     comb.convertTo(binary, CV_8UC1);
@@ -130,9 +120,6 @@ std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, floa
     for (int32_t i = 1; i < nLabels; ++i) {
         auto box = boxFromComponent(textMap, labels, stats, i, imgW, imgH, lowTextThreshold);
         if (box) {
-            if (charLevel) {
-                box->angle = 0.0f; // glyphs are read upright, never rotated
-            }
             boxes.push_back(*box);
         }
     }
@@ -141,17 +128,16 @@ std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, floa
 
 // CRAFT half-res heatmap (text+affinity interleaved) -> component boxes in
 // detector-input pixels; restoreRatio scales the half-res boxes back up. Line
-// grouping and de-skew are done in TypeScript; charLevel yields upright per-glyph
-// boxes. `data` points at heatW*heatH*2 floats.
+// grouping and de-skew are done in TypeScript. `data` points at heatW*heatH*2
+// floats.
 std::vector<Box> extractCraft(float *data, int32_t heatW, int32_t heatH, float textThreshold,
-                              float linkThreshold, float lowTextThreshold, float restoreRatio,
-                              bool charLevel) {
+                              float linkThreshold, float lowTextThreshold, float restoreRatio) {
     // Deinterleave the [text, affinity] channels of the half-res heatmap.
     ::cv::Mat interleaved(heatH, heatW, CV_32FC2, data);
     std::array<::cv::Mat, 2> channels;
     ::cv::split(interleaved, channels);
-    std::vector<Box> boxes = componentBoxes(channels[0], channels[1], textThreshold, linkThreshold,
-                                            lowTextThreshold, charLevel);
+    std::vector<Box> boxes =
+        componentBoxes(channels[0], channels[1], textThreshold, linkThreshold, lowTextThreshold);
     for (auto &b : boxes) {
         b.x0 *= restoreRatio;
         b.y0 *= restoreRatio;
@@ -238,31 +224,27 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
     return quads;
 }
 
-// Flatten quads to a JS double array, 8 per box (x0,y0..x3,y3).
-jsi::Array quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
-    jsi::Array out(rt, quads.size() * 8);
-    size_t idx = 0;
+// Flatten quads to a Float32Array, 8 per box (x0,y0..x3,y3).
+jsi::Object quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
+    std::vector<float> flat;
+    flat.reserve(quads.size() * 8);
     for (const auto &q : quads) {
         for (const auto &p : q) {
-            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(p.x)));
-            out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(p.y)));
+            flat.push_back(p.x);
+            flat.push_back(p.y);
         }
     }
-    return out;
+    return conversions::toJsiTypedArray(rt, flat);
 }
 
-// Flatten component boxes to a JS double array, 5 per box (x0,y0,x1,y1,angle).
-jsi::Array boxesToArray(jsi::Runtime &rt, const std::vector<Box> &boxes) {
-    jsi::Array out(rt, boxes.size() * 5);
-    size_t idx = 0;
+// Flatten component boxes to a Float32Array, 5 per box (xmin,ymin,xmax,ymax,angle).
+jsi::Object boxesToArray(jsi::Runtime &rt, const std::vector<Box> &boxes) {
+    std::vector<float> flat;
+    flat.reserve(boxes.size() * 5);
     for (const auto &b : boxes) {
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(b.x0)));
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(b.y0)));
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(b.x1)));
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(b.y1)));
-        out.setValueAtIndex(rt, idx++, jsi::Value(static_cast<double>(b.angle)));
+        flat.insert(flat.end(), {b.x0, b.y0, b.x1, b.y1, b.angle});
     }
-    return out;
+    return conversions::toJsiTypedArray(rt, flat);
 }
 
 } // namespace
@@ -292,7 +274,6 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
         }
         const auto targetH = conversions::getRequiredProperty<double>(rt, ctx, opts, "targetHeight");
         const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
-        const bool charLevel = conversions::getRequiredProperty<bool>(rt, ctx, opts, "charLevel");
 
         std::vector<Box> boxes;
         try {
@@ -301,9 +282,9 @@ void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "textThreshold")),
                 static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "linkThreshold")),
                 static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "lowTextThreshold")),
-                restoreRatio, charLevel);
+                restoreRatio);
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::string("extractCraftTextBoxes: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::format("extractCraftTextBoxes: OpenCV error: {}", e.what()));
         }
         return boxesToArray(rt, boxes);
     };
@@ -346,7 +327,7 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::string("extractDbnetTextBoxes: OpenCV error: ") + e.what());
+            throw error::ExecutionFailed(std::format("extractDbnetTextBoxes: OpenCV error: {}", e.what()));
         }
         return quadsToArray(rt, quads);
     };
@@ -356,9 +337,9 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
 }
 
 // --------------------------- ctcGreedyDecode -------------------------------
-// Per-timestep argmax + max value over [..,T,V] logits. `values` are the raw
-// max activations; if a caller needs probabilities it softmaxes the tensor (via
-// the math.softmax op) before decoding — this op takes no options.
+// Per-timestep argmax + max value over a [..,T,V] tensor. The values are
+// returned as-is, so they are probabilities only when the recognizer exports a
+// softmaxed head — this op neither normalizes nor takes options.
 void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "ctcGreedyDecode";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
@@ -383,16 +364,17 @@ void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t timesteps = static_cast<int32_t>(src->numel_) / vocab;
         const auto *data = reinterpret_cast<const float *>(src->data_.get());
 
-        jsi::Array out(rt, static_cast<size_t>(timesteps) * 2);
-        size_t oi = 0;
+        // Interleaved (index, value) pairs. float32 holds any index a CTC vocab
+        // can reach exactly, so one array carries both without a second buffer.
+        std::vector<float> out;
+        out.reserve(static_cast<std::size_t>(timesteps) * 2);
         for (int32_t t = 0; t < timesteps; ++t) {
             const float *row = data + static_cast<std::size_t>(t) * static_cast<std::size_t>(vocab);
             const float *maxIt = std::max_element(row, row + vocab);
-            const auto maxIdx = static_cast<int32_t>(maxIt - row);
-            out.setValueAtIndex(rt, oi++, jsi::Value(static_cast<double>(maxIdx)));
-            out.setValueAtIndex(rt, oi++, jsi::Value(static_cast<double>(*maxIt)));
+            out.push_back(static_cast<float>(maxIt - row));
+            out.push_back(*maxIt);
         }
-        return out;
+        return conversions::toJsiTypedArray(rt, out);
     };
     module.setProperty(rt, name,
                        jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),

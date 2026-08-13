@@ -109,7 +109,6 @@ export function makeCraftExtractBoxes(options: CraftExtractOptions = {}): TextBo
         linkThreshold,
         lowTextThreshold,
         targetHeight: inputSize.height,
-        charLevel: false,
       });
       return groupBoxes(boxesFromFlat(flat)).map(boxToQuad);
     },
