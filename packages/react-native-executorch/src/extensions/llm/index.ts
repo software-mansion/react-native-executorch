@@ -1,3 +1,3 @@
 export * from './llmRunner';
-export * from './chatRenderer';
+export * from './chatPreprocessor';
 export * from './tokenizerConfig';

@@ -52,26 +52,28 @@ export type LLMMediaPreprocessorConfig = {
   readonly audio?: LLMAudioPreprocessorConfig;
 };
 
-/** Options for instantiating a ChatRenderer. */
-export type ChatRendererConfig = {
+/** Options for instantiating a ChatPreprocessor. */
+export type ChatPreprocessorConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
   readonly modalities?: readonly Modality[];
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
-/** Turn rendering options for ChatRenderer. */
-export type RenderOpts = {
-  readonly isFirst?: boolean;
-  readonly addGenPrompt?: boolean;
+/** Turn preprocessing options for ChatPreprocessor. */
+export type ChatProcessOptions = {
+  /** Whether this is the initial turn in the conversation (prepends BOS token if true). Defaults to `false`. */
+  readonly isFirstTurn?: boolean;
+  /** Whether to append the assistant generation prompt (e.g. `<|im_start|>assistant\n`). Defaults to `true`. */
+  readonly addGenerationPrompt?: boolean;
 };
 
 /**
- * Handles Jinja template rendering and media tensor preprocessing for chat turns.
- * @param config Renderer configuration including template and preprocessor settings.
- * @returns Object with render and dispose methods.
+ * Handles Jinja template formatting and media tensor preprocessing for chat turns.
+ * @param config Preprocessor configuration including template and preprocessor settings.
+ * @returns Object with process and dispose methods.
  */
-export function createChatRenderer(config: ChatRendererConfig) {
+export function createChatPreprocessor(config: ChatPreprocessorConfig) {
   const { chatTemplate, modalities, preprocessorConfig, bosToken = '' } = config;
   const template = new Template(chatTemplate);
 
@@ -90,15 +92,15 @@ export function createChatRenderer(config: ChatRendererConfig) {
     imgPreprocessor?.dispose();
   };
 
-  const render = (message: ChatMessage, renderOpts?: RenderOpts): Prompt => {
-    const isFirst = renderOpts?.isFirst ?? false;
-    const addGenPrompt = renderOpts?.addGenPrompt ?? false;
+  const process = (message: ChatMessage, opts?: ChatProcessOptions): Prompt => {
+    const isFirstTurn = opts?.isFirstTurn ?? false;
+    const addGenerationPrompt = opts?.addGenerationPrompt ?? true;
 
     if (typeof message.content === 'string') {
       /* eslint-disable camelcase */
       return template.render({
-        bos_token: isFirst ? bosToken : '',
-        add_generation_prompt: addGenPrompt,
+        bos_token: isFirstTurn ? bosToken : '',
+        add_generation_prompt: addGenerationPrompt,
         messages: [{ role: message.role, content: message.content }],
       });
       /* eslint-enable */
@@ -118,6 +120,10 @@ export function createChatRenderer(config: ChatRendererConfig) {
           'INVALID_ARGUMENT',
           `Modality '${item.kind}' is not supported by this model instance.`
         );
+      }
+
+      if (!preprocessorConfig || !(item.kind in preprocessorConfig)) {
+        throw RnExecuTorchError('INVALID_ARGUMENT', `Modality '${item.kind}' not supported`);
       }
 
       if (item.kind === 'image' && 'image' in item) {
@@ -147,8 +153,8 @@ export function createChatRenderer(config: ChatRendererConfig) {
 
     /* eslint-disable camelcase */
     const renderedContent = template.render({
-      bos_token: isFirst ? bosToken : '',
-      add_generation_prompt: addGenPrompt,
+      bos_token: isFirstTurn ? bosToken : '',
+      add_generation_prompt: addGenerationPrompt,
       messages: [{ role: message.role, content: syntheticContent }],
     });
     /* eslint-enable */
@@ -172,5 +178,5 @@ export function createChatRenderer(config: ChatRendererConfig) {
     return prompt as unknown as Prompt;
   };
 
-  return { dispose, render };
+  return { dispose, process };
 }

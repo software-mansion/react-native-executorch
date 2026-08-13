@@ -12,14 +12,14 @@ import {
 } from '../llmRunner';
 import { parseTokenizerConfig } from '../tokenizerConfig';
 import {
-  createChatRenderer,
+  createChatPreprocessor,
   type ChatMediaInput,
   type ChatMessageContent,
   type ChatMessage,
   type LLMImagePreprocessorConfig,
   type LLMAudioPreprocessorConfig,
   type LLMMediaPreprocessorConfig,
-} from '../chatRenderer';
+} from '../chatPreprocessor';
 
 export type {
   GenerationConfig,
@@ -110,8 +110,13 @@ export async function createLLMChatSession(
   const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
   const { chatTemplate, bosToken, eosToken } = tokenizerConfig;
 
-  // Prepare messages' renderer
-  const renderer = createChatRenderer({ chatTemplate, bosToken, modalities, preprocessorConfig });
+  // Prepare chat preprocessor
+  const chatPreprocessor = createChatPreprocessor({
+    chatTemplate,
+    bosToken,
+    modalities,
+    preprocessorConfig,
+  });
   const stopTokens = [...(options?.stopTokens ?? []), ...(eosToken ? [eosToken] : [])];
 
   // Prepare runner
@@ -121,14 +126,19 @@ export async function createLLMChatSession(
 
   // Prefill initial messages
   for (const msg of initialMessages) {
-    await prefill(renderer.render(msg, { isFirst: history.length === 0 }));
+    await prefill(
+      chatPreprocessor.process(msg, {
+        isFirstTurn: history.length === 0,
+        addGenerationPrompt: false,
+      })
+    );
     history.push(msg);
   }
 
   const stop = () => runner.stop();
   const dispose = () => {
     runner.dispose();
-    renderer.dispose();
+    chatPreprocessor.dispose();
   };
 
   const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
@@ -145,7 +155,10 @@ export async function createLLMChatSession(
       msg = { role: 'user', content: message };
     }
 
-    const prompt = renderer.render(msg, { isFirst: history.length === 0, addGenPrompt: true });
+    const prompt = chatPreprocessor.process(msg, {
+      isFirstTurn: history.length === 0,
+      addGenerationPrompt: true,
+    });
 
     history.push(msg);
 

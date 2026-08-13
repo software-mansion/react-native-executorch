@@ -23,7 +23,7 @@ import {
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage, skImageToBuffer } from '../../utils';
 
-const MODEL = models.llm.LFM2_5_VL_450M;
+const MODEL = models.llm.GEMMA4_E2B;
 const SYSTEM_PROMPT = 'You are a helpful multimodal assistant by Liquid AI.';
 const INITIAL_MESSAGES: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
 const GENERATION_CONFIG = { temperature: 0.7, maxNewTokens: 512, echo: false };
@@ -99,9 +99,15 @@ function LLMContent() {
     ]);
 
     try {
-      const payload = [];
-      if (currentImage) payload.push({ kind: 'image' as const, image: currentImage.buffer });
-      payload.push(textMessage || 'What is in this image?');
+      let payload;
+      if (currentImage) {
+        payload = [
+          { kind: 'image' as const, image: currentImage.buffer },
+          textMessage || 'What is in this image?',
+        ];
+      } else {
+        payload = textMessage;
+      }
 
       const { response, stats } = await sendMessage(payload, (token) => {
         setStreamingResponse((prev) => (prev !== null ? prev + token : token));
