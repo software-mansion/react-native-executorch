@@ -69,23 +69,6 @@ export function boundsOfPoints<F extends BoxFormat>(
 }
 
 /**
- * Builds the axis-aligned bounding quad (ordered TL,TR,BR,BL) of an `xyxy` box —
- * the corner-ordering counterpart of an axis-aligned {@link BoundingBox}.
- * @category Typescript API
- * @param box The `xyxy` box.
- * @returns The four corners, ordered TL, TR, BR, BL.
- */
-export function quadFromBounds(box: BoundingBox<'xyxy'>): Quad {
-  'worklet';
-  return [
-    { x: box.xmin, y: box.ymin },
-    { x: box.xmax, y: box.ymin },
-    { x: box.xmax, y: box.ymax },
-    { x: box.xmin, y: box.ymax },
-  ];
-}
-
-/**
  * Orders four corner points as top-left, top-right, bottom-right, bottom-left
  * using their coordinate-sum and coordinate-difference extremes. Inputs that do
  * not have exactly four points are returned unchanged.
@@ -159,34 +142,6 @@ export function mapQuadToImage(
 }
 
 /**
- * Splits an ordered TL,TR,BR,BL quad into `parts` equal vertical bands (each an
- * ordered quad), top to bottom. `parts <= 1` returns the quad unchanged.
- * @category Typescript API
- * @param ordered The quad corners ordered TL, TR, BR, BL.
- * @param parts The number of equal vertical bands to split into.
- * @returns The bands as ordered TL,TR,BR,BL quads, top to bottom.
- */
-export function splitTallQuad(ordered: Quad, parts: number): Quad[] {
-  'worklet';
-  if (parts <= 1) {
-    return [ordered];
-  }
-  const [tl, tr, br, bl] = ordered as [Point, Point, Point, Point];
-  const out: Quad[] = [];
-  for (let i = 0; i < parts; i++) {
-    const t0 = i / parts;
-    const t1 = (i + 1) / parts;
-    out.push([
-      interpolatePoint(tl, bl, t0),
-      interpolatePoint(tr, br, t0),
-      interpolatePoint(tr, br, t1),
-      interpolatePoint(tl, bl, t1),
-    ]);
-  }
-  return out;
-}
-
-/**
  * Splits an ordered TL,TR,BR,BL quad into `parts` equal horizontal segments
  * (each an ordered quad), left to right. `parts <= 1` returns the quad
  * unchanged.
@@ -213,30 +168,6 @@ export function splitWideQuad(ordered: Quad, parts: number): Quad[] {
     ]);
   }
   return out;
-}
-
-/**
- * Computes the axis-aligned bounding quad (ordered TL,TR,BR,BL) enclosing a set of
- * quads. Returns a zero quad for empty input.
- * @category Typescript API
- * @param quads The quads to enclose.
- * @returns The four enclosing corners, ordered TL, TR, BR, BL.
- */
-export function boundingQuadOf(quads: readonly Quad[]): Quad {
-  'worklet';
-  const all: Point[] = [];
-  for (const q of quads) {
-    for (const p of q) {
-      all.push(p);
-    }
-  }
-  const { xmin, ymin, xmax, ymax } = boundsOfPoints(all, 'xyxy');
-  return [
-    { x: xmin, y: ymin },
-    { x: xmax, y: ymin },
-    { x: xmax, y: ymax },
-    { x: xmin, y: ymax },
-  ];
 }
 
 /**

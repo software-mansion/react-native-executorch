@@ -31,18 +31,10 @@ import {
   FORMAT_CONVERSION,
   type NormalizeOptions,
 } from '../../ops/image';
-import {
-  boundingQuadOf,
-  mapQuadToImage,
-  orderQuad,
-  quadSize,
-  splitTallQuad,
-  splitWideQuad,
-  type Quad,
-} from '../../ops/quad';
+import { mapQuadToImage, orderQuad, quadSize, splitWideQuad, type Quad } from '../../ops/quad';
 import { ctcGreedyDecode } from '../../utils/ocrUtils';
 import type { TextBoxExtractor } from './detectors';
-import { orderByReadingOrder, groupVerticalStacks } from './geometry';
+import { orderByReadingOrder } from './geometry';
 
 /**
  * A single recognized text region. `quad` is the oriented (TL,TR,BR,BL) box in
@@ -253,15 +245,13 @@ const MIN_BOX_SIDE = 3;
 // The recognizer input is contractually RGB (enforced by resolveOcrContract).
 const REC_CHANNELS = 3;
 
-// Detects text boxes in `src`, returning quads in `src` pixel space. `charLevel`
-// requests per-glyph boxes for the stacked-text pass.
+// Detects text boxes in `src`, returning quads in `src` pixel space.
 function detectQuads(
   engine: OcrEngine,
   src: Tensor,
   width: number,
   height: number,
-  format: ImageFormat,
-  charLevel = false
+  format: ImageFormat
 ): Quad[] {
   'worklet';
   const numChannels = FORMAT_CHANNELS[format];
@@ -286,7 +276,7 @@ function detectQuads(
       .copyTo(tInput);
 
     engine.model.execute('detect', [tInput], tOutputs);
-    const quads = engine.extractBoxes.extract(tOutputs, { width: detW, height: detH }, charLevel);
+    const quads = engine.extractBoxes.extract(tOutputs, { width: detW, height: detH });
     return quads.map((q) => mapQuadToImage(q, detW, detH, width, height));
   } finally {
     tResize.dispose();
@@ -389,97 +379,7 @@ function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: stri
   return { text, conf: weight === 0 ? 0 : weightedConf / weight };
 }
 
-// Reads a vertical stack of glyph quads top-to-bottom: each glyph is recognized
-// on its OWN and the single-char results joined. Composing the glyphs into one
-// horizontal strip makes the recognizer hallucinate a word out of a non-word
-// column (its context was trained on horizontal words); reading them
-// individually drops that bias. A box the detector merged from several stacked
-// letters is first split into ~square cells. Confidence is the length-weighted
-// mean; null when nothing usable.
-function recognizeGlyphColumn(
-  engine: OcrEngine,
-  src: Tensor,
-  glyphs: readonly Quad[]
-): { text: string; conf: number } | null {
-  'worklet';
-  let text = '';
-  let weightedConf = 0;
-  let weight = 0;
-  for (const glyph of glyphs) {
-    const glyphSize = quadSize(glyph);
-    if (glyphSize.width < 1 || glyphSize.height < 1) {
-      continue;
-    }
-    const parts = Math.max(1, Math.round(glyphSize.height / Math.max(1, glyphSize.width)));
-    for (const cell of splitTallQuad(glyph, parts)) {
-      const cellSize = quadSize(cell);
-      if (cellSize.width < 1 || cellSize.height < 1) {
-        continue;
-      }
-      const r = recognizeNarrowQuad(engine, src, cell);
-      if (r.text.length > 0) {
-        text += r.text;
-        weightedConf += r.conf * r.text.length;
-        weight += r.text.length;
-      }
-    }
-  }
-  return weight === 0 ? null : { text, conf: weightedConf / weight };
-}
-
-// Reads one tall box the detector merged from stacked glyphs: crop upright,
-// re-detect the glyphs (char-level), recognize top-to-bottom. Null (caller reads
-// it horizontally) when too small, out of re-detect budget, or no glyphs found.
-function readStackedBox(
-  engine: OcrEngine,
-  page: Tensor,
-  format: ImageFormat,
-  ordered: Quad,
-  size: { width: number; height: number },
-  budget: { remaining: number }
-): { text: string; conf: number } | null {
-  'worklet';
-  const boxW = Math.round(size.width);
-  const boxH = Math.round(size.height);
-  if (boxW < MIN_BOX_SIDE || boxH < MIN_BOX_SIDE || budget.remaining <= 0) {
-    return null;
-  }
-  budget.remaining--;
-  const numChannels = FORMAT_CHANNELS[format];
-  const toRgbCode = FORMAT_CONVERSION[format].rgb;
-  const tBoxRaw = tensor('uint8', [boxH, boxW, numChannels]);
-  let tRecBox: Tensor | null = null;
-  try {
-    rectifyQuad(page, tBoxRaw, ordered, {
-      contentWidth: boxW,
-      align: 'left',
-      padMode: 'constant',
-      padValue: 0,
-    });
-    const charQuads = detectQuads(engine, tBoxRaw, boxW, boxH, format, /* charLevel */ true);
-    if (charQuads.length === 0) {
-      return null;
-    }
-    let boxSrc = tBoxRaw;
-    if (toRgbCode !== null) {
-      tRecBox = tensor('uint8', [boxH, boxW, REC_CHANNELS]);
-      boxSrc = cvtColor(tBoxRaw, tRecBox, toRgbCode);
-    }
-    const glyphs = charQuads.map((q) => orderQuad(q)).sort((a, b) => a[0]!.y - b[0]!.y);
-    return recognizeGlyphColumn(engine, boxSrc, glyphs);
-  } finally {
-    tBoxRaw.dispose();
-    tRecBox?.dispose();
-  }
-}
-
 // ─── OCR pass ────────────────────────────────────────────────────────────────
-
-const TALL_CROP_RATIO = 1.5;
-const MAX_VERTICAL_REDETECTIONS = 8;
-// Vertical reads are hallucination-prone, so they default to a modest gate; a
-// per-run `verticalMinConfidence` tunes it (0 keeps everything).
-const DEFAULT_VERTICAL_MIN_CONFIDENCE = 0.4;
 
 /**
  * The resolved, model-level state one detect → recognize pass needs — the model
@@ -517,142 +417,52 @@ export type OcrEngine = {
   ) => { readonly text: string; readonly confidence: number };
 };
 
-// Per-run knobs for one OCR pass (the OCR-level subset of RunOcrOptions). A
-// RunOcrOptions value is structurally assignable, so callers pass it directly.
-type OcrPassOptions = {
-  readonly vertical?: boolean;
-  readonly tallCropRatio?: number;
-  readonly maxRedetections?: number;
-  readonly verticalMinConfidence?: number;
-};
-
-function pushDetection(
-  out: OcrDetection[],
-  threshold: number,
-  text: string,
-  conf: number,
-  quad: Quad
-): void {
-  'worklet';
-  if (text.length > 0 && conf >= threshold) {
-    out.push({ text, confidence: conf, quad });
-  }
-}
-
 /**
- * Runs one detect → recognize → reading-order pass over an on-device page tensor
- * (uint8 HWC), returning the recognized regions in reading order. Does NOT own
- * `page` — the caller allocates and disposes it — so the orientation/dewarp path
- * can feed its corrected page tensor straight in without a round-trip through an
- * {@link ImageBuffer}. The horizontal pass reads every quad; the opt-in vertical
- * pass additionally reads upright glyph stacks.
- * @param engine The resolved OCR engine (contract + model + run options).
- * @param page The page tensor to read (uint8 HWC); caller-owned.
- * @param width The page width in pixels.
- * @param height The page height in pixels.
- * @param format The pixel format of `page` (channels + color conversion).
- * @param options Per-pass toggles (vertical text, tall-crop ratio, re-detect cap).
+ * Runs one detect → recognize → reading-order pass over an {@link ImageBuffer}:
+ * detect text quads on the whole page, warp each to the recognizer canvas, read
+ * it, and sort the results into reading order.
+ * @param engine The resolved OCR engine (contract + model + options).
+ * @param input The page to read.
  * @returns The recognized regions, in reading order.
  */
-export function runOcrPassOnTensor(
-  engine: OcrEngine,
-  page: Tensor,
-  width: number,
-  height: number,
-  format: ImageFormat,
-  options?: OcrPassOptions
-): OcrDetection[] {
+export function runOcrPass(engine: OcrEngine, input: ImageBuffer): OcrDetection[] {
   'worklet';
-  const vertical = options?.vertical ?? false;
-  const tallCropRatio = options?.tallCropRatio ?? TALL_CROP_RATIO;
-  const maxRedetections = options?.maxRedetections ?? MAX_VERTICAL_REDETECTIONS;
-  const verticalMinConf = options?.verticalMinConfidence ?? DEFAULT_VERTICAL_MIN_CONFIDENCE;
+  const { width, height, format } = input;
+  const numChannels = FORMAT_CHANNELS[format];
   const toRgbCode = FORMAT_CONVERSION[format].rgb;
-
+  const tPage = tensor('uint8', [height, width, numChannels]);
   let tRecImage: Tensor | null = null;
   try {
-    const quads = detectQuads(engine, page, width, height, format);
+    tPage.setData(input.data);
+    const quads = detectQuads(engine, tPage, width, height, format);
     if (quads.length === 0) {
       return [];
     }
 
-    let recSrc = page;
+    let recSrc: Tensor = tPage;
     if (toRgbCode !== null) {
       tRecImage = tensor('uint8', [height, width, REC_CHANNELS]);
-      recSrc = cvtColor(page, tRecImage, toRgbCode);
+      recSrc = cvtColor(tPage, tRecImage, toRgbCode);
     }
-    const budget = { remaining: maxRedetections };
 
     const detections: OcrDetection[] = [];
-    const ordered: Quad[] = [];
     for (const quad of quads) {
       const orderedQuad = orderQuad(quad);
       const size = quadSize(orderedQuad);
-      if (size.width >= MIN_BOX_SIDE && size.height >= MIN_BOX_SIDE) {
-        ordered.push(orderedQuad);
-      }
-    }
-
-    if (!vertical) {
-      for (const orderedQuad of ordered) {
-        const { text, conf } = recognizeQuad(engine, recSrc, orderedQuad);
-        pushDetection(detections, engine.minConfidence, text, conf, orderedQuad);
-      }
-      return orderByReadingOrder(detections);
-    }
-
-    // The stacked-box path re-detects glyphs char-level; only extractors that
-    // support that mode take it — others read the tall box horizontally.
-    const canReadStacks = engine.extractBoxes.supportsCharLevel ?? false;
-    const { stacks, singles } = groupVerticalStacks(ordered);
-    for (const stack of stacks) {
-      const column = recognizeGlyphColumn(engine, recSrc, stack);
-      if (column) {
-        pushDetection(detections, verticalMinConf, column.text, column.conf, boundingQuadOf(stack));
-      }
-    }
-    for (const orderedQuad of singles) {
-      const size = quadSize(orderedQuad);
-      if (canReadStacks && size.height >= size.width * tallCropRatio) {
-        const stacked = readStackedBox(engine, page, format, orderedQuad, size, budget);
-        if (stacked) {
-          pushDetection(detections, verticalMinConf, stacked.text, stacked.conf, orderedQuad);
-          continue;
-        }
+      if (size.width < MIN_BOX_SIDE || size.height < MIN_BOX_SIDE) {
+        continue;
       }
       const { text, conf } = recognizeQuad(engine, recSrc, orderedQuad);
-      pushDetection(detections, engine.minConfidence, text, conf, orderedQuad);
+      if (text.length > 0 && conf >= engine.minConfidence) {
+        detections.push({ text, confidence: conf, quad: orderedQuad });
+      }
     }
     return orderByReadingOrder(detections);
   } finally {
     tRecImage?.dispose();
-  }
-}
-
-/**
- * Runs one OCR pass over an {@link ImageBuffer}, uploading it to a page tensor
- * and delegating to {@link runOcrPassOnTensor}.
- * @param engine The resolved OCR engine (contract + model + run options).
- * @param input The page (or region crop) to read.
- * @param options Per-pass toggles (vertical text, tall-crop ratio, re-detect cap).
- * @returns The recognized regions, in reading order.
- */
-export function runOcrPass(
-  engine: OcrEngine,
-  input: ImageBuffer,
-  options?: OcrPassOptions
-): OcrDetection[] {
-  'worklet';
-  const numChannels = FORMAT_CHANNELS[input.format];
-  const tPage = tensor('uint8', [input.height, input.width, numChannels]);
-  try {
-    tPage.setData(input.data);
-    return runOcrPassOnTensor(engine, tPage, input.width, input.height, input.format, options);
-  } finally {
     tPage.dispose();
   }
 }
-
 // ─── Contract ────────────────────────────────────────────────────────────────
 
 type DimFactory = (symbol: string) => SymbolicDim;

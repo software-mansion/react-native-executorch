@@ -24,12 +24,6 @@ export type TextBoxExtractor = {
    */
   readonly inputAlignment?: number;
   /**
-   * Whether `extract(.., charLevel=true)` yields per-glyph boxes. When false the
-   * stacked-text (vertical) pass skips its char-level re-detection split and reads
-   * those boxes horizontally instead. Default false.
-   */
-  readonly supportsCharLevel?: boolean;
-  /**
    * The allowed spec of the `detect` outputs this strategy decodes, used to
    * validate the model at load. Dimensions that track the detector input size
    * must be built with the supplied `dim` factory — the pipeline passes
@@ -55,14 +49,11 @@ export type TextBoxExtractor = {
    * detector-input pixel space.
    * @param outputs The model's `detect` output tensors, in order.
    * @param inputSize The detector input size the image was letterboxed to.
-   * @param charLevel Emit one box per glyph instead of grouped lines; strategies
-   * without a char-level mode ignore it.
    * @returns Oriented quads (TL, TR, BR, BL) in detector-input pixel space.
    */
   readonly extract: (
     outputs: readonly Tensor[],
-    inputSize: { readonly width: number; readonly height: number },
-    charLevel: boolean
+    inputSize: { readonly width: number; readonly height: number }
   ) => Quad[];
 };
 
@@ -82,9 +73,8 @@ export type CraftExtractOptions = {
 
 /**
  * Builds a CRAFT box-extraction strategy: native region+affinity heatmap decode
- * (`outputs[0]` = `[1, Hd, Wd, 2]`), then line grouping + de-skew in TS —
- * per-glyph boxes when `charLevel`. Detector input dims must be even (half-res
- * heatmap). {@link craftExtractBoxes} is this with default thresholds.
+ * (`outputs[0]` = `[1, Hd, Wd, 2]`), then line grouping + de-skew in TS.
+ * Detector input dims must be even (half-res heatmap). {@link craftExtractBoxes} is this with default thresholds.
  * @param options Threshold overrides; omit for the built-in defaults.
  * @returns A {@link TextBoxExtractor} bound to those thresholds.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a caller asks for
@@ -99,7 +89,6 @@ export function makeCraftExtractBoxes(options: CraftExtractOptions = {}): TextBo
     // Half-resolution heatmap: input dims must be even. The pipeline snaps to
     // this, so the guard below only ever fires on a hand-rolled caller.
     inputAlignment: 2,
-    supportsCharLevel: true,
     // Half-resolution NHWC heatmap: [1, H/2, W/2, 2] (region + affinity).
     detectOutputSpec: (dim) => [f32(1, dim('detOutH'), dim('detOutW'), 2)],
     outputShapes: ({ width, height }) => {
@@ -113,18 +102,16 @@ export function makeCraftExtractBoxes(options: CraftExtractOptions = {}): TextBo
       }
       return [[1, height / 2, width / 2, 2]];
     },
-    extract: (outputs, inputSize, charLevel) => {
+    extract: (outputs, inputSize) => {
       'worklet';
       const flat = extractCraftTextBoxes(outputs[0]!, {
         textThreshold,
         linkThreshold,
         lowTextThreshold,
         targetHeight: inputSize.height,
-        charLevel,
+        charLevel: false,
       });
-      // Char-level glyphs are read individually, so they skip line grouping.
-      const boxes = boxesFromFlat(flat);
-      return (charLevel ? boxes : groupBoxes(boxes)).map(boxToQuad);
+      return groupBoxes(boxesFromFlat(flat)).map(boxToQuad);
     },
   };
 }

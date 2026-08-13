@@ -1,16 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, ColorPalette, theme } from '../../theme';
-import { useImage, Skia, ColorType, AlphaType, type SkImage } from '@shopify/react-native-skia';
-import {
-  useOcr,
-  models,
-  type OcrDetection,
-  type DocumentBlock,
-  type OcrModel,
-  type DocLayoutLabel,
-} from 'react-native-executorch';
+import { useImage, ColorType, AlphaType } from '@shopify/react-native-skia';
+import { useOcr, models, type OcrDetection, type OcrModel } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -18,44 +11,37 @@ import { ImageViewport } from '../../components/ImageViewport';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
 
-type BackendKey = 'XNNPACK' | 'VULKAN' | 'COREML';
 // Every variant is listed on both platforms; the ones the platform can't run are
 // shown disabled (CoreML is Apple-only, Vulkan is the Android GPU delegate).
 const isIos = Platform.OS === 'ios';
-const OCR_MODELS: { label: string; backend: BackendKey; base: OcrModel; disabled: boolean }[] = [
+const OCR_MODELS: { label: string; base: OcrModel; disabled: boolean }[] = [
   {
     label: 'PaddleOCR (XNNPACK)',
-    backend: 'XNNPACK',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
     disabled: false,
   },
   {
     label: 'PaddleOCR (Vulkan)',
-    backend: 'VULKAN',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.VULKAN,
     disabled: isIos,
   },
   {
     label: 'PaddleOCR (CoreML)',
-    backend: 'COREML',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.COREML,
     disabled: !isIos,
   },
   {
     label: 'EasyOCR English (XNNPACK)',
-    backend: 'XNNPACK',
     base: models.ocr.EASYOCR.ENGLISH.XNNPACK,
     disabled: false,
   },
   {
     label: 'EasyOCR English (Vulkan)',
-    backend: 'VULKAN',
     base: models.ocr.EASYOCR.ENGLISH.VULKAN,
     disabled: isIos,
   },
   {
     label: 'EasyOCR English (CoreML)',
-    backend: 'COREML',
     base: models.ocr.EASYOCR.ENGLISH.COREML,
     disabled: !isIos,
   },
@@ -67,106 +53,22 @@ const MODEL_OPTIONS: ModelOption[] = OCR_MODELS.map((m, i) => ({
   disabled: m.disabled,
 }));
 
-type Cell = { text: string; colspan: number };
-
-// Parse the filled SLANet structure HTML into rows of cells for rendering.
-// A rowspan becomes spacer cells on the rows below so columns stay aligned.
-function parseTable(html: string): Cell[][] {
-  const raw: { text: string; colspan: number; rowspan: number }[][] = [];
-  const trRe = /<tr>([\s\S]*?)<\/tr>/g;
-  let tr: RegExpExecArray | null;
-  while ((tr = trRe.exec(html))) {
-    const cells: { text: string; colspan: number; rowspan: number }[] = [];
-    const tdRe = /<td([^>]*)>([\s\S]*?)<\/td>/g;
-    let td: RegExpExecArray | null;
-    while ((td = tdRe.exec(tr[1]!))) {
-      cells.push({
-        text: td[2] ?? '',
-        colspan: Number(/colspan="(\d+)"/.exec(td[1] ?? '')?.[1] ?? 1),
-        rowspan: Number(/rowspan="(\d+)"/.exec(td[1] ?? '')?.[1] ?? 1),
-      });
-    }
-    raw.push(cells);
-  }
-  const out: Cell[][] = raw.map(() => []);
-  const occupied: boolean[][] = [];
-  for (let r = 0; r < raw.length; r++) {
-    let c = 0;
-    const spacer = () => {
-      out[r]!.push({ text: '', colspan: 1 });
-      c++;
-    };
-    for (const cell of raw[r]!) {
-      while (occupied[r]?.[c]) spacer();
-      out[r]!.push({ text: cell.text, colspan: cell.colspan });
-      for (let dr = 1; dr < cell.rowspan; dr++) {
-        occupied[r + dr] ??= [];
-        for (let dc = 0; dc < cell.colspan; dc++) {
-          occupied[r + dr]![c + dc] = true;
-        }
-      }
-      c += cell.colspan;
-    }
-    while (occupied[r]?.[c]) spacer();
-  }
-  return out;
-}
-
-function TableView({ html }: { html: string }) {
-  const rows = parseTable(html);
-  if (rows.length === 0) {
-    return <Text style={styles.blockText}>{html}</Text>;
-  }
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View style={styles.table}>
-        {rows.map((cells, r) => (
-          <View key={r} style={styles.tr}>
-            {cells.map((c, i) => (
-              <View key={i} style={[styles.td, { width: 110 * c.colspan }]}>
-                <Text style={styles.tdText}>{c.text}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
-  );
-}
-
 function OCRContent() {
   const insets = useSafeAreaInsets();
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [vertical, setVertical] = useState(false);
-  const [layoutOn, setLayoutOn] = useState(false);
-  const [documentOn, setDocumentOn] = useState(false);
-  const [orientation, setOrientation] = useState(true);
-  const [tables, setTables] = useState(true);
-  const [dewarp, setDewarp] = useState(false); // off: only helps warped photos
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [detections, setDetections] = useState<OcrDetection[]>([]);
-  const [blocks, setBlocks] = useState<DocumentBlock<DocLayoutLabel>[]>([]);
-  // The corrected frame the result boxes are relative to (for the overlay).
-  const [processed, setProcessed] = useState<SkImage | null>(null);
   const [wallMs, setWallMs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const selected = OCR_MODELS[selectedIdx]!;
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  const config = {
-    ...selected.base,
-    ...(layoutOn ? { layout: models.layoutDetection.PP_DOCLAYOUT[selected.backend] } : {}),
-    ...(documentOn ? { documentModels: models.documentModels.PP_HELPERS[selected.backend] } : {}),
-  };
-
-  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr<DocLayoutLabel>(config);
+  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr(selected.base);
 
   const resetResults = () => {
     setDetections([]);
-    setBlocks([]);
-    setProcessed(null);
     setWallMs(null);
   };
 
@@ -196,38 +98,15 @@ function OCRContent() {
       });
       if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
       const start = Date.now();
-      const out = await runOcr(
-        {
-          data: pixels,
-          width: skiaImage.width(),
-          height: skiaImage.height(),
-          format: 'rgba' as const,
-          layout: 'hwc' as const,
-        },
-        {
-          vertical,
-          orientation: documentOn && orientation,
-          dewarp: documentOn && dewarp,
-          tables: documentOn && tables,
-        }
-      );
+      const out = await runOcr({
+        data: pixels,
+        width: skiaImage.width(),
+        height: skiaImage.height(),
+        format: 'rgba' as const,
+        layout: 'hwc' as const,
+      });
       setWallMs(Date.now() - start);
-      setDetections(out.detections);
-      setBlocks(out.blocks);
-      const frame = out.image;
-      const frameImage = Skia.Image.MakeImage(
-        {
-          width: frame.width,
-          height: frame.height,
-          colorType: ColorType.RGBA_8888,
-          // Match the AlphaType readPixels used above — the pipeline keeps alpha
-          // as-is, so a mismatched mode here would tint anything with transparency.
-          alphaType: AlphaType.Unpremul,
-        },
-        Skia.Data.fromBytes(frame.data),
-        frame.width * 4
-      );
-      setProcessed(frameImage ?? null);
+      setDetections(out);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -237,8 +116,6 @@ function OCRContent() {
 
   const activeError = loadError ? String(loadError) : error;
   const boxes = useMemo(() => detections.map((d) => d.quad), [detections]);
-  const showBlocks = layoutOn && blocks.length > 0;
-  const busy = isProcessing || !isReady;
 
   return (
     <ScrollView
@@ -249,8 +126,8 @@ function OCRContent() {
       ]}
     >
       <Text style={commonStyles.description}>
-        Detect and recognize text on-device. Turn on Layout to group text into reading-ordered
-        blocks, and Document helpers for orientation, table structure and dewarp.
+        Detect and recognize text on-device: every text line is located, cropped and read, and the
+        results come back in reading order.
       </Text>
 
       <ModelPicker
@@ -264,55 +141,6 @@ function OCRContent() {
         }}
       />
 
-      <Toggle
-        label="Vertical text"
-        value={vertical}
-        onChange={setVertical}
-        hint="read upright stacked columns"
-        disabled={busy}
-      />
-      <Toggle
-        label="Layout (blocks)"
-        value={layoutOn}
-        onChange={setLayoutOn}
-        hint="group into reading-ordered regions"
-        disabled={busy}
-      />
-      <Toggle
-        label="Document helpers"
-        value={documentOn}
-        onChange={setDocumentOn}
-        hint="orientation, table structure, dewarp"
-        disabled={busy}
-      />
-      {documentOn && (
-        <>
-          <Toggle
-            label="Correct orientation"
-            value={orientation}
-            onChange={setOrientation}
-            indent
-            disabled={busy}
-          />
-          <Toggle
-            label="Table structure"
-            value={tables}
-            onChange={setTables}
-            indent
-            hint="needs Layout on"
-            disabled={busy}
-          />
-          <Toggle
-            label="Dewarp"
-            value={dewarp}
-            onChange={setDewarp}
-            indent
-            hint="flattens curved/bent pages — not angled shots"
-            disabled={busy}
-          />
-        </>
-      )}
-
       <ModelStatus
         isReady={isReady}
         downloadProgress={downloadProgress}
@@ -321,7 +149,7 @@ function OCRContent() {
       />
 
       <ImageViewport
-        skiaImage={processed ?? skiaImage}
+        skiaImage={skiaImage}
         boxes={boxes}
         onPressPlaceholder={() => handlePick(false)}
       />
@@ -351,31 +179,14 @@ function OCRContent() {
               <Text style={styles.tileLabel}>Wall time</Text>
             </View>
             <View style={styles.tile}>
-              <Text style={styles.tileValue}>{showBlocks ? blocks.length : detections.length}</Text>
-              <Text style={styles.tileLabel}>{showBlocks ? 'Blocks' : 'Regions read'}</Text>
+              <Text style={styles.tileValue}>{detections.length}</Text>
+              <Text style={styles.tileLabel}>Regions read</Text>
             </View>
           </View>
         </View>
       )}
 
-      {showBlocks ? (
-        <View style={styles.results}>
-          <Text style={styles.resultsTitle}>Blocks ({blocks.length})</Text>
-          {blocks.map((b, i) => (
-            <View key={i} style={styles.block}>
-              <Text style={styles.regionType}>
-                {b.regionType}
-                {b.isTable ? '  · table' : ''}
-              </Text>
-              {b.isTable && b.tableHtml ? (
-                <TableView html={b.tableHtml} />
-              ) : (
-                <Text style={styles.blockText}>{b.text}</Text>
-              )}
-            </View>
-          ))}
-        </View>
-      ) : detections.length > 0 ? (
+      {detections.length > 0 && (
         <View style={styles.results}>
           <Text style={styles.resultsTitle}>Detected text ({detections.length})</Text>
           {detections.map((d, i) => (
@@ -387,34 +198,8 @@ function OCRContent() {
             </View>
           ))}
         </View>
-      ) : null}
+      )}
     </ScrollView>
-  );
-}
-
-function Toggle({
-  label,
-  value,
-  onChange,
-  hint,
-  indent,
-  disabled,
-}: {
-  label: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-  hint?: string;
-  indent?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <View style={[styles.toggleRow, indent && styles.toggleIndent]}>
-      <View style={styles.toggleText}>
-        <Text style={styles.toggleLabel}>{label}</Text>
-        {hint ? <Text style={styles.toggleHint}>{hint}</Text> : null}
-      </View>
-      <Switch value={value} onValueChange={onChange} disabled={disabled} />
-    </View>
   );
 }
 
@@ -427,17 +212,6 @@ export default function OCRScreen() {
 }
 
 const styles = StyleSheet.create({
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 8,
-  },
-  toggleIndent: { paddingLeft: 16 },
-  toggleText: { flex: 1, marginRight: 12 },
-  toggleLabel: { fontSize: 15, fontWeight: '600', color: ColorPalette.strongPrimary },
-  toggleHint: { fontSize: 12, color: '#868e96', marginTop: 2 },
   statsCard: {
     width: '100%',
     backgroundColor: '#fff',
@@ -490,23 +264,4 @@ const styles = StyleSheet.create({
   },
   resultLabel: { fontSize: 14, color: '#333', flex: 1, marginRight: 8 },
   resultConfidence: { fontSize: 14, fontWeight: '600', color: '#2b8a3e' },
-  block: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f1f3f5' },
-  regionType: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2b8a3e',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  blockText: { fontSize: 14, color: '#333' },
-  table: { borderWidth: 1, borderColor: '#ced4da', borderRadius: 4, overflow: 'hidden' },
-  tr: { flexDirection: 'row' },
-  td: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#ced4da',
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    minWidth: 24,
-  },
-  tdText: { fontSize: 13, color: '#333' },
 });

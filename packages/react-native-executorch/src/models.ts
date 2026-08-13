@@ -16,7 +16,6 @@ import {
 } from './extensions/speech/tasks/whisperSpeechToText';
 import type { OcrModel, OcrModelOptions } from './extensions/cv/tasks/ocr/ocr';
 import { craftExtractBoxes, dbnetExtractBoxes } from './extensions/cv/tasks/ocr/detectors';
-import type { DocumentModelsConfig } from './extensions/cv/tasks/ocr/documentModels';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -26,8 +25,6 @@ import {
   BLAZEFACE_LANDMARKS,
   COCO_LANDMARKS,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
-  DOC_LAYOUT_LABELS,
-  SLANET_STRUCTURE_VOCAB,
   alphabets,
   PPOCR_SYMBOLS,
   PRIVACY_FILTER_OPENAI_LABELS,
@@ -41,7 +38,6 @@ import {
   type BlazeFaceLandmark,
   type CocoLandmark,
   type SupertonicDefaultVoiceName,
-  type DocLayoutLabel,
 } from './constants';
 
 const BASE_URL = 'https://huggingface.co/software-mansion/react-native-executorch';
@@ -848,9 +844,6 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
 // static-activation int8 detect computes garbage above ~960px at any calibration.
 const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 const PPOCRV6_PRECISION = { xnnpack: 'fp32', coreml: 'int8', vulkan: 'fp16' } as const;
-// int8 loses whole boxes on PP-DocLayoutV3's RT-DETR head, so it stays unquantized.
-const DOCLAYOUT_PRECISION = { xnnpack: 'fp32', coreml: 'fp16', vulkan: 'fp16' } as const;
-const HELPERS_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 
 type OcrBackend = keyof typeof EASYOCR_PRECISION;
 const OCR_BACKENDS = ['xnnpack', 'coreml', 'vulkan'] as const;
@@ -880,52 +873,6 @@ const ppOcrV6 = (backend: OcrBackend): OcrModel => ({
 const [PADDLE_PPOCRV6_XNNPACK, PADDLE_PPOCRV6_COREML, PADDLE_PPOCRV6_VULKAN] = OCR_BACKENDS.map(
   ppOcrV6
 ) as [OcrModel, OcrModel, OcrModel];
-
-// =============================================================================
-// Document layout — PP-DocLayoutV3
-// =============================================================================
-const PP_DOCLAYOUT_OPTS = {
-  labels: DOC_LAYOUT_LABELS,
-  boxFormat: 'xyxy' as const,
-  resizeMode: 'stretch' as const,
-  interpolation: 'linear' as const,
-  normalizeOpts: { alpha: 1 / 255.0, beta: 0.0 },
-  defaultConfidenceThreshold: 0.3,
-  defaultIouThreshold: 1.0,
-};
-const ppDocLayout = (backend: OcrBackend): ObjectDetectorModel<'xyxy', DocLayoutLabel> => ({
-  modelPath:
-    `${BASE_URL}-pp-doclayout-v3/${NEXT_VERSION_TAG}/${backend}/` +
-    `pp_doclayout_v3_${backend}_${DOCLAYOUT_PRECISION[backend]}.pte`,
-  modelOpts: PP_DOCLAYOUT_OPTS,
-});
-const [PP_DOCLAYOUT_XNNPACK, PP_DOCLAYOUT_COREML, PP_DOCLAYOUT_VULKAN] = OCR_BACKENDS.map(
-  ppDocLayout
-) as [
-  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
-  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
-  ObjectDetectorModel<'xyxy', DocLayoutLabel>,
-];
-
-// =============================================================================
-// Document helper models - PaddleHelpers (orientation / dewarp / table structure)
-// =============================================================================
-const SLANET_TABLE = {
-  structureVocab: SLANET_STRUCTURE_VOCAB,
-  eosTokenId: SLANET_STRUCTURE_VOCAB.indexOf('eos'),
-  maxSteps: 501, // decoder step cap — SLANet's longest table structure
-};
-const ppHelpers = (backend: OcrBackend): DocumentModelsConfig => ({
-  modelPath:
-    `${BASE_URL}-paddle-helpers/${NEXT_VERSION_TAG}/${backend}/` +
-    `paddle_helpers_${backend}_${HELPERS_PRECISION[backend]}.pte`,
-  table: SLANET_TABLE,
-});
-const [PP_HELPERS_XNNPACK, PP_HELPERS_COREML, PP_HELPERS_VULKAN] = OCR_BACKENDS.map(ppHelpers) as [
-  DocumentModelsConfig,
-  DocumentModelsConfig,
-  DocumentModelsConfig,
-];
 
 /**
  * Registry of pre-configured ExecuTorch models.
@@ -1561,20 +1508,6 @@ export const models = {
         VULKAN: PADDLE_PPOCRV6_VULKAN,
         COREML: PADDLE_PPOCRV6_COREML,
       },
-    },
-  },
-  layoutDetection: {
-    PP_DOCLAYOUT: {
-      XNNPACK: PP_DOCLAYOUT_XNNPACK,
-      VULKAN: PP_DOCLAYOUT_VULKAN,
-      COREML: PP_DOCLAYOUT_COREML,
-    },
-  },
-  documentModels: {
-    PP_HELPERS: {
-      XNNPACK: PP_HELPERS_XNNPACK,
-      VULKAN: PP_HELPERS_VULKAN,
-      COREML: PP_HELPERS_COREML,
     },
   },
 };

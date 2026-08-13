@@ -43,8 +43,6 @@ export * from './extensions/cv/tasks/ocr/ocr';
 export * from './extensions/cv/tasks/ocr/detectors';
 export type { Quad } from './extensions/cv/ops/quad';
 export type { NormalizeOptions } from './extensions/cv/ops/image';
-export type { DocLayoutLabel } from './constants';
-export type { DocumentModelsConfig, TableConfig } from './extensions/cv/tasks/ocr/documentModels';
 
 // Core primitives — for library builders and power users
 export * from './core/error';
