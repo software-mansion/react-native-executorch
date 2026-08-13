@@ -194,19 +194,19 @@ export async function createLLMChatSession(
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
   ): Promise<LLMGenerationResult> => {
-    let msg: ChatMessage;
+    let input: ChatMessage;
     if (typeof message === 'object' && 'role' in message) {
-      msg = message;
+      input = message;
     } else {
-      msg = { role: 'user', content: message };
+      input = { role: 'user', content: message };
     }
 
-    const prompt = chatPreprocessor.process(msg, {
+    const prompt = chatPreprocessor.process(input, {
       isFirstTurn: history.length === 0,
       addGenerationPrompt: true,
     });
 
-    history.push(msg);
+    history.push(input);
 
     const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, stopTokens, onToken };
     const { response, stats } = await generateChatTurn(runner, prompt, opts);
