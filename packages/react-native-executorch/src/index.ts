@@ -41,6 +41,7 @@ export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
 export * from './extensions/llm/tasks/llmChatSession';
+export type { ImageBuffer, ImageFormat } from './extensions/cv/image';
 
 // Core primitives — for library builders and power users
 export * from './core/error';

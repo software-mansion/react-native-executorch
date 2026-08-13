@@ -9,22 +9,31 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  Image as RNImage,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Skia } from '@shopify/react-native-skia';
 import {
   useLLMChatSession,
   models,
   type ChatMessage,
   type GenerationStats,
+  type ImageBuffer,
 } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { NestedModelPicker, findPath } from '../../components/ModelPicker';
 
-const SYSTEM_PROMPT =
-  "You are a pirate. You must start every response with 'Ahoy matey!' and speak like a pirate.";
+const SYSTEM_PROMPT = 'You are a helpful multimodal assistant by Liquid AI.';
 const INITIAL_MESSAGES: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
 const GENERATION_CONFIG = { temperature: 0.7, maxNewTokens: 512, echo: false };
 
-type Turn = { role: 'user' | 'assistant'; content: string; stats?: GenerationStats };
+type Turn = {
+  role: 'user' | 'assistant';
+  content: string;
+  imageUri?: string;
+  stats?: GenerationStats;
+};
 
 function formatStats(stats: GenerationStats): string {
   const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
@@ -94,21 +103,88 @@ function LLMContent() {
     setActiveModel(selectedModel);
   };
 
-  const handleSend = async () => {
-    const message = input.trim();
-    if (!message || !sendMessage || isGenerating) return;
+  const [attachedImage, setAttachedImage] = useState<{
+    uri: string;
+    buffer: ImageBuffer;
+    name: string;
+  } | null>(null);
 
+  const handlePickGalleryImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Permission to access photo gallery is required!');
+        return;
+      }
+
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 1,
+        base64: true,
+      });
+
+      if (pickerResult.canceled || !pickerResult.assets[0]?.base64) return;
+      const asset = pickerResult.assets[0];
+
+      const skData = Skia.Data.fromBase64(asset.base64!);
+      const skImage = Skia.Image.MakeImageFromEncoded(skData);
+      if (!skImage) {
+        Alert.alert('Error', 'Failed to decode selected image.');
+        return;
+      }
+
+      const pixels = skImage.readPixels();
+      if (!pixels || !(pixels instanceof Uint8Array)) {
+        Alert.alert('Error', 'Failed to read image pixel data.');
+        return;
+      }
+
+      const buffer: ImageBuffer = {
+        data: pixels,
+        width: skImage.width(),
+        height: skImage.height(),
+        format: 'rgba',
+        layout: 'hwc',
+      };
+
+      setAttachedImage({
+        uri: asset.uri,
+        buffer,
+        name: asset.fileName || `Photo (${skImage.width()}×${skImage.height()})`,
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to select gallery image');
+    }
+  };
+
+  const handleSend = async () => {
+    const textMessage = input.trim();
+    if ((!textMessage && !attachedImage) || !sendMessage || isGenerating) return;
+
+    const currentImage = attachedImage;
+    setAttachedImage(null);
     setInput('');
     setStreamingResponse('');
-    setTurns((prev) => [...prev, { role: 'user', content: message }]);
+
+    const turnUserMessage = textMessage || '[Image Attached]';
+    setTurns((prev) => [
+      ...prev,
+      { role: 'user', content: turnUserMessage, imageUri: currentImage?.uri },
+    ]);
 
     try {
-      const { response, stats } = await sendMessage(message, (token) => {
+      const payload = currentImage
+        ? ([
+            { kind: 'image' as const, image: currentImage.buffer },
+            textMessage || 'What is in this image?',
+          ] as const)
+        : textMessage;
+
+      const { response, stats } = await sendMessage(payload as any, (token) => {
         setStreamingResponse((prev) => (prev !== null ? prev + token : token));
       });
-      setTurns((prev) => [...prev, { role: 'assistant', content: response, stats }]);
-    } catch (e: any) {
-      setTurns((prev) => [...prev, { role: 'assistant', content: `[Error] ${e?.message}` }]);
+      setTurns((prev) => [...prev, { role: 'assistant', content: response as string, stats }]);
     } finally {
       setStreamingResponse(null);
     }
@@ -197,6 +273,9 @@ function LLMContent() {
                   turn.role === 'user' ? styles.userBubble : styles.assistantBubble,
                 ]}
               >
+                {turn.imageUri && (
+                  <RNImage source={{ uri: turn.imageUri }} style={styles.turnThumbnail} />
+                )}
                 <Text style={turn.role === 'user' ? styles.userText : styles.assistantText}>
                   {turn.content || '…'}
                 </Text>
@@ -222,10 +301,35 @@ function LLMContent() {
           )}
         </ScrollView>
 
+        {attachedImage && (
+          <View style={styles.attachmentBar}>
+            <RNImage source={{ uri: attachedImage.uri }} style={styles.attachmentPreview} />
+            <View style={styles.attachmentInfo}>
+              <Text style={styles.attachmentName} numberOfLines={1}>
+                {attachedImage.name}
+              </Text>
+              <Text style={styles.attachmentSub}>Image Attached</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.removeAttachmentButton}
+              onPress={() => setAttachedImage(null)}
+            >
+              <Text style={styles.removeAttachmentText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.inputRow}>
+          <TouchableOpacity
+            style={styles.galleryButton}
+            onPress={handlePickGalleryImage}
+            disabled={isGenerating}
+          >
+            <Text style={styles.galleryButtonText}>🖼 Gallery</Text>
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
-            placeholder="Message"
+            placeholder="Message..."
             placeholderTextColor="#999"
             value={input}
             onChangeText={setInput}
@@ -241,9 +345,12 @@ function LLMContent() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                !input.trim() && !attachedImage && styles.sendButtonDisabled,
+              ]}
               onPress={handleSend}
-              disabled={!input.trim()}
+              disabled={!input.trim() && !attachedImage}
             >
               <Text style={styles.sendButtonText}>Send</Text>
             </TouchableOpacity>
@@ -445,5 +552,64 @@ const styles = StyleSheet.create({
     color: '#495057',
     fontSize: 13,
     fontWeight: '500',
+  },
+  galleryButton: {
+    paddingHorizontal: 12,
+    height: 44,
+    backgroundColor: '#e9ecef',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  galleryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#495057',
+  },
+  attachmentBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+    gap: 12,
+  },
+  attachmentPreview: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#e9ecef',
+  },
+  attachmentInfo: {
+    flex: 1,
+  },
+  attachmentName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#212529',
+  },
+  attachmentSub: {
+    fontSize: 12,
+    color: '#868e96',
+  },
+  removeAttachmentButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#f1f3f5',
+  },
+  removeAttachmentText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#868e96',
+  },
+  turnThumbnail: {
+    width: 160,
+    height: 120,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#e9ecef',
   },
 });

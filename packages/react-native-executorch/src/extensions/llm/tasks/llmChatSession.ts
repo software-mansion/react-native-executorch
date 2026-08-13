@@ -8,70 +8,70 @@ import {
   type GenerationConfig,
   type GenerationStats,
   type Modality,
+  type Prompt,
 } from '../llmRunner';
-import { createJinjaChatFormatter } from '../jinja';
 import { parseTokenizerConfig } from '../tokenizerConfig';
+import {
+  createChatRenderer,
+  type ChatMediaInput,
+  type ChatMessageContent,
+  type ChatMessage,
+  type LLMMediaPreprocessorConfig,
+  type ChatRendererConfig,
+  type RenderOpts,
+} from '../chatRenderer';
 
-export type { GenerationConfig, GenerationStats, Modality };
-
-/** Message interface for chat history and inputs. */
-export type ChatMessage = {
-  readonly role: 'system' | 'user' | 'assistant';
-  readonly content: string;
+export type {
+  GenerationConfig,
+  GenerationStats,
+  Modality,
+  ChatMediaInput,
+  ChatMessageContent,
+  ChatMessage,
+  LLMMediaPreprocessorConfig,
+  ChatRendererConfig as ChatRendererOpts,
+  RenderOpts,
 };
 
-/** Interface for converting a ChatMessage history turn into raw prompt text. */
-export type ChatFormatter = (
-  message: ChatMessage,
-  options: { readonly isFirst: boolean }
-) => string;
-
-/** Model path configuration for LLM chat. */
-export type LLMModel = {
+export type LLMModel<M extends Modality = never> = {
   readonly modelPath: string;
   readonly tokenizerPath: string;
   readonly tokenizerConfigPath: string;
-  readonly modalities?: readonly Modality[];
+  readonly modalities?: readonly M[];
+  readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
-/** Custom generation and state options for an LLM chat session. */
-export type LLMChatSessionOptions = {
-  readonly initialMessages?: readonly ChatMessage[];
+export type LLMChatSessionOptions<M extends Modality = never> = {
+  readonly initialMessages?: readonly ChatMessage<M>[];
   readonly generationConfig?: GenerationConfig;
   readonly stopTokens?: readonly string[];
 };
 
-/** Return wrapper holding generated response text and performance stats. */
-export type GenerationResult = {
-  readonly response: string;
+export type LLMGenerationResult<M extends Modality = never> = {
+  readonly response: ChatMessageContent<M>;
   readonly stats: GenerationStats;
 };
 
-/** Orchestrator interface for active LLM chat sessions. */
-export type LLMChatSession = {
+export type LLMChatSession<M extends Modality = never> = {
   dispose(): void;
   sendMessage(
-    message: string,
+    message: ChatMessageContent<M>,
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
-  ): Promise<GenerationResult>;
-  getHistory(): readonly ChatMessage[];
+  ): Promise<LLMGenerationResult<M>>;
+  getHistory(): readonly ChatMessage<M>[];
   stop(): void;
 };
 
-type SessionState = {
-  history: ChatMessage[];
-};
-
-function generateChatTurn(
-  nativeRunner: LLMRunner<any>,
-  prompt: string,
+function generateChatTurnWorklet<M extends Modality = never>(
+  runner: LLMRunner<M>,
+  prompt: Prompt<M>,
   options: {
     readonly genConfig: GenerationConfig;
     readonly stopTokens: readonly string[];
     readonly onToken?: (token: string) => void;
   }
-): GenerationResult {
+): LLMGenerationResult<M> {
   'worklet';
   const { genConfig, stopTokens, onToken } = options;
 
@@ -83,7 +83,7 @@ function generateChatTurn(
     if (onToken) scheduleOnRN(onToken, token);
   };
 
-  const stats = nativeRunner.generate(prompt, genConfig, callback);
+  const stats = runner.generate(prompt, genConfig, callback);
 
   return { response, stats };
 }
@@ -95,65 +95,57 @@ function generateChatTurn(
  * @param runtime The worklet runtime thread to run native generation on.
  * @returns A Promise resolving to an LLMChatSession instance.
  */
-export async function createLLMChatSession(
-  config: LLMModel,
-  options?: LLMChatSessionOptions,
+export async function createLLMChatSession<M extends Modality = never>(
+  config: LLMModel<M>,
+  options?: LLMChatSessionOptions<M>,
   runtime?: WorkletRuntime
-): Promise<LLMChatSession> {
-  const { modelPath, tokenizerPath, tokenizerConfigPath, modalities } = config;
+): Promise<LLMChatSession<M>> {
+  const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } = config;
 
   const initialMessages = options?.initialMessages ?? [];
   const defaultGenerationConfig = options?.generationConfig;
 
   // Read and parse tokenizer_config.json
-  const configStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
-  const tokenizerConfig = parseTokenizerConfig(JSON.parse(configStr));
+  const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
+  const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
   const { chatTemplate, bosToken, eosToken } = tokenizerConfig;
 
-  const format = createJinjaChatFormatter(chatTemplate, { bosToken });
+  // Prepare messages' renderer
+  const renderer = createChatRenderer<M>({ chatTemplate, bosToken, preprocessorConfig });
   const stopTokens = [...(options?.stopTokens ?? []), ...(eosToken ? [eosToken] : [])];
 
-  const state: SessionState = { history: [] };
-  const nativeRunner = await wrapAsync(createLLMRunner, runtime)(
-    modelPath,
-    tokenizerPath,
-    modalities
-  );
-  const prefill = wrapAsync(nativeRunner.prefill, runtime);
+  // Prepare runner
+  const history: ChatMessage<M>[] = [];
+  const runner = await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities);
+  const prefill = wrapAsync(runner.prefill, runtime);
 
+  // Prefill initial messages
   for (const msg of initialMessages) {
-    const fmtMsg = format(msg, { isFirst: state.history.length === 0 });
-    if (fmtMsg.length > 0) {
-      await prefill(fmtMsg);
-    }
-    state.history.push(msg);
+    await prefill(renderer.render(msg, { isFirst: history.length === 0 }));
+    history.push(msg);
   }
 
-  const stop = () => nativeRunner.stop();
-  const dispose = () => nativeRunner.dispose();
-  const runGeneration = wrapAsync(generateChatTurn, runtime);
+  const stop = () => runner.stop();
+  const dispose = () => {
+    runner.dispose();
+    renderer.dispose();
+  };
+  const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
   const sendMessage = async (
-    message: string,
+    message: ChatMessageContent<M>,
     onToken?: (token: string) => void,
     genConfig?: GenerationConfig
-  ): Promise<GenerationResult> => {
-    const userMsg: ChatMessage = { role: 'user', content: message };
-    const assistantHeader: ChatMessage = { role: 'assistant', content: '' };
+  ): Promise<LLMGenerationResult<M>> => {
+    const userMsg = { role: 'user' as const, content: message };
+    const prompt = renderer.render(userMsg, { isFirst: history.length === 0, addGenPrompt: true });
 
-    const fmtUserMsg = format(userMsg, { isFirst: state.history.length === 0 });
-    const fmtAssistantHeader = format(assistantHeader, { isFirst: false });
+    history.push(userMsg);
 
-    state.history.push(userMsg);
+    const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, stopTokens, onToken };
+    const { response, stats } = await generateChatTurn(runner, prompt, opts);
 
-    const prompt = fmtUserMsg + fmtAssistantHeader;
-    const { response, stats } = await runGeneration(nativeRunner, prompt, {
-      genConfig: { ...defaultGenerationConfig, ...genConfig },
-      stopTokens,
-      onToken,
-    });
-
-    state.history.push({ role: 'assistant', content: response });
+    history.push({ role: 'assistant', content: response });
 
     return { response, stats };
   };
@@ -162,6 +154,6 @@ export async function createLLMChatSession(
     stop,
     dispose,
     sendMessage,
-    getHistory: () => state.history,
+    getHistory: () => history,
   };
 }
