@@ -29,7 +29,7 @@ export type {
   ChatMessageContent,
   ChatMessage,
   LLMMediaPreprocessorConfig,
-  ChatRendererConfig as ChatRendererOpts,
+  ChatRendererConfig,
   RenderOpts,
 };
 
