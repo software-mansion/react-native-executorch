@@ -262,8 +262,8 @@ function detectQuads(
   const toRgbCode = FORMAT_CONVERSION[format].rgb;
   const align = Math.max(1, engine.extractBoxes.inputAlignment ?? 1);
   const { detW, detH } = resolveDetectorSize(engine.det, width, height, align);
-  // Resolve output shapes before allocating — the extractor may throw (CRAFT on
-  // odd dims), and nothing must leak on that path.
+  // Resolve output shapes before allocating — the extractor may throw on a
+  // size it cannot decode, and nothing must leak on that path.
   const outputShapes = engine.extractBoxes.outputShapes({ width: detW, height: detH });
   const tResize = tensor('uint8', [detH, detW, numChannels]);
   const tColor = toRgbCode !== null ? tensor('uint8', [detH, detW, 3]) : null;
@@ -334,7 +334,7 @@ function recognizeNarrowQuad(
   quad: Quad
 ): { text: string; conf: number } {
   'worklet';
-  const { recH, maxW, width, stride, padValue, padMode } = engine.rec;
+  const { recH, maxW, width, stride, padValue } = engine.rec;
   const size = quadSize(quad);
   // Aspect-preserving width of the content at recognizer height (>= 1 px).
   const aspectWidth = Math.max(1, Math.round((recH * size.width) / Math.max(1, size.height)));
@@ -345,7 +345,6 @@ function recognizeNarrowQuad(
     rectifyQuad(src, tCanvas, quad, {
       contentWidth: contentW,
       align: 'left',
-      padMode,
       padValue,
     });
     return recognizeCanvas(engine, tCanvas, snappedW);
@@ -409,9 +408,6 @@ export type OcrEngine = {
     readonly vocab: number;
     readonly norm: NormalizeOptions;
     readonly padValue: number;
-    // How the strip's unused width is filled: flat `padValue`, or the content's
-    // corner-mean background (avoids a seam some recognizers read as a glyph).
-    readonly padMode: 'constant' | 'cornerMean';
   };
   readonly charset: string[];
   readonly minConfidence: number;
@@ -535,14 +531,14 @@ export function resolveOcrContract(
   extractBoxes: TextBoxExtractor
 ): {
   det: Omit<OcrEngine['det'], 'norm'>;
-  rec: Omit<OcrEngine['rec'], 'norm' | 'padValue' | 'padMode'>;
+  rec: Omit<OcrEngine['rec'], 'norm' | 'padValue'>;
   charset: string[];
 } {
   const schema = model.schema;
   const stride = readCtcStride(schema);
 
   // Either method may be exported at a fixed size or with varying sizes, and the
-  // two choices are independent (EasyOCR pairs a size-varying detector with a
+  // two choices are independent (a size-varying detector can pair with a
   // fixed-width recognizer), so all four combinations are offered as variants. A
   // `static` symbol binds only to a constant dimension and a `dynamic` one only to
   // a range or enum, which is exactly what separates them.

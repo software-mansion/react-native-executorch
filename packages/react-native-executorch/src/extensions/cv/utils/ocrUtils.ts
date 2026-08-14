@@ -2,21 +2,6 @@ import { rnexecutorchJsi } from '../../../native/bridge';
 import { type Tensor } from '../../../core/tensor';
 
 /**
- * Thresholds for {@link extractCraftTextBoxes}.
- * @category Types
- */
-export type CraftDecodeOptions = {
-  /** Region-score threshold for a pixel to count as text. */
-  readonly textThreshold: number;
-  /** Affinity-score threshold for linking adjacent glyphs into a line. */
-  readonly linkThreshold: number;
-  /** Minimum peak region score for a component to survive. */
-  readonly lowTextThreshold: number;
-  /** Detector input height the heatmap was produced from, in pixels. */
-  readonly targetHeight: number;
-};
-
-/**
  * Thresholds for {@link extractDbnetTextBoxes}.
  * @category Types
  */
@@ -32,22 +17,6 @@ export type DbnetDecodeOptions = {
   /** Cap on contour candidates scored per map. */
   readonly maxCandidates: number;
 };
-
-/**
- * Decodes a CRAFT region+affinity heatmap into oriented text boxes: thresholds
- * the two score maps, links glyphs into components and fits a rotated box to
- * each. Coordinates come back in detector-input pixel space (the heatmap is
- * half-resolution, so they are scaled by two).
- * @category Typescript API
- * @param heatmap The `detect` output, shape `[1, H/2, W/2, 2]` (region, affinity).
- * @param options Decode thresholds and the detector input height.
- * @returns A flat `Float32Array`, 5 numbers per box: `xmin, ymin, xmax, ymax,
- * angle`.
- */
-export function extractCraftTextBoxes(heatmap: Tensor, options: CraftDecodeOptions): Float32Array {
-  'worklet';
-  return rnexecutorchJsi.cv.extractCraftTextBoxes(heatmap, options) as Float32Array;
-}
 
 /**
  * Decodes a DBNet probability map into oriented text boxes: binarizes the map,

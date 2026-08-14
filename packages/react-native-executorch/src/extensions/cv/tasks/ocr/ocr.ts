@@ -29,7 +29,7 @@ export type OcrModelOptions = {
    * custom export whose charset is not published as a file.
    */
   readonly charset?: string | readonly string[];
-  /** Maps raw `detect` outputs to quads: {@link craftExtractBoxes} / {@link dbnetExtractBoxes}. */
+  /** Maps raw `detect` outputs to quads: {@link dbnetExtractBoxes}. */
   readonly extractBoxes: TextBoxExtractor;
   /**
    * Drop detections below this recognition confidence. Default 0. Confidence is
@@ -45,8 +45,6 @@ export type OcrModelOptions = {
   readonly recognizerNorm?: NormalizeOptions;
   /** Recognizer canvas padding fill. Default 128 (neutral gray). */
   readonly recognizerPadValue?: number;
-  /** Strip padding fill: `'constant'` (default) or `'cornerMean'` (background-matched). */
-  readonly recognizerPadMode?: 'constant' | 'cornerMean';
   /**
    * Custom decode replacing greedy CTC. Must be a worklet.
    * @param probs Softmaxed recognizer output `[1, T, V]`, pre-allocated from the
@@ -122,7 +120,7 @@ async function readCharsetFile(charsetPath: string | undefined): Promise<readonl
 }
 
 /**
- * Creates the OCR runner for detect → recognize models (EasyOCR / PaddleOCR):
+ * Creates the OCR runner for detect → recognize models (PaddleOCR):
  * one pass detects text quads on the whole page, warps each to the recognizer
  * canvas and reads it, returning the lines in reading order.
  * @category Typescript API
@@ -180,7 +178,6 @@ export async function createOcr(
         ...contract.rec,
         norm: modelOpts.recognizerNorm ?? RECOGNIZER_NORM,
         padValue: modelOpts.recognizerPadValue ?? RECOGNIZER_PAD_VALUE,
-        padMode: modelOpts.recognizerPadMode ?? 'constant',
       },
       charset: contract.charset,
       minConfidence: modelOpts.minConfidence ?? 0,

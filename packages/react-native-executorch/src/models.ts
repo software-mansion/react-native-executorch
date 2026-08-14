@@ -15,7 +15,7 @@ import {
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
 import type { OcrModel, OcrModelOptions } from './extensions/cv/tasks/ocr/ocr';
-import { craftExtractBoxes, dbnetExtractBoxes } from './extensions/cv/tasks/ocr/detectors';
+import { dbnetExtractBoxes } from './extensions/cv/tasks/ocr/detectors';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -821,21 +821,15 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // =============================================================================
 // OCR
 // =============================================================================
-// Both OCR families are exported WITHOUT baked input normalization, so the norm
-// is a property of the model rather than of the call: `detectorNorm` below makes
-// the pipeline apply it before every `detect`, and callers never touch it. It is
-// spelled out here (instead of relying on the IMAGENET_NORM default) because a
-// model whose export bakes normalization in must override it.
-// The recognizer charset is NOT bundled: each entry points `charsetPath` at the
-// `charset.json` published beside its `.pte`, which the resource fetcher resolves
-// to a local path like any other model file. Inlining them would put ~86 KB of
+// The OCR export carries NO baked input normalization, so the norm is a property
+// of the model rather than of the call: `detectorNorm` below makes the pipeline
+// apply it before every `detect`, and callers never touch it. It is spelled out
+// here (instead of relying on the IMAGENET_NORM default) because a model whose
+// export bakes normalization in must override it.
+// The recognizer charset is NOT bundled: `charsetPath` points at the
+// `charset.json` published beside the `.pte`, which the resource fetcher resolves
+// to a local path like any other model file. Inlining it would put ~128 KB of
 // CJK tables into every app that imports this registry, OCR or not.
-const EASYOCR_OPTS: OcrModelOptions = {
-  extractBoxes: craftExtractBoxes,
-  detectorNorm: IMAGENET_NORM,
-  recognizerPadMode: 'cornerMean',
-};
-
 const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
   extractBoxes: dbnetExtractBoxes,
   minConfidence: 0.5,
@@ -845,25 +839,10 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
 // Every OCR export is mixed-precision, and the tag in the filename names the
 // DETECTOR's precision only: `pp_ocrv6_xnnpack_int8.pte` is an int8 DBNet paired
 // with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the SVTR
-// attention stack. EasyOCR ships int8 on both CPU/ANE; its Vulkan build is
-// fp16-dominated (fp16 CRAFT on the GPU, int8 CRNN on XNNPACK).
-const EASYOCR_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
+// attention stack.
 const PPOCRV6_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
 
-type OcrBackend = keyof typeof EASYOCR_PRECISION;
-
-const makeEasyOcr = (lang: string, backend: OcrBackend): OcrModel => ({
-  modelPath:
-    `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/${backend}/` +
-    `easy_ocr_${lang}_${backend}_${EASYOCR_PRECISION[backend]}.pte`,
-  charsetPath: `${BASE_URL}-easy-ocr/${NEXT_VERSION_TAG}/${lang}/charset.json`,
-  modelOpts: EASYOCR_OPTS,
-});
-const easyOcr = (lang: string) => ({
-  XNNPACK: makeEasyOcr(lang, 'xnnpack'),
-  COREML: makeEasyOcr(lang, 'coreml'),
-  VULKAN: makeEasyOcr(lang, 'vulkan'),
-});
+type OcrBackend = keyof typeof PPOCRV6_PRECISION;
 
 const makePpOcrV6 = (backend: OcrBackend): OcrModel => ({
   modelPath:
@@ -1496,22 +1475,6 @@ export const models = {
    * recognizer, run as one two-stage pipeline.
    */
   ocr: {
-    /**
-     * EasyOCR — CRAFT detector plus a per-language CRNN recognizer.
-     *
-     * On Android, pick `XNNPACK` for speed and `VULKAN` for quality on pages
-     * larger than ~800 px, where it reads text the faster detector gets wrong.
-     */
-    EASYOCR: {
-      ENGLISH: easyOcr('english'),
-      CYRILLIC: easyOcr('cyrillic'),
-      LATIN: easyOcr('latin'),
-      JAPANESE: easyOcr('japanese'),
-      ZH_SIM: easyOcr('zh_sim'),
-      KOREAN: easyOcr('korean'),
-      TELUGU: easyOcr('telugu'),
-      KANNADA: easyOcr('kannada'),
-    },
     /**
      * PP-OCRv6 small — DBNet detector plus an SVTR recognizer, one model for
      * every language.

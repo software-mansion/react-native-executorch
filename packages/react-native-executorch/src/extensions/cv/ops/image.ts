@@ -228,14 +228,13 @@ export function applyColormap(
 
 /**
  * Options for {@link rectifyQuad}. `contentWidth` is the rectified content's width
- * (px) in the canvas; `align` (default `'left'`) and `padMode`/`padValue` (default
- * constant `0`) place and fill it.
+ * (px) in the canvas; `align` (default `'left'`) places it and `padValue`
+ * (default `0`) fills the rest.
  * @category Types
  */
 export type RectifyQuadOptions = {
   readonly contentWidth: number;
   readonly align?: 'left' | 'center';
-  readonly padMode?: 'constant' | 'cornerMean';
   readonly padValue?: number;
 };
 
@@ -262,7 +261,6 @@ export function rectifyQuad(
   return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
     contentWidth: options.contentWidth,
     align: options.align ?? 'left',
-    padMode: options.padMode ?? 'constant',
     padValue: options.padValue ?? 0,
   });
 }

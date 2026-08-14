@@ -1,13 +1,11 @@
-// Built-in detector box-extraction strategies (DBNet, CRAFT): each turns one
-// architecture's native detect output into quads. The pipeline is
-// model-agnostic — it just calls OcrModelOptions.extractBoxes.
+// Built-in detector box-extraction strategies: each turns one architecture's
+// native detect output into quads. The pipeline is model-agnostic — it just
+// calls OcrModelOptions.extractBoxes.
 
 import type { Tensor } from '../../../../core/tensor';
-import { RnExecuTorchError } from '../../../../core/error';
 import { f32, type ParamSpec, type SymbolicDim } from '../../../../core/schema';
 import { quadsFromFlat, type Quad } from '../../ops/quad';
-import { extractCraftTextBoxes, extractDbnetTextBoxes } from '../../utils/ocrUtils';
-import { boxesFromFlat, groupBoxes, boxToQuad } from './geometry';
+import { extractDbnetTextBoxes } from '../../utils/ocrUtils';
 
 /**
  * A detector's box-extraction strategy. Plug a new detector architecture into the
@@ -19,8 +17,8 @@ export type TextBoxExtractor = {
   /**
    * The detector input dims (W and H) must be a multiple of this — the pipeline
    * snaps the letterbox size up to it before allocating, so `outputShapes` never
-   * receives a size it must reject. Default 1 (no alignment). CRAFT needs 2 (its
-   * heatmap is half-resolution).
+   * receives a size it must reject. Default 1 (no alignment); a detector whose
+   * output is a half-resolution map needs 2.
    */
   readonly inputAlignment?: number;
   /**
@@ -56,70 +54,6 @@ export type TextBoxExtractor = {
     inputSize: { readonly width: number; readonly height: number }
   ) => Quad[];
 };
-
-/**
- * CRAFT decode thresholds — tuning knobs for {@link makeCraftExtractBoxes}. All
- * optional; the defaults suit the built-in CRAFT models.
- * @category Types
- */
-export type CraftExtractOptions = {
-  /** Region-score threshold for a pixel to count as text. Default 0.4. */
-  readonly textThreshold?: number;
-  /** Affinity-score threshold for linking adjacent glyphs into a line. Default 0.4. */
-  readonly linkThreshold?: number;
-  /** Minimum peak region score for a component to survive. Default 0.7. */
-  readonly lowTextThreshold?: number;
-};
-
-/**
- * Builds a CRAFT box-extraction strategy: native region+affinity heatmap decode
- * (`outputs[0]` = `[1, Hd, Wd, 2]`), then line grouping + de-skew in TS.
- * Detector input dims must be even (half-res heatmap). {@link craftExtractBoxes} is this with default thresholds.
- * @param options Threshold overrides; omit for the built-in defaults.
- * @returns A {@link TextBoxExtractor} bound to those thresholds.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a caller asks for
- * odd detector input dimensions.
- * @category Typescript API
- */
-export function makeCraftExtractBoxes(options: CraftExtractOptions = {}): TextBoxExtractor {
-  const textThreshold = options.textThreshold ?? 0.4;
-  const linkThreshold = options.linkThreshold ?? 0.4;
-  const lowTextThreshold = options.lowTextThreshold ?? 0.7;
-  return {
-    // Half-resolution heatmap: input dims must be even. The pipeline snaps to
-    // this, so the guard below only ever fires on a hand-rolled caller.
-    inputAlignment: 2,
-    // Half-resolution NHWC heatmap: [1, H/2, W/2, 2] (region + affinity).
-    detectOutputSpec: (dim) => [f32(1, dim('detOutH'), dim('detOutW'), 2)],
-    outputShapes: ({ width, height }) => {
-      'worklet';
-      if (width % 2 !== 0 || height % 2 !== 0) {
-        throw RnExecuTorchError(
-          'INVALID_ARGUMENT',
-          'craftExtractBoxes: detect input dimensions must be even ' +
-            `(half-resolution heatmap), got ${width}x${height}.`
-        );
-      }
-      return [[1, height / 2, width / 2, 2]];
-    },
-    extract: (outputs, inputSize) => {
-      'worklet';
-      const flat = extractCraftTextBoxes(outputs[0]!, {
-        textThreshold,
-        linkThreshold,
-        lowTextThreshold,
-        targetHeight: inputSize.height,
-      });
-      return groupBoxes(boxesFromFlat(flat)).map(boxToQuad);
-    },
-  };
-}
-
-/**
- * CRAFT box-extraction strategy with default thresholds.
- * @category Typescript API
- */
-export const craftExtractBoxes: TextBoxExtractor = makeCraftExtractBoxes();
 
 /**
  * DBNet decode thresholds — tuning knobs for {@link makeDbnetExtractBoxes}. All

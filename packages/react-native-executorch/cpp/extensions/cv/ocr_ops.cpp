@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <format>
 #include <jsi/jsi.h>
@@ -26,126 +25,7 @@ namespace conversions = rnexecutorch::core::conversions;
 using DType = rnexecutorch::core::types::DType;
 
 namespace {
-// Drop CRAFT connected components smaller than this (detector-input px²).
-constexpr int32_t kMinComponentArea = 10;
-
-// Axis-aligned box (p0 = min, p1 = max) plus the rotated-rect angle. Line grouping
-// and de-skew live in TypeScript; native only produces these component boxes.
-struct Box {
-    float x0{}, y0{}, x1{}, y1{};
-    float angle = 0.0f;
-};
-
 using Quad = std::array<::cv::Point2f, 4>;
-
-// ------------------------------ CRAFT branch -------------------------------
-// All per-component work stays inside the component's (dilation-padded) rect —
-// full-frame masks per component would make the decode O(components · H · W).
-std::optional<Box> boxFromComponent(const ::cv::Mat &textMap, const ::cv::Mat &labels,
-                                    const ::cv::Mat &stats, int32_t i, int32_t imgW, int32_t imgH,
-                                    float lowTextThreshold) {
-    const int32_t area = stats.at<int32_t>(i, ::cv::CC_STAT_AREA);
-    if (area < kMinComponentArea) {
-        return std::nullopt;
-    }
-    const int32_t x = stats.at<int32_t>(i, ::cv::CC_STAT_LEFT);
-    const int32_t y = stats.at<int32_t>(i, ::cv::CC_STAT_TOP);
-    const int32_t w = stats.at<int32_t>(i, ::cv::CC_STAT_WIDTH);
-    const int32_t h = stats.at<int32_t>(i, ::cv::CC_STAT_HEIGHT);
-    const ::cv::Rect compRect(x, y, w, h);
-    ::cv::Mat mask = labels(compRect) == i;
-    double maxVal = 0.0;
-    ::cv::minMaxLoc(textMap(compRect), nullptr, &maxVal, nullptr, nullptr, mask);
-    if (maxVal < static_cast<double>(lowTextThreshold)) {
-        return std::nullopt;
-    }
-
-    const auto dilationRadius =
-        static_cast<int32_t>(std::sqrt(static_cast<double>(area) / std::max(w, h)) * 2);
-    const int32_t sx = std::max(x - dilationRadius, 0);
-    const int32_t ex = std::min(x + w + dilationRadius, imgW);
-    const int32_t sy = std::max(y - dilationRadius, 0);
-    const int32_t ey = std::min(y + h + dilationRadius, imgH);
-    ::cv::Mat segMap = ::cv::Mat::zeros(ey - sy, ex - sx, CV_8U);
-    segMap(::cv::Rect(x - sx, y - sy, w, h)).setTo(255, mask);
-    const int32_t kSize = 1 + dilationRadius;
-    ::cv::Mat kernel = ::cv::getStructuringElement(::cv::MORPH_RECT, ::cv::Size(kSize, kSize));
-    ::cv::dilate(segMap, segMap, kernel, ::cv::Point(-1, -1), 1);
-
-    std::vector<std::vector<::cv::Point>> contours;
-    // The offset restores full-frame coordinates for the ROI-local contours.
-    ::cv::findContours(segMap, contours, ::cv::RETR_EXTERNAL, ::cv::CHAIN_APPROX_SIMPLE,
-                       ::cv::Point(sx, sy));
-    if (contours.empty()) {
-        return std::nullopt;
-    }
-    ::cv::RotatedRect rr = ::cv::minAreaRect(contours[0]);
-    std::array<::cv::Point2f, 4> v;
-    rr.points(v.data());
-    Box box;
-    box.x0 = std::min({v[0].x, v[1].x, v[2].x, v[3].x});
-    box.y0 = std::min({v[0].y, v[1].y, v[2].y, v[3].y});
-    box.x1 = std::max({v[0].x, v[1].x, v[2].x, v[3].x});
-    box.y1 = std::max({v[0].y, v[1].y, v[2].y, v[3].y});
-    box.angle = rr.angle;
-    return box;
-}
-
-// CRAFT text+affinity maps -> one component box each. Affinity is ADDED to the
-// text score, linking adjacent glyphs into line-regions that keep the
-// rotated-rect angle.
-std::vector<Box> componentBoxes(::cv::Mat &textMap, ::cv::Mat &affinityMap, float textThreshold,
-                                float linkThreshold, float lowTextThreshold) {
-    const int32_t imgH = textMap.rows;
-    const int32_t imgW = textMap.cols;
-    ::cv::Mat textScore;
-    ::cv::Mat affinityScore;
-    ::cv::threshold(textMap, textScore, static_cast<double>(textThreshold), 1.0, ::cv::THRESH_BINARY);
-    ::cv::threshold(affinityMap, affinityScore, static_cast<double>(linkThreshold), 1.0,
-                    ::cv::THRESH_BINARY);
-
-    ::cv::Mat comb = textScore + affinityScore;
-    ::cv::threshold(comb, comb, 0.0, 1.0, ::cv::THRESH_BINARY);
-
-    ::cv::Mat binary;
-    comb.convertTo(binary, CV_8UC1);
-    ::cv::Mat labels;
-    ::cv::Mat stats;
-    // Required out-param of the only overload that returns stats; never read.
-    ::cv::Mat centroids;
-    const int32_t nLabels = ::cv::connectedComponentsWithStats(binary, labels, stats, centroids, 4);
-
-    std::vector<Box> boxes;
-    boxes.reserve(static_cast<std::size_t>(nLabels));
-    for (int32_t i = 1; i < nLabels; ++i) {
-        auto box = boxFromComponent(textMap, labels, stats, i, imgW, imgH, lowTextThreshold);
-        if (box) {
-            boxes.push_back(*box);
-        }
-    }
-    return boxes;
-}
-
-// CRAFT half-res heatmap (text+affinity interleaved) -> component boxes in
-// detector-input pixels; restoreRatio scales the half-res boxes back up. Line
-// grouping and de-skew are done in TypeScript. `data` points at heatW*heatH*2
-// floats.
-std::vector<Box> extractCraft(float *data, int32_t heatW, int32_t heatH, float textThreshold,
-                              float linkThreshold, float lowTextThreshold, float restoreRatio) {
-    // Deinterleave the [text, affinity] channels of the half-res heatmap.
-    ::cv::Mat interleaved(heatH, heatW, CV_32FC2, data);
-    std::array<::cv::Mat, 2> channels;
-    ::cv::split(interleaved, channels);
-    std::vector<Box> boxes =
-        componentBoxes(channels[0], channels[1], textThreshold, linkThreshold, lowTextThreshold);
-    for (auto &b : boxes) {
-        b.x0 *= restoreRatio;
-        b.y0 *= restoreRatio;
-        b.x1 *= restoreRatio;
-        b.y1 *= restoreRatio;
-    }
-    return boxes;
-}
 
 // ------------------------------ DBNet branch -------------------------------
 // DBNet prob map [H,W] -> oriented quads. The map must be post-sigmoid
@@ -237,61 +117,7 @@ jsi::Object quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
     return conversions::toJsiTypedArray(rt, flat);
 }
 
-// Flatten component boxes to a Float32Array, 5 per box (xmin,ymin,xmax,ymax,angle).
-jsi::Object boxesToArray(jsi::Runtime &rt, const std::vector<Box> &boxes) {
-    std::vector<float> flat;
-    flat.reserve(boxes.size() * 5);
-    for (const auto &b : boxes) {
-        flat.insert(flat.end(), {b.x0, b.y0, b.x1, b.y1, b.angle});
-    }
-    return conversions::toJsiTypedArray(rt, flat);
-}
-
 } // namespace
-
-void install_extractCraftTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "extractCraftTextBoxes";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
-                     size_t count) -> jsi::Value {
-        if (count != 2) {
-            throw error::InvalidArgument("Usage: extractCraftTextBoxes(src, options)");
-        }
-        const char *ctx = "extractCraftTextBoxes";
-        auto src = tensor::fromJs(rt, "extractCraftTextBoxes: src", args[0], DType::float32, std::nullopt);
-        const auto opts = conversions::asType<jsi::Object>(rt, "extractCraftTextBoxes: options", args[1]);
-        auto srcLock = tensor::tryLockShared(rt, "extractCraftTextBoxes: src", src);
-        auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
-
-        // src is [1,Hd,Wd,2] or [Hd,Wd,2] interleaved (text, affinity), half-res.
-        const auto &s = src->shape_;
-        if (s.size() < 3 || s.back() != 2) {
-            throw error::InvalidArgument("extractCraftTextBoxes: src must be [..,Hd,Wd,2]");
-        }
-        const int32_t heatW = s[s.size() - 2];
-        const int32_t heatH = s[s.size() - 3];
-        if (static_cast<std::size_t>(heatW) * static_cast<std::size_t>(heatH) * 2 != src->numel_) {
-            throw error::InvalidArgument("extractCraftTextBoxes: src Hd*Wd*2 does not match numel");
-        }
-        const auto targetH = conversions::getRequiredProperty<double>(rt, ctx, opts, "targetHeight");
-        const float restoreRatio = static_cast<float>(targetH) / static_cast<float>(heatH);
-
-        std::vector<Box> boxes;
-        try {
-            boxes = extractCraft(
-                dataPtr, heatW, heatH,
-                static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "textThreshold")),
-                static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "linkThreshold")),
-                static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "lowTextThreshold")),
-                restoreRatio);
-        } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::format("extractCraftTextBoxes: OpenCV error: {}", e.what()));
-        }
-        return boxesToArray(rt, boxes);
-    };
-    module.setProperty(rt, name,
-                       jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             2, error::guarded(fnBody)));
-}
 
 void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractDbnetTextBoxes";

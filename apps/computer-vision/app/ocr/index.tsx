@@ -21,28 +21,13 @@ const OCR_MODELS: { label: string; base: OcrModel; disabled: boolean }[] = [
     disabled: false,
   },
   {
-    label: 'PaddleOCR (Vulkan, fastest)',
+    label: 'PaddleOCR (Vulkan)',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.VULKAN,
     disabled: isIos,
   },
   {
     label: 'PaddleOCR (CoreML)',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.COREML,
-    disabled: !isIos,
-  },
-  {
-    label: 'EasyOCR English (XNNPACK, fastest)',
-    base: models.ocr.EASYOCR.ENGLISH.XNNPACK,
-    disabled: false,
-  },
-  {
-    label: 'EasyOCR English (Vulkan, best quality)',
-    base: models.ocr.EASYOCR.ENGLISH.VULKAN,
-    disabled: isIos,
-  },
-  {
-    label: 'EasyOCR English (CoreML)',
-    base: models.ocr.EASYOCR.ENGLISH.COREML,
     disabled: !isIos,
   },
 ];

@@ -479,7 +479,6 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t contentWidth = std::clamp(
             conversions::getRequiredProperty<int32_t>(rt, "rectifyQuad: options", opts, "contentWidth"),
             1, canvasW);
-        const auto padMode = conversions::getRequiredProperty<std::string>(rt, "rectifyQuad: options", opts, "padMode");
         const auto padValue = conversions::getRequiredProperty<double>(rt, "rectifyQuad: options", opts, "padValue");
         const auto align = conversions::getRequiredProperty<std::string>(rt, "rectifyQuad: options", opts, "align");
 
@@ -508,24 +507,7 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
             ::cv::warpPerspective(srcMat, content, m, ::cv::Size(contentWidth, recH),
                                   ::cv::INTER_CUBIC, ::cv::BORDER_REPLICATE);
 
-            ::cv::Scalar padColor;
-            if (padMode == "cornerMean") {
-                const int patch = std::max(1, std::min(recH, contentWidth) / 30);
-                ::cv::Scalar acc(0, 0, 0, 0);
-                const std::array<::cv::Rect, 4> rects = {
-                    ::cv::Rect(0, 0, patch, patch),
-                    ::cv::Rect(contentWidth - patch, 0, patch, patch),
-                    ::cv::Rect(0, recH - patch, patch, patch),
-                    ::cv::Rect(contentWidth - patch, recH - patch, patch, patch)};
-                for (const auto &r : rects) {
-                    acc += ::cv::mean(content(r));
-                }
-                padColor = acc / 4.0;
-            } else {
-                padColor = ::cv::Scalar::all(padValue);
-            }
-
-            dstMat.setTo(padColor);
+            dstMat.setTo(::cv::Scalar::all(padValue));
             const int32_t offsetX = (align == "center") ? (canvasW - contentWidth) / 2 : 0;
             const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
             content(::cv::Rect(0, 0, copyW, recH)).copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));

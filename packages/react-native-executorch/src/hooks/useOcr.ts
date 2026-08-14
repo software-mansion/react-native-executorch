@@ -3,7 +3,7 @@ import { useResourceDownload, type ResourceOptions } from './useResourceDownload
 import { useModel } from './useModel';
 
 /**
- * React hook for the OCR pipeline (EasyOCR / PaddleOCR). It downloads and loads
+ * React hook for the OCR pipeline (PaddleOCR). It downloads and loads
  * the model, tracks progress and errors, instantiates the task runner, and cleans
  * up native memory on unmount or config change. Heavy work runs on a worklet
  * thread; `runOcr` resolves with the recognized regions in reading order.

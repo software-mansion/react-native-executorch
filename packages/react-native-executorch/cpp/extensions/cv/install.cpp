@@ -20,7 +20,6 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     box_ops::install_nms(rt, cvModule);
     box_ops::install_restrictToBox(rt, cvModule);
 
-    ocr_ops::install_extractCraftTextBoxes(rt, cvModule);
     ocr_ops::install_extractDbnetTextBoxes(rt, cvModule);
     ocr_ops::install_ctcGreedyDecode(rt, cvModule);
 
