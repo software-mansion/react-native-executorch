@@ -32,23 +32,12 @@ export type ChatMessage = {
 };
 
 /**
- * Sentinel token delimiters framing media placeholders in chat templates.
- * @category Types
- */
-export type LLMMediaTokenConfig = {
-  /** Opening token delimiter (e.g. `<|image_start|>`). */
-  readonly start: string;
-  /** Closing token delimiter (e.g. `<|image_end|>`). */
-  readonly end: string;
-};
-
-/**
  * Image preprocessing and sentinel token config for vision-language LLMs.
  * @category Types
  */
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
-  readonly token: LLMMediaTokenConfig;
+  readonly token: { readonly start: string; readonly end: string };
   /** Image preprocessing options (normalization, resize mode, interpolation). */
   readonly preprocessorOpts: ImagePreprocessorOptions;
   /** Fixed target shape expected by native LLM `[C, H, W]`. */
@@ -61,7 +50,7 @@ export type LLMImagePreprocessorConfig = {
  */
 export type LLMAudioPreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
-  readonly token: LLMMediaTokenConfig;
+  readonly token: { readonly start: string; readonly end: string };
 };
 
 /**
