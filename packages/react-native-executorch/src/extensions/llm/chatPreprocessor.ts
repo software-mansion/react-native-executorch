@@ -127,7 +127,6 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
   };
 
   const process = (message: ChatMessage, opts?: ChatProcessOptions): Prompt => {
-    'worklet';
     const isFirstTurn = opts?.isFirstTurn ?? false;
     const addGenerationPrompt = opts?.addGenerationPrompt ?? true;
 
