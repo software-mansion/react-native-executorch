@@ -6,8 +6,8 @@ import { RnExecuTorchError } from '../../core/error';
  */
 export type TokenizerChatConfig = {
   readonly chatTemplate: string;
-  readonly bosToken?: string;
-  readonly eosToken?: string;
+  readonly bosToken: string;
+  readonly eosToken: string;
 };
 
 function resolveToken(token: unknown): string | undefined {
@@ -25,7 +25,7 @@ function resolveToken(token: unknown): string | undefined {
  * @returns A parsed TokenizerChatConfig object.
  */
 export function parseTokenizerConfig(config: any): TokenizerChatConfig {
-  let chatTemplate = config?.chat_template;
+  let chatTemplate = config.chat_template;
 
   // Some models ship multiple named templates as `[{ name, template }]`.
   if (Array.isArray(chatTemplate)) {
@@ -40,9 +40,15 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
     );
   }
 
-  return {
-    chatTemplate,
-    bosToken: resolveToken(config?.bos_token),
-    eosToken: resolveToken(config?.eos_token),
-  };
+  const bosToken = resolveToken(config.bos_token);
+  const eosToken = resolveToken(config.eos_token);
+
+  if (!bosToken || !eosToken) {
+    throw RnExecuTorchError(
+      'LOAD_FAILED',
+      'tokenizer_config.json does not define required `bos_token` and `eos_token` strings'
+    );
+  }
+
+  return { chatTemplate, bosToken, eosToken };
 }

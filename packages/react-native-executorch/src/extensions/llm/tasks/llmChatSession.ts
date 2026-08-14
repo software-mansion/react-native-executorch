@@ -59,8 +59,6 @@ export type LLMChatSessionOptions = {
   readonly initialMessages?: readonly ChatMessage[];
   /** Default generation configuration options. */
   readonly generationConfig?: GenerationConfig;
-  /** Additional stop tokens that interrupt token generation. */
-  readonly stopTokens?: readonly string[];
 };
 
 /**
@@ -113,17 +111,17 @@ function generateChatTurnWorklet(
   prompt: Prompt,
   options: {
     readonly genConfig: GenerationConfig;
-    readonly stopTokens: readonly string[];
+    readonly eosToken: string;
     readonly onToken?: (token: string) => void;
   }
 ): LLMGenerationResult {
   'worklet';
-  const { genConfig, stopTokens, onToken } = options;
+  const { genConfig, eosToken, onToken } = options;
 
   let response = '';
 
   const callback = (token: string) => {
-    if (stopTokens.includes(token)) return;
+    if (token === eosToken) return;
     response += token;
     if (onToken) scheduleOnRN(onToken, token);
   };
@@ -160,10 +158,10 @@ export async function createLLMChatSession(
   const chatPreprocessor = createChatPreprocessor({
     chatTemplate,
     bosToken,
+    eosToken,
     modalities,
     preprocessorConfig,
   });
-  const stopTokens = [...(options?.stopTokens ?? []), ...(eosToken ? [eosToken] : [])];
 
   // Prepare runner
   const history: ChatMessage[] = [];
@@ -208,7 +206,7 @@ export async function createLLMChatSession(
 
     history.push(input);
 
-    const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, stopTokens, onToken };
+    const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, eosToken, onToken };
     const { response, stats } = await generateChatTurn(runner, prompt, opts);
 
     history.push({ role: 'assistant', content: response });

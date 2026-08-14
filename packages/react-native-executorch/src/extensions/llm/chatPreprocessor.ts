@@ -69,6 +69,7 @@ export type LLMMediaPreprocessorConfig = {
 export type ChatPreprocessorConfig = {
   readonly chatTemplate: string;
   readonly bosToken?: string;
+  readonly eosToken?: string;
   readonly modalities?: readonly Modality[];
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
@@ -88,6 +89,10 @@ export type ChatProcessOptions = {
    * `<|im_start|>assistant\n`). Defaults to `true`.
    */
   readonly addGenerationPrompt?: boolean;
+  /**
+   * Whether to prepend the EOS token (e.g. `<|im_end|>`) to the beginning of the turn.
+   */
+  readonly prependEos?: boolean;
 };
 
 /**
@@ -97,7 +102,7 @@ export type ChatProcessOptions = {
  * @returns Object with process and dispose methods.
  */
 export function createChatPreprocessor(config: ChatPreprocessorConfig) {
-  const { chatTemplate, modalities, preprocessorConfig, bosToken = '' } = config;
+  const { chatTemplate, modalities, preprocessorConfig, bosToken = '', eosToken = '' } = config;
   const template = new Template(chatTemplate);
 
   let imgPreprocessor: ReturnType<typeof createImagePreprocessor> | undefined;
@@ -118,14 +123,18 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
   const process = (message: ChatMessage, opts?: ChatProcessOptions): Prompt => {
     const isFirstTurn = opts?.isFirstTurn ?? false;
     const addGenerationPrompt = opts?.addGenerationPrompt ?? true;
+    const prefix = opts?.prependEos ? eosToken : '';
 
     if (typeof message.content === 'string') {
       /* eslint-disable camelcase */
-      return template.render({
-        bos_token: isFirstTurn ? bosToken : '',
-        add_generation_prompt: addGenerationPrompt,
-        messages: [{ role: message.role, content: message.content }],
-      });
+      return (
+        prefix +
+        template.render({
+          bos_token: isFirstTurn ? bosToken : '',
+          add_generation_prompt: addGenerationPrompt,
+          messages: [{ role: message.role, content: message.content }],
+        })
+      );
       /* eslint-enable */
     }
 
@@ -171,11 +180,13 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig) {
     }
 
     /* eslint-disable camelcase */
-    const renderedContent = template.render({
-      bos_token: isFirstTurn ? bosToken : '',
-      add_generation_prompt: addGenerationPrompt,
-      messages: [{ role: message.role, content: syntheticContent }],
-    });
+    const renderedContent =
+      prefix +
+      template.render({
+        bos_token: isFirstTurn ? bosToken : '',
+        add_generation_prompt: addGenerationPrompt,
+        messages: [{ role: message.role, content: syntheticContent }],
+      });
     /* eslint-enable */
 
     const regex = /\uFFFC__ET_MEDIA_(\d+)__/g;

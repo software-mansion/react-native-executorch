@@ -23,7 +23,7 @@ import {
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage, skImageToBuffer } from '../../utils';
 
-const MODEL = models.llm.LFM2_5_350M;
+const MODEL = models.llm.LFM2_5_VL_450M;
 const SYSTEM_PROMPT = 'You are a helpful multimodal assistant by Liquid AI.';
 const INITIAL_MESSAGES: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
 const GENERATION_CONFIG = { temperature: 0.7, maxNewTokens: 512, echo: false };
