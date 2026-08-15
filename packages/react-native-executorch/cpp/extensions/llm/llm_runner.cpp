@@ -141,6 +141,17 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
     }
 }
 
+std::unique_lock<std::mutex> LLMRunnerHostObject::tryLockUnique(std::string_view ctx) {
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        throw error::ResourceBusy(std::format("{}: Runner is already in use", ctx));
+    }
+    if (!runner_) {
+        throw error::ResourceDisposed(std::format("{}: Runner has been disposed", ctx));
+    }
+    return lock;
+}
+
 jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &name) {
     auto nameStr = name.utf8(rt);
 
@@ -200,18 +211,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 finalStats->aggregate_sampling_time_ms = stats.aggregate_sampling_time_ms;
             };
 
-            // Hold the lock for the whole call so dispose() cannot free the
-            // runner mid-generation (dispose blocks on this lock until we
-            // return). try_to_lock: only one prefill/generate may run at a
-            // time, so fail fast instead of queuing. stop() is lock-free and
-            // can still interrupt us.
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw error::ResourceBusy("LLMRunner.generate: Runner is already in use");
-            }
-            if (!self->runner_) {
-                throw error::ResourceDisposed("LLMRunner.generate: Runner has been disposed");
-            }
+            auto lock = self->tryLockUnique("LLMRunner.generate");
 
             auto genError = executorch::runtime::Error::Ok;
             if (self->modalities_.empty()) {
@@ -243,14 +243,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw error::InvalidArgument("LLMRunner.prefill: Usage: prefill(prompt)");
             }
 
-            // Lock held for the whole call, same as generate().
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw error::ResourceBusy("LLMRunner.prefill: Runner is already in use");
-            }
-            if (!self->runner_) {
-                throw error::ResourceDisposed("LLMRunner.prefill: Runner has been disposed");
-            }
+            auto lock = self->tryLockUnique("LLMRunner.prefill");
 
             auto inputs = parsePrompt(rt, "LLMRunner.prefill", args[0], self->modalities_);
             auto result = self->runner_->prefill(inputs);
@@ -289,17 +282,9 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw error::InvalidArgument("LLMRunner.reset: Usage: reset()");
             }
 
-            // Lock held for the call so reset() cannot run concurrently with
-            // prefill/generate.
-            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
-            if (!lock.owns_lock()) {
-                throw error::ResourceBusy("LLMRunner.reset: Runner is already in use");
-            }
-            if (!self->runner_) {
-                throw error::ResourceDisposed("LLMRunner.reset: Runner has been disposed");
-            }
+            auto lock = self->tryLockUnique("LLMRunner.reset");
+            (*self->runner_).reset();
 
-            self->runner_->reset();
             return jsi::Value::undefined();
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "reset"), 0, error::guarded(fnBody));

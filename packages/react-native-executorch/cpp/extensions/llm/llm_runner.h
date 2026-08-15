@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <jsi/jsi.h>
@@ -50,6 +51,17 @@ public:
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
 
 private:
+    /**
+     * Tries to acquire a unique lock on the runner's mutex.
+     *
+     * @param ctx Context description used to generate helpful error messages.
+     * @return A unique lock protecting the runner.
+     * @throws core::error::RnExecuTorchException with code ResourceBusy if the
+     * lock is currently held by another thread, or ResourceDisposed if the
+     * runner has already been disposed.
+     */
+    [[nodiscard]] std::unique_lock<std::mutex> tryLockUnique(std::string_view ctx);
+
     /** Owning pointer to the underlying ExecuTorch IRunner instance. */
     std::unique_ptr<executorch::extension::llm::IRunner> runner_;
     /** Mutex guarding concurrent access to prefill and generation operations. */
