@@ -82,6 +82,11 @@ export type LLMRunner = {
   stop(): void;
 
   /**
+   * Resets the runner KV cache and context start position back to 0.
+   */
+  reset(): void;
+
+  /**
    * Prefills the runner with a prompt to build up the KV cache.
    * @param prompt The prefill text or multimodal prompt.
    */

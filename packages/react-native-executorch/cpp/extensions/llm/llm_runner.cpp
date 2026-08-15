@@ -282,6 +282,29 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "stop"), 0, error::guarded(fnBody));
     }
 
+    if (nameStr == "reset") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+            if (count != 0) {
+                throw error::InvalidArgument("LLMRunner.reset: Usage: reset()");
+            }
+
+            // Lock held for the call so reset() cannot run concurrently with
+            // prefill/generate.
+            std::unique_lock<std::mutex> lock(self->mutex_, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                throw error::ResourceBusy("LLMRunner.reset: Runner is already in use");
+            }
+            if (!self->runner_) {
+                throw error::ResourceDisposed("LLMRunner.reset: Runner has been disposed");
+            }
+
+            self->runner_->reset();
+            return jsi::Value::undefined();
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "reset"), 0, error::guarded(fnBody));
+    }
+
     if (nameStr == "dispose") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
@@ -316,6 +339,7 @@ std::vector<jsi::PropNameID> LLMRunnerHostObject::getPropertyNames(jsi::Runtime 
     properties.push_back(jsi::PropNameID::forAscii(rt, "prefill"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "generate"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "stop"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "reset"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return properties;
 }

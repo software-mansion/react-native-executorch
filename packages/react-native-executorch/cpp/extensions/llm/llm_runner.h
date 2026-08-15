@@ -23,8 +23,8 @@ namespace rnexecutorch::extensions::llm {
  * (`executorch::extension::llm::IRunner`).
  *
  * Exposes methods to JavaScript for prefilling prompt context, generating token
- * stream continuations, interrupting generation, and releasing native model
- * memory.
+ * stream continuations, interrupting generation, resetting the KV cache context,
+ * and releasing native model memory.
  */
 class LLMRunnerHostObject : public facebook::jsi::HostObject,
                             public std::enable_shared_from_this<LLMRunnerHostObject> {
