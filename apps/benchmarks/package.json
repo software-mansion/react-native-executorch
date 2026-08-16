@@ -32,6 +32,7 @@
   "dependencies": {
     "expo": "~56.0.9",
     "expo-build-properties": "~56.0.17",
+    "expo-keep-awake": "~56.0.3",
     "react": "19.2.3",
     "react-native": "0.85.3",
     "react-native-blob-util": "^0.24.0",

@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useKeepAwake } from 'expo-keep-awake';
 
 import { config } from './src/config';
 import { runSuite } from './src/runner';
@@ -18,6 +19,11 @@ import { selectCases } from './src/suite';
 type Phase = { readonly caseId: string; readonly phase: string } | null;
 
 export default function App() {
+  // A full suite runs for the better part of an hour. Without this the screen
+  // turns off partway, Android freezes the app, and the run stops dead with its
+  // remaining cases unreported.
+  useKeepAwake();
+
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [phase, setPhase] = useState<Phase>(null);
