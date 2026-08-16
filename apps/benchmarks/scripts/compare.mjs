@@ -18,11 +18,30 @@
 
 import { readFileSync } from 'node:fs';
 
+// Calibrated against two full-suite runs of identical code on a Galaxy S26
+// Ultra, rather than guessed. Measured worst-case drift between those runs, per
+// family:
+//
+//   execute.*          7.6%   (most cases inside 4%)
+//   pipeline.median    35%
+//   load.*             45%    at one sample per load; less now that loads are
+//                             repeated, but still the loosest of the three
+//   memory.*           2%
+//
+// Hence the spread below. `execute.*` is both the tightest and the one that
+// actually measures ExecuTorch, which is what a version bump changes; a pipeline
+// figure carries TypeScript pre- and post-processing and its garbage collection,
+// and a load carries filesystem cache state. Setting one tolerance across all of
+// them would either drown the execute signal or report a regression on every
+// second run: the first calibration attempt used a flat 10/15% and produced six
+// false regressions between two runs of the same build.
 const DEFAULT_TOLERANCE = {
-  /** Percent regression in pipeline and raw-execute medians that trips a failure. */
-  inference: 10,
-  /** Percent regression in model load time. Loading is noisier than inference. */
-  load: 15,
+  /** Percent regression in raw `model.execute` medians. The primary signal. */
+  execute: 10,
+  /** Percent regression in end-to-end pipeline medians. */
+  pipeline: 30,
+  /** Percent regression in model load time. */
+  load: 35,
   /** Percent growth in peak footprint. */
   memory: 10,
 };
@@ -121,18 +140,8 @@ function compareCase(baseline, current, tolerance) {
     ];
   }
 
-  add(
-    'pipeline.median',
-    baseline.pipeline?.median,
-    current.pipeline?.median,
-    tolerance.inference,
-    noiseFloor(baseline.pipeline, current.pipeline)
-  );
-  add('load.task', baseline.taskLoadMs, current.taskLoadMs, tolerance.load);
-  add('load.native', baseline.native?.loadMs, current.native?.loadMs, tolerance.load);
-  add('memory.peak', baseline.memory?.peakMb, current.memory?.peakMb, tolerance.memory);
-  add('memory.loaded', baseline.memory?.loadedMb, current.memory?.loadedMb, tolerance.memory);
-
+  // Raw execute first: it is the number to read, so it belongs at the top of
+  // each case's block rather than below the pipeline figure it explains.
   for (const beforeMethod of baseline.native?.methods ?? []) {
     const afterMethod = (current.native?.methods ?? []).find(
       (entry) => entry.method === beforeMethod.method
@@ -141,10 +150,36 @@ function compareCase(baseline, current, tolerance) {
       `execute.${beforeMethod.method}`,
       beforeMethod.stats?.median,
       afterMethod?.stats?.median,
-      tolerance.inference,
+      tolerance.execute,
       noiseFloor(beforeMethod.stats, afterMethod?.stats)
     );
   }
+
+  add(
+    'pipeline.median',
+    baseline.pipeline?.median,
+    current.pipeline?.median,
+    tolerance.pipeline,
+    noiseFloor(baseline.pipeline, current.pipeline)
+  );
+  // `taskLoad` and `native.load` arrived in schema 2. A version 1 baseline has
+  // only the single-sample number, so there is no spread to fall back on.
+  add(
+    'load.task',
+    baseline.taskLoadMs,
+    current.taskLoadMs,
+    tolerance.load,
+    noiseFloor(baseline.taskLoad, current.taskLoad)
+  );
+  add(
+    'load.native',
+    baseline.native?.loadMs,
+    current.native?.loadMs,
+    tolerance.load,
+    noiseFloor(baseline.native?.load, current.native?.load)
+  );
+  add('memory.peak', baseline.memory?.peakMb, current.memory?.peakMb, tolerance.memory);
+  add('memory.loaded', baseline.memory?.loadedMb, current.memory?.loadedMb, tolerance.memory);
 
   return rows;
 }

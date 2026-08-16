@@ -41,6 +41,15 @@ export interface BenchConfig {
   readonly warmup: number;
   /** Iterations run during the separate, sampled memory pass. */
   readonly memoryIterations: number;
+  /**
+   * Times each model is loaded and disposed to produce a load-time median.
+   *
+   * Kept low because a load is expensive (over a second for the privacy filter)
+   * and cannot be warmed up: the point is a cold load. But it cannot be 1. A
+   * single sample of a load swung 45% between two runs of identical code, which
+   * is enough to report a regression that is not there.
+   */
+  readonly loadIterations: number;
   /** Whether to run the memory pass at all. */
   readonly measureMemory: boolean;
   /** Whether to run the schema-driven raw `model.execute` pass. */
@@ -61,6 +70,7 @@ export const config: BenchConfig = {
   iterations: int(process.env.EXPO_PUBLIC_BENCH_ITERATIONS, 20),
   warmup: int(process.env.EXPO_PUBLIC_BENCH_WARMUP, 3),
   memoryIterations: int(process.env.EXPO_PUBLIC_BENCH_MEMORY_ITERATIONS, 5),
+  loadIterations: int(process.env.EXPO_PUBLIC_BENCH_LOAD_ITERATIONS, 3),
   measureMemory: bool(process.env.EXPO_PUBLIC_BENCH_MEMORY, true),
   measureNative: bool(process.env.EXPO_PUBLIC_BENCH_NATIVE, true),
   sampleIntervalMs: int(process.env.EXPO_PUBLIC_BENCH_SAMPLE_INTERVAL_MS, 100),
