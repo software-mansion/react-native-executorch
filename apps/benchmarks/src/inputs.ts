@@ -97,13 +97,15 @@ export function syntheticImage(width: number, height: number, seed = 0x5eed): Im
 }
 
 /**
- * Builds a mono waveform alternating voiced-like bursts with silence.
+ * Builds a mono waveform alternating voice-like bursts with silence.
  *
- * The bursts are a small harmonic stack under a syllable-rate envelope, which
- * lands in the band voice-activity detection keys off, so the VAD produces a
- * stable non-trivial segmentation instead of either "all speech" or "none".
- * It is not speech, and no speech-recognition model will transcribe meaning
- * from it — see the note on `speechToText` in `src/suite.ts`.
+ * Each burst is a glottal-style pulse train swept through three formant
+ * resonances, with a band-limited noise component for the fricative energy a
+ * pure harmonic stack lacks, under a syllable-rate envelope. It is not speech,
+ * and no recognizer will transcribe meaning from it, but it carries enough of
+ * speech's spectral shape for a voice-activity detector to open segments on the
+ * bursts and close them on the gaps — which is what makes the VAD case exercise
+ * its segmentation path rather than returning nothing.
  * @param seconds Waveform length in seconds.
  * @param sampleRate Samples per second.
  * @returns Float32 PCM samples normalized to `[-1, 1]`.
@@ -112,28 +114,57 @@ export function syntheticWaveform(seconds: number, sampleRate: number): Float32A
   const samples = new Float32Array(Math.round(seconds * sampleRate));
   const random = prng(0xa11d10);
 
-  // 0.6 s of burst followed by 0.4 s of near-silence, repeating.
+  // 0.7 s of burst followed by 0.3 s of near-silence, repeating.
   const periodSamples = sampleRate;
-  const burstSamples = Math.round(0.6 * sampleRate);
+  const burstSamples = Math.round(0.7 * sampleRate);
+
+  // Two-pole resonators, one per formant, driven by the pulse train and noise.
+  const formants = [
+    { hz: 700, bandwidth: 90, gain: 1.0 },
+    { hz: 1220, bandwidth: 110, gain: 0.6 },
+    { hz: 2600, bandwidth: 170, gain: 0.35 },
+  ].map((formant) => {
+    const r = Math.exp((-Math.PI * formant.bandwidth) / sampleRate);
+    return {
+      gain: formant.gain,
+      a1: 2 * r * Math.cos((2 * Math.PI * formant.hz) / sampleRate),
+      a2: -r * r,
+      y1: 0,
+      y2: 0,
+    };
+  });
+
+  const pitchHz = 130;
+  const samplesPerPulse = sampleRate / pitchHz;
 
   for (let i = 0; i < samples.length; i++) {
     const phaseInPeriod = i % periodSamples;
-    const t = i / sampleRate;
 
     if (phaseInPeriod >= burstSamples) {
       samples[i] = (random() - 0.5) * 0.002;
+      // Let the resonators ring down rather than snapping to zero.
+      for (const formant of formants) {
+        const y = formant.a1 * formant.y1 + formant.a2 * formant.y2;
+        formant.y2 = formant.y1;
+        formant.y1 = y;
+      }
       continue;
     }
 
-    // Syllable-rate amplitude envelope over a 140 Hz fundamental plus formants.
-    const envelope = 0.5 - 0.5 * Math.cos((2 * Math.PI * phaseInPeriod) / burstSamples);
-    const voiced =
-      Math.sin(2 * Math.PI * 140 * t) +
-      0.5 * Math.sin(2 * Math.PI * 700 * t) +
-      0.3 * Math.sin(2 * Math.PI * 1220 * t) +
-      0.15 * Math.sin(2 * Math.PI * 2600 * t);
+    // Impulse train (voicing) plus aspiration noise, shaped by the formants.
+    const sincePulse = phaseInPeriod % samplesPerPulse;
+    const excitation = (sincePulse < 1 ? 1 : 0) + (random() - 0.5) * 0.35;
 
-    samples[i] = 0.22 * envelope * voiced + (random() - 0.5) * 0.01;
+    let voiced = 0;
+    for (const formant of formants) {
+      const y = excitation + formant.a1 * formant.y1 + formant.a2 * formant.y2;
+      formant.y2 = formant.y1;
+      formant.y1 = y;
+      voiced += formant.gain * y;
+    }
+
+    const envelope = 0.5 - 0.5 * Math.cos((2 * Math.PI * phaseInPeriod) / burstSamples);
+    samples[i] = Math.max(-1, Math.min(1, 0.08 * envelope * voiced));
   }
 
   return samples;
