@@ -212,6 +212,35 @@ function main() {
     console.warn(`\nWARNING: ${message}`);
   }
 
+  // A throttling device is the single largest source of false regressions here.
+  // Two full suites run fifteen seconds apart made every raw-execute metric 9%
+  // to 51% slower (median 22%) with no code change at all. Nothing downstream
+  // can correct for that, so the comparison is refused rather than reported.
+  const worstThermal = (report) =>
+    report.cases.reduce((worst, entry) => Math.max(worst, entry.thermal?.status ?? -1), -1);
+
+  const baselineHeat = worstThermal(baseline);
+  const currentHeat = worstThermal(current);
+
+  if (baselineHeat > 0 || currentHeat > 0) {
+    const name = (report) =>
+      report.cases.find((entry) => (entry.thermal?.status ?? -1) === worstThermal(report))?.thermal
+        ?.statusName ?? 'unknown';
+    console.error(
+      `\nERROR: a device was throttling during these runs (baseline peaked at ` +
+        `"${name(baseline)}", current at "${name(current)}").\n` +
+        'Timings taken while throttling are not comparable. Let the device cool and re-run;\n' +
+        '`yarn bench --cooldown 600` waits before starting.'
+    );
+    process.exit(2);
+  }
+
+  if (baselineHeat !== currentHeat) {
+    console.warn(
+      `\nWARNING: thermal states differ between runs (${baselineHeat} vs ${currentHeat}).`
+    );
+  }
+
   if (baseline.settings?.iterations !== current.settings?.iterations) {
     console.warn(
       `\nWARNING: iteration counts differ (${baseline.settings?.iterations} vs ` +

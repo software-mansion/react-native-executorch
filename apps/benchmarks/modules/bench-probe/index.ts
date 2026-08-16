@@ -21,6 +21,22 @@ export interface BenchDeviceInfo {
   readonly totalMemoryBytes: number;
 }
 
+/**
+ * Device thermal state at a point in the run.
+ *
+ * Timings taken while a device is throttling are not comparable with timings
+ * taken while it is cool, so this is recorded per case and the comparator
+ * refuses to diff across it.
+ */
+export interface BenchThermalState {
+  /** Android `PowerManager` thermal status, mapped onto iOS states. -1 if unknown. */
+  readonly status: number;
+  /** `none` | `light` | `moderate` | `severe` | `critical` | `emergency` | `shutdown`. */
+  readonly statusName: string;
+  /** Battery temperature in Celsius on Android; -1 where unavailable. */
+  readonly batteryTemperatureC: number;
+}
+
 interface BenchProbeNativeModule {
   /**
    * Process memory footprint in bytes.
@@ -36,6 +52,7 @@ interface BenchProbeNativeModule {
    * pages, so it is recorded alongside the footprint rather than instead of it.
    */
   nativeHeapBytes(): number;
+  thermalState(): BenchThermalState;
   deviceInfo(): BenchDeviceInfo;
 }
 

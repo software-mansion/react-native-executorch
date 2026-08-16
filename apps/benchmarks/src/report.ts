@@ -10,7 +10,7 @@
  * emulator and real hardware over `adb reverse` or the LAN.
  */
 
-import type { BenchDeviceInfo } from '../modules/bench-probe';
+import type { BenchDeviceInfo, BenchThermalState } from '../modules/bench-probe';
 import type { NativeResult } from './nativeForward';
 import type { Stats } from './stats';
 import { config } from './config';
@@ -41,6 +41,11 @@ export interface CaseResult {
   readonly pipeline?: Stats;
   /** Workload size the pipeline reported. See `TimedRun.units`. */
   readonly units?: number;
+  /**
+   * Thermal state when this case's timings were taken. A case measured while the
+   * device was throttling is not comparable with one measured cool.
+   */
+  readonly thermal?: BenchThermalState;
   /** Raw `model.execute` timings, per exported method. */
   readonly native?: NativeResult;
   readonly memory?: {
@@ -69,6 +74,8 @@ export interface RunReport {
   readonly finishedAt: string;
   readonly platform: string;
   readonly device: BenchDeviceInfo;
+  /** Thermal state at the start and end of the whole run. */
+  readonly thermal?: { readonly start: BenchThermalState; readonly end: BenchThermalState };
   readonly settings: {
     readonly suite: string;
     readonly iterations: number;
