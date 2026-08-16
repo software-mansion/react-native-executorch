@@ -88,6 +88,27 @@ export type BenchCase<TInstance extends { dispose: () => void } = any> =
   | WorkletCase<TInstance>
   | AsyncCase<TInstance>;
 
+/**
+ * Type-checks one case against the pipeline it drives.
+ *
+ * The case list is heterogeneous, so the array itself can only be typed as
+ * `BenchCase<any>` — and `any` would let `instance.classifyWorklet` keep
+ * compiling after the pipeline renamed that method, which is exactly the rot a
+ * benchmark suite is prone to. Naming the pipeline's `create` as a separate
+ * leading parameter makes it its own inference site, resolved before the object
+ * literal is checked, so `run` sees the real instance type. Passing `create`
+ * inside the literal instead does not work: it is then inferred alongside `run`,
+ * and `TInstance` collapses to its constraint.
+ * @typeParam TInstance The task runner type, inferred from `create`.
+ * @param create The pipeline's factory.
+ * @param body The rest of the case.
+ * @returns The assembled case, widened for the array.
+ */
+const defineCase = <TInstance extends { dispose: () => void }>(
+  create: (config: any) => Promise<TInstance>,
+  body: Omit<WorkletCase<TInstance>, 'create'> | Omit<AsyncCase<TInstance>, 'create'>
+): BenchCase => ({ ...body, create }) as BenchCase;
+
 // Vision inputs are generated once and shared: they are pure data, and building
 // a 640x640 scene costs more than the inference being measured.
 const IMAGE_512 = syntheticImage(512, 512);
@@ -97,20 +118,19 @@ const WHISPER_WAVEFORM = syntheticWaveform(10, WHISPER_SAMPLE_RATE_HZ);
 const SUPERTONIC_VOICE = constants.SUPERTONIC_DEFAULT_VOICE_NAMES[0]!;
 
 export const CASES: readonly BenchCase[] = [
-  {
+  defineCase(createClassifier, {
     id: 'classification/efficientnet-v2-s-xnnpack-int8',
     task: 'classification',
     model: 'EFFICIENTNET_V2_S.XNNPACK_INT8',
     tier: 'quick',
     config: models.classification.EFFICIENTNET_V2_S.XNNPACK_INT8,
     modelPathKey: 'modelPath',
-    create: createClassifier,
     run: (instance) => () => {
       'worklet';
       return instance.classifyWorklet(IMAGE_512, { topk: 5 }).length;
     },
-  },
-  {
+  }),
+  defineCase(createClassifier, {
     id: 'classification/efficientnet-v2-s-coreml-fp16',
     task: 'classification',
     model: 'EFFICIENTNET_V2_S.COREML_FP16',
@@ -118,7 +138,6 @@ export const CASES: readonly BenchCase[] = [
     platforms: ['ios'],
     config: models.classification.EFFICIENTNET_V2_S.COREML_FP16,
     modelPathKey: 'modelPath',
-    create: createClassifier,
     run: (instance) => () => {
       'worklet';
       return instance.classifyWorklet(IMAGE_512, { topk: 5 }).length;
@@ -126,133 +145,123 @@ export const CASES: readonly BenchCase[] = [
     // CoreML programs fail to encode on the iOS Simulator, so this case only
     // produces numbers on real hardware.
     note: 'physical device only',
-  },
-  {
+  }),
+  defineCase(createSemanticSegmenter, {
     id: 'semantic-segmentation/selfie-xnnpack-fp32',
     task: 'semanticSegmentation',
     model: 'SELFIE_SEGMENTATION.XNNPACK_FP32',
     tier: 'quick',
     config: models.semanticSegmentation.SELFIE_SEGMENTATION.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createSemanticSegmenter,
     run: (instance) => () => {
       'worklet';
       return instance.segmentWorklet(IMAGE_512).buffer.width;
     },
-  },
-  {
+  }),
+  defineCase(createStyleTransfer, {
     id: 'style-transfer/candy-xnnpack-int8',
     task: 'styleTransfer',
     model: 'CANDY.XNNPACK_INT8',
     tier: 'quick',
     config: models.styleTransfer.CANDY.XNNPACK_INT8,
     modelPathKey: 'modelPath',
-    create: createStyleTransfer,
     run: (instance) => () => {
       'worklet';
       return instance.transferStyleWorklet(IMAGE_512).width;
     },
-  },
-  {
+  }),
+  defineCase(createKeypointDetector, {
     id: 'keypoint-detection/blazeface-xnnpack-fp32',
     task: 'keypointDetection',
     model: 'BLAZEFACE.XNNPACK_FP32',
     tier: 'quick',
     config: models.keypointDetection.BLAZEFACE.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createKeypointDetector,
     run: (instance) => () => {
       'worklet';
       return instance.detectKeypointsWorklet(IMAGE_512).length;
     },
-  },
-  {
+  }),
+  defineCase(createTextEmbedder, {
     id: 'text-embeddings/all-minilm-l6-v2-xnnpack-fp32',
     task: 'textEmbeddings',
     model: 'ALL_MINILM_L6_V2.XNNPACK_FP32',
     tier: 'quick',
     config: models.textEmbeddings.ALL_MINILM_L6_V2.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createTextEmbedder,
     run: (instance) => () => {
       'worklet';
       return instance.embedWorklet(SAMPLE_TEXT).length;
     },
-  },
-  {
+  }),
+  defineCase(createFsmnVoiceActivityDetector, {
     id: 'vad/fsmn-xnnpack-fp32',
     task: 'voiceActivityDetection',
     model: 'FSMN_VAD.XNNPACK_FP32',
     tier: 'quick',
     config: models.voiceActivityDetection.FSMN_VAD.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createFsmnVoiceActivityDetector,
     run: (instance) => () => {
       'worklet';
       return instance.detectVoiceWorklet(VAD_WAVEFORM).length;
     },
-  },
+  }),
 
-  {
+  defineCase(createObjectDetector, {
     id: 'object-detection/ssdlite320-xnnpack-fp32',
     task: 'objectDetection',
     model: 'SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32',
     tier: 'full',
     config: models.objectDetection.SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createObjectDetector,
     run: (instance) => () => {
       'worklet';
       return instance.detectObjectsWorklet(IMAGE_640).length;
     },
-  },
-  {
+  }),
+  defineCase(createObjectDetector, {
     id: 'object-detection/yolo26-nano-384-xnnpack-fp32',
     task: 'objectDetection',
     model: 'YOLO26.NANO.SIZE_384.XNNPACK_FP32',
     tier: 'full',
     config: models.objectDetection.YOLO26.NANO.SIZE_384.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createObjectDetector,
     run: (instance) => () => {
       'worklet';
       return instance.detectObjectsWorklet(IMAGE_640).length;
     },
-  },
-  {
+  }),
+  defineCase(createImageEmbedder, {
     id: 'image-embeddings/clip-vit-base-patch32-xnnpack-fp32',
     task: 'imageEmbeddings',
     model: 'CLIP_VIT_BASE_PATCH32.XNNPACK_FP32',
     tier: 'full',
     config: models.imageEmbeddings.CLIP_VIT_BASE_PATCH32.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createImageEmbedder,
     run: (instance) => () => {
       'worklet';
       return instance.embedWorklet(IMAGE_512).length;
     },
-  },
-  {
+  }),
+  defineCase(createPrivacyFilter, {
     id: 'privacy-filter/openai-xnnpack-8da4w',
     task: 'privacyFilter',
     model: 'OPENAI.XNNPACK_8DA4W',
     tier: 'full',
     config: models.privacyFilter.OPENAI.XNNPACK_8DA4W,
     modelPathKey: 'modelPath',
-    create: createPrivacyFilter,
     run: (instance) => () => {
       'worklet';
       return instance.detectPiiWorklet(SAMPLE_PII_TEXT).length;
     },
-  },
-  {
+  }),
+  defineCase(createWhisperSpeechToText, {
     id: 'speech-to-text/whisper-tiny-en-xnnpack-fp32',
     task: 'speechToText',
     model: 'WHISPER.EN.TINY.XNNPACK_FP32',
     tier: 'full',
     config: models.speechToText.WHISPER.EN.TINY.XNNPACK_FP32,
     modelPathKey: 'modelPath',
-    create: createWhisperSpeechToText,
     run: (instance) => () => {
       'worklet';
       return instance.transcribeWorklet(WHISPER_WAVEFORM, { language: 'en' }).length;
@@ -263,14 +272,13 @@ export const CASES: readonly BenchCase[] = [
     // are the ones to trust here; the comparator invalidates the pipeline figure
     // outright if the transcript length moves between runs.
     note: 'decode length is input-dependent; compare the raw-execute methods',
-  },
-  {
+  }),
+  defineCase(createSupertonicTextToSpeech, {
     id: 'text-to-speech/supertonic-xnnpack-fp32',
     task: 'textToSpeech',
     model: 'SUPERTONIC.XNNPACK_FP32',
     tier: 'full',
     config: models.textToSpeech.SUPERTONIC.XNNPACK_FP32,
-    create: createSupertonicTextToSpeech,
     mode: 'async',
     runAsync: (instance) => async () => {
       let samples = 0;
@@ -286,7 +294,7 @@ export const CASES: readonly BenchCase[] = [
     // single `.pte` for the raw-execute pass. These numbers include one thread
     // hop per chunk.
     note: 'timed on the RN thread; includes per-chunk thread hops',
-  },
+  }),
 ];
 
 /**
