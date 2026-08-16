@@ -1,0 +1,822 @@
+{
+  "schemaVersion": 1,
+  "label": "et-1.3.1",
+  "startedAt": "2026-08-16T20:06:26.024Z",
+  "finishedAt": "2026-08-16T20:09:00.760Z",
+  "platform": "android",
+  "device": {
+    "model": "SM-S948B",
+    "osVersion": "16",
+    "soc": "SM8850",
+    "isEmulator": false,
+    "cpuCores": 8,
+    "totalMemoryBytes": 11662979072
+  },
+  "settings": {
+    "suite": "full",
+    "iterations": 20,
+    "warmup": 3,
+    "memoryIterations": 5
+  },
+  "cases": [
+    {
+      "id": "classification/efficientnet-v2-s-xnnpack-int8",
+      "task": "classification",
+      "model": "EFFICIENTNET_V2_S.XNNPACK_INT8",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 737.099,
+      "taskLoadMs": 10.991,
+      "pipeline": {
+        "count": 20,
+        "min": 52.147,
+        "max": 78.223,
+        "mean": 62.505,
+        "median": 59.921,
+        "p90": 74.323,
+        "iqr": 11.053,
+        "stdev": 7.971
+      },
+      "units": 5,
+      "native": {
+        "loadMs": 8.744,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                384,
+                384
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1000
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 17.273,
+              "max": 20.217,
+              "mean": 18.563,
+              "median": 18.523,
+              "p90": 19.169,
+              "iqr": 0.558,
+              "stdev": 0.601
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 296.62,
+        "loadedMb": 300.22,
+        "peakMb": 357.67,
+        "disposedMb": 309.34
+      }
+    },
+    {
+      "id": "semantic-segmentation/selfie-xnnpack-fp32",
+      "task": "semanticSegmentation",
+      "model": "SELFIE_SEGMENTATION.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 335.662,
+      "taskLoadMs": 8.559,
+      "pipeline": {
+        "count": 20,
+        "min": 10.657,
+        "max": 17.185,
+        "mean": 13.817,
+        "median": 13.303,
+        "p90": 16.657,
+        "iqr": 3.054,
+        "stdev": 2.135
+      },
+      "units": 512,
+      "native": {
+        "loadMs": 9.872,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                256,
+                256
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                256,
+                256
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 2.082,
+              "max": 3.162,
+              "mean": 2.397,
+              "median": 2.328,
+              "p90": 2.767,
+              "iqr": 0.319,
+              "stdev": 0.261
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 312.45,
+        "loadedMb": 306.59,
+        "peakMb": 329.83,
+        "disposedMb": 320.98
+      }
+    },
+    {
+      "id": "style-transfer/candy-xnnpack-int8",
+      "task": "styleTransfer",
+      "model": "CANDY.XNNPACK_INT8",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 441.985,
+      "taskLoadMs": 11.878,
+      "pipeline": {
+        "count": 20,
+        "min": 397.338,
+        "max": 424.57,
+        "mean": 407.819,
+        "median": 407.957,
+        "p90": 415.776,
+        "iqr": 10.437,
+        "stdev": 6.716
+      },
+      "units": 512,
+      "native": {
+        "loadMs": 10.045,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                640,
+                640
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                3,
+                640,
+                640
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 358.875,
+              "max": 377.697,
+              "mean": 364.442,
+              "median": 362.477,
+              "p90": 375.275,
+              "iqr": 3.292,
+              "stdev": 5.545
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 336.06,
+        "loadedMb": 361.2,
+        "peakMb": 1245.69,
+        "disposedMb": 356.87
+      }
+    },
+    {
+      "id": "keypoint-detection/blazeface-xnnpack-fp32",
+      "task": "keypointDetection",
+      "model": "BLAZEFACE.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 341.028,
+      "taskLoadMs": 8.575,
+      "pipeline": {
+        "count": 20,
+        "min": 5.514,
+        "max": 6.38,
+        "mean": 5.77,
+        "median": 5.695,
+        "p90": 5.924,
+        "iqr": 0.278,
+        "stdev": 0.224
+      },
+      "units": 0,
+      "native": {
+        "loadMs": 10.137,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                256,
+                256
+              ]
+            ],
+            "outputShapes": [
+              [
+                896,
+                4
+              ],
+              [
+                896
+              ],
+              [
+                896,
+                6,
+                3
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 5.1,
+              "max": 5.791,
+              "mean": 5.269,
+              "median": 5.25,
+              "p90": 5.374,
+              "iqr": 0.158,
+              "stdev": 0.163
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 349.72,
+        "loadedMb": 334.87,
+        "peakMb": 362.79,
+        "disposedMb": 343.37
+      }
+    },
+    {
+      "id": "text-embeddings/all-minilm-l6-v2-xnnpack-fp32",
+      "task": "textEmbeddings",
+      "model": "ALL_MINILM_L6_V2.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 346.187,
+      "taskLoadMs": 50.449,
+      "pipeline": {
+        "count": 20,
+        "min": 4.648,
+        "max": 5.253,
+        "mean": 4.937,
+        "median": 4.941,
+        "p90": 5.141,
+        "iqr": 0.203,
+        "stdev": 0.152
+      },
+      "units": 384,
+      "native": {
+        "loadMs": 53.283,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ],
+          "get_model_schema": []
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                254
+              ],
+              [
+                1,
+                254
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                384
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 19.045,
+              "max": 23.387,
+              "mean": 19.993,
+              "median": 19.744,
+              "p90": 20.855,
+              "iqr": 1.147,
+              "stdev": 1.015
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 352.99,
+        "loadedMb": 407.78,
+        "peakMb": 459.67,
+        "disposedMb": 364.87
+      }
+    },
+    {
+      "id": "vad/fsmn-xnnpack-fp32",
+      "task": "voiceActivityDetection",
+      "model": "FSMN_VAD.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 344.117,
+      "taskLoadMs": 7.839,
+      "pipeline": {
+        "count": 20,
+        "min": 11.374,
+        "max": 18.061,
+        "mean": 13.617,
+        "median": 12.503,
+        "p90": 16.59,
+        "iqr": 3.428,
+        "stdev": 2.109
+      },
+      "units": 10,
+      "native": {
+        "loadMs": 10.87,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ],
+          "get_model_schema": []
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1000,
+                512
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1000,
+                248
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 5.858,
+              "max": 8.053,
+              "mean": 6.28,
+              "median": 6.074,
+              "p90": 6.725,
+              "iqr": 0.277,
+              "stdev": 0.499
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 355.78,
+        "loadedMb": 352.89,
+        "peakMb": 377.98,
+        "disposedMb": 365.17
+      }
+    },
+    {
+      "id": "object-detection/ssdlite320-xnnpack-fp32",
+      "task": "objectDetection",
+      "model": "SSDLITE320_MOBILENET_V3_LARGE.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 334.003,
+      "taskLoadMs": 12.09,
+      "pipeline": {
+        "count": 20,
+        "min": 14.8,
+        "max": 26.694,
+        "mean": 20.426,
+        "median": 20.124,
+        "p90": 23.364,
+        "iqr": 1.845,
+        "stdev": 2.899
+      },
+      "units": 1,
+      "native": {
+        "loadMs": 11.556,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                3,
+                320,
+                320
+              ]
+            ],
+            "outputShapes": [
+              [
+                300,
+                4
+              ],
+              [
+                300
+              ],
+              [
+                300
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 9.108,
+              "max": 11.803,
+              "mean": 9.756,
+              "median": 9.625,
+              "p90": 10.031,
+              "iqr": 0.517,
+              "stdev": 0.549
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 361.39,
+        "loadedMb": 364.09,
+        "peakMb": 407.65,
+        "disposedMb": 364.89
+      }
+    },
+    {
+      "id": "object-detection/yolo26-nano-384-xnnpack-fp32",
+      "task": "objectDetection",
+      "model": "YOLO26.NANO.SIZE_384.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 329.075,
+      "taskLoadMs": 6.99,
+      "pipeline": {
+        "count": 20,
+        "min": 23.998,
+        "max": 67.677,
+        "mean": 39.999,
+        "median": 40.173,
+        "p90": 58.164,
+        "iqr": 15.339,
+        "stdev": 11.784
+      },
+      "units": 1,
+      "native": {
+        "loadMs": 12.079,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                384,
+                384
+              ]
+            ],
+            "outputShapes": [
+              [
+                300,
+                4
+              ],
+              [
+                300
+              ],
+              [
+                300
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 8.216,
+              "max": 9.649,
+              "mean": 8.965,
+              "median": 9.084,
+              "p90": 9.336,
+              "iqr": 0.506,
+              "stdev": 0.384
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 361.43,
+        "loadedMb": 365.69,
+        "peakMb": 395.18,
+        "disposedMb": 356.81
+      }
+    },
+    {
+      "id": "image-embeddings/clip-vit-base-patch32-xnnpack-fp32",
+      "task": "imageEmbeddings",
+      "model": "CLIP_VIT_BASE_PATCH32.XNNPACK_FP32",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 337.472,
+      "taskLoadMs": 7.773,
+      "pipeline": {
+        "count": 20,
+        "min": 20.059,
+        "max": 22.754,
+        "mean": 20.696,
+        "median": 20.401,
+        "p90": 22.153,
+        "iqr": 0.565,
+        "stdev": 0.756
+      },
+      "units": 512,
+      "native": {
+        "loadMs": 10.95,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ]
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                3,
+                224,
+                224
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                512
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 19.363,
+              "max": 21.76,
+              "mean": 20.031,
+              "median": 19.985,
+              "p90": 20.534,
+              "iqr": 0.55,
+              "stdev": 0.529
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 357.71,
+        "loadedMb": 358.75,
+        "peakMb": 701.21,
+        "disposedMb": 364.05
+      }
+    },
+    {
+      "id": "privacy-filter/openai-xnnpack-8da4w",
+      "task": "privacyFilter",
+      "model": "OPENAI.XNNPACK_8DA4W",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 373.534,
+      "taskLoadMs": 1429.758,
+      "pipeline": {
+        "count": 20,
+        "min": 214.687,
+        "max": 250.126,
+        "mean": 223.989,
+        "median": 222.681,
+        "p90": 229.136,
+        "iqr": 6.531,
+        "stdev": 7.329
+      },
+      "units": 5,
+      "native": {
+        "loadMs": 372.467,
+        "backends": {
+          "forward": [
+            "XnnpackBackend"
+          ],
+          "get_model_schema": []
+        },
+        "methods": [
+          {
+            "method": "forward",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                256
+              ],
+              [
+                1,
+                256
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                256,
+                33
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 868.201,
+              "max": 907.59,
+              "mean": 880.76,
+              "median": 877.725,
+              "p90": 897.21,
+              "iqr": 12.073,
+              "stdev": 10.336
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 387.45,
+        "loadedMb": 1080.95,
+        "peakMb": 2127.58,
+        "disposedMb": 411.79
+      }
+    },
+    {
+      "id": "speech-to-text/whisper-tiny-en-xnnpack-fp32",
+      "task": "speechToText",
+      "model": "WHISPER.EN.TINY.XNNPACK_FP32",
+      "note": "decode length is input-dependent; compare the raw-execute methods",
+      "mode": "worklet",
+      "status": "ok",
+      "downloadMs": 415.073,
+      "taskLoadMs": 195.978,
+      "pipeline": {
+        "count": 20,
+        "min": 167.116,
+        "max": 177.842,
+        "mean": 174.02,
+        "median": 173.947,
+        "p90": 176.607,
+        "iqr": 2.386,
+        "stdev": 2.24
+      },
+      "units": 7,
+      "native": {
+        "loadMs": 99.768,
+        "backends": {
+          "decode": [
+            "XnnpackBackend"
+          ],
+          "encode": [
+            "XnnpackBackend"
+          ],
+          "get_model_schema": []
+        },
+        "methods": [
+          {
+            "method": "decode",
+            "status": "ok",
+            "inputShapes": [
+              [
+                1,
+                1
+              ],
+              [
+                1
+              ],
+              [
+                1,
+                1500,
+                384
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1,
+                51864
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 9.953,
+              "max": 11.415,
+              "mean": 10.542,
+              "median": 10.529,
+              "p90": 11.005,
+              "iqr": 0.573,
+              "stdev": 0.374
+            }
+          },
+          {
+            "method": "encode",
+            "status": "ok",
+            "inputShapes": [
+              [
+                480000
+              ]
+            ],
+            "outputShapes": [
+              [
+                1,
+                1500,
+                384
+              ]
+            ],
+            "stats": {
+              "count": 20,
+              "min": 108.218,
+              "max": 113.388,
+              "mean": 111.454,
+              "median": 112.366,
+              "p90": 113.099,
+              "iqr": 4.124,
+              "stdev": 1.95
+            }
+          }
+        ]
+      },
+      "memory": {
+        "baselineMb": 409.64,
+        "loadedMb": 512.06,
+        "peakMb": 807.05,
+        "disposedMb": 416.21
+      }
+    },
+    {
+      "id": "text-to-speech/supertonic-xnnpack-fp32",
+      "task": "textToSpeech",
+      "model": "SUPERTONIC.XNNPACK_FP32",
+      "note": "timed on the RN thread; includes per-chunk thread hops",
+      "mode": "async",
+      "status": "ok",
+      "downloadMs": 914.843,
+      "taskLoadMs": 147.371,
+      "pipeline": {
+        "count": 20,
+        "min": 2051.265,
+        "max": 2860.312,
+        "mean": 2463.939,
+        "median": 2484.335,
+        "p90": 2820.334,
+        "iqr": 556.651,
+        "stdev": 277.689
+      },
+      "units": 1053696,
+      "memory": {
+        "baselineMb": 409.11,
+        "loadedMb": 420.93,
+        "peakMb": 1310.86,
+        "disposedMb": 533.17
+      }
+    }
+  ]
+}
