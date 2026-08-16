@@ -6249,6 +6249,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"benchmarks@workspace:apps/benchmarks":
+  version: 0.0.0-use.local
+  resolution: "benchmarks@workspace:apps/benchmarks"
+  dependencies:
+    "@babel/core": "npm:^7.29.0"
+    "@react-native/metro-config": "npm:^0.86.0"
+    "@types/react": "npm:~19.2.0"
+    babel-preset-expo: "npm:~56.0.14"
+    expo: "npm:~56.0.9"
+    expo-build-properties: "npm:~56.0.17"
+    react: "npm:19.2.3"
+    react-native: "npm:0.85.3"
+    react-native-blob-util: "npm:^0.24.0"
+    react-native-executorch: "workspace:*"
+    react-native-safe-area-context: "npm:~5.7.0"
+    react-native-worklets: "npm:0.10.3"
+    react-refresh: "npm:^0.14.0"
+  languageName: unknown
+  linkType: soft
+
 "big-integer@npm:1.6.x":
   version: 1.6.52
   resolution: "big-integer@npm:1.6.52"
