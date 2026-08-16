@@ -1,0 +1,3 @@
+# Raw output of individual runs. A run worth keeping gets copied into
+# `baselines/` by hand, so that the committed numbers are ones somebody chose.
+results/
