@@ -33,7 +33,6 @@ microcontrollers
 notimestamps
 seqs
 smollm
-llms
 qwen
 XNNPACK
 EFFICIENTNET
@@ -345,7 +344,6 @@ dontMock
 BIES
 binarize
 binarized
-unclip
 phonemizations
 phonemizes
 həlˈoʊ
@@ -387,3 +385,20 @@ repoints
 basenames
 xcconfig
 toggleable
+smaps
+xcrun
+simctl
+greppable
+denormal
+denormals
+formants
+stdev
+interquartile
+untimed
+colormapping
+inlines
+jetsam
+utsname
+phys
+benchprobe
+adb
