@@ -20,7 +20,7 @@
 
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -88,7 +88,7 @@ function readBody(request) {
   });
 }
 
-function startCollector(port, onEnd) {
+function startCollector(port, onCase, onEnd) {
   const server = createServer(async (request, response) => {
     let body = null;
     try {
@@ -108,6 +108,7 @@ function startCollector(port, onEnd) {
             (body.memory ? `, peak ${body.memory.peakMb} MB` : '')
           : `FAILED: ${body.error}`;
       console.log(`[bench] ${body.id} — ${summary}`);
+      onCase(body);
     } else if (request.url === '/end') {
       onEnd(body);
     }
@@ -131,15 +132,42 @@ function run(command, args, env) {
   return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
 }
 
-function adbReverse(port) {
-  const result = spawn('adb', ['reverse', `tcp:${port}`, `tcp:${port}`], { stdio: 'inherit' });
+function adbReverse(port, quiet = false) {
+  const result = spawn('adb', ['reverse', `tcp:${port}`, `tcp:${port}`], {
+    stdio: quiet ? 'ignore' : 'inherit',
+  });
   return new Promise((resolveReverse) => result.on('exit', resolveReverse));
+}
+
+/**
+ * Keeps re-establishing the reverse tunnel for the life of the run.
+ *
+ * Observed on a wireless `adb` connection: the tunnel disappears partway through
+ * a long suite, and every result the app posts after that is dropped while the
+ * run itself carries on looking healthy. Re-adding an existing tunnel is a no-op,
+ * so this just runs on a timer.
+ */
+function keepReverseAlive(port) {
+  const timer = setInterval(() => void adbReverse(port, true), 30_000);
+  timer.unref();
+  return timer;
 }
 
 function reportPath(options, report) {
   if (options.out) return resolve(options.out);
   const device = String(report.device?.model ?? 'unknown').replace(/[^\w.-]+/g, '-');
   return join(APP_ROOT, 'results', `${options.label}-${report.platform}-${device}.json`);
+}
+
+/** Path of the incremental file, alongside wherever the final report will land. */
+const partialPath = (options) =>
+  options.out
+    ? `${resolve(options.out)}.partial`
+    : join(APP_ROOT, 'results', `${options.label}.partial.json`);
+
+function writeJson(destination, value) {
+  mkdirSync(dirname(destination), { recursive: true });
+  writeFileSync(destination, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 async function main() {
@@ -158,10 +186,24 @@ async function main() {
     settle = resolveFinished;
   });
 
-  const server = await startCollector(port, settle);
-  console.log(`[bench] collector listening on ${sink}`);
+  // Cases are written to disk as they arrive, not just at the end. A suite over
+  // the larger models runs for the better part of an hour, and a crash or an
+  // out-of-memory kill on the last case used to throw away every case before it.
+  const collected = [];
+  const partial = partialPath(options);
+  const onCase = (result) => {
+    collected.push(result);
+    writeJson(partial, { partial: true, label: options.label, cases: collected });
+  };
 
-  if (options.platform === 'android') await adbReverse(port);
+  const server = await startCollector(port, onCase, settle);
+  console.log(`[bench] collector listening on ${sink}`);
+  console.log(`[bench] partial results: ${partial}`);
+
+  if (options.platform === 'android') {
+    await adbReverse(port);
+    keepReverseAlive(port);
+  }
 
   const env = {
     ...process.env,
@@ -202,8 +244,8 @@ async function main() {
 
   const report = await finished;
   const destination = reportPath(options, report);
-  mkdirSync(dirname(destination), { recursive: true });
-  writeFileSync(destination, `${JSON.stringify(report, null, 2)}\n`);
+  writeJson(destination, report);
+  rmSync(partial, { force: true });
 
   const failures = report.cases.filter((entry) => entry.status !== 'ok');
   console.log(`\n[bench] wrote ${destination}`);

@@ -18,6 +18,9 @@ import { config } from './config';
 /** Prefix that makes result lines greppable in a log stream. */
 export const LOG_PREFIX = 'RNE_BENCH';
 
+const SINK_ATTEMPTS = 3;
+const SINK_RETRY_DELAY_MS = 500;
+
 export interface CaseResult {
   readonly id: string;
   readonly task: string;
@@ -70,17 +73,29 @@ export interface RunReport {
 
 const post = async (path: string, body: unknown): Promise<void> => {
   if (!config.sink) return;
-  try {
-    await fetch(`${config.sink}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } catch (error) {
-    // The collector is optional: a developer running the app by hand has no
-    // sink at all. Losing it must not take the run down, since the console
-    // channel still carries every result.
-    console.warn(`${LOG_PREFIX}_SINK_ERROR ${String(error)}`);
+
+  // Retried because the channel is genuinely flaky: on Android the collector is
+  // reached through an `adb reverse` tunnel, and that tunnel has been seen to
+  // drop partway through a long suite. A single attempt turns a few seconds of
+  // lost connectivity into a permanently missing case.
+  for (let attempt = 0; attempt < SINK_ATTEMPTS; attempt++) {
+    try {
+      await fetch(`${config.sink}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      return;
+    } catch (error) {
+      if (attempt === SINK_ATTEMPTS - 1) {
+        // The collector is optional: a developer running the app by hand has no
+        // sink at all. Losing it must not take the run down, and the final
+        // report carries every case again, so one dropped POST is recoverable.
+        console.warn(`${LOG_PREFIX}_SINK_ERROR ${String(error)}`);
+        return;
+      }
+      await new Promise((settle) => setTimeout(settle, SINK_RETRY_DELAY_MS * (attempt + 1)));
+    }
   }
 };
 
