@@ -6259,6 +6259,7 @@ __metadata:
     babel-preset-expo: "npm:~56.0.14"
     expo: "npm:~56.0.9"
     expo-build-properties: "npm:~56.0.17"
+    expo-keep-awake: "npm:~56.0.3"
     react: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-blob-util: "npm:^0.24.0"
