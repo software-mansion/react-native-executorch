@@ -113,7 +113,14 @@ function startCollector(port, onEnd) {
     }
   });
 
-  return new Promise((resolveServer) => {
+  return new Promise((resolveServer, rejectServer) => {
+    server.on('error', (error) => {
+      rejectServer(
+        error.code === 'EADDRINUSE'
+          ? new Error(`port ${port} is in use — another run is still open. Pass --port to change it.`)
+          : error
+      );
+    });
     // 0.0.0.0 so an iOS device on the LAN can reach the collector, not just
     // adb-reversed localhost traffic from Android.
     server.listen(port, '0.0.0.0', () => resolveServer(server));
@@ -174,6 +181,18 @@ async function main() {
   if (options.launch) {
     console.log(`[bench] launching the app on ${options.platform}`);
     child = run('yarn', [options.platform], env);
+
+    // A failed build must not leave the collector waiting forever: it holds the
+    // port, so the next attempt cannot even start its own. `expo run:*` stays
+    // alive serving Metro after a successful launch, so only a non-zero exit is
+    // treated as fatal.
+    child.on('exit', (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`\n[bench] the app exited with code ${code} before reporting a run`);
+        server.close();
+        process.exit(2);
+      }
+    });
   } else {
     console.log('[bench] waiting for a run. Start the app with:');
     for (const [key, value] of Object.entries(env)) {
