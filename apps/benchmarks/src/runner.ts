@@ -155,6 +155,7 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
       taskLoad,
       pipeline: summarize(timed.durations),
       units: timed.units,
+      thermal: BenchProbe.thermalState(),
       native,
       memory,
     };
@@ -180,6 +181,7 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
 export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
   const cases = selectCases(config.suite, config.only);
   const startedAt = new Date().toISOString();
+  const thermalStart = BenchProbe.thermalState();
 
   await reportStart(cases.map((benchCase) => benchCase.id));
 
@@ -216,6 +218,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
     finishedAt: new Date().toISOString(),
     platform: Platform.OS,
     device: BenchProbe.deviceInfo(),
+    thermal: { start: thermalStart, end: BenchProbe.thermalState() },
     settings: {
       suite: config.only.length > 0 ? config.only.join(',') : config.suite,
       iterations: config.iterations,

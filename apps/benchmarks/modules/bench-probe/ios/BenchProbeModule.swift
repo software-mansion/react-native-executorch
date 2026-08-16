@@ -40,6 +40,24 @@ public class BenchProbeModule: Module {
       return result == KERN_SUCCESS ? Double(info.resident_size) : -1
     }
 
+    // Thermal state decides whether two runs are comparable at all. Running a
+    // suite immediately after another one made every raw-execute metric 9% to
+    // 51% slower (median 22%) with no code change, purely because the device had
+    // not cooled down. Without this the harness reports that as a regression.
+    Function("thermalState") { () -> [String: Any] in
+      let state = ProcessInfo.processInfo.thermalState
+      let names: [ProcessInfo.ThermalState: (Int, String)] = [
+        .nominal: (0, "none"),
+        .fair: (1, "light"),
+        .serious: (3, "severe"),
+        .critical: (4, "critical"),
+      ]
+      let (status, name) = names[state] ?? (-1, "unknown")
+
+      // iOS exposes no battery temperature to third-party apps.
+      return ["status": status, "statusName": name, "batteryTemperatureC": -1.0]
+    }
+
     Function("deviceInfo") { () -> [String: Any] in
       var systemInfo = utsname()
       uname(&systemInfo)

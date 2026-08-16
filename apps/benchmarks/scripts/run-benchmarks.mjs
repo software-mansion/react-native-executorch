@@ -38,6 +38,7 @@ const DEFAULTS = {
   port: '8099',
   host: '',
   out: '',
+  cooldown: '0',
 };
 
 function parseArgs(argv) {
@@ -198,6 +199,15 @@ async function main() {
 
   const server = await startCollector(port, onCase, settle);
   console.log(`[bench] collector listening on ${sink}`);
+
+  // Back-to-back suites are not comparable: a second run started fifteen seconds
+  // after the first finished came out 9% to 51% slower on every raw-execute
+  // metric (median 22%), purely from the device having no chance to cool.
+  const cooldown = Number(options.cooldown);
+  if (cooldown > 0) {
+    console.log(`[bench] cooling down for ${cooldown}s before starting`);
+    await new Promise((wake) => setTimeout(wake, cooldown * 1000));
+  }
   console.log(`[bench] partial results: ${partial}`);
 
   if (options.platform === 'android') {
