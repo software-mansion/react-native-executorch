@@ -87,6 +87,15 @@ it works for any `.pte` in the registry, including every method a multi-method
 program exports. Methods whose schema cannot be pinned to concrete shapes are
 reported as skipped, with the reason.
 
+**`execute.<method>` and `pipeline.median` are not comparable to each other.**
+Where a model declares a dynamic dimension, the raw pass takes it at the top of
+its declared domain, so it measures the worst case the model can be asked for.
+The pipeline feeds whatever the input actually needs. On all-MiniLM-L6-v2 that
+is the difference between a 254-token forward and a 20-token one, and the raw
+number comes out several times the pipeline's. Each is comparable against itself
+across runs, which is all the comparator asks of them. The resolved shapes are
+recorded per method in the report, so it is always visible what was run.
+
 Memory is sampled in a separate pass from the timings. Reading total PSS on
 Android walks `/proc/self/smaps` and costs milliseconds; polling that during a
 15 ms inference would land in the numbers.

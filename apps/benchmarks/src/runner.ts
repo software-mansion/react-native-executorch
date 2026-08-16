@@ -63,8 +63,6 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
   const resolved = await download(benchCase.config);
   const downloadMs = round(performance.now() - downloadStarted);
 
-  const baselineMb = footprintMb();
-
   let native: CaseResult['native'];
   if (config.measureNative && benchCase.modelPathKey) {
     events.onPhase?.(benchCase.id, 'raw execute');
@@ -74,6 +72,11 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
       await settle();
     }
   }
+
+  // Read after the raw-execute pass, not before it. That pass loads and disposes
+  // a model of its own, and the allocator does not hand every page back; a
+  // baseline taken ahead of it would charge whatever it retained to the pipeline.
+  const baselineMb = footprintMb();
 
   events.onPhase?.(benchCase.id, 'load');
   const loadStarted = performance.now();
