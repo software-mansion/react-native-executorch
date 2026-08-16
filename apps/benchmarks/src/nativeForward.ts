@@ -61,8 +61,10 @@ export interface NativeMethodResult {
 }
 
 export interface NativeResult {
-  /** Time to `loadModel` the `.pte`, in milliseconds. */
+  /** Median of {@link NativeResult.load}, kept for readability of the report. */
   readonly loadMs: number;
+  /** `loadModel` timings across repeated load/dispose cycles. */
+  readonly load: Stats;
   /** ExecuTorch backends the program resolved, keyed by method. */
   readonly backends: Record<string, readonly string[]>;
   readonly methods: NativeMethodResult[];
@@ -293,25 +295,38 @@ async function benchmarkMethod(
  * @param modelPath Local path to the `.pte` file.
  * @param iterations Timed iterations per method.
  * @param warmup Untimed iterations per method.
+ * @param loadIterations Load/dispose cycles timed to produce a load median.
  * @returns Load timing, resolved backends, and one entry per exported method.
  */
 export async function benchmarkNativeForward(
   modelPath: string,
   iterations: number,
-  warmup: number
+  warmup: number,
+  loadIterations: number
 ): Promise<NativeResult> {
-  const started = performance.now();
-  const model = await loadOnRuntime(modelPath);
-  const loadMs = Math.round((performance.now() - started) * 1000) / 1000;
+  // Each cycle disposes the previous model before timing the next load, so no
+  // two loaded copies are ever alive at once and the last one survives the loop
+  // for the execute pass below.
+  const loadSamples: number[] = [];
+  let model: Model | null = null;
+  for (let cycle = 0; cycle < Math.max(1, loadIterations); cycle++) {
+    model?.dispose();
+    const started = performance.now();
+    model = await loadOnRuntime(modelPath);
+    loadSamples.push(performance.now() - started);
+  }
+
+  const load = summarize(loadSamples);
+  const loaded = model!;
 
   try {
     const methods: NativeMethodResult[] = [];
-    for (const [name, spec] of Object.entries(model.schema)) {
+    for (const [name, spec] of Object.entries(loaded.schema)) {
       if (name === SCHEMA_METHOD) continue;
-      methods.push(await benchmarkMethod(model, name, spec, iterations, warmup));
+      methods.push(await benchmarkMethod(loaded, name, spec, iterations, warmup));
     }
-    return { loadMs, backends: model.backends, methods };
+    return { loadMs: load.median, load, backends: loaded.backends, methods };
   } finally {
-    model.dispose();
+    loaded.dispose();
   }
 }

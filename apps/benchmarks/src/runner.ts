@@ -68,7 +68,12 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
     events.onPhase?.(benchCase.id, 'raw execute');
     const modelPath = resolved[benchCase.modelPathKey];
     if (typeof modelPath === 'string') {
-      native = await benchmarkNativeForward(modelPath, config.iterations, config.warmup);
+      native = await benchmarkNativeForward(
+        modelPath,
+        config.iterations,
+        config.warmup,
+        config.loadIterations
+      );
       await settle();
     }
   }
@@ -79,26 +84,38 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
   const baselineMb = footprintMb();
 
   events.onPhase?.(benchCase.id, 'load');
-  const loadStarted = performance.now();
-  const instance = await benchCase.create(resolved);
-  const taskLoadMs = round(performance.now() - loadStarted);
+  // Repeated for the same reason as the raw load above: one sample of a load is
+  // not a measurement. Each cycle disposes the previous instance first, so the
+  // last one survives the loop and is what the inference passes run against.
+  const loadSamples: number[] = [];
+  let instance: Awaited<ReturnType<typeof benchCase.create>> | null = null;
+  for (let cycle = 0; cycle < Math.max(1, config.loadIterations); cycle++) {
+    instance?.dispose();
+    const loadStarted = performance.now();
+    instance = await benchCase.create(resolved);
+    loadSamples.push(performance.now() - loadStarted);
+  }
+
+  const taskLoad = summarize(loadSamples);
+  const taskLoadMs = taskLoad.median;
   const loadedMb = footprintMb();
+  const loaded = instance!;
 
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    instance.dispose();
+    loaded.dispose();
   };
 
   try {
     events.onPhase?.(benchCase.id, 'inference');
     const timed =
       benchCase.mode === 'async'
-        ? await timeAsync(benchCase.runAsync(instance), config.iterations, config.warmup)
+        ? await timeAsync(benchCase.runAsync(loaded), config.iterations, config.warmup)
         : await timeInWorklet(
             defaultWorkletRuntime,
-            benchCase.run(instance),
+            benchCase.run(loaded),
             config.iterations,
             config.warmup
           );
@@ -108,11 +125,11 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
       events.onPhase?.(benchCase.id, 'memory');
       const sampled = await sampleDuring(async () => {
         if (benchCase.mode === 'async') {
-          return timeAsync(benchCase.runAsync(instance), config.memoryIterations, 0);
+          return timeAsync(benchCase.runAsync(loaded), config.memoryIterations, 0);
         }
         return timeInWorklet(
           defaultWorkletRuntime,
-          benchCase.run(instance),
+          benchCase.run(loaded),
           config.memoryIterations,
           0
         );
@@ -135,6 +152,7 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
       status: 'ok',
       downloadMs,
       taskLoadMs,
+      taskLoad,
       pipeline: summarize(timed.durations),
       units: timed.units,
       native,
@@ -142,7 +160,15 @@ async function runCase(benchCase: BenchCase, events: RunnerEvents): Promise<Case
     };
   } catch (error) {
     dispose();
-    return { ...base, status: 'error', error: String(error), downloadMs, taskLoadMs, native };
+    return {
+      ...base,
+      status: 'error',
+      error: String(error),
+      downloadMs,
+      taskLoadMs,
+      taskLoad,
+      native,
+    };
   }
 }
 
@@ -184,7 +210,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
   }
 
   const report: RunReport = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     label: config.label,
     startedAt,
     finishedAt: new Date().toISOString(),
@@ -195,6 +221,7 @@ export async function runSuite(events: RunnerEvents = {}): Promise<RunReport> {
       iterations: config.iterations,
       warmup: config.warmup,
       memoryIterations: config.memoryIterations,
+      loadIterations: config.loadIterations,
     },
     cases: results,
   };
