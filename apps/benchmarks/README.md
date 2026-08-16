@@ -52,16 +52,27 @@ Prints a per-metric table and exits 1 if anything regressed past tolerance
 (inference 10%, load 15%, memory 10% — override with `--inference N`, `--load N`,
 `--memory N`).
 
-Two guards keep the output honest:
+Three guards keep the output honest:
 
 - **Device mismatch is fatal.** Comparing an iPhone run against a Pixel run is
   meaningless; pass `--allow-device-mismatch` if you know what you are doing.
 - **A metric whose workload changed is reported as `INCOMPARABLE`, not as a
   delta.** If a pipeline decoded 14 tokens in one run and 19 in the other, it did
   different work, and the ratio of the two timings measures nothing.
+- **A metric whose own spread is wider than the tolerance is reported as
+  `NOISY`.** It cannot resolve a regression of the size being asked about, and
+  calling it "same" would overstate what the run knows.
 
 A delta inside the run's own interquartile range is reported but not failed —
 the two runs cannot distinguish it from scheduling jitter.
+
+`NOISY` is not hypothetical. On a Galaxy S26 Ultra the YOLO26 pipeline metric
+has an interquartile range around 38% of its own median, from garbage collection
+during post-processing, and it moved 57% between two runs of identical code. Its
+`execute.forward` number over the same runs sits inside 1%. When a case comes
+back `NOISY`, read its `execute.*` rows: those measure ExecuTorch, which is what
+a bump changes, and they are far steadier than any metric with TypeScript
+post-processing in it.
 
 Copy a run you want to keep into `baselines/`; `results/` is gitignored.
 

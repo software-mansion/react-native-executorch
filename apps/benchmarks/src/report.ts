@@ -33,8 +33,10 @@ export interface CaseResult {
   readonly mode: 'worklet' | 'async';
   /** Milliseconds spent resolving remote model files. 0 when fully cached. */
   readonly downloadMs: number;
-  /** Milliseconds for the task pipeline's `create` call, model load included. */
+  /** Median of {@link CaseResult.taskLoad}, kept for readability of the report. */
   readonly taskLoadMs: number;
+  /** The task pipeline's `create` timings across repeated load/dispose cycles. */
+  readonly taskLoad?: Stats;
   /** End-to-end pipeline timings: preprocessing, execute, and post-processing. */
   readonly pipeline?: Stats;
   /** Workload size the pipeline reported. See `TimedRun.units`. */
@@ -54,8 +56,13 @@ export interface CaseResult {
 }
 
 export interface RunReport {
-  /** Report schema version. Bumped when a field's meaning changes. */
-  readonly schemaVersion: 1;
+  /**
+   * Report schema version. Bumped when a field's meaning changes.
+   *
+   * 2 added `taskLoad` and `native.load`: version 1 timed each load exactly
+   * once, and a single sample of a load is not stable enough to compare.
+   */
+  readonly schemaVersion: 2;
   /** Label identifying the build under test, e.g. `et-1.3.1`. */
   readonly label: string;
   readonly startedAt: string;
@@ -67,6 +74,7 @@ export interface RunReport {
     readonly iterations: number;
     readonly warmup: number;
     readonly memoryIterations: number;
+    readonly loadIterations: number;
   };
   readonly cases: readonly CaseResult[];
 }
