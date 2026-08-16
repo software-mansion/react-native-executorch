@@ -57,9 +57,17 @@ const percentDelta = (baseline, current) =>
 /**
  * Classifies one metric's movement.
  *
- * `noise` is the larger of the two runs' interquartile ranges, expressed as a
+ * `noisePercent` is the larger of the two runs' interquartile ranges as a
  * percentage of the baseline. A delta inside that band is reported but not
  * failed: the runs simply cannot distinguish it from scheduling jitter.
+ *
+ * When that band is itself wider than the tolerance, the metric cannot resolve a
+ * regression of the size we care about, and calling it "same" would overstate
+ * what the run knows. It is reported as NOISY instead. This is not academic: the
+ * YOLO26 pipeline metric on a Galaxy S26 Ultra has an interquartile range around
+ * 38% of its own median, from garbage collection during post-processing, and it
+ * moved 57% between two runs of identical code. Its `execute.forward` number
+ * over the same runs sits inside 1%.
  */
 function classify(baseline, current, tolerancePercent, noisePercent = 0) {
   const delta = percentDelta(baseline, current);
@@ -67,6 +75,7 @@ function classify(baseline, current, tolerancePercent, noisePercent = 0) {
 
   if (delta > threshold) return { delta, verdict: 'REGRESSED' };
   if (delta < -threshold) return { delta, verdict: 'improved' };
+  if (noisePercent > tolerancePercent) return { delta, verdict: 'NOISY' };
   return { delta, verdict: 'same' };
 }
 
@@ -183,6 +192,7 @@ function main() {
   const currentById = new Map(current.cases.map((entry) => [entry.id, entry]));
   const regressions = [];
   const incomparable = [];
+  const noisy = [];
 
   for (const baselineCase of baseline.cases) {
     const currentCase = currentById.get(baselineCase.id);
@@ -201,6 +211,7 @@ function main() {
       );
       if (row.verdict === 'REGRESSED') regressions.push(`${baselineCase.id} ${row.metric}`);
       if (row.verdict === 'INCOMPARABLE') incomparable.push(`${baselineCase.id} ${row.metric}`);
+      if (row.verdict === 'NOISY') noisy.push(`${baselineCase.id} ${row.metric}`);
     }
     console.log('');
   }
@@ -211,6 +222,15 @@ function main() {
   if (incomparable.length > 0) {
     console.log(`${incomparable.length} metric(s) could not be compared:`);
     for (const entry of incomparable) console.log(`  ${entry}`);
+    console.log('');
+  }
+
+  if (noisy.length > 0) {
+    console.log(
+      `${noisy.length} metric(s) too noisy to resolve a regression at the given tolerance.\n` +
+        'Their own spread is wider than the threshold, so read the case\'s execute.* rows instead:'
+    );
+    for (const entry of noisy) console.log(`  ${entry}`);
     console.log('');
   }
 
