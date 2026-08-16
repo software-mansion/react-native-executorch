@@ -1,0 +1,201 @@
+#!/usr/bin/env node
+/**
+ * Drives a benchmark run and collects its results.
+ *
+ * Starts an HTTP collector, points the app at it through `EXPO_PUBLIC_BENCH_*`,
+ * builds and launches the app, and waits for the run to finish before writing
+ * the report to `results/`.
+ *
+ * The collector exists because getting structured data off a phone is otherwise
+ * platform-specific: `adb logcat` covers Android, `xcrun simctl` covers the iOS
+ * Simulator, and a physical iPhone has no equivalent short of Console.app. An
+ * HTTP POST works the same everywhere — over `adb reverse` on Android, and over
+ * the LAN on an iOS device.
+ *
+ * Usage:
+ *   yarn bench --platform android --label et-1.3.1
+ *   yarn bench --platform ios --suite full --label et-1.4.1
+ *   yarn bench --platform ios --no-launch          # app started by hand
+ */
+
+import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { networkInterfaces } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+const DEFAULTS = {
+  platform: 'android',
+  suite: 'quick',
+  only: '',
+  label: 'local',
+  iterations: '20',
+  warmup: '3',
+  memoryIterations: '5',
+  port: '8099',
+  host: '',
+  out: '',
+};
+
+function parseArgs(argv) {
+  const options = { ...DEFAULTS, launch: true, memory: true, native: true };
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--no-launch') options.launch = false;
+    else if (arg === '--no-memory') options.memory = false;
+    else if (arg === '--no-native') options.native = false;
+    else if (arg.startsWith('--')) {
+      const key = arg
+        .slice(2)
+        .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      if (!(key in DEFAULTS)) throw new Error(`Unknown option ${arg}`);
+      options[key] = argv[++i];
+    } else throw new Error(`Unexpected argument ${arg}`);
+  }
+
+  if (options.platform !== 'ios' && options.platform !== 'android') {
+    throw new Error(`--platform must be ios or android, got ${options.platform}`);
+  }
+  return options;
+}
+
+/** First non-internal IPv4 address, for an iOS device reaching the host over LAN. */
+function lanAddress() {
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) return address.address;
+    }
+  }
+  return null;
+}
+
+function readBody(request) {
+  return new Promise((resolveBody, rejectBody) => {
+    const chunks = [];
+    request.on('data', (chunk) => chunks.push(chunk));
+    request.on('end', () => {
+      try {
+        resolveBody(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+      } catch (error) {
+        rejectBody(error);
+      }
+    });
+    request.on('error', rejectBody);
+  });
+}
+
+function startCollector(port, onEnd) {
+  const server = createServer(async (request, response) => {
+    let body = null;
+    try {
+      body = await readBody(request);
+    } catch {
+      response.writeHead(400).end();
+      return;
+    }
+    response.writeHead(204).end();
+
+    if (request.url === '/begin') {
+      console.log(`\n[bench] run "${body.label}" started — ${body.cases.length} cases`);
+    } else if (request.url === '/case') {
+      const summary =
+        body.status === 'ok'
+          ? `${body.pipeline?.median ?? '-'} ms median` +
+            (body.memory ? `, peak ${body.memory.peakMb} MB` : '')
+          : `FAILED: ${body.error}`;
+      console.log(`[bench] ${body.id} — ${summary}`);
+    } else if (request.url === '/end') {
+      onEnd(body);
+    }
+  });
+
+  return new Promise((resolveServer) => {
+    // 0.0.0.0 so an iOS device on the LAN can reach the collector, not just
+    // adb-reversed localhost traffic from Android.
+    server.listen(port, '0.0.0.0', () => resolveServer(server));
+  });
+}
+
+function run(command, args, env) {
+  return spawn(command, args, { cwd: APP_ROOT, env, stdio: 'inherit', shell: false });
+}
+
+function adbReverse(port) {
+  const result = spawn('adb', ['reverse', `tcp:${port}`, `tcp:${port}`], { stdio: 'inherit' });
+  return new Promise((resolveReverse) => result.on('exit', resolveReverse));
+}
+
+function reportPath(options, report) {
+  if (options.out) return resolve(options.out);
+  const device = String(report.device?.model ?? 'unknown').replace(/[^\w.-]+/g, '-');
+  return join(APP_ROOT, 'results', `${options.label}-${report.platform}-${device}.json`);
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const port = Number(options.port);
+
+  // Android reaches the host through the adb reverse tunnel on localhost. An iOS
+  // device needs a routable address; the Simulator shares the host's loopback.
+  const host =
+    options.host ||
+    (options.platform === 'android' ? 'localhost' : (lanAddress() ?? 'localhost'));
+  const sink = `http://${host}:${port}`;
+
+  let settle;
+  const finished = new Promise((resolveFinished) => {
+    settle = resolveFinished;
+  });
+
+  const server = await startCollector(port, settle);
+  console.log(`[bench] collector listening on ${sink}`);
+
+  if (options.platform === 'android') await adbReverse(port);
+
+  const env = {
+    ...process.env,
+    EXPO_PUBLIC_BENCH_SUITE: options.suite,
+    EXPO_PUBLIC_BENCH_ONLY: options.only,
+    EXPO_PUBLIC_BENCH_LABEL: options.label,
+    EXPO_PUBLIC_BENCH_ITERATIONS: options.iterations,
+    EXPO_PUBLIC_BENCH_WARMUP: options.warmup,
+    EXPO_PUBLIC_BENCH_MEMORY_ITERATIONS: options.memoryIterations,
+    EXPO_PUBLIC_BENCH_MEMORY: options.memory ? '1' : '0',
+    EXPO_PUBLIC_BENCH_NATIVE: options.native ? '1' : '0',
+    EXPO_PUBLIC_BENCH_SINK: sink,
+    EXPO_PUBLIC_BENCH_AUTOSTART: '1',
+  };
+
+  let child = null;
+  if (options.launch) {
+    console.log(`[bench] launching the app on ${options.platform}`);
+    child = run('yarn', [options.platform], env);
+  } else {
+    console.log('[bench] waiting for a run. Start the app with:');
+    for (const [key, value] of Object.entries(env)) {
+      if (key.startsWith('EXPO_PUBLIC_BENCH_')) console.log(`         ${key}=${value}`);
+    }
+  }
+
+  const report = await finished;
+  const destination = reportPath(options, report);
+  mkdirSync(dirname(destination), { recursive: true });
+  writeFileSync(destination, `${JSON.stringify(report, null, 2)}\n`);
+
+  const failures = report.cases.filter((entry) => entry.status !== 'ok');
+  console.log(`\n[bench] wrote ${destination}`);
+  console.log(`[bench] ${report.cases.length - failures.length} ok, ${failures.length} failed`);
+
+  child?.kill('SIGTERM');
+  server.close();
+  process.exit(failures.length > 0 ? 1 : 0);
+}
+
+main().catch((error) => {
+  console.error(`[bench] ${error.message}`);
+  process.exit(2);
+});

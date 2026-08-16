@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "allowJs": true,
+    "module": "preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "customConditions": ["react-native"],
+    "noEmit": true,
+    "paths": {
+      "react-native-executorch": ["../../packages/react-native-executorch/src"]
+    }
+  },
+  // Repeats the root's exclusions because `exclude` replaces rather than merges,
+  // and adds the Node driver scripts — they are .mjs, and `allowJs` would
+  // otherwise pull them into the React Native program.
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "scripts"]
+}
