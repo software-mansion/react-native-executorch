@@ -6,7 +6,6 @@ import { RnExecuTorchError } from '../../core/error';
  */
 export type TokenizerChatConfig = {
   readonly chatTemplate: string;
-  readonly bosToken: string;
   readonly eosToken: string;
 };
 
@@ -40,15 +39,14 @@ export function parseTokenizerConfig(config: any): TokenizerChatConfig {
     );
   }
 
-  const bosToken = resolveToken(config.bos_token);
   const eosToken = resolveToken(config.eos_token);
 
-  if (!bosToken || !eosToken) {
+  if (!eosToken) {
     throw RnExecuTorchError(
       'LOAD_FAILED',
-      'tokenizer_config.json does not define required `bos_token` and `eos_token` strings'
+      'tokenizer_config.json does not define required `eos_token` string'
     );
   }
 
-  return { chatTemplate, bosToken, eosToken };
+  return { chatTemplate, eosToken };
 }
