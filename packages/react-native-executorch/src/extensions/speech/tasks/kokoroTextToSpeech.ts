@@ -9,7 +9,7 @@ import {
   method,
   i64,
   f32,
-  bl,
+  bool,
   DynamicDim as Dyn,
   constr,
 } from '../../../core/schema';
@@ -143,7 +143,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       'forward',
       [
         i64(1, Dyn('T')), // tokens
-        bl(1, Dyn('T')), // textMask
+        bool(1, Dyn('T')), // textMask
         f32(1, VOICE_REF_HALF_SIZE), // voiceRef
         f32(1), // speed
       ],
@@ -167,7 +167,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       'forward',
       [
         i64(1, Dyn('T')), // tokens
-        bl(1, Dyn('T')), // textMask
+        bool(1, Dyn('T')), // textMask
         i64(Dyn('D')), // indices
         f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
         f32(1, VOICE_REF_SIZE), // voiceRef

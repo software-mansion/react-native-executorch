@@ -1,4 +1,5 @@
 #include "dtype.h"
+#include <format>
 #include <stdexcept>
 
 #include "core/error.h"
@@ -20,7 +21,8 @@ DType dtypeFromString(const std::string &s) {
     if (s == "bool") {
         return DType::boolean;
     }
-    throw error::InvalidArgument("Unsupported dtype: '" + s + "'. Expected 'uint8', 'int32', 'int64', 'float32' or 'bool'");
+    throw error::InvalidArgument(
+        std::format("Unsupported dtype: '{}'. Expected 'uint8', 'int32', 'int64', 'float32' or 'bool'", s));
 }
 
 std::string dtypeToString(DType dtype) {

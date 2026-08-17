@@ -9,10 +9,10 @@ namespace rnexecutorch::extensions::speech {
 class PhonemizerHostObject : public facebook::jsi::HostObject,
                              public std::enable_shared_from_this<PhonemizerHostObject> {
 public:
-    PhonemizerHostObject(const std::string &lang,
-                         const std::string &taggerPath,
-                         const std::string &lexiconPath,
-                         const std::string &neuralModelPath);
+    explicit PhonemizerHostObject(const std::string &lang,
+                                  const std::string &taggerPath,
+                                  const std::string &lexiconPath,
+                                  const std::string &neuralModelPath);
 
     facebook::jsi::Value get(facebook::jsi::Runtime &rt,
                              const facebook::jsi::PropNameID &name) override;

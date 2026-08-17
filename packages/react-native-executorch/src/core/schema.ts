@@ -345,7 +345,7 @@ export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape)
 export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
 export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
 export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
-export const bl = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
+export const bool = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
 
 /** Helper namespace for declaring runtime constraints. */
 export const constr = {
