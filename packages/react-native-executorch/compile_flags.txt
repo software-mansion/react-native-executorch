@@ -4,6 +4,7 @@
 -Icpp
 -isystem../../node_modules/react-native/ReactCommon/jsi
 -isystemthird-party/include
+-isystemthird-party/common/phonemis/src
 -isystemthird-party/include/executorch/extension/llm/tokenizers/include
 -isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/json/include
 -isystemthird-party/include/executorch/extension/llm/tokenizers/third-party/re2

@@ -79,7 +79,7 @@ std::vector<jsi::PropNameID> PhonemizerHostObject::getPropertyNames(
 }
 
 void install_createPhonemizer(jsi::Runtime &rt, jsi::Object &module) {
-    auto name = "createPhonemizer";
+    const auto *name = "createPhonemizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &,
                      const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
