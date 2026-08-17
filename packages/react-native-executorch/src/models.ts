@@ -10,6 +10,7 @@ import type { TextEmbedderModel } from './extensions/nlp/tasks/textEmbedding';
 import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
+import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
 import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
@@ -770,6 +771,88 @@ const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
   voiceStyles: SUPERTONIC_DEFAULT_VOICE_STYLES,
 };
 
+const KOKORO_ROOT = `${BASE_URL}-kokoro/${NEXT_VERSION_TAG}`;
+const KOKORO_PHONEMIZER_ROOT = `${KOKORO_ROOT}/phonemizer`;
+
+const kokoroModelPaths = (variant: 'std' | 'pl' | 'de', dir: string) => ({
+  durationPredictor: `${KOKORO_ROOT}/xnnpack/${dir}/duration_predictor_${variant}_xnnpack_fp32.pte`,
+  synthesizer: `${KOKORO_ROOT}/xnnpack/${dir}/synthesizer_${variant}_xnnpack_fp32.pte`,
+});
+
+const KOKORO_STANDARD_PATHS = kokoroModelPaths('std', 'standard');
+const KOKORO_POLISH_PATHS = kokoroModelPaths('pl', 'polish');
+const KOKORO_GERMAN_PATHS = kokoroModelPaths('de', 'german');
+
+const kokoroVoices = <const N extends string>(names: readonly N[]) =>
+  names.reduce(
+    (acc, name) => ({ ...acc, [name]: `${KOKORO_ROOT}/voices/${name}.bin` }),
+    {} as Record<N, string>
+  );
+
+// English relies on a part-of-speech tagger and a pronunciation lexicon; the
+// remaining languages are phonemized by a neural grapheme-to-phoneme model.
+const kokoroEnglishPhonemizer = (lang: 'en-us' | 'en-gb') => ({
+  lang,
+  taggerSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/tags.json`,
+  lexiconSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/lexicon.json`,
+  neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang.replace('-', '_')}.pte`,
+});
+
+const kokoroNeuralPhonemizer = <const L extends 'fr' | 'es' | 'it' | 'pt' | 'hi' | 'pl' | 'de'>(
+  lang: L
+) => ({
+  lang,
+  neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang}.pte`,
+});
+
+const KOKORO_EN_US: KokoroTtsModel<
+  'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
+> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroEnglishPhonemizer('en-us'),
+  voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
+};
+const KOKORO_EN_GB: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroEnglishPhonemizer('en-gb'),
+  voices: kokoroVoices(['bf_emma', 'bm_daniel']),
+};
+const KOKORO_ES: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('es'),
+  voices: kokoroVoices(['ef_dora', 'em_alex']),
+};
+const KOKORO_FR: KokoroTtsModel<'ff_siwis'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('fr'),
+  voices: kokoroVoices(['ff_siwis']),
+};
+const KOKORO_IT: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('it'),
+  voices: kokoroVoices(['if_sara', 'im_nicola']),
+};
+const KOKORO_PT: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('pt'),
+  voices: kokoroVoices(['pf_dora', 'pm_santa']),
+};
+const KOKORO_HI: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
+  modelPaths: KOKORO_STANDARD_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('hi'),
+  voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
+};
+const KOKORO_PL: KokoroTtsModel<'pm_mateusz'> = {
+  modelPaths: KOKORO_POLISH_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('pl'),
+  voices: kokoroVoices(['pm_mateusz']),
+};
+const KOKORO_DE: KokoroTtsModel<'df_anna'> = {
+  modelPaths: KOKORO_GERMAN_PATHS,
+  phonemizer: kokoroNeuralPhonemizer('de'),
+  voices: kokoroVoices(['df_anna']),
+};
+
 // =============================================================================
 // Privacy Filter
 // =============================================================================
@@ -1426,6 +1509,23 @@ export const models = {
       ...SUPERTONIC_3_XNNPACK_FP32,
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
+    },
+
+    /**
+     * Kokoro — a lightweight phoneme-driven Text-to-Speech model. Each entry
+     * bundles the matching model weights, grapheme-to-phoneme assets and the
+     * voices available for that language.
+     */
+    KOKORO: {
+      EN_US: KOKORO_EN_US,
+      EN_GB: KOKORO_EN_GB,
+      ES: KOKORO_ES,
+      FR: KOKORO_FR,
+      IT: KOKORO_IT,
+      PT: KOKORO_PT,
+      HI: KOKORO_HI,
+      PL: KOKORO_PL,
+      DE: KOKORO_DE,
     },
   },
 };

@@ -12,6 +12,7 @@ export * from './hooks/useImageEmbedder';
 export * from './hooks/useVoiceActivityDetector';
 export * from './hooks/useSpeechToText';
 export * from './hooks/useTextToSpeech';
+export * from './hooks/useKokoroTextToSpeech';
 export * from './hooks/useTextToImage';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
@@ -38,6 +39,7 @@ export * from './extensions/nlp/tasks/privacyFilter';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
+export * from './extensions/speech/tasks/kokoroTextToSpeech';
 
 // Core primitives — for library builders and power users
 export * from './core/error';

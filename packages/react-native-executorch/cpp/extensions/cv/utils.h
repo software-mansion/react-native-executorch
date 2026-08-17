@@ -23,6 +23,7 @@ inline int dtypeToCvDepth(rnexecutorch::core::types::DType dtype) {
     case rnexecutorch::core::types::DType::float32:
         return CV_32F;
     case rnexecutorch::core::types::DType::int64:
+    case rnexecutorch::core::types::DType::boolean:
         break;
     }
     throw core::error::InvalidArgument("unsupported dtype");

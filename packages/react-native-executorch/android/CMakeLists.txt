@@ -28,6 +28,11 @@ file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
 file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
+set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)
+
+if(NOT RNE_ENABLE_PHONEMIS)
+  list(REMOVE_ITEM SPEECH_SOURCES ${PHONEMIS_SOURCES})
+endif()
 
 set(RNE_SOURCES
     ${CPP_DIR}/RnExecutorch.cpp
@@ -54,6 +59,16 @@ if(RNE_ENABLE_OPENCV)
 endif()
 if(RNE_ENABLE_PHONEMIS)
   target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE RNE_ENABLE_PHONEMIS)
+endif()
+
+# ------- phonemis (optional, static, built from in-tree source) -------
+if(RNE_ENABLE_PHONEMIS)
+  set(PHONEMIS_DIR "${THIRD_PARTY_DIR}/common/phonemis")
+  add_subdirectory(${PHONEMIS_DIR} ${CMAKE_BINARY_DIR}/phonemis)
+  # phonemis uses ET_ON to detect an available ExecuTorch build (NeuralPhonemizer).
+  target_compile_definitions(phonemis PRIVATE ET_ON)
+  target_include_directories(phonemis PRIVATE "${INCLUDE_DIR}")
+  target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "${PHONEMIS_DIR}/src")
 endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -120,6 +135,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     executorch
     z
 )
+
+if(RNE_ENABLE_PHONEMIS)
+  target_link_libraries(${CMAKE_PROJECT_NAME} phonemis)
+endif()
 
 # Linking against the backend .so (when enabled) makes Gradle bundle them and
 # instructs the dynamic linker to load them with libreact-native-executorch.so.
