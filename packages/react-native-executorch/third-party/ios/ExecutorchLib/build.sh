@@ -37,6 +37,37 @@ FRAMEWORK_NAME="$SCHEME_NAME.framework"
 XCFRAMEWORK_NAME="$SCHEME_NAME.xcframework"
 XCFRAMEWORK_PATH="$OUTPUT_FOLDER/$XCFRAMEWORK_NAME"
 
+# --- KleidiAI ---
+# libkernels_torchao references kai_* symbols, and the framework is a dylib, so
+# they have to resolve at link time. ExecuTorch used to ship a standalone
+# libkleidiai_<platform>.a but no longer does: as of 1.4.1 the kai_* objects are
+# folded into libbackend_xnnpack, which ships as its own force_loaded
+# xcframework and is deliberately NOT linked here. Rebuild the standalone
+# archive from those objects when it is missing so the framework still links.
+for platform in ios simulator; do
+  kleidiai="$LIBS_DIR/libkleidiai_$platform.a"
+  xnnpack="$LIBS_DIR/libbackend_xnnpack_$platform.a"
+
+  if [ -f "$kleidiai" ] || [ ! -f "$xnnpack" ]; then
+    continue
+  fi
+
+  echo "Rebuilding $(basename "$kleidiai") from $(basename "$xnnpack")"
+  staging=$(mktemp -d)
+  (
+    cd "$staging"
+    ar x "$xnnpack"
+    kai_objects=$(ls | grep -i '^kai_' || true)
+    if [ -z "$kai_objects" ]; then
+      echo "  No kai_* objects found; leaving it to the linker to complain." >&2
+      exit 0
+    fi
+    # shellcheck disable=SC2086
+    xcrun ar rcs "$kleidiai" $kai_objects
+  )
+  rm -rf "$staging"
+done
+
 # --- Script ---
 rm -rf "$BUILD_FOLDER" "$OUTPUT_FOLDER"
 mkdir -p "$OUTPUT_FOLDER"
