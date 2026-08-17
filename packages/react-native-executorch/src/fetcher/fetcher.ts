@@ -75,9 +75,49 @@ async function remoteSize(url: string): Promise<number> {
   }
 }
 
+// The file's full length, or 0 when it can't be established. `remoteSize`
+// follows redirects (Hugging Face answers a model URL with a 302 to a CDN), so
+// it reports the length of the file itself. `download()` already computes this
+// for progress weighting and passes it in, so the HEAD is not repeated.
+async function expectedBytesFor(url: string, known: number | undefined): Promise<number> {
+  if (known && known > 0) return known;
+  return remoteSize(url);
+}
+
+// Raised when a transfer reported success but the bytes on disk don't match
+// what the server advertised.
+const incompleteError = (url: string, got: number, want: number) =>
+  RnExecuTorchError(
+    'DOWNLOAD_FAILED',
+    `Download of ${url} is incomplete (${got} of ${want} bytes).`
+  );
+
 // Raised when a download is cancelled through its `signal`. Internal: callers
 // match on the DOWNLOAD_ABORTED code via isRnExecuTorchError.
 const abortError = () => RnExecuTorchError('DOWNLOAD_ABORTED', 'The download was aborted.');
+
+// Folds an interrupted resume's bytes into the partial file so they survive.
+//
+// A resumed range lands in a separate chunk file that is normally merged once
+// the transfer completes. Without this, cancelling a resumed download threw the
+// chunk away, so a model interrupted at 98% restarted from whatever the last
+// COMPLETED attempt had left — re-fetching hundreds of MB it already had.
+//
+// Appending is safe precisely because a 206 body starts at `offset`: the chunk
+// is a prefix of the missing tail, so partial + chunk is a valid, longer prefix
+// of the file. That also holds if the append itself only got partway, since it
+// copies sequentially. A body that is NOT partial content starts at byte 0 and
+// must be dropped instead.
+async function foldResumedChunkIntoPartial(
+  part: string,
+  chunkPath: string,
+  status: number
+): Promise<void> {
+  if (status === 206 && (await fileSize(chunkPath)) > 0) {
+    await RNBlobUtil.fs.appendFile(part, chunkPath, 'uri').catch(() => {});
+  }
+  await RNBlobUtil.fs.unlink(chunkPath).catch(() => {});
+}
 
 type OnBytes = (received: number, total: number) => void;
 
@@ -87,6 +127,9 @@ interface DownloadUrlCallbacks {
   onBytes?: OnBytes;
   signal?: AbortSignal;
   forceDownload?: boolean;
+  // The file's full length when the caller already knows it, so the completeness
+  // check doesn't repeat the HEAD. 0 / undefined means "look it up".
+  expectedBytes?: number;
 }
 
 // A download that is currently running, shared by every caller that asked for
@@ -98,6 +141,8 @@ interface InFlightDownload {
   // Drives the underlying request; aborted only once every caller has left.
   controller: AbortController;
   callers: number;
+  // Same URL, same length — shared by everyone who joins.
+  expectedBytes: number;
 }
 
 const inFlight = new Map<string, InFlightDownload>();
@@ -136,6 +181,7 @@ async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<strin
     listeners: new Set(),
     controller: new AbortController(),
     callers: 0,
+    expectedBytes: cb.expectedBytes ?? 0,
   };
   entry.promise = startDownload(url, dest, entry).finally(() => {
     inFlight.delete(url);
@@ -155,6 +201,7 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
 
   const cb: DownloadUrlCallbacks = {
     signal: entry.controller.signal,
+    expectedBytes: entry.expectedBytes,
     onBytes: (received, total) => {
       for (const listener of entry.listeners) listener(received, total);
     },
@@ -236,6 +283,15 @@ async function downloadUrlViaAndroidDownloadManager(
     await RNBlobUtil.fs.unlink(tmp).catch(() => {});
     throw RnExecuTorchError('DOWNLOAD_FAILED', `Download of ${url} failed (empty response).`);
   }
+  // A non-empty file is not necessarily a complete one, and DownloadManager
+  // gives us no status to check. Promoting a short file would cache it under
+  // its final name forever — the existence-only cache check can't tell the
+  // difference, and a truncated .pte only fails much later, at load.
+  const expected = await expectedBytesFor(url, cb.expectedBytes);
+  if (expected > 0 && size !== expected) {
+    await RNBlobUtil.fs.unlink(tmp).catch(() => {});
+    throw incompleteError(url, size, expected);
+  }
   await RNBlobUtil.fs.mv(tmp, dest);
   return dest;
 }
@@ -268,6 +324,18 @@ async function downloadUrlViaIosStream(
   const onAbort = () => task.cancel();
   cb.signal?.addEventListener('abort', onAbort);
 
+  // The response status arrives with the headers, well before the body is done.
+  // An interrupted transfer never resolves, so this is the only way to know
+  // whether the bytes on disk are a resumable 206 tail. `stateChange` is real
+  // (it delivers the same payload as `res.info()`) but missing from blob-util's
+  // typings, hence the cast.
+  let earlyStatus = 0;
+  (
+    task as unknown as { stateChange: (fn: (info: { status?: number }) => void) => void }
+  ).stateChange((info) => {
+    earlyStatus = Number(info?.status) || 0;
+  });
+
   task.progress({ count: 20 }, (received, total) => {
     const recv = Number(received);
     const tot = Number(total);
@@ -279,37 +347,76 @@ async function downloadUrlViaIosStream(
     const res = await task;
     status = res.info().status;
   } catch (e) {
-    // Network drop / cancel. Keep the fresh partial for a future resume, but
-    // discard a resumed chunk — its offset assumptions may not hold.
-    if (offset > 0) await RNBlobUtil.fs.unlink(target).catch(() => {});
+    // Network drop / cancel. A fresh download streamed straight into the
+    // partial and is already durable; a resumed one has its bytes in the chunk
+    // file, so fold them in rather than losing them.
+    if (offset > 0) await foldResumedChunkIntoPartial(part, target, earlyStatus);
     throw cb.signal?.aborted ? abortError() : e;
   } finally {
     cb.signal?.removeEventListener('abort', onAbort);
   }
 
+  // A cancel can surface as a RESOLVED task holding a partial body rather than
+  // as a rejection, so check the signal before interpreting anything. This is
+  // an abort, not a failure (callers ignore DOWNLOAD_ABORTED), and the bytes
+  // that did arrive are kept for the next resume.
+  if (cb.signal?.aborted) {
+    if (offset > 0) await foldResumedChunkIntoPartial(part, target, status);
+    throw abortError();
+  }
+
+  const expected = await expectedBytesFor(url, cb.expectedBytes);
+
+  // Whether the response body is a tail or the whole file is decided by the
+  // BYTE COUNTS rather than by `status` alone, so a range the server answers in
+  // an unexpected way cannot mis-assemble the pieces.
+  let restart = false;
+
   try {
-    if (status === 416) {
-      // Range not satisfiable — the partial already holds the whole file.
-      await RNBlobUtil.fs.unlink(target).catch(() => {});
-    } else if (status >= 400) {
+    if (status >= 400 && status !== 416) {
       await RNBlobUtil.fs.unlink(target).catch(() => {});
       throw RnExecuTorchError(
         'DOWNLOAD_FAILED',
         `Download of ${url} failed with HTTP status ${status}.`
       );
     } else if (offset > 0) {
-      if (status === 206) {
-        // Server honored the range: append the new bytes onto the partial.
-        await RNBlobUtil.fs.appendFile(part, `file://${target}`, 'uri');
-        await RNBlobUtil.fs.unlink(target).catch(() => {});
-      } else {
-        // Server ignored the range (200) and re-sent the whole file: replace.
+      const chunk = await fileSize(target);
+
+      if (expected > 0 && chunk === expected) {
+        // The whole file came back (range ignored, or a 416 we can't trust).
         await RNBlobUtil.fs.unlink(part).catch(() => {});
         await RNBlobUtil.fs.mv(target, part);
+      } else if (expected > 0 && offset + chunk === expected) {
+        // A proper tail: append it and confirm the bytes actually landed.
+        //
+        // `appendFile` takes a PATH, not a URL. blob-util passes the string
+        // straight to NSInputStream, so a `file://` prefix makes the stream fail
+        // to open and the call resolves having copied NOTHING — which is what
+        // silently truncated cached models before this fix.
+        await RNBlobUtil.fs.appendFile(part, target, 'uri');
+        await RNBlobUtil.fs.unlink(target).catch(() => {});
+        const merged = await fileSize(part);
+        if (merged !== expected) {
+          throw new Error(`resume append wrote ${merged - offset} of ${chunk} bytes`);
+        }
+      } else if (expected > 0) {
+        // The pieces don't reconcile — a stale offset, an empty tail, or a
+        // range served against a different body. Nothing here is salvageable,
+        // so fall back to one clean full download.
+        restart = true;
+      } else {
+        // Length unknown: keep the pre-existing behavior and trust the status.
+        if (status === 206) {
+          await RNBlobUtil.fs.appendFile(part, target, 'uri');
+          await RNBlobUtil.fs.unlink(target).catch(() => {});
+        } else if (status !== 416) {
+          await RNBlobUtil.fs.unlink(part).catch(() => {});
+          await RNBlobUtil.fs.mv(target, part);
+        } else {
+          await RNBlobUtil.fs.unlink(target).catch(() => {});
+        }
       }
     }
-    await RNBlobUtil.fs.mv(part, dest);
-    return dest;
   } catch (assemblyErr) {
     // A `4xx` we deliberately threw must propagate as-is.
     if (status >= 400 && status !== 416) throw assemblyErr;
@@ -320,6 +427,33 @@ async function downloadUrlViaIosStream(
     if (canResume) return downloadUrlViaIosStream(url, dest, cb, false);
     throw assemblyErr;
   }
+
+  if (restart) {
+    await RNBlobUtil.fs.unlink(part).catch(() => {});
+    await RNBlobUtil.fs.unlink(target).catch(() => {});
+    return downloadUrlViaIosStream(url, dest, cb, false);
+  }
+
+  // The transfer can also report success while the body was cut short — a
+  // dropped connection that the URL session still completes, or a suspended
+  // app. Only the byte count catches that, and it has to be caught HERE: once
+  // `part` is renamed to `dest` the cache serves it forever (the hit check is
+  // existence, not size) and the truncated .pte fails at load with
+  // InvalidProgram.
+  const assembled = await fileSize(part);
+  if (expected > 0 && assembled !== expected) {
+    if (assembled > expected && canResume) {
+      // More bytes than the file has: a resume appended onto an offset that had
+      // moved on. The partial is unusable, so start over rather than fail.
+      await RNBlobUtil.fs.unlink(part).catch(() => {});
+      return downloadUrlViaIosStream(url, dest, cb, false);
+    }
+    // Short: keep the partial so the next call resumes and finishes it.
+    throw incompleteError(url, assembled, expected);
+  }
+
+  await RNBlobUtil.fs.mv(part, dest);
+  return dest;
 }
 
 // Plain data containers we recurse into. Anything else (numbers, functions,
@@ -444,6 +578,9 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
       downloadUrl(url, {
         signal: options.signal,
         forceDownload: options.forceDownload,
+        // Already HEADed above for progress weighting — reuse it rather than
+        // asking again when the completeness check needs the length.
+        expectedBytes: sizes[i],
         onBytes: (recv, tot) => {
           received[i] = haveAllSizes ? recv : tot > 0 ? recv / tot : 0;
           report();
