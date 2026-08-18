@@ -74,6 +74,7 @@ DType dtypeFromScalarType(executorch::aten::ScalarType st) {
 
 size_t elementSize(DType dtype) {
     switch (dtype) {
+    // NOLINTNEXTLINE(bugprone-branch-clone): boolean and uint8 are both 1 bytes; the identical branches are intentional.
     case DType::boolean:
         return 1;
     case DType::uint8:

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import {
-  useKokoroTextToSpeech,
+  useTextToSpeech,
   models,
   KOKORO_SAMPLE_RATE,
   type KokoroTtsModel,
@@ -72,8 +72,7 @@ function KokoroContent() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const queueSourceRef = useRef<AudioBufferQueueSourceNode | null>(null);
 
-  const { isReady, downloadProgress, error, synthesize, synthesizeStop } =
-    useKokoroTextToSpeech(model);
+  const { isReady, downloadProgress, error, synthesize, synthesizeStop } = useTextToSpeech(model);
 
   useEffect(() => {
     setVoice(Object.keys(models.textToSpeech.KOKORO[language].XNNPACK_FP32.voices)[0]!);

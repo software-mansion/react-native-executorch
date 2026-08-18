@@ -1,9 +1,11 @@
 #include "phonemizer.h"
 
 #include <format>
+#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include "core/conversions.h"
 #include "core/error.h"
@@ -33,6 +35,18 @@ PhonemizerHostObject::PhonemizerHostObject(
               .nn_model_filepath = neuralModelPath,
           }})) {}
 
+std::unique_lock<std::mutex> PhonemizerHostObject::tryLockUnique(std::string_view context) {
+    std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        throw error::ResourceBusy(std::format("{} is currently in use", context));
+    }
+    if (!pipeline_) {
+        throw error::ResourceDisposed(std::format("{} has been disposed", context));
+    }
+
+    return lock;
+}
+
 jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
                                      const jsi::PropNameID &name) {
     auto nameStr = name.utf8(rt);
@@ -43,9 +57,8 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
             if (count != 1) {
                 throw error::InvalidArgument("phonemize: Usage: phonemize(text)");
             }
-            if (!self->pipeline_) {
-                throw error::ResourceDisposed("phonemize: Phonemizer has been disposed");
-            }
+
+            auto lock = self->tryLockUnique("phonemize: Phonemizer");
 
             auto utf8 = conversions::asType<std::string>(rt, "phonemize: text", args[0]);
             auto phonemes = (*self->pipeline_)(utf8_to_u32(utf8));
@@ -62,6 +75,8 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
             if (count != 0) {
                 throw error::InvalidArgument("dispose: Usage: dispose()");
             }
+
+            std::unique_lock<std::mutex> lock(self->mutex_);
             self->pipeline_.reset();
             return jsi::Value::undefined();
         };
