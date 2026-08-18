@@ -28,11 +28,9 @@ file(GLOB MATH_SOURCES   ${CPP_DIR}/extensions/math/*.cpp)
 file(GLOB NLP_SOURCES    ${CPP_DIR}/extensions/nlp/*.cpp)
 file(GLOB SPEECH_SOURCES ${CPP_DIR}/extensions/speech/*.cpp)
 file(GLOB OPENCV_SOURCES ${CPP_DIR}/extensions/cv/*.cpp)
-set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)
 
-if(NOT RNE_ENABLE_PHONEMIS)
-  list(REMOVE_ITEM SPEECH_SOURCES ${PHONEMIS_SOURCES})
-endif()
+set(PHONEMIS_SOURCES ${CPP_DIR}/extensions/speech/phonemizer.cpp)
+list(FILTER SPEECH_SOURCES EXCLUDE REGEX "/phonemizer\\.cpp$")
 
 set(RNE_SOURCES
     ${CPP_DIR}/RnExecutorch.cpp
@@ -45,6 +43,10 @@ set(RNE_SOURCES
 
 if(RNE_ENABLE_OPENCV)
   list(APPEND RNE_SOURCES ${OPENCV_SOURCES})
+endif()
+
+if(RNE_ENABLE_PHONEMIS)
+  list(APPEND RNE_SOURCES ${PHONEMIS_SOURCES})
 endif()
 
 add_library(${CMAKE_PROJECT_NAME} SHARED ${RNE_SOURCES})

@@ -11,6 +11,7 @@ import type { PrivacyFilterModel } from './extensions/nlp/tasks/privacyFilter';
 import type { FsmnVadModel } from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 import type { SupertonicTtsModel } from './extensions/speech/tasks/supertonicTextToSpeech';
 import type { KokoroTtsModel } from './extensions/speech/tasks/kokoroTextToSpeech';
+import type { PhonemizerLanguage } from './extensions/speech/utils/phonemizer';
 import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
@@ -798,56 +799,56 @@ const kokoroEnglishPhonemizer = (lang: 'en-us' | 'en-gb') => ({
   neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang.replace('-', '_')}.pte`,
 });
 
-const kokoroNeuralPhonemizer = <const L extends 'fr' | 'es' | 'it' | 'pt' | 'hi' | 'pl' | 'de'>(
+const kokoroNeuralPhonemizer = <const L extends Exclude<PhonemizerLanguage, 'en-us' | 'en-gb'>>(
   lang: L
 ) => ({
   lang,
   neuralModelSource: `${KOKORO_PHONEMIZER_ROOT}/${lang}/phonemizer_${lang}.pte`,
 });
 
-const KOKORO_EN_US: KokoroTtsModel<
+const KOKORO_EN_US_XNNPACK_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
 > = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroEnglishPhonemizer('en-us'),
   voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
 };
-const KOKORO_EN_GB: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
+const KOKORO_EN_GB_XNNPACK_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroEnglishPhonemizer('en-gb'),
   voices: kokoroVoices(['bf_emma', 'bm_daniel']),
 };
-const KOKORO_ES: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
+const KOKORO_ES_XNNPACK_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('es'),
   voices: kokoroVoices(['ef_dora', 'em_alex']),
 };
-const KOKORO_FR: KokoroTtsModel<'ff_siwis'> = {
+const KOKORO_FR_XNNPACK_FP32: KokoroTtsModel<'ff_siwis'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('fr'),
   voices: kokoroVoices(['ff_siwis']),
 };
-const KOKORO_IT: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
+const KOKORO_IT_XNNPACK_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('it'),
   voices: kokoroVoices(['if_sara', 'im_nicola']),
 };
-const KOKORO_PT: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
+const KOKORO_PT_XNNPACK_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('pt'),
   voices: kokoroVoices(['pf_dora', 'pm_santa']),
 };
-const KOKORO_HI: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
+const KOKORO_HI_XNNPACK_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('hi'),
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
-const KOKORO_PL: KokoroTtsModel<'pm_mateusz'> = {
+const KOKORO_PL_XNNPACK_FP32: KokoroTtsModel<'pm_mateusz'> = {
   modelPaths: KOKORO_POLISH_PATHS,
   phonemizer: kokoroNeuralPhonemizer('pl'),
   voices: kokoroVoices(['pm_mateusz']),
 };
-const KOKORO_DE: KokoroTtsModel<'df_anna'> = {
+const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   modelPaths: KOKORO_GERMAN_PATHS,
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
@@ -1512,20 +1513,47 @@ export const models = {
     },
 
     /**
-     * Kokoro — a lightweight phoneme-driven Text-to-Speech model. Each entry
-     * bundles the matching model weights, grapheme-to-phoneme assets and the
-     * voices available for that language.
+     * Kokoro — a lightweight phoneme-driven Text-to-Speech model. Each language
+     * entry bundles the matching model weights, grapheme-to-phoneme assets and
+     * the voices available for that language, nested per backend.
      */
     KOKORO: {
-      EN_US: KOKORO_EN_US,
-      EN_GB: KOKORO_EN_GB,
-      ES: KOKORO_ES,
-      FR: KOKORO_FR,
-      IT: KOKORO_IT,
-      PT: KOKORO_PT,
-      HI: KOKORO_HI,
-      PL: KOKORO_PL,
-      DE: KOKORO_DE,
+      EN_US: {
+        ...KOKORO_EN_US_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_EN_US_XNNPACK_FP32,
+      },
+      EN_GB: {
+        ...KOKORO_EN_GB_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_EN_GB_XNNPACK_FP32,
+      },
+      ES: {
+        ...KOKORO_ES_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_ES_XNNPACK_FP32,
+      },
+      FR: {
+        ...KOKORO_FR_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_FR_XNNPACK_FP32,
+      },
+      IT: {
+        ...KOKORO_IT_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_IT_XNNPACK_FP32,
+      },
+      PT: {
+        ...KOKORO_PT_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_PT_XNNPACK_FP32,
+      },
+      HI: {
+        ...KOKORO_HI_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_HI_XNNPACK_FP32,
+      },
+      PL: {
+        ...KOKORO_PL_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_PL_XNNPACK_FP32,
+      },
+      DE: {
+        ...KOKORO_DE_XNNPACK_FP32,
+        XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
+      },
     },
   },
 };

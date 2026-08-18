@@ -17,14 +17,13 @@ import { wrapAsync } from '../../../core/runtime';
 import { RnExecuTorchError } from '../../../core/error';
 import { createPhonemizer, type PhonemizerConfig } from '../utils/phonemizer';
 import { partition } from '../utils/textPartitioner';
+import { repeatInterleave } from '../../math';
 import {
-  isLetter,
   parseVoice,
-  pauseAfter,
-  repeatInterleave,
   scaleDurations,
   stripAudio,
   tokenize,
+  KOKORO_PAUSE_MS,
   KOKORO_TICKS_PER_DURATION as TICKS_PER_DURATION,
   KOKORO_VOICE_REF_SIZE as VOICE_REF_SIZE,
 } from '../utils/kokoroUtils';
@@ -44,6 +43,9 @@ const DEFAULT_SPEED = 1.0;
 const MIN_SPEED = 0.1;
 const MAX_SPEED = 3.0;
 const SILENCE_PADDING_MS = 50; // silence kept at both edges of a synthesized chunk
+
+// Distinguishes spoken phonemes from punctuation and suprasegmental markers.
+const LETTER_PATTERN = /\p{L}/u;
 
 /**
  * Model configuration required to instantiate the Kokoro Text-to-Speech pipeline.
@@ -231,7 +233,14 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     'worklet';
 
     const phonemes = Array.from(chunkPhonemes.trim());
-    const voice = parsedVoices[chunkOpts.voice]!;
+
+    const voice = parsedVoices[chunkOpts.voice];
+    if (!voice) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `synthesize: Unknown voice: ${String(chunkOpts.voice)}.`
+      );
+    }
 
     // 2 tokens are reserved for the leading and trailing padding
     const numTokens = Math.min(Math.max(phonemes.length + 2, minTokens), maxTokens);
@@ -286,7 +295,10 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         scaleDurations(tokenDurations, clampedDuration);
       }
 
-      const indices = repeatInterleave(tokenDurations);
+      // Expand each token index over its predicted duration
+      const tokenIndices = new BigInt64Array(numTokens);
+      for (let i = 0; i < numTokens; i++) tokenIndices[i] = BigInt(i);
+      const indices = repeatInterleave(tokenIndices, tokenDurations);
       if (indices.length === 0) {
         return { audio: new Float32Array(0), sampleRate: KOKORO_SAMPLE_RATE, duration: 0 };
       }
@@ -322,10 +334,11 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       let audio: Float32Array = tAudio.getData(new Float32Array(tAudio.numel));
       audio = audio.subarray(0, Math.min(effectiveDuration * TICKS_PER_DURATION, audio.length));
 
+      const lastPhoneme = phonemes[phonemes.length - 1] ?? '';
+
       if (numTokens > 2) {
         // Skip the trailing PAD token, as well as any punctuation just before it
-        const lastPhoneme = phonemes[phonemes.length - 1] ?? '';
-        const lastTokenIndex = isLetter(lastPhoneme) ? numTokens - 2 : numTokens - 3;
+        const lastTokenIndex = LETTER_PATTERN.test(lastPhoneme) ? numTokens - 2 : numTokens - 3;
 
         let lastTimestamp = 0;
         for (let i = 0; i <= lastTokenIndex; i++) lastTimestamp += tokenDurations[i]!;
@@ -335,7 +348,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
       audio = stripAudio(audio, SILENCE_PADDING_MS * SAMPLES_PER_MS);
 
       // 5. Append a natural pause matching the chunk's ending punctuation
-      const pauseSamples = pauseAfter(phonemes[phonemes.length - 1] ?? '') * SAMPLES_PER_MS;
+      const pauseSamples = (KOKORO_PAUSE_MS[lastPhoneme] ?? 0) * SAMPLES_PER_MS;
       const result = new Float32Array(audio.length + pauseSamples);
       result.set(audio);
 

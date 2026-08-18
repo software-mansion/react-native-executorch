@@ -30,16 +30,18 @@ const VOCAB: Record<string, number> = {
   'ː': 158, 'ʰ': 162, 'ʲ': 164, '↓': 169, '→': 171, '↗': 172, '↘': 173, 'ᵻ': 177
 };
 
-// Silence (in milliseconds) appended after a chunk ending with a given phoneme,
-// so pauses between subsentences sound natural.
+/**
+ * Silence (in milliseconds) appended after a chunk ending with a given phoneme,
+ * so pauses between subsentences sound natural. Phonemes absent from the map
+ * get no pause.
+ * @category Constants
+ */
 // prettier-ignore
-const PAUSE_MS: Record<string, number> = {
+export const KOKORO_PAUSE_MS: Record<string, number> = {
   '.': 375, '?': 500, '!': 250, ';': 400, '…': 600, ',': 130, ':': 250, '-': 200,
   '—': 250, '|': 375, '।': 375, '॥': 500, '¿': 50, '¡': 50,
   '«': 50, '»': 100,
 };
-
-const LETTER_PATTERN = /\p{L}/u;
 
 // Character -> 6-bit value table backing the voice file decoder below.
 const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -104,30 +106,6 @@ export function tokenize(phonemes: string[], totalLength: number): BigInt64Array
 }
 
 /**
- * Checks whether a phoneme is a letter (as opposed to punctuation or a
- * suprasegmental marker).
- * @category Utils
- * @param phoneme The phoneme to test.
- * @returns True when the phoneme is a unicode letter.
- */
-export function isLetter(phoneme: string): boolean {
-  'worklet';
-  return LETTER_PATTERN.test(phoneme);
-}
-
-/**
- * Returns the length of the silence to append after a chunk ending with the
- * given phoneme.
- * @category Utils
- * @param phoneme The last phoneme of a chunk.
- * @returns The pause length in milliseconds.
- */
-export function pauseAfter(phoneme: string): number {
-  'worklet';
-  return PAUSE_MS[phoneme] ?? 0;
-}
-
-/**
  * Scales per-token durations in place so that they sum up exactly to
  * `targetDuration`, distributing the rounding error by largest remainder.
  * @category Utils
@@ -159,27 +137,6 @@ export function scaleDurations(durations: Int32Array, targetDuration: number): v
     const { index } = remainders[i]!;
     durations[index] = durations[index]! + (shrinking ? -1 : 1);
   }
-}
-
-/**
- * Repeats each token index as many times as its predicted duration.
- * @category Utils
- * @param durations The per-token durations.
- * @returns Token indices ready to be written into an `int64` tensor.
- */
-export function repeatInterleave(durations: Int32Array): BigInt64Array {
-  'worklet';
-  let total = 0;
-  for (const duration of durations) total += Math.max(0, duration);
-
-  const indices = new BigInt64Array(total);
-  let next = 0;
-  for (let i = 0; i < durations.length; i++) {
-    const index = BigInt(i);
-    for (let j = 0; j < durations[i]!; j++) indices[next++] = index;
-  }
-
-  return indices;
 }
 
 // Finds the first (or, when scanning in reverse, the last) sample whose moving

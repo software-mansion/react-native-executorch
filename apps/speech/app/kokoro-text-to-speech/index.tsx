@@ -65,7 +65,7 @@ function KokoroContent() {
   const [runError, setRunError] = useState<string | null>(null);
   const [totalDuration, setTotalDuration] = useState<number | null>(null);
 
-  const model = models.textToSpeech.KOKORO[language] as KokoroTtsModel<string>;
+  const model = models.textToSpeech.KOKORO[language].XNNPACK_FP32 as KokoroTtsModel<string>;
   const voiceNames = Object.keys(model.voices);
   const [voice, setVoice] = useState(voiceNames[0]!);
 
@@ -76,7 +76,7 @@ function KokoroContent() {
     useKokoroTextToSpeech(model);
 
   useEffect(() => {
-    setVoice(Object.keys(models.textToSpeech.KOKORO[language].voices)[0]!);
+    setVoice(Object.keys(models.textToSpeech.KOKORO[language].XNNPACK_FP32.voices)[0]!);
     setText(SAMPLE_TEXTS[language]);
   }, [language]);
 

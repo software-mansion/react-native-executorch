@@ -4,16 +4,16 @@ import { RnExecuTorchError } from '../../../core/error';
 declare const phonemizerBrand: unique symbol;
 
 /**
- * List of all (currently) supported languages.
+ * List of all (currently) supported languages in our G2P pipeline.
  */
-export type Language = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
+export type PhonemizerLanguage = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
 
 /**
  * A configuration type compatible with the underlying
  * Phonemis library interface.
  */
 export type PhonemizerConfig = {
-  lang: Language;
+  lang: PhonemizerLanguage;
   taggerSource?: string;
   lexiconSource?: string;
   neuralModelSource?: string;
@@ -26,6 +26,7 @@ export type Phonemizer = {
    */
   phonemize(text: string): string;
 
+  /** Releases the native phonemizer. The instance must not be used afterwards. */
   dispose(): void;
 
   /**
@@ -50,10 +51,5 @@ export function createPhonemizer(config: PhonemizerConfig): Phonemizer {
         "the 'phonemis' lib) to the app's react-native-executorch config and rebuild."
     );
   }
-  return rnexecutorchJsi.speech.createPhonemizer(
-    config.lang,
-    config.taggerSource ?? '',
-    config.lexiconSource ?? '',
-    config.neuralModelSource ?? ''
-  ) as Phonemizer;
+  return rnexecutorchJsi.speech.createPhonemizer(config) as Phonemizer;
 }

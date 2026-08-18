@@ -1,6 +1,7 @@
 #include "phonemizer.h"
 
 #include <format>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -19,23 +20,17 @@ using phonemis::utils::conversions::utf8_to_u32;
 
 PhonemizerHostObject::PhonemizerHostObject(
     const std::string &lang,
-    const std::string &taggerPath,
-    const std::string &lexiconPath,
-    const std::string &neuralModelPath)
+    const std::optional<std::string> &taggerPath,
+    const std::optional<std::string> &lexiconPath,
+    const std::optional<std::string> &neuralModelPath)
     : pipeline_(std::make_unique<phonemis::Pipeline>(phonemis::Config{
           .lang = lang,
-          .tagger = taggerPath.empty()
-                        ? std::optional<phonemis::tagger::Config>{}
-                        : std::make_optional(phonemis::tagger::Config{
-                              .data_filepath = taggerPath}),
+          .tagger = taggerPath ? std::make_optional(phonemis::tagger::Config{.data_filepath = taggerPath})
+                               : std::nullopt,
           .phonemizer = phonemis::phonemizer::Config{
               .lang = lang,
-              .lexicon_filepath = lexiconPath.empty()
-                                      ? std::nullopt
-                                      : std::make_optional(lexiconPath),
-              .nn_model_filepath = neuralModelPath.empty()
-                                       ? std::nullopt
-                                       : std::make_optional(neuralModelPath),
+              .lexicon_filepath = lexiconPath,
+              .nn_model_filepath = neuralModelPath,
           }})) {}
 
 jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
@@ -44,9 +39,7 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
 
     if (nameStr == "phonemize") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &,
-                             const jsi::Value *args,
-                             size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
             if (count != 1) {
                 throw error::InvalidArgument("phonemize: Usage: phonemize(text)");
             }
@@ -65,17 +58,14 @@ jsi::Value PhonemizerHostObject::get(jsi::Runtime &rt,
 
     if (nameStr == "dispose") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value &,
-                             const jsi::Value * /*args*/,
-                             size_t count) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value &, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
                 throw error::InvalidArgument("dispose: Usage: dispose()");
             }
             self->pipeline_.reset();
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(
-            rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "dispose"), 0, error::guarded(fnBody));
     }
 
     return jsi::Value::undefined();
@@ -93,28 +83,27 @@ void install_createPhonemizer(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "createPhonemizer";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &,
                      const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 4) {
-            throw error::InvalidArgument("createPhonemizer: Usage: createPhonemizer(lang, "
-                                         "taggerPath, lexiconPath, neuralPath)");
+        if (count != 1) {
+            throw error::InvalidArgument("createPhonemizer: Usage: createPhonemizer(config)");
         }
 
-        auto lang = conversions::asType<std::string>(rt, "createPhonemizer: lang", args[0]);
-        auto taggerPath = conversions::asType<std::string>(rt, "createPhonemizer: taggerPath", args[1]);
-        auto lexiconPath = conversions::asType<std::string>(rt, "createPhonemizer: lexiconPath", args[2]);
-        auto neuralPath = conversions::asType<std::string>(rt, "createPhonemizer: neuralPath", args[3]);
+        constexpr auto *ctx = "createPhonemizer: config";
+        auto config = conversions::asType<jsi::Object>(rt, ctx, args[0]);
+
+        auto lang = conversions::getRequiredProperty<std::string>(rt, ctx, config, "lang");
+        auto taggerPath = conversions::getOptionalProperty<std::string>(rt, ctx, config, "taggerSource");
+        auto lexiconPath = conversions::getOptionalProperty<std::string>(rt, ctx, config, "lexiconSource");
+        auto neuralPath = conversions::getOptionalProperty<std::string>(rt, ctx, config, "neuralModelSource");
 
         try {
-            auto instance = std::make_shared<PhonemizerHostObject>(
-                lang, taggerPath, lexiconPath, neuralPath);
+            auto instance = std::make_shared<PhonemizerHostObject>(lang, taggerPath, lexiconPath, neuralPath);
             return jsi::Object::createFromHostObject(rt, instance);
         } catch (const std::exception &e) {
             throw error::LoadFailed(std::format("createPhonemizer: {}", e.what()));
         }
     };
 
-    module.setProperty(rt, name,
-                       jsi::Function::createFromHostFunction(
-                           rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::speech
