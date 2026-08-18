@@ -5,9 +5,10 @@ declare const llmRunnerBrand: unique symbol;
 
 /**
  * Configuration options for LLM text generation.
+ * @experimental This API is experimental and might change in future releases.
  * @category Types
  */
-export type GenerationConfig = {
+export type LLMGenerationConfig = {
   /** Whether to echo the prompt in the generated output. */
   readonly echo?: boolean;
   /** Whether to ignore EOS tokens during generation. */
@@ -20,9 +21,10 @@ export type GenerationConfig = {
 
 /**
  * Execution and performance statistics for a generation call.
+ * @experimental This API is experimental and might change in future releases.
  * @category Types
  */
-export type GenerationStats = {
+export type LLMGenerationStats = {
   /** Number of tokens in the input prompt. */
   readonly numPromptTokens: number;
   /** Number of newly generated tokens. */
@@ -41,6 +43,7 @@ export type GenerationStats = {
 
 /**
  * Low-level non-text media input tensor payloads.
+ * @experimental This API is experimental and might change in future releases.
  * @category Types
  */
 export type MediaInput =
@@ -49,18 +52,39 @@ export type MediaInput =
 
 /**
  * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
+ * @experimental This API is experimental and might change in future releases.
  * @category Types
  */
 export type Modality = MediaInput['kind'];
 
 /**
  * Text or interleaved multimodal prompt input for a low-level LLM runner.
+ * @experimental This API is experimental and might change in future releases.
  * @category Types
  */
 export type Prompt = string | readonly (string | MediaInput)[];
 
 /**
+ * Current KV cache state and capacity metrics for an LLM runner.
+ * @experimental This API is experimental and might change in future releases.
+ * @category Types
+ */
+export type LLMKVCacheState = {
+  /** Current token position index / number of occupied tokens in the KV cache. */
+  readonly pos: number;
+  /** Maximum token capacity (context window) supported by the model. */
+  readonly maxSeqLen: number;
+  /** Remaining token capacity before the context window is full. */
+  readonly remainingTokens: number;
+  /** Fraction of the context window currently occupied (0.0 to 1.0). */
+  readonly usageRatio: number;
+};
+
+/**
  * Handle to a native ExecuTorch LLM runner.
+ * @experimental This API is experimental and might change in future releases. It
+ * relies on internal ExecuTorch runtime mechanisms and reflection techniques to
+ * manage KV cache state that may evolve across releases.
  * @category Types
  */
 export type LLMRunner = {
@@ -82,9 +106,16 @@ export type LLMRunner = {
   stop(): void;
 
   /**
-   * Resets the runner KV cache and context start position back to 0.
+   * Resets the runner KV cache. If `targetPos` is provided, sets the KV cache
+   * start position to `targetPos`. Otherwise resets to 0.
+   * @param targetPos Optional token position index to reset to.
    */
-  reset(): void;
+  reset(targetPos?: number): void;
+
+  /**
+   * Returns current KV cache occupancy and total context capacity metrics.
+   */
+  getKVCacheState(): LLMKVCacheState;
 
   /**
    * Prefills the runner with a prompt to build up the KV cache.
@@ -101,9 +132,9 @@ export type LLMRunner = {
    */
   generate(
     prompt: Prompt,
-    config?: GenerationConfig,
+    config?: LLMGenerationConfig,
     onToken?: (token: string) => void
-  ): GenerationStats;
+  ): LLMGenerationStats;
 
   /**
    * Prevents plain JS objects from being cast as LLMRunners.
@@ -114,6 +145,9 @@ export type LLMRunner = {
 
 /**
  * Creates a native ExecuTorch LLM runner instance.
+ * @experimental This API is experimental and might change in future releases. It
+ * relies on internal ExecuTorch runtime mechanisms and reflection techniques to
+ * manage KV cache state that may evolve across releases.
  * @category Typescript API
  * @param modelPath Path to the local `.pte` model file.
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).

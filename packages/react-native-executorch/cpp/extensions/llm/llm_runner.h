@@ -20,8 +20,13 @@
 
 namespace rnexecutorch::extensions::llm {
 /**
- * JSI HostObject wrapping an ExecuTorch LLM runner instance
+ * [EXPERIMENTAL] JSI HostObject wrapping an ExecuTorch LLM runner instance
  * (`executorch::extension::llm::IRunner`).
+ *
+ * @note This implementation is EXPERIMENTAL. It builds upon upstream ExecuTorch
+ * experimental LLM runtime APIs (`ET_EXPERIMENTAL`) and utilizes internal
+ * reflection techniques to manage KV cache write heads and context metrics.
+ * The underlying interfaces and behavior might change across ExecuTorch releases.
  *
  * Exposes methods to JavaScript for prefilling prompt context, generating token
  * stream continuations, interrupting generation, resetting the KV cache context,

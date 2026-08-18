@@ -12,6 +12,7 @@
 #include <cstring>
 #include <format>
 
+#include <executorch/extension/llm/runner/constants.h>
 #include <executorch/extension/llm/runner/llm_runner_helper.h>
 #include <executorch/extension/llm/runner/multimodal_input.h>
 #include <executorch/extension/llm/runner/multimodal_runner.h>
@@ -32,7 +33,135 @@ namespace conversions = rnexecutorch::core::conversions;
 using rnexecutorch::core::types::DType;
 
 namespace {
-jsi::Object statsToJSI(jsi::Runtime &rt, const executorch::extension::llm::Stats &stats) {
+
+// ============================================================================
+// NOTE & ARCHITECTURAL DISCLAIMER:
+// Upstream ExecuTorch's `TextLLMRunner` and `MultimodalRunner` do not expose
+// public getters or setters for:
+//   1. `pos_` (the current write head index in the preallocated KV cache)
+//   2. `prefill_next_token_` (cached token from prefill phase)
+//   3. `metadata_` (unordered map holding context size / max sequence length)
+//
+// Furthermore, the upstream `reset()` method unconditionally clears the KV
+// cache position back to 0. In multi-turn chat sessions and tool-calling flows,
+// we need the ability to rewind the KV cache back to an exact token position
+// (to discard raw/truncated tool calls and re-prefill formatted responses)
+// and inspect context cache utilization without clearing entire buffers.
+//
+// Below, we use the standard ISO C++ explicit template instantiation trick
+// (Herb Sutter GotW #76) to obtain pointer-to-members to private variables in
+// standard-compliant C++ without undefined behavior.
+//
+// COUPLING / MAINTENANCE WARNING:
+// This creates a direct compile-time coupling with the internal implementation
+// details of ExecuTorch's `TextLLMRunner` and `MultimodalRunner`. If upstream
+// ExecuTorch renames or alters `pos_`, `prefill_next_token_`, or `metadata_`,
+// this code will fail to compile and must be adjusted accordingly.
+// ============================================================================
+
+template <typename Tag, auto MemberPtr>
+struct PrivateMemberAccessor {
+    friend constexpr auto getPrivateMember(Tag /*tag*/) { return MemberPtr; }
+};
+
+struct TextRunnerPosTag {};
+struct TextRunnerPrefillTag {};
+struct TextRunnerMetadataTag {};
+
+using executorch::extension::llm::TextLLMRunner;
+
+template struct PrivateMemberAccessor<TextRunnerPosTag, &TextLLMRunner::pos_>;
+constexpr auto getPrivateMember(TextRunnerPosTag /*tag*/);
+
+template struct PrivateMemberAccessor<TextRunnerPrefillTag, &TextLLMRunner::prefill_next_token_>;
+constexpr auto getPrivateMember(TextRunnerPrefillTag /*tag*/);
+
+template struct PrivateMemberAccessor<TextRunnerMetadataTag, &TextLLMRunner::metadata_>;
+constexpr auto getPrivateMember(TextRunnerMetadataTag /*tag*/);
+
+struct MMRunnerPosTag {};
+struct MMRunnerPrefillTag {};
+struct MMRunnerMetadataTag {};
+
+using executorch::extension::llm::MultimodalRunner;
+
+template struct PrivateMemberAccessor<MMRunnerPosTag, &MultimodalRunner::pos_>;
+constexpr auto getPrivateMember(MMRunnerPosTag /*tag*/);
+
+template struct PrivateMemberAccessor<MMRunnerPrefillTag, &MultimodalRunner::prefill_next_token_>;
+constexpr auto getPrivateMember(MMRunnerPrefillTag /*tag*/);
+
+template struct PrivateMemberAccessor<MMRunnerMetadataTag, &MultimodalRunner::metadata_>;
+constexpr auto getPrivateMember(MMRunnerMetadataTag /*tag*/);
+
+int64_t getRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimodal) {
+    if (runner == nullptr) {
+        return 0;
+    }
+    if (!isMultimodal) {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            return r->*getPrivateMember(TextRunnerPosTag{});
+        }
+        return 0;
+    }
+    auto *r = dynamic_cast<MultimodalRunner *>(runner);
+    if (r != nullptr) {
+        return r->*getPrivateMember(MMRunnerPosTag{});
+    }
+    return 0;
+}
+
+int64_t getRunnerMaxSeqLen(executorch::extension::llm::IRunner *runner, bool isMultimodal) {
+    if (runner == nullptr) {
+        return 0;
+    }
+    const std::unordered_map<std::string, int64_t> *meta = nullptr;
+    if (!isMultimodal) {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            meta = &(r->*getPrivateMember(TextRunnerMetadataTag{}));
+        }
+    } else {
+        auto *r = dynamic_cast<MultimodalRunner *>(runner);
+        if (r != nullptr) {
+            meta = &(r->*getPrivateMember(MMRunnerMetadataTag{}));
+        }
+    }
+    if (meta == nullptr) {
+        return 0;
+    }
+    auto it = meta->find(executorch::extension::llm::kMaxSeqLen);
+    if (it != meta->end()) {
+        return it->second;
+    }
+    it = meta->find(executorch::extension::llm::kMaxContextLen);
+    if (it != meta->end()) {
+        return it->second;
+    }
+    return 0;
+}
+
+void setRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimodal, int64_t targetPos) {
+    if (runner == nullptr) {
+        return;
+    }
+    if (!isMultimodal) {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            r->*getPrivateMember(TextRunnerPosTag{}) = targetPos;
+            r->*getPrivateMember(TextRunnerPrefillTag{}) = std::nullopt;
+        }
+    } else {
+        auto *r = dynamic_cast<MultimodalRunner *>(runner);
+        if (r != nullptr) {
+            r->*getPrivateMember(MMRunnerPosTag{}) = targetPos;
+            r->*getPrivateMember(MMRunnerPrefillTag{}) = std::nullopt;
+        }
+    }
+}
+
+jsi::Object statsToJs(jsi::Runtime &rt, const executorch::extension::llm::Stats &stats) {
     jsi::Object obj(rt);
     obj.setProperty(rt, "numPromptTokens", static_cast<double>(stats.num_prompt_tokens));
     obj.setProperty(rt, "numGeneratedTokens", static_cast<double>(stats.num_generated_tokens));
@@ -231,7 +360,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 throw error::ExecutionFailed(std::format("LLMRunner.generate: Failed to generate: {}", errorMsg), genError);
             }
 
-            return statsToJSI(rt, *finalStats);
+            return statsToJs(rt, *finalStats);
         };
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "generate"), 1, error::guarded(fnBody));
     }
@@ -275,19 +404,45 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "stop"), 0, error::guarded(fnBody));
     }
 
+    if (nameStr == "getKVCacheState") {
+        auto self = shared_from_this();
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t /*count*/) -> jsi::Value {
+            auto lock = self->tryLockUnique("LLMRunner.getKVCacheState");
+
+            bool isMultimodal = !self->modalities_.empty();
+            int64_t pos = getRunnerPos(self->runner_.get(), isMultimodal);
+            int64_t maxSeqLen = getRunnerMaxSeqLen(self->runner_.get(), isMultimodal);
+            int64_t remaining = std::max<int64_t>(0, maxSeqLen - pos);
+            double usageRatio = maxSeqLen > 0 ? static_cast<double>(pos) / static_cast<double>(maxSeqLen) : 0.0;
+
+            jsi::Object obj(rt);
+            obj.setProperty(rt, "pos", static_cast<double>(pos));
+            obj.setProperty(rt, "maxSeqLen", static_cast<double>(maxSeqLen));
+            obj.setProperty(rt, "remainingTokens", static_cast<double>(remaining));
+            obj.setProperty(rt, "usageRatio", usageRatio);
+            return obj;
+        };
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "getKVCacheState"), 0, error::guarded(fnBody));
+    }
+
     if (nameStr == "reset") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
-            if (count != 0) {
-                throw error::InvalidArgument("LLMRunner.reset: Usage: reset()");
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+            if (count > 1) {
+                throw error::InvalidArgument("LLMRunner.reset: Usage: reset(targetPos?)");
             }
 
             auto lock = self->tryLockUnique("LLMRunner.reset");
-            (*self->runner_).reset();
+            if (count == 0 || args[0].isUndefined()) {
+                (*self->runner_).reset();
+            } else {
+                auto targetPos = static_cast<int64_t>(conversions::asType<uint64_t>(rt, "LLMRunner.reset", args[0]));
+                setRunnerPos(self->runner_.get(), !self->modalities_.empty(), targetPos);
+            }
 
             return jsi::Value::undefined();
         };
-        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "reset"), 0, error::guarded(fnBody));
+        return jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, "reset"), 1, error::guarded(fnBody));
     }
 
     if (nameStr == "dispose") {
@@ -324,6 +479,7 @@ std::vector<jsi::PropNameID> LLMRunnerHostObject::getPropertyNames(jsi::Runtime 
     properties.push_back(jsi::PropNameID::forAscii(rt, "prefill"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "generate"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "stop"));
+    properties.push_back(jsi::PropNameID::forAscii(rt, "getKVCacheState"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "reset"));
     properties.push_back(jsi::PropNameID::forAscii(rt, "dispose"));
     return properties;
