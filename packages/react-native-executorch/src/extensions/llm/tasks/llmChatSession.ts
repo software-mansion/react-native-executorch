@@ -217,7 +217,7 @@ export async function createLLMChatSession(
     history.push(...initialMessages);
     const prompt = chatPreprocessor.process(history, history.length, { addGenPrompt: false });
     await prefill(prompt);
-    chatPreprocessor.reset();
+    chatPreprocessor.clear();
     committed = history.length;
   }
 
@@ -252,7 +252,7 @@ export async function createLLMChatSession(
     const toCommit = history.length - committed;
     const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
     await prefill(userPrompt);
-    chatPreprocessor.reset();
+    chatPreprocessor.clear();
 
     // Record exact position at the end of the user message (before assistant generation header)
     const posAtEndOfUser = runner.getKVCacheState().pos;
@@ -263,7 +263,7 @@ export async function createLLMChatSession(
       const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
       const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
-      chatPreprocessor.reset();
+      chatPreprocessor.clear();
       generationStatsList.push(stats);
 
       // Always rewind KV cache back to posAtEndOfUser so next turn prefills
@@ -314,7 +314,7 @@ export async function createLLMChatSession(
     if (uncommitted > 0) {
       const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: false });
       await prefill(prompt);
-      chatPreprocessor.reset();
+      chatPreprocessor.clear();
       committed = history.length;
     }
 
