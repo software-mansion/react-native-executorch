@@ -246,10 +246,19 @@ function prepareStringMessages(
         textMsg = { role: msg.role, content: text };
         break;
       case 'assistant':
-        textMsg = { role: msg.role, content: text, tool_calls: msg.toolCalls };
+        textMsg = {
+          role: msg.role,
+          content: text,
+          ...(msg.toolCalls && { tool_calls: msg.toolCalls }),
+        };
         break;
       case 'tool':
-        textMsg = { role: msg.role, content: text, tool_call_id: msg.toolCallId, name: msg.name };
+        textMsg = {
+          role: msg.role,
+          content: text,
+          ...(msg.toolCallId && { tool_call_id: msg.toolCallId }),
+          ...(msg.name && { name: msg.name }),
+        };
         break;
     }
     /* eslint-enable camelcase */
