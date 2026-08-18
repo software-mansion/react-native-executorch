@@ -5,12 +5,13 @@ import { wrapAsync } from '../../../core/runtime';
 import {
   createLLMRunner,
   type LLMRunner,
-  type GenerationConfig,
-  type GenerationStats,
+  type LLMKVCacheState,
+  type LLMGenerationConfig,
+  type LLMGenerationStats,
   type Modality,
   type Prompt,
 } from '../llmRunner';
-import { parseTokenizerConfig } from '../tokenizerConfig';
+import { parseTokenizerConfig } from '../utils/tokenizerConfig';
 import {
   createChatPreprocessor,
   type ChatMediaInput,
@@ -19,11 +20,13 @@ import {
   type LLMImagePreprocessorConfig,
   type LLMAudioPreprocessorConfig,
   type LLMMediaPreprocessorConfig,
-} from '../chatPreprocessor';
+} from '../utils/chatPreprocessor';
+import { type ToolDefinition, type ToolCall, type ToolParser } from '../utils/toolCalling';
 
 export type {
-  GenerationConfig,
-  GenerationStats,
+  LLMKVCacheState,
+  LLMGenerationConfig,
+  LLMGenerationStats,
   Modality,
   ChatMediaInput,
   ChatMessageContent,
@@ -31,6 +34,9 @@ export type {
   LLMImagePreprocessorConfig,
   LLMAudioPreprocessorConfig,
   LLMMediaPreprocessorConfig,
+  ToolDefinition,
+  ToolCall,
+  ToolParser,
 };
 
 /**
@@ -51,25 +57,47 @@ export type LLMModel = {
 };
 
 /**
+ * Configuration options for tool calling in an LLM chat session.
+ * @category Types
+ */
+export type LLMToolOpts = {
+  /** Tool definitions available to the model. */
+  readonly tools: readonly ToolDefinition[];
+  /** Parser function to extract tool calls from generated output. */
+  readonly parseToolCalls: ToolParser;
+  /** Maximum consecutive tool execution turns to prevent runaway loops. Defaults to `5`. */
+  readonly maxToolTurns?: number;
+};
+
+/**
  * Options for configuring an LLM chat session.
  * @category Types
  */
 export type LLMChatSessionOptions = {
+  /** Default generation configuration options. */
+  readonly generationConfig?: LLMGenerationConfig;
   /** Initial conversation history to prefill into the model KV cache. */
   readonly initialMessages?: readonly ChatMessage[];
-  /** Default generation configuration options. */
-  readonly generationConfig?: GenerationConfig;
+  /** Optional regex pattern used to stop generation early when matched. */
+  readonly stopRegex?: RegExp;
+  /** Tool calling configuration options. */
+  readonly toolOpts?: LLMToolOpts;
+  /**
+   * When true, disables append-only KV cache diffing and resets/prefills the
+   * runner on every turn. Defaults to `false`.
+   */
+  readonly resetOnTurn?: boolean;
 };
 
 /**
- * Generation result returned by an LLM chat turn.
+ * Result returned by an LLM chat turn.
  * @category Types
  */
-export type LLMGenerationResult = {
-  /** The generated assistant response text. */
-  readonly response: ChatMessageContent;
-  /** Generation performance statistics. */
-  readonly stats: GenerationStats;
+export type LLMChatTurnResult = {
+  /** The messages added to history during this chat turn. */
+  readonly messages: readonly ChatMessage[];
+  /** Generation performance statistics for each generation step in this turn. */
+  readonly stats: readonly LLMGenerationStats[];
 };
 
 /**
@@ -83,47 +111,55 @@ export type LLMChatSession = {
   stop(): void;
 
   /**
-   * Releases native model memory and preprocessor resources.
+   * Disposes native model weights, KV cache, and tokenizer runtime resources.
    */
   dispose(): void;
 
   /**
-   * Returns the read-only conversation message history.
+   * Returns a snapshot of the current message history in the session.
    */
   getHistory(): readonly ChatMessage[];
 
   /**
+   * Returns current KV cache occupancy and total capacity statistics for the session runner.
+   */
+  getKVCacheState(): LLMKVCacheState;
+
+  /**
    * Sends a user message or chat turn to the model and generates a response.
-   * @param message Message string, media payload array, or ChatMessage object.
+   * @param message Message string or interleaved media payload array.
    * @param onToken Callback fired on the RN thread for each decoded token.
    * @param genConfig Generation options overriding session defaults.
-   * @returns A promise resolving to the response and generation stats.
+   * @returns A promise resolving to the generated messages and turn stats.
    */
   sendMessage(
-    message: ChatMessageContent | ChatMessage,
+    message: ChatMessageContent,
     onToken?: (token: string) => void,
-    genConfig?: GenerationConfig
-  ): Promise<LLMGenerationResult>;
+    genConfig?: LLMGenerationConfig
+  ): Promise<LLMChatTurnResult>;
 };
 
 function generateChatTurnWorklet(
   runner: LLMRunner,
   prompt: Prompt,
   options: {
-    readonly genConfig: GenerationConfig;
+    readonly genConfig: LLMGenerationConfig;
     readonly eosToken: string;
+    readonly stopRegex?: RegExp;
     readonly onToken?: (token: string) => void;
   }
-): LLMGenerationResult {
+): { readonly response: string; readonly stats: LLMGenerationStats } {
   'worklet';
-  const { genConfig, eosToken, onToken } = options;
+  const { genConfig, eosToken, stopRegex, onToken } = options;
 
   let response = '';
 
   const callback = (token: string) => {
     if (token === eosToken) return;
     response += token;
+
     if (onToken) scheduleOnRN(onToken, token);
+    if (stopRegex?.test(response)) runner.stop();
   };
 
   const stats = runner.generate(prompt, genConfig, callback);
@@ -131,87 +167,158 @@ function generateChatTurnWorklet(
   return { response, stats };
 }
 
+const DEFAULT_MAX_TURNS = 5;
+
 /**
  * Instantiates an LLM chat session using background thread execution.
  * @category Typescript API
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
- * @param options Custom generation and state options.
+ * @param options Custom generation, tool calling, and state options.
  * @param runtime The worklet runtime thread to run native generation on.
  * @returns A Promise resolving to an LLMChatSession instance.
  */
 export async function createLLMChatSession(
   config: LLMModel,
-  options?: LLMChatSessionOptions,
+  options: LLMChatSessionOptions = {},
   runtime?: WorkletRuntime
 ): Promise<LLMChatSession> {
-  const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } = config;
+  const {
+    generationConfig: defaultGenerationConfig,
+    initialMessages = [],
+    stopRegex,
+    toolOpts,
+    resetOnTurn = false,
+  } = options;
 
-  const initialMessages = options?.initialMessages ?? [];
-  const defaultGenerationConfig = options?.generationConfig;
+  const { modelPath, tokenizerPath, tokenizerConfigPath, modalities, preprocessorConfig } = config;
+  const { tools, parseToolCalls, maxToolTurns = DEFAULT_MAX_TURNS } = toolOpts ?? {};
 
   // Read and parse tokenizer_config.json
   const tokenizerConfigStr = await RNBlobUtil.fs.readFile(tokenizerConfigPath, 'utf8');
   const tokenizerConfig = parseTokenizerConfig(JSON.parse(tokenizerConfigStr));
-  const { chatTemplate, bosToken, eosToken } = tokenizerConfig;
+  const { chatTemplate, eosToken } = tokenizerConfig;
 
   // Prepare chat preprocessor
-  const chatPreprocessor = createChatPreprocessor({
-    chatTemplate,
-    bosToken,
-    eosToken,
-    modalities,
-    preprocessorConfig,
-  });
+  const chatPreprocessorConfig = { chatTemplate, modalities, preprocessorConfig, tools };
+  const chatPreprocessor = createChatPreprocessor(chatPreprocessorConfig);
 
   // Prepare runner
-  const history: ChatMessage[] = [];
   const runner = await wrapAsync(createLLMRunner, runtime)(modelPath, tokenizerPath, modalities);
   const prefill = wrapAsync(runner.prefill, runtime);
 
-  // Prefill initial messages
-  for (const msg of initialMessages) {
-    await prefill(
-      chatPreprocessor.process(msg, {
-        isFirstTurn: history.length === 0,
-        addGenerationPrompt: false,
-      })
-    );
-    history.push(msg);
+  const history: ChatMessage[] = [];
+
+  // Tracks the number of messages in `history` whose tokens and closing
+  // delimiters have been permanently prefilled and committed into the runner's KV cache.
+  let committed = 0;
+
+  // Prefill initial messages if provided
+  if (initialMessages.length > 0) {
+    history.push(...initialMessages);
+    const prompt = chatPreprocessor.process(history, history.length, { addGenPrompt: false });
+    await prefill(prompt);
+    chatPreprocessor.reset();
+    committed = history.length;
   }
 
-  const stop = () => runner.stop();
   const dispose = () => {
     runner.dispose();
     chatPreprocessor.dispose();
   };
 
+  const stop = () => runner.stop();
+
   const generateChatTurn = wrapAsync(generateChatTurnWorklet, runtime);
 
   const sendMessage = async (
-    message: ChatMessageContent | ChatMessage,
+    message: ChatMessageContent,
     onToken?: (token: string) => void,
-    genConfig?: GenerationConfig
-  ): Promise<LLMGenerationResult> => {
-    let input: ChatMessage;
-    if (typeof message === 'object' && 'role' in message) {
-      input = message;
-    } else {
-      input = { role: 'user', content: message };
+    genConfig?: LLMGenerationConfig
+  ): Promise<LLMChatTurnResult> => {
+    const turnGenConfig = { ...defaultGenerationConfig, ...genConfig };
+    const generationOpts = { genConfig: turnGenConfig, eosToken, stopRegex, onToken };
+
+    const turnStartIdx = history.length;
+    const generationStatsList: LLMGenerationStats[] = [];
+
+    history.push({ role: 'user', content: message });
+
+    if (resetOnTurn) {
+      runner.reset();
+      committed = 0;
     }
 
-    const prompt = chatPreprocessor.process(input, {
-      isFirstTurn: history.length === 0,
-      addGenerationPrompt: true,
-    });
+    // Prefill newly committed messages up to current user message without generation prompt
+    const toCommit = history.length - committed;
+    const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
+    await prefill(userPrompt);
+    chatPreprocessor.reset();
 
-    history.push(input);
+    // Record exact position at the end of the user message (before assistant generation header)
+    const posAtEndOfUser = runner.getKVCacheState().pos;
+    committed = history.length;
 
-    const opts = { genConfig: { ...defaultGenerationConfig, ...genConfig }, eosToken, onToken };
-    const { response, stats } = await generateChatTurn(runner, prompt, opts);
+    for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
+      const uncommitted = history.length - committed;
+      const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
-    history.push({ role: 'assistant', content: response });
+      const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
+      chatPreprocessor.reset();
+      generationStatsList.push(stats);
 
-    return { response, stats };
+      // Always rewind KV cache back to posAtEndOfUser so next turn prefills
+      // cleanly formatted message with tool outputs
+      runner.reset(posAtEndOfUser);
+
+      // Check for tool calls
+      const parsedTools = parseToolCalls?.(response);
+
+      if (!parsedTools || parsedTools.toolCalls.length === 0) {
+        history.push({ role: 'assistant', content: response });
+        break;
+      }
+
+      // Execute tool calls
+      history.push({
+        role: 'assistant',
+        content: parsedTools.textContent,
+        toolCalls: parsedTools.toolCalls,
+      });
+
+      for (const toolCall of parsedTools.toolCalls) {
+        const tool = tools?.find((t) => t.function.name === toolCall.function.name);
+
+        let toolContent: ChatMessageContent;
+        if (!tool) {
+          toolContent = `Error: Tool '${toolCall.function.name}' is not recognized or not available.`;
+        } else {
+          try {
+            toolContent = await tool.execute(toolCall.function.arguments);
+          } catch (err) {
+            toolContent = `Error executing tool ${toolCall.function.name}: ${String(err)}`;
+          }
+        }
+
+        history.push({
+          role: 'tool',
+          toolCallId: toolCall.id,
+          name: toolCall.function.name,
+          content: toolContent,
+        });
+      }
+    }
+
+    // Prefill all uncommitted assistant & tool messages so KV cache contains
+    // full closed conversation
+    const uncommitted = history.length - committed;
+    if (uncommitted > 0) {
+      const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: false });
+      await prefill(prompt);
+      chatPreprocessor.reset();
+      committed = history.length;
+    }
+
+    return { messages: history.slice(turnStartIdx), stats: generationStatsList };
   };
 
   return {
@@ -219,5 +326,6 @@ export async function createLLMChatSession(
     dispose,
     sendMessage,
     getHistory: () => [...history],
+    getKVCacheState: () => runner.getKVCacheState(),
   };
 }

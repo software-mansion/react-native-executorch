@@ -35,6 +35,7 @@ export function useLLMChatSession(
     resource,
     sendMessage: session?.sendMessage,
     getHistory: session?.getHistory,
+    getKVCacheState: session?.getKVCacheState,
     stop: session?.stop,
   };
 }

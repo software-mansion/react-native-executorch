@@ -950,7 +950,7 @@ const LFM2_5_350M_MLX_INT4: LLMModel = {
 
 const LFM2_5_VL_PREPROCESSOR_CONFIG = {
   image: {
-    token: { start: '<|image_start|>', end: '<|image_end|>' },
+    visionToken: { start: '<|image_start|>', end: '<|image_end|>' },
     targetShape: [3, 512, 512] as const,
     preprocessorOpts: {
       resizeMode: 'letterbox' as const,

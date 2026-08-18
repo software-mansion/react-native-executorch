@@ -1,4 +1,4 @@
-import { RnExecuTorchError } from '../../core/error';
+import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Model chat template configuration resolved from tokenizer config file.
