@@ -48,9 +48,10 @@ namespace {
 // (to discard raw/truncated tool calls and re-prefill formatted responses)
 // and inspect context cache utilization without clearing entire buffers.
 //
-// Below, we use the standard ISO C++ explicit template instantiation trick
-// (Herb Sutter GotW #76) to obtain pointer-to-members to private variables in
-// standard-compliant C++ without undefined behavior.
+// Below, we use standard ISO C++ friend injection via explicit template
+// instantiation ([temp.explicit] / Herb Sutter GotW #76) to define injected
+// member-pointer accessors for private runner variables in standard-compliant
+// C++ without undefined behavior.
 //
 // COUPLING / MAINTENANCE WARNING:
 // This creates a direct compile-time coupling with the internal implementation

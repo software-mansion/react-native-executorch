@@ -83,8 +83,8 @@ export type LLMKVCacheState = {
 /**
  * Handle to a native ExecuTorch LLM runner.
  * @experimental This API is experimental and might change in future releases. It
- * relies on internal ExecuTorch runtime mechanisms and reflection techniques to
- * manage KV cache state that may evolve across releases.
+ * relies on experimental ExecuTorch runtime extensions and injected member-pointer
+ * accessors to manage KV cache state that may evolve across releases.
  * @category Types
  */
 export type LLMRunner = {
@@ -146,8 +146,8 @@ export type LLMRunner = {
 /**
  * Creates a native ExecuTorch LLM runner instance.
  * @experimental This API is experimental and might change in future releases. It
- * relies on internal ExecuTorch runtime mechanisms and reflection techniques to
- * manage KV cache state that may evolve across releases.
+ * relies on experimental ExecuTorch runtime extensions and injected member-pointer
+ * accessors to manage KV cache state that may evolve across releases.
  * @category Typescript API
  * @param modelPath Path to the local `.pte` model file.
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).

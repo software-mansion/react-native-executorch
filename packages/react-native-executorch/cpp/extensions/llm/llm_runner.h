@@ -24,8 +24,8 @@ namespace rnexecutorch::extensions::llm {
  * (`executorch::extension::llm::IRunner`).
  *
  * @note This implementation is EXPERIMENTAL. It builds upon upstream ExecuTorch
- * experimental LLM runtime APIs (`ET_EXPERIMENTAL`) and utilizes internal
- * reflection techniques to manage KV cache write heads and context metrics.
+ * experimental LLM runtime APIs (`ET_EXPERIMENTAL`) and leverages friend injection
+ * via explicit template instantiation to manage KV cache write heads and context metrics.
  * The underlying interfaces and behavior might change across ExecuTorch releases.
  *
  * Exposes methods to JavaScript for prefilling prompt context, generating token
