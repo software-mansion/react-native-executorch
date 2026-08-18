@@ -2,6 +2,7 @@
 import { Platform } from 'react-native';
 import RNBlobUtil from 'react-native-blob-util';
 import * as telemetry from './telemetry';
+import NativeRnExecutorch, { type DownloadProgressEvent } from '../native/NativeRnExecutorch';
 import { RnExecuTorchError } from '../core/error';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -25,8 +26,9 @@ export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
   onProgress?: (progress: number) => void;
   /**
-   * Aborts the download. On iOS the bytes fetched so far are kept on disk so a
-   * later {@link download} of the same source resumes instead of restarting.
+   * Aborts the download. The bytes fetched so far are kept, so a later
+   * {@link download} of the same source continues from where this one stopped
+   * instead of starting over.
    */
   signal?: AbortSignal;
   /**
@@ -96,29 +98,6 @@ const incompleteError = (url: string, got: number, want: number) =>
 // match on the DOWNLOAD_ABORTED code via isRnExecuTorchError.
 const abortError = () => RnExecuTorchError('DOWNLOAD_ABORTED', 'The download was aborted.');
 
-// Folds an interrupted resume's bytes into the partial file so they survive.
-//
-// A resumed range lands in a separate chunk file that is normally merged once
-// the transfer completes. Without this, cancelling a resumed download threw the
-// chunk away, so a model interrupted at 98% restarted from whatever the last
-// COMPLETED attempt had left — re-fetching hundreds of MB it already had.
-//
-// Appending is safe precisely because a 206 body starts at `offset`: the chunk
-// is a prefix of the missing tail, so partial + chunk is a valid, longer prefix
-// of the file. That also holds if the append itself only got partway, since it
-// copies sequentially. A body that is NOT partial content starts at byte 0 and
-// must be dropped instead.
-async function foldResumedChunkIntoPartial(
-  part: string,
-  chunkPath: string,
-  status: number
-): Promise<void> {
-  if (status === 206 && (await fileSize(chunkPath)) > 0) {
-    await RNBlobUtil.fs.appendFile(part, chunkPath, 'uri').catch(() => {});
-  }
-  await RNBlobUtil.fs.unlink(chunkPath).catch(() => {});
-}
-
 // DownloadManager's byte counter is 64-bit, but blob-util reads it out of the
 // cursor with `getInt`, so what reaches JS is the low 32 bits reinterpreted as
 // a signed int: past 2 GB it arrives NEGATIVE and wraps every 4 GB after that.
@@ -168,6 +147,10 @@ interface InFlightDownload {
 
 const inFlight = new Map<string, InFlightDownload>();
 
+// Makes each native download task id unique, so a URL fetched again after an
+// abort doesn't collide with the progress events of the attempt before it.
+let downloadTaskCounter = 0;
+
 // Downloads a single remote file into the cache, dispatching to the
 // platform-appropriate backend. Returns the local path.
 //
@@ -185,6 +168,13 @@ async function downloadUrl(url: string, cb: DownloadUrlCallbacks): Promise<strin
     // A download already in flight hasn't written `dest` yet, so joining it
     // still yields freshly fetched bytes.
     await RNBlobUtil.fs.unlink(dest).catch(() => {});
+    // On iOS a half-finished attempt also leaves a staged file and the resume
+    // state pointing at it; both have to go, or "download it again" would just
+    // continue the attempt the caller is trying to replace.
+    if (!IS_ANDROID) {
+      await RNBlobUtil.fs.unlink(`${dest}.partial`).catch(() => {});
+      await NativeRnExecutorch.resetDownload(`${dest}.partial`).catch(() => {});
+    }
   } else if (await RNBlobUtil.fs.exists(dest)) {
     // Cache hit — nothing to download.
     const size = await fileSize(dest);
@@ -230,7 +220,7 @@ async function startDownload(url: string, dest: string, entry: InFlightDownload)
 
   const path = IS_ANDROID
     ? await downloadUrlViaAndroidDownloadManager(url, dest, cb)
-    : await downloadUrlViaIosStream(url, dest, cb);
+    : await downloadUrlViaIosBackgroundSession(url, dest, cb);
 
   // Neither backend is guaranteed to emit a last sample at 100%: blob-util
   // throttles progress events, and DownloadManager is polled, so the final
@@ -328,172 +318,65 @@ async function downloadUrlViaAndroidDownloadManager(
   return dest;
 }
 
-// iOS backend: blob-util streams via the iOS URL session straight to disk.
-// Interrupted downloads resume from a `.partial` file via an HTTP Range request.
-// `canResume` is set to `false` on an internal retry to avoid recursing forever
-// if partial-file assembly ever fails.
-async function downloadUrlViaIosStream(
+// iOS backend: a background NSURLSession in the native module.
+//
+// The obvious implementation, streaming in-process through blob-util, cannot
+// work: measured on device, suspending the app tore the connection down within
+// a second, 43 MB into a 314 MB file. A background session kept the same
+// transfer running for as long as it was left alone. Since iOS only offers
+// background transfers as DOWNLOAD tasks, which stage into their own file and
+// hand it over whole at the end, there is no partially written file to append
+// to and an interrupted transfer continues through NSURLSession's resume data
+// instead of through an HTTP Range request. That state is kept on disk next to
+// the file, so it survives the app being killed rather than merely suspended.
+async function downloadUrlViaIosBackgroundSession(
   url: string,
   dest: string,
-  cb: DownloadUrlCallbacks,
-  canResume = true
+  cb: DownloadUrlCallbacks
 ): Promise<string> {
   const part = `${dest}.partial`;
-  if (!canResume) await RNBlobUtil.fs.unlink(part).catch(() => {});
-  const offset = canResume ? await fileSize(part) : 0;
+  const expected = await expectedBytesFor(url, cb.expectedBytes);
 
-  // Resumed byte ranges land in a separate chunk file that we append onto the
-  // partial; fresh downloads stream straight into the partial.
-  const target = offset > 0 ? `${dest}.chunk` : part;
-  await RNBlobUtil.fs.unlink(target).catch(() => {}); // clear any stale chunk
-
-  const headers: Record<string, string> = {};
-  if (offset > 0) headers.Range = `bytes=${offset}-`;
+  // A transfer that finished while the app was not running was moved here by
+  // the session with no caller left to promote it. Finish that job rather than
+  // fetching the whole file again.
+  if (expected > 0 && (await fileSize(part)) === expected) {
+    await RNBlobUtil.fs.mv(part, dest);
+    cb.onBytes?.(expected, expected);
+    return dest;
+  }
 
   if (cb.signal?.aborted) throw abortError();
 
-  const task = RNBlobUtil.config({ path: target, fileCache: true }).fetch('GET', url, headers);
-  const onAbort = () => task.cancel();
+  const taskId = `${url}#${++downloadTaskCounter}`;
+  const subscription = NativeRnExecutorch.onDownloadProgress((event: DownloadProgressEvent) => {
+    if (event.taskId !== taskId) return;
+    cb.onBytes?.(event.written, event.total);
+  });
+
+  const onAbort = () => {
+    // Keeps the fetched bytes as resume data instead of discarding them.
+    NativeRnExecutorch.cancelDownload(taskId);
+  };
   cb.signal?.addEventListener('abort', onAbort);
 
-  // The response status arrives with the headers, well before the body is done.
-  // An interrupted transfer never resolves, so this is the only way to know
-  // whether the bytes on disk are a resumable 206 tail. `stateChange` is real
-  // (it delivers the same payload as `res.info()`) but missing from blob-util's
-  // typings, hence the cast.
-  let earlyStatus = 0;
-  (
-    task as unknown as { stateChange: (fn: (info: { status?: number }) => void) => void }
-  ).stateChange((info) => {
-    earlyStatus = Number(info?.status) || 0;
-  });
-
-  // A resume starts with `offset` bytes already on disk. Say so before the
-  // first byte of the tail arrives, so continuing a 90%-complete download
-  // doesn't show the bar restarting from zero.
-  if (offset > 0 && cb.expectedBytes && cb.expectedBytes > offset) {
-    cb.onBytes?.(offset, cb.expectedBytes);
-  }
-
-  // Same granularity as Android. blob-util still floors the rate at one event
-  // per 250 ms, so this only means a large file advances in ~1% steps instead
-  // of the 5% ones that made a multi-GB download look stalled between jumps.
-  task.progress({ count: 100 }, (received, total) => {
-    const recv = Number(received);
-    const tot = Number(total);
-    // A response with no Content-Length reports `written: 0, total: -1` on a
-    // timer; forwarding it would drag this file's progress back to zero.
-    if (tot <= 0) return;
-    cb.onBytes?.(offset + recv, offset + tot);
-  });
-
-  let status: number;
   try {
-    const res = await task;
-    status = res.info().status;
+    await NativeRnExecutorch.startDownload(taskId, url, part);
   } catch (e) {
-    // Network drop / cancel. A fresh download streamed straight into the
-    // partial and is already durable; a resumed one has its bytes in the chunk
-    // file, so fold them in rather than losing them.
-    if (offset > 0) await foldResumedChunkIntoPartial(part, target, earlyStatus);
-    throw cb.signal?.aborted ? abortError() : e;
+    if (cb.signal?.aborted) throw abortError();
+    const message = e instanceof Error ? e.message : String(e);
+    throw RnExecuTorchError('DOWNLOAD_FAILED', `Download of ${url} failed: ${message}`);
   } finally {
+    subscription.remove();
     cb.signal?.removeEventListener('abort', onAbort);
   }
 
-  // A cancel can surface as a RESOLVED task holding a partial body rather than
-  // as a rejection, so check the signal before interpreting anything. This is
-  // an abort, not a failure (callers ignore DOWNLOAD_ABORTED), and the bytes
-  // that did arrive are kept for the next resume.
-  if (cb.signal?.aborted) {
-    if (offset > 0) await foldResumedChunkIntoPartial(part, target, status);
-    throw abortError();
-  }
-
-  const expected = await expectedBytesFor(url, cb.expectedBytes);
-
-  // Whether the response body is a tail or the whole file is decided by the
-  // BYTE COUNTS rather than by `status` alone, so a range the server answers in
-  // an unexpected way cannot mis-assemble the pieces.
-  let restart = false;
-
-  try {
-    if (status >= 400 && status !== 416) {
-      await RNBlobUtil.fs.unlink(target).catch(() => {});
-      throw RnExecuTorchError(
-        'DOWNLOAD_FAILED',
-        `Download of ${url} failed with HTTP status ${status}.`
-      );
-    } else if (offset > 0) {
-      const chunk = await fileSize(target);
-
-      if (expected > 0 && chunk === expected) {
-        // The whole file came back (range ignored, or a 416 we can't trust).
-        await RNBlobUtil.fs.unlink(part).catch(() => {});
-        await RNBlobUtil.fs.mv(target, part);
-      } else if (expected > 0 && offset + chunk === expected) {
-        // A proper tail: append it and confirm the bytes actually landed.
-        //
-        // `appendFile` takes a PATH, not a URL. blob-util passes the string
-        // straight to NSInputStream, so a `file://` prefix makes the stream fail
-        // to open and the call resolves having copied NOTHING — which is what
-        // silently truncated cached models before this fix.
-        await RNBlobUtil.fs.appendFile(part, target, 'uri');
-        await RNBlobUtil.fs.unlink(target).catch(() => {});
-        const merged = await fileSize(part);
-        if (merged !== expected) {
-          throw new Error(`resume append wrote ${merged - offset} of ${chunk} bytes`);
-        }
-      } else if (expected > 0) {
-        // The pieces don't reconcile — a stale offset, an empty tail, or a
-        // range served against a different body. Nothing here is salvageable,
-        // so fall back to one clean full download.
-        restart = true;
-      } else {
-        // Length unknown: keep the pre-existing behavior and trust the status.
-        if (status === 206) {
-          await RNBlobUtil.fs.appendFile(part, target, 'uri');
-          await RNBlobUtil.fs.unlink(target).catch(() => {});
-        } else if (status !== 416) {
-          await RNBlobUtil.fs.unlink(part).catch(() => {});
-          await RNBlobUtil.fs.mv(target, part);
-        } else {
-          await RNBlobUtil.fs.unlink(target).catch(() => {});
-        }
-      }
-    }
-  } catch (assemblyErr) {
-    // A `4xx` we deliberately threw must propagate as-is.
-    if (status >= 400 && status !== 416) throw assemblyErr;
-    // Assembling the partial failed (e.g. append unsupported). Wipe and retry
-    // once as a plain full download so correctness never depends on resume.
-    await RNBlobUtil.fs.unlink(part).catch(() => {});
-    await RNBlobUtil.fs.unlink(target).catch(() => {});
-    if (canResume) return downloadUrlViaIosStream(url, dest, cb, false);
-    throw assemblyErr;
-  }
-
-  if (restart) {
-    await RNBlobUtil.fs.unlink(part).catch(() => {});
-    await RNBlobUtil.fs.unlink(target).catch(() => {});
-    return downloadUrlViaIosStream(url, dest, cb, false);
-  }
-
-  // The transfer can also report success while the body was cut short — a
-  // dropped connection that the URL session still completes, or a suspended
-  // app. Only the byte count catches that, and it has to be caught HERE: once
-  // `part` is renamed to `dest` the cache serves it forever (the hit check is
-  // existence, not size) and the truncated .pte fails at load with
-  // InvalidProgram.
+  // The session reports success once it has written a file, not once it has
+  // written the RIGHT file: a truncated body still completes. Checking here is
+  // what keeps a short file from being renamed into the cache, where the
+  // existence-only hit check would serve it forever.
   const assembled = await fileSize(part);
   if (expected > 0 && assembled !== expected) {
-    if (assembled > expected && canResume) {
-      // More bytes than the file has: a resume appended onto an offset that had
-      // moved on. The partial is unusable, so start over rather than fail.
-      await RNBlobUtil.fs.unlink(part).catch(() => {});
-      return downloadUrlViaIosStream(url, dest, cb, false);
-    }
-    // Short: keep the partial so the next call resumes and finishes it.
     throw incompleteError(url, assembled, expected);
   }
 
@@ -583,9 +466,10 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * const { classify, dispose } = await createClassifier(model);
  * ```
  *
- * Downloads go to a persistent cache: on Android via the system DownloadManager
- * (handles multi-GB files and continues in the background), on iOS via a
- * streaming request that resumes an interrupted download from where it stopped.
+ * Downloads go to a persistent cache and keep running while the app is in the
+ * background: on Android through the system DownloadManager, on iOS through a
+ * background `NSURLSession`. On both, an interrupted or cancelled transfer
+ * continues from where it stopped rather than starting over.
  * When a config references several files, overall progress is weighted by their
  * byte sizes so a large model isn't reported the same as a tiny tokenizer.
  * @category Utils / Functions
