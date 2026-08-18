@@ -152,6 +152,9 @@ export type ChatPreprocessor = {
   readonly buildPrompt: (text: string, mediaMap: Map<number, ChatMediaInput>) => Prompt;
 };
 
+const MEDIA_SENTINEL_PREFIX = '\uFFFC__ET_MEDIA_';
+const MEDIA_SENTINEL_REGEX = /\uFFFC__ET_MEDIA_(\d+)__/g;
+
 /**
  * Converts interleaved message content into text containing sentinel media
  * tokens.
@@ -191,7 +194,7 @@ function chatContentToString(
         throw RnExecuTorchError('INVALID_ARGUMENT', "'visionToken' is required for image input");
       }
       const token = options.visionToken;
-      text += `${token.start}\uFFFC__ET_MEDIA_${mediaIdx}__${token.end}`;
+      text += `${token.start}${MEDIA_SENTINEL_PREFIX}${mediaIdx}__${token.end}`;
       mediaMap.set(mediaIdx, item);
       ++mediaIdx;
     }
@@ -290,11 +293,11 @@ export function createChatPreprocessor(config: ChatPreprocessorConfig): ChatPrep
   };
 
   const buildPrompt = (text: string, mediaMap: Map<number, ChatMediaInput>): Prompt => {
-    if (mediaMap.size === 0 || !text.includes('\uFFFC__ET_MEDIA_')) {
+    if (mediaMap.size === 0 || !text.includes(MEDIA_SENTINEL_PREFIX)) {
       return text;
     }
 
-    const regex = /\uFFFC__ET_MEDIA_(\d+)__/g;
+    const regex = new RegExp(MEDIA_SENTINEL_REGEX.source, 'g');
     const prompt: (string | MediaInput)[] = [];
 
     let match: RegExpExecArray | null;
