@@ -368,7 +368,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
     if (nameStr == "prefill") {
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
-            if (count < 1) {
+            if (count != 1) {
                 throw error::InvalidArgument("LLMRunner.prefill: Usage: prefill(prompt)");
             }
 
@@ -389,7 +389,11 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "stop") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t /*count*/) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+            if (count != 0) {
+                throw error::InvalidArgument("LLMRunner.stop: Usage: stop()");
+            }
+
             // Intentionally no mutex here: stop() is designed to be called
             // concurrently to interrupt an in-progress generate(). Taking the
             // lock would block until generate() finishes, defeating the point.
@@ -406,7 +410,11 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
     if (nameStr == "getKVCacheState") {
         auto self = shared_from_this();
-        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t /*count*/) -> jsi::Value {
+        auto fnBody = [self](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
+            if (count != 0) {
+                throw error::InvalidArgument("LLMRunner.getKVCacheState: Usage: getKVCacheState()");
+            }
+
             auto lock = self->tryLockUnique("LLMRunner.getKVCacheState");
 
             bool isMultimodal = !self->modalities_.empty();
@@ -449,7 +457,7 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
         auto self = shared_from_this();
         auto fnBody = [self](jsi::Runtime & /*rt*/, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
             if (count != 0) {
-                throw error::InvalidArgument("dispose: Usage: dispose()");
+                throw error::InvalidArgument("LLMRunner.dispose: Usage: dispose()");
             }
 
             // Signal stop before locking so any in-progress generate() exits
