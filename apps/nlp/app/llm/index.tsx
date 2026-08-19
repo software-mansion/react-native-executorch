@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Skia } from '@shopify/react-native-skia';
 import RNBlobUtil from 'react-native-blob-util';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useLLMChatSession,
   type LLMGenerationStats,
@@ -50,6 +51,7 @@ function formatStats(stats: LLMGenerationStats): string {
 }
 
 function LLMContent() {
+  const insets = useSafeAreaInsets();
   const [selectedModelId, setSelectedModelId] = useState<string>(LLM_MODELS[0]!.id);
   const [isDownloadStarted, setIsDownloadStarted] = useState(false);
 
@@ -390,7 +392,7 @@ function LLMContent() {
             </View>
           )}
 
-          <View style={styles.inputRow}>
+          <View style={[styles.inputRow, { paddingBottom: Math.max(12, insets.bottom) }]}>
             {supportsImages && (
               <TouchableOpacity
                 style={styles.galleryButton}
