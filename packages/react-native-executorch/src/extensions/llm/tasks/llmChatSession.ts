@@ -249,6 +249,8 @@ export async function createLLMChatSession(
       committed = 0;
     }
 
+    let prefillStartMs = Date.now();
+
     // Prefill newly committed messages up to current user message without generation prompt
     const toCommit = history.length - committed;
     const userPrompt = chatPreprocessor.process(history, toCommit, { addGenPrompt: false });
@@ -263,9 +265,11 @@ export async function createLLMChatSession(
       const uncommitted = history.length - committed;
       const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
 
+      const prefillDurationMs = Date.now() - prefillStartMs;
+
       const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
       chatPreprocessor.clear();
-      generationStatsList.push(stats);
+      generationStatsList.push({ ...stats, firstTokenMs: stats.firstTokenMs + prefillDurationMs });
 
       // Always rewind KV cache back to posAtEndOfUser so next turn prefills
       // cleanly formatted message with tool outputs
@@ -307,6 +311,8 @@ export async function createLLMChatSession(
           content: toolContent,
         });
       }
+
+      prefillStartMs = Date.now();
     }
 
     // Prefill all uncommitted assistant & tool messages so KV cache contains
