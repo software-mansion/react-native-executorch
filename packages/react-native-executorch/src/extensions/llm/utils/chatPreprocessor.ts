@@ -189,19 +189,30 @@ function chatContentToString(
       throw RnExecuTorchError('INVALID_ARGUMENT', `${item.kind} is not supported`);
     }
 
-    if (item.kind === 'image') {
-      if (!options.visionToken) {
-        throw RnExecuTorchError('INVALID_ARGUMENT', "'visionToken' is required for image input");
-      }
-      const token = options.visionToken;
-      text += `${token.start}${MEDIA_SENTINEL_PREFIX}${mediaIdx}__${token.end}`;
-      mediaMap.set(mediaIdx, item);
-      ++mediaIdx;
+    let token: { readonly start: string; readonly end: string } | undefined;
+    let tokenName: string;
+
+    switch (item.kind) {
+      case 'image':
+        token = options?.visionToken;
+        tokenName = 'visionToken';
+        break;
+      case 'audio':
+        token = options?.audioToken;
+        tokenName = 'audioToken';
+        break;
     }
 
-    if (item.kind === 'audio') {
-      throw RnExecuTorchError('INVALID_ARGUMENT', 'Audio input not yet supported');
+    if (!token) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `'${tokenName}' is required for ${item.kind} input`
+      );
     }
+
+    text += `${token.start}${MEDIA_SENTINEL_PREFIX}${mediaIdx}__${token.end}`;
+    mediaMap.set(mediaIdx, item);
+    ++mediaIdx;
   }
 
   return { text, mediaMap };
