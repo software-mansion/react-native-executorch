@@ -38,6 +38,7 @@ export * from './extensions/nlp/tasks/privacyFilter';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
+export * from './extensions/speech/tasks/kokoroTextToSpeech';
 
 // Core primitives — for library builders and power users
 export * from './core/error';

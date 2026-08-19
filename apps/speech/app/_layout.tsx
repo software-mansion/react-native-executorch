@@ -48,6 +48,13 @@ export default function Layout() {
           title: 'Text-to-Speech (SuperTonic)',
         }}
       />
+      <Drawer.Screen
+        name="kokoro-text-to-speech/index"
+        options={{
+          drawerLabel: 'Text-to-Speech (Kokoro)',
+          title: 'Text-to-Speech (Kokoro)',
+        }}
+      />
     </Drawer>
   );
 }

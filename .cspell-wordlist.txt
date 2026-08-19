@@ -316,3 +316,5 @@ Partitioner
 denoised
 ttfa
 TTFA
+phonemized
+subsentences

@@ -54,21 +54,30 @@ Pod::Spec.new do |s|
     "cpp/extensions/cv/**/*.{cpp,c,h,hpp}",
   ]
 
-  s.source_files = [
+  # phonemis is built from in-tree source (third-party/common/phonemis submodule);
+  # its runner entrypoint is excluded so only the library sources compile.
+  phonemis_source_files = [
+    "cpp/extensions/speech/phonemizer.{cpp,h}",
+    "third-party/common/phonemis/src/**/*.{cpp,hpp,h}",
+  ]
+
+  source_files = [
     "ios/**/*.{h,m,mm}",
     "cpp/**/*.{cpp,c,h,hpp}",
   ]
+  source_files += phonemis_source_files if enable_phonemis
+  s.source_files = source_files
 
-  exclude_files = []
+  exclude_files = ["third-party/common/phonemis/src/phonemis/main.cpp"]
   exclude_files += opencv_source_files unless enable_opencv
+  exclude_files += phonemis_source_files unless enable_phonemis
   s.exclude_files = exclude_files
 
   # --- Preprocessor flags ---
-  # phonemis is wired for forward-compat (the TTS task is not yet ported to the
-  # rewrite, so no source compiles against it today).
   extra_compiler_flags = []
   extra_compiler_flags << "-DRNE_ENABLE_OPENCV"   if enable_opencv
-  extra_compiler_flags << "-DRNE_ENABLE_PHONEMIS" if enable_phonemis
+  # ET_ON lets phonemis detect the available ExecuTorch build (NeuralPhonemizer).
+  extra_compiler_flags += ["-DRNE_ENABLE_PHONEMIS", "-DET_ON"] if enable_phonemis
   extra_compiler_flags << "-DRNE_ENABLE_XNNPACK"  if enable_xnnpack
   extra_compiler_flags << "-DRNE_ENABLE_COREML"   if enable_coreml
   extra_compiler_flags << "-DRNE_ENABLE_MLX"      if enable_mlx
@@ -127,6 +136,7 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/json/include\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/re2\"",
       "\"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/third-party/abseil-cpp\"",
+      "\"$(PODS_TARGET_SRCROOT)/third-party/common/phonemis/src\"",
     ].join(' '),
     "WARNING_CFLAGS" => "-Wno-documentation",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',

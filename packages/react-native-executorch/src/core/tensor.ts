@@ -6,7 +6,7 @@ declare const tensorBrand: unique symbol;
  * Element data type of a {@link Tensor}.
  * @category Types
  */
-export type DType = 'float32' | 'uint8' | 'int32' | 'int64';
+export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
 
 /**
  * A native ExecuTorch tensor allocated in C++ memory.
@@ -50,7 +50,8 @@ export type Tensor = {
   /**
    * Writes data from a typed array into this tensor's native buffer.
    * @param src The source typed array. Its size in bytes must match the
-   * tensor's size. Use a `BigInt64Array` for `int64` tensors.
+   * tensor's size. Use a `BigInt64Array` for `int64` tensors and a
+   * `Uint8Array` for `bool` tensors.
    * @returns `this` tensor.
    */
   setData(src: Float32Array | Uint8Array | Int32Array | BigInt64Array): Tensor;

@@ -24,6 +24,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # The phonemis submodule carries headers that cpp/extensions/speech
+          # includes; without it those sources fail to parse and clang-tidy
+          # reports misleading findings on the broken AST.
+          submodules: true
 
       - name: Setup
         uses: ./.github/actions/setup
