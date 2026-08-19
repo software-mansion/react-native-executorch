@@ -21,7 +21,7 @@ import {
   type LLMAudioPreprocessorConfig,
   type LLMMediaPreprocessorConfig,
 } from '../utils/chatPreprocessor';
-import { type ToolDefinition, type ToolCall, type ToolParser } from '../utils/toolCalling';
+import type { ToolDefinition, ToolCall, ToolParser, ToolParserResult } from '../utils/toolCalling';
 
 export type {
   LLMKVCacheState,
@@ -37,6 +37,7 @@ export type {
   ToolDefinition,
   ToolCall,
   ToolParser,
+  ToolParserResult,
 };
 
 /**
