@@ -1,4 +1,4 @@
-import React, { useRef, useState, type ComponentRef } from 'react';
+import React, { useMemo, useRef, useState, type ComponentRef } from 'react';
 import {
   View,
   Text,
@@ -13,152 +13,30 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { Skia } from '@shopify/react-native-skia';
-import { useLLMChatSession, models, llm, cv } from 'react-native-executorch';
+import RNBlobUtil from 'react-native-blob-util';
+import {
+  useLLMChatSession,
+  type LLMGenerationStats,
+  type LLMKVCacheState,
+  type ToolCall,
+  type ChatMessage,
+  type cv,
+} from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
+import { Button } from '../../components/Button';
 import { getImage, skImageToBuffer } from '../../utils';
-
-const MODEL = models.llm.LFM2_5_VL_1_6B;
-const SYSTEM_PROMPT = 'You are a helpful AI assistant with tool calling capabilities.';
-const INITIAL_MESSAGES: llm.ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }];
-const GENERATION_CONFIG = { temperature: 0.7, maxNewTokens: 512, echo: false };
-
-const TOOLS: llm.ToolDefinition[] = [];
-[
-  {
-    type: 'function',
-    function: {
-      name: 'get_current_time',
-      description: 'Returns the current device date and time in string format.',
-      parameters: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    execute: () => {
-      return `Current time: ${new Date().toLocaleString()}`;
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_current_location',
-      description: 'Returns the user current location (city and country).',
-      parameters: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    execute: () => {
-      return JSON.stringify({ city: 'San Francisco', state: 'California', country: 'USA' });
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_weather',
-      description: 'Returns the current weather conditions for a given city.',
-      parameters: {
-        type: 'object',
-        properties: {
-          city: { type: 'string', description: 'The city to get weather for' },
-        },
-        required: ['city'],
-      },
-    },
-    execute: (args: Record<string, any>) => {
-      const city = String(args.city);
-      if (city.toLowerCase().includes('san francisco')) {
-        return JSON.stringify({
-          city: 'San Francisco',
-          temperatureC: 13,
-          condition: 'Foggy, chilly with light drizzle',
-          humidity: '88%',
-          windKmh: 24,
-        });
-      }
-      return JSON.stringify({
-        city,
-        temperatureC: 22,
-        condition: 'Partly sunny and pleasant',
-        humidity: '50%',
-        windKmh: 10,
-      });
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_outfit_recommendation',
-      description: 'Recommends appropriate clothing based on weather condition and temperature.',
-      parameters: {
-        type: 'object',
-        properties: {
-          condition: { type: 'string', description: 'The weather condition (e.g. rainy, sunny)' },
-          temperatureC: { type: 'number', description: 'Temperature in degrees Celsius' },
-        },
-        required: ['condition', 'temperatureC'],
-      },
-    },
-    execute: (args: Record<string, any>) => {
-      const temp = Number(args.temperatureC);
-      const condition = String(args.condition).toLowerCase();
-      let advice = '';
-      if (temp < 15) {
-        advice += 'Wear a windbreaker or warm fleece jacket with long pants.';
-      } else if (temp < 22) {
-        advice += 'A light sweater or long-sleeve shirt is ideal.';
-      } else {
-        advice += 'T-shirt and shorts or light clothing are recommended.';
-      }
-      if (condition.includes('rain') || condition.includes('drizzle')) {
-        advice += ' Bring a compact umbrella and waterproof shoes.';
-      }
-      return advice;
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'calculate',
-      description: 'Performs basic arithmetic operations.',
-      parameters: {
-        type: 'object',
-        properties: {
-          operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
-          a: { type: 'number' },
-          b: { type: 'number' },
-        },
-        required: ['operation', 'a', 'b'],
-      },
-    },
-    execute: (args: Record<string, any>) => {
-      const a = Number(args.a);
-      const b = Number(args.b);
-      switch (args.operation) {
-        case 'add':
-          return `Result: ${a + b}`;
-        case 'subtract':
-          return `Result: ${a - b}`;
-        case 'multiply':
-          return `Result: ${a * b}`;
-        case 'divide':
-          return b !== 0 ? `Result: ${a / b}` : 'Error: Division by zero';
-        default:
-          return 'Error: Unknown operation';
-      }
-    },
-  },
-];
+import { LLM_MODELS, type LLMModelConfig } from '../../constants/llm';
 
 type Turn = {
   role: 'user' | 'assistant' | 'tool';
   content: string;
   imageUri?: string;
-  stats?: llm.LLMGenerationStats;
-  toolCalls?: readonly llm.ToolCall[];
+  stats?: LLMGenerationStats;
+  toolCalls?: readonly ToolCall[];
 };
 
-function formatStats(stats: llm.LLMGenerationStats): string {
+function formatStats(stats: LLMGenerationStats): string {
   const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
   const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
   const totalMs = stats.inferenceEndMs - stats.inferenceStartMs;
@@ -171,115 +49,50 @@ function formatStats(stats: llm.LLMGenerationStats): string {
   );
 }
 
-// --- LFM (Liquid Foundation Models) Tool Calling ---
-export const LFM_TOOL_STOP_REGEX = /(?:<\|tool_call_end\|>|<\/tool_call>)/;
-
-export function parseLfmToolCalls(text: string): llm.ToolParserResult | undefined {
-  const match = text.match(/<\|tool_call_start\|>\[(.*?)\]<\|tool_call_end\|>/s);
-  if (!match) return undefined;
-
-  const toolCalls: llm.ToolCall[] = [];
-  for (const [, name, rawArgs] of match[1]!.matchAll(/(\w+)\((.*?)\)/g)) {
-    const args: Record<string, unknown> = {};
-    for (const [, k, , sq, dq, raw] of rawArgs!.matchAll(
-      /(\w+)\s*=\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|([^,)]+))/g
-    )) {
-      const val = sq ?? dq ?? raw?.trim();
-      try {
-        args[k!] = JSON.parse(val ?? '');
-      } catch {
-        args[k!] = val;
-      }
-    }
-    toolCalls.push({ type: 'function', function: { name: name!, arguments: args } });
-  }
-
-  const textContent = text.replace(/<\|tool_call_start\|>[\s\S]*?<\|tool_call_end\|>/g, '').trim();
-  return { toolCalls, textContent: textContent || undefined };
-}
-
-// --- Gemma (Gemma 3 / 4) Tool Calling ---
-export const GEMMA_TOOL_STOP_REGEX = /(?:<tool_call\|>|<turn\|>)/;
-
-export function parseGemmaToolCalls(text: string): llm.ToolParserResult | undefined {
-  const callRegex = /<\|tool_call>call:([a-zA-Z0-9_-]+)\{([\s\S]*?)\}(?:<tool_call\|>)?/g;
-
-  const toolCalls: llm.ToolCall[] = [];
-  for (const match of text.matchAll(callRegex)) {
-    const name = match[1]!;
-    const rawArgs = match[2]?.trim() ?? '';
-    let args: Record<string, unknown> = {};
-
-    if (rawArgs) {
-      try {
-        const normalized = rawArgs.replace(/<\|"\|>/g, '"').replace(/([a-zA-Z0-9_-]+):/g, '"$1":');
-        args = JSON.parse(`{${normalized}}`);
-      } catch {
-        args = {};
-      }
-    }
-
-    toolCalls.push({ type: 'function', function: { name, arguments: args } });
-  }
-
-  if (toolCalls.length === 0) return undefined;
-  const textContent = text
-    .replace(callRegex, '')
-    .replace(/<\|channel>thought[\s\S]*?<channel\|>/g, '')
-    .replace(/<\|?tool_call\|?>/g, '')
-    .replace(/<turn\|>/g, '')
-    .trim();
-
-  return { toolCalls, textContent: textContent || undefined };
-}
-
-// --- Hammer (Hammer 2.1) Tool Calling ---
-export const HAMMER_TOOL_STOP_REGEX = /(?:<\|im_end\|>)/;
-
-export function parseHammerToolCalls(text: string): llm.ToolParserResult | undefined {
-  const jsonMatch =
-    text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ?? text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-  const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text.trim();
-
-  try {
-    const parsed = JSON.parse(jsonStr);
-    if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
-
-    const toolCalls: llm.ToolCall[] = [];
-    for (const item of parsed) {
-      if (item && typeof item === 'object' && typeof item.name === 'string') {
-        toolCalls.push({
-          type: 'function',
-          function: {
-            name: item.name,
-            arguments: item.arguments && typeof item.arguments === 'object' ? item.arguments : {},
-          },
-        });
-      }
-    }
-
-    if (toolCalls.length === 0) return undefined;
-    const textContent = text.replace(jsonMatch ? jsonMatch[0] : jsonStr, '').trim();
-    return { toolCalls, textContent: textContent || undefined };
-  } catch {
-    return undefined;
-  }
-}
-
 function LLMContent() {
-  const { isReady, downloadProgress, error, sendMessage, stop } = useLLMChatSession(MODEL, {
-    initialMessages: INITIAL_MESSAGES,
-    generationConfig: GENERATION_CONFIG,
-    stopRegex: GEMMA_TOOL_STOP_REGEX,
-    toolOpts: {
-      tools: TOOLS,
-      parseToolCalls: parseGemmaToolCalls,
-    },
-  });
+  const [selectedModelId, setSelectedModelId] = useState<string>(LLM_MODELS[0]!.id);
+  const [isDownloadStarted, setIsDownloadStarted] = useState(false);
+
+  const activeModel: LLMModelConfig = useMemo(
+    () => LLM_MODELS.find((m) => m.id === selectedModelId) ?? LLM_MODELS[0]!,
+    [selectedModelId]
+  );
+
+  const modelOptions: ModelOption[] = useMemo(
+    () =>
+      LLM_MODELS.filter((m) => !m.iosOnly || Platform.OS === 'ios').map((m) => ({
+        label: m.name,
+        value: m.id,
+      })),
+    []
+  );
+
+  const initialMessages: ChatMessage[] = useMemo(
+    () => (activeModel.systemPrompt ? [{ role: 'system', content: activeModel.systemPrompt }] : []),
+    [activeModel]
+  );
+
+  const { isReady, downloadProgress, error, sendMessage, stop, resource, getKVCacheState } =
+    useLLMChatSession(activeModel.model, {
+      initialMessages,
+      generationConfig: activeModel.generationConfig,
+      stopRegex: activeModel.stopRegex,
+      toolOpts: activeModel.toolOpts,
+      preventLoad: !isDownloadStarted,
+    });
 
   const [input, setInput] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
+
+  let kvCacheState: LLMKVCacheState | null = null;
+  if (isReady && getKVCacheState) {
+    try {
+      kvCacheState = getKVCacheState();
+    } catch {
+      kvCacheState = null;
+    }
+  }
 
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const isGenerating = streamingResponse !== null;
@@ -290,7 +103,59 @@ function LLMContent() {
     buffer: cv.ImageBuffer;
   } | null>(null);
 
+  const supportsImages = Boolean(activeModel.model.modalities?.includes('image'));
+
+  const handleModelChange = (newModelId: string) => {
+    if (newModelId === selectedModelId) return;
+    setSelectedModelId(newModelId);
+    setIsDownloadStarted(false);
+    setTurns([]);
+    setStreamingResponse(null);
+    setAttachedImage(null);
+    setInput('');
+  };
+
+  const handleUnlinkModel = () => {
+    if (!resource) return;
+
+    Alert.alert(
+      'Delete Cached Files',
+      'Are you sure you want to delete the cached model files from device storage?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const pathsToUnlink = [
+                resource.modelPath,
+                resource.tokenizerPath,
+                resource.tokenizerConfigPath,
+              ].filter(Boolean);
+
+              for (const path of pathsToUnlink) {
+                if (path && (await RNBlobUtil.fs.exists(path))) {
+                  await RNBlobUtil.fs.unlink(path);
+                }
+              }
+              setIsDownloadStarted(false);
+              setTurns([]);
+              setStreamingResponse(null);
+              setAttachedImage(null);
+              setInput('');
+              Alert.alert('Deleted', 'Model files deleted from device storage.');
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || 'Failed to delete model files');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handlePickGalleryImage = async () => {
+    if (!supportsImages) return;
     try {
       const uri = await getImage(false);
       if (!uri) return;
@@ -354,143 +219,218 @@ function LLMContent() {
     }
   };
 
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.errorTitle}>Failed to load model</Text>
-        <Text style={styles.errorBody}>{error.message}</Text>
-      </View>
-    );
-  }
-
-  if (!isReady) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0070f3" />
-        <Text style={styles.loadingText}>
-          {downloadProgress < 100
-            ? `Downloading model… ${downloadProgress.toFixed(0)}%`
-            : 'Loading model into memory…'}
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <ScrollView
-        ref={scrollRef}
-        style={styles.messages}
-        contentContainerStyle={styles.messagesContent}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
-      >
-        {turns.length === 0 && streamingResponse === null && (
-          <Text style={styles.placeholder}>Ask LFM 2.5 VL anything or attach an image.</Text>
-        )}
-        {turns.map((turn, idx) => (
-          <View key={idx} style={styles.turn}>
-            <View
-              style={[
-                styles.bubble,
-                turn.role === 'user'
-                  ? styles.userBubble
-                  : turn.role === 'tool'
-                    ? styles.toolBubble
-                    : styles.assistantBubble,
-              ]}
-            >
-              {turn.imageUri && (
-                <RNImage source={{ uri: turn.imageUri }} style={styles.turnThumbnail} />
-              )}
-              {turn.toolCalls && turn.toolCalls.length > 0 && (
-                <View style={styles.toolCallBlock}>
-                  <Text style={styles.toolCallTitle}>🛠️ Tool Call:</Text>
-                  {turn.toolCalls.map((tc, tcIdx) => (
-                    <Text key={tcIdx} style={styles.toolCallDetail}>
-                      {tc.function.name}({JSON.stringify(tc.function.arguments)})
-                    </Text>
-                  ))}
-                </View>
-              )}
-              <Text
-                style={
-                  turn.role === 'user'
-                    ? styles.userText
-                    : turn.role === 'tool'
-                      ? styles.toolText
-                      : styles.assistantText
-                }
-              >
-                {turn.content || (turn.toolCalls ? '' : '…')}
-              </Text>
-            </View>
-            {turn.stats && <Text style={styles.statsLine}>{formatStats(turn.stats)}</Text>}
-          </View>
-        ))}
-        {streamingResponse !== null && (
-          <View style={styles.turn}>
-            <View style={[styles.bubble, styles.assistantBubble]}>
-              <Text style={styles.assistantText}>{streamingResponse || '…'}</Text>
-            </View>
-          </View>
-        )}
-      </ScrollView>
-
-      {attachedImage && (
-        <View style={styles.attachmentBar}>
-          <RNImage source={{ uri: attachedImage.uri }} style={styles.attachmentPreview} />
-          <View style={styles.attachmentInfo}>
-            <Text style={styles.attachmentName} numberOfLines={1}>
-              {attachedImage.name}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.removeAttachmentButton}
-            onPress={() => setAttachedImage(null)}
-          >
-            <Text style={styles.removeAttachmentText}>✕</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View style={styles.inputRow}>
-        <TouchableOpacity
-          style={styles.galleryButton}
-          onPress={handlePickGalleryImage}
-          disabled={isGenerating}
-        >
-          <Text style={styles.galleryButtonText}>📷</Text>
-        </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          placeholder="Message..."
-          placeholderTextColor="#999"
-          value={input}
-          onChangeText={setInput}
-          multiline
-          editable={!isGenerating}
+      <View style={styles.header}>
+        <ModelPicker
+          label="Model"
+          options={modelOptions}
+          selectedValue={selectedModelId}
+          onValueChange={handleModelChange}
         />
-        {isGenerating ? (
-          <TouchableOpacity style={[styles.sendButton, styles.stopButton]} onPress={() => stop?.()}>
-            <Text style={styles.sendButtonText}>Stop</Text>
-          </TouchableOpacity>
-        ) : (
+        {resource && (
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !input.trim() && !attachedImage && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!input.trim() && !attachedImage}
+            style={styles.unlinkButton}
+            onPress={handleUnlinkModel}
+            activeOpacity={0.7}
           >
-            <Text style={styles.sendButtonText}>Send</Text>
+            <Text style={styles.unlinkButtonText}>🗑️ Delete Cached Files</Text>
           </TouchableOpacity>
         )}
       </View>
+
+      {!isDownloadStarted && (
+        <View style={styles.centered}>
+          <Text style={styles.modelTitle}>{activeModel.name}</Text>
+          {activeModel.systemPrompt && (
+            <Text style={styles.modelPrompt}>Prompt: "{activeModel.systemPrompt}"</Text>
+          )}
+          <View style={styles.badgesRow}>
+            {activeModel.toolOpts && (
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>🛠️ Tool Calling</Text>
+              </View>
+            )}
+            {supportsImages && (
+              <View style={styles.featureBadge}>
+                <Text style={styles.featureBadgeText}>📷 Vision Multimodal</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.downloadButtonContainer}>
+            <Button title="Download & Load Model" onPress={() => setIsDownloadStarted(true)} />
+          </View>
+        </View>
+      )}
+
+      {isDownloadStarted && error && (
+        <View style={styles.centered}>
+          <Text style={styles.errorTitle}>Failed to load model</Text>
+          <Text style={styles.errorBody}>{error.message}</Text>
+        </View>
+      )}
+
+      {isDownloadStarted && !error && !isReady && (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#0070f3" />
+          <Text style={styles.loadingText}>
+            {downloadProgress < 100
+              ? `Downloading model… ${downloadProgress.toFixed(0)}%`
+              : 'Loading model into memory…'}
+          </Text>
+        </View>
+      )}
+
+      {isReady && (
+        <>
+          {kvCacheState && (
+            <View style={styles.contextBar}>
+              <View style={styles.contextBarHeader}>
+                <Text style={styles.contextLabel}>Context Window</Text>
+                <Text style={styles.contextTokens}>
+                  {kvCacheState.pos} / {kvCacheState.maxSeqLen} tokens (
+                  {(kvCacheState.usageRatio * 100).toFixed(1)}%)
+                </Text>
+              </View>
+              <View style={styles.contextTrack}>
+                <View
+                  style={[
+                    styles.contextFill,
+                    kvCacheState.usageRatio > 0.85
+                      ? styles.contextFillRed
+                      : kvCacheState.usageRatio > 0.6
+                        ? styles.contextFillYellow
+                        : styles.contextFillGreen,
+
+                    { width: `${Math.min(100, Math.max(0, kvCacheState.usageRatio * 100))}%` },
+                  ]}
+                />
+              </View>
+            </View>
+          )}
+
+          <ScrollView
+            ref={scrollRef}
+            style={styles.messages}
+            contentContainerStyle={styles.messagesContent}
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
+          >
+            {turns.length === 0 && streamingResponse === null && (
+              <Text style={styles.placeholder}>
+                Ask {activeModel.name} anything{supportsImages ? ' or attach an image.' : '.'}
+              </Text>
+            )}
+            {turns.map((turn, idx) => (
+              <View key={idx} style={styles.turn}>
+                <View
+                  style={[
+                    styles.bubble,
+                    turn.role === 'user'
+                      ? styles.userBubble
+                      : turn.role === 'tool'
+                        ? styles.toolBubble
+                        : styles.assistantBubble,
+                  ]}
+                >
+                  {turn.imageUri && (
+                    <RNImage source={{ uri: turn.imageUri }} style={styles.turnThumbnail} />
+                  )}
+                  {turn.toolCalls && turn.toolCalls.length > 0 && (
+                    <View style={styles.toolCallBlock}>
+                      <Text style={styles.toolCallTitle}>🛠️ Tool Call:</Text>
+                      {turn.toolCalls.map((tc, tcIdx) => (
+                        <Text key={tcIdx} style={styles.toolCallDetail}>
+                          {tc.function.name}({JSON.stringify(tc.function.arguments)})
+                        </Text>
+                      ))}
+                    </View>
+                  )}
+                  <Text
+                    style={
+                      turn.role === 'user'
+                        ? styles.userText
+                        : turn.role === 'tool'
+                          ? styles.toolText
+                          : styles.assistantText
+                    }
+                  >
+                    {turn.content || (turn.toolCalls ? '' : '…')}
+                  </Text>
+                </View>
+                {turn.stats && <Text style={styles.statsLine}>{formatStats(turn.stats)}</Text>}
+              </View>
+            ))}
+            {streamingResponse !== null && (
+              <View style={styles.turn}>
+                <View style={[styles.bubble, styles.assistantBubble]}>
+                  <Text style={styles.assistantText}>{streamingResponse || '…'}</Text>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+
+          {attachedImage && (
+            <View style={styles.attachmentBar}>
+              <RNImage source={{ uri: attachedImage.uri }} style={styles.attachmentPreview} />
+              <View style={styles.attachmentInfo}>
+                <Text style={styles.attachmentName} numberOfLines={1}>
+                  {attachedImage.name}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.removeAttachmentButton}
+                onPress={() => setAttachedImage(null)}
+              >
+                <Text style={styles.removeAttachmentText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.inputRow}>
+            {supportsImages && (
+              <TouchableOpacity
+                style={styles.galleryButton}
+                onPress={handlePickGalleryImage}
+                disabled={isGenerating}
+              >
+                <Text style={styles.galleryButtonText}>📷</Text>
+              </TouchableOpacity>
+            )}
+            <TextInput
+              style={styles.input}
+              placeholder="Message..."
+              placeholderTextColor="#999"
+              value={input}
+              onChangeText={setInput}
+              multiline
+              editable={!isGenerating}
+            />
+            {isGenerating ? (
+              <TouchableOpacity
+                style={[styles.sendButton, styles.stopButton]}
+                onPress={() => stop?.()}
+              >
+                <Text style={styles.sendButtonText}>Stop</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  !input.trim() && !attachedImage && styles.sendButtonDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={!input.trim() && !attachedImage}
+              >
+                <Text style={styles.sendButtonText}>Send</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -505,10 +445,116 @@ export default function LLMScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  unlinkButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff0f0',
+    borderColor: '#ffc9c9',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  unlinkButtonText: {
+    color: '#e03131',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modelTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#212529',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modelPrompt: {
+    fontSize: 13,
+    color: '#6c757d',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontStyle: 'italic',
+    paddingHorizontal: 16,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  featureBadge: {
+    backgroundColor: '#e7f5ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d0ebff',
+  },
+  featureBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1971c2',
+  },
+  downloadButtonContainer: {
+    width: '100%',
+    maxWidth: 280,
+    height: 48,
+    marginTop: 8,
+  },
   loadingText: { marginTop: 16, fontSize: 15, color: '#495057', fontWeight: '600' },
   errorTitle: { fontSize: 16, fontWeight: '700', color: '#e03131', marginBottom: 8 },
-  errorBody: { fontSize: 13, color: '#868e96', textAlign: 'center' },
+  errorBody: { fontSize: 13, color: '#868e96', textAlign: 'center', marginBottom: 16 },
+  contextBar: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  contextBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  contextLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#495057',
+  },
+  contextTokens: {
+    fontSize: 12,
+    color: '#868e96',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  contextTrack: {
+    height: 4,
+    backgroundColor: '#e9ecef',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  contextFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  contextFillGreen: {
+    backgroundColor: '#10b981',
+  },
+  contextFillYellow: {
+    backgroundColor: '#f59e0b',
+  },
+  contextFillRed: {
+    backgroundColor: '#ef4444',
+  },
   messages: { flex: 1 },
   messagesContent: { padding: 16, paddingBottom: 8 },
   placeholder: { textAlign: 'center', color: '#adb5bd', marginTop: 40, fontSize: 14 },

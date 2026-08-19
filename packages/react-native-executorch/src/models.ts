@@ -915,7 +915,7 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // =============================================================================
 // LLMs
 // =============================================================================
-const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${VERSION_TAG}`;
+const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${NEXT_VERSION_TAG}`;
 
 const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
@@ -981,7 +981,7 @@ const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
 
-const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${VERSION_TAG}`;
+const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${NEXT_VERSION_TAG}`;
 
 const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
@@ -994,7 +994,7 @@ const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
   tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
 };
 
-const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${VERSION_TAG}`;
+const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${NEXT_VERSION_TAG}`;
 
 const LLAMA3_2_3B_SPINQUANT: LLMModel = {
   modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
@@ -1017,7 +1017,7 @@ const LLAMA3_2_1B_BF16: LLMModel = {
   tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
 };
 
-const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${VERSION_TAG}`;
+const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${NEXT_VERSION_TAG}`;
 
 const SMOLLM2_135M_8DA4W: LLMModel = {
   modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`,
@@ -1050,7 +1050,7 @@ const SMOLLM2_1_7B_BF16: LLMModel = {
   tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
 };
 
-const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${VERSION_TAG}`;
+const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${NEXT_VERSION_TAG}`;
 
 const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
@@ -1083,7 +1083,7 @@ const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
   tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
 };
 
-const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${VERSION_TAG}`;
+const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${NEXT_VERSION_TAG}`;
 
 const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
@@ -1096,7 +1096,7 @@ const PHI4_MINI_XNNPACK_BF16: LLMModel = {
   tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
 };
 
-const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${VERSION_TAG}`;
+const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${NEXT_VERSION_TAG}`;
 
 const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
@@ -1129,7 +1129,7 @@ const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
   tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
 };
 
-const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${VERSION_TAG}`;
+const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${NEXT_VERSION_TAG}`;
 
 const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
@@ -1142,7 +1142,7 @@ const GEMMA4_E2B_MLX_INT4: LLMModel = {
   tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
 };
 
-const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${VERSION_TAG}`;
+const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${NEXT_VERSION_TAG}`;
 
 const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
   modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
