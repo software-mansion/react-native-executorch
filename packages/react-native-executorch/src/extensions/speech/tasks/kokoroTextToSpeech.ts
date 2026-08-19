@@ -53,6 +53,8 @@ const LETTER_PATTERN = /\p{L}/u;
  * @typeParam K Voice keys record constraint (strictly inferred from voices keys).
  */
 export type KokoroTtsModel<K extends PropertyKey> = {
+  /** Discriminates this config from the other Text-to-Speech pipelines. */
+  readonly name: 'kokoro';
   /** Local or remote file paths to the 2 Kokoro `.pte` sub-models. */
   readonly modelPaths: {
     /** Path to the duration predictor `.pte` model. */
@@ -140,285 +142,280 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
   ]);
   const models = { durationPredictor, synthesizer };
 
-  const predictorSpec = validateSpec(models.durationPredictor.schema, {
-    default: method(
-      'forward',
-      [
-        i64(1, Dyn('T')), // tokens
-        bool(1, Dyn('T')), // textMask
-        f32(1, VOICE_REF_HALF_SIZE), // voiceRef
-        f32(1), // speed
-      ],
-      [
-        i64(Dyn('T')), // predictedDurations
-        f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
-      ],
-      [
-        constr.eq(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 0 },
-          { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
-        ),
-      ]
-    ),
-  });
+  const allocated: { dispose: () => void }[] = [durationPredictor, synthesizer];
+  const dispose = () => allocated.forEach((resource) => resource.dispose());
 
-  const synthesizerSpec = validateSpec(models.synthesizer.schema, {
-    default: method(
-      'forward',
-      [
-        i64(1, Dyn('T')), // tokens
-        bool(1, Dyn('T')), // textMask
-        i64(Dyn('D')), // indices
-        f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
-        f32(1, VOICE_REF_SIZE), // voiceRef
-      ],
-      [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
-      [
-        constr.eq(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 3, dimIdx: 1 }
-        ),
-        constr.linear(
-          { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
-          { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
-          TICKS_PER_DURATION
-        ),
-      ]
-    ),
-  });
+  try {
+    const predictorSpec = validateSpec(models.durationPredictor.schema, {
+      default: method(
+        'forward',
+        [
+          i64(1, Dyn('T')), // tokens
+          bool(1, Dyn('T')), // textMask
+          f32(1, VOICE_REF_HALF_SIZE), // voiceRef
+          f32(1), // speed
+        ],
+        [
+          i64(Dyn('T')), // predictedDurations
+          f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
+        ],
+        [
+          constr.eq(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 0 },
+            { paramSide: 'output', tensorIdx: 1, dimIdx: 1 }
+          ),
+        ]
+      ),
+    });
 
-  const [predictorTokens] = predictorSpec.dims.range('T');
-  const [synthesizerTokens, durations] = synthesizerSpec.dims.range('T', 'D');
+    const synthesizerSpec = validateSpec(models.synthesizer.schema, {
+      default: method(
+        'forward',
+        [
+          i64(1, Dyn('T')), // tokens
+          bool(1, Dyn('T')), // textMask
+          i64(Dyn('D')), // indices
+          f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
+          f32(1, VOICE_REF_SIZE), // voiceRef
+        ],
+        [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
+        [
+          constr.eq(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 3, dimIdx: 1 }
+          ),
+          constr.linear(
+            { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
+            { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
+            TICKS_PER_DURATION
+          ),
+        ]
+      ),
+    });
 
-  if (predictorTokens.max !== synthesizerTokens.max) {
-    throw RnExecuTorchError(
-      'SCHEMA_MISMATCH',
-      'createKokoroTextToSpeech: incompatible duration predictor and synthesizer token limits.'
-    );
-  }
+    const [predictorTokens] = predictorSpec.dims.range('T');
+    const [synthesizerTokens, durations] = synthesizerSpec.dims.range('T', 'D');
 
-  const minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
-  const maxTokens = predictorTokens.max;
-  const maxDurationTicks = durations.max;
+    const minTokens = Math.max(predictorTokens.min, synthesizerTokens.min);
+    const maxTokens = predictorTokens.max;
+    const maxDurationTicks = durations.max;
 
-  const phonemizer = await wrapAsync(createPhonemizer, runtime)(config.phonemizer);
+    const phonemizer = await wrapAsync(createPhonemizer, runtime)(config.phonemizer);
+    allocated.push(phonemizer);
 
-  // Pre-parse the voice matrices into memory
-  const parsedVoices = {} as Record<K, Float32Array>;
-  for (const [key, path] of Object.entries(config.voices) as [K, string][]) {
-    parsedVoices[key] = parseVoice(await RNBlobUtil.fs.readFile(path, 'base64'));
-  }
-
-  const tensors = [
-    tensor('float32', [1, VOICE_REF_HALF_SIZE]),
-    tensor('float32', [1, VOICE_REF_SIZE]),
-    tensor('float32', [1]),
-  ] as const;
-
-  const [tVoiceRefHalf, tVoiceRef, tSpeed] = tensors;
-
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    Object.values(models).forEach((m) => m.dispose());
-    phonemizer.dispose();
-  };
-
-  const synthesizeChunkWorklet = (
-    chunkPhonemes: string,
-    chunkOpts: { voice: K; speed: number }
-  ): { audio: Float32Array; sampleRate: number; duration: number } => {
-    'worklet';
-
-    const phonemes = Array.from(chunkPhonemes.trim());
-
-    const voice = parsedVoices[chunkOpts.voice];
-    if (!voice) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `synthesize: Unknown voice: ${String(chunkOpts.voice)}.`
-      );
+    // Pre-parse the voice matrices into memory
+    const parsedVoices = {} as Record<K, Float32Array>;
+    for (const [key, path] of Object.entries(config.voices) as [K, string][]) {
+      parsedVoices[key] = parseVoice(await RNBlobUtil.fs.readFile(path, 'base64'));
     }
 
-    // 2 tokens are reserved for the leading and trailing padding
-    const numTokens = Math.min(Math.max(phonemes.length + 2, minTokens), maxTokens);
-    const tokens = tokenize(phonemes, numTokens);
+    const tensors = [
+      tensor('float32', [1, VOICE_REF_HALF_SIZE]),
+      tensor('float32', [1, VOICE_REF_SIZE]),
+      tensor('float32', [1]),
+    ] as const;
 
-    // Exclude all paddings except the leading and the trailing one
-    const textMask = new Uint8Array(numTokens);
-    textMask.fill(1, 0, Math.min(phonemes.length + 2, numTokens));
+    const [tVoiceRefHalf, tVoiceRef, tSpeed] = tensors;
+    allocated.push(...tensors);
 
-    // Each input token count corresponds to a different voice reference vector
-    const voiceRows = voice.length / VOICE_REF_SIZE;
-    const voiceRow = Math.min(phonemes.length - 1, numTokens - 1, voiceRows - 1);
-    const voiceOffset = Math.max(0, voiceRow) * VOICE_REF_SIZE;
+    const synthesizeChunkWorklet = (
+      chunkPhonemes: string,
+      chunkOpts: { voice: K; speed: number }
+    ): { audio: Float32Array; sampleRate: number; duration: number } => {
+      'worklet';
 
-    tVoiceRef.setData(voice.subarray(voiceOffset, voiceOffset + VOICE_REF_SIZE));
-    tVoiceRefHalf.setData(
-      voice.subarray(voiceOffset + VOICE_REF_HALF_SIZE, voiceOffset + VOICE_REF_SIZE)
-    );
-    tSpeed.setData(new Float32Array([chunkOpts.speed]));
+      const phonemes = Array.from(chunkPhonemes.trim());
 
-    // Collect dynamic execution tensors for cleanup in a single try/finally block
-    const auxTensors: Tensor[] = [];
-
-    try {
-      // 1. Predict per-token durations
-      const tTokens = tensor('int64', [1, numTokens], tokens);
-      const tTextMask = tensor('bool', [1, numTokens], textMask);
-      const tPredictedDurations = tensor('int64', [numTokens]);
-      const tDurationFeatures = tensor('float32', [1, numTokens, DURATION_FEATURE_DIM]);
-      auxTensors.push(tTokens, tTextMask, tPredictedDurations, tDurationFeatures);
-
-      models.durationPredictor.execute(
-        'forward',
-        [tTokens, tTextMask, tVoiceRefHalf, tSpeed],
-        [tPredictedDurations, tDurationFeatures]
-      );
-
-      const predicted = tPredictedDurations.getData(new BigInt64Array(numTokens));
-      const tokenDurations = new Int32Array(numTokens);
-      let totalDuration = 0;
-      for (let i = 0; i < numTokens; i++) {
-        tokenDurations[i] = Number(predicted[i]!);
-        totalDuration += tokenDurations[i]!;
+      const voice = parsedVoices[chunkOpts.voice];
+      if (!voice) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `synthesize: Unknown voice: ${String(chunkOpts.voice)}.`
+        );
       }
 
-      // 2. Fit the predicted durations into the model's supported range
-      const clampedDuration = Math.min(
-        Math.max(totalDuration, MIN_DURATION_TICKS),
-        maxDurationTicks
+      // 2 tokens are reserved for the leading and trailing padding
+      const numTokens = Math.min(Math.max(phonemes.length + 2, minTokens), maxTokens);
+      const tokens = tokenize(phonemes, numTokens);
+
+      // Exclude all paddings except the leading and the trailing one
+      const textMask = new Uint8Array(numTokens);
+      textMask.fill(1, 0, Math.min(phonemes.length + 2, numTokens));
+
+      // Each input token count corresponds to a different voice reference vector
+      const voiceRows = voice.length / VOICE_REF_SIZE;
+      const voiceRow = Math.min(phonemes.length - 1, numTokens - 1, voiceRows - 1);
+      const voiceOffset = Math.max(0, voiceRow) * VOICE_REF_SIZE;
+
+      tVoiceRef.setData(voice.subarray(voiceOffset, voiceOffset + VOICE_REF_SIZE));
+      tVoiceRefHalf.setData(
+        voice.subarray(voiceOffset + VOICE_REF_HALF_SIZE, voiceOffset + VOICE_REF_SIZE)
       );
-      if (clampedDuration !== totalDuration) {
-        scaleDurations(tokenDurations, clampedDuration);
-      }
+      tSpeed.setData(new Float32Array([chunkOpts.speed]));
 
-      // Expand each token index over its predicted duration
-      const tokenIndices = new BigInt64Array(numTokens);
-      for (let i = 0; i < numTokens; i++) tokenIndices[i] = BigInt(i);
-      const indices = repeatInterleave(tokenIndices, tokenDurations);
-      if (indices.length === 0) {
-        return { audio: new Float32Array(0), sampleRate: KOKORO_SAMPLE_RATE, duration: 0 };
-      }
+      // Collect dynamic execution tensors for cleanup in a single try/finally block
+      const auxTensors: Tensor[] = [];
 
-      // 3. Synthesize the waveform
-      const tIndices = tensor('int64', [indices.length], indices);
-      const tAudio = tensor('float32', [1, 1, indices.length * TICKS_PER_DURATION]);
-      auxTensors.push(tIndices, tAudio);
+      try {
+        // 1. Predict per-token durations
+        const tTokens = tensor('int64', [1, numTokens], tokens);
+        const tTextMask = tensor('bool', [1, numTokens], textMask);
+        const tPredictedDurations = tensor('int64', [numTokens]);
+        const tDurationFeatures = tensor('float32', [1, numTokens, DURATION_FEATURE_DIM]);
+        auxTensors.push(tTokens, tTextMask, tPredictedDurations, tDurationFeatures);
 
-      models.synthesizer.execute(
-        'forward',
-        [tTokens, tTextMask, tIndices, tDurationFeatures, tVoiceRef],
-        [tAudio]
-      );
+        models.durationPredictor.execute(
+          'forward',
+          [tTokens, tTextMask, tVoiceRefHalf, tSpeed],
+          [tPredictedDurations, tDurationFeatures]
+        );
 
-      // 4. Post-processing: trim the audio down to the spoken phonemes.
-      // The padded tail of the input contributes trailing artifacts, so the
-      // waveform is cut at the effective duration, then at the last spoken
-      // token's timestamp, and finally stripped of the remaining silence.
-      let padIndex = numTokens;
-      for (let i = 1; i < numTokens; i++) {
-        if (tokens[i] === 0n) {
-          padIndex = i;
-          break;
+        const predicted = tPredictedDurations.getData(new BigInt64Array(numTokens));
+        const tokenDurations = new Int32Array(numTokens);
+        let totalDuration = 0;
+        for (let i = 0; i < numTokens; i++) {
+          tokenDurations[i] = Number(predicted[i]!);
+          totalDuration += tokenDurations[i]!;
         }
+
+        // 2. Fit the predicted durations into the model's supported range
+        const clampedDuration = Math.min(
+          Math.max(totalDuration, MIN_DURATION_TICKS),
+          maxDurationTicks
+        );
+        if (clampedDuration !== totalDuration) {
+          scaleDurations(tokenDurations, clampedDuration);
+        }
+
+        // Expand each token index over its predicted duration
+        const tokenIndices = new BigInt64Array(numTokens);
+        for (let i = 0; i < numTokens; i++) tokenIndices[i] = BigInt(i);
+        const indices = repeatInterleave(tokenIndices, tokenDurations);
+        if (indices.length === 0) {
+          return { audio: new Float32Array(0), sampleRate: KOKORO_SAMPLE_RATE, duration: 0 };
+        }
+
+        // 3. Synthesize the waveform
+        const tIndices = tensor('int64', [indices.length], indices);
+        const tAudio = tensor('float32', [1, 1, indices.length * TICKS_PER_DURATION]);
+        auxTensors.push(tIndices, tAudio);
+
+        models.synthesizer.execute(
+          'forward',
+          [tTokens, tTextMask, tIndices, tDurationFeatures, tVoiceRef],
+          [tAudio]
+        );
+
+        // 4. Post-processing: trim the audio down to the spoken phonemes.
+        // The padded tail of the input contributes trailing artifacts, so the
+        // waveform is cut at the effective duration, then at the last spoken
+        // token's timestamp, and finally stripped of the remaining silence.
+        let padIndex = numTokens;
+        for (let i = 1; i < numTokens; i++) {
+          if (tokens[i] === 0n) {
+            padIndex = i;
+            break;
+          }
+        }
+
+        let effectiveDuration = 0;
+        for (let i = 0; i <= padIndex && i < numTokens; i++) {
+          effectiveDuration += tokenDurations[i]!;
+        }
+
+        let audio: Float32Array = tAudio.getData(new Float32Array(tAudio.numel));
+        audio = audio.subarray(0, Math.min(effectiveDuration * TICKS_PER_DURATION, audio.length));
+
+        const lastPhoneme = phonemes[phonemes.length - 1] ?? '';
+
+        if (numTokens > 2) {
+          // Skip the trailing PAD token, as well as any punctuation just before it
+          const lastTokenIndex = LETTER_PATTERN.test(lastPhoneme) ? numTokens - 2 : numTokens - 3;
+
+          let lastTimestamp = 0;
+          for (let i = 0; i <= lastTokenIndex; i++) lastTimestamp += tokenDurations[i]!;
+          audio = audio.subarray(0, Math.min(lastTimestamp * TICKS_PER_DURATION, audio.length));
+        }
+
+        audio = stripAudio(audio, SILENCE_PADDING_MS * SAMPLES_PER_MS);
+
+        // 5. Append a natural pause matching the chunk's ending punctuation
+        const pauseSamples = (KOKORO_PAUSE_MS[lastPhoneme] ?? 0) * SAMPLES_PER_MS;
+        const result = new Float32Array(audio.length + pauseSamples);
+        result.set(audio);
+
+        return {
+          audio: result,
+          sampleRate: KOKORO_SAMPLE_RATE,
+          duration: result.length / KOKORO_SAMPLE_RATE,
+        };
+      } finally {
+        auxTensors.forEach((t) => t.dispose());
       }
+    };
 
-      let effectiveDuration = 0;
-      for (let i = 0; i <= padIndex && i < numTokens; i++) {
-        effectiveDuration += tokenDurations[i]!;
-      }
+    const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
+    const phonemize = wrapAsync(phonemizer.phonemize, runtime);
 
-      let audio: Float32Array = tAudio.getData(new Float32Array(tAudio.numel));
-      audio = audio.subarray(0, Math.min(effectiveDuration * TICKS_PER_DURATION, audio.length));
-
-      const lastPhoneme = phonemes[phonemes.length - 1] ?? '';
-
-      if (numTokens > 2) {
-        // Skip the trailing PAD token, as well as any punctuation just before it
-        const lastTokenIndex = LETTER_PATTERN.test(lastPhoneme) ? numTokens - 2 : numTokens - 3;
-
-        let lastTimestamp = 0;
-        for (let i = 0; i <= lastTokenIndex; i++) lastTimestamp += tokenDurations[i]!;
-        audio = audio.subarray(0, Math.min(lastTimestamp * TICKS_PER_DURATION, audio.length));
-      }
-
-      audio = stripAudio(audio, SILENCE_PADDING_MS * SAMPLES_PER_MS);
-
-      // 5. Append a natural pause matching the chunk's ending punctuation
-      const pauseSamples = (KOKORO_PAUSE_MS[lastPhoneme] ?? 0) * SAMPLES_PER_MS;
-      const result = new Float32Array(audio.length + pauseSamples);
-      result.set(audio);
-
-      return {
-        audio: result,
-        sampleRate: KOKORO_SAMPLE_RATE,
-        duration: result.length / KOKORO_SAMPLE_RATE,
-      };
-    } finally {
-      auxTensors.forEach((t) => t.dispose());
-    }
-  };
-
-  const synthesizeChunk = wrapAsync(synthesizeChunkWorklet, runtime);
-  const phonemize = wrapAsync((text: string) => {
-    'worklet';
-    return phonemizer.phonemize(text);
-  }, runtime);
-
-  let isSynthesizing = false;
-  const synthesizeStop = (): void => {
-    isSynthesizing = false;
-  };
-
-  async function* synthesize(
-    text: string,
-    options: KokoroTtsOptions<K>
-  ): AsyncGenerator<KokoroTtsChunk> {
-    if (isSynthesizing) {
-      throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
-    }
-
-    if (!text || !text.trim()) {
-      throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: Input text cannot be empty.');
-    }
-
-    if (!(options.voice in parsedVoices)) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `synthesize: Unknown voice: ${String(options.voice)}.`
-      );
-    }
-
-    const speed = options.speed ?? DEFAULT_SPEED;
-    if (speed < MIN_SPEED || speed > MAX_SPEED) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        `synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`
-      );
-    }
-
-    const maxChunkLength = Math.min(options.maxChunkLength ?? maxTokens - 2, maxTokens - 2);
-
-    // Phonemize once up front, then partition the phonemes — every chunk is
-    // then guaranteed to fit the models' token limit.
-    const phonemes = options.phonemize === false ? text : await phonemize(text);
-    const chunks = partition(phonemes, maxChunkLength, { prioritizeInitialTtfa: true });
-
-    isSynthesizing = true;
-    try {
-      for (const [chunkIndex, chunk] of chunks.entries()) {
-        if (!isSynthesizing) break;
-
-        const audioChunk = await synthesizeChunk(chunk, { voice: options.voice, speed });
-        yield { ...audioChunk, chunkIndex, totalChunks: chunks.length };
-      }
-    } finally {
+    let isSynthesizing = false;
+    const synthesizeStop = (): void => {
       isSynthesizing = false;
-    }
-  }
+    };
 
-  return { dispose, synthesize, synthesizeStop };
+    async function* synthesize(
+      text: string,
+      options: KokoroTtsOptions<K>
+    ): AsyncGenerator<KokoroTtsChunk> {
+      if (isSynthesizing) {
+        throw RnExecuTorchError('INVALID_STATE', 'synthesize: Synthesis is already in progress.');
+      }
+
+      if (!text || !text.trim()) {
+        throw RnExecuTorchError('INVALID_ARGUMENT', 'synthesize: Input text cannot be empty.');
+      }
+
+      if (!(options.voice in parsedVoices)) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `synthesize: Unknown voice: ${String(options.voice)}.`
+        );
+      }
+
+      const speed = options.speed ?? DEFAULT_SPEED;
+      if (speed < MIN_SPEED || speed > MAX_SPEED) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `synthesize: speed must be between ${MIN_SPEED} and ${MAX_SPEED}.`
+        );
+      }
+
+      const maxChunkLength = Math.min(options.maxChunkLength ?? maxTokens - 2, maxTokens - 2);
+
+      isSynthesizing = true;
+
+      // Phonemize once up front, then partition the phonemes — every chunk is
+      // then guaranteed to fit the models' token limit.
+      const phonemes = options.phonemize === false ? text : await phonemize(text);
+      const chunks = partition(phonemes, maxChunkLength, { prioritizeInitialTtfa: true });
+
+      try {
+        for (const [chunkIndex, chunk] of chunks.entries()) {
+          if (!isSynthesizing) break;
+
+          const audioChunk = await synthesizeChunk(chunk, { voice: options.voice, speed });
+          yield { ...audioChunk, chunkIndex, totalChunks: chunks.length };
+        }
+      } finally {
+        isSynthesizing = false;
+      }
+    }
+
+    return { dispose, synthesize, synthesizeStop };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

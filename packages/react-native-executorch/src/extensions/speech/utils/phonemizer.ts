@@ -4,7 +4,7 @@ import { RnExecuTorchError } from '../../../core/error';
 declare const phonemizerBrand: unique symbol;
 
 /**
- * List of all (currently) supported languages in our G2P pipeline.
+ * Union of all (currently) supported languages in our G2P pipeline.
  */
 export type PhonemizerLanguage = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
 

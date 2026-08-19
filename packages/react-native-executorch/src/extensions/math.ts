@@ -150,11 +150,16 @@ export function repeatInterleave<T extends ArrayLike<number> | ArrayLike<bigint>
   let total = 0;
   for (let i = 0; i < repeats.length; i++) total += Math.max(0, repeats[i]!);
 
-  const out = new (values.constructor as { new (length: number): T })(total);
+  const Ctor = values.constructor as new (length: number) => T;
+  const out = new Ctor(total);
+  const target = out as Record<number, number | bigint>;
+
   let next = 0;
   for (let i = 0; i < values.length; i++) {
     const value = values[i]!;
-    for (let j = 0; j < repeats[i]!; j++) (out as { [index: number]: unknown })[next++] = value;
+    const count = Math.max(0, repeats[i]!);
+
+    for (let j = 0; j < count; j++) target[next++] = value;
   }
 
   return out;

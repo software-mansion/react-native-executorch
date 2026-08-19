@@ -9,12 +9,22 @@ import {
   type SupertonicTtsModel,
 } from '../extensions/speech/tasks/supertonicTextToSpeech';
 
-type KokoroTts<K extends PropertyKey> = Awaited<ReturnType<typeof createKokoroTextToSpeech<K>>>;
+type KokoroTts<K extends PropertyKey> = Awaited<
+  // prettier-ignore
+  ReturnType<typeof createKokoroTextToSpeech<K>>
+>;
 type SupertonicTts<K extends PropertyKey> = Awaited<
+  // prettier-ignore
   ReturnType<typeof createSupertonicTextToSpeech<K>>
 >;
 
-type TtsHookResult<C, P extends { synthesize: unknown; synthesizeStop: unknown }> = {
+export type TtsHookResult<
+  C,
+  P extends {
+    synthesize: (...args: any[]) => any;
+    synthesizeStop: (...args: any[]) => any;
+  },
+> = {
   /** Whether the pipeline is loaded and ready to synthesize. */
   isReady: boolean;
   /** The download or load error, if any. */
@@ -69,10 +79,11 @@ export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K> | SupertonicTtsModel<K>,
   options?: ResourceOptions
 ) {
-  // The two configs are structurally disjoint, so the pipeline is picked from
-  // the config's own shape — `voices` is Kokoro-only, `voiceStyles` Supertonic-only.
-  // The overloads above give callers back the precise type.
-  const create = ('voices' in config ? createKokoroTextToSpeech : createSupertonicTextToSpeech) as (
+  // Each config names the pipeline it belongs to, so the factory is resolved
+  // from that tag alone.
+  const create = (
+    config.name === 'kokoro' ? createKokoroTextToSpeech : createSupertonicTextToSpeech
+  ) as (
     ttsConfig: KokoroTtsModel<K> | SupertonicTtsModel<K>
   ) => Promise<KokoroTts<K> | SupertonicTts<K>>;
 

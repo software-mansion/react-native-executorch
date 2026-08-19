@@ -751,6 +751,7 @@ const SUPERTONIC_DEFAULT_VOICE_STYLES = SUPERTONIC_DEFAULT_VOICE_NAMES.reduce(
 );
 
 const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  name: 'supertonic',
   modelPaths: {
     durationPredictor: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/duration_predictor_xnnpack_fp32.pte`,
     vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/xnnpack/vector_estimator_xnnpack_fp32.pte`,
@@ -762,6 +763,7 @@ const SUPERTONIC_3_XNNPACK_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> 
 };
 
 const SUPERTONIC_3_MLX_FP32: SupertonicTtsModel<SupertonicDefaultVoiceName> = {
+  name: 'supertonic',
   modelPaths: {
     durationPredictor: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/duration_predictor_mlx_fp32.pte`,
     vectorEstimator: `${BASE_URL}-supertonic/${NEXT_VERSION_TAG}/mlx/vector_estimator_mlx_fp32.pte`,
@@ -809,46 +811,55 @@ const kokoroNeuralPhonemizer = <const L extends Exclude<PhonemizerLanguage, 'en-
 const KOKORO_EN_US_XNNPACK_FP32: KokoroTtsModel<
   'af_heart' | 'af_river' | 'af_sarah' | 'am_adam' | 'am_michael' | 'am_santa'
 > = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroEnglishPhonemizer('en-us'),
   voices: kokoroVoices(['af_heart', 'af_river', 'af_sarah', 'am_adam', 'am_michael', 'am_santa']),
 };
 const KOKORO_EN_GB_XNNPACK_FP32: KokoroTtsModel<'bf_emma' | 'bm_daniel'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroEnglishPhonemizer('en-gb'),
   voices: kokoroVoices(['bf_emma', 'bm_daniel']),
 };
 const KOKORO_ES_XNNPACK_FP32: KokoroTtsModel<'ef_dora' | 'em_alex'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('es'),
   voices: kokoroVoices(['ef_dora', 'em_alex']),
 };
 const KOKORO_FR_XNNPACK_FP32: KokoroTtsModel<'ff_siwis'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('fr'),
   voices: kokoroVoices(['ff_siwis']),
 };
 const KOKORO_IT_XNNPACK_FP32: KokoroTtsModel<'if_sara' | 'im_nicola'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('it'),
   voices: kokoroVoices(['if_sara', 'im_nicola']),
 };
 const KOKORO_PT_XNNPACK_FP32: KokoroTtsModel<'pf_dora' | 'pm_santa'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('pt'),
   voices: kokoroVoices(['pf_dora', 'pm_santa']),
 };
 const KOKORO_HI_XNNPACK_FP32: KokoroTtsModel<'hf_alpha' | 'hm_omega' | 'hm_psi'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_STANDARD_PATHS,
   phonemizer: kokoroNeuralPhonemizer('hi'),
   voices: kokoroVoices(['hf_alpha', 'hm_omega', 'hm_psi']),
 };
 const KOKORO_PL_XNNPACK_FP32: KokoroTtsModel<'pm_mateusz'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_POLISH_PATHS,
   phonemizer: kokoroNeuralPhonemizer('pl'),
   voices: kokoroVoices(['pm_mateusz']),
 };
 const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
+  name: 'kokoro',
   modelPaths: KOKORO_GERMAN_PATHS,
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
