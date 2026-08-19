@@ -61,6 +61,8 @@ function getDefaultMaxChunkLength(lang?: SupertonicLanguage): number {
  * @typeParam K Voice style keys record constraint (strictly inferred from voiceStyles keys).
  */
 export type SupertonicTtsModel<K extends PropertyKey> = {
+  /** Discriminates this config from the other Text-to-Speech pipelines. */
+  readonly name: 'supertonic';
   /** Local or remote file paths to the 4 Supertonic `.pte` sub-models. */
   readonly modelPaths: {
     /** Path to the duration predictor `.pte` model. */
