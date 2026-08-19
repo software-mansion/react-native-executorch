@@ -572,6 +572,7 @@ export const LLM_MODELS: LLMModelConfig[] = [
     name: 'Bielik v3 1.5B (8da4w)',
     model: models.llm.BIELIK_V3_1_5B.XNNPACK_8DA4W,
     generationConfig: DEFAULT_GENERATION_CONFIG,
+    // eslint-disable-next-line @cspell/spellchecker
     systemPrompt: 'Jesteś pomocnym asystentem AI mówiącym po polsku.',
     stopRegex: undefined,
     toolOpts: undefined,
