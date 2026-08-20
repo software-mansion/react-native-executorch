@@ -217,7 +217,7 @@ function LLMContent() {
           toolCalls: m.role === 'assistant' ? m.toolCalls : undefined,
         }));
 
-      if (result.finishReason === 'max_tool_turns') {
+      if (result.finishReason === 'maxToolTurns') {
         const lastGenerated = generatedTurns[generatedTurns.length - 1];
         if (!lastGenerated || lastGenerated.role === 'tool' || lastGenerated.toolCalls) {
           generatedTurns.push({

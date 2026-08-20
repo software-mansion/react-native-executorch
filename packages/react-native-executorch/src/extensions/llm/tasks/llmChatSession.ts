@@ -102,9 +102,9 @@ export type LLMChatTurnResult = {
   /**
    * Reason why the chat turn completed.
    * - `stop`: The model completed its answer naturally without further tool calls.
-   * - `max_tool_turns`: The turn was terminated because it reached `maxToolTurns`.
+   * - `maxToolTurns`: The turn was terminated because it reached `maxToolTurns`.
    */
-  readonly finishReason: 'stop' | 'max_tool_turns';
+  readonly finishReason: 'stop' | 'maxToolTurns';
 };
 
 /**
@@ -271,7 +271,7 @@ export async function createLLMChatSession(
       const posAtEndOfUser = runner.getKVCacheState().pos;
       committed = history.length;
 
-      let finishReason: 'stop' | 'max_tool_turns' = 'max_tool_turns';
+      let finishReason: 'stop' | 'maxToolTurns' = 'maxToolTurns';
 
       for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
         const uncommitted = history.length - committed;
