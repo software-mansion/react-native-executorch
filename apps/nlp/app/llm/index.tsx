@@ -216,6 +216,17 @@ function LLMContent() {
           toolCalls: m.role === 'assistant' ? m.toolCalls : undefined,
         }));
 
+      if (result.finishReason === 'max_tool_turns') {
+        const lastGenerated = generatedTurns[generatedTurns.length - 1];
+        if (!lastGenerated || lastGenerated.role === 'tool' || lastGenerated.toolCalls) {
+          generatedTurns.push({
+            role: 'assistant',
+            content:
+              '⚠️ Tool execution reached the maximum allowed turns without a final response.',
+          });
+        }
+      }
+
       setTurns((prev) => [...prev, ...generatedTurns]);
     } finally {
       setStreamingResponse(null);

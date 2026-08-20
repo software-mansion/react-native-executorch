@@ -99,6 +99,12 @@ export type LLMChatTurnResult = {
   readonly messages: readonly ChatMessage[];
   /** Generation performance statistics for each generation step in this turn. */
   readonly stats: readonly LLMGenerationStats[];
+  /**
+   * Reason why the chat turn completed.
+   * - `stop`: The model completed its answer naturally without further tool calls.
+   * - `max_tool_turns`: The turn was terminated because it reached `maxToolTurns`.
+   */
+  readonly finishReason: 'stop' | 'max_tool_turns';
 };
 
 /**
@@ -261,6 +267,8 @@ export async function createLLMChatSession(
     const posAtEndOfUser = runner.getKVCacheState().pos;
     committed = history.length;
 
+    let finishReason: 'stop' | 'max_tool_turns' = 'max_tool_turns';
+
     for (let currentTurn = 0; currentTurn < maxToolTurns; ++currentTurn) {
       const uncommitted = history.length - committed;
       const prompt = chatPreprocessor.process(history, uncommitted, { addGenPrompt: true });
@@ -280,6 +288,7 @@ export async function createLLMChatSession(
 
       if (!parsedTools || parsedTools.toolCalls.length === 0) {
         history.push({ role: 'assistant', content: response });
+        finishReason = 'stop';
         break;
       }
 
@@ -325,7 +334,7 @@ export async function createLLMChatSession(
       committed = history.length;
     }
 
-    return { messages: history.slice(turnStartIdx), stats: generationStatsList };
+    return { messages: history.slice(turnStartIdx), stats: generationStatsList, finishReason };
   };
 
   return {
