@@ -316,8 +316,8 @@ Partitioner
 denoised
 ttfa
 TTFA
-agenticphonemized
+agentic
+phonemized
 subsentences
-
 DEEPSEEK
 LLMKV
