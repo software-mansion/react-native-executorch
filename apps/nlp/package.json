@@ -12,7 +12,8 @@
     "features": [
       "tokenizer",
       "textEmbeddings",
-      "privacyFilter"
+      "privacyFilter",
+      "multimodalLLM"
     ]
   },
   "scripts": {
