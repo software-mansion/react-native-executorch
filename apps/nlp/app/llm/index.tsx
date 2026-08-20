@@ -204,15 +204,16 @@ function LLMContent() {
         setStreamingResponse((prev) => (prev !== null ? prev + token : token));
       });
 
+      let assistantIdx = 0;
       const generatedTurns: Turn[] = result.messages
         .filter(
           (m): m is Extract<typeof m, { role: 'assistant' | 'tool' }> =>
             m.role === 'assistant' || m.role === 'tool'
         )
-        .map((m, idx) => ({
+        .map((m) => ({
           role: m.role,
           content: typeof m.content === 'string' ? m.content : '',
-          stats: result.stats[idx],
+          stats: m.role === 'assistant' ? result.stats[assistantIdx++] : undefined,
           toolCalls: m.role === 'assistant' ? m.toolCalls : undefined,
         }));
 
