@@ -1,5 +1,6 @@
 import { rnexecutorchJsi } from '../native/bridge';
 import type { Tensor } from '../core/tensor';
+import { RnExecuTorchError } from '../core/error';
 
 /**
  * Computes the element-wise sigmoid activation on a float32 source tensor and
@@ -115,5 +116,51 @@ export function randomNormal(
     out[i] = mean + mag * Math.cos(2.0 * Math.PI * u2);
     if (i + 1 < size) out[i + 1] = mean + mag * Math.sin(2.0 * Math.PI * u2);
   }
+  return out;
+}
+
+/**
+ * Repeats each element of `values` as many times as the matching entry of
+ * `repeats`, concatenating the runs into a newly allocated array of the same
+ * kind — the equivalent of PyTorch's `repeat_interleave` over a 1-D input.
+ *
+ * Non-positive repeat counts drop their element.
+ * @category Typescript API
+ * @typeParam T The array kind of `values` (any typed array or a plain array),
+ * preserved in the result.
+ * @param values The values to repeat.
+ * @param repeats The repeat count for each value. Must be the same length as
+ * `values`.
+ * @returns A new array of the same kind holding the repeated runs.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `repeats` and
+ * `values` have different lengths.
+ */
+export function repeatInterleave<T extends ArrayLike<number> | ArrayLike<bigint>>(
+  values: T,
+  repeats: ArrayLike<number>
+): T {
+  'worklet';
+  if (repeats.length !== values.length) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `repeatInterleave: repeats length (${repeats.length}) must match values length (${values.length}).`
+    );
+  }
+
+  let total = 0;
+  for (let i = 0; i < repeats.length; i++) total += Math.max(0, repeats[i]!);
+
+  const Ctor = values.constructor as new (length: number) => T;
+  const out = new Ctor(total);
+  const target = out as Record<number, number | bigint>;
+
+  let next = 0;
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i]!;
+    const count = Math.max(0, repeats[i]!);
+
+    for (let j = 0; j < count; j++) target[next++] = value;
+  }
+
   return out;
 }

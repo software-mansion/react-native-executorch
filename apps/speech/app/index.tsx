@@ -29,6 +29,12 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('text-to-speech/')}>
           <Text style={styles.buttonText}>Text-to-Speech (SuperTonic)</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('kokoro-text-to-speech/')}
+        >
+          <Text style={styles.buttonText}>Text-to-Speech (Kokoro)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

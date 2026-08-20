@@ -10,9 +10,10 @@
 		0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F442D67549100D8DCBA /* Metal.framework */; };
 		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
 		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
-		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
+		5576B4B92CEF970E005027B7 /* ExecutorchLib.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ExecutorchLib.mm */; };
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
+		55EA2C5B2CB90E82004315B3 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E82004315B3 /* CoreImage.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
 /* End PBXBuildFile section */
 
@@ -20,11 +21,11 @@
 		0E4A7F442D67549100D8DCBA /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
 		0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
-		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
-		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		5576B4B82CEF970C005027B7 /* ExecutorchLib.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ExecutorchLib.mm; sourceTree = "<group>"; };
 		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
+		55EA2C5A2CB90E82004315B3 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -38,6 +39,7 @@
 				0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */,
 				55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */,
 				55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */,
+				55EA2C5B2CB90E82004315B3 /* CoreImage.framework in Frameworks */,
 				55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,8 +75,7 @@
 		55EA2C352CB90C7A004315B3 /* Exported */ = {
 			isa = PBXGroup;
 			children = (
-				5576B4B82CEF970C005027B7 /* ETModel.mm */,
-				5576B4B62CEF9705005027B7 /* ETModel.h */,
+				5576B4B82CEF970C005027B7 /* ExecutorchLib.mm */,
 			);
 			path = Exported;
 			sourceTree = "<group>";
@@ -87,6 +88,7 @@
 				0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */,
 				55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */,
 				55EA2C582CB90E80004315B3 /* CoreML.framework */,
+				55EA2C5A2CB90E82004315B3 /* CoreImage.framework */,
 				55EA2C562CB90E7D004315B3 /* Accelerate.framework */,
 			);
 			name = Frameworks;
@@ -163,7 +165,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */,
+				5576B4B92CEF970E005027B7 /* ExecutorchLib.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

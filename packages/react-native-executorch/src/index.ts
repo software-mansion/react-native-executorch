@@ -39,6 +39,7 @@ export * from './extensions/nlp/tasks/privacyFilter';
 export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
+export * from './extensions/speech/tasks/kokoroTextToSpeech';
 export * from './extensions/cv/tasks/ocr/ocr';
 export * from './extensions/cv/tasks/ocr/detectors';
 export type { Quad } from './extensions/cv/ops/quad';
