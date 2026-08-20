@@ -99,16 +99,16 @@ int64_t getRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimo
     if (runner == nullptr) {
         return 0;
     }
-    if (!isMultimodal) {
+    if (isMultimodal) {
+        auto *r = dynamic_cast<MultimodalRunner *>(runner);
+        if (r != nullptr) {
+            return r->*getPrivateMember(MMRunnerPosTag{});
+        }
+    } else {
         auto *r = dynamic_cast<TextLLMRunner *>(runner);
         if (r != nullptr) {
             return r->*getPrivateMember(TextRunnerPosTag{});
         }
-        return 0;
-    }
-    auto *r = dynamic_cast<MultimodalRunner *>(runner);
-    if (r != nullptr) {
-        return r->*getPrivateMember(MMRunnerPosTag{});
     }
     return 0;
 }
@@ -118,15 +118,15 @@ int64_t getRunnerMaxSeqLen(executorch::extension::llm::IRunner *runner, bool isM
         return 0;
     }
     const std::unordered_map<std::string, int64_t> *meta = nullptr;
-    if (!isMultimodal) {
-        auto *r = dynamic_cast<TextLLMRunner *>(runner);
-        if (r != nullptr) {
-            meta = &(r->*getPrivateMember(TextRunnerMetadataTag{}));
-        }
-    } else {
+    if (isMultimodal) {
         auto *r = dynamic_cast<MultimodalRunner *>(runner);
         if (r != nullptr) {
             meta = &(r->*getPrivateMember(MMRunnerMetadataTag{}));
+        }
+    } else {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            meta = &(r->*getPrivateMember(TextRunnerMetadataTag{}));
         }
     }
     if (meta == nullptr) {
@@ -147,17 +147,17 @@ void setRunnerPos(executorch::extension::llm::IRunner *runner, bool isMultimodal
     if (runner == nullptr) {
         return;
     }
-    if (!isMultimodal) {
-        auto *r = dynamic_cast<TextLLMRunner *>(runner);
-        if (r != nullptr) {
-            r->*getPrivateMember(TextRunnerPosTag{}) = targetPos;
-            r->*getPrivateMember(TextRunnerPrefillTag{}) = std::nullopt;
-        }
-    } else {
+    if (isMultimodal) {
         auto *r = dynamic_cast<MultimodalRunner *>(runner);
         if (r != nullptr) {
             r->*getPrivateMember(MMRunnerPosTag{}) = targetPos;
             r->*getPrivateMember(MMRunnerPrefillTag{}) = std::nullopt;
+        }
+    } else {
+        auto *r = dynamic_cast<TextLLMRunner *>(runner);
+        if (r != nullptr) {
+            r->*getPrivateMember(TextRunnerPosTag{}) = targetPos;
+            r->*getPrivateMember(TextRunnerPrefillTag{}) = std::nullopt;
         }
     }
 }
