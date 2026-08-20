@@ -132,11 +132,11 @@ int64_t getRunnerMaxSeqLen(executorch::extension::llm::IRunner *runner, bool isM
     if (meta == nullptr) {
         return 0;
     }
-    auto it = meta->find(executorch::extension::llm::kMaxSeqLen);
+    auto it = meta->find(executorch::extension::llm::kMaxContextLen);
     if (it != meta->end()) {
         return it->second;
     }
-    it = meta->find(executorch::extension::llm::kMaxContextLen);
+    it = meta->find(executorch::extension::llm::kMaxSeqLen);
     if (it != meta->end()) {
         return it->second;
     }
