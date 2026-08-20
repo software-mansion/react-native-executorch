@@ -48,9 +48,9 @@ public:
      * @throws core::error::RnExecuTorchException with code LoadFailed if
      * loading the model or tokenizer fails.
      */
-    LLMRunnerHostObject(const std::string &modelPath,
-                        const std::string &tokenizerPath,
-                        const std::vector<std::string> &modalities);
+    explicit LLMRunnerHostObject(const std::string &modelPath,
+                                 const std::string &tokenizerPath,
+                                 const std::vector<std::string> &modalities);
 
     facebook::jsi::Value get(facebook::jsi::Runtime &rt, const facebook::jsi::PropNameID &name) override;
     std::vector<facebook::jsi::PropNameID> getPropertyNames(facebook::jsi::Runtime &rt) override;
