@@ -40,12 +40,13 @@ type Turn = {
 function formatStats(stats: LLMGenerationStats): string {
   const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
   const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
-  const totalMs = stats.inferenceEndMs - stats.inferenceStartMs;
-  const ttftMs = stats.firstTokenMs - stats.inferenceStartMs;
+  const decodeTtftMs = stats.firstTokenMs - stats.inferenceStartMs;
+  const totalTtftMs = decodeTtftMs + (stats.prefillDurationMs ?? 0);
+  const totalMs = stats.inferenceEndMs - stats.inferenceStartMs + (stats.prefillDurationMs ?? 0);
   return (
     `${stats.numGeneratedTokens} tokens · ` +
     `${tokensPerSec.toFixed(1)} tok/s · ` +
-    `${ttftMs.toFixed(0)}ms ttft · ` +
+    `${totalTtftMs.toFixed(0)}ms ttft · ` +
     `${(totalMs / 1000).toFixed(2)}s`
   );
 }

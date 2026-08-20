@@ -269,7 +269,7 @@ export async function createLLMChatSession(
 
       const { response, stats } = await generateChatTurn(runner, prompt, generationOpts);
       chatPreprocessor.clear();
-      generationStatsList.push({ ...stats, firstTokenMs: stats.firstTokenMs + prefillDurationMs });
+      generationStatsList.push({ ...stats, prefillDurationMs });
 
       // Always rewind KV cache back to posAtEndOfUser so next turn prefills
       // cleanly formatted message with tool outputs

@@ -29,8 +29,10 @@ export type LLMGenerationStats = {
   readonly numPromptTokens: number;
   /** Number of newly generated tokens. */
   readonly numGeneratedTokens: number;
-  /** Time elapsed in milliseconds to generate the first token. */
+  /** Timestamp in milliseconds when the first token was generated. */
   readonly firstTokenMs: number;
+  /** Duration in milliseconds spent in the separate prefill phase (if any). */
+  readonly prefillDurationMs?: number;
   /** Timestamp in milliseconds when inference started. */
   readonly inferenceStartMs: number;
   /** Timestamp in milliseconds when inference completed. */
