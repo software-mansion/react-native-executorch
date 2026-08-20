@@ -243,19 +243,26 @@ export function parseQwenToolCalls(text: string): ToolParserResult | undefined {
   return { toolCalls, textContent: textContent || undefined };
 }
 
-export const LLAMA_TOOL_STOP_REGEX = /(?:<\|eot_id\|>)/;
+export const LLAMA_TOOL_STOP_REGEX = /(?:<\|eot_id\|>|<\|eom_id\|>)/;
 
 export function parseLlamaToolCalls(text: string): ToolParserResult | undefined {
-  const jsonMatch =
-    text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/) ??
-    text.match(/\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"parameters"\s*:\s*\{[\s\S]*?\}\s*\}/);
+  const cleanText = text
+    .replace(/<\|(?:eot_id|eom_id|start_header_id|end_header_id)\|>[\s\S]*?$/g, '')
+    .trim();
 
-  const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text.trim();
+  const jsonMatch =
+    cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ??
+    cleanText.match(
+      /\{[\s\S]*?"name"\s*:\s*"[^"]+"[\s\S]*?"parameters"\s*:\s*\{[\s\S]*?\}[\s\S]*?\}/
+    );
+
+  const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : cleanText;
 
   try {
     const parsed = JSON.parse(jsonStr);
-    if (parsed && typeof parsed.name === 'string' && parsed.parameters) {
-      let args = parsed.parameters ?? {};
+    const item = Array.isArray(parsed) ? parsed[0] : parsed;
+    if (item && typeof item.name === 'string' && item.parameters) {
+      let args = item.parameters ?? {};
       if (typeof args === 'string') {
         try {
           args = JSON.parse(args);
@@ -267,14 +274,14 @@ export function parseLlamaToolCalls(text: string): ToolParserResult | undefined 
         {
           type: 'function',
           function: {
-            name: parsed.name,
+            name: item.name,
             arguments: typeof args === 'object' && args !== null ? args : {},
           },
         },
       ];
-      const textContent = text
+      const textContent = cleanText
         .replace(jsonMatch ? jsonMatch[0] : jsonStr, '')
-        .replace(/<\|eot_id\|>/g, '')
+        .replace(/<\|(?:eot_id|eom_id)\|>/g, '')
         .trim();
       return { toolCalls, textContent: textContent || undefined };
     }
