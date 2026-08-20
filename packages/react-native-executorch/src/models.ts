@@ -263,8 +263,8 @@ const RFDETR_NANO_DETECTOR_XNNPACK_FP32: ObjectDetectorModel<'xyxy', CocoClass> 
   modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/xnnpack/rfdetr_nano_xnnpack_fp32.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
-const RFDETR_NANO_DETECTOR_COREML_INT8: ObjectDetectorModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}-rfdetr-nano-detector/${VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`,
+const RFDETR_NANO_DETECTOR_COREML_FP16: ObjectDetectorModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-detector/${NEXT_VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
   modelOpts: RFDETR_NANO_DETECTOR_OPTS,
 };
 
@@ -420,20 +420,12 @@ const FASTSAM_S_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
   modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/s/xnnpack/fast_sam_s_xnnpack_fp32.pte`,
   modelOpts: FASTSAM_OPTS,
 };
-const FASTSAM_S_COREML_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp32.pte`,
-  modelOpts: FASTSAM_OPTS,
-};
 const FASTSAM_S_COREML_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
   modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/s/coreml/fast_sam_s_coreml_fp16.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
   modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/x/xnnpack/fast_sam_x_xnnpack_fp32.pte`,
-  modelOpts: FASTSAM_OPTS,
-};
-const FASTSAM_X_COREML_FP32: InstanceSegmenterModel<'xyxy', 'object'> = {
-  modelPath: `${BASE_URL}-fast-sam/${NEXT_VERSION_TAG}/x/coreml/fast_sam_x_coreml_fp32.pte`,
   modelOpts: FASTSAM_OPTS,
 };
 const FASTSAM_X_COREML_FP16: InstanceSegmenterModel<'xyxy', 'object'> = {
@@ -451,8 +443,8 @@ const RFDETR_NANO_SEG_OPTS = {
   defaultIouThreshold: 0.55,
   defaultMaskThreshold: 0.5,
 };
-const RFDETR_NANO_SEG_COREML_INT8: InstanceSegmenterModel<'xyxy', CocoClass> = {
-  modelPath: `${BASE_URL}-rfdetr-nano-segmentation/${NEXT_VERSION_TAG}/coreml/rfdetr_nano_coreml_int8.pte`,
+const RFDETR_NANO_SEG_COREML_FP16: InstanceSegmenterModel<'xyxy', CocoClass> = {
+  modelPath: `${BASE_URL}-rfdetr-nano-segmentation/${NEXT_VERSION_TAG}/coreml/rfdetr_nano_coreml_fp16.pte`,
   modelOpts: RFDETR_NANO_SEG_OPTS,
 };
 const RFDETR_NANO_SEG_XNNPACK_FP32: InstanceSegmenterModel<'xyxy', CocoClass> = {
@@ -1087,7 +1079,7 @@ export const models = {
     RFDETR_NANO: {
       ...RFDETR_NANO_DETECTOR_XNNPACK_FP32,
       XNNPACK_FP32: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
-      COREML_INT8: RFDETR_NANO_DETECTOR_COREML_INT8,
+      COREML_FP16: RFDETR_NANO_DETECTOR_COREML_FP16,
     },
     /**
      * Ultralytics YOLO26 real-time object detection models trained on COCO
@@ -1204,7 +1196,6 @@ export const models = {
       S: {
         ...FASTSAM_S_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_S_XNNPACK_FP32,
-        COREML_FP32: FASTSAM_S_COREML_FP32,
         COREML_FP16: FASTSAM_S_COREML_FP16,
       },
       /**
@@ -1213,7 +1204,6 @@ export const models = {
       X: {
         ...FASTSAM_X_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_X_XNNPACK_FP32,
-        COREML_FP32: FASTSAM_X_COREML_FP32,
         COREML_FP16: FASTSAM_X_COREML_FP16,
       },
     },
@@ -1223,8 +1213,8 @@ export const models = {
      * (see {@link COCO_CLASSES}).
      */
     RFDETR_NANO: {
-      ...RFDETR_NANO_SEG_COREML_INT8,
-      COREML_INT8: RFDETR_NANO_SEG_COREML_INT8,
+      ...RFDETR_NANO_SEG_COREML_FP16,
+      COREML_FP16: RFDETR_NANO_SEG_COREML_FP16,
       XNNPACK_FP32: RFDETR_NANO_SEG_XNNPACK_FP32,
     },
     /**
