@@ -446,7 +446,17 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
                 (*self->runner_).reset();
             } else {
                 auto targetPos = static_cast<int64_t>(conversions::asType<uint64_t>(rt, "LLMRunner.reset", args[0]));
-                setRunnerPos(self->runner_.get(), !self->modalities_.empty(), targetPos);
+                bool isMultimodal = !self->modalities_.empty();
+                int64_t currentPos = getRunnerPos(self->runner_.get(), isMultimodal);
+                if (targetPos < 0 || targetPos > currentPos) {
+                    throw error::InvalidArgument(std::format("LLMRunner.reset: targetPos must be in range [0, {}], but got {}",
+                                                             currentPos, targetPos));
+                }
+                if (targetPos == 0) {
+                    (*self->runner_).reset();
+                } else {
+                    setRunnerPos(self->runner_.get(), isMultimodal, targetPos);
+                }
             }
 
             return jsi::Value::undefined();
