@@ -264,10 +264,10 @@ LLMRunnerHostObject::LLMRunnerHostObject(const std::string &modelPath,
         throw error::LoadFailed("LLMRunner: Failed to create llm runner");
     }
 
-    auto loadError = runner_->load();
-    if (loadError != executorch::runtime::Error::Ok) {
-        std::string errorMsg = executorch::runtime::to_string(loadError);
-        throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadError);
+    auto loadStatus = runner_->load();
+    if (loadStatus != executorch::runtime::Error::Ok) {
+        std::string errorMsg = executorch::runtime::to_string(loadStatus);
+        throw error::LoadFailed(std::format("LLMRunner: Failed to load model: {}", errorMsg), loadStatus);
     }
 }
 
