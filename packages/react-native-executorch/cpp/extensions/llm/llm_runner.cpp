@@ -343,22 +343,22 @@ jsi::Value LLMRunnerHostObject::get(jsi::Runtime &rt, const jsi::PropNameID &nam
 
             auto lock = self->tryLockUnique("LLMRunner.generate");
 
-            auto genError = executorch::runtime::Error::Ok;
+            auto genStatus = executorch::runtime::Error::Ok;
             if (self->modalities_.empty()) {
                 auto prompt = conversions::asType<std::string>(rt, "LLMRunner.generate: prompt", args[0]);
-                genError = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
+                genStatus = self->runner_->generate(prompt, config, tokenCallback, statsCallback);
             } else {
                 auto inputs = parsePrompt(rt, "LLMRunner.generate", args[0], self->modalities_);
                 auto *multimodalRunner = dynamic_cast<executorch::extension::llm::MultimodalRunner *>(self->runner_.get());
                 if (multimodalRunner == nullptr) {
                     throw error::InvalidArgument("LLMRunner.generate: Runner instance is not a multimodal model");
                 }
-                genError = multimodalRunner->generate(inputs, config, tokenCallback, statsCallback);
+                genStatus = multimodalRunner->generate(inputs, config, tokenCallback, statsCallback);
             }
 
-            if (genError != executorch::runtime::Error::Ok) {
-                std::string errorMsg = executorch::runtime::to_string(genError);
-                throw error::ExecutionFailed(std::format("LLMRunner.generate: Failed to generate: {}", errorMsg), genError);
+            if (genStatus != executorch::runtime::Error::Ok) {
+                std::string errorMsg = executorch::runtime::to_string(genStatus);
+                throw error::ExecutionFailed(std::format("LLMRunner.generate: Failed to generate: {}", errorMsg), genStatus);
             }
 
             return statsToJs(rt, *finalStats);
