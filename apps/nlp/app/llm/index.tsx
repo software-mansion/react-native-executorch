@@ -228,6 +228,8 @@ function LLMContent() {
       }
 
       setTurns((prev) => [...prev, ...generatedTurns]);
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to generate response');
     } finally {
       setStreamingResponse(null);
     }
