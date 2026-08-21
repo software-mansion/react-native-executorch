@@ -582,8 +582,12 @@ const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32: ImageEmbedderModel = {
   modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_fp32.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
-const CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8: ImageEmbedderModel = {
-  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/xnnpack/clip_vit_base_patch32_image_xnnpack_int8.pte`,
+const CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16: ImageEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/coreml/clip_vit_base_patch32_image_coreml_fp16.pte`,
+  modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
+};
+const CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8: ImageEmbedderModel = {
+  modelPath: `${BASE_URL}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/mlx/clip_vit_base_patch32_image_mlx_int8.pte`,
   modelOpts: CLIP_IMAGE_EMBEDDINGS_OPTS,
 };
 
@@ -1508,7 +1512,8 @@ export const models = {
     CLIP_VIT_BASE_PATCH32: {
       ...CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
-      XNNPACK_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_INT8,
+      COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
+      MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
     },
   },
 
