@@ -117,7 +117,8 @@ export async function createPrivacyFilter<Label extends string>(
   detectPii: (input: string) => Promise<PiiEntity<PiiEntityType<Label>>[]>;
 
   /**
-   * Synchronous version of {@link detectPii}.
+   * Synchronous version of {@link detectPii} to be executed directly on the
+   * caller or worklet thread.
    */
   detectPiiWorklet: (input: string) => PiiEntity<PiiEntityType<Label>>[];
 }> {

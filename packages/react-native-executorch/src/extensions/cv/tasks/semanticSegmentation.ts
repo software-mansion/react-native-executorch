@@ -136,8 +136,8 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   ) => Promise<SemanticSegmentationResult<L>>;
 
   /**
-   * Runs semantic segmentation synchronously.
-   * @see {@link segment} for details.
+   * Synchronous version of {@link segment} to be executed directly on the
+   * caller or worklet thread.
    */
   segmentWorklet: (
     input: ImageBuffer,

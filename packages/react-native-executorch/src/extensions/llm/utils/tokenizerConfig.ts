@@ -11,7 +11,9 @@ import { RnExecuTorchError } from '../../../core/error';
  * @category Types
  */
 export type TokenizerChatConfig = {
+  /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** End-of-sequence token string. */
   readonly eosToken: string;
 };
 
@@ -28,6 +30,8 @@ function resolveToken(token: unknown): string | undefined {
  * @category Utils
  * @param config Raw JSON object from tokenizer_config.json.
  * @returns A parsed TokenizerChatConfig object.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if `chat_template` is not
+ * a string or `eos_token` is missing.
  */
 export function parseTokenizerConfig(config: any): TokenizerChatConfig {
   let chatTemplate = config.chat_template;

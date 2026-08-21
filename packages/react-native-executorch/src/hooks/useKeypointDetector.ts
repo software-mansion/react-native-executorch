@@ -21,8 +21,8 @@ import {
  * @param config The keypoint detection model configuration.
  * See {@link KeypointDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, landmarks, and keypoint detection functions.
+ * @returns The same object as {@link createKeypointDetector} (without `dispose`),
+ * combined with loading state, download progress, and landmarks.
  * @see {@link createKeypointDetector}
  */
 export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(

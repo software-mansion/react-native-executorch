@@ -17,8 +17,8 @@ import {
  * @category Hooks
  * @param config The SDXS model configuration. See {@link SdxsTextToImageModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and image generation functions.
+ * @returns The same object as {@link createSdxsTextToImage} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createSdxsTextToImage}
  */
 export function useTextToImage(config: SdxsTextToImageModel, options?: ResourceOptions) {

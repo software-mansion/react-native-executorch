@@ -144,6 +144,8 @@ export type LLMChatSession = {
    * @param onToken Callback fired on the RN thread for each decoded token.
    * @param genConfig Generation options overriding session defaults.
    * @returns A promise resolving to the generated messages and turn stats.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the message is
+   * malformed, or `INVALID_STATE` if the chat template is non-monotonic.
    */
   sendMessage(
     message: ChatMessageContent,
@@ -188,7 +190,7 @@ const DEFAULT_MAX_TURNS = 5;
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
  * @param options Custom generation, tool calling, and state options.
  * @param runtime The worklet runtime thread to run native generation on.
- * @returns A Promise resolving to an LLMChatSession instance.
+ * @returns A Promise resolving to an {@link LLMChatSession} instance.
  */
 export async function createLLMChatSession(
   config: LLMModel,

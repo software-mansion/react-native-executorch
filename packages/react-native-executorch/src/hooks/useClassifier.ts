@@ -16,8 +16,8 @@ import { createClassifier, type ClassifierModel } from '../extensions/cv/tasks/c
  * @param config The image classification model configuration.
  * See {@link ClassifierModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, labels, and classification functions.
+ * @returns The same object as {@link createClassifier} (without `dispose`),
+ * combined with loading state, download progress, and labels.
  * @see {@link createClassifier}
  */
 export function useClassifier<L>(config: ClassifierModel<L>, options?: ResourceOptions) {

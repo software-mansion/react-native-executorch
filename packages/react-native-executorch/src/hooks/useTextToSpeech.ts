@@ -52,8 +52,8 @@ export type TtsHookResult<
  * @typeParam K Voice keys record constraint.
  * @param config The Kokoro TTS model configuration. See {@link KokoroTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and speech synthesis functions.
+ * @returns The same object as {@link createKokoroTextToSpeech} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createKokoroTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(
@@ -75,8 +75,8 @@ export function useTextToSpeech<K extends PropertyKey>(
  * @param config The Supertonic TTS model configuration.
  * See {@link SupertonicTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and speech synthesis functions.
+ * @returns The same object as {@link createSupertonicTextToSpeech} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createSupertonicTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(

@@ -20,8 +20,8 @@ import {
  * @param config The privacy filter model configuration.
  * See {@link PrivacyFilterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and detection functions.
+ * @returns The same object as {@link createPrivacyFilter} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createPrivacyFilter}
  */
 export function usePrivacyFilter<Label extends string>(

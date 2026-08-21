@@ -337,17 +337,64 @@ export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
   return { kind: 'Tensor', dtype, shape: typedShape } as TensorSpec<SymbolicDim>;
 };
 
+/**
+ * Shorthand for `SymbolicTensor('float32', shape)`.
+ * @category Typescript API
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `float32` data type.
+ */
 export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape);
+/**
+ * Shorthand for `SymbolicTensor('int64', shape)`.
+ * @category Typescript API
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `int64` data type.
+ */
 export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
+/**
+ * Shorthand for `SymbolicTensor('int32', shape)`.
+ * @category Typescript API
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `int32` data type.
+ */
 export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
+/**
+ * Shorthand for `SymbolicTensor('uint8', shape)`.
+ * @category Typescript API
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `uint8` data type.
+ */
 export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
+/**
+ * Shorthand for `SymbolicTensor('bool', shape)`.
+ * @category Typescript API
+ * @param shape Dimension sizes of the tensor.
+ * @returns A {@link SymbolicTensor} with `bool` data type.
+ */
 export const bool = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
 
-/** Helper namespace for declaring runtime constraints. */
+/**
+ * Helper namespace for declaring runtime constraints.
+ * @category Typescript API
+ */
 export const constr = {
+  /**
+   * Declares that all given dimensions must be equal at runtime.
+   * @param dims Dimensions that must share the same concrete value.
+   * @returns An {@link EqualityConstraint} across the given dimensions.
+   */
   eq: (...dims: DimRef[]): EqualityConstraint => {
     return { kind: 'equality', dims };
   },
+  /**
+   * Declares a linear relation between two dimensions: `dimLhs = a * dimRhs +
+   * b`.
+   * @param dimLhs The left-hand-side dimension.
+   * @param dimRhs The right-hand-side dimension.
+   * @param a Slope coefficient.
+   * @param b Intercept coefficient (defaults to `0`).
+   * @returns A {@link LinearConstraint} relating the two dimensions.
+   */
   linear: (dimLhs: DimRef, dimRhs: DimRef, a: number, b: number = 0): LinearConstraint => {
     return { kind: 'linear', dimLhs, dimRhs, coefficients: [a, b] };
   },
@@ -356,6 +403,7 @@ export const constr = {
 /**
  * Constructs a method specification mapping a method name to its parameter
  * specs and runtime constraints.
+ * @category Typescript API
  * @param name The execution method name (e.g., `'forward'`).
  * @param inputs Ordered list of parameter specifications for method inputs.
  * @param outputs Ordered list of parameter specifications for method outputs.
@@ -891,6 +939,7 @@ function createSpecMatch<K extends PropertyKey>(
  * accessors.
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH`, describing
  * why every variant failed.
+ * @category Typescript API
  */
 export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
   exportedModelSpec: ModelSpec<ConcreteDim>,

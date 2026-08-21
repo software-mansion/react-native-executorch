@@ -18,8 +18,8 @@ import {
  * @param config The image embedder model configuration.
  * See {@link ImageEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and embedding functions.
+ * @returns The same object as {@link createImageEmbedder} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createImageEmbedder}
  */
 export function useImageEmbedder(config: ImageEmbedderModel, options?: ResourceOptions) {

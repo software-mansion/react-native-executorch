@@ -15,8 +15,8 @@ import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/t
  * @param config The style transfer model configuration.
  * See {@link StyleTransferModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and style transfer functions.
+ * @returns The same object as {@link createStyleTransfer} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createStyleTransfer}
  */
 export function useStyleTransfer(config: StyleTransferModel, options?: ResourceOptions) {

@@ -21,8 +21,8 @@ import {
  * @param config The instance segmentation model configuration.
  * See {@link InstanceSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, labels, and instance segmentation functions.
+ * @returns The same object as {@link createInstanceSegmenter} (without `dispose`),
+ * combined with loading state, download progress, and labels.
  * @see {@link createInstanceSegmenter}
  */
 export function useInstanceSegmenter<F extends BoxFormat, L>(

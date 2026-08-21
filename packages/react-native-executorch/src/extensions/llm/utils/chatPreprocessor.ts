@@ -68,7 +68,9 @@ export type LLMAudioPreprocessorConfig = {
  * @category Types
  */
 export type LLMMediaPreprocessorConfig = {
+  /** Image preprocessing configuration for vision-language models. */
   readonly image?: LLMImagePreprocessorConfig;
+  /** Audio preprocessing configuration for audio-language models. */
   readonly audio?: LLMAudioPreprocessorConfig;
 };
 
@@ -77,9 +79,13 @@ export type LLMMediaPreprocessorConfig = {
  * @category Types
  */
 export type ChatPreprocessorConfig = {
+  /** Jinja chat template string for prompt rendering. */
   readonly chatTemplate: string;
+  /** Tool definitions available to the model. */
   readonly tools?: readonly ToolDefinition[];
+  /** Supported input modalities (e.g. `['image']`). */
   readonly modalities?: readonly Modality[];
+  /** Media preprocessing configuration for non-text inputs. */
   readonly preprocessorConfig?: LLMMediaPreprocessorConfig;
 };
 
@@ -167,6 +173,8 @@ const MEDIA_SENTINEL_REGEX = /\uFFFC__ET_MEDIA_(\d+)__/g;
  * @param content Chat message text or media input array.
  * @param options Sentinel tokens, supported modalities, and starting media index.
  * @returns Object containing serialized text and a map of media items.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if a media kind is
+ * unsupported or a required sentinel token is missing.
  */
 function chatContentToString(
   content?: ChatMessageContent,

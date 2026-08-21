@@ -96,7 +96,6 @@ export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
 /**
  * Post-processes model outputs by applying Non-Maximum Suppression (NMS) and
  * scaling coordinates.
- * @category Utils
  * @param tBoxes Bounding boxes tensor output from inference.
  * @param tScores Scores tensor output from inference.
  * @param tKeypoints Keypoints tensor output from inference.

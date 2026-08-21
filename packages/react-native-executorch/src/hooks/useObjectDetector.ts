@@ -21,8 +21,8 @@ import {
  * @param config The object detection model configuration.
  * See {@link ObjectDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, labels, and object detection functions.
+ * @returns The same object as {@link createObjectDetector} (without `dispose`),
+ * combined with loading state, download progress, and labels.
  * @see {@link createObjectDetector}
  */
 export function useObjectDetector<F extends BoxFormat, L>(

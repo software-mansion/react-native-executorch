@@ -15,8 +15,8 @@ import { createTextEmbedder, type TextEmbedderModel } from '../extensions/nlp/ta
  * @param config The text embedder model configuration.
  * See {@link TextEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and embedding functions.
+ * @returns The same object as {@link createTextEmbedder} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createTextEmbedder}
  */
 export function useTextEmbedder(config: TextEmbedderModel, options?: ResourceOptions) {

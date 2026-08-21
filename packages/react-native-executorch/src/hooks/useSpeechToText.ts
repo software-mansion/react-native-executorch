@@ -19,8 +19,8 @@ import {
  * @param config The Whisper speech-to-text model configuration.
  * See {@link WhisperSttModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download
- * progress, and transcription functions.
+ * @returns The same object as {@link createWhisperSpeechToText} (without `dispose`),
+ * combined with loading state and download progress.
  * @see {@link createWhisperSpeechToText}
  */
 export function useSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
