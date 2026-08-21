@@ -9,24 +9,28 @@ import {
 /**
  * React hook to load and run an instance segmentation model.
  *
- * This hook manages downloading (if it's a remote URL) and loading the model
- * file, compiling it, tracking download progress and compilation errors, and
- * cleaning up native model memory when the component unmounts or configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, compiling them, tracking download progress and load errors, and
+ * releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createInstanceSegmenter}.
  * @category Hooks
  * @typeParam F The bounding box format.
  * @typeParam L The class labels type.
- * @param config The instance segmentation model configuration.
+ * @param config The instance segmentation model configuration. See {@link
+ * InstanceSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
- * progress, and segmentation functions.
+ * progress, labels, and instance segmentation functions.
+ * @see {@link createInstanceSegmenter}
  */
 export function useInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
   options?: ResourceOptions
 ) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource ?? null);
+  const { model, error } = useModel(createInstanceSegmenter<F, L>, resource);
 
   return {
     isReady: !!model,

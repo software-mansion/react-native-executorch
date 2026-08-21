@@ -28,7 +28,7 @@ export type TtsHookResult<
   /** Whether the pipeline is loaded and ready to synthesize. */
   isReady: boolean;
   /** The download or load error, if any. */
-  error: Error | null;
+  error: Error | undefined;
   /** Download progress across every asset, in percent. */
   downloadProgress: number;
   /** The config with every remote URL resolved to a local path. */
@@ -40,17 +40,21 @@ export type TtsHookResult<
 };
 
 /**
- * React hook to load and manage the Kokoro Text-to-Speech pipeline.
+ * React hook to load and run the Kokoro Text-to-Speech pipeline.
  *
- * It manages downloading (if the sources are remote URLs) and loading the 2 sub-model
- * `.pte` files, the phonemizer assets and all voice `.bin` files, tracking download
- * progress and errors, and cleaning up native memory when unmounting.
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, phonemizer files, and voice style vectors, tracking download
+ * progress and load errors, and releasing native memory when the component
+ * unmounts or the configuration changes.
+ *
+ * For imperative usage, see {@link createKokoroTextToSpeech}.
  * @category Hooks
  * @typeParam K Voice keys record constraint.
- * @param config The Kokoro TTS model configuration.
+ * @param config The Kokoro TTS model configuration. See {@link KokoroTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download progress,
- * and synthesis functions.
+ * @returns An object containing the model's loading state, error, download
+ * progress, and speech synthesis functions.
+ * @see {@link createKokoroTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
@@ -58,17 +62,22 @@ export function useTextToSpeech<K extends PropertyKey>(
 ): TtsHookResult<KokoroTtsModel<K>, KokoroTts<K>>;
 
 /**
- * React hook to load and manage the Supertonic 3 Text-to-Speech pipeline.
+ * React hook to load and run the Supertonic 3 Text-to-Speech pipeline.
  *
- * It manages downloading (if the sources are remote URLs) and loading the 4 sub-model
- * `.pte` files, `unicode_indexer.json`, and all voice style `.json` files, tracking download
- * progress and errors, and cleaning up native memory when unmounting.
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, indexer files, and voice style vectors, tracking download
+ * progress and load errors, and releasing native memory when the component
+ * unmounts or the configuration changes.
+ *
+ * For imperative usage, see {@link createSupertonicTextToSpeech}.
  * @category Hooks
  * @typeParam K Voice style keys record constraint.
- * @param config The Supertonic TTS model configuration.
+ * @param config The Supertonic TTS model configuration. See {@link
+ * SupertonicTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
- * @returns An object containing the model's loading state, error, download progress,
- * and synthesis functions.
+ * @returns An object containing the model's loading state, error, download
+ * progress, and speech synthesis functions.
+ * @see {@link createSupertonicTextToSpeech}
  */
 export function useTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
@@ -88,7 +97,7 @@ export function useTextToSpeech<K extends PropertyKey>(
   ) => Promise<KokoroTts<K> | SupertonicTts<K>>;
 
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(create, resource ?? null);
+  const { model, error } = useModel(create, resource);
 
   return {
     isReady: !!model,

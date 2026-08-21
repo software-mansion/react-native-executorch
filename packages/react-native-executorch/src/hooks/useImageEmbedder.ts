@@ -6,21 +6,25 @@ import {
 } from '../extensions/cv/tasks/imageEmbedding';
 
 /**
- * React hook to load and run an image embedder model.
+ * React hook to load and run an image embedding model.
  *
- * This hook manages downloading (if it's a remote URL) and loading the model
- * file, compiling it, tracking download progress and compilation errors, and
- * cleaning up native model memory when the component unmounts or configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, compiling them, tracking download progress and load errors, and
+ * releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createImageEmbedder}.
  * @category Hooks
- * @param config The image embedder model configuration.
+ * @param config The image embedder model configuration. See {@link
+ * ImageEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and embedding functions.
+ * @see {@link createImageEmbedder}
  */
 export function useImageEmbedder(config: ImageEmbedderModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createImageEmbedder, resource ?? null);
+  const { model, error } = useModel(createImageEmbedder, resource);
 
   return {
     isReady: !!model,

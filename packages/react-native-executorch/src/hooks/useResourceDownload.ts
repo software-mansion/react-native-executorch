@@ -7,7 +7,7 @@ import { isRnExecuTorchError } from '../core/error';
  * built on top of it.
  * @category Types
  */
-export interface ResourceOptions {
+export type ResourceOptions = {
   /** If true, prevents checks and downloads, resetting the hook state. */
   preventLoad?: boolean;
   /**
@@ -16,7 +16,7 @@ export interface ResourceOptions {
    * that changed behind a stable URL.
    */
   forceDownload?: boolean;
-}
+};
 
 /**
  * React hook to manage downloading and local caching of the remote resources
@@ -35,19 +35,23 @@ export interface ResourceOptions {
  * cheap for the files themselves (already-cached URLs are a no-op) but does
  * rebuild whatever pipeline consumes `resource` — correct, since `create<Task>`
  * factories bake their options in at construction time.
+ *
+ * For imperative usage, see {@link download}.
  * @category Hooks
  * @typeParam T The shape of the value being resolved.
- * @param config The value whose remote URLs should be resolved to local paths.
+ * @param config The value whose remote URLs should be resolved to local paths,
+ * or `undefined` to prevent loading.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the resolved value, the download progress
  * percentage, and any download error.
+ * @see {@link download}
  */
-export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
+export function useResourceDownload<T>(config: T | undefined, options?: ResourceOptions) {
   const { preventLoad, forceDownload } = options ?? {};
 
   const [resource, setResource] = useState<T>();
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [downloadError, setDownloadError] = useState<Error | null>(null);
+  const [downloadError, setDownloadError] = useState<Error | undefined>();
 
   // Configs are plain JSON data, so serializing is a sound structural identity
   // and keeps an inline `config` object from re-running the effect every render.
@@ -56,9 +60,9 @@ export function useResourceDownload<T>(config: T, options?: ResourceOptions) {
   useEffect(() => {
     setResource(undefined);
     setDownloadProgress(0);
-    setDownloadError(null);
+    setDownloadError(undefined);
 
-    if (preventLoad) return;
+    if (config === undefined || preventLoad) return;
 
     let isMounted = true;
     const controller = new AbortController();

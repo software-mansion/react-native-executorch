@@ -3,22 +3,25 @@ import { useResourceDownload, type ResourceOptions } from './useResourceDownload
 import { createTextEmbedder, type TextEmbedderModel } from '../extensions/nlp/tasks/textEmbedding';
 
 /**
- * React hook to load and run a text embedder model.
+ * React hook to load and run a text embedding model.
  *
- * This hook manages downloading (if they are remote URLs) and loading both the
- * model file and its `tokenizer.json`, tracking download progress and errors,
- * and cleaning up native memory when the component unmounts or the configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets and tokenizer files, tracking download progress and load errors,
+ * and releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createTextEmbedder}.
  * @category Hooks
- * @param config The text embedder model configuration (model and tokenizer
- * paths).
+ * @param config The text embedder model configuration. See {@link
+ * TextEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and embedding functions.
+ * @see {@link createTextEmbedder}
  */
 export function useTextEmbedder(config: TextEmbedderModel, options?: ResourceOptions) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createTextEmbedder, resource ?? null);
+  const { model, error } = useModel(createTextEmbedder, resource);
 
   return {
     isReady: !!model,

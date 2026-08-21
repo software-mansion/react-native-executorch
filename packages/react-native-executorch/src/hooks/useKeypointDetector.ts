@@ -9,24 +9,28 @@ import {
 /**
  * React hook to load and run a keypoint detection model.
  *
- * This hook manages downloading (if it's a remote URL) and loading the model
- * file, compiling it, tracking download progress and compilation errors, and
- * cleaning up native model memory when the component unmounts or configuration
+ * This hook manages downloading (if remote URLs are provided) and loading the
+ * model assets, compiling them, tracking download progress and load errors, and
+ * releasing native memory when the component unmounts or the configuration
  * changes.
+ *
+ * For imperative usage, see {@link createKeypointDetector}.
  * @category Hooks
  * @typeParam F The bounding box format.
  * @typeParam L The landmark labels type.
- * @param config The keypoint detection model configuration.
+ * @param config The keypoint detection model configuration. See {@link
+ * KeypointDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
- * progress, and keypoint detection functions.
+ * progress, landmarks, and keypoint detection functions.
+ * @see {@link createKeypointDetector}
  */
 export function useKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,
   options?: ResourceOptions
 ) {
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(createKeypointDetector<F, L>, resource ?? null);
+  const { model, error } = useModel(createKeypointDetector<F, L>, resource);
 
   return {
     isReady: !!model,

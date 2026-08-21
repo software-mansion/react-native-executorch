@@ -55,9 +55,7 @@ export async function inspectModel(source: string): Promise<{
     model = loadModel(localPath);
     return { source, schema: model.schema, backends: model.backends };
   } finally {
-    if (model) {
-      model.dispose();
-    }
+    model?.dispose();
     if (downloaded) {
       await RNBlobUtil.fs.unlink(localPath).catch(() => {});
     }
