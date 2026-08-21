@@ -1,3 +1,9 @@
+/**
+ * Multimodal chat message template rendering, incremental prompt diffing, and
+ * media tensor preprocessing for LLM runners.
+ * @module LLM/Utils/ChatPreprocessor
+ */
+
 import { Template } from '@huggingface/jinja';
 
 import { tensor, type Tensor } from '../../../core/tensor';

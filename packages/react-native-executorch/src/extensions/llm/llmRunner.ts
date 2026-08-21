@@ -1,3 +1,8 @@
+/**
+ * Low-level native ExecuTorch LLM runner types and factory.
+ * @module LLM/LLMRunner
+ */
+
 import type { Tensor } from '../../core/tensor';
 import { rnexecutorchJsi } from '../../native/bridge';
 
@@ -153,9 +158,9 @@ export type LLMRunner = {
  * @category Typescript API
  * @param modelPath Path to the local `.pte` model file.
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).
- * @param modalities List of supported input non-text modalities (e.g. `['image']`).
- * Defaults to text-only.
- * @returns A native LLMRunner instance.
+ * @param modalities List of supported input non-text modalities (e.g.
+ * `['image']`). When omitted, defaults to text-only.
+ * @returns A native {@link LLMRunner} instance.
  */
 export function createLLMRunner(
   modelPath: string,

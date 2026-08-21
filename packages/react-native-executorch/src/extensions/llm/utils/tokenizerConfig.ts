@@ -1,3 +1,9 @@
+/**
+ * Parser for HuggingFace `tokenizer_config.json` chat templates and special
+ * tokens.
+ * @module LLM/Utils/TokenizerConfig
+ */
+
 import { RnExecuTorchError } from '../../../core/error';
 
 /**
