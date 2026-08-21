@@ -1,4 +1,12 @@
 /**
+ * Shared constants, label maps, and default configurations for task pipelines.
+ *
+ * This module exports constant arrays, dataset labels, and normalization
+ * parameters used across task pipelines and model configurations.
+ * @module Constants
+ */
+
+/**
  * ImageNet 1K dataset label array containing the 1000 categories.
  * @category Constants
  */

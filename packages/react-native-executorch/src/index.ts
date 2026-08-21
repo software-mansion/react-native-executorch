@@ -1,3 +1,49 @@
+/**
+ * React Native ExecuTorch is a high-performance, privacy-first on-device AI
+ * inference library for React Native, powered by PyTorch's ExecuTorch runtime.
+ *
+ * It provides a layered architecture designed for different use cases:
+ *
+ * - **React Hooks (`use<Task>`)**:
+ *   Declarative hooks (e.g. {@link useClassifier}, {@link useLLMChatSession},
+ *   {@link useSpeechToText}) designed for UI components. They manage
+ *   downloading remote model assets with progress tracking, compilation, and
+ *   automatic native memory disposal on unmount.
+ *
+ * - **Task APIs (`create<Task>`)**:
+ *   Imperative, promise-based pipelines (e.g. {@link createClassifier},
+ *   {@link createLLMChatSession}, {@link createWhisperSpeechToText}) with
+ *   built-in preprocessing, postprocessing, and tokenizers. Ideal for
+ *   background services, worklets, or apps needing manual lifecycle control.
+ *
+ * - **Domain Utilities (`cv`, `llm`, `speech`, `nlp`, `math`)**:
+ *   Domain-specific low-level tools:
+ *   - `cv`: Image transformations (resizing, normalization, layout conversions),
+ *     bounding box and keypoint helpers.
+ *   - `llm`: Token-by-token text generation runner, chat template formatting,
+ *     and function calling helpers.
+ *   - `nlp`: Fast native HuggingFace tokenizers and privacy filter utilities.
+ *   - `speech`: Text-to-speech phonemizers, sentence splitters, voice activity
+ *     detection, and audio utilities.
+ *   - `math`: Native C++ tensor operations (softmax, sigmoid, argmax, linear,
+ *     activations).
+ *
+ * - **Model Registry ({@link models})**:
+ *   A curated catalog of verified, hosted on-device AI models across LLMs,
+ *   Computer Vision, Speech, and NLP. Provides download URLs, pre-tuned
+ *   configurations, and label maps for out-of-the-box inference.
+ *
+ * - **Resource Fetcher ({@link download})**:
+ *   Imperative asset downloader and caching engine with abort control, progress
+ *   tracking, and deduplicated local storage.
+ *
+ * - **Core Primitives ({@link Model}, {@link Tensor}, {@link schema}, {@link wrapAsync})**:
+ *   Low-level building blocks for custom architectures: direct C++ tensor
+ *   memory management, raw model execution, load-time shape/domain validation,
+ *   and worklet threading.
+ * @packageDocumentation
+ */
+
 // Hooks — primary API for app developers
 export * from './hooks/useClassifier';
 export * from './hooks/useStyleTransfer';

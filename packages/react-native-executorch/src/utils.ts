@@ -1,3 +1,9 @@
+/**
+ * Utility functions for inspecting models and querying native runtime
+ * capabilities.
+ * @module Utils
+ */
+
 import { rnexecutorchJsi } from './native/bridge';
 import { loadModel } from './core/model';
 import type { ModelSpec, ConcreteDim } from './core/schema';

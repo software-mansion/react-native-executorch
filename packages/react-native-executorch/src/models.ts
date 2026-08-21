@@ -1,3 +1,13 @@
+/**
+ * Pre-configured registry of hosted on-device AI models.
+ *
+ * Provides ready-to-use configurations for popular models across computer
+ * vision, speech synthesis/recognition, natural language processing, and large
+ * language models (LLMs). Each entry includes verified remote `.pte` download
+ * URLs, tokenizer/phonemizer files, preprocessing parameters, and label maps.
+ * @module Models
+ */
+
 import type { ClassifierModel } from './extensions/cv/tasks/classification';
 import type { ObjectDetectorModel } from './extensions/cv/tasks/objectDetection';
 import type { StyleTransferModel } from './extensions/cv/tasks/styleTransfer';
