@@ -1,3 +1,12 @@
+/**
+ * Low-level ExecuTorch model loading, execution, and lifetime management.
+ *
+ * Provides direct access to compiled `.pte` models in native C++ memory. Loaded
+ * models expose synchronous method execution (`execute`) with pre-allocated
+ * output buffers and manual native memory cleanup (`dispose`).
+ * @module Core/Model
+ */
+
 import { rnexecutorchJsi } from '../native/bridge';
 import type { Tensor } from './tensor';
 import type { ModelSpec, ConcreteDim } from './schema';
@@ -24,10 +33,10 @@ export type ModelOutput = Tensor | number | boolean | string | null;
  * this interface.
  *
  * Obtain a `Model` instance via the {@link loadModel} function. When the model
- * is no longer needed call {@link Model.dispose} to release native memory.
+ * is no longer needed, call {@link Model.dispose} to release native memory.
  * @category Types
  */
-export interface Model {
+export type Model = {
   /** The local filesystem path of the `.pte` model file. */
   readonly path: string;
   /** The exported schema of this model. */
@@ -46,7 +55,11 @@ export interface Model {
    * @param inputs The list of input values to pass to the method, in order.
    * @param outputTensors Pre-allocated tensors for the method to write outputs
    * into, in order.
-   * @returns The list of output values produced by the method, in order.
+   * @throws {RnExecuTorchError} Thrown with code `EXECUTION_FAILED` if
+   * inference fails, `SCHEMA_MISMATCH` if runtime constraints fail,
+   * `RESOURCE_BUSY` if the model or a tensor is in use, `RESOURCE_DISPOSED` if
+   * disposed, or `INVALID_ARGUMENT` if inputs or output placeholders are
+   * invalid.
    */
   execute(methodName: string, inputs: ModelInput[], outputTensors: Tensor[]): ModelOutput[];
 
@@ -62,7 +75,7 @@ export interface Model {
    * @internal
    */
   readonly [modelBrand]: never;
-}
+};
 
 /**
  * Loads and compiles an ExecuTorch `.pte` model from the local filesystem.
@@ -73,6 +86,23 @@ export interface Model {
  * @category Typescript API
  * @param modelPath The absolute local path to the `.pte` model file.
  * @returns The compiled {@link Model} instance, ready for execution.
+ * @throws {RnExecuTorchError} Thrown with code `LOAD_FAILED` if the model file
+ * cannot be opened, has an invalid format, or fails native initialization.
+ * @see {@link wrapAsync}
+ * @example
+ * ```typescript
+ * const model = loadModel('/path/to/model.pte');
+ * const input = tensor('float32', [1, 3, 224, 224]);
+ * const output = tensor('float32', [1, 1000]);
+ * try {
+ *   model.execute('forward', [input], [output]);
+ *   // ...
+ * } finally {
+ *   input.dispose();
+ *   output.dispose();
+ *   model.dispose();
+ * }
+ * ```
  */
 export function loadModel(modelPath: string): Model {
   'worklet';
