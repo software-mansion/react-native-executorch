@@ -30,8 +30,8 @@ export function getRegisteredBackends(): string[] {
  * returned local path if you also intend to run the model.
  * @category Utils
  * @param source The remote HTTP URL or local path to the `.pte` model file.
- * @returns A promise resolving to an object containing the model source,
- * method signature metadata, and per-method backend usage.
+ * @returns A promise resolving to an object containing the model source, method
+ * signature metadata, and per-method backend usage.
  */
 export async function inspectModel(source: string): Promise<{
   source: string;
