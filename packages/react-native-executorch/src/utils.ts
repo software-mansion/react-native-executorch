@@ -17,6 +17,7 @@ import RNBlobUtil from 'react-native-blob-util';
  * 'CoreMLBackend').
  */
 export function getRegisteredBackends(): string[] {
+  'worklet';
   return rnexecutorchJsi.getExecuTorchRegisteredBackends();
 }
 

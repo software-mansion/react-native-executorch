@@ -806,6 +806,72 @@ export type SpecMatch<K extends PropertyKey = PropertyKey> = {
   };
 };
 
+function resolveSymbolDim(bindings: SymbolBindings, name: string, kind?: string): any {
+  const dim = bindings.get(name);
+  if (!dim) {
+    throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
+  }
+  if (kind === 'constant') {
+    if (dim.kind !== 'constant') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'constant'.`
+      );
+    }
+    return dim.value;
+  }
+  if (kind === 'range') {
+    if (dim.kind !== 'range') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'range'.`
+      );
+    }
+    return dim.range;
+  }
+  if (kind === 'enum') {
+    if (dim.kind !== 'enum') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is '${dim.kind}', expected 'enum'.`
+      );
+    }
+    return dim.choices;
+  }
+  if (kind === 'dynamic') {
+    if (dim.kind === 'constant') {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Symbol '${name}' is 'constant', expected 'dynamic'.`
+      );
+    }
+    return dim;
+  }
+  return dim;
+}
+
+function createSpecMatch<K extends PropertyKey>(
+  variant: K,
+  bindings: SymbolBindings
+): SpecMatch<K> {
+  const dim: any = (name: string, kind?: string) => resolveSymbolDim(bindings, name, kind);
+  const createAccessor = (kind?: string) => {
+    return (...names: string[]): any => names.map((name) => resolveSymbolDim(bindings, name, kind));
+  };
+
+  return {
+    variant,
+    dim,
+    dims: {
+      any: createAccessor(),
+      enum: createAccessor('enum'),
+      range: createAccessor('range'),
+      dynamic: createAccessor('dynamic'),
+      constant: createAccessor('constant'),
+    },
+  };
+}
+
 /**
  * Validates that an exported (concrete) model spec satisfies at least one of
  * the allowed (symbolic) model specs — variants are tried in order and the
@@ -848,49 +914,7 @@ export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDi
       matchModelSpecsSymbols(allowedModelSpec, exportedModelSpec, bindings);
       matchRuntimeConstraints(allowedModelSpec, exportedModelSpec);
 
-      const dimFn = (name: string, kind?: string): any => {
-        const dim = bindings.get(name);
-        if (!dim) {
-          throw RnExecuTorchError('INVALID_ARGUMENT', `Symbol '${name}' not found in bindings.`);
-        }
-        if (kind) {
-          if (kind === 'dynamic') {
-            if (dim.kind === 'constant') {
-              throw RnExecuTorchError(
-                'INVALID_ARGUMENT',
-                `Symbol '${name}' is 'constant', expected 'dynamic'.`
-              );
-            }
-            return dim;
-          }
-          if (dim.kind !== kind) {
-            throw RnExecuTorchError(
-              'INVALID_ARGUMENT',
-              `Symbol '${name}' is '${dim.kind}', expected '${kind}'.`
-            );
-          }
-        }
-        if (dim.kind === 'constant') return dim.value;
-        if (dim.kind === 'range') return dim.range;
-        if (dim.kind === 'enum') return dim.choices;
-        return dim;
-      };
-
-      const createAccessor = (kind?: string) => {
-        return (...names: string[]): any => names.map((name) => dimFn(name, kind));
-      };
-
-      return {
-        variant: key,
-        dim: dimFn,
-        dims: {
-          any: createAccessor(),
-          enum: createAccessor('enum'),
-          range: createAccessor('range'),
-          dynamic: createAccessor('dynamic'),
-          constant: createAccessor('constant'),
-        },
-      };
+      return createSpecMatch(key, bindings);
     } catch (e: any) {
       errors.push(`Variant '${key}': ${e.message}`);
       continue;
