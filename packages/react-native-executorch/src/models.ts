@@ -140,6 +140,15 @@ const SELFIE_SEGMENTATION_COREML_FP16: SemanticSegmenterModel<'background' | 'pe
   modelPath: `${BASE_URL}-selfie-segmentation/${NEXT_VERSION_TAG}/coreml/selfie_segmentation_coreml_fp16.pte`,
   modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
 };
+const SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32: SemanticSegmenterModel<'background' | 'person'> =
+  {
+    modelPath: `${BASE_URL}-selfie-segmentation/${NEXT_VERSION_TAG}/xnnpack/selfie_segmentation_landscape_xnnpack_fp32.pte`,
+    modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
+  };
+const SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16: SemanticSegmenterModel<'background' | 'person'> = {
+  modelPath: `${BASE_URL}-selfie-segmentation/${NEXT_VERSION_TAG}/coreml/selfie_segmentation_landscape_coreml_fp16.pte`,
+  modelOpts: SELFIE_SEGMENTATION_XNNPACK_FP32.modelOpts,
+};
 
 const LRASPP_MOBILENET_V3_LARGE_OPTS = {
   labels: PASCAL_VOC_LABELS,
@@ -1096,6 +1105,15 @@ export const models = {
       ...SELFIE_SEGMENTATION_XNNPACK_FP32,
       XNNPACK_FP32: SELFIE_SEGMENTATION_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_COREML_FP16,
+    },
+    /**
+     * MediaPipe Selfie Segmentation, landscape orientation. A separate
+     * 256x144 checkpoint rather than a resize of the portrait model.
+     */
+    SELFIE_SEGMENTATION_LANDSCAPE: {
+      ...SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
+      XNNPACK_FP32: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
+      COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
     },
     /**
      * Lite R-ASPP semantic segmentation model with MobileNetV3-Large backbone
