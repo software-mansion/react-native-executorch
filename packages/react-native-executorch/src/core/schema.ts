@@ -2,75 +2,71 @@
  * Model specs and spec validation.
  *
  * A model spec is a structural contract describing a model's methods: the
- * parameter specs of every input and output (primitive tags, tensor data
- * types, and per-dimension domains) and the runtime constraints the method
- * declares over its tensor dimensions. A spec is either:
+ * parameter specs of every input and output (primitive tags, tensor data types,
+ * and per-dimension domains) and the runtime constraints the method declares
+ * over its tensor dimensions. A spec is either:
  * - **allowed** (`SymbolicDim`) — written by a pipeline to state which models
- *   it can work with. Dimensions may be named symbols: `static` symbols bind
- *   to constant dimensions, `dynamic` symbols to ranges or enums, and reusing
- *   a symbol requires every occurrence to bind to the same domain. Several
+ *   it can work with. Dimensions may be named symbols: `static` symbols bind to
+ *   constant dimensions, `dynamic` symbols to ranges or enums, and reusing a
+ *   symbol requires every occurrence to bind to the same domain. Several
  *   allowed specs can be passed as variants; matching any one of them is
  *   enough.
  * - **exported** (`ConcreteDim`) — derived from an exported model's metadata,
  *   stating what the model actually provides.
  *
  * **Dimension domains vs runtime values.** The central distinction of this
- * module is between a dimension's *domain* and its *runtime value*. The
- * domain is the set of values the dimension may take: `constant` is a
- * singleton (the value is fully known statically), while `range` and `enum`
- * are proper sets that only narrow the possibilities. The runtime value is
- * the actual size of the dimension for a concrete tensor in one given
- * execution — a single element drawn from the domain.
+ * module is between a dimension's *domain* and its *runtime value*. The domain
+ * is the set of values the dimension may take: `constant` is a singleton (the
+ * value is fully known statically), while `range` and `enum` are proper sets
+ * that only narrow the possibilities. The runtime value is the actual size of
+ * the dimension for a concrete tensor in one given execution — a single element
+ * drawn from the domain.
  *
  * Accordingly, two different validations must not be confused:
  * - **Spec validation** (this module, {@link validateSpec}) — a static,
  *   load-time check that an exported spec satisfies an allowed spec. It only
  *   ever compares domains: symbols bind to domains (repeated symbols to the
  *   same one), and constraints are matched as declarations. Domain equality
- *   says nothing about runtime values — two dimensions with the same domain
- *   may still take different values in an execution.
- * - **Runtime validation** (the native runtime, not this module) — at
- *   execution time the runtime checks that every concrete tensor shape lies
- *   within the declared domains and enforces the declared runtime
- *   constraints.
+ *   says nothing about runtime values — two dimensions with the same domain may
+ *   still take different values in an execution.
+ * - **Runtime validation** (the native runtime, not this module) — at execution
+ *   time the runtime checks that every concrete tensor shape lies within the
+ *   declared domains and enforces the declared runtime constraints.
  *
  * Runtime constraints are statements about runtime values, not domains: an
- * equality constraint requires its dimensions' values to coincide in any
- * given execution, and a linear constraint requires them to satisfy
- * `lhs = a * rhs + b`. Since spec validation only sees domains, it cannot
- * decide whether such a relation holds — the exported spec must simply
- * declare exactly the allowed spec's constraints (1-to-1, no missing, no
- * extras). The only exception is degenerate: a constant domain has exactly
- * one possible value, so an equality constraint between constants is fully
- * decided statically — equal constants are equal at runtime. Linear
- * constraints, in contrast, are never evaluated against domains here, even
- * between constants.
+ * equality constraint requires its dimensions' values to coincide in any given
+ * execution, and a linear constraint requires them to satisfy `lhs = a * rhs +
+ * b`. Since spec validation only sees domains, it cannot decide whether such a
+ * relation holds — the exported spec must simply declare exactly the allowed
+ * spec's constraints (1-to-1, no missing, no extras). The only exception is
+ * degenerate: a constant domain has exactly one possible value, so an equality
+ * constraint between constants is fully decided statically — equal constants
+ * are equal at runtime. Linear constraints, in contrast, are never evaluated
+ * against domains here, even between constants.
  *
- * **Exported spec source.** An exported model's `ModelSpec<ConcreteDim>`
- * is populated at load time from one of two sources:
+ * **Exported spec source.** An exported model's `ModelSpec<ConcreteDim>` is
+ * populated at load time from one of two sources:
  *
  * 1. **ExecuTorch `MethodMeta`** (default) — when the `.pte` only carries
- *    static metadata, every dimension domain is `constant`. This is
- *    sufficient for models whose input/output shapes are fully fixed at
- *    export time.
+ *    static metadata, every dimension domain is `constant`. This is sufficient
+ *    for models whose input/output shapes are fully fixed at export time.
  *
- * 2. **Companion `get_model_schema` method** — for models whose tensors
- *    have dynamic or enumerated dimensions (e.g. variable-length sequences)
- *    or that declare runtime constraints, the `.pte` exports a method named
+ * 2. **Companion `get_model_schema` method** — for models whose tensors have
+ *    dynamic or enumerated dimensions (e.g. variable-length sequences) or that
+ *    declare runtime constraints, the `.pte` exports a method named
  *    `get_model_schema` that returns a JSON-encoded `ModelSpec<ConcreteDim>`
  *    string. The native loader calls this method after loading the model and
- *    merges the result into `model.schema`, overlaying precise `range`,
- *    `enum`, and `RuntimeConstraint` entries onto the base `MethodMeta`.
- *    Only methods that actually need overrides need to appear in the JSON;
- *    methods absent from the companion spec are kept as-is from
- *    `MethodMeta`.
+ *    merges the result into `model.schema`, overlaying precise `range`, `enum`,
+ *    and `RuntimeConstraint` entries onto the base `MethodMeta`. Only methods
+ *    that actually need overrides need to appear in the JSON; methods absent
+ *    from the companion spec are kept as-is from `MethodMeta`.
  *
  *    **Tip for model export:**
  *    Embed the companion schema method during ExecuTorch compilation in Python
  *    by passing `constant_methods={"get_model_schema": schema_json}` when
  *    lowering with `to_edge_transform_and_lower(...)` where `schema_json` is
  *    the JSON string encoding the model's `ModelSpec<ConcreteDim>`.
- * @packageDocumentation
+ * @module Core/Schema
  */
 import type { DType } from './tensor';
 import { RnExecuTorchError } from './error';
