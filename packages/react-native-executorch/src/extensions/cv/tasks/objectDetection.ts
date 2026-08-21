@@ -1,3 +1,9 @@
+/**
+ * Object detection task pipeline with integrated preprocessing, NMS, and box
+ * scaling.
+ * @module CV/Tasks/ObjectDetection
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -22,7 +28,7 @@ export type ObjectDetectorOptions<F extends BoxFormat, L> = Omit<
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
+  /** Resize mode for preprocessing input images (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** Array of class labels matching the model's output vocabulary. */
   readonly labels: readonly L[];
@@ -42,11 +48,28 @@ export type ObjectDetectorModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, label vocabulary, and default
-   * NMS/confidence thresholds {@link ObjectDetectorOptions}.
-   * Used as fallbacks when per-call overrides are omitted.
+   * Image preprocessing, label vocabulary, and default NMS/confidence
+   * thresholds. Used as fallbacks when per-call overrides are omitted.
+   * See {@link ObjectDetectorOptions}.
    */
   readonly modelOpts: ObjectDetectorOptions<F, L>;
+};
+
+/**
+ * Optional configuration parameters for object detection inference.
+ * @category Types
+ */
+export type DetectObjectsOptions = {
+  /**
+   * Minimum confidence score threshold. If omitted, uses
+   * `modelOpts.defaultConfidenceThreshold`.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold for NMS. If omitted, uses
+   * `modelOpts.defaultIouThreshold`.
+   */
+  readonly iouThreshold?: number;
 };
 
 /**
@@ -73,10 +96,13 @@ export type ObjectDetection<F extends BoxFormat, L> = {
  * @typeParam F The bounding box format.
  * @typeParam L The type representing the class labels.
  * @param config Object detector task configuration containing path and options.
+ * See {@link ObjectDetectorModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing object detection and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match object detection spec.
  */
 export async function createObjectDetector<F extends BoxFormat, L>(
   config: ObjectDetectorModel<F, L>,
@@ -88,17 +114,18 @@ export async function createObjectDetector<F extends BoxFormat, L>(
   dispose: () => void;
 
   /**
+   * Asynchronously performs object detection on the input image.
    * @param input The input image buffer.
    * @param options Configuration options for object detection.
-   * @param options.confidenceThreshold Minimum confidence score threshold. If
-   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold. If
-   * omitted, uses `modelOpts.defaultIouThreshold`.
+   * See {@link DetectObjectsOptions}.
    * @returns A promise resolving to the list of object detections.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
+   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
   detectObjects: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectObjectsOptions
   ) => Promise<ObjectDetection<F, L>[]>;
 
   /**
@@ -107,7 +134,7 @@ export async function createObjectDetector<F extends BoxFormat, L>(
    */
   detectObjectsWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectObjectsOptions
   ) => ObjectDetection<F, L>[];
 }> {
   const { modelPath, modelOpts } = config;

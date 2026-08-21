@@ -1,3 +1,8 @@
+/**
+ * Reusable image preprocessing pipeline for neural network inputs.
+ * @module CV/Tasks/Preprocessing
+ */
+
 import { tensor, type Tensor } from '../../../core/tensor';
 
 import type { ImageBuffer } from '../image';
@@ -19,16 +24,13 @@ import { RnExecuTorchError } from '../../../core/error';
  * @category Types
  */
 export type ImagePreprocessorOptions = {
-  /**
-   * How the input image is resized to match the model's expected
-   * dimensions {@link ResizeMode}.
-   */
+  /** How the input image is resized to match the model's expected dimensions. */
   readonly resizeMode: ResizeMode;
-  /** Algorithm used when resizing {@link InterpolationMethod}. `'linear'` is a good default. */
+  /** Algorithm used when resizing (e.g. `'linear'`, `'lanczos'`). */
   readonly interpolation: InterpolationMethod;
   /** Normalization scaling coefficients. */
   readonly normalizeOpts: NormalizeOptions;
-  /** Optional background fill value used when letterboxing. */
+  /** Optional background fill value used when letterboxing (padding). */
   readonly padValue?: number;
 };
 
@@ -41,11 +43,14 @@ export type ImagePreprocessorOptions = {
  * disposed of when calling `dispose()`.
  * @category Typescript API
  * @param options Normalization scaling coefficients, interpolation algorithms, and
- * crop/resize modes.
- * @param outputShape Expected output shape of the model input tensor (must
- * match `[1, 3, H, W]` or `[3, H, W]`).
+ * resize modes.
+ * See {@link ImagePreprocessorOptions}.
+ * @param outputShape Expected output shape of the preprocessed model input
+ * tensor (must match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`).
  * @returns An object containing the `process` runner function and a `dispose`
  * method.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if `outputShape` does
+ * not match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`.
  */
 export function createImagePreprocessor(
   options: ImagePreprocessorOptions,
@@ -60,7 +65,7 @@ export function createImagePreprocessor(
    * need to dispose of it manually.
    * @param input The input image buffer to preprocess.
    * @returns A reference to the output tensor containing preprocessed float32
-   * data.
+   * data of shape `[3, H, W]` (or `[1, 3, H, W]`) and data type `float32`.
    */
   process: (input: ImageBuffer) => Tensor;
   /**

@@ -1,3 +1,9 @@
+/**
+ * SDXS single-step text-to-image generation pipeline with latent diffusion and
+ * TAESD decoding.
+ * @module CV/Tasks/SdxsTextToImage
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -51,8 +57,11 @@ export type SdxsTextToImageModel = {
  * tensors, and registers disposal hooks that release all native memory.
  * @category Typescript API
  * @param config SDXS pipeline configuration containing the model and tokenizer paths.
+ * See {@link SdxsTextToImageModel}.
  * @param runtime Optional worklet runtime thread on which to run generation.
  * @returns A promise resolving to an object with generation and disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model or tokenizer
+ * fails to load, or `SCHEMA_MISMATCH` if model schema does not match SDXS spec.
  */
 export async function createSdxsTextToImage(
   config: SdxsTextToImageModel,
@@ -67,6 +76,8 @@ export async function createSdxsTextToImage(
    * @param seed Seed for the initial latent noise (same seed → same image).
    * Defaults to a time-based value so omitting it yields a fresh image each call.
    * @returns A promise resolving to the generated RGBA image buffer.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   generate: (prompt: string, seed?: number) => Promise<ImageBuffer>;
 

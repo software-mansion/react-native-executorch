@@ -1,3 +1,12 @@
+/**
+ * Low-level image manipulation and transformation operators.
+ *
+ * Provides native OpenCV-accelerated image operations on tensors, including
+ * spatial resizing, color space conversion, channel transposition (HWC/CHW),
+ * pixel normalization, and colormap application.
+ * @module CV/Ops/Image
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ImageFormat } from '../image';
@@ -74,11 +83,11 @@ export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'li
  * @category Types
  */
 export type ResizeOptions = {
-  /** How the image is resized {@link ResizeMode}. */
+  /** How the image is resized (stretch, letterbox, or crop). */
   readonly mode?: ResizeMode;
-  /** Background fill value used when letterboxing. */
+  /** Background fill value used when letterboxing (padding). */
   readonly padValue?: number;
-  /** Pixel interpolation method {@link InterpolationMethod}. */
+  /** Pixel interpolation method. */
   readonly interpolation?: InterpolationMethod;
 };
 
@@ -89,10 +98,13 @@ export type ResizeOptions = {
 export type NormalizeOptions = {
   /**
    * Multiplicative coefficient applied as `pixel * alpha`. Single value for
-   * uniform scaling, array for per-channel.
+   * uniform scaling across all channels, or per-channel array.
    */
   readonly alpha?: number | readonly number[];
-  /** Additive offset applied as `pixel * alpha + beta`. Single value or per-channel array. */
+  /**
+   * Additive offset applied as `pixel * alpha + beta`. Single value or
+   * per-channel array.
+   */
   readonly beta?: number | readonly number[];
 };
 
@@ -101,17 +113,21 @@ export type NormalizeOptions = {
  *
  * Supports various {@link ResizeMode} and {@link InterpolationMethod} options.
  * @category Typescript API
- * @param src The source image tensor in HWC layout. Shape [H,W,C].
- * @param dst The pre-allocated destination tensor to write the resized image
- * to. `dst` must be in HWC layout and its number of channels must match `src`.
- * Shape [H',W',C].
- * @param options Configuration options for resizing.
- * @param options.mode The resize algorithm mode {@link ResizeMode}. Defaults to
- * `'stretch'`.
- * @param options.interpolation The pixel interpolation method
- * {@link InterpolationMethod}. Defaults to `'lanczos'`.
- * @param options.padValue Fill value for letterboxing. Defaults to `0`.
- * @returns The destination tensor containing the resized image.
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type (e.g. `uint8`, `float32`).
+ * @param dst The pre-allocated destination image tensor to write the resized
+ * image to. Expected shape `[H', W', C]` in HWC layout (spatial dimensions
+ * `[H', W']`, channel count `C` matching `src`) and the same data type as
+ * `src`.
+ * @param options Configuration options for resizing. When options or any
+ * individual properties are omitted, defaults to `'stretch'` mode, `'lanczos'`
+ * interpolation, and `0` padding.
+ * See {@link ResizeOptions}.
+ * @returns The destination image tensor containing the resized image of shape
+ * `[H', W', C]` and matching data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tensor {
   'worklet';
@@ -126,13 +142,19 @@ export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tenso
  * Converts the color space of an image tensor using a specified color
  * conversion code.
  * @category Typescript API
- * @param src The source image tensor in HWC layout. Shape [H,W,C].
- * @param dst The pre-allocated destination tensor to write the converted image
- * to. `dst` must be in HWC layout and its spatial dimensions [H,W] as well as
- * dtype must match `src`. Shape [H,W,C'].
- * @param code The color conversion code indicating source and target spaces
- * (e.g. 'RGBA2RGB').
- * @returns The destination tensor containing the converted image.
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor to write the converted
+ * image to. Expected shape `[H, W, C']` in HWC layout (spatial dimensions `[H,
+ * W]` and data type matching `src`, with target channel count `C'` determined
+ * by `code`).
+ * @param code The color conversion code indicating source and target spaces.
+ * See {@link ColorConversionCode}.
+ * @returns The destination image tensor containing the converted image of shape
+ * `[H, W, C']` and matching data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): Tensor {
   'worklet';
@@ -145,11 +167,15 @@ export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): T
  *
  * Commonly required for PyTorch Edge models which expect channels-first inputs.
  * @category Typescript API
- * @param src The source image tensor in HWC layout. Shape [H,W,C].
- * @param dst The pre-allocated destination tensor in CHW layout. `dst` tensor's
- * spatial dimensions [H,W], number of channels and dtype must match `src`.
- * Shape [C,H,W].
- * @returns The destination tensor in CHW layout.
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor in CHW layout. Expected
+ * shape `[C, H, W]` (channels-first) and the same data type as `src`.
+ * @returns The destination image tensor in CHW layout of shape `[C, H, W]` and
+ * matching data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
   'worklet';
@@ -163,11 +189,15 @@ export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
  * Useful for post-processing model outputs back into channels-last layouts for
  * rendering or display.
  * @category Typescript API
- * @param src The source image tensor in CHW layout. Shape [C,H,W].
- * @param dst The pre-allocated destination tensor in HWC layout. `dst` tensor's
- * spatial dimensions [H,W], number of channels and dtype must match `src`.
- * Shape [H,W,C].
- * @returns The destination tensor in HWC layout.
+ * @param src The source image tensor in CHW layout. Expected shape `[C, H, W]`
+ * (channels-first). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor in HWC layout. Expected
+ * shape `[H, W, C]` (channels-last) and the same data type as `src`.
+ * @returns The destination image tensor in HWC layout of shape `[H, W, C]` and
+ * matching data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
   'worklet';
@@ -181,14 +211,21 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  * uniformly or channel-wise using array options. The result is cast to `dst`
  * tensor's dtype.
  * @category Typescript API
- * @param src The source image tensor in CHW layout. Shape [C,H,W].
- * @param dst The pre-allocated destination tensor to write the normalized
- * values to. `dst` must have the same shape as `src`. Shape [C,H,W].
- * @param options Normalization scaling coefficients.
- * @param options.alpha Multiplicative scaling coefficient(s). Defaults to
- * `1 / 255.0`.
- * @param options.beta Additive offset coefficient(s). Defaults to `0.0`.
- * @returns The destination tensor containing the normalized image.
+ * @param src The source image tensor in CHW layout. Expected shape `[C, H, W]`
+ * (channels-first). Supports any numeric data type (typically `uint8` or
+ * `float32`).
+ * @param dst The pre-allocated destination image tensor to write normalized
+ * values to. Expected shape `[C, H, W]` matching `src`. The computed values are
+ * cast to `dst` tensor's target data type (typically `float32` or `uint8`).
+ * @param options Normalization scaling coefficients. When options or any
+ * individual properties are omitted, defaults to `alpha: 1 / 255.0` and `beta:
+ * 0.0`.
+ * See {@link NormalizeOptions}.
+ * @returns The destination image tensor containing the normalized image of
+ * shape `[C, H, W]` and target data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions): Tensor {
   'worklet';
@@ -207,14 +244,19 @@ export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions):
  * up its corresponding RGBA color in the provided colormap palette, and writes
  * it to the destination tensor.
  * @category Typescript API
- * @param src The source index/mask tensor. Must be an integer tensor of `int32`
- * dtype containing class indices. Shape `[H, W, 1]` (or `[H, W]`).
- * @param dst The pre-allocated destination tensor to write the mapped RGBA
- * values to. Must be a 3D image tensor in HWC layout and `uint8` dtype. Shape
- * `[H, W, 4]`.
- * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to each
- * class index. The size of this list must cover all class indices present in `src`.
- * @returns The destination tensor with the applied colormap.
+ * @param src The source index/mask image tensor. Expected shape `[H, W, 1]` in
+ * HWC layout with data type `int32` containing class indices.
+ * @param dst The pre-allocated destination image tensor to write the mapped
+ * RGBA values to. Expected shape `[H, W, 4]` in HWC layout with data type
+ * `uint8`.
+ * @param colormap An array of RGBA color arrays `[R, G, B, A]` corresponding to
+ * each class index. The size of this list must cover all class indices present
+ * in `src`.
+ * @returns The destination image tensor with the applied colormap of shape `[H,
+ * W, 4]` and data type `uint8`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function applyColormap(
   src: Tensor,

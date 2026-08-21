@@ -1,3 +1,9 @@
+/**
+ * Image classification task pipeline with integrated preprocessing and softmax
+ * decoding.
+ * @module CV/Tasks/Classification
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -28,11 +34,23 @@ export type ClassifierModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing and label vocabulary
-   * {@link ClassifierOptions}. The `labels` array length must
+   * Image preprocessing and label vocabulary. The `labels` array length must
    * match the model's output dimension.
+   * See {@link ClassifierOptions}.
    */
   readonly modelOpts: ClassifierOptions<L>;
+};
+
+/**
+ * Optional configuration parameters for classification inference.
+ * @category Types
+ */
+export type ClassifyOptions = {
+  /**
+   * Number of top-scoring classification results to return. If omitted, all
+   * classes are returned.
+   */
+  readonly topk?: number;
 };
 
 /**
@@ -57,10 +75,14 @@ export type Classification<L> = {
  * @category Typescript API
  * @typeParam L The type representing the classification labels.
  * @param config Classifier task configuration containing path and options.
+ * See {@link ClassifierModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing classification and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * `SCHEMA_MISMATCH` if model schema does not match classification spec, or
+ * `INVALID_ARGUMENT` if labels length does not match model output classes.
  */
 export async function createClassifier<L>(
   config: ClassifierModel<L>,
@@ -75,18 +97,20 @@ export async function createClassifier<L>(
    * Performs asynchronous image classification on the given input image.
    * @param input The input image buffer.
    * @param options Configuration options for classification.
-   * @param options.topk The number of top-scoring classification results to
-   * return. If omitted, all classes are returned. Must be non-negative.
+   * See {@link ClassifyOptions}.
    * @returns A promise resolving to the list of classifications sorted by
    * confidence.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `topk` is
+   * negative, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
-  classify: (input: ImageBuffer, options?: { topk?: number }) => Promise<Classification<L>[]>;
+  classify: (input: ImageBuffer, options?: ClassifyOptions) => Promise<Classification<L>[]>;
 
   /**
    * Synchronous version of {@link classify} to be executed directly on the
    * caller or worklet thread.
    */
-  classifyWorklet: (input: ImageBuffer, options?: { topk?: number }) => Classification<L>[];
+  classifyWorklet: (input: ImageBuffer, options?: ClassifyOptions) => Classification<L>[];
 }> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
@@ -129,10 +153,7 @@ export async function createClassifier<L>(
     model.dispose();
   };
 
-  const classifyWorklet = (
-    input: ImageBuffer,
-    options?: { topk?: number }
-  ): Classification<L>[] => {
+  const classifyWorklet = (input: ImageBuffer, options?: ClassifyOptions): Classification<L>[] => {
     'worklet';
     if (options?.topk !== undefined && options.topk < 0) {
       throw RnExecuTorchError(

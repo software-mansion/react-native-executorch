@@ -1,3 +1,9 @@
+/**
+ * Bounding box coordinate decoding, coordinate transforms, and Non-Maximum
+ * Suppression (NMS).
+ * @module CV/Ops/Boxes
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
@@ -7,26 +13,11 @@ import { scalePoint } from './points';
  * Mapping of bounding box formats to their coordinate representations.
  * @category Types
  */
-export type BoxMap = {
-  xyxy: {
-    readonly xmin: number;
-    readonly ymin: number;
-    readonly xmax: number;
-    readonly ymax: number;
-  };
-  xywh: {
-    readonly xmin: number;
-    readonly ymin: number;
-    readonly w: number;
-    readonly h: number;
-  };
-  cxcywh: {
-    readonly cx: number;
-    readonly cy: number;
-    readonly w: number;
-    readonly h: number;
-  };
-};
+export type BoxMap = Readonly<{
+  xyxy: Readonly<{ xmin: number; ymin: number; xmax: number; ymax: number }>;
+  xywh: Readonly<{ xmin: number; ymin: number; w: number; h: number }>;
+  cxcywh: Readonly<{ cx: number; cy: number; w: number; h: number }>;
+}>;
 
 /**
  * The formats of bounding boxes.
@@ -39,8 +30,21 @@ export type BoxFormat = keyof BoxMap;
  * @category Types
  */
 export type BoundingBox<F extends BoxFormat> = F extends any
-  ? { readonly format: F } & Readonly<BoxMap[F]>
+  ? { readonly format: F } & BoxMap[F]
   : never;
+
+/**
+ * Configuration options for scaling bounding box coordinates.
+ * @category Types
+ */
+export type ScaleBoxOptions = {
+  /** The source bounds (e.g. model input dimensions). */
+  readonly from: { readonly width: number; readonly height: number };
+  /** The destination bounds (e.g. original image dimensions). */
+  readonly to: { readonly width: number; readonly height: number };
+  /** The mode used to resize the image (excluding `'crop'`). */
+  readonly resizeMode: Exclude<ResizeMode, 'crop'>;
+};
 
 /**
  * Decodes bounding box coordinates from a 4-tuple into a structured BoundingBox
@@ -73,19 +77,12 @@ export function decodeBox<F extends BoxFormat>(
  * @typeParam F Bounding box coordinate format.
  * @param box The original BoundingBox.
  * @param options Options defining dimensions and resize modes.
- * @param options.from The source bounds (e.g. model input dimensions).
- * @param options.to The destination bounds (e.g. original image dimensions).
- * @param options.resizeMode The mode used to resize the image {@link ResizeMode}
- * (excluding `'crop'`).
+ * See {@link ScaleBoxOptions}.
  * @returns The scaled BoundingBox object.
  */
 export function scaleBox<F extends BoxFormat>(
   box: BoundingBox<F>,
-  options: {
-    readonly from: { readonly width: number; readonly height: number };
-    readonly to: { readonly width: number; readonly height: number };
-    readonly resizeMode: Exclude<ResizeMode, 'crop'>;
-  }
+  options: ScaleBoxOptions
 ): BoundingBox<F> {
   'worklet';
   const { from, to, resizeMode } = options;
@@ -162,15 +159,12 @@ export type NmsOptions = {
  * Executes Non-Maximum Suppression (NMS) on bounding boxes and confidence
  * scores.
  * @category Utils
- * @param boxes Bounding boxes coordinate tensor.
- * @param scores Bounding boxes confidence scores tensor.
+ * @param boxes Bounding boxes coordinate tensor. Expected shape `[N, 4]` and
+ * data type `float32`.
+ * @param scores Bounding boxes confidence scores tensor. Expected shape `[N]`
+ * (1D) and data type `float32`.
  * @param options Options configuring NMS thresholds and execution mode.
- * @param options.boxFormat The bounding box format {@link BoxFormat}.
- * @param options.iouThreshold Intersection over Union (IoU) threshold for
- * suppression.
- * @param options.confidenceThreshold Minimum confidence score for candidate
- * selection.
- * @param options.nmsType The NMS algorithm variant {@link NmsOptions.nmsType}.
+ * See {@link NmsOptions}.
  * @returns The resulting indices of the non-suppressed boxes:
  * - For `standard` NMS: A 1D array of indices (`number[]`) representing the
  *   selected boxes.
@@ -178,6 +172,9 @@ export type NmsOptions = {
  *   groups of overlapping boxes, where the first element of each group is the
  *   top candidate and the group indices are used to calculate the weighted
  *   average of coordinates.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes or
+ * formats are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function nms(
   boxes: Tensor,
@@ -195,18 +192,23 @@ export function nms(boxes: Tensor, scores: Tensor, options: NmsOptions): number[
 }
 
 /**
- * Masks the source tensor by keeping only the elements inside the specified
- * bounding box, writing the result to a pre-allocated destination tensor.
+ * Masks the source image tensor by keeping only the elements inside the specified
+ * bounding box, writing the result to a pre-allocated destination image tensor.
  *
- * Note: This operation does not change the tensor dimensions (it does not crop
+ * Note: This operation does not change the image tensor dimensions (it does not crop
  * the shape). Instead, it copies the elements within the box coordinates from
  * `src` to `dst`, and sets all elements outside the box to `0`.
  * @category Typescript API
- * @param src The source tensor of shape [H, W, C].
- * @param dst The pre-allocated destination tensor of shape [H, W, C] and the
- * same data type as `src`.
+ * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
+ * (channels-last). Supports any numeric data type.
+ * @param dst The pre-allocated destination image tensor to write masked values to.
+ * Expected shape `[H, W, C]` in HWC layout and the same data type as `src`.
  * @param box The bounding box defining the region of interest to copy.
- * @returns The destination tensor containing the masked output.
+ * @returns The destination image tensor containing the masked output of shape
+ * `[H, W, C]` and matching data type.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * layouts, or data types are invalid, `RESOURCE_BUSY` if a tensor is in use, or
+ * `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function restrictToBox(src: Tensor, dst: Tensor, box: BoundingBox<BoxFormat>): Tensor {
   'worklet';

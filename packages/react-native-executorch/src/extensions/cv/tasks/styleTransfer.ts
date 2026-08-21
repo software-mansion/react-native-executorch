@@ -1,3 +1,9 @@
+/**
+ * Neural style transfer task pipeline with output rendering and colorspace
+ * conversion.
+ * @module CV/Tasks/StyleTransfer
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -37,9 +43,9 @@ export type StyleTransferModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Input preprocessing and output postprocessing
-   * {@link StyleTransferOptions} (normalization back to uint8,
+   * Input preprocessing and output postprocessing (normalization back to uint8,
    * interpolation). `resizeMode` is fixed to `'stretch'`.
+   * See {@link StyleTransferOptions}.
    */
   readonly modelOpts: StyleTransferOptions;
 };
@@ -52,8 +58,11 @@ export type StyleTransferModel = {
  * registers clean disposal hooks to clear all native memory.
  * @category Typescript API
  * @param config Style transfer task configuration containing path and options.
+ * See {@link StyleTransferModel}.
  * @param runtime Optional worklet runtime thread on which to run the model execution.
  * @returns A promise resolving to an object containing style transfer and disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match style transfer spec.
  */
 export async function createStyleTransfer(
   config: StyleTransferModel,
@@ -68,6 +77,8 @@ export async function createStyleTransfer(
    * Performs asynchronous image style transfer on the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the styled image buffer.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
 

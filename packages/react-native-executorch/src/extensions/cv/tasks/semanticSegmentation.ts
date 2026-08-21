@@ -1,3 +1,9 @@
+/**
+ * Semantic segmentation task pipeline with colormap mapping and output mask
+ * rendering.
+ * @module CV/Tasks/SemanticSegmentation
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -40,9 +46,9 @@ export type SemanticSegmenterModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, output mask interpolation, and label
-   * vocabulary {@link SemanticSegmenterOptions}. `resizeMode`
-   * is fixed to `'stretch'`.
+   * Image preprocessing, output mask interpolation, and label vocabulary.
+   * `resizeMode` is fixed to `'stretch'`.
+   * See {@link SemanticSegmenterOptions}.
    */
   readonly modelOpts: SemanticSegmenterOptions<L>;
 };
@@ -84,9 +90,13 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
  * @category Typescript API
  * @typeParam L The type representing the segmentation labels.
  * @param config Segmenter task configuration containing path and options.
+ * See {@link SemanticSegmenterModel}.
  * @param runtime Optional worklet runtime thread environment context.
  * @returns A promise resolving to an object containing segmentation and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * `SCHEMA_MISMATCH` if model schema does not match segmentation spec, or
+ * `INVALID_ARGUMENT` if labels length does not match model output classes.
  */
 export async function createSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmenterModel<L>,
@@ -117,6 +127,8 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
    * provided, any labels omitted from it will default to being rendered as
    * fully transparent.
    * @returns A promise resolving to the segmentation result.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   segment: (
     input: ImageBuffer,

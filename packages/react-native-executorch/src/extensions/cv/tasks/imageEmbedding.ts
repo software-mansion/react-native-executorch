@@ -1,3 +1,8 @@
+/**
+ * Image embedding and visual feature extraction task pipeline.
+ * @module CV/Tasks/ImageEmbedding
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -16,8 +21,9 @@ export type ImageEmbedderModel = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing (resize, color conversion, normalization)
-   * for embedding models {@link ImagePreprocessorOptions}.
+   * Image preprocessing (resize, color conversion, normalization) for embedding
+   * models.
+   * See {@link ImagePreprocessorOptions}.
    */
   readonly modelOpts: ImagePreprocessorOptions;
 };
@@ -33,10 +39,13 @@ export type ImageEmbedderModel = {
  * runs the forward pass, and returns the raw embedding vector.
  * @category Typescript API
  * @param config Image embedder task configuration containing path and options.
+ * See {@link ImageEmbedderModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing the embedding and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match embedding spec.
  */
 export async function createImageEmbedder(
   config: ImageEmbedderModel,
@@ -51,6 +60,8 @@ export async function createImageEmbedder(
    * Asynchronously computes the embedding vector for the given input image.
    * @param input The input image buffer.
    * @returns A promise resolving to the embedding vector.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   embed: (input: ImageBuffer) => Promise<Float32Array>;
 

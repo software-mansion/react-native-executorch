@@ -1,3 +1,9 @@
+/**
+ * Keypoint and pose detection task pipeline with weighted NMS and landmark
+ * scaling.
+ * @module CV/Tasks/KeypointDetection
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -22,7 +28,7 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
   ImagePreprocessorOptions,
   'resizeMode'
 > & {
-  /** Resize mode for preprocessing input images {@link ResizeMode} (excluding `'crop'`). */
+  /** Resize mode for preprocessing input images (excluding `'crop'`). */
   readonly resizeMode: Exclude<ResizeMode, 'crop'>;
   /** How bounding box coordinates are interpreted {@link BoxFormat}. */
   readonly boxFormat: F;
@@ -42,11 +48,28 @@ export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = 
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, landmark names, bounding box format,
-   * and default NMS/confidence thresholds
-   * {@link KeypointDetectorOptions}.
+   * Image preprocessing, landmark names, bounding box format, and default
+   * NMS/confidence thresholds.
+   * See {@link KeypointDetectorOptions}.
    */
   readonly modelOpts: KeypointDetectorOptions<F, L>;
+};
+
+/**
+ * Optional configuration parameters for keypoint detection inference.
+ * @category Types
+ */
+export type DetectKeypointsOptions = {
+  /**
+   * Minimum confidence score threshold for detections. If omitted, uses
+   * `modelOpts.defaultConfidenceThreshold`.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold for NMS. If omitted, uses
+   * `modelOpts.defaultIouThreshold`.
+   */
+  readonly iouThreshold?: number;
 };
 
 /**
@@ -155,10 +178,13 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
  * @typeParam F The bounding box format.
  * @typeParam L The landmark labels type.
  * @param config Keypoint task configuration containing path and options.
+ * See {@link KeypointDetectorModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing keypoint detection and
  * disposal bindings.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match keypoint detection spec.
  */
 export async function createKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,
@@ -174,15 +200,14 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    * input image.
    * @param input The input image buffer.
    * @param options Configuration options for keypoint detection.
-   * @param options.confidenceThreshold Minimum confidence score for a
-   * detection. If omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold for
-   * NMS. If omitted, uses `modelOpts.defaultIouThreshold`.
+   * See {@link DetectKeypointsOptions}.
    * @returns A promise resolving to the list of keypoint detections.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectKeypoints: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectKeypointsOptions
   ) => Promise<KeypointDetection<F, L>[]>;
 
   /**
@@ -191,7 +216,7 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
    */
   detectKeypointsWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
+    options?: DetectKeypointsOptions
   ) => KeypointDetection<F, L>[];
 }> {
   const { modelPath, modelOpts } = config;

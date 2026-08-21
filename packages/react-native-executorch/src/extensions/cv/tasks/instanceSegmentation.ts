@@ -1,3 +1,9 @@
+/**
+ * Instance segmentation task pipeline with NMS, bounding box scaling, and mask
+ * extraction.
+ * @module CV/Tasks/InstanceSegmentation
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -56,11 +62,33 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
   /** Local path or remote URL of the `.pte` model file. */
   readonly modelPath: string;
   /**
-   * Image preprocessing, label vocabulary, bounding box format,
-   * and default NMS/mask/confidence thresholds
-   * {@link InstanceSegmenterOptions}.
+   * Image preprocessing, label vocabulary, bounding box format, and default
+   * NMS/mask/confidence thresholds.
+   * See {@link InstanceSegmenterOptions}.
    */
   readonly modelOpts: InstanceSegmenterOptions<F, L>;
+};
+
+/**
+ * Optional configuration parameters for instance segmentation inference.
+ * @category Types
+ */
+export type SegmentInstancesOptions = {
+  /**
+   * Minimum confidence threshold. If omitted, uses
+   * `modelOpts.defaultConfidenceThreshold`.
+   */
+  readonly confidenceThreshold?: number;
+  /**
+   * Intersection over Union (IoU) threshold in NMS. If omitted, uses
+   * `modelOpts.defaultIouThreshold`.
+   */
+  readonly iouThreshold?: number;
+  /**
+   * Mask binarization probability threshold. If omitted, uses
+   * `modelOpts.defaultMaskThreshold`.
+   */
+  readonly maskThreshold?: number;
 };
 
 /**
@@ -92,10 +120,14 @@ export type InstanceSegmentationResult<F extends BoxFormat, L> = {
  * @typeParam F The bounding box format type.
  * @typeParam L The label type.
  * @param config Model configuration containing path and options.
+ * See {@link InstanceSegmenterModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing instance segmentation
  * and disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * or `SCHEMA_MISMATCH` if model schema does not match instance segmentation
+ * spec.
  */
 export async function createInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
@@ -110,17 +142,15 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    * Performs asynchronous instance segmentation on the given input image.
    * @param input The input image buffer.
    * @param options Execution override options.
-   * @param options.confidenceThreshold Minimum confidence threshold. If
-   * omitted, uses `modelOpts.defaultConfidenceThreshold`.
-   * @param options.iouThreshold Intersection over Union (IoU) threshold in NMS. If omitted, uses
-   * `modelOpts.defaultIouThreshold`.
-   * @param options.maskThreshold Mask binarization threshold. If omitted,
-   * uses `modelOpts.defaultMaskThreshold`.
+   * See {@link SegmentInstancesOptions}.
    * @returns A promise resolving to a list of detected instances.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
+   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
   segmentInstances: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+    options?: SegmentInstancesOptions
   ) => Promise<InstanceSegmentationResult<F, L>[]>;
 
   /**
@@ -129,7 +159,7 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
    */
   segmentInstancesWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+    options?: SegmentInstancesOptions
   ) => InstanceSegmentationResult<F, L>[];
 }> {
   const { modelPath, modelOpts } = config;
