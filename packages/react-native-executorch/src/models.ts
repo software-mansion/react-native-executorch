@@ -916,11 +916,8 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // =============================================================================
 // OCR
 // =============================================================================
-// The OCR export carries NO baked input normalization, so the norm is a property
-// of the model rather than of the call: `detectorNorm` below makes the pipeline
-// apply it before every `detect`, and callers never touch it. It is spelled out
-// here (instead of relying on the IMAGENET_NORM default) because a model whose
-// export bakes normalization in must override it.
+// PP-OCRv6 is exported without baked input normalization, so `detectorNorm` has
+// the pipeline apply ImageNet norm before every `detect`.
 // The recognizer charset is NOT bundled: `charsetPath` points at the
 // `charset.json` published beside the `.pte`, which the resource fetcher resolves
 // to a local path like any other model file. Inlining it would put ~128 KB of
@@ -931,25 +928,25 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
   detectorNorm: IMAGENET_NORM,
 };
 
-// Every OCR export is mixed-precision, and the tag in the filename names the
-// DETECTOR's precision only: `pp_ocrv6_xnnpack_int8.pte` is an int8 DBNet paired
-// with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the SVTR
-// attention stack.
-const PPOCRV6_PRECISION = { xnnpack: 'int8', coreml: 'int8', vulkan: 'fp16' } as const;
-
-type OcrBackend = keyof typeof PPOCRV6_PRECISION;
-
-const makePpOcrV6 = (backend: OcrBackend): OcrModel => ({
-  modelPath:
-    `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/${backend}/` +
-    `pp_ocrv6_${backend}_${PPOCRV6_PRECISION[backend]}.pte`,
-  charsetPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`,
+// Every OCR export is mixed-precision, and the tag in each filename below names
+// the DETECTOR's precision only: `pp_ocrv6_xnnpack_int8.pte` is an int8 DBNet
+// paired with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the
+// SVTR attention stack.
+const PPOCRV6_CHARSET = `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`;
+const PPOCRV6_SMALL_XNNPACK_INT8: OcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
+  charsetPath: PPOCRV6_CHARSET,
   modelOpts: PADDLE_PPOCRV6_OPTS,
-});
-const ppOcrV6 = {
-  XNNPACK: makePpOcrV6('xnnpack'),
-  COREML: makePpOcrV6('coreml'),
-  VULKAN: makePpOcrV6('vulkan'),
+};
+const PPOCRV6_SMALL_COREML_INT8: OcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/coreml/pp_ocrv6_coreml_int8.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PADDLE_PPOCRV6_OPTS,
+};
+const PPOCRV6_SMALL_VULKAN_FP16: OcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/vulkan/pp_ocrv6_vulkan_fp16.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PADDLE_PPOCRV6_OPTS,
 };
 
 /**
@@ -1621,7 +1618,11 @@ export const models = {
      * On Android, `VULKAN` is the faster choice.
      */
     PADDLE: {
-      PPOCRV6_SMALL: ppOcrV6,
+      PPOCRV6_SMALL: {
+        XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
+        COREML: PPOCRV6_SMALL_COREML_INT8,
+        VULKAN: PPOCRV6_SMALL_VULKAN_FP16,
+      },
     },
   },
 };

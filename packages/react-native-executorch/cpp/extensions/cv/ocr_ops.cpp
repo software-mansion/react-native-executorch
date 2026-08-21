@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <format>
 #include <jsi/jsi.h>
-#include <optional>
+#include <span>
 #include <vector>
 
 #include <opencv2/imgproc.hpp>
@@ -54,6 +54,7 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         if (std::min(rr.size.width, rr.size.height) < static_cast<float>(minBoxSide)) {
             continue;
         }
+
         // Score inside the contour's bounding rect only — a full-frame mask per
         // candidate would make scoring O(candidates · H · W).
         const ::cv::Rect bounds = ::cv::boundingRect(contour);
@@ -64,6 +65,8 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         if (score < boxThreshold) {
             continue;
         }
+
+        // Unclip: grow the shrunk box back by area*ratio/perimeter on every side.
         const double area = static_cast<double>(rr.size.width) * static_cast<double>(rr.size.height);
         const double perim =
             2.0 * (static_cast<double>(rr.size.width) + static_cast<double>(rr.size.height));
@@ -76,6 +79,8 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
             static_cast<float>(minBoxSide + 2)) {
             continue;
         }
+
+        // Clamp the expanded corners into the map and drop anything degenerate.
         std::array<::cv::Point2f, 4> c;
         expanded.points(c.data());
         Quad q;
@@ -97,6 +102,7 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         if (maxX - minX < 1.0f || maxY - minY < 1.0f) {
             continue;
         }
+
         quads.push_back(q);
     }
     // Output order is unspecified — the TypeScript pipeline derives reading
@@ -121,45 +127,37 @@ jsi::Object quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
 
 void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractDbnetTextBoxes";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
-                     size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
             throw error::InvalidArgument("Usage: extractDbnetTextBoxes(src, options)");
         }
-        const char *ctx = "extractDbnetTextBoxes";
-        auto src = tensor::fromJs(rt, "extractDbnetTextBoxes: src", args[0], DType::float32, std::nullopt);
+
         const auto opts = conversions::asType<jsi::Object>(rt, "extractDbnetTextBoxes: options", args[1]);
+
+        // The DBNet head always emits the full-res [1,1,H,W] probability map, so
+        // the rank is part of the contract rather than something to re-derive.
+        auto src = tensor::fromJs(rt, "extractDbnetTextBoxes: src", args[0], DType::float32, {1, 1, "H", "W"});
         auto srcLock = tensor::tryLockShared(rt, "extractDbnetTextBoxes: src", src);
+
         auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
+        const int32_t h = src->shape_[2];
+        const int32_t w = src->shape_[3];
 
-        // src is [1,1,H,W] or [H,W] probability map (full-res).
-        const auto &s = src->shape_;
-        if (s.size() < 2) {
-            throw error::InvalidArgument("extractDbnetTextBoxes: src must be [..,H,W]");
-        }
-        const int32_t w = s[s.size() - 1];
-        const int32_t h = s[s.size() - 2];
-        if (static_cast<std::size_t>(w) * static_cast<std::size_t>(h) != src->numel_) {
-            throw error::InvalidArgument("extractDbnetTextBoxes: src H*W does not match numel");
-        }
-
+        const char *ctx = "extractDbnetTextBoxes";
         std::vector<Quad> quads;
         try {
             ::cv::Mat prob(h, w, CV_32F, dataPtr);
-            quads = extractDbnet(
-                prob, static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "binThreshold")),
-                static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "boxThreshold")),
-                static_cast<float>(conversions::getRequiredProperty<double>(rt, ctx, opts, "unclipRatio")),
-                conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
-                conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
+            quads = extractDbnet(prob, conversions::getRequiredProperty<float>(rt, ctx, opts, "binThreshold"),
+                                 conversions::getRequiredProperty<float>(rt, ctx, opts, "boxThreshold"),
+                                 conversions::getRequiredProperty<float>(rt, ctx, opts, "unclipRatio"),
+                                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
+                                 conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
         } catch (const std::exception &e) {
             throw error::ExecutionFailed(std::format("extractDbnetTextBoxes: OpenCV error: {}", e.what()));
         }
         return quadsToArray(rt, quads);
     };
-    module.setProperty(rt, name,
-                       jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             2, error::guarded(fnBody)));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody)));
 }
 
 // --------------------------- ctcGreedyDecode -------------------------------
@@ -168,43 +166,33 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
 // softmaxed head — this op neither normalizes nor takes options.
 void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "ctcGreedyDecode";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args,
-                     size_t count) -> jsi::Value {
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 1) {
             throw error::InvalidArgument("Usage: ctcGreedyDecode(src)");
         }
-        auto src = tensor::fromJs(rt, "ctcGreedyDecode: src", args[0], DType::float32, std::nullopt);
+
+        // The recognizer head always emits [1,T,V]; declaring it here makes the
+        // rank a contract check rather than a hand-rolled one below.
+        auto src = tensor::fromJs(rt, "ctcGreedyDecode: src", args[0], DType::float32, {1, "T", "V"});
         auto srcLock = tensor::tryLockShared(rt, "ctcGreedyDecode: src", src);
 
-        const auto &s = src->shape_;
-        if (s.size() < 2) {
-            throw error::InvalidArgument("ctcGreedyDecode: src must be at least 2-D [..,T,V]");
-        }
-        const int32_t vocab = s.back();
-        if (vocab < 1) {
-            throw error::InvalidArgument("ctcGreedyDecode: vocab dimension must be >= 1");
-        }
-        if (src->numel_ % static_cast<std::size_t>(vocab) != 0) {
-            throw error::InvalidArgument("ctcGreedyDecode: numel must be a multiple of the vocab dim");
-        }
-        const int32_t timesteps = static_cast<int32_t>(src->numel_) / vocab;
-        const auto *data = reinterpret_cast<const float *>(src->data_.get());
+        const auto timesteps = static_cast<std::size_t>(src->shape_[1]);
+        const auto vocab = static_cast<std::size_t>(src->shape_[2]);
+        const std::span probs(reinterpret_cast<const float *>(src->data_.get()), timesteps * vocab);
 
         // Interleaved (index, value) pairs. float32 holds any index a CTC vocab
         // can reach exactly, so one array carries both without a second buffer.
         std::vector<float> out;
-        out.reserve(static_cast<std::size_t>(timesteps) * 2);
-        for (int32_t t = 0; t < timesteps; ++t) {
-            const float *row = data + static_cast<std::size_t>(t) * static_cast<std::size_t>(vocab);
-            const float *maxIt = std::max_element(row, row + vocab);
-            out.push_back(static_cast<float>(maxIt - row));
+        out.reserve(timesteps * 2);
+        for (std::size_t t = 0; t < timesteps; ++t) {
+            const auto row = probs.subspan(t * vocab, vocab);
+            const auto maxIt = std::max_element(row.begin(), row.end());
+            out.push_back(static_cast<float>(maxIt - row.begin()));
             out.push_back(*maxIt);
         }
         return conversions::toJsiTypedArray(rt, out);
     };
-    module.setProperty(rt, name,
-                       jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name),
-                                                             1, error::guarded(fnBody)));
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::ocr_ops

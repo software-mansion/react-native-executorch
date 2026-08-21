@@ -1,5 +1,5 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
-import { type Tensor } from '../../../core/tensor';
+import type { Tensor } from '../../../core/tensor';
 
 /**
  * Thresholds for {@link extractDbnetTextBoxes}.

@@ -33,6 +33,9 @@ export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
+export * from './extensions/cv/tasks/ocr/ocr';
+export * from './extensions/cv/tasks/ocr/detectors';
+export type { Quad } from './extensions/cv/ops/quad';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';
@@ -40,10 +43,6 @@ export * from './extensions/speech/tasks/fsmnVoiceActivityDetection';
 export * from './extensions/speech/tasks/whisperSpeechToText';
 export * from './extensions/speech/tasks/supertonicTextToSpeech';
 export * from './extensions/speech/tasks/kokoroTextToSpeech';
-export * from './extensions/cv/tasks/ocr/ocr';
-export * from './extensions/cv/tasks/ocr/detectors';
-export type { Quad } from './extensions/cv/ops/quad';
-export type { NormalizeOptions } from './extensions/cv/ops/image';
 
 // Core primitives — for library builders and power users
 export * from './core/error';
