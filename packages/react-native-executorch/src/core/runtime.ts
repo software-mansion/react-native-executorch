@@ -1,3 +1,12 @@
+/**
+ * Background worklet execution and thread runtime management.
+ *
+ * Provides utilities to dispatch synchronous, heavy native operations (model
+ * compilation, tensor inference) onto dedicated background worklet threads,
+ * preventing them from blocking the React Native JavaScript thread.
+ * @module Core/Runtime
+ */
+
 import {
   createWorkletRuntime,
   runOnRuntimeAsync,
@@ -35,6 +44,13 @@ export const defaultWorkletRuntime = createWorkletRuntime({
  * {@link defaultWorkletRuntime}.
  * @returns An async function with the same signature as `fn` that resolves to
  * `fn`'s return value or rejects with an `RnExecuTorchError` if `fn` throws.
+ * @throws {RnExecuTorchError} Propagates any error thrown inside `fn` across the
+ * worklet thread boundary.
+ * @example
+ * ```typescript
+ * const asyncLoadModel = wrapAsync(loadModel);
+ * const model = await asyncLoadModel('/path/to/model.pte');
+ * ```
  */
 export function wrapAsync<Args extends any[], R>(
   fn: (...args: Args) => R,
