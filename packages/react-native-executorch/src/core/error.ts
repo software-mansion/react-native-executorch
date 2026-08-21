@@ -1,14 +1,14 @@
 /**
- * Errors raised by React Native ExecuTorch.
+ * Classified error handling for React Native ExecuTorch.
  *
- * This module is the source of truth for the error contract; `cpp/core/error.h`
- * mirrors it by hand, the same way the rest of the TS/JSI interface is mirrored.
+ * All errors raised by the library carry a machine-readable
+ * {@link RnExecuTorchErrorCode} (e.g. `LOAD_FAILED`, `EXECUTION_FAILED`,
+ * `RESOURCE_BUSY`, or `SCHEMA_MISMATCH`) allowing applications to inspect and
+ * handle failures programmatically.
  *
- * Errors are plain `Error` objects with extra fields rather than a class.
- * Worklet runtimes are separate JavaScript runtimes and a value thrown on one
- * does not keep its class identity or prototype chain when it travels to
- * another, so a class would only work on some of the paths that can throw.
- * @packageDocumentation
+ * Use {@link isRnExecuTorchError} to safely narrow caught errors across
+ * asynchronous calls and worklet runtime boundaries.
+ * @module Core/Error
  */
 
 /**
@@ -43,8 +43,17 @@ export const VALID_ERROR_CODES = [
 export type RnExecuTorchErrorCode = (typeof VALID_ERROR_CODES)[number];
 
 /**
- * An error raised by React Native ExecuTorch: a standard `Error` carrying a
- * {@link RnExecuTorchErrorCode}.
+ * An error raised by React Native ExecuTorch.
+ *
+ * Represents a standard `Error` augmented with a machine-readable
+ * {@link RnExecuTorchErrorCode} and an optional ExecuTorch C++ runtime code
+ * (`etRuntimeErrorCode`).
+ *
+ * When thrown, call as a factory function without `new` (safe across worklet
+ * threads):
+ * ```typescript
+ * throw RnExecuTorchError('INVALID_ARGUMENT', 'Shape dimensions must be positive');
+ * ```
  * @category Errors
  * @typeParam C The specific code, narrowed by {@link isRnExecuTorchError}.
  */
@@ -60,13 +69,18 @@ export type RnExecuTorchError<C extends RnExecuTorchErrorCode = RnExecuTorchErro
 };
 
 /**
- * Builds an {@link RnExecuTorchError}. Safe to call from anywhere, including
- * inside a worklet.
+ * Creates an {@link RnExecuTorchError} carrying a machine-readable code.
  * @category Errors
- * @param code The classification to attach.
- * @param message A human-readable description. Include the offending values.
- * @param etRuntimeErrorCode The raw ExecuTorch runtime error, when there is one.
- * @returns An `Error` carrying `code`.
+ * @typeParam C The specific error code.
+ * @param code The classification to attach. See {@link RnExecuTorchErrorCode}.
+ * @param message A human-readable description of the failure.
+ * @param etRuntimeErrorCode The raw ExecuTorch runtime error, when available.
+ * @returns An `Error` carrying `code` and `name: 'RnExecuTorchError'`.
+ * @see {@link RnExecuTorchErrorCode}
+ * @example
+ * ```typescript
+ * throw RnExecuTorchError('INVALID_ARGUMENT', 'Shape dimensions must be positive');
+ * ```
  */
 export function RnExecuTorchError<C extends RnExecuTorchErrorCode>(
   code: C,
