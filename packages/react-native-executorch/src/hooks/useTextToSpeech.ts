@@ -90,14 +90,19 @@ export function useTextToSpeech<K extends PropertyKey>(
 ) {
   // Each config names the pipeline it belongs to, so the factory is resolved
   // from that tag alone.
-  const create = (
-    config.name === 'kokoro' ? createKokoroTextToSpeech : createSupertonicTextToSpeech
-  ) as (
+  const factory = (
     ttsConfig: KokoroTtsModel<K> | SupertonicTtsModel<K>
-  ) => Promise<KokoroTts<K> | SupertonicTts<K>>;
+  ): Promise<KokoroTts<K> | SupertonicTts<K>> => {
+    switch (ttsConfig.name) {
+      case 'kokoro':
+        return createKokoroTextToSpeech(ttsConfig);
+      case 'supertonic':
+        return createSupertonicTextToSpeech(ttsConfig);
+    }
+  };
 
   const { resource, downloadProgress, downloadError } = useResourceDownload(config, options);
-  const { model, error } = useModel(create, resource);
+  const { model, error } = useModel(factory, resource);
 
   return {
     isReady: !!model,
