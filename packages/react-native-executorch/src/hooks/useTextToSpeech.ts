@@ -72,8 +72,8 @@ export function useTextToSpeech<K extends PropertyKey>(
  * For imperative usage, see {@link createSupertonicTextToSpeech}.
  * @category Hooks
  * @typeParam K Voice style keys record constraint.
- * @param config The Supertonic TTS model configuration. See {@link
- * SupertonicTtsModel}.
+ * @param config The Supertonic TTS model configuration.
+ * See {@link SupertonicTtsModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and speech synthesis functions.

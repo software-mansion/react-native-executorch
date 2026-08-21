@@ -12,8 +12,8 @@ import { createStyleTransfer, type StyleTransferModel } from '../extensions/cv/t
  *
  * For imperative usage, see {@link createStyleTransfer}.
  * @category Hooks
- * @param config The style transfer model configuration. See {@link
- * StyleTransferModel}.
+ * @param config The style transfer model configuration.
+ * See {@link StyleTransferModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and style transfer functions.

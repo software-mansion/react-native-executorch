@@ -18,8 +18,8 @@ import {
  * @category Hooks
  * @typeParam F The bounding box format.
  * @typeParam L The landmark labels type.
- * @param config The keypoint detection model configuration. See {@link
- * KeypointDetectorModel}.
+ * @param config The keypoint detection model configuration.
+ * See {@link KeypointDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, landmarks, and keypoint detection functions.

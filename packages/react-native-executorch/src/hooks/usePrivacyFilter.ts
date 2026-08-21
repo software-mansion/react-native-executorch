@@ -17,8 +17,8 @@ import {
  * @category Hooks
  * @typeParam Label The model's BIOES label space, narrowing the detected entity
  * types when a concrete `models` registry entry is passed.
- * @param config The privacy filter model configuration. See {@link
- * PrivacyFilterModel}.
+ * @param config The privacy filter model configuration.
+ * See {@link PrivacyFilterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and detection functions.

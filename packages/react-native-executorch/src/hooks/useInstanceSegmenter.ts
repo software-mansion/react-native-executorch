@@ -18,8 +18,8 @@ import {
  * @category Hooks
  * @typeParam F The bounding box format.
  * @typeParam L The class labels type.
- * @param config The instance segmentation model configuration. See {@link
- * InstanceSegmenterModel}.
+ * @param config The instance segmentation model configuration.
+ * See {@link InstanceSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, labels, and instance segmentation functions.

@@ -18,8 +18,8 @@ import {
  * @category Hooks
  * @typeParam F The bounding box format.
  * @typeParam L The type representing the object class labels.
- * @param config The object detection model configuration. See {@link
- * ObjectDetectorModel}.
+ * @param config The object detection model configuration.
+ * See {@link ObjectDetectorModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, labels, and object detection functions.

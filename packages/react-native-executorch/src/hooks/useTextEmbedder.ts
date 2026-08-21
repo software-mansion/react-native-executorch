@@ -12,8 +12,8 @@ import { createTextEmbedder, type TextEmbedderModel } from '../extensions/nlp/ta
  *
  * For imperative usage, see {@link createTextEmbedder}.
  * @category Hooks
- * @param config The text embedder model configuration. See {@link
- * TextEmbedderModel}.
+ * @param config The text embedder model configuration.
+ * See {@link TextEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and embedding functions.

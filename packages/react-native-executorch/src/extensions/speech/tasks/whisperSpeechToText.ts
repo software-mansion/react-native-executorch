@@ -98,8 +98,8 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
 /**
  * Loads a Whisper model and returns a set of transcription helpers.
  * @category Typescript API
- * @param config Model paths and supported-language metadata. See {@link
- * WhisperSttModel}.
+ * @param config Model paths and supported-language metadata.
+ * See {@link WhisperSttModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing transcription and

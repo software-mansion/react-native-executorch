@@ -13,8 +13,8 @@ import { createClassifier, type ClassifierModel } from '../extensions/cv/tasks/c
  * For imperative usage, see {@link createClassifier}.
  * @category Hooks
  * @typeParam L The type representing the classification labels.
- * @param config The image classification model configuration. See {@link
- * ClassifierModel}.
+ * @param config The image classification model configuration.
+ * See {@link ClassifierModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, labels, and classification functions.

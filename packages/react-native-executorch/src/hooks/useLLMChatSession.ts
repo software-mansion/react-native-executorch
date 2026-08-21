@@ -17,8 +17,8 @@ import {
  * For imperative usage, see {@link createLLMChatSession}.
  * @category Hooks
  * @param config The LLM model configuration. See {@link LLMModel}.
- * @param options Chat session options and load/caching options. See {@link
- * ResourceOptions}.
+ * @param options Chat session options and load/caching options.
+ * See {@link ResourceOptions}.
  * @returns An object containing the session's loading state, error, download
  * progress, and chat functions.
  * @see {@link createLLMChatSession}

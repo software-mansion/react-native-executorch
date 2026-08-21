@@ -16,8 +16,8 @@ import {
  * For imperative usage, see {@link createSemanticSegmenter}.
  * @category Hooks
  * @typeParam L The type representing the segmentation labels.
- * @param config The semantic segmentation model configuration. See {@link
- * SemanticSegmenterModel}.
+ * @param config The semantic segmentation model configuration.
+ * See {@link SemanticSegmenterModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, labels, and semantic segmentation functions.

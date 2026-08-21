@@ -15,8 +15,8 @@ import {
  *
  * For imperative usage, see {@link createImageEmbedder}.
  * @category Hooks
- * @param config The image embedder model configuration. See {@link
- * ImageEmbedderModel}.
+ * @param config The image embedder model configuration.
+ * See {@link ImageEmbedderModel}.
  * @param options Load and caching options. See {@link ResourceOptions}.
  * @returns An object containing the model's loading state, error, download
  * progress, and embedding functions.
