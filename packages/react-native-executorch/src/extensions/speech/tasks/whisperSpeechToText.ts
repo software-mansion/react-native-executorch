@@ -1,3 +1,8 @@
+/**
+ * Whisper Speech-to-Text (STT) transcription and live-streaming task pipeline.
+ * @module Speech/Tasks/WhisperSpeechToText
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 import { scheduleOnRN, createSynchronizable } from 'react-native-worklets';
 
@@ -98,12 +103,17 @@ export type WhisperSttModel<L extends WhisperLanguage = WhisperLanguage> = {
 /**
  * Loads a Whisper model and returns a set of transcription helpers.
  * @category Typescript API
- * @param config Model paths and supported-language metadata.
+ * @typeParam L Supported language codes constraint.
+ * @param config Model paths, supported-language metadata, and VAD
+ * configuration.
  * See {@link WhisperSttModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing transcription and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model, tokenizer,
+ * or VAD fails to load, or `SCHEMA_MISMATCH` if model schemas do not match the
+ * Whisper specification.
  */
 export async function createWhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage>(
   config: WhisperSttModel<L>,
@@ -117,11 +127,14 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   /**
    * Asynchronously transcribes a pre-recorded mono waveform sampled at
    * {@link WHISPER_SAMPLE_RATE_HZ}.
-   * @param audio Raw 16 kHz mono PCM samples.
-   * @param options Transcription options.
+   * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
+   * @param options Transcription options. See {@link WhisperSttOptions}.
    * @param onToken Optional callback fired on the RN thread for each decoded
    * token.
    * @returns A promise resolving to the full transcript string.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
+   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   transcribe: (
     audio: Float32Array,
@@ -132,6 +145,14 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   /**
    * Synchronous version of {@link transcribe} to be executed directly on the
    * caller or worklet thread.
+   * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
+   * @param options Transcription options. See {@link WhisperSttOptions}.
+   * @param onToken Optional callback fired on the RN thread for each decoded
+   * token.
+   * @returns The full transcript string.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
+   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   transcribeWorklet: (
     audio: Float32Array,
@@ -151,6 +172,11 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
    * finalized transcript so far; `nonCommitted` is the in-progress text that
    * may still change.
    * @param options Stream options (language and optional VAD tuning).
+   * See {@link WhisperStreamOptions}.
+   * @returns An AsyncGenerator yielding transcript updates.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
+   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   stream: (
     options: WhisperStreamOptions<L>
@@ -165,7 +191,8 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   /**
    * Appends a new PCM chunk to the live streaming buffer consumed by
    * {@link stream}. Ignored when streaming is not active.
-   * @param audioChunk The newly captured audio samples.
+   * @param audioChunk The newly captured audio samples (16 kHz mono Float32
+   * PCM).
    */
   streamInsert: (audioChunk: Float32Array) => void;
 }> {

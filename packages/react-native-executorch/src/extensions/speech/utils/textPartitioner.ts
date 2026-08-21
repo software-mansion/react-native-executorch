@@ -1,3 +1,9 @@
+/**
+ * Dynamic programming text partitioning algorithm for splitting long sentences
+ * into natural speech chunks.
+ * @module Speech/Utils/TextPartitioner
+ */
+
 import { RnExecuTorchError } from '../../../core/error';
 type Tag = 'eos' | 'pause' | 'whitespace';
 
@@ -28,21 +34,19 @@ export type PartitionOptions = {
   /**
    * Whether to prioritize shorter initial segment lengths and scale up
    * progressively to minimize Time To First Audio (TTFA).
-   * @default false
    */
   readonly prioritizeInitialTtfa?: boolean;
 
   /**
    * Scaling multiplier for the length deviation penalty when the first segment
    * is shorter than target length. Lower values reduce the length penalty for
-   * short initial chunks when prioritizeInitialTtfa is true.
-   * @default 0.1
+   * short initial chunks when `prioritizeInitialTtfa` is true.
    */
   readonly initialShortDeviationScale?: number;
 
   /**
-   * Custom separator penalties for breakpoint tag types ('eos', 'pause',
-   * 'whitespace'). Default: { eos: 5, pause: 80, whitespace: 1000 }.
+   * Custom separator penalties for breakpoint tag types (`'eos'`, `'pause'`,
+   * `'whitespace'`).
    */
   readonly separatorPenalties?: {
     readonly eos?: number;
@@ -87,13 +91,16 @@ function sliceAtCuts(text: string, cutIndices: number[]): string[] {
 }
 
 /**
- * Divides input text into logical segments under the maximum limit using a
- * forward dynamic programming algorithm.
+ * Divides input text into logical segments under the maximum character limit
+ * using a forward dynamic programming algorithm.
  * @category Utils
- * @param text The input text to partition.
- * @param limit The character limit per partition.
+ * @param text The input text string to partition.
+ * @param limit The maximum character limit per partition (must be >= 10).
  * @param options Optional configuration for TTFA prioritization and custom penalties.
+ * See {@link PartitionOptions}.
  * @returns An array of partitioned text segments.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `limit` is below
+ * 10 or the text cannot be divided into chunks within the given limit.
  */
 export function partition(text: string, limit: number, options?: PartitionOptions): string[] {
   if (!text) {

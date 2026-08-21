@@ -1,3 +1,9 @@
+/**
+ * Text normalization, chunk formatting, and voice style parsing utilities for
+ * Supertonic TTS.
+ * @module Speech/Utils/Supertonic
+ */
+
 import { RnExecuTorchError } from '../../../core/error';
 /**
  * Ported from supertone-inc/supertonic (MIT License)
@@ -116,6 +122,8 @@ export function cleanText(text: string): string {
  * @param chunk The partitioned text chunk.
  * @param lang The language code.
  * @returns The formatted chunk ready for model input.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `lang` is
+ * unsupported.
  */
 export function formatChunk(chunk: string, lang?: string): string {
   'worklet';
@@ -183,6 +191,8 @@ export type SupertonicVoiceStyle = {
  * @category Utils
  * @param json The parsed JSON voice style object.
  * @returns Parsed SupertonicVoiceStyle containing styleTtl and styleDp Float32Arrays.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the voice style JSON
+ * format is invalid or missing required tensor data.
  */
 export function parseVoiceStyle(json: any): SupertonicVoiceStyle {
   'worklet';

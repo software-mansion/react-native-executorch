@@ -1,3 +1,8 @@
+/**
+ * Supertonic Text-to-Speech (TTS) synthesis task pipeline.
+ * @module Speech/Tasks/SupertonicTextToSpeech
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import RNBlobUtil from 'react-native-blob-util';
@@ -127,8 +132,12 @@ export type SupertonicTtsChunk = {
  * @category Typescript API
  * @typeParam K Voice style keys record constraint.
  * @param config Supertonic TTS pipeline configuration containing model and asset paths.
+ * See {@link SupertonicTtsModel}.
  * @param runtime Optional worklet runtime thread on which to run inference.
  * @returns A promise resolving to an object with audio synthesis and disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models, indexer, or
+ * voice styles fail to load, or `SCHEMA_MISMATCH` if model schemas do not match
+ * the Supertonic specification.
  */
 export async function createSupertonicTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
@@ -140,13 +149,11 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
   /**
    * Streams synthesized audio chunks as an async generator as each text chunk finishes.
    * @param text Input text string to synthesize into speech.
-   * @param options Per-call execution options.
-   * @param options.voiceStyle Voice style key or {@link SupertonicVoiceStyle} object.
-   * @param options.speed Speech speed factor (range: 0.7 to 2.0). Defaults to 1.05.
-   * @param options.totalSteps Number of flow-matching denoising steps. Defaults to 8.
-   * @param options.lang Language ISO code. Defaults to 'na'.
-   * @param options.maxChunkLength Maximum character limit per text chunk. Defaults to 300 (120 for 'ko').
+   * @param options Per-call execution options. See {@link SupertonicTtsOptions}.
    * @returns An AsyncGenerator yielding {@link SupertonicTtsChunk} audio buffers.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if voice style is
+   * invalid or language is unsupported, `RESOURCE_BUSY` if the model is in use,
+   * or `RESOURCE_DISPOSED` if disposed.
    */
   synthesize: (
     text: string,

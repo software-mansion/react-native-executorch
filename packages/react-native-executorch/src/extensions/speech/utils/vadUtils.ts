@@ -1,3 +1,8 @@
+/**
+ * Audio framing and pre-emphasis feature extraction for Voice Activity Detection.
+ * @module Speech/Utils/VAD
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import { type Tensor } from '../../../core/tensor';
 
@@ -15,23 +20,27 @@ export type ExtractFramesOptions = {
 };
 
 /**
- * Slices a mono `waveform` into `numFrames` overlapping
- * frames, applying per-frame mean-removal, a pre-emphasis filter and the `hann`
- * window, and writing each frame into a zero-padded row of `dst` (shape
- * `[frames, fftLength]`). `dst` is fully zeroed first, so rows beyond
- * `numFrames` stay zero (padding). The frame length is taken from `hann`'s
- * length and the padded width from `dst`'s last dimension.
+ * Slices a mono audio waveform tensor into overlapping frames, applying
+ * per-frame mean-removal, a pre-emphasis filter and a Hann window, and writing
+ * each frame into a zero-padded row of `dst`.
+ *
+ * `dst` is fully zeroed first, so rows beyond `numFrames` stay zero (padding).
+ * The frame length is taken from `hann`'s length and the padded width from
+ * `dst`'s last dimension.
  * @category Typescript API
- * @param waveform Input audio samples, shape `[length]`. Framing starts at the
- * first sample, so pass only the slice to be framed.
- * @param hann Precomputed Hann window, shape `[frameLength]`.
- * @param dst Pre-allocated destination, shape `[frames, fftLength]`.
- * @param options Framing options.
- * @param options.numFrames Number of frames to write (must not exceed `dst`
- * tensor's first dimension `dst.shape[0]`).
- * @param options.hopLength Number of audio samples between consecutive frames.
- * @param options.preemphasis Pre-emphasis filter coefficient.
- * @returns The `dst` tensor, for convenience.
+ * @param waveform Input audio samples tensor. Expected 1D shape `[length]` with
+ * data type `float32`. Framing starts at the first sample.
+ * @param hann Precomputed Hann window tensor. Expected 1D shape `[frameLength]`
+ * with data type `float32`.
+ * @param dst Pre-allocated destination tensor. Expected 2D shape `[frames,
+ * fftLength]` with data type `float32`.
+ * @param options Framing options controlling frame count, hop length, and
+ * pre-emphasis filtering. See {@link ExtractFramesOptions}.
+ * @returns The destination tensor `dst` containing extracted frames of shape
+ * `[frames, fftLength]` and data type `float32`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * data types, or frame windows are invalid, `RESOURCE_BUSY` if a tensor is in
+ * use, or `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function extractFrames(
   waveform: Tensor,

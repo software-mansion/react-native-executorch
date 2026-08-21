@@ -1,3 +1,8 @@
+/**
+ * Kokoro Text-to-Speech (TTS) synthesis task pipeline.
+ * @module Speech/Tasks/KokoroTextToSpeech
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import RNBlobUtil from 'react-native-blob-util';
@@ -110,8 +115,12 @@ export type KokoroTtsChunk = {
  * @category Typescript API
  * @typeParam K Voice keys record constraint.
  * @param config Kokoro TTS pipeline configuration containing model and asset paths.
+ * See {@link KokoroTtsModel}.
  * @param runtime Optional worklet runtime thread on which to run inference.
  * @returns A promise resolving to an object with audio synthesis and disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models or voice files
+ * fail to load, `SCHEMA_MISMATCH` if model schemas do not match the Kokoro
+ * specification, or `INVALID_STATE` if phonemizer native support is missing.
  */
 export async function createKokoroTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
@@ -123,12 +132,11 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
   /**
    * Streams synthesized audio chunks as an async generator as each text chunk finishes.
    * @param text Input text (or IPA phonemes) to synthesize into speech.
-   * @param options Per-call execution options.
-   * @param options.voice Voice name, one of the keys of the config's `voices`.
-   * @param options.speed Speech speed factor (range: 0.1 to 3.0). Defaults to 1.0.
-   * @param options.phonemize Whether to phonemize the input. Defaults to true.
-   * @param options.maxChunkLength Maximum phoneme count per chunk.
+   * @param options Per-call execution options. See {@link KokoroTtsOptions}.
    * @returns An AsyncGenerator yielding {@link KokoroTtsChunk} audio buffers.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the voice is unknown
+   * or speed is out of range, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
   synthesize: (text: string, options: KokoroTtsOptions<K>) => AsyncGenerator<KokoroTtsChunk>;
 

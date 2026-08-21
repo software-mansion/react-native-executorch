@@ -1,9 +1,13 @@
+/**
+ * Voice Activity Detection (VAD) task pipeline using the FSMN-VAD model.
+ * @module Speech/Tasks/FsmnVoiceActivityDetection
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
-
 import { wrapAsync } from '../../../core/runtime';
 import { extractFrames } from '../utils/vadUtils';
 
@@ -177,11 +181,15 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
  * segment postprocessing — runs in TypeScript on top of the core `model.execute`
  * primitive.
  * @category Typescript API
- * @param config VAD task configuration containing the model path.
+ * @param config VAD task configuration containing the model path and default
+ * options. See {@link FsmnVadModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing detection and disposal
  * controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model fails to
+ * load, or `SCHEMA_MISMATCH` if the model schema does not match the VAD
+ * specification.
  */
 export async function createFsmnVoiceActivityDetector(
   config: FsmnVadModel,
@@ -195,15 +203,24 @@ export async function createFsmnVoiceActivityDetector(
   /**
    * Asynchronously detects speech segments within a mono waveform sampled at
    * {@link FSMN_VAD_SAMPLE_RATE_HZ}.
-   * @param waveform The input audio samples.
+   * @param waveform The input audio samples (16 kHz mono Float32 PCM).
    * @param options Optional per-call overrides of the detection thresholds.
+   * See {@link VadOptions}.
    * @returns A promise resolving to the detected speech segments, in seconds.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
 
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
+   * @param waveform The input audio samples (16 kHz mono Float32 PCM).
+   * @param options Optional per-call overrides of the detection thresholds.
+   * See {@link VadOptions}.
+   * @returns The detected speech segments, in seconds.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
 
@@ -212,8 +229,13 @@ export async function createFsmnVoiceActivityDetector(
    * that window and reports a {@link VadEvent} when speech starts or stops,
    * otherwise `undefined`. Designed to be driven straight from a recorder
    * callback. Detection runs synchronously on the calling thread (a few ms).
-   * @param chunk The newly captured audio samples.
+   * @param chunk The newly captured audio samples (16 kHz mono Float32 PCM).
    * @param options Optional overrides of the detection thresholds and margin.
+   * See {@link VadStreamOptions}.
+   * @returns `'speechStart'` or `'speechEnd'` if state transitioned, otherwise
+   * `undefined`.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectVoiceOnStream: (chunk: Float32Array, options?: VadStreamOptions) => VadEvent | undefined;
 
