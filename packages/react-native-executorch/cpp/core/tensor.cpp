@@ -254,8 +254,8 @@ void install_createTensor(jsi::Runtime &rt, jsi::Object &module) {
             throw error::InvalidArgument("createTensor: Shape dimensions must be positive integers");
         }
 
+        const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
         try {
-            const auto dtype = types::dtypeFromString(conversions::asType<std::string>(rt, "createTensor: dtype", args[1]));
             return jsi::Object::createFromHostObject(rt, std::make_shared<TensorHostObject>(shape, dtype));
         } catch (const std::exception &e) {
             throw error::Unknown(std::format("createTensor: Error creating tensor: {}", e.what()));
