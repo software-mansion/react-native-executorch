@@ -145,14 +145,6 @@ export async function createWhisperSpeechToText<L extends WhisperLanguage = Whis
   /**
    * Synchronous version of {@link transcribe} to be executed directly on the
    * caller or worklet thread.
-   * @param audio Raw 16 kHz mono PCM audio samples (Float32Array).
-   * @param options Transcription options. See {@link WhisperSttOptions}.
-   * @param onToken Optional callback fired on the RN thread for each decoded
-   * token.
-   * @returns The full transcript string.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the language is
-   * unsupported, `RESOURCE_BUSY` if the model is in use, or `RESOURCE_DISPOSED`
-   * if disposed.
    */
   transcribeWorklet: (
     audio: Float32Array,

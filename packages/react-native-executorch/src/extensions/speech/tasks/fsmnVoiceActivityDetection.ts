@@ -215,12 +215,6 @@ export async function createFsmnVoiceActivityDetector(
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
-   * @param waveform The input audio samples (16 kHz mono Float32 PCM).
-   * @param options Optional per-call overrides of the detection thresholds.
-   * See {@link VadOptions}.
-   * @returns The detected speech segments, in seconds.
-   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
-   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
 

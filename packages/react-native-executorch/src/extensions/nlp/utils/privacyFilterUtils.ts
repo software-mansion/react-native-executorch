@@ -1,3 +1,8 @@
+/**
+ * BIOES grammar construction, Viterbi decoding, and PII entity span extraction.
+ * @module NLP/Utils/PrivacyFilter
+ */
+
 // Privacy-filter-specific helpers: BIOES grammar construction and constrained
 // Viterbi decoding over per-token logits, plus span extraction. The decoder is
 // our own implementation of the standard Viterbi algorithm, constrained to

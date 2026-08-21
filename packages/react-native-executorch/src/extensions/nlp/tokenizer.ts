@@ -1,3 +1,8 @@
+/**
+ * Native HuggingFace fast tokenizer bindings.
+ * @module NLP/Tokenizer
+ */
+
 import { rnexecutorchJsi } from '../../native/bridge';
 
 declare const tokenizerBrand: unique symbol;
@@ -8,43 +13,65 @@ declare const tokenizerBrand: unique symbol;
  * @category Types
  */
 export type Tokenizer = {
-  /** Absolute local path of the loaded `tokenizer.json`. */
+  /** Absolute local file path of the loaded `tokenizer.json`. */
   readonly path: string;
 
   /**
    * Encodes a string into token ids (special tokens are added according to the
-   * tokenizer.json post_processor).
-   * @param text The input text to tokenize.
+   * `tokenizer.json` post_processor).
+   * @param text The input text string to tokenize.
    * @returns The encoded token ids as an `Int32Array`.
+   * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if tokenization
+   * fails, `RESOURCE_BUSY` if the tokenizer is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   encode(text: string): Int32Array;
 
   /**
    * Decodes token ids back into a string.
-   * @param tokens The token ids to decode, as returned by {@link encode}.
+   * @param tokens The token ids to decode (as an `Int32Array`).
    * @param skipSpecialTokens Whether to omit special tokens. Defaults to `true`.
-   * @returns The decoded text.
+   * @returns The decoded text string.
+   * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if decoding fails,
+   * `RESOURCE_BUSY` if the tokenizer is in use, or `RESOURCE_DISPOSED` if
+   * disposed.
    */
   decode(tokens: Int32Array, skipSpecialTokens?: boolean): string;
 
   /**
-   * @returns The size of the tokenizer's vocabulary.
+   * Returns the total vocabulary size.
+   * @returns The total number of tokens in the vocabulary.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the tokenizer is
+   * in use, or `RESOURCE_DISPOSED` if disposed.
    */
   getVocabSize(): number;
 
   /**
+   * Converts a numeric token id to its string piece representation.
    * @param id The token id to look up.
-   * @returns The token string for the given id.
+   * @returns The string piece for the given token id.
+   * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if id lookup
+   * fails, `RESOURCE_BUSY` if the tokenizer is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   idToToken(id: number): string;
 
   /**
-   * @param token The token string to look up.
-   * @returns The id for the given token string.
+   * Converts a string piece token to its numeric token id.
+   * @param token The token piece string to look up.
+   * @returns The numeric id for the given token piece.
+   * @throws {RnExecuTorchError} With code `EXECUTION_FAILED` if token lookup
+   * fails, `RESOURCE_BUSY` if the tokenizer is in use, or `RESOURCE_DISPOSED`
+   * if disposed.
    */
   tokenToId(token: string): number;
 
-  /** Releases the native tokenizer. The instance must not be used afterwards. */
+  /**
+   * Releases the native tokenizer resources. The instance must not be used
+   * afterwards.
+   * @throws {RnExecuTorchError} With code `RESOURCE_DISPOSED` if the tokenizer
+   * has already been disposed.
+   */
   dispose(): void;
 
   /**
@@ -58,7 +85,9 @@ export type Tokenizer = {
  * Loads a HuggingFace tokenizer from a local `tokenizer.json` file.
  * @category Typescript API
  * @param tokenizerPath Absolute local path to a `tokenizer.json` file.
- * @returns The loaded tokenizer.
+ * @returns The loaded native {@link Tokenizer} instance.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the tokenizer file
+ * fails to load or parse.
  */
 export function loadTokenizer(tokenizerPath: string): Tokenizer {
   'worklet';

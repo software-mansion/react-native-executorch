@@ -1,3 +1,8 @@
+/**
+ * Text Embedding task pipeline for sentence transformers.
+ * @module NLP/Tasks/TextEmbedding
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -34,11 +39,14 @@ export type TextEmbedderModel = {
  * pass and returns the raw embedding vector.
  * @category Typescript API
  * @param config Text embedder task configuration containing the model and
- * tokenizer paths.
+ * tokenizer paths. See {@link TextEmbedderModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing the embedding and
  * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or tokenizer
+ * fails to load, or `SCHEMA_MISMATCH` if the model schema does not match the
+ * text embedding specification.
  */
 export async function createTextEmbedder(
   config: TextEmbedderModel,
@@ -56,6 +64,9 @@ export async function createTextEmbedder(
    * @param prompt Optional prompt prefix overriding the model's configured
    * `defaultPrompt` for this call.
    * @returns A promise resolving to the embedding vector.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the input text
+   * tokenizes to zero tokens, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
    */
   embed: (input: string, prompt?: string) => Promise<Float32Array>;
 

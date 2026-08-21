@@ -1,3 +1,8 @@
+/**
+ * Tokenization task pipeline wrapping native HuggingFace tokenizers.
+ * @module NLP/Tasks/Tokenization
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { wrapAsync } from '../../../core/runtime';

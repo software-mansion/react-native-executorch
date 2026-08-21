@@ -1,3 +1,9 @@
+/**
+ * Privacy Filter task pipeline for detecting personally identifiable
+ * information (PII).
+ * @module NLP/Tasks/PrivacyFilter
+ */
+
 import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
@@ -80,16 +86,17 @@ export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
  * edges are discarded in favor of the neighboring window's more centered
  * context.
  * @category Typescript API
+ * @typeParam Label The model's BIOES label space.
  * @param config Privacy filter task configuration containing the model and
- * tokenizer paths plus the label space options.
+ * tokenizer paths plus the label space options. See {@link PrivacyFilterModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
  * @returns A promise resolving to an object containing detection and disposal
  * controls.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `labelNames` is
- * empty or does not start with `'O'`.
- * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model's
- * `forward` window is smaller than 2 tokens.
+ * empty or does not start with `'O'`, `LOAD_FAILED` if the model or tokenizer
+ * fails to load, or `SCHEMA_MISMATCH` if the loaded model schema does not match
+ * the privacy filter specification.
  */
 export async function createPrivacyFilter<Label extends string>(
   config: PrivacyFilterModel<Label>,
@@ -102,14 +109,15 @@ export async function createPrivacyFilter<Label extends string>(
 
   /**
    * Asynchronously detects PII entity spans in the given text.
-   * @param input The text to scan for PII.
+   * @param input The text string to scan for PII.
    * @returns A promise resolving to the detected entity spans, in order.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
    */
   detectPii: (input: string) => Promise<PiiEntity<PiiEntityType<Label>>[]>;
 
   /**
-   * Synchronous version of {@link detectPii} to be executed directly on the
-   * caller or worklet thread.
+   * Synchronous version of {@link detectPii}.
    */
   detectPiiWorklet: (input: string) => PiiEntity<PiiEntityType<Label>>[];
 }> {
