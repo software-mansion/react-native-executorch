@@ -8,7 +8,7 @@
 
 #include "core/error.h"
 
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
 #include <sys/system_properties.h>
 #elif defined(__APPLE__)
 #include <TargetConditionals.h>
@@ -26,7 +26,7 @@ namespace {
 // `google_sdk`, `Emulator` or `Cuttlefish`). On Apple platforms the simulator
 // is known at compile time.
 bool isEmulator() {
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
     auto readProp = [](const char *key) -> std::string {
 #if __ANDROID_API__ >= 26
         const prop_info *pi = __system_property_find(key);
