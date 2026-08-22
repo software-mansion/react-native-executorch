@@ -243,8 +243,9 @@ export type RectifyQuadOptions = {
  * `dst` — perspective crop + resize-to-height + pad in one native pass. An
  * axis-aligned bbox is a 4-corner quad; pass its corners to rectify a box.
  * @category Typescript API
- * @param src The source image tensor (HWC uint8).
- * @param dst The pre-allocated destination canvas (HWC uint8).
+ * @param src The source image, `uint8` `[H, W, C]`.
+ * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
+ * the same channel count as `src`. Must not alias `src`.
  * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
  * @param options Content width, alignment, and padding.
  * @returns The destination tensor `dst`.
