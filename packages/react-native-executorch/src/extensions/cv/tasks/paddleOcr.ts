@@ -1,26 +1,31 @@
-// OCR detect → recognize engine, internal to the OCR task. Worklet source order
-// matters: a referenced worklet must be defined above its callers.
+// PP-OCRv6: a DBNet text detector and an SVTR recognizer fused into one PTE.
+// One pass locates every text line on the page, warps each to the recognizer
+// canvas and reads it. Worklet source order matters here: a referenced worklet
+// must be defined above its callers.
 
-import { tensor, type Tensor } from '../../../../core/tensor';
-import { RnExecuTorchError } from '../../../../core/error';
+import type { WorkletRuntime } from 'react-native-worklets';
+import RNBlobUtil from 'react-native-blob-util';
+
+import { loadModel, type Model } from '../../../core/model';
+import { RnExecuTorchError } from '../../../core/error';
+import { wrapAsync } from '../../../core/runtime';
+import { tensor, type Tensor } from '../../../core/tensor';
 import {
   validateSpec,
   method,
   constr,
   f32,
-  StaticDim,
   DynamicDim,
   type ConcreteDim,
   type DimRef,
   type LinearConstraint,
   type ModelSpec,
   type Range,
-  type SymbolicDim,
   type TensorSpec,
-} from '../../../../core/schema';
-import type { Model } from '../../../../core/model';
+} from '../../../core/schema';
+import { IMAGENET_NORM } from '../../../constants';
 
-import type { ImageBuffer, ImageFormat } from '../../image';
+import type { ImageBuffer, ImageFormat } from '../image';
 import {
   resize,
   cvtColor,
@@ -30,11 +35,16 @@ import {
   FORMAT_CHANNELS,
   FORMAT_CONVERSION,
   type NormalizeOptions,
-} from '../../ops/image';
-import { mapQuadToImage, orderQuad, quadSize, splitWideQuad, type Quad } from '../../ops/quad';
-import { ctcGreedyDecode } from '../../utils/ocrUtils';
-import type { TextBoxExtractor } from './detectors';
-import { orderByReadingOrder } from './geometry';
+} from '../ops/image';
+import {
+  mapQuadToImage,
+  orderQuad,
+  orderByReadingOrder,
+  quadSize,
+  splitWideQuad,
+  type Quad,
+} from '../ops/quad';
+import { ctcGreedyDecode, extractDbnetTextQuads } from '../utils/paddleOcrUtils';
 
 /**
  * A single recognized text region. `quad` is the oriented (TL,TR,BR,BL) box in
@@ -47,13 +57,71 @@ export type OcrDetection = {
   readonly quad: Quad;
 };
 
-// ─── Input size resolution ───────────────────────────────────────────────────
+/**
+ * Options for the PP-OCRv6 pipeline. Everything else about the model (its
+ * normalization, its decode, how its detector output is read) is fixed by the
+ * export and is not a caller's choice.
+ * @category Types
+ */
+export type PaddleOcrModelOptions = {
+  /**
+   * Drop detections below this recognition confidence unless a call overrides
+   * it. Default 0. Confidence is the max probability averaged over the non-blank
+   * timesteps only, since blanks dominate a padded strip and averaging over all
+   * of them would read much lower.
+   */
+  readonly defaultConfidenceThreshold?: number;
+};
 
-// A dimension whose legal values are sparse (an `enum`) can jump a long way from
-// one value to the next, so an image at most this fraction larger than a legal
-// value still snaps DOWN to it rather than forcing the next, much bigger one.
-// A `range` steps densely, so it always snaps up.
+/**
+ * Model configuration for the PP-OCRv6 pipeline: one fused detect/recognize PTE,
+ * the charset published beside it, and the run options.
+ * @category Types
+ */
+export type PaddleOcrModel = {
+  readonly modelPath: string;
+  /**
+   * The recognizer charset published beside the model: a JSON array of strings,
+   * one per class, where `charset[i]` labels logit `i + 1` (logit 0 is the CTC
+   * blank). Resolved to a local path by the resource fetcher like `modelPath`.
+   */
+  readonly charsetPath: string;
+  readonly modelOpts: PaddleOcrModelOptions;
+};
+
+// Fixed by the export: the detector was trained on ImageNet-normalized RGB and
+// the recognizer on (x/255 - 0.5)/0.5.
+const DETECTOR_NORM: NormalizeOptions = IMAGENET_NORM;
+const RECOGNIZER_NORM: NormalizeOptions = { alpha: 1 / 127.5, beta: -1 };
+const RECOGNIZER_PAD_VALUE = 128; // neutral gray
+const REC_CHANNELS = 3;
+
+// DBNet decode thresholds, tuned for this checkpoint.
+const DBNET_DECODE = {
+  binThreshold: 0.3,
+  boxThreshold: 0.6,
+  unclipRatio: 1.5,
+  minBoxSide: 3,
+  maxCandidates: 1000,
+} as const;
+
+// A line at most this factor wider than the recognizer max is squished into it;
+// anything wider is split and read piecewise (a hard clamp is unreadable).
+const WIDE_SQUISH_TOLERANCE = 1.15;
+
+// Degenerate-quad guard, in ORIGINAL IMAGE pixels, applied after a quad is
+// mapped back from detector space. Distinct from DBNET_DECODE.minBoxSide, which
+// drops contour candidates in detector-input pixels before the unclip step.
+const MIN_RECOGNIZABLE_SIDE = 3;
+
+// A dimension whose legal values are sparse (an `enum`, which is what the CoreML
+// export ships since CoreML has no RangeDim) can jump a long way from one value
+// to the next, so an image at most this fraction larger than a legal value still
+// snaps DOWN to it rather than forcing the next, much bigger one. A `range` steps
+// densely, so it always snaps up.
 const SNAP_DOWN_TOLERANCE = 0.1;
+
+// ─── Input size resolution ───────────────────────────────────────────────────
 
 // The inclusive [min, max] extent of a dimension's domain.
 function dimExtent(dim: ConcreteDim): readonly [number, number] {
@@ -115,8 +183,7 @@ function snapUpEnum(
 }
 
 // The legal size closest above `size` in `dim`'s domain, restricted to the values
-// `isLegal` accepts (the detector's input alignment, the recognizer's CTC timestep
-// lattice). A `constant` domain has a single value, so `size` is ignored.
+// `isLegal` accepts. A `constant` domain has a single value, so `size` is ignored.
 function snapDim(
   size: number,
   dim: ConcreteDim,
@@ -133,10 +200,7 @@ function snapDim(
   return snapUpRange(size, dim.range, isLegal);
 }
 
-// Whether `dim`'s domain contains any value `isLegal` accepts. Answered by running
-// the very search the run-time path uses, so the two can never disagree: `snapDim`
-// walks the whole domain when nothing above the requested size qualifies, and only
-// returns an illegal value when the domain holds none at all.
+// Whether any value the domain admits satisfies `isLegal`.
 function domainAdmits(dim: ConcreteDim, isLegal: (value: number) => boolean): boolean {
   const [min] = dimExtent(dim);
   return isLegal(snapDim(min, dim, isLegal));
@@ -147,29 +211,26 @@ function domainAdmits(dim: ConcreteDim, isLegal: (value: number) => boolean): bo
 // independently — a per-dimension domain is by construction independent of the
 // other, so the legal set is their full grid.
 function resolveDetectorSize(
-  det: OcrEngine['det'],
+  det: PaddleOcrEngine['det'],
   imgWidth: number,
-  imgHeight: number,
-  align: number
+  imgHeight: number
 ): { detW: number; detH: number } {
   'worklet';
-  const isAligned = (value: number) => {
+  const anySize = () => {
     'worklet';
-    return value % align === 0;
+    return true;
   };
   const scale = Math.min(1, dimExtent(det.h)[1] / imgHeight, dimExtent(det.w)[1] / imgWidth);
   return {
-    detW: snapDim(Math.round(imgWidth * scale), det.w, isAligned, true),
-    detH: snapDim(Math.round(imgHeight * scale), det.h, isAligned, true),
+    detW: snapDim(Math.round(imgWidth * scale), det.w, anySize, true),
+    detH: snapDim(Math.round(imgHeight * scale), det.h, anySize, true),
   };
 }
 
 // The recognizer's input width and its CTC timestep count are related by the
 // `linear` runtime constraint the model declares over them: `width = pixelsPerStep
-// * timesteps + offset`. SVTR reduces the width by a plain factor (8, 0); the CRNN
-// crops one trailing timestep, so it is affine (4, 4) — inferring a width/timestep
-// ratio would be wrong for it.
-
+// * timesteps + offset`. SVTR reduces the width by a plain factor (8, 0), but the
+// relation is read from the model rather than assumed.
 type CtcStride = {
   readonly pixelsPerStep: number;
   readonly offset: number;
@@ -182,7 +243,7 @@ const REC_WIDTH_REF: DimRef = { paramSide: 'input', tensorIdx: 0, dimIdx: 3 };
 const REC_TIMESTEPS_REF: DimRef = { paramSide: 'output', tensorIdx: 0, dimIdx: 1 };
 
 // Whether a width sits on the timestep lattice — i.e. yields a whole number of
-// CTC timesteps, so `recognizeCanvas` can pre-size the probs tensor for it.
+// CTC timesteps, so the probs tensor can be pre-sized for it.
 function onCtcLattice(width: number, stride: CtcStride): boolean {
   'worklet';
   return (width - stride.offset) % stride.pixelsPerStep === 0;
@@ -205,9 +266,9 @@ function resolveRecWidth(width: ConcreteDim, desiredWidth: number, stride: CtcSt
   });
 }
 
-// ─── CTC decode ──────────────────────────────────────────────────────────────
+// ─── Execution ───────────────────────────────────────────────────────────────
 
-// Greedy-CTC decode of `[..,T,V]` probs: a native op returns per-timestep
+// Greedy-CTC decode of `[1,T,V]` probs: a native op returns per-timestep
 // [idx, value, ...]; drop blank (idx 0) + consecutive repeats, mean-conf the rest.
 function greedyCtcDecode(
   probs: Tensor,
@@ -233,25 +294,9 @@ function greedyCtcDecode(
   return { text, conf: charCounter === 0 ? 0 : probabilitySum / charCounter };
 }
 
-// ─── Execution ───────────────────────────────────────────────────────────────
-
-// A line at most this factor wider than the recognizer max is squished into it;
-// anything wider is split and read piecewise (a hard clamp is unreadable).
-const WIDE_SQUISH_TOLERANCE = 1.15;
-
-// Degenerate-quad guard, in ORIGINAL IMAGE pixels and applied to every
-// detector's output after it is mapped back from detector space. Distinct from
-// DBNet's `minBoxSide`, which drops contour candidates in detector-input pixels
-// before the unclip step — that one is a decode threshold, this one is the
-// last check before a quad is warped onto the recognizer canvas.
-const MIN_RECOGNIZABLE_SIDE = 3;
-
-// The recognizer input is contractually RGB (enforced by resolveOcrContract).
-const REC_CHANNELS = 3;
-
-// Detects text boxes in `src`, returning quads in `src` pixel space.
+// Detects text quads in `src`, returning them in `src` pixel space.
 function detectQuads(
-  engine: OcrEngine,
+  engine: PaddleOcrEngine,
   src: Tensor,
   width: number,
   height: number,
@@ -260,49 +305,43 @@ function detectQuads(
   'worklet';
   const numChannels = FORMAT_CHANNELS[format];
   const toRgbCode = FORMAT_CONVERSION[format].rgb;
-  const align = Math.max(1, engine.extractBoxes.inputAlignment ?? 1);
-  const { detW, detH } = resolveDetectorSize(engine.det, width, height, align);
-  // Resolve output shapes before allocating — the extractor may throw on a
-  // size it cannot decode, and nothing must leak on that path.
-  const outputShapes = engine.extractBoxes.outputShapes({ width: detW, height: detH });
+  const { detW, detH } = resolveDetectorSize(engine.det, width, height);
   const tResize = tensor('uint8', [detH, detW, numChannels]);
   const tColor = toRgbCode !== null ? tensor('uint8', [detH, detW, 3]) : null;
   const tCF = tensor('uint8', [3, detH, detW]);
   const tNorm = tensor('float32', [3, detH, detW]);
   const tInput = tensor('float32', [1, 3, detH, detW]);
-  const tOutputs = outputShapes.map((shape) => tensor('float32', shape));
+  // DBNet emits one full-resolution probability map, [1, 1, H, W].
+  const tProb = tensor('float32', [1, 1, detH, detW]);
   try {
     src
       .through(resize, tResize, { mode: 'letterbox', interpolation: 'area', padValue: 0 })
       .throughIf(tColor !== null, cvtColor, tColor!, toRgbCode!)
       .through(toChannelsFirst, tCF)
-      .through(normalize, tNorm, engine.det.norm)
+      .through(normalize, tNorm, DETECTOR_NORM)
       .copyTo(tInput);
 
-    engine.model.execute('detect', [tInput], tOutputs);
-    const quads = engine.extractBoxes.extract(tOutputs, { width: detW, height: detH });
-    return quads.map((q) => mapQuadToImage(q, detW, detH, width, height));
+    engine.model.execute('detect', [tInput], [tProb]);
+    const quads = extractDbnetTextQuads(tProb, DBNET_DECODE);
+    return quads.map((q) => mapQuadToImage(q, { width: detW, height: detH }, { width, height }));
   } finally {
     tResize.dispose();
     tColor?.dispose();
     tCF.dispose();
     tNorm.dispose();
     tInput.dispose();
-    for (const tOut of tOutputs) {
-      tOut.dispose();
-    }
+    tProb.dispose();
   }
 }
 
-// Recognizes a canvas already sized to a legal recognizer width — custom
-// `decode` if provided, else greedy CTC.
+// Recognizes a canvas already sized to a legal recognizer width.
 function recognizeCanvas(
-  engine: OcrEngine,
+  engine: PaddleOcrEngine,
   tCanvas: Tensor,
   snappedW: number
 ): { text: string; conf: number } {
   'worklet';
-  const { recH, stride, vocab, norm } = engine.rec;
+  const { recH, stride, vocab } = engine.rec;
   const tCF = tensor('uint8', [REC_CHANNELS, recH, snappedW]);
   const tNorm = tensor('float32', [REC_CHANNELS, recH, snappedW]);
   const tInput = tensor('float32', [1, REC_CHANNELS, recH, snappedW]);
@@ -311,12 +350,8 @@ function recognizeCanvas(
   const timesteps = ctcTimesteps(snappedW, stride);
   const tProbs = tensor('float32', [1, timesteps, vocab]);
   try {
-    tCanvas.through(toChannelsFirst, tCF).through(normalize, tNorm, norm).copyTo(tInput);
+    tCanvas.through(toChannelsFirst, tCF).through(normalize, tNorm, RECOGNIZER_NORM).copyTo(tInput);
     engine.model.execute('recognize', [tInput], [tProbs]);
-    if (engine.decode) {
-      const r = engine.decode(tProbs, engine.charset);
-      return { text: r.text, conf: r.confidence };
-    }
     return greedyCtcDecode(tProbs, engine.charset);
   } finally {
     tCF.dispose();
@@ -329,12 +364,12 @@ function recognizeCanvas(
 // Recognizes one quad that fits the recognizer width (a mild squish is fine);
 // wider lines go through recognizeQuad instead.
 function recognizeNarrowQuad(
-  engine: OcrEngine,
+  engine: PaddleOcrEngine,
   src: Tensor,
   quad: Quad
 ): { text: string; conf: number } {
   'worklet';
-  const { recH, maxW, width, stride, padValue } = engine.rec;
+  const { recH, maxW, width, stride } = engine.rec;
   const size = quadSize(quad);
   // Aspect-preserving width of the content at recognizer height (>= 1 px).
   const aspectWidth = Math.max(1, Math.round((recH * size.width) / Math.max(1, size.height)));
@@ -345,7 +380,7 @@ function recognizeNarrowQuad(
     rectifyQuad(src, tCanvas, quad, {
       contentWidth: contentW,
       align: 'left',
-      padValue,
+      padValue: RECOGNIZER_PAD_VALUE,
     });
     return recognizeCanvas(engine, tCanvas, snappedW);
   } finally {
@@ -355,7 +390,11 @@ function recognizeNarrowQuad(
 
 // Recognizes one ordered (TL,TR,BR,BL) quad. A line wider than the tolerance is
 // split into segments read piecewise; confidence is the length-weighted mean.
-function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: string; conf: number } {
+function recognizeQuad(
+  engine: PaddleOcrEngine,
+  src: Tensor,
+  quad: Quad
+): { text: string; conf: number } {
   'worklet';
   const { recH, maxW } = engine.rec;
   const size = quadSize(quad);
@@ -382,21 +421,14 @@ function recognizeQuad(engine: OcrEngine, src: Tensor, quad: Quad): { text: stri
   return { text, conf: weight === 0 ? 0 : weightedConf / weight };
 }
 
-// ─── OCR pass ────────────────────────────────────────────────────────────────
-
-/**
- * The resolved, model-level state one detect → recognize pass needs — the model
- * itself, the validated detect/recognize contract, the CTC charset, and the run
- * options. Built once by `createOcr`, reused across every page and per-region call.
- */
-export type OcrEngine = {
+// The resolved, model-level state one detect → recognize pass needs. Built once
+// by createPaddleOcr and reused across every call.
+type PaddleOcrEngine = {
   readonly model: Model;
-  readonly extractBoxes: TextBoxExtractor;
   readonly det: {
     // The exported domains of the detector input's H and W (NCHW dims 2 and 3).
     readonly h: ConcreteDim;
     readonly w: ConcreteDim;
-    readonly norm: NormalizeOptions;
   };
   readonly rec: {
     readonly recH: number;
@@ -406,26 +438,16 @@ export type OcrEngine = {
     readonly stride: CtcStride;
     // Recognizer output vocab size V (charset length incl. the blank).
     readonly vocab: number;
-    readonly norm: NormalizeOptions;
-    readonly padValue: number;
   };
   readonly charset: string[];
-  readonly minConfidence: number;
-  readonly decode?: (
-    probs: Tensor,
-    charset: readonly string[]
-  ) => { readonly text: string; readonly confidence: number };
 };
 
-/**
- * Runs one detect → recognize → reading-order pass over an {@link ImageBuffer}:
- * detect text quads on the whole page, warp each to the recognizer canvas, read
- * it, and sort the results into reading order.
- * @param engine The resolved OCR engine (contract + model + options).
- * @param input The page to read.
- * @returns The recognized regions, in reading order.
- */
-export function runOcrPass(engine: OcrEngine, input: ImageBuffer): OcrDetection[] {
+// One detect → recognize → reading-order pass over an image.
+function runPass(
+  engine: PaddleOcrEngine,
+  input: ImageBuffer,
+  confidenceThreshold: number
+): OcrDetection[] {
   'worklet';
   const { width, height, format } = input;
   const numChannels = FORMAT_CHANNELS[format];
@@ -453,7 +475,7 @@ export function runOcrPass(engine: OcrEngine, input: ImageBuffer): OcrDetection[
         continue;
       }
       const { text, conf } = recognizeQuad(engine, recSrc, orderedQuad);
-      if (text.length > 0 && conf >= engine.minConfidence) {
+      if (text.length > 0 && conf >= confidenceThreshold) {
         detections.push({ text, confidence: conf, quad: orderedQuad });
       }
     }
@@ -463,18 +485,16 @@ export function runOcrPass(engine: OcrEngine, input: ImageBuffer): OcrDetection[
     tPage.dispose();
   }
 }
-// ─── Contract ────────────────────────────────────────────────────────────────
 
-type DimFactory = (symbol: string) => SymbolicDim;
+// ─── Contract ────────────────────────────────────────────────────────────────
 
 function refsEqual(a: DimRef, b: DimRef): boolean {
   return a.paramSide === b.paramSide && a.tensorIdx === b.tensorIdx && a.dimIdx === b.dimIdx;
 }
 
-// Reads the width↔timesteps relation the recognizer declares. It is discovered
-// rather than assumed because it differs per architecture; `resolveOcrContract`
-// feeds the result back into the allowed spec so `validateSpec` still matches the
-// constraint 1-to-1 and rejects any others the model may declare.
+// Reads the width↔timesteps relation the recognizer declares, and feeds it back
+// into the allowed spec so validateSpec still matches the constraint 1-to-1 and
+// rejects any others the model may declare.
 function readCtcStride(schema: ModelSpec<ConcreteDim>): CtcStride {
   const constraints = schema.recognize?.runtimeConstraints ?? [];
   const linear = constraints.find(
@@ -486,7 +506,7 @@ function readCtcStride(schema: ModelSpec<ConcreteDim>): CtcStride {
   if (linear === undefined) {
     throw RnExecuTorchError(
       'SCHEMA_MISMATCH',
-      'resolveOcrContract: the recognizer must declare a linear runtime constraint relating ' +
+      'createPaddleOcr: the recognizer must declare a linear runtime constraint relating ' +
         'its input width (input 0, dim 3) to its CTC timesteps (output 0, dim 1); the pipeline ' +
         'needs it to pre-size the probs output.'
     );
@@ -495,7 +515,7 @@ function readCtcStride(schema: ModelSpec<ConcreteDim>): CtcStride {
   if (pixelsPerStep <= 0) {
     throw RnExecuTorchError(
       'SCHEMA_MISMATCH',
-      `resolveOcrContract: the recognizer's width-per-timestep coefficient must be positive, ` +
+      `createPaddleOcr: the recognizer's width-per-timestep coefficient must be positive, ` +
         `but the model declares ${pixelsPerStep}.`
     );
   }
@@ -511,56 +531,32 @@ function exportedDim(schema: ModelSpec<ConcreteDim>, methodName: string, ref: Di
   return tensors[ref.tensorIdx]!.shape[ref.dimIdx]!;
 }
 
-/**
- * Validates the model's `detect` (RGB `[1,3,H,W]` in, extractor-defined outs) and
- * `recognize` (RGB `[1,3,H,W]` in, `[1,T,V]` probs out; only the width may vary)
- * methods against the exported schema, resolves their legal input sizes, and
- * builds the CTC charset. Runs at construction; throws on any contract mismatch.
- * @param model The loaded fused detect/recognize model.
- * @param charsetOption The recognizer charset (string = one codepoint per index;
- * array = taken verbatim).
- * @param extractBoxes The detector's box extractor — it declares the `detect`
- * output layout it decodes, and its alignment is checked against the model's
- * legal input sizes.
- * @returns The model-derived detect/recognize contract ({@link OcrEngine} minus
- * the run options `createOcr` adds).
- */
-export function resolveOcrContract(
+// Validates the export against the one shape PP-OCRv6 ships: a size-varying
+// detector (RGB [1,3,H,W] in, [1,1,H,W] probability map out) and a
+// varying-width recognizer (RGB [1,3,H,W] in, [1,T,V] probs out). Both are
+// `DynamicDim` on every backend — a range on XNNPACK and Vulkan, an enum on
+// CoreML, which has no RangeDim — so one variant covers all three.
+function resolveContract(
   model: Model,
-  charsetOption: string | readonly string[],
-  extractBoxes: TextBoxExtractor
-): {
-  det: Omit<OcrEngine['det'], 'norm'>;
-  rec: Omit<OcrEngine['rec'], 'norm' | 'padValue'>;
-  charset: string[];
-} {
+  charsetEntries: readonly string[]
+): Omit<PaddleOcrEngine, 'model'> {
   const schema = model.schema;
   const stride = readCtcStride(schema);
 
-  // Either method may be exported at a fixed size or with varying sizes, and the
-  // two choices are independent (a size-varying detector can pair with a
-  // fixed-width recognizer), so all four combinations are offered as variants. A
-  // `static` symbol binds only to a constant dimension and a `dynamic` one only to
-  // a range or enum, which is exactly what separates them.
-  const variant = (detDim: DimFactory, recDim: DimFactory) => ({
-    ...method(
-      'detect',
-      [f32(1, 3, detDim('detH'), detDim('detW'))],
-      extractBoxes.detectOutputSpec(detDim)
-    ),
-    ...method(
-      'recognize',
-      [f32(1, REC_CHANNELS, 'recH', recDim('recW'))],
-      [f32(1, recDim('recT'), 'vocab')],
-      [constr.linear(REC_WIDTH_REF, REC_TIMESTEPS_REF, stride.pixelsPerStep, stride.offset)]
-    ),
-  });
-
   const { dims } = validateSpec(schema, {
-    dynamicDetectDynamicRec: variant(DynamicDim, DynamicDim),
-    dynamicDetectFixedRec: variant(DynamicDim, StaticDim),
-    fixedDetectDynamicRec: variant(StaticDim, DynamicDim),
-    fixedDetectFixedRec: variant(StaticDim, StaticDim),
+    ppOcrV6: {
+      ...method(
+        'detect',
+        [f32(1, 3, DynamicDim('detH'), DynamicDim('detW'))],
+        [f32(1, 1, DynamicDim('detOutH'), DynamicDim('detOutW'))]
+      ),
+      ...method(
+        'recognize',
+        [f32(1, REC_CHANNELS, 'recH', DynamicDim('recW'))],
+        [f32(1, DynamicDim('recT'), 'vocab')],
+        [constr.linear(REC_WIDTH_REF, REC_TIMESTEPS_REF, stride.pixelsPerStep, stride.offset)]
+      ),
+    },
   });
   const [recH, vocabSize] = dims.constant('recH', 'vocab');
 
@@ -570,47 +566,24 @@ export function resolveOcrContract(
   };
   const width = exportedDim(schema, 'recognize', REC_WIDTH_REF);
 
-  // Reject at load, not per run, a detector whose legal sizes the extractor can't
-  // decode: `resolveDetectorSize` only ever returns a size the domain admits, so
-  // if no such size is a multiple of the extractor's alignment, every run fails.
-  const detAlign = Math.max(1, extractBoxes.inputAlignment ?? 1);
-  if (detAlign > 1) {
-    for (const [axis, dim] of [
-      ['height', det.h],
-      ['width', det.w],
-    ] as const) {
-      if (!domainAdmits(dim, (value) => value % detAlign === 0)) {
-        throw RnExecuTorchError(
-          'SCHEMA_MISMATCH',
-          `resolveOcrContract: no legal detector input ${axis} is a multiple of the extractor's ` +
-            `required alignment (${detAlign}), so decoding would fail on every run.`
-        );
-      }
-    }
-  }
-
-  // Likewise, `recognizeCanvas` pre-allocates the probs tensor as
-  // [1, ctcTimesteps(width), V], so the width the runtime picks must land on the
-  // timestep lattice — the domain has to admit at least one such width.
+  // recognizeCanvas pre-allocates the probs tensor as [1, ctcTimesteps(w), V],
+  // so the width the runtime picks must land on the timestep lattice — the
+  // domain has to admit at least one such width.
   if (!domainAdmits(width, (value) => onCtcLattice(value, stride))) {
     throw RnExecuTorchError(
       'SCHEMA_MISMATCH',
-      `resolveOcrContract: no legal recognizer width yields a whole number of CTC timesteps ` +
+      `createPaddleOcr: no legal recognizer width yields a whole number of CTC timesteps ` +
         `(width = ${stride.pixelsPerStep} * timesteps + ${stride.offset}), so the probs tensor ` +
         `can't be pre-sized.`
     );
   }
 
-  // CTC lookup: index 0 is the blank, then the model's characters (a string
-  // splits into codepoints; an array is taken verbatim, preserving ligatures).
-  const charset = [
-    '[blank]',
-    ...(typeof charsetOption === 'string' ? Array.from(charsetOption) : charsetOption),
-  ];
+  // CTC lookup: index 0 is the blank, then the model's characters.
+  const charset = ['[blank]', ...charsetEntries];
   if (charset.length !== vocabSize) {
     throw RnExecuTorchError(
       'SCHEMA_MISMATCH',
-      `resolveOcrContract: charset size (${charset.length}, incl. blank) must match the ` +
+      `createPaddleOcr: charset size (${charset.length}, incl. blank) must match the ` +
         `recognizer output vocab (${vocabSize}).`
     );
   }
@@ -620,4 +593,118 @@ export function resolveOcrContract(
     rec: { recH, maxW: dimExtent(width)[1], width, stride, vocab: vocabSize },
     charset,
   };
+}
+
+// Loads the charset published beside the model. Kept off the JS bundle on
+// purpose: the table is ~128 KB, and an app that never runs OCR should not
+// carry it.
+async function readCharsetFile(charsetPath: string): Promise<readonly string[]> {
+  // A read that fails means the file is missing or unreadable — the same
+  // re-fetch-the-asset case the model file itself reports as LOAD_FAILED. Only
+  // the content being wrong is the caller's argument to fix.
+  let raw: string;
+  try {
+    raw = await RNBlobUtil.fs.readFile(charsetPath, 'utf8');
+  } catch (e) {
+    throw RnExecuTorchError(
+      'LOAD_FAILED',
+      `createPaddleOcr: could not read the charset at '${charsetPath}': ${e instanceof Error ? e.message : String(e)}`
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `createPaddleOcr: the charset at '${charsetPath}' is not valid JSON: ${e instanceof Error ? e.message : String(e)}`
+    );
+  }
+  if (!Array.isArray(parsed) || parsed.some((entry) => typeof entry !== 'string')) {
+    throw RnExecuTorchError(
+      'INVALID_ARGUMENT',
+      `createPaddleOcr: the charset at '${charsetPath}' must be a JSON array of strings.`
+    );
+  }
+  return parsed as readonly string[];
+}
+
+/**
+ * Creates the PP-OCRv6 runner: one pass detects text quads on the whole page,
+ * warps each to the recognizer canvas and reads it, returning the lines in
+ * reading order.
+ * @category Typescript API
+ * @param config Model path, charset path, and run options.
+ * @param runtime Optional worklet runtime thread.
+ * @returns A promise resolving to an object containing recognition and disposal
+ * controls.
+ * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model
+ * does not match the PP-OCRv6 detect/recognize contract, or if the charset does
+ * not match the recognizer's vocabulary.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the charset file cannot
+ * be read, or `INVALID_ARGUMENT` if it does not hold a JSON array of strings.
+ */
+export async function createPaddleOcr(
+  config: PaddleOcrModel,
+  runtime?: WorkletRuntime
+): Promise<{
+  /**
+   * Releases all allocated native resources.
+   */
+  dispose: () => void;
+
+  /**
+   * Detects and recognizes every text line in the given image.
+   * @param input The input image buffer.
+   * @param options Per-call overrides. `confidenceThreshold` replaces the
+   * model's `defaultConfidenceThreshold` for this call.
+   * @returns A promise resolving to the recognized lines in reading order
+   * (leftmost column top to bottom, then the next column).
+   */
+  recognizeCharacters: (
+    input: ImageBuffer,
+    options?: { confidenceThreshold?: number }
+  ) => Promise<OcrDetection[]>;
+
+  /**
+   * Synchronous version of {@link recognizeCharacters} to be executed directly
+   * on the caller or worklet thread.
+   */
+  recognizeCharactersWorklet: (
+    input: ImageBuffer,
+    options?: { confidenceThreshold?: number }
+  ) => OcrDetection[];
+}> {
+  const { modelPath, charsetPath, modelOpts } = config;
+  // Read the charset before loading the model: it is the cheaper failure, and
+  // nothing needs disposing if the config is wrong.
+  const charsetEntries = await readCharsetFile(charsetPath);
+  const model = await wrapAsync(loadModel, runtime)(modelPath);
+
+  // Contract validation can throw; a bad config must not leak the model.
+  let engine!: PaddleOcrEngine;
+  try {
+    engine = { model, ...resolveContract(model, charsetEntries) };
+  } catch (e) {
+    model.dispose();
+    throw e;
+  }
+
+  const defaultThreshold = modelOpts.defaultConfidenceThreshold ?? 0;
+
+  const dispose = () => {
+    model.dispose();
+  };
+
+  const recognizeCharactersWorklet = (
+    input: ImageBuffer,
+    options?: { confidenceThreshold?: number }
+  ): OcrDetection[] => {
+    'worklet';
+    return runPass(engine, input, options?.confidenceThreshold ?? defaultThreshold);
+  };
+
+  const recognizeCharacters = wrapAsync(recognizeCharactersWorklet, runtime);
+
+  return { recognizeCharacters, recognizeCharactersWorklet, dispose };
 }

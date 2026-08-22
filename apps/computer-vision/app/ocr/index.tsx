@@ -3,7 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { commonStyles, ColorPalette, theme } from '../../theme';
 import { useImage, ColorType, AlphaType } from '@shopify/react-native-skia';
-import { useOcr, models, type OcrDetection, type OcrModel } from 'react-native-executorch';
+import {
+  useOpticalCharacterRecognizer,
+  models,
+  type OcrDetection,
+  type PaddleOcrModel,
+} from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { getImage } from '../../utils';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
@@ -14,7 +19,7 @@ import { Button } from '../../components/Button';
 // Every variant is listed on both platforms; the ones the platform can't run are
 // shown disabled (CoreML is Apple-only, Vulkan is the Android GPU delegate).
 const isIos = Platform.OS === 'ios';
-const OCR_MODELS: { label: string; base: OcrModel; disabled: boolean }[] = [
+const OCR_MODELS: { label: string; base: PaddleOcrModel; disabled: boolean }[] = [
   {
     label: 'PaddleOCR (XNNPACK)',
     base: models.ocr.PADDLE.PPOCRV6_SMALL.XNNPACK,
@@ -50,7 +55,12 @@ function OCRContent() {
   const selected = OCR_MODELS[selectedIdx]!;
   const skiaImage = useImage(imageUri, (err) => setError(err.message || String(err)));
 
-  const { isReady, downloadProgress, error: loadError, runOcr } = useOcr(selected.base);
+  const {
+    isReady,
+    downloadProgress,
+    error: loadError,
+    recognizeCharacters,
+  } = useOpticalCharacterRecognizer(selected.base);
 
   const resetResults = () => {
     setDetections([]);
@@ -71,7 +81,7 @@ function OCRContent() {
   };
 
   const run = async () => {
-    if (!skiaImage || !runOcr) return;
+    if (!skiaImage || !recognizeCharacters) return;
     setIsProcessing(true);
     setError(null);
     try {
@@ -83,7 +93,7 @@ function OCRContent() {
       });
       if (!(pixels instanceof Uint8Array)) throw new Error('Expected Uint8Array from readPixels');
       const start = Date.now();
-      const out = await runOcr({
+      const out = await recognizeCharacters({
         data: pixels,
         width: skiaImage.width(),
         height: skiaImage.height(),

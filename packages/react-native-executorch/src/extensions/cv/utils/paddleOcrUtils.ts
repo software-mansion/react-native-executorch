@@ -1,8 +1,13 @@
+// Native decode helpers for the PP-OCRv6 pipeline. Both wrap a fused C++ op:
+// doing either in TypeScript would mean pulling a whole detector or recognizer
+// output across the bridge per call.
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
+import { quadsFromFlat, type Quad } from '../ops/quad';
 
 /**
- * Thresholds for {@link extractDbnetTextBoxes}.
+ * Thresholds for {@link extractDbnetTextQuads}.
  * @category Types
  */
 export type DbnetDecodeOptions = {
@@ -19,29 +24,27 @@ export type DbnetDecodeOptions = {
 };
 
 /**
- * Decodes a DBNet probability map into oriented text boxes: binarizes the map,
+ * Decodes a DBNet probability map into oriented text quads: binarizes the map,
  * traces contours, scores each candidate by its mean probability and unclips the
  * survivors back to their unshrunk size.
  * @category Typescript API
  * @param probabilityMap The `detect` output, shape `[1, 1, H, W]`, post-sigmoid.
  * @param options Decode thresholds.
- * @returns A flat `Float32Array`, 8 numbers per quad: `x0, y0, x1, y1, x2, y2,
- * x3, y3`.
+ * @returns The decoded quads, in detector-input pixel space and arbitrary order.
  */
-export function extractDbnetTextBoxes(
-  probabilityMap: Tensor,
-  options: DbnetDecodeOptions
-): Float32Array {
+export function extractDbnetTextQuads(probabilityMap: Tensor, options: DbnetDecodeOptions): Quad[] {
   'worklet';
-  return rnexecutorchJsi.cv.extractDbnetTextBoxes(probabilityMap, options) as Float32Array;
+  const flat = rnexecutorchJsi.cv.extractDbnetTextQuads(probabilityMap, options) as Float32Array;
+  return quadsFromFlat(flat);
 }
 
 /**
- * Takes the per-timestep argmax of a recognizer's `[.., T, V]` probability
- * tensor. Blank collapsing and repeat removal stay in TypeScript, so a custom
- * decode can reuse this and apply its own rules.
+ * Takes the per-timestep argmax of the recognizer's `[1, T, V]` probability
+ * tensor, together with the probability at that argmax. Blank collapsing and
+ * repeat removal stay in TypeScript, so a custom decode can reuse this and apply
+ * its own rules.
  * @category Typescript API
- * @param probs Softmaxed recognizer output, shape `[.., T, V]`.
+ * @param probs Softmaxed recognizer output, shape `[1, T, V]`.
  * @returns A flat `Float32Array`, 2 numbers per timestep: the argmax index and
  * its probability. Index 0 is the CTC blank.
  */

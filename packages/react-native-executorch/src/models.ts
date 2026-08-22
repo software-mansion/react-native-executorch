@@ -16,8 +16,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
-import type { OcrModel, OcrModelOptions } from './extensions/cv/tasks/ocr/ocr';
-import { dbnetExtractBoxes } from './extensions/cv/tasks/ocr/detectors';
+import type { PaddleOcrModel, PaddleOcrModelOptions } from './extensions/cv/tasks/paddleOcr';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -916,16 +915,12 @@ const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/
 // =============================================================================
 // OCR
 // =============================================================================
-// PP-OCRv6 is exported without baked input normalization, so `detectorNorm` has
-// the pipeline apply ImageNet norm before every `detect`.
 // The recognizer charset is NOT bundled: `charsetPath` points at the
 // `charset.json` published beside the `.pte`, which the resource fetcher resolves
 // to a local path like any other model file. Inlining it would put ~128 KB of
 // CJK tables into every app that imports this registry, OCR or not.
-const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
-  extractBoxes: dbnetExtractBoxes,
-  minConfidence: 0.5,
-  detectorNorm: IMAGENET_NORM,
+const PADDLE_PPOCRV6_OPTS: PaddleOcrModelOptions = {
+  defaultConfidenceThreshold: 0.5,
 };
 
 // Every OCR export is mixed-precision, and the tag in each filename below names
@@ -933,17 +928,17 @@ const PADDLE_PPOCRV6_OPTS: OcrModelOptions = {
 // paired with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the
 // SVTR attention stack.
 const PPOCRV6_CHARSET = `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`;
-const PPOCRV6_SMALL_XNNPACK_INT8: OcrModel = {
+const PPOCRV6_SMALL_XNNPACK_INT8: PaddleOcrModel = {
   modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PADDLE_PPOCRV6_OPTS,
 };
-const PPOCRV6_SMALL_COREML_INT8: OcrModel = {
+const PPOCRV6_SMALL_COREML_INT8: PaddleOcrModel = {
   modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/coreml/pp_ocrv6_coreml_int8.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PADDLE_PPOCRV6_OPTS,
 };
-const PPOCRV6_SMALL_VULKAN_FP16: OcrModel = {
+const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
   modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/vulkan/pp_ocrv6_vulkan_fp16.pte`,
   charsetPath: PPOCRV6_CHARSET,
   modelOpts: PADDLE_PPOCRV6_OPTS,

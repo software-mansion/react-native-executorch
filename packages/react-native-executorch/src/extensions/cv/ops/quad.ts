@@ -3,12 +3,13 @@ import { distance, interpolatePoint, scalePoint, type Point } from './points';
 import type { BoundingBox, BoxFormat } from './boxes';
 
 /**
- * An oriented quadrilateral in pixel space: the four corners ordered top-left,
- * top-right, bottom-right, bottom-left. Orientation lives in the corners
- * themselves.
+ * An oriented quadrilateral in pixel space: exactly four corners, ordered
+ * top-left, top-right, bottom-right, bottom-left. Orientation lives in the
+ * corners themselves. Use {@link orderQuad} to put unordered corners in that
+ * order; every other helper here assumes it.
  * @category Types
  */
-export type Quad = readonly Point[];
+export type Quad = readonly [Point, Point, Point, Point];
 
 /**
  * Computes the axis-aligned bounding box enclosing a set of points, in the
@@ -59,32 +60,29 @@ export function boundsOfPoints<F extends BoxFormat>(
 }
 
 /**
- * Orders four corner points as top-left, top-right, bottom-right, bottom-left
- * using their coordinate-sum and coordinate-difference extremes. Inputs that do
- * not have exactly four points are returned unchanged.
+ * Reorders a quad's corners into the top-left, top-right, bottom-right,
+ * bottom-left order the rest of this module assumes, using their
+ * coordinate-sum and coordinate-difference extremes.
  * @category Typescript API
- * @param points The four unordered corners.
- * @returns The corners ordered TL, TR, BR, BL.
+ * @param quad The quad whose corners may be in any order.
+ * @returns The same corners, ordered TL, TR, BR, BL.
  */
-export function orderQuad(points: readonly Point[]): Quad {
+export function orderQuad(quad: Quad): Quad {
   'worklet';
-  if (points.length !== 4) {
-    return [...points];
-  }
   // TL/BR are the corners with the min/max coordinate sum; TR/BL the min/max
   // difference (y − x). indexOfMin/Max break ties on the lowest index.
-  const sum = points.map((p) => p.x + p.y);
-  const diff = points.map((p) => p.y - p.x);
+  const sum = quad.map((p) => p.x + p.y);
+  const diff = quad.map((p) => p.y - p.x);
   const indexOfMin = (a: number[]) => a.indexOf(Math.min(...a));
   const indexOfMax = (a: number[]) => a.indexOf(Math.max(...a));
   const corners = [indexOfMin(sum), indexOfMin(diff), indexOfMax(sum), indexOfMax(diff)]; // TL, TR, BR, BL
   // Degenerate quads (duplicate or collinear corners) can map two roles to the
-  // same point; the heuristic is meaningless there, so return the points
+  // same point; the heuristic is meaningless there, so return the corners
   // unchanged and let the resulting near-zero-size box be dropped downstream.
   if (new Set(corners).size !== 4) {
-    return [...points];
+    return quad;
   }
-  return corners.map((i) => points[i]!);
+  return [quad[corners[0]!]!, quad[corners[1]!]!, quad[corners[2]!]!, quad[corners[3]!]!];
 }
 
 /**
@@ -96,7 +94,7 @@ export function orderQuad(points: readonly Point[]): Quad {
  */
 export function quadSize(ordered: Quad): { width: number; height: number } {
   'worklet';
-  const [tl, tr, br, bl] = ordered as [Point, Point, Point, Point];
+  const [tl, tr, br, bl] = ordered;
   const width = Math.max(distance(tl, tr), distance(bl, br));
   const height = Math.max(distance(tl, bl), distance(tr, br));
   return { width, height };
@@ -107,28 +105,22 @@ export function quadSize(ordered: Quad): { width: number; height: number } {
  * image frame, clamping the result to the image bounds.
  * @category Typescript API
  * @param quad The quad in the resized frame.
- * @param fromWidth The width of the resized frame the quad is expressed in.
- * @param fromHeight The height of the resized frame the quad is expressed in.
- * @param toWidth The original image width.
- * @param toHeight The original image height.
+ * @param from The size of the resized frame the quad is expressed in.
+ * @param to The size of the original image.
  * @returns The four corners in original image pixels.
  */
 export function mapQuadToImage(
   quad: Quad,
-  fromWidth: number,
-  fromHeight: number,
-  toWidth: number,
-  toHeight: number
+  from: { readonly width: number; readonly height: number },
+  to: { readonly width: number; readonly height: number }
 ): Quad {
   'worklet';
-  return quad.map((p) => {
-    const m = scalePoint(p, {
-      from: { width: fromWidth, height: fromHeight },
-      to: { width: toWidth, height: toHeight },
-      resizeMode: 'letterbox',
-    });
-    return { x: Math.max(0, Math.min(m.x, toWidth)), y: Math.max(0, Math.min(m.y, toHeight)) };
-  });
+  const map = (p: Point): Point => {
+    'worklet';
+    const m = scalePoint(p, { from, to, resizeMode: 'letterbox' });
+    return { x: Math.max(0, Math.min(m.x, to.width)), y: Math.max(0, Math.min(m.y, to.height)) };
+  };
+  return [map(quad[0]), map(quad[1]), map(quad[2]), map(quad[3])];
 }
 
 /**
@@ -145,7 +137,7 @@ export function splitWideQuad(ordered: Quad, parts: number): Quad[] {
   if (parts <= 1) {
     return [ordered];
   }
-  const [tl, tr, br, bl] = ordered as [Point, Point, Point, Point];
+  const [tl, tr, br, bl] = ordered;
   const out: Quad[] = [];
   for (let i = 0; i < parts; i++) {
     const t0 = i / parts;
@@ -187,4 +179,115 @@ export function quadsFromFlat(flat: ArrayLike<number>): Quad[] {
     ]);
   }
   return quads;
+}
+
+// A gutter must be at least this fraction of the content width to split columns;
+// two boxes share a line when their vertical extents overlap by at least this
+// fraction of the shorter box's height.
+const COLUMN_GAP_FRACTION = 0.06;
+const LINE_OVERLAP_FRACTION = 0.3;
+
+/**
+ * Reorders `{quad}` items the way a human reads the page: leftmost column first
+ * (top to bottom), then the next column. Detectors emit boxes in arbitrary
+ * order, so results are sorted through this before being returned.
+ * @category Typescript API
+ * @typeParam T The item type, anything carrying a `quad`.
+ * @param items The items to sort.
+ * @returns The same items in reading order.
+ */
+export function orderByReadingOrder<T extends { quad: Quad }>(items: T[]): T[] {
+  'worklet';
+  const count = items.length;
+  if (count <= 1) {
+    return items;
+  }
+
+  const boxes = items.map((it) => boundsOfPoints(it.quad, 'xyxy'));
+
+  // A vertical gap between boxes only counts as a column gutter when it is
+  // reasonably wide relative to the page content (else word spacing would
+  // split columns everywhere).
+  let minX = Infinity;
+  let maxX = -Infinity;
+  for (const box of boxes) {
+    if (box.xmin < minX) minX = box.xmin;
+    if (box.xmax > maxX) maxX = box.xmax;
+  }
+  const minGap = COLUMN_GAP_FRACTION * Math.max(1, maxX - minX);
+
+  // Find the gutters: walk every box's left/right edge in x order, keeping a
+  // running count of how many boxes overlap the current x. Count 0 means no
+  // box occupies this x — when such an empty stretch is wider than minGap,
+  // cut a column boundary at its midpoint.
+  const edges: { x: number; delta: number }[] = [];
+  for (const box of boxes) {
+    edges.push({ x: box.xmin, delta: 1 });
+    edges.push({ x: box.xmax, delta: -1 });
+  }
+  // At the same x, process a box's left edge before another's right edge —
+  // two boxes that exactly touch must not look like an empty stretch.
+  edges.sort((a, b) => a.x - b.x || b.delta - a.delta);
+  const cuts: number[] = [];
+  let coverage = 0;
+  // Seed to the first (leftmost) edge, not 0, so a page whose leftmost box starts
+  // well inside a left margin doesn't read that margin as an empty column gutter.
+  let gutterStart = edges.length > 0 ? edges[0]!.x : 0;
+  for (const edge of edges) {
+    const before = coverage;
+    coverage += edge.delta;
+    if (before > 0 && coverage === 0) {
+      gutterStart = edge.x;
+    } else if (before === 0 && coverage > 0 && edge.x - gutterStart >= minGap) {
+      cuts.push((gutterStart + edge.x) / 2);
+    }
+  }
+
+  // A box belongs to column k when exactly k cuts lie left of its center.
+  const columns: number[][] = Array.from({ length: cuts.length + 1 }, () => []);
+  for (let i = 0; i < count; i++) {
+    const centerX = (boxes[i]!.xmin + boxes[i]!.xmax) / 2;
+    let column = 0;
+    for (const cut of cuts) {
+      if (centerX > cut) column++;
+    }
+    columns[column]!.push(i);
+  }
+
+  // Inside each column: boxes whose vertical extents overlap enough sit on the
+  // same text line. Read lines top to bottom, and boxes within a line left to
+  // right.
+  const order: number[] = [];
+  for (const column of columns) {
+    column.sort((a, b) => boxes[a]!.ymin - boxes[b]!.ymin);
+    const lines: { items: number[]; ymin: number; ymax: number }[] = [];
+    for (const i of column) {
+      const box = boxes[i]!;
+      let placed = false;
+      for (const line of lines) {
+        // Overlap is measured against the SHORTER of the two heights, so a
+        // small box beside a tall one still joins its line.
+        const overlap = Math.min(line.ymax, box.ymax) - Math.max(line.ymin, box.ymin);
+        const minHeight = Math.min(line.ymax - line.ymin, box.ymax - box.ymin);
+        if (overlap >= LINE_OVERLAP_FRACTION * Math.max(1, minHeight)) {
+          line.items.push(i);
+          line.ymin = Math.min(line.ymin, box.ymin);
+          line.ymax = Math.max(line.ymax, box.ymax);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        lines.push({ items: [i], ymin: box.ymin, ymax: box.ymax });
+      }
+    }
+    lines.sort((a, b) => a.ymin - b.ymin);
+    for (const line of lines) {
+      line.items.sort(
+        (a, b) => boxes[a]!.xmin + boxes[a]!.xmax - (boxes[b]!.xmin + boxes[b]!.xmax)
+      );
+      order.push(...line.items);
+    }
+  }
+  return order.map((i) => items[i]!);
 }

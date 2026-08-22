@@ -457,18 +457,3 @@ export async function download<T>(source: T, options: DownloadOptions = {}): Pro
   options.onProgress?.(1);
   return substituteRemoteSources(source, resolved);
 }
-
-/**
- * Reads a UTF-8 text file off the local filesystem.
- *
- * The companion to {@link download}: a config that went through `download` holds
- * local paths, and sidecar assets shipped beside a model (a charset, a vocabulary,
- * an index table) still have to be read from one. Routing that read through here
- * keeps the filesystem dependency in this module instead of spreading it across
- * every task that loads a sidecar.
- * @param path Local file path, typically one resolved by {@link download}.
- * @returns The file contents decoded as UTF-8.
- */
-export async function readTextFile(path: string): Promise<string> {
-  return RNBlobUtil.fs.readFile(path, 'utf8');
-}

@@ -125,25 +125,25 @@ jsi::Object quadsToArray(jsi::Runtime &rt, const std::vector<Quad> &quads) {
 
 } // namespace
 
-void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "extractDbnetTextBoxes";
+void install_extractDbnetTextQuads(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "extractDbnetTextQuads";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw error::InvalidArgument("Usage: extractDbnetTextBoxes(src, options)");
+            throw error::InvalidArgument("Usage: extractDbnetTextQuads(src, options)");
         }
 
-        const auto opts = conversions::asType<jsi::Object>(rt, "extractDbnetTextBoxes: options", args[1]);
+        const auto opts = conversions::asType<jsi::Object>(rt, "extractDbnetTextQuads: options", args[1]);
 
         // The DBNet head always emits the full-res [1,1,H,W] probability map, so
         // the rank is part of the contract rather than something to re-derive.
-        auto src = tensor::fromJs(rt, "extractDbnetTextBoxes: src", args[0], DType::float32, {1, 1, "H", "W"});
-        auto srcLock = tensor::tryLockShared(rt, "extractDbnetTextBoxes: src", src);
+        auto src = tensor::fromJs(rt, "extractDbnetTextQuads: src", args[0], DType::float32, {1, 1, "H", "W"});
+        auto srcLock = tensor::tryLockShared(rt, "extractDbnetTextQuads: src", src);
 
         auto *dataPtr = reinterpret_cast<float *>(src->data_.get());
         const int32_t h = src->shape_[2];
         const int32_t w = src->shape_[3];
 
-        const char *ctx = "extractDbnetTextBoxes";
+        const char *ctx = "extractDbnetTextQuads";
         std::vector<Quad> quads;
         try {
             ::cv::Mat prob(h, w, CV_32F, dataPtr);
@@ -153,7 +153,7 @@ void install_extractDbnetTextBoxes(jsi::Runtime &rt, jsi::Object &module) {
                                  conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "minBoxSide"),
                                  conversions::getRequiredProperty<int32_t>(rt, ctx, opts, "maxCandidates"));
         } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::format("extractDbnetTextBoxes: OpenCV error: {}", e.what()));
+            throw error::ExecutionFailed(std::format("extractDbnetTextQuads: OpenCV error: {}", e.what()));
         }
         return quadsToArray(rt, quads);
     };
