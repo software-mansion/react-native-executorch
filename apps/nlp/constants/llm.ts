@@ -404,6 +404,24 @@ export const LLM_MODELS: LLMModelConfig[] = [
     stopRegex: undefined,
     toolOpts: undefined,
   },
+  {
+    id: 'lfm-2.5-vl-450m-vulkan',
+    name: 'LFM 2.5 VL 450M (Vulkan 8da4w)',
+    model: models.llm.LFM2_5_VL_450M.VULKAN_8DA4W,
+    generationConfig: DEFAULT_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
+  },
+  {
+    id: 'lfm-2.5-vl-1.6b-vulkan',
+    name: 'LFM 2.5 VL 1.6B (Vulkan 8da4w)',
+    model: models.llm.LFM2_5_VL_1_6B.VULKAN_8DA4W,
+    generationConfig: DEFAULT_GENERATION_CONFIG,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT,
+    stopRegex: undefined,
+    toolOpts: undefined,
+  },
 
   // Gemma 4 family
   {

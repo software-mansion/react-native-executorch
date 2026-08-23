@@ -980,6 +980,20 @@ const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
   modalities: ['image'],
   preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
 };
+const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
 
 const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${NEXT_VERSION_TAG}`;
 
@@ -1673,6 +1687,7 @@ export const models = {
       ...LFM2_5_VL_450M_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
       MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
+      VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
     },
     /**
      * Liquid AI LFM 2.5 1.6B vision-language model. Higher quality visual
@@ -1681,6 +1696,7 @@ export const models = {
     LFM2_5_VL_1_6B: {
       ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
     },
     /**
      * Bielik v3 1.5B Polish & English language model. Fine-tuned specifically for
