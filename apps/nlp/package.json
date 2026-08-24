@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "react-native-executorch": {
+    "backends": [
+      "xnnpack",
+      "coreml",
+      "mlx",
+      "vulkan"
+    ],
     "features": [
       "tokenizer",
       "textEmbeddings",
-      "privacyFilter"
+      "privacyFilter",
+      "multimodalLLM"
     ]
   },
   "scripts": {
@@ -21,9 +28,12 @@
   "dependencies": {
     "@react-navigation/drawer": "^7.9.4",
     "@react-navigation/native": "^7.2.2",
+    "@shopify/react-native-skia": "2.6.2",
     "expo": "~56.0.9",
     "expo-build-properties": "~56.0.17",
     "expo-constants": "~56.0.17",
+    "expo-image-manipulator": "~56.0.18",
+    "expo-image-picker": "~56.0.18",
     "expo-linking": "~56.0.13",
     "expo-router": "~56.2.9",
     "react": "19.2.3",
