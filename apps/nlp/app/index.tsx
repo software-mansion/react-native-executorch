@@ -20,6 +20,9 @@ export default function Home() {
         <TouchableOpacity style={styles.button} onPress={() => router.navigate('privacy-filter/')}>
           <Text style={styles.buttonText}>Privacy Filter</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.navigate('llm/')}>
+          <Text style={styles.buttonText}>LLM</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

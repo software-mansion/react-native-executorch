@@ -6,6 +6,7 @@ export * from './hooks/useInstanceSegmenter';
 export * from './hooks/useKeypointDetector';
 export * from './hooks/useObjectDetector';
 export * from './hooks/useTokenizer';
+export * from './hooks/useLLMChatSession';
 export * from './hooks/useTextEmbedder';
 export * from './hooks/usePrivacyFilter';
 export * from './hooks/useImageEmbedder';
@@ -32,6 +33,7 @@ export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
+export * from './extensions/llm/tasks/llmChatSession';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';
@@ -51,6 +53,7 @@ export * as schema from './core/schema';
 
 export * as math from './extensions/math';
 export * as cv from './extensions/cv';
+export * as llm from './extensions/llm';
 export * as nlp from './extensions/nlp';
 export * as speech from './extensions/speech';
 
