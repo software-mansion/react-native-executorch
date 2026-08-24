@@ -16,6 +16,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
+import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
 import {
   IMAGENET_NORM,
   IMAGENET1K_LABELS,
@@ -911,6 +912,283 @@ const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotron
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
 
+// =============================================================================
+// LLMs
+// =============================================================================
+const LFM2_5_BASE_URL = `${BASE_URL}-lfm-2.5/${NEXT_VERSION_TAG}`;
+
+const LFM2_5_1_2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
+const LFM2_5_1_2B_XNNPACK_FP16: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/xnnpack/lfm_2_5_1_2b_xnnpack_fp16.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
+const LFM2_5_1_2B_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/1_2b/mlx/lfm_2_5_1_2b_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/1_2b/tokenizer_config.json`,
+};
+const LFM2_5_350M_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+const LFM2_5_350M_XNNPACK_FP16: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/xnnpack/lfm_2_5_350m_xnnpack_fp16.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+const LFM2_5_350M_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/350m/mlx/lfm_2_5_350m_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/350m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/350m/tokenizer_config.json`,
+};
+
+const LFM2_5_VL_PREPROCESSOR_CONFIG = {
+  image: {
+    visionToken: { start: '<|image_start|>', end: '<|image_end|>' },
+    targetShape: [3, 512, 512] as const,
+    preprocessorOpts: {
+      resizeMode: 'letterbox' as const,
+      interpolation: 'linear' as const,
+      normalizeOpts: { alpha: 1.0, beta: 0.0 },
+    },
+  },
+};
+const LFM2_5_VL_450M_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/xnnpack/lfm_2_5_vl_450m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_450M_MLX_INT4: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/mlx/lfm_2_5_vl_450m_mlx_int4.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_1_6B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/xnnpack/lfm_2_5_vl_1_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_450M_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_450m/vulkan/lfm_2_5_vl_450m_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_450m/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+const LFM2_5_VL_1_6B_VULKAN_8DA4W: LLMModel = {
+  modelPath: `${LFM2_5_BASE_URL}/vl_1_6b/vulkan/lfm_2_5_vl_1_6b_vulkan_8da4w.pte`,
+  tokenizerPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer.json`,
+  tokenizerConfigPath: `${LFM2_5_BASE_URL}/vl_1_6b/tokenizer_config.json`,
+  modalities: ['image'],
+  preprocessorConfig: LFM2_5_VL_PREPROCESSOR_CONFIG,
+};
+
+const BIELIK_V3_1_5B_BASE_URL = `${BASE_URL}-bielik-v3.0/${NEXT_VERSION_TAG}`;
+
+const BIELIK_V3_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
+};
+const BIELIK_V3_1_5B_XNNPACK_FP16: LLMModel = {
+  modelPath: `${BIELIK_V3_1_5B_BASE_URL}/xnnpack/bielik_v3_0_1_5b_xnnpack_fp16.pte`,
+  tokenizerPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${BIELIK_V3_1_5B_BASE_URL}/tokenizer_config.json`,
+};
+
+const LLAMA3_2_BASE_URL = `${BASE_URL}-llama-3.2/${NEXT_VERSION_TAG}`;
+
+const LLAMA3_2_3B_SPINQUANT: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_spinquant.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_3B_BF16: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/3b/xnnpack/llama_3_2_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_1B_SPINQUANT: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_spinquant.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+const LLAMA3_2_1B_BF16: LLMModel = {
+  modelPath: `${LLAMA3_2_BASE_URL}/1b/xnnpack/llama_3_2_1b_xnnpack_bf16.pte`,
+  tokenizerPath: `${LLAMA3_2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${LLAMA3_2_BASE_URL}/tokenizer_config.json`,
+};
+
+const SMOLLM2_BASE_URL = `${BASE_URL}-smolLm-2/${NEXT_VERSION_TAG}`;
+
+const SMOLLM2_135M_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_135M_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/135m/xnnpack/smollm2_135m_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_360M_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_360M_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/360m/xnnpack/smollm2_360m_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_1_7B_8DA4W: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+const SMOLLM2_1_7B_BF16: LLMModel = {
+  modelPath: `${SMOLLM2_BASE_URL}/1_7b/xnnpack/smollm2_1_7b_xnnpack_bf16.pte`,
+  tokenizerPath: `${SMOLLM2_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${SMOLLM2_BASE_URL}/tokenizer_config.json`,
+};
+
+const HAMMER2_1_BASE_URL = `${BASE_URL}-hammer-2.1/${NEXT_VERSION_TAG}`;
+
+const HAMMER2_1_0_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_0_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/0_5b/xnnpack/hammer_2_1_0_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_1_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/1_5b/xnnpack/hammer_2_1_1_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_3B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+const HAMMER2_1_3B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${HAMMER2_1_BASE_URL}/3b/xnnpack/hammer_2_1_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${HAMMER2_1_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${HAMMER2_1_BASE_URL}/tokenizer_config.json`,
+};
+
+const PHI4_MINI_BASE_URL = `${BASE_URL}-phi-4-mini/${NEXT_VERSION_TAG}`;
+
+const PHI4_MINI_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_8da4w.pte`,
+  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
+};
+const PHI4_MINI_XNNPACK_BF16: LLMModel = {
+  modelPath: `${PHI4_MINI_BASE_URL}/xnnpack/phi_4_mini_xnnpack_bf16.pte`,
+  tokenizerPath: `${PHI4_MINI_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${PHI4_MINI_BASE_URL}/tokenizer_config.json`,
+};
+
+const QWEN2_5_BASE_URL = `${BASE_URL}-qwen-2.5/${NEXT_VERSION_TAG}`;
+
+const QWEN2_5_0_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_0_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/0_5b/xnnpack/qwen_2_5_0_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_1_5B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_1_5B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/1_5b/xnnpack/qwen_2_5_1_5b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_3B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN2_5_3B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN2_5_BASE_URL}/3b/xnnpack/qwen_2_5_3b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN2_5_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN2_5_BASE_URL}/tokenizer_config.json`,
+};
+
+const GEMMA4_BASE_URL = `${BASE_URL}-gemma-4/${NEXT_VERSION_TAG}`;
+
+const GEMMA4_E2B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/xnnpack/gemma_4_e2b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+const GEMMA4_E2B_MLX_INT4: LLMModel = {
+  modelPath: `${GEMMA4_BASE_URL}/e2b/mlx/gemma4_e2b_mlx_int4.pte`,
+  tokenizerPath: `${GEMMA4_BASE_URL}/e2b/tokenizer.json`,
+  tokenizerConfigPath: `${GEMMA4_BASE_URL}/e2b/tokenizer_config.json`,
+};
+
+const QWEN3_BASE_URL = `${BASE_URL}-qwen-3/${NEXT_VERSION_TAG}`;
+
+const QWEN3_0_6B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_0_6B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/0_6b/xnnpack/qwen_3_0_6b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_1_7B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_1_7B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/1_7b/xnnpack/qwen_3_1_7b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_4B_XNNPACK_8DA4W: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_8da4w.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+const QWEN3_4B_XNNPACK_BF16: LLMModel = {
+  modelPath: `${QWEN3_BASE_URL}/4b/xnnpack/qwen_3_4b_xnnpack_bf16.pte`,
+  tokenizerPath: `${QWEN3_BASE_URL}/tokenizer.json`,
+  tokenizerConfigPath: `${QWEN3_BASE_URL}/tokenizer_config.json`,
+};
+
 /**
  * Registry of pre-configured ExecuTorch models.
  *
@@ -1374,6 +1652,205 @@ export const models = {
   tokenizer: {
     /** WordPiece tokenizer URL for the `all-MiniLM-L6-v2` embedding model. */
     ALL_MINILM_L6_V2: ALL_MINILM_L6_V2_TOKENIZER,
+  },
+
+  /**
+   * Generative Large Language Models (LLMs) for instruction following,
+   * chat, text generation, and reasoning.
+   */
+  llm: {
+    /**
+     * Liquid AI LFM 2.5 1.2B general-purpose text model. Excellent for complex
+     * on-device reasoning, instruction following, and fast multi-turn chat.
+     */
+    LFM2_5_1_2B: {
+      ...LFM2_5_1_2B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
+      XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
+      MLX_INT4: LFM2_5_1_2B_MLX_INT4,
+    },
+    /**
+     * Liquid AI LFM 2.5 350M ultra-compact text model. Best for low-latency text
+     * completion, quick responses, and resource-constrained devices.
+     */
+    LFM2_5_350M: {
+      ...LFM2_5_350M_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
+      XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
+      MLX_INT4: LFM2_5_350M_MLX_INT4,
+    },
+    /**
+     * Liquid AI LFM 2.5 450M vision-language model. Optimized for real-time
+     * visual QA, image description, and low-latency multimodal chat.
+     */
+    LFM2_5_VL_450M: {
+      ...LFM2_5_VL_450M_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
+      MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
+      VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
+    },
+    /**
+     * Liquid AI LFM 2.5 1.6B vision-language model. Higher quality visual
+     * understanding, detailed image analysis, and complex multimodal tasks.
+     */
+    LFM2_5_VL_1_6B: {
+      ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
+    },
+    /**
+     * Bielik v3 1.5B Polish & English language model. Fine-tuned specifically for
+     * native Polish fluency, grammar, and bilingual translation.
+     */
+    BIELIK_V3_1_5B: {
+      ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
+    },
+    /**
+     * Meta Llama 3.2 1B multilingual text model. Ideal for lightweight mobile
+     * chat, summary generation, and multilingual prompt processing.
+     */
+    LLAMA3_2_1B: {
+      ...LLAMA3_2_1B_SPINQUANT,
+      XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
+      XNNPACK_BF16: LLAMA3_2_1B_BF16,
+    },
+    /**
+     * Meta Llama 3.2 3B multilingual text model. Strong instruction following,
+     * detailed content creation, and high-precision text reasoning.
+     */
+    LLAMA3_2_3B: {
+      ...LLAMA3_2_3B_SPINQUANT,
+      XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
+      XNNPACK_BF16: LLAMA3_2_3B_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 135M sub-parameter model. Best for micro-footprint
+     * background tasks, simple text tagging, and instant autocomplete.
+     */
+    SMOLLM2_135M: {
+      ...SMOLLM2_135M_8DA4W,
+      XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
+      XNNPACK_BF16: SMOLLM2_135M_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 360M compact model. Balanced speed and intelligence
+     * for lightweight conversational assistants.
+     */
+    SMOLLM2_360M: {
+      ...SMOLLM2_360M_8DA4W,
+      XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
+      XNNPACK_BF16: SMOLLM2_360M_BF16,
+    },
+    /**
+     * Hugging Face SmolLM2 1.7B language model. Powerful general-purpose text
+     * generation, creative writing, and general knowledge Q&A.
+     */
+    SMOLLM2_1_7B: {
+      ...SMOLLM2_1_7B_8DA4W,
+      XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
+      XNNPACK_BF16: SMOLLM2_1_7B_BF16,
+    },
+    /**
+     * Hammer 2.1 0.5B function-calling model. Specialized for lightweight agentic
+     * tool calling, JSON extraction, and structured output parsing.
+     */
+    HAMMER2_1_0_5B: {
+      ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
+    },
+    /**
+     * Hammer 2.1 1.5B function-calling model. Optimized for multi-tool agentic
+     * workflows, API function calling, and structured JSON schemas.
+     */
+    HAMMER2_1_1_5B: {
+      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
+    },
+    /**
+     * Hammer 2.1 3B function-calling model. High-capacity agentic reasoning,
+     * complex multi-step tool execution, and robust schema compliance.
+     */
+    HAMMER2_1_3B: {
+      ...HAMMER2_1_3B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
+      XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
+    },
+    /**
+     * Microsoft Phi-4 Mini 3.8B reasoning model. Exceptional for math problem
+     * solving, logical reasoning, code synthesis, and analytical tasks.
+     */
+    PHI4_MINI: {
+      ...PHI4_MINI_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
+      XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 2.5 0.5B multilingual model. Extremely efficient for fast
+     * multi-language translation and basic conversational chat.
+     */
+    QWEN2_5_0_5B: {
+      ...QWEN2_5_0_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 2.5 1.5B multilingual model. Great for balanced multilingual
+     * chat, text summarization, and cross-lingual understanding.
+     */
+    QWEN2_5_1_5B: {
+      ...QWEN2_5_1_5B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 2.5 3B multilingual model. High capability across 29+
+     * languages for complex translation, long-form writing, and Q&A.
+     */
+    QWEN2_5_3B: {
+      ...QWEN2_5_3B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 3 0.6B next-gen text model. Low-latency multilingual model
+     * for fast turn-taking and concise response generation.
+     */
+    QWEN3_0_6B: {
+      ...QWEN3_0_6B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 3 1.7B next-gen text model. Versatile multilingual assistant
+     * for high-quality instruction following and knowledge retrieval.
+     */
+    QWEN3_1_7B: {
+      ...QWEN3_1_7B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
+    },
+    /**
+     * Alibaba Qwen 3 4B high-capacity text model. Top-tier multilingual
+     * reasoning, technical content generation, and multi-turn dialogue.
+     */
+    QWEN3_4B: {
+      ...QWEN3_4B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
+      XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
+    },
+    /**
+     * Google Gemma 4 E2B generative text model. Built on Google's Gemini tech
+     * for high-fidelity instruction following and mobile assistance.
+     */
+    GEMMA4_E2B: {
+      ...GEMMA4_E2B_XNNPACK_8DA4W,
+      XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
+      MLX_INT4: GEMMA4_E2B_MLX_INT4,
+    },
   },
 
   /**

@@ -41,6 +41,13 @@ export default function Layout() {
           title: 'Privacy Filter',
         }}
       />
+      <Drawer.Screen
+        name="llm/index"
+        options={{
+          drawerLabel: 'LLM',
+          title: 'LLM',
+        }}
+      />
     </Drawer>
   );
 }

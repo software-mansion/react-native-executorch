@@ -83,6 +83,9 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "dependencies": {
+    "@huggingface/jinja": "^0.5.9"
+  },
   "peerDependencies": {
     "react": "*",
     "react-native": "*",

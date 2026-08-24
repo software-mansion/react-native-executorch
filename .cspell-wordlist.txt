@@ -1,4 +1,6 @@
 multimodal
+subvariant
+Subvariant
 swmansion
 executorch
 RNET
@@ -316,5 +318,8 @@ Partitioner
 denoised
 ttfa
 TTFA
+agentic
 phonemized
 subsentences
+DEEPSEEK
+LLMKV
