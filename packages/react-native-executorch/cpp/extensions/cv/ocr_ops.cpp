@@ -72,8 +72,7 @@ std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float 
         ::cv::RotatedRect expanded(rr.center,
                                    ::cv::Size2f(rr.size.width + grow, rr.size.height + grow),
                                    rr.angle);
-        if (std::min(expanded.size.width, expanded.size.height) <
-            static_cast<float>(minBoxSide + 2)) {
+        if (std::min(expanded.size.width, expanded.size.height) < static_cast<float>(minBoxSide + 2)) {
             continue;
         }
 

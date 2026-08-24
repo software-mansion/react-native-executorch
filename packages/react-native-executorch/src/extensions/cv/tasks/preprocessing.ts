@@ -68,7 +68,6 @@ export function createImagePreprocessor(
    */
   dispose: () => void;
 } {
-  'worklet';
   const numRgbChannels = 3;
   const isRank3 = outputShape.length === 3 && outputShape[0] === numRgbChannels;
   const isRank4 = outputShape.length === 4 && outputShape[1] === numRgbChannels;
@@ -91,10 +90,7 @@ export function createImagePreprocessor(
   const [tColor, tChanFirst, tNorm, tOutput] = tensors;
   const { resizeMode, interpolation, normalizeOpts, padValue } = options;
 
-  const dispose = () => {
-    'worklet';
-    tensors.forEach((t) => t.dispose());
-  };
+  const dispose = () => tensors.forEach((t) => t.dispose());
   const process = (input: ImageBuffer): Tensor => {
     'worklet';
     const { data, width, height, format } = input;
