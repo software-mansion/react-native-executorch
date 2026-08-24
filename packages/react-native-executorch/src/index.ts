@@ -34,7 +34,6 @@ export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/cv/tasks/paddleOcr';
-export type { Quad } from './extensions/cv/ops/quad';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
 export * from './extensions/nlp/tasks/privacyFilter';

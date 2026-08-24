@@ -27,9 +27,7 @@ using DType = rnexecutorch::core::types::DType;
 namespace {
 using Quad = std::array<::cv::Point2f, 4>;
 
-// ------------------------------ DBNet branch -------------------------------
-// DBNet prob map [H,W] -> oriented quads. The map must be post-sigmoid
-// probabilities — any activation is baked into the model's export.
+// DBNet prob map [H,W] -> oriented quads. The map must be post-sigmoid probabilities.
 std::vector<Quad> extractDbnet(const ::cv::Mat &prob, float binThreshold, float boxThreshold,
                                float unclipRatio, int32_t minBoxSide, int32_t maxCandidates) {
     const int32_t w = prob.cols;

@@ -452,8 +452,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
-// Perspective-crop an oriented quad of `src` into the `dst` canvas (crop +
-// resize-to-height + pad/align) — normalizes a detected text box for the recognizer.
+// Perspective-crop an oriented quad of `src` into the `dst` canvas.
 void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "rectifyQuad";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
@@ -466,6 +465,8 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
         auto src = tensor::fromJs(rt, "rectifyQuad: src", args[0], DType::uint8, {"H", "W", "C"});
         auto dst = tensor::fromJs(rt, "rectifyQuad: dst", args[1], DType::uint8, {"H'", "W'", src->shape_[2]});
         tensor::checkNotSameTensor(rt, "rectifyQuad: src", src, "rectifyQuad: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "rectifyQuad: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "rectifyQuad: dst", dst);
 
         const auto quadArr = conversions::asType<jsi::Array>(rt, "rectifyQuad: quad", args[2]);
         const auto opts = conversions::asType<jsi::Object>(rt, "rectifyQuad: options", args[3]);
@@ -487,9 +488,6 @@ void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
             quad[i] = {conversions::asType<float>(rt, "rectifyQuad: quad", quadArr.getValueAtIndex(rt, i * 2)),
                        conversions::asType<float>(rt, "rectifyQuad: quad", quadArr.getValueAtIndex(rt, i * 2 + 1))};
         }
-
-        auto srcLock = tensor::tryLockShared(rt, "rectifyQuad: src", src);
-        auto dstLock = tensor::tryLockUnique(rt, "rectifyQuad: dst", dst);
 
         const int cvType = CV_MAKETYPE(CV_8U, channels);
         ::cv::Mat srcMat(src->shape_[0], src->shape_[1], cvType, src->data_.get());

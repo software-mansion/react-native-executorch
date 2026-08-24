@@ -1,7 +1,6 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ImageFormat } from '../image';
-import type { Quad } from './quad';
 
 /**
  * Supported color conversion code presets (similar to OpenCV).
@@ -224,44 +223,4 @@ export function applyColormap(
 ): Tensor {
   'worklet';
   return rnexecutorchJsi.cv.applyColormap(src, dst, colormap);
-}
-
-/**
- * Options for {@link rectifyQuad}. `contentWidth` is the rectified content's width
- * (px) in the canvas; `align` (default `'left'`) places it and `padValue`
- * (default `0`) fills the rest.
- * @category Types
- */
-export type RectifyQuadOptions = {
-  readonly contentWidth: number;
-  readonly align?: 'left' | 'center';
-  readonly padValue?: number;
-};
-
-/**
- * Rectifies an oriented quad region of `src` into the flat pre-allocated canvas
- * `dst` — perspective crop + resize-to-height + pad in one native pass. An
- * axis-aligned bbox is a 4-corner quad; pass its corners to rectify a box.
- * @category Typescript API
- * @param src The source image, `uint8` `[H, W, C]`.
- * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
- * the same channel count as `src`. Must not alias `src`.
- * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
- * @param options Content width, alignment, and padding.
- * @returns The destination tensor `dst`.
- */
-export function rectifyQuad(
-  src: Tensor,
-  dst: Tensor,
-  quad: Quad,
-  options: RectifyQuadOptions
-): Tensor {
-  'worklet';
-  // The native op takes the corners as a flat [x0,y0,..,x3,y3] array.
-  const flat = quad.flatMap((p) => [p.x, p.y]);
-  return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
-    contentWidth: options.contentWidth,
-    align: options.align ?? 'left',
-    padValue: options.padValue ?? 0,
-  });
 }

@@ -1,12 +1,15 @@
+import { rnexecutorchJsi } from '../../../native/bridge';
+import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
-import { distance, interpolatePoint, scalePoint, type Point } from './points';
+import { distance, scalePoint, type Point } from './points';
 import type { BoundingBox, BoxFormat } from './boxes';
+import type { ResizeMode } from './image';
 
 /**
- * An oriented quadrilateral in pixel space: exactly four corners, ordered
- * top-left, top-right, bottom-right, bottom-left. Orientation lives in the
- * corners themselves. Use {@link orderQuad} to put unordered corners in that
- * order; every other helper here assumes it.
+ * A quadrilateral in pixel space: exactly four corners, in no guaranteed order.
+ * Helpers that need them as top-left, top-right, bottom-right, bottom-left say
+ * so on their `ordered` parameter; pass the quad through {@link orderQuad}
+ * first. Never assume a `Quad` you were handed is already ordered.
  * @category Types
  */
 export type Quad = readonly [Point, Point, Point, Point];
@@ -20,7 +23,7 @@ export type Quad = readonly [Point, Point, Point, Point];
  * @param format The coordinate format of the returned box.
  * @returns The enclosing {@link BoundingBox} in `format`.
  */
-export function boundsOfPoints<F extends BoxFormat>(
+export function boundingBoxOfPoints<F extends BoxFormat>(
   points: readonly Point[],
   format: F
 ): BoundingBox<F> {
@@ -54,7 +57,7 @@ export function boundsOfPoints<F extends BoxFormat>(
     default:
       throw RnExecuTorchError(
         'INVALID_ARGUMENT',
-        `boundsOfPoints: unsupported box format '${format}'.`
+        `boundingBoxOfPoints: unsupported box format '${format}'.`
       );
   }
 }
@@ -101,193 +104,70 @@ export function quadSize(ordered: Quad): { width: number; height: number } {
 }
 
 /**
- * Maps a quad expressed in a resized (letterboxed) frame back to the original
- * image frame, clamping the result to the image bounds.
+ * Rescales a quad from one frame to another, clamping the result to the target
+ * bounds. The counterpart of {@link scaleBox} for quads.
  * @category Typescript API
- * @param quad The quad in the resized frame.
- * @param from The size of the resized frame the quad is expressed in.
- * @param to The size of the original image.
- * @returns The four corners in original image pixels.
+ * @param quad The quad, expressed in the `from` frame.
+ * @param options `from` is the frame the quad is expressed in, `to` the frame to
+ * express it in, and `resizeMode` how the two were fitted (default
+ * `'letterbox'`).
+ * @returns The four corners in `to` pixels.
  */
-export function mapQuadToImage(
+export function scaleQuad(
   quad: Quad,
-  from: { readonly width: number; readonly height: number },
-  to: { readonly width: number; readonly height: number }
+  options: {
+    readonly from: { readonly width: number; readonly height: number };
+    readonly to: { readonly width: number; readonly height: number };
+    readonly resizeMode?: Exclude<ResizeMode, 'crop'>;
+  }
 ): Quad {
   'worklet';
+  const { from, to, resizeMode } = options;
   const map = (p: Point): Point => {
-    'worklet';
-    const m = scalePoint(p, { from, to, resizeMode: 'letterbox' });
+    const m = scalePoint(p, { from, to, resizeMode: resizeMode ?? 'letterbox' });
     return { x: Math.max(0, Math.min(m.x, to.width)), y: Math.max(0, Math.min(m.y, to.height)) };
   };
   return [map(quad[0]), map(quad[1]), map(quad[2]), map(quad[3])];
 }
 
 /**
- * Splits an ordered TL,TR,BR,BL quad into `parts` equal horizontal segments
- * (each an ordered quad), left to right. `parts <= 1` returns the quad
- * unchanged.
- * @category Typescript API
- * @param ordered The quad corners ordered TL, TR, BR, BL.
- * @param parts The number of equal horizontal segments to split into.
- * @returns The segments as ordered TL,TR,BR,BL quads, left to right.
+ * Options for {@link rectifyQuad}.
+ * @category Types
  */
-export function splitWideQuad(ordered: Quad, parts: number): Quad[] {
-  'worklet';
-  if (parts <= 1) {
-    return [ordered];
-  }
-  const [tl, tr, br, bl] = ordered;
-  const out: Quad[] = [];
-  for (let i = 0; i < parts; i++) {
-    const t0 = i / parts;
-    const t1 = (i + 1) / parts;
-    out.push([
-      interpolatePoint(tl, tr, t0),
-      interpolatePoint(tl, tr, t1),
-      interpolatePoint(bl, br, t1),
-      interpolatePoint(bl, br, t0),
-    ]);
-  }
-  return out;
-}
+export type RectifyQuadOptions = {
+  /** Width in px the rectified content occupies inside the destination canvas. */
+  readonly contentWidth: number;
+  /** Where the content sits in the canvas. Default `'left'`. */
+  readonly align?: 'left' | 'center';
+  /** Value the canvas is filled with outside the content. Default `0`. */
+  readonly padValue?: number;
+};
 
 /**
- * Builds oriented quads from a detector's flat output array — 8 numbers per box:
- * `x0,y0,..,x3,y3`.
+ * Rectifies an oriented quad region of `src` into the flat pre-allocated canvas
+ * `dst`: perspective crop, resize to the canvas height, and pad, in one native
+ * pass. An axis-aligned bbox is a 4-corner quad, so pass its corners to
+ * rectify a box.
  * @category Typescript API
- * @param flat The flat number array from a native detector decode.
- * @returns The parsed quads.
- * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `flat` is not a
- * multiple of 8 values.
+ * @param src The source image, `uint8` `[H, W, C]`.
+ * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
+ * the same channel count as `src`. Must not alias `src`.
+ * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
+ * @param options Content width, alignment, and padding.
+ * @returns The destination tensor `dst`.
  */
-export function quadsFromFlat(flat: ArrayLike<number>): Quad[] {
+export function rectifyQuad(
+  src: Tensor,
+  dst: Tensor,
+  quad: Quad,
+  options: RectifyQuadOptions
+): Tensor {
   'worklet';
-  if (flat.length % 8 !== 0) {
-    throw RnExecuTorchError(
-      'INVALID_ARGUMENT',
-      `quadsFromFlat: expected a multiple of 8 values, got ${flat.length}.`
-    );
-  }
-  const quads: Quad[] = [];
-  for (let i = 0; i < flat.length; i += 8) {
-    quads.push([
-      { x: flat[i]!, y: flat[i + 1]! },
-      { x: flat[i + 2]!, y: flat[i + 3]! },
-      { x: flat[i + 4]!, y: flat[i + 5]! },
-      { x: flat[i + 6]!, y: flat[i + 7]! },
-    ]);
-  }
-  return quads;
-}
-
-// A gutter must be at least this fraction of the content width to split columns;
-// two boxes share a line when their vertical extents overlap by at least this
-// fraction of the shorter box's height.
-const COLUMN_GAP_FRACTION = 0.06;
-const LINE_OVERLAP_FRACTION = 0.3;
-
-/**
- * Reorders `{quad}` items the way a human reads the page: leftmost column first
- * (top to bottom), then the next column. Detectors emit boxes in arbitrary
- * order, so results are sorted through this before being returned.
- * @category Typescript API
- * @typeParam T The item type, anything carrying a `quad`.
- * @param items The items to sort.
- * @returns The same items in reading order.
- */
-export function orderByReadingOrder<T extends { quad: Quad }>(items: T[]): T[] {
-  'worklet';
-  const count = items.length;
-  if (count <= 1) {
-    return items;
-  }
-
-  const boxes = items.map((it) => boundsOfPoints(it.quad, 'xyxy'));
-
-  // A vertical gap between boxes only counts as a column gutter when it is
-  // reasonably wide relative to the page content (else word spacing would
-  // split columns everywhere).
-  let minX = Infinity;
-  let maxX = -Infinity;
-  for (const box of boxes) {
-    if (box.xmin < minX) minX = box.xmin;
-    if (box.xmax > maxX) maxX = box.xmax;
-  }
-  const minGap = COLUMN_GAP_FRACTION * Math.max(1, maxX - minX);
-
-  // Find the gutters: walk every box's left/right edge in x order, keeping a
-  // running count of how many boxes overlap the current x. Count 0 means no
-  // box occupies this x — when such an empty stretch is wider than minGap,
-  // cut a column boundary at its midpoint.
-  const edges: { x: number; delta: number }[] = [];
-  for (const box of boxes) {
-    edges.push({ x: box.xmin, delta: 1 });
-    edges.push({ x: box.xmax, delta: -1 });
-  }
-  // At the same x, process a box's left edge before another's right edge —
-  // two boxes that exactly touch must not look like an empty stretch.
-  edges.sort((a, b) => a.x - b.x || b.delta - a.delta);
-  const cuts: number[] = [];
-  let coverage = 0;
-  // Seed to the first (leftmost) edge, not 0, so a page whose leftmost box starts
-  // well inside a left margin doesn't read that margin as an empty column gutter.
-  let gutterStart = edges.length > 0 ? edges[0]!.x : 0;
-  for (const edge of edges) {
-    const before = coverage;
-    coverage += edge.delta;
-    if (before > 0 && coverage === 0) {
-      gutterStart = edge.x;
-    } else if (before === 0 && coverage > 0 && edge.x - gutterStart >= minGap) {
-      cuts.push((gutterStart + edge.x) / 2);
-    }
-  }
-
-  // A box belongs to column k when exactly k cuts lie left of its center.
-  const columns: number[][] = Array.from({ length: cuts.length + 1 }, () => []);
-  for (let i = 0; i < count; i++) {
-    const centerX = (boxes[i]!.xmin + boxes[i]!.xmax) / 2;
-    let column = 0;
-    for (const cut of cuts) {
-      if (centerX > cut) column++;
-    }
-    columns[column]!.push(i);
-  }
-
-  // Inside each column: boxes whose vertical extents overlap enough sit on the
-  // same text line. Read lines top to bottom, and boxes within a line left to
-  // right.
-  const order: number[] = [];
-  for (const column of columns) {
-    column.sort((a, b) => boxes[a]!.ymin - boxes[b]!.ymin);
-    const lines: { items: number[]; ymin: number; ymax: number }[] = [];
-    for (const i of column) {
-      const box = boxes[i]!;
-      let placed = false;
-      for (const line of lines) {
-        // Overlap is measured against the SHORTER of the two heights, so a
-        // small box beside a tall one still joins its line.
-        const overlap = Math.min(line.ymax, box.ymax) - Math.max(line.ymin, box.ymin);
-        const minHeight = Math.min(line.ymax - line.ymin, box.ymax - box.ymin);
-        if (overlap >= LINE_OVERLAP_FRACTION * Math.max(1, minHeight)) {
-          line.items.push(i);
-          line.ymin = Math.min(line.ymin, box.ymin);
-          line.ymax = Math.max(line.ymax, box.ymax);
-          placed = true;
-          break;
-        }
-      }
-      if (!placed) {
-        lines.push({ items: [i], ymin: box.ymin, ymax: box.ymax });
-      }
-    }
-    lines.sort((a, b) => a.ymin - b.ymin);
-    for (const line of lines) {
-      line.items.sort(
-        (a, b) => boxes[a]!.xmin + boxes[a]!.xmax - (boxes[b]!.xmin + boxes[b]!.xmax)
-      );
-      order.push(...line.items);
-    }
-  }
-  return order.map((i) => items[i]!);
+  // The native op takes the corners as a flat [x0,y0,..,x3,y3] array.
+  const flat = quad.flatMap((p) => [p.x, p.y]);
+  return rnexecutorchJsi.cv.rectifyQuad(src, dst, flat, {
+    contentWidth: options.contentWidth,
+    align: options.align ?? 'left',
+    padValue: options.padValue ?? 0,
+  });
 }

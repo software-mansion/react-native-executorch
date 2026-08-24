@@ -29,48 +29,50 @@ import type { ImageBuffer, ImageFormat } from '../image';
 import {
   resize,
   cvtColor,
-  rectifyQuad,
   toChannelsFirst,
   normalize,
   FORMAT_CHANNELS,
   FORMAT_CONVERSION,
   type NormalizeOptions,
 } from '../ops/image';
+import { interpolatePoint } from '../ops/points';
 import {
-  mapQuadToImage,
+  boundingBoxOfPoints,
   orderQuad,
-  orderByReadingOrder,
   quadSize,
-  splitWideQuad,
+  rectifyQuad,
+  scaleQuad,
   type Quad,
 } from '../ops/quad';
 import { ctcGreedyDecode, extractDbnetTextQuads } from '../utils/paddleOcrUtils';
 
 /**
- * A single recognized text region. `quad` is the oriented (TL,TR,BR,BL) box in
- * original image pixels (axis-aligned bounds via `boundsOfPoints(quad,'xyxy')`).
+ * A single recognized text region.
  * @category Types
  */
 export type OcrDetection = {
+  /** The recognized text. */
   readonly text: string;
+  /** Mean per-character probability over the non-blank timesteps, in `[0, 1]`. */
   readonly confidence: number;
+  /**
+   * The region's corners, ordered top-left, top-right, bottom-right, bottom-left,
+   * in original image pixels. Oriented, so a rotated line keeps its angle; take
+   * `boundingBoxOfPoints(quad, 'xyxy')` for the axis-aligned box.
+   */
   readonly quad: Quad;
 };
 
 /**
- * Options for the PP-OCRv6 pipeline. Everything else about the model (its
- * normalization, its decode, how its detector output is read) is fixed by the
- * export and is not a caller's choice.
+ * Options for the PP-OCRv6 pipeline.
  * @category Types
  */
 export type PaddleOcrModelOptions = {
   /**
-   * Drop detections below this recognition confidence unless a call overrides
-   * it. Default 0. Confidence is the max probability averaged over the non-blank
-   * timesteps only, since blanks dominate a padded strip and averaging over all
-   * of them would read much lower.
+   * Drop detections whose confidence falls below this, unless a call overrides
+   * it.
    */
-  readonly defaultConfidenceThreshold?: number;
+  readonly defaultConfidenceThreshold: number;
 };
 
 /**
@@ -79,6 +81,7 @@ export type PaddleOcrModelOptions = {
  * @category Types
  */
 export type PaddleOcrModel = {
+  /** The fused detect/recognize PTE. Resolved to a local path by the fetcher. */
   readonly modelPath: string;
   /**
    * The recognizer charset published beside the model: a JSON array of strings,
@@ -86,6 +89,7 @@ export type PaddleOcrModel = {
    * blank). Resolved to a local path by the resource fetcher like `modelPath`.
    */
   readonly charsetPath: string;
+  /** Run options. See {@link PaddleOcrModelOptions}. */
   readonly modelOpts: PaddleOcrModelOptions;
 };
 
@@ -120,6 +124,146 @@ const MIN_RECOGNIZABLE_SIDE = 3;
 // snaps DOWN to it rather than forcing the next, much bigger one. A `range` steps
 // densely, so it always snaps up.
 const SNAP_DOWN_TOLERANCE = 0.1;
+
+// ─── Quad helpers (task-private: too specific to belong in ops/quad) ─────────
+
+// A gutter must be at least this fraction of the content width to split columns;
+// two boxes share a line when their vertical extents overlap by at least this
+// fraction of the shorter box's height.
+const COLUMN_GAP_FRACTION = 0.06;
+const LINE_OVERLAP_FRACTION = 0.3;
+
+/**
+ * Reorders `{quad}` items the way a human reads the page: leftmost column first
+ * (top to bottom), then the next column. Detectors emit boxes in arbitrary
+ * order, so results are sorted through this before being returned.
+ * @typeParam T The item type, anything carrying a `quad`.
+ * @param items The items to sort.
+ * @returns The same items in reading order.
+ */
+function orderByReadingOrder<T extends { quad: Quad }>(items: T[]): T[] {
+  'worklet';
+  const count = items.length;
+  if (count <= 1) {
+    return items;
+  }
+
+  const boxes = items.map((it) => boundingBoxOfPoints(it.quad, 'xyxy'));
+
+  // A vertical gap between boxes only counts as a column gutter when it is
+  // reasonably wide relative to the page content (else word spacing would
+  // split columns everywhere).
+  let minX = Infinity;
+  let maxX = -Infinity;
+  for (const box of boxes) {
+    if (box.xmin < minX) minX = box.xmin;
+    if (box.xmax > maxX) maxX = box.xmax;
+  }
+  const minGap = COLUMN_GAP_FRACTION * Math.max(1, maxX - minX);
+
+  // Find the gutters: walk every box's left/right edge in x order, keeping a
+  // running count of how many boxes overlap the current x. Count 0 means no
+  // box occupies this x — when such an empty stretch is wider than minGap,
+  // cut a column boundary at its midpoint.
+  const edges: { x: number; delta: number }[] = [];
+  for (const box of boxes) {
+    edges.push({ x: box.xmin, delta: 1 });
+    edges.push({ x: box.xmax, delta: -1 });
+  }
+  // At the same x, process a box's left edge before another's right edge —
+  // two boxes that exactly touch must not look like an empty stretch.
+  edges.sort((a, b) => a.x - b.x || b.delta - a.delta);
+  const cuts: number[] = [];
+  let coverage = 0;
+  // Seed to the first (leftmost) edge, not 0, so a page whose leftmost box starts
+  // well inside a left margin doesn't read that margin as an empty column gutter.
+  let gutterStart = edges.length > 0 ? edges[0]!.x : 0;
+  for (const edge of edges) {
+    const before = coverage;
+    coverage += edge.delta;
+    if (before > 0 && coverage === 0) {
+      gutterStart = edge.x;
+    } else if (before === 0 && coverage > 0 && edge.x - gutterStart >= minGap) {
+      cuts.push((gutterStart + edge.x) / 2);
+    }
+  }
+
+  // A box belongs to column k when exactly k cuts lie left of its center.
+  const columns: number[][] = Array.from({ length: cuts.length + 1 }, () => []);
+  for (let i = 0; i < count; i++) {
+    const centerX = (boxes[i]!.xmin + boxes[i]!.xmax) / 2;
+    let column = 0;
+    for (const cut of cuts) {
+      if (centerX > cut) column++;
+    }
+    columns[column]!.push(i);
+  }
+
+  // Inside each column: boxes whose vertical extents overlap enough sit on the
+  // same text line. Read lines top to bottom, and boxes within a line left to
+  // right.
+  const order: number[] = [];
+  for (const column of columns) {
+    column.sort((a, b) => boxes[a]!.ymin - boxes[b]!.ymin);
+    const lines: { items: number[]; ymin: number; ymax: number }[] = [];
+    for (const i of column) {
+      const box = boxes[i]!;
+      let placed = false;
+      for (const line of lines) {
+        // Overlap is measured against the SHORTER of the two heights, so a
+        // small box beside a tall one still joins its line.
+        const overlap = Math.min(line.ymax, box.ymax) - Math.max(line.ymin, box.ymin);
+        const minHeight = Math.min(line.ymax - line.ymin, box.ymax - box.ymin);
+        if (overlap >= LINE_OVERLAP_FRACTION * Math.max(1, minHeight)) {
+          line.items.push(i);
+          line.ymin = Math.min(line.ymin, box.ymin);
+          line.ymax = Math.max(line.ymax, box.ymax);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        lines.push({ items: [i], ymin: box.ymin, ymax: box.ymax });
+      }
+    }
+    lines.sort((a, b) => a.ymin - b.ymin);
+    for (const line of lines) {
+      line.items.sort(
+        (a, b) => boxes[a]!.xmin + boxes[a]!.xmax - (boxes[b]!.xmin + boxes[b]!.xmax)
+      );
+      order.push(...line.items);
+    }
+  }
+  return order.map((i) => items[i]!);
+}
+
+/**
+ * Splits an ordered TL,TR,BR,BL quad into `parts` equal horizontal segments
+ * (each an ordered quad), left to right. `parts <= 1` returns the quad
+ * unchanged.
+ * @param ordered The quad corners ordered TL, TR, BR, BL.
+ * @param parts The number of equal horizontal segments to split into.
+ * @returns The segments as ordered TL,TR,BR,BL quads, left to right.
+ */
+function splitWideQuad(ordered: Quad, parts: number): Quad[] {
+  'worklet';
+  if (parts <= 1) {
+    return [ordered];
+  }
+  const [tl, tr, br, bl] = ordered;
+  const out: Quad[] = [];
+  for (let i = 0; i < parts; i++) {
+    const t0 = i / parts;
+    const t1 = (i + 1) / parts;
+    out.push([
+      interpolatePoint(tl, tr, t0),
+      interpolatePoint(tl, tr, t1),
+      interpolatePoint(bl, br, t1),
+      interpolatePoint(bl, br, t0),
+    ]);
+  }
+  return out;
+}
 
 // ─── Input size resolution ───────────────────────────────────────────────────
 
@@ -323,7 +467,9 @@ function detectQuads(
 
     engine.model.execute('detect', [tInput], [tProb]);
     const quads = extractDbnetTextQuads(tProb, DBNET_DECODE);
-    return quads.map((q) => mapQuadToImage(q, { width: detW, height: detH }, { width, height }));
+    return quads.map((q) =>
+      scaleQuad(q, { from: { width: detW, height: detH }, to: { width, height } })
+    );
   } finally {
     tResize.dispose();
     tColor?.dispose();
@@ -690,7 +836,7 @@ export async function createPaddleOcr(
     throw e;
   }
 
-  const defaultThreshold = modelOpts.defaultConfidenceThreshold ?? 0;
+  const defaultThreshold = modelOpts.defaultConfidenceThreshold;
 
   const dispose = () => {
     model.dispose();

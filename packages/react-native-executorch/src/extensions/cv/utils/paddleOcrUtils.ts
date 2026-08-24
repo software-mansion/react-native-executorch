@@ -4,7 +4,29 @@
 
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
-import { quadsFromFlat, type Quad } from '../ops/quad';
+import { RnExecuTorchError } from '../../../core/error';
+import type { Quad } from '../ops/quad';
+
+// Parses the native decode's flat output, 8 numbers per quad: x0,y0..x3,y3.
+function quadsFromFlat(flat: ArrayLike<number>): Quad[] {
+  'worklet';
+  if (flat.length % 8 !== 0) {
+    throw RnExecuTorchError(
+      'EXECUTION_FAILED',
+      `extractDbnetTextQuads: native decode returned ${flat.length} values, expected a multiple of 8.`
+    );
+  }
+  const quads: Quad[] = [];
+  for (let i = 0; i < flat.length; i += 8) {
+    quads.push([
+      { x: flat[i]!, y: flat[i + 1]! },
+      { x: flat[i + 2]!, y: flat[i + 3]! },
+      { x: flat[i + 4]!, y: flat[i + 5]! },
+      { x: flat[i + 6]!, y: flat[i + 7]! },
+    ]);
+  }
+  return quads;
+}
 
 /**
  * Thresholds for {@link extractDbnetTextQuads}.
