@@ -32,8 +32,8 @@ namespace rnexecutorch::extensions::llm {
  * stream continuations, interrupting generation, resetting the KV cache context,
  * and releasing native model memory.
  */
-class LLMRunnerHostObject : public facebook::jsi::HostObject,
-                            public std::enable_shared_from_this<LLMRunnerHostObject> {
+class LLMRunnerHostObject final : public facebook::jsi::HostObject,
+                                  public std::enable_shared_from_this<LLMRunnerHostObject> {
 public:
     /**
      * Constructs an LLMRunnerHostObject by loading an ExecuTorch model binary

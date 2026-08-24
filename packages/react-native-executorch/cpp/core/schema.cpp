@@ -368,20 +368,20 @@ void validateTensorParam(const ParamSpec &param,
             [&](int32_t c) {
                 if (c != bound) {
                     throw error::SchemaMismatch(std::format("{}: shape[{}] mismatch (spec constant {} != compiled bound {})",
-                                                       ctx, d, c, bound));
+                                                            ctx, d, c, bound));
                 }
             },
             [&](const RangeDim &r) {
                 if (r.max > bound) {
                     throw error::SchemaMismatch(std::format("{}: shape[{}] range max {} exceeds compiled bound {}",
-                                                        ctx, d, r.max, bound));
+                                                            ctx, d, r.max, bound));
                 }
             },
             [&](const EnumDim &e) {
                 for (const auto choice : e.choices) {
                     if (choice > bound) {
                         throw error::SchemaMismatch(std::format("{}: shape[{}] enum choice {} exceeds compiled bound {}",
-                                                            ctx, d, choice, bound));
+                                                                ctx, d, choice, bound));
                     }
                 }
             },
@@ -517,7 +517,7 @@ void validateRuntimeConstraints(jsi::Runtime & /*rt*/,
                 for (size_t j = 1; j < inputVals.size(); ++j) {
                     if (inputVals[j] != inputVals[0]) {
                         throw error::InvalidArgument(std::format("{}: equality constraint violated (dimension value {} != {})",
-                                                           cctx, inputVals[0], inputVals[j]));
+                                                                cctx, inputVals[0], inputVals[j]));
                     }
                 }
             },
@@ -530,7 +530,7 @@ void validateRuntimeConstraints(jsi::Runtime & /*rt*/,
                 int32_t rhs = getInputDimValue(lin.dimRhs, inputShapes);
                 if (lhs != lin.coefficients[0] * rhs + lin.coefficients[1]) {
                     throw error::InvalidArgument(std::format("{}: linear constraint violated (LHS {} != {} * RHS {} + {})",
-                                                       cctx, lhs, lin.coefficients[0], rhs, lin.coefficients[1]));
+                                                            cctx, lhs, lin.coefficients[0], rhs, lin.coefficients[1]));
                 }
             },
         }, constraints[i]);

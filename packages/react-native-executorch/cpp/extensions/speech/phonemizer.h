@@ -11,8 +11,8 @@
 
 namespace rnexecutorch::extensions::speech {
 
-class PhonemizerHostObject : public facebook::jsi::HostObject,
-                             public std::enable_shared_from_this<PhonemizerHostObject> {
+class PhonemizerHostObject final : public facebook::jsi::HostObject,
+                                   public std::enable_shared_from_this<PhonemizerHostObject> {
 public:
     explicit PhonemizerHostObject(const std::string &lang,
                                   const std::optional<std::string> &taggerPath,

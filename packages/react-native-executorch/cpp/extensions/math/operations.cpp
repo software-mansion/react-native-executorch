@@ -28,7 +28,7 @@ void install_sigmoid(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "sigmoid";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw error::InvalidArgument("Usage: sigmoid(src, dst)");
+            throw error::InvalidArgument("sigmoid: Usage: sigmoid(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "sigmoid: src", args[0], DType::float32, std::nullopt);
@@ -55,7 +55,7 @@ void install_softmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "softmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: softmax(src, dst, axis)");
+            throw error::InvalidArgument("softmax: Usage: softmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "softmax: src", args[0], DType::float32, std::nullopt);
@@ -139,7 +139,7 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "argmax";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: argmax(src, dst, axis)");
+            throw error::InvalidArgument("argmax: Usage: argmax(src, dst, axis)");
         }
 
         auto src = tensor::fromJs(rt, "argmax: src", args[0], DType::float32, std::nullopt);
@@ -219,7 +219,7 @@ void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: threshold(src, dst, threshold)");
+            throw error::InvalidArgument("threshold: Usage: threshold(src, dst, threshold)");
         }
 
         auto src = tensor::fromJs(rt, "threshold: src", args[0], DType::float32, std::nullopt);

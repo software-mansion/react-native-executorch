@@ -30,8 +30,8 @@ inline constexpr auto kGetModelSchemaMethod = "get_model_schema";
  * retrieving method names, executing inference runs, and disposing of native
  * resources.
  */
-class ModelHostObject : public jsi::HostObject,
-                        public std::enable_shared_from_this<ModelHostObject> {
+class ModelHostObject final : public jsi::HostObject,
+                              public std::enable_shared_from_this<ModelHostObject> {
 public:
     /**
      * Loads the ExecuTorch model from the specified file path, initializes its

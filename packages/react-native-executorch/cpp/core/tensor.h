@@ -23,8 +23,8 @@ namespace types = rnexecutorch::core::types;
  * dtype, numel), writing data from array buffers, reading data to array
  * buffers, and disposing of underlying memory.
  */
-class TensorHostObject : public jsi::HostObject,
-                         public std::enable_shared_from_this<TensorHostObject> {
+class TensorHostObject final : public jsi::HostObject,
+                               public std::enable_shared_from_this<TensorHostObject> {
 public:
     /** Data type of the tensor elements. */
     const types::DType dtype_;
