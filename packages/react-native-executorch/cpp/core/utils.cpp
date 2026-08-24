@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include <format>
 #include <string>
 
 #include <executorch/runtime/backend/interface.h>
@@ -7,7 +8,7 @@
 
 #include "core/error.h"
 
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
 #include <sys/system_properties.h>
 #elif defined(__APPLE__)
 #include <TargetConditionals.h>
@@ -25,7 +26,7 @@ namespace {
 // `google_sdk`, `Emulator` or `Cuttlefish`). On Apple platforms the simulator
 // is known at compile time.
 bool isEmulator() {
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
     auto readProp = [](const char *key) -> std::string {
 #if __ANDROID_API__ >= 26
         const prop_info *pi = __system_property_find(key);
@@ -80,7 +81,7 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
     const auto *name = "getExecuTorchRegisteredBackends";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value * /*args*/, size_t count) -> jsi::Value {
         if (count != 0) {
-            throw error::InvalidArgument("Usage: getExecuTorchRegisteredBackends()");
+            throw error::InvalidArgument("getExecuTorchRegisteredBackends: Usage: getExecuTorchRegisteredBackends()");
         }
 
         auto registeredCount = executorch::runtime::get_num_registered_backends();
@@ -89,7 +90,8 @@ void install_getExecuTorchRegisteredBackends(jsi::Runtime &rt, jsi::Object &modu
             auto backendName = executorch::runtime::get_backend_name(i);
             if (!backendName.ok()) {
                 const std::string errorMsg = executorch::runtime::to_string(backendName.error());
-                throw error::Unknown("Failed to get backend name: " + errorMsg);
+                throw error::Unknown(std::format("getExecuTorchRegisteredBackends: Failed to get backend name: {}", errorMsg),
+                                     backendName.error());
             }
             jsArray.setValueAtIndex(rt, i, jsi::String::createFromUtf8(rt, backendName.get()));
         }

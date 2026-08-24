@@ -233,12 +233,7 @@ void install_loadTokenizer(jsi::Runtime &rt, jsi::Object &module) {
         }
 
         auto tokenizerPath = conversions::asType<std::string>(rt, "loadTokenizer: path", args[0]);
-        try {
-            auto tokenizerInstance = std::make_shared<TokenizerHostObject>(tokenizerPath);
-            return jsi::Object::createFromHostObject(rt, tokenizerInstance);
-        } catch (const std::exception &e) {
-            throw error::ExecutionFailed(std::format("loadTokenizer: {}", e.what()));
-        }
+        return jsi::Object::createFromHostObject(rt, std::make_shared<TokenizerHostObject>(tokenizerPath));
     };
     auto fn = jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody));
 

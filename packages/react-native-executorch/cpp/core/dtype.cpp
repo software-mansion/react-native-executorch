@@ -1,6 +1,5 @@
 #include "dtype.h"
 #include <format>
-#include <stdexcept>
 
 #include "core/error.h"
 

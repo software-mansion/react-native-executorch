@@ -68,7 +68,7 @@ constexpr const char *errorCodeToString(RnExecuTorchErrorCode code) {
  * Prefer the factory functions below (`error::InvalidArgument(...)`) over
  * naming the constructor at a throw site.
  */
-class RnExecuTorchException : public std::runtime_error {
+class RnExecuTorchException final : public std::runtime_error {
 public:
     explicit RnExecuTorchException(RnExecuTorchErrorCode code, const std::string &message)
         : std::runtime_error(message), code_(code) {}

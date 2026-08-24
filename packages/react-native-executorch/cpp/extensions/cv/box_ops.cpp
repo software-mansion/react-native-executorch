@@ -88,7 +88,7 @@ void install_nms(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "nms";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count < 3) {
-            throw error::InvalidArgument("Usage: nms(boxes, scores, options)");
+            throw error::InvalidArgument("nms: Usage: nms(boxes, scores, options)");
         }
 
         auto boxes = tensor::fromJs(rt, "nms: boxes", args[0], DType::float32, {"N", 4});
@@ -209,7 +209,7 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "restrictToBox";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw error::InvalidArgument("Usage: restrictToBox(src, dst, boxTuple, format)");
+            throw error::InvalidArgument("restrictToBox: Usage: restrictToBox(src, dst, boxTuple, format)");
         }
 
         auto src = tensor::fromJs(rt, "restrictToBox: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -246,9 +246,9 @@ void install_restrictToBox(jsi::Runtime &rt, jsi::Object &module) {
 
         bool isEmpty = (x2 < x1) || (y2 < y1);
 
-        try {
-            const int32_t cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), C);
+        const int32_t cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), C);
 
+        try {
             ::cv::Mat srcMat(H, W, cvType, src->data_.get());
             ::cv::Mat dstMat(H, W, cvType, dst->data_.get());
 

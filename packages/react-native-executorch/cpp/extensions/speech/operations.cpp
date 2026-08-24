@@ -24,7 +24,7 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "extractFrames";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 4) {
-            throw error::InvalidArgument("Usage: extractFrames(waveform, hann, dst, options)");
+            throw error::InvalidArgument("extractFrames: Usage: extractFrames(waveform, hann, dst, options)");
         }
 
         auto waveform = tensor::fromJs(rt, "extractFrames: waveform", args[0], DType::float32, {"length"});
@@ -32,9 +32,9 @@ void install_extractFrames(jsi::Runtime &rt, jsi::Object &module) {
         auto dst = tensor::fromJs(rt, "extractFrames: dst", args[2], DType::float32, {"frames", "fftLength"});
 
         auto options = conversions::asType<jsi::Object>(rt, "extractFrames: options", args[3]);
-        auto numFrames = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames", options, "numFrames");
-        auto hopLength = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames", options, "hopLength");
-        auto preemphasis = conversions::getRequiredProperty<float>(rt, "extractFrames", options, "preemphasis");
+        auto numFrames = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames: options", options, "numFrames");
+        auto hopLength = conversions::getRequiredProperty<uint64_t>(rt, "extractFrames: options", options, "hopLength");
+        auto preemphasis = conversions::getRequiredProperty<float>(rt, "extractFrames: options", options, "preemphasis");
 
         tensor::checkNotSameTensor(rt, "extractFrames: waveform", waveform, "extractFrames: hann", hann);
         tensor::checkNotSameTensor(rt, "extractFrames: waveform", waveform, "extractFrames: dst", dst);

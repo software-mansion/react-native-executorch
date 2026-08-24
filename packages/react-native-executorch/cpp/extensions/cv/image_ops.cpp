@@ -20,7 +20,6 @@
 #include "core/error.h"
 namespace {
 namespace error = rnexecutorch::core::error;
-using rnexecutorch::core::error::RnExecuTorchException;
 } // namespace
 
 namespace rnexecutorch::extensions::cv::image_ops {
@@ -72,7 +71,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "resize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: resize(src, dst, options)");
+            throw error::InvalidArgument("resize: Usage: resize(src, dst, options)");
         }
 
         auto src = tensor::fromJs(rt, "resize: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -87,20 +86,18 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
         const auto interp = conversions::getRequiredProperty<std::string>(rt, "resize: options", opts, "interpolation");
         const auto padValue = conversions::getRequiredProperty<double>(rt, "resize: options", opts, "padValue");
 
+        if (mode != "stretch" && mode != "letterbox" && mode != "crop") {
+            throw error::InvalidArgument(std::format("resize: unknown mode '{}'. Use 'stretch', 'letterbox', or 'crop'", mode));
+        }
+
         const int32_t srcH = src->shape_[0];
         const int32_t srcW = src->shape_[1];
         const int32_t channels = src->shape_[2];
         const int32_t dstH = dst->shape_[0];
         const int32_t dstW = dst->shape_[1];
 
-        int cvType{};
-        int interpFlag{};
-        try {
-            cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
-            interpFlag = interpToFlag(interp);
-        } catch (const std::exception &e) {
-            throw error::Unknown("resize: " + std::string(e.what()));
-        }
+        const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), channels);
+        const int interpFlag = interpToFlag(interp);
 
         try {
             const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
@@ -120,11 +117,7 @@ void install_resize(jsi::Runtime &rt, jsi::Object &module) {
                 ::cv::Mat scaled;
                 ::cv::resize(srcMat, scaled, ::cv::Size(fit.w, fit.h), 0, 0, interpFlag);
                 scaled(::cv::Rect(fit.offX, fit.offY, dstW, dstH)).copyTo(dstMat);
-            } else {
-                throw error::InvalidArgument("resize: unknown mode '" + mode + "'. Use 'stretch', 'letterbox', or 'crop'");
             }
-        } catch (const RnExecuTorchException &) {
-            throw;
         } catch (const std::exception &e) {
             throw error::Unknown("resize: " + std::string(e.what()));
         }
@@ -207,7 +200,7 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "cvtColor";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: cvtColor(src, dst, code)");
+            throw error::InvalidArgument("cvtColor: Usage: cvtColor(src, dst, code)");
         }
 
         auto src = tensor::fromJs(rt, "cvtColor: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -224,14 +217,11 @@ void install_cvtColor(jsi::Runtime &rt, jsi::Object &module) {
 
         auto code = conversions::asType<std::string>(rt, "cvtColor: code", args[2]);
 
-        int cvSrcType{};
-        int cvDstType{};
-        int flag{};
-        try {
-            cvSrcType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
-            cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);
-            flag = codeToColorConversionFlag(code);
+        const int cvSrcType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
+        const int cvDstType = CV_MAKETYPE(dtypeToCvDepth(dst->dtype_), dstC);
+        const int flag = codeToColorConversionFlag(code);
 
+        try {
             const ::cv::Mat srcMat(srcH, srcW, cvSrcType, src->data_.get());
             ::cv::Mat dstMat(srcH, srcW, cvDstType, dst->data_.get());
 
@@ -250,7 +240,7 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "toChannelsFirst";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw error::InvalidArgument("Usage: toChannelsFirst(src, dst)");
+            throw error::InvalidArgument("toChannelsFirst: Usage: toChannelsFirst(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "toChannelsFirst: src", args[0], std::nullopt, {"H", "W", "C"});
@@ -264,9 +254,9 @@ void install_toChannelsFirst(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t srcW = src->shape_[1];
         const int32_t srcC = src->shape_[2];
 
-        try {
-            const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
+        const int cvType = CV_MAKETYPE(dtypeToCvDepth(src->dtype_), srcC);
 
+        try {
             const ::cv::Mat srcMat(srcH, srcW, cvType, src->data_.get());
             std::vector<::cv::Mat> channels;
             ::cv::split(srcMat, channels);
@@ -294,7 +284,7 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "toChannelsLast";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 2) {
-            throw error::InvalidArgument("Usage: toChannelsLast(src, dst)");
+            throw error::InvalidArgument("toChannelsLast: Usage: toChannelsLast(src, dst)");
         }
 
         auto src = tensor::fromJs(rt, "toChannelsLast: src", args[0], std::nullopt, {"C", "H", "W"});
@@ -308,9 +298,9 @@ void install_toChannelsLast(jsi::Runtime &rt, jsi::Object &module) {
         const int32_t srcH = src->shape_[1];
         const int32_t srcW = src->shape_[2];
 
-        try {
-            const int cvDepth = dtypeToCvDepth(src->dtype_);
+        const int cvDepth = dtypeToCvDepth(src->dtype_);
 
+        try {
             const size_t hw = static_cast<size_t>(srcH) * static_cast<size_t>(srcW);
             const size_t elemSize = rnexecutorch::core::types::elementSize(src->dtype_);
             const size_t planeBytes = hw * elemSize;
@@ -337,7 +327,7 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "normalize";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: normalize(src, dst, options)");
+            throw error::InvalidArgument("normalize: Usage: normalize(src, dst, options)");
         }
 
         auto src = tensor::fromJs(rt, "normalize: src", args[0], std::nullopt, {"C", "H", "W"});
@@ -371,10 +361,10 @@ void install_normalize(jsi::Runtime &rt, jsi::Object &module) {
         std::vector<double> alpha = getNormalizeOption("alpha");
         std::vector<double> beta = getNormalizeOption("beta");
 
-        try {
-            const int srcDepthType = dtypeToCvDepth(src->dtype_);
-            const int dstDepthType = dtypeToCvDepth(dst->dtype_);
+        const int srcDepthType = dtypeToCvDepth(src->dtype_);
+        const int dstDepthType = dtypeToCvDepth(dst->dtype_);
 
+        try {
             const size_t srcElemSize = rnexecutorch::core::types::elementSize(src->dtype_);
             const size_t dstElemSize = rnexecutorch::core::types::elementSize(dst->dtype_);
             const std::span<uint8_t> srcBytes(src->data_.get(), src->size_);
@@ -406,7 +396,7 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "applyColormap";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
         if (count != 3) {
-            throw error::InvalidArgument("Usage: applyColormap(src, dst, colormap)");
+            throw error::InvalidArgument("applyColormap: Usage: applyColormap(src, dst, colormap)");
         }
 
         auto colormapArray = conversions::asType<jsi::Array>(rt, "applyColormap: colormap", args[2]);

@@ -18,8 +18,8 @@ namespace rnexecutorch::extensions::nlp::tokenizer {
  * Exposes methods to JavaScript for encoding text to token IDs, decoding token IDs
  * to text, and managing tokenizer resources.
  */
-class TokenizerHostObject : public facebook::jsi::HostObject,
-                            public std::enable_shared_from_this<TokenizerHostObject> {
+class TokenizerHostObject final : public facebook::jsi::HostObject,
+                                  public std::enable_shared_from_this<TokenizerHostObject> {
 public:
     /**
      * Constructs a TokenizerHostObject by loading a HuggingFace tokenizer configuration file.

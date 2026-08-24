@@ -124,34 +124,34 @@ fromJs(jsi::Runtime &rt, const std::string &ctx, const jsi::Value &value,
             [&](const std::string &symbol) {
                 if (symbolBinding.contains(symbol) && symbolBinding[symbol] != shape[i]) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (symbol {} mismatch: expected {}, got {})",
-                                                       ctx, shapeToString(*expectedShape), symbol, symbolBinding[symbol], shape[i]));
+                                                             ctx, shapeToString(*expectedShape), symbol, symbolBinding[symbol], shape[i]));
                 }
                 symbolBinding[symbol] = shape[i];
             },
             [&](int32_t val) {
                 if (shape[i] != val) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (dim {} mismatch: expected {}, got {})",
-                                                       ctx, shapeToString(*expectedShape), i, val, shape[i]));
+                                                             ctx, shapeToString(*expectedShape), i, val, shape[i]));
                 }
             },
             [&](const schema::RangeDim &range) {
                 if (shape[i] < range.min) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (dim {} out of range: {} < min {})",
-                                                       ctx, shapeToString(*expectedShape), i, shape[i], range.min));
+                                                             ctx, shapeToString(*expectedShape), i, shape[i], range.min));
                 }
                 if (shape[i] > range.max) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (dim {} out of range: {} > max {})",
-                                                       ctx, shapeToString(*expectedShape), i, shape[i], range.max));
+                                                             ctx, shapeToString(*expectedShape), i, shape[i], range.max));
                 }
                 if ((shape[i] - range.min) % range.step != 0) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (dim {} must be min({}) + k*step({}), got {})",
-                                                       ctx, shapeToString(*expectedShape), i, range.min, range.step, shape[i]));
+                                                             ctx, shapeToString(*expectedShape), i, range.min, range.step, shape[i]));
                 }
             },
             [&](const schema::EnumDim &enumeration) {
                 if (std::ranges::find(enumeration.choices, shape[i]) == enumeration.choices.end()) {
                     throw error::InvalidArgument(std::format("{} must have shape {} (dim {} not allowed: got {})",
-                                                       ctx, shapeToString(*expectedShape), i, shape[i]));
+                                                             ctx, shapeToString(*expectedShape), i, shape[i]));
                 }
             },
         }, dim);
