@@ -1,6 +1,6 @@
-// Native decode helpers for the PP-OCRv6 pipeline. Both wrap a fused C++ op:
-// doing either in TypeScript would mean pulling a whole detector or recognizer
-// output across the bridge per call.
+// Native decode helper for the PP-OCRv6 pipeline. Wraps a fused C++ op: tracing
+// contours in TypeScript would mean pulling the whole detector output across the
+// bridge per call.
 
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
@@ -58,19 +58,4 @@ export function extractDbnetTextQuads(probabilityMap: Tensor, options: DbnetDeco
   'worklet';
   const flat = rnexecutorchJsi.cv.extractDbnetTextQuads(probabilityMap, options) as Float32Array;
   return quadsFromFlat(flat);
-}
-
-/**
- * Takes the per-timestep argmax of the recognizer's `[1, T, V]` probability
- * tensor, together with the probability at that argmax. Blank collapsing and
- * repeat removal stay in TypeScript, so a custom decode can reuse this and apply
- * its own rules.
- * @category Typescript API
- * @param probs Softmaxed recognizer output, shape `[1, T, V]`.
- * @returns A flat `Float32Array`, 2 numbers per timestep: the argmax index and
- * its probability. Index 0 is the CTC blank.
- */
-export function ctcGreedyDecode(probs: Tensor): Float32Array {
-  'worklet';
-  return rnexecutorchJsi.cv.ctcGreedyDecode(probs) as Float32Array;
 }

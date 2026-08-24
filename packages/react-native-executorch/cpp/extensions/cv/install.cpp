@@ -21,7 +21,6 @@ void install(facebook::jsi::Runtime &rt, facebook::jsi::Object &module) {
     box_ops::install_restrictToBox(rt, cvModule);
 
     ocr_ops::install_extractDbnetTextQuads(rt, cvModule);
-    ocr_ops::install_ctcGreedyDecode(rt, cvModule);
 
     module.setProperty(rt, "cv", cvModule);
 }

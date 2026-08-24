@@ -4,5 +4,4 @@
 
 namespace rnexecutorch::extensions::cv::ocr_ops {
 void install_extractDbnetTextQuads(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
-void install_ctcGreedyDecode(facebook::jsi::Runtime &rt, facebook::jsi::Object &module);
 } // namespace rnexecutorch::extensions::cv::ocr_ops

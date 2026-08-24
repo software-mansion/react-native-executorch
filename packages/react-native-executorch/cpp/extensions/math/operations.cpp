@@ -215,6 +215,85 @@ void install_argmax(jsi::Runtime &rt, jsi::Object &module) {
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
 
+void install_gather(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "gather";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 4) {
+            throw error::InvalidArgument("Usage: gather(src, indices, dst, axis)");
+        }
+
+        auto src = tensor::fromJs(rt, "gather: src", args[0], DType::float32, std::nullopt);
+        auto indices = tensor::fromJs(rt, "gather: indices", args[1], DType::int32, std::nullopt);
+        auto dst = tensor::fromJs(rt, "gather: dst", args[2], DType::float32, std::nullopt);
+
+        tensor::checkNotSameTensor(rt, "gather: src", src, "gather: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "gather: src", src);
+        auto indicesLock = tensor::tryLockShared(rt, "gather: indices", indices);
+        auto dstLock = tensor::tryLockUnique(rt, "gather: dst", dst);
+
+        int axis = conversions::asType<int32_t>(rt, "gather: axis", args[3]);
+        const int rank = static_cast<int>(src->shape_.size());
+
+        // Negative axes count from the end, as in numpy.
+        if (axis < 0) {
+            axis += rank;
+        }
+        if (axis < 0 || axis >= rank) {
+            throw error::InvalidArgument(std::format("gather: axis {} out of range for tensor of rank {}", axis, rank));
+        }
+        const auto axisIdx = static_cast<size_t>(axis);
+
+        // One index per lane, so `indices` and `dst` carry `src`'s shape with the
+        // gathered axis collapsed to 1. That is exactly what argmax produces.
+        auto reducedShape = src->shape_;
+        reducedShape[axisIdx] = 1;
+        if (indices->shape_ != reducedShape) {
+            throw error::InvalidArgument("gather: indices shape must match src shape but with axis dimension 1");
+        }
+        if (dst->shape_ != reducedShape) {
+            throw error::InvalidArgument("gather: dst shape must match src shape but with axis dimension 1");
+        }
+
+        const auto axisDim = static_cast<size_t>(src->shape_[axisIdx]);
+        if (axisDim == 0) {
+            throw error::InvalidArgument("gather: axis dimension must be greater than zero");
+        }
+
+        size_t outer = 1;
+        size_t inner = 1;
+        for (size_t i = 0; std::cmp_less(i, axis); ++i) {
+            outer *= static_cast<size_t>(src->shape_[i]);
+        }
+        for (size_t i = axisIdx + 1; std::cmp_less(i, rank); ++i) {
+            inner *= static_cast<size_t>(src->shape_[i]);
+        }
+
+        const std::span<const float> srcData(reinterpret_cast<const float *>(src->data_.get()), src->numel_);
+        const std::span<const int32_t> idxData(reinterpret_cast<const int32_t *>(indices->data_.get()), indices->numel_);
+        const std::span<float> dstData(reinterpret_cast<float *>(dst->data_.get()), dst->numel_);
+
+        const size_t laneSize = (axisDim - 1) * inner + 1;
+
+        // Same loop order as argmax: the common case (axis = -1, inner = 1) reads
+        // sequentially.
+        for (size_t o = 0; o < outer; ++o) {
+            for (size_t i = 0; i < inner; ++i) {
+                const size_t lane = o * inner + i;
+                const int32_t index = idxData[lane];
+                if (index < 0 || std::cmp_greater_equal(index, axisDim)) {
+                    throw error::InvalidArgument(
+                        std::format("gather: index {} out of range for axis dimension {}", index, axisDim));
+                }
+                const auto srcLane = srcData.subspan(o * axisDim * inner + i, laneSize);
+                dstData[lane] = srcLane[static_cast<size_t>(index) * inner];
+            }
+        }
+
+        return jsi::Value(rt, args[2]);
+    };
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
+}
+
 void install_threshold(jsi::Runtime &rt, jsi::Object &module) {
     const auto *name = "threshold";
     auto fnBody = [](jsi::Runtime &rt, const jsi::Value & /*thisVal*/, const jsi::Value *args, size_t count) -> jsi::Value {

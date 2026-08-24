@@ -1,6 +1,5 @@
 #include "ocr_ops.h"
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <format>
@@ -156,41 +155,6 @@ void install_extractDbnetTextQuads(jsi::Runtime &rt, jsi::Object &module) {
         return quadsToArray(rt, quads);
     };
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 2, error::guarded(fnBody)));
-}
-
-// --------------------------- ctcGreedyDecode -------------------------------
-// Per-timestep argmax + max value over a [..,T,V] tensor. The values are
-// returned as-is, so they are probabilities only when the recognizer exports a
-// softmaxed head — this op neither normalizes nor takes options.
-void install_ctcGreedyDecode(jsi::Runtime &rt, jsi::Object &module) {
-    const auto *name = "ctcGreedyDecode";
-    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
-        if (count != 1) {
-            throw error::InvalidArgument("Usage: ctcGreedyDecode(src)");
-        }
-
-        // The recognizer head always emits [1,T,V]; declaring it here makes the
-        // rank a contract check rather than a hand-rolled one below.
-        auto src = tensor::fromJs(rt, "ctcGreedyDecode: src", args[0], DType::float32, {1, "T", "V"});
-        auto srcLock = tensor::tryLockShared(rt, "ctcGreedyDecode: src", src);
-
-        const auto timesteps = static_cast<std::size_t>(src->shape_[1]);
-        const auto vocab = static_cast<std::size_t>(src->shape_[2]);
-        const std::span probs(reinterpret_cast<const float *>(src->data_.get()), timesteps * vocab);
-
-        // Interleaved (index, value) pairs. float32 holds any index a CTC vocab
-        // can reach exactly, so one array carries both without a second buffer.
-        std::vector<float> out;
-        out.reserve(timesteps * 2);
-        for (std::size_t t = 0; t < timesteps; ++t) {
-            const auto row = probs.subspan(t * vocab, vocab);
-            const auto maxIt = std::max_element(row.begin(), row.end());
-            out.push_back(static_cast<float>(maxIt - row.begin()));
-            out.push_back(*maxIt);
-        }
-        return conversions::toJsiTypedArray(rt, out);
-    };
-    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 1, error::guarded(fnBody)));
 }
 
 } // namespace rnexecutorch::extensions::cv::ocr_ops
