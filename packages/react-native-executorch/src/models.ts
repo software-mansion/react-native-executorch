@@ -633,10 +633,6 @@ const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/xnnpack/distiluse_base_multilingual_cased_v2_xnnpack_8da4w.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
 };
-const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16: TextEmbedderModel = {
-  modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/coreml/distiluse_base_multilingual_cased_v2_coreml_fp16.pte`,
-  tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
-};
 const DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8: TextEmbedderModel = {
   modelPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/mlx/distiluse_base_multilingual_cased_v2_mlx_int8.pte`,
   tokenizerPath: `${BASE_URL}-distiluse-base-multilingual-cased-v2/${NEXT_VERSION_TAG}/tokenizer.json`,
@@ -2069,7 +2065,6 @@ export const models = {
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2: {
       ...DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
       XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
-      COREML_FP16: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_COREML_FP16,
       MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
     },
     /**
