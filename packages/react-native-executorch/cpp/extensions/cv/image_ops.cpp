@@ -1,6 +1,7 @@
 #include "image_ops.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -440,4 +441,73 @@ void install_applyColormap(jsi::Runtime &rt, jsi::Object &module) {
     };
     module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 3, error::guarded(fnBody)));
 }
+
+// Perspective-crop an oriented quad of `src` into the `dst` canvas.
+void install_rectifyQuad(jsi::Runtime &rt, jsi::Object &module) {
+    const auto *name = "rectifyQuad";
+    auto fnBody = [](jsi::Runtime &rt, const jsi::Value &, const jsi::Value *args, size_t count) -> jsi::Value {
+        if (count != 4) {
+            throw error::InvalidArgument("Usage: rectifyQuad(src, dst, quad, options)");
+        }
+
+        using DType = rnexecutorch::core::types::DType;
+
+        auto src = tensor::fromJs(rt, "rectifyQuad: src", args[0], DType::uint8, {"H", "W", "C"});
+        auto dst = tensor::fromJs(rt, "rectifyQuad: dst", args[1], DType::uint8, {"H'", "W'", src->shape_[2]});
+        tensor::checkNotSameTensor(rt, "rectifyQuad: src", src, "rectifyQuad: dst", dst);
+        auto srcLock = tensor::tryLockShared(rt, "rectifyQuad: src", src);
+        auto dstLock = tensor::tryLockUnique(rt, "rectifyQuad: dst", dst);
+
+        const auto quadArr = conversions::asType<jsi::Array>(rt, "rectifyQuad: quad", args[2]);
+        const auto opts = conversions::asType<jsi::Object>(rt, "rectifyQuad: options", args[3]);
+        if (quadArr.length(rt) != 8) {
+            throw error::InvalidArgument("rectifyQuad: quad must have exactly 8 numbers (4 points)");
+        }
+
+        const int32_t channels = src->shape_[2];
+        const int32_t recH = dst->shape_[0];
+        const int32_t canvasW = dst->shape_[1];
+
+        const int32_t contentWidth =
+            std::clamp(conversions::getRequiredProperty<int32_t>(rt, "rectifyQuad: options", opts, "contentWidth"), 1, canvasW);
+        const auto padValue = conversions::getRequiredProperty<double>(rt, "rectifyQuad: options", opts, "padValue");
+        const auto align = conversions::getRequiredProperty<std::string>(rt, "rectifyQuad: options", opts, "align");
+
+        std::array<::cv::Point2f, 4> quad;
+        for (std::size_t i = 0; i < 4; ++i) {
+            quad[i] = {conversions::asType<float>(rt, "rectifyQuad: quad", quadArr.getValueAtIndex(rt, i * 2)),
+                       conversions::asType<float>(rt, "rectifyQuad: quad", quadArr.getValueAtIndex(rt, i * 2 + 1))};
+        }
+
+        const int cvType = CV_MAKETYPE(CV_8U, channels);
+        ::cv::Mat srcMat(src->shape_[0], src->shape_[1], cvType, src->data_.get());
+        ::cv::Mat dstMat(recH, canvasW, cvType, dst->data_.get());
+
+        try {
+            const std::array<::cv::Point2f, 4> dstPts = {
+                ::cv::Point2f{0.0f, 0.0f},
+                {static_cast<float>(contentWidth), 0.0f},
+                {static_cast<float>(contentWidth), static_cast<float>(recH)},
+                {0.0f, static_cast<float>(recH)}};
+            const std::array<::cv::Point2f, 4> srcPts = {quad[0], quad[1], quad[2], quad[3]};
+
+            ::cv::Mat m = ::cv::getPerspectiveTransform(srcPts.data(), dstPts.data());
+            ::cv::Mat content;
+            ::cv::warpPerspective(srcMat, content, m, ::cv::Size(contentWidth, recH), ::cv::INTER_CUBIC, ::cv::BORDER_REPLICATE);
+
+            // Fill the whole canvas first, then blit the content into its slot:
+            // whatever the content does not cover stays flat padding.
+            dstMat.setTo(::cv::Scalar::all(padValue));
+
+            const int32_t offsetX = (align == "center") ? (canvasW - contentWidth) / 2 : 0;
+            const int32_t copyW = std::min(contentWidth, canvasW - offsetX);
+            content(::cv::Rect(0, 0, copyW, recH)).copyTo(dstMat(::cv::Rect(offsetX, 0, copyW, recH)));
+        } catch (const std::exception &e) {
+            throw error::ExecutionFailed(std::format("rectifyQuad: OpenCV error: {}", e.what()));
+        }
+        return jsi::Value(rt, args[1]);
+    };
+    module.setProperty(rt, name, jsi::Function::createFromHostFunction(rt, jsi::PropNameID::forAscii(rt, name), 4, error::guarded(fnBody)));
+}
+
 } // namespace rnexecutorch::extensions::cv::image_ops

@@ -16,6 +16,7 @@ import {
   type WhisperSttModel,
   WHISPER_LANGUAGES,
 } from './extensions/speech/tasks/whisperSpeechToText';
+import type { PaddleOcrModel } from './extensions/cv/tasks/paddleOcr';
 import type { LLMModel } from './extensions/llm/tasks/llmChatSession';
 import {
   IMAGENET_NORM,
@@ -1012,6 +1013,32 @@ const PRIVACY_FILTER_NEMOTRON_MLX_INT8: PrivacyFilterModel<PrivacyFilterNemotron
 // Tokenizers
 // =============================================================================
 const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+
+// =============================================================================
+// OCR
+// =============================================================================
+const PPOCRV6_OPTS = { defaultConfidenceThreshold: 0.5 };
+
+// Every OCR export is mixed-precision, and the tag in each filename below names
+// the DETECTOR's precision only: `pp_ocrv6_xnnpack_int8.pte` is an int8 DBNet
+// paired with an fp32 SVTR recognizer, kept fp32 because int8 is lossy on the
+// SVTR attention stack.
+const PPOCRV6_CHARSET = `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/charset.json`;
+const PPOCRV6_SMALL_XNNPACK_INT8: PaddleOcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/xnnpack/pp_ocrv6_xnnpack_int8.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PPOCRV6_OPTS,
+};
+const PPOCRV6_SMALL_COREML_INT8: PaddleOcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/coreml/pp_ocrv6_coreml_int8.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PPOCRV6_OPTS,
+};
+const PPOCRV6_SMALL_VULKAN_FP16: PaddleOcrModel = {
+  modelPath: `${BASE_URL}-pp-ocrv6/${NEXT_VERSION_TAG}/vulkan/pp_ocrv6_vulkan_fp16.pte`,
+  charsetPath: PPOCRV6_CHARSET,
+  modelOpts: PPOCRV6_OPTS,
+};
 
 // =============================================================================
 // LLMs
@@ -2202,6 +2229,27 @@ export const models = {
       DE: {
         ...KOKORO_DE_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
+      },
+    },
+  },
+
+  /**
+   * Optical Character Recognition models — a text detector paired with a text
+   * recognizer, run as one two-stage pipeline.
+   */
+  ocr: {
+    /**
+     * PP-OCRv6 small — DBNet detector plus an SVTR recognizer, one model for
+     * every language.
+     *
+     * On Android, `VULKAN` is the faster choice.
+     */
+    PADDLE: {
+      PPOCRV6_SMALL: {
+        ...PPOCRV6_SMALL_XNNPACK_INT8,
+        XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
+        COREML: PPOCRV6_SMALL_COREML_INT8,
+        VULKAN: PPOCRV6_SMALL_VULKAN_FP16,
       },
     },
   },

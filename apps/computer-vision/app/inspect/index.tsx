@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { inspectModel, type ConcreteDim, type ParamSpec } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ColorPalette } from '../../theme';
@@ -29,6 +30,7 @@ const formatDim = (dim: ConcreteDim): string => {
 };
 
 function InspectContent() {
+  const insets = useSafeAreaInsets();
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<InspectionResult | null>(null);
@@ -85,7 +87,10 @@ function InspectContent() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 40 }]}
+    >
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Model URL Inspector</Text>
         <Text style={styles.cardDescription}>
@@ -191,7 +196,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 40,
   },
   card: {
     backgroundColor: '#ffffff',

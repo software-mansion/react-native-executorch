@@ -14,6 +14,7 @@ export * from './hooks/useVoiceActivityDetector';
 export * from './hooks/useSpeechToText';
 export * from './hooks/useTextToSpeech';
 export * from './hooks/useTextToImage';
+export * from './hooks/useOpticalCharacterRecognizer';
 export * from './hooks/useResourceDownload';
 export * from './hooks/useModel';
 
@@ -33,6 +34,7 @@ export * from './extensions/cv/tasks/keypointDetection';
 export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
+export * from './extensions/cv/tasks/paddleOcr';
 export * from './extensions/llm/tasks/llmChatSession';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';

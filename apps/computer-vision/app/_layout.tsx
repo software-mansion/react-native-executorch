@@ -77,6 +77,13 @@ export default function Layout() {
         }}
       />
       <Drawer.Screen
+        name="ocr/index"
+        options={{
+          drawerLabel: 'OCR',
+          title: 'OCR',
+        }}
+      />
+      <Drawer.Screen
         name="inspect/index"
         options={{
           drawerLabel: 'Model Inspector',
