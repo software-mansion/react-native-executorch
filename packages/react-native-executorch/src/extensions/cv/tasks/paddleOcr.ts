@@ -22,7 +22,6 @@ import { IMAGENET_NORM } from '../../../constants';
 
 import type { ImageBuffer } from '../image';
 import {
-  resize,
   cvtColor,
   toChannelsFirst,
   normalize,
@@ -40,6 +39,7 @@ import {
 } from '../ops/quad';
 import { argmax, gather } from '../../math';
 import { extractDbnetTextQuads } from '../utils/paddleOcrUtils';
+import { createImagePreprocessor } from './preprocessing';
 
 /**
  * A single recognized text region.
@@ -88,13 +88,18 @@ export type PaddleOcrModel = {
   readonly modelOpts: PaddleOcrModelOptions;
 };
 
-// Fixed by the export: the detector was trained on letterboxed,
-// ImageNet-normalized RGB and the recognizer on (x/255 - 0.5)/0.5 over a
-// gray-padded canvas.
-const DETECTOR_RESIZE_OPTS = { mode: 'letterbox', interpolation: 'area', padValue: 0 } as const;
-const DETECTOR_NORM = IMAGENET_NORM;
-const RECOGNIZER_NORM = { alpha: 1 / 127.5, beta: -1.0 };
-const RECOGNIZER_PAD_VALUE = 128; // neutral gray
+// Fixed by the export: the detector was trained on ImageNet-normalized RGB and
+// the recognizer on (x/255 - 0.5)/0.5 over a gray-padded canvas.
+const DETECTOR_PREPROCESSOR_OPTS = {
+  resizeMode: 'letterbox' as const,
+  interpolation: 'area' as const,
+  normalizeOpts: IMAGENET_NORM,
+  padValue: 0,
+};
+const RECOGNIZER_PREPROCESSOR_OPTS = {
+  padValue: 128, // neutral gray
+  normalizeOpts: { alpha: 1 / 127.5, beta: -1.0 },
+};
 
 // DBNet decode thresholds, tuned for this checkpoint.
 const DBNET_DECODE_OPTS = {
@@ -443,42 +448,27 @@ export async function createPaddleOcr(
       snap(Math.round(W * scale), detWDim),
     ];
 
+    // 1. Detect the quads holding text.
+    let quads: Quad[];
+    const detPreprocessor = createImagePreprocessor(DETECTOR_PREPROCESSOR_OPTS, [1, 3, detH, detW]);
+    // DBNet emits one full-resolution probability map, [1, 1, H, W].
+    const tDetProbas = tensor('float32', [1, 1, detH, detW]);
+    try {
+      const tDetInput = detPreprocessor.process(input);
+      model.execute('detect', [tDetInput], [tDetProbas]);
+
+      quads = extractDbnetTextQuads(tDetProbas, DBNET_DECODE_OPTS)
+        .map((q) => orderQuad(scaleQuad(q, { from: { width: detW, height: detH }, to: input })))
+        .filter((q) => Object.values(quadSize(q)).every((s) => s >= MIN_RECOGNIZABLE_SIDE));
+    } finally {
+      tDetProbas.dispose();
+      detPreprocessor.dispose();
+    }
+
+    // 2. Read the text inside each quad.
     const detections: OcrDetection[] = [];
     const tImage = tensor('uint8', [H, W, numChannels], input.data);
     try {
-      // 1. Detect the quads holding text. The detector input size varies with
-      // the page, so its scratch tensors are sized per call rather than coming
-      // from a preprocessor built once at load time.
-      let quads: Quad[];
-      const detTensors = [
-        tensor('uint8', [detH, detW, numChannels]), // tResize
-        tensor('uint8', [detH, detW, 3]), // tColor
-        tensor('uint8', [3, detH, detW]), // tChanFirst
-        tensor('float32', [3, detH, detW]), // tNorm
-        tensor('float32', [1, 3, detH, detW]), // tDetInput
-        // DBNet emits one full-resolution probability map, [1, 1, H, W].
-        tensor('float32', [1, 1, detH, detW]), // tDetProbas
-      ] as const;
-      const [tResize, tDetColor, tDetChanFirst, tDetNorm, tDetInput, tDetProbas] = detTensors;
-
-      try {
-        tImage
-          .through(resize, tResize, DETECTOR_RESIZE_OPTS)
-          .throughIf(colorCode !== null, cvtColor, tDetColor, colorCode!)
-          .through(toChannelsFirst, tDetChanFirst)
-          .through(normalize, tDetNorm, DETECTOR_NORM)
-          .copyTo(tDetInput);
-
-        model.execute('detect', [tDetInput], [tDetProbas]);
-
-        quads = extractDbnetTextQuads(tDetProbas, DBNET_DECODE_OPTS)
-          .map((q) => orderQuad(scaleQuad(q, { from: { width: detW, height: detH }, to: input })))
-          .filter((q) => Object.values(quadSize(q)).every((s) => s >= MIN_RECOGNIZABLE_SIDE));
-      } finally {
-        detTensors.forEach((t) => t.dispose());
-      }
-
-      // 2. Read the text inside each quad.
       for (const quad of quads) {
         const size = quadSize(quad);
         const aspectW = Math.max(1, Math.round((recH * size.width) / size.height));
@@ -515,11 +505,11 @@ export async function createPaddleOcr(
             tImage
               .through(rectifyQuad, tQuad, splitQuad, {
                 contentWidth: Math.min(recWMax, splitAspectW),
-                padValue: RECOGNIZER_PAD_VALUE,
+                padValue: RECOGNIZER_PREPROCESSOR_OPTS.padValue,
               })
               .throughIf(colorCode !== null, cvtColor, tColor, colorCode!)
               .through(toChannelsFirst, tChanFirst)
-              .through(normalize, tNorm, RECOGNIZER_NORM)
+              .through(normalize, tNorm, RECOGNIZER_PREPROCESSOR_OPTS.normalizeOpts)
               .copyTo(tRecInput);
 
             model.execute('recognize', [tRecInput], [tRecProbas]);
