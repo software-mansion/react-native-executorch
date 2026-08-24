@@ -10,6 +10,32 @@ export type Point = {
 };
 
 /**
+ * Euclidean distance between two points.
+ * @category Utils
+ * @param a The first point.
+ * @param b The second point.
+ * @returns The distance between `a` and `b`.
+ */
+export function distance(a: Point, b: Point): number {
+  'worklet';
+  return Math.hypot(b.x - a.x, b.y - a.y);
+}
+
+/**
+ * Linearly interpolates between two points: `t = 0` returns `a`, `t = 1`
+ * returns `b`, values in between interpolate along the segment.
+ * @category Utils
+ * @param a The start point.
+ * @param b The end point.
+ * @param t The interpolation factor.
+ * @returns The interpolated point.
+ */
+export function interpolatePoint(a: Point, b: Point, t: number): Point {
+  'worklet';
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+}
+
+/**
  * Helper function to scale a 2D point based on resize mode and resolution
  * changes.
  * @category Utils

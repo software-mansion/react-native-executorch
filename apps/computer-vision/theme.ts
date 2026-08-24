@@ -22,6 +22,7 @@ export const theme = {
     textSecondary: '#000000',
     textMuted: '#666666',
     textPlaceholder: '#868e96',
+    overlayStroke: '#39FF14',
   },
   radius: {
     small: 8,

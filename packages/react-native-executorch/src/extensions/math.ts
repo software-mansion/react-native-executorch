@@ -49,6 +49,28 @@ export function argmax(src: Tensor, dst: Tensor, axis: number = -1): Tensor {
 }
 
 /**
+ * Reads one value per lane out of a float32 source tensor, at the positions
+ * given by an int32 index tensor. Pairs with {@link argmax}, whose output has
+ * exactly the shape this expects, so `argmax` then `gather` yields the maximum
+ * values alongside their indices.
+ * @category Typescript API
+ * @param src The input float32 source tensor. Shape [d1,...,dk,...,dn].
+ * @param indices The int32 index tensor, one index per lane. Shape
+ * [d1,...,1,...,dn].
+ * @param dst The pre-allocated float32 destination tensor. Same shape as
+ * `indices`.
+ * @param axis The dimension the indices point into. Defaults to -1 (last
+ * dimension).
+ * @returns The destination tensor containing the gathered values.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if an index falls
+ * outside the gathered axis.
+ */
+export function gather(src: Tensor, indices: Tensor, dst: Tensor, axis: number = -1): Tensor {
+  'worklet';
+  return rnexecutorchJsi.math.gather(src, indices, dst, axis);
+}
+
+/**
  * Applies the element-wise threshold step function on a float32 source tensor and
  * writes the result to a destination tensor.
  * @category Typescript API

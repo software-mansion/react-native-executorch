@@ -145,8 +145,8 @@ const FEATURE_MAP = {
   semanticSegmentation: { backends: ['xnnpack'], libs: ['opencv'] },
   // YOLO-seg xnnpack-only, rf_detr-seg/fastsam add coreml → union.
   instanceSegmentation: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
-  // CRAFT + CRNN — xnnpack only.
-  ocr: { backends: ['xnnpack'], libs: ['opencv'] },
+  // PP-OCRv6 (DBNet + SVTR) ships xnnpack, coreml and vulkan → union.
+  ocr: { backends: ['xnnpack', 'coreml', 'vulkan'], libs: ['opencv'] },
   verticalOCR: { backends: ['xnnpack'], libs: ['opencv'] },
   // All style-transfer presets ship xnnpack + coreml.
   styleTransfer: { backends: ['xnnpack', 'coreml'], libs: ['opencv'] },
