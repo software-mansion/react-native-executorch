@@ -33,8 +33,8 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.instanceSegmentation.RFDETR_NANO.XNNPACK_FP32,
   },
   {
-    label: 'RFDETR (CoreML INT8)',
-    value: models.instanceSegmentation.RFDETR_NANO.COREML_INT8,
+    label: 'RFDETR (CoreML FP16)',
+    value: models.instanceSegmentation.RFDETR_NANO.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
   {

@@ -23,8 +23,8 @@ const MODEL_OPTIONS: ModelOption[] = [
     value: models.objectDetection.RFDETR_NANO,
   },
   {
-    label: 'RF-DETR Nano (CoreML INT8)',
-    value: models.objectDetection.RFDETR_NANO.COREML_INT8,
+    label: 'RF-DETR Nano (CoreML FP16)',
+    value: models.objectDetection.RFDETR_NANO.COREML_FP16,
     disabled: Platform.OS !== 'ios',
   },
   {
