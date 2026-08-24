@@ -56,7 +56,7 @@ const MODELS = [
   },
   {
     name: 'Small English (MLX)',
-    config: models.speechToText.WHISPER.EN.SMALL.MLX_BF16,
+    config: models.speechToText.WHISPER.EN.SMALL.MLX_INT8,
     disabled: Platform.OS !== 'ios',
   },
   {
@@ -98,7 +98,7 @@ const MODELS = [
   },
   {
     name: 'Small Multilingual (MLX)',
-    config: models.speechToText.WHISPER.SMALL.MLX_BF16,
+    config: models.speechToText.WHISPER.SMALL.MLX_INT8,
     disabled: Platform.OS !== 'ios',
   },
 ];
