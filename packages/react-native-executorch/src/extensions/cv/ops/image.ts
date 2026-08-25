@@ -106,7 +106,6 @@ export type NormalizeOptions = {
  * Resizes an image tensor from a source dimension to a destination dimension.
  *
  * Supports various {@link ResizeMode} and {@link InterpolationMethod} options.
- * @category CV / Functions
  * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
  * (channels-last). Supports any numeric data type (e.g. `uint8`, `float32`).
  * @param dst The pre-allocated destination image tensor to write the resized

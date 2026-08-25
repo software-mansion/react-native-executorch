@@ -12,7 +12,7 @@ import { wrapAsync } from '../../../core/runtime';
 
 import { softmax } from '../../math';
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 import { RnExecuTorchError } from '../../../core/error';
 
 /**

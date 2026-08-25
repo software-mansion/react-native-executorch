@@ -11,7 +11,7 @@ import type { ImageBuffer } from '../../cv';
 import {
   createImagePreprocessor,
   type ImagePreprocessorOptions,
-} from '../../cv/tasks/preprocessing';
+} from '../../cv/utils/imagePreprocessor';
 
 import type { Modality, Prompt, MediaInput } from '../llmRunner';
 import type { ToolDefinition, ToolCall } from './toolCalling';

@@ -6,4 +6,4 @@
 export * from './image';
 export * from './ops';
 export * from './utils/paddleOcrUtils';
-export * from './tasks/preprocessing';
+export * from './utils/imagePreprocessor';

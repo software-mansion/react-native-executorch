@@ -39,7 +39,7 @@ import {
 } from '../ops/quad';
 import { argmax, gather } from '../../math';
 import { extractDbnetTextQuads } from '../utils/paddleOcrUtils';
-import { createImagePreprocessor } from './preprocessing';
+import { createImagePreprocessor } from '../utils/imagePreprocessor';
 
 /**
  * A single recognized text region.

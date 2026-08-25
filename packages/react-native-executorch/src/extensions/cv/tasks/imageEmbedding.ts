@@ -10,7 +10,7 @@ import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import type { ImageBuffer } from '../image';
-import { createImagePreprocessor, type ImagePreprocessorOptions } from './preprocessing';
+import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
 /**
  * Model configuration required to instantiate an image embedder task runner.

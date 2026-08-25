@@ -18,7 +18,7 @@
  * resource, re-create a disposed one). Everything else is a category that
  * exists so crash reporters can group failures, and the detail lives in the
  * message.
- * @category Core / Errors
+ * @category Core / Types
  */
 export const VALID_ERROR_CODES = [
   'LOAD_FAILED',
@@ -37,7 +37,7 @@ export const VALID_ERROR_CODES = [
  * Machine-readable classification of an {@link RnExecuTorchError}. Branch on
  * this rather than on the message, which is written for humans and can be
  * reworded in any release.
- * @category Core / Errors
+ * @category Core / Types
  */
 export type RnExecuTorchErrorCode = (typeof VALID_ERROR_CODES)[number];
 
@@ -53,7 +53,7 @@ export type RnExecuTorchErrorCode = (typeof VALID_ERROR_CODES)[number];
  * ```typescript
  * throw RnExecuTorchError('INVALID_ARGUMENT', 'Shape dimensions must be positive');
  * ```
- * @category Core / Errors
+ * @category Core / Types
  * @typeParam C The specific code, narrowed by {@link isRnExecuTorchError}.
  */
 export type RnExecuTorchError<C extends RnExecuTorchErrorCode = RnExecuTorchErrorCode> = Error & {
@@ -69,7 +69,7 @@ export type RnExecuTorchError<C extends RnExecuTorchErrorCode = RnExecuTorchErro
 
 /**
  * Creates an {@link RnExecuTorchError} carrying a machine-readable code.
- * @category Core / Errors
+ * @category Core / Functions
  * @typeParam C The specific error code.
  * @param code The classification to attach. See {@link RnExecuTorchErrorCode}.
  * @param message A human-readable description of the failure.
@@ -104,7 +104,7 @@ export function RnExecuTorchError<C extends RnExecuTorchErrorCode>(
  *
  * Duck-typed so it holds for errors that crossed a worklet or JSI boundary,
  * where class identity is gone.
- * @category Core / Errors
+ * @category Core / Functions
  * @param err The caught value.
  * @param code When given, also requires the error to carry exactly this code.
  * @returns Whether `err` is an `RnExecuTorchError` (of code `code`, if given).

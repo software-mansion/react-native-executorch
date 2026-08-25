@@ -20,7 +20,6 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Options for configuring the image preprocessor pipeline.
- * @category CV / Types
  */
 export type ImagePreprocessorOptions = {
   /** How the input image is resized to match the model's expected dimensions. */
@@ -35,7 +34,6 @@ export type ImagePreprocessorOptions = {
 
 /**
  * Image preprocessor runner for transforming image buffers into model input tensors.
- * @category CV / Types
  */
 export type ImagePreprocessor = {
   /**
@@ -64,7 +62,6 @@ export type ImagePreprocessor = {
  * normalize, and copy raw image buffers into target tensors matching model
  * input shapes. All intermediate scratch tensors are pre-allocated and safely
  * disposed of when calling `dispose()`.
- * @category CV / Functions
  * @param options Normalization scaling coefficients, interpolation algorithms, and
  * resize modes.
  * See {@link ImagePreprocessorOptions}.
@@ -102,7 +99,6 @@ export function createImagePreprocessor(
   const { resizeMode, interpolation, normalizeOpts, padValue } = options;
 
   const dispose = () => {
-    'worklet';
     tensors.forEach((t) => t.dispose());
   };
   const process = (input: ImageBuffer): Tensor => {
