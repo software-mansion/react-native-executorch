@@ -39,7 +39,12 @@ import {
   SUPERTONIC_FEMALE_4,
   SUPERTONIC_FEMALE_5,
 } from './tts/voices';
-import { SUPERTONIC_XNNPACK, SUPERTONIC_MLX } from './tts/models';
+import {
+  SUPERTONIC_XNNPACK,
+  SUPERTONIC_MLX,
+  KOKORO_STANDARD,
+  KOKORO_STANDARD_COREML,
+} from './tts/models';
 import {
   TextToSpeechModelConfig,
   TextToSpeechModelSources,
@@ -220,8 +225,19 @@ function pair<D extends { modelName: string }, Q extends { modelName: string }>(
 // don't share the `{ modelName: string }` shape of the rest of the registry,
 // and have no quant/backend axis. Expose them as a plain `() => Config`
 // accessor so the call style stays consistent (`models.text_to_speech.en_us.heart()`).
-function tts<C extends TextToSpeechModelConfig>(c: C): () => C {
-  return () => c;
+function tts<C extends TextToSpeechModelConfig>(
+  c: C
+): (opts?: { backend?: 'xnnpack' | 'coreml' }) => C {
+  return (opts) => {
+    if (opts?.backend !== 'coreml') return c;
+    if (c.model !== KOKORO_STANDARD) {
+      throw new Error(
+        'Core ML is only available for the standard Kokoro model; ' +
+          'the polish and german variants ship on XNNPACK only.'
+      );
+    }
+    return { ...c, model: KOKORO_STANDARD_COREML } as C;
+  };
 }
 
 type TTSBackendMap = Partial<Record<Backend, TextToSpeechModelSources>>;

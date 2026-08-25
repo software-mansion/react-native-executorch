@@ -3,9 +3,28 @@ import { URL_PREFIX, PREVIOUS_VERSION_TAG, VERSION_TAG } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
 const KOKORO_MODEL_ROOT = `${URL_PREFIX}-kokoro/${PREVIOUS_VERSION_TAG}/xnnpack`;
+const KOKORO_COREML_MODEL_ROOT = `${URL_PREFIX}-kokoro/${VERSION_TAG}/coreml`;
 const KOKORO_STANDARD_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/standard`;
+const KOKORO_COREML_STANDARD_MODEL_ROOT = `${KOKORO_COREML_MODEL_ROOT}/standard`;
 const KOKORO_POLISH_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/polish`;
 const KOKORO_GERMAN_MODEL_ROOT = `${KOKORO_MODEL_ROOT}/german`;
+
+/**
+ * The standard Kokoro instance with the synthesizer running on Core ML. iOS only.
+ *
+ * The synthesizer is the expensive half of Kokoro. On an iPhone 16 this build
+ * produces 7.4 s of audio in 627 ms, against 4741 ms for the XNNPACK one, at the
+ * cost of a one-time compile on the first call that is cached across launches.
+ * The duration predictor stays on XNNPACK, so this config mixes backends.
+ *
+ * Use {@link KOKORO_STANDARD} on Android.
+ * @category Models - Text to Speech
+ */
+export const KOKORO_STANDARD_COREML = {
+  modelName: 'kokoro' as const,
+  durationPredictorSource: `${KOKORO_STANDARD_MODEL_ROOT}/duration_predictor_std.pte`,
+  synthesizerSource: `${KOKORO_COREML_STANDARD_MODEL_ROOT}/synthesizer_coreml_fp32.pte`,
+};
 
 /**
  * A standard Kokoro instance which processes the text in batches of maximum 128 tokens.

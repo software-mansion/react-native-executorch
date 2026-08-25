@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Text,
   View,
@@ -81,17 +81,40 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 // (`() => TextToSpeechModelConfig`); call them to get the actual configs.
 const kokoroVoicesByLang = models.text_to_speech.kokoro as unknown as Record<
   string,
-  Record<string, () => TextToSpeechModelConfig>
+  Record<
+    string,
+    (opts?: { backend?: 'xnnpack' | 'coreml' }) => TextToSpeechModelConfig
+  >
 >;
 
-const KOKORO_VOICES: ModelOption<TextToSpeechModelConfig>[] = Object.entries(
-  kokoroVoicesByLang
-).flatMap(([lang, voices]) =>
-  Object.entries(voices).map(([name, factory]) => ({
-    label: `${KOKORO_LANG_LABELS[lang] ?? lang} · ${capitalize(name)}`,
-    value: factory(),
-  }))
-);
+type KokoroBackend = 'xnnpack' | 'coreml';
+
+// Core ML only covers the standard model, so the polish and german voices stay
+// on XNNPACK and their factories throw if asked for Core ML.
+const kokoroVoices = (
+  backend: KokoroBackend
+): ModelOption<TextToSpeechModelConfig>[] =>
+  Object.entries(kokoroVoicesByLang).flatMap(([lang, voices]) =>
+    Object.entries(voices).map(([name, factory]) => {
+      let value: TextToSpeechModelConfig;
+      try {
+        value = factory({ backend });
+      } catch {
+        value = factory();
+      }
+      return {
+        label: `${KOKORO_LANG_LABELS[lang] ?? lang} · ${capitalize(name)}`,
+        value,
+      };
+    })
+  );
+
+const KOKORO_VOICES = kokoroVoices('xnnpack');
+
+const KOKORO_BACKENDS: ModelOption<KokoroBackend>[] = [
+  { label: 'XNNPACK', value: 'xnnpack' },
+  { label: 'Core ML (iOS)', value: 'coreml' },
+];
 
 type TtsModelType = 'supertonic' | 'kokoro';
 
@@ -147,6 +170,21 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const [selectedLang, setSelectedLang] =
     useState<TextToSpeechSupertonicLanguage>('en');
   const [totalSteps, setTotalSteps] = useState<number>(8);
+  const [kokoroBackend, setKokoroBackend] = useState<KokoroBackend>('xnnpack');
+
+  const kokoroVoiceOptions = useMemo(
+    () => kokoroVoices(kokoroBackend),
+    [kokoroBackend]
+  );
+
+  const handleSelectKokoroBackend = (backend: KokoroBackend) => {
+    if (backend === kokoroBackend) return;
+    const index = kokoroVoices(kokoroBackend).findIndex(
+      (o) => o.value === selectedSpeaker
+    );
+    setKokoroBackend(backend);
+    if (index >= 0) setSelectedSpeaker(kokoroVoices(backend)[index]!.value);
+  };
 
   const model = useTextToSpeech(selectedSpeaker);
 
@@ -306,12 +344,22 @@ export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
             <ModelPicker
               label="Voice"
               models={
-                selectedTtsModel === 'supertonic' ? VOICES : KOKORO_VOICES
+                selectedTtsModel === 'supertonic' ? VOICES : kokoroVoiceOptions
               }
               selectedModel={selectedSpeaker}
               disabled={model.isGenerating}
               onSelect={(m) => setSelectedSpeaker(m)}
             />
+
+            {selectedTtsModel === 'kokoro' && Platform.OS === 'ios' && (
+              <ModelPicker
+                label="Synthesizer backend"
+                models={KOKORO_BACKENDS}
+                selectedModel={kokoroBackend}
+                disabled={model.isGenerating || isPlaying}
+                onSelect={handleSelectKokoroBackend}
+              />
+            )}
 
             {selectedTtsModel === 'supertonic' && (
               <>
