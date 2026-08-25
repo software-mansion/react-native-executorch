@@ -16,14 +16,14 @@
     "CV / Tasks",
     "CV / Types",
     "CV / Constants",
+    "LLM / Tasks",
+    "LLM / Types",
     "NLP / Tasks",
     "NLP / Types",
     "NLP / Constants",
     "Speech / Tasks",
     "Speech / Types",
     "Speech / Constants",
-    "LLM / Tasks",
-    "LLM / Types",
     "*"
   ]
 }

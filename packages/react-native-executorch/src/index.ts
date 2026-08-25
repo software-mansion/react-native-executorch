@@ -20,15 +20,15 @@
  *
  * - **Domain Utilities (`cv`, `llm`, `speech`, `nlp`, `math`)**:
  *   Domain-specific low-level tools:
- *   - `cv`: Image transformations (resizing, normalization, layout conversions),
- *     bounding box, quadrilateral, and keypoint helpers.
- *   - `llm`: Token-by-token text generation runner, chat template formatting,
- *     and function calling helpers.
- *   - `nlp`: Fast native HuggingFace tokenizers and privacy filter utilities.
- *   - `speech`: Text-to-speech phonemizers, sentence splitters, voice activity
- *     detection, and audio utilities.
- *   - `math`: Native C++ tensor operations (softmax, sigmoid, argmax, linear,
+ *   - {@link math}: Native C++ tensor operations (softmax, sigmoid, argmax, linear,
  *     activations).
+ *   - {@link cv}: Image transformations (resizing, normalization, layout conversions),
+ *     bounding box, quadrilateral, and keypoint helpers.
+ *   - {@link llm}: Token-by-token text generation runner, chat template formatting,
+ *     and function calling helpers.
+ *   - {@link nlp}: Fast native HuggingFace tokenizers and privacy filter utilities.
+ *   - {@link speech}: Text-to-speech phonemizers, sentence splitters, voice activity
+ *     detection, and audio utilities.
  *
  * - **Model Registry ({@link models})**:
  *   A curated catalog of verified, hosted on-device AI models across LLMs,
