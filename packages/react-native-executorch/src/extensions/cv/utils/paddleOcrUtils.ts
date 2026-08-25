@@ -1,6 +1,7 @@
-// Native decode helper for the PP-OCRv6 pipeline. Wraps a fused C++ op: tracing
-// contours in TypeScript would mean pulling the whole detector output across the
-// bridge per call.
+/**
+ * DBNet contour tracing and text quad extraction utilities for PP-OCRv6.
+ * @module CV/Utils/PaddleOcrUtils
+ */
 
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
@@ -51,8 +52,12 @@ export type DbnetDecodeOptions = {
  * survivors back to their unshrunk size.
  * @category Typescript API
  * @param probabilityMap The `detect` output, shape `[1, 1, H, W]`, post-sigmoid.
- * @param options Decode thresholds.
+ * @param options Decode thresholds. See {@link DbnetDecodeOptions}.
  * @returns The decoded quads, in detector-input pixel space and arbitrary order.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shape or
+ * data type is invalid, `RESOURCE_BUSY` if the tensor is in use,
+ * `RESOURCE_DISPOSED` if the tensor was disposed, or `EXECUTION_FAILED` if
+ * native decode returns invalid output.
  */
 export function extractDbnetTextQuads(probabilityMap: Tensor, options: DbnetDecodeOptions): Quad[] {
   'worklet';

@@ -6,20 +6,22 @@
  *
  * - **React Hooks (`use<Task>`)**:
  *   Declarative hooks (e.g. {@link useClassifier}, {@link useLLMChatSession},
- *   {@link useSpeechToText}) designed for UI components. They manage
- *   downloading remote model assets with progress tracking, compilation, and
- *   automatic native memory disposal on unmount.
+ *   {@link useSpeechToText}, {@link useOpticalCharacterRecognizer}) designed
+ *   for UI components. They manage downloading remote model assets with
+ *   progress tracking, compilation, and automatic native memory disposal on
+ *   unmount.
  *
  * - **Task APIs (`create<Task>`)**:
  *   Imperative, promise-based pipelines (e.g. {@link createClassifier},
- *   {@link createLLMChatSession}, {@link createWhisperSpeechToText}) with
- *   built-in preprocessing, postprocessing, and tokenizers. Ideal for
- *   background services, worklets, or apps needing manual lifecycle control.
+ *   {@link createLLMChatSession}, {@link createPaddleOcr},
+ *   {@link createWhisperSpeechToText}) with built-in preprocessing,
+ *   postprocessing, and tokenizers. Ideal for background services, worklets, or
+ *   apps needing manual lifecycle control.
  *
  * - **Domain Utilities (`cv`, `llm`, `speech`, `nlp`, `math`)**:
  *   Domain-specific low-level tools:
  *   - `cv`: Image transformations (resizing, normalization, layout conversions),
- *     bounding box and keypoint helpers.
+ *     bounding box, quadrilateral, and keypoint helpers.
  *   - `llm`: Token-by-token text generation runner, chat template formatting,
  *     and function calling helpers.
  *   - `nlp`: Fast native HuggingFace tokenizers and privacy filter utilities.

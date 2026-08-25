@@ -2308,6 +2308,9 @@ export const models = {
      * On Android, `VULKAN` is the faster choice.
      */
     PADDLE: {
+      /**
+       * PP-OCRv6 Small multilingual OCR model.
+       */
       PPOCRV6_SMALL: {
         ...PPOCRV6_SMALL_XNNPACK_INT8,
         XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,

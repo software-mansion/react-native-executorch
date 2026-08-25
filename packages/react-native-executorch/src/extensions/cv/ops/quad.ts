@@ -1,3 +1,9 @@
+/**
+ * Quadrilateral geometry, bounding box extraction, and image rectification
+ * utilities.
+ * @module CV/Ops/Quad
+ */
+
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
@@ -22,6 +28,8 @@ export type Quad = readonly [Point, Point, Point, Point];
  * @param points The points to enclose.
  * @param format The coordinate format of the returned box.
  * @returns The enclosing {@link BoundingBox} in `format`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the bounding box
+ * format is unsupported.
  */
 export function boundingBoxOfPoints<F extends BoxFormat>(
   points: readonly Point[],
@@ -104,23 +112,28 @@ export function quadSize(ordered: Quad): { width: number; height: number } {
 }
 
 /**
+ * Configuration options for scaling quad coordinates.
+ * @category Types
+ */
+export type ScaleQuadOptions = {
+  /** The source bounds (e.g. model input dimensions). */
+  readonly from: { readonly width: number; readonly height: number };
+  /** The destination bounds (e.g. original image dimensions). */
+  readonly to: { readonly width: number; readonly height: number };
+  /** The mode used to resize the image (excluding `'crop'`). */
+  readonly resizeMode?: Exclude<ResizeMode, 'crop'>;
+};
+
+/**
  * Rescales a quad from one frame to another, clamping the result to the target
  * bounds. The counterpart of {@link scaleBox} for quads.
  * @category Typescript API
  * @param quad The quad, expressed in the `from` frame.
- * @param options `from` is the frame the quad is expressed in, `to` the frame to
- * express it in, and `resizeMode` how the two were fitted (default
- * `'letterbox'`).
+ * @param options Options detailing the scaling factors and resize mode.
+ * See {@link ScaleQuadOptions}.
  * @returns The four corners in `to` pixels.
  */
-export function scaleQuad(
-  quad: Quad,
-  options: {
-    readonly from: { readonly width: number; readonly height: number };
-    readonly to: { readonly width: number; readonly height: number };
-    readonly resizeMode?: Exclude<ResizeMode, 'crop'>;
-  }
-): Quad {
+export function scaleQuad(quad: Quad, options: ScaleQuadOptions): Quad {
   'worklet';
   const { from, to, resizeMode } = options;
   const map = (p: Point): Point => {
@@ -153,8 +166,11 @@ export type RectifyQuadOptions = {
  * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
  * the same channel count as `src`. Must not alias `src`.
  * @param quad The region corners (TL, TR, BR, BL) in `src` pixels.
- * @param options Content width, alignment, and padding.
+ * @param options Content width, alignment, and padding. See {@link RectifyQuadOptions}.
  * @returns The destination tensor `dst`.
+ * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if tensor shapes,
+ * data types, or quadrilateral coordinates are invalid, `RESOURCE_BUSY` if a
+ * tensor is in use, or `RESOURCE_DISPOSED` if either tensor was disposed.
  */
 export function rectifyQuad(
   src: Tensor,

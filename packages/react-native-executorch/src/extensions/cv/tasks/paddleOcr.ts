@@ -1,7 +1,8 @@
-// PP-OCRv6: a DBNet text detector and an SVTR recognizer fused into one PTE.
-// One pass locates every text line on the page, warps each to the recognizer
-// canvas and reads it. Worklet source order matters here: a referenced worklet
-// must be defined above its callers.
+/**
+ * PP-OCRv6 optical character recognition (DBNet text detection + SVTR text
+ * recognition).
+ * @module CV/Tasks/PaddleOcr
+ */
 
 import type { WorkletRuntime } from 'react-native-worklets';
 import RNBlobUtil from 'react-native-blob-util';
@@ -68,6 +69,18 @@ export type PaddleOcrModelOptions = {
    * it.
    */
   readonly defaultConfidenceThreshold: number;
+};
+
+/**
+ * Optional configuration parameters for optical character recognition inference.
+ * @category Types
+ */
+export type RecognizeCharactersOptions = {
+  /**
+   * Minimum confidence threshold to retain recognized text regions, in `[0, 1]`.
+   * Overrides the model's `defaultConfidenceThreshold` for this call.
+   */
+  readonly confidenceThreshold?: number;
 };
 
 /**
@@ -342,13 +355,14 @@ function greedyCtcDecode(
  * warps each to the recognizer canvas and reads it, returning the lines in
  * reading order.
  * @category Typescript API
- * @param config Model path, charset path, and run options.
+ * @param config Model path, charset path, and run options. See {@link PaddleOcrModel}.
  * @param runtime Optional worklet runtime thread.
  * @returns A promise resolving to an object containing recognition and disposal
  * controls.
- * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if the loaded model
- * does not match the PP-OCRv6 detect/recognize contract, or if the charset does
- * not match the recognizer's vocabulary.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or charset
+ * fails to load, `SCHEMA_MISMATCH` if the loaded model does not match the
+ * PP-OCRv6 detect/recognize contract, or if the charset does not match the
+ * recognizer's vocabulary.
  */
 export async function createPaddleOcr(
   config: PaddleOcrModel,
@@ -362,14 +376,13 @@ export async function createPaddleOcr(
   /**
    * Detects and recognizes every text line in the given image.
    * @param input The input image buffer.
-   * @param options Per-call overrides. `confidenceThreshold` replaces the
-   * model's `defaultConfidenceThreshold` for this call.
+   * @param options Per-call overrides. See {@link RecognizeCharactersOptions}.
    * @returns A promise resolving to the recognized lines in reading order
    * (leftmost column top to bottom, then the next column).
    */
   recognizeCharacters: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
+    options?: RecognizeCharactersOptions
   ) => Promise<OcrDetection[]>;
 
   /**
@@ -378,7 +391,7 @@ export async function createPaddleOcr(
    */
   recognizeCharactersWorklet: (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
+    options?: RecognizeCharactersOptions
   ) => OcrDetection[];
 }> {
   const { modelPath, charsetPath, modelOpts } = config;
@@ -430,7 +443,7 @@ export async function createPaddleOcr(
 
   const recognizeCharactersWorklet = (
     input: ImageBuffer,
-    options?: { confidenceThreshold?: number }
+    options?: RecognizeCharactersOptions
   ): OcrDetection[] => {
     'worklet';
     const confidenceThreshold =
