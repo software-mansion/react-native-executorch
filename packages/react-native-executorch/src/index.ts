@@ -98,8 +98,6 @@ export * from './core/error';
 export * from './core/model';
 export * from './core/tensor';
 export * from './core/runtime';
-
-export type * from './core/schema';
 /**
  * Model schema validation and dimension constraints.
  * @category Modules

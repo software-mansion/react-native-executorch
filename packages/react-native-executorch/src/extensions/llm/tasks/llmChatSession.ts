@@ -20,31 +20,11 @@ import {
 import { parseTokenizerConfig } from '../utils/tokenizerConfig';
 import {
   createChatPreprocessor,
-  type ChatMediaInput,
   type ChatMessageContent,
   type ChatMessage,
-  type LLMImagePreprocessorConfig,
-  type LLMAudioPreprocessorConfig,
   type LLMMediaPreprocessorConfig,
 } from '../utils/chatPreprocessor';
-import type { ToolDefinition, ToolCall, ToolParser, ToolParserResult } from '../utils/toolCalling';
-
-export type {
-  LLMKVCacheState,
-  LLMGenerationConfig,
-  LLMGenerationStats,
-  Modality,
-  ChatMediaInput,
-  ChatMessageContent,
-  ChatMessage,
-  LLMImagePreprocessorConfig,
-  LLMAudioPreprocessorConfig,
-  LLMMediaPreprocessorConfig,
-  ToolDefinition,
-  ToolCall,
-  ToolParser,
-  ToolParserResult,
-};
+import type { ToolDefinition, ToolParser } from '../utils/toolCalling';
 
 /**
  * Model configuration required to instantiate an LLM chat session.

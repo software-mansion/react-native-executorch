@@ -3,8 +3,8 @@ import { useResourceDownload, type ResourceOptions } from './useResourceDownload
 import {
   createKeypointDetector,
   type KeypointDetectorModel,
-  type BoxFormat,
 } from '../extensions/cv/tasks/keypointDetection';
+import type { BoxFormat } from '../extensions/cv/ops/boxes';
 
 /**
  * React hook to load and run a keypoint detection model.

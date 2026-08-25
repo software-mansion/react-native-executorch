@@ -3,11 +3,10 @@ import { Platform, View, Text, StyleSheet, ScrollView, TextInput } from 'react-n
 import {
   useTextToSpeech,
   models,
+  speech,
   SUPERTONIC_SAMPLE_RATE,
-  SUPERTONIC_SUPPORTED_LANGUAGES,
   SUPERTONIC_DEFAULT_VOICE_NAMES,
   type SupertonicDefaultVoiceName,
-  type SupertonicLanguage,
 } from 'react-native-executorch';
 import { AudioContext, type AudioBufferQueueSourceNode } from 'react-native-audio-api';
 
@@ -30,7 +29,7 @@ const VOICE_OPTIONS = SUPERTONIC_DEFAULT_VOICE_NAMES.map((name) => ({
   value: name as SupertonicDefaultVoiceName,
 }));
 
-const LANGUAGE_OPTIONS = SUPERTONIC_SUPPORTED_LANGUAGES.map((lang) => ({
+const LANGUAGE_OPTIONS = speech.SUPERTONIC_SUPPORTED_LANGUAGES.map((lang) => ({
   label: lang,
   value: lang,
 }));
@@ -60,7 +59,7 @@ function TTSContent() {
   const [text, setText] = useState(SAMPLE_TEXT);
   const [selectedModel, setSelectedModel] = useState<'XNNPACK_FP32' | 'MLX_FP32'>('XNNPACK_FP32');
   const [selectedVoice, setSelectedVoice] = useState<SupertonicDefaultVoiceName>('F1');
-  const [selectedLang, setSelectedLang] = useState<SupertonicLanguage>('en');
+  const [selectedLang, setSelectedLang] = useState<speech.SupertonicLanguage>('en');
   const [speed, setSpeed] = useState(1.05);
   const [totalSteps, setTotalSteps] = useState(8);
   const [isSynthesizing, setIsSynthesizing] = useState(false);

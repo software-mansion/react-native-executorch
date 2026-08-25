@@ -3,8 +3,8 @@ import { useResourceDownload, type ResourceOptions } from './useResourceDownload
 import {
   createObjectDetector,
   type ObjectDetectorModel,
-  type BoxFormat,
 } from '../extensions/cv/tasks/objectDetection';
+import type { BoxFormat } from '../extensions/cv/ops/boxes';
 
 /**
  * React hook to load and run an object detection model.

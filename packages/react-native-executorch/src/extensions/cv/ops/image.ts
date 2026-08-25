@@ -12,7 +12,6 @@ import type { ImageFormat } from '../image';
 
 /**
  * Supported color conversion code presets (similar to OpenCV).
- * @category CV / Types
  */
 export type ColorConversionCode =
   | 'RGBA2RGB'
@@ -67,19 +66,16 @@ export const FORMAT_CHANNELS: Record<ImageFormat, number> = {
 
 /**
  * Modes for resizing an image tensor to match target dimensions.
- * @category CV / Types
  */
 export type ResizeMode = 'stretch' | 'letterbox' | 'crop';
 
 /**
  * Interpolation algorithms used during image resizing.
- * @category CV / Types
  */
 export type InterpolationMethod = 'nearest' | 'area' | 'cubic' | 'lanczos' | 'linear';
 
 /**
  * Configuration options for image resize operations.
- * @category CV / Types
  */
 export type ResizeOptions = {
   /** How the image is resized (stretch, letterbox, or crop). */
@@ -92,7 +88,6 @@ export type ResizeOptions = {
 
 /**
  * Configuration options for image tensor normalization.
- * @category CV / Types
  */
 export type NormalizeOptions = {
   /**
@@ -140,7 +135,6 @@ export function resize(src: Tensor, dst: Tensor, options?: ResizeOptions): Tenso
 /**
  * Converts the color space of an image tensor using a specified color
  * conversion code.
- * @category CV / Functions
  * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
  * (channels-last). Supports any numeric data type.
  * @param dst The pre-allocated destination image tensor to write the converted
@@ -165,7 +159,6 @@ export function cvtColor(src: Tensor, dst: Tensor, code: ColorConversionCode): T
  * (Channel, Height, Width).
  *
  * Commonly required for PyTorch Edge models which expect channels-first inputs.
- * @category CV / Functions
  * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
  * (channels-last). Supports any numeric data type.
  * @param dst The pre-allocated destination image tensor in CHW layout. Expected
@@ -187,7 +180,6 @@ export function toChannelsFirst(src: Tensor, dst: Tensor): Tensor {
  *
  * Useful for post-processing model outputs back into channels-last layouts for
  * rendering or display.
- * @category CV / Functions
  * @param src The source image tensor in CHW layout. Expected shape `[C, H, W]`
  * (channels-first). Supports any numeric data type.
  * @param dst The pre-allocated destination image tensor in HWC layout. Expected
@@ -209,7 +201,6 @@ export function toChannelsLast(src: Tensor, dst: Tensor): Tensor {
  * Computes: `dst[c,h,w] = src[c,h,w] * alpha[c] + beta[c]`. Can normalize
  * uniformly or channel-wise using array options. The result is cast to `dst`
  * tensor's dtype.
- * @category CV / Functions
  * @param src The source image tensor in CHW layout. Expected shape `[C, H, W]`
  * (channels-first). Supports any numeric data type (typically `uint8` or
  * `float32`).
@@ -242,7 +233,6 @@ export function normalize(src: Tensor, dst: Tensor, options?: NormalizeOptions):
  * This operation iterates over each index/class ID in the source tensor, looks
  * up its corresponding RGBA color in the provided colormap palette, and writes
  * it to the destination tensor.
- * @category CV / Functions
  * @param src The source index/mask image tensor. Expected shape `[H, W, 1]` in
  * HWC layout with data type `int32` containing class indices.
  * @param dst The pre-allocated destination image tensor to write the mapped

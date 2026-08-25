@@ -9,14 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import {
-  usePrivacyFilter,
-  models,
-  piiSegments,
-  type PiiEntity,
-  type PiiSegment,
-  type PrivacyFilterModel,
-} from 'react-native-executorch';
+import { usePrivacyFilter, models, nlp, type PrivacyFilterModel } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelStatus } from '../../components/ModelStatus';
 import { Button } from '../../components/Button';
@@ -68,14 +61,14 @@ function PrivacyFilterContent() {
   const { isReady, downloadProgress, error, detectPii } = usePrivacyFilter(active.value);
 
   const [text, setText] = useState(active.sample);
-  const [entities, setEntities] = useState<PiiEntity[] | null>(null);
+  const [entities, setEntities] = useState<nlp.PiiEntity[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
 
   const ready = isReady && !!detectPii;
-  const segments: PiiSegment[] | null = useMemo(
-    () => (entities ? piiSegments(text, entities) : null),
+  const segments: nlp.PiiSegment[] | null = useMemo(
+    () => (entities ? nlp.piiSegments(text, entities) : null),
     [text, entities]
   );
 

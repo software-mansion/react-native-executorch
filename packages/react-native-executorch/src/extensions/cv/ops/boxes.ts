@@ -10,7 +10,6 @@ import { scalePoint } from './points';
 
 /**
  * Mapping of bounding box formats to their coordinate representations.
- * @category CV / Types
  */
 export type BoxMap = Readonly<{
   xyxy: Readonly<{ xmin: number; ymin: number; xmax: number; ymax: number }>;
@@ -20,13 +19,11 @@ export type BoxMap = Readonly<{
 
 /**
  * The formats of bounding boxes.
- * @category CV / Types
  */
 export type BoxFormat = keyof BoxMap;
 
 /**
  * Representation of a bounding box under a specific format.
- * @category CV / Types
  */
 export type BoundingBox<F extends BoxFormat> = F extends any
   ? { readonly format: F } & BoxMap[F]
@@ -34,7 +31,6 @@ export type BoundingBox<F extends BoxFormat> = F extends any
 
 /**
  * Configuration options for scaling bounding box coordinates.
- * @category CV / Types
  */
 export type ScaleBoxOptions = {
   /** The source bounds (e.g. model input dimensions). */
@@ -48,7 +44,6 @@ export type ScaleBoxOptions = {
 /**
  * Decodes bounding box coordinates from a 4-tuple into a structured BoundingBox
  * object.
- * @category CV / Functions
  * @typeParam F Bounding box coordinate format.
  * @param tuple A 4-tuple array containing coordinates.
  * @param format The coordinate format to decode into.
@@ -72,7 +67,6 @@ export function decodeBox<F extends BoxFormat>(
 
 /**
  * Scales bounding box coordinates based on scaling options and resize modes.
- * @category CV / Functions
  * @typeParam F Bounding box coordinate format.
  * @param box The original BoundingBox.
  * @param options Options defining dimensions and resize modes.
@@ -138,7 +132,6 @@ export function scaleBox<F extends BoxFormat>(
 
 /**
  * Options for Non-Maximum Suppression (NMS).
- * @category CV / Types
  */
 export type NmsOptions = {
   /** How bounding box coordinates are interpreted {@link BoxFormat}. */
@@ -157,7 +150,6 @@ export type NmsOptions = {
 /**
  * Executes Non-Maximum Suppression (NMS) on bounding boxes and confidence
  * scores.
- * @category CV / Functions
  * @param boxes Bounding boxes coordinate tensor. Expected shape `[N, 4]` and
  * data type `float32`.
  * @param scores Bounding boxes confidence scores tensor. Expected shape `[N]`
@@ -197,7 +189,6 @@ export function nms(boxes: Tensor, scores: Tensor, options: NmsOptions): number[
  * Note: This operation does not change the image tensor dimensions (it does not crop
  * the shape). Instead, it copies the elements within the box coordinates from
  * `src` to `dst`, and sets all elements outside the box to `0`.
- * @category CV / Functions
  * @param src The source image tensor in HWC layout. Expected shape `[H, W, C]`
  * (channels-last). Supports any numeric data type.
  * @param dst The pre-allocated destination image tensor to write masked values to.

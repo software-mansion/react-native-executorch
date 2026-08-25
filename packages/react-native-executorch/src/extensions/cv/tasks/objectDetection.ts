@@ -16,8 +16,6 @@ import { createImagePreprocessor, type ImagePreprocessorOptions } from './prepro
 import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/boxes';
 import { RnExecuTorchError } from '../../../core/error';
 
-export type { BoxFormat };
-
 /**
  * Options for configuring an object detector preprocessor, label vocabulary,
  * and detection thresholds.

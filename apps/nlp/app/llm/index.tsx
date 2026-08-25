@@ -15,14 +15,7 @@ import {
 import { Skia } from '@shopify/react-native-skia';
 import RNBlobUtil from 'react-native-blob-util';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  useLLMChatSession,
-  type LLMGenerationStats,
-  type LLMKVCacheState,
-  type ToolCall,
-  type ChatMessage,
-  type cv,
-} from 'react-native-executorch';
+import { useLLMChatSession, type llm, type cv } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ModelPicker, type ModelOption } from '../../components/ModelPicker';
 import { Button } from '../../components/Button';
@@ -33,11 +26,11 @@ type Turn = {
   role: 'user' | 'assistant' | 'tool';
   content: string;
   imageUri?: string;
-  stats?: LLMGenerationStats;
-  toolCalls?: readonly ToolCall[];
+  stats?: llm.LLMGenerationStats;
+  toolCalls?: readonly llm.ToolCall[];
 };
 
-function formatStats(stats: LLMGenerationStats): string {
+function formatStats(stats: llm.LLMGenerationStats): string {
   const decodeMs = stats.inferenceEndMs - stats.firstTokenMs;
   const tokensPerSec = decodeMs > 0 ? (stats.numGeneratedTokens / decodeMs) * 1000 : 0;
   const decodeTtftMs = stats.firstTokenMs - stats.inferenceStartMs;
@@ -70,7 +63,7 @@ function LLMContent() {
     []
   );
 
-  const initialMessages: ChatMessage[] = useMemo(
+  const initialMessages: llm.ChatMessage[] = useMemo(
     () => (activeModel.systemPrompt ? [{ role: 'system', content: activeModel.systemPrompt }] : []),
     [activeModel]
   );
@@ -88,7 +81,7 @@ function LLMContent() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [streamingResponse, setStreamingResponse] = useState<string | null>(null);
 
-  let kvCacheState: LLMKVCacheState | null = null;
+  let kvCacheState: llm.LLMKVCacheState | null = null;
   if (isReady && getKVCacheState) {
     try {
       kvCacheState = getKVCacheState();

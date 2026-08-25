@@ -17,8 +17,6 @@ import type { ResizeMode } from '../ops/image';
 import { scalePoint, type Point } from '../ops/points';
 import { nms, type BoundingBox, type BoxFormat, decodeBox, scaleBox } from '../ops/boxes';
 
-export type { BoxFormat };
-
 /**
  * Options for configuring a keypoint detector runner.
  * @category CV / Types

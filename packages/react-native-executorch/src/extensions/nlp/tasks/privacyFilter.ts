@@ -17,11 +17,9 @@ import {
   buildGrammar,
   computeCharOffsets,
   extractSpans,
-  piiSegments,
   viterbiDecode,
   type PiiEntity,
   type PiiEntityType,
-  type PiiSegment,
   type ViterbiBiases,
 } from '../utils/privacyFilterUtils';
 
@@ -67,9 +65,6 @@ export type PrivacyFilterModel<Label extends string = string> = {
    */
   readonly modelOpts: PrivacyFilterOptions<Label>;
 };
-
-export { piiSegments };
-export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
 
 /**
  * Privacy filter task runner for detecting PII entities in text.

@@ -24,8 +24,6 @@ import {
 } from '../ops/boxes';
 import { RnExecuTorchError } from '../../../core/error';
 
-export type { BoxFormat };
-
 /**
  * Options for configuring an instance segmenter preprocessor, label
  * vocabulary, and threshold parameters.

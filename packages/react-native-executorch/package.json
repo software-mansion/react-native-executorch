@@ -13,6 +13,36 @@
       "types": "./lib/typescript/src/index.d.ts",
       "default": "./lib/module/index.js"
     },
+    "./cv": {
+      "source": "./src/extensions/cv/index.ts",
+      "types": "./lib/typescript/src/extensions/cv/index.d.ts",
+      "default": "./lib/module/extensions/cv/index.js"
+    },
+    "./llm": {
+      "source": "./src/extensions/llm/index.ts",
+      "types": "./lib/typescript/src/extensions/llm/index.d.ts",
+      "default": "./lib/module/extensions/llm/index.js"
+    },
+    "./nlp": {
+      "source": "./src/extensions/nlp/index.ts",
+      "types": "./lib/typescript/src/extensions/nlp/index.d.ts",
+      "default": "./lib/module/extensions/nlp/index.js"
+    },
+    "./speech": {
+      "source": "./src/extensions/speech/index.ts",
+      "types": "./lib/typescript/src/extensions/speech/index.d.ts",
+      "default": "./lib/module/extensions/speech/index.js"
+    },
+    "./math": {
+      "source": "./src/extensions/math.ts",
+      "types": "./lib/typescript/src/extensions/math.d.ts",
+      "default": "./lib/module/extensions/math.js"
+    },
+    "./schema": {
+      "source": "./src/core/schema.ts",
+      "types": "./lib/typescript/src/core/schema.d.ts",
+      "default": "./lib/module/core/schema.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

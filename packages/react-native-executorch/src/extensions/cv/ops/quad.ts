@@ -15,14 +15,12 @@ import type { ResizeMode } from './image';
  * Helpers that need them as top-left, top-right, bottom-right, bottom-left say
  * so on their `ordered` parameter; pass the quad through {@link orderQuad}
  * first. Never assume a `Quad` you were handed is already ordered.
- * @category CV / Types
  */
 export type Quad = readonly [Point, Point, Point, Point];
 
 /**
  * Computes the axis-aligned bounding box enclosing a set of points, in the
  * requested box format. Returns a zero box for empty input.
- * @category CV / Functions
  * @typeParam F Bounding box coordinate format.
  * @param points The points to enclose.
  * @param format The coordinate format of the returned box.
@@ -73,7 +71,6 @@ export function boundingBoxOfPoints<F extends BoxFormat>(
  * Reorders a quad's corners into the top-left, top-right, bottom-right,
  * bottom-left order the rest of this module assumes, using their
  * coordinate-sum and coordinate-difference extremes.
- * @category CV / Functions
  * @param quad The quad whose corners may be in any order.
  * @returns The same corners, ordered TL, TR, BR, BL.
  */
@@ -98,7 +95,6 @@ export function orderQuad(quad: Quad): Quad {
 /**
  * Computes the width and height (in pixels) of an ordered TL,TR,BR,BL quad, taking
  * the longer of each pair of opposite sides.
- * @category CV / Functions
  * @param ordered The quad corners ordered TL, TR, BR, BL.
  * @returns The quad's width and height in pixels.
  */
@@ -112,7 +108,6 @@ export function quadSize(ordered: Quad): { width: number; height: number } {
 
 /**
  * Configuration options for scaling quad coordinates.
- * @category CV / Types
  */
 export type ScaleQuadOptions = {
   /** The source bounds (e.g. model input dimensions). */
@@ -126,7 +121,6 @@ export type ScaleQuadOptions = {
 /**
  * Rescales a quad from one frame to another, clamping the result to the target
  * bounds. The counterpart of {@link scaleBox} for quads.
- * @category CV / Functions
  * @param quad The quad, expressed in the `from` frame.
  * @param options Options detailing the scaling factors and resize mode.
  * See {@link ScaleQuadOptions}.
@@ -144,7 +138,6 @@ export function scaleQuad(quad: Quad, options: ScaleQuadOptions): Quad {
 
 /**
  * Options for {@link rectifyQuad}.
- * @category CV / Types
  */
 export type RectifyQuadOptions = {
   /** Width in px the rectified content occupies inside the destination canvas. */
@@ -160,7 +153,6 @@ export type RectifyQuadOptions = {
  * `dst`: perspective crop, resize to the canvas height, and pad, in one native
  * pass. An axis-aligned bbox is a 4-corner quad, so pass its corners to
  * rectify a box.
- * @category CV / Functions
  * @param src The source image, `uint8` `[H, W, C]`.
  * @param dst The pre-allocated destination canvas, `uint8` `[H', W', C]`, with
  * the same channel count as `src`. Must not alias `src`.

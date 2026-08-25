@@ -17,14 +17,11 @@ import {
   formatChunk,
   encodeText,
   parseVoiceStyle,
-  SUPERTONIC_SUPPORTED_LANGUAGES,
   type SupertonicVoiceStyle,
   type SupertonicLanguage,
 } from '../utils/supertonicUtils';
 import { partition } from '../utils/textPartitioner';
 import { RnExecuTorchError } from '../../../core/error';
-
-export { SUPERTONIC_SUPPORTED_LANGUAGES, type SupertonicVoiceStyle, type SupertonicLanguage };
 
 /**
  * Supertonic audio sampling rate in Hz (44100).

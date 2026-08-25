@@ -10,13 +10,13 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { inspectModel, type ConcreteDim, type ParamSpec } from 'react-native-executorch';
+import { inspectModel, type schema } from 'react-native-executorch';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { ColorPalette } from '../../theme';
 
 type InspectionResult = Awaited<ReturnType<typeof inspectModel>>;
 
-const formatDim = (dim: ConcreteDim): string => {
+const formatDim = (dim: schema.ConcreteDim): string => {
   switch (dim.kind) {
     case 'constant':
       return `${dim.value}`;
@@ -55,7 +55,7 @@ function InspectContent() {
   };
 
   const renderParamList = (
-    params: readonly ParamSpec<ConcreteDim>[] | undefined,
+    params: readonly schema.ParamSpec<schema.ConcreteDim>[] | undefined,
     title: string
   ) => {
     if (!params || params.length === 0) return null;
