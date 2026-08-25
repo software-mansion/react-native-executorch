@@ -4,7 +4,7 @@ import {
   createInstanceSegmenter,
   type InstanceSegmenterModel,
 } from '../extensions/cv/tasks/instanceSegmentation';
-import type { BoxFormat } from '../extensions/cv/ops/boxes';
+import type { BoxFormat } from '../extensions/cv/ops/box';
 
 /**
  * React hook to load and run an instance segmentation model.

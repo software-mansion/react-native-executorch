@@ -6,7 +6,7 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import type { ResizeMode } from './image';
-import { scalePoint } from './points';
+import { scalePoint } from './point';
 
 /**
  * Mapping of bounding box formats to their coordinate representations.

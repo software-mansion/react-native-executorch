@@ -4,7 +4,7 @@ import {
   createKeypointDetector,
   type KeypointDetectorModel,
 } from '../extensions/cv/tasks/keypointDetection';
-import type { BoxFormat } from '../extensions/cv/ops/boxes';
+import type { BoxFormat } from '../extensions/cv/ops/box';
 
 /**
  * React hook to load and run a keypoint detection model.

@@ -21,7 +21,7 @@ import {
   restrictToBox,
   type BoundingBox,
   type BoxFormat,
-} from '../ops/boxes';
+} from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
 
 /**

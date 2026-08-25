@@ -14,8 +14,8 @@ import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 
 import type { ResizeMode } from '../ops/image';
-import { scalePoint, type Point } from '../ops/points';
-import { nms, type BoundingBox, type BoxFormat, decodeBox, scaleBox } from '../ops/boxes';
+import { scalePoint, type Point } from '../ops/point';
+import { nms, type BoundingBox, type BoxFormat, decodeBox, scaleBox } from '../ops/box';
 
 /**
  * Options for configuring a keypoint detector runner.

@@ -4,7 +4,7 @@ import {
   createObjectDetector,
   type ObjectDetectorModel,
 } from '../extensions/cv/tasks/objectDetection';
-import type { BoxFormat } from '../extensions/cv/ops/boxes';
+import type { BoxFormat } from '../extensions/cv/ops/box';
 
 /**
  * React hook to load and run an object detection model.

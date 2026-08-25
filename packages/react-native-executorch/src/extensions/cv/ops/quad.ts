@@ -6,8 +6,8 @@
 import { rnexecutorchJsi } from '../../../native/bridge';
 import type { Tensor } from '../../../core/tensor';
 import { RnExecuTorchError } from '../../../core/error';
-import { distance, scalePoint, type Point } from './points';
-import type { BoundingBox, BoxFormat } from './boxes';
+import { distance, scalePoint, type Point } from './point';
+import type { BoundingBox, BoxFormat } from './box';
 import type { ResizeMode } from './image';
 
 /**

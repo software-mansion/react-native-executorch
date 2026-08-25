@@ -28,7 +28,7 @@ import {
   FORMAT_CHANNELS,
   FORMAT_CONVERSION,
 } from '../ops/image';
-import { interpolatePoint } from '../ops/points';
+import { interpolatePoint } from '../ops/point';
 import {
   boundingBoxOfPoints,
   orderQuad,

@@ -13,7 +13,7 @@ import { wrapAsync } from '../../../core/runtime';
 import type { ResizeMode } from '../ops/image';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
-import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/boxes';
+import { nms, scaleBox, decodeBox, type BoundingBox, type BoxFormat } from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
 
 /**
