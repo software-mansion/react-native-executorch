@@ -905,6 +905,8 @@ const KOKORO_GERMAN_PATHS = kokoroModelPaths('xnnpack', 'de', 'german');
 
 // Core ML is exported for the standard (multi-language) weights only.
 const KOKORO_STANDARD_COREML_PATHS = kokoroModelPaths('coreml', 'std', 'standard');
+const KOKORO_POLISH_COREML_PATHS = kokoroModelPaths('coreml', 'pl', 'polish');
+const KOKORO_GERMAN_COREML_PATHS = kokoroModelPaths('coreml', 'de', 'german');
 
 const kokoroVoices = <const N extends string>(names: readonly N[]) =>
   names.reduce(
@@ -1032,6 +1034,15 @@ const KOKORO_DE_XNNPACK_FP32: KokoroTtsModel<'df_anna'> = {
   modelPaths: KOKORO_GERMAN_PATHS,
   phonemizer: kokoroNeuralPhonemizer('de'),
   voices: kokoroVoices(['df_anna']),
+};
+
+const KOKORO_PL_COREML_FP32: KokoroTtsModel<'pm_mateusz'> = {
+  ...KOKORO_PL_XNNPACK_FP32,
+  modelPaths: KOKORO_POLISH_COREML_PATHS,
+};
+const KOKORO_DE_COREML_FP32: KokoroTtsModel<'df_anna'> = {
+  ...KOKORO_DE_XNNPACK_FP32,
+  modelPaths: KOKORO_GERMAN_COREML_PATHS,
 };
 
 // =============================================================================
@@ -2402,10 +2413,12 @@ export const models = {
       PL: {
         DEFAULT: KOKORO_PL_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_PL_XNNPACK_FP32,
+        COREML_FP32: KOKORO_PL_COREML_FP32,
       },
       DE: {
         DEFAULT: KOKORO_DE_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
+        COREML_FP32: KOKORO_DE_COREML_FP32,
       },
     },
   },
