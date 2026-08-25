@@ -30,6 +30,7 @@ function quadsFromFlat(flat: ArrayLike<number>): Quad[] {
 
 /**
  * Thresholds for {@link extractDbnetTextQuads}.
+ * @category CV / Types
  */
 export type DbnetDecodeOptions = {
   /** Binarization threshold on the probability map. */
@@ -48,6 +49,7 @@ export type DbnetDecodeOptions = {
  * Decodes a DBNet probability map into oriented text quads: binarizes the map,
  * traces contours, scores each candidate by its mean probability and unclips the
  * survivors back to their unshrunk size.
+ * @category CV / Functions
  * @param probabilityMap The `detect` output, shape `[1, 1, H, W]`, post-sigmoid.
  * @param options Decode thresholds. See {@link DbnetDecodeOptions}.
  * @returns The decoded quads, in detector-input pixel space and arbitrary order.

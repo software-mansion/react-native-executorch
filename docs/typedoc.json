@@ -11,8 +11,6 @@
     "Modules",
     "Core / Functions",
     "Core / Types",
-    "Utils / Functions",
-    "Utils / Types",
     "CV / Tasks",
     "CV / Types",
     "CV / Constants",
@@ -24,6 +22,8 @@
     "Speech / Tasks",
     "Speech / Types",
     "Speech / Constants",
+    "Utils / Functions",
+    "Utils / Types",
     "*"
   ]
 }
