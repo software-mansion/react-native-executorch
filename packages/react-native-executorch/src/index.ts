@@ -16,8 +16,8 @@
  *
  * - **Domain Utilities**:
  *   Domain-specific low-level tools:
- *   - {@link math}: Native C++ tensor operations (softmax, sigmoid, argmax, linear,
- *     activations).
+ *   - {@link math}: Native C++ tensor operations (softmax, sigmoid, argmax,
+ *     gather, etc.).
  *   - {@link cv}: Image transformations (resizing, normalization, layout conversions),
  *     bounding box, quadrilateral, and keypoint helpers.
  *   - {@link llm}: Token-by-token text generation runner, chat template formatting,
