@@ -15,7 +15,7 @@ import RNBlobUtil from 'react-native-blob-util';
  * @returns An array of registered backend name strings (e.g. 'XnnpackBackend',
  * 'CoreMLBackend').
  */
-export function getRegisteredBackends(): string[] {
+export function getRegisteredBackends(): readonly string[] {
   'worklet';
   return rnexecutorchJsi.getExecuTorchRegisteredBackends();
 }
