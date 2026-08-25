@@ -138,6 +138,7 @@ function classOf(name: string): number {
  * The encoded grammar is:
  * - `O` / `E-x` / `S-x` -> `O` | `B-y` | `S-y`
  * - `B-x` / `I-x` -> `I-x` | `E-x` (same entity)
+ * @category NLP / Functions
  * @param labelNames BIOES label list; index 0 must be `'O'`.
  * @param biases Optional transition biases; missing fields default to `0`.
  * @returns The pre-computed grammar.
@@ -208,6 +209,7 @@ export function buildGrammar(labelNames: readonly string[], biases?: ViterbiBias
  * Runs constrained Viterbi over a `[validLen, numLabels]` slice of per-token
  * logits and returns the best BIOES-grammar-valid label-id sequence (length
  * `validLen`).
+ * @category NLP / Functions
  * @param logits Flat row-major logits; row `t` starts at `t * numLabels`.
  * @param validLen Number of leading token rows to decode.
  * @param grammar Pre-computed grammar tables from {@link buildGrammar}.
@@ -365,6 +367,7 @@ export function viterbiDecode(
 /**
  * Maps a BIOES label id to its bare entity type (the part after the `-`), or
  * an empty string for `O` / unprefixed / out-of-range ids.
+ * @category NLP / Functions
  * @param labelId Predicted label id.
  * @param labelNames The BIOES label list.
  * @returns The entity type, or `''` for background.
@@ -404,6 +407,7 @@ export interface TokenSpan {
  * following same-entity tokens, but stops before the next opener (`B-x`/`S-x`)
  * so two adjacent same-type entities (e.g. `S-x` then `B-x E-x`) stay separate
  * rather than merging into one run.
+ * @category NLP / Functions
  * @param predictedLabels Per-token predicted label ids.
  * @param labelNames The BIOES label list.
  * @returns The detected token spans in order.
@@ -449,6 +453,7 @@ export function extractSpans(
  * Runs `ids.length` `decode` calls, each on a growing prefix. Cheap for the
  * ~256-token windows the privacy filter operates on; keep in mind for larger
  * sequences.
+ * @category NLP / Functions
  * @param tokenizer Same tokenizer instance used to produce `ids`.
  * @param ids Token ids for the whole input.
  * @returns A flat `[start0, end0, start1, end1, ...]` `Uint32Array` of length
