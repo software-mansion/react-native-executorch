@@ -18,7 +18,7 @@
  *   postprocessing, and tokenizers. Ideal for background services, worklets, or
  *   apps needing manual lifecycle control.
  *
- * - **Domain Utilities (`cv`, `llm`, `speech`, `nlp`, `math`)**:
+ * - **Domain Utilities**:
  *   Domain-specific low-level tools:
  *   - {@link math}: Native C++ tensor operations (softmax, sigmoid, argmax, linear,
  *     activations).
@@ -97,6 +97,7 @@ export * from './core/error';
 export * from './core/model';
 export * from './core/tensor';
 export * from './core/runtime';
+
 /**
  * Model schema validation and dimension constraints.
  * @category Modules
