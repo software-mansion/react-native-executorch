@@ -71,8 +71,7 @@ export type TextEmbedder = {
  * tokenizer paths. See {@link TextEmbedderModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing the embedding and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link TextEmbedder} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or tokenizer
  * fails to load, or `SCHEMA_MISMATCH` if the model schema does not match the
  * text embedding specification.

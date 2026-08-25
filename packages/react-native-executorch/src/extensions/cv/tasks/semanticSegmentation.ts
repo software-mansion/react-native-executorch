@@ -140,8 +140,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
  * @param config Segmenter task configuration containing path and options.
  * See {@link SemanticSegmenterModel}.
  * @param runtime Optional worklet runtime thread environment context.
- * @returns A promise resolving to an object containing segmentation and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link SemanticSegmenter} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * `SCHEMA_MISMATCH` if model schema does not match segmentation spec, or
  * `INVALID_ARGUMENT` if labels length does not match model output classes.

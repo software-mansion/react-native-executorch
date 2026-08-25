@@ -118,8 +118,7 @@ export type PrivacyFilter<Label extends string = string> = {
  * tokenizer paths plus the label space options. See {@link PrivacyFilterModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing detection and disposal
- * controls.
+ * @returns A promise resolving to the instantiated {@link PrivacyFilter} runner.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `labelNames` is
  * empty or does not start with `'O'`, `LOAD_FAILED` if the model or tokenizer
  * fails to load, or `SCHEMA_MISMATCH` if the loaded model schema does not match

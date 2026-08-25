@@ -190,7 +190,7 @@ const DEFAULT_MAX_TURNS = 5;
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
  * @param options Custom generation, tool calling, and state options.
  * @param runtime The worklet runtime thread to run native generation on.
- * @returns A Promise resolving to an {@link LLMChatSession} instance.
+ * @returns A promise resolving to the instantiated {@link LLMChatSession} session.
  */
 export async function createLLMChatSession(
   config: LLMModel,

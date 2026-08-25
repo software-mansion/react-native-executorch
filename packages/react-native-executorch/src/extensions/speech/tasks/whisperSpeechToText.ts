@@ -185,8 +185,8 @@ export type WhisperSpeechToText<L extends WhisperLanguage = WhisperLanguage> = {
  * See {@link WhisperSttModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing transcription and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link WhisperSpeechToText}
+ * runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model, tokenizer,
  * or VAD fails to load, or `SCHEMA_MISMATCH` if model schemas do not match the
  * Whisper specification.

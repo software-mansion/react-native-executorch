@@ -166,7 +166,8 @@ export type SupertonicTextToSpeech<K extends PropertyKey = string> = {
  * @param config Supertonic TTS pipeline configuration containing model and asset paths.
  * See {@link SupertonicTtsModel}.
  * @param runtime Optional worklet runtime thread on which to run inference.
- * @returns A promise resolving to an object with audio synthesis and disposal controls.
+ * @returns A promise resolving to the instantiated {@link SupertonicTextToSpeech}
+ * runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models, indexer, or
  * voice styles fail to load, or `SCHEMA_MISMATCH` if model schemas do not match
  * the Supertonic specification.

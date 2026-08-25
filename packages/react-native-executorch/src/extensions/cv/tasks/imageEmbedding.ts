@@ -67,8 +67,7 @@ export type ImageEmbedder = {
  * See {@link ImageEmbedderModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing the embedding and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link ImageEmbedder} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * or `SCHEMA_MISMATCH` if model schema does not match embedding spec.
  */

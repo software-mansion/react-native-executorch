@@ -145,7 +145,7 @@ export type KokoroTextToSpeech<K extends PropertyKey = string> = {
  * @param config Kokoro TTS pipeline configuration containing model and asset paths.
  * See {@link KokoroTtsModel}.
  * @param runtime Optional worklet runtime thread on which to run inference.
- * @returns A promise resolving to an object with audio synthesis and disposal controls.
+ * @returns A promise resolving to the instantiated {@link KokoroTextToSpeech} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if models or voice files
  * fail to load, `SCHEMA_MISMATCH` if model schemas do not match the Kokoro
  * specification, or `INVALID_STATE` if phonemizer native support is missing.

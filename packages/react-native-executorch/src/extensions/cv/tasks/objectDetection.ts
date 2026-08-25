@@ -135,8 +135,7 @@ export type ObjectDetector<F extends BoxFormat, L> = {
  * See {@link ObjectDetectorModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing object detection and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link ObjectDetector} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * or `SCHEMA_MISMATCH` if model schema does not match object detection spec.
  */

@@ -390,8 +390,7 @@ function greedyCtcDecode(
  * and detection thresholds. See {@link PaddleOcrModel}.
  * @param runtime Optional worklet runtime thread on which to run detection and
  * recognition.
- * @returns A promise resolving to an object containing recognition and disposal
- * controls.
+ * @returns A promise resolving to the instantiated {@link PaddleOcr} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or charset
  * fails to load, `SCHEMA_MISMATCH` if the loaded model does not match the
  * PP-OCRv6 detect/recognize contract, or if the charset does not match the

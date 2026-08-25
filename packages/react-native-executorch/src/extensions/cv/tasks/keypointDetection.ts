@@ -216,8 +216,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
  * See {@link KeypointDetectorModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing keypoint detection and
- * disposal bindings.
+ * @returns A promise resolving to the instantiated {@link KeypointDetector} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * or `SCHEMA_MISMATCH` if model schema does not match keypoint detection spec.
  */

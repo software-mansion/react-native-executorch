@@ -111,8 +111,7 @@ export type Classifier<L> = {
  * See {@link ClassifierModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing classification and
- * disposal controls.
+ * @returns A promise resolving to the instantiated {@link Classifier} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * `SCHEMA_MISMATCH` if model schema does not match classification spec, or
  * `INVALID_ARGUMENT` if labels length does not match model output classes.

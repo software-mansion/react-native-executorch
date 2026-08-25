@@ -86,7 +86,7 @@ export type SdxsTextToImage = {
  * @param config SDXS pipeline configuration containing the model and tokenizer paths.
  * See {@link SdxsTextToImageModel}.
  * @param runtime Optional worklet runtime thread on which to run generation.
- * @returns A promise resolving to an object with generation and disposal controls.
+ * @returns A promise resolving to the instantiated {@link SdxsTextToImage} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model or tokenizer
  * fails to load, or `SCHEMA_MISMATCH` if model schema does not match SDXS spec.
  */

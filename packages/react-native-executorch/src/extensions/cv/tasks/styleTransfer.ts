@@ -85,7 +85,7 @@ export type StyleTransfer = {
  * @param config Style transfer task configuration containing path and options.
  * See {@link StyleTransferModel}.
  * @param runtime Optional worklet runtime thread on which to run the model execution.
- * @returns A promise resolving to an object containing style transfer and disposal controls.
+ * @returns A promise resolving to the instantiated {@link StyleTransfer} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
  * or `SCHEMA_MISMATCH` if model schema does not match style transfer spec.
  */

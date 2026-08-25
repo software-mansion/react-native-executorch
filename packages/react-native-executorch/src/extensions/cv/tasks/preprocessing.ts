@@ -70,8 +70,7 @@ export type ImagePreprocessor = {
  * See {@link ImagePreprocessorOptions}.
  * @param outputShape Expected output shape of the preprocessed model input
  * tensor (must match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`).
- * @returns An object containing the `process` runner function and a `dispose`
- * method.
+ * @returns An instantiated {@link ImagePreprocessor} pipeline.
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH` if `outputShape` does
  * not match rank-3 `[3, H, W]` or rank-4 `[1, 3, H, W]`.
  */

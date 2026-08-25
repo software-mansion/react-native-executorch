@@ -236,8 +236,7 @@ export type FsmnVoiceActivityDetector = {
  * options. See {@link FsmnVadModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
  * execution.
- * @returns A promise resolving to an object containing detection and disposal
- * controls.
+ * @returns A promise resolving to the instantiated {@link FsmnVoiceActivityDetector} runner.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model fails to
  * load, or `SCHEMA_MISMATCH` if the model schema does not match the VAD
  * specification.
