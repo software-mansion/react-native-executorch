@@ -376,13 +376,13 @@ export const bool = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
  * Helper namespace for declaring runtime constraints.
  * @category Core / Schema / Functions
  */
-export const constr = {
+export const constraint = {
   /**
    * Declares that all given dimensions must be equal at runtime.
    * @param dims Dimensions that must share the same concrete value.
    * @returns An {@link EqualityConstraint} across the given dimensions.
    */
-  eq: (...dims: DimRef[]): EqualityConstraint => {
+  equality: (...dims: DimRef[]): EqualityConstraint => {
     return { kind: 'equality', dims };
   },
   /**
@@ -647,8 +647,8 @@ function matchRuntimeConstraints(
 
     const unclaimed = [...exportedMethodSpec.runtimeConstraints];
 
-    for (const [idx, constraint] of allowedMethodSpec.runtimeConstraints.entries()) {
-      const find = unclaimed.findIndex((c) => constraintsEqual(c, constraint));
+    for (const [idx, rc] of allowedMethodSpec.runtimeConstraints.entries()) {
+      const find = unclaimed.findIndex((c) => constraintsEqual(c, rc));
       if (find === -1) {
         throw RnExecuTorchError(
           'SCHEMA_MISMATCH',
@@ -696,26 +696,26 @@ function validateSymbolKindConsistency(modelSpec: ModelSpec<SymbolicDim>): void 
 
 function validateConstraintCorrectness(modelSpec: ModelSpec<SymbolicDim>): void {
   for (const [methodName, methodSpec] of Object.entries(modelSpec)) {
-    for (const [idx, constraint] of methodSpec.runtimeConstraints.entries()) {
+    for (const [idx, rc] of methodSpec.runtimeConstraints.entries()) {
       const ctx = `Method '${methodName}' constraint ${idx}`;
 
-      if (constraint.kind === 'linear') {
-        const [A, B] = constraint.coefficients;
+      if (rc.kind === 'linear') {
+        const [A, B] = rc.coefficients;
         if (!Number.isInteger(A) || !Number.isInteger(B)) {
           throw RnExecuTorchError('SCHEMA_MISMATCH', `${ctx}: Coefficients must be integers.`);
         }
-        resolveDim(methodSpec, constraint.dimLhs);
-        resolveDim(methodSpec, constraint.dimRhs);
+        resolveDim(methodSpec, rc.dimLhs);
+        resolveDim(methodSpec, rc.dimRhs);
       }
 
-      if (constraint.kind === 'equality') {
-        if (constraint.dims.length < 2) {
+      if (rc.kind === 'equality') {
+        if (rc.dims.length < 2) {
           throw RnExecuTorchError(
             'SCHEMA_MISMATCH',
             `${ctx}: Equality requires at least two dimensions.`
           );
         }
-        constraint.dims.forEach((ref) => resolveDim(methodSpec, ref));
+        rc.dims.forEach((ref) => resolveDim(methodSpec, ref));
       }
     }
   }

@@ -9,7 +9,14 @@ import RNBlobUtil from 'react-native-blob-util';
 
 import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, method, i64, f32, DynamicDim as Dyn, constr } from '../../../core/schema';
+import {
+  validateSpec,
+  method,
+  i64,
+  f32,
+  DynamicDim as Dyn,
+  constraint,
+} from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { randomNormal } from '../../math';
 import {
@@ -192,7 +199,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1)], // duration
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 2, dimIdx: 2 }
         ),
@@ -210,7 +217,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1, TEXT_EMB_DIM, Dyn('T'))], // textEmb
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 2, dimIdx: 2 },
           { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
@@ -233,12 +240,12 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       ],
       [f32(1, LATENT_DIM, Dyn('L'))], // denoisedLatent
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
           { paramSide: 'input', tensorIdx: 4, dimIdx: 2 },
           { paramSide: 'output', tensorIdx: 0, dimIdx: 2 }
         ),
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 1, dimIdx: 2 },
           { paramSide: 'input', tensorIdx: 3, dimIdx: 2 }
         ),
@@ -252,7 +259,7 @@ export async function createSupertonicTextToSpeech<K extends PropertyKey>(
       [f32(1, LATENT_DIM, Dyn('L'))], // latent
       [f32(1, Dyn('AUDIO_LEN'))], // wav
       [
-        constr.linear(
+        constraint.linear(
           { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 0, dimIdx: 2 },
           CHUNK_SIZE

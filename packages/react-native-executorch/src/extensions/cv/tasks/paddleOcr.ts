@@ -13,7 +13,7 @@ import { tensor, type Tensor } from '../../../core/tensor';
 import {
   validateSpec,
   method,
-  constr,
+  constraint,
   f32,
   DynamicDim,
   type ConcreteDim,
@@ -418,7 +418,7 @@ export async function createPaddleOcr(
         [f32(1, 3, 'recH', DynamicDim('recW'))],
         [f32(1, DynamicDim('recT'), 'vocab')],
         [
-          constr.linear(
+          constraint.linear(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 3 },
             { paramSide: 'output', tensorIdx: 0, dimIdx: 1 },
             SVTR_CTC_STRIDE

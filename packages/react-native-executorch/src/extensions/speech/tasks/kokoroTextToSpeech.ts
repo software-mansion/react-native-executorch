@@ -15,7 +15,7 @@ import {
   f32,
   bool,
   DynamicDim as Dyn,
-  constr,
+  constraint,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { RnExecuTorchError } from '../../../core/error';
@@ -179,7 +179,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
           f32(1, Dyn('T'), DURATION_FEATURE_DIM), // durationFeatures
         ],
         [
-          constr.eq(
+          constraint.equality(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
             { paramSide: 'output', tensorIdx: 0, dimIdx: 0 },
@@ -201,12 +201,12 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
         ],
         [f32(1, 1, Dyn('AUDIO_LEN'))], // audio
         [
-          constr.eq(
+          constraint.equality(
             { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
             { paramSide: 'input', tensorIdx: 3, dimIdx: 1 }
           ),
-          constr.linear(
+          constraint.linear(
             { paramSide: 'output', tensorIdx: 0, dimIdx: 2 },
             { paramSide: 'input', tensorIdx: 2, dimIdx: 0 },
             TICKS_PER_DURATION

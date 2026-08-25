@@ -6,7 +6,14 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, DynamicDim as Dyn, method, i64, f32, constr } from '../../../core/schema';
+import {
+  validateSpec,
+  DynamicDim as Dyn,
+  method,
+  i64,
+  f32,
+  constraint,
+} from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
@@ -94,7 +101,7 @@ export async function createTextEmbedder(
       [i64(1, Dyn('L')), i64(1, Dyn('L'))],
       [f32(1, 'D')],
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
         ),
@@ -105,7 +112,7 @@ export async function createTextEmbedder(
       [i64(1, Dyn('L')), i64(1, Dyn('L'))],
       [f32('D')],
       [
-        constr.eq(
+        constraint.equality(
           { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
           { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
         ),

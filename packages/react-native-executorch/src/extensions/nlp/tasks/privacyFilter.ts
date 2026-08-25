@@ -8,7 +8,14 @@ import type { WorkletRuntime } from 'react-native-worklets';
 
 import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
-import { validateSpec, DynamicDim as Dyn, method, i64, f32, constr } from '../../../core/schema';
+import {
+  validateSpec,
+  DynamicDim as Dyn,
+  method,
+  i64,
+  f32,
+  constraint,
+} from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
 import { RnExecuTorchError } from '../../../core/error';
 
@@ -146,7 +153,7 @@ export async function createPrivacyFilter<Label extends string>(
   // it dynamic, binding `S` to the accepted range; the MLX ones are exported
   // for a single window length, binding `S` to that constant.
   const seqLenIsShared = [
-    constr.eq(
+    constraint.equality(
       { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
       { paramSide: 'input', tensorIdx: 1, dimIdx: 1 },
       { paramSide: 'output', tensorIdx: 0, dimIdx: 1 }
