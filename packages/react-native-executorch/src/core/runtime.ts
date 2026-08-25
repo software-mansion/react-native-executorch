@@ -20,7 +20,7 @@ import { isRnExecuTorchError, RnExecuTorchError } from './error';
  * thread, preventing model loading and inference from blocking the UI. Pass it
  * explicitly (or a custom {@link WorkletRuntime}) to {@link wrapAsync} when you
  * need fine-grained control over which thread work executes on.
- * @category Core / Functions
+ * @category Core / Constants
  */
 export const defaultWorkletRuntime = createWorkletRuntime({
   name: 'ExecuTorchDefaultRuntime',

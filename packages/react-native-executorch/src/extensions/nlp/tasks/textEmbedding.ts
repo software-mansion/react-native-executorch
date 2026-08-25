@@ -47,7 +47,7 @@ export type TextEmbedder = {
    * Inputs longer than the model's maximum sequence length are truncated.
    * @param input The input text to embed.
    * @param prompt Optional prompt prefix overriding the model's configured
-   * `defaultPrompt` for this call.
+   * {@link TextEmbedderModel.defaultPrompt} for this call.
    * @returns A promise resolving to the embedding vector.
    * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the input text
    * tokenizes to zero tokens, `RESOURCE_BUSY` if the model is in use, or

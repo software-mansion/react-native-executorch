@@ -5,6 +5,7 @@ const VALID_CATEGORIES = [
   'CV / Functions',
   'CV / Tasks',
   'CV / Types',
+  'Core / Constants',
   'Core / Errors',
   'Core / Functions',
   'Core / Schema / Functions',

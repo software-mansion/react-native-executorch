@@ -18,7 +18,7 @@
  * resource, re-create a disposed one). Everything else is a category that
  * exists so crash reporters can group failures, and the detail lives in the
  * message.
- * @category Core / Types
+ * @category Core / Constants
  */
 export const VALID_ERROR_CODES = [
   'LOAD_FAILED',

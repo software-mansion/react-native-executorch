@@ -27,13 +27,13 @@ export function getRegisteredBackends(): readonly string[] {
  */
 export type ResourceOptions = {
   /** If true, prevents checks and downloads, resetting the hook state. */
-  preventLoad?: boolean;
+  readonly preventLoad?: boolean;
   /**
    * Re-downloads every remote source even when it is already cached, replacing
    * the cached copy. Use to recover from a corrupted file or to pick up a model
    * that changed behind a stable URL.
    */
-  forceDownload?: boolean;
+  readonly forceDownload?: boolean;
 };
 
 /**
