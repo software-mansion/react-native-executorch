@@ -1,6 +1,5 @@
 /**
  * Aggregated image, box, and point operations.
- * @module CV Ops
  */
 export * as image from './image';
 export * as boxes from './boxes';

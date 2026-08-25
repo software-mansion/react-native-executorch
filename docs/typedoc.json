@@ -4,5 +4,33 @@
   "compilerOptions": {
     "skipLibCheck": true
   },
-  "excludeExternals": true
+  "excludeExternals": true,
+  "categoryOrder": [
+    "Hooks",
+    "Models",
+    "Modules",
+    "Core / Functions",
+    "Core / Types",
+    "Core / Errors",
+    "Core / Schema / Functions",
+    "Core / Schema / Types",
+    "Utils / Functions",
+    "Utils / Types",
+    "CV / Tasks",
+    "CV / Functions",
+    "CV / Types",
+    "CV / Constants",
+    "NLP / Tasks",
+    "NLP / Functions",
+    "NLP / Types",
+    "NLP / Constants",
+    "Speech / Tasks",
+    "Speech / Functions",
+    "Speech / Types",
+    "Speech / Constants",
+    "LLM / Tasks",
+    "LLM / Functions",
+    "LLM / Types",
+    "*"
+  ]
 }

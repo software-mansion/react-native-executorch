@@ -2,21 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { download } from '../fetcher/fetcher';
 import { isRnExecuTorchError } from '../core/error';
 
-/**
- * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
- * built on top of it.
- * @category Hooks
- */
-export type ResourceOptions = {
-  /** If true, prevents checks and downloads, resetting the hook state. */
-  preventLoad?: boolean;
-  /**
-   * Re-downloads every remote source even when it is already cached, replacing
-   * the cached copy. Use to recover from a corrupted file or to pick up a model
-   * that changed behind a stable URL.
-   */
-  forceDownload?: boolean;
-};
+import type { ResourceOptions } from '../utils';
+
+export type { ResourceOptions };
 
 /**
  * React hook to manage downloading and local caching of the remote resources

@@ -1,7 +1,6 @@
 /**
  * Large Language Model (LLM) runners, multi-turn chat sessions, and
  * tool-calling utilities.
- * @module LLM
  */
 
 export * from './llmRunner';

@@ -24,7 +24,7 @@ function warn(message: string, error: unknown): void {
  * Analytics are enabled by default; call `setTelemetryEnabled(false)` (e.g. once
  * at app startup) to opt out. This does not affect the Hugging Face download
  * counter, a standard model-download stat that always fires.
- * @category Fetcher / Functions
+ * @category Utils / Functions
  * @param enabled Whether to send anonymous download analytics.
  */
 export function setTelemetryEnabled(enabled: boolean): void {
@@ -42,7 +42,7 @@ function isSwmHuggingFaceRepo(url: URL): boolean {
  * download-stats convention. No-op for any other host.
  *
  * See https://huggingface.co/docs/hub/models-download-stats
- * @category Fetcher / Functions
+ * @category Utils / Functions
  * @param uri The URI of the file being downloaded.
  */
 export function triggerHuggingFaceDownloadCounter(uri: string): void {
@@ -98,7 +98,7 @@ function getModelNameFromUri(uri: string): string {
  * Sends an anonymous download event to the Software Mansion analytics endpoint,
  * unless the app has opted out via {@link setTelemetryEnabled}. Fire-and-forget;
  * never throws and never blocks the download.
- * @category Fetcher / Functions
+ * @category Utils / Functions
  * @param uri The URI of the downloaded resource.
  */
 export function triggerDownloadEvent(uri: string): void {

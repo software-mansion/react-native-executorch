@@ -33,14 +33,18 @@ Reach her at maria.lopez@example.com or +1 (415) 555-0142. Address: 84 Cedar Hil
 /* cspell:enable */
 
 const MODELS: { label: string; value: PrivacyFilterModel; sample: string; iosOnly?: boolean }[] = [
-  { label: 'OpenAI (8 types)', value: models.privacyFilter.OPENAI, sample: OPENAI_SAMPLE },
+  { label: 'OpenAI (8 types)', value: models.privacyFilter.OPENAI.DEFAULT, sample: OPENAI_SAMPLE },
   {
     label: 'OpenAI MLX',
     value: models.privacyFilter.OPENAI.MLX_INT4,
     sample: OPENAI_SAMPLE,
     iosOnly: true,
   },
-  { label: 'Nemotron (55 types)', value: models.privacyFilter.NEMOTRON, sample: NEMOTRON_SAMPLE },
+  {
+    label: 'Nemotron (55 types)',
+    value: models.privacyFilter.NEMOTRON.DEFAULT,
+    sample: NEMOTRON_SAMPLE,
+  },
   {
     label: 'Nemotron MLX',
     value: models.privacyFilter.NEMOTRON.MLX_INT8,

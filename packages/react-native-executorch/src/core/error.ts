@@ -8,7 +8,6 @@
  *
  * Use {@link isRnExecuTorchError} to safely narrow caught errors across
  * asynchronous calls and worklet runtime boundaries.
- * @module Core/Error
  */
 
 /**

@@ -1,6 +1,5 @@
 /**
  * Low-level native ExecuTorch LLM runner types and factory.
- * @module LLM/LLMRunner
  */
 
 import type { Tensor } from '../../core/tensor';
@@ -103,7 +102,7 @@ export type LLMRunner = {
   readonly modalities: readonly Modality[];
 
   /**
-   * Disposes the native LLM runner and releases the loaded model memory.
+   * Releases all allocated native resources.
    */
   dispose(): void;
 

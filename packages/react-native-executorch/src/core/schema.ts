@@ -66,7 +66,6 @@
  *    by passing `constant_methods={"get_model_schema": schema_json}` when
  *    lowering with `to_edge_transform_and_lower(...)` where `schema_json` is
  *    the JSON string encoding the model's `ModelSpec<ConcreteDim>`.
- * @module Core/Schema
  */
 import type { DType } from './tensor';
 import { RnExecuTorchError } from './error';

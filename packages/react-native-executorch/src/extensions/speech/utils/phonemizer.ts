@@ -1,6 +1,5 @@
 /**
  * Grapheme-to-phoneme (G2P) conversion using native Phonemis bindings.
- * @module Speech/Utils/Phonemizer
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

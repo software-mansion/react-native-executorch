@@ -1,7 +1,6 @@
 /**
  * Image classification task pipeline with integrated preprocessing and softmax
  * decoding.
- * @module CV/Tasks/Classification
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

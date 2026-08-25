@@ -1,7 +1,6 @@
 /**
  * Quadrilateral geometry, bounding box extraction, and image rectification
  * utilities.
- * @module CV/Ops/Quad
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

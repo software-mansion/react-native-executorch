@@ -1,7 +1,6 @@
 /**
  * Text normalization, chunk formatting, and voice style parsing utilities for
  * Supertonic TTS.
- * @module Speech/Utils/Supertonic
  */
 
 import { RnExecuTorchError } from '../../../core/error';

@@ -1,7 +1,6 @@
 /**
  * Utility functions for inspecting models and querying native runtime
  * capabilities.
- * @module Utils
  */
 
 import { rnexecutorchJsi } from './native/bridge';
@@ -12,7 +11,7 @@ import RNBlobUtil from 'react-native-blob-util';
 /**
  * Retrieves the names of all ExecuTorch backends compiled and registered in the
  * native binary.
- * @category Core / Functions
+ * @category Utils / Functions
  * @returns An array of registered backend name strings (e.g. 'XnnpackBackend',
  * 'CoreMLBackend').
  */
@@ -22,8 +21,24 @@ export function getRegisteredBackends(): string[] {
 }
 
 /**
+ * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
+ * built on top of it.
+ * @category Utils / Types
+ */
+export type ResourceOptions = {
+  /** If true, prevents checks and downloads, resetting the hook state. */
+  preventLoad?: boolean;
+  /**
+   * Re-downloads every remote source even when it is already cached, replacing
+   * the cached copy. Use to recover from a corrupted file or to pick up a model
+   * that changed behind a stable URL.
+   */
+  forceDownload?: boolean;
+};
+
+/**
  * Result of inspecting an ExecuTorch model file.
- * @category Core / Types
+ * @category Utils / Types
  */
 export type ModelInspection = {
   /** The model source URL or file path that was inspected. */
@@ -48,7 +63,7 @@ export type ModelInspection = {
  * is not reused. Inspecting a remote model therefore re-downloads it on every
  * call and leaves nothing behind — call {@link download} first and inspect the
  * returned local path if you also intend to run the model.
- * @category Core / Functions
+ * @category Utils / Functions
  * @param source The remote HTTP URL or local path to the `.pte` model file.
  * @returns A promise resolving to an object containing the model source, method
  * signature metadata, and per-method backend usage.

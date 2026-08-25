@@ -10,8 +10,6 @@ const VALID_CATEGORIES = [
   'Core / Schema / Functions',
   'Core / Schema / Types',
   'Core / Types',
-  'Fetcher / Functions',
-  'Fetcher / Types',
   'Hooks',
   'LLM / Functions',
   'LLM / Tasks',
@@ -19,6 +17,7 @@ const VALID_CATEGORIES = [
   'Math / Functions',
   'Math / Types',
   'Models',
+  'Modules',
   'NLP / Constants',
   'NLP / Functions',
   'NLP / Tasks',
@@ -27,6 +26,8 @@ const VALID_CATEGORIES = [
   'Speech / Functions',
   'Speech / Tasks',
   'Speech / Types',
+  'Utils / Functions',
+  'Utils / Types',
 ];
 
 const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;

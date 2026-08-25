@@ -1,6 +1,5 @@
 /**
  * Reusable image preprocessing pipeline for neural network inputs.
- * @module CV/Tasks/Preprocessing
  */
 
 import { tensor, type Tensor } from '../../../core/tensor';
@@ -40,6 +39,11 @@ export type ImagePreprocessorOptions = {
  */
 export type ImagePreprocessor = {
   /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
    * Preprocesses the input image by resizing, converting color space, changing
    * format layout, and normalizing values, copying the output directly to the
    * pre-allocated output tensor.
@@ -51,10 +55,6 @@ export type ImagePreprocessor = {
    * data of shape `[3, H, W]` (or `[1, 3, H, W]`) and data type `float32`.
    */
   readonly process: (input: ImageBuffer) => Tensor;
-  /**
-   * Releases all allocated native resources.
-   */
-  readonly dispose: () => void;
 };
 
 /**

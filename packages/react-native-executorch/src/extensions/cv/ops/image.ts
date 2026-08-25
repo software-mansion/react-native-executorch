@@ -4,7 +4,6 @@
  * Provides native OpenCV-accelerated image operations on tensors, including
  * spatial resizing, color space conversion, channel transposition (HWC/CHW),
  * pixel normalization, and colormap application.
- * @module CV/Ops/Image
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

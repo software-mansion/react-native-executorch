@@ -1,7 +1,6 @@
 /**
  * Keypoint and pose detection task pipeline with weighted NMS and landmark
  * scaling.
- * @module CV/Tasks/KeypointDetection
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

@@ -4,7 +4,6 @@
  * Tensors are the fundamental data structures used throughout React Native
  * ExecuTorch. They hold multidimensional typed arrays allocated in native
  * heap memory and provide transfers to and from JavaScript typed arrays.
- * @module Core/Tensor
  */
 
 import { rnexecutorchJsi } from '../native/bridge';

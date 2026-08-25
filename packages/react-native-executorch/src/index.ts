@@ -83,6 +83,7 @@ export * from './extensions/cv/tasks/objectDetection';
 export * from './extensions/cv/tasks/imageEmbedding';
 export * from './extensions/cv/tasks/sdxsTextToImage';
 export * from './extensions/cv/tasks/paddleOcr';
+export * from './extensions/cv/tasks/preprocessing';
 export * from './extensions/llm/tasks/llmChatSession';
 export * from './extensions/nlp/tasks/tokenization';
 export * from './extensions/nlp/tasks/textEmbedding';
@@ -99,12 +100,40 @@ export * from './core/tensor';
 export * from './core/runtime';
 
 export type * from './core/schema';
+/**
+ * Model schema validation and dimension constraints.
+ * @category Modules
+ */
 export * as schema from './core/schema';
 
+/**
+ * Mathematical tensor operations and activation functions.
+ * @category Modules
+ */
 export * as math from './extensions/math';
+
+/**
+ * Computer vision operations, geometry helpers, and image preprocessing.
+ * @category Modules
+ */
 export * as cv from './extensions/cv';
+
+/**
+ * LLM runner, tokenizer configurations, and multimodal chat preprocessing.
+ * @category Modules
+ */
 export * as llm from './extensions/llm';
+
+/**
+ * NLP tokenizers and privacy filter utilities.
+ * @category Modules
+ */
 export * as nlp from './extensions/nlp';
+
+/**
+ * Speech utilities, phonemizers, text partitioning, and VAD framing.
+ * @category Modules
+ */
 export * as speech from './extensions/speech';
 
 // Utils

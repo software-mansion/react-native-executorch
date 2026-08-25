@@ -4,7 +4,6 @@
  * Provides direct access to compiled `.pte` models in native C++ memory. Loaded
  * models expose synchronous method execution (`execute`) with pre-allocated
  * output buffers and manual native memory cleanup (`dispose`).
- * @module Core/Model
  */
 
 import { rnexecutorchJsi } from '../native/bridge';

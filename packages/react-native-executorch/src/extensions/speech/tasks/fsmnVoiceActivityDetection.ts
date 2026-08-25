@@ -1,6 +1,5 @@
 /**
  * Voice Activity Detection (VAD) task pipeline using the FSMN-VAD model.
- * @module Speech/Tasks/FsmnVoiceActivityDetection
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';
@@ -36,7 +35,7 @@ const DEFAULT_DETECTION_MARGIN_MS = 100;
 
 /**
  * Tunable thresholds controlling how per-frame speech probabilities are turned
- * into speech {@link Segment}s.
+ * into speech {@link VadSegment}s.
  * @category Speech / Types
  */
 export type VadOptions = {
@@ -74,7 +73,7 @@ export type FsmnVadModel = {
  * A detected speech region, with start and end expressed in seconds.
  * @category Speech / Types
  */
-export type Segment = {
+export type VadSegment = {
   /** Start time of the speech segment in seconds. */
   readonly start: number;
   /** End time of the speech segment in seconds. */
@@ -115,7 +114,7 @@ function hannWindow(size: number): Float32Array {
 // threshold with hysteresis, pad both ends, then merge near-adjacent regions.
 // `scores[i]` holds the non-speech probability of frame `i`, so the speech
 // probability is `1 - scores[i]`.
-function postprocess(scores: Float32Array, options: Required<VadOptions>): Segment[] {
+function postprocess(scores: Float32Array, options: Required<VadOptions>): VadSegment[] {
   'worklet';
   const threshold = options.speechThreshold;
   const minSpeechHops = Math.floor(options.minSpeechDurationMs / HOP_LENGTH_MS);
@@ -126,7 +125,7 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
   // Threshold with hysteresis: a region must stay above the threshold for
   // `minSpeechHops` to open a segment, and below it for `minSilenceHops` to
   // close one. Bounds are in hop (frame) units.
-  const hops: Segment[] = [];
+  const hops: VadSegment[] = [];
   let triggered = false;
   let startHop = -1;
   let potentialStart = -1;
@@ -157,7 +156,7 @@ function postprocess(scores: Float32Array, options: Required<VadOptions>): Segme
   if (triggered) hops.push({ start: startHop, end: scores.length });
 
   // Pad both ends, then merge regions separated by at most `mergeGapMs`.
-  const merged: Segment[] = [];
+  const merged: VadSegment[] = [];
   for (const hop of hops) {
     const start = hop.start > speechPadHops ? hop.start - speechPadHops : 0;
     const end = Math.min(hop.end + speechPadHops, scores.length);
@@ -193,13 +192,13 @@ export type FsmnVoiceActivityDetector = {
    * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
    * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  readonly detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<Segment[]>;
+  readonly detectVoice: (waveform: Float32Array, options?: VadOptions) => Promise<VadSegment[]>;
 
   /**
    * Synchronous version of {@link detectVoice} to be executed directly on the caller
    * or worklet thread.
    */
-  readonly detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => Segment[];
+  readonly detectVoiceWorklet: (waveform: Float32Array, options?: VadOptions) => VadSegment[];
 
   /**
    * Appends a live audio chunk to a bounded rolling window, runs detection over
@@ -275,7 +274,7 @@ export async function createFsmnVoiceActivityDetector(
     model.dispose();
   };
 
-  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): Segment[] => {
+  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): VadSegment[] => {
     'worklet';
     const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
     const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);

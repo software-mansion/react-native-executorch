@@ -3,7 +3,6 @@
  *
  * This module exports constant arrays, dataset labels, and normalization
  * parameters used across task pipelines and model configurations.
- * @module Constants
  */
 
 /**

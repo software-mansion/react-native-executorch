@@ -1348,7 +1348,7 @@ export const models = {
      * classification.
      */
     EFFICIENTNET_V2_S: {
-      ...EFFICIENTNET_V2_S_XNNPACK_INT8,
+      DEFAULT: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_INT8: EFFICIENTNET_V2_S_XNNPACK_INT8,
       XNNPACK_FP32: EFFICIENTNET_V2_S_XNNPACK_FP32,
       COREML_FP16: EFFICIENTNET_V2_S_COREML_FP16,
@@ -1365,7 +1365,7 @@ export const models = {
      * style effect.
      */
     CANDY: {
-      ...STYLE_TRANSFER_CANDY_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_CANDY_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_CANDY_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_CANDY_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_CANDY_COREML_FP16,
@@ -1375,7 +1375,7 @@ export const models = {
      * pattern.
      */
     MOSAIC: {
-      ...STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_MOSAIC_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_MOSAIC_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_MOSAIC_COREML_FP16,
@@ -1385,7 +1385,7 @@ export const models = {
      * painting aesthetic.
      */
     RAIN_PRINCESS: {
-      ...STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_RAIN_PRINCESS_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_RAIN_PRINCESS_COREML_FP16,
@@ -1395,7 +1395,7 @@ export const models = {
      * abstract art style.
      */
     UDNIE: {
-      ...STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
+      DEFAULT: STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
       XNNPACK_FP32: STYLE_TRANSFER_UDNIE_XNNPACK_FP32,
       XNNPACK_INT8: STYLE_TRANSFER_UDNIE_XNNPACK_INT8,
       COREML_FP16: STYLE_TRANSFER_UDNIE_COREML_FP16,
@@ -1413,7 +1413,7 @@ export const models = {
      * Ideal for background blur and replacement effects.
      */
     SELFIE_SEGMENTATION: {
-      ...SELFIE_SEGMENTATION_XNNPACK_FP32,
+      DEFAULT: SELFIE_SEGMENTATION_XNNPACK_FP32,
       XNNPACK_FP32: SELFIE_SEGMENTATION_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_COREML_FP16,
     },
@@ -1422,7 +1422,7 @@ export const models = {
      * 256x144 checkpoint rather than a resize of the portrait model.
      */
     SELFIE_SEGMENTATION_LANDSCAPE: {
-      ...SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
+      DEFAULT: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       XNNPACK_FP32: SELFIE_SEGMENTATION_LANDSCAPE_XNNPACK_FP32,
       COREML_FP16: SELFIE_SEGMENTATION_LANDSCAPE_COREML_FP16,
     },
@@ -1432,7 +1432,7 @@ export const models = {
      * real-time pixel-level segmentation on mobile devices.
      */
     LRASPP_MOBILENET_V3_LARGE: {
-      ...LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
+      DEFAULT: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: LRASPP_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_INT8: LRASPP_MOBILENET_V3_LARGE_XNNPACK_INT8,
       COREML_FP16: LRASPP_MOBILENET_V3_LARGE_COREML_FP16,
@@ -1443,7 +1443,7 @@ export const models = {
      * utilizing atrous spatial pyramid pooling.
      */
     DEEPLAB_V3_RESNET50: {
-      ...DEEPLAB_V3_RESNET50_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET50_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_RESNET50_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_RESNET50_COREML_FP16,
@@ -1454,7 +1454,7 @@ export const models = {
      * maximum segmentation detail and boundary accuracy.
      */
     DEEPLAB_V3_RESNET101: {
-      ...DEEPLAB_V3_RESNET101_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_RESNET101_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_RESNET101_COREML_FP16,
@@ -1465,7 +1465,7 @@ export const models = {
      * extraction quality with a lightweight mobile backbone.
      */
     DEEPLAB_V3_MOBILENET_V3_LARGE: {
-      ...DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
+      DEFAULT: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       XNNPACK_FP32: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_INT8: DEEPLAB_V3_MOBILENET_V3_LARGE_XNNPACK_INT8,
       COREML_FP16: DEEPLAB_V3_MOBILENET_V3_LARGE_COREML_FP16,
@@ -1475,7 +1475,7 @@ export const models = {
      * ResNet-50 backbone (21 classes, see {@link PASCAL_VOC_LABELS}).
      */
     FCN_RESNET50: {
-      ...FCN_RESNET50_XNNPACK_INT8,
+      DEFAULT: FCN_RESNET50_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET50_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET50_XNNPACK_INT8,
       COREML_FP16: FCN_RESNET50_COREML_FP16,
@@ -1485,7 +1485,7 @@ export const models = {
      * ResNet-101 backbone (21 classes, see {@link PASCAL_VOC_LABELS}).
      */
     FCN_RESNET101: {
-      ...FCN_RESNET101_XNNPACK_INT8,
+      DEFAULT: FCN_RESNET101_XNNPACK_INT8,
       XNNPACK_FP32: FCN_RESNET101_XNNPACK_FP32,
       XNNPACK_INT8: FCN_RESNET101_XNNPACK_INT8,
       COREML_FP16: FCN_RESNET101_COREML_FP16,
@@ -1502,7 +1502,7 @@ export const models = {
      * detector suited for real-time mobile applications.
      */
     SSDLITE320_MOBILENET_V3_LARGE: {
-      ...SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
+      DEFAULT: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
       XNNPACK_FP32: SSDLITE320_MOBILENET_V3_LARGE_XNNPACK_FP32,
       COREML_FP16: SSDLITE320_MOBILENET_V3_LARGE_COREML_FP16,
     },
@@ -1512,7 +1512,7 @@ export const models = {
      * object detector.
      */
     RFDETR_NANO: {
-      ...RFDETR_NANO_DETECTOR_XNNPACK_FP32,
+      DEFAULT: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
       XNNPACK_FP32: RFDETR_NANO_DETECTOR_XNNPACK_FP32,
       COREML_FP16: RFDETR_NANO_DETECTOR_COREML_FP16,
     },
@@ -1523,13 +1523,13 @@ export const models = {
      * 512x512, 640x640).
      */
     YOLO26: {
-      ...YOLO26_NANO_384_XNNPACK_FP32,
+      DEFAULT: YOLO26_NANO_384_XNNPACK_FP32,
       /**
        * Nano scale YOLO26 object detection model. High speed, ultra low
        * latency.
        */
       NANO: {
-        ...YOLO26_NANO_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_NANO_384_XNNPACK_FP32,
         SIZE_384: {
           XNNPACK_FP32: YOLO26_NANO_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_NANO_384_COREML_FP16,
@@ -1548,7 +1548,7 @@ export const models = {
        * accuracy.
        */
       SMALL: {
-        ...YOLO26_SMALL_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_SMALL_384_XNNPACK_FP32,
         SIZE_384: {
           XNNPACK_FP32: YOLO26_SMALL_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_SMALL_384_COREML_FP16,
@@ -1567,7 +1567,7 @@ export const models = {
        * complex scenes.
        */
       MEDIUM: {
-        ...YOLO26_MEDIUM_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_MEDIUM_384_XNNPACK_FP32,
         SIZE_384: {
           XNNPACK_FP32: YOLO26_MEDIUM_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_MEDIUM_384_COREML_FP16,
@@ -1585,7 +1585,7 @@ export const models = {
        * Large scale YOLO26 object detection model. High accuracy model variant.
        */
       LARGE: {
-        ...YOLO26_LARGE_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_LARGE_384_XNNPACK_FP32,
         SIZE_384: {
           XNNPACK_FP32: YOLO26_LARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_LARGE_384_COREML_FP16,
@@ -1604,7 +1604,7 @@ export const models = {
        * performance.
        */
       XLARGE: {
-        ...YOLO26_XLARGE_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_XLARGE_384_XNNPACK_FP32,
         SIZE_384: {
           XNNPACK_FP32: YOLO26_XLARGE_384_XNNPACK_FP32,
           COREML_FP16: YOLO26_XLARGE_384_COREML_FP16,
@@ -1632,7 +1632,7 @@ export const models = {
      * {@link BLAZEFACE_LANDMARKS}).
      */
     BLAZEFACE: {
-      ...BLAZEFACE_XNNPACK_FP32,
+      DEFAULT: BLAZEFACE_XNNPACK_FP32,
       XNNPACK_FP32: BLAZEFACE_XNNPACK_FP32,
     },
     /**
@@ -1641,7 +1641,7 @@ export const models = {
      * resolutions.
      */
     YOLO26_POSE: {
-      ...YOLO26_POSE_384_XNNPACK_FP32,
+      DEFAULT: YOLO26_POSE_384_XNNPACK_FP32,
       SIZE_384: { XNNPACK_FP32: YOLO26_POSE_384_XNNPACK_FP32 },
       SIZE_512: { XNNPACK_FP32: YOLO26_POSE_512_XNNPACK_FP32 },
       SIZE_640: { XNNPACK_FP32: YOLO26_POSE_640_XNNPACK_FP32 },
@@ -1651,7 +1651,7 @@ export const models = {
      * predicting 17 COCO body keypoints (see {@link COCO_LANDMARKS}).
      */
     RFDETR_KEYPOINT: {
-      ...RFDETR_KEYPOINT_XNNPACK_FP32,
+      DEFAULT: RFDETR_KEYPOINT_XNNPACK_FP32,
       XNNPACK_FP32: RFDETR_KEYPOINT_XNNPACK_FP32,
       COREML_FP32: RFDETR_KEYPOINT_COREML_FP32,
       MLX_FP32: RFDETR_KEYPOINT_MLX_FP32,
@@ -1673,7 +1673,7 @@ export const models = {
        * FastSAM Small - lightweight instance segmenter for mobile.
        */
       S: {
-        ...FASTSAM_S_XNNPACK_FP32,
+        DEFAULT: FASTSAM_S_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_S_XNNPACK_FP32,
         COREML_FP16: FASTSAM_S_COREML_FP16,
       },
@@ -1681,7 +1681,7 @@ export const models = {
        * FastSAM Extra Large - high-accuracy instance segmenter.
        */
       X: {
-        ...FASTSAM_X_XNNPACK_FP32,
+        DEFAULT: FASTSAM_X_XNNPACK_FP32,
         XNNPACK_FP32: FASTSAM_X_XNNPACK_FP32,
         COREML_FP16: FASTSAM_X_COREML_FP16,
       },
@@ -1692,7 +1692,7 @@ export const models = {
      * {@link COCO_CLASSES}).
      */
     RFDETR_NANO: {
-      ...RFDETR_NANO_SEG_COREML_FP16,
+      DEFAULT: RFDETR_NANO_SEG_COREML_FP16,
       COREML_FP16: RFDETR_NANO_SEG_COREML_FP16,
       XNNPACK_FP32: RFDETR_NANO_SEG_XNNPACK_FP32,
     },
@@ -1703,13 +1703,13 @@ export const models = {
      * (384x384, 512x512, 640x640).
      */
     YOLO26: {
-      ...YOLO26_NANO_SEG_384_XNNPACK_FP32,
+      DEFAULT: YOLO26_NANO_SEG_384_XNNPACK_FP32,
       /**
        * Nano scale YOLO26 instance segmentation model. High speed, ultra low
        * latency mask generation.
        */
       NANO: {
-        ...YOLO26_NANO_SEG_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_NANO_SEG_384_XNNPACK_FP32,
         SIZE_384: { XNNPACK_FP32: YOLO26_NANO_SEG_384_XNNPACK_FP32 },
         SIZE_512: { XNNPACK_FP32: YOLO26_NANO_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_NANO_SEG_640_XNNPACK_FP32 },
@@ -1719,7 +1719,7 @@ export const models = {
        * mask accuracy.
        */
       SMALL: {
-        ...YOLO26_SMALL_SEG_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_SMALL_SEG_384_XNNPACK_FP32,
         SIZE_384: { XNNPACK_FP32: YOLO26_SMALL_SEG_384_XNNPACK_FP32 },
         SIZE_512: { XNNPACK_FP32: YOLO26_SMALL_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_SMALL_SEG_640_XNNPACK_FP32 },
@@ -1729,7 +1729,7 @@ export const models = {
        * precision for complex multi-object scenes.
        */
       MEDIUM: {
-        ...YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32,
         SIZE_384: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_384_XNNPACK_FP32 },
         SIZE_512: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_MEDIUM_SEG_640_XNNPACK_FP32 },
@@ -1739,7 +1739,7 @@ export const models = {
        * segmentation variant for demanding visual pipelines.
        */
       LARGE: {
-        ...YOLO26_LARGE_SEG_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_LARGE_SEG_384_XNNPACK_FP32,
         SIZE_384: { XNNPACK_FP32: YOLO26_LARGE_SEG_384_XNNPACK_FP32 },
         SIZE_512: { XNNPACK_FP32: YOLO26_LARGE_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_LARGE_SEG_640_XNNPACK_FP32 },
@@ -1749,7 +1749,7 @@ export const models = {
        * segmentation and mask delineation performance.
        */
       XLARGE: {
-        ...YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
+        DEFAULT: YOLO26_XLARGE_SEG_384_XNNPACK_FP32,
         SIZE_384: { XNNPACK_FP32: YOLO26_XLARGE_SEG_384_XNNPACK_FP32 },
         SIZE_512: { XNNPACK_FP32: YOLO26_XLARGE_SEG_512_XNNPACK_FP32 },
         SIZE_640: { XNNPACK_FP32: YOLO26_XLARGE_SEG_640_XNNPACK_FP32 },
@@ -1768,7 +1768,7 @@ export const models = {
      * probability chunks for live mic streaming and STT preprocessing.
      */
     FSMN_VAD: {
-      ...FSMN_VAD_XNNPACK_FP32,
+      DEFAULT: FSMN_VAD_XNNPACK_FP32,
       XNNPACK_FP32: FSMN_VAD_XNNPACK_FP32,
     },
   },
@@ -1788,7 +1788,7 @@ export const models = {
        * speech recognition.
        */
       TINY: {
-        ...WHISPER_TINY_XNNPACK_FP32,
+        DEFAULT: WHISPER_TINY_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_TINY_XNNPACK_FP32,
         COREML_FP16: WHISPER_TINY_COREML_FP16,
         MLX_BF16: WHISPER_TINY_MLX_BF16,
@@ -1799,7 +1799,7 @@ export const models = {
        * languages.
        */
       BASE: {
-        ...WHISPER_BASE_XNNPACK_FP32,
+        DEFAULT: WHISPER_BASE_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_BASE_XNNPACK_FP32,
         COREML_FP16: WHISPER_BASE_COREML_FP16,
         MLX_BF16: WHISPER_BASE_MLX_BF16,
@@ -1810,7 +1810,7 @@ export const models = {
        * multi-language audio.
        */
       SMALL: {
-        ...WHISPER_SMALL_XNNPACK_FP32,
+        DEFAULT: WHISPER_SMALL_XNNPACK_FP32,
         XNNPACK_FP32: WHISPER_SMALL_XNNPACK_FP32,
         COREML_FP16: WHISPER_SMALL_COREML_FP16,
         MLX_INT8: WHISPER_SMALL_MLX_INT8,
@@ -1821,7 +1821,7 @@ export const models = {
          * English-only Whisper Tiny model. Fast and compact for English STT.
          */
         TINY: {
-          ...WHISPER_TINY_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_TINY_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_TINY_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_TINY_EN_COREML_FP16,
           MLX_BF16: WHISPER_TINY_EN_MLX_BF16,
@@ -1832,7 +1832,7 @@ export const models = {
          * recognition.
          */
         BASE: {
-          ...WHISPER_BASE_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_BASE_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_BASE_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_BASE_EN_COREML_FP16,
           MLX_BF16: WHISPER_BASE_EN_MLX_BF16,
@@ -1843,7 +1843,7 @@ export const models = {
          * transcription.
          */
         SMALL: {
-          ...WHISPER_SMALL_EN_XNNPACK_FP32,
+          DEFAULT: WHISPER_SMALL_EN_XNNPACK_FP32,
           XNNPACK_FP32: WHISPER_SMALL_EN_XNNPACK_FP32,
           COREML_FP16: WHISPER_SMALL_EN_COREML_FP16,
           MLX_INT8: WHISPER_SMALL_EN_MLX_INT8,
@@ -1873,7 +1873,7 @@ export const models = {
      * on mobile devices.
      */
     LFM2_5_1_2B: {
-      ...LFM2_5_1_2B_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_1_2B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_1_2B_XNNPACK_8DA4W,
       XNNPACK_FP16: LFM2_5_1_2B_XNNPACK_FP16,
       MLX_INT4: LFM2_5_1_2B_MLX_INT4,
@@ -1885,7 +1885,7 @@ export const models = {
      * routing, and low-latency chat on resource-constrained edge hardware.
      */
     LFM2_5_350M: {
-      ...LFM2_5_350M_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_350M_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_350M_XNNPACK_8DA4W,
       XNNPACK_FP16: LFM2_5_350M_XNNPACK_FP16,
       MLX_INT4: LFM2_5_350M_MLX_INT4,
@@ -1897,7 +1897,7 @@ export const models = {
      * UI element inspection, and low-latency multimodal conversational agents.
      */
     LFM2_5_VL_450M: {
-      ...LFM2_5_VL_450M_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_VL_450M_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_450M_XNNPACK_8DA4W,
       MLX_INT4: LFM2_5_VL_450M_MLX_INT4,
       VULKAN_8DA4W: LFM2_5_VL_450M_VULKAN_8DA4W,
@@ -1909,7 +1909,7 @@ export const models = {
      * precision and reasoning fidelity than the 450M variant.
      */
     LFM2_5_VL_1_6B: {
-      ...LFM2_5_VL_1_6B_XNNPACK_8DA4W,
+      DEFAULT: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: LFM2_5_VL_1_6B_XNNPACK_8DA4W,
       VULKAN_8DA4W: LFM2_5_VL_1_6B_VULKAN_8DA4W,
     },
@@ -1920,7 +1920,7 @@ export const models = {
      * high-fidelity bidirectional Polish-English translation.
      */
     BIELIK_V3_1_5B: {
-      ...BIELIK_V3_1_5B_XNNPACK_8DA4W,
+      DEFAULT: BIELIK_V3_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: BIELIK_V3_1_5B_XNNPACK_8DA4W,
       XNNPACK_FP16: BIELIK_V3_1_5B_XNNPACK_FP16,
     },
@@ -1932,7 +1932,7 @@ export const models = {
      * assistance.
      */
     LLAMA3_2_1B: {
-      ...LLAMA3_2_1B_SPINQUANT,
+      DEFAULT: LLAMA3_2_1B_SPINQUANT,
       XNNPACK_SPINQUANT: LLAMA3_2_1B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_1B_BF16,
     },
@@ -1943,7 +1943,7 @@ export const models = {
      * on-device memory profile.
      */
     LLAMA3_2_3B: {
-      ...LLAMA3_2_3B_SPINQUANT,
+      DEFAULT: LLAMA3_2_3B_SPINQUANT,
       XNNPACK_SPINQUANT: LLAMA3_2_3B_SPINQUANT,
       XNNPACK_BF16: LLAMA3_2_3B_BF16,
     },
@@ -1953,7 +1953,7 @@ export const models = {
      * and background processing on low-power devices.
      */
     SMOLLM2_135M: {
-      ...SMOLLM2_135M_8DA4W,
+      DEFAULT: SMOLLM2_135M_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_135M_8DA4W,
       XNNPACK_BF16: SMOLLM2_135M_BF16,
     },
@@ -1964,7 +1964,7 @@ export const models = {
      * simplification, and structured data extraction.
      */
     SMOLLM2_360M: {
-      ...SMOLLM2_360M_8DA4W,
+      DEFAULT: SMOLLM2_360M_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_360M_8DA4W,
       XNNPACK_BF16: SMOLLM2_360M_BF16,
     },
@@ -1975,7 +1975,7 @@ export const models = {
      * 2B-3B models while maintaining fast on-device inference.
      */
     SMOLLM2_1_7B: {
-      ...SMOLLM2_1_7B_8DA4W,
+      DEFAULT: SMOLLM2_1_7B_8DA4W,
       XNNPACK_8DA4W: SMOLLM2_1_7B_8DA4W,
       XNNPACK_BF16: SMOLLM2_1_7B_BF16,
     },
@@ -1986,7 +1986,7 @@ export const models = {
      * tool calling flows.
      */
     HAMMER2_1_0_5B: {
-      ...HAMMER2_1_0_5B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_0_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_0_5B_XNNPACK_BF16,
     },
@@ -1996,7 +1996,7 @@ export const models = {
      * output generation on edge devices.
      */
     HAMMER2_1_1_5B: {
-      ...HAMMER2_1_1_5B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_1_5B_XNNPACK_BF16,
     },
@@ -2007,7 +2007,7 @@ export const models = {
      * autonomous mobile agent pipelines.
      */
     HAMMER2_1_3B: {
-      ...HAMMER2_1_3B_XNNPACK_8DA4W,
+      DEFAULT: HAMMER2_1_3B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: HAMMER2_1_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: HAMMER2_1_3B_XNNPACK_BF16,
     },
@@ -2018,7 +2018,7 @@ export const models = {
      * synthesis, and structured analytical tasks.
      */
     PHI4_MINI: {
-      ...PHI4_MINI_XNNPACK_8DA4W,
+      DEFAULT: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PHI4_MINI_XNNPACK_8DA4W,
       XNNPACK_BF16: PHI4_MINI_XNNPACK_BF16,
     },
@@ -2029,7 +2029,7 @@ export const models = {
      * lightweight conversational assistants on mobile devices.
      */
     QWEN2_5_0_5B: {
-      ...QWEN2_5_0_5B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_0_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_0_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_0_5B_XNNPACK_BF16,
     },
@@ -2040,7 +2040,7 @@ export const models = {
      * cross-lingual translation.
      */
     QWEN2_5_1_5B: {
-      ...QWEN2_5_1_5B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_1_5B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_1_5B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_1_5B_XNNPACK_BF16,
     },
@@ -2050,7 +2050,7 @@ export const models = {
      * languages for in-depth text generation and complex multi-turn dialogue.
      */
     QWEN2_5_3B: {
-      ...QWEN2_5_3B_XNNPACK_8DA4W,
+      DEFAULT: QWEN2_5_3B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN2_5_3B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN2_5_3B_XNNPACK_BF16,
     },
@@ -2061,7 +2061,7 @@ export const models = {
      * turn-taking on mobile devices.
      */
     QWEN3_0_6B: {
-      ...QWEN3_0_6B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_0_6B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_0_6B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_0_6B_XNNPACK_BF16,
     },
@@ -2071,7 +2071,7 @@ export const models = {
      * proficiency, and conversational fluidity across multiple languages.
      */
     QWEN3_1_7B: {
-      ...QWEN3_1_7B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_1_7B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_1_7B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_1_7B_XNNPACK_BF16,
     },
@@ -2082,7 +2082,7 @@ export const models = {
      * on-device AI applications.
      */
     QWEN3_4B: {
-      ...QWEN3_4B_XNNPACK_8DA4W,
+      DEFAULT: QWEN3_4B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: QWEN3_4B_XNNPACK_8DA4W,
       XNNPACK_BF16: QWEN3_4B_XNNPACK_BF16,
     },
@@ -2093,7 +2093,7 @@ export const models = {
      * for mobile deployment.
      */
     GEMMA4_E2B: {
-      ...GEMMA4_E2B_XNNPACK_8DA4W,
+      DEFAULT: GEMMA4_E2B_XNNPACK_8DA4W,
       XNNPACK_8DA4W: GEMMA4_E2B_XNNPACK_8DA4W,
       MLX_INT4: GEMMA4_E2B_MLX_INT4,
     },
@@ -2110,7 +2110,7 @@ export const models = {
      * sentence similarity, and clustering.
      */
     ALL_MINILM_L6_V2: {
-      ...ALL_MINILM_L6_V2_EMBEDDINGS,
+      DEFAULT: ALL_MINILM_L6_V2_EMBEDDINGS,
       XNNPACK_FP32: ALL_MINILM_L6_V2_EMBEDDINGS,
     },
     /**
@@ -2118,7 +2118,7 @@ export const models = {
      * Provides higher quality semantic embeddings compared to MiniLM.
      */
     ALL_MPNET_BASE_V2: {
-      ...ALL_MPNET_BASE_V2_EMBEDDINGS,
+      DEFAULT: ALL_MPNET_BASE_V2_EMBEDDINGS,
       XNNPACK_FP32: ALL_MPNET_BASE_V2_EMBEDDINGS,
     },
     /**
@@ -2126,7 +2126,7 @@ export const models = {
      * QA matching using cosine similarity.
      */
     MULTI_QA_MINILM_L6_COS_V1: {
-      ...MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
+      DEFAULT: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
       XNNPACK_FP32: MULTI_QA_MINILM_L6_COS_V1_EMBEDDINGS,
     },
     /**
@@ -2134,7 +2134,7 @@ export const models = {
      * question-answering matching using dot product distance.
      */
     MULTI_QA_MPNET_BASE_DOT_V1: {
-      ...MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
+      DEFAULT: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
       XNNPACK_FP32: MULTI_QA_MPNET_BASE_DOT_V1_EMBEDDINGS,
     },
     /**
@@ -2142,7 +2142,7 @@ export const models = {
      * cross-lingual semantic similarity.
      */
     PARAPHRASE_MULTILINGUAL_MINILM_L12_V2: {
-      ...PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
+      DEFAULT: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
       XNNPACK_8DA4W: PARAPHRASE_MULTILINGUAL_MINILM_L12_V2_EMBEDDINGS,
     },
     /**
@@ -2150,7 +2150,7 @@ export const models = {
      * distilled Universal Sentence Encoder (512-dim output).
      */
     DISTILUSE_BASE_MULTILINGUAL_CASED_V2: {
-      ...DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
+      DEFAULT: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
       XNNPACK_8DA4W: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_EMBEDDINGS,
       MLX_INT8: DISTILUSE_BASE_MULTILINGUAL_CASED_V2_MLX_INT8,
     },
@@ -2161,7 +2161,7 @@ export const models = {
      * search.
      */
     CLIP_VIT_BASE_PATCH32_TEXT: {
-      ...CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
+      DEFAULT: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_TEXT_EMBEDDINGS,
     },
     /**
@@ -2170,7 +2170,7 @@ export const models = {
      * passages with `document: ` via `embed(text, 'document: ')`.
      */
     LFM2_5_EMBEDDING_350M: {
-      ...LFM2_5_EMBEDDING_350M_EMBEDDINGS,
+      DEFAULT: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       XNNPACK_8DA4W: LFM2_5_EMBEDDING_350M_EMBEDDINGS,
       MLX_INT4: LFM2_5_EMBEDDING_350M_MLX_INT4,
     },
@@ -2187,7 +2187,7 @@ export const models = {
      * address, and similar). Compact label space, best for general redaction.
      */
     OPENAI: {
-      ...PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
+      DEFAULT: PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PRIVACY_FILTER_OPENAI_XNNPACK_8DA4W,
       MLX_INT4: PRIVACY_FILTER_OPENAI_MLX_INT4,
     },
@@ -2196,7 +2196,7 @@ export const models = {
      * space for stricter compliance-oriented redaction.
      */
     NEMOTRON: {
-      ...PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
+      DEFAULT: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       XNNPACK_8DA4W: PRIVACY_FILTER_NEMOTRON_XNNPACK_8DA4W,
       MLX_INT8: PRIVACY_FILTER_NEMOTRON_MLX_INT8,
     },
@@ -2212,7 +2212,7 @@ export const models = {
      * cross-modal image search.
      */
     CLIP_VIT_BASE_PATCH32: {
-      ...CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
+      DEFAULT: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       XNNPACK_FP32: CLIP_VIT_BASE_PATCH32_IMAGE_XNNPACK_FP32,
       COREML_FP16: CLIP_VIT_BASE_PATCH32_IMAGE_COREML_FP16,
       MLX_INT8: CLIP_VIT_BASE_PATCH32_IMAGE_MLX_INT8,
@@ -2229,7 +2229,7 @@ export const models = {
      * text prompts in real time.
      */
     SDXS_512_DREAMSHAPER: {
-      ...SDXS_512_DREAMSHAPER_XNNPACK_FP32,
+      DEFAULT: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       XNNPACK_FP32: SDXS_512_DREAMSHAPER_XNNPACK_FP32,
       COREML_FP16: SDXS_512_DREAMSHAPER_COREML_FP16,
     },
@@ -2246,7 +2246,7 @@ export const models = {
      * voice presets (see {@link SUPERTONIC_DEFAULT_VOICE_NAMES}).
      */
     SUPERTONIC: {
-      ...SUPERTONIC_3_XNNPACK_FP32,
+      DEFAULT: SUPERTONIC_3_XNNPACK_FP32,
       XNNPACK_FP32: SUPERTONIC_3_XNNPACK_FP32,
       MLX_FP32: SUPERTONIC_3_MLX_FP32,
     },
@@ -2258,39 +2258,39 @@ export const models = {
      */
     KOKORO: {
       EN_US: {
-        ...KOKORO_EN_US_XNNPACK_FP32,
+        DEFAULT: KOKORO_EN_US_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_EN_US_XNNPACK_FP32,
       },
       EN_GB: {
-        ...KOKORO_EN_GB_XNNPACK_FP32,
+        DEFAULT: KOKORO_EN_GB_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_EN_GB_XNNPACK_FP32,
       },
       ES: {
-        ...KOKORO_ES_XNNPACK_FP32,
+        DEFAULT: KOKORO_ES_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_ES_XNNPACK_FP32,
       },
       FR: {
-        ...KOKORO_FR_XNNPACK_FP32,
+        DEFAULT: KOKORO_FR_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_FR_XNNPACK_FP32,
       },
       IT: {
-        ...KOKORO_IT_XNNPACK_FP32,
+        DEFAULT: KOKORO_IT_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_IT_XNNPACK_FP32,
       },
       PT: {
-        ...KOKORO_PT_XNNPACK_FP32,
+        DEFAULT: KOKORO_PT_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_PT_XNNPACK_FP32,
       },
       HI: {
-        ...KOKORO_HI_XNNPACK_FP32,
+        DEFAULT: KOKORO_HI_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_HI_XNNPACK_FP32,
       },
       PL: {
-        ...KOKORO_PL_XNNPACK_FP32,
+        DEFAULT: KOKORO_PL_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_PL_XNNPACK_FP32,
       },
       DE: {
-        ...KOKORO_DE_XNNPACK_FP32,
+        DEFAULT: KOKORO_DE_XNNPACK_FP32,
         XNNPACK_FP32: KOKORO_DE_XNNPACK_FP32,
       },
     },
@@ -2312,7 +2312,7 @@ export const models = {
        * PP-OCRv6 Small multilingual OCR model.
        */
       PPOCRV6_SMALL: {
-        ...PPOCRV6_SMALL_XNNPACK_INT8,
+        DEFAULT: PPOCRV6_SMALL_XNNPACK_INT8,
         XNNPACK: PPOCRV6_SMALL_XNNPACK_INT8,
         COREML: PPOCRV6_SMALL_COREML_INT8,
         VULKAN: PPOCRV6_SMALL_VULKAN_FP16,

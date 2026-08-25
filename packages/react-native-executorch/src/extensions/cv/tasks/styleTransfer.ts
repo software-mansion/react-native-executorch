@@ -1,7 +1,6 @@
 /**
  * Neural style transfer task pipeline with output rendering and colorspace
  * conversion.
- * @module CV/Tasks/StyleTransfer
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

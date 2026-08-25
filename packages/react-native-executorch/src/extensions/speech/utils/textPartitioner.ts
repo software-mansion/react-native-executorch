@@ -1,7 +1,6 @@
 /**
  * Dynamic programming text partitioning algorithm for splitting long sentences
  * into natural speech chunks.
- * @module Speech/Utils/TextPartitioner
  */
 
 import { RnExecuTorchError } from '../../../core/error';

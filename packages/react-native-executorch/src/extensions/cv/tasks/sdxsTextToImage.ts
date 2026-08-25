@@ -1,7 +1,6 @@
 /**
  * SDXS single-step text-to-image generation pipeline with latent diffusion and
  * TAESD decoding.
- * @module CV/Tasks/SdxsTextToImage
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';
@@ -55,7 +54,9 @@ export type SdxsTextToImageModel = {
  * @category CV / Types
  */
 export type SdxsTextToImage = {
-  /** Releases all allocated native resources. */
+  /**
+   * Releases all allocated native resources.
+   */
   readonly dispose: () => void;
 
   /**

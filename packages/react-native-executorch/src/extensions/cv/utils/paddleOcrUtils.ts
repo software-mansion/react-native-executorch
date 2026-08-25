@@ -1,6 +1,5 @@
 /**
  * DBNet contour tracing and text quad extraction utilities for PP-OCRv6.
- * @module CV/Utils/PaddleOcrUtils
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

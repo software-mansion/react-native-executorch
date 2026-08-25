@@ -1,6 +1,5 @@
 /**
  * Native C++ and JavaScript tensor math and random number generation utilities.
- * @module Math
  */
 
 import { rnexecutorchJsi } from '../native/bridge';

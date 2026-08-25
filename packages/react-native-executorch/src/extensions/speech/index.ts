@@ -1,7 +1,6 @@
 /**
  * Speech recognition, text-to-speech synthesis, phonemization, and audio
  * processing pipelines.
- * @module Speech
  */
 
 export * from './utils/vadUtils';

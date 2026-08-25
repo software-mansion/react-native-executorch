@@ -1,6 +1,5 @@
 /**
  * 2D point representation and spatial scaling utilities.
- * @module CV/Ops/Points
  */
 
 import type { ResizeMode } from './image';

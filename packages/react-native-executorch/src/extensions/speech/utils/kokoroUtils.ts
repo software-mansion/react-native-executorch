@@ -1,6 +1,5 @@
 /**
  * Utility functions, vocoder constants, and voice decoders for Kokoro TTS.
- * @module Speech/Utils/Kokoro
  */
 
 /**

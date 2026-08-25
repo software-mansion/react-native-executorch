@@ -1,6 +1,5 @@
 /**
  * Kokoro Text-to-Speech (TTS) synthesis task pipeline.
- * @module Speech/Tasks/KokoroTextToSpeech
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';
@@ -112,7 +111,9 @@ export type KokoroTtsChunk = {
  * @typeParam K Voice keys record constraint.
  */
 export type KokoroTextToSpeech<K extends PropertyKey = string> = {
-  /** Releases the allocated native models, phonemizer and execution tensors. */
+  /**
+   * Releases all allocated native resources.
+   */
   readonly dispose: () => void;
 
   /**

@@ -1,7 +1,6 @@
 /**
  * Object detection task pipeline with integrated preprocessing, NMS, and box
  * scaling.
- * @module CV/Tasks/ObjectDetection
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

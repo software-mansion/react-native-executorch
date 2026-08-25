@@ -1,6 +1,5 @@
 /**
  * Image embedding and visual feature extraction task pipeline.
- * @module CV/Tasks/ImageEmbedding
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

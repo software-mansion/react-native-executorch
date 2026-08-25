@@ -4,7 +4,6 @@
  * Provides utilities to dispatch synchronous, heavy native operations (model
  * compilation, tensor inference) onto dedicated background worklet threads,
  * preventing them from blocking the React Native JavaScript thread.
- * @module Core/Runtime
  */
 
 import {

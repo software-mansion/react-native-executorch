@@ -11,11 +11,7 @@ import {
   type SupertonicTextToSpeech,
 } from '../extensions/speech/tasks/supertonicTextToSpeech';
 
-/**
- * Structured state and execution controls returned by {@link useTextToSpeech}.
- * @category Hooks
- */
-export type TtsHookResult<
+type TtsHookResult<
   C,
   P extends {
     synthesize: (...args: any[]) => any;

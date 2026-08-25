@@ -1,6 +1,5 @@
 /**
  * Core image buffer types and pixel formats for Computer Vision.
- * @module CV/Image
  */
 
 /**

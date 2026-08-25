@@ -15,7 +15,7 @@ const isSimulator = DeviceInfo.isEmulatorSync();
 
 function VADContent() {
   const { isReady, downloadProgress, error, detectVoiceOnStream, resetStream } =
-    useVoiceActivityDetector(models.voiceActivityDetection.FSMN_VAD);
+    useVoiceActivityDetector(models.voiceActivityDetection.FSMN_VAD.DEFAULT);
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);

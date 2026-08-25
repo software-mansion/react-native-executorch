@@ -1,7 +1,6 @@
 /**
  * PP-OCRv6 optical character recognition (DBNet text detection + SVTR text
  * recognition).
- * @module CV/Tasks/PaddleOcr
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

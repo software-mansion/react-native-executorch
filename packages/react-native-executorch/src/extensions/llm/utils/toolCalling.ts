@@ -1,7 +1,6 @@
 /**
  * Tool call definition, XML/JSON parsing, and schema generation for LLM
  * function calling.
- * @module LLM/Utils/ToolCalling
  */
 
 import type { ChatMessageContent } from './chatPreprocessor';

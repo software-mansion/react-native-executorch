@@ -1,6 +1,5 @@
 /**
  * Audio framing and pre-emphasis feature extraction for Voice Activity Detection.
- * @module Speech/Utils/VAD
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

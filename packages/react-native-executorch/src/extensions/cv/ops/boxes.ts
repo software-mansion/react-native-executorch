@@ -1,7 +1,6 @@
 /**
  * Bounding box coordinate decoding, coordinate transforms, and Non-Maximum
  * Suppression (NMS).
- * @module CV/Ops/Boxes
  */
 
 import { rnexecutorchJsi } from '../../../native/bridge';

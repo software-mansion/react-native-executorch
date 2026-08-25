@@ -1,7 +1,6 @@
 /**
  * Instance segmentation task pipeline with NMS, bounding box scaling, and mask
  * extraction.
- * @module CV/Tasks/InstanceSegmentation
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

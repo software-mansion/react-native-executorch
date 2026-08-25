@@ -1,6 +1,5 @@
 /**
  * Native HuggingFace fast tokenizer bindings.
- * @module NLP/Tokenizer
  */
 
 import { rnexecutorchJsi } from '../../native/bridge';

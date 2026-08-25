@@ -1,7 +1,6 @@
 /**
  * Semantic segmentation task pipeline with colormap mapping and output mask
  * rendering.
- * @module CV/Tasks/SemanticSegmentation
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';

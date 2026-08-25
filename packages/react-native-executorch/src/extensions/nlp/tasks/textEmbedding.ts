@@ -1,6 +1,5 @@
 /**
  * Text Embedding task pipeline for sentence transformers.
- * @module NLP/Tasks/TextEmbedding
  */
 
 import type { WorkletRuntime } from 'react-native-worklets';
