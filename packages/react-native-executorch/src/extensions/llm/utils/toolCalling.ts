@@ -8,7 +8,7 @@ import type { ChatMessageContent } from './chatPreprocessor';
 
 /**
  * JSON Schema definition for tool parameter inputs.
- * @category Types
+ * @category LLM / Types
  */
 export type ToolParameters = {
   /** JSON Schema type, typically `'object'`. */
@@ -22,7 +22,7 @@ export type ToolParameters = {
 
 /**
  * Declaration of a tool available to the model.
- * @category Types
+ * @category LLM / Types
  */
 export type ToolDefinition<Args extends Record<string, unknown> = Record<string, unknown>> = {
   /** Tool type discriminator, typically `'function'`. */
@@ -45,7 +45,7 @@ export type ToolDefinition<Args extends Record<string, unknown> = Record<string,
 
 /**
  * Function call object embedded inside assistant tool_calls.
- * @category Types
+ * @category LLM / Types
  */
 export type ToolCall = {
   /** Optional tool call identifier for matching responses. */
@@ -62,7 +62,7 @@ export type ToolCall = {
 
 /**
  * Structured tool parsing result containing detected tool calls and remaining text.
- * @category Types
+ * @category LLM / Types
  */
 export type ToolParserResult = {
   /** Detected tool calls extracted from the model output. */
@@ -74,6 +74,6 @@ export type ToolParserResult = {
 /**
  * Function signature for parsing tool calls from model output text.
  * Returns undefined if no tool call was detected.
- * @category Types
+ * @category LLM / Types
  */
 export type ToolParser = (text: string) => ToolParserResult | undefined;

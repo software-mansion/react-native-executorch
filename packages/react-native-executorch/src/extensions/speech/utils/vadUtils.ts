@@ -8,7 +8,7 @@ import { type Tensor } from '../../../core/tensor';
 
 /**
  * Options controlling how {@link extractFrames} slices and filters the waveform.
- * @category Types
+ * @category Speech / Types
  */
 export type ExtractFramesOptions = {
   /** Number of audio frames to extract and write into the destination tensor. */
@@ -27,7 +27,7 @@ export type ExtractFramesOptions = {
  * `dst` is fully zeroed first, so rows beyond `numFrames` stay zero (padding).
  * The frame length is taken from `hann`'s length and the padded width from
  * `dst`'s last dimension.
- * @category Typescript API
+ * @category Speech / Functions
  * @param waveform Input audio samples tensor. Expected 1D shape `[length]` with
  * data type `float32`. Framing starts at the first sample.
  * @param hann Precomputed Hann window tensor. Expected 1D shape `[frameLength]`

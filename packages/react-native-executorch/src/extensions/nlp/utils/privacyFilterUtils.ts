@@ -22,7 +22,7 @@ const NEG_INF = Number.NEGATIVE_INFINITY;
  * transition is taken. Positive values encourage the transition; negative
  * values discourage it. Every field defaults to `0` (a neutral, validity-only
  * Viterbi).
- * @category Types
+ * @category NLP / Types
  */
 export interface ViterbiBiases {
   /** `O -> O` (background persistence). Higher = stay in background more, fewer false positives. */
@@ -44,14 +44,14 @@ export interface ViterbiBiases {
  * `B-`/`I-`/`E-`/`S-` prefix (`'O'` and any unprefixed label contribute
  * nothing). Lets a model's concrete label list narrow {@link PiiEntity.label}
  * to just that model's entity types instead of an arbitrary string.
- * @category Types
+ * @category NLP / Types
  */
 export type PiiEntityType<Label extends string> =
   Label extends `${'B' | 'I' | 'E' | 'S'}-${infer Entity}` ? Entity : never;
 
 /**
  * A single detected PII entity span.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The entity type, narrowed to a specific model's entity types
  * when known (see {@link PiiEntityType}), or `string` for an arbitrary model.
  */
@@ -90,7 +90,7 @@ const CLASS_S = 4;
  * background state, the best span-closing (`E-`/`S-`) state, or, per entity,
  * the best of that entity's `B-`/`I-` states — which is what lets the decode
  * step run in `O(numLabels + numEntities)` instead of `O(numLabels^2)`.
- * @category Types
+ * @category NLP / Types
  */
 export interface Grammar {
   /** Total number of labels, i.e. `1 + 4 * numEntities`. */
@@ -391,7 +391,7 @@ function isSpanOpener(labelId: number, labelNames: readonly string[]): boolean {
 
 /**
  * A contiguous run of same-entity tokens, before text decoding.
- * @category Types
+ * @category NLP / Types
  */
 export interface TokenSpan {
   readonly start: number;
@@ -473,7 +473,7 @@ export function computeCharOffsets(tokenizer: Tokenizer, ids: Int32Array): Uint3
  * One run in a segmentation of source text: either a plain (uncovered) run or
  * a labeled entity slice. Adjacent segments cover the input without gaps or
  * overlaps; concatenating every `text` reproduces the input.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The entity label type; narrows to a specific model's
  * entity types when known, or `string` for an arbitrary model.
  */
@@ -490,6 +490,7 @@ export type PiiSegment<Label extends string = string> =
  * index into it) and must not overlap; the pipeline never emits overlapping
  * spans, so the typical case is passing `detectPii`'s result straight through.
  * Overlapping inputs are resolved first-wins by start position.
+ * @category NLP / Functions
  * @param text The original input the entities were detected in.
  * @param entities Detected entity spans, in any order.
  * @returns A flat list of plain and entity segments covering `text`.

@@ -32,7 +32,7 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * List of ISO language codes supported by Supertonic 3 for text synthesis conditioning.
- * @category Constants
+ * @category Speech / Constants
  */
 // prettier-ignore
 export const SUPERTONIC_SUPPORTED_LANGUAGES = [
@@ -43,7 +43,7 @@ export const SUPERTONIC_SUPPORTED_LANGUAGES = [
 
 /**
  * Supported Supertonic 3 ISO language code.
- * @category Types
+ * @category Speech / Types
  */
 export type SupertonicLanguage = (typeof SUPERTONIC_SUPPORTED_LANGUAGES)[number];
 
@@ -93,9 +93,9 @@ const DUPLICATE_QUOTES_PATTERN = /([`'""])\1+/g;
 const ENDING_PUNCTUATION_PATTERN = /[.!?;:,'")\]}…。」』】〉》›»]$/;
 
 /**
- * Normalizes unicode, replaces symbols/abbreviations, strips emojis, and cleans whitespace.
- * Should be run on full input text prior to chunk partitioning.
- * @category Utils
+ * Normalizes unicode, replaces symbols/abbreviations, strips emojis, and cleans
+ * whitespace. Should be run on full input text prior to chunk partitioning.
+ * @category Speech / Functions
  * @param text The raw input text.
  * @returns The normalized clean text.
  */
@@ -116,9 +116,9 @@ export function cleanText(text: string): string {
 }
 
 /**
- * Formats a single text chunk by ensuring ending punctuation and wrapping with language tags.
- * Should be run on individual partitioned text chunks.
- * @category Utils
+ * Formats a single text chunk by ensuring ending punctuation and wrapping with
+ * language tags. Should be run on individual partitioned text chunks.
+ * @category Speech / Functions
  * @param chunk The partitioned text chunk.
  * @param lang The language code.
  * @returns The formatted chunk ready for model input.
@@ -146,7 +146,7 @@ export function formatChunk(chunk: string, lang?: string): string {
 
 /**
  * Convenience wrapper combining {@link cleanText} and {@link formatChunk}.
- * @category Utils
+ * @category Speech / Functions
  * @param text The raw input text.
  * @param lang The language code.
  * @returns The preprocessed text.
@@ -159,7 +159,7 @@ export function preprocessText(text: string, lang?: string): string {
 /**
  * Encodes preprocessed text to character unicode index ids based on
  * unicode_indexer.json.
- * @category Utils
+ * @category Speech / Functions
  * @param text The preprocessed text.
  * @param indexer The unicode indexer character mapping array.
  * @returns BigInt64Array of character IDs.
@@ -177,7 +177,7 @@ export function encodeText(text: string, indexer: readonly number[]): BigInt64Ar
 
 /**
  * Parsed voice style tensors required by Supertonic 3 for style conditioning.
- * @category Types
+ * @category Speech / Types
  */
 export type SupertonicVoiceStyle = {
   /** Text-to-latent style embedding tensor data of shape [1, 50, 256] (12,800 floats). */
@@ -188,7 +188,7 @@ export type SupertonicVoiceStyle = {
 
 /**
  * Parses raw JSON voice style object data into Float32Arrays.
- * @category Utils
+ * @category Speech / Functions
  * @param json The parsed JSON voice style object.
  * @returns Parsed SupertonicVoiceStyle containing styleTtl and styleDp Float32Arrays.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the voice style JSON

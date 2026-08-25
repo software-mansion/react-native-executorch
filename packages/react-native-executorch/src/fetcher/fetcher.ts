@@ -19,7 +19,7 @@ const RNE_DIRECTORY = IS_ANDROID
 
 /**
  * Options controlling a {@link download} call.
- * @category Types
+ * @category Fetcher / Types
  */
 export interface DownloadOptions {
   /** Called with overall progress in `[0, 1]` as bytes arrive. */
@@ -409,7 +409,7 @@ function substituteRemoteSources<T>(node: T, resolved: ReadonlyMap<string, strin
  * streaming request that resumes an interrupted download from where it stopped.
  * When a config references several files, overall progress is weighted by their
  * byte sizes so a large model isn't reported the same as a tiny tokenizer.
- * @category Utils
+ * @category Fetcher / Functions
  * @typeParam T The shape of the value being resolved.
  * @param source A URL, a local path, or any nested object/array holding them.
  * @param options Progress and cancellation options.

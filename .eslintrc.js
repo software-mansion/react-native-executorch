@@ -1,13 +1,32 @@
 const path = require('path');
 
 const VALID_CATEGORIES = [
-  'Constants',
-  'Errors',
+  'CV / Constants',
+  'CV / Functions',
+  'CV / Tasks',
+  'CV / Types',
+  'Core / Errors',
+  'Core / Functions',
+  'Core / Schema / Functions',
+  'Core / Schema / Types',
+  'Core / Types',
+  'Fetcher / Functions',
+  'Fetcher / Types',
   'Hooks',
-  'Types',
-  'Typescript API',
-  'Utils',
-  'Utilities - General',
+  'LLM / Functions',
+  'LLM / Tasks',
+  'LLM / Types',
+  'Math / Functions',
+  'Math / Types',
+  'Models',
+  'NLP / Constants',
+  'NLP / Functions',
+  'NLP / Tasks',
+  'NLP / Types',
+  'Speech / Constants',
+  'Speech / Functions',
+  'Speech / Tasks',
+  'Speech / Types',
 ];
 
 const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;

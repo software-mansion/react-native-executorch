@@ -10,13 +10,13 @@ declare const phonemizerBrand: unique symbol;
 
 /**
  * Union of all supported language codes in the G2P pipeline.
- * @category Types
+ * @category Speech / Types
  */
 export type PhonemizerLanguage = 'en-us' | 'en-gb' | 'fr' | 'es' | 'it' | 'pt' | 'de' | 'pl' | 'hi';
 
 /**
  * Configuration options and asset paths for initializing a {@link Phonemizer}.
- * @category Types
+ * @category Speech / Types
  */
 export type PhonemizerConfig = {
   /** Target language code to configure the G2P rules for. */
@@ -31,7 +31,7 @@ export type PhonemizerConfig = {
 
 /**
  * Native Grapheme-to-Phoneme (G2P) conversion interface.
- * @category Types
+ * @category Speech / Types
  */
 export type Phonemizer = {
   /**
@@ -58,7 +58,7 @@ export type Phonemizer = {
 
 /**
  * Creates a grapheme-to-phoneme (G2P) pipeline for the configured language.
- * @category Typescript API
+ * @category Speech / Functions
  * @param config Phonemizer configuration and asset paths.
  * See {@link PhonemizerConfig}.
  * @returns The native {@link Phonemizer} instance.

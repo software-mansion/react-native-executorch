@@ -8,7 +8,7 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Model chat template configuration resolved from tokenizer config file.
- * @category Types
+ * @category LLM / Types
  */
 export type TokenizerChatConfig = {
   /** Jinja chat template string for prompt rendering. */
@@ -27,7 +27,7 @@ function resolveToken(token: unknown): string | undefined {
 
 /**
  * Parses raw JSON configuration from `tokenizer_config.json` into a normalized format.
- * @category Utils
+ * @category LLM / Functions
  * @param config Raw JSON object from tokenizer_config.json.
  * @returns A parsed TokenizerChatConfig object.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if `chat_template` is not

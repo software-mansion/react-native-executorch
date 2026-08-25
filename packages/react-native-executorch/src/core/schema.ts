@@ -78,7 +78,7 @@ import { RnExecuTorchError } from './error';
 /**
  * Inclusive integer domain of a single dynamic dimension — values from `min`
  * to `max` in increments of `step`.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type Range = { readonly min: number; readonly max: number; readonly step: number };
 
@@ -87,7 +87,7 @@ export type Range = { readonly min: number; readonly max: number; readonly step:
  * - `constant` — exactly `value`.
  * - `range` — any value of a {@link Range}.
  * - `enum` — one of the listed `choices`.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ConcreteDim =
   | { readonly kind: 'constant'; readonly value: number }
@@ -100,7 +100,7 @@ export type ConcreteDim =
  * validation: `static` symbols bind to constants, `dynamic` symbols to ranges
  * or enums. Reusing a symbol requires every occurrence to bind to the same
  * domain — it does NOT imply any runtime relation between the dimensions.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type SymbolicDim =
   | ConcreteDim
@@ -110,7 +110,7 @@ export type SymbolicDim =
 /**
  * Spec of a tensor parameter: the expected element `dtype` and one
  * dimension spec per axis.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type TensorSpec<Dim extends SymbolicDim> = {
   readonly kind: 'Tensor';
@@ -121,7 +121,7 @@ export type TensorSpec<Dim extends SymbolicDim> = {
 /**
  * The ExecuTorch value-tag that classifies the runtime type of a model input or
  * output slot.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ExecuTorchTag =
   | 'None'
@@ -138,7 +138,7 @@ export type ExecuTorchTag =
 /**
  * Spec of a single input or output parameter of a method — either a
  * {@link TensorSpec} or a primitive ExecuTorch value tag (`Int`, `Bool`, ...).
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ParamSpec<Dim extends SymbolicDim> =
   | TensorSpec<Dim>
@@ -152,7 +152,7 @@ export type ParamSpec<Dim extends SymbolicDim> =
  * Reference to a single tensor dimension of a method's input or output.
  * `tensorIdx` counts only tensor parameters (skipping primitives), consistent
  * with ExecuTorch's `inputTensorMeta` / `outputTensorMeta` ordering.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type DimRef = {
   readonly paramSide: 'input' | 'output';
@@ -163,7 +163,7 @@ export type DimRef = {
 /**
  * Runtime constraint declaring that all referenced dimensions must be equal
  * to each other in any given execution of the method.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type EqualityConstraint = {
   readonly kind: 'equality';
@@ -174,7 +174,7 @@ export type EqualityConstraint = {
  * Runtime constraint declaring that two dimensions must satisfy
  * `dimLhs = coefficients[0] * dimRhs + coefficients[1]` (integer
  * coefficients) in any given execution of the method.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type LinearConstraint = {
   readonly kind: 'linear';
@@ -187,7 +187,7 @@ export type LinearConstraint = {
  * A requirement on the runtime values of a method's tensor dimensions: the
  * concrete tensors passed to and produced by the method must satisfy it in
  * any given execution. Matched as a declaration during spec validation.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type RuntimeConstraint = LinearConstraint | EqualityConstraint;
 
@@ -198,7 +198,7 @@ export type RuntimeConstraint = LinearConstraint | EqualityConstraint;
 /**
  * Spec of a single model method: the ordered input and output parameter specs
  * and the runtime constraints the method declares over its tensor dimensions.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type MethodSpec<Dim extends SymbolicDim> = {
   inputs: readonly ParamSpec<Dim>[];
@@ -210,7 +210,7 @@ export type MethodSpec<Dim extends SymbolicDim> = {
  * Spec of a whole model, mapping method names to their {@link MethodSpec}.
  * A `SymbolicDim` spec describes allowed models; a `ConcreteDim` spec
  * describes an exported model.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>;
 
@@ -222,14 +222,14 @@ export type ModelSpec<Dim extends SymbolicDim> = Record<string, MethodSpec<Dim>>
  * Shape notation accepted by {@link SymbolicTensor}: numbers become
  * {@link ConstantDim}, strings become {@link StaticDim}, and
  * {@link SymbolicDim} values are used as-is.
- * @category Types
+ * @category Core / Schema / Types
  */
 export type SymbolicShape = readonly (number | string | SymbolicDim)[];
 
 /**
  * Creates a static symbolic dimension. Static symbols bind to constant
  * dimensions of the exported spec; repeated uses must bind to the same value.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param symbol The symbol name.
  * @returns The symbolic dimension.
  */
@@ -240,7 +240,7 @@ export const StaticDim = (symbol: string): SymbolicDim => {
 /**
  * Creates a dynamic symbolic dimension. Dynamic symbols bind to range or enum
  * dimensions of the exported spec; repeated uses must bind to the same domain.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param symbol The symbol name.
  * @returns The symbolic dimension.
  */
@@ -250,7 +250,7 @@ export const DynamicDim = (symbol: string): SymbolicDim => {
 
 /**
  * Creates a constant dimension matching exactly `value`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param value The required dimension size.
  * @returns The concrete dimension.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `value`
@@ -268,7 +268,7 @@ export const ConstantDim = (value: number): ConcreteDim => {
 
 /**
  * Creates an enumerated dimension matching one of `choices`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param choices The allowed dimension sizes.
  * @returns The concrete dimension.
  * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if any
@@ -284,7 +284,7 @@ export const EnumDim = (choices: readonly number[]): ConcreteDim => {
 /**
  * Creates a range dimension matching values from `min` to `max` in increments
  * of `step`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param min The smallest allowed dimension size.
  * @param max The largest allowed dimension size.
  * @param step The increment between allowed sizes. Defaults to 1.
@@ -323,7 +323,7 @@ export const RangeDim = (min: number, max: number, step?: number): ConcreteDim =
 /**
  * Creates a {@link TensorSpec} from a dtype and a {@link SymbolicShape}:
  * numbers become {@link ConstantDim}, strings become {@link StaticDim}.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param dtype The expected element data type.
  * @param shape The per-dimension specs.
  * @returns The tensor spec.
@@ -339,35 +339,35 @@ export const SymbolicTensor = (dtype: DType, shape: SymbolicShape) => {
 
 /**
  * Shorthand for `SymbolicTensor('float32', shape)`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
  * @returns A {@link SymbolicTensor} with `float32` data type.
  */
 export const f32 = (...shape: SymbolicShape) => SymbolicTensor('float32', shape);
 /**
  * Shorthand for `SymbolicTensor('int64', shape)`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
  * @returns A {@link SymbolicTensor} with `int64` data type.
  */
 export const i64 = (...shape: SymbolicShape) => SymbolicTensor('int64', shape);
 /**
  * Shorthand for `SymbolicTensor('int32', shape)`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
  * @returns A {@link SymbolicTensor} with `int32` data type.
  */
 export const i32 = (...shape: SymbolicShape) => SymbolicTensor('int32', shape);
 /**
  * Shorthand for `SymbolicTensor('uint8', shape)`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
  * @returns A {@link SymbolicTensor} with `uint8` data type.
  */
 export const ui8 = (...shape: SymbolicShape) => SymbolicTensor('uint8', shape);
 /**
  * Shorthand for `SymbolicTensor('bool', shape)`.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param shape Dimension sizes of the tensor.
  * @returns A {@link SymbolicTensor} with `bool` data type.
  */
@@ -375,7 +375,7 @@ export const bool = (...shape: SymbolicShape) => SymbolicTensor('bool', shape);
 
 /**
  * Helper namespace for declaring runtime constraints.
- * @category Typescript API
+ * @category Core / Schema / Functions
  */
 export const constr = {
   /**
@@ -403,7 +403,7 @@ export const constr = {
 /**
  * Constructs a method specification mapping a method name to its parameter
  * specs and runtime constraints.
- * @category Typescript API
+ * @category Core / Schema / Functions
  * @param name The execution method name (e.g., `'forward'`).
  * @param inputs Ordered list of parameter specifications for method inputs.
  * @param outputs Ordered list of parameter specifications for method outputs.
@@ -781,6 +781,7 @@ function validateDimDomains(modelSpec: ModelSpec<SymbolicDim>): void {
 
 /**
  * Result of validating an exported model spec against allowed variants.
+ * @category Core / Schema / Types
  * @typeParam K The variant key type.
  */
 export type SpecMatch<K extends PropertyKey = PropertyKey> = {
@@ -939,7 +940,7 @@ function createSpecMatch<K extends PropertyKey>(
  * accessors.
  * @throws {RnExecuTorchError} With code `SCHEMA_MISMATCH`, describing
  * why every variant failed.
- * @category Typescript API
+ * @category Core / Schema / Functions
  */
 export function validateSpec<const T extends Record<string, ModelSpec<SymbolicDim>>>(
   exportedModelSpec: ModelSpec<ConcreteDim>,

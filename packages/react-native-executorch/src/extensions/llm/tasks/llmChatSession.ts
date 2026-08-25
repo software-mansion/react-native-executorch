@@ -48,7 +48,7 @@ export type {
 
 /**
  * Model configuration required to instantiate an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMModel = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -65,7 +65,7 @@ export type LLMModel = {
 
 /**
  * Configuration options for tool calling in an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMToolOpts = {
   /** Tool definitions available to the model. */
@@ -78,7 +78,7 @@ export type LLMToolOpts = {
 
 /**
  * Options for configuring an LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatSessionOptions = {
   /** Default generation configuration options. */
@@ -98,7 +98,7 @@ export type LLMChatSessionOptions = {
 
 /**
  * Result returned by an LLM chat turn.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatTurnResult = {
   /** The messages added to history during this chat turn. */
@@ -115,7 +115,7 @@ export type LLMChatTurnResult = {
 
 /**
  * Handle to an active LLM chat session.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMChatSession = {
   /**
@@ -186,7 +186,7 @@ const DEFAULT_MAX_TURNS = 5;
 
 /**
  * Instantiates an LLM chat session using background thread execution.
- * @category Typescript API
+ * @category LLM / Tasks
  * @param config Model configuration containing model, tokenizer, and tokenizer config paths.
  * @param options Custom generation, tool calling, and state options.
  * @param runtime The worklet runtime thread to run native generation on.

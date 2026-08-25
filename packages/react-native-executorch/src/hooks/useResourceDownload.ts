@@ -5,7 +5,7 @@ import { isRnExecuTorchError } from '../core/error';
 /**
  * Options accepted by {@link useResourceDownload} and by every `use<Task>` hook
  * built on top of it.
- * @category Types
+ * @category Hooks
  */
 export type ResourceOptions = {
   /** If true, prevents checks and downloads, resetting the hook state. */

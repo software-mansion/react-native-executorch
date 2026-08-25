@@ -15,13 +15,13 @@ declare const modelBrand: unique symbol;
 
 /**
  * A value that can be passed as an input to a model's `execute` method.
- * @category Types
+ * @category Core / Types
  */
 export type ModelInput = Tensor | number | boolean | null;
 
 /**
  * A value returned from a model's `execute` method.
- * @category Types
+ * @category Core / Types
  */
 export type ModelOutput = Tensor | number | boolean | string | null;
 
@@ -34,7 +34,7 @@ export type ModelOutput = Tensor | number | boolean | string | null;
  *
  * Obtain a `Model` instance via the {@link loadModel} function. When the model
  * is no longer needed, call {@link Model.dispose} to release native memory.
- * @category Types
+ * @category Core / Types
  */
 export type Model = {
   /** The local filesystem path of the `.pte` model file. */
@@ -83,7 +83,7 @@ export type Model = {
  * The model is loaded synchronously into native memory. Prefer calling this
  * inside a worklet runtime thread (via {@link wrapAsync}) to avoid blocking the
  * JS thread during compilation.
- * @category Typescript API
+ * @category Core / Functions
  * @param modelPath The absolute local path to the `.pte` model file.
  * @returns The compiled {@link Model} instance, ready for execution.
  * @throws {RnExecuTorchError} Thrown with code `LOAD_FAILED` if the model file

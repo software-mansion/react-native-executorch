@@ -30,7 +30,7 @@ export type { BoxFormat };
 /**
  * Options for configuring an instance segmenter preprocessor, label
  * vocabulary, and threshold parameters.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -54,7 +54,7 @@ export type InstanceSegmenterOptions<F extends BoxFormat, L> = Omit<
 
 /**
  * Model configuration required to instantiate an instance segmenter task runner.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -71,7 +71,7 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
 
 /**
  * Optional configuration parameters for instance segmentation inference.
- * @category Types
+ * @category CV / Types
  */
 export type SegmentInstancesOptions = {
   /**
@@ -94,7 +94,7 @@ export type SegmentInstancesOptions = {
 /**
  * Result structure representing a single detected instance with its bounding box,
  * segmentation mask, label, and confidence score.
- * @category Types
+ * @category CV / Types
  * @typeParam F The format type of the bounding box.
  * @typeParam L The label type.
  */
@@ -110,13 +110,50 @@ export type InstanceSegmentationResult<F extends BoxFormat, L> = {
 };
 
 /**
+ * Instance segmentation task runner.
+ * @category CV / Types
+ * @typeParam F The format type of the bounding box.
+ * @typeParam L The label type.
+ */
+export type InstanceSegmenter<F extends BoxFormat, L> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous instance segmentation on the given input image.
+   * @param input The input image buffer.
+   * @param options Execution override options.
+   * See {@link SegmentInstancesOptions}.
+   * @returns A promise resolving to a list of detected instances.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
+   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly segmentInstances: (
+    input: ImageBuffer,
+    options?: SegmentInstancesOptions
+  ) => Promise<InstanceSegmentationResult<F, L>[]>;
+
+  /**
+   * Synchronous version of {@link segmentInstances} to be executed directly on
+   * the caller or worklet thread.
+   */
+  readonly segmentInstancesWorklet: (
+    input: ImageBuffer,
+    options?: SegmentInstancesOptions
+  ) => InstanceSegmentationResult<F, L>[];
+};
+
+/**
  * Creates an instance segmenter runner for executing local Instance
  * Segmentation models.
  *
  * It validates model input/output tensor shapes and types, pre-allocates
  * execution and auxiliary tensors, sets up an image preprocessor, and returns
  * execution and resource management controls.
- * @category Typescript API
+ * @category CV / Tasks
  * @typeParam F The bounding box format type.
  * @typeParam L The label type.
  * @param config Model configuration containing path and options.
@@ -132,36 +169,7 @@ export type InstanceSegmentationResult<F extends BoxFormat, L> = {
 export async function createInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous instance segmentation on the given input image.
-   * @param input The input image buffer.
-   * @param options Execution override options.
-   * See {@link SegmentInstancesOptions}.
-   * @returns A promise resolving to a list of detected instances.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if predicted class
-   * index is out of bounds, `RESOURCE_BUSY` if the model is in use, or
-   * `RESOURCE_DISPOSED` if disposed.
-   */
-  segmentInstances: (
-    input: ImageBuffer,
-    options?: SegmentInstancesOptions
-  ) => Promise<InstanceSegmentationResult<F, L>[]>;
-
-  /**
-   * Synchronous version of {@link segmentInstances} to be executed directly on
-   * the caller or worklet thread.
-   */
-  segmentInstancesWorklet: (
-    input: ImageBuffer,
-    options?: SegmentInstancesOptions
-  ) => InstanceSegmentationResult<F, L>[];
-}> {
+): Promise<InstanceSegmenter<F, L>> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

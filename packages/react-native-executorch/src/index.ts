@@ -71,7 +71,7 @@ export * from './fetcher';
 
 // Constants
 export { models } from './models';
-export * as constants from './constants';
+export * from './constants';
 
 // Task APIs — for developers needing manual lifetime/disposal control
 export * from './extensions/cv/tasks/classification';

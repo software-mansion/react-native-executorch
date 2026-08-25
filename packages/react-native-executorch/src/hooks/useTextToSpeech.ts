@@ -3,21 +3,18 @@ import { useResourceDownload, type ResourceOptions } from './useResourceDownload
 import {
   createKokoroTextToSpeech,
   type KokoroTtsModel,
+  type KokoroTextToSpeech,
 } from '../extensions/speech/tasks/kokoroTextToSpeech';
 import {
   createSupertonicTextToSpeech,
   type SupertonicTtsModel,
+  type SupertonicTextToSpeech,
 } from '../extensions/speech/tasks/supertonicTextToSpeech';
 
-type KokoroTts<K extends PropertyKey> = Awaited<
-  // prettier-ignore
-  ReturnType<typeof createKokoroTextToSpeech<K>>
->;
-type SupertonicTts<K extends PropertyKey> = Awaited<
-  // prettier-ignore
-  ReturnType<typeof createSupertonicTextToSpeech<K>>
->;
-
+/**
+ * Structured state and execution controls returned by {@link useTextToSpeech}.
+ * @category Hooks
+ */
 export type TtsHookResult<
   C,
   P extends {
@@ -59,7 +56,7 @@ export type TtsHookResult<
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
   options?: ResourceOptions
-): TtsHookResult<KokoroTtsModel<K>, KokoroTts<K>>;
+): TtsHookResult<KokoroTtsModel<K>, KokoroTextToSpeech<K>>;
 
 /**
  * React hook to load and run the Supertonic 3 Text-to-Speech pipeline.
@@ -82,7 +79,7 @@ export function useTextToSpeech<K extends PropertyKey>(
 export function useTextToSpeech<K extends PropertyKey>(
   config: SupertonicTtsModel<K>,
   options?: ResourceOptions
-): TtsHookResult<SupertonicTtsModel<K>, SupertonicTts<K>>;
+): TtsHookResult<SupertonicTtsModel<K>, SupertonicTextToSpeech<K>>;
 
 export function useTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K> | SupertonicTtsModel<K>,
@@ -92,7 +89,7 @@ export function useTextToSpeech<K extends PropertyKey>(
   // from that tag alone.
   const factory = (
     ttsConfig: KokoroTtsModel<K> | SupertonicTtsModel<K>
-  ): Promise<KokoroTts<K> | SupertonicTts<K>> => {
+  ): Promise<KokoroTextToSpeech<K> | SupertonicTextToSpeech<K>> => {
     switch (ttsConfig.name) {
       case 'kokoro':
         return createKokoroTextToSpeech(ttsConfig);

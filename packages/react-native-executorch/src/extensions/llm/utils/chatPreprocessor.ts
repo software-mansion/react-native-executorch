@@ -19,7 +19,7 @@ import type { ToolDefinition, ToolCall } from './toolCalling';
 
 /**
  * High-level media payload input for chat turns.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMediaInput =
   | { readonly kind: 'image'; readonly image: ImageBuffer }
@@ -27,13 +27,13 @@ export type ChatMediaInput =
 
 /**
  * Interleaved text and media content for a chat turn.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMessageContent = string | readonly (string | ChatMediaInput)[];
 
 /**
  * Conversation turn representing system, user, assistant, or tool execution messages.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatMessage = Readonly<
   | { role: 'system' | 'user'; content: ChatMessageContent }
@@ -43,7 +43,7 @@ export type ChatMessage = Readonly<
 
 /**
  * Image preprocessing and sentinel token config for vision-language LLMs.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMImagePreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
@@ -56,7 +56,7 @@ export type LLMImagePreprocessorConfig = {
 
 /**
  * Audio preprocessing and sentinel token config for audio-language LLMs.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMAudioPreprocessorConfig = {
   /** Sentinel token delimiters inserted into Jinja prompts. */
@@ -65,7 +65,7 @@ export type LLMAudioPreprocessorConfig = {
 
 /**
  * Preprocessor configuration for media modalities.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMMediaPreprocessorConfig = {
   /** Image preprocessing configuration for vision-language models. */
@@ -76,7 +76,7 @@ export type LLMMediaPreprocessorConfig = {
 
 /**
  * Options for instantiating a ChatPreprocessor.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatPreprocessorConfig = {
   /** Jinja chat template string for prompt rendering. */
@@ -92,7 +92,7 @@ export type ChatPreprocessorConfig = {
 /**
  * Chat preprocessor object for Jinja template rendering, prompt diffing, and
  * media tensor preprocessing.
- * @category Types
+ * @category LLM / Types
  */
 export type ChatPreprocessor = {
   /**
@@ -296,7 +296,7 @@ function prepareStringMessages(
 /**
  * Handles Jinja template formatting and media tensor preprocessing for chat
  * turns.
- * @category Typescript API
+ * @category LLM / Functions
  * @param config Preprocessor configuration including template and preprocessor
  * settings.
  * @returns A ChatPreprocessor object containing process, render, buildPrompt,

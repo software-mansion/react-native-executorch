@@ -28,7 +28,7 @@ import {
 /**
  * Options describing a privacy filter model's label space and decoding
  * behavior.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The model's BIOES label space, defined alongside the model
  * in the `models` registry.
  */
@@ -53,7 +53,7 @@ export type PrivacyFilterOptions<Label extends string = string> = {
 
 /**
  * Model configuration required to instantiate a privacy filter task runner.
- * @category Types
+ * @category NLP / Types
  * @typeParam Label The model's BIOES label space.
  */
 export type PrivacyFilterModel<Label extends string = string> = {
@@ -72,6 +72,33 @@ export { piiSegments };
 export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
 
 /**
+ * Privacy filter task runner for detecting PII entities in text.
+ * @category NLP / Types
+ * @typeParam Label The model's BIOES label space.
+ */
+export type PrivacyFilter<Label extends string = string> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Asynchronously detects PII entity spans in the given text.
+   * @param input The text string to scan for PII.
+   * @returns A promise resolving to the detected entity spans, in order.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly detectPii: (input: string) => Promise<PiiEntity<PiiEntityType<Label>>[]>;
+
+  /**
+   * Synchronous version of {@link detectPii} to be executed directly on the
+   * caller or worklet thread.
+   */
+  readonly detectPiiWorklet: (input: string) => PiiEntity<PiiEntityType<Label>>[];
+};
+
+/**
  * Creates a privacy filter runner that detects personally identifiable
  * information (PII) spans in text.
  *
@@ -85,7 +112,7 @@ export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
  * windows with 50% overlap and never truncated; predictions near a window's
  * edges are discarded in favor of the neighboring window's more centered
  * context.
- * @category Typescript API
+ * @category NLP / Tasks
  * @typeParam Label The model's BIOES label space.
  * @param config Privacy filter task configuration containing the model and
  * tokenizer paths plus the label space options. See {@link PrivacyFilterModel}.
@@ -101,27 +128,7 @@ export type { PiiEntity, PiiEntityType, PiiSegment, ViterbiBiases };
 export async function createPrivacyFilter<Label extends string>(
   config: PrivacyFilterModel<Label>,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Asynchronously detects PII entity spans in the given text.
-   * @param input The text string to scan for PII.
-   * @returns A promise resolving to the detected entity spans, in order.
-   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
-   * use, or `RESOURCE_DISPOSED` if disposed.
-   */
-  detectPii: (input: string) => Promise<PiiEntity<PiiEntityType<Label>>[]>;
-
-  /**
-   * Synchronous version of {@link detectPii} to be executed directly on the
-   * caller or worklet thread.
-   */
-  detectPiiWorklet: (input: string) => PiiEntity<PiiEntityType<Label>>[];
-}> {
+): Promise<PrivacyFilter<Label>> {
   const { modelPath, tokenizerPath, modelOpts } = config;
   const { labelNames } = modelOpts;
 

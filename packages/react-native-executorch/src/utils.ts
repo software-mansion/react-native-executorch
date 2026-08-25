@@ -12,7 +12,7 @@ import RNBlobUtil from 'react-native-blob-util';
 /**
  * Retrieves the names of all ExecuTorch backends compiled and registered in the
  * native binary.
- * @category Utils
+ * @category Core / Functions
  * @returns An array of registered backend name strings (e.g. 'XnnpackBackend',
  * 'CoreMLBackend').
  */
@@ -20,6 +20,19 @@ export function getRegisteredBackends(): string[] {
   'worklet';
   return rnexecutorchJsi.getExecuTorchRegisteredBackends();
 }
+
+/**
+ * Result of inspecting an ExecuTorch model file.
+ * @category Core / Types
+ */
+export type ModelInspection = {
+  /** The model source URL or file path that was inspected. */
+  readonly source: string;
+  /** Method signatures and tensor schema metadata. */
+  readonly schema: ModelSpec<ConcreteDim>;
+  /** Map of method names to the backends each method was compiled for. */
+  readonly backends: Record<string, readonly string[]>;
+};
 
 /**
  * Inspects an ExecuTorch model file to fetch its metadata and signature info
@@ -35,16 +48,12 @@ export function getRegisteredBackends(): string[] {
  * is not reused. Inspecting a remote model therefore re-downloads it on every
  * call and leaves nothing behind — call {@link download} first and inspect the
  * returned local path if you also intend to run the model.
- * @category Utils
+ * @category Core / Functions
  * @param source The remote HTTP URL or local path to the `.pte` model file.
  * @returns A promise resolving to an object containing the model source, method
  * signature metadata, and per-method backend usage.
  */
-export async function inspectModel(source: string): Promise<{
-  source: string;
-  schema: ModelSpec<ConcreteDim>;
-  backends: Record<string, readonly string[]>;
-}> {
+export async function inspectModel(source: string): Promise<ModelInspection> {
   let localPath = source;
   let downloaded = false;
 

@@ -27,7 +27,7 @@ import { RnExecuTorchError } from '../../../core/error';
 /**
  * Options for configuring a semantic segmenter preprocessor and label
  * vocabulary.
- * @category Types
+ * @category CV / Types
  */
 export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
   /** Resize mode for input images. Must be `'stretch'`. */
@@ -40,7 +40,7 @@ export type SemanticSegmenterOptions<L> = Omit<ImagePreprocessorOptions, 'resize
 
 /**
  * Model configuration required to instantiate a segmenter task runner.
- * @category Types
+ * @category CV / Types
  */
 export type SemanticSegmenterModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -55,13 +55,13 @@ export type SemanticSegmenterModel<L> = {
 
 /**
  * Maps each class label to its assigned RGBA color.
- * @category Types
+ * @category CV / Types
  */
 export type ColorMap<L extends PropertyKey> = Record<L, [number, number, number, number]>;
 
 /**
  * Result structure representing the output of a semantic segmentation task.
- * @category Types
+ * @category CV / Types
  */
 export type SemanticSegmentationResult<L extends PropertyKey> = {
   /** Generated output RGBA image buffer containing the colored segmentation mask. */
@@ -70,42 +70,16 @@ export type SemanticSegmentationResult<L extends PropertyKey> = {
   readonly colormap?: ColorMap<L>;
 };
 
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  s /= 100;
-  l /= 100;
-  const k = (n: number) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
-  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
-}
-
 /**
- * Creates a semantic segmenter runner for executing local Semantic Segmentation
- * models.
- *
- * It validates the model inputs and outputs, asserts that the labels array
- * length matches the model's output vocabulary size, pre-allocates the
- * necessary static execution tensors, sets up an image preprocessor, and
- * registers clean disposal hooks to clear all native memory.
- * @category Typescript API
+ * Semantic segmentation task runner.
+ * @category CV / Types
  * @typeParam L The type representing the segmentation labels.
- * @param config Segmenter task configuration containing path and options.
- * See {@link SemanticSegmenterModel}.
- * @param runtime Optional worklet runtime thread environment context.
- * @returns A promise resolving to an object containing segmentation and
- * disposal controls.
- * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
- * `SCHEMA_MISMATCH` if model schema does not match segmentation spec, or
- * `INVALID_ARGUMENT` if labels length does not match model output classes.
  */
-export async function createSemanticSegmenter<L extends PropertyKey = string>(
-  config: SemanticSegmenterModel<L>,
-  runtime?: WorkletRuntime
-): Promise<{
+export type SemanticSegmenter<L extends PropertyKey = string> = {
   /**
    * Releases all allocated native resources.
    */
-  dispose: () => void;
+  readonly dispose: () => void;
 
   /**
    * Runs semantic segmentation asynchronously.
@@ -130,7 +104,7 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
    * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
    * use, or `RESOURCE_DISPOSED` if disposed.
    */
-  segment: (
+  readonly segment: (
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => Promise<SemanticSegmentationResult<L>>;
@@ -139,11 +113,44 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
    * Synchronous version of {@link segment} to be executed directly on the
    * caller or worklet thread.
    */
-  segmentWorklet: (
+  readonly segmentWorklet: (
     input: ImageBuffer,
     colormap?: Partial<ColorMap<L>>
   ) => SemanticSegmentationResult<L>;
-}> {
+};
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  s /= 100;
+  l /= 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  return [Math.round(255 * f(0)), Math.round(255 * f(8)), Math.round(255 * f(4))];
+}
+
+/**
+ * Creates a semantic segmenter runner for executing local Semantic Segmentation
+ * models.
+ *
+ * It validates the model inputs and outputs, asserts that the labels array
+ * length matches the model's output vocabulary size, pre-allocates the
+ * necessary static execution tensors, sets up an image preprocessor, and
+ * registers clean disposal hooks to clear all native memory.
+ * @category CV / Tasks
+ * @typeParam L The type representing the segmentation labels.
+ * @param config Segmenter task configuration containing path and options.
+ * See {@link SemanticSegmenterModel}.
+ * @param runtime Optional worklet runtime thread environment context.
+ * @returns A promise resolving to an object containing segmentation and
+ * disposal controls.
+ * @throws {RnExecuTorchError} With code `LOAD_FAILED` if model fails to load,
+ * `SCHEMA_MISMATCH` if model schema does not match segmentation spec, or
+ * `INVALID_ARGUMENT` if labels length does not match model output classes.
+ */
+export async function createSemanticSegmenter<L extends PropertyKey = string>(
+  config: SemanticSegmenterModel<L>,
+  runtime?: WorkletRuntime
+): Promise<SemanticSegmenter<L>> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

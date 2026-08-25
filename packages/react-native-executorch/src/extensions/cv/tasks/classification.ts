@@ -19,7 +19,7 @@ import { RnExecuTorchError } from '../../../core/error';
 /**
  * Options for configuring an image classifier preprocessor and label
  * vocabulary.
- * @category Types
+ * @category CV / Types
  */
 export type ClassifierOptions<L> = ImagePreprocessorOptions & {
   /** Array of class labels matching the model's output vocabulary. */
@@ -28,7 +28,7 @@ export type ClassifierOptions<L> = ImagePreprocessorOptions & {
 
 /**
  * Model configuration required to instantiate a classifier task runner.
- * @category Types
+ * @category CV / Types
  */
 export type ClassifierModel<L> = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -43,7 +43,7 @@ export type ClassifierModel<L> = {
 
 /**
  * Optional configuration parameters for classification inference.
- * @category Types
+ * @category CV / Types
  */
 export type ClassifyOptions = {
   /**
@@ -55,13 +55,47 @@ export type ClassifyOptions = {
 
 /**
  * Result structure representing a single classification prediction.
- * @category Types
+ * @category CV / Types
  */
 export type Classification<L> = {
   /** Predicted class label. */
   readonly label: L;
   /** Confidence score of the prediction (between 0.0 and 1.0). */
   readonly confidence: number;
+};
+
+/**
+ * Image classification task runner.
+ * @category CV / Types
+ * @typeParam L The type representing the classification labels.
+ */
+export type Classifier<L> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous image classification on the given input image.
+   * @param input The input image buffer.
+   * @param options Configuration options for classification.
+   * See {@link ClassifyOptions}.
+   * @returns A promise resolving to the list of classifications sorted by
+   * confidence.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `topk` is
+   * negative, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly classify: (
+    input: ImageBuffer,
+    options?: ClassifyOptions
+  ) => Promise<Classification<L>[]>;
+
+  /**
+   * Synchronous version of {@link classify} to be executed directly on the
+   * caller or worklet thread.
+   */
+  readonly classifyWorklet: (input: ImageBuffer, options?: ClassifyOptions) => Classification<L>[];
 };
 
 /**
@@ -72,7 +106,7 @@ export type Classification<L> = {
  * labels array length matches the model's output vocabulary size, pre-allocates
  * the necessary static execution tensors, sets up an image preprocessor, and
  * registers clean disposal hooks to clear all native memory.
- * @category Typescript API
+ * @category CV / Tasks
  * @typeParam L The type representing the classification labels.
  * @param config Classifier task configuration containing path and options.
  * See {@link ClassifierModel}.
@@ -87,31 +121,7 @@ export type Classification<L> = {
 export async function createClassifier<L>(
   config: ClassifierModel<L>,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous image classification on the given input image.
-   * @param input The input image buffer.
-   * @param options Configuration options for classification.
-   * See {@link ClassifyOptions}.
-   * @returns A promise resolving to the list of classifications sorted by
-   * confidence.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if `topk` is
-   * negative, `RESOURCE_BUSY` if the model is in use, or
-   * `RESOURCE_DISPOSED` if disposed.
-   */
-  classify: (input: ImageBuffer, options?: ClassifyOptions) => Promise<Classification<L>[]>;
-
-  /**
-   * Synchronous version of {@link classify} to be executed directly on the
-   * caller or worklet thread.
-   */
-  classifyWorklet: (input: ImageBuffer, options?: ClassifyOptions) => Classification<L>[];
-}> {
+): Promise<Classifier<L>> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

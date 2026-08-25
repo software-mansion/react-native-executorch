@@ -11,7 +11,7 @@ declare const llmRunnerBrand: unique symbol;
 /**
  * Configuration options for LLM text generation.
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMGenerationConfig = {
   /** Whether to echo the prompt in the generated output. */
@@ -27,7 +27,7 @@ export type LLMGenerationConfig = {
 /**
  * Execution and performance statistics for a generation call.
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMGenerationStats = {
   /** Number of tokens in the input prompt. */
@@ -51,7 +51,7 @@ export type LLMGenerationStats = {
 /**
  * Low-level non-text media input tensor payloads.
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type MediaInput =
   | { readonly kind: 'image'; readonly image: Tensor }
@@ -60,21 +60,21 @@ export type MediaInput =
 /**
  * Supported non-text input modality keys (e.g. `'image'`, `'audio'`).
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type Modality = MediaInput['kind'];
 
 /**
  * Text or interleaved multimodal prompt input for a low-level LLM runner.
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type Prompt = string | readonly (string | MediaInput)[];
 
 /**
  * Current KV cache state and capacity metrics for an LLM runner.
  * @experimental This API is experimental and might change in future releases.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMKVCacheState = {
   /** Current token position index / number of occupied tokens in the KV cache. */
@@ -92,7 +92,7 @@ export type LLMKVCacheState = {
  * @experimental This API is experimental and might change in future releases. It
  * relies on experimental ExecuTorch runtime extensions and injected member-pointer
  * accessors to manage KV cache state that may evolve across releases.
- * @category Types
+ * @category LLM / Types
  */
 export type LLMRunner = {
   /** Path to the local model file. */
@@ -155,7 +155,7 @@ export type LLMRunner = {
  * @experimental This API is experimental and might change in future releases. It
  * relies on experimental ExecuTorch runtime extensions and injected member-pointer
  * accessors to manage KV cache state that may evolve across releases.
- * @category Typescript API
+ * @category LLM / Functions
  * @param modelPath Path to the local `.pte` model file.
  * @param tokenizerPath Path to the local tokenizer configuration file (e.g. `tokenizer.json`).
  * @param modalities List of supported input non-text modalities (e.g.

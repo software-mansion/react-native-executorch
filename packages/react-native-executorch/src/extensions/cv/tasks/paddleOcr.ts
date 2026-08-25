@@ -44,7 +44,7 @@ import { createImagePreprocessor } from './preprocessing';
 
 /**
  * A single recognized text region.
- * @category Types
+ * @category CV / Types
  */
 export type OcrDetection = {
   /** The recognized text. */
@@ -61,7 +61,7 @@ export type OcrDetection = {
 
 /**
  * Options for the PP-OCRv6 pipeline.
- * @category Types
+ * @category CV / Types
  */
 export type PaddleOcrModelOptions = {
   /**
@@ -73,7 +73,7 @@ export type PaddleOcrModelOptions = {
 
 /**
  * Optional configuration parameters for optical character recognition inference.
- * @category Types
+ * @category CV / Types
  */
 export type RecognizeCharactersOptions = {
   /**
@@ -86,7 +86,7 @@ export type RecognizeCharactersOptions = {
 /**
  * Model configuration for the PP-OCRv6 pipeline: one fused detect/recognize PTE,
  * the charset published beside it, and the run options.
- * @category Types
+ * @category CV / Types
  */
 export type PaddleOcrModel = {
   /** The fused detect/recognize PTE. Resolved to a local path by the fetcher. */
@@ -99,6 +99,38 @@ export type PaddleOcrModel = {
   readonly charsetPath: string;
   /** Run options. See {@link PaddleOcrModelOptions}. */
   readonly modelOpts: PaddleOcrModelOptions;
+};
+
+/**
+ * PP-OCRv6 optical character recognition task runner.
+ * @category CV / Types
+ */
+export type PaddleOcr = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Detects and recognizes every text line in the given image.
+   * @param input The input image buffer.
+   * @param options Per-call overrides. See {@link RecognizeCharactersOptions}.
+   * @returns A promise resolving to the recognized lines in reading order
+   * (leftmost column top to bottom, then the next column).
+   */
+  readonly recognizeCharacters: (
+    input: ImageBuffer,
+    options?: RecognizeCharactersOptions
+  ) => Promise<OcrDetection[]>;
+
+  /**
+   * Synchronous version of {@link recognizeCharacters} to be executed directly
+   * on the caller or worklet thread.
+   */
+  readonly recognizeCharactersWorklet: (
+    input: ImageBuffer,
+    options?: RecognizeCharactersOptions
+  ) => OcrDetection[];
 };
 
 // Fixed by the export: the detector was trained on ImageNet-normalized RGB and
@@ -354,9 +386,11 @@ function greedyCtcDecode(
  * Creates the PP-OCRv6 runner: one pass detects text quads on the whole page,
  * warps each to the recognizer canvas and reads it, returning the lines in
  * reading order.
- * @category Typescript API
- * @param config Model path, charset path, and run options. See {@link PaddleOcrModel}.
- * @param runtime Optional worklet runtime thread.
+ * @category CV / Tasks
+ * @param config PaddleOCR task configuration containing the model, charset,
+ * and detection thresholds. See {@link PaddleOcrModel}.
+ * @param runtime Optional worklet runtime thread on which to run detection and
+ * recognition.
  * @returns A promise resolving to an object containing recognition and disposal
  * controls.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the model or charset
@@ -367,33 +401,7 @@ function greedyCtcDecode(
 export async function createPaddleOcr(
   config: PaddleOcrModel,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Detects and recognizes every text line in the given image.
-   * @param input The input image buffer.
-   * @param options Per-call overrides. See {@link RecognizeCharactersOptions}.
-   * @returns A promise resolving to the recognized lines in reading order
-   * (leftmost column top to bottom, then the next column).
-   */
-  recognizeCharacters: (
-    input: ImageBuffer,
-    options?: RecognizeCharactersOptions
-  ) => Promise<OcrDetection[]>;
-
-  /**
-   * Synchronous version of {@link recognizeCharacters} to be executed directly
-   * on the caller or worklet thread.
-   */
-  recognizeCharactersWorklet: (
-    input: ImageBuffer,
-    options?: RecognizeCharactersOptions
-  ) => OcrDetection[];
-}> {
+): Promise<PaddleOcr> {
   const { modelPath, charsetPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

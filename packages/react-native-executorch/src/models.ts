@@ -1333,7 +1333,7 @@ const QWEN3_4B_XNNPACK_BF16: LLMModel = {
  * This provides Hugging Face repository URLs and baseline configurations for
  * tasks, allowing quick model loading and execution without manual option
  * setup.
- * @category Utils
+ * @category Models
  */
 export const models = {
   /**

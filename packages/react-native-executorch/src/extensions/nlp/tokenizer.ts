@@ -10,7 +10,7 @@ declare const tokenizerBrand: unique symbol;
 /**
  * A native HuggingFace-compatible tokenizer instance backed by a JSI host
  * object. All methods are synchronous and worklet-compatible.
- * @category Types
+ * @category NLP / Types
  */
 export type Tokenizer = {
   /** Absolute local file path of the loaded `tokenizer.json`. */
@@ -83,7 +83,7 @@ export type Tokenizer = {
 
 /**
  * Loads a HuggingFace tokenizer from a local `tokenizer.json` file.
- * @category Typescript API
+ * @category NLP / Functions
  * @param tokenizerPath Absolute local path to a `tokenizer.json` file.
  * @returns The loaded native {@link Tokenizer} instance.
  * @throws {RnExecuTorchError} With code `LOAD_FAILED` if the tokenizer file

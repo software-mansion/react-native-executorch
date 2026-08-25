@@ -15,7 +15,7 @@ import { RnExecuTorchError } from '../../../core/error';
 
 /**
  * Model configuration required to instantiate a text embedder task runner.
- * @category Types
+ * @category NLP / Types
  */
 export type TextEmbedderModel = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -24,6 +24,36 @@ export type TextEmbedderModel = {
   readonly tokenizerPath: string;
   /** Optional default prompt prefix added to input text before embedding. */
   readonly defaultPrompt?: string;
+};
+
+/**
+ * Text embedding task runner.
+ * @category NLP / Types
+ */
+export type TextEmbedder = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Asynchronously computes the embedding vector for the given input text.
+   * Inputs longer than the model's maximum sequence length are truncated.
+   * @param input The input text to embed.
+   * @param prompt Optional prompt prefix overriding the model's configured
+   * `defaultPrompt` for this call.
+   * @returns A promise resolving to the embedding vector.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the input text
+   * tokenizes to zero tokens, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly embed: (input: string, prompt?: string) => Promise<Float32Array>;
+
+  /**
+   * Synchronous version of {@link embed} to be executed directly on the
+   * caller or worklet thread.
+   */
+  readonly embedWorklet: (input: string, prompt?: string) => Float32Array;
 };
 
 /**
@@ -37,7 +67,7 @@ export type TextEmbedderModel = {
  * model's maximum sequence length; the attention mask is all ones. Pooling and
  * normalization are baked into the exported `.pte`; this runner runs the forward
  * pass and returns the raw embedding vector.
- * @category Typescript API
+ * @category NLP / Tasks
  * @param config Text embedder task configuration containing the model and
  * tokenizer paths. See {@link TextEmbedderModel}.
  * @param runtime Optional worklet runtime thread on which to run the model
@@ -51,31 +81,7 @@ export type TextEmbedderModel = {
 export async function createTextEmbedder(
   config: TextEmbedderModel,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Asynchronously computes the embedding vector for the given input text.
-   * Inputs longer than the model's maximum sequence length are truncated.
-   * @param input The input text to embed.
-   * @param prompt Optional prompt prefix overriding the model's configured
-   * `defaultPrompt` for this call.
-   * @returns A promise resolving to the embedding vector.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the input text
-   * tokenizes to zero tokens, `RESOURCE_BUSY` if the model is in use, or
-   * `RESOURCE_DISPOSED` if disposed.
-   */
-  embed: (input: string, prompt?: string) => Promise<Float32Array>;
-
-  /**
-   * Synchronous version of {@link embed} to be executed directly on the
-   * caller or worklet thread.
-   */
-  embedWorklet: (input: string, prompt?: string) => Float32Array;
-}> {
+): Promise<TextEmbedder> {
   const { modelPath, tokenizerPath, defaultPrompt } = config;
   const [model, tokenizer] = await Promise.all([
     wrapAsync(loadModel, runtime)(modelPath),

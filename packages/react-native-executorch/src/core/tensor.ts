@@ -13,7 +13,7 @@ declare const tensorBrand: unique symbol;
 
 /**
  * Element data type of a {@link Tensor}.
- * @category Types
+ * @category Core / Types
  */
 export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
 
@@ -26,7 +26,7 @@ export type DType = 'float32' | 'uint8' | 'int32' | 'int64' | 'bool';
  * {@link Tensor.dispose} when no longer needed to avoid native memory leaks.
  *
  * Create tensors with the {@link tensor} factory function.
- * @category Types
+ * @category Core / Types
  */
 export type Tensor = {
   /** The element data type of the tensor. */
@@ -125,7 +125,7 @@ export type Tensor = {
  * `src` is omitted the buffer contents are undefined. The returned tensor
  * resides in native C++ memory; call {@link Tensor.dispose} when the tensor is
  * no longer needed.
- * @category Typescript API
+ * @category Core / Functions
  * @param dtype The element data type of the tensor.
  * @param shape An array of dimension sizes (e.g. `[1, 3, 224, 224]`).
  * @param src Optional typed array used to initialize the tensor's data. Its

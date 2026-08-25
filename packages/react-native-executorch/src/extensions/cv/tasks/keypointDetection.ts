@@ -22,7 +22,7 @@ export type { BoxFormat };
 
 /**
  * Options for configuring a keypoint detector runner.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> = Omit<
   ImagePreprocessorOptions,
@@ -42,7 +42,7 @@ export type KeypointDetectorOptions<F extends BoxFormat, L extends PropertyKey> 
 
 /**
  * Model configuration required to instantiate a keypoint detector task runner.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -57,7 +57,7 @@ export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = 
 
 /**
  * Optional configuration parameters for keypoint detection inference.
- * @category Types
+ * @category CV / Types
  */
 export type DetectKeypointsOptions = {
   /**
@@ -75,14 +75,14 @@ export type DetectKeypointsOptions = {
 /**
  * Plural landmarks mapped by their names to coordinates and detection
  * confidence.
- * @category Types
+ * @category CV / Types
  */
 export type Landmarks<L extends PropertyKey> = Record<L, Point & { readonly confidence: number }>;
 
 /**
  * Result structure representing a single detected bounding box and its
  * associated landmarks.
- * @category Types
+ * @category CV / Types
  */
 export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
   /** Scaled bounding box coordinates matching the input image resolution. */
@@ -91,6 +91,43 @@ export type KeypointDetection<F extends BoxFormat, L extends PropertyKey> = {
   readonly confidence: number;
   /** Map of landmark names to their scaled pixel coordinates and individual confidence scores. */
   readonly landmarks: Landmarks<L>;
+};
+
+/**
+ * Keypoint and pose detection task runner.
+ * @category CV / Types
+ * @typeParam F The bounding box format.
+ * @typeParam L The landmark labels type.
+ */
+export type KeypointDetector<F extends BoxFormat, L extends PropertyKey> = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous keypoint and bounding box detection on the given
+   * input image.
+   * @param input The input image buffer.
+   * @param options Configuration options for keypoint detection.
+   * See {@link DetectKeypointsOptions}.
+   * @returns A promise resolving to the list of keypoint detections.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly detectKeypoints: (
+    input: ImageBuffer,
+    options?: DetectKeypointsOptions
+  ) => Promise<KeypointDetection<F, L>[]>;
+
+  /**
+   * Synchronous version of {@link detectKeypoints} to be executed directly on
+   * the caller or worklet thread.
+   */
+  readonly detectKeypointsWorklet: (
+    input: ImageBuffer,
+    options?: DetectKeypointsOptions
+  ) => KeypointDetection<F, L>[];
 };
 
 /**
@@ -173,7 +210,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
  * It validates model inputs and output shapes (bounding boxes, confidence
  * scores, and landmark coordinates), pre-allocates execution tensors, setups
  * preprocessing, and sets up lifecycle disposals.
- * @category Typescript API
+ * @category CV / Tasks
  * @typeParam F The bounding box format.
  * @typeParam L The landmark labels type.
  * @param config Keypoint task configuration containing path and options.
@@ -188,36 +225,7 @@ function postprocess<F extends BoxFormat, L extends PropertyKey>(
 export async function createKeypointDetector<F extends BoxFormat, L extends PropertyKey>(
   config: KeypointDetectorModel<F, L>,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous keypoint and bounding box detection on the given
-   * input image.
-   * @param input The input image buffer.
-   * @param options Configuration options for keypoint detection.
-   * See {@link DetectKeypointsOptions}.
-   * @returns A promise resolving to the list of keypoint detections.
-   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
-   * use, or `RESOURCE_DISPOSED` if disposed.
-   */
-  detectKeypoints: (
-    input: ImageBuffer,
-    options?: DetectKeypointsOptions
-  ) => Promise<KeypointDetection<F, L>[]>;
-
-  /**
-   * Synchronous version of {@link detectKeypoints} to be executed directly on
-   * the caller or worklet thread.
-   */
-  detectKeypointsWorklet: (
-    input: ImageBuffer,
-    options?: DetectKeypointsOptions
-  ) => KeypointDetection<F, L>[];
-}> {
+): Promise<KeypointDetector<F, L>> {
   const { modelPath, modelOpts } = config;
   const { landmarks } = modelOpts;
   const model = await wrapAsync(loadModel, runtime)(modelPath);

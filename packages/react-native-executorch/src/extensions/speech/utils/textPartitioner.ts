@@ -28,7 +28,7 @@ const DEFAULT_SEPARATOR_PENALTY: Record<Tag, number> = { eos: 5, pause: 80, whit
 
 /**
  * Configuration options for text partitioning.
- * @category Types
+ * @category Speech / Types
  */
 export type PartitionOptions = {
   /**
@@ -93,7 +93,7 @@ function sliceAtCuts(text: string, cutIndices: number[]): string[] {
 /**
  * Divides input text into logical segments under the maximum character limit
  * using a forward dynamic programming algorithm.
- * @category Utils
+ * @category Speech / Functions
  * @param text The input text string to partition.
  * @param limit The maximum character limit per partition (must be >= 10).
  * @param options Optional configuration for TTFA prioritization and custom penalties.

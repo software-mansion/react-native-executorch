@@ -35,7 +35,7 @@ import {
 
 /**
  * Kokoro audio sampling rate in Hz (24000).
- * @category Constants
+ * @category Speech / Constants
  */
 export const KOKORO_SAMPLE_RATE = 24000;
 
@@ -54,7 +54,7 @@ const LETTER_PATTERN = /\p{L}/u;
 
 /**
  * Model configuration required to instantiate the Kokoro Text-to-Speech pipeline.
- * @category Types
+ * @category Speech / Types
  * @typeParam K Voice keys record constraint (strictly inferred from voices keys).
  */
 export type KokoroTtsModel<K extends PropertyKey> = {
@@ -75,7 +75,7 @@ export type KokoroTtsModel<K extends PropertyKey> = {
 
 /**
  * Per-call execution options for Kokoro Text-to-Speech synthesis.
- * @category Types
+ * @category Speech / Types
  * @typeParam K Voice keys record constraint.
  */
 export type KokoroTtsOptions<K extends PropertyKey> = {
@@ -91,7 +91,7 @@ export type KokoroTtsOptions<K extends PropertyKey> = {
 
 /**
  * Audio output chunk yielded by the {@link createKokoroTextToSpeech} generator.
- * @category Types
+ * @category Speech / Types
  */
 export type KokoroTtsChunk = {
   /** Float32 PCM audio samples for this chunk, normalized in `[-1, 1]`. */
@@ -107,12 +107,39 @@ export type KokoroTtsChunk = {
 };
 
 /**
+ * Kokoro text-to-speech task runner.
+ * @category Speech / Types
+ * @typeParam K Voice keys record constraint.
+ */
+export type KokoroTextToSpeech<K extends PropertyKey = string> = {
+  /** Releases the allocated native models, phonemizer and execution tensors. */
+  readonly dispose: () => void;
+
+  /**
+   * Streams synthesized audio chunks as an async generator as each text chunk finishes.
+   * @param text Input text (or IPA phonemes) to synthesize into speech.
+   * @param options Per-call execution options. See {@link KokoroTtsOptions}.
+   * @returns An AsyncGenerator yielding {@link KokoroTtsChunk} audio buffers.
+   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the voice is unknown
+   * or speed is out of range, `RESOURCE_BUSY` if the model is in use, or
+   * `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly synthesize: (
+    text: string,
+    options: KokoroTtsOptions<K>
+  ) => AsyncGenerator<KokoroTtsChunk>;
+
+  /** Cancels any in-flight synthesis started by {@link synthesize}. */
+  readonly synthesizeStop: () => void;
+};
+
+/**
  * Creates a Kokoro Text-to-Speech pipeline.
  *
  * It validates both sub-model method schemas, builds the grapheme-to-phoneme
  * pipeline, pre-parses the voice files into memory, and registers disposal
  * hooks to release all native resources.
- * @category Typescript API
+ * @category Speech / Tasks
  * @typeParam K Voice keys record constraint.
  * @param config Kokoro TTS pipeline configuration containing model and asset paths.
  * See {@link KokoroTtsModel}.
@@ -125,24 +152,7 @@ export type KokoroTtsChunk = {
 export async function createKokoroTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
   runtime?: WorkletRuntime
-): Promise<{
-  /** Releases the allocated native models, phonemizer and execution tensors. */
-  dispose: () => void;
-
-  /**
-   * Streams synthesized audio chunks as an async generator as each text chunk finishes.
-   * @param text Input text (or IPA phonemes) to synthesize into speech.
-   * @param options Per-call execution options. See {@link KokoroTtsOptions}.
-   * @returns An AsyncGenerator yielding {@link KokoroTtsChunk} audio buffers.
-   * @throws {RnExecuTorchError} With code `INVALID_ARGUMENT` if the voice is unknown
-   * or speed is out of range, `RESOURCE_BUSY` if the model is in use, or
-   * `RESOURCE_DISPOSED` if disposed.
-   */
-  synthesize: (text: string, options: KokoroTtsOptions<K>) => AsyncGenerator<KokoroTtsChunk>;
-
-  /** Cancels any in-flight synthesis started by {@link synthesize}. */
-  synthesizeStop: () => void;
-}> {
+): Promise<KokoroTextToSpeech<K>> {
   const load = wrapAsync(loadModel, runtime);
   const [durationPredictor, synthesizer] = await Promise.all([
     load(config.modelPaths.durationPredictor),

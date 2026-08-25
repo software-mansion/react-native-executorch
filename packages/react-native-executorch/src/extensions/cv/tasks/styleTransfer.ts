@@ -24,7 +24,7 @@ import {
 
 /**
  * Options for configuring the style transfer preprocessor and postprocessor.
- * @category Types
+ * @category CV / Types
  */
 export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> & {
   /** Resize mode for input images. Must be `'stretch'`. */
@@ -37,7 +37,7 @@ export type StyleTransferOptions = Omit<ImagePreprocessorOptions, 'resizeMode'> 
 
 /**
  * Model configuration required to instantiate a style transfer task runner.
- * @category Types
+ * @category CV / Types
  */
 export type StyleTransferModel = {
   /** Local path or remote URL of the `.pte` model file. */
@@ -51,12 +51,38 @@ export type StyleTransferModel = {
 };
 
 /**
+ * Image style transfer task runner.
+ * @category CV / Types
+ */
+export type StyleTransfer = {
+  /**
+   * Releases all allocated native resources.
+   */
+  readonly dispose: () => void;
+
+  /**
+   * Performs asynchronous image style transfer on the given input image.
+   * @param input The input image buffer.
+   * @returns A promise resolving to the styled image buffer.
+   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
+   * use, or `RESOURCE_DISPOSED` if disposed.
+   */
+  readonly transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
+
+  /**
+   * Synchronous version of {@link transferStyle} to be executed directly on the
+   * caller or worklet thread.
+   */
+  readonly transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
+};
+
+/**
  * Creates an image style transfer runner for executing local style transfer models.
  *
  * It validates the model inputs and outputs requirements, pre-allocates
  * the necessary static execution tensors, sets up an image preprocessor, and
  * registers clean disposal hooks to clear all native memory.
- * @category Typescript API
+ * @category CV / Tasks
  * @param config Style transfer task configuration containing path and options.
  * See {@link StyleTransferModel}.
  * @param runtime Optional worklet runtime thread on which to run the model execution.
@@ -67,27 +93,7 @@ export type StyleTransferModel = {
 export async function createStyleTransfer(
   config: StyleTransferModel,
   runtime?: WorkletRuntime
-): Promise<{
-  /**
-   * Releases all allocated native resources.
-   */
-  dispose: () => void;
-
-  /**
-   * Performs asynchronous image style transfer on the given input image.
-   * @param input The input image buffer.
-   * @returns A promise resolving to the styled image buffer.
-   * @throws {RnExecuTorchError} With code `RESOURCE_BUSY` if the model is in
-   * use, or `RESOURCE_DISPOSED` if disposed.
-   */
-  transferStyle: (input: ImageBuffer) => Promise<ImageBuffer>;
-
-  /**
-   * Synchronous version of {@link transferStyle} to be executed directly on the
-   * caller or worklet thread.
-   */
-  transferStyleWorklet: (input: ImageBuffer) => ImageBuffer;
-}> {
+): Promise<StyleTransfer> {
   const { modelPath, modelOpts } = config;
   const model = await wrapAsync(loadModel, runtime)(modelPath);
 

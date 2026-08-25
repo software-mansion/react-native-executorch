@@ -21,7 +21,7 @@ import { isRnExecuTorchError, RnExecuTorchError } from './error';
  * thread, preventing model loading and inference from blocking the UI. Pass it
  * explicitly (or a custom {@link WorkletRuntime}) to {@link wrapAsync} when you
  * need fine-grained control over which thread work executes on.
- * @category Utils
+ * @category Core / Functions
  */
 export const defaultWorkletRuntime = createWorkletRuntime({
   name: 'ExecuTorchDefaultRuntime',
@@ -35,7 +35,7 @@ export const defaultWorkletRuntime = createWorkletRuntime({
  * runtime, awaits the result, and re-throws any error thrown inside the worklet
  * as an {@link RnExecuTorchError}. This keeps heavy native operations (model
  * loading, tensor computation) off the React Native JS thread.
- * @category Utils
+ * @category Core / Functions
  * @typeParam Args The tuple of argument types of `fn`.
  * @typeParam R The return type of `fn`.
  * @param fn A synchronous worklet function to execute on the background
