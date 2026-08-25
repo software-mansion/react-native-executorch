@@ -448,7 +448,8 @@ export function extractSpans(
  * Assumes a byte-level BPE tokenizer with no lossy normalization (the openai
  * and nemotron privacy filter presets satisfy this): decoding the full token
  * sequence must reproduce the input string exactly. Under that guarantee, the
- * length of `decode(ids[0..k])` is the character offset just past token `k-1`.
+ * length of `decode(ids[0..k])` (see: {@link Tokenizer.decode}) is the
+ * character offset just past token `k-1`.
  *
  * Runs `ids.length` `decode` calls, each on a growing prefix. Cheap for the
  * ~256-token windows the privacy filter operates on; keep in mind for larger

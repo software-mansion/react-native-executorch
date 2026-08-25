@@ -2167,7 +2167,7 @@ export const models = {
     /**
      * Liquid AI LFM 2.5 350M parameter embedding model for asymmetric search
      * and retrieval tasks. Prompts queries with `query: ` (the default) and
-     * passages with `document: ` via `embed(text, 'document: ')`.
+     * passages with `document: ` via {@link TextEmbedder.embed}.
      */
     LFM2_5_EMBEDDING_350M: {
       DEFAULT: LFM2_5_EMBEDDING_350M_EMBEDDINGS,

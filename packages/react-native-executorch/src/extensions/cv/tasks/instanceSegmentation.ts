@@ -73,17 +73,17 @@ export type InstanceSegmenterModel<F extends BoxFormat, L> = {
 export type SegmentInstancesOptions = {
   /**
    * Minimum confidence threshold. If omitted, uses
-   * `modelOpts.defaultConfidenceThreshold`.
+   * {@link InstanceSegmenterOptions.defaultConfidenceThreshold}.
    */
   readonly confidenceThreshold?: number;
   /**
    * Intersection over Union (IoU) threshold in NMS. If omitted, uses
-   * `modelOpts.defaultIouThreshold`.
+   * {@link InstanceSegmenterOptions.defaultIouThreshold}.
    */
   readonly iouThreshold?: number;
   /**
    * Mask binarization probability threshold. If omitted, uses
-   * `modelOpts.defaultMaskThreshold`.
+   * {@link InstanceSegmenterOptions.defaultMaskThreshold}.
    */
   readonly maskThreshold?: number;
 };

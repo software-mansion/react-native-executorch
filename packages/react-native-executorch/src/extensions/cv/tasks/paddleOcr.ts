@@ -53,7 +53,7 @@ export type OcrDetection = {
   /**
    * The region's corners, ordered top-left, top-right, bottom-right, bottom-left,
    * in original image pixels. Oriented, so a rotated line keeps its angle; take
-   * `boundingBoxOfPoints(quad, 'xyxy')` for the axis-aligned box.
+   * {@link boundingBoxOfPoints} for the axis-aligned box.
    */
   readonly quad: Quad;
 };

@@ -59,12 +59,12 @@ export type ObjectDetectorModel<F extends BoxFormat, L> = {
 export type DetectObjectsOptions = {
   /**
    * Minimum confidence score threshold. If omitted, uses
-   * `modelOpts.defaultConfidenceThreshold`.
+   * {@link ObjectDetectorOptions.defaultConfidenceThreshold}.
    */
   readonly confidenceThreshold?: number;
   /**
    * Intersection over Union (IoU) threshold for NMS. If omitted, uses
-   * `modelOpts.defaultIouThreshold`.
+   * {@link ObjectDetectorOptions.defaultIouThreshold}.
    */
   readonly iouThreshold?: number;
 };

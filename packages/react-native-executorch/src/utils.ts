@@ -74,7 +74,7 @@ export async function inspectModel(source: string): Promise<ModelInspection> {
 
   if (source.startsWith('http')) {
     // Throwaway download to a temp path — inspection shouldn't populate the
-    // persistent resource cache, so we don't go through `download()`.
+    // persistent resource cache, so we don't go through {@link download}.
     localPath = `${RNBlobUtil.fs.dirs.CacheDir}/inspect_model_${Date.now()}.pte`;
     await RNBlobUtil.config({ path: localPath }).fetch('GET', source);
     downloaded = true;

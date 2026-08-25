@@ -59,12 +59,12 @@ export type KeypointDetectorModel<F extends BoxFormat, L extends PropertyKey> = 
 export type DetectKeypointsOptions = {
   /**
    * Minimum confidence score threshold for detections. If omitted, uses
-   * `modelOpts.defaultConfidenceThreshold`.
+   * {@link KeypointDetectorOptions.defaultConfidenceThreshold}.
    */
   readonly confidenceThreshold?: number;
   /**
    * Intersection over Union (IoU) threshold for NMS. If omitted, uses
-   * `modelOpts.defaultIouThreshold`.
+   * {@link KeypointDetectorOptions.defaultIouThreshold}.
    */
   readonly iouThreshold?: number;
 };
