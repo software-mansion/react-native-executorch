@@ -5,18 +5,14 @@
  * It provides a layered architecture designed for different use cases:
  *
  * - **React Hooks (`use<Task>`)**:
- *   Declarative hooks (e.g. {@link useClassifier}, {@link useLLMChatSession},
- *   {@link useSpeechToText}, {@link useOpticalCharacterRecognizer}) designed
- *   for UI components. They manage downloading remote model assets with
- *   progress tracking, compilation, and automatic native memory disposal on
- *   unmount.
+ *   Declarative hooks designed for UI components. They manage downloading
+ *   remote model assets with progress tracking, compilation, and automatic
+ *   native memory disposal on unmount.
  *
  * - **Task APIs (`create<Task>`)**:
- *   Imperative, promise-based pipelines (e.g. {@link createClassifier},
- *   {@link createLLMChatSession}, {@link createPaddleOcr},
- *   {@link createWhisperSpeechToText}) with built-in preprocessing,
- *   postprocessing, and tokenizers. Ideal for background services, worklets, or
- *   apps needing manual lifecycle control.
+ *   Imperative, promise-based pipelines with built-in preprocessing and
+ *   postprocessing. Ideal for background services, worklets, or apps needing
+ *   manual lifecycle control.
  *
  * - **Domain Utilities**:
  *   Domain-specific low-level tools:
