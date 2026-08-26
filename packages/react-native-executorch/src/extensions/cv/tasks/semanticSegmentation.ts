@@ -22,6 +22,7 @@ import {
 } from '../ops/image';
 import { sigmoid, argmax } from '../../math';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Options for configuring a semantic segmenter preprocessor and label
@@ -149,111 +150,115 @@ export async function createSemanticSegmenter<L extends PropertyKey = string>(
   config: SemanticSegmenterModel<L>,
   runtime?: WorkletRuntime
 ): Promise<SemanticSegmenter<L>> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [f32(1, 3, 'H', 'W')],
-      [f32(1, 'K', 'H', 'W')]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [f32(3, 'H', 'W')],
-      [f32('K', 'H', 'W')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [nClasses, H, W] = dims.constant('K', 'H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { batched: [1, nClasses, H, W], unbatched: [nClasses, H, W] }[variant];
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [f32(1, 'K', 'H', 'W')]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [f32('K', 'H', 'W')]
+      ),
+    });
 
-  // Generate highly distinct, high-contrast colors, see:
-  // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-  const defaultColormap = modelOpts.labels.map((_, i) => {
-    if (i === 0) return [0, 0, 0, 0] as const;
-    return [...hslToRgb((i * 137.5) % 360, 95, 50), 255] as const;
-  });
+    const [nClasses, H, W] = dims.constant('K', 'H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { batched: [1, nClasses, H, W], unbatched: [nClasses, H, W] }[variant];
 
-  if (nClasses > 1 && modelOpts.labels.length !== nClasses) {
-    throw RnExecuTorchError(
-      'INVALID_ARGUMENT',
-      `Model outputs ${nClasses} classes, but ${modelOpts.labels.length} labels were provided in the configuration.`
-    );
-  }
+    // Generate highly distinct, high-contrast colors, see:
+    // https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
+    const defaultColormap = modelOpts.labels.map((_, i) => {
+      if (i === 0) return [0, 0, 0, 0] as const;
+      return [...hslToRgb((i * 137.5) % 360, 95, 50), 255] as const;
+    });
 
-  const tensors = [
-    tensor('float32', outShape),
-    tensor('float32', [nClasses, H, W]),
-    tensor('float32', [nClasses, H, W]),
-    tensor('float32', [H, W, nClasses]),
-    tensor(nClasses > 1 ? 'int32' : 'uint8', [H, W, 1]),
-    tensor('uint8', [H, W, 4]),
-  ] as const;
+    if (nClasses > 1 && modelOpts.labels.length !== nClasses) {
+      throw RnExecuTorchError(
+        'INVALID_ARGUMENT',
+        `Model outputs ${nClasses} classes, but ${modelOpts.labels.length} labels were provided in the configuration.`
+      );
+    }
 
-  const [tOutput, tReshape, tSigmoid, tChanLast, tMask, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
+    const tensors = [
+      tensor('float32', outShape),
+      tensor('float32', [nClasses, H, W]),
+      tensor('float32', [nClasses, H, W]),
+      tensor('float32', [H, W, nClasses]),
+      tensor(nClasses > 1 ? 'int32' : 'uint8', [H, W, 1]),
+      tensor('uint8', [H, W, 4]),
+    ] as const;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    preprocessor.dispose();
-    model.dispose();
-  };
+    tensors.forEach(scope.track);
 
-  const segmentWorklet = (
-    input: ImageBuffer,
-    colormap?: Partial<ColorMap<L>>
-  ): SemanticSegmentationResult<L> => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tOutput]);
+    const [tOutput, tReshape, tSigmoid, tChanLast, tMask, tRgba] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-    let returnColormap: ColorMap<L> | undefined;
-    if (nClasses > 1) {
-      if (colormap) {
-        returnColormap = Object.fromEntries(
-          modelOpts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
-        ) as ColorMap<L>;
+    const segmentWorklet = (
+      input: ImageBuffer,
+      colormap?: Partial<ColorMap<L>>
+    ): SemanticSegmentationResult<L> => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tOutput]);
+
+      let returnColormap: ColorMap<L> | undefined;
+      if (nClasses > 1) {
+        if (colormap) {
+          returnColormap = Object.fromEntries(
+            modelOpts.labels.map((l) => [l, colormap[l] ?? [0, 0, 0, 0]])
+          ) as ColorMap<L>;
+        } else {
+          returnColormap = Object.fromEntries(
+            modelOpts.labels.map((l, i) => [l, defaultColormap[i]!])
+          ) as ColorMap<L>;
+        }
+
+        const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
+
+        tOutput
+          .copyTo(tReshape)
+          .through(toChannelsLast, tChanLast)
+          .through(argmax, tMask, -1)
+          .through(applyColormap, tRgba, colormapData);
       } else {
-        returnColormap = Object.fromEntries(
-          modelOpts.labels.map((l, i) => [l, defaultColormap[i]!])
-        ) as ColorMap<L>;
+        tOutput
+          .copyTo(tReshape)
+          .through(sigmoid, tSigmoid)
+          .through(toChannelsLast, tChanLast)
+          .through(normalize, tMask, { alpha: 255.0 })
+          .through(cvtColor, tRgba, 'GRAY2RGBA');
       }
 
-      const colormapData = modelOpts.labels.map((l) => returnColormap![l]);
+      const data = new Uint8Array(input.width * input.height * 4);
+      const tResize = tensor('uint8', [input.height, input.width, 4]);
+      try {
+        tRgba
+          .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
+          .getData(data);
+      } finally {
+        tResize.dispose();
+      }
 
-      tOutput
-        .copyTo(tReshape)
-        .through(toChannelsLast, tChanLast)
-        .through(argmax, tMask, -1)
-        .through(applyColormap, tRgba, colormapData);
-    } else {
-      tOutput
-        .copyTo(tReshape)
-        .through(sigmoid, tSigmoid)
-        .through(toChannelsLast, tChanLast)
-        .through(normalize, tMask, { alpha: 255.0 })
-        .through(cvtColor, tRgba, 'GRAY2RGBA');
-    }
-
-    const data = new Uint8Array(input.width * input.height * 4);
-    const tResize = tensor('uint8', [input.height, input.width, 4]);
-    try {
-      tRgba
-        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
-        .getData(data);
-    } finally {
-      tResize.dispose();
-    }
-
-    return {
-      buffer: { data, width: input.width, height: input.height, format: 'rgba', layout: 'hwc' },
-      colormap: returnColormap,
+      return {
+        buffer: { data, width: input.width, height: input.height, format: 'rgba', layout: 'hwc' },
+        colormap: returnColormap,
+      };
     };
-  };
 
-  const segment = wrapAsync(segmentWorklet, runtime);
+    const segment = wrapAsync(segmentWorklet, runtime);
 
-  return { segment, segmentWorklet, dispose };
+    return { segment, segmentWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

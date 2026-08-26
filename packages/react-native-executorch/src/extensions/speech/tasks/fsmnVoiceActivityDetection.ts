@@ -8,6 +8,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, DynamicDim as Dyn, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 import { extractFrames } from '../utils/vadUtils';
 
 /**
@@ -245,114 +246,118 @@ export async function createFsmnVoiceActivityDetector(
   config: FsmnVadModel,
   runtime?: WorkletRuntime
 ): Promise<FsmnVoiceActivityDetector> {
-  const { modelPath, defaultOptions } = config;
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  try {
+    const { modelPath, defaultOptions } = config;
 
-  // Input is [frames, fftLength] with a dynamic frame count; the output is
-  // [1, frames, classes] where class 0 is the non-speech class. The output frame
-  // count matches the input at runtime, but ExecuTorch metadata only reports the
-  // static upper bound, so the per-call output tensor is sized explicitly below.
-  const { dims } = validateSpec(model.schema, {
-    default: method(
-      'forward', // prettier-ignore
-      [f32(Dyn('frames'), 'fftLen')],
-      [f32(1, Dyn('frames'), 'classes')]
-    ),
-  });
-  const [numClasses, fftLength] = dims.constant('classes', 'fftLen');
-  const maxFrames = dims.range('frames')[0].max;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  // The Hann window is uploaded once and reused by the native framing op across
-  // every call.
-  const tensors = [tensor('float32', [FRAME_LENGTH], hannWindow(FRAME_LENGTH))] as const;
-  const [tHann] = tensors;
+    // Input is [frames, fftLength] with a dynamic frame count; the output is
+    // [1, frames, classes] where class 0 is the non-speech class. The output frame
+    // count matches the input at runtime, but ExecuTorch metadata only reports the
+    // static upper bound, so the per-call output tensor is sized explicitly below.
+    const { dims } = validateSpec(model.schema, {
+      default: method(
+        'forward', // prettier-ignore
+        [f32(Dyn('frames'), 'fftLen')],
+        [f32(1, Dyn('frames'), 'classes')]
+      ),
+    });
+    const [numClasses, fftLength] = dims.constant('classes', 'fftLen');
+    const maxFrames = dims.range('frames')[0].max;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
+    // The Hann window is uploaded once and reused by the native framing op across
+    // every call.
+    const tensors = [tensor('float32', [FRAME_LENGTH], hannWindow(FRAME_LENGTH))] as const;
+    tensors.forEach(scope.track);
+    const [tHann] = tensors;
 
-  const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): VadSegment[] => {
-    'worklet';
-    const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
-    const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
-    if (numFrames <= 0) return [];
+    const detectVoiceWorklet = (waveform: Float32Array, options?: VadOptions): VadSegment[] => {
+      'worklet';
+      const mergedOpts: Required<VadOptions> = { ...defaultOptions, ...options };
+      const numFrames = Math.floor((waveform.length - FRAME_LENGTH) / HOP_LENGTH);
+      if (numFrames <= 0) return [];
 
-    const scores = new Float32Array(numFrames);
-    let offset = 0;
-    while (offset < numFrames) {
-      const realFrames = Math.min(numFrames - offset, maxFrames);
-      // The model needs at least MIN_FRAMES rows, so a short final chunk is
-      // zero-padded up to it and its padding scores are discarded below.
-      const chunkFrames = Math.max(realFrames, MIN_FRAMES);
-      const startSample = offset * HOP_LENGTH;
-      const sampleCount = (realFrames - 1) * HOP_LENGTH + FRAME_LENGTH;
+      const scores = new Float32Array(numFrames);
+      let offset = 0;
+      while (offset < numFrames) {
+        const realFrames = Math.min(numFrames - offset, maxFrames);
+        // The model needs at least MIN_FRAMES rows, so a short final chunk is
+        // zero-padded up to it and its padding scores are discarded below.
+        const chunkFrames = Math.max(realFrames, MIN_FRAMES);
+        const startSample = offset * HOP_LENGTH;
+        const sampleCount = (realFrames - 1) * HOP_LENGTH + FRAME_LENGTH;
 
-      const tWaveform = tensor(
-        'float32',
-        [sampleCount],
-        waveform.subarray(startSample, startSample + sampleCount)
-      );
-      const tInput = tensor('float32', [chunkFrames, fftLength]);
-      const tOutput = tensor('float32', [1, chunkFrames, numClasses]);
-      const outBuffer = new Float32Array(tOutput.numel);
-      try {
-        extractFrames(tWaveform, tHann, tInput, {
-          numFrames: realFrames,
-          hopLength: HOP_LENGTH,
-          preemphasis: PREEMPHASIS,
-        });
-        model.execute('forward', [tInput], [tOutput]);
-        tOutput.getData(outBuffer);
-      } finally {
-        tOutput.dispose();
-        tInput.dispose();
-        tWaveform.dispose();
+        const tWaveform = tensor(
+          'float32',
+          [sampleCount],
+          waveform.subarray(startSample, startSample + sampleCount)
+        );
+        const tInput = tensor('float32', [chunkFrames, fftLength]);
+        const tOutput = tensor('float32', [1, chunkFrames, numClasses]);
+        const outBuffer = new Float32Array(tOutput.numel);
+        try {
+          extractFrames(tWaveform, tHann, tInput, {
+            numFrames: realFrames,
+            hopLength: HOP_LENGTH,
+            preemphasis: PREEMPHASIS,
+          });
+          model.execute('forward', [tInput], [tOutput]);
+          tOutput.getData(outBuffer);
+        } finally {
+          tOutput.dispose();
+          tInput.dispose();
+          tWaveform.dispose();
+        }
+
+        for (let i = 0; i < realFrames; i++) {
+          scores[offset + i] = outBuffer[i * numClasses]!;
+        }
+        offset += realFrames;
       }
 
-      for (let i = 0; i < realFrames; i++) {
-        scores[offset + i] = outBuffer[i * numClasses]!;
+      return postprocess(scores, mergedOpts);
+    };
+
+    const detectVoice = wrapAsync(detectVoiceWorklet, runtime);
+
+    let window = new Float32Array(0);
+    let wasSpeaking = false;
+
+    const detectVoiceOnStream = (
+      chunk: Float32Array,
+      options?: VadStreamOptions
+    ): VadEvent | undefined => {
+      const next = new Float32Array(window.length + chunk.length);
+      next.set(window);
+      next.set(chunk, window.length);
+      window = next.length > WINDOW_SAMPLES ? next.slice(next.length - WINDOW_SAMPLES) : next;
+
+      // Speech is ongoing if the last detected segment reaches close enough to the
+      // end of the window (within detectionMargin).
+      const segments = detectVoiceWorklet(window, options);
+      let isSpeaking = false;
+      if (segments.length > 0) {
+        const windowEndSec = window.length / FSMN_VAD_SAMPLE_RATE_HZ;
+        const diffMs = (windowEndSec - segments[segments.length - 1]!.end) * 1000;
+        isSpeaking = diffMs <= (options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS);
       }
-      offset += realFrames;
-    }
 
-    return postprocess(scores, mergedOpts);
-  };
+      if (isSpeaking === wasSpeaking) return undefined;
+      wasSpeaking = isSpeaking;
+      return isSpeaking ? 'speechStart' : 'speechEnd';
+    };
 
-  const detectVoice = wrapAsync(detectVoiceWorklet, runtime);
+    const resetStream = () => {
+      window = new Float32Array(0);
+      wasSpeaking = false;
+    };
 
-  let window = new Float32Array(0);
-  let wasSpeaking = false;
-
-  const detectVoiceOnStream = (
-    chunk: Float32Array,
-    options?: VadStreamOptions
-  ): VadEvent | undefined => {
-    const next = new Float32Array(window.length + chunk.length);
-    next.set(window);
-    next.set(chunk, window.length);
-    window = next.length > WINDOW_SAMPLES ? next.slice(next.length - WINDOW_SAMPLES) : next;
-
-    // Speech is ongoing if the last detected segment reaches close enough to the
-    // end of the window (within detectionMargin).
-    const segments = detectVoiceWorklet(window, options);
-    let isSpeaking = false;
-    if (segments.length > 0) {
-      const windowEndSec = window.length / FSMN_VAD_SAMPLE_RATE_HZ;
-      const diffMs = (windowEndSec - segments[segments.length - 1]!.end) * 1000;
-      isSpeaking = diffMs <= (options?.detectionMargin ?? DEFAULT_DETECTION_MARGIN_MS);
-    }
-
-    if (isSpeaking === wasSpeaking) return undefined;
-    wasSpeaking = isSpeaking;
-    return isSpeaking ? 'speechStart' : 'speechEnd';
-  };
-
-  const resetStream = () => {
-    window = new Float32Array(0);
-    wasSpeaking = false;
-  };
-
-  return { dispose, detectVoice, detectVoiceWorklet, detectVoiceOnStream, resetStream };
+    return { dispose, detectVoice, detectVoiceWorklet, detectVoiceOnStream, resetStream };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

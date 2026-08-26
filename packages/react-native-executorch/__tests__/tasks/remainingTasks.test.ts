@@ -22,7 +22,6 @@ import { createFsmnVoiceActivityDetector } from '../../src/extensions/speech/tas
 import { createWhisperSpeechToText } from '../../src/extensions/speech/tasks/whisperSpeechToText';
 import { fakeJsi } from '../support/fakeJsi';
 import { STRETCH_PREPROCESSING, exported } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/task.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -67,7 +66,6 @@ describe('createKeypointDetector', () => {
     });
 
     await expect(createKeypointDetector(config)).rejects.toThrow(/Constant dimension mismatch/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('has no unbatched variant', async () => {
@@ -78,7 +76,6 @@ describe('createKeypointDetector', () => {
     });
 
     await expect(createKeypointDetector(config)).rejects.toThrow(/Rank mismatch/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });
 
@@ -138,7 +135,6 @@ describe('createInstanceSegmenter', () => {
     });
 
     await expect(createInstanceSegmenter(config)).rejects.toThrow(/inconsistent bindings/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });
 
@@ -182,7 +178,6 @@ describe('createFsmnVoiceActivityDetector', () => {
     await expect(createFsmnVoiceActivityDetector(VAD_CONFIG)).rejects.toThrow(
       /Cannot match symbolic 'dynamic' with concrete 'constant'/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('requires the input and output frame dimensions to share a domain', async () => {
@@ -195,7 +190,6 @@ describe('createFsmnVoiceActivityDetector', () => {
     await expect(createFsmnVoiceActivityDetector(VAD_CONFIG)).rejects.toThrow(
       /inconsistent bindings/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('returns no segments for a waveform shorter than one analysis frame', async () => {
@@ -267,7 +261,6 @@ describe('createWhisperSpeechToText', () => {
     await expect(createWhisperSpeechToText(config)).rejects.toThrow(
       /Method 'decode' not found in exported model spec/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('requires encode and decode to agree on the encoder state shape', async () => {
@@ -280,7 +273,6 @@ describe('createWhisperSpeechToText', () => {
     });
 
     await expect(createWhisperSpeechToText(config)).rejects.toThrow(/inconsistent bindings/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('fails when the tokenizer has no end-of-text token', async () => {
@@ -288,7 +280,6 @@ describe('createWhisperSpeechToText', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: ['hello'] });
 
     await expect(createWhisperSpeechToText(config)).rejects.toThrow(/<\|endoftext\|>/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });
 
@@ -328,7 +319,6 @@ describe('createSdxsTextToImage', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: ['a'] });
 
     await expect(createSdxsTextToImage(config)).rejects.toThrow(/Method 'denoise' not found/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('rejects a text encoder with a different hidden size', async () => {
@@ -342,6 +332,5 @@ describe('createSdxsTextToImage', () => {
     fakeJsi.registerTokenizer(TOKENIZER_PATH, { tokens: ['a'] });
 
     await expect(createSdxsTextToImage(config)).rejects.toThrow(/Constant dimension mismatch/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });

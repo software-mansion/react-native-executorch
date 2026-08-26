@@ -18,6 +18,7 @@ import {
   constraint,
 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 import { RnExecuTorchError } from '../../../core/error';
 import { createPhonemizer, type PhonemizerConfig } from '../utils/phonemizer';
 import { partition } from '../utils/textPartitioner';
@@ -154,17 +155,16 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
   config: KokoroTtsModel<K>,
   runtime?: WorkletRuntime
 ): Promise<KokoroTextToSpeech<K>> {
-  const load = wrapAsync(loadModel, runtime);
-  const [durationPredictor, synthesizer] = await Promise.all([
-    load(config.modelPaths.durationPredictor),
-    load(config.modelPaths.synthesizer),
-  ]);
-  const models = { durationPredictor, synthesizer };
-
-  const allocated: { dispose: () => void }[] = [durationPredictor, synthesizer];
-  const dispose = () => allocated.forEach((resource) => resource.dispose());
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
   try {
+    const load = wrapAsync(loadModel, runtime);
+    const [durationPredictor, synthesizer] = await Promise.all([
+      load(config.modelPaths.durationPredictor).then(scope.track),
+      load(config.modelPaths.synthesizer).then(scope.track),
+    ]);
+    const models = { durationPredictor, synthesizer };
     const predictorSpec = validateSpec(models.durationPredictor.schema, {
       default: method(
         'forward',
@@ -223,7 +223,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     const maxDurationTicks = durations.max;
 
     const phonemizer = await wrapAsync(createPhonemizer, runtime)(config.phonemizer);
-    allocated.push(phonemizer);
+    scope.track(phonemizer);
 
     // Pre-parse the voice matrices into memory
     const parsedVoices = {} as Record<K, Float32Array>;
@@ -238,7 +238,7 @@ export async function createKokoroTextToSpeech<K extends PropertyKey>(
     ] as const;
 
     const [tVoiceRefHalf, tVoiceRef, tSpeed] = tensors;
-    allocated.push(...tensors);
+    tensors.forEach(scope.track);
 
     const synthesizeChunkWorklet = (
       chunkPhonemes: string,

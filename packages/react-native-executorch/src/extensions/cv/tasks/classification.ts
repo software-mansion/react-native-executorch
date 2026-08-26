@@ -14,6 +14,7 @@ import { softmax } from '../../math';
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Options for configuring an image classifier preprocessor and label
@@ -120,69 +121,76 @@ export async function createClassifier<L>(
   config: ClassifierModel<L>,
   runtime?: WorkletRuntime
 ): Promise<Classifier<L>> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [f32(1, 3, 'H', 'W')],
-      [f32(1, 'N')]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [f32(3, 'H', 'W')],
-      [f32('N')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [N, H, W] = dims.constant('N', 'H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { batched: [1, N], unbatched: [N] }[variant];
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [f32(1, 'N')]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [f32('N')]
+      ),
+    });
 
-  if (modelOpts.labels.length !== N) {
-    throw RnExecuTorchError(
-      'INVALID_ARGUMENT',
-      `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${N}).`
-    );
-  }
+    const [N, H, W] = dims.constant('N', 'H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { batched: [1, N], unbatched: [N] }[variant];
 
-  const tensors = [
-    tensor('float32', outShape), // prettier-ignore
-    tensor('float32', outShape),
-  ] as const;
-
-  const [tLogits, tProbas] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
-
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
-
-  const classifyWorklet = (input: ImageBuffer, options?: ClassifyOptions): Classification<L>[] => {
-    'worklet';
-    if (options?.topk !== undefined && options.topk < 0) {
+    if (modelOpts.labels.length !== N) {
       throw RnExecuTorchError(
         'INVALID_ARGUMENT',
-        `Classifier topk option must be non-negative, got ${options.topk}`
+        `Classifier labels length (${modelOpts.labels.length}) must match model output dimension (${N}).`
       );
     }
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tLogits]);
 
-    const probas = tLogits
-      .through(softmax, tProbas) // prettier-ignore
-      .getData(new Float32Array(tProbas.numel));
+    const tensors = [
+      tensor('float32', outShape), // prettier-ignore
+      tensor('float32', outShape),
+    ] as const;
 
-    return Array.from(probas)
-      .map((confidence, index) => ({ confidence, label: modelOpts.labels[index]! }))
-      .sort((a, b) => b.confidence - a.confidence)
-      .slice(0, options?.topk);
-  };
+    tensors.forEach(scope.track);
 
-  const classify = wrapAsync(classifyWorklet, runtime);
+    const [tLogits, tProbas] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-  return { classify, classifyWorklet, dispose };
+    const classifyWorklet = (
+      input: ImageBuffer,
+      options?: ClassifyOptions
+    ): Classification<L>[] => {
+      'worklet';
+      if (options?.topk !== undefined && options.topk < 0) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          `Classifier topk option must be non-negative, got ${options.topk}`
+        );
+      }
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tLogits]);
+
+      const probas = tLogits
+        .through(softmax, tProbas) // prettier-ignore
+        .getData(new Float32Array(tProbas.numel));
+
+      return Array.from(probas)
+        .map((confidence, index) => ({ confidence, label: modelOpts.labels[index]! }))
+        .sort((a, b) => b.confidence - a.confidence)
+        .slice(0, options?.topk);
+    };
+
+    const classify = wrapAsync(classifyWorklet, runtime);
+
+    return { classify, classifyWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

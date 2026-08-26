@@ -20,7 +20,6 @@ import { fakePhonemizer } from '../support/fakeOps';
 import { fakeFs } from '../support/blobUtilMock';
 import { exported } from '../support/fixtures';
 import { tracked } from '../support/lifetime';
-import { allowNativeLeaks } from '../support/setup';
 
 const PREDICTOR_PATH = '/models/duration_predictor.pte';
 const SYNTHESIZER_PATH = '/models/synthesizer.pte';
@@ -216,7 +215,6 @@ describe('createKokoroTextToSpeech — the model contract', () => {
     fakeFs.remove(VOICE_PATH);
 
     await expect(createKokoroTextToSpeech(config)).rejects.toThrow(/ENOENT/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('releases both models, the phonemizer and its tensors on dispose', async () => {

@@ -19,7 +19,6 @@ import { fakeJsi } from '../support/fakeJsi';
 import { fakeFs } from '../support/blobUtilMock';
 import { exported } from '../support/fixtures';
 import { tracked } from '../support/lifetime';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/paddle_ocr.pte';
 const CHARSET_PATH = '/models/charset.json';
@@ -143,7 +142,6 @@ describe('createPaddleOcr — the model contract', () => {
     });
 
     await expect(createPaddleOcr(config)).rejects.toThrow(/recognize/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('rejects a recognizer whose width is not 8x its CTC time axis', async () => {
@@ -161,21 +159,18 @@ describe('createPaddleOcr — the model contract', () => {
     });
 
     await expect(createPaddleOcr(config)).rejects.toThrow(/constraint/i);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('rejects a charset that does not cover the recognizer vocabulary', async () => {
     fakeFs.write(CHARSET_PATH, JSON.stringify([...CHARSET, 'd']));
 
     await expect(createPaddleOcr(config)).rejects.toThrow(/charset size/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('surfaces a missing charset file', async () => {
     fakeFs.remove(CHARSET_PATH);
 
     await expect(createPaddleOcr(config)).rejects.toThrow(/ENOENT/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('releases the model on dispose', async () => {

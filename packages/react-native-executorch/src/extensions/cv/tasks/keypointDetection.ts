@@ -9,6 +9,7 @@ import { tensor, type Tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
@@ -222,59 +223,63 @@ export async function createKeypointDetector<F extends BoxFormat, L extends Prop
   config: KeypointDetectorModel<F, L>,
   runtime?: WorkletRuntime
 ): Promise<KeypointDetector<F, L>> {
-  const { modelPath, modelOpts } = config;
-  const { landmarks } = modelOpts;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { dims } = validateSpec(model.schema, {
-    default: method(
-      'forward',
-      [f32(1, 3, 'H', 'W')],
-      [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const { landmarks } = modelOpts;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
-  const inpShape = [1, 3, targetH, targetW];
-  const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, 3] };
-
-  const tensors = [
-    tensor('float32', outShape.boxes),
-    tensor('float32', outShape.scores),
-    tensor('float32', outShape.keypoints),
-  ] as const;
-
-  const [tBoxes, tScores, tKeypoints] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
-
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
-
-  const detectKeypointsWorklet = (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number }
-  ): KeypointDetection<F, L>[] => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tBoxes, tScores, tKeypoints]);
-
-    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
-    const confidenceThreshold =
-      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
-
-    return postprocess(tBoxes, tScores, tKeypoints, {
-      ...modelOpts,
-      iouThreshold,
-      confidenceThreshold,
-      from: { width: targetW, height: targetH },
-      to: { width: input.width, height: input.height },
+    const { dims } = validateSpec(model.schema, {
+      default: method(
+        'forward',
+        [f32(1, 3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N', landmarks.length, 3)]
+      ),
     });
-  };
 
-  const detectKeypoints = wrapAsync(detectKeypointsWorklet, runtime);
+    const [N, targetH, targetW] = dims.constant('N', 'H', 'W');
+    const inpShape = [1, 3, targetH, targetW];
+    const outShape = { boxes: [N, 4], scores: [N], keypoints: [N, landmarks.length, 3] };
 
-  return { detectKeypoints, detectKeypointsWorklet, dispose };
+    const tensors = [
+      tensor('float32', outShape.boxes),
+      tensor('float32', outShape.scores),
+      tensor('float32', outShape.keypoints),
+    ] as const;
+
+    tensors.forEach(scope.track);
+
+    const [tBoxes, tScores, tKeypoints] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
+
+    const detectKeypointsWorklet = (
+      input: ImageBuffer,
+      options?: { confidenceThreshold?: number; iouThreshold?: number }
+    ): KeypointDetection<F, L>[] => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tBoxes, tScores, tKeypoints]);
+
+      const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+      const confidenceThreshold =
+        options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
+
+      return postprocess(tBoxes, tScores, tKeypoints, {
+        ...modelOpts,
+        iouThreshold,
+        confidenceThreshold,
+        from: { width: targetW, height: targetH },
+        to: { width: input.width, height: input.height },
+      });
+    };
+
+    const detectKeypoints = wrapAsync(detectKeypointsWorklet, runtime);
+
+    return { detectKeypoints, detectKeypointsWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

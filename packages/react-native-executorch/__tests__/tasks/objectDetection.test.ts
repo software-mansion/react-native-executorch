@@ -3,7 +3,6 @@ import { createObjectDetector } from '../../src/extensions/cv/tasks/objectDetect
 import { fakeJsi } from '../support/fakeJsi';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/detector.pte';
 const LABELS = ['person', 'car', 'dog'] as const;
@@ -182,7 +181,6 @@ describe('createObjectDetector — model acceptance', () => {
     });
 
     await expect(createObjectDetector(config)).rejects.toThrow(/Output count mismatch/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('requires boxes, scores and classes to agree on the candidate count', async () => {
@@ -193,7 +191,6 @@ describe('createObjectDetector — model acceptance', () => {
     });
 
     await expect(createObjectDetector(config)).rejects.toThrow(/inconsistent bindings/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 });
 

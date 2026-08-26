@@ -3,7 +3,6 @@ import { createSemanticSegmenter } from '../../src/extensions/cv/tasks/semanticS
 import { fakeJsi } from '../support/fakeJsi';
 import { tracked } from '../support/lifetime';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/segmenter.pte';
 const LABELS = ['background', 'person', 'cat'] as const;
@@ -54,7 +53,6 @@ describe('createSemanticSegmenter — multi-class models', () => {
     await expect(
       createSemanticSegmenter({ ...config, modelOpts: { ...options, labels: ['only-one'] } })
     ).rejects.toThrow(/Model outputs 3 classes, but 1 labels were provided/);
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('returns an RGBA mask at the input image resolution', async () => {

@@ -27,15 +27,28 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
      const [tReshape, tUint8] = tensors;
      ```
 
-2. **Immediate `dispose()` Definition**:
-   - Right after allocating the static tensors, define the `dispose` function immediately. This makes it instantly visible and verifiable that all native memory will be cleaned up:
+2. **Allocate Through a Resource Scope**:
+   - Open a `createResourceScope()` as the first statement of the constructor, take its `dispose` as the pipeline's, and wrap the whole body in `try`/`catch`. `track` every native resource as it is created:
      ```typescript
-     const dispose = () => {
-       tensors.forEach((t) => t.dispose());
-       preprocessor.dispose();
-       model.dispose();
-     };
+     const scope = createResourceScope();
+     const dispose = scope.dispose;
+
+     try {
+       const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
+       const { dims } = validateSpec(model.schema, { ... }); // may throw
+
+       const tensors = [tensor('float32', shapeA), tensor('float32', shapeB)] as const;
+       tensors.forEach(scope.track);
+       const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
+
+       return { runTask, runTaskWorklet, dispose };
+     } catch (error) {
+       dispose();
+       throw error;
+     }
      ```
+   - This is not style. A caller whose `create<Task>` throws never receives a `dispose`, so anything already allocated would be stranded in native memory for the life of the process, and `useModel` re-runs the factory on every config change. The scope makes success and failure share one teardown path.
+   - Track resources **as they land**, not afterwards. For parallel loads that means `Promise.all([load(a).then(scope.track), load(b).then(scope.track)])`, so one rejecting does not strand the other.
 
 3. **Dynamic Tensors & `try/finally` Pattern**:
    - If you must allocate dynamically sized tensors during inference execution (e.g. resizing an output tensor to match the input image dimensions), you must wrap the execution inside a `try {} finally {}` block.
@@ -51,7 +64,7 @@ When implementing task constructors like `create<Task>` (e.g. `createClassifier`
 
 4. **Pure Helper Functions**:
    - Write all auxiliary/helper logic as pure, worklet-compatible functions **outside** the `create<Task>` constructor. Any helper functions invoked inside the worklet executor thread must contain the `'worklet';` directive.
-   - **Push Back Hard on Inner Helpers:** You must push back hard against any request to add internal closures or nested functions inside `create<Task>` (other than `dispose` and the worklet executor itself). Keep the constructor scope flat to avoid scope leak and dependency chain bugs.
+   - **Push Back Hard on Inner Helpers:** You must push back hard against any request to add internal closures or nested functions inside `create<Task>` (other than the worklet executor itself). Keep the constructor scope flat to avoid scope leak and dependency chain bugs.
 
 5. **PTE Model Export & Optimizations**:
    - **Shift Heavy Ops to PyTorch**: Push complex tensor reshaping, data normalization, activations (e.g. `softmax`), or bounding box decoding into the PyTorch model itself so they execute on native backends (e.g., XNNPACK or CoreML).

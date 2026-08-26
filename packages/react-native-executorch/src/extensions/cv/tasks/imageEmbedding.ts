@@ -8,6 +8,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
@@ -75,44 +76,48 @@ export async function createImageEmbedder(
   config: ImageEmbedderModel,
   runtime?: WorkletRuntime
 ): Promise<ImageEmbedder> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [f32(1, 3, 'H', 'W')],
-      [f32(1, 'D')]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [f32(3, 'H', 'W')],
-      [f32('D')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [D, H, W] = dims.constant('D', 'H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { batched: [1, D], unbatched: [D] }[variant];
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [f32(1, 'D')]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [f32('D')]
+      ),
+    });
 
-  const tensors = [tensor('float32', outShape)] as const;
-  const [tEmbedding] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
+    const [D, H, W] = dims.constant('D', 'H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { batched: [1, D], unbatched: [D] }[variant];
 
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
+    const tensors = [tensor('float32', outShape)] as const;
 
-  const embedWorklet = (input: ImageBuffer): Float32Array => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tEmbedding]);
-    return tEmbedding.getData(new Float32Array(tEmbedding.numel));
-  };
+    tensors.forEach(scope.track);
+    const [tEmbedding] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-  const embed = wrapAsync(embedWorklet, runtime);
+    const embedWorklet = (input: ImageBuffer): Float32Array => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tEmbedding]);
+      return tEmbedding.getData(new Float32Array(tEmbedding.numel));
+    };
 
-  return { embed, embedWorklet, dispose };
+    const embed = wrapAsync(embedWorklet, runtime);
+
+    return { embed, embedWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

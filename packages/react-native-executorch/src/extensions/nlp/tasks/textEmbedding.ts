@@ -18,6 +18,7 @@ import { wrapAsync } from '../../../core/runtime';
 
 import { loadTokenizer } from '../tokenizer';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Model configuration required to instantiate a text embedder task runner.
@@ -87,83 +88,87 @@ export async function createTextEmbedder(
   config: TextEmbedderModel,
   runtime?: WorkletRuntime
 ): Promise<TextEmbedder> {
-  const { modelPath, tokenizerPath, defaultPrompt } = config;
-  const [model, tokenizer] = await Promise.all([
-    wrapAsync(loadModel, runtime)(modelPath),
-    wrapAsync(loadTokenizer, runtime)(tokenizerPath),
-  ]);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  // Text embedding models take two int64 inputs: the token ids and the
-  // attention mask, both of shape [1, sequence_length].
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [i64(1, Dyn('L')), i64(1, Dyn('L'))],
-      [f32(1, 'D')],
-      [
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
-        ),
-      ]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [i64(1, Dyn('L')), i64(1, Dyn('L'))],
-      [f32('D')],
-      [
-        constraint.equality(
-          { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
-          { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
-        ),
-      ]
-    ),
-  });
+  try {
+    const { modelPath, tokenizerPath, defaultPrompt } = config;
+    const [model, tokenizer] = await Promise.all([
+      wrapAsync(loadModel, runtime)(modelPath).then(scope.track),
+      wrapAsync(loadTokenizer, runtime)(tokenizerPath).then(scope.track),
+    ]);
 
-  const [seqLen] = dims.range('L');
-  const [D] = dims.constant('D');
-  const outShape = { batched: [1, D], unbatched: [D] }[variant];
+    // Text embedding models take two int64 inputs: the token ids and the
+    // attention mask, both of shape [1, sequence_length].
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+        [f32(1, 'D')],
+        [
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
+          ),
+        ]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [i64(1, Dyn('L')), i64(1, Dyn('L'))],
+        [f32('D')],
+        [
+          constraint.equality(
+            { paramSide: 'input', tensorIdx: 0, dimIdx: 1 },
+            { paramSide: 'input', tensorIdx: 1, dimIdx: 1 }
+          ),
+        ]
+      ),
+    });
 
-  const tensors = [tensor('float32', outShape)] as const;
-  const [tEmbedding] = tensors;
+    const [seqLen] = dims.range('L');
+    const [D] = dims.constant('D');
+    const outShape = { batched: [1, D], unbatched: [D] }[variant];
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    tokenizer.dispose();
-    model.dispose();
-  };
+    const tensors = [tensor('float32', outShape)] as const;
 
-  const embedWorklet = (input: string, prompt?: string): Float32Array => {
-    'worklet';
-    const text = (prompt ?? defaultPrompt ?? '') + input;
-    const ids = tokenizer.encode(text);
-    if (ids.length === 0) {
-      throw RnExecuTorchError(
-        'INVALID_ARGUMENT',
-        'createTextEmbedder: input tokenized to zero tokens'
-      );
-    }
-    const len = Math.min(ids.length, seqLen.max);
+    tensors.forEach(scope.track);
+    const [tEmbedding] = tensors;
 
-    const idsData = new BigInt64Array(len);
-    const maskData = new BigInt64Array(len);
-    for (let i = 0; i < len; i++) {
-      idsData[i] = BigInt(ids[i]!);
-      maskData[i] = 1n;
-    }
+    const embedWorklet = (input: string, prompt?: string): Float32Array => {
+      'worklet';
+      const text = (prompt ?? defaultPrompt ?? '') + input;
+      const ids = tokenizer.encode(text);
+      if (ids.length === 0) {
+        throw RnExecuTorchError(
+          'INVALID_ARGUMENT',
+          'createTextEmbedder: input tokenized to zero tokens'
+        );
+      }
+      const len = Math.min(ids.length, seqLen.max);
 
-    const tTokenIds = tensor('int64', [1, len], idsData);
-    const tAttentionMask = tensor('int64', [1, len], maskData);
-    try {
-      model.execute('forward', [tTokenIds, tAttentionMask], [tEmbedding]);
-      return tEmbedding.getData(new Float32Array(tEmbedding.numel));
-    } finally {
-      tTokenIds.dispose();
-      tAttentionMask.dispose();
-    }
-  };
+      const idsData = new BigInt64Array(len);
+      const maskData = new BigInt64Array(len);
+      for (let i = 0; i < len; i++) {
+        idsData[i] = BigInt(ids[i]!);
+        maskData[i] = 1n;
+      }
 
-  const embed = wrapAsync(embedWorklet, runtime);
+      const tTokenIds = tensor('int64', [1, len], idsData);
+      const tAttentionMask = tensor('int64', [1, len], maskData);
+      try {
+        model.execute('forward', [tTokenIds, tAttentionMask], [tEmbedding]);
+        return tEmbedding.getData(new Float32Array(tEmbedding.numel));
+      } finally {
+        tTokenIds.dispose();
+        tAttentionMask.dispose();
+      }
+    };
 
-  return { embed, embedWorklet, dispose };
+    const embed = wrapAsync(embedWorklet, runtime);
+
+    return { embed, embedWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

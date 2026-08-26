@@ -5,7 +5,6 @@ import { fakeJsi } from '../support/fakeJsi';
 import { tracked } from '../support/lifetime';
 import type { FakeTensor } from '../support/fakeTensor';
 import { STRETCH_PREPROCESSING, exported, imageBuffer, writesOutputs } from '../support/fixtures';
-import { allowNativeLeaks } from '../support/setup';
 
 const MODEL_PATH = '/models/embedder.pte';
 const TOKENIZER_PATH = '/models/tokenizer.json';
@@ -107,7 +106,6 @@ describe('createTextEmbedder', () => {
     await expect(createTextEmbedder(config)).rejects.toThrow(
       /doesn't match any of the provided variants/
     );
-    allowNativeLeaks(); // see `tasks/constructionFailure.test.ts`
   });
 
   it('feeds tokens at their exact length with an all-ones attention mask', async () => {

@@ -23,6 +23,7 @@ import {
   type BoxFormat,
 } from '../ops/box';
 import { RnExecuTorchError } from '../../../core/error';
+import { createResourceScope } from '../../../core/lifetime';
 
 /**
  * Options for configuring an instance segmenter preprocessor, label
@@ -166,134 +167,138 @@ export async function createInstanceSegmenter<F extends BoxFormat, L>(
   config: InstanceSegmenterModel<F, L>,
   runtime?: WorkletRuntime
 ): Promise<InstanceSegmenter<F, L>> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward',
-      [f32(1, 3, 'H', 'W')],
-      [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
-    ),
-    unbatched: method(
-      'forward',
-      [f32(3, 'H', 'W')],
-      [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [N, H, W, maskH, maskW] = dims.constant('N', 'H', 'W', 'MH', 'MW');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = { boxes: [N, 4], scores: [N], classes: [N], masks: [N, maskH, maskW] };
-
-  const tensors = [
-    tensor('float32', outShape.boxes),
-    tensor('float32', outShape.scores),
-    tensor('float32', outShape.classes),
-    tensor('float32', outShape.masks),
-    tensor('float32', [maskH, maskW, 1]),
-  ] as const;
-
-  const [tBoxes, tScores, tClasses, tAllMasks, tMask] = tensors;
-
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
-
-  const dispose = () => {
-    preprocessor.dispose();
-    tensors.forEach((t) => t.dispose());
-    model.dispose();
-  };
-
-  const segmentInstancesWorklet = (
-    input: ImageBuffer,
-    options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
-  ): InstanceSegmentationResult<F, L>[] => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
-
-    const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
-    const maskThreshold = options?.maskThreshold ?? modelOpts.defaultMaskThreshold;
-    const confidenceThreshold =
-      options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
-
-    const eps = 1e-7;
-    const clampedMaskThreshold = Math.max(eps, Math.min(1 - eps, maskThreshold));
-    const logitMaskThreshold = Math.log(clampedMaskThreshold / (1 - clampedMaskThreshold));
-
-    const indices = nms(tBoxes, tScores, {
-      boxFormat: modelOpts.boxFormat,
-      iouThreshold,
-      confidenceThreshold,
-      nmsType: 'standard',
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward',
+        [f32(1, 3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
+      ),
+      unbatched: method(
+        'forward',
+        [f32(3, 'H', 'W')],
+        [f32('N', 4), f32('N'), f32('N'), f32('N', 'MH', 'MW')]
+      ),
     });
 
-    const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
-    const scores = tScores.getData(new Float32Array(tScores.numel));
-    const classes = tClasses.getData(new Float32Array(tClasses.numel));
+    const [N, H, W, maskH, maskW] = dims.constant('N', 'H', 'W', 'MH', 'MW');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = { boxes: [N, 4], scores: [N], classes: [N], masks: [N, maskH, maskW] };
 
-    const auxTensors = [
-      tensor('float32', [input.height, input.width, 1]),
-      tensor('float32', [input.height, input.width, 1]),
-      tensor('float32', [input.height, input.width, 1]),
-      tensor('uint8', [input.height, input.width, 1]),
+    const tensors = [
+      tensor('float32', outShape.boxes),
+      tensor('float32', outShape.scores),
+      tensor('float32', outShape.classes),
+      tensor('float32', outShape.masks),
+      tensor('float32', [maskH, maskW, 1]),
     ] as const;
 
-    const [tResize, tThreshold, tCrop, tUint8] = auxTensors;
+    tensors.forEach(scope.track);
 
-    const results: InstanceSegmentationResult<F, L>[] = [];
+    const [tBoxes, tScores, tClasses, tAllMasks, tMask] = tensors;
 
-    try {
-      for (const idx of indices) {
-        const confidence = scores[idx]!;
-        const classIdx = Math.round(classes[idx]!);
-        const label = modelOpts.labels[classIdx];
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-        if (label === undefined) {
-          throw RnExecuTorchError(
-            'INVALID_ARGUMENT',
-            `InstanceSegmenter: Predicted class index ${classIdx} is ` +
-              `out of bounds for labels array of size ${modelOpts.labels.length}.`
-          );
+    const segmentInstancesWorklet = (
+      input: ImageBuffer,
+      options?: { confidenceThreshold?: number; iouThreshold?: number; maskThreshold?: number }
+    ): InstanceSegmentationResult<F, L>[] => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tBoxes, tScores, tClasses, tAllMasks]);
+
+      const iouThreshold = options?.iouThreshold ?? modelOpts.defaultIouThreshold;
+      const maskThreshold = options?.maskThreshold ?? modelOpts.defaultMaskThreshold;
+      const confidenceThreshold =
+        options?.confidenceThreshold ?? modelOpts.defaultConfidenceThreshold;
+
+      const eps = 1e-7;
+      const clampedMaskThreshold = Math.max(eps, Math.min(1 - eps, maskThreshold));
+      const logitMaskThreshold = Math.log(clampedMaskThreshold / (1 - clampedMaskThreshold));
+
+      const indices = nms(tBoxes, tScores, {
+        boxFormat: modelOpts.boxFormat,
+        iouThreshold,
+        confidenceThreshold,
+        nmsType: 'standard',
+      });
+
+      const boxes = tBoxes.getData(new Float32Array(tBoxes.numel));
+      const scores = tScores.getData(new Float32Array(tScores.numel));
+      const classes = tClasses.getData(new Float32Array(tClasses.numel));
+
+      const auxTensors = [
+        tensor('float32', [input.height, input.width, 1]),
+        tensor('float32', [input.height, input.width, 1]),
+        tensor('float32', [input.height, input.width, 1]),
+        tensor('uint8', [input.height, input.width, 1]),
+      ] as const;
+
+      const [tResize, tThreshold, tCrop, tUint8] = auxTensors;
+
+      const results: InstanceSegmentationResult<F, L>[] = [];
+
+      try {
+        for (const idx of indices) {
+          const confidence = scores[idx]!;
+          const classIdx = Math.round(classes[idx]!);
+          const label = modelOpts.labels[classIdx];
+
+          if (label === undefined) {
+            throw RnExecuTorchError(
+              'INVALID_ARGUMENT',
+              `InstanceSegmenter: Predicted class index ${classIdx} is ` +
+                `out of bounds for labels array of size ${modelOpts.labels.length}.`
+            );
+          }
+
+          const a = boxes[idx * 4]!;
+          const b = boxes[idx * 4 + 1]!;
+          const c = boxes[idx * 4 + 2]!;
+          const d = boxes[idx * 4 + 3]!;
+
+          const box = scaleBox(decodeBox([a, b, c, d], modelOpts.boxFormat), {
+            from: { width: W, height: H },
+            to: { width: input.width, height: input.height },
+            resizeMode: 'stretch',
+          });
+
+          const maskData = tAllMasks
+            .copyTo(tMask, { offset: idx * maskH * maskW, length: maskH * maskW })
+            .through(resize, tResize, { mode: 'stretch', interpolation: 'linear' })
+            .through(threshold, tThreshold, logitMaskThreshold)
+            .through(restrictToBox, tCrop, box)
+            .through(normalize, tUint8, { alpha: 255.0 })
+            .getData(new Uint8Array(tUint8.numel));
+
+          const mask = {
+            data: maskData,
+            width: input.width,
+            height: input.height,
+            format: 'gray' as const,
+            layout: 'hwc' as const,
+          };
+
+          results.push({ box, mask, confidence, label });
         }
-
-        const a = boxes[idx * 4]!;
-        const b = boxes[idx * 4 + 1]!;
-        const c = boxes[idx * 4 + 2]!;
-        const d = boxes[idx * 4 + 3]!;
-
-        const box = scaleBox(decodeBox([a, b, c, d], modelOpts.boxFormat), {
-          from: { width: W, height: H },
-          to: { width: input.width, height: input.height },
-          resizeMode: 'stretch',
-        });
-
-        const maskData = tAllMasks
-          .copyTo(tMask, { offset: idx * maskH * maskW, length: maskH * maskW })
-          .through(resize, tResize, { mode: 'stretch', interpolation: 'linear' })
-          .through(threshold, tThreshold, logitMaskThreshold)
-          .through(restrictToBox, tCrop, box)
-          .through(normalize, tUint8, { alpha: 255.0 })
-          .getData(new Uint8Array(tUint8.numel));
-
-        const mask = {
-          data: maskData,
-          width: input.width,
-          height: input.height,
-          format: 'gray' as const,
-          layout: 'hwc' as const,
-        };
-
-        results.push({ box, mask, confidence, label });
+      } finally {
+        auxTensors.forEach((t) => t.dispose());
       }
-    } finally {
-      auxTensors.forEach((t) => t.dispose());
-    }
 
-    return results;
-  };
+      return results;
+    };
 
-  const segmentInstances = wrapAsync(segmentInstancesWorklet, runtime);
+    const segmentInstances = wrapAsync(segmentInstancesWorklet, runtime);
 
-  return { segmentInstances, segmentInstancesWorklet, dispose };
+    return { segmentInstances, segmentInstancesWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

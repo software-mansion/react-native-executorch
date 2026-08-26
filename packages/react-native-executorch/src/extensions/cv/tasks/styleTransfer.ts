@@ -9,6 +9,7 @@ import { tensor } from '../../../core/tensor';
 import { loadModel } from '../../../core/model';
 import { validateSpec, method, f32 } from '../../../core/schema';
 import { wrapAsync } from '../../../core/runtime';
+import { createResourceScope } from '../../../core/lifetime';
 
 import type { ImageBuffer } from '../image';
 import { createImagePreprocessor, type ImagePreprocessorOptions } from '../utils/imagePreprocessor';
@@ -93,66 +94,70 @@ export async function createStyleTransfer(
   config: StyleTransferModel,
   runtime?: WorkletRuntime
 ): Promise<StyleTransfer> {
-  const { modelPath, modelOpts } = config;
-  const model = await wrapAsync(loadModel, runtime)(modelPath);
+  const scope = createResourceScope();
+  const dispose = scope.dispose;
 
-  const { variant, dims } = validateSpec(model.schema, {
-    batched: method(
-      'forward', // prettier-ignore
-      [f32(1, 3, 'H', 'W')],
-      [f32(1, 3, 'H', 'W')]
-    ),
-    unbatched: method(
-      'forward', // prettier-ignore
-      [f32(3, 'H', 'W')],
-      [f32(3, 'H', 'W')]
-    ),
-  });
+  try {
+    const { modelPath, modelOpts } = config;
+    const model = scope.track(await wrapAsync(loadModel, runtime)(modelPath));
 
-  const [H, W] = dims.constant('H', 'W');
-  const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
-  const outShape = inpShape;
+    const { variant, dims } = validateSpec(model.schema, {
+      batched: method(
+        'forward', // prettier-ignore
+        [f32(1, 3, 'H', 'W')],
+        [f32(1, 3, 'H', 'W')]
+      ),
+      unbatched: method(
+        'forward', // prettier-ignore
+        [f32(3, 'H', 'W')],
+        [f32(3, 'H', 'W')]
+      ),
+    });
 
-  const tensors = [
-    tensor('float32', outShape),
-    tensor('float32', [3, H, W]),
-    tensor('uint8', [3, H, W]),
-    tensor('uint8', [H, W, 3]),
-    tensor('uint8', [H, W, 4]),
-  ] as const;
+    const [H, W] = dims.constant('H', 'W');
+    const inpShape = { batched: [1, 3, H, W], unbatched: [3, H, W] }[variant];
+    const outShape = inpShape;
 
-  const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
-  const preprocessor = createImagePreprocessor(modelOpts, inpShape);
+    const tensors = [
+      tensor('float32', outShape),
+      tensor('float32', [3, H, W]),
+      tensor('uint8', [3, H, W]),
+      tensor('uint8', [H, W, 3]),
+      tensor('uint8', [H, W, 4]),
+    ] as const;
 
-  const dispose = () => {
-    tensors.forEach((t) => t.dispose());
-    preprocessor.dispose();
-    model.dispose();
-  };
+    tensors.forEach(scope.track);
 
-  const transferStyleWorklet = (input: ImageBuffer): ImageBuffer => {
-    'worklet';
-    const tInput = preprocessor.process(input);
-    model.execute('forward', [tInput], [tOutput]);
+    const [tOutput, tReshape, tUint8, tChanLast, tRgba] = tensors;
+    const preprocessor = scope.track(createImagePreprocessor(modelOpts, inpShape));
 
-    const data = new Uint8Array(input.width * input.height * 4);
-    const tResize = tensor('uint8', [input.height, input.width, 4]);
-    try {
-      tOutput
-        .copyTo(tReshape)
-        .through(normalize, tUint8, modelOpts.outNormalizeOpts)
-        .through(toChannelsLast, tChanLast)
-        .through(cvtColor, tRgba, 'RGB2RGBA')
-        .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
-        .getData(data);
-    } finally {
-      tResize.dispose();
-    }
+    const transferStyleWorklet = (input: ImageBuffer): ImageBuffer => {
+      'worklet';
+      const tInput = preprocessor.process(input);
+      model.execute('forward', [tInput], [tOutput]);
 
-    return { data, width: input.width, height: input.height, format: 'rgba', layout: 'hwc' };
-  };
+      const data = new Uint8Array(input.width * input.height * 4);
+      const tResize = tensor('uint8', [input.height, input.width, 4]);
+      try {
+        tOutput
+          .copyTo(tReshape)
+          .through(normalize, tUint8, modelOpts.outNormalizeOpts)
+          .through(toChannelsLast, tChanLast)
+          .through(cvtColor, tRgba, 'RGB2RGBA')
+          .through(resize, tResize, { mode: 'stretch', interpolation: modelOpts.outInterpolation })
+          .getData(data);
+      } finally {
+        tResize.dispose();
+      }
 
-  const transferStyle = wrapAsync(transferStyleWorklet, runtime);
+      return { data, width: input.width, height: input.height, format: 'rgba', layout: 'hwc' };
+    };
 
-  return { transferStyle, transferStyleWorklet, dispose };
+    const transferStyle = wrapAsync(transferStyleWorklet, runtime);
+
+    return { transferStyle, transferStyleWorklet, dispose };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }
