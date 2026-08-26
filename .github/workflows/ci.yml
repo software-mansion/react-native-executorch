@@ -43,27 +43,26 @@ jobs:
   native-tests:
     name: C++ unit tests
     runs-on: ubuntu-latest
-    # Well clear of a cold run (dependency build ~2 min) but far below the 6 h
-    # default, so a stalled download fails with logs instead of hanging.
-    timeout-minutes: 30
+    # Well clear of a cold run (the Hermes + ExecuTorch dependency build is the
+    # bulk of it) but far below the 6 h default, so a stalled download fails
+    # with logs instead of hanging.
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: packages/react-native-executorch
-    env:
-      # The package version on this branch is 0.0.0, which has no GitHub Release,
-      # so point the header download at the libs release that carries a
-      # headers.tar.gz. Keep this in sync with the ExecuTorch version pinned in
-      # scripts/build-native-test-deps.sh — the tests compile against these
-      # headers and link libraries built from that pin.
-      RNET_BASE_URL: https://github.com/software-mansion/react-native-executorch/releases/download/v0.10.0-libs
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Only googletest is needed; the other submodules are unrelated to the
-      # host test build.
-      - name: Check out googletest
-        run: git submodule update --init --depth 1 third-party/googletest
+      # googletest for the harness, phonemis because cpp/extensions/speech
+      # compiles it. GIT_LFS_SKIP_SMUDGE keeps phonemis' `data/` as pointer
+      # files: it is Git LFS, several tens of MB, and nothing in the host suite
+      # reads it (see cpp/tests/extensions/PhonemizerTest.cpp).
+      - name: Check out the submodules the tests build
+        run: |
+          git submodule update --init --depth 1 third-party/googletest
+          GIT_LFS_SKIP_SMUDGE=1 git submodule update --init --depth 1 \
+            packages/react-native-executorch/third-party/common/phonemis
         working-directory: ${{ github.workspace }}
 
       # download-libs.js is dependency-free, so this job needs node but not a
@@ -114,10 +113,11 @@ jobs:
           path: packages/react-native-executorch/.native-test-deps
           key: ${{ steps.deps-cache.outputs.cache-primary-key }}
 
-      # ~486 KB, pinned to an exact HF revision and checksum-verified. Fetched
-      # as its own step so a Hugging Face outage is an obvious failure rather
-      # than a confusing one inside the test run.
-      - name: Fetch .pte test fixtures
+      # ~3 MB in total (a .pte program and a tokenizer.json), each pinned to an
+      # exact HF revision and checksum-verified. Fetched as its own step so a
+      # Hugging Face outage is an obvious failure rather than a confusing one
+      # inside the test run.
+      - name: Fetch test fixtures
         run: scripts/fetch-test-fixtures.sh
 
       - name: Run C++ unit tests
